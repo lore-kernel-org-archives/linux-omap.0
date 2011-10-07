@@ -1,220 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 8/8] OMAP3: powerdomain data: add wake-up latency
- figures
-Date: Fri, 7 Oct 2011 09:26:02 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110070923320.4611@utopia.booyaka.com>
-References: <1316621649-3622-1-git-send-email-j-pihet@ti.com> <1316622258-3892-1-git-send-email-j-pihet@ti.com> <1316622258-3892-9-git-send-email-j-pihet@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: ARM SoC tree: OMAP PM dependency on tip irq/core
+Date: Fri, 7 Oct 2011 18:04:11 +0200
+Message-ID: <201110071804.11494.arnd@arndb.de>
+References: <87aa9mm8ts.fsf@ti.com> <4E877E29.7000309@gmail.com> <20111006195945.GQ6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37526 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750Ab1JGP0E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 11:26:04 -0400
-In-Reply-To: <1316622258-3892-9-git-send-email-j-pihet@ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:54495 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752438Ab1JGQEa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 12:04:30 -0400
+In-Reply-To: <20111006195945.GQ6324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <robherring2@gmail.com>, Kevin Hilman <khilman@ti.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Jean
-
-On Wed, 21 Sep 2011, jean.pihet@newoldbits.com wrote:
-
-> Figures are added to the power domains structs for RET and OFF modes.
+On Thursday 06 October 2011, Tony Lindgren wrote:
+> * Rob Herring <robherring2@gmail.com> [111001 13:21]:
+> > On 09/30/2011 05:29 PM, Kevin Hilman wrote:
+> > > Hi Arnd,
+> > > 
+> > > Kevin Hilman <khilman@ti.com> writes:
+> > > 
+> > >> The upcoming OMAP4 PM series from Santosh[1] that we're planning to
+> > >> queue for v3.2 has a dependency[2] on a patch currently queued for v3.2
+> > >> in the irq/core branch of Thomas' tip tree[3].
+> > >>
+> > >> In the past, I noticed you merged external trees like this to solve
+> > >> dependencies.
+> > >>
+> > >> Could you pull the irq/core branch into your tree to meet this
+> > >> dependency?
+> > > 
+> > > On second thought, since Santosh's branch is the only one with this
+> > > dependency (and we also have a dependency on Russell's devel-stable)
+> > > I'll just build up a branch for Santosh's series that includes
+> > > rmk/devel-stable and tglx/irq-core.
+> > > 
+> > 
+> > Any new platforms will have a dependency on rmk/devel-stable with the
+> > mach header clean-up. I'll probably have a dependency on tglx's tree as
+> > well.
 > 
-> Note: the latency figures for MPU, PER, CORE, NEON have been obtained
-> from actual measurements.
-> The latency figures for the other power domains are preliminary and
-> shall be added.
-> 
-> Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-> for a detailed explanation on where are the numbers magically coming from.
-> 
-> Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
-> on MPU, CORE and PER.
+> Sounds like Arnd should pull this into some branch then.
 
-A few more question about these numbers.
+I've pulled in rmk/devel-stable as a dependency now, thanks for
+reminding me of that.
 
-- Are these numbers the ones right off the hardware, or rounded, or 
-worst-case plus a certain percentage?
+Thomas, where should I get the irq-core branch (or whichever
+I should wait for) to pull in as another dependency. Is that
+branch one that never gets rebased? 
 
-- What frequency/voltage were these measured at?
-
-- Also, you mention OMAP3 Beagleboard.  Is that 34xx or 36xx Beagleboard?
-
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ---
->  arch/arm/mach-omap2/powerdomains3xxx_data.c |   78 +++++++++++++++++++++++++++
->  1 files changed, 78 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> index 469a920..32922bb 100644
-> --- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> +++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-> @@ -31,6 +31,14 @@
->  
->  /*
->   * Powerdomains
-> + *
-> + * The wakeup_lat values are derived from measurements on
-> + * the actual target.
-> + *
-> + * Note: the latency figures for MPU, PER, CORE, NEON have been obtained
-> + * from actual measurements.
-> + * The latency figures for the other power domains are preliminary and
-> + * shall be added.
->   */
->  
->  static struct powerdomain iva2_pwrdm = {
-> @@ -52,6 +60,13 @@ static struct powerdomain iva2_pwrdm = {
->  		[2] = PWRSTS_OFF_ON,
->  		[3] = PWRSTS_ON,
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 1100,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 350,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain mpu_3xxx_pwrdm = {
-> @@ -68,6 +83,13 @@ static struct powerdomain mpu_3xxx_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_OFF_ON,
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 1830,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 121,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  /*
-> @@ -98,6 +120,13 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
->  		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->  		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 3082,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 153,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain core_3xxx_es3_1_pwrdm = {
-> @@ -121,6 +150,13 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
->  		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
->  		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 3082,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 153,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain dss_pwrdm = {
-> @@ -136,6 +172,13 @@ static struct powerdomain dss_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 70,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 20,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  /*
-> @@ -157,6 +200,13 @@ static struct powerdomain sgx_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 1000,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain cam_pwrdm = {
-> @@ -172,6 +222,13 @@ static struct powerdomain cam_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 850,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 35,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain per_pwrdm = {
-> @@ -187,6 +244,13 @@ static struct powerdomain per_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 671,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 31,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain emu_pwrdm = {
-> @@ -201,6 +265,13 @@ static struct powerdomain neon_pwrdm = {
->  	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
->  	.pwrsts		  = PWRSTS_OFF_RET_ON,
->  	.pwrsts_logic_ret = PWRSTS_RET,
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 0,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 0,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain usbhost_pwrdm = {
-> @@ -223,6 +294,13 @@ static struct powerdomain usbhost_pwrdm = {
->  	.pwrsts_mem_on	  = {
->  		[0] = PWRSTS_ON,  /* MEMONSTATE */
->  	},
-> +	.wakeup_lat = {
-> +		[PWRDM_FUNC_PWRST_OFF] = 800,
-> +		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_CSWR] = 150,
-> +		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-> +		[PWRDM_FUNC_PWRST_ON] = 0,
-> +	},
->  };
->  
->  static struct powerdomain dpll1_pwrdm = {
-> -- 
-> 1.7.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
+	Arnd
