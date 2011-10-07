@@ -1,71 +1,66 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v3] omap: dmtimer: convert printk to pr_err
-Date: Fri, 07 Oct 2011 10:40:39 -0700
-Message-ID: <1318009239.1644.38.camel@Joe-Laptop>
-References: <20111006201827.GT6324@atomide.com>
-	 <1317977417-17874-1-git-send-email-vjaquez@igalia.com>
-	 <20111007092243.GC27281@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: ARM SoC tree: OMAP PM dependency on tip irq/core
+Date: Fri, 07 Oct 2011 10:50:26 -0700
+Message-ID: <87d3e8lmhp.fsf@ti.com>
+References: <87aa9mm8ts.fsf@ti.com> <4E877E29.7000309@gmail.com>
+	<20111006195945.GQ6324@atomide.com> <201110071804.11494.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111007092243.GC27281@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: =?ISO-8859-1?Q?V=EDctor?= Manuel =?ISO-8859-1?Q?J=E1quez?= Leal <vjaquez@igalia.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:33876 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753540Ab1JGRub (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 13:50:31 -0400
+Received: by mail-yw0-f49.google.com with SMTP id 9so4758918ywf.36
+        for <linux-omap@vger.kernel.org>; Fri, 07 Oct 2011 10:50:30 -0700 (PDT)
+In-Reply-To: <201110071804.11494.arnd@arndb.de> (Arnd Bergmann's message of
+	"Fri, 7 Oct 2011 18:04:11 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Fri, 2011-10-07 at 10:22 +0100, Russell King - ARM Linux wrote:
-> On Fri, Oct 07, 2011 at 10:50:16AM +0200, V=C3=ADctor Manuel J=C3=A1q=
-uez Leal wrote:
-> > Convert a printk(KERN_ERR) message in the driver to pr_err().
-> ...
-> > @@ -111,7 +111,7 @@ static void omap_dm_timer_wait_for_reset(struct=
- omap_dm_timer *timer)
-> >  	while (!(__raw_readl(timer->sys_stat) & 1)) {
-> >  		c++;
-> >  		if (c > 100000) {
-> > -			printk(KERN_ERR "Timer failed to reset\n");
-> > +			pr_err("Timer failed to reset\n");
->=20
-> What is the reason behind this change?  It looks like it's to use the
-> latest and greatest function.
+Arnd Bergmann <arnd@arndb.de> writes:
 
-Hi Russell
+> On Thursday 06 October 2011, Tony Lindgren wrote:
+>> * Rob Herring <robherring2@gmail.com> [111001 13:21]:
+>> > On 09/30/2011 05:29 PM, Kevin Hilman wrote:
+>> > > Hi Arnd,
+>> > > 
+>> > > Kevin Hilman <khilman@ti.com> writes:
+>> > > 
+>> > >> The upcoming OMAP4 PM series from Santosh[1] that we're planning to
+>> > >> queue for v3.2 has a dependency[2] on a patch currently queued for v3.2
+>> > >> in the irq/core branch of Thomas' tip tree[3].
+>> > >>
+>> > >> In the past, I noticed you merged external trees like this to solve
+>> > >> dependencies.
+>> > >>
+>> > >> Could you pull the irq/core branch into your tree to meet this
+>> > >> dependency?
+>> > > 
+>> > > On second thought, since Santosh's branch is the only one with this
+>> > > dependency (and we also have a dependency on Russell's devel-stable)
+>> > > I'll just build up a branch for Santosh's series that includes
+>> > > rmk/devel-stable and tglx/irq-core.
+>> > > 
+>> > 
+>> > Any new platforms will have a dependency on rmk/devel-stable with the
+>> > mach header clean-up. I'll probably have a dependency on tglx's tree as
+>> > well.
+>> 
+>> Sounds like Arnd should pull this into some branch then.
+>
+> I've pulled in rmk/devel-stable as a dependency now, thanks for
+> reminding me of that.
+>
+> Thomas, where should I get the irq-core branch (or whichever
+> I should wait for) to pull in as another dependency. Is that
+> branch one that never gets rebased? 
 
-I'm not promoting this patch, just commenting.
+git://tesla.tglx.de/git/linux-2.6-tip irq/core
 
-At some point in the next couple of years, I want
-to convert all of, or as many as possible of, the
-remaining printk uses to pr_<level>.
+I asked Thomas about this earlier when I was going to build up the
+dependencies myself, and he said it won't be rebased.
 
-This would allow finer grained control over the
-prefixing of KBUILD_MODNAME and __func__, and
-could possibly make the kernel image smaller.
-
-Today, arch/arm has ~3:1 ratio of printk to pr_<level>.
-grep shows 1427 printks, 468 pr_<level>, 405 pr_debug's.
-
-> If so, please don't make these changes - we have on many occasions be=
-en
-> blamed for size of diffstat, churn, needless change, and this patch i=
-s
-> exactly that.
-
-True.
-
-These trivial changes could wait until arch/arm settles
-down a bit more.
-
-> By all means fix printk's without KERN_ constants,
-
-There's still more than 250 of those in arch/arm.
-Even more with the uses of secondary things like:
-#define PRINTK(x...) (foo && printk(x))
-
-> possibly converting
-> them to pr_*, but don't go around replacing printk(KERN_* with pr_*(
-> without ensuring that there's a real benefit to the change.
-
-Style consistency patches do need to be governed by
-acceptable churn rate.
+Kevin
