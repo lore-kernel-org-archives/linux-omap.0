@@ -1,122 +1,105 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCHv2 5/7] ARM: OMAP3PLUS PM: Add IO Daisychain support via hwmod mux
-Date: Fri, 7 Oct 2011 23:17:49 +0530
-Message-ID: <1318009671-12813-6-git-send-email-vishwanath.bs@ti.com>
-References: <1318009671-12813-1-git-send-email-vishwanath.bs@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: Add __arm_ioremap_exec for mapping external
+ memory as MT_MEMORY
+Date: Fri, 7 Oct 2011 11:16:21 -0700
+Message-ID: <20111007181621.GJ6324@atomide.com>
+References: <20111005004339.26980.31149.stgit@kaulin.local>
+ <20111005004539.26980.52409.stgit@kaulin.local>
+ <alpine.LFD.2.02.1110042059110.9106@xanadu.home>
+ <20111005220619.GC6324@atomide.com>
+ <4E8E9EE8.8010106@ti.com>
+ <20111007144349.GE6324@atomide.com>
+ <4E8F14A6.5050402@ti.com>
+ <20111007151116.GI6324@atomide.com>
+ <4E8F395B.9070203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43421 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753782Ab1JGRzP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Oct 2011 13:55:15 -0400
-In-Reply-To: <1318009671-12813-1-git-send-email-vishwanath.bs@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13797 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751610Ab1JGSQ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 14:16:27 -0400
+Content-Disposition: inline
+In-Reply-To: <4E8F395B.9070203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-IO Daisychain feature has to be triggered whenever there is a change in
-device's mux configuration (See section 3.9.4 in OMAP4 Public TRM vP).
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [111007 10:05]:
+> 
+> I initially tried some thing similar but the issue was GP and
+> HS devices. SRAM_PA isn't same on GP and EMU device and hence
+> did that dynamically. One way is I can make GP and HS
+> device SRAM_PA same for OMAP4 (Will loose 16 KB of
+> SRAM on OMAP4 GP). It's ok to loose that 16 KB SRAM
+> for OMAP4 with errata enabled.
 
-Now devices can idle independent of the powerdomain, there can be a window where device
-is idled and corresponding powerdomain can be ON/INACTIVE state. In such situations,
-since both module wake up is enabled at padlevel as well as io daisychain sequence is
-triggered, there will be 2 PRCM interrupts (Module async wake up via swakeup and IO Pad
-interrupt). But as PRCM Interrupt handler clears the Module Padlevel WKST bit in the
-first interrupt, module specific interrupt handler will not triggered for the second time
+Oh yeah, the beginning is different too, I forgot that.
+ 
+> Below change works on both GP and HS device
+> If you are OK with it, I can update errata patch accordingly.
 
-Also look at detailed explanation given by Rajendra at
-http://www.spinics.net/lists/linux-serial/msg04480.html
+OK to me to loose 16KB when the errata is enabled. That can
+be fixed later on for example by passing the SRAM area from
+device tree.
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
----
-This has been tested on OMAP3 using Chain Handler + UART Runtime patches [1]. Special
-thanks to GOvind for testing and confirming this behaviour on UART3.
-[1]: git://gitorious.org/runtime_3-0/runtime_3-0.git v6_uart_runtime
+I assume now you can add the mapping to io.c instead? If so,
+then it's easier to apply the patches whatever way makes more
+sense.
 
- arch/arm/mach-omap2/omap_hwmod.c |    9 +++++++--
- arch/arm/mach-omap2/pm.c         |   11 +++++++++++
- arch/arm/mach-omap2/pm.h         |    1 +
- 3 files changed, 19 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 84cc0bd..070f3f5 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -151,6 +151,7 @@
- #include "prm44xx.h"
- #include "prminst44xx.h"
- #include "mux.h"
-+#include "pm.h"
+Tony
  
- /* Maximum microseconds to wait for OMAP module to softreset */
- #define MAX_MODULE_SOFTRESET_WAIT	10000
-@@ -1462,8 +1463,10 @@ static int _enable(struct omap_hwmod *oh)
- 	/* Mux pins for device runtime if populated */
- 	if (oh->mux && (!oh->mux->enabled ||
- 			((oh->_state == _HWMOD_STATE_IDLE) &&
--			 oh->mux->pads_dynamic)))
-+			 oh->mux->pads_dynamic))) {
- 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
-+		omap_trigger_wuclk_ctrl();
-+	}
- 
- 	_add_initiator_dep(oh, mpu_oh);
- 
-@@ -1553,8 +1556,10 @@ static int _idle(struct omap_hwmod *oh)
- 		clkdm_hwmod_disable(oh->clkdm, oh);
- 
- 	/* Mux pins for device idle if populated */
--	if (oh->mux && oh->mux->pads_dynamic)
-+	if (oh->mux && oh->mux->pads_dynamic) {
- 		omap_hwmod_mux(oh->mux, _HWMOD_STATE_IDLE);
-+		omap_trigger_wuclk_ctrl();
-+	}
- 
- 	oh->_state = _HWMOD_STATE_IDLE;
- 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 472bf22..79be7af 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -23,6 +23,8 @@
- #include "powerdomain.h"
- #include "clockdomain.h"
- #include "pm.h"
-+#include "prm2xxx_3xxx.h"
-+#include "prm44xx.h"
- 
- static struct omap_device_pm_latency *pm_lats;
- 
-@@ -95,6 +97,15 @@ static void omap2_init_processor_devices(void)
- 	}
- }
- 
-+void omap_trigger_wuclk_ctrl(void)
-+{
-+	if (cpu_is_omap34xx())
-+		omap3_trigger_wuclk_ctrl();
-+
-+	if (cpu_is_omap44xx())
-+		omap4_trigger_wuclk_ctrl();
-+}
-+
- /* Types of sleep_switch used in omap_set_pwrdm_state */
- #define FORCEWAKEUP_SWITCH	0
- #define LOWPOWERSTATE_SWITCH	1
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 4e166ad..05c2da2 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -21,6 +21,7 @@ extern void omap_sram_idle(void);
- extern int omap3_can_sleep(void);
- extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
-+void omap_trigger_wuclk_ctrl(void);
- 
- #if defined(CONFIG_PM_OPP)
- extern int omap3_opp_init(void);
--- 
-1.7.0.4
-
+> diff --git a/arch/arm/plat-omap/include/plat/sram.h
+> b/arch/arm/plat-omap/include/plat/sram.h
+> index f500fc3..111b1a8 100644
+> --- a/arch/arm/plat-omap/include/plat/sram.h
+> +++ b/arch/arm/plat-omap/include/plat/sram.h
+> @@ -95,6 +95,11 @@ static inline void omap_push_sram_idle(void) {}
+>   */
+>  #define OMAP2_SRAM_PA		0x40200000
+>  #define OMAP3_SRAM_PA           0x40200000
+> +#ifdef CONFIG_OMAP4_ERRATA_I688
+> +#define OMAP4_SRAM_PA		0x40304000
+> +#else
+>  #define OMAP4_SRAM_PA		0x40300000
+> +#endif
+> +#define OMAP4_SRAM_VA		0xfe404000
+> 
+>  #endif
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 363c91e..cdd303f 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -48,9 +48,13 @@
+>  #define OMAP3_SRAM_VA           0xfe400000
+>  #define OMAP3_SRAM_PUB_PA       (OMAP3_SRAM_PA + 0x8000)
+>  #define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
+> -#define OMAP4_SRAM_VA		0xfe400000
+> +#ifdef CONFIG_OMAP4_ERRATA_I688
+> +#define OMAP4_SRAM_PUB_PA	OMAP4_SRAM_PA
+> +#define OMAP4_SRAM_PUB_VA	OMAP4_SRAM_VA
+> +#else
+>  #define OMAP4_SRAM_PUB_PA	(OMAP4_SRAM_PA + 0x4000)
+>  #define OMAP4_SRAM_PUB_VA	(OMAP4_SRAM_VA + 0x4000)
+> +#endif
+> 
+>  #if defined(CONFIG_ARCH_OMAP2PLUS)
+>  #define SRAM_BOOTLOADER_SZ	0x00
+> @@ -203,6 +207,11 @@ static void __init omap_map_sram(void)
+>  	if (omap_sram_size == 0)
+>  		return;
+> 
+> +#ifdef CONFIG_OMAP4_ERRATA_I688
+> +		omap_sram_base += PAGE_SIZE;
+> +		omap_sram_start += PAGE_SIZE;
+> +		omap_sram_size -= SZ_16K;
+> +#endif
+>  	if (cpu_is_omap34xx()) {
+>  		/*
+>  		 * SRAM must be marked as non-cached on OMAP3 since the
+> 
+> Regards
+> Santosh
