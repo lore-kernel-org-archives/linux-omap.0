@@ -1,38 +1,58 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Fri, 7 Oct 2011 03:35:28 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
-References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com> <CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/3] am335xevm: Add support for musb interface
+Date: Fri, 7 Oct 2011 12:39:30 +0300
+Message-ID: <20111007093929.GJ10910@legolas.emea.dhcp.ti.com>
+References: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Ah9ph+G2cWRpKogL"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60590 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752030Ab1JGJjf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 05:39:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Fri, 7 Oct 2011, Munegowda, Keshava wrote:
-
-> Thanks Paul;
-> yes, I can your changes in the patches.
-> so, you don't need v14 from me right? please confirm.
-> I am preparing/validating next version patches with  OCPIF_SWSUP_IDLE removed.
-> Thanks for guiding me and helping on the finalizing the hwmod configurations.
-
-The first two patches of the series -- the OMAP3/4 hwmod data patches -- 
-have been queued for 3.2 in the 'hwmod_devel_3.2' branch of 
-git://git.pwsan.com/linux-2.6
-
-So we don't need new versions of those two.
-
-But we need to figure out what to do about the remaining three
-patches.  I still think that the TLL and UHH hwmods should have
-separate drivers.  Looks like Felipe has a question pending about that
-but it's unlikely that I'll have time to dig into it for at least a
-few days.  So I'd encourage you to try splitting those UHH and TLL
-drivers in the meantime.
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
 
-- Paul
+--Ah9ph+G2cWRpKogL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Mon, Sep 26, 2011 at 03:33:11PM +0530, Ajay Kumar Gupta wrote:
+> Adding musb support in am335x EVM board file.
+>=20
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+
+should go through OMAP tree:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--Ah9ph+G2cWRpKogL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOjsjRAAoJEAv8Txj19kN12CUIAIamr3GLPnT6A0IvH0uWxv5b
+Zttv5jYM6OLZvt4YAZnlbrLlskPnFaVxsEUk4xXJ7EJXcl2JDo30SwPWsymgMpBx
+ev68lHjZcDpMDw47FJAptCTXxwdsyHGiWIvUcNTzLAKnR4AQc+V0VXgugpSFYbCk
+Z0w3JQwv9+SbvZ9ZsGB4aqnZsebHSuLF8UGEhkiHfuiNJp+ek4azV1W5HLQ5/L2T
+O11aJIP9iMG55ku5GZv2CWlKo9TpO8tKclqGdt18NSKZZPSUqGtlGKsLKARmCCYS
+JvXKaRkLvTAcvWCTkMumTEkOSYVoI7x9qfzELwc8nBosnRJPegAcNyVztfzhXls=
+=oJ5Z
+-----END PGP SIGNATURE-----
+
+--Ah9ph+G2cWRpKogL--
