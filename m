@@ -1,58 +1,59 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/3] am335xevm: Add support for musb interface
-Date: Fri, 7 Oct 2011 12:39:30 +0300
-Message-ID: <20111007093929.GJ10910@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/3] arm: omap: am335x: enable phy controls
+Date: Fri, 7 Oct 2011 12:40:17 +0300
+Message-ID: <20111007094015.GK10910@legolas.emea.dhcp.ti.com>
 References: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: balbi@ti.com
+ <1317031393-9333-2-git-send-email-ajay.gupta@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Ah9ph+G2cWRpKogL"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:60590 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752030Ab1JGJjf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 05:39:35 -0400
+	protocol="application/pgp-signature"; boundary="P7Tqkd/m/Jnohiaz"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1317031393-9333-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com
 
 
---Ah9ph+G2cWRpKogL
+--P7Tqkd/m/Jnohiaz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Mon, Sep 26, 2011 at 03:33:11PM +0530, Ajay Kumar Gupta wrote:
-> Adding musb support in am335x EVM board file.
+On Mon, Sep 26, 2011 at 03:33:12PM +0530, Ajay Kumar Gupta wrote:
+> Switch on the phy for am335x.
 >=20
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
 should go through OMAP tree:
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 
 --=20
 balbi
 
---Ah9ph+G2cWRpKogL
+--P7Tqkd/m/Jnohiaz
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOjsjRAAoJEAv8Txj19kN12CUIAIamr3GLPnT6A0IvH0uWxv5b
-Zttv5jYM6OLZvt4YAZnlbrLlskPnFaVxsEUk4xXJ7EJXcl2JDo30SwPWsymgMpBx
-ev68lHjZcDpMDw47FJAptCTXxwdsyHGiWIvUcNTzLAKnR4AQc+V0VXgugpSFYbCk
-Z0w3JQwv9+SbvZ9ZsGB4aqnZsebHSuLF8UGEhkiHfuiNJp+ek4azV1W5HLQ5/L2T
-O11aJIP9iMG55ku5GZv2CWlKo9TpO8tKclqGdt18NSKZZPSUqGtlGKsLKARmCCYS
-JvXKaRkLvTAcvWCTkMumTEkOSYVoI7x9qfzELwc8nBosnRJPegAcNyVztfzhXls=
-=oJ5Z
+iQEcBAEBAgAGBQJOjsj/AAoJEAv8Txj19kN162AH/2fX9pk9NbzRy1IuGvleNY3U
+fJxq1KIlWFjmV7m5/FBPdkC2PHJqBm2PSs+EcKgf4i4rkTPiT2yJMtUSskCjhKRM
+nivBzMjTtfFgQhTkyOu09YxumP3EwJy4l1I7L4q4iDBNoj4EXx7tKeqMNvs97Re4
+AxAXQD/nj9IdtbpbT9sU6mgv0PAtbAaSmOnslrhgHJg4+rSe5F6onuIagQc93KCx
+2bVryy7OK2Tp+yPxaMLr8Cpz21si2/SiTO5Bz2w5PbRbgwfoA1D6FL7yTebxSq7T
+fRbJuywrnVTNBytmMecJDI2PFvGM7i6UgtEMgWdEdiFTOqrkMJvQdT+hz1jImwI=
+=g+wR
 -----END PGP SIGNATURE-----
 
---Ah9ph+G2cWRpKogL--
+--P7Tqkd/m/Jnohiaz--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
