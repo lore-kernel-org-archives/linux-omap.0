@@ -1,45 +1,33 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap fixes for -rc series and merge window
-Date: Fri, 7 Oct 2011 21:11:35 +0200
-Message-ID: <201110072111.35418.arnd@arndb.de>
-References: <20111003185237.GI6324@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3] omap: dmtimer: convert printk to pr_err
+Date: Fri, 7 Oct 2011 20:18:22 +0100
+Message-ID: <20111007191822.GA26805@n2100.arm.linux.org.uk>
+References: <20111006201827.GT6324@atomide.com> <1317977417-17874-1-git-send-email-vjaquez@igalia.com> <20111007092243.GC27281@n2100.arm.linux.org.uk> <1318009239.1644.38.camel@Joe-Laptop>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51062 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753947Ab1JGTLl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 15:11:41 -0400
-In-Reply-To: <20111003185237.GI6324@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60806 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281Ab1JGTTA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 15:19:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1318009239.1644.38.camel@Joe-Laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: =?iso-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Timo Teras <timo.teras@solidboot.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 03 October 2011, Tony Lindgren wrote:
-> Please pull omap fixes from:
-> 
-> git://github.com/tmlind/linux.git fixes
-> 
-> Out of these the first three commits would be nice to get
-> into the -rc series with the first two causing boot issues
-> and the musb fixing an ugly warning.
-> 
-> Note however the recent commit message update on the third patch.
-> I added Bjarne's SOB to the third patch because of the earlier
-> reference.
-> 
-> The last two are mostly cosmetic and not so urgent.
+On Fri, Oct 07, 2011 at 10:40:39AM -0700, Joe Perches wrote:
+> At some point in the next couple of years, I want
+> to convert all of, or as many as possible of, the
+> remaining printk uses to pr_<level>.
 
-Hi Tony,
+If the idea is also to get rid of printk() too (which IMHO would be a
+good thing as it kills off the constant need to continually patch for
+missing KERN_ prefixes) then that's a good reason (provided Linus
+accepts the idea.)  At that point having such patches as part of a
+progressive series of patches also makes sense.
 
-I've pulled them all into the fixes branch for now, but I'm not sure
-if I still want to send another pull request. If I do, I'll have to
-rebase that branch and put some into the next/fixes branch instead
-as I already have patches that I don't want to send for 3.1 any
-more. Are the patches all fixes against 3.1 only or do some of them
-also apply to older releases?
-
-	Arnd
+Doing it piecemeal when we've already had frequent complaints from
+Linus about useless churn with no apparant reasoning behind it doesn't
+help relieve us of those accusations.
