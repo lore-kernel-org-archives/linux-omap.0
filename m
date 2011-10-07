@@ -1,108 +1,80 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP3 PM: Fix IO Daisychain sequence
-Date: Fri, 7 Oct 2011 02:19:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110070217000.4611@utopia.booyaka.com>
-References: <1317750724-32553-1-git-send-email-vishwanath.bs@ti.com> <1317750724-32553-2-git-send-email-vishwanath.bs@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface
+	clocks
+Date: Fri, 7 Oct 2011 10:23:09 +0200
+Message-ID: <4E8EB6ED.9020605@ti.com>
+References: <1316195330-15099-1-git-send-email-jon-hunter@ti.com>
+	<alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46784 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758795Ab1JGITo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 04:19:44 -0400
-In-Reply-To: <1317750724-32553-2-git-send-email-vishwanath.bs@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-15"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, "Hunter, Jon" <jon-hunter@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Hi
+Hi Paul & Jon,
 
-a few comments:
+On 10/7/2011 3:42 AM, Paul Walmsley wrote:
+> + Beno=EEt
+>
+> On Fri, 16 Sep 2011, Jon Hunter wrote:
+>
+>> From: Jon Hunter<jon-hunter@ti.com>
+>>
+>> Currently the interface clocks for the two SLIMBUS peripherals are
+>> named slimbus1_fck and slimbus2_fck. Rename these clocks to be
+>> slimbus1_ick and slimbus2_ick so it is clear that these are
+>> interface clocks and not functional clocks.
+>>
+>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>
+> This one, I don't quite understand.  We should probably be removing these
+> MODULEMODE-only clocks from the OMAP4 tree, and using their parent clock
+> as the main_clk.  That would be a good cleanup for 3.3...
 
-On Tue, 4 Oct 2011, Vishwanath BS wrote:
+Yes, but in order to remove that from the clock data we must ensure that =
 
-> As per OMAP3630 TRM Section 3.5.7.2.2, the right sequence for enabling IO Daisy
-> chain is "The I/O wake-up scheme is enabled by triggering the I/O daisy chain
-> control (Wu clock) by programming a dedicated register
-> (PRCM.PM_WKEN_WKUP[16] EN_IO_CHAIN) in the PRCM module.Software must wait for
-> the I/O daisy chain to complete before it transitions the PER domain to a
-> nonfunctional state. This is done by polling a dedicated status bit in the PRCM
-> module (PRCM.PM_WKST_WKUP[16] ST_IO_CHAIN). This status bit must be cleared by
-> software when the bit is read to  1".
-> 
-> The original code was polling on a wrong register which is fixed in this patch.
-> Also omap3_enable_io_chain is made non static as it's going to be used in
-> subsequent patches.
+the hwmod entry is there.
+I kept a lot of legacy MODULEMODE clocks just because of missing hwmod / =
 
-This patch should be split into a fix (for the WKEN/WKST bug) and then a 
-new patch that drops the 'static'.  The new patch should also move this 
-function to prm2xxx_3xxx.c for the same reason that the OMAP4 version of 
-this function should be in prminst44xx.c.
+runtime_pm adaptation on some drivers.
 
-In the medium-term, a bunch of the functions from prm2xxx_3xxx.c, 
-prminst44xx.c, etc. that are only used by the mach-omap2/pm*.c code should 
-be moved into the PRM driver that Tero is working on that will live in 
-drivers/.
+In the case of slimbus, there is no main_clk but a bunch of optional =
 
->  
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.h     |    1 +
->  arch/arm/mach-omap2/pm34xx.c |    6 +++---
->  2 files changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 4e166ad..9a36a7c 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -21,6 +21,7 @@ extern void omap_sram_idle(void);
->  extern int omap3_can_sleep(void);
->  extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
->  extern int omap3_idle_init(void);
-> +extern void omap3_enable_io_chain(void);
->  
->  #if defined(CONFIG_PM_OPP)
->  extern int omap3_opp_init(void);
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 7255d9b..61f1a5b 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -95,7 +95,7 @@ static inline void omap3_per_restore_context(void)
->  	omap_gpio_restore_context();
->  }
->  
-> -static void omap3_enable_io_chain(void)
-> +void omap3_enable_io_chain(void)
->  {
->  	int timeout = 0;
->  
-> @@ -105,7 +105,7 @@ static void omap3_enable_io_chain(void)
->  		/* Do a readback to assure write has been done */
->  		omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
->  
-> -		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN) &
-> +		while (!(omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
->  			 OMAP3430_ST_IO_CHAIN_MASK)) {
->  			timeout++;
->  			if (timeout > 1000) {
-> @@ -114,7 +114,7 @@ static void omap3_enable_io_chain(void)
->  				return;
->  			}
->  			omap2_prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN_MASK,
-> -					     WKUP_MOD, PM_WKEN);
-> +					     WKUP_MOD, PM_WKST);
->  		}
->  	}
->  }
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+clocks. It looks similar to the DSS case. So we should not use the =
 
+parent clock as a main_clk.
 
-- Paul
+We should probably promote one of the opt_clk as the main_clk. The =
+
+slimbus_clk seems to be the good candidate for both instances.
+
+static struct omap_hwmod_opt_clk slimbus1_opt_clks[] =3D {
+        { .role =3D "fclk_1", .clk =3D "slimbus1_fclk_1" },
+        { .role =3D "fclk_0", .clk =3D "slimbus1_fclk_0" },
+        { .role =3D "fclk_2", .clk =3D "slimbus1_fclk_2" },
+        { .role =3D "slimbus_clk", .clk =3D "slimbus1_slimbus_clk" },
+};
+
+static struct omap_hwmod_opt_clk slimbus2_opt_clks[] =3D {
+        { .role =3D "fclk_1", .clk =3D "slimbus2_fclk_1" },
+        { .role =3D "fclk_0", .clk =3D "slimbus2_fclk_0" },
+        { .role =3D "slimbus_clk", .clk =3D "slimbus2_slimbus_clk" },
+};
+
+Jon,
+Do you know if that one is indeed mandatory to use the slimbus IP?
+
+Thanks,
+Benoit
