@@ -1,110 +1,48 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 2/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Fri, 7 Oct 2011 13:13:15 +0530
-Message-ID: <CAP05o4Kfo2fjkaSmhu1wERN4BsznMo3EFe9VMLm9gVA9iXcBzg@mail.gmail.com>
-References: <1317901123-2546-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1110061030490.4611@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP3+: clock fixes for 3.2
+Date: Fri, 7 Oct 2011 01:53:41 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110070141450.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1110061030490.4611@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:33202 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851Ab1JGHxm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 03:53:42 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mturquette@ti.com, jon.hunter@ti.com
 
-On Thu, Oct 6, 2011 at 10:05 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi Keshava,
->
-> On Thu, 6 Oct 2011, Keshava Munegowda wrote:
->
->> Following 2 hwmod structures are added
->> =A0 =A0 1. usb_host_hs
->> =A0 =A0 =A0 =A0 =A0The hwmod of usbhs with uhh, ehci and ohci base a=
-ddresses
->> =A0 =A0 =A0 =A0 =A0functional clock and ehci, ohci irqs
->>
->> =A0 =A0 2. usb_tll_hs
->> =A0 =A0 =A0 =A0 =A0 hwmod of usbhs with the TLL base address and irq=
-=2E
->>
->> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->> Reviewed-by: Partha Basak <parthab@india.ti.com>
->> ---
->> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0227 +++++++++++++=
-+++++++++++++++
->> =A01 files changed, 227 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/m=
-ach-omap2/omap_hwmod_3xxx_data.c
->> index 59fdb9f..b8ca690 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->> @@ -84,6 +84,8 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
->
-> ...
->
->> +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__ick =3D {
->> + =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
->> + =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_hwmod,
->> + =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbhost_ick",
->> + =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_addrs,
->> + =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA=
-,
->> +/*
->> + * This clock should be on/off only with main clock; If auto idle i=
-s set,
->> + * the usbhs controller prevents the omap to enter in to low power =
-mode,
->> + * hence don't use auto idle here.
->> + */
->> + =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
->
-> This is still unclear to me. =A0Doesn't this interface clock support
-> interface clock auto-idle? =A0If so, then when the UHH's target port =
-is
-> forced idle and its initiator port is forced to standby, then shouldn=
-'t
-> the PRCM automatically idle this interface clock?
+Hi Tony,
 
-Thanks paul;
-Now I am seeing that  without  OCPIF_SWSUP_IDLE the system is going to
-low power mode but after
-adding HWMOD_INIT_NO_RESET flag ;  After adding this flag; I dint
-check the system without this flag;
-so, PRCM automatically idle this interface clock if UHH target port is
-forced idle and force standby.
-I can remove it now.  :-)
+The following changes since commit be73246058737beec52ae232bcab7776332a9e06:
 
-> Or is there some hardware problem where the PRCM won't auto-idle this
-> clock when the UHH is in idle + standby?
->
->> +};
->> +
->
-> ...
->
->> +static struct omap_hwmod_ocp_if omap34xx_ick_cfg__usb_tll_hs =3D {
->> + =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbtll_ick",
->> + =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_addrs,
->> + =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_SDMA=
-,
->> +/*
->> + * This clock should be on/off only with main clock; If auto idle i=
-s set,
->> + * the usbhs controller prevents the omap to enter in to low power =
-mode,
->> + * hence don't use auto idle here.
->> + */
->> + =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D OCPIF_SWSUP_IDLE,
->
-> Same comment here, with the exception of the part about standby since=
- the
-> TLL doesn't have an initiator port.
+  ARM: OMAP2+: Remove custom init_irq for remaining boards (2011-09-26 17:50:37 -0700)
 
-I will remove this also;
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 omap_clock_fixes_3.2
 
-regards
-keshava
+Jon Hunter (3):
+      ARM: OMAP3+: dpll: use DPLLs recalc function instead of omap2_get_dpll_rate
+      ARM: OMAP4: clock: Add missing clock divider for OCP_ABE_ICLK
+      OMAP3+: Update DPLL Fint range for OMAP36xx and OMAP4xxx devices
+
+Mike Turquette (3):
+      ARM: OMAP4: clock: round_rate and recalc functions for DPLL_ABE
+      ARM: OMAP3+: dpll: use DPLL's round_rate when setting rate
+      ARM: OMAP3+: dpll: assign clk rate from rounded rate during rate set
+
+Paul Walmsley (1):
+      ARM: OMAP4460: Clock: Adding support for 4460 specific clocks
+
+ arch/arm/mach-omap2/clkt_dpll.c      |   51 +++++++++++++++++--------
+ arch/arm/mach-omap2/clock.h          |    2 +
+ arch/arm/mach-omap2/clock44xx.h      |    7 +++
+ arch/arm/mach-omap2/clock44xx_data.c |   32 +++++++++++----
+ arch/arm/mach-omap2/dpll3xxx.c       |    9 +++-
+ arch/arm/mach-omap2/dpll44xx.c       |   69 ++++++++++++++++++++++++++++++++++
+ 6 files changed, 142 insertions(+), 28 deletions(-)
+
+
+- Paul
