@@ -1,45 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: Add __arm_ioremap_exec for mapping external
- memory as MT_MEMORY
-Date: Fri, 7 Oct 2011 11:27:54 -0700
-Message-ID: <20111007182754.GK6324@atomide.com>
-References: <20111005004539.26980.52409.stgit@kaulin.local>
- <alpine.LFD.2.02.1110042059110.9106@xanadu.home>
- <20111005220619.GC6324@atomide.com>
- <4E8E9EE8.8010106@ti.com>
- <20111007144349.GE6324@atomide.com>
- <4E8F14A6.5050402@ti.com>
- <20111007151116.GI6324@atomide.com>
- <4E8F395B.9070203@ti.com>
- <20111007181621.GJ6324@atomide.com>
- <4E8F42D4.7030502@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: ARM SoC tree: OMAP PM dependency on tip irq/core
+Date: Fri, 7 Oct 2011 20:53:41 +0200
+Message-ID: <201110072053.41594.arnd@arndb.de>
+References: <87aa9mm8ts.fsf@ti.com> <201110071804.11494.arnd@arndb.de> <87d3e8lmhp.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28573 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753Ab1JGS17 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 14:27:59 -0400
-Content-Disposition: inline
-In-Reply-To: <4E8F42D4.7030502@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:63607 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753896Ab1JGSxt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Oct 2011 14:53:49 -0400
+In-Reply-To: <87d3e8lmhp.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Nicolas Pitre <nico@fluxnic.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [111007 10:46]:
-> On Friday 07 October 2011 11:46 PM, Tony Lindgren wrote:
+On Friday 07 October 2011, Kevin Hilman wrote:
+> > I've pulled in rmk/devel-stable as a dependency now, thanks for
+> > reminding me of that.
+> >
+> > Thomas, where should I get the irq-core branch (or whichever
+> > I should wait for) to pull in as another dependency. Is that
+> > branch one that never gets rebased? 
 > 
-> > I assume now you can add the mapping to io.c instead? If so,
-> > then it's easier to apply the patches whatever way makes more
-> > sense.
-> > 
-> io.c change I took as you suggested. The below change on top
-> of it. I just updated PM branch with this change.
+> git://tesla.tglx.de/git/linux-2.6-tip irq/core
 > 
-> Thanks for the tip. The errata code looks bit more clean
-> now. :)
+> I asked Thomas about this earlier when I was going to build up the
+> dependencies myself, and he said it won't be rebased.
 
-OK thanks!
+Ok, thanks for the info.
 
-Tony
+I think I've now also come up with a workflow for tracking the dependencies:
+I have a depends/xxx branch for each other branch that I need to wait for
+getting merged first. When I want to send a pull request, I first check
+all the depends/* branches using 'git branch --merged next/xxx |
+grep depends' to see what the dependencies are, and 'git branch --merged
+torvalds/master | grep depends' to see if they are already merged upstream.
+When a dependency is already merged, I can remove its tracking branch
+from the arm-soc tree.
+
+	Arnd
