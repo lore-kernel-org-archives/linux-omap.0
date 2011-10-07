@@ -1,83 +1,53 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: PM: restrict erratum i443 handling to OMAP3430 only
-Date: Thu, 06 Oct 2011 16:53:01 -0700
-Message-ID: <8762k1n0de.fsf@ti.com>
-References: <alpine.DEB.2.00.1110061341460.4611@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP: DSS hwmod/reset fixes for 3.2
+Date: Thu, 6 Oct 2011 18:07:40 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110061806150.4611@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:44308 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935786Ab1JFXxG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 19:53:06 -0400
-Received: by mail-gy0-f176.google.com with SMTP id 15so3700703gyc.7
-        for <linux-omap@vger.kernel.org>; Thu, 06 Oct 2011 16:53:04 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110061341460.4611@utopia.booyaka.com> (Paul
-	Walmsley's message of "Thu, 6 Oct 2011 13:43:23 -0600 (MDT)")
+Received: from utopia.booyaka.com ([72.9.107.138]:42313 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756790Ab1JGAHl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Oct 2011 20:07:41 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+Hi Tony,
 
-> Based on the documents that I have here, there doesn't appear to be an
-> equivalent to erratum i443 for OMAP3630, so restrict this one to OMAP34xx
-> chips.
->
-> Also, explicitly restrict this erratum to EMU and HS devices.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> ---
-> Unfortunately, I don't have any HS/EMU devices in my testbed, so it's not 
-> possible for me to test this one on anything but GP chips.
+The following changes since commit be73246058737beec52ae232bcab7776332a9e06:
 
-I don't have any 36xx HS/EMU device either, but this erratum does indeed
-seem to be 34xx specific.
+  ARM: OMAP2+: Remove custom init_irq for remaining boards (2011-09-26 17:50:37 -0700)
 
-Barring any objections, I'll queue this for v3.2 (branch: for_3.2/pm-cleanup-2)
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 hwmod_dss_fixes_3.2
 
-Kevin
+Archit Taneja (1):
+      ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
 
+Tomi Valkeinen (9):
+      ARM: OMAP2xxx: HWMOD: Fix DSS reset
+      ARM: OMAP2xxx: HWMOD: fix DSS clock data
+      ARM: OMAP3: HWMOD: Fix DSS reset
+      ARM: OMAP3: HWMOD: fix DSS clock data
+      ARM: OMAP4: HWMOD: remove extra clocks
+      ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
+      ARM: OMAP4: HWMOD: fix DSS clock data
+      ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
+      ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
 
->  arch/arm/mach-omap2/pm34xx.c |   20 +++++++++++---------
->  1 files changed, 11 insertions(+), 9 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index a6156bd..9e14ae5 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -407,13 +407,14 @@ void omap_sram_idle(void)
->  	omap3_intc_prepare_idle();
->  
->  	/*
-> -	* On EMU/HS devices ROM code restores a SRDC value
-> -	* from scratchpad which has automatic self refresh on timeout
-> -	* of AUTO_CNT = 1 enabled. This takes care of erratum ID i443.
-> -	* Hence store/restore the SDRC_POWER register here.
-> -	*/
-> -	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
-> -	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
-> +	 * On EMU/HS devices ROM code restores a SRDC value
-> +	 * from scratchpad which has automatic self refresh on timeout
-> +	 * of AUTO_CNT = 1 enabled. This takes care of erratum ID i443.
-> +	 * Hence store/restore the SDRC_POWER register here.
-> +	 */
-> +	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
-> +	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-> +	     omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
->  	    core_next_state == PWRDM_POWER_OFF)
->  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
->  
-> @@ -430,8 +431,9 @@ void omap_sram_idle(void)
->  		omap34xx_do_sram_idle(save_state);
->  
->  	/* Restore normal SDRC POWER settings */
-> -	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
-> -	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
-> +	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
-> +	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-> +	     omap_type() == OMAP2_DEVICE_TYPE_SEC) &&
->  	    core_next_state == PWRDM_POWER_OFF)
->  		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+ arch/arm/mach-omap2/Makefile                       |    5 +-
+ arch/arm/mach-omap2/display.c                      |  160 ++++++++++++++++++++
+ arch/arm/mach-omap2/display.h                      |   29 ++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
+ arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
+ arch/arm/plat-omap/include/plat/common.h           |    3 +
+ include/video/omapdss.h                            |    7 -
+ 12 files changed, 277 insertions(+), 35 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/display.h
