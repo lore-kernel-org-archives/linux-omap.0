@@ -1,73 +1,66 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] ARM: omap2+: stub out omap*_volt_data
-Date: Sat, 08 Oct 2011 17:23:24 +0200
-Message-ID: <1397689.kebELtC4N3@wuerfel>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+Date: Sat, 8 Oct 2011 08:55:02 -0700
+Message-ID: <20111008155502.GB616@kroah.com>
+References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
+ <1317963790-29426-3-git-send-email-manjugk@ti.com>
+ <20111007064928.GE27508@kroah.com>
+ <20111007205715.GC5275@leaf>
+ <20111007212326.GA29003@kroah.com>
+ <20111008040351.GA7694@leaf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62875 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab1JHPXf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Oct 2011 11:23:35 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111008040351.GA7694@leaf>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Josh Triplett <josh@joshtriplett.org>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@ti.com>
 
-When CONFIG_PM_OPP is not set, the definitions for these variables
-are not available, so we should conditionally define them to
-NULL.
+On Fri, Oct 07, 2011 at 09:03:51PM -0700, Josh Triplett wrote:
+> On Fri, Oct 07, 2011 at 02:23:26PM -0700, Greg KH wrote:
+> > On Fri, Oct 07, 2011 at 01:57:15PM -0700, Josh Triplett wrote:
+> > > On Thu, Oct 06, 2011 at 11:49:28PM -0700, Greg KH wrote:
+> > > > On Fri, Oct 07, 2011 at 10:33:07AM +0500, G, Manjunath Kondaiah wrote:
+> > > > > +config PROBE_DEFER
+> > > > > +	bool "Deferred Driver Probe"
+> > > > > +	default y
+> > > > > +	help
+> > > > > +	  This option provides deferring driver probe if it has dependency on
+> > > > > +	  other driver. Without this feature, initcall ordering should be done
+> > > > > +	  manually to resolve driver dependencies. This feature completely side
+> > > > > +	  steps the issues by allowing driver registration to occur in any
+> > > > > +	  order, and any driver can request to be retried after a few more other
+> > > > > +	  drivers get probed.
+> > > > 
+> > > > Why is this even an option?  Why would you ever want it disabled?  Why
+> > > > does it need to be selected?
+> > > > 
+> > > > If you are going to default something to 'y' then just make it so it
+> > > > can't be turned off any other way by just not making it an option at
+> > > > all.
+> > > 
+> > > Given that the drivers which use this mechanism will not necessarily get
+> > > built into the kernel, I'd suggest that it should remain optional and
+> > > default to n.  Those drivers can then add a dependency on PROBE_DEFER.
+> > > Let's try to avoid adding more infrastructure to the kernel that takes
+> > > up space even when unused; certainly embedded will appreciate not having
+> > > this feature unless a driver needs it.
+> > 
+> > How much extra space is this "feature" really?
+> 
+> Just checked: 776 bytes, 640 of text and 136 of data.  We have kconfig
+> options for comparable amounts.
+> 
+> > I don't see it being
+> > anything larger than the amount of memory increase that just happened as
+> > I typed this email as part of the ongoing memory density changes.
+> 
+> I don't know about the changes you mean
 
-arch/arm/mach-omap2/built-in.o: In function `omap3xxx_voltagedomains_init':
-voltagedomains3xxx_data.c:100: undefined reference to `omap36xx_vddmpu_volt_data'
-voltagedomains3xxx_data.c:100: undefined reference to `omap34xx_vddmpu_volt_data'
-voltagedomains3xxx_data.c:100: undefined reference to `omap36xx_vddcore_volt_data'
-voltagedomains3xxx_data.c:100: undefined reference to `omap34xx_vddcore_volt_data'
-arch/arm/mach-omap2/built-in.o: In function `omap44xx_voltagedomains_init':
-voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_mpu_volt_data'
-voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_iva_volt_data'
-voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_core_volt_data'
+Moore's law.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-I got this build error only now after pulling in the latest omap series, but
-I cannot tell what caused it. It's also not clear to me if this is the correct
-solution. Please ack or provide a better fix.
+Really, 776 bytes, just always enable it, it's not worth it.
 
- arch/arm/mach-omap2/omap_opp_data.h |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
-index c784c12..fdbf96b 100644
---- a/arch/arm/mach-omap2/omap_opp_data.h
-+++ b/arch/arm/mach-omap2/omap_opp_data.h
-@@ -83,7 +83,7 @@ struct omap_opp_def {
- extern int __init omap_init_opp_table(struct omap_opp_def *opp_def,
- 		u32 opp_def_size);
- 
--
-+#ifdef CONFIG_PM_OPP
- extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
- extern struct omap_volt_data omap34xx_vddcore_volt_data[];
- extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
-@@ -93,4 +93,15 @@ extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
- extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
- extern struct omap_volt_data omap44xx_vdd_core_volt_data[];
- 
-+#else
-+#define omap34xx_vddmpu_volt_data	NULL
-+#define omap34xx_vddcore_volt_data	NULL
-+#define omap36xx_vddmpu_volt_data	NULL
-+#define omap36xx_vddcore_volt_data	NULL
-+
-+#define omap44xx_vdd_mpu_volt_data	NULL
-+#define omap44xx_vdd_iva_volt_data	NULL
-+#define omap44xx_vdd_core_volt_data	NULL
-+#endif
-+
- #endif		/* __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H */
--- 
-1.7.5.4
-
-
+greg k-h
