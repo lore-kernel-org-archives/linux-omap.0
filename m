@@ -1,55 +1,73 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde
- support
-Date: Sat, 08 Oct 2011 14:14:27 +0530
-Message-ID: <4E900D6B.5030006@ti.com>
-References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>	<87d3e8juqm.fsf@ti.com> <87vcs0ifgn.fsf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ARM: omap2+: stub out omap*_volt_data
+Date: Sat, 08 Oct 2011 17:23:24 +0200
+Message-ID: <1397689.kebELtC4N3@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:58020 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751148Ab1JHIog (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Oct 2011 04:44:36 -0400
-Received: by ywm39 with SMTP id 39so4975681ywm.32
-        for <linux-omap@vger.kernel.org>; Sat, 08 Oct 2011 01:44:33 -0700 (PDT)
-In-Reply-To: <87vcs0ifgn.fsf@ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.171]:62875 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751532Ab1JHPXf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Oct 2011 11:23:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Kevin Hilman <khilman@ti.com>
 
-On Saturday 08 October 2011 04:20 AM, Kevin Hilman wrote:
-> Kevin Hilman <khilman@ti.com> writes:
-> 
->> Hi Santosh,
->>
->> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
->>
->>> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
->>> suspend (S2R), CPU hotplug and CPUidle.
->>
->> Just noticed when doing some final build/sanity testing that there are a
->> few of compile/link warnings/problems when the kernel is built without
->> CONFIG_PM
->>
->> Some warnings:
->>
->> /work/kernel/omap/pm/arch/arm/mach-omap2/omap-wakeupgen.c:203:13: warning: 'irq_save_context' defined but not used
->> /work/kernel/omap/pm/arch/arm/mach-omap2/omap-wakeupgen.c:270:13: warning: 'irq_save_secure_context' defined but not used
->>
-Sory I missed it in my builds.
+When CONFIG_PM_OPP is not set, the definitions for these variables
+are not available, so we should conditionally define them to
+NULL.
 
-[...]
+arch/arm/mach-omap2/built-in.o: In function `omap3xxx_voltagedomains_init':
+voltagedomains3xxx_data.c:100: undefined reference to `omap36xx_vddmpu_volt_data'
+voltagedomains3xxx_data.c:100: undefined reference to `omap34xx_vddmpu_volt_data'
+voltagedomains3xxx_data.c:100: undefined reference to `omap36xx_vddcore_volt_data'
+voltagedomains3xxx_data.c:100: undefined reference to `omap34xx_vddcore_volt_data'
+arch/arm/mach-omap2/built-in.o: In function `omap44xx_voltagedomains_init':
+voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_mpu_volt_data'
+voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_iva_volt_data'
+voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_core_volt_data'
 
-> Please just cleanup the wakeupgen compile warnings and update your
-> branch.
-> 
-Done !!
-Updated branch : for_3_2/omap4-mpuss-pm_2
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+I got this build error only now after pulling in the latest omap series, but
+I cannot tell what caused it. It's also not clear to me if this is the correct
+solution. Please ack or provide a better fix.
 
-Regards
-Santosh
+ arch/arm/mach-omap2/omap_opp_data.h |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_opp_data.h b/arch/arm/mach-omap2/omap_opp_data.h
+index c784c12..fdbf96b 100644
+--- a/arch/arm/mach-omap2/omap_opp_data.h
++++ b/arch/arm/mach-omap2/omap_opp_data.h
+@@ -83,7 +83,7 @@ struct omap_opp_def {
+ extern int __init omap_init_opp_table(struct omap_opp_def *opp_def,
+ 		u32 opp_def_size);
+ 
+-
++#ifdef CONFIG_PM_OPP
+ extern struct omap_volt_data omap34xx_vddmpu_volt_data[];
+ extern struct omap_volt_data omap34xx_vddcore_volt_data[];
+ extern struct omap_volt_data omap36xx_vddmpu_volt_data[];
+@@ -93,4 +93,15 @@ extern struct omap_volt_data omap44xx_vdd_mpu_volt_data[];
+ extern struct omap_volt_data omap44xx_vdd_iva_volt_data[];
+ extern struct omap_volt_data omap44xx_vdd_core_volt_data[];
+ 
++#else
++#define omap34xx_vddmpu_volt_data	NULL
++#define omap34xx_vddcore_volt_data	NULL
++#define omap36xx_vddmpu_volt_data	NULL
++#define omap36xx_vddcore_volt_data	NULL
++
++#define omap44xx_vdd_mpu_volt_data	NULL
++#define omap44xx_vdd_iva_volt_data	NULL
++#define omap44xx_vdd_core_volt_data	NULL
++#endif
++
+ #endif		/* __ARCH_ARM_MACH_OMAP2_OMAP_OPP_DATA_H */
+-- 
+1.7.5.4
 
 
