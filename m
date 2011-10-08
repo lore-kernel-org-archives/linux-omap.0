@@ -1,62 +1,55 @@
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Fri, 7 Oct 2011 21:03:51 -0700
-Message-ID: <20111008040351.GA7694@leaf>
-References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
- <1317963790-29426-3-git-send-email-manjugk@ti.com>
- <20111007064928.GE27508@kroah.com>
- <20111007205715.GC5275@leaf>
- <20111007212326.GA29003@kroah.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde
+ support
+Date: Sat, 08 Oct 2011 14:14:27 +0530
+Message-ID: <4E900D6B.5030006@ti.com>
+References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>	<87d3e8juqm.fsf@ti.com> <87vcs0ifgn.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111007212326.GA29003@kroah.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:58020 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751148Ab1JHIog (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 8 Oct 2011 04:44:36 -0400
+Received: by ywm39 with SMTP id 39so4975681ywm.32
+        for <linux-omap@vger.kernel.org>; Sat, 08 Oct 2011 01:44:33 -0700 (PDT)
+In-Reply-To: <87vcs0ifgn.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Oct 07, 2011 at 02:23:26PM -0700, Greg KH wrote:
-> On Fri, Oct 07, 2011 at 01:57:15PM -0700, Josh Triplett wrote:
-> > On Thu, Oct 06, 2011 at 11:49:28PM -0700, Greg KH wrote:
-> > > On Fri, Oct 07, 2011 at 10:33:07AM +0500, G, Manjunath Kondaiah wrote:
-> > > > +config PROBE_DEFER
-> > > > +	bool "Deferred Driver Probe"
-> > > > +	default y
-> > > > +	help
-> > > > +	  This option provides deferring driver probe if it has dependency on
-> > > > +	  other driver. Without this feature, initcall ordering should be done
-> > > > +	  manually to resolve driver dependencies. This feature completely side
-> > > > +	  steps the issues by allowing driver registration to occur in any
-> > > > +	  order, and any driver can request to be retried after a few more other
-> > > > +	  drivers get probed.
-> > > 
-> > > Why is this even an option?  Why would you ever want it disabled?  Why
-> > > does it need to be selected?
-> > > 
-> > > If you are going to default something to 'y' then just make it so it
-> > > can't be turned off any other way by just not making it an option at
-> > > all.
-> > 
-> > Given that the drivers which use this mechanism will not necessarily get
-> > built into the kernel, I'd suggest that it should remain optional and
-> > default to n.  Those drivers can then add a dependency on PROBE_DEFER.
-> > Let's try to avoid adding more infrastructure to the kernel that takes
-> > up space even when unused; certainly embedded will appreciate not having
-> > this feature unless a driver needs it.
+On Saturday 08 October 2011 04:20 AM, Kevin Hilman wrote:
+> Kevin Hilman <khilman@ti.com> writes:
 > 
-> How much extra space is this "feature" really?
+>> Hi Santosh,
+>>
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>>
+>>> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
+>>> suspend (S2R), CPU hotplug and CPUidle.
+>>
+>> Just noticed when doing some final build/sanity testing that there are a
+>> few of compile/link warnings/problems when the kernel is built without
+>> CONFIG_PM
+>>
+>> Some warnings:
+>>
+>> /work/kernel/omap/pm/arch/arm/mach-omap2/omap-wakeupgen.c:203:13: warning: 'irq_save_context' defined but not used
+>> /work/kernel/omap/pm/arch/arm/mach-omap2/omap-wakeupgen.c:270:13: warning: 'irq_save_secure_context' defined but not used
+>>
+Sory I missed it in my builds.
 
-Just checked: 776 bytes, 640 of text and 136 of data.  We have kconfig
-options for comparable amounts.
+[...]
 
-> I don't see it being
-> anything larger than the amount of memory increase that just happened as
-> I typed this email as part of the ongoing memory density changes.
+> Please just cleanup the wakeupgen compile warnings and update your
+> branch.
+> 
+Done !!
+Updated branch : for_3_2/omap4-mpuss-pm_2
 
-I don't know about the changes you mean, but in any case I'd like to
-prevent mandatory size increases wherever possible.  I'd love to see the
-size of "allnoconfig" getting *smaller* over time, not larger.
+Regards
+Santosh
 
-- Josh Triplett
+
