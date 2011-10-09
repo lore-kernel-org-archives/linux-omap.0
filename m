@@ -1,165 +1,67 @@
-From: Michael Opdenacker <michael.opdenacker@linaro.org>
-Subject: [PATCH 1/1] arm: omap: removed obsolete IRQF_DISABLED
-Date: Sun,  9 Oct 2011 07:46:38 +0200
-Message-ID: <1318139198-6865-2-git-send-email-michael.opdenacker@linaro.org>
-References: <1318139198-6865-1-git-send-email-michael.opdenacker@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1318139198-6865-1-git-send-email-michael.opdenacker@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tony@atomide.com, linux@arm.linux.org.uk, khilman@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, patches@linaro.org, Michael Opdenacker <michael.opdenacker@linaro.org>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [GIT PULL] I2C: OMAP: misc. cleanup for v3.2
+Date: Sun, 9 Oct 2011 19:35:50 +0800
+Message-ID: <CACVXFVP85gS=FdWcecGZYWSN+U5q0Z9h9zURNmFOiM2sWOPmNw@mail.gmail.com>
+References: <871uwbhdoj.fsf@ti.com> <4E669F36.2070008@ti.com>
+	<4E80FD1A.5040006@deeprootsystems.com>
+	<20111004210832.GC13323@freya.fluff.org> <87aa9f771n.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87aa9f771n.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Ben Dooks <ben-i2c@fluff.org>, Ben Dooks <ben-linux@fluff.org>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This flag is a NOOP since 2.6.36
+On Thu, Oct 6, 2011 at 12:11 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Ben Dooks <ben-i2c@fluff.org> writes:
+>
+>> On Mon, Sep 26, 2011 at 03:30:50PM -0700, Kevin Hilman wrote:
+>>> ping
+>>>
+>>> On 09/06/2011 03:31 PM, Kevin Hilman wrote:
+>>> >Hi Ben,
+>>> >
+>>> >On 08/23/2011 05:10 PM, Kevin Hilman wrote:
+>>> >>Ben,
+>>> >>
+>>> >>Here's one more I2C cleanup series for v3.2.
+>>> >>
+>>> >>It applies on top of my for_3.2/i2c-fixes branch just submitted.
+>>> >>
+>>> >>Please pull into your tree for linux-next.
+>>> >
+>>> >I see you pulled the other two, can you pull this one as well?
+>>
+>> I've tried, but it seems to note that everything is up to date.
+>>
+>> Is this a suitable branch to pull onto latest so I can reset
+>> my next tree?
+>
+> Yes.
+>
+> The i2c-cleanup branch[1] is based on top of the previous two (i2c-andy
+> and i2c-fixes) so if you reset your next-i2c branch and just pull
+> i2c-cleanup, you'll get all three.
 
-Signed-off-by: Michael Opdenacker <michael.opdenacker@linaro.org>
----
- arch/arm/mach-omap1/fpga.c        |    5 ++---
- arch/arm/mach-omap1/pm.c          |    1 -
- arch/arm/mach-omap1/time.c        |    2 +-
- arch/arm/mach-omap1/timer32k.c    |    2 +-
- arch/arm/mach-omap2/omap_l3_noc.c |    4 ++--
- arch/arm/mach-omap2/omap_l3_smx.c |    4 ++--
- arch/arm/mach-omap2/pm34xx.c      |    2 +-
- arch/arm/mach-omap2/timer.c       |    2 +-
- arch/arm/plat-omap/dma.c          |    1 -
- 9 files changed, 10 insertions(+), 13 deletions(-)
+BTW:
 
-diff --git a/arch/arm/mach-omap1/fpga.c b/arch/arm/mach-omap1/fpga.c
-index cddbf8b..3786b35 100644
---- a/arch/arm/mach-omap1/fpga.c
-+++ b/arch/arm/mach-omap1/fpga.c
-@@ -131,9 +131,8 @@ static struct irq_chip omap_fpga_irq = {
-  * In an attempt to workaround the problem with missed interrupts, the
-  * mask_ack routine for all of the FPGA interrupts has been changed from
-  * fpga_mask_ack_irq() to fpga_ack_irq() so that the specific FPGA interrupt
-- * being serviced is left unmasked.  We can do this because the FPGA cascade
-- * interrupt is installed with the IRQF_DISABLED flag, which leaves all
-- * interrupts masked at the CPU while an FPGA interrupt handler executes.
-+ * being serviced is left unmasked.  We can do this because all the interrupts
-+ * are masked at the CPU while an FPGA interrupt handler executes.
-  *
-  * Limited testing indicates that this workaround appears to be effective
-  * for the smc9194 Ethernet driver used on the Innovator.  It should work
-diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
-index 6badc29..f842ff2 100644
---- a/arch/arm/mach-omap1/pm.c
-+++ b/arch/arm/mach-omap1/pm.c
-@@ -641,7 +641,6 @@ static irqreturn_t omap_wakeup_interrupt(int irq, void *dev)
- 
- static struct irqaction omap_wakeup_irq = {
- 	.name		= "peripheral wakeup",
--	.flags		= IRQF_DISABLED,
- 	.handler	= omap_wakeup_interrupt
- };
- 
-diff --git a/arch/arm/mach-omap1/time.c b/arch/arm/mach-omap1/time.c
-index a183777..a35b4d2 100644
---- a/arch/arm/mach-omap1/time.c
-+++ b/arch/arm/mach-omap1/time.c
-@@ -163,7 +163,7 @@ static irqreturn_t omap_mpu_timer1_interrupt(int irq, void *dev_id)
- 
- static struct irqaction omap_mpu_timer1_irq = {
- 	.name		= "mpu_timer1",
--	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
- 	.handler	= omap_mpu_timer1_interrupt,
- };
- 
-diff --git a/arch/arm/mach-omap1/timer32k.c b/arch/arm/mach-omap1/timer32k.c
-index 96604a5..db08fd4 100644
---- a/arch/arm/mach-omap1/timer32k.c
-+++ b/arch/arm/mach-omap1/timer32k.c
-@@ -155,7 +155,7 @@ static irqreturn_t omap_32k_timer_interrupt(int irq, void *dev_id)
- 
- static struct irqaction omap_32k_timer_irq = {
- 	.name		= "32KHz timer",
--	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
- 	.handler	= omap_32k_timer_interrupt,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
-index c8b1bef..a679437 100644
---- a/arch/arm/mach-omap2/omap_l3_noc.c
-+++ b/arch/arm/mach-omap2/omap_l3_noc.c
-@@ -186,7 +186,7 @@ static int __devinit omap4_l3_probe(struct platform_device *pdev)
- 	l3->debug_irq = platform_get_irq(pdev, 0);
- 	ret = request_irq(l3->debug_irq,
- 			l3_interrupt_handler,
--			IRQF_DISABLED, "l3-dbg-irq", l3);
-+			0, "l3-dbg-irq", l3);
- 	if (ret) {
- 		pr_crit("L3: request_irq failed to register for 0x%x\n",
- 						OMAP44XX_IRQ_L3_DBG);
-@@ -196,7 +196,7 @@ static int __devinit omap4_l3_probe(struct platform_device *pdev)
- 	l3->app_irq = platform_get_irq(pdev, 1);
- 	ret = request_irq(l3->app_irq,
- 			l3_interrupt_handler,
--			IRQF_DISABLED, "l3-app-irq", l3);
-+			0, "l3-app-irq", l3);
- 	if (ret) {
- 		pr_crit("L3: request_irq failed to register for 0x%x\n",
- 						OMAP44XX_IRQ_L3_APP);
-diff --git a/arch/arm/mach-omap2/omap_l3_smx.c b/arch/arm/mach-omap2/omap_l3_smx.c
-index a05a62f..c1c33bf 100644
---- a/arch/arm/mach-omap2/omap_l3_smx.c
-+++ b/arch/arm/mach-omap2/omap_l3_smx.c
-@@ -237,7 +237,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 
- 	l3->debug_irq = platform_get_irq(pdev, 0);
- 	ret = request_irq(l3->debug_irq, omap3_l3_app_irq,
--		IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+		IRQF_TRIGGER_RISING,
- 		"l3-debug-irq", l3);
- 	if (ret) {
- 		dev_err(&pdev->dev, "couldn't request debug irq\n");
-@@ -246,7 +246,7 @@ static int __init omap3_l3_probe(struct platform_device *pdev)
- 
- 	l3->app_irq = platform_get_irq(pdev, 1);
- 	ret = request_irq(l3->app_irq, omap3_l3_app_irq,
--		IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+		IRQF_TRIGGER_RISING,
- 		"l3-app-irq", l3);
- 	if (ret) {
- 		dev_err(&pdev->dev, "couldn't request app irq\n");
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c8cbd00..ea5b37a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -878,7 +878,7 @@ static int __init omap3_pm_init(void)
- 
- 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
- 			  (irq_handler_t)prcm_interrupt_handler,
--			  IRQF_DISABLED, "prcm", NULL);
-+			  0, "prcm", NULL);
- 	if (ret) {
- 		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
- 		       INT_34XX_PRCM_MPU_IRQ);
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 037b0d7..2bc303c 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -91,7 +91,7 @@ static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
- 
- static struct irqaction omap2_gp_timer_irq = {
- 	.name		= "gp timer",
--	.flags		= IRQF_DISABLED | IRQF_TIMER | IRQF_IRQPOLL,
-+	.flags		= IRQF_TIMER | IRQF_IRQPOLL,
- 	.handler	= omap2_gp_timer_interrupt,
- };
- 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index c22217c..f51e18e 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -1928,7 +1928,6 @@ static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
- static struct irqaction omap24xx_dma_irq = {
- 	.name = "DMA",
- 	.handler = omap2_dma_irq_handler,
--	.flags = IRQF_DISABLED
- };
- 
- #else
+The patch[1] is a fix patch, which fix the OOPS[2] during system resume, so
+should CC -stable tree.
+
+[1], I2C: OMAP: remove dev->idle, use usage counting provided by runtime PM
+[2], http://marc.info/?l=linux-omap&m=131658936429671&w=2
+
+thanks,
 -- 
-1.7.4.1
+Ming Lei
