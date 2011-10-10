@@ -1,47 +1,60 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
-	regulator_init_data
-Date: Mon, 10 Oct 2011 18:22:22 +0100
-Message-ID: <20111010172222.GG3607@opensource.wolfsonmicro.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
-	<1318263578-7407-4-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: omap_device: Add omap_device_{alloc, delete, register}_ss
+Date: Mon, 10 Oct 2011 10:25:01 -0700
+Message-ID: <87hb3giwsy.fsf@ti.com>
+References: <1317833693-21105-1-git-send-email-ohad@wizery.com>
+	<CAK=WgbbqG4qFAafJ49jdYwf19whxBGhtywTWVTnsejZ0F_ekog@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1318263578-7407-4-git-send-email-rnayak@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:53310 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751258Ab1JJRZF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Oct 2011 13:25:05 -0400
+Received: by mail-gy0-f170.google.com with SMTP id 11so6436412gyb.29
+        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 10:25:04 -0700 (PDT)
+In-Reply-To: <CAK=WgbbqG4qFAafJ49jdYwf19whxBGhtywTWVTnsejZ0F_ekog@mail.gmail.com>
+	(Ohad Ben-Cohen's message of "Mon, 10 Oct 2011 09:37:08 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-On Mon, Oct 10, 2011 at 09:49:36PM +0530, Rajendra Nayak wrote:
+Ohad Ben-Cohen <ohad@wizery.com> writes:
 
-> +- regulator-change-voltage: boolean, Output voltage can be changed by software
-> +- regulator-change-current: boolean, Output current can be chnaged by software
-> +- regulator-change-mode: boolean, Operating mode can be changed by software
-> +- regulator-change-status: boolean, Enable/Disable control for regulator exists
-> +- regulator-change-drms: boolean, Dynamic regulator mode switching is enabled
-> +- regulator-mode-fast: boolean, allow/set fast mode for the regulator
-> +- regulator-mode-normal: boolean, allow/set normal mode for the regulator
-> +- regulator-mode-idle: boolean, allow/set idle mode for the regulator
-> +- regulator-mode-standby: boolean, allow/set standby mode for the regulator
-> +- regulator-input-uV: Input voltage for regulator when supplied by another regulator
-> +- regulator-always-on: boolean, regulator should never be disabled
+> Hi Kevin,
+>
+> On Wed, Oct 5, 2011 at 6:54 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>> Split omap_device_build_ss() into two smaller functions:
+> ...
+>> This patch is considered an interim solution until DT fully materializes
+>> for omap; at that point, this functionality will be removed.
+>
+> Good news: we might not need this after all.
 
-Thinking about this I'm not sure that these should go in the device
-tree, they're as much talking about what Linux is able to cope with as
-they are talking about what the hardware is able to do.  Sometimes
-they'll be fixed by the design but they are sometimes also restricted by
-what the software is currently capable of.  DRMS is a prime example
-here, it depends on how good we are at telling the API about how much
-current we're using.
+Great.
+
+> I need the remoteproc devices to exists at ->reserve() time, so I can
+> assign them a private CMA pool, which means I can't wait for
+> omap_device_build_ss() and must create the devices beforehand.
+>
+> ... which makes Benoit's alloc/delete methods perfect for me.
+>
+> So please hold this one off for now. I'd just need a s/static// patch
+> that will allow me to use Benoit's methods outside of omap_device.c,
+> but I'll wait for things to settle down a bit before sending it, to
+> minimize this kind of churn.
+
+OK.  Sounds good.
+
+Thanks,
+
+Kevin
+
+> Thanks and sorry for the noise,
+> Ohad.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
