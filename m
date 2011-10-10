@@ -1,77 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Mon, 10 Oct 2011 19:03:55 +0300
-Message-ID: <20111010160354.GP6685@legolas.emea.dhcp.ti.com>
-References: <20111010100507.GG6685@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.44L0.1110101117360.18069-100000@netrider.rowland.org>
-Reply-To: balbi@ti.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 2/5] dt: add empty dt helpers for non-dt build
+Date: Mon, 10 Oct 2011 21:49:35 +0530
+Message-ID: <1318263578-7407-3-git-send-email-rnayak@ti.com>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="wg9FEZT+WCTrEXgJ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1110101117360.18069-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Greg KH <greg@kroah.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1318263578-7407-1-git-send-email-rnayak@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
+Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+Add empty of_device_is_compatible(), of_find_property()
+and of_parse_phandle() for non-dt builds to work.
 
---wg9FEZT+WCTrEXgJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ include/linux/of.h |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
 
-On Mon, Oct 10, 2011 at 11:19:43AM -0400, Alan Stern wrote:
-> On Mon, 10 Oct 2011, Felipe Balbi wrote:
->=20
-> > > > do we have sibling structures today? I dont think so.
-> > >=20
-> > > no we don't.
-> >=20
-> > Ok, here's a first shot at it:
->=20
-> In fact we do already have sibling lists.  They are maintained as part=20
-> of the device_private structure.  What we are missing is a=20
-> device_for_each_sibling() routine.  It could be added pretty easily; it=
-=20
-> would be similar to device_for_each_child().
-
-care to point out where is ?
-
-68 struct device_private {
-69         struct klist klist_children;
-70         struct klist_node knode_parent;
-71         struct klist_node knode_driver;
-72         struct klist_node knode_bus;
-73         void *driver_data;
-74         struct device *device;
-75 };
-
---=20
-balbi
-
---wg9FEZT+WCTrEXgJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOkxdqAAoJEIaOsuA1yqRE2WAP/iaXOtBIeI8ftktO+t4FA9x3
-4yNrIuUQU4bwGPb22nR+to6cdpxTc0GbawBMnMuo7cbMzNoIOBiCOL0ag4fMtvqe
-WrvlzMDauF9W98Xva8OF0bwrqWRRK2VaA22Hjd7Mykp6mEBKB6BX1KyNslesipGV
-N7jR2AS5yGmopaRbFyzvO9bOqV5KjNvTr3/a0eWMIpIi6JP3iin6ok87uOZTn3Pd
-+xXkiaiq6tnJUnB8xeFI9ACkQS6cSt138GI7Nx+UDw2vAs3hIcY8f9XNtZ/EcIWi
-pWFLZvi9Ptgymq5/2+dDyINBE2nHMuSCE4UqrmbN4g5oOQywZiyKi0BuHOyCrb8v
-mps3WaQyTkvADwU0gkQJpZeGaH1Ig+lqDLXuNlsu5OH4DHp2AURpwwD9X/Lnbbey
-zll8JexQtISGLp1uTXq/Ip6KrcofkVN5izM1qp8yJsoLBMZ9LkI4caIOSmh+lTuc
-BAuWCgYmPuIswAd5/Nye89Zs4JHTBsto68SrP60BQaa4RdbUVMwpb5D1hEXg8+x7
-KRwmOuadLGfdQ6RTWCVbi8pHkvvIGhw9C7rlQ2NzKwS9fofRVRElH8SLkcJHQ9mv
-wE0VNHDp8qHrZM0FQOoPSXWHQdLkTDa1NuuTNMPf+3QLPlXq3AK/clgxoR4P68lN
-5YsCLjHvxh9Yywp77FS5
-=C+rW
------END PGP SIGNATURE-----
-
---wg9FEZT+WCTrEXgJ--
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 9180dc5..47ce461 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -263,6 +263,25 @@ static inline const void *of_get_property(const struct device_node *node,
+ 	return NULL;
+ }
+ 
++static inline int of_device_is_compatible(const struct device_node *device,
++				   const char *name)
++{
++	return 0;
++}
++
++static inline struct property *of_find_property(const struct device_node *np,
++					 const char *name,
++					 int *lenp)
++{
++	return NULL;
++}
++
++static inline struct device_node *of_parse_phandle(struct device_node *np,
++					    const char *phandle_name,
++					    int index)
++{
++	return NULL;
++}
+ #endif /* CONFIG_OF */
+ 
+ static inline int of_property_read_u32(const struct device_node *np,
+-- 
+1.7.1
