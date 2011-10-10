@@ -1,20 +1,11 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/5] drivercore: add new error value for deferred probe
-Date: Sun, 9 Oct 2011 18:06:56 -0700
-Message-ID: <20111010010656.GA16537@kroah.com>
-References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
-	<1317963790-29426-2-git-send-email-manjugk@ti.com>
-	<20111007064349.GD27508@kroah.com>
-	<CACxGe6uOmrLwJSPw4JHuOmt5B2wsukdDgVUr01pryq5Z9BFadw@mail.gmail.com>
-	<32004.1318030113@turing-police.cc.vt.edu>
-	<20111008001237.GA30551@kroah.com>
-	<CACxGe6t+PfnNGniYUj3pbK22uqjqkbh2+D=7qvvd_-Yd4yR0dw@mail.gmail.com>
+From: Hemant Pedanekar <hemantp@ti.com>
+Subject: [PATCH v4 0/3] Add support for TI814X processor series
+Date: Mon, 10 Oct 2011 07:09:47 +0530
+Message-ID: <1318210787-2223-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CACxGe6t+PfnNGniYUj3pbK22uqjqkbh2+D=7qvvd_-Yd4yR0dw@mail.gmail.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,62 +15,70 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Dilan Lee <dilee@nvidia.com>, Valdis.Kletnieks@vt.edu, Arnd Bergmann <arnd@arndb.de>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Hemant Pedanekar <hemantp@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Oct 09, 2011 at 04:59:31PM -0600, Grant Likely wrote:
-> On Fri, Oct 7, 2011 at 6:12 PM, Greg KH <greg@kroah.com> wrote:
-> > On Fri, Oct 07, 2011 at 07:28:33PM -0400, Valdis.Kletnieks@vt.edu wrote:
-> >> On Fri, 07 Oct 2011 16:12:45 MDT, Grant Likely said:
-> >> > On Fri, Oct 7, 2011 at 12:43 AM, Greg KH <greg@kroah.com> wrote:
-> >> > > On Fri, Oct 07, 2011 at 10:33:06AM +0500, G, Manjunath Kondaiah wr=
-ote:
-> >>
-> >> > >> +#define EPROBE_DEFER 517 =A0 =A0 /* restart probe again after so=
-me time */
-> >> > >
-> >> > > Can we really do this?
-> >>
-> >> > According to Arnd, yes this is okay.
-> >>
-> >> > > =A0Isn't this some user/kernel api here?
-> >>
-> >> > > What's wrong with just "overloading" on top of an existing error c=
-ode?
-> >> > > Surely one of the other 516 types could be used here, right?
-> >>
-> >> > overloading makes it really hard to find the users at a later date.
-> >>
-> >> Would proposing '#define EPROBE_DEFER EAGAIN' be acceptable to everybo=
-dy? That
-> >> would allow overloading EAGAIN, but still make it easy to tell the usa=
-ges apart
-> >> if we need to separate them later...
-> >
-> > Yes, please do that, it is what USB does for it's internal error code
-> > handling.
-> =
+This patch set adds support for DM814x/AM387x device series having Cortex-A8
+MPU.
 
-> Really?  When we've only currently used approximately 2^9 of a 2^31
-> numberspace?  I'm fine with making sure that the number doesn't show
-> up in the userspace headers, but it makes no sense to overload the
-> #defines.  Particularly so in this case where it isn't feasible to
-> audit every driver to figure out what probe might possibly return.  It
-> is well within the realm of possibility that existing drivers are
-> already returning -EAGAIN.
+The technical documents are available from following link:
 
-I doubt they are, but you are right, it's really hard to tell.
+http://focus.ti.com/docs/prod/folders/print/tms320dm8148.html
 
-> Besides; linux/errno.h *already* has linux-internal error codes that
-> do not get exported out to userspace.  There is an #ifdef __KERNEL__
-> block around ERESTARTSYS through EIOCBRETRY which is filtered out when
-> exporting headers.  I can't see any possible reason why we wouldn't
-> add Linux internal error codes here.
+This series is referred in code as TI814X.
 
-As long as it stays internal, that's fine, I was worried that this would
-be exported to userspace.
+Since these devices share similar architecture as TI816X devices, existing
+TI816X code is updated to accomodate TI814X support. The code shared across
+TI816X and TI814X devices is updated with TI81XX/ti81xx prefix as applicable,
+while maintaining cpu_is_ti816x() and cpu_is_ti814x() to distinguish specific
+execution differences.
 
-Alan, still object to this?
+Changes since v3:
+1) Avoid renaming board-ti8168evm.c, just add TI8148 EVM support in it.
+2) Drop changes in clock related data variables from u8 to u16 since the same
+   was incorporated as part of AM33xx addition.
 
-greg k-h
+Changes since v2:
+1) Incorporate Tony's suggestion about moving ti8168_evm_map_io() to
+   arch/arm/mach-omap2/common.c to keep common across TI81XX.
+2) Keeping single board file (board-ti81xxevm.c) for TI816X and TI814X EVMs
+
+Changes since v1:
+1) Rebased and updated after Paul's CHIP_IS removal changes
+2) Removed call to omap2_init_common_devices() as per Kevin's comment
+
+Hemant Pedanekar (3):
+  ARM: OMAP: TI81XX: Prepare for addition of TI814X support
+  ARM: OMAP: TI814X: Add cpu type macros and detection support
+  ARM: OMAP: TI814X: Create board support and enable build for TI8148
+    EVM
+
+ arch/arm/mach-omap2/Kconfig                        |   11 +++++--
+ arch/arm/mach-omap2/Makefile                       |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c              |   33 +++++++++++--------
+ arch/arm/mach-omap2/clock3xxx_data.c               |    5 ++-
+ arch/arm/mach-omap2/common.c                       |   27 +++++++++------
+ arch/arm/mach-omap2/control.h                      |    8 ++--
+ arch/arm/mach-omap2/id.c                           |   30 +++++++++++++++--
+ arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 +++---
+ arch/arm/mach-omap2/include/mach/entry-macro.S     |    4 +-
+ arch/arm/mach-omap2/io.c                           |   14 ++++----
+ arch/arm/mach-omap2/irq.c                          |    2 +-
+ arch/arm/mach-omap2/serial.c                       |    6 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h      |    1 +
+ arch/arm/plat-omap/include/plat/clock.h            |    1 +
+ arch/arm/plat-omap/include/plat/common.h           |    6 ++--
+ arch/arm/plat-omap/include/plat/cpu.h              |   22 +++++++++++++
+ arch/arm/plat-omap/include/plat/hardware.h         |    2 +-
+ arch/arm/plat-omap/include/plat/io.h               |    6 ++--
+ arch/arm/plat-omap/include/plat/irqs.h             |    2 +-
+ arch/arm/plat-omap/include/plat/serial.h           |   14 ++++----
+ .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 +++++-----
+ arch/arm/plat-omap/include/plat/uncompress.h       |   11 ++++--
+ arch/arm/plat-omap/io.c                            |    2 +-
+ 23 files changed, 153 insertions(+), 85 deletions(-)
+ rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
+
+-- 
+1.7.3.5
