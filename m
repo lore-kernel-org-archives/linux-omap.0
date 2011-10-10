@@ -1,49 +1,47 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 05/16] OMAP2+: UART: Cleanup part of clock gating mechanism for uart
-Date: Mon, 10 Oct 2011 15:30:43 -0700
-Message-ID: <87ty7gfpik.fsf@ti.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
-	<1317380495-584-5-git-send-email-govindraj.raja@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+Date: Mon, 10 Oct 2011 16:35:14 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110101631450.5205@utopia.booyaka.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com> <1316781986-30642-4-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com> <4E934D79.4080000@ti.com> <alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
+ <4E936F0E.9050203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46824 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752419Ab1JJWar (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Oct 2011 18:30:47 -0400
-In-Reply-To: <1317380495-584-5-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 30 Sep 2011 16:31:31 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:37073 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab1JJWfP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 18:35:15 -0400
+In-Reply-To: <4E936F0E.9050203@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On Tue, 11 Oct 2011, Cousson, Benoit wrote:
 
-> Currently we use a shared irq handler to identify uart activity and then
-> trigger a timer. 
-
-OK.
-
-> Based the timeout value set from sysfs the timer used to expire.
-
-Please re-phrase as I'm not sure what is being said here.
-
-> If no uart-activity was detected timer-expiry func sets can_sleep
-> flag. Based on this we will disable the uart clocks in idle path.
+> On 10/10/2011 10:42 PM, Paul Walmsley wrote:
 >
-> Since the clock gating mechanism is outside the uart driver, we currently
-> use this mechanism. In preparation to runtime implementation for omap-serial
-> driver we can cleanup this mechanism and use runtime API's to gate uart clocks.
->
-> Also remove timer related info from local uart_state struct and remove
-> the code used to set timeout value from sysfs. Remove un-used function
-> omap_uart_check_wakeup.
->
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> > If it's the "3xxx" that you're objecting to in the name, we could call it
+> > "prm2" or "prmxyz" - the '3xxx' just seemed like the most logical
+> > approach.  The name of the hwmod class in the patch is still "prm", of
+> > course.
+> 
+> Yes, but that's different, the number is supposed to represent the instance
+> number in the IP naming convention. So prm2 != prmv2.
 
-The patch itself fine, and is a well-neede cleanup, but changelog
-(especially the first part) does not read well.
+Heh, that works as long as there's no "prmv" IP block ;-)
 
-Kevin
+> > Thoughts?
+> 
+> In fact the device name does not have to match the hwmod name. So we can just
+> create an "omap2_prm" omap_device for OMAP2, "omap3_prm" omap_device for
+> OMAP3...
+> That will allow the relevant PRM  driver to be bound to the proper device.
+
+We can, we'd just need to add this extra mapping layer, so it doesn't 
+become a nasty special-case hack for each IP block that this applies to.
+
+Sounds like something for 3.3 (if ever...)
+
+
+- Paul
