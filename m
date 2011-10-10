@@ -1,42 +1,120 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Mon, 10 Oct 2011 16:13:41 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110101604320.5205@utopia.booyaka.com>
-References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com> <CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com> <alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
- <CAP05o4KLAnNHcvNbNWqJFN710JMNAy2emYzCt2xHF+m-Kvwveg@mail.gmail.com> <CAP05o4+ybhZwRaXZPgS-ZdTL_0gjz1VLf6LuUtMgm_txNPwrnw@mail.gmail.com> <20111010090330.GE6685@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1110101509580.5205@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+Date: Tue, 11 Oct 2011 00:17:50 +0200
+Message-ID: <4E936F0E.9050203@ti.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
+	<1316781986-30642-4-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com>
+	<4E934D79.4080000@ti.com>
+	<alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1110101509580.5205@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset="iso-8859-15"; Format="flowed"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+On 10/10/2011 10:42 PM, Paul Walmsley wrote:
+> Hi Beno=EEt
+>
+> On Mon, 10 Oct 2011, Cousson, Benoit wrote:
+>
+>> On 10/10/2011 9:24 PM, Paul Walmsley wrote:
+>>> On Fri, 23 Sep 2011, Tero Kristo wrote:
+>>>
+>>>> This patch is temporary until Paul can provide a final version.
+>>>>
+>>>> Signed-off-by: Tero Kristo<t-kristo@ti.com>
+>>>
+>>> Here's an updated version of this one.  The one change is that the hwmo=
+d's
+>>> name is now "prm3xxx" to reflect that the register layout of this IP bl=
+ock
+>>> is quite different from its OMAP2 predecessors and OMAP4 successors.
+>>> This should avoid some of the special-purpose driver probing code.
+>>
+>> This is not really aligned with the naming convention we've been using s=
+o far.
+>> In both cases, the hwmod should just be named "prm". If a version inform=
+ation
+>> is needed, then it should be added in the revision class field.
+>>
+>> It will make the device creation even simpler and not dependent of the S=
+oC
+>> version.
+>
+> The problem in this case is that we should be using a completely different
+> device driver for the PRM that's in the OMAP3 chips, from the driver used
+> for OMAP2 or OMAP4 PRM blocks, due to the completely different register
+> layout.  As far as I know, we haven't yet used the hwmod IP version to
+> probe a different device driver when the version number changes.  There's
+> no support for that in the current Linux platform* code, so we'd need
+> special-purpose code for that.
+>
+> In an ideal world, we'd have an omap_bus, etc., which would include an
+> additional interface version number as part of its driver matching
+> criteria.  Device drivers would then specify which interface version
+> numbers they supported.  The device data would specify that interface
+> version number should be matched.
+>
+> But as it is right now in the current platform_device/platform_driver
+> based system, we have only the name to match.  We could implement
+> something where we concatenate the existing IP version number onto the
+> hwmod name, and modify the device drivers to use that name.  But that
+> seems like a lot of potential churn in light of a future DT and/or
+> omap_bus migration.
+>
+> So I'm proposing to use the IP version number field that's in the hwmod
+> data to indicate evolutionary revisions of an IP block -- rather than
+> revolutionary revisions that would require a new driver.  Then, since we
+> use the hwmod name for driver matching, we'd use a different name for
+> radically different IPs.
+>
+> If it's the "3xxx" that you're objecting to in the name, we could call it
+> "prm2" or "prmxyz" - the '3xxx' just seemed like the most logical
+> approach.  The name of the hwmod class in the patch is still "prm", of
+> course.
 
-On Mon, 10 Oct 2011, Paul Walmsley wrote:
+Yes, but that's different, the number is supposed to represent the =
 
-> So then you'd just create a TLL driver with something like these two 
-> symbols exported:
-> 
-> omap_usbhost_tll_enable_port();
-> omap_usbhost_tll_disable_port(); 
+instance number in the IP naming convention. So prm2 !=3D prmv2.
 
-N.B., since I don't think Linux has any formal support to map USB ports to 
-TLL ports, you'll probably need to create a couple of functions in your 
-drivers/mfd/omap-usb-host.c that your EHCI/OHCI drivers could call during 
-init/exit to get and put the TLL struct device, to pass to those above 
-functions.  Since the MFD driver is what creates the TLL struct devices, 
-the MFD driver will have the TLL struct device pointers.  Something like 
-omap_usbhost_get_tll_device() and omap_usbhost_put_tll_device().
+> Thoughts?
 
-One other thing.  Not sure what the correct generic name prefix for these 
-functions should be, since I don't know the provenance of the USBHOST IP 
-block; but maybe the function prefix should be something like 'ti_usbhost' 
-instead, to indicate that it isn't OMAP-specific?  You would know better 
-than I.
+In fact the device name does not have to match the hwmod name. So we can =
 
+just create an "omap2_prm" omap_device for OMAP2, "omap3_prm" =
 
-- Paul
+omap_device for OMAP3...
+That will allow the relevant PRM  driver to be bound to the proper device.
+
+> N.B., it's true that by waiting, this problem will presumably go away,
+> with DT, in which the driver matching data would go into the
+> "compatible" string in the DT.
+
+Yes, this will become indeed straightforward with DT.
+
+We will just have something like:
+prm {
+	compatible =3D "prm-omap2";
+	ti,hwmods =3D "prm";
+}
+
+> But I guess it would be good to figure out a clean approach in the
+> meantime.
+
+I guess the different device names should make that work in the meantime.
+
+Regards,
+Benoit
