@@ -1,31 +1,28 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 8/8] OMAP3: powerdomain data: add wake-up latency
- figures
-Date: Mon, 10 Oct 2011 16:52:54 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110101652290.5205@utopia.booyaka.com>
-References: <1316621649-3622-1-git-send-email-j-pihet@ti.com> <1316622258-3892-1-git-send-email-j-pihet@ti.com> <1316622258-3892-9-git-send-email-j-pihet@ti.com> <alpine.DEB.2.00.1110062215270.4611@utopia.booyaka.com> <CAORVsuX2PUubPzO3mWTaO0Lg6Mdog8wjDY6hm93qheMwoz27CA@mail.gmail.com>
- <alpine.DEB.2.00.1110101636470.5205@utopia.booyaka.com>
+Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+Date: Mon, 10 Oct 2011 17:26:48 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110101725140.5205@utopia.booyaka.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com> <1316781986-30642-4-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com> <4E934D79.4080000@ti.com> <alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
+ <4E936F0E.9050203@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49639 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752491Ab1JJWwz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 18:52:55 -0400
-In-Reply-To: <alpine.DEB.2.00.1110101636470.5205@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4E936F0E.9050203@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-On Mon, 10 Oct 2011, Paul Walmsley wrote:
+On Tue, 11 Oct 2011, Cousson, Benoit wrote:
 
-> OK.  sys_offmode only applies to OFF mode.  Voltage scaling can also occur 
-> during RETENTION and INACTIVE ("sleep").  So were these results with 
-> retention and voltage scaling disabled?
+> In fact the device name does not have to match the hwmod name. So we can just
+> create an "omap2_prm" omap_device for OMAP2, "omap3_prm" omap_device for
+> OMAP3...
+> That will allow the relevant PRM  driver to be bound to the proper device.
 
-This last sentence should have read:
+Incidentally, given that we would be using the hwmod name and the version 
+number to determine the appropriate omap_device name, what IP version 
+numbers should we assign to these PRM IP blocks for different SoCs?
 
-So were these results with retention and sleep voltage scaling disabled?
 
 - Paul
