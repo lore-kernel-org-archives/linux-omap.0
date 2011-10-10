@@ -1,43 +1,43 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 2/2] omap: sound: fix checkpatch.pl error
-Date: Mon, 10 Oct 2011 09:56:36 +0300
-Message-ID: <4E929724.4070708@bitmer.com>
-References: <1318223228-15671-1-git-send-email-michael.opdenacker@linaro.org>
-	<1318223228-15671-3-git-send-email-michael.opdenacker@linaro.org>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] ARM: OMAP: omap_device: Add omap_device_{alloc, delete, register}_ss
+Date: Mon, 10 Oct 2011 09:37:08 +0200
+Message-ID: <CAK=WgbbqG4qFAafJ49jdYwf19whxBGhtywTWVTnsejZ0F_ekog@mail.gmail.com>
+References: <1317833693-21105-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1318223228-15671-3-git-send-email-michael.opdenacker@linaro.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Michael Opdenacker <michael.opdenacker@linaro.org>
-Cc: alsa-devel@alsa-project.org, tiwai@suse.de, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:41125 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455Ab1JJHh3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 03:37:29 -0400
+Received: by wwf22 with SMTP id 22so8741185wwf.1
+        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 00:37:28 -0700 (PDT)
+In-Reply-To: <1317833693-21105-1-git-send-email-ohad@wizery.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-On 10/10/2011 08:07 AM, Michael Opdenacker wrote:
-> Signed-off-by: Michael Opdenacker<michael.opdenacker@linaro.org>
-> ---
->   sound/soc/omap/omap-mcbsp.c |    3 +--
->   1 files changed, 1 insertions(+), 2 deletions(-)
->
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index 1391ea0..30325fb 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -606,8 +606,7 @@ static int mcbsp_dai_probe(struct snd_soc_dai *dai)
->   	return 0;
->   }
->
-> -static struct snd_soc_dai_driver omap_mcbsp_dai =
-> -{
-> +static struct snd_soc_dai_driver omap_mcbsp_dai = {
+Hi Kevin,
 
-Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+On Wed, Oct 5, 2011 at 6:54 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Split omap_device_build_ss() into two smaller functions:
+...
+> This patch is considered an interim solution until DT fully materializes
+> for omap; at that point, this functionality will be removed.
+
+Good news: we might not need this after all.
+
+I need the remoteproc devices to exists at ->reserve() time, so I can
+assign them a private CMA pool, which means I can't wait for
+omap_device_build_ss() and must create the devices beforehand.
+
+... which makes Benoit's alloc/delete methods perfect for me.
+
+So please hold this one off for now. I'd just need a s/static// patch
+that will allow me to use Benoit's methods outside of omap_device.c,
+but I'll wait for things to settle down a bit before sending it, to
+minimize this kind of churn.
+
+Thanks and sorry for the noise,
+Ohad.
