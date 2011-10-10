@@ -1,169 +1,57 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
-Date: Mon, 10 Oct 2011 21:54:33 +0200
-Message-ID: <4E934D79.4080000@ti.com>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-	<1316781986-30642-4-git-send-email-t-kristo@ti.com>
-	<alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Mon, 10 Oct 2011 15:55:30 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1110101551510.24082-100000@netrider.rowland.org>
+References: <20111010160354.GP6685@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:41621 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753772Ab1JJTzb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 15:55:31 -0400
+In-Reply-To: <20111010160354.GP6685@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Greg KH <greg@kroah.com>
 
-Hi Paul,
+On Mon, 10 Oct 2011, Felipe Balbi wrote:
 
-On 10/10/2011 9:24 PM, Paul Walmsley wrote:
-> Hi Tero
->
-> On Fri, 23 Sep 2011, Tero Kristo wrote:
->
->> This patch is temporary until Paul can provide a final version.
->>
->> Signed-off-by: Tero Kristo<t-kristo@ti.com>
->
-> Here's an updated version of this one.  The one change is that the hwmod's
-> name is now "prm3xxx" to reflect that the register layout of this IP block
-> is quite different from its OMAP2 predecessors and OMAP4 successors.
-> This should avoid some of the special-purpose driver probing code.
+> On Mon, Oct 10, 2011 at 11:19:43AM -0400, Alan Stern wrote:
+> > On Mon, 10 Oct 2011, Felipe Balbi wrote:
+> > 
+> > > > > do we have sibling structures today? I dont think so.
+> > > > 
+> > > > no we don't.
+> > > 
+> > > Ok, here's a first shot at it:
+> > 
+> > In fact we do already have sibling lists.  They are maintained as part 
+> > of the device_private structure.  What we are missing is a 
+> > device_for_each_sibling() routine.  It could be added pretty easily; it 
+> > would be similar to device_for_each_child().
+> 
+> care to point out where is ?
+> 
+> 68 struct device_private {
+> 69         struct klist klist_children;
+> 70         struct klist_node knode_parent;
+-------------^  Here.  The "parent" in the name refers to where the
+                head of the list is stored.
 
-This is not really aligned with the naming convention we've been using 
-so far.
-In both cases, the hwmod should just be named "prm". If a version 
-information is needed, then it should be added in the revision class field.
+> 71         struct klist_node knode_driver;
+> 72         struct klist_node knode_bus;
+> 73         void *driver_data;
+> 74         struct device *device;
+> 75 };
 
-It will make the device creation even simpler and not dependent of the 
-SoC version.
-I did not check the whole series, but I'm not sure we need a special 
-treatment in the case of the prm.
+>From device_add():
 
-Regards,
-Benoit
+	if (parent)
+		klist_add_tail(&dev->p->knode_parent,
+			       &parent->p->klist_children);
 
->
->
-> - Paul
->
-> From: Paul Walmsley<paul@pwsan.com>
-> Date: Mon, 10 Oct 2011 13:11:11 -0600
-> Subject: [PATCH] OMAP3xxx: hwmod data: add PRM hwmod
->
-> Add a hwmod for the Power&  Reset Management (PRM) IP block that is
-> present on OMAP3xxx SoCs.
->
-> Signed-off-by: Paul Walmsley<paul@pwsan.com>
-> ---
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   62 ++++++++++++++++++++++++++++
->   1 files changed, 62 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index ab35acb..382fad9 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -160,6 +160,7 @@ static struct omap_hwmod omap3xxx_l3_main_hwmod = {
->   };
->
->   static struct omap_hwmod omap3xxx_l4_wkup_hwmod;
-> +static struct omap_hwmod omap3xxx_prm_hwmod;
->   static struct omap_hwmod omap3xxx_uart1_hwmod;
->   static struct omap_hwmod omap3xxx_uart2_hwmod;
->   static struct omap_hwmod omap3xxx_uart3_hwmod;
-> @@ -475,6 +476,29 @@ static struct omap_hwmod omap3xxx_l4_per_hwmod = {
->   	.flags		= HWMOD_NO_IDLEST,
->   };
->
-> +static struct omap_hwmod_addr_space omap3xxx_prm_addrs[] = {
-> +	{
-> +		.pa_start	= 0x48306000,
-> +		.pa_end		= 0x48306000 + SZ_8K + SZ_4K - 1,
-> +		.flags		= ADDR_TYPE_RT
-> +	},
-> +	{ }
-> +};
-> +
-> +/* L4_WKUP ->  PRM interface */
-> +static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__prm = {
-> +	.master		=&omap3xxx_l4_wkup_hwmod,
-> +	.slave		=&omap3xxx_prm_hwmod,
-> +	.clk		= "wkup_l4_ick",
-> +	.addr		= omap3xxx_prm_addrs,
-> +	.user		= OCP_USER_MPU,
-> +};
-> +
-> +/* Master interfaces on the L4_WKUP interconnect */
-> +static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_masters[] = {
-> +	&omap3xxx_l4_wkup__prm,
-> +};
-> +
->   /* Slave interfaces on the L4_WKUP interconnect */
->   static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_slaves[] = {
->   	&omap3xxx_l4_core__l4_wkup,
-> @@ -484,11 +508,46 @@ static struct omap_hwmod_ocp_if *omap3xxx_l4_wkup_slaves[] = {
->   static struct omap_hwmod omap3xxx_l4_wkup_hwmod = {
->   	.name		= "l4_wkup",
->   	.class		=&l4_hwmod_class,
-> +	.masters	= omap3xxx_l4_wkup_masters,
-> +	.masters_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_masters),
->   	.slaves		= omap3xxx_l4_wkup_slaves,
->   	.slaves_cnt	= ARRAY_SIZE(omap3xxx_l4_wkup_slaves),
->   	.flags		= HWMOD_NO_IDLEST,
->   };
->
-> +/* Slave interfaces on the L4_WKUP interconnect */
-> +static struct omap_hwmod_ocp_if *omap3xxx_prm_slaves[] = {
-> +	&omap3xxx_l4_wkup__prm,
-> +};
-> +
-> +static struct omap_hwmod_class_sysconfig omap3xxx_prm_sysc = {
-> +	.rev_offs	= 0x0804,
-> +	.sysc_offs	= 0x0814,
-> +	.sysc_flags	= SYSC_HAS_AUTOIDLE,
-> +	.sysc_fields	=&omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap3xxx_prm_hwmod_class = {
-> +	.name		= "prm",
-> +	.sysc		=&omap3xxx_prm_sysc,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap3xxx_prm_irqs[] = {
-> +	{ .irq = 11 },
-> +	{ .irq = -1 }
-> +};
-> +
-> +/* PRM */
-> +static struct omap_hwmod omap3xxx_prm_hwmod = {
-> +	.name		= "prm3xxx",
-> +	.mpu_irqs	= omap3xxx_prm_irqs,
-> +	.class		=&omap3xxx_prm_hwmod_class,
-> +	.main_clk	= "wkup_32k_fck",
-> +	.slaves		= omap3xxx_prm_slaves,
-> +	.slaves_cnt	= ARRAY_SIZE(omap3xxx_prm_slaves),
-> +	.flags		= HWMOD_NO_IDLEST,
-> +};
-> +
->   /* Master interfaces on the MPU device */
->   static struct omap_hwmod_ocp_if *omap3xxx_mpu_masters[] = {
->   	&omap3xxx_mpu__l3_main,
-> @@ -3128,6 +3187,9 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
->   	&omap3xxx_l4_core_hwmod,
->   	&omap3xxx_l4_per_hwmod,
->   	&omap3xxx_l4_wkup_hwmod,
-> +
-> +	&omap3xxx_prm_hwmod,
-> +
->   	&omap3xxx_mmc1_hwmod,
->   	&omap3xxx_mmc2_hwmod,
->   	&omap3xxx_mmc3_hwmod,
+Alan Stern
+
