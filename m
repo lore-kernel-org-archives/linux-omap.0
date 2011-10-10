@@ -1,123 +1,70 @@
-From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v4 3/3] ARM: OMAP: TI814X: Create board support and enable build for TI8148 EVM
-Date: Mon, 10 Oct 2011 07:10:10 +0530
-Message-ID: <1318210810-2559-1-git-send-email-hemantp@ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 3/3] usb: musb: enable support for am335x
+Date: Mon, 10 Oct 2011 10:35:15 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECB6B707@dbde02.ent.ti.com>
+References: <1317031393-9333-1-git-send-email-ajay.gupta@ti.com>
+ <1317031393-9333-3-git-send-email-ajay.gupta@ti.com>
+ <4E80582F.6030803@ru.mvista.com>
+ <20111007094123.GL10910@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58297 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854Ab1JJBkV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Oct 2011 21:40:21 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:34434 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750746Ab1JJFFd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 01:05:33 -0400
+In-Reply-To: <20111007094123.GL10910@legolas.emea.dhcp.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
+To: "Balbi, Felipe" <balbi@ti.com>, Sergei Shtylyov <sshtylyov@mvista.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch adds minimal support and build configuration for TI8148 EVM. Also
-adds support for low level debugging on UART1 console on the EVM.
+Hi,
+> On Mon, Sep 26, 2011 at 02:47:11PM +0400, Sergei Shtylyov wrote:
+> > Hello.
+> >
+> > On 26-09-2011 14:03, Ajay Kumar Gupta wrote:
+> >
+> > >Enabled the flag so that musb_dsps glue file can be used for am335x
+> >
+> > >Signed-off-by: Ajay Kumar Gupta<ajay.gupta@ti.com>
+> > >---
+> > >  drivers/usb/musb/Kconfig |    6 +++---
+> > >  1 files changed, 3 insertions(+), 3 deletions(-)
+> >
+> > >diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+> > >index d6abdec..4e21aee 100644
+> > >--- a/drivers/usb/musb/Kconfig
+> > >+++ b/drivers/usb/musb/Kconfig
+> > >@@ -8,7 +8,7 @@ config USB_MUSB_HDRC
+> > >  	depends on USB&&  USB_GADGET
+> > >  	depends on (ARM || (BF54x&&  !BF544) || (BF52x&&  !BF522&&
+> !BF523))
+> > >  	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM ||
+> BLACKFIN)
+> > >-	select NOP_USB_XCEIV if SOC_OMAPTI81XX
+> > >+	select NOP_USB_XCEIV if (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
+> > >  	select TWL4030_USB if MACH_OMAP_3430SDP
+> > >  	select TWL6030_USB if MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
+> > >  	select USB_OTG_UTILS
+> > >@@ -57,7 +57,7 @@ config USB_MUSB_AM35X
+> > >
+> > >  config USB_MUSB_DSPS
+> > >  	tristate "TI DSPS platforms"
+> > >-	depends on SOC_OMAPTI81XX
+> > >+	depends on (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
+> >
+> >    Parens not needed here and above.
+> 
+> are we getting a revised version ?
 
-Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with machine
-info for TI8148 EVM.
+Yes, I will send the revised version with earlier set fixing your
+comment.
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/Kconfig                  |    5 +++++
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-ti8168evm.c        |   22 ++++++++++++++++------
- arch/arm/plat-omap/include/plat/uncompress.h |    3 +++
- 4 files changed, 25 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index caebeb7..59942b2 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -325,6 +325,11 @@ config MACH_TI8168EVM
- 	depends on SOC_OMAPTI81XX
- 	default y
- 
-+config MACH_TI8148EVM
-+	bool "TI8148 Evaluation Module"
-+	depends on SOC_OMAPTI81XX
-+	default y
-+
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
- 	default y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 5ee4cd6..0e27e43 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -240,6 +240,7 @@ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
- 
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
- obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
-+obj-$(CONFIG_MACH_TI8148EVM)		+= board-ti8168evm.o
- 
- # Platform specific device init code
- 
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-index 7935fc9..b858921 100644
---- a/arch/arm/mach-omap2/board-ti8168evm.c
-+++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -1,5 +1,5 @@
- /*
-- * Code for TI8168 EVM.
-+ * Code for TI8168/TI8148 EVM.
-  *
-  * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
-  *
-@@ -24,15 +24,15 @@
- #include <plat/board.h>
- #include <plat/common.h>
- 
--static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
-+static struct omap_board_config_kernel ti81xx_evm_config[] __initdata = {
- };
- 
--static void __init ti8168_evm_init(void)
-+static void __init ti81xx_evm_init(void)
- {
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--	omap_board_config = ti8168_evm_config;
--	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-+	omap_board_config = ti81xx_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(ti81xx_evm_config);
- }
- 
- MACHINE_START(TI8168EVM, "ti8168evm")
-@@ -42,5 +42,15 @@ MACHINE_START(TI8168EVM, "ti8168evm")
- 	.init_early	= ti81xx_init_early,
- 	.init_irq	= ti81xx_init_irq,
- 	.timer		= &omap3_timer,
--	.init_machine	= ti8168_evm_init,
-+	.init_machine	= ti81xx_evm_init,
-+MACHINE_END
-+
-+MACHINE_START(TI8148EVM, "ti8148evm")
-+	/* Maintainer: Texas Instruments */
-+	.atag_offset	= 0x100,
-+	.map_io		= ti81xx_map_io,
-+	.init_early	= ti81xx_init_early,
-+	.init_irq	= ti81xx_init_irq,
-+	.timer		= &omap3_timer,
-+	.init_machine	= ti81xx_evm_init,
- MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index a8e5187..27d9d31 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -181,6 +181,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* TI8168 base boards using UART3 */
- 		DEBUG_LL_TI81XX(3, ti8168evm);
- 
-+		/* TI8148 base boards using UART1 */
-+		DEBUG_LL_TI81XX(1, ti8148evm);
-+
- 	} while (0);
- }
- 
--- 
-1.7.3.5
-
+Thanks,
+Ajay
+> 
+> --
+> balbi
