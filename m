@@ -1,80 +1,75 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 8/8] OMAP3: powerdomain data: add wake-up latency figures
-Date: Mon, 10 Oct 2011 10:19:25 +0200
-Message-ID: <CAORVsuUp4duzxw-ux3nj2_yxJvScAEaShviiZh0dreNp=383Tg@mail.gmail.com>
-References: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
-	<1316622258-3892-1-git-send-email-j-pihet@ti.com>
-	<1316622258-3892-9-git-send-email-j-pihet@ti.com>
-	<alpine.DEB.2.00.1110070923320.4611@utopia.booyaka.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Mon, 10 Oct 2011 14:22:23 +0530
+Message-ID: <CAP05o4+ybhZwRaXZPgS-ZdTL_0gjz1VLf6LuUtMgm_txNPwrnw@mail.gmail.com>
+References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com>
+	<CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com>
+	<alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
+	<CAP05o4KLAnNHcvNbNWqJFN710JMNAy2emYzCt2xHF+m-Kvwveg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:53216 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705Ab1JJIT1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 04:19:27 -0400
-Received: by vcbgb30 with SMTP id gb30so474431vcb.19
-        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 01:19:27 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110070923320.4611@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4KLAnNHcvNbNWqJFN710JMNAy2emYzCt2xHF+m-Kvwveg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+List-Id: linux-omap@vger.kernel.org
 
-Paul,
-
-On Fri, Oct 7, 2011 at 5:26 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi Jean
->
-> On Wed, 21 Sep 2011, jean.pihet@newoldbits.com wrote:
->
->> Figures are added to the power domains structs for RET and OFF modes=
-=2E
+On Fri, Oct 7, 2011 at 4:03 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Fri, Oct 7, 2011 at 3:05 PM, Paul Walmsley <paul@pwsan.com> wrote:
+>> On Fri, 7 Oct 2011, Munegowda, Keshava wrote:
 >>
->> Note: the latency figures for MPU, PER, CORE, NEON have been obtaine=
-d
->> from actual measurements.
->> The latency figures for the other power domains are preliminary and
->> shall be added.
+>>> Thanks Paul;
+>>> yes, I can your changes in the patches.
+>>> so, you don't need v14 from me right? please confirm.
+>>> I am preparing/validating next version patches with =A0OCPIF_SWSUP_=
+IDLE removed.
+>>> Thanks for guiding me and helping on the finalizing the hwmod confi=
+gurations.
 >>
->> Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_=
-Measurement
->> for a detailed explanation on where are the numbers magically coming=
- from.
+>> The first two patches of the series -- the OMAP3/4 hwmod data patche=
+s --
+>> have been queued for 3.2 in the 'hwmod_devel_3.2' branch of
+>> git://git.pwsan.com/linux-2.6
 >>
->> Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constra=
-ints
->> on MPU, CORE and PER.
+>> So we don't need new versions of those two.
+>>
+>> But we need to figure out what to do about the remaining three
+>> patches. =A0I still think that the TLL and UHH hwmods should have
+>> separate drivers. =A0Looks like Felipe has a question pending about =
+that
+>> but it's unlikely that I'll have time to dig into it for at least a
+>> few days. =A0So I'd encourage you to try splitting those UHH and TLL
+>> drivers in the meantime.
 >
-> A few more question about these numbers.
->
-> - Are these numbers the ones right off the hardware, or rounded, or
-> worst-case plus a certain percentage?
-All measurements results are the worst case values right from the
-hardware (HW and SW measurements on the target).
+> some time last week; I had a discussion with Felipe and he is ok to
+> have current design as it is
+> for now; But, he wants to redesign this driver with UHH and TLL as tw=
+o
+> platform drivers.
+> I will have discussion with Felipe and Partha to redesign it soon.
 
->
-> - What frequency/voltage were these measured at?
-OPP50
 
->
-> - Also, you mention OMAP3 Beagleboard. =A0Is that 34xx or 36xx Beagle=
-board?
-34xx Beagleboard
+Hi paul and Felipe
 
-Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Mea=
-surement#cpuidle_results
-for the details.
+Here is the highlights of the change in the design of  USB Host which
+we can do after kernel 3.2 release;
 
-Regards,
-Jean
+1. separate the TLL changes  from UHH
+2. The TLL is be a new platform driver in ./drivers/mfd
+3. the TLL platform driver will export apis  for enable/disable clocks
+and settings.
+3. the UHH drivers uses these APIS of TLL based on the port
+configurations from board files
+                                     you don't need the TLL clocks to
+be on while all the ports are in phy mode.
 
->
-> - Paul
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+please let me know your thoughts about it.
+
+
+regards
+keshava
