@@ -1,34 +1,70 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 1/5] regulator: twl: Remove hardcoded board constraints
- from driver
-Date: Mon, 10 Oct 2011 22:04:23 +0530
-Message-ID: <4E931E8F.9030808@ti.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com> <1318263578-7407-2-git-send-email-rnayak@ti.com> <20111010162507.GF3607@opensource.wolfsonmicro.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Mon, 10 Oct 2011 19:02:46 +0200
+Message-ID: <CAK=WgbYR_qx53Z7s3R=q29KYo8ebYCH9H9=2OrrWXWMv6=-iOQ@mail.gmail.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+ <1316195506-9777-2-git-send-email-ohad@wizery.com> <20110927100505.GH2138@amd.com>
+ <CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com>
+ <20110927131222.GL2138@amd.com> <CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
+ <20110927181438.GM2138@amd.com> <CAK=WgbbNs5fWHDEputZ=jzU5YN0sn0tf6AETkcsoq_Jbvc2XgQ@mail.gmail.com>
+ <20111010094738.GW2138@amd.com> <CAK=WgbZ7Wyax1yfS1jSXw9OdwMtxxidwLO8PTsNUXX9CWzmVrw@mail.gmail.com>
+ <20111010153609.GB2138@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111010162507.GF3607@opensource.wolfsonmicro.com>
+In-Reply-To: <20111010153609.GB2138@amd.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linux-kernel@vger.kernel.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stepan Moskovchenko <stepanm@codeaurora.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Hiroshi Doyu <hdoyu@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 10 October 2011 09:55 PM, Mark Brown wrote:
-> On Mon, Oct 10, 2011 at 09:49:34PM +0530, Rajendra Nayak wrote:
->> Remove the hardcoded .valid_modes_mask and .valid_ops_mask for
->> each regulator from the twl driver and let the boards pass it.
->>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> Acked-by: Mark Brown<broonie@opensource.wolfsonmicro.com>
->
-> Please update this changelog - as I said in reply to your previous
-> posting this isn't actually hardcoding anything, it's dropping things
-> from the constraints which the hardware doesn't support.
+Hi Joerg,
 
-Looks like I completely missed the "&=" and your comment
-on the previous posting. Looking at it now, seems to me
-this patch is just un-necessary and what the driver seems
-to be doing (preventing users from setting flags which the
-hardware does not support) seems perfectly fine.
-I will just go ahead and drop this patch.
+On Mon, Oct 10, 2011 at 5:36 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> The master branch is best to base your patches on for generic work.
+
+Oh, great. thanks.
+
+> It can happen when there is a bug somewhere :)
+
+Hmm, bug ? ;)
+
+Ok, I'll add a BUG_ON :)
+
+> Yes, somthing like that. Probably the iommu_ops->unmap function should
+> be turned into a unmap_page function call which only takes an iova and
+> no size parameter. The iommu-driver unmaps the page pointing to that
+> iova and returns the size of the page unmapped. This still allows the
+> simple implementation for the unmap-call.
+
+Yes, exactly. It will take some time to migrate all drivers (today we
+have 4 drivers, each of which is implementing a slightly different
+->unmap() semantics), but at least let's not accept any new driver
+that doesn't adhere to this, otherwise it's going to be even harder
+for the API to evolve.
+
+> This change is no requirement for this patch-set, but if we agree on it
+> this patch-set should keep that direction in mind.
+
+Definitely, thanks.
+
+> We don't need to really
+> enforce the calls to be symetric. But we can define that we only give
+> the guarantee about what will be unmapped when the calls are symetric.
+
+Sounds good to me. I'll add this to the kernel doc patch (which I'll
+submit after this patch set materializes), and when/if we move to
+symmetric only, we will update it.
+
+> The alternative is that we implement page-splitting in the iommu_unmap
+> function. But that introduces complexity I am not sure we really need.
+
+Yeah, me neither.
+
+> Yes, this get_order thing should be changes to size long-term.
+
+Good. That should be a simple change, I'll do it after this patch set.
+
+Thanks,
+Ohad.
