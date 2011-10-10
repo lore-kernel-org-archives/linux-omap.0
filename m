@@ -1,47 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
-Date: Mon, 10 Oct 2011 16:35:14 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110101631450.5205@utopia.booyaka.com>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com> <1316781986-30642-4-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com> <4E934D79.4080000@ti.com> <alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
- <4E936F0E.9050203@ti.com>
+Subject: Re: [PATCH 8/8] OMAP3: powerdomain data: add wake-up latency
+ figures
+Date: Mon, 10 Oct 2011 16:44:55 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110101636470.5205@utopia.booyaka.com>
+References: <1316621649-3622-1-git-send-email-j-pihet@ti.com> <1316622258-3892-1-git-send-email-j-pihet@ti.com> <1316622258-3892-9-git-send-email-j-pihet@ti.com> <alpine.DEB.2.00.1110062215270.4611@utopia.booyaka.com>
+ <CAORVsuX2PUubPzO3mWTaO0Lg6Mdog8wjDY6hm93qheMwoz27CA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37073 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:39622 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830Ab1JJWfP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 18:35:15 -0400
-In-Reply-To: <4E936F0E.9050203@ti.com>
+	with ESMTP id S1752169Ab1JJWo4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 18:44:56 -0400
+In-Reply-To: <CAORVsuX2PUubPzO3mWTaO0Lg6Mdog8wjDY6hm93qheMwoz27CA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-On Tue, 11 Oct 2011, Cousson, Benoit wrote:
+On Mon, 10 Oct 2011, Jean Pihet wrote:
 
-> On 10/10/2011 10:42 PM, Paul Walmsley wrote:
->
-> > If it's the "3xxx" that you're objecting to in the name, we could call it
-> > "prm2" or "prmxyz" - the '3xxx' just seemed like the most logical
-> > approach.  The name of the hwmod class in the patch is still "prm", of
-> > course.
+> On Fri, Oct 7, 2011 at 6:17 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Wed, 21 Sep 2011, jean.pihet@newoldbits.com wrote:
+> >
+> >> From: Jean Pihet <j-pihet@ti.com>
+> >>
+> >> Figures are added to the power domains structs for RET and OFF modes.
+> >>
+> >> Note: the latency figures for MPU, PER, CORE, NEON have been obtained
+> >> from actual measurements.
+> >> The latency figures for the other power domains are preliminary and
+> >> shall be added.
+> >>
+> >> Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
+> >> for a detailed explanation on where are the numbers magically coming from.
+> >>
+> >> Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
+> >> on MPU, CORE and PER.
+> >
+> > Do the CSWR measurements include the time for the PMIC to scale the
+> > voltage, or do they just represent the time to enter and exit clock stop
+> > (presumably with DPLL idling)?
 > 
-> Yes, but that's different, the number is supposed to represent the instance
-> number in the IP naming convention. So prm2 != prmv2.
-
-Heh, that works as long as there's no "prmv" IP block ;-)
-
-> > Thoughts?
+> As described at [1] the measurements have not been performed with
+> sys_offmode and sys_clkreq signals toggling correctly, because of the
+> lack of support for it in the kernel.
+> However the results are including a correction for the sys_offmode
+> transition time (11.5ms), but no correction for the sys_clkreq signal
+> (which should be 1ms for sysclk on, 2.5ms for sysclk off).
 > 
-> In fact the device name does not have to match the hwmod name. So we can just
-> create an "omap2_prm" omap_device for OMAP2, "omap3_prm" omap_device for
-> OMAP3...
-> That will allow the relevant PRM  driver to be bound to the proper device.
+> [1] http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#cpuidle_results
 
-We can, we'd just need to add this extra mapping layer, so it doesn't 
-become a nasty special-case hack for each IP block that this applies to.
-
-Sounds like something for 3.3 (if ever...)
+OK.  sys_offmode only applies to OFF mode.  Voltage scaling can also occur 
+during RETENTION and INACTIVE ("sleep").  So were these results with 
+retention and voltage scaling disabled?
 
 
 - Paul
