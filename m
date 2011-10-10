@@ -1,147 +1,92 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface
- clocks
-Date: Mon, 10 Oct 2011 16:34:31 -0500
-Message-ID: <4E9364E7.80708@ti.com>
-References: <1316195330-15099-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com> <4E8EB6ED.9020605@ti.com> <4E8F8149.6090100@ti.com> <4E92C0D9.3090402@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Mon, 10 Oct 2011 15:49:09 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110101509580.5205@utopia.booyaka.com>
+References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com> <CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com> <alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
+ <CAP05o4KLAnNHcvNbNWqJFN710JMNAy2emYzCt2xHF+m-Kvwveg@mail.gmail.com> <CAP05o4+ybhZwRaXZPgS-ZdTL_0gjz1VLf6LuUtMgm_txNPwrnw@mail.gmail.com> <20111010090330.GE6685@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38898 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab1JJVeh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 17:34:37 -0400
-In-Reply-To: <4E92C0D9.3090402@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111010090330.GE6685@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Benoit,
+Hi
+On Mon, 10 Oct 2011, Felipe Balbi wrote:
 
-On 10/10/2011 4:54, Cousson, Benoit wrote:
-> Hi Jon,
+> On Mon, Oct 10, 2011 at 02:22:23PM +0530, Munegowda, Keshava wrote:
 >
-> On 10/8/2011 12:46 AM, Hunter, Jon wrote:
->> Hi Benoit,
->>
->> On 10/7/2011 3:23, Cousson, Benoit wrote:
->>> Hi Paul& Jon,
->>>
->>> On 10/7/2011 3:42 AM, Paul Walmsley wrote:
->>>> + Beno=EEt
->>>>
->>>> On Fri, 16 Sep 2011, Jon Hunter wrote:
->>>>
->>>>> From: Jon Hunter<jon-hunter@ti.com>
->>>>>
->>>>> Currently the interface clocks for the two SLIMBUS peripherals ar=
-e
->>>>> named slimbus1_fck and slimbus2_fck. Rename these clocks to be
->>>>> slimbus1_ick and slimbus2_ick so it is clear that these are
->>>>> interface clocks and not functional clocks.
->>>>>
->>>>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
->>>>
->>>> This one, I don't quite understand. We should probably be removing
->>>> these
->>>> MODULEMODE-only clocks from the OMAP4 tree, and using their parent
->>>> clock
->>>> as the main_clk. That would be a good cleanup for 3.3...
->>>
->>> Yes, but in order to remove that from the clock data we must ensure=
- that
->>> the hwmod entry is there.
->>> I kept a lot of legacy MODULEMODE clocks just because of missing hw=
-mod /
->>> runtime_pm adaptation on some drivers.
->>>
->>> In the case of slimbus, there is no main_clk but a bunch of optiona=
-l
->>> clocks. It looks similar to the DSS case. So we should not use the
->>> parent clock as a main_clk.
->>>
->>> We should probably promote one of the opt_clk as the main_clk. The
->>> slimbus_clk seems to be the good candidate for both instances.
->>>
->>> static struct omap_hwmod_opt_clk slimbus1_opt_clks[] =3D {
->>> { .role =3D "fclk_1", .clk =3D "slimbus1_fclk_1" },
->>> { .role =3D "fclk_0", .clk =3D "slimbus1_fclk_0" },
->>> { .role =3D "fclk_2", .clk =3D "slimbus1_fclk_2" },
->>> { .role =3D "slimbus_clk", .clk =3D "slimbus1_slimbus_clk" },
->>> };
->>>
->>> static struct omap_hwmod_opt_clk slimbus2_opt_clks[] =3D {
->>> { .role =3D "fclk_1", .clk =3D "slimbus2_fclk_1" },
->>> { .role =3D "fclk_0", .clk =3D "slimbus2_fclk_0" },
->>> { .role =3D "slimbus_clk", .clk =3D "slimbus2_slimbus_clk" },
->>> };
->>>
->>> Jon,
->>> Do you know if that one is indeed mandatory to use the slimbus IP?
->>
->> Sorry, are you asking about the clocks I was re-naming or the
->> slimbus_clk you are referring to above?
->
-> The clocks you are renaming should not exist at all, so I was referri=
-ng
-> to the real clocks that are all listed as optional clocks.
+> > Here is the highlights of the change in the design of  USB Host which
+> > we can do after kernel 3.2 release;
+> > 
+> > 1. separate the TLL changes  from UHH
+> > 2. The TLL is be a new platform driver in ./drivers/mfd
+> > 3. the TLL platform driver will export apis  for enable/disable clocks
+> > and settings.
+> 
+> TLL should control its clocks through pm_runtime APIs like anything
+> else. If you really must export APIs to be used by UHH, you need to have
+> an API so that you can claim/release a TLL channel and get/put for
+> increasing/decreasing PM counters.
+> 
+> I still think though, you should try to avoid exporting OMAP-specific
+> APIs all over the place. Ideally, we would be able to have some way of
+> saying that UHH and TLL are closely related... something like having the
+> ability to say e.g. two devices are sibblings of each other, so that we
+> could ask for a sibbling to wakeup/sleep depending if we need it or not.
+> 
+> Dunno, maybe I'm drifting here, but I don't think exposing OMAP-specific
+> APIs is wise.
 
-These clocks are the interface clocks enabled via the module-mode. So=20
-you are saying you want to remove the interface clocks from the list of=
-=20
-clocks?
+I'm not an USBHOST expert, but I don't think any special sibling 
+relationships or OMAP subarchitecture-specific APIs are needed.  The OMAP 
+EHCI/OHCI drivers just need to call a couple of functions in the OMAP TLL 
+driver.  Linux already handles function call dependencies between 
+loadable modules transparently (see "man 8 depmod" and EXPORT_SYMBOL).
 
-> Usually we do need to have a main_clk in order to access the IP
-> registers (at least the sysconfig). But for some IPs, the iclk can be
-> enough.
-> If the interface clock is enough, then potentially that main clock is
-> not mandatory. But if one functional clock is mandatory, then we have=
- to
-> figured out which one from the various optional functional clocks can=
- be
-> used as the main_clk.
->
->> Looking at the clock tree tool, the slimbus_clk is the actual extern=
-al
->> slimbus clock that can be generated by OMAP or by an external device=
-=2E
->>
->> The TRM states ...
->>
->> "Most of the SLIMbus module runs off two main clocks: the L4 interfa=
-ce
->> clock for the data input and output registers, and the control and
->> status control registers; and the SLIMbus clock, taken from the seri=
-al
->> interface (CLK line) for the SLIMbus-side logic.
->>
->> The SLIMbus controller operates as clock source component (active
->> framer), which drives the SLIMbus clock line CLK, or as clock receiv=
-er
->> component, which gets its clock from the same CLK line."
->>
->> So, if you are operating as the clock source component on the bus th=
-en
->> one of the optional clocks to drive the peripheral logic and if you =
-are
->> the clock receiver then you use slimbus_clk.
->
-> OK, so clearly, the slimbus_clk cannot be a main_clk. We have to chec=
-k
-> if the registers can be accessed only with the iclk.
+Looks to me like the TLL IP block is only needed for OHCI and some EHCI 
+port modes[1].  The TLL doesn't seem to need much care and feeding.  
+Currently it's programmed during init[2] and then you just enable it when 
+the port is in use[3] and disable it when it is no longer in use[4].  
+Looks to me like the TLL init function could be rolled into the enable 
+function.
 
-I ran a quick test. If I just set the module mode to 0x2 (enabled), the=
-n=20
-I can access the registers. So no need to turn on any of the=20
-optional/functional clocks just the iclk.
+So then you'd just create a TLL driver with something like these two 
+symbols exported:
 
-Cheers
-Jon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+omap_usbhost_tll_enable_port();
+omap_usbhost_tll_disable_port(); 
+
+The first function would be called from drivers/usb/host/ehci-omap.c or 
+drivers/usb/host/ohci-omap3.c during omap_usbhs_enable().  It would take 
+the TLL configuration for that port and would reserve it while it is in 
+use.  It would call pm_runtime_get_sync() to ensure its clocks were on, 
+etc.
+
+The second function would be called from drivers/usb/host/ehci-omap.c or
+drivers/usb/host/ohci-omap3.c during omap_usbhs_disable().  It would 
+release an already in-use TLL port and would call pm_runtime_put_sync() to 
+allow its clocks to be cut, etc.
+
+So it doesn't seem like any extraordinary Linux support is needed to 
+handle this cleanly.  But maybe I'm missing something?
+
+
+- Paul
+
+All references are as of Linux v3.1-rc9.
+
+1. drivers/mfd/omap-usb-host.c:887,
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/mfd/omap-usb-host.c;h=86e14583a08276fd7f76dddd3afe3433f1dfa9a8;hb=976d167615b64e14bc1491ca51d424e2ba9a5e84#l887
+
+2. drivers/mfd/omap-usb-host.c:894,
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/mfd/omap-usb-host.c;h=86e14583a08276fd7f76dddd3afe3433f1dfa9a8;hb=976d167615b64e14bc1491ca51d424e2ba9a5e84#l894
+
+3. drivers/mfd/omap-usb-host.c:845,
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/mfd/omap-usb-host.c;h=86e14583a08276fd7f76dddd3afe3433f1dfa9a8;hb=976d167615b64e14bc1491ca51d424e2ba9a5e84#l845
+
+4. drivers/mfd/omap-usb-host.c:999,
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/mfd/omap-usb-host.c;h=86e14583a08276fd7f76dddd3afe3433f1dfa9a8;hb=976d167615b64e14bc1491ca51d424e2ba9a5e84#l999
