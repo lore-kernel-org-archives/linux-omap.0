@@ -1,43 +1,46 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] ARM: OMAP: omap_device: Add omap_device_{alloc, delete, register}_ss
-Date: Mon, 10 Oct 2011 09:37:08 +0200
-Message-ID: <CAK=WgbbqG4qFAafJ49jdYwf19whxBGhtywTWVTnsejZ0F_ekog@mail.gmail.com>
-References: <1317833693-21105-1-git-send-email-ohad@wizery.com>
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Subject: Re: [PATCH 1/2] omap: sound: fix "ambiguous else" warning
+Date: Mon, 10 Oct 2011 09:38:28 +0200
+Message-ID: <4E92A0F4.7060107@free-electrons.com>
+References: <1318223228-15671-1-git-send-email-michael.opdenacker@linaro.org> <1318223228-15671-2-git-send-email-michael.opdenacker@linaro.org> <4E9296A2.50003@bitmer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41125 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455Ab1JJHh3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 03:37:29 -0400
-Received: by wwf22 with SMTP id 22so8741185wwf.1
-        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 00:37:28 -0700 (PDT)
-In-Reply-To: <1317833693-21105-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4E9296A2.50003@bitmer.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Michael Opdenacker <michael.opdenacker@linaro.org>, lrg@ti.com, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Hi Kevin,
+On 10/10/2011 08:54 AM, Jarkko Nikula wrote:
+> Hi
+>
+> On 10/10/2011 08:07 AM, Michael Opdenacker wrote:
+>> This patch applies against Tony Lindgren's linux-omap tree
+>> It fixes "ambiguous else" warnings at compile time.
+>>
+>> Signed-off-by: Michael Opdenacker<michael.opdenacker@linaro.org>
+>> ---
+>>   sound/soc/omap/omap-mcbsp.c |    3 ++-
+>>   1 files changed, 2 insertions(+), 1 deletions(-)
+>>
+> This is already fixed in ASoC tree by following commit
+>
+> commit 141947e6ceb8f82fe8382b26f093bb379af9af15
+> Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Date:   Mon Sep 26 10:56:42 2011 +0300
+>
+>     ASoC: omap-mcbsp: Fix compile time warning about ambiguous =91els=
+e=92
+Perfect, thanks. I'll keep an eye on the ASoC tree next time.
 
-On Wed, Oct 5, 2011 at 6:54 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Split omap_device_build_ss() into two smaller functions:
-...
-> This patch is considered an interim solution until DT fully materializes
-> for omap; at that point, this functionality will be removed.
+Michael.
 
-Good news: we might not need this after all.
 
-I need the remoteproc devices to exists at ->reserve() time, so I can
-assign them a private CMA pool, which means I can't wait for
-omap_device_build_ss() and must create the devices beforehand.
-
-... which makes Benoit's alloc/delete methods perfect for me.
-
-So please hold this one off for now. I'd just need a s/static// patch
-that will allow me to use Benoit's methods outside of omap_device.c,
-but I'll wait for things to settle down a bit before sending it, to
-minimize this kind of churn.
-
-Thanks and sorry for the noise,
-Ohad.
+--=20
+Michael Opdenacker, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
++ 33 621 604 642
