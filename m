@@ -1,37 +1,47 @@
-From: Andrei Warkentin <awarkentin@vmware.com>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Mon, 10 Oct 2011 10:37:22 -0700 (PDT)
-Message-ID: <361419345.198335.1318268242916.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
-References: <20111008155502.GB616@kroah.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
+Date: Mon, 10 Oct 2011 11:01:59 -0700
+Message-ID: <87ty7ghgiw.fsf@ti.com>
+References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20111008155502.GB616@kroah.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es, Josh Triplett <josh@joshtriplett.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:42749 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751155Ab1JJSCE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Oct 2011 14:02:04 -0400
+Received: by mail-gy0-f172.google.com with SMTP id 12so5540669gyd.3
+        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 11:02:04 -0700 (PDT)
+In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
+	(Santosh Shilimkar's message of "Sat, 24 Sep 2011 11:44:20 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+Hi Santosh,
 
------ Original Message -----
-> From: "Greg KH" <greg@kroah.com>
-> To: "Josh Triplett" <josh@joshtriplett.org>
-> Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, "Grant Likely"
-> <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
-> "Dilan Lee" <dilee@nvidia.com>, "Mark Brown" <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
-> Sent: Saturday, October 8, 2011 11:55:02 AM
-> Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-> 
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-I'm a bit of a fly on the wall here, but I'm curious how this impacts suspend/resume.
-device_initialize->device_pm_init are called from device_register, so certainly this
-patch doesn't also ensure that the PM ordering matches probe ordering, which is bound
-to break suspend, right? Was this ever tested with the OMAP target? Shouldn't the
-PM change be also part of this patch set? I don't see why you would want to have this in
-without the PM changes.
+> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
+> suspend (S2R), CPU hotplug and CPUidle.
 
-Maybe I have it all wrong though :-).
+There are a few more compile errors when doing OMAP1-only builds.
+You'll need a way to eliminate the secure calls for OMAP1.
 
-A
+This series causes a couple build errors when doing OMAP1-only builds
+(I used omap1_defconfig):
+
+First:
+
+/work/kernel/omap/pm/arch/arm/plat-omap/common.c:24:30: fatal error: mach/omap-secure.h: No such file or directory
+
+And trying creating a dummy header to see if it would continue to build gives:
+
+/work/kernel/omap/pm/arch/arm/plat-omap/common.c: In function 'omap_reserve':
+/work/kernel/omap/pm/arch/arm/plat-omap/common.c:70:2: error: implicit declaration of function 'omap_secure_ram_reserve_memblock'
+make[2]: *** [arch/arm/plat-omap/common.o] Error 1
+make[1]: *** [arch/arm/plat-omap] Error 2
+
+Kevin
