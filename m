@@ -1,74 +1,85 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP2+: timer fixes / cleanup
-Date: Mon, 10 Oct 2011 11:10:19 +0530
-Message-ID: <CAC83Zv+r0emW7rREkPhjPyn_jBCbNLXKCNTY0=vMNxCTzzp=Xg@mail.gmail.com>
-References: <1317763241-21422-1-git-send-email-b-cousson@ti.com>
-	<4E8B7C6A.2050207@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+Date: Mon, 10 Oct 2011 08:44:36 +0300
+Message-ID: <20111010054435.GA31653@legolas.emea.dhcp.ti.com>
+References: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
+ <1315576070-7618-2-git-send-email-ajay.gupta@ti.com>
+ <19F8576C6E063C45BE387C64729E739404ECA545E3@dbde02.ent.ti.com>
+ <20111007085614.GD10910@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404ECB6B70F@dbde02.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Nq2Wo0NMKNjxTN9z"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:46804 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751140Ab1JJFkV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Oct 2011 01:40:21 -0400
-Received: by mail-bw0-f53.google.com with SMTP id zt12so9184557bkb.26
-        for <linux-omap@vger.kernel.org>; Sun, 09 Oct 2011 22:40:20 -0700 (PDT)
-In-Reply-To: <4E8B7C6A.2050207@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:57741 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751208Ab1JJFol (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Oct 2011 01:44:41 -0400
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECB6B70F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "Balbi, Felipe" <balbi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "B, Ravi" <ravibabu@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-On Wed, Oct 5, 2011 at 3:06 AM, Cousson, Benoit <b-cousson@ti.com> wrot=
-e:
-> Hi Tarun,
->
-> On 10/4/2011 11:20 PM, Cousson, Benoit wrote:
->>
->> Hi Tony,
->>
->> Here is the series to fix the warning and remove the redundant
->> latency structure that be removed since the timer runtime PM
->> adaptation was just pulled.
->>
->> I was just able to test that on OMAP4.
->
-> It will be nice if you can test that on the other platforms.
-> In theory, if they are properly using hwmod that should work fine.
-Yes, I will test in other platforms.
---
-Tarun
->
-> Thanks,
-> Benoit
->
->>
->> Patches are based on Kevin's for_3.2/omap_device-2 branch
->> and are available here:
->> git://gitorious.org/omap-pm/linux.git for_3.2/timer_fixes
->>
->> Regards,
->> Benoit
->>
->>
->> Benoit Cousson (2):
->> =A0 ARM: OMAP2+: clock data: Remove redundant timer clkdev
->> =A0 ARM: OMAP2+: timer: Remove omap_device_pm_latency
->>
->> =A0arch/arm/mach-omap2/clock2420_data.c | =A0 12 ------------
->> =A0arch/arm/mach-omap2/clock2430_data.c | =A0 12 ------------
->> =A0arch/arm/mach-omap2/clock3xxx_data.c | =A0 12 ------------
->> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 11 -----------
->> =A0arch/arm/mach-omap2/timer.c =A0 =A0 =A0 =A0 =A0| =A0 12 +--------=
----
->> =A05 files changed, 1 insertions(+), 58 deletions(-)
->>
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Mon, Oct 10, 2011 at 10:40:55AM +0530, Gupta, Ajay Kumar wrote:
+> Hi,
+> > On Mon, Sep 26, 2011 at 03:21:07PM +0530, Gupta, Ajay Kumar wrote:
+> > > > To: linux-omap@vger.kernel.org
+> > > > Cc: linux-usb@vger.kernel.org; Balbi, Felipe; tony@atomide.com; B,
+> > > > Ravi; Cousson, Benoit; Gupta, Ajay Kumar
+> > > > Subject: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+> > >
+> > > Felipe,
+> > > I am planning to send patch 1/6 along with next revision of ti81xx
+> > > hwmod baseport patch from Hemant so that all hwmod data gets reviewed
+> > > at one place.
+> > >
+> > > So now only rest 5 (2/6 to 6/6) patches needs to be queued for usb.
+> > >
+> > > I hope this will be fine with you. Let me know if you want me to post
+> > > Same 5 patches separately.
+> >=20
+> > I guess it's better to queue them separately. I will only take whatever
+> > lies in drivers/usb/musb
+>=20
+> Ok fine so usb hwmod patch will come from Hemant in his hwmod baseport
+> Series. I will resubmit the one patch fixing your comment.=20
+
+ok cool, tks.
+
+For you platform_data stuff (if you have any), you can add a header to
+include/linux/platform_data/musb-dsps.h
+
+Or something similar.
+
+--=20
+balbi
+
+--Nq2Wo0NMKNjxTN9z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJOkoZDAAoJEAv8Txj19kN1xpgH/3OM+sT35TKpbNKGCsOwhJBC
+LyOGmTkoEkDUeBV+8eEp3fzf6DRnbAGlP09EGBVMvoSU76Y2UHm9nFqE9btUBCmI
+JoLRskz8kTofm/3fdF3U95Aq+XlG703OMloPRivgRPbPiDMSU0doU8AAyJiUK3rQ
+oR3ilXxzEH34Um9ildDBB1Uu2Tm9EbYHPHf+9Lpq3cAhmJfrFJXgrs8HQIKbo0q8
+UsMm4m29XZN0ZncNM+g71fm71claZq2lWRkK0FmHd08eRx+po+kDBp3MCNNmepcl
+UWz3qKTii9lDvSgPRlrhS+13j3UZbHFf74zlCjmgo0j6IdUUuUf9S98pexI4AjQ=
+=900n
+-----END PGP SIGNATURE-----
+
+--Nq2Wo0NMKNjxTN9z--
