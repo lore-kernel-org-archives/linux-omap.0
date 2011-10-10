@@ -1,46 +1,37 @@
-From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
-Subject: Re: [PATCH 1/2] omap: sound: fix "ambiguous else" warning
-Date: Mon, 10 Oct 2011 09:38:28 +0200
-Message-ID: <4E92A0F4.7060107@free-electrons.com>
-References: <1318223228-15671-1-git-send-email-michael.opdenacker@linaro.org> <1318223228-15671-2-git-send-email-michael.opdenacker@linaro.org> <4E9296A2.50003@bitmer.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
+	supported by the hardware
+Date: Mon, 10 Oct 2011 09:40:11 +0200
+Message-ID: <CAK=WgbZmmPo=n=LMdTnXrb93GHkGLrJTHYqoCvN8_pUgEyo8_g@mail.gmail.com>
+References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
+	<1316195506-9777-2-git-send-email-ohad@wizery.com>
+	<20110927100505.GH2138@amd.com>
+	<CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com>
+	<20110927131222.GL2138@amd.com>
+	<CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
+	<20110927181438.GM2138@amd.com>
+	<CAK=WgbbNs5fWHDEputZ=jzU5YN0sn0tf6AETkcsoq_Jbvc2XgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4E9296A2.50003@bitmer.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Michael Opdenacker <michael.opdenacker@linaro.org>, lrg@ti.com, broonie@opensource.wolfsonmicro.com, perex@perex.cz, tiwai@suse.de, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAK=WgbbNs5fWHDEputZ=jzU5YN0sn0tf6AETkcsoq_Jbvc2XgQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stepan Moskovchenko <stepanm@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 10/10/2011 08:54 AM, Jarkko Nikula wrote:
-> Hi
->
-> On 10/10/2011 08:07 AM, Michael Opdenacker wrote:
->> This patch applies against Tony Lindgren's linux-omap tree
->> It fixes "ambiguous else" warnings at compile time.
->>
->> Signed-off-by: Michael Opdenacker<michael.opdenacker@linaro.org>
->> ---
->>   sound/soc/omap/omap-mcbsp.c |    3 ++-
->>   1 files changed, 2 insertions(+), 1 deletions(-)
->>
-> This is already fixed in ASoC tree by following commit
->
-> commit 141947e6ceb8f82fe8382b26f093bb379af9af15
-> Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> Date:   Mon Sep 26 10:56:42 2011 +0300
->
->     ASoC: omap-mcbsp: Fix compile time warning about ambiguous =91els=
-e=92
-Perfect, thanks. I'll keep an eye on the ASoC tree next time.
+On Sun, Oct 2, 2011 at 5:58 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Ok, fair enough. I've revised the patches and attached the main one
+> below; please tell me if it looks ok, and then I'll resubmit the
+> entire patch set.
 
-Michael.
-
-
---=20
-Michael Opdenacker, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
-+ 33 621 604 642
+Ping ?
