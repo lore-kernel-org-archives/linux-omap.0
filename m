@@ -1,50 +1,45 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
-Date: Mon, 10 Oct 2011 14:11:28 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110101411010.5205@utopia.booyaka.com>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com> <1316781986-30642-4-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com> <4E934D79.4080000@ti.com>
+Subject: [GIT PULL v2] ARM: OMAP: new miscellaneous clock/hwmod data for
+ 3.2
+Date: Mon, 10 Oct 2011 14:16:30 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110101415560.5205@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1110101342010.5205@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39082 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56679 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753786Ab1JJUL3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 16:11:29 -0400
-In-Reply-To: <4E934D79.4080000@ti.com>
+	with ESMTP id S1751825Ab1JJUQb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 16:16:31 -0400
+In-Reply-To: <alpine.DEB.2.00.1110101342010.5205@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, b-cousson@ti.com, keshava_mgowda@ti.com
 
-On Mon, 10 Oct 2011, Cousson, Benoit wrote:
+Hi,
 
-> Hi Paul,
-> 
-> On 10/10/2011 9:24 PM, Paul Walmsley wrote:
-> > Hi Tero
-> > 
-> > On Fri, 23 Sep 2011, Tero Kristo wrote:
-> > 
-> > > This patch is temporary until Paul can provide a final version.
-> > > 
-> > > Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> > 
-> > Here's an updated version of this one.  The one change is that the hwmod's
-> > name is now "prm3xxx" to reflect that the register layout of this IP block
-> > is quite different from its OMAP2 predecessors and OMAP4 successors.
-> > This should avoid some of the special-purpose driver probing code.
-> 
-> This is not really aligned with the naming convention we've been using so far.
-> In both cases, the hwmod should just be named "prm". If a version information
-> is needed, then it should be added in the revision class field.
-> 
-> It will make the device creation even simpler and not dependent of the SoC
-> version.
-> I did not check the whole series, but I'm not sure we need a special treatment
-> in the case of the prm.
+The following changes since commit be73246058737beec52ae232bcab7776332a9e06:
 
-OK, sounds like this needs more discussion, so will drop this patch from 
-the pull request.
+  ARM: OMAP2+: Remove custom init_irq for remaining boards (2011-09-26 17:50:37 -0700)
 
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 clock_hwmod_devel_3.2
+
+This second version drops the PRM hwmod since it needs more discussion.
+
+Benoit Cousson (1):
+      ARM: OMAP: USB: EHCI and OHCI hwmod structures for OMAP4
+
+Keshava Munegowda (1):
+      ARM: OMAP: USB: EHCI and OHCI hwmod structures for OMAP3
+
+Santosh Shilimkar (1):
+      ARM: OMAP4: clock: Add CPU local timer clock node.
+
+ arch/arm/mach-omap2/clock44xx_data.c       |    9 ++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  217 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  206 ++++++++++++++++++++++++++-
+ 3 files changed, 431 insertions(+), 1 deletions(-)
 
 - Paul
