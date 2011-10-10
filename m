@@ -1,59 +1,147 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH 3.1-rc3] gpio/omap: fix build error with certain OMAP1
- configs
-Date: Tue, 11 Oct 2011 00:12:45 +0300 (EEST)
-Message-ID: <alpine.DEB.2.00.1110102356530.7624@dell>
-References: <201108231342.25101.jkrzyszt@tis.icnet.pl> <87sjoshx2k.fsf@ti.com> <201110071430.14420.jkrzyszt@tis.icnet.pl>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface
+ clocks
+Date: Mon, 10 Oct 2011 16:34:31 -0500
+Message-ID: <4E9364E7.80708@ti.com>
+References: <1316195330-15099-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com> <4E8EB6ED.9020605@ti.com> <4E8F8149.6090100@ti.com> <4E92C0D9.3090402@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-1937644034-1318281165=:7624"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201110071430.14420.jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:38898 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205Ab1JJVeh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 17:34:37 -0400
+In-Reply-To: <4E92C0D9.3090402@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Benoit,
 
---8323329-1937644034-1318281165=:7624
-Content-Type: TEXT/PLAIN; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8BIT
-
-Hi,
-
-On Fri, 7 Oct 2011, Janusz Krzysztofik wrote:
-> Dnia wtorek, 23 sierpnia 2011 o 19:11:47 Kevin Hilman napisał(a):
->> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
->>> With commit f64ad1a0e21a, "gpio/omap: cleanup _set_gpio_wakeup(), remove
->>> ifdefs", access to build time conditionally omitted 'suspend_wakeup'
->>> member of the 'gpio_bank' structure has been placed unconditionally in
->>> function _set_gpio_wakeup(), which is always built. This resulted in the
->>> driver compilation broken for certain OMAP1, i.e., non-OMAP16xx,
->>> configurations.
->>>
->>> Really required or not in previously excluded cases, define this
->>> structure member unconditionally as a fix.
->>>
->>> Tested with a custom OMAP1510 only configuration.
->>>
->>> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
->>
->> Verified that this fixes a build problem when building for OMAP1
->> (730/850 only)
->>
->> Acked-by: Kevin Hilman <khilman@ti.com>
-
-Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-
->> Grant, can you queue this as a fix for 3.1-rc?
+On 10/10/2011 4:54, Cousson, Benoit wrote:
+> Hi Jon,
 >
-> Sorry for being so late with checking this, but it looks like this patch
-> never got into 3.1-rc, as it should, leaving the issue not fixed.
-> Any chance for it still being pushed into 3.1?
+> On 10/8/2011 12:46 AM, Hunter, Jon wrote:
+>> Hi Benoit,
+>>
+>> On 10/7/2011 3:23, Cousson, Benoit wrote:
+>>> Hi Paul& Jon,
+>>>
+>>> On 10/7/2011 3:42 AM, Paul Walmsley wrote:
+>>>> + Beno=EEt
+>>>>
+>>>> On Fri, 16 Sep 2011, Jon Hunter wrote:
+>>>>
+>>>>> From: Jon Hunter<jon-hunter@ti.com>
+>>>>>
+>>>>> Currently the interface clocks for the two SLIMBUS peripherals ar=
+e
+>>>>> named slimbus1_fck and slimbus2_fck. Rename these clocks to be
+>>>>> slimbus1_ick and slimbus2_ick so it is clear that these are
+>>>>> interface clocks and not functional clocks.
+>>>>>
+>>>>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>>>>
+>>>> This one, I don't quite understand. We should probably be removing
+>>>> these
+>>>> MODULEMODE-only clocks from the OMAP4 tree, and using their parent
+>>>> clock
+>>>> as the main_clk. That would be a good cleanup for 3.3...
+>>>
+>>> Yes, but in order to remove that from the clock data we must ensure=
+ that
+>>> the hwmod entry is there.
+>>> I kept a lot of legacy MODULEMODE clocks just because of missing hw=
+mod /
+>>> runtime_pm adaptation on some drivers.
+>>>
+>>> In the case of slimbus, there is no main_clk but a bunch of optiona=
+l
+>>> clocks. It looks similar to the DSS case. So we should not use the
+>>> parent clock as a main_clk.
+>>>
+>>> We should probably promote one of the opt_clk as the main_clk. The
+>>> slimbus_clk seems to be the good candidate for both instances.
+>>>
+>>> static struct omap_hwmod_opt_clk slimbus1_opt_clks[] =3D {
+>>> { .role =3D "fclk_1", .clk =3D "slimbus1_fclk_1" },
+>>> { .role =3D "fclk_0", .clk =3D "slimbus1_fclk_0" },
+>>> { .role =3D "fclk_2", .clk =3D "slimbus1_fclk_2" },
+>>> { .role =3D "slimbus_clk", .clk =3D "slimbus1_slimbus_clk" },
+>>> };
+>>>
+>>> static struct omap_hwmod_opt_clk slimbus2_opt_clks[] =3D {
+>>> { .role =3D "fclk_1", .clk =3D "slimbus2_fclk_1" },
+>>> { .role =3D "fclk_0", .clk =3D "slimbus2_fclk_0" },
+>>> { .role =3D "slimbus_clk", .clk =3D "slimbus2_slimbus_clk" },
+>>> };
+>>>
+>>> Jon,
+>>> Do you know if that one is indeed mandatory to use the slimbus IP?
+>>
+>> Sorry, are you asking about the clocks I was re-naming or the
+>> slimbus_clk you are referring to above?
+>
+> The clocks you are renaming should not exist at all, so I was referri=
+ng
+> to the real clocks that are all listed as optional clocks.
 
-This patch is one-liner, and still needed to get 3.1-rc9 compiled and
-running on e.g. Amstrad E3, so I think it should get into 3.1.
+These clocks are the interface clocks enabled via the module-mode. So=20
+you are saying you want to remove the interface clocks from the list of=
+=20
+clocks?
 
-A.
---8323329-1937644034-1318281165=:7624--
+> Usually we do need to have a main_clk in order to access the IP
+> registers (at least the sysconfig). But for some IPs, the iclk can be
+> enough.
+> If the interface clock is enough, then potentially that main clock is
+> not mandatory. But if one functional clock is mandatory, then we have=
+ to
+> figured out which one from the various optional functional clocks can=
+ be
+> used as the main_clk.
+>
+>> Looking at the clock tree tool, the slimbus_clk is the actual extern=
+al
+>> slimbus clock that can be generated by OMAP or by an external device=
+=2E
+>>
+>> The TRM states ...
+>>
+>> "Most of the SLIMbus module runs off two main clocks: the L4 interfa=
+ce
+>> clock for the data input and output registers, and the control and
+>> status control registers; and the SLIMbus clock, taken from the seri=
+al
+>> interface (CLK line) for the SLIMbus-side logic.
+>>
+>> The SLIMbus controller operates as clock source component (active
+>> framer), which drives the SLIMbus clock line CLK, or as clock receiv=
+er
+>> component, which gets its clock from the same CLK line."
+>>
+>> So, if you are operating as the clock source component on the bus th=
+en
+>> one of the optional clocks to drive the peripheral logic and if you =
+are
+>> the clock receiver then you use slimbus_clk.
+>
+> OK, so clearly, the slimbus_clk cannot be a main_clk. We have to chec=
+k
+> if the registers can be accessed only with the iclk.
+
+I ran a quick test. If I just set the module mode to 0x2 (enabled), the=
+n=20
+I can access the registers. So no need to turn on any of the=20
+optional/functional clocks just the iclk.
+
+Cheers
+Jon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
