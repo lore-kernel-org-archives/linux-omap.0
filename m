@@ -1,47 +1,56 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
-Date: Mon, 10 Oct 2011 11:01:59 -0700
-Message-ID: <87ty7ghgiw.fsf@ti.com>
-References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] ARM: omap2+: stub out omap*_volt_data
+Date: Mon, 10 Oct 2011 11:41:05 -0700
+Message-ID: <87ipnwhepq.fsf@ti.com>
+References: <1397689.kebELtC4N3@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:42749 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751155Ab1JJSCE (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:37786 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752990Ab1JJSlL (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Oct 2011 14:02:04 -0400
-Received: by mail-gy0-f172.google.com with SMTP id 12so5540669gyd.3
-        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 11:02:04 -0700 (PDT)
-In-Reply-To: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
-	(Santosh Shilimkar's message of "Sat, 24 Sep 2011 11:44:20 +0530")
+	Mon, 10 Oct 2011 14:41:11 -0400
+Received: by mail-yx0-f172.google.com with SMTP id 33so8234279yxt.17
+        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 11:41:10 -0700 (PDT)
+In-Reply-To: <1397689.kebELtC4N3@wuerfel> (Arnd Bergmann's message of "Sat, 08
+	Oct 2011 17:23:24 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi Santosh,
+Arnd Bergmann <arnd@arndb.de> writes:
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+> When CONFIG_PM_OPP is not set, the definitions for these variables
+> are not available, so we should conditionally define them to
+> NULL.
+>
+> arch/arm/mach-omap2/built-in.o: In function `omap3xxx_voltagedomains_init':
+> voltagedomains3xxx_data.c:100: undefined reference to `omap36xx_vddmpu_volt_data'
+> voltagedomains3xxx_data.c:100: undefined reference to `omap34xx_vddmpu_volt_data'
+> voltagedomains3xxx_data.c:100: undefined reference to `omap36xx_vddcore_volt_data'
+> voltagedomains3xxx_data.c:100: undefined reference to `omap34xx_vddcore_volt_data'
+> arch/arm/mach-omap2/built-in.o: In function `omap44xx_voltagedomains_init':
+> voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_mpu_volt_data'
+> voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_iva_volt_data'
+> voltagedomains44xx_data.c:111: undefined reference to `omap44xx_vdd_core_volt_data'
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
-> suspend (S2R), CPU hotplug and CPUidle.
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-There are a few more compile errors when doing OMAP1-only builds.
-You'll need a way to eliminate the secure calls for OMAP1.
+> ---
+> I got this build error only now after pulling in the latest omap series, but
+> I cannot tell what caused it. It's also not clear to me if this is the correct
+> solution. Please ack or provide a better fix.
 
-This series causes a couple build errors when doing OMAP1-only builds
-(I used omap1_defconfig):
+This code was merged for v2.6.39, so not sure why this error is only
+showing up for you now.  I just tried a !CONFIG_PM_OPP build on v2.6.39
+and get the same errors, so it's been lingering.
 
-First:
+Maybe you haven't had a randconfig that disabled CONFIG_PM_OPP before?
 
-/work/kernel/omap/pm/arch/arm/plat-omap/common.c:24:30: fatal error: mach/omap-secure.h: No such file or directory
-
-And trying creating a dummy header to see if it would continue to build gives:
-
-/work/kernel/omap/pm/arch/arm/plat-omap/common.c: In function 'omap_reserve':
-/work/kernel/omap/pm/arch/arm/plat-omap/common.c:70:2: error: implicit declaration of function 'omap_secure_ram_reserve_memblock'
-make[2]: *** [arch/arm/plat-omap/common.o] Error 1
-make[1]: *** [arch/arm/plat-omap] Error 2
+Anyways, the fix is fine with me.
 
 Kevin
