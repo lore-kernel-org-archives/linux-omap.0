@@ -1,84 +1,156 @@
 From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH v4 0/3] Add support for TI814X processor series
-Date: Mon, 10 Oct 2011 07:09:47 +0530
-Message-ID: <1318210787-2223-1-git-send-email-hemantp@ti.com>
+Subject: [PATCH v4 2/3] ARM: OMAP: TI814X: Add cpu type macros and detection support
+Date: Mon, 10 Oct 2011 07:10:04 +0530
+Message-ID: <1318210804-2447-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.infradead.org, Hemant Pedanekar <hemantp@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41368 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751025Ab1JJBkN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 9 Oct 2011 21:40:13 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
 
-This patch set adds support for DM814x/AM387x device series having Cortex-A8
-MPU.
+This patch adds cpu type, macros for identification of TI814X device.
 
-The technical documents are available from following link:
+Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c          |    3 +++
+ arch/arm/mach-omap2/id.c                      |   22 ++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+ arch/arm/plat-omap/include/plat/clock.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h         |    9 +++++++++
+ 5 files changed, 36 insertions(+), 0 deletions(-)
 
-http://focus.ti.com/docs/prod/folders/print/tms320dm8148.html
-
-This series is referred in code as TI814X.
-
-Since these devices share similar architecture as TI816X devices, existing
-TI816X code is updated to accomodate TI814X support. The code shared across
-TI816X and TI814X devices is updated with TI81XX/ti81xx prefix as applicable,
-while maintaining cpu_is_ti816x() and cpu_is_ti814x() to distinguish specific
-execution differences.
-
-Changes since v3:
-1) Avoid renaming board-ti8168evm.c, just add TI8148 EVM support in it.
-2) Drop changes in clock related data variables from u8 to u16 since the same
-   was incorporated as part of AM33xx addition.
-
-Changes since v2:
-1) Incorporate Tony's suggestion about moving ti8168_evm_map_io() to
-   arch/arm/mach-omap2/common.c to keep common across TI81XX.
-2) Keeping single board file (board-ti81xxevm.c) for TI816X and TI814X EVMs
-
-Changes since v1:
-1) Rebased and updated after Paul's CHIP_IS removal changes
-2) Removed call to omap2_init_common_devices() as per Kevin's comment
-
-Hemant Pedanekar (3):
-  ARM: OMAP: TI81XX: Prepare for addition of TI814X support
-  ARM: OMAP: TI814X: Add cpu type macros and detection support
-  ARM: OMAP: TI814X: Create board support and enable build for TI8148
-    EVM
-
- arch/arm/mach-omap2/Kconfig                        |   11 +++++--
- arch/arm/mach-omap2/Makefile                       |    1 +
- arch/arm/mach-omap2/board-ti8168evm.c              |   33 +++++++++++--------
- arch/arm/mach-omap2/clock3xxx_data.c               |    5 ++-
- arch/arm/mach-omap2/common.c                       |   27 +++++++++------
- arch/arm/mach-omap2/control.h                      |    8 ++--
- arch/arm/mach-omap2/id.c                           |   30 +++++++++++++++--
- arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 +++---
- arch/arm/mach-omap2/include/mach/entry-macro.S     |    4 +-
- arch/arm/mach-omap2/io.c                           |   14 ++++----
- arch/arm/mach-omap2/irq.c                          |    2 +-
- arch/arm/mach-omap2/serial.c                       |    6 ++--
- arch/arm/plat-omap/include/plat/clkdev_omap.h      |    1 +
- arch/arm/plat-omap/include/plat/clock.h            |    1 +
- arch/arm/plat-omap/include/plat/common.h           |    6 ++--
- arch/arm/plat-omap/include/plat/cpu.h              |   22 +++++++++++++
- arch/arm/plat-omap/include/plat/hardware.h         |    2 +-
- arch/arm/plat-omap/include/plat/io.h               |    6 ++--
- arch/arm/plat-omap/include/plat/irqs.h             |    2 +-
- arch/arm/plat-omap/include/plat/serial.h           |   14 ++++----
- .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 +++++-----
- arch/arm/plat-omap/include/plat/uncompress.h       |   11 ++++--
- arch/arm/plat-omap/io.c                            |    2 +-
- 23 files changed, 153 insertions(+), 85 deletions(-)
- rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
-
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index 96622b6..4d8e908 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -3517,6 +3517,9 @@ int __init omap3xxx_clk_init(void)
+ 	} else if (cpu_is_ti816x()) {
+ 		cpu_mask = RATE_IN_TI816X;
+ 		cpu_clkflg = CK_TI816X;
++	} else if (cpu_is_ti814x()) {
++		cpu_mask = RATE_IN_TI814X;
++		cpu_clkflg = CK_TI814X;
+ 	} else if (cpu_is_omap34xx()) {
+ 		if (omap_rev() == OMAP3430_REV_ES1_0) {
+ 			cpu_mask = RATE_IN_3430ES1;
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index ab2f417..f07faa9 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -337,6 +337,26 @@ static void __init omap3_check_revision(const char **cpu_rev)
+ 			break;
+ 		}
+ 		break;
++	case 0xb8f2:
++		switch (rev) {
++		case 0:
++		/* FALLTHROUGH */
++		case 1:
++			omap_revision = TI8148_REV_ES1_0;
++			*cpu_rev = "1.0";
++			break;
++		case 2:
++			omap_revision = TI8148_REV_ES2_0;
++			*cpu_rev = "2.0";
++			break;
++		case 3:
++		/* FALLTHROUGH */
++		default:
++			omap_revision = TI8148_REV_ES2_1;
++			*cpu_rev = "2.1";
++			break;
++		}
++		break;
+ 	default:
+ 		/* Unknown default to latest silicon rev as default */
+ 		omap_revision = OMAP3630_REV_ES1_2;
+@@ -429,6 +449,8 @@ static void __init omap3_cpuinfo(const char *cpu_rev)
+ 		cpu_name = (omap3_has_sgx()) ? "AM3517" : "AM3505";
+ 	} else if (cpu_is_ti816x()) {
+ 		cpu_name = "TI816X";
++	} else if (cpu_is_ti814x()) {
++		cpu_name = "TI814X";
+ 	} else if (omap3_has_iva() && omap3_has_sgx()) {
+ 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
+ 		cpu_name = "OMAP3430/3530";
+diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+index 6d84c0c..ea61ea2 100644
+--- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
++++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+@@ -41,6 +41,7 @@ struct omap_clk {
+ #define CK_TI816X	(1 << 12)
+ #define CK_446X		(1 << 13)
+ #define CK_AM33XX	(1 << 14)	/* AM33xx specific clocks */
++#define CK_TI814X	(1 << 15)
+ 
+ 
+ #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index 168c54e..739ba23 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -60,6 +60,7 @@ struct clkops {
+ #define RATE_IN_TI816X		(1 << 6)
+ #define RATE_IN_4460		(1 << 7)
+ #define RATE_IN_AM33XX		(1 << 8)
++#define RATE_IN_TI814X		(1 << 9)
+ 
+ #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
+ #define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 03ab390..6bc662e 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -132,6 +132,7 @@ IS_OMAP_SUBCLASS(443x, 0x443)
+ IS_OMAP_SUBCLASS(446x, 0x446)
+ 
+ IS_TI_SUBCLASS(816x, 0x816)
++IS_TI_SUBCLASS(814x, 0x814)
+ IS_AM_SUBCLASS(335x, 0x335)
+ 
+ #define cpu_is_omap7xx()		0
+@@ -144,6 +145,7 @@ IS_AM_SUBCLASS(335x, 0x335)
+ #define cpu_is_omap343x()		0
+ #define cpu_is_ti81xx()			0
+ #define cpu_is_ti816x()			0
++#define cpu_is_ti814x()			0
+ #define cpu_is_am33xx()			0
+ #define cpu_is_am335x()			0
+ #define cpu_is_omap44xx()		0
+@@ -353,6 +355,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # undef cpu_is_omap3517
+ # undef cpu_is_ti81xx
+ # undef cpu_is_ti816x
++# undef cpu_is_ti814x
+ # undef cpu_is_am33xx
+ # undef cpu_is_am335x
+ # define cpu_is_omap3430()		is_omap3430()
+@@ -373,6 +376,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # define cpu_is_omap3630()		is_omap363x()
+ # define cpu_is_ti81xx()		is_ti81xx()
+ # define cpu_is_ti816x()		is_ti816x()
++# define cpu_is_ti814x()		is_ti814x()
+ # define cpu_is_am33xx()		is_am33xx()
+ # define cpu_is_am335x()		is_am335x()
+ #endif
+@@ -421,6 +425,11 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define TI8168_REV_ES1_0	TI816X_CLASS
+ #define TI8168_REV_ES1_1	(TI816X_CLASS | (0x1 << 8))
+ 
++#define TI814X_CLASS		0x81400034
++#define TI8148_REV_ES1_0	TI814X_CLASS
++#define TI8148_REV_ES2_0	(TI814X_CLASS | (0x1 << 8))
++#define TI8148_REV_ES2_1	(TI814X_CLASS | (0x2 << 8))
++
+ #define AM335X_CLASS		0x33500034
+ #define AM335X_REV_ES1_0	AM335X_CLASS
+ 
 -- 
 1.7.3.5
+
