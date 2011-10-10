@@ -1,55 +1,49 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 02/16] OMAP2+: hwmod: Add API to check IO PAD wakeup status
-Date: Mon, 10 Oct 2011 15:24:15 -0700
-Message-ID: <878vosh4ds.fsf@ti.com>
+Subject: Re: [PATCH v6 05/16] OMAP2+: UART: Cleanup part of clock gating mechanism for uart
+Date: Mon, 10 Oct 2011 15:30:43 -0700
+Message-ID: <87ty7gfpik.fsf@ti.com>
 References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
-	<1317380495-584-2-git-send-email-govindraj.raja@ti.com>
-	<4E8724D7.6060907@ti.com>
-	<CAAL8m4zLz4kv+nNPKHD6zKG0pdXifXpmWiHnLAyn_bq228qHXA@mail.gmail.com>
-	<4E8946BD.1010108@ti.com>
-	<CAAL8m4xkC1Ftnr=RpAK5m2PVvPx3yzitO5gNJfOKiD0_YkGkdA@mail.gmail.com>
+	<1317380495-584-5-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAL8m4xkC1Ftnr=RpAK5m2PVvPx3yzitO5gNJfOKiD0_YkGkdA@mail.gmail.com>
-	(Govindraj's message of "Mon, 3 Oct 2011 11:26:04 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46824 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752419Ab1JJWar (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Oct 2011 18:30:47 -0400
+In-Reply-To: <1317380495-584-5-git-send-email-govindraj.raja@ti.com>
+	(Govindraj R.'s message of "Fri, 30 Sep 2011 16:31:31 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Govindraj <govindraj.ti@gmail.com> writes:
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-> On Mon, Oct 3, 2011 at 10:53 AM, Rajendra Nayak <rnayak@ti.com> wrote=
-:
->> On Monday 03 October 2011 10:30 AM, Govindraj wrote:
->>
->>> On Sat, Oct 1, 2011 at 8:03 PM, Rajendra Nayak<rnayak@ti.com> =C2=A0=
-wrote:
->>>>
->>>> On Friday 30 September 2011 04:31 PM, Govindraj.R wrote:
->>>>>
->>>>> Add API to determine IO-PAD wakeup event status for a given
->>>>> hwmod dynamic_mux pad.
->>>>>
->>>>> Wake up event set will be cleared on pad mux_read.
->>>>
->>>> Are these api's even getting used in this series?
->>>
->>> Used in Tero's irq_chaining patches.
->>
->> So shouldn't this patch be part of his series instead?
+> Currently we use a shared irq handler to identify uart activity and then
+> trigger a timer. 
+
+OK.
+
+> Based the timeout value set from sysfs the timer used to expire.
+
+Please re-phrase as I'm not sure what is being said here.
+
+> If no uart-activity was detected timer-expiry func sets can_sleep
+> flag. Based on this we will disable the uart clocks in idle path.
 >
-> Yes it is. Part of his v9-series.
+> Since the clock gating mechanism is outside the uart driver, we currently
+> use this mechanism. In preparation to runtime implementation for omap-serial
+> driver we can cleanup this mechanism and use runtime API's to gate uart clocks.
 >
+> Also remove timer related info from local uart_state struct and remove
+> the code used to set timeout value from sysfs. Remove un-used function
+> omap_uart_check_wakeup.
+>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 
-Then please drop from this series and state the introductory patch
-(PATCH 0/n) that this series has a dependency on Tero's series.
+The patch itself fine, and is a well-neede cleanup, but changelog
+(especially the first part) does not read well.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
