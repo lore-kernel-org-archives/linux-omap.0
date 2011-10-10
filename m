@@ -1,244 +1,130 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
- supported by the hardware
-Date: Mon, 10 Oct 2011 11:47:38 +0200
-Message-ID: <20111010094738.GW2138@amd.com>
-References: <1316195506-9777-1-git-send-email-ohad@wizery.com>
- <1316195506-9777-2-git-send-email-ohad@wizery.com>
- <20110927100505.GH2138@amd.com>
- <CAK=WgbahwY+7Ux-RjW2Tw9WBSwZnYuTMZ2NQASWyOXQ3zF6qFg@mail.gmail.com>
- <20110927131222.GL2138@amd.com>
- <CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
- <20110927181438.GM2138@amd.com>
- <CAK=WgbbNs5fWHDEputZ=jzU5YN0sn0tf6AETkcsoq_Jbvc2XgQ@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 6/6] OMAP4: Clock: Correct the name of SLIMBUS interface
+ clocks
+Date: Mon, 10 Oct 2011 11:54:33 +0200
+Message-ID: <4E92C0D9.3090402@ti.com>
+References: <1316195330-15099-1-git-send-email-jon-hunter@ti.com> <alpine.DEB.2.00.1110061941100.4611@utopia.booyaka.com> <4E8EB6ED.9020605@ti.com> <4E8F8149.6090100@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:26629 "EHLO
-	TX2EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753097Ab1JJJtG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 05:49:06 -0400
-Content-Disposition: inline
-In-Reply-To: <CAK=WgbbNs5fWHDEputZ=jzU5YN0sn0tf6AETkcsoq_Jbvc2XgQ@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49130 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753097Ab1JJJyk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Oct 2011 05:54:40 -0400
+In-Reply-To: <4E8F8149.6090100@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stepan Moskovchenko <stepanm@codeaurora.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Hi Ohad,
+Hi Jon,
 
-sorry, I was on vacation last week and had no time to look into this.
+On 10/8/2011 12:46 AM, Hunter, Jon wrote:
+> Hi Benoit,
+>
+> On 10/7/2011 3:23, Cousson, Benoit wrote:
+>> Hi Paul&  Jon,
+>>
+>> On 10/7/2011 3:42 AM, Paul Walmsley wrote:
+>>> + Beno=EEt
+>>>
+>>> On Fri, 16 Sep 2011, Jon Hunter wrote:
+>>>
+>>>> From: Jon Hunter<jon-hunter@ti.com>
+>>>>
+>>>> Currently the interface clocks for the two SLIMBUS peripherals are
+>>>> named slimbus1_fck and slimbus2_fck. Rename these clocks to be
+>>>> slimbus1_ick and slimbus2_ick so it is clear that these are
+>>>> interface clocks and not functional clocks.
+>>>>
+>>>> Signed-off-by: Jon Hunter<jon-hunter@ti.com>
+>>>
+>>> This one, I don't quite understand. We should probably be removing =
+these
+>>> MODULEMODE-only clocks from the OMAP4 tree, and using their parent =
+clock
+>>> as the main_clk. That would be a good cleanup for 3.3...
+>>
+>> Yes, but in order to remove that from the clock data we must ensure =
+that
+>> the hwmod entry is there.
+>> I kept a lot of legacy MODULEMODE clocks just because of missing hwm=
+od /
+>> runtime_pm adaptation on some drivers.
+>>
+>> In the case of slimbus, there is no main_clk but a bunch of optional
+>> clocks. It looks similar to the DSS case. So we should not use the
+>> parent clock as a main_clk.
+>>
+>> We should probably promote one of the opt_clk as the main_clk. The
+>> slimbus_clk seems to be the good candidate for both instances.
+>>
+>> static struct omap_hwmod_opt_clk slimbus1_opt_clks[] =3D {
+>> { .role =3D "fclk_1", .clk =3D "slimbus1_fclk_1" },
+>> { .role =3D "fclk_0", .clk =3D "slimbus1_fclk_0" },
+>> { .role =3D "fclk_2", .clk =3D "slimbus1_fclk_2" },
+>> { .role =3D "slimbus_clk", .clk =3D "slimbus1_slimbus_clk" },
+>> };
+>>
+>> static struct omap_hwmod_opt_clk slimbus2_opt_clks[] =3D {
+>> { .role =3D "fclk_1", .clk =3D "slimbus2_fclk_1" },
+>> { .role =3D "fclk_0", .clk =3D "slimbus2_fclk_0" },
+>> { .role =3D "slimbus_clk", .clk =3D "slimbus2_slimbus_clk" },
+>> };
+>>
+>> Jon,
+>> Do you know if that one is indeed mandatory to use the slimbus IP?
+>
+> Sorry, are you asking about the clocks I was re-naming or the
+> slimbus_clk you are referring to above?
 
-On Sun, Oct 02, 2011 at 11:58:12AM -0400, Ohad Ben-Cohen wrote:
->  drivers/iommu/iommu.c      |  138 ++++++++++++++++++++++++++++++++++++++++---
->  drivers/iommu/omap-iovmm.c |   12 +---
->  include/linux/iommu.h      |    6 +-
->  virt/kvm/iommu.c           |    4 +-
->  4 files changed, 137 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-> index a7b0862..f23563f 100644
-> --- a/drivers/iommu/iommu.c
-> +++ b/drivers/iommu/iommu.c
-> @@ -16,6 +16,8 @@
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
->   */
-> 
-> +#define pr_fmt(fmt)    "%s: " fmt, __func__
-> +
->  #include <linux/kernel.h>
->  #include <linux/bug.h>
->  #include <linux/types.h>
-> @@ -23,15 +25,54 @@
->  #include <linux/slab.h>
->  #include <linux/errno.h>
->  #include <linux/iommu.h>
-> +#include <linux/bitmap.h>
+The clocks you are renaming should not exist at all, so I was referring=
+=20
+to the real clocks that are all listed as optional clocks.
 
-Is this still required?
+Usually we do need to have a main_clk in order to access the IP=20
+registers (at least the sysconfig). But for some IPs, the iclk can be=20
+enough.
+If the interface clock is enough, then potentially that main clock is=20
+not mandatory. But if one functional clock is mandatory, then we have t=
+o=20
+figured out which one from the various optional functional clocks can b=
+e=20
+used as the main_clk.
 
-> 
->  static struct iommu_ops *iommu_ops;
-> 
-> +/* bitmap of supported page sizes */
-> +static unsigned long iommu_pgsize_bitmap;
-> +
-> +/* size of the smallest supported page (in bytes) */
-> +static unsigned int iommu_min_pagesz;
-> +
-> +/**
-> + * register_iommu() - register an IOMMU hardware
-> + * @ops: iommu handlers
-> + * @pgsize_bitmap: bitmap of page sizes supported by the hardware
-> + *
-> + * Note: this is a temporary function, which will be removed once
-> + * all IOMMU drivers are converted. The only reason it exists is to
-> + * allow splitting the pgsizes changes to several patches in order to ease
-> + * the review.
-> + */
-> +void register_iommu_pgsize(struct iommu_ops *ops, unsigned long pgsize_bitmap)
-> +{
-> +       if (iommu_ops || iommu_pgsize_bitmap || !pgsize_bitmap)
-> +               BUG();
-> +
-> +       iommu_ops = ops;
-> +       iommu_pgsize_bitmap = pgsize_bitmap;
-> +
-> +       /* find out the minimum page size only once */
-> +       iommu_min_pagesz = 1 << __ffs(pgsize_bitmap);
-> +}
+> Looking at the clock tree tool, the slimbus_clk is the actual externa=
+l
+> slimbus clock that can be generated by OMAP or by an external device.
+>
+> The TRM states ...
+>
+> "Most of the SLIMbus module runs off two main clocks: the L4 interfac=
+e
+> clock for the data input and output registers, and the control and
+> status control registers; and the SLIMbus clock, taken from the seria=
+l
+> interface (CLK line) for the SLIMbus-side logic.
+>
+> The SLIMbus controller operates as clock source component (active
+> framer), which drives the SLIMbus clock line CLK, or as clock receive=
+r
+> component, which gets its clock from the same CLK line."
+>
+> So, if you are operating as the clock source component on the bus the=
+n
+> one of the optional clocks to drive the peripheral logic and if you a=
+re
+> the clock receiver then you use slimbus_clk.
 
-Hmm, I thought a little bit about that and came to the conculusion it
-might be best to just keep the page-sizes as a part of the iommu_ops
-structure. So there is no need to extend the register_iommu interface.
+OK, so clearly, the slimbus_clk cannot be a main_clk. We have to check=20
+if the registers can be accessed only with the iclk.
 
-Also, the bus_set_iommu interface is now in the -next branch. Would be
-good if you rebase the patches to that interface.
-
-You can find the current iommu tree with these changes at
-
-	git://git.8bytes.org/scm/iommu.git
-
-> @@ -115,26 +156,103 @@ int iommu_domain_has_cap(struct iommu_domain *domain,
->  EXPORT_SYMBOL_GPL(iommu_domain_has_cap);
-> 
->  int iommu_map(struct iommu_domain *domain, unsigned long iova,
-> -             phys_addr_t paddr, int gfp_order, int prot)
-> +             phys_addr_t paddr, size_t size, int prot)
->  {
-> -       size_t size;
-> +       int ret = 0;
-> +
-> +       /*
-> +        * both the virtual address and the physical one, as well as
-> +        * the size of the mapping, must be aligned (at least) to the
-> +        * size of the smallest page supported by the hardware
-> +        */
-> +       if (!IS_ALIGNED(iova | paddr | size, iommu_min_pagesz)) {
-> +               pr_err("unaligned: iova 0x%lx pa 0x%lx size 0x%lx min_pagesz "
-> +                       "0x%x\n", iova, (unsigned long)paddr,
-> +                       (unsigned long)size, iommu_min_pagesz);
-> +               return -EINVAL;
-> +       }
-> 
-> -       size         = 0x1000UL << gfp_order;
-> +       pr_debug("map: iova 0x%lx pa 0x%lx size 0x%lx\n", iova,
-> +                               (unsigned long)paddr, (unsigned long)size);
-> 
-> -       BUG_ON(!IS_ALIGNED(iova | paddr, size));
-> +       while (size) {
-> +               unsigned long pgsize, addr_merge = iova | paddr;
-> +               unsigned int pgsize_idx;
-> 
-> -       return iommu_ops->map(domain, iova, paddr, gfp_order, prot);
-> +               /* Max page size that still fits into 'size' */
-> +               pgsize_idx = __fls(size);
-> +
-> +               /* need to consider alignment requirements ? */
-> +               if (likely(addr_merge)) {
-> +                       /* Max page size allowed by both iova and paddr */
-> +                       unsigned int align_pgsize_idx = __ffs(addr_merge);
-> +
-> +                       pgsize_idx = min(pgsize_idx, align_pgsize_idx);
-> +               }
-> +
-> +               /* build a mask of acceptable page sizes */
-> +               pgsize = (1UL << (pgsize_idx + 1)) - 1;
-> +
-> +               /* throw away page sizes not supported by the hardware */
-> +               pgsize &= iommu_pgsize_bitmap;
-
-I think we need some care here and check pgsize for 0. A BUG_ON should
-do.
-
-> +
-> +               /* pick the biggest page */
-> +               pgsize_idx = __fls(pgsize);
-> +               pgsize = 1UL << pgsize_idx;
-> +
-> +               /* convert index to page order */
-> +               pgsize_idx -= PAGE_SHIFT;
-> +
-> +               pr_debug("mapping: iova 0x%lx pa 0x%lx order %u\n", iova,
-> +                                       (unsigned long)paddr, pgsize_idx);
-> +
-> +               ret = iommu_ops->map(domain, iova, paddr, pgsize_idx, prot);
-> +               if (ret)
-> +                       break;
-> +
-> +               iova += pgsize;
-> +               paddr += pgsize;
-> +               size -= pgsize;
-> +       }
-> +
-> +       return ret;
->  }
->  EXPORT_SYMBOL_GPL(iommu_map);
-
-Otherwise this looks much better, thanks.
-
-> 
-> -int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int gfp_order)
-> +int iommu_unmap(struct iommu_domain *domain, unsigned long iova, size_t size)
->  {
-> -       size_t size;
-> +       int order, unmapped_size, unmapped_order, total_unmapped = 0;
-> +
-> +       /*
-> +        * The virtual address, as well as the size of the mapping, must be
-> +        * aligned (at least) to the size of the smallest page supported
-> +        * by the hardware
-> +        */
-> +       if (!IS_ALIGNED(iova | size, iommu_min_pagesz)) {
-> +               pr_err("unaligned: iova 0x%lx size 0x%lx min_pagesz 0x%x\n",
-> +                               iova, (unsigned long)size, iommu_min_pagesz);
-> +               return -EINVAL;
-> +       }
-> +
-> +       pr_debug("unmap this: iova 0x%lx size 0x%lx\n", iova,
-> +                                                       (unsigned long)size);
-> +
-> +       while (size > total_unmapped) {
-> +               order = get_order(size - total_unmapped);
-> +
-> +               unmapped_order = iommu_ops->unmap(domain, iova, order);
-
-I think we should make sure that we call iommu_ops->unmap with the same
-parameters as iommu_ops->map. Otherwise we still need some page-size
-complexity in the iommu-drivers.
-
-> +               if (unmapped_order < 0)
-> +                       return unmapped_order;
-> +
-> +               pr_debug("unmapped: iova 0x%lx order %d\n", iova,
-> +                                                       unmapped_order);
-> 
-> -       size         = 0x1000UL << gfp_order;
-> +               unmapped_size = 0x1000UL << unmapped_order;
-> 
-> -       BUG_ON(!IS_ALIGNED(iova, size));
-> +               iova += unmapped_size;
-> +               total_unmapped += unmapped_size;
-> +       }
-> 
-> -       return iommu_ops->unmap(domain, iova, gfp_order);
-> +       return get_order(total_unmapped);
->  }
-
-When we pass the size now it makes sense to also return the
-unmapped-size instead of the order.
-
-Also the semantics of iommu_unmap need some more discussion I think. We
-should require that iommu_map/iommu_unmap are called with the same
-parameters for the same range. Otherwise we can give no guarantees what
-a unmap-call will unmap.
-
-	Joerg
-
--- 
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
-
+Regards,
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
