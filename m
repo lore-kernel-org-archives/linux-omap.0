@@ -1,63 +1,63 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [v2 2/2] usb: musb: omap2+: save and restore OTG_INTERFSEL
-Date: Mon, 10 Oct 2011 09:08:25 +0300
-Message-ID: <20111010060824.GE31707@legolas.emea.dhcp.ti.com>
-References: <1315412364-21384-1-git-send-email-vikram.pandita@ti.com>
- <1315412364-21384-3-git-send-email-vikram.pandita@ti.com>
+Subject: Re: [PATCH 15/30] usb/musb: use a Kconfig choice to pick the right
+ DMA method
+Date: Mon, 10 Oct 2011 09:10:29 +0300
+Message-ID: <20111010061026.GF31707@legolas.emea.dhcp.ti.com>
+References: <1317566760-25681-1-git-send-email-arnd@arndb.de>
+ <1317566760-25681-16-git-send-email-arnd@arndb.de>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="lteA1dqeVaWQ9QQl"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:47750 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752027Ab1JJGIb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Oct 2011 02:08:31 -0400
+	protocol="application/pgp-signature"; boundary="oFbHfjnMgUMsrGjO"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1315412364-21384-3-git-send-email-vikram.pandita@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1317566760-25681-16-git-send-email-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
 
---lteA1dqeVaWQ9QQl
+--oFbHfjnMgUMsrGjO
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 07, 2011 at 09:19:24AM -0700, Vikram Pandita wrote:
-> From: Hema HK <hemahk@ti.com>
+On Sun, Oct 02, 2011 at 04:45:45PM +0200, Arnd Bergmann wrote:
+> The logic to allow only one DMA driver in MUSB is currently
+> flawed, because it also allows picking no DMA driver at all
+> and also not selecting PIO mode.
 >=20
-> we need to save and restore OTG_INTERFSEL register
-> else we will be unable to function on resume after
-> OFF mode.
+> Using a choice statement makes this foolproof for now and
+> also simplifies the Makefile.
 >=20
-> Reported-by: Devaraj Rangasamy <dev@ti.com>
-> Signed-off-by: Hema HK <hemahk@ti.com>
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> Unfortunately, we will have to revisit this when we start
+> supporting multiple ARM platforms in a single kernel binary,
+> because at that point we will actually need to select
+> multiple DMA drivers and pick the right one at run-time.
+>=20
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Felipe Balbi <balbi@ti.com>
 
-applied thanks
+applied, thanks
 
 --=20
 balbi
 
---lteA1dqeVaWQ9QQl
+--oFbHfjnMgUMsrGjO
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQEcBAEBAgAGBQJOkovYAAoJEAv8Txj19kN1WAwH/2U5LU9knlaG5wPgDmcJIrxZ
-6P9nwWI5/OdIX40r5YelToP8KDlZNCf2vPiZS56G86YM50x7MitTMha0QMTc9FPo
-jV995X3GtF390mx039J5NC+ukF+VoPtyLQyhWsJCwg2mrI/9jIeKsB0gWYF/rOIt
-5DCiPzGlMDr9cLquE1mYDkprQg+RCF2FKyRB6tIPi6SNHaEdU+ws8HfLUraCzz9z
-iWZn/266CDCDr/tMdm2GgT57FjlpOXaUNuDDCPPZHvE3wmcu/qdhLVYk0SLowGhG
-CPiyvtM91mI0DBY/KY24Uz25JCzYOGb4EsTVf1XHI1KLYBwA0T4eKMOHBZeN3wE=
-=63ES
+iQEcBAEBAgAGBQJOkoxSAAoJEAv8Txj19kN13ZEH/1sTMVPwHCHaVkQNG5zdeaGV
+n/asaA8O2+qLn40ATjXrw/wUOShUW+dD29Dv8q/9Hr/fA9vJXCOKcg+zQqN1c7Lm
+pp/ygTSnNr1QIfRoJgw36bGZgsvGDQMjxjdR7EZ70Tur8zR5Y48q9YHxCG92oZ7Z
+9mrPY37IGGOCtBS9V/OQW5uO+Hm6rIGAswoFAO6HghCw9JNA8kqMRJHj2EzUv8OK
+hcH8AbiWQPP8z4mHQHGj78Q9Q61SJeObkk0a0olszmJn1yyajaADKeoWwphfjvF0
+Z/Fl5+Ztuj2n/A7OZB8RsfG3cl64zWVDAbeosrqUS/WzfvNSd75M4QM8+C4crBQ=
+=5FcO
 -----END PGP SIGNATURE-----
 
---lteA1dqeVaWQ9QQl--
+--oFbHfjnMgUMsrGjO--
