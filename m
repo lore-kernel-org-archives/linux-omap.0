@@ -1,91 +1,54 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 5/5] regulator: map consumer regulator based on device
- tree
-Date: Tue, 11 Oct 2011 11:19:06 +0530
-Message-ID: <4E93D8D2.1050703@ti.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com> <1318263578-7407-6-git-send-email-rnayak@ti.com> <20111010173506.GH3607@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract regulator_init_data
+Date: Tue, 11 Oct 2011 11:29:29 +0530
+Message-ID: <4E93DB41.2080900@ti.com>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com> <1318263578-7407-4-git-send-email-rnayak@ti.com> <20111010172222.GG3607@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:51789 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750956Ab1JKFtP (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:38521 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751317Ab1JKF7i (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Oct 2011 01:49:15 -0400
-In-Reply-To: <20111010173506.GH3607@opensource.wolfsonmicro.com>
+	Tue, 11 Oct 2011 01:59:38 -0400
+In-Reply-To: <20111010172222.GG3607@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linux-kernel@vger.kernel.org
 
-
+On Monday 10 October 2011 10:52 PM, Mark Brown wrote:
+> On Mon, Oct 10, 2011 at 09:49:36PM +0530, Rajendra Nayak wrote:
 >
->> @@ -1178,6 +1225,10 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->>   			goto found;
->>   		}
->>   	}
->> +	if (!dev)
->> +		list_for_each_entry(rdev,&regulator_list, list)
->> +			if (strcmp(rdev_get_name(rdev), id))
->> +				goto found;
->>
+>> +- regulator-change-voltage: boolean, Output voltage can be changed by software
+>> +- regulator-change-current: boolean, Output current can be chnaged by software
+>> +- regulator-change-mode: boolean, Operating mode can be changed by software
+>> +- regulator-change-status: boolean, Enable/Disable control for regulator exists
+>> +- regulator-change-drms: boolean, Dynamic regulator mode switching is enabled
+>> +- regulator-mode-fast: boolean, allow/set fast mode for the regulator
+>> +- regulator-mode-normal: boolean, allow/set normal mode for the regulator
+>> +- regulator-mode-idle: boolean, allow/set idle mode for the regulator
+>> +- regulator-mode-standby: boolean, allow/set standby mode for the regulator
+>> +- regulator-input-uV: Input voltage for regulator when supplied by another regulator
+>> +- regulator-always-on: boolean, regulator should never be disabled
 >
-> This looks really strange, we didn't remove any old lookup code and the
-> DT lookup jumps to found by iself so why are we adding code here?
+> Thinking about this I'm not sure that these should go in the device
+> tree, they're as much talking about what Linux is able to cope with as
+> they are talking about what the hardware is able to do.  Sometimes
+> they'll be fixed by the design but they are sometimes also restricted by
+> what the software is currently capable of.  DRMS is a prime example
+> here, it depends on how good we are at telling the API about how much
+> current we're using.
 
-The old lookup code looks up using the regulator_map_list, and the dt
-lookup depends on a dev pointer to extract the of_node.
-This above code was needed for cases when a regulator_get() would be
-called on dt builds without specifying a device pointer, like the
-cpufreq implementations you mentioned.
-This is what I tried putting in the comments above the lookup code.
+So is there another way of passing these, if not through device tree?
+There are other linux specific things that need to be passed to the
+framework as well, like the state of the regulator in the various
+linux specific suspend states, like standby/mem/disk.
+So if these can't be passed through device tree, should they still
+be passed in some way through platform_data? Or is it best to identify
+the bindings as being linux specific and not generic by appending a
+"linux," to the bindings.
 
-	/*
-          * Lookup happens in 3 ways
-          * 1. If a dev and dev->of_node exist, look for a
-          * regulator mapping in dt node.
-          * 2. Check if a match can be found in regulator_map_list
-          * if regulator info is still passed in non-dt way
-          * 3. if !dev, then just look for a matching regulator name.
-          * Useful for dt builds using regulator_get() without specifying
-          * a device.
-          */
-
-I know its quite complicated but thats because we need to support both
-the legacy and the dt based lookups.
-
->
->> +	if (supply) {
->> +		struct regulator_dev *r;
->> +		struct device_node *node;
->> +
->> +		/* first do a dt based lookup */
->> +		if (dev) {
->> +			node = of_get_regulator(dev, supply);
->> +			if (node)
->> +				list_for_each_entry(r,&regulator_list, list)
->> +					if (node == r->dev.parent->of_node)
->> +						goto found;
->>   		}
->>
->> -		if (!found) {
->> -			dev_err(dev, "Failed to find supply %s\n",
->> -				init_data->supply_regulator);
->> -			ret = -ENODEV;
->> -			goto scrub;
->> -		}
->> +		/* next try doing it non-dt way */
->> +		list_for_each_entry(r,&regulator_list, list)
->> +			if (strcmp(rdev_get_name(r), supply) == 0)
->> +				goto found;
->>
->> +		dev_err(dev, "Failed to find supply %s\n", supply);
->> +		ret = -ENODEV;
->> +		goto scrub;
->> +
->> +found:
->
-> This is all getting *really* complicated and illegible.  I'm not sure
-> what the best way to structure is but erroring out early looks useful.
+Grant, need some help and advice.
 
