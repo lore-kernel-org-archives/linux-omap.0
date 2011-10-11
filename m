@@ -1,45 +1,36 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Tue, 11 Oct 2011 20:29:18 +0800
-Message-ID: <CACVXFVMnt-ChUDhawhoyMm-wJ8xSQAWs1c8ykzmyshfX49HEsw@mail.gmail.com>
-References: <20111008155502.GB616@kroah.com>
-	<361419345.198335.1318268242916.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v6 08/16] OMAP2+: UART: Store certain reg values to port structure
+Date: Tue, 11 Oct 2011 18:51:20 +0530
+Message-ID: <CAAL8m4wHYULvpjgJpM0gvhV_rcmBAz_=P5tUU+-DZ0=6i+jYoA@mail.gmail.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+ <1317380495-584-8-git-send-email-govindraj.raja@ti.com> <8739f0bdqh.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <361419345.198335.1318268242916.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrei Warkentin <awarkentin@vmware.com>
-Cc: Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Grant Likely <grant.likely@secretlab.ca>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <8739f0bdqh.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 11, 2011 at 1:37 AM, Andrei Warkentin <awarkentin@vmware.com> wrote:
-> Hi,
+On Tue, Oct 11, 2011 at 5:28 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
 >
-> ----- Original Message -----
->> From: "Greg KH" <greg@kroah.com>
->> To: "Josh Triplett" <josh@joshtriplett.org>
->> Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, "Grant Likely"
->> <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
->> "Dilan Lee" <dilee@nvidia.com>, "Mark Brown" <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
->> Sent: Saturday, October 8, 2011 11:55:02 AM
->> Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+>> In preparation to runtime conversion add missing uart regs to
+>> port structure which can be used in context restore.
+>> Also ensuring all uart reg info's are part of port structure.
 >>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 >
-> I'm a bit of a fly on the wall here, but I'm curious how this impacts suspend/resume.
-> device_initialize->device_pm_init are called from device_register, so certainly this
-> patch doesn't also ensure that the PM ordering matches probe ordering, which is bound
-> to break suspend, right? Was this ever tested with the OMAP target? Shouldn't the
-
-Inside device_add(), device_pm_add is called before bus_probe_device,
-so the patch can't change the device order in pm list, and just change
-the driver probe order.
-
-> PM change be also part of this patch set? I don't see why you would want to have this in
-> without the PM changes.
+> IMO, this should come later in the series to avoid adding bunch of code
+> that gets moved in a subsequent patch.
 >
+> First, convert to runtime PM (current patch 9/16)
+> Then, add a patch to move context save/restore into driver.
+> Then, add this patch.
 
+Okay fine.
 
-thanks,
--- 
-Ming Lei
+--
+Thanks,
+Govindraj.R
