@@ -1,74 +1,62 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 7/8] arm: omap: am335x: enable phy controls
-Date: Tue, 11 Oct 2011 16:56:08 +0530
-Message-ID: <1318332369-9732-8-git-send-email-ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 8/8] usb: musb: enable support for am335x
+Date: Tue, 11 Oct 2011 16:56:09 +0530
+Message-ID: <1318332369-9732-9-git-send-email-ajay.gupta@ti.com>
 References: <1318332369-9732-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46742 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754708Ab1JKL0Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Oct 2011 07:26:16 -0400
-In-Reply-To: <1318332369-9732-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1318332369-9732-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Switch on the phy for am335x.
+Enabled the flag so that musb_dsps glue file can be used for am335x
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 ---
-Changes from v1:
-	- Added ioremap for AM33x SCM base.
+Changes from v1
+	- Removed unneeded parens.
 
- arch/arm/mach-omap2/omap_phy_internal.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
+ drivers/usb/musb/Kconfig |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
-index 4c90477..7129408 100644
---- a/arch/arm/mach-omap2/omap_phy_internal.c
-+++ b/arch/arm/mach-omap2/omap_phy_internal.c
-@@ -266,7 +266,11 @@ void ti81xx_musb_phy_power(u8 on)
- 	void __iomem *scm_base = NULL;
- 	u32 usbphycfg;
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index d6abdec..e3a863c 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -8,7 +8,7 @@ config USB_MUSB_HDRC
+ 	depends on USB && USB_GADGET
+ 	depends on (ARM || (BF54x && !BF544) || (BF52x && !BF522 && !BF523))
+ 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
+-	select NOP_USB_XCEIV if SOC_OMAPTI81XX
++	select NOP_USB_XCEIV if (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
+ 	select TWL4030_USB if MACH_OMAP_3430SDP
+ 	select TWL6030_USB if MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
+ 	select USB_OTG_UTILS
+@@ -57,7 +57,7 @@ config USB_MUSB_AM35X
  
--	scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-+	if (cpu_is_ti81xx())
-+		scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-+	else if (cpu_is_am33xx())
-+		scm_base = ioremap(AM33XX_SCM_BASE, SZ_2K);
-+
- 	if (!scm_base) {
- 		pr_err("system control module ioremap failed\n");
- 		return;
-@@ -278,16 +282,19 @@ void ti81xx_musb_phy_power(u8 on)
- 		if (cpu_is_ti816x()) {
- 			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
- 			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
--		} else if (cpu_is_ti814x()) {
--			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
--				| USBPHY_DPINPUT | USBPHY_DMINPUT);
--			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
--				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
-+		} else if (cpu_is_ti814x() || cpu_is_am33xx()) {
-+			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
-+			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
-+			if (cpu_is_ti814x()) {
-+				usbphycfg &= ~(USBPHY_DPINPUT | USBPHY_DMINPUT);
-+				usbphycfg |= USBPHY_DPOPBUFCTL
-+					| USBPHY_DMOPBUFCTL;
-+			}
- 		}
- 	} else {
- 		if (cpu_is_ti816x())
- 			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
--		else if (cpu_is_ti814x())
-+		else if (cpu_is_ti814x() || cpu_is_am33xx())
- 			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
+ config USB_MUSB_DSPS
+ 	tristate "TI DSPS platforms"
+-	depends on SOC_OMAPTI81XX
++	depends on SOC_OMAPTI81XX || SOC_OMAPAM33XX
  
- 	}
+ config USB_MUSB_BLACKFIN
+ 	tristate "Blackfin"
+@@ -73,7 +73,7 @@ config MUSB_PIO_ONLY
+ 	bool 'Disable DMA (always use PIO)'
+ 	depends on USB_MUSB_HDRC
+ 	default USB_MUSB_TUSB6010 || USB_MUSB_DA8XX || USB_MUSB_AM35X
+-	default SOC_OMAPTI81XX
++	default SOC_OMAPTI81XX || SOC_OMAPAM33XX
+ 	help
+ 	  All data is copied between memory and FIFO by the CPU.
+ 	  DMA controllers are ignored.
 -- 
 1.6.2.4
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
