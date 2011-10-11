@@ -1,82 +1,72 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 3/8] ti816evm: Add support for musb interface
-Date: Tue, 11 Oct 2011 21:58:17 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECCE5650@dbde02.ent.ti.com>
-References: <1318332369-9732-1-git-send-email-ajay.gupta@ti.com>
- <1318332369-9732-4-git-send-email-ajay.gupta@ti.com>
- <4E9431DB.3070600@compulab.co.il>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde support
+Date: Tue, 11 Oct 2011 10:00:25 -0700
+Message-ID: <87k48b79au.fsf@ti.com>
+References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com>
+	<87ty7ghgiw.fsf@ti.com> <4E93EBC2.1060103@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42091 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754694Ab1JKQ2c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2011 12:28:32 -0400
-In-Reply-To: <4E9431DB.3070600@compulab.co.il>
-Content-Language: en-US
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:46584 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754923Ab1JKRAa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Oct 2011 13:00:30 -0400
+Received: by mail-qy0-f172.google.com with SMTP id 32so3360575qyk.3
+        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2011 10:00:28 -0700 (PDT)
+In-Reply-To: <4E93EBC2.1060103@ti.com> (Santosh Shilimkar's message of "Tue,
+	11 Oct 2011 12:39:54 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "B, Ravi" <ravibabu@ti.com>, "Pedanekar, Hemant" <hemantp@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-> On 10/11/11 13:26, Ajay Kumar Gupta wrote:
-> > From: Ravi Babu <ravibabu@ti.com>
-> >
-> > Adding musb support in ti816 EVM board file.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > Signed-off-by: Ravi Babu <ravibabu@ti.com>
-> > Acked-by: Felipe Balbi <balbi@ti.com>
-> 
-> This patch can result in a merge conflict, therefore I think
-> this one should be taken through Tony's tree.
-> 
-> Also you should work together with Hemant Pedanekar and
-> someone of you should rebase on top of the other otherwise
-> one of the patches (yours or Hemant's) possibly will not apply.
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-Ok sure. I will submit the patches (v5) after creating it on top of
-Hemant's and Vaibhav's patches.
+> On Monday 10 October 2011 11:31 PM, Kevin Hilman wrote:
+>> Hi Santosh,
+>> 
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>> 
+>>> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
+>>> suspend (S2R), CPU hotplug and CPUidle.
+>> 
+>> There are a few more compile errors when doing OMAP1-only builds.
+>> You'll need a way to eliminate the secure calls for OMAP1.
+>> 
+>> This series causes a couple build errors when doing OMAP1-only builds
+>> (I used omap1_defconfig):
+>> 
+> OK. Thanks for catching it.
+>
+>> First:
+>> 
+>> /work/kernel/omap/pm/arch/arm/plat-omap/common.c:24:30: fatal error: mach/omap-secure.h: No such file or directory
+>> 
+>> And trying creating a dummy header to see if it would continue to build gives:
+>> 
+>> /work/kernel/omap/pm/arch/arm/plat-omap/common.c: In function 'omap_reserve':
+>> /work/kernel/omap/pm/arch/arm/plat-omap/common.c:70:2: error: implicit declaration of function 'omap_secure_ram_reserve_memblock'
+>> make[2]: *** [arch/arm/plat-omap/common.o] Error 1
+>> make[1]: *** [arch/arm/plat-omap] Error 2
+>> 
+> For OMAP1 build, omap_secure_ram_reserve_memblock() definition is
+> needed since common.c is built for OMAP1 as well.
+> The trivial change in the end of this email fixes the omap1 build.
 
-Thanks,
-Ajay
-> 
-> > ---
-> >  arch/arm/mach-omap2/board-ti8168evm.c |    9 +++++++++
-> >  1 files changed, 9 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
-> omap2/board-ti8168evm.c
-> > index 2c243df..1f3d423 100644
-> > --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> > +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> > @@ -23,6 +23,14 @@
-> >  #include <plat/irqs.h>
-> >  #include <plat/board.h>
-> >  #include <plat/common.h>
-> > +#include <plat/usb.h>
-> > +
-> > +static struct omap_musb_board_data musb_board_data = {
-> > +	.set_phy_power	= ti81xx_musb_phy_power,
-> > +	.interface_type	= MUSB_INTERFACE_ULPI,
-> > +	.mode           = MUSB_OTG,
-> > +	.power		= 500,
-> > +};
-> >
-> >  static struct omap_board_config_kernel ti8168_evm_config[] __initdata
-> = {
-> >  };
-> > @@ -33,6 +41,7 @@ static void __init ti8168_evm_init(void)
-> >  	omap_sdrc_init(NULL, NULL);
-> >  	omap_board_config = ti8168_evm_config;
-> >  	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-> > +	usb_musb_init(&musb_board_data);
-> >  }
-> >
-> >  static void __init ti8168_evm_map_io(void)
-> 
-> --
-> Regards,
-> Igor.
+Looks good.
+
+> Have folded that change in original patch and updated the OMAP4
+> PM branch - for_3_2/omap4-mpuss-pm_2
+
+Thanks.
+
+> Regards
+> Santosh
+> P.S : Even with this fix, omap1_defconfig build breaks because of USB.
+> I removed USB from build to check rest of the build and it was
+> fine then.
+
+OK.
+
+Kevin
