@@ -1,45 +1,52 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: omap2+: stub out omap*_volt_data
-Date: Tue, 11 Oct 2011 15:57:41 +0200
-Message-ID: <201110111557.41396.arnd@arndb.de>
-References: <1397689.kebELtC4N3@wuerfel> <87ipnwhepq.fsf@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Tue, 11 Oct 2011 10:04:28 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1110111000460.2177-100000@iolanthe.rowland.org>
+References: <20111011081352.GC10155@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87ipnwhepq.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111011081352.GC10155@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Greg KH <greg@kroah.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 10 October 2011, Kevin Hilman wrote:
-> > I got this build error only now after pulling in the latest omap series, but
-> > I cannot tell what caused it. It's also not clear to me if this is the correct
-> > solution. Please ack or provide a better fix.
+On Tue, 11 Oct 2011, Felipe Balbi wrote:
+
+> > > It doesn't shown here, but the TLL link is completely optional. It's
+> > > mainly used for modem integration, IIRC. Still, if we're using TLL, EHCI
+> > > and OHCI will depend on a clock provided by the USBTLL block.
+> > > 
+> > > Clearly, USBTLL isn't either a parent of UHH, nor a parent of EHCI/OHCI
+> > > blocks. We can, from a code perspective, make USBTLL into a parent of
+> > > UHH to make things simpler, but this will mean that calling
+> > > pm_runtime_get() will also unconditionaly turn on TLL clock, unless we
+> > > add some nasty hacks to allow TLL know if *HCI port is in TLL mode.
+> > > 
+> > > That's why I decided for making TLL and UHH siblings, because that's a
+> > > closer relationship than parent-child.
+> > > 
+> > > Can you see the problem now ?
+> > 
+> > Okay, now I understand better.  The word "sibling" implies that the two 
+> > objects have the same parent, so a different word would describe this 
+> > relationship better.  Something like "friend" or "associate".
+> > 
+> > Or maybe, following Paul's suggestion, the driver core doesn't have to 
+> > be changed at all.
 > 
-> This code was merged for v2.6.39, so not sure why this error is only
-> showing up for you now.  I just tried a !CONFIG_PM_OPP build on v2.6.39
-> and get the same errors, so it's been lingering.
-> 
-> Maybe you haven't had a randconfig that disabled CONFIG_PM_OPP before?
+> I see... I just thought that if there are other similar cases, it might
+> make sense to have a more generic way to make those two devices talk to
+> each other. But if you all agree that an EXPORT_SYMBOL_GPL() is enough,
+> then it's ok ;-)
 
-I don't know. The best explanation is that this is a very unlikely case.
-I've done many thousand randconfig builds now and have not seen it before.
+At the moment, I can't see any way to set up a more generic mechanism 
+that wouldn't be more complicated and have higher overhead than a 
+simple EXPORT_SYMBOL_GPL.
 
-Of course, since the output of randconfig is random, it could indeed just
-be a coincidence.
+Can this be handled by adding another resource to a platform_device?  
+That at least would make use of an already-existing mechanism.
 
-> Anyways, the fix is fine with me.
-
-Thanks,
-
-	Arnd
+Alan Stern
