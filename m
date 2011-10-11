@@ -1,96 +1,36 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
-Date: Tue, 11 Oct 2011 11:24:46 -0700
-Message-ID: <87vcrv2xox.fsf@ti.com>
-References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Tue, 11 Oct 2011 12:52:05 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110111136280.1664@utopia.booyaka.com>
+References: <20111011081352.GC10155@legolas.emea.dhcp.ti.com> <Pine.LNX.4.44L0.1110111000460.2177-100000@iolanthe.rowland.org> <20111011140839.GF12293@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 30 Sep 2011 16:32:35 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20111011140839.GF12293-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+Hi Felipe
 
-> Modify the omap_uart_can_sleep function to check uart is active
-> or not to be used by pm code to enter low power states.
+On Tue, 11 Oct 2011, Felipe Balbi wrote:
 
-Doesn't the driver now control when the UART clocks are gated (using
-runtime PM autosuspend)?
-
-IMO, this check should be completely removed and the driver should
-be managing this with the autosuspend timeout.
-
-> Removing this check can cause console response little sluggish.
-
-Sluggish in what way?
-
-If the driver is runtime suspended, it should only be sluggish for the
-first character.  After that, the autosuspend timeout should prevent it
-from feeling sluggish.
-
-> However no characters will be lost until uart clocks are gated
-> and woken up using rx-pad. UART interface clocks can be auto gated
-> this can make response on uart slower. This behaviour was observed
-> only on some of OMAP3 boards(beagleboard xm rev c).
+> maybe, but let's go with EXPORT_SYMBOL_GPL(). My only concern is that
+> this IP comes from synopsys, and I'm not really keen on adding
+> OMAP-specific, integration-related knowledge on a driver which was
+> supposed to be reusable ;-)
 >
-> Reported-by: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->  arch/arm/mach-omap2/serial.c |   21 +++++++++------------
->  1 files changed, 9 insertions(+), 12 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 6725caf..ccf3550 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -156,23 +156,20 @@ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
->  
->  int omap_uart_can_sleep(void)
->  {
-> -	struct omap_uart_state *uart;
-> -	int can_sleep = 1;
-> -
-> -	list_for_each_entry(uart, &uart_list, node) {
-> -		if (!uart->clocked)
-> -			continue;
-> +	struct omap_hwmod *oh;
-> +	u8 i, ret = true;
->  
-> -		if (!uart->can_sleep) {
-> -			can_sleep = 0;
-> +	for (i = 0; i < num_uarts; i++) {
-> +		oh = omap_uart_hwmod_lookup(i);
+> But at least for the time being, I guess that's what we need to do ;-)
 
-This is a heavy operation to add for *every* entry into idle.
+Which IP is coming from Synopsys - the TLL ?  The EXPORT_SYMBOL approach 
+shouldn't add anything OMAP-specific to the TLL driver.  So the exported 
+symbols should still be usable by drivers on other SoCs.  But perhaps I am 
+misunderstanding your point?
 
-> +		if (!oh)
->  			continue;
-> -		}
->  
-> -		/* This UART can now safely sleep. */
-> -		omap_uart_allow_sleep(uart);
-> +		if (oh->od && oh->od->pdev &&
-> +				!pm_runtime_suspended(&oh->od->pdev->dev))
-> +			return false;
->  	}
->  
-> -	return can_sleep;
-> +	return ret;
->  }
->  
->  #ifdef CONFIG_OMAP_MUX
-
-Kevin
+- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
