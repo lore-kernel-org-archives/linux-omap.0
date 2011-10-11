@@ -1,128 +1,68 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap4
-Date: Tue, 11 Oct 2011 11:13:53 +0300
-Message-ID: <20111011081352.GC10155@legolas.emea.dhcp.ti.com>
-References: <20111010201055.GB8808@legolas.emea.dhcp.ti.com>
- <Pine.LNX.4.44L0.1110102010310.28007-100000@netrider.rowland.org>
-Reply-To: balbi@ti.com
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+Date: Tue, 11 Oct 2011 14:13:07 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404ECCE551F@dbde02.ent.ti.com>
+References: <1315576070-7618-1-git-send-email-ajay.gupta@ti.com>
+ <1315576070-7618-2-git-send-email-ajay.gupta@ti.com>
+ <19F8576C6E063C45BE387C64729E739404ECA545E3@dbde02.ent.ti.com>
+ <20111007085614.GD10910@legolas.emea.dhcp.ti.com>
+ <19F8576C6E063C45BE387C64729E739404ECB6B70F@dbde02.ent.ti.com>
+ <20111010054435.GA31653@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aT9PWwzfKXlsBJM1"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1110102010310.28007-100000@netrider.rowland.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Felipe Balbi <balbi@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Greg KH <greg@kroah.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48161 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751949Ab1JKInU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2011 04:43:20 -0400
+In-Reply-To: <20111010054435.GA31653@legolas.emea.dhcp.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-
---aT9PWwzfKXlsBJM1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+To: "Balbi, Felipe" <balbi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "B, Ravi" <ravibabu@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
 Hi,
+> On Mon, Oct 10, 2011 at 10:40:55AM +0530, Gupta, Ajay Kumar wrote:
+> > Hi,
+> > > On Mon, Sep 26, 2011 at 03:21:07PM +0530, Gupta, Ajay Kumar wrote:
+> > > > > To: linux-omap@vger.kernel.org
+> > > > > Cc: linux-usb@vger.kernel.org; Balbi, Felipe; tony@atomide.com;
+> > > > > B, Ravi; Cousson, Benoit; Gupta, Ajay Kumar
+> > > > > Subject: [PATCH 1/6 v3] omap: musb: Adding hwmod data for ti81xx
+> > > >
+> > > > Felipe,
+> > > > I am planning to send patch 1/6 along with next revision of ti81xx
+> > > > hwmod baseport patch from Hemant so that all hwmod data gets
+> > > > reviewed at one place.
+> > > >
+> > > > So now only rest 5 (2/6 to 6/6) patches needs to be queued for
+> usb.
+> > > >
+> > > > I hope this will be fine with you. Let me know if you want me to
+> > > > post Same 5 patches separately.
+> > >
+> > > I guess it's better to queue them separately. I will only take
+> > > whatever lies in drivers/usb/musb
+> >
+> > Ok fine so usb hwmod patch will come from Hemant in his hwmod baseport
+> > Series. I will resubmit the one patch fixing your comment.
+> 
+> ok cool, tks.
+> 
+> For you platform_data stuff (if you have any), you can add a header to
+> include/linux/platform_data/musb-dsps.h
 
-On Mon, Oct 10, 2011 at 08:15:29PM -0400, Alan Stern wrote:
-> > > > > In fact we do already have sibling lists.  They are maintained as=
- part=20
-> > > > > of the device_private structure.  What we are missing is a=20
-> > > > > device_for_each_sibling() routine.  It could be added pretty easi=
-ly; it=20
-> > > > > would be similar to device_for_each_child().
-> > > >=20
-> > > > care to point out where is ?
-> > > >=20
-> > > > 68 struct device_private {
-> > > > 69         struct klist klist_children;
-> > > > 70         struct klist_node knode_parent;
-> > > -------------^  Here.  The "parent" in the name refers to where the
-> > >                 head of the list is stored.
-> > >=20
-> > > > 71         struct klist_node knode_driver;
-> > > > 72         struct klist_node knode_bus;
-> > > > 73         void *driver_data;
-> > > > 74         struct device *device;
-> > > > 75 };
-> > >=20
-> > > From device_add():
-> > >=20
-> > > 	if (parent)
-> > > 		klist_add_tail(&dev->p->knode_parent,
-> > > 			       &parent->p->klist_children);
-> >=20
-> > that's a parent -> child relationship. What we have on this case is:
-> >=20
-> >  --------------                ---------------
-> > |              |              |               |          |\
-> > |   UHH        |  clocks, etc |    USBTLL     |          | |
-> > |              | <=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D> |               | <=
-=3D=3D=3D=3D=3D=3D> | | <=3D=3D=3D=3D> ports
-> > |     -------  |              | (Transceiver- |          | |
-> > |    |  EHCI | |              | less Link)    |          |/
-> > |     -------  |              |               |         Port MUX
-> > |              |              |               |
-> > |     -------  |              |               |
-> > |    |  OHCI | |              |               |
-> > |     -------  |              |               |
-> > |              |              |               |
-> >  --------------                ---------------
-> >=20
-> > It doesn't shown here, but the TLL link is completely optional. It's
-> > mainly used for modem integration, IIRC. Still, if we're using TLL, EHCI
-> > and OHCI will depend on a clock provided by the USBTLL block.
-> >=20
-> > Clearly, USBTLL isn't either a parent of UHH, nor a parent of EHCI/OHCI
-> > blocks. We can, from a code perspective, make USBTLL into a parent of
-> > UHH to make things simpler, but this will mean that calling
-> > pm_runtime_get() will also unconditionaly turn on TLL clock, unless we
-> > add some nasty hacks to allow TLL know if *HCI port is in TLL mode.
-> >=20
-> > That's why I decided for making TLL and UHH siblings, because that's a
-> > closer relationship than parent-child.
-> >=20
-> > Can you see the problem now ?
->=20
-> Okay, now I understand better.  The word "sibling" implies that the two=
-=20
-> objects have the same parent, so a different word would describe this=20
-> relationship better.  Something like "friend" or "associate".
->=20
-> Or maybe, following Paul's suggestion, the driver core doesn't have to=20
-> be changed at all.
+I need to access "struct omap_musb_board_data" and so would add
+"#include <plat/usb.h>" in new file drivers/usb/musb/musb_dsps.h.
 
-I see... I just thought that if there are other similar cases, it might
-make sense to have a more generic way to make those two devices talk to
-each other. But if you all agree that an EXPORT_SYMBOL_GPL() is enough,
-then it's ok ;-)
+Any comment ?
 
-thanks
+Ajay
+> 
+> Or something similar.
 
---=20
-balbi
-
---aT9PWwzfKXlsBJM1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOk/rAAAoJEIaOsuA1yqRE/tAP/j274m5gGNEOrPkLy63yyHrY
-YkPTmAaUtsKzMMIuEKFxLDPKXL6O9UEexx4tsLa3d9YtwHNDNsuO+swQsD6QIbxz
-UM0IC9YkGU5aidrDO61JZQv1a8pp93+Uw9CBm78dIDON6Vkn8NLflymCw6O1a3Sy
-XxUeFkYeSAQuSRB/BNLLOhJqfJwIIhRqJy24Iddrw1OGXlD862VLP+iCIvigMAk1
-Bn8qJXGyCfxLPs+EqDLbAZLQUhjaCqii1V16h5OYCU94oa2rxjEg1tQFFxzAior3
-EczdPrYeSU1ZwVdW4Ls5gvMxwb9zM8e1AImnKoc7iYAUIb/qkD3TEegKurHsWc8f
-lQsPTplsLFYKXwhz3Pz8EdzrAofZ66JLI+0LvHTL6SWRhAqsH6G6C35S675ZUMwk
-NUB7fpLS+xbh4m0yia3UmMi3VmtNcfIfiEfWvhsJJjSHryyDlvDahslX0YIaaQG4
-BWMCB7LAaR019a9O9t7+XDk2Xzk38L89gTF6B1R4Qht0lqpYJdrvhKJp2Qz75OIg
-8FXeHsXOhXAkR+JnPmzEt52jksBOuYLA46ZQxKL22WgB3GMhP0Gf8aLVwvyOpOx1
-nIG4jzP8ffVVxUBJ3UDtjNkVkYPjgWGjHX/NkXjd+5DGSdaPDwxrVq8yewD3BepF
-2Dc0X5o/py1YxEI5ZCWE
-=NKjo
------END PGP SIGNATURE-----
-
---aT9PWwzfKXlsBJM1--
+> 
+> --
+> balbi
