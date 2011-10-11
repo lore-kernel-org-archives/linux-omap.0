@@ -1,7 +1,7 @@
 From: Keshava Munegowda <keshava_mgowda@ti.com>
-Subject: [PATCH v13 v14] mfd: omap: usb: Runtime PM support
-Date: Tue, 11 Oct 2011 13:22:40 +0530
-Message-ID: <1318319560-20500-1-git-send-email-keshava_mgowda@ti.com>
+Subject: [PATCH v14] mfd: omap: usb: Runtime PM support
+Date: Tue, 11 Oct 2011 13:23:29 +0530
+Message-ID: <1318319609-20522-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
