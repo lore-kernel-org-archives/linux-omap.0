@@ -1,52 +1,103 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 15/16] OMAP2+: UART: Enable back uart clocks with runtime API for early console
-Date: Tue, 11 Oct 2011 14:06:16 -0700
-Message-ID: <87pqi3z19z.fsf@ti.com>
-References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
-	<1317380561-661-6-git-send-email-govindraj.raja@ti.com>
+From: Andres Salomon <dilinger@queued.net>
+Subject: Re: [PATCH 1/7] ARM: Add __arm_ioremap_exec for mapping external
+	memory as MT_MEMORY
+Date: Tue, 11 Oct 2011 13:40:48 -0700
+Message-ID: <20111011134048.28b9b19b@queued.net>
+References: <20111007194242.18205.64009.stgit@kaulin.local>
+	<20111007194543.18205.36115.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:36558 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751188Ab1JKVGX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Oct 2011 17:06:23 -0400
-In-Reply-To: <1317380561-661-6-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 30 Sep 2011 16:32:40 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20111007194543.18205.36115.stgit@kaulin.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On Fri, 07 Oct 2011 12:45:43 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-> For the early console probing we had avoided hwmod reset and idling
-> and uart was idled using hwmod API and enabled back using omap_device API
-> after omap_device registration.
->
-> Now since we are using runtime API's to enable back uart, move hwmod
-> idling and use runtime API to enable back UART.
->
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> This allows mapping external memory such as SRAM for use.
+> 
+> This is needed for some small chunks of code, such as reprogramming
+> SDRAM memory source clocks that can't be executed in SDRAM. Other
+> use cases include some PM related code.
 
-Now that the driver is using runtime PM.  Why do we still need
-HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET?
 
-The comment in the code says:
+Acked-by: Andres Salomon <dilinger@queued.net>
 
-		/*
-		 * During UART early init, device need to be probed
-		 * to determine SoC specific init before omap_device
-		 * is ready.  Therefore, don't allow idle here
-		 */
+Looks good to me, thanks for doing this.  I only have one very minor
+quibble below, which could be addressed in a later patch..
 
-This was true when using the 8250 driver because it was not using
-runtime PM so could not know how to (re)enable the device.
+> 
+> Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/include/asm/io.h |    1 +
+>  arch/arm/mm/ioremap.c     |   21 +++++++++++++++++++++
+>  2 files changed, 22 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
+> index d66605d..4ff152e 100644
+> --- a/arch/arm/include/asm/io.h
+> +++ b/arch/arm/include/asm/io.h
+> @@ -80,6 +80,7 @@ extern void __iomem *__arm_ioremap_caller(unsigned
+> long, size_t, unsigned int, 
+>  extern void __iomem *__arm_ioremap_pfn(unsigned long, unsigned long,
+> size_t, unsigned int); extern void __iomem *__arm_ioremap(unsigned
+> long, size_t, unsigned int); +extern void __iomem
+> *__arm_ioremap_exec(unsigned long, size_t, int cached); extern void
+> __iounmap(volatile void __iomem *addr); 
+>  /*
+> diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
+> index ab50627..a2d94ac 100644
+> --- a/arch/arm/mm/ioremap.c
+> +++ b/arch/arm/mm/ioremap.c
+> @@ -289,6 +289,27 @@ __arm_ioremap(unsigned long phys_addr, size_t
+> size, unsigned int mtype) }
+>  EXPORT_SYMBOL(__arm_ioremap);
+>  
+> +/*
+> + * Remap an arbitrary physical address space into the kernel virtual
+> + * address space as memory. Needed when the kernel wants to execute
+> + * code in external memory. This is needed for reprogramming source
+> + * clocks that would affect normal memory for example. Please see
+> + * CONFIG_GENERIC_ALLOCATOR for allocating external memory.
+> + */
+> +void __iomem *
+> +__arm_ioremap_exec(unsigned long phys_addr, size_t size, int cached)
 
-However, since the driver is now runtime PM adapted, any device access
-should be contained within a runtime PM get/put block, so there should
-no longer be a reason not allow the IP blocks to be reset during boot.
+I'd rather see this as 'bool cached', so it's clear we're talking
+about a simple boolean (rather than bits).
 
-Kevin
 
+> +{
+> +	unsigned int mtype;
+> +
+> +	if (cached)
+> +		mtype = MT_MEMORY;
+> +	else
+> +		mtype = MT_MEMORY_NONCACHED;
+> +
+> +	return __arm_ioremap_caller(phys_addr, size, mtype,
+> +			__builtin_return_address(0));
+> +}
+> +
+>  void __iounmap(volatile void __iomem *io_addr)
+>  {
+>  	void *addr = (void *)(PAGE_MASK & (unsigned long)io_addr);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
