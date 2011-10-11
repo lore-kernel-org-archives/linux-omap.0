@@ -1,370 +1,168 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 2/5 v14] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Tue, 11 Oct 2011 13:25:06 +0530
-Message-ID: <CAP05o4LScPwbvo01pqg-5LOLc52shNdGWhs9xX8BRaq+OsAe-g@mail.gmail.com>
-References: <1318319470-20409-1-git-send-email-keshava_mgowda@ti.com>
+From: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Subject: RE: [PATCH v5 2/3] omap_twl: Prevent SR to enable for am3517/am3505
+ devices
+Date: Tue, 11 Oct 2011 13:29:01 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087037AF843F8@dbde02.ent.ti.com>
+References: <1317363153-10259-1-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-2-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-3-git-send-email-abhilash.kv@ti.com>
+	<87r52xhhkb.fsf@ti.com>,<874nztfw6w.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1318319470-20409-1-git-send-email-keshava_mgowda@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
-Cc: Keshava Munegowda <keshava_mgowda@ti.com>, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39830 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752010Ab1JKH7V convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2011 03:59:21 -0400
+In-Reply-To: <874nztfw6w.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson, Benoit" <b-cousson@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "V, Aneesh" <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "christian.gmeiner@gmail.com" <christian.gmeiner@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Tue, Oct 11, 2011 at 1:21 PM, Keshava Munegowda
-<keshava_mgowda@ti.com> wrote:
-> Following 2 hwmod structures are added
-> =A0 =A01. usb_host_hs
-> =A0 =A0 =A0 =A0 The hwmod of usbhs with uhh, ehci and ohci base addre=
-sses
-> =A0 =A0 =A0 =A0 functional clock and ehci, ohci irqs
+hi Kevin,
+Apologies for the delayed response, I was on vacation.
+
+On October 01, 2011 4:57 AM, Hilman, Kevin wrote:
 >
-> =A0 =A02. usb_tll_hs
-> =A0 =A0 =A0 =A0 =A0hwmod of usbhs with the TLL base address and irq.
+> Abhilash,
 >
-> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> Reviewed-by: Partha Basak <parthab@india.ti.com>
+> Kevin Hilman <khilman@ti.com> writes:
+>
+>> Abhilash K V <abhilash.kv@ti.com> writes:
+>>
+>>> From: Abhilash K V <abhilash.kv@ti.com>
+>>>
+>>> In case of AM3517 & AM3505, SmartReflex is not applicable so
+>>> we must not enable it. So omap3_twl_init() is now not called
+>>> when the processor does not support SR.
+>>
+>> This still isn't right.
+>>
+>> The reason to skip the TWL PMIC init is not because SR is not available
+>> (TWL PMICs are quite usable without SR).  The reason to skip TWL PMIC
+>> init is because the PMIC is not present.
+[Abhilash K V] yes, I understand now.
+>>
+>> Instead, we need to fix up the TWL/PMIC init so that TWL-specifics are
+>> only registered if a TWL driver is registered.
+>>
+>
+> Below is a test patch that is a first pass at implementing what I
+> suggested above.  I tested this (along with your patch 3/3) on a
+> 3430/n900 after removing the omap_pmic_init() call frome the board file.
+[Abhilash K V] I'll re-submit the patch with this change (i,e. if you've not already
+pulled it into your branch).
+>
+> Can you let me know if this solves the problem you're seeing on
+> platforms that don't have TWL PMICs?
+[Abhilash K V] It should, I have validated on  am3517_evm
+>
+> After digging into this more, I'm increasingly aware that the way we're
+> managing the init of PMIC stuff is a mess.  Guess I need another round
+> of voltage layer cleanups to fix that up.
+[Abhilash K V] True, and to add to this, the changes required to support only 
+ONE voltage-domain for am35xx would be too many, I believe.
+>
+>
+> Kevin
+>
+> From 1cd49077829a262155b96f8fdcdcdd6c54d83ed5 Mon Sep 17 00:00:00 2001
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Fri, 30 Sep 2011 11:24:04 -0700
+> Subject: [PATCH] ARM: OMAP2+: PM: only register TWL with voltage layer when
+>  device is present
+>
+> Current code registers voltage layer details for TWL PMIC even when a TWL
+> has not been registered.  Fix this to only register the TWL with voltage
+> layer when the TWL PMIC is initialized by board-level code.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 > ---
-> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0230 ++++++++++++++=
-++++++++++++++
-> =A01 files changed, 230 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm.c         |    6 ++----
+>  arch/arm/mach-omap2/twl-common.c |   11 +++++++++++
+>  arch/arm/mach-omap2/twl-common.h |    3 +++
+>  3 files changed, 16 insertions(+), 4 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/ma=
-ch-omap2/omap_hwmod_3xxx_data.c
-> index 59fdb9f..c06b4a4 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -84,6 +84,8 @@ static struct omap_hwmod omap3xxx_mcbsp4_hwmod;
-> =A0static struct omap_hwmod omap3xxx_mcbsp5_hwmod;
-> =A0static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
-> =A0static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
-> +static struct omap_hwmod omap34xx_usb_host_hs_hwmod;
-> +static struct omap_hwmod omap34xx_usb_tll_hs_hwmod;
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index d34fc52..602fc66 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -23,6 +23,7 @@
+>  #include "powerdomain.h"
+>  #include "clockdomain.h"
+>  #include "pm.h"
+> +#include "twl-common.h"
 >
-> =A0/* L3 -> L4_CORE interface */
-> =A0static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core =3D {
-> @@ -3196,6 +3198,229 @@ static struct omap_hwmod omap3xxx_mmc3_hwmod =
-=3D {
-> =A0 =A0 =A0 =A0.omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP3=
-430),
-> =A0};
+>  static struct omap_device_pm_latency *pm_lats;
 >
-> +/*
-> + * 'usb_host_hs' class
-> + * high-speed multi-port usb host controller
-> + */
-> +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__l3_main_2 =3D =
-{
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap34xx_usb_host_hs_hwmod=
-,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_l3_main_hwmod,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "core_l3_ick",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> +};
+> @@ -251,11 +252,8 @@ postcore_initcall(omap2_common_pm_init);
+>
+>  static int __init omap2_common_pm_late_init(void)
+>  {
+> -       /* Init the OMAP TWL parameters */
+> -       omap3_twl_init();
+> -       omap4_twl_init();
+> -
+>        /* Init the voltage layer */
+> +       omap_pmic_late_init();
+>        omap_voltage_late_init();
+>
+>        /* Initialize the voltages */
+> diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+> index daa056e..47133fa 100644
+> --- a/arch/arm/mach-omap2/twl-common.c
+> +++ b/arch/arm/mach-omap2/twl-common.c
+> @@ -30,6 +30,7 @@
+>  #include <plat/usb.h>
+>
+>  #include "twl-common.h"
+> +#include "pm.h"
+>
+>  static struct i2c_board_info __initdata pmic_i2c_board_info = {
+>        .addr           = 0x48,
+> @@ -48,6 +49,16 @@ void __init omap_pmic_init(int bus, u32 clkrate,
+>        omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
+>  }
+>
+> +void __init omap_pmic_late_init(void)
+> +{
+> +       /* Init the OMAP TWL parameters (if PMIC has been registerd) */
+> +       if (!pmic_i2c_board_info.irq)
+> +               return;
 > +
-> +static struct omap_hwmod_class_sysconfig omap34xx_usb_host_hs_sysc =3D=
- {
-> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
-> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
-> + =A0 =A0 =A0 .syss_offs =A0 =A0 =A0=3D 0x0014,
-> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_=
-CLOCKACTIVITY |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0SYSC_HAS_SIDLEMO=
-DE | SYSC_HAS_ENAWAKEUP |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0SYSC_HAS_SOFTRES=
-ET | SYSC_HAS_AUTOIDLE),
-> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SID=
-LE_SMART |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MSTANDBY_FORCE |=
- MSTANDBY_NO | MSTANDBY_SMART),
-> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type1,
-> +};
+> +       omap3_twl_init();
+> +       omap4_twl_init();
+> +}
 > +
-> +static struct omap_hwmod_class omap34xx_usb_host_hs_hwmod_class =3D =
-{
-> + =A0 =A0 =A0 .name =3D "usb_host_hs",
-> + =A0 =A0 =A0 .sysc =3D &omap34xx_usb_host_hs_sysc,
-> +};
+>  #if defined(CONFIG_ARCH_OMAP3)
+>  static struct twl4030_usb_data omap3_usb_pdata = {
+>        .usb_mode       = T2_USB_MODE_ULPI,
+> diff --git a/arch/arm/mach-omap2/twl-common.h b/arch/arm/mach-omap2/twl-common.h
+> index 5e83a5b..275dde8 100644
+> --- a/arch/arm/mach-omap2/twl-common.h
+> +++ b/arch/arm/mach-omap2/twl-common.h
+> @@ -1,6 +1,8 @@
+>  #ifndef __OMAP_PMIC_COMMON__
+>  #define __OMAP_PMIC_COMMON__
+>
+> +#include <plat/irqs.h>
 > +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_masters[] =3D =
-{
-> + =A0 =A0 =A0 &omap34xx_usb_host_hs__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap34xx_usb_host_hs_addrs[] =3D=
- {
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "uhh",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480643ff,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "ohci",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064400,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x480647ff,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "ehci",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48064800,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x48064cff,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {}
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_usb_host_hs__ick =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_hwm=
-od,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbhost_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_addr=
-s,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
-DMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_host_hs_slaves[] =3D {
-> + =A0 =A0 =A0 &omap34xx_usb_host_hs__ick,
-> +};
-> +
-> +static struct omap_hwmod_opt_clk omap34xx_usb_host_hs_opt_clks[] =3D=
- {
-> + =A0 =A0 =A0 =A0 { .role =3D "ehci_logic_fck", .clk =3D "usbhost_120=
-m_fck", },
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap34xx_usb_host_hs_irqs[] =3D {
-> + =A0 =A0 =A0 { .name =3D "ohci-irq", .irq =3D 76 },
-> + =A0 =A0 =A0 { .name =3D "ehci-irq", .irq =3D 77 },
-> + =A0 =A0 =A0 { .irq =3D -1 }
-> +};
-> +
-> +static struct omap_hwmod omap34xx_usb_host_hs_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usb_host_hs",
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_host_hs_hwm=
-od_class,
-> + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "l3_init_clkdm",
-> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap34xx_usb_host_hs_irqs,
-> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbhost_48m_fck",
-> + =A0 =A0 =A0 .prcm =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D OMAP34=
-30ES2_USBHOST_MOD,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP343=
-0ES2_EN_USBHOST1_SHIFT,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 1,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D OM=
-AP3430ES2_ST_USBHOST_IDLE_SHIFT,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_stdby_bit =3D O=
-MAP3430ES2_ST_USBHOST_STDBY_SHIFT,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .opt_clks =A0 =A0 =A0 =3D omap34xx_usb_host_hs_opt_clks=
-,
-> + =A0 =A0 =A0 .opt_clks_cnt =A0 =3D ARRAY_SIZE(omap34xx_usb_host_hs_o=
-pt_clks),
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap34xx_usb_host_hs_slaves=
-,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap34xx_usb_host_hs=
-_slaves),
-> + =A0 =A0 =A0 .masters =A0 =A0 =A0 =A0=3D omap34xx_usb_host_hs_master=
-s,
-> + =A0 =A0 =A0 .masters_cnt =A0 =A0=3D ARRAY_SIZE(omap34xx_usb_host_hs=
-_masters),
-> +
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Errata: USBHOST Configured In Smart-Idle Can Lead =
-To a Deadlock
-> + =A0 =A0 =A0 =A0* id: i660
-> + =A0 =A0 =A0 =A0*
-> + =A0 =A0 =A0 =A0* Description:
-> + =A0 =A0 =A0 =A0* In the following configuration :
-> + =A0 =A0 =A0 =A0* - USBHOST module is set to smart-idle mode
-> + =A0 =A0 =A0 =A0* - PRCM asserts idle_req to the USBHOST module ( Th=
-is typically
-> + =A0 =A0 =A0 =A0* =A0 happens when the system is going to a low powe=
-r mode : all ports
-> + =A0 =A0 =A0 =A0* =A0 have been suspended, the master part of the US=
-BHOST module has
-> + =A0 =A0 =A0 =A0* =A0 entered the standby state, and SW has cut the =
-functional clocks)
-> + =A0 =A0 =A0 =A0* - an USBHOST interrupt occurs before the module is=
- able to answer
-> + =A0 =A0 =A0 =A0* =A0 idle_ack, typically a remote wakeup IRQ.
-> + =A0 =A0 =A0 =A0* Then the USB HOST module will enter a deadlock sit=
-uation where it
-> + =A0 =A0 =A0 =A0* is no more accessible nor functional.
-> + =A0 =A0 =A0 =A0*
-> + =A0 =A0 =A0 =A0* Workaround:
-> + =A0 =A0 =A0 =A0* Don't use smart idle; use only force idle, hence H=
-WMOD_SWSUP_SIDLE
-> + =A0 =A0 =A0 =A0*/
-> +
-> + =A0 =A0 =A0 /* Errata: USB host EHCI may stall when entering smart-=
-standby mode
-> + =A0 =A0 =A0 =A0* Id: i571
-> + =A0 =A0 =A0 =A0*
-> + =A0 =A0 =A0 =A0* Description:
-> + =A0 =A0 =A0 =A0* When the USBHOST module is set to smart-standby mo=
-de, and when it is
-> + =A0 =A0 =A0 =A0* ready to enter the standby state (i.e. all ports a=
-re suspended and
-> + =A0 =A0 =A0 =A0* all attached devices are in suspend mode), then it=
- can wrongly assert
-> + =A0 =A0 =A0 =A0* the Mstandby signal too early while there are stil=
-l some residual OCP
-> + =A0 =A0 =A0 =A0* transactions ongoing. If this condition occurs, th=
-e internal state
-> + =A0 =A0 =A0 =A0* machine may go to an undefined state and the USB l=
-ink may be stuck
-> + =A0 =A0 =A0 =A0* upon the next resume.
-> + =A0 =A0 =A0 =A0*
-> + =A0 =A0 =A0 =A0* Workaround:
-> + =A0 =A0 =A0 =A0* Don't use smart standby; use only force standby,
-> + =A0 =A0 =A0 =A0* hence HWMOD_SWSUP_MSTANDBY
-> + =A0 =A0 =A0 =A0*/
-> +
-> + =A0 =A0 =A0 /* During system boot; If the hwmod framework resets th=
-e module
-> + =A0 =A0 =A0 =A0* the module will have smart idle settings; which ca=
-n lead to deadlock
-> + =A0 =A0 =A0 =A0* (above Errata Id:i660); so, dont reset the module =
-during boot;
-> + =A0 =A0 =A0 =A0* Use HWMOD_INIT_NO_RESET.
-> + =A0 =A0 =A0 =A0*/
-> +
-> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_SWSUP_SIDLE | HWMOD=
-_SWSUP_MSTANDBY |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 HWMOD_INIT_NO_RESET=
-,
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP34=
-30),
-> +};
-> +
-> +/*
-> + * 'usb_tll_hs' class
-> + * usb_tll_hs module is the adapter on the usb_host_hs ports
-> + */
-> +static struct omap_hwmod_class_sysconfig omap34xx_usb_tll_hs_sysc =3D=
- {
-> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
-> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
-> + =A0 =A0 =A0 .syss_offs =A0 =A0 =A0=3D 0x0014,
-> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_CLOCKACTIVITY | SYSC_=
-HAS_SIDLEMODE |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0SYSC_HAS_ENAWAKE=
-UP | SYSC_HAS_SOFTRESET |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0SYSC_HAS_AUTOIDL=
-E),
-> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SID=
-LE_SMART),
-> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type1,
-> +};
-> +
-> +static struct omap_hwmod_class omap34xx_usb_tll_hs_hwmod_class =3D {
-> + =A0 =A0 =A0 .name =3D "usb_tll_hs",
-> + =A0 =A0 =A0 .sysc =3D &omap34xx_usb_tll_hs_sysc,
-> +};
-> +
-> +static struct omap_hwmod_irq_info omap34xx_usb_tll_hs_irqs[] =3D {
-> + =A0 =A0 =A0 { .name =3D "tll-irq", .irq =3D 78 },
-> + =A0 =A0 =A0 { .irq =3D -1 }
-> +};
-> +
-> +static struct omap_hwmod_addr_space omap34xx_usb_tll_hs_addrs[] =3D =
-{
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "tll",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x48062000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x48062fff,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
-_RT
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {}
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_usb_tll_hs__l3_main_2 =3D {
-> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap34xx_usb_tll_hs_hwmod,
-> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_l3_main_hwmod,
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "core_l3_ick",
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_tll_hs_masters[] =3D {
-> + =A0 =A0 =A0 &omap34xx_usb_tll_hs__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if omap34xx_ick_cfg__usb_tll_hs =3D {
-> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "usbtll_ick",
-> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_addrs=
-,
-> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
-DMA,
-> +};
-> +
-> +static struct omap_hwmod_ocp_if *omap34xx_usb_tll_hs_slaves[] =3D {
-> + =A0 =A0 =A0 &omap34xx_ick_cfg__usb_tll_hs,
-> +};
-> +
-> +static struct omap_hwmod omap34xx_usb_tll_hs_hwmod =3D {
-> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "usb_tll_hs",
-> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap34xx_usb_tll_hs_hwmo=
-d_class,
-> + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "l3_init_clkdm",
-> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_irqs,
-> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "usbtll_fck",
-> + =A0 =A0 =A0 .prcm =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap2 =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_offs =3D CORE_M=
-OD,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .prcm_reg_id =3D 3,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .module_bit =3D OMAP343=
-0ES2_EN_USBTLL_SHIFT,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_reg_id =3D 3,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .idlest_idle_bit =3D OM=
-AP3430ES2_ST_USBTLL_SHIFT,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap34xx_usb_tll_hs_slaves,
-> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap34xx_usb_tll_hs_=
-slaves),
-> + =A0 =A0 =A0 .masters =A0 =A0 =A0 =A0=3D omap34xx_usb_tll_hs_masters=
-,
-> + =A0 =A0 =A0 .masters_cnt =A0 =A0=3D ARRAY_SIZE(omap34xx_usb_tll_hs_=
-masters),
-> + =A0 =A0 =A0 .omap_chip =A0 =A0 =A0=3D OMAP_CHIP_INIT(CHIP_IS_OMAP34=
-30),
-> +};
-> +
-> =A0static __initdata struct omap_hwmod *omap3xxx_hwmods[] =3D {
-> =A0 =A0 =A0 =A0&omap3xxx_l3_main_hwmod,
-> =A0 =A0 =A0 =A0&omap3xxx_l4_core_hwmod,
-> @@ -3225,6 +3450,11 @@ static __initdata struct omap_hwmod *omap3xxx_=
-hwmods[] =3D {
-> =A0 =A0 =A0 =A0&omap3xxx_uart2_hwmod,
-> =A0 =A0 =A0 =A0&omap3xxx_uart3_hwmod,
-> =A0 =A0 =A0 =A0&omap3xxx_uart4_hwmod,
-> +
-> + =A0 =A0 =A0 /* usb host class */
-> + =A0 =A0 =A0 &omap34xx_usb_host_hs_hwmod,
-> + =A0 =A0 =A0 &omap34xx_usb_tll_hs_hwmod,
-> +
-> =A0 =A0 =A0 =A0/* dss class */
-> =A0 =A0 =A0 =A0&omap3430es1_dss_core_hwmod,
-> =A0 =A0 =A0 =A0&omap3xxx_dss_core_hwmod,
+>  #define TWL_COMMON_PDATA_USB           (1 << 0)
+>  #define TWL_COMMON_PDATA_BCI           (1 << 1)
+>  #define TWL_COMMON_PDATA_MADC          (1 << 2)
+> @@ -30,6 +32,7 @@ struct twl4030_platform_data;
+>
+>  void omap_pmic_init(int bus, u32 clkrate, const char *pmic_type, int pmic_irq,
+>                    struct twl4030_platform_data *pmic_data);
+> +void omap_pmic_late_init(void);
+>
+>  static inline void omap2_pmic_init(const char *pmic_type,
+>                                   struct twl4030_platform_data *pmic_data)
 > --
-> 1.6.0.4
+> 1.7.6
+>
 >
 
-
-This is actually v14; Due to mail box errors; Version is not getting
-popped out properly from the patch.
-
-
-regards
-keshava
