@@ -1,134 +1,101 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 3/8] ti816evm: Add support for musb interface
-Date: Tue, 11 Oct 2011 22:37:14 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404ECCE5662@dbde02.ent.ti.com>
-References: <1318332369-9732-1-git-send-email-ajay.gupta@ti.com>
- <1318332369-9732-4-git-send-email-ajay.gupta@ti.com>
- <4E9431DB.3070600@compulab.co.il>
- <19F8576C6E063C45BE387C64729E739404ECCE5650@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v5 2/3] omap_twl: Prevent SR to enable for am3517/am3505
+	devices
+Date: Tue, 11 Oct 2011 10:40:28 -0700
+Message-ID: <87hb3f4eb7.fsf@ti.com>
+References: <1317363153-10259-1-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-2-git-send-email-abhilash.kv@ti.com>
+	<1317363153-10259-3-git-send-email-abhilash.kv@ti.com>
+	<87r52xhhkb.fsf@ti.com> <874nztfw6w.fsf@ti.com>
+	<FCCFB4CDC6E5564B9182F639FC356087037AF843F8@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41252 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755537Ab1JKRHa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Oct 2011 13:07:30 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404ECCE5650@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087037AF843F8@dbde02.ent.ti.com>
+	(Abhilash Koyamangalath's message of "Tue, 11 Oct 2011 13:29:01
+	+0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Cousson,
+	Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "christian.gmeiner@gmail.com" <christian.gmeiner@gmail.com>, "V,
+	Aneesh" <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "B, Ravi" <ravibabu@ti.com>, "Pedanekar, Hemant" <hemantp@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Hi,
-> > > Adding musb support in ti816 EVM board file.
-> > >
-> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > > Signed-off-by: Ravi Babu <ravibabu@ti.com>
-> > > Acked-by: Felipe Balbi <balbi@ti.com>
-> >
-> > This patch can result in a merge conflict, therefore I think
-> > this one should be taken through Tony's tree.
-> >
-> > Also you should work together with Hemant Pedanekar and
-> > someone of you should rebase on top of the other otherwise
-> > one of the patches (yours or Hemant's) possibly will not apply.
-> 
-> Ok sure. I will submit the patches (v5) after creating it on top of
-> Hemant's and Vaibhav's patches.
+"Koyamangalath, Abhilash" <abhilash.kv@ti.com> writes:
 
-Here is the v5 of this patch created against latest Hemant's patch set.
+> hi Kevin,
+> Apologies for the delayed response, I was on vacation.
+>
+> On October 01, 2011 4:57 AM, Hilman, Kevin wrote:
+>>
+>> Abhilash,
+>>
+>> Kevin Hilman <khilman@ti.com> writes:
+>>
+>>> Abhilash K V <abhilash.kv@ti.com> writes:
+>>>
+>>>> From: Abhilash K V <abhilash.kv@ti.com>
+>>>>
+>>>> In case of AM3517 & AM3505, SmartReflex is not applicable so
+>>>> we must not enable it. So omap3_twl_init() is now not called
+>>>> when the processor does not support SR.
+>>>
+>>> This still isn't right.
+>>>
+>>> The reason to skip the TWL PMIC init is not because SR is not available
+>>> (TWL PMICs are quite usable without SR).  The reason to skip TWL PMIC
+>>> init is because the PMIC is not present.
+> [Abhilash K V] yes, I understand now.
+>>>
+>>> Instead, we need to fix up the TWL/PMIC init so that TWL-specifics are
+>>> only registered if a TWL driver is registered.
+>>>
+>>
+>> Below is a test patch that is a first pass at implementing what I
+>> suggested above.  I tested this (along with your patch 3/3) on a
+>> 3430/n900 after removing the omap_pmic_init() call frome the board file.
+> [Abhilash K V] I'll re-submit the patch with this change (i,e. if you've not already
+> pulled it into your branch).
 
---------------------------------------------------------
->From 3006845992157acc4a2b44d0be119e22bb34d1f4 Mon Sep 17 00:00:00 2001
-From: Ravi Babu <ravibabu@ti.com>
-Date: Wed, 17 Aug 2011 17:58:02 +0530
-Subject: [PATCH 3/8 v5] ti816evm: Add support for musb interface
+I haven't posted/merged this yet, but I will now that you've tested it.
 
-Adding musb support in ti816 EVM board file.
+Thanks.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Ravi Babu <ravibabu@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/board-ti8168evm.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+>>
+>> Can you let me know if this solves the problem you're seeing on
+>> platforms that don't have TWL PMICs?
+> [Abhilash K V] It should, I have validated on  am3517_evm
 
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-index b858921..cab909f 100644
---- a/arch/arm/mach-omap2/board-ti8168evm.c
-+++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -23,6 +23,14 @@
- #include <plat/irqs.h>
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <plat/usb.h>
-+
-+static struct omap_musb_board_data musb_board_data = {
-+       .set_phy_power  = ti81xx_musb_phy_power,
-+       .interface_type = MUSB_INTERFACE_ULPI,
-+       .mode           = MUSB_OTG,
-+       .power          = 500,
-+};
+Thanks, will add a Tested-by from you.
 
- static struct omap_board_config_kernel ti81xx_evm_config[] __initdata = {
- };
-@@ -33,6 +41,7 @@ static void __init ti81xx_evm_init(void)
-        omap_sdrc_init(NULL, NULL);
-        omap_board_config = ti81xx_evm_config;
-        omap_board_config_size = ARRAY_SIZE(ti81xx_evm_config);
-+       usb_musb_init(&musb_board_data);
- }
+>> After digging into this more, I'm increasingly aware that the way we're
+>> managing the init of PMIC stuff is a mess.  Guess I need another round
+>> of voltage layer cleanups to fix that up.
+> [Abhilash K V] True, and to add to this, the changes required to support only 
+> ONE voltage-domain for am35xx would be too many, I believe.
 
- MACHINE_START(TI8168EVM, "ti8168evm")
---
-1.6.2.4
---------------------------------------------------------
+I don't see that part to be an obstacle.
 
-> 
-> Thanks,
-> Ajay
-> >
-> > > ---
-> > >  arch/arm/mach-omap2/board-ti8168evm.c |    9 +++++++++
-> > >  1 files changed, 9 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-
-> > omap2/board-ti8168evm.c
-> > > index 2c243df..1f3d423 100644
-> > > --- a/arch/arm/mach-omap2/board-ti8168evm.c
-> > > +++ b/arch/arm/mach-omap2/board-ti8168evm.c
-> > > @@ -23,6 +23,14 @@
-> > >  #include <plat/irqs.h>
-> > >  #include <plat/board.h>
-> > >  #include <plat/common.h>
-> > > +#include <plat/usb.h>
-> > > +
-> > > +static struct omap_musb_board_data musb_board_data = {
-> > > +	.set_phy_power	= ti81xx_musb_phy_power,
-> > > +	.interface_type	= MUSB_INTERFACE_ULPI,
-> > > +	.mode           = MUSB_OTG,
-> > > +	.power		= 500,
-> > > +};
-> > >
-> > >  static struct omap_board_config_kernel ti8168_evm_config[]
-> __initdata
-> > = {
-> > >  };
-> > > @@ -33,6 +41,7 @@ static void __init ti8168_evm_init(void)
-> > >  	omap_sdrc_init(NULL, NULL);
-> > >  	omap_board_config = ti8168_evm_config;
-> > >  	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-> > > +	usb_musb_init(&musb_board_data);
-> > >  }
-> > >
-> > >  static void __init ti8168_evm_map_io(void)
-> >
-> > --
-> > Regards,
-> > Igor.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Let's just be sure to use the clock, clockdomain, powerdomain &
+voltagedomain data files to describe the hardware.  That is the only
+scalable and maintainable way to support these devices.
+
+Any core code changes to fix assumption's we've made that are now wrong
+need to be raised and addressed.
+
+Stated differently, we know we have assumptions in the PM core code that
+may now be mistaken in light of these new AM3xxx devices.  Rather than
+try to trick the core PM code into thinking these devices are "normal"
+OMAP3/4 devices, let's fix those assumptions so we can properly support
+the new devices.
+
+Kevin
