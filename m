@@ -1,50 +1,60 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 05/16] OMAP2+: UART: Cleanup part of clock gating
- mechanism for uart
-Date: Tue, 11 Oct 2011 12:15:36 +0530
-Message-ID: <CAAL8m4ygQfZZ-FX_o+AyVWrQNghyHCsp0vdiCV_QHGxXFXzDKg@mail.gmail.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
- <1317380495-584-5-git-send-email-govindraj.raja@ti.com> <87ty7gfpik.fsf@ti.com>
+From: "Pihet-XID, Jean" <j-pihet@ti.com>
+Subject: Re: [PATCH 8/8] OMAP3: powerdomain data: add wake-up latency figures
+Date: Tue, 11 Oct 2011 08:50:59 +0200
+Message-ID: <CAN5iSWrqSw0_x=iq2jR5qHQ4wnsOVR-B4PG2Jc5jEauHdgENGw@mail.gmail.com>
+References: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
+	<1316622258-3892-1-git-send-email-j-pihet@ti.com>
+	<1316622258-3892-9-git-send-email-j-pihet@ti.com>
+	<alpine.DEB.2.00.1110062215270.4611@utopia.booyaka.com>
+	<CAORVsuX2PUubPzO3mWTaO0Lg6Mdog8wjDY6hm93qheMwoz27CA@mail.gmail.com>
+	<alpine.DEB.2.00.1110101636470.5205@utopia.booyaka.com>
+	<alpine.DEB.2.00.1110101652290.5205@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87ty7gfpik.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:39565 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750702Ab1JKGvB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 11 Oct 2011 02:51:01 -0400
+Received: by ywa8 with SMTP id 8so6267359ywa.15
+        for <linux-omap@vger.kernel.org>; Mon, 10 Oct 2011 23:50:59 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1110101652290.5205@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>
 
-On Tue, Oct 11, 2011 at 4:00 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> Currently we use a shared irq handler to identify uart activity and then
->> trigger a timer.
->
-> OK.
->
->> Based the timeout value set from sysfs the timer used to expire.
->
-> Please re-phrase as I'm not sure what is being said here.
->
->> If no uart-activity was detected timer-expiry func sets can_sleep
->> flag. Based on this we will disable the uart clocks in idle path.
->>
->> Since the clock gating mechanism is outside the uart driver, we currently
->> use this mechanism. In preparation to runtime implementation for omap-serial
->> driver we can cleanup this mechanism and use runtime API's to gate uart clocks.
->>
->> Also remove timer related info from local uart_state struct and remove
->> the code used to set timeout value from sysfs. Remove un-used function
->> omap_uart_check_wakeup.
->>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->
-> The patch itself fine, and is a well-neede cleanup, but changelog
-> (especially the first part) does not read well.
->
+Hi Paul,
 
-Okay, Will Correct.
+On Tue, Oct 11, 2011 at 12:52 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Mon, 10 Oct 2011, Paul Walmsley wrote:
+>
+>> OK. =A0sys_offmode only applies to OFF mode. =A0Voltage scaling can =
+also occur
+>> during RETENTION and INACTIVE ("sleep"). =A0So were these results wi=
+th
+>> retention and voltage scaling disabled?
+>
+> This last sentence should have read:
+>
+> So were these results with retention and sleep voltage scaling disabl=
+ed?
+In that case, yes. The scaling timings are only applicable to OFF mode.
 
+I think we need to have a bench setup for the latency measurements.
+That way I will be easier to repeat the measurements for next
+generation chips and variations.
+
+Regards,
+Jean
+
+>
+> - Paul
+>
 --
-Thanks.
-Govindraj.R
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
