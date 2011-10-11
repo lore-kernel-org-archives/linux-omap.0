@@ -1,36 +1,45 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 08/16] OMAP2+: UART: Store certain reg values to port structure
-Date: Tue, 11 Oct 2011 18:51:20 +0530
-Message-ID: <CAAL8m4wHYULvpjgJpM0gvhV_rcmBAz_=P5tUU+-DZ0=6i+jYoA@mail.gmail.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
- <1317380495-584-8-git-send-email-govindraj.raja@ti.com> <8739f0bdqh.fsf@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] ARM: omap2+: stub out omap*_volt_data
+Date: Tue, 11 Oct 2011 15:57:41 +0200
+Message-ID: <201110111557.41396.arnd@arndb.de>
+References: <1397689.kebELtC4N3@wuerfel> <87ipnwhepq.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <8739f0bdqh.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87ipnwhepq.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 11, 2011 at 5:28 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> In preparation to runtime conversion add missing uart regs to
->> port structure which can be used in context restore.
->> Also ensuring all uart reg info's are part of port structure.
->>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->
-> IMO, this should come later in the series to avoid adding bunch of code
-> that gets moved in a subsequent patch.
->
-> First, convert to runtime PM (current patch 9/16)
-> Then, add a patch to move context save/restore into driver.
-> Then, add this patch.
+On Monday 10 October 2011, Kevin Hilman wrote:
+> > I got this build error only now after pulling in the latest omap series, but
+> > I cannot tell what caused it. It's also not clear to me if this is the correct
+> > solution. Please ack or provide a better fix.
+> 
+> This code was merged for v2.6.39, so not sure why this error is only
+> showing up for you now.  I just tried a !CONFIG_PM_OPP build on v2.6.39
+> and get the same errors, so it's been lingering.
+> 
+> Maybe you haven't had a randconfig that disabled CONFIG_PM_OPP before?
 
-Okay fine.
+I don't know. The best explanation is that this is a very unlikely case.
+I've done many thousand randconfig builds now and have not seen it before.
 
---
+Of course, since the output of randconfig is random, it could indeed just
+be a coincidence.
+
+> Anyways, the fix is fine with me.
+
 Thanks,
-Govindraj.R
+
+	Arnd
