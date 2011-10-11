@@ -1,54 +1,111 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/5 v11] arm: omap: usb: ehci and ohci hwmod structures
  for omap4
-Date: Mon, 10 Oct 2011 19:18:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110101851570.5205@utopia.booyaka.com>
-References: <1317901099-2519-1-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1110070305040.4611@utopia.booyaka.com> <CAP05o4J39MotDTOv-O2ahvWfxL-7jC-L3FGsNXbmDy8HNg=W3g@mail.gmail.com> <alpine.DEB.2.00.1110070330220.4611@utopia.booyaka.com>
- <CAP05o4KLAnNHcvNbNWqJFN710JMNAy2emYzCt2xHF+m-Kvwveg@mail.gmail.com> <CAP05o4+ybhZwRaXZPgS-ZdTL_0gjz1VLf6LuUtMgm_txNPwrnw@mail.gmail.com> <alpine.DEB.2.00.1110101455590.5205@utopia.booyaka.com>
+Date: Mon, 10 Oct 2011 20:47:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110102021110.5205@utopia.booyaka.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221213500.10719@utopia.booyaka.com> <4E7B8C68.7020407@ti.com> <alpine.DEB.2.00.1109221524560.10719@utopia.booyaka.com>
+ <CACVXFVOVv_AeQv_834ca9FM2BK8Hd4jgggLDAGdhbeVyhiaycw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1110101455590.5205-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Munegowda, Keshava" <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-841624508-1318301240=:5205"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:49976 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751399Ab1JKCrV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Oct 2011 22:47:21 -0400
+In-Reply-To: <CACVXFVOVv_AeQv_834ca9FM2BK8Hd4jgggLDAGdhbeVyhiaycw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Munegowda, Keshava" <keshava_mgowda@ti.com>, "parthab@india.ti.com" <parthab@india.ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-Hi
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Mon, 10 Oct 2011, Paul Walmsley wrote:
+--155748971-841624508-1318301240=:5205
+Content-Type: TEXT/PLAIN; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> Basically, the existing OMAP USB subsystem MFD driver should create a TLL 
-> device.  Then the existing Linux driver probing system can associate the 
-> TLL driver with the TLL device.
+Hello Ming,
 
-This part isn't right.  After staring at the OMAP34xx TRM, it looks like 
-the TLL modules have a separate interconnect port.  See for example the 
-OMAP34xx TRM Rev. ZR Table 2-3 "L4-Core Memory Space Mapping".
+On Wed, 28 Sep 2011, Ming Lei wrote:
 
-So then the TLL device should be created by the code in 
-arch/arm/mach-omap2/usb-host.c, as one of Keshava's patches does.  And 
-indeed we have separate hwmods for the TLL IP blocks -- although both the 
-OMAP3 and OMAP4 hwmod data that was posted are missing important fields.
+> On Fri, Sep 23, 2011 at 7:31 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>=20
+> > The idea of the main_clk was not intended to be PRCM or OCP or even
+> > OMAP-specific. =A0It's just intended to represent a clock that is used =
+to
+> > drive the register logic inside the IP block. =A0Therefore it must be
+> > enabled before any register access may occur. =A0Even if clock gating i=
+s
+> > handled by some higher-level interface (e.g., at the IP block level), t=
+he
+> > main_clk has a rate, so it also implies an upper limit on how quickly
+> > register operations can occur. =A0I suppose that all of the IP block's
+> > clocks could be "optional clocks," but we know that every IP block with
+> > registers requires at least one clock to work, and that should be the
+> > main_clk.
+>=20
+> I am a bit confused about you comment on "main_clk".
+>=20
+> >From hwmod related source code, main_clk is the function clock
+> of one module(hwmod), such as: on omap4, for uart3, main_clk is
+> uart3_fck.
+>=20
+> But from[1] and [2] of omap4 PRM, we can find that interface clock
+> is required to provide register access instead of function clock.
 
-So drivers/omap-usb-host.c shouldn't create a new TLL device.  You just 
-need to pull all of the TLL code and data out of that MFD driver into a 
-new TLL driver under drivers/usb somewhere.
+As far as I know, the two cases that you cite are basically documentation=
+=20
+bugs in the TRM.  In my experience, for IP blocks on OMAPs, a functional=20
+clock has to be enabled in order for register accesses to succeed.  It's=20
+possible there may be a few odd IP blocks that behave differently, but I=20
+can't think of any off the top of my head.
 
-Then you'll need some way for the EHCI/OHCI code to figure out which 
-USBTLL device handles each port.  I'd suggest that, unless there is some 
-explicit Linux USB core support for associating a TLL port with a host 
-controller port, that the code in arch/arm/mach-omap2/usb-host.c register 
-the USBTLL device first (the opposite of what it does now), then pass 
-the pointer to the USBTLL's struct device via platform_data to 
-drivers/mfd/omap-usb-host.c.  Then that can either be passed via 
-platform_data to the EHCI/OHCI drivers, or the EHCI/OHCI drivers can call 
-a drivers/mfd/omap-usb-host.c function to retrieve that struct device 
-pointer.
+There are three cases that I've come across that might be interesting to=20
+you.
 
+The first involves IP blocks that use their interface clock as their=20
+functional clock, such as the MAILBOXES IP block.  In this case, there is=
+=20
+no separate functional clock that is needed for register accesses to=20
+complete, and therefore the main_clk should be the interface clock.
+
+The second case involves IP blocks that can receive functional clocks from=
+=20
+an off-chip source (i.e., not via a PRCM-controlled clock), such as the=20
+McBSP IP block.  For these IP blocks, it could be that register accesses=20
+might still succeed even if the module's PRCM-provided functional clock is=
+=20
+off.  I haven't tested this personally.
+
+The third case involves IP blocks with multiple functional clocks, such as=
+=20
+the OMAP3 USBHOST subsystem.  What we found on OMAP3 was that only one of=
+=20
+these two clocks needs to be enabled for register accesses to succeed. =20
+Some functional clocks might control parts of an IP block that have=20
+nothing to do with register access.
+
+> This is a bit conflictive with what you description, so could you
+> give a further comments about main_clk, function clock and interface
+> clock?
+
+I don't know why there are these documentation discrepancies.  I can=20
+guess, but probably I'd better not :-)  Hope the above helped.
+
+> [1], 23.3.4.2 Clock Configuration
+> =09Each UART uses a 48-MHz functional clock for its logic
+> =09and to generate external interface signals. Each UART
+> =09uses an interface clock for register accesses.
+>=20
+> [2], 3.1.1.1.1 Module Interface and Functional Clocks
+> =09The interface clocks have the following characteristics:
+> =09=95 They ensure proper communication between any module/subsystem
+> =09and the interconnect.
+> =09=95 In most cases, they supply the system interconnect interface
+> =09and registers of the module.
+
+regards,
 
 - Paul
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--155748971-841624508-1318301240=:5205--
