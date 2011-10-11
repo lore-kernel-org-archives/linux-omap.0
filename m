@@ -1,110 +1,80 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 00/24 V2] OMAP4: PM: suspend, CPU-hotplug and CPUilde
- support
-Date: Tue, 11 Oct 2011 12:39:54 +0530
-Message-ID: <4E93EBC2.1060103@ti.com>
-References: <1316844884-21700-1-git-send-email-santosh.shilimkar@ti.com> <87ty7ghgiw.fsf@ti.com>
+From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 0/5 v14] omap: usb: host: Runtime PM preparation for EHCI and OHCI drivers
+Date: Tue, 11 Oct 2011 13:18:08 +0530
+Message-ID: <1318319288-20122-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:37629 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751360Ab1JKHKB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Oct 2011 03:10:01 -0400
-Received: by mail-gy0-f179.google.com with SMTP id 4so7196937gyg.38
-        for <linux-omap@vger.kernel.org>; Tue, 11 Oct 2011 00:10:00 -0700 (PDT)
-In-Reply-To: <87ty7ghgiw.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, gadiyar-l0cyMroinI0@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org, Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday 10 October 2011 11:31 PM, Kevin Hilman wrote:
-> Hi Santosh,
-> 
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> 
->> The series adds OMAP4 MPUSS (MPU SubSystem) power management support for
->> suspend (S2R), CPU hotplug and CPUidle.
-> 
-> There are a few more compile errors when doing OMAP1-only builds.
-> You'll need a way to eliminate the secure calls for OMAP1.
-> 
-> This series causes a couple build errors when doing OMAP1-only builds
-> (I used omap1_defconfig):
-> 
-OK. Thanks for catching it.
+From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
 
-> First:
-> 
-> /work/kernel/omap/pm/arch/arm/plat-omap/common.c:24:30: fatal error: mach/omap-secure.h: No such file or directory
-> 
-> And trying creating a dummy header to see if it would continue to build gives:
-> 
-> /work/kernel/omap/pm/arch/arm/plat-omap/common.c: In function 'omap_reserve':
-> /work/kernel/omap/pm/arch/arm/plat-omap/common.c:70:2: error: implicit declaration of function 'omap_secure_ram_reserve_memblock'
-> make[2]: *** [arch/arm/plat-omap/common.o] Error 1
-> make[1]: *** [arch/arm/plat-omap] Error 2
-> 
-For OMAP1 build, omap_secure_ram_reserve_memblock() definition is
-needed since common.c is built for OMAP1 as well.
-The trivial change in the end of this email fixes the omap1 build.
-Have folded that change in original patch and updated the OMAP4
-PM branch - for_3_2/omap4-mpuss-pm_2
+The Hwmod structures for ehci and ohci drivers are implemented for
+EHCI and OHCI drivers of OMAP3 and OMAP4.
+The ehci and ohci drivers does not use the APIs of the usbhs
+core driver; the runtime pm APIs are used for clock
+enable/disable.
 
-Regards
-Santosh
-P.S : Even with this fix, omap1_defconfig build breaks because of USB.
-I removed USB from build to check rest of the build and it was
-fine then.
+TODO:
+ - Adding mux-information to Hwmods.
+ - Aggressive Clock Management around USB bus suspend/resume.
+ - Remote Wakeup support implementation using IO-ring Wakeup
+   on EHCI/OHCI pads via PRCM IRQ chain handler.
 
----
-diff --git a/arch/arm/mach-omap2/include/mach/omap-secure.h
-b/arch/arm/mach-omap2/include/mach/omap-secure.h
-index 6e929c5..48247ce 100644
---- a/arch/arm/mach-omap2/include/mach/omap-secure.h
-+++ b/arch/arm/mach-omap2/include/mach/omap-secure.h
-@@ -51,7 +51,6 @@ extern u32 omap_secure_dispatcher(u32 idx, u32 flag,
-u32 nargs,
- 				u32 arg1, u32 arg2, u32 arg3, u32 arg4);
- extern u32 omap_smc2(u32 id, u32 falg, u32 pargs);
- extern phys_addr_t omap_secure_ram_mempool_base(void);
--extern int omap_secure_ram_reserve_memblock(void);
+In Version 14:
+        - for omap3 and omap4,
+		Masters are added for the TLL hwmod
+	- for omap3, 
+		OCPIF_SWSUP_IDLE option is removed for interface clocks
 
- #endif /* __ASSEMBLER__ */
- #endif /* OMAP_ARCH_OMAP_SECURE_H */
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 827f896..d5ef8dc 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -21,7 +21,7 @@
- #include <plat/vram.h>
- #include <plat/dsp.h>
+In version 13:
+       - for omap3, the ehci 120mhz clock is conditional enabled
+         if ehci is selected for atleast one port in the omap platform.
+       - the hardware erratas information is added.
+       - the patches are split in to two series
+               i) The hwmod and preparation for run time pm of ehci and
+                       ohci drivers ( this series)
+               ii) The Runtime pm support for ehci and ohci drivers.
+         Since the patches are split , both the series are SHOULD be
+         applied to make the ehci and ohci drivers are functional with
+         runtime pm support.
 
--#include <mach/omap-secure.h>
-+#include <plat/omap-secure.h>
+In version 12:
+ - The ehci, ohci and usb_host_hs hwmods combined as a single hwmod
+   usb_host_hs.
+ - for omap3
+       the usbhost_ick and and usbtll_ick clocks are changed as interface
+       clocks. The usbtll_fck, usbhost_48m_fck clocks are changed as main
+       clocks and the 120mhz functional clock is changed to optional clock
+ - the usbhs mfd driver enable/disable this optional clock in
+   runtime_resume and runtime_suspend callbacks of pm_runtime_get_sync
+   and pm_runtime_put_sync APIs.
 
 
- #define NO_LENGTH_CHECK 0xffffffff
-diff --git a/arch/arm/plat-omap/include/plat/omap-secure.h
-b/arch/arm/plat-omap/include/plat/omap-secure.h
-new file mode 100644
-index 0000000..64f9d1c
---- /dev/null
-+++ b/arch/arm/plat-omap/include/plat/omap-secure.h
-@@ -0,0 +1,13 @@
-+#ifndef __OMAP_SECURE_H__
-+#define __OMAP_SECURE_H__
-+
-+#include <linux/types.h>
-+
-+#ifdef CONFIG_ARCH_OMAP2PLUS
-+extern int omap_secure_ram_reserve_memblock(void);
-+#else
-+static inline void omap_secure_ram_reserve_memblock(void)
-+{ }
-+#endif
-+
-+#endif /* __OMAP_SECURE_H__ */
+Benoit Cousson (1):
+  arm: omap: usb: ehci and ohci hwmod structures for omap4
+
+Keshava Munegowda (4):
+  arm: omap: usb: ehci and ohci hwmod structures for omap3
+  arm: omap: usb: register hwmods of usbhs
+  arm: omap: usb: device name change for the clk names of usbhs
+  omap: usb: host: Replace usbhs core driver APIs by Runtime pm APIs
+
+ arch/arm/mach-omap2/clock3xxx_data.c       |   26 ++--
+ arch/arm/mach-omap2/clock44xx_data.c       |   10 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  230 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  220 ++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/usb-host.c             |  100 ++++--------
+ arch/arm/plat-omap/include/plat/usb.h      |    3 -
+ drivers/mfd/omap-usb-host.c                |    2 +-
+ drivers/usb/host/ehci-omap.c               |   17 +--
+ drivers/usb/host/ohci-omap3.c              |   18 +--
+ 9 files changed, 515 insertions(+), 111 deletions(-)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
