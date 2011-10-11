@@ -1,18 +1,14 @@
 From: Keshava Munegowda <keshava_mgowda@ti.com>
 Subject: [PATCH 2/5 v14] arm: omap: usb: ehci and ohci hwmod structures for omap3
-Date: Tue, 11 Oct 2011 13:19:15 +0530
-Message-ID: <1318319355-20168-1-git-send-email-keshava_mgowda@ti.com>
+Date: Tue, 11 Oct 2011 13:21:10 +0530
+Message-ID: <1318319470-20409-1-git-send-email-keshava_mgowda@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45413 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750903Ab1JKHtO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Oct 2011 03:49:14 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com
 Cc: Keshava Munegowda <keshava_mgowda@ti.com>, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+List-Id: linux-omap@vger.kernel.org
 
 Following 2 hwmod structures are added
     1. usb_host_hs
@@ -285,4 +281,3 @@ index 59fdb9f..c06b4a4 100644
  	&omap3xxx_dss_core_hwmod,
 -- 
 1.6.0.4
-
