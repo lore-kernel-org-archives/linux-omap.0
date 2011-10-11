@@ -1,37 +1,81 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 08/16] OMAP2+: UART: Store certain reg values to port structure
-Date: Mon, 10 Oct 2011 16:58:46 -0700
-Message-ID: <8739f0bdqh.fsf@ti.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
-	<1317380495-584-8-git-send-email-govindraj.raja@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap4
+Date: Mon, 10 Oct 2011 20:15:29 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1110102010310.28007-100000@netrider.rowland.org>
+References: <20111010201055.GB8808@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39375 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751061Ab1JJX6u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Oct 2011 19:58:50 -0400
-In-Reply-To: <1317380495-584-8-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 30 Sep 2011 16:31:34 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111010201055.GB8808@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com, Greg KH <greg@kroah.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On Mon, 10 Oct 2011, Felipe Balbi wrote:
 
-> In preparation to runtime conversion add missing uart regs to
-> port structure which can be used in context restore.
-> Also ensuring all uart reg info's are part of port structure.
->
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> > > > In fact we do already have sibling lists.  They are maintained as part 
+> > > > of the device_private structure.  What we are missing is a 
+> > > > device_for_each_sibling() routine.  It could be added pretty easily; it 
+> > > > would be similar to device_for_each_child().
+> > > 
+> > > care to point out where is ?
+> > > 
+> > > 68 struct device_private {
+> > > 69         struct klist klist_children;
+> > > 70         struct klist_node knode_parent;
+> > -------------^  Here.  The "parent" in the name refers to where the
+> >                 head of the list is stored.
+> > 
+> > > 71         struct klist_node knode_driver;
+> > > 72         struct klist_node knode_bus;
+> > > 73         void *driver_data;
+> > > 74         struct device *device;
+> > > 75 };
+> > 
+> > From device_add():
+> > 
+> > 	if (parent)
+> > 		klist_add_tail(&dev->p->knode_parent,
+> > 			       &parent->p->klist_children);
+> 
+> that's a parent -> child relationship. What we have on this case is:
+> 
+>  --------------                ---------------
+> |              |              |               |          |\
+> |   UHH        |  clocks, etc |    USBTLL     |          | |
+> |              | <==========> |               | <======> | | <====> ports
+> |     -------  |              | (Transceiver- |          | |
+> |    |  EHCI | |              | less Link)    |          |/
+> |     -------  |              |               |         Port MUX
+> |              |              |               |
+> |     -------  |              |               |
+> |    |  OHCI | |              |               |
+> |     -------  |              |               |
+> |              |              |               |
+>  --------------                ---------------
+> 
+> It doesn't shown here, but the TLL link is completely optional. It's
+> mainly used for modem integration, IIRC. Still, if we're using TLL, EHCI
+> and OHCI will depend on a clock provided by the USBTLL block.
+> 
+> Clearly, USBTLL isn't either a parent of UHH, nor a parent of EHCI/OHCI
+> blocks. We can, from a code perspective, make USBTLL into a parent of
+> UHH to make things simpler, but this will mean that calling
+> pm_runtime_get() will also unconditionaly turn on TLL clock, unless we
+> add some nasty hacks to allow TLL know if *HCI port is in TLL mode.
+> 
+> That's why I decided for making TLL and UHH siblings, because that's a
+> closer relationship than parent-child.
+> 
+> Can you see the problem now ?
 
-IMO, this should come later in the series to avoid adding bunch of code
-that gets moved in a subsequent patch.
+Okay, now I understand better.  The word "sibling" implies that the two 
+objects have the same parent, so a different word would describe this 
+relationship better.  Something like "friend" or "associate".
 
-First, convert to runtime PM (current patch 9/16)
-Then, add a patch to move context save/restore into driver.
-Then, add this patch.
+Or maybe, following Paul's suggestion, the driver core doesn't have to 
+be changed at all.
 
-Kevin
+Alan Stern
