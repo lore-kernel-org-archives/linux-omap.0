@@ -1,54 +1,59 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract regulator_init_data
-Date: Tue, 11 Oct 2011 11:29:29 +0530
-Message-ID: <4E93DB41.2080900@ti.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com> <1318263578-7407-4-git-send-email-rnayak@ti.com> <20111010172222.GG3607@opensource.wolfsonmicro.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v6 02/16] OMAP2+: hwmod: Add API to check IO PAD wakeup status
+Date: Tue, 11 Oct 2011 11:47:02 +0530
+Message-ID: <CAAL8m4wf42G6767untYqSE1pjtogDJmMKL4AZTyZ=77yFomBiw@mail.gmail.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+ <1317380495-584-2-git-send-email-govindraj.raja@ti.com> <4E8724D7.6060907@ti.com>
+ <CAAL8m4zLz4kv+nNPKHD6zKG0pdXifXpmWiHnLAyn_bq228qHXA@mail.gmail.com>
+ <4E8946BD.1010108@ti.com> <CAAL8m4xkC1Ftnr=RpAK5m2PVvPx3yzitO5gNJfOKiD0_YkGkdA@mail.gmail.com>
+ <878vosh4ds.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:38521 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751317Ab1JKF7i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Oct 2011 01:59:38 -0400
-In-Reply-To: <20111010172222.GG3607@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <878vosh4ds.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linux-kernel@vger.kernel.org
 
-On Monday 10 October 2011 10:52 PM, Mark Brown wrote:
-> On Mon, Oct 10, 2011 at 09:49:36PM +0530, Rajendra Nayak wrote:
+On Tue, Oct 11, 2011 at 3:54 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Govindraj <govindraj.ti@gmail.com> writes:
 >
->> +- regulator-change-voltage: boolean, Output voltage can be changed by software
->> +- regulator-change-current: boolean, Output current can be chnaged by software
->> +- regulator-change-mode: boolean, Operating mode can be changed by software
->> +- regulator-change-status: boolean, Enable/Disable control for regulator exists
->> +- regulator-change-drms: boolean, Dynamic regulator mode switching is enabled
->> +- regulator-mode-fast: boolean, allow/set fast mode for the regulator
->> +- regulator-mode-normal: boolean, allow/set normal mode for the regulator
->> +- regulator-mode-idle: boolean, allow/set idle mode for the regulator
->> +- regulator-mode-standby: boolean, allow/set standby mode for the regulator
->> +- regulator-input-uV: Input voltage for regulator when supplied by another regulator
->> +- regulator-always-on: boolean, regulator should never be disabled
+>> On Mon, Oct 3, 2011 at 10:53 AM, Rajendra Nayak <rnayak@ti.com> wrot=
+e:
+>>> On Monday 03 October 2011 10:30 AM, Govindraj wrote:
+>>>
+>>>> On Sat, Oct 1, 2011 at 8:03 PM, Rajendra Nayak<rnayak@ti.com> =A0w=
+rote:
+>>>>>
+>>>>> On Friday 30 September 2011 04:31 PM, Govindraj.R wrote:
+>>>>>>
+>>>>>> Add API to determine IO-PAD wakeup event status for a given
+>>>>>> hwmod dynamic_mux pad.
+>>>>>>
+>>>>>> Wake up event set will be cleared on pad mux_read.
+>>>>>
+>>>>> Are these api's even getting used in this series?
+>>>>
+>>>> Used in Tero's irq_chaining patches.
+>>>
+>>> So shouldn't this patch be part of his series instead?
+>>
+>> Yes it is. Part of his v9-series.
+>>
 >
-> Thinking about this I'm not sure that these should go in the device
-> tree, they're as much talking about what Linux is able to cope with as
-> they are talking about what the hardware is able to do.  Sometimes
-> they'll be fixed by the design but they are sometimes also restricted by
-> what the software is currently capable of.  DRMS is a prime example
-> here, it depends on how good we are at telling the API about how much
-> current we're using.
+> Then please drop from this series and state the introductory patch
+> (PATCH 0/n) that this series has a dependency on Tero's series.
+>
 
-So is there another way of passing these, if not through device tree?
-There are other linux specific things that need to be passed to the
-framework as well, like the state of the regulator in the various
-linux specific suspend states, like standby/mem/disk.
-So if these can't be passed through device tree, should they still
-be passed in some way through platform_data? Or is it best to identify
-the bindings as being linux specific and not generic by appending a
-"linux," to the bindings.
+Okay.
 
-Grant, need some help and advice.
-
+--
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
