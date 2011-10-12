@@ -1,99 +1,80 @@
 From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
-Date: Wed, 12 Oct 2011 19:08:51 +0530
-Message-ID: <CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
-References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com> <87vcrv2xox.fsf@ti.com>
+Subject: Re: [PATCH v6 15/16] OMAP2+: UART: Enable back uart clocks with
+ runtime API for early console
+Date: Wed, 12 Oct 2011 19:34:12 +0530
+Message-ID: <CAAL8m4xmGQaQZm5Oz8B5e6Mt7VP7c_VwQ=AnfpKotZRci32JiQ@mail.gmail.com>
+References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
+ <1317380561-661-6-git-send-email-govindraj.raja@ti.com> <87pqi3z19z.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87vcrv2xox.fsf@ti.com>
+In-Reply-To: <87pqi3z19z.fsf@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 11, 2011 at 11:54 PM, Kevin Hilman <khilman@ti.com> wrote:
+On Wed, Oct 12, 2011 at 2:36 AM, Kevin Hilman <khilman@ti.com> wrote:
 > "Govindraj.R" <govindraj.raja@ti.com> writes:
 >
->> Modify the omap_uart_can_sleep function to check uart is active
->> or not to be used by pm code to enter low power states.
->
-> Doesn't the driver now control when the UART clocks are gated (using
-> runtime PM autosuspend)?
->
-> IMO, this check should be completely removed and the driver should
-> be managing this with the autosuspend timeout.
->
->> Removing this check can cause console response little sluggish.
->
-> Sluggish in what way?
->
-
-response is slower like when we type something or cat debugfs/pm_count
-see things little slower on console, there is no character loss.
-
-Happens even though we have not set the autosuspend timeout and uart
-clocks are active,
-which basically means allowing mpu to enter retention keeping uart acti=
-ve.
-
-this delay in response or sluggishness is not there on my 3430SDP or
-3630zoom board but I was able to see this behavior on a beagle board(xm=
- rev c).
-
-retaining this uart_can_sleep check in omap3_can_sleep ensures a better
-console user experience. (not allowing mpu to enter retention
-until uart clocks are cut)
-
-
-> If the driver is runtime suspended, it should only be sluggish for th=
-e
-> first character. =A0After that, the autosuspend timeout should preven=
-t it
-> from feeling sluggish.
->
->> However no characters will be lost until uart clocks are gated
->> and woken up using rx-pad. UART interface clocks can be auto gated
->> this can make response on uart slower. This behaviour was observed
->> only on some of OMAP3 boards(beagleboard xm rev c).
+>> For the early console probing we had avoided hwmod reset and idling
+>> and uart was idled using hwmod API and enabled back using omap_devic=
+e API
+>> after omap_device registration.
 >>
->> Reported-by: Tero Kristo <t-kristo@ti.com>
+>> Now since we are using runtime API's to enable back uart, move hwmod
+>> idling and use runtime API to enable back UART.
+>>
 >> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/serial.c | =A0 21 +++++++++------------
->> =A01 files changed, 9 insertions(+), 12 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
-al.c
->> index 6725caf..ccf3550 100644
->> --- a/arch/arm/mach-omap2/serial.c
->> +++ b/arch/arm/mach-omap2/serial.c
->> @@ -156,23 +156,20 @@ static void omap_uart_smart_idle_enable(struct=
- omap_uart_state *uart,
->>
->> =A0int omap_uart_can_sleep(void)
->> =A0{
->> - =A0 =A0 struct omap_uart_state *uart;
->> - =A0 =A0 int can_sleep =3D 1;
->> -
->> - =A0 =A0 list_for_each_entry(uart, &uart_list, node) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 if (!uart->clocked)
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
->> + =A0 =A0 struct omap_hwmod *oh;
->> + =A0 =A0 u8 i, ret =3D true;
->>
->> - =A0 =A0 =A0 =A0 =A0 =A0 if (!uart->can_sleep) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 can_sleep =3D 0;
->> + =A0 =A0 for (i =3D 0; i < num_uarts; i++) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 oh =3D omap_uart_hwmod_lookup(i);
 >
-> This is a heavy operation to add for *every* entry into idle.
+> Now that the driver is using runtime PM. =A0Why do we still need
+> HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET?
+>
+> The comment in the code says:
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * During UART early init, device need=
+ to be probed
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * to determine SoC specific init befo=
+re omap_device
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * is ready. =A0Therefore, don't allow=
+ idle here
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+>
+> This was true when using the 8250 driver because it was not using
+> runtime PM so could not know how to (re)enable the device.
+>
+> However, since the driver is now runtime PM adapted, any device acces=
+s
+> should be contained within a runtime PM get/put block, so there shoul=
+d
+> no longer be a reason not allow the IP blocks to be reset during boot=
+=2E
 >
 
-removing uart_list caused this ops, retaining uart_list
-will ensure this will be replaced with list_for_each_entry
-as done in existing code.
+=46orgot to add, this is still needed for
+earlyprintk(CONFIG_EARLY_PRINTK) use case,
+
+The initial boot prints until a console driver is available is from
+"arch/arm/kernel/early_printk.c" which does a tx on uart console
+and relies on configuration from bootloader.
+
+during bootup earlyprink does a tx on uart console and if  uart driver
+is not available yet
+uart reset or idle done by hwmod layer can cause boot failures.
+
+--> put_char from earlyprintk.c
+     --> reset/idle from hwmod layer
+          --> put_char from earlyprintk.c
+
+
+So console_uart reset or clock gating must be done only after uart
+driver is available or be prevented
+using these available hwmod_flags.
+
+omap_serial_early_init should be now be binded with CONFIG_SERIAL_OMAP =
+macro ?
 
 --
 Thanks,
