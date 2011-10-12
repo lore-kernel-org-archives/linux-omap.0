@@ -1,71 +1,105 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v8 REPOST 21/24] gpio/omap: save and restore debounce registers
-Date: Wed, 12 Oct 2011 18:02:10 +0530
-Message-ID: <1318422730-22282-1-git-send-email-tarun.kanti@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
+Date: Wed, 12 Oct 2011 19:08:51 +0530
+Message-ID: <CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
+References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com> <87vcrv2xox.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53175 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934Ab1JLMcT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 08:32:19 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87vcrv2xox.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+On Tue, Oct 11, 2011 at 11:54 PM, Kevin Hilman <khilman@ti.com> wrote:
+> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>
+>> Modify the omap_uart_can_sleep function to check uart is active
+>> or not to be used by pm code to enter low power states.
+>
+> Doesn't the driver now control when the UART clocks are gated (using
+> runtime PM autosuspend)?
+>
+> IMO, this check should be completely removed and the driver should
+> be managing this with the autosuspend timeout.
+>
+>> Removing this check can cause console response little sluggish.
+>
+> Sluggish in what way?
+>
 
-GPIO debounce registers need to be saved and restored for proper functioning
-of driver. To save the registers, we cannot cut the clock before the save,
-hence move the clk disable after the save.
+response is slower like when we type something or cat debugfs/pm_count
+see things little slower on console, there is no character loss.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
-Rebased on top of:
-[PATCH v8 REPOST 17/24] gpio/omap: fix debounce clock handling
+Happens even though we have not set the autosuspend timeout and uart
+clocks are active,
+which basically means allowing mpu to enter retention keeping uart acti=
+ve.
 
- drivers/gpio/gpio-omap.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+this delay in response or sluggishness is not there on my 3430SDP or
+3630zoom board but I was able to see this behavior on a beagle board(xm=
+ rev c).
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index d074408..6a89560 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -42,6 +42,8 @@ struct gpio_regs {
- 	u32 risingdetect;
- 	u32 fallingdetect;
- 	u32 dataout;
-+	u32 debounce;
-+	u32 debounce_en;
- };
- 
- struct gpio_bank {
-@@ -219,6 +221,9 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
- 
- 	__raw_writel(val, reg);
- 	clk_disable(bank->dbck);
-+
-+	bank->context.debounce = debounce;
-+	bank->context.debounce_en = val;
- }
- 
- static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
-@@ -1350,6 +1355,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 	__raw_writel(bank->context.fallingdetect,
- 				bank->base + bank->regs->fallingdetect);
- 	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
-+	if (bank->dbck_enable_mask) {
-+		__raw_writel(bank->context.debounce, bank->base +
-+					bank->regs->debounce);
-+		__raw_writel(bank->context.debounce_en,
-+					bank->base + bank->regs->debounce_en);
-+	}
- }
- #else
- #define omap_gpio_suspend NULL
--- 
-1.7.0.4
+retaining this uart_can_sleep check in omap3_can_sleep ensures a better
+console user experience. (not allowing mpu to enter retention
+until uart clocks are cut)
 
+
+> If the driver is runtime suspended, it should only be sluggish for th=
+e
+> first character. =A0After that, the autosuspend timeout should preven=
+t it
+> from feeling sluggish.
+>
+>> However no characters will be lost until uart clocks are gated
+>> and woken up using rx-pad. UART interface clocks can be auto gated
+>> this can make response on uart slower. This behaviour was observed
+>> only on some of OMAP3 boards(beagleboard xm rev c).
+>>
+>> Reported-by: Tero Kristo <t-kristo@ti.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/serial.c | =A0 21 +++++++++------------
+>> =A01 files changed, 9 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
+al.c
+>> index 6725caf..ccf3550 100644
+>> --- a/arch/arm/mach-omap2/serial.c
+>> +++ b/arch/arm/mach-omap2/serial.c
+>> @@ -156,23 +156,20 @@ static void omap_uart_smart_idle_enable(struct=
+ omap_uart_state *uart,
+>>
+>> =A0int omap_uart_can_sleep(void)
+>> =A0{
+>> - =A0 =A0 struct omap_uart_state *uart;
+>> - =A0 =A0 int can_sleep =3D 1;
+>> -
+>> - =A0 =A0 list_for_each_entry(uart, &uart_list, node) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!uart->clocked)
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
+>> + =A0 =A0 struct omap_hwmod *oh;
+>> + =A0 =A0 u8 i, ret =3D true;
+>>
+>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!uart->can_sleep) {
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 can_sleep =3D 0;
+>> + =A0 =A0 for (i =3D 0; i < num_uarts; i++) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 oh =3D omap_uart_hwmod_lookup(i);
+>
+> This is a heavy operation to add for *every* entry into idle.
+>
+
+removing uart_list caused this ops, retaining uart_list
+will ensure this will be replaced with list_for_each_entry
+as done in existing code.
+
+--
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
