@@ -1,150 +1,107 @@
 From: Govindraj <govindraj.ti@gmail.com>
 Subject: Re: [PATCH v6 09/16] OMAP2+: UART: Add runtime pm support for
  omap-serial driver
-Date: Wed, 12 Oct 2011 16:07:50 +0530
-Message-ID: <CAAL8m4x_VDKvSHS-CSq_+PiGeR8g7rJz4mPbk9BZT=Zty69tYA@mail.gmail.com>
+Date: Wed, 12 Oct 2011 16:05:33 +0530
+Message-ID: <CAAL8m4yDrR_ao6GdSah=HsK7twhfA=RXjtURe43ziWJV51zkfg@mail.gmail.com>
 References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
- <1317380495-584-9-git-send-email-govindraj.raja@ti.com> <8739f0ct2o.fsf@ti.com>
+ <1317380495-584-9-git-send-email-govindraj.raja@ti.com> <87botobdtq.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <8739f0ct2o.fsf@ti.com>
+In-Reply-To: <87botobdtq.fsf@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 11, 2011 at 5:12 AM, Kevin Hilman <khilman@ti.com> wrote:
+On Tue, Oct 11, 2011 at 5:26 AM, Kevin Hilman <khilman@ti.com> wrote:
 > "Govindraj.R" <govindraj.raja@ti.com> writes:
 >
 >> Adapts omap-serial driver to use pm_runtime API's.
->
-> [...]
->
->> @@ -1065,19 +1123,18 @@ static struct uart_driver serial_omap_reg =3D=
- {
->> =A0 =A0 =A0 .cons =A0 =A0 =A0 =A0 =A0 =3D OMAP_CONSOLE,
->> =A0};
 >>
->> -static int
->> -serial_omap_suspend(struct platform_device *pdev, pm_message_t stat=
-e)
->> +static int serial_omap_suspend(struct device *dev)
->> =A0{
->> - =A0 =A0 struct uart_omap_port *up =3D platform_get_drvdata(pdev);
->> + =A0 =A0 struct uart_omap_port *up =3D dev_get_drvdata(dev);
->>
->> =A0 =A0 =A0 if (up)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_suspend_port(&serial_omap_reg, &up-=
->port);
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> -static int serial_omap_resume(struct platform_device *dev)
->> +static int serial_omap_resume(struct device *dev)
->> =A0{
->> - =A0 =A0 struct uart_omap_port *up =3D platform_get_drvdata(dev);
->> + =A0 =A0 struct uart_omap_port *up =3D dev_get_drvdata(dev);
->>
->> =A0 =A0 =A0 if (up)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 uart_resume_port(&serial_omap_reg, &up->=
-port);
+>> Use runtime runtime API's to handle uart clocks and obtain
+>> device_usage statics. Set runtime API's usage to irq_safe so that
+>> we can use get_sync from irq context. Auto-suspend for port specific
+>> activities and put for reg access. Use device_may_wakeup to check
+>> whether uart has wakeup capabilities and then enable uart runtime
+>> usage for the uart.
 >
-> These functions need to be wrapped in #ifdef CONFIG_SUSPEND, otherwis=
-e,
-> when building with !CONFIG_SUSPEND you'll get :
->
-> /work/kernel/omap/pm/drivers/tty/serial/omap-serial.c:1134:12: warnin=
-g: 'serial_omap_suspend' defined but not used
-> /work/kernel/omap/pm/drivers/tty/serial/omap-serial.c:1150:12: warnin=
-g: 'serial_omap_resume' defined but not used
->
->
-> [...]
->
->> +static int serial_omap_runtime_suspend(struct device *dev)
->> +{
->> + =A0 =A0 struct uart_omap_port *up =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct omap_uart_port_info *pdata =3D dev->platform_data;
->> +
->> + =A0 =A0 if (!up)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> +
->> + =A0 =A0 if (!pdata->enable_wakeup || !pdata->get_context_loss_coun=
-t)
->> + =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->> +
->> + =A0 =A0 if (pdata->get_context_loss_count)
->> + =A0 =A0 =A0 =A0 =A0 =A0 up->context_loss_cnt =3D pdata->get_contex=
-t_loss_count(dev);
->> +
->> + =A0 =A0 if (device_may_wakeup(dev)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (!up->wakeups_enabled) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->enable_wakeup(up->p=
-dev, true);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->wakeups_enabled =3D tr=
-ue;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 } else {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (up->wakeups_enabled) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->enable_wakeup(up->p=
-dev, false);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->wakeups_enabled =3D fa=
-lse;
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return 0;
->> +}
->> +
->> +static int serial_omap_runtime_resume(struct device *dev)
->> +{
->> + =A0 =A0 struct uart_omap_port *up =3D dev_get_drvdata(dev);
->> + =A0 =A0 struct omap_uart_port_info *pdata =3D dev->platform_data;
->> +
->> + =A0 =A0 if (up) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 if (pdata->get_context_loss_count) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 loss_cnt =3D pdata->ge=
-t_context_loss_count(dev);
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (up->context_loss_cnt !=
-=3D loss_cnt)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 serial_oma=
-p_restore_context(up);
->> + =A0 =A0 =A0 =A0 =A0 =A0 }
->> + =A0 =A0 }
->> +
->> =A0 =A0 =A0 return 0;
->> =A0}
->
-> Similarily, thse need to be wrapped with #ifdef CONFIG_PM_RUNTIME,
-> otherwise, when !CONFIG_PM_RUNTIME:
->
-> /work/kernel/omap/pm/drivers/tty/serial/omap-serial.c:1498:12: warnin=
-g: 'serial_omap_runtime_suspend' defined but not used
-> /work/kernel/omap/pm/drivers/tty/serial/omap-serial.c:1531:12: warnin=
-g: 'serial_omap_runtime_resume' defined but not used
->
->> +static const struct dev_pm_ops serial_omap_dev_pm_ops =3D {
->> + =A0 =A0 SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_r=
-esume)
->> + =A0 =A0 SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 serial_oma=
-p_runtime_resume, NULL)
->> +};
->> +
->
-> Note that you don't need #else parts to the above #ifdefs since
-> the SET_*_OPS() macros used here take care of that.
+> OK. =A0Current patch should do only this part. =A0The rest should be
+> separate patches with their own descriptive changelogs.
 >
 
-Yes fine, Corrected
+Yes, started splitting them.
 
-Thanks for catching this.
+>> Removing save_context/restore_context functions from serial.c
+>> Adding context restore to .runtime_suspend and using reg values from=
+ port
+>> structure to restore the uart port context based on context_loss_cou=
+nt.
+>> Maintain internal state machine using wakeups_enabled field for avoi=
+ding
+>> repeated enable/disable of uart port wakeup mechanism.
+>
+> This part should be a separate patch that follows.
+>
 
---
-Govindraj.R
+okay,
+
+>> Remove omap_uart_disable_wakeup and modify omap_uart_enable_wakeup
+>> to accept pdev and bool value to enable/disable the uart wakeup mech=
+anism
+>> after uart clock's are cut.
+>>
+>> omap_hwmod_enable_wakeup is used to set
+>> pad wakeup for the uarts. PM_WKEN reg values are left to default.
+>> Removed omap_uart_enable/disable_clocks in serial.c now clock handli=
+ng
+>> done with runtime API's.
+>
+> As stated in previous reviews, this wakeup enable/disable needs more
+> description as the functionality is changing compared to current code=
+=2E
+>
+> Current version modifies wakeup enable/disable at both power-domain
+> level (PM_WKEN) and at the IO ring.
+>
+> Updated version modifies wakeups at module-level (SYSCONFIG) and at I=
+O
+> ring using omap_hwmod_enable_wakeup()
+>
+> IMO, the updated version makes more sense, but needs a description as=
+ to
+> why that change in functionality will have equivalent results compare=
+d
+> to the existing one.
+>
+
+Okay,
+
+>> By default uart autosuspend delay is set to -1 to avoid character lo=
+ss
+>> if uart's are autoidled and woken up on rx pin.
+>
+> OK, good.
+>
+>> After boot up UART's can be autoidled by setting autosuspendi delay =
+from sysfs.
+>>
+>> echo 3000 > /sys/devices/platform/omap/omap_uart.X/power/autosuspend=
+_delay_ms
+>> X=3D0,1,2,3 for UART1/2/3/4. Number of uarts available may vary acro=
+ss omap_soc.
+>>
+>> Acked-by: Alan Cox <alan@linux.intel.com>
+>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-serial"=
  in
