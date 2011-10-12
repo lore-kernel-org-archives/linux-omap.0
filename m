@@ -1,127 +1,97 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 4/8] OMAP2+: omap_hwmod: manage the wake-up latency constraints
-Date: Wed, 12 Oct 2011 17:27:36 +0200
-Message-ID: <CAORVsuWkSpG1=3T+BkC5HUXtxTcucFPBx+cjK7fpAkqZTiBBRQ@mail.gmail.com>
-References: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
-	<1316622258-3892-1-git-send-email-j-pihet@ti.com>
-	<1316622258-3892-5-git-send-email-j-pihet@ti.com>
-	<alpine.DEB.2.00.1110062048160.4611@utopia.booyaka.com>
-	<CAORVsuXuFPD2QX4RXF_gfhw=U8izWVDVq4MZr8ZKvTVEw+5HqA@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
+Date: Wed, 12 Oct 2011 12:41:09 -0700
+Message-ID: <87wrcangkq.fsf@ti.com>
+References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
+	<87vcrv2xox.fsf@ti.com>
+	<CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:51976 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753302Ab1JLP1i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 11:27:38 -0400
-Received: by vcbgb30 with SMTP id gb30so657484vcb.19
-        for <linux-omap@vger.kernel.org>; Wed, 12 Oct 2011 08:27:37 -0700 (PDT)
-In-Reply-To: <CAORVsuXuFPD2QX4RXF_gfhw=U8izWVDVq4MZr8ZKvTVEw+5HqA@mail.gmail.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:44557 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753095Ab1JLTlS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Oct 2011 15:41:18 -0400
+In-Reply-To: <CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
+	(Govindraj's message of "Wed, 12 Oct 2011 19:08:51 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>, Ming Lei <tom.leiming@gmail.com>
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Paul,
+Govindraj <govindraj.ti@gmail.com> writes:
 
-The series has been updated with the kerneldoc and error path rework,
-then re-submitted as v3.
-Can you please look at it and possibly pull it?
+> On Tue, Oct 11, 2011 at 11:54 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>
+>>> Modify the omap_uart_can_sleep function to check uart is active
+>>> or not to be used by pm code to enter low power states.
+>>
+>> Doesn't the driver now control when the UART clocks are gated (using
+>> runtime PM autosuspend)?
+>>
+>> IMO, this check should be completely removed and the driver should
+>> be managing this with the autosuspend timeout.
+>>
+>>> Removing this check can cause console response little sluggish.
+>>
+>> Sluggish in what way?
+>>
+>
+> response is slower like when we type something or cat debugfs/pm_count
+> see things little slower on console, there is no character loss.
+>
+> Happens even though we have not set the autosuspend timeout and uart
+> clocks are active, which basically means allowing mpu to enter
+> retention keeping uart active.
 
-Please let me know.
+OK, I see now.
 
-Regards,
-Jean
+> this delay in response or sluggishness is not there on my 3430SDP or
+> 3630zoom board but I was able to see this behavior on a beagle
+> board(xm rev c).
 
-On Mon, Oct 10, 2011 at 10:08 AM, Jean Pihet <jean.pihet@newoldbits.com=
-> wrote:
-> Hi Paull,
->
-> On Fri, Oct 7, 2011 at 4:53 AM, Paul Walmsley <paul@pwsan.com> wrote:
->> Hi
->>
->> a comment:
->>
->> On Wed, 21 Sep 2011, jean.pihet@newoldbits.com wrote:
->>
->>> From: Jean Pihet <j-pihet@ti.com>
->>>
->>> Hwmod is queried from the OMAP_PM layer to manage the power domains
->>> wake-up latency constraints. Hwmod retrieves the correct power doma=
-in
->>> and if it exists it calls the corresponding power domain function.
->>>
->>> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using w=
-ake-up
->>> latency constraints on MPU, CORE and PER.
->>>
->>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->>> ---
->>> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 2=
-6 +++++++++++++++++++++++++-
->>> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h | =A0 =A02 ++
->>> =A02 files changed, 27 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2=
-/omap_hwmod.c
->>> index 84cc0bd..c6b1cc9 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -2618,11 +2619,34 @@ ohsps_unlock:
->>> =A0 =A0 =A0 return ret;
->>> =A0}
->>>
->>> +/*
->>> + * omap_hwmod_set_wkup_constraint- set/release a wake-up latency c=
-onstraint
->>> + *
->>> + * @oh: struct omap_hwmod* to which the target device belongs to.
->>> + * @cookie: identifier of the constraints list for @oh.
->>> + * @min_latency: the minimum allowed wake-up latency for @oh.
->>> + *
->>> + * Returns 0 upon success.
->>> + */
->>
->> It's good that there is some documentation here, but it would be bet=
-ter if
->> it were kerneldoc-style documentation. =A0Please see
->> Documentation/kernel-doc-nano-HOWTO.txt.
->> Also it would be good to have a bit more documentation here beyond s=
-imply
->> "Returns 0 upon success." =A0For example, how should a caller remove=
- a
->> wakeup latency constraint? =A0Also, this function can return -EINVAL=
-, not
->> counting whatever pwrdm_set_wkup_lat_constraint() can return, so tha=
-t
->> should be documented above also.
->>
->> This applies to the function comments in the rest of the patches too=
-=2E
->> Some of them have quite good kerneldoc comments, such as
->> pwrdm_wakeuplat_update_pwrst(); others need some work, like
->> pwrdm_set_wkup_lat_constraint().
->
-> Not all functions have kernel doc comments, i.e. this one does not (n=
-o
-> /** at the start of the header).
-> The intention is to document the functions from the API and the ones
-> that implement the core service (pwrdm_set_wkup_lat_constraint()), an=
-d
-> not the pure pass-through functions (omap_hwmod_set_wkup_constraint).
->
-> In any case I will review the comments and resubmit.
->
-> Thanks,
-> Jean
->
->>
->> - Paul
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here's why:
+
+The difference is the powerdomain that the console UART is on for these
+boards.  UART1,2 are in CORE, UART2/3 are in PER.   SDP uses UART1 (CORE),
+Zoom3 doesn't use OMAP UARTs at all, and Beagle uses UART3 (PER).
+
+Due to a HW sleepdep between MPU and CORE, MPU will not transition until
+CORE does, which means MPU will not transition until UART 1 & 2 are
+idle.
+
+On Beagle, the console is ttyO2 (UART3) which is in PER, and since the
+MPU is free to transition independently of PER, that is what is
+happening, resulting in slower response time on for any boards that have
+PER-UART consoles.
+
+> retaining this uart_can_sleep check in omap3_can_sleep ensures a better
+> console user experience. (not allowing mpu to enter retention
+> until uart clocks are cut)
+
+Yes, but obviously comes at the expense of power savings.  IOW, This is
+a hard-coded power vs. performance trade off that we are trying to get
+away from.
+
+So, the root of the problem is that the MPU wakeup latency is causing a
+"sluggish" console.  The solution?  request an MPU wakeup latency
+constraint.
+
+This is a classic use-case for such a constraint, and the serial driver
+should have the option of requesting a constraint to prevent the sluggish
+console.  The constraint only needs to be held until the auto-suspend
+delay expires, so should be relased in the ->runtime_suspend() method of
+the driver.
+
+This constraint needs to be configurable, probably from the board file,
+so that it is optional, and so users who don't care about sluggish
+consoles (or non-console UART users who don't care about response time)
+have the option of preferring power savings over UART responsiveness.
+
+As a reference, the i2c driver is currently doing something similar 
+in that it request an MPU constraint to prevent the MPU from going into
+retention/off while waiting for an i2c interrupt to arrive.
+
+Kevin
