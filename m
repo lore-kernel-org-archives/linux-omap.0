@@ -1,106 +1,53 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 14/16] OMAP2+: UART: Take console_lock in suspend path
- if not taken
-Date: Wed, 12 Oct 2011 16:53:05 +0530
-Message-ID: <CAAL8m4zrveqqS3vq=dqMkS2gT24_=1UO+ukbxnQVf+AX4TBaVQ@mail.gmail.com>
-References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
- <1317380561-661-5-git-send-email-govindraj.raja@ti.com> <87sjmz1hfm.fsf@ti.com>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [RFT/PATCH 7/7] arm: omap: smartreflex: micro-optimization for
+ sanity check
+Date: Wed, 12 Oct 2011 15:32:17 +0400
+Message-ID: <4E957AC1.904@ru.mvista.com>
+References: <1318249579-4089-1-git-send-email-balbi@ti.com> <1318249579-4089-7-git-send-email-balbi@ti.com> <4E9426F9.2080601@ru.mvista.com> <20111011121922.GM10155@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87sjmz1hfm.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:57421 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751263Ab1JLLdM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 07:33:12 -0400
+In-Reply-To: <20111011121922.GM10155@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Oct 12, 2011 at 12:31 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> In suspend path the console_lock is taken by uart_port_suspend
->> however when no_console_suspend is used console_lock is not taken.
->>
->> During system wide suspend omap_pwr_domain hooks cut all
->> clocks that are left enabled. So its unsafe to proceed printing afte=
-r
->> clocks are cut by pwr_domain hooks.
->
-> As I've mentioned in previous reviews, when no_console_suspend is
-> enabled, the user has explicitly requested console output during
-> suspend. =A0In order to support that, we should not be cutting clocks=
- at
-> all in that mode.
->
-> One way to address this would be to just disable runtime PM in the
-> ->prepare method of the driver if no_console_suspend is enabled.
->
+Hello.
 
-Okay fine exploring this option, right API's would be to use
-pm_runtime_forbid/allow.
+On 11-10-2011 16:19, Felipe Balbi wrote:
 
-<<SNIP>>
+>> On 10-10-2011 16:26, Felipe Balbi wrote:
 
-+static int serial_omap_runtime_prepare(struct device *dev)
-+{
-+       if (!console_suspend_enabled)
-+               pm_runtime_forbid(dev);
-+
-+       return 0;
-+}
-+
-+static void serial_omap_runtime_complete(struct device *dev)
-+{
-+       if (!console_suspend_enabled)
-+               pm_runtime_allow(dev);
-+}
-+
- static const struct dev_pm_ops serial_omap_dev_pm_ops =3D {
-        SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_omap_resume=
-)
-        SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
-                                serial_omap_runtime_resume, NULL)
-+       .prepare =3D serial_omap_runtime_prepare,
-+       .complete =3D  serial_omap_runtime_complete,
- };
+>>> val&&   (val != 1) == val>   1
 
-<<SNIP>>
+>>> Signed-off-by: Felipe Balbi<balbi@ti.com>
+>>> ---
+>>>   arch/arm/mach-omap2/smartreflex.c |    2 +-
+>>>   1 files changed, 1 insertions(+), 1 deletions(-)
 
-But to either use runtime forbid or disable we have ensure that
-power_domain hooks don't go ahead and disable
-the clocks with omap_device_idle as *runtime forbid or disable will
-not set runtime_status to RPM_SUSPENDED*
-and will stay in RPM_ACTIVE if we call runtime disable or forbid from
-active state.
+>>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+>>> index 7bdabfa..4b0d6a8 100644
+>>> --- a/arch/arm/mach-omap2/smartreflex.c
+>>> +++ b/arch/arm/mach-omap2/smartreflex.c
+>>> @@ -866,7 +866,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+>>>   	}
+>>>
+>>>   	/* Sanity check */
+>>> -	if (val&&   (val != 1)) {
+>>> +	if (val>   1) {
+>>>   		pr_warning("%s: Invalid argument %lld\n", __func__, val);
 
-in power_domain hooks we just check the pm_runtime_status_suspended
-this will be false even if
-we do runtime disable/forbid and it will cut uart clocks always.
+>>     The format specified should be "%llu"?
 
-So we may need below check also:
+> and what does that have to do with $SUBJECT ??
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap=
-_device.c
-index 26aee5c..286a534 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -592,7 +592,8 @@ static int _od_suspend_noirq(struct device *dev)
+    Well, nothing. Just an idea for another patch I guess.
 
-        ret =3D pm_generic_suspend_noirq(dev);
+WBR, Sergei
 
--       if (!ret && !pm_runtime_status_suspended(dev)) {
-+       if (!ret && pm_runtime_enabled(dev) &&
-+                       !pm_runtime_status_suspended(dev)) {
-                if (pm_generic_runtime_suspend(dev) =3D=3D 0) {
-                        omap_device_idle(pdev);
-                        od->flags |=3D OMAP_DEVICE_SUSPENDED;
-
-
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
