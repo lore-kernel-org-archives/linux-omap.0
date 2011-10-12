@@ -1,93 +1,100 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 2/5 v13] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Wed, 12 Oct 2011 17:26:00 +0530
-Message-ID: <CAP05o4JndWh3zQyD6mVWzK4pNr+42bDeBm7miiGSCOxqTwyvOA@mail.gmail.com>
-References: <1317901123-2546-1-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1110101835070.5205@utopia.booyaka.com>
-	<CAP05o4+Y3_-mFYdsta4DM7EfkYEq1-6psjvawN5pCWX++8jm8A@mail.gmail.com>
-	<CAP05o4K8BBwh5nbQpuc180WD2=ON+wksEz=gku=Y4GDQzx=BdA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4K8BBwh5nbQpuc180WD2=ON+wksEz=gku=Y4GDQzx=BdA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+From: Thomas Weber <weber@corscience.de>
+Subject: [RFC/PATCH] ARM: OMAP: Fix build for OMAP3 only builds
+Date: Wed, 12 Oct 2011 14:03:56 +0200
+Message-ID: <1318421036-1498-1-git-send-email-weber@corscience.de>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:50798 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752906Ab1JLMEq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 08:04:46 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Thomas Weber <weber@corscience.de>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On Tue, Oct 11, 2011 at 1:29 PM, Munegowda, Keshava
-<keshava_mgowda@ti.com> wrote:
-> On Tue, Oct 11, 2011 at 11:18 AM, Munegowda, Keshava
-> <keshava_mgowda@ti.com> wrote:
->> On Tue, Oct 11, 2011 at 6:08 AM, Paul Walmsley <paul@pwsan.com> wrot=
-e:
->>> Hi
->>>
->>> so I just noticed another problem with these hwmods:
->>>
->>> On Thu, 6 Oct 2011, Keshava Munegowda wrote:
->>>
->>>> Following 2 hwmod structures are added
->>>> =A0 =A0 1. usb_host_hs
->>>> =A0 =A0 =A0 =A0 =A0The hwmod of usbhs with uhh, ehci and ohci base=
- addresses
->>>> =A0 =A0 =A0 =A0 =A0functional clock and ehci, ohci irqs
->>>>
->>>> =A0 =A0 2. usb_tll_hs
->>>> =A0 =A0 =A0 =A0 =A0 hwmod of usbhs with the TLL base address and i=
-rq.
->>>>
->>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->>>> Reviewed-by: Partha Basak <parthab@india.ti.com>
->>>> ---
->>>> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0227 +++++++++++=
-+++++++++++++++++
->>>> =A01 files changed, 227 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm=
-/mach-omap2/omap_hwmod_3xxx_data.c
->>>> index 59fdb9f..b8ca690 100644
->>>> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->>>> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
->>>
->>> ...
->>>
->>>> +static struct omap_hwmod_ocp_if omap34xx_ick_cfg__usb_tll_hs =3D =
-{
->>>
->>> This interface is missing a .master and .slave. =A0It must have bot=
-h. =A0So,
->>> dropping this patch until it's fixed.
->>>
->>> Clearly we also need to modify the hwmod code needs to reject any
->>> instances where either .master or .slave is NULL.
->>>
->>>
->>> - Paul
->>
->> Hi Paul
->> =A0 =A0 =A0 =A0 =A0 I will fix it today only and I will send the upd=
-ated
->> patches in couple of hours.
->> please help me to make it in this merge window.
->>
->
->
-> Hi Paul
-> =A0 =A0 =A0I have posted v14 of the patches; please do review
-> if it is OK, please merge to your branch for 3.2 version
-> please let me know if you have any comments here.
->
-> =A0Thanks and Regards
-> =A0keshava
+When building for OMAP3 only I get the
+following errors:
 
+In function `omap2420_init_early':
+undefined reference to `omap2_set_globals_242x'
+undefined reference to `omap2xxx_voltagedomains_init'
+undefined reference to `omap242x_powerdomains_init'
+undefined reference to `omap242x_clockdomains_init'
+undefined reference to `omap2420_hwmod_init'
 
-Hi Paul
-requesting to please do review the patch set
-if it is OK, please merge to your branch for 3.2 version
-please let me know if you have any comments.
+In function `omap2430_init_early':
+undefined reference to `omap2_set_globals_243x'
+undefined reference to `omap2xxx_voltagedomains_init'
+undefined reference to `omap243x_powerdomains_init'
+undefined reference to `omap243x_clockdomains_init'
+undefined reference to `omap2430_hwmod_init'
 
-regards
-keshava
+In function `omap4430_init_early':
+undefined reference to `omap2_set_globals_443x'
+undefined reference to `omap44xx_voltagedomains_init'
+undefined reference to `omap44xx_powerdomains_init'
+undefined reference to `omap44xx_clockdomains_init'
+undefined reference to `omap44xx_hwmod_init'
+undefined reference to `omap4xxx_clk_init'
+
+With this patch the omapXXXX_init_early will be compiled only
+when their SOC's are selected.
+
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/io.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index aa96538..f8b9cfa 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -359,6 +359,7 @@ static void __init omap_hwmod_init_postsetup(void)
+ 	omap_pm_if_early_init();
+ }
+ 
++#ifdef CONFIG_SOC_OMAP2420
+ void __init omap2420_init_early(void)
+ {
+ 	omap2_set_globals_242x();
+@@ -370,7 +371,9 @@ void __init omap2420_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap2420_clk_init();
+ }
++#endif
+ 
++#ifdef CONFIG_SOC_OMAP2430
+ void __init omap2430_init_early(void)
+ {
+ 	omap2_set_globals_243x();
+@@ -382,7 +385,9 @@ void __init omap2430_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap2430_clk_init();
+ }
++#endif
+ 
++#ifdef CONFIG_ARCH_OMAP3
+ /*
+  * Currently only board-omap3beagle.c should call this because of the
+  * same machine_id for 34xx and 36xx beagle.. Will get fixed with DT.
+@@ -430,7 +435,9 @@ void __init ti816x_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap3xxx_clk_init();
+ }
++#endif
+ 
++#ifdef CONFIG_ARCH_OMAP4
+ void __init omap4430_init_early(void)
+ {
+ 	omap2_set_globals_443x();
+@@ -442,6 +449,7 @@ void __init omap4430_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap4xxx_clk_init();
+ }
++#endif
+ 
+ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1)
+-- 
+1.7.7
+
