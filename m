@@ -1,86 +1,93 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 15/16] OMAP2+: UART: Enable back uart clocks with
- runtime API for early console
-Date: Wed, 12 Oct 2011 19:34:12 +0530
-Message-ID: <CAAL8m4xmGQaQZm5Oz8B5e6Mt7VP7c_VwQ=AnfpKotZRci32JiQ@mail.gmail.com>
-References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
- <1317380561-661-6-git-send-email-govindraj.raja@ti.com> <87pqi3z19z.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87pqi3z19z.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: jean.pihet@newoldbits.com
+Subject: [PATCH v3 0/8] PM QoS: implement the OMAP low level constraints management code
+Date: Wed, 12 Oct 2011 17:24:30 +0200
+Message-ID: <1318433078-21641-1-git-send-email-j-pihet@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:51440 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753045Ab1JLPYz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 11:24:55 -0400
+Received: by wyg34 with SMTP id 34so802710wyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Oct 2011 08:24:54 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.co>
+Cc: Jean Pihet <j-pihet@ti.com>
 
-On Wed, Oct 12, 2011 at 2:36 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> For the early console probing we had avoided hwmod reset and idling
->> and uart was idled using hwmod API and enabled back using omap_devic=
-e API
->> after omap_device registration.
->>
->> Now since we are using runtime API's to enable back uart, move hwmod
->> idling and use runtime API to enable back UART.
->>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->
-> Now that the driver is using runtime PM. =A0Why do we still need
-> HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET?
->
-> The comment in the code says:
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * During UART early init, device need=
- to be probed
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * to determine SoC specific init befo=
-re omap_device
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * is ready. =A0Therefore, don't allow=
- idle here
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
->
-> This was true when using the 8250 driver because it was not using
-> runtime PM so could not know how to (re)enable the device.
->
-> However, since the driver is now runtime PM adapted, any device acces=
-s
-> should be contained within a runtime PM get/put block, so there shoul=
-d
-> no longer be a reason not allow the IP blocks to be reset during boot=
-=2E
->
+From: Jean Pihet <j-pihet@ti.com>
 
-=46orgot to add, this is still needed for
-earlyprintk(CONFIG_EARLY_PRINTK) use case,
-
-The initial boot prints until a console driver is available is from
-"arch/arm/kernel/early_printk.c" which does a tx on uart console
-and relies on configuration from bootloader.
-
-during bootup earlyprink does a tx on uart console and if  uart driver
-is not available yet
-uart reset or idle done by hwmod layer can cause boot failures.
-
---> put_char from earlyprintk.c
-     --> reset/idle from hwmod layer
-          --> put_char from earlyprintk.c
+. Convert the OMAP I2C driver to the PM QoS API for MPU latency constraints
+. Remove the remove the latency related functions from OMAP PM in favor of
+  the generic per-device PM QoS API
+. Implement the devices wake-up latency constraints using the global
+  device PM QoS notification handler which applies the constraints to the
+  underlying layer
+. Implement the low level code which controls the power domains next power
+  states, through the hwmod and pwrdm layers
+. Add cpuidle and power domains wake-up latency figures for OMAP3, cf. [1]
+  for the details on where the numbers are coming from
+. Implement the relation between the cpuidle and per-device PM QoS frameworks
+  in the OMAP3 specific idle callbacks.
+  The chosen C-state shall satisfy the following conditions:
+   . the 'valid' field is enabled,
+   . it satisfies the enable_off_mode flag,
+   . the next state for MPU and CORE power domains is not lower than the
+     state programmed by the per-device PM QoS.
 
 
-So console_uart reset or clock gating must be done only after uart
-driver is available or be prevented
-using these available hwmod_flags.
+ToDo:
+1. validate the constraints framework on OMAP4 HW (done on OMAP3)
+2. Re-visit the OMAP power domains states initialization procedure. Currently
+   the power states that have been changed from the constraints API which were
+   applied before the initialization of the power domains are lost
+3. Further clean-up the OMAP PM layer, use the generic frameworks instead (OPP,
+   PM QoS...)
 
-omap_serial_early_init should be now be binded with CONFIG_SERIAL_OMAP =
-macro ?
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Based on the pm-qos branch of the linux-pm git tree (3.1.0-rc3), cf. [2].
+
+Tested on OMAP3 Beagleboard (ES2.x) with constraints on MPU, CORE, PER in
+RETention and OFF modes.
+
+[1] http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
+[2] git://github.com/rjwysocki/linux-pm.git
+
+
+v3: reworked the error return path and improved the kerneldoc
+
+v2: reworked the OMAP specific cpuidle code to demote the initial C-state to
+     a valid C-state which fulfills the per-device constraints
+
+v1: initial version
+
+
+Jean Pihet (8):
+  OMAP: convert I2C driver to PM QoS for latency constraints
+  OMAP: PM: remove the latency related functions from the API
+  OMAP2+: powerdomain: control power domains next state
+  OMAP2+: omap_hwmod: manage the wake-up latency constraints
+  OMAP: PM: register to the per-device PM QoS framework
+  OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and
+    CORE constraints
+  OMAP3: update cpuidle latency and threshold figures
+  OMAP3: powerdomain data: add wake-up latency figures
+
+ Documentation/arm/OMAP/omap_pm               |   55 ++------
+ arch/arm/mach-omap2/cpuidle34xx.c            |   77 ++++++-----
+ arch/arm/mach-omap2/omap_hwmod.c             |   27 ++++-
+ arch/arm/mach-omap2/pm.c                     |   63 ++++++++
+ arch/arm/mach-omap2/pm.h                     |   17 ++-
+ arch/arm/mach-omap2/powerdomain.c            |  200 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h            |   35 +++++-
+ arch/arm/mach-omap2/powerdomains3xxx_data.c  |   78 ++++++++++
+ arch/arm/plat-omap/i2c.c                     |   20 ---
+ arch/arm/plat-omap/include/plat/omap-pm.h    |   99 -------------
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
+ arch/arm/plat-omap/omap-pm-noop.c            |   88 -----------
+ drivers/i2c/busses/i2c-omap.c                |   30 ++--
+ include/linux/i2c-omap.h                     |    1 -
+ 14 files changed, 484 insertions(+), 308 deletions(-)
+
+-- 
+1.7.4.1
+
