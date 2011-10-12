@@ -1,53 +1,93 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Subject: Re: [RFT/PATCH 7/7] arm: omap: smartreflex: micro-optimization for
- sanity check
-Date: Wed, 12 Oct 2011 15:32:17 +0400
-Message-ID: <4E957AC1.904@ru.mvista.com>
-References: <1318249579-4089-1-git-send-email-balbi@ti.com> <1318249579-4089-7-git-send-email-balbi@ti.com> <4E9426F9.2080601@ru.mvista.com> <20111011121922.GM10155@legolas.emea.dhcp.ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 2/5 v13] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Wed, 12 Oct 2011 17:26:00 +0530
+Message-ID: <CAP05o4JndWh3zQyD6mVWzK4pNr+42bDeBm7miiGSCOxqTwyvOA@mail.gmail.com>
+References: <1317901123-2546-1-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1110101835070.5205@utopia.booyaka.com>
+	<CAP05o4+Y3_-mFYdsta4DM7EfkYEq1-6psjvawN5pCWX++8jm8A@mail.gmail.com>
+	<CAP05o4K8BBwh5nbQpuc180WD2=ON+wksEz=gku=Y4GDQzx=BdA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:57421 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751263Ab1JLLdM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 07:33:12 -0400
-In-Reply-To: <20111011121922.GM10155@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAP05o4K8BBwh5nbQpuc180WD2=ON+wksEz=gku=Y4GDQzx=BdA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-Hello.
-
-On 11-10-2011 16:19, Felipe Balbi wrote:
-
->> On 10-10-2011 16:26, Felipe Balbi wrote:
-
->>> val&&   (val != 1) == val>   1
-
->>> Signed-off-by: Felipe Balbi<balbi@ti.com>
->>> ---
->>>   arch/arm/mach-omap2/smartreflex.c |    2 +-
->>>   1 files changed, 1 insertions(+), 1 deletions(-)
-
->>> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
->>> index 7bdabfa..4b0d6a8 100644
->>> --- a/arch/arm/mach-omap2/smartreflex.c
->>> +++ b/arch/arm/mach-omap2/smartreflex.c
->>> @@ -866,7 +866,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
->>>   	}
+On Tue, Oct 11, 2011 at 1:29 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Tue, Oct 11, 2011 at 11:18 AM, Munegowda, Keshava
+> <keshava_mgowda@ti.com> wrote:
+>> On Tue, Oct 11, 2011 at 6:08 AM, Paul Walmsley <paul@pwsan.com> wrot=
+e:
+>>> Hi
 >>>
->>>   	/* Sanity check */
->>> -	if (val&&   (val != 1)) {
->>> +	if (val>   1) {
->>>   		pr_warning("%s: Invalid argument %lld\n", __func__, val);
+>>> so I just noticed another problem with these hwmods:
+>>>
+>>> On Thu, 6 Oct 2011, Keshava Munegowda wrote:
+>>>
+>>>> Following 2 hwmod structures are added
+>>>> =A0 =A0 1. usb_host_hs
+>>>> =A0 =A0 =A0 =A0 =A0The hwmod of usbhs with uhh, ehci and ohci base=
+ addresses
+>>>> =A0 =A0 =A0 =A0 =A0functional clock and ehci, ohci irqs
+>>>>
+>>>> =A0 =A0 2. usb_tll_hs
+>>>> =A0 =A0 =A0 =A0 =A0 hwmod of usbhs with the TLL base address and i=
+rq.
+>>>>
+>>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>>> Reviewed-by: Partha Basak <parthab@india.ti.com>
+>>>> ---
+>>>> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c | =A0227 +++++++++++=
++++++++++++++++++
+>>>> =A01 files changed, 227 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm=
+/mach-omap2/omap_hwmod_3xxx_data.c
+>>>> index 59fdb9f..b8ca690 100644
+>>>> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>>>> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+>>>
+>>> ...
+>>>
+>>>> +static struct omap_hwmod_ocp_if omap34xx_ick_cfg__usb_tll_hs =3D =
+{
+>>>
+>>> This interface is missing a .master and .slave. =A0It must have bot=
+h. =A0So,
+>>> dropping this patch until it's fixed.
+>>>
+>>> Clearly we also need to modify the hwmod code needs to reject any
+>>> instances where either .master or .slave is NULL.
+>>>
+>>>
+>>> - Paul
+>>
+>> Hi Paul
+>> =A0 =A0 =A0 =A0 =A0 I will fix it today only and I will send the upd=
+ated
+>> patches in couple of hours.
+>> please help me to make it in this merge window.
+>>
+>
+>
+> Hi Paul
+> =A0 =A0 =A0I have posted v14 of the patches; please do review
+> if it is OK, please merge to your branch for 3.2 version
+> please let me know if you have any comments here.
+>
+> =A0Thanks and Regards
+> =A0keshava
 
->>     The format specified should be "%llu"?
 
-> and what does that have to do with $SUBJECT ??
+Hi Paul
+requesting to please do review the patch set
+if it is OK, please merge to your branch for 3.2 version
+please let me know if you have any comments.
 
-    Well, nothing. Just an idea for another patch I guess.
-
-WBR, Sergei
-
+regards
+keshava
