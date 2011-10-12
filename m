@@ -1,45 +1,120 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Wed, 12 Oct 2011 12:34:29 +0530
-Message-ID: <20111012070429.GC2080@manju-desktop>
-References: <20111008155502.GB616@kroah.com>
- <361419345.198335.1318268242916.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 7/8] OMAP3: update cpuidle latency and threshold figures
+Date: Wed, 12 Oct 2011 09:29:26 +0200
+Message-ID: <CAORVsuXY637FCX9TuH4F3eLn4VOMBjP_n-kmMpAQs1Po_pFUMA@mail.gmail.com>
+References: <1316621649-3622-1-git-send-email-j-pihet@ti.com>
+	<1316621649-3622-8-git-send-email-j-pihet@ti.com>
+	<CACVXFVOj+S73Mk8C=Ct3tQTip-dbSHCd4M1Y8hJPCE8k=UqECA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <361419345.198335.1318268242916.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Andrei Warkentin <awarkentin@vmware.com>
-Cc: Greg KH <greg@kroah.com>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Dilan Lee <dilee@nvidia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es, Josh Triplett <josh@joshtriplett.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:56787 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752598Ab1JLH31 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 03:29:27 -0400
+Received: by vcbgb30 with SMTP id gb30so306593vcb.19
+        for <linux-omap@vger.kernel.org>; Wed, 12 Oct 2011 00:29:26 -0700 (PDT)
+In-Reply-To: <CACVXFVOj+S73Mk8C=Ct3tQTip-dbSHCd4M1Y8hJPCE8k=UqECA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-On Mon, Oct 10, 2011 at 10:37:22AM -0700, Andrei Warkentin wrote:
+Hi Ming,
+
+On Wed, Oct 12, 2011 at 4:48 AM, Ming Lei <tom.leiming@gmail.com> wrote=
+:
 > Hi,
-> 
-> ----- Original Message -----
-> > From: "Greg KH" <greg@kroah.com>
-> > To: "Josh Triplett" <josh@joshtriplett.org>
-> > Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, "Grant Likely"
-> > <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
-> > "Dilan Lee" <dilee@nvidia.com>, "Mark Brown" <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
-> > Sent: Saturday, October 8, 2011 11:55:02 AM
-> > Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-> > 
-> 
-> I'm a bit of a fly on the wall here, but I'm curious how this impacts suspend/resume.
-> device_initialize->device_pm_init are called from device_register, so certainly this
-> patch doesn't also ensure that the PM ordering matches probe ordering, which is bound
-> to break suspend, right? Was this ever tested with the OMAP target? Shouldn't the
-> PM change be also part of this patch set? I don't see why you would want to have this in
-> without the PM changes.
+>
+> On Thu, Sep 22, 2011 at 12:14 AM, Jean Pihet <jean.pihet@newoldbits.c=
+om> wrote:
+>> Update the data from the measurements performed at HW and SW levels.
+>>
+>> Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_=
+Measurement
+>> for a detailed explanation on where are the numbers magically coming=
+ from.
+>>
+>> ToDo:
+>> - Measure the wake-up latencies for all power domains for OMAP3
+>> - Correct some numbers when sys_clkreq and sys_offmode are supported
+>>
+>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+>> ---
+>> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0 28 ++++++++++++++--------=
+------
+>> =A01 files changed, 14 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2=
+/cpuidle34xx.c
+>> index 1b8e0da..4b3e994 100644
+>> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+>> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+>> @@ -44,20 +44,20 @@
+>> =A0* pass these details from the board file.
+>> =A0*/
+>> =A0static struct cpuidle_params cpuidle_params_table[] =3D {
+>> - =A0 =A0 =A0 /* C1 */
+>> - =A0 =A0 =A0 {2 + 2, 5, 1},
+>> - =A0 =A0 =A0 /* C2 */
+>> - =A0 =A0 =A0 {10 + 10, 30, 1},
+>> - =A0 =A0 =A0 /* C3 */
+>> - =A0 =A0 =A0 {50 + 50, 300, 1},
+>> - =A0 =A0 =A0 /* C4 */
+>> - =A0 =A0 =A0 {1500 + 1800, 4000, 1},
+>> - =A0 =A0 =A0 /* C5 */
+>> - =A0 =A0 =A0 {2500 + 7500, 12000, 1},
+>> - =A0 =A0 =A0 /* C6 */
+>> - =A0 =A0 =A0 {3000 + 8500, 15000, 1},
+>> - =A0 =A0 =A0 /* C7 */
+>> - =A0 =A0 =A0 {10000 + 30000, 300000, 1},
+>> + =A0 =A0 =A0 /* C1 . MPU WFI + Core active */
+>> + =A0 =A0 =A0 {73 + 78, 152, 1},
+>> + =A0 =A0 =A0 /* C2 . MPU WFI + Core inactive */
+>> + =A0 =A0 =A0 {165 + 88, 345, 1},
+>> + =A0 =A0 =A0 /* C3 . MPU CSWR + Core inactive */
+>> + =A0 =A0 =A0 {163 + 182, 345, 1},
+>> + =A0 =A0 =A0 /* C4 . MPU OFF + Core inactive */
+>> + =A0 =A0 =A0 {2852 + 605, 150000, 1},
+>> + =A0 =A0 =A0 /* C5 . MPU RET + Core RET */
+>> + =A0 =A0 =A0 {800 + 366, 2120, 1},
+>
+> C4 exit_latency is longer than C5's, not sure if it is correct?
+Since MPU is OFF in C4 the impact is bigger in latency. In MPU OFF
+mode the caches and MPU context are saved and later restored, which is
+costly.
 
-suspend/resume handling is already in TODO list:
-http://permalink.gmane.org/gmane.linux.ports.arm.kernel/135461
+Thanks for the review!
 
--M
+Regards,
+Jean
 
-> 
-> Maybe I have it all wrong though :-).
-> 
-> A
+>
+>> + =A0 =A0 =A0 /* C6 . MPU OFF + Core RET */
+>> + =A0 =A0 =A0 {4080 + 801, 215000, 1},
+>> + =A0 =A0 =A0 /* C7 . MPU OFF + Core OFF */
+>> + =A0 =A0 =A0 {4300 + 13000, 215000, 1},
+>> =A0};
+>> =A0#define OMAP3_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
+>>
+>> --
+>> 1.7.4.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> thanks,
+> --
+> Ming Lei
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
