@@ -1,90 +1,55 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 09/16] OMAP2+: UART: Add runtime pm support for
-	omap-serial driver
-Date: Thu, 13 Oct 2011 06:58:48 +0530
-Message-ID: <CAAL8m4yrXo4KRYxXxWECU99B6--FCMBDFUbNk+vsBV0Jnt0bcg@mail.gmail.com>
-References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
-	<1317380495-584-9-git-send-email-govindraj.raja@ti.com>
-	<878voplppo.fsf@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+Date: Wed, 12 Oct 2011 22:09:23 -0600
+Message-ID: <20111013040923.GE15829@ponder.secretlab.ca>
+References: <20111008155502.GB616@kroah.com>
+ <361419345.198335.1318268242916.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
+ <CACVXFVMnt-ChUDhawhoyMm-wJ8xSQAWs1c8ykzmyshfX49HEsw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <878voplppo.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACVXFVMnt-ChUDhawhoyMm-wJ8xSQAWs1c8ykzmyshfX49HEsw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 13, 2011 at 5:36 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
-> [...]
->
->> Use device_may_wakeup to check whether uart has wakeup capabilities
->> and then enable uart runtime usage for the uart.
->
-> Curious about what happens when device_may_wakeup() is not set during
-> device init.
->
-> [...]
->
->> @@ -1305,6 +1363,16 @@ static int serial_omap_probe(struct platform_devi=
-ce *pdev)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->uart_dma.rx_dma_channel =3D OMAP_UART_DM=
-A_CH_FREE;
->> =A0 =A0 =A0 }
->>
->> + =A0 =A0 pm_runtime_use_autosuspend(&pdev->dev);
->> + =A0 =A0 pm_runtime_set_autosuspend_delay(&pdev->dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_UART_AUTOSUSPEND_DELAY);
->> +
->> + =A0 =A0 pm_runtime_irq_safe(&pdev->dev);
->> + =A0 =A0 if (device_may_wakeup(&pdev->dev)) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_enable(&pdev->dev);
->
-> So if device_may_wakeup() is false, runtime PM is not enabled, then...
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(&pdev->dev);
->
-> ...this get doesn't happen, and the first register access causes a crash.
+On Tue, Oct 11, 2011 at 08:29:18PM +0800, Ming Lei wrote:
+> On Tue, Oct 11, 2011 at 1:37 AM, Andrei Warkentin <awarkentin@vmware.com> wrote:
+> > Hi,
+> >
+> > ----- Original Message -----
+> >> From: "Greg KH" <greg@kroah.com>
+> >> To: "Josh Triplett" <josh@joshtriplett.org>
+> >> Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, linux-arm-kernel@lists.infradead.org, "Grant Likely"
+> >> <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org,
+> >> "Dilan Lee" <dilee@nvidia.com>, "Mark Brown" <broonie@opensource.wolfsonmicro.com>, Manjunath@jasper.es
+> >> Sent: Saturday, October 8, 2011 11:55:02 AM
+> >> Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+> >>
+> >
+> > I'm a bit of a fly on the wall here, but I'm curious how this impacts suspend/resume.
+> > device_initialize->device_pm_init are called from device_register, so certainly this
+> > patch doesn't also ensure that the PM ordering matches probe ordering, which is bound
+> > to break suspend, right? Was this ever tested with the OMAP target? Shouldn't the
+> 
+> Inside device_add(), device_pm_add is called before bus_probe_device,
+> so the patch can't change the device order in pm list, and just change
+> the driver probe order.
 
-Actually no crash, clocks will left enabled from boot up (hwmod_no_reset/id=
-le)
-that are idled and enabled back here.
+That's the way it works now, but can it be reworked?  It would be
+possible to adjust the list order after successful probe.  However,
+I'm not clear on the ordering rules for the dpm_list.  Right now it is
+explicitly ordered to have parents before children, but as already
+expressed, that doesn't accurately represent ordering constraints for
+multiple device dependancies.
 
-Since hwmod_idle is binded here later ([PATCH v6 15/16]),
+So, reordering the list would probably require maintaining the
+existing parent-child ordering constraint, but to also shift
+devices (and any possible children?) to be after drivers that are
+already probed.  That alone will be difficult to implement and get
+right, but maybe the constraints can be simplified.  It needs some
+further thought.
 
->
-> So either this get isn't needed, because there is no device access in
-> this path, or this path is broken and needs validation.
->
->> + =A0 =A0 }
->> +
->> =A0 =A0 =A0 ui[pdev->id] =3D up;
->> =A0 =A0 =A0 serial_omap_add_console_port(up);
->>
->> @@ -1312,6 +1380,7 @@ static int serial_omap_probe(struct platform_devic=
-e *pdev)
->> =A0 =A0 =A0 if (ret !=3D 0)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto do_release_region;
->>
->> + =A0 =A0 pm_runtime_put(&pdev->dev);
->
-> ...also, this put is not balanced with a corresponding get.
-
-this needs to happen only when runtime is enabled.
-
-will correct this.
-
---
-Thanks,
-Govindraj.,R
+g.
