@@ -1,73 +1,51 @@
 From: Grant Likely <grant.likely@secretlab.ca>
 Subject: Re: [PATCH 3.1-rc3] gpio/omap: fix build error with certain OMAP1
  configs
-Date: Thu, 13 Oct 2011 11:42:55 -0600
-Message-ID: <20111013174255.GH18574@ponder.secretlab.ca>
+Date: Thu, 13 Oct 2011 11:47:48 -0600
+Message-ID: <20111013174748.GI18574@ponder.secretlab.ca>
 References: <201108231342.25101.jkrzyszt@tis.icnet.pl>
- <87sjoshx2k.fsf@ti.com>
- <201110071430.14420.jkrzyszt@tis.icnet.pl>
- <alpine.DEB.2.00.1110102356530.7624@dell>
- <87fwiz8okk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87fwiz8okk.fsf@ti.com>
+In-Reply-To: <201108231342.25101.jkrzyszt@tis.icnet.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Oct 11, 2011 at 09:45:15AM -0700, Kevin Hilman wrote:
-> Aaro Koskinen <aaro.koskinen@iki.fi> writes:
->=20
-> > Hi,
-> >
-> > On Fri, 7 Oct 2011, Janusz Krzysztofik wrote:
-> >> Dnia wtorek, 23 sierpnia 2011 o 19:11:47 Kevin Hilman napisa=C5=82=
-(a):
-> >>> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> writes:
-> >>>> With commit f64ad1a0e21a, "gpio/omap: cleanup _set_gpio_wakeup()=
-, remove
-> >>>> ifdefs", access to build time conditionally omitted 'suspend_wak=
-eup'
-> >>>> member of the 'gpio_bank' structure has been placed unconditiona=
-lly in
-> >>>> function _set_gpio_wakeup(), which is always built. This resulte=
-d in the
-> >>>> driver compilation broken for certain OMAP1, i.e., non-OMAP16xx,
-> >>>> configurations.
-> >>>>
-> >>>> Really required or not in previously excluded cases, define this
-> >>>> structure member unconditionally as a fix.
-> >>>>
-> >>>> Tested with a custom OMAP1510 only configuration.
-> >>>>
-> >>>> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> >>>
-> >>> Verified that this fixes a build problem when building for OMAP1
-> >>> (730/850 only)
-> >>>
-> >>> Acked-by: Kevin Hilman <khilman@ti.com>
-> >
-> > Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
-> >
-> >>> Grant, can you queue this as a fix for 3.1-rc?
-> >>
-> >> Sorry for being so late with checking this, but it looks like this=
- patch
-> >> never got into 3.1-rc, as it should, leaving the issue not fixed.
-> >> Any chance for it still being pushed into 3.1?
-> >
-> > This patch is one-liner, and still needed to get 3.1-rc9 compiled a=
-nd
-> > running on e.g. Amstrad E3, so I think it should get into 3.1.
->=20
-> Grant?
+On Tue, Aug 23, 2011 at 01:42:24PM +0200, Janusz Krzysztofik wrote:
+> With commit f64ad1a0e21a, "gpio/omap: cleanup _set_gpio_wakeup(), remove 
+> ifdefs", access to build time conditionally omitted 'suspend_wakeup' 
+> member of the 'gpio_bank' structure has been placed unconditionally in 
+> function _set_gpio_wakeup(), which is always built. This resulted in the 
+> driver compilation broken for certain OMAP1, i.e., non-OMAP16xx, 
+> configurations.
+> 
+> Really required or not in previously excluded cases, define this 
+> structure member unconditionally as a fix.
+> 
+> Tested with a custom OMAP1510 only configuration.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-I'll pick this up now and send it on to Linus
+Applied, thanks.
 
 g.
 
->=20
+> ---
+>  drivers/gpio/gpio-omap.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- git/drivers/gpio/gpio-omap.c.orig	2011-08-22 08:34:02.000000000 +0200
+> +++ git/drivers/gpio/gpio-omap.c	2011-08-23 12:47:36.000000000 +0200
+> @@ -34,8 +34,8 @@ struct gpio_bank {
+>  	u16 irq;
+>  	u16 virtual_irq_start;
+>  	int method;
+> -#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+>  	u32 suspend_wakeup;
+> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
+>  	u32 saved_wakeup;
+>  #endif
+>  	u32 non_wakeup_gpios;
