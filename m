@@ -1,86 +1,33 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
-Date: Thu, 13 Oct 2011 10:51:54 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110131047110.24155@utopia.booyaka.com>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-	<1316781986-30642-4-git-send-email-t-kristo@ti.com>
-	<alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com>
-	<4E934D79.4080000@ti.com>
-	<alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
-	<4E936F0E.9050203@ti.com>
-	<alpine.DEB.2.00.1110101725140.5205@utopia.booyaka.com>
-	<4E954CDA.10107@ti.com>
-	<alpine.DEB.2.00.1110131033410.24155@utopia.booyaka.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH v2 5/5] regulator: map consumer regulator based on device
+ tree
+Date: Thu, 13 Oct 2011 17:52:15 +0100
+Message-ID: <20111013165214.GP5193@opensource.wolfsonmicro.com>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
+ <1318263578-7407-6-git-send-email-rnayak@ti.com>
+ <20111010173506.GH3607@opensource.wolfsonmicro.com>
+ <CACYZBRFmLEY_f1UwJa5U9uj8+NVA-WfUVkiuW1yKrpwnrA_00A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1110131033410.24155@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CACYZBRFmLEY_f1UwJa5U9uj8+NVA-WfUVkiuW1yKrpwnrA_00A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, 13 Oct 2011, Paul Walmsley wrote:
+On Tue, Oct 11, 2011 at 12:38:53PM +0530, Nayak, Rajendra wrote:
 
-> On Wed, 12 Oct 2011, Cousson, Benoit wrote:
-> 
-> > On 10/11/2011 1:26 AM, Paul Walmsley wrote:
-> > > On Tue, 11 Oct 2011, Cousson, Benoit wrote:
-> > > 
-> > > > In fact the device name does not have to match the hwmod name. So we 
-> > > > can just create an "omap2_prm" omap_device for OMAP2, "omap3_prm" 
-> > > > omap_device for OMAP3... That will allow the relevant PRM driver to 
-> > > > be bound to the proper device.
-> > > 
-> > > Incidentally, given that we would be using the hwmod name and the version
-> > > number to determine the appropriate omap_device name, what IP version
-> > > numbers should we assign to these PRM IP blocks for different SoCs?
-> > 
-> > It can just be 1, 2 and 3... The idea is just to differentiate the IP for each
-> > OMAP.
-> 
-> So those are basically arbitrary?  Something is not clear here.
-> 
-> In the current hwmod design, IP blocks with different interfaces were 
-> intended to be uniquely identified by the hwmod name alone.  That is why 
-> omap_hwmod_lookup() only takes a 'name' parameter.
-> 
-> If I understand what you want to do, you wish to change this to uniquely 
-> identify them by a (name, interface version number) tuple.
-> 
-> I don't have a problem with this in theory, but it implies some changes to 
-> the existing model.  Specifically:
-> 
-> - we'll need to add an interface version number to the struct omap_hwmod
-> 
-> - we'll need to modify omap_hwmod_lookup() to take an interface version 
-> number
-> 
-> - the "ti,hwmod" DT binding that you proposed earlier will need to include 
-> an interface version number
+> How about this updated patch?
 
-Hmm, reflecting on this further, is your intention to bind drivers to 
-hwmods by the struct omap_hwmod_class instead?
-
-If we define that "rev" field as the interface version number, that should 
-probably work.
-
-So then in C struct format, in a platform_device system, the mapping table 
-would basically become
-
-struct omap_hwmod_driver_map {
-	const char *class_name;
-	const u32 class_rev;
-	const char *platform_device_name;
-}
-
-- Paul
+Yes, I think that looks broadly sensible.
