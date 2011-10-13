@@ -1,122 +1,139 @@
 From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
-Date: Thu, 13 Oct 2011 06:39:18 +0530
-Message-ID: <CAAL8m4zAOw9=qFCYV6-FxqGxQKwNZf71McCUtXSxoFMdOqz5PA@mail.gmail.com>
+Subject: Re: [PATCH v6 14/16] OMAP2+: UART: Take console_lock in suspend path
+ if not taken
+Date: Thu, 13 Oct 2011 06:41:37 +0530
+Message-ID: <CAAL8m4zacdFDLKSe67_4-pLPZN2Sxp92OaFvre2oxXJZW-+z_w@mail.gmail.com>
 References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
- <87vcrv2xox.fsf@ti.com> <CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
- <87wrcangkq.fsf@ti.com>
+ <1317380561-661-5-git-send-email-govindraj.raja@ti.com> <87sjmz1hfm.fsf@ti.com>
+ <CAAL8m4zrveqqS3vq=dqMkS2gT24_=1UO+ukbxnQVf+AX4TBaVQ@mail.gmail.com> <87mxd5n55y.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87wrcangkq.fsf@ti.com>
+In-Reply-To: <87mxd5n55y.fsf@ti.com>
 Sender: linux-serial-owner@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 13, 2011 at 1:11 AM, Kevin Hilman <khilman@ti.com> wrote:
+On Thu, Oct 13, 2011 at 5:17 AM, Kevin Hilman <khilman@ti.com> wrote:
 > Govindraj <govindraj.ti@gmail.com> writes:
 >
->> On Tue, Oct 11, 2011 at 11:54 PM, Kevin Hilman <khilman@ti.com> wrot=
+>> On Wed, Oct 12, 2011 at 12:31 AM, Kevin Hilman <khilman@ti.com> wrot=
 e:
 >>> "Govindraj.R" <govindraj.raja@ti.com> writes:
 >>>
->>>> Modify the omap_uart_can_sleep function to check uart is active
->>>> or not to be used by pm code to enter low power states.
->>>
->>> Doesn't the driver now control when the UART clocks are gated (usin=
-g
->>> runtime PM autosuspend)?
->>>
->>> IMO, this check should be completely removed and the driver should
->>> be managing this with the autosuspend timeout.
->>>
->>>> Removing this check can cause console response little sluggish.
->>>
->>> Sluggish in what way?
->>>
->>
->> response is slower like when we type something or cat debugfs/pm_cou=
-nt
->> see things little slower on console, there is no character loss.
->>
->> Happens even though we have not set the autosuspend timeout and uart
->> clocks are active, which basically means allowing mpu to enter
->> retention keeping uart active.
->
-> OK, I see now.
->
->> this delay in response or sluggishness is not there on my 3430SDP or
->> 3630zoom board but I was able to see this behavior on a beagle
->> board(xm rev c).
->
-> Here's why:
->
-> The difference is the powerdomain that the console UART is on for the=
-se
-> boards. =A0UART1,2 are in CORE, UART2/3 are in PER. =A0 SDP uses UART=
-1 (CORE),
-> Zoom3 doesn't use OMAP UARTs at all, and Beagle uses UART3 (PER).
->
-> Due to a HW sleepdep between MPU and CORE, MPU will not transition un=
-til
-> CORE does, which means MPU will not transition until UART 1 & 2 are
-> idle.
->
-> On Beagle, the console is ttyO2 (UART3) which is in PER, and since th=
-e
-> MPU is free to transition independently of PER, that is what is
-> happening, resulting in slower response time on for any boards that h=
-ave
-> PER-UART consoles.
->
->> retaining this uart_can_sleep check in omap3_can_sleep ensures a bet=
+>>>> In suspend path the console_lock is taken by uart_port_suspend
+>>>> however when no_console_suspend is used console_lock is not taken.
+>>>>
+>>>> During system wide suspend omap_pwr_domain hooks cut all
+>>>> clocks that are left enabled. So its unsafe to proceed printing af=
 ter
->> console user experience. (not allowing mpu to enter retention
->> until uart clocks are cut)
+>>>> clocks are cut by pwr_domain hooks.
+>>>
+>>> As I've mentioned in previous reviews, when no_console_suspend is
+>>> enabled, the user has explicitly requested console output during
+>>> suspend. =A0In order to support that, we should not be cutting cloc=
+ks at
+>>> all in that mode.
+>>>
+>>> One way to address this would be to just disable runtime PM in the
+>>> ->prepare method of the driver if no_console_suspend is enabled.
+>>>
+>>
+>> Okay fine exploring this option, right API's would be to use
+>> pm_runtime_forbid/allow.
 >
-> Yes, but obviously comes at the expense of power savings. =A0IOW, Thi=
-s is
-> a hard-coded power vs. performance trade off that we are trying to ge=
-t
-> away from.
+> Yes.
 >
-> So, the root of the problem is that the MPU wakeup latency is causing=
- a
-> "sluggish" console. =A0The solution? =A0request an MPU wakeup latency
-> constraint.
+>> <<SNIP>>
+>>
+>> +static int serial_omap_runtime_prepare(struct device *dev)
+>> +{
+>> + =A0 =A0 =A0 if (!console_suspend_enabled)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_forbid(dev);
+>> +
+>> + =A0 =A0 =A0 return 0;
+>> +}
+>> +
+>> +static void serial_omap_runtime_complete(struct device *dev)
+>> +{
+>> + =A0 =A0 =A0 if (!console_suspend_enabled)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_allow(dev);
+>> +}
+>> +
+>> =A0static const struct dev_pm_ops serial_omap_dev_pm_ops =3D {
+>> =A0 =A0 =A0 =A0 SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_=
+omap_resume)
+>> =A0 =A0 =A0 =A0 SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 seri=
+al_omap_runtime_resume, NULL)
+>> + =A0 =A0 =A0 .prepare =3D serial_omap_runtime_prepare,
+>> + =A0 =A0 =A0 .complete =3D =A0serial_omap_runtime_complete,
+>> =A0};
 >
+> OK, but please add comments to these functions about exactly why they
+> are needed.
+>
+>>
+>> But to either use runtime forbid or disable we have ensure that
+>> power_domain hooks don't go ahead and disable
+>> the clocks with omap_device_idle as *runtime forbid or disable will
+>> not set runtime_status to RPM_SUSPENDED*
+>> and will stay in RPM_ACTIVE if we call runtime disable or forbid fro=
+m
+>> active state.
+>
+> Correct.
+>
+>> in power_domain hooks we just check the pm_runtime_status_suspended
+>> this will be false even if
+>> we do runtime disable/forbid and it will cut uart clocks always.
+>>
+>> So we may need below check also:
+>>
+>> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/o=
+map_device.c
+>> index 26aee5c..286a534 100644
+>> --- a/arch/arm/plat-omap/omap_device.c
+>> +++ b/arch/arm/plat-omap/omap_device.c
+>> @@ -592,7 +592,8 @@ static int _od_suspend_noirq(struct device *dev)
+>>
+>> =A0 =A0 =A0 =A0 ret =3D pm_generic_suspend_noirq(dev);
+>>
+>> - =A0 =A0 =A0 if (!ret && !pm_runtime_status_suspended(dev)) {
+>> + =A0 =A0 =A0 if (!ret && pm_runtime_enabled(dev) &&
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 !pm_runtime_status_sus=
+pended(dev)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pm_generic_runtime_suspend(dev) =
+=3D=3D 0) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_device_idle(pde=
+v);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 od->flags |=3D OMAP_=
+DEVICE_SUSPENDED;
+>
+> This isn't right either because devices that may not yet be initializ=
+ed
+> (or loaded) may not have runtime PM enabled, so those devices may not
+> be properly idled.
+>
+> We have an omap_device API to disable this feature at the PM domain l=
+evel:
+> omap_device_disable_idle_on_suspend(). =A0All you should have to do i=
+s to
+> use this API in the device init code on the console UART if
+> no_console_suspend has been enabled.
 
-Okay, Will explore this.
 
-> This is a classic use-case for such a constraint, and the serial driv=
-er
-> should have the option of requesting a constraint to prevent the slug=
-gish
-> console. =A0The constraint only needs to be held until the auto-suspe=
-nd
-> delay expires, so should be relased in the ->runtime_suspend() method=
- of
-> the driver.
->
-> This constraint needs to be configurable, probably from the board fil=
-e,
-> so that it is optional, and so users who don't care about sluggish
-> consoles (or non-console UART users who don't care about response tim=
-e)
-> have the option of preferring power savings over UART responsiveness.
->
-> As a reference, the i2c driver is currently doing something similar
-> in that it request an MPU constraint to prevent the MPU from going in=
-to
-> retention/off while waiting for an i2c interrupt to arrive.
->
+Yes seems okay to me,
 
-Thanks, will check and try to use the mpu constraints
+Will check if no_console_suspend is used then set
+omap_device_disable_idle_on_suspend
+in serial.c.
 
 --
-Govindraj.R.
+Thanks,
+Govindraj.R
 --
 To unsubscribe from this list: send the line "unsubscribe linux-serial"=
  in
