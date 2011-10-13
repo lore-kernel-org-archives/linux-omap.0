@@ -1,40 +1,166 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Thu, 13 Oct 2011 12:04:25 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1110131202350.2026-100000@iolanthe.rowland.org>
-References: <CACVXFVMoac7psbfO6UdDvNux4c8bQYS4YNUdz1C-o+CiJzyuZA@mail.gmail.com>
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH v2] arm: omap: Fix errors and warnings when building for one board
+Date: Thu, 13 Oct 2011 21:44:10 +0530
+Message-ID: <1318522450-18425-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CACVXFVMoac7psbfO6UdDvNux4c8bQYS4YNUdz1C-o+CiJzyuZA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM List <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:32901 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755260Ab1JMQOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Oct 2011 12:14:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Thu, 13 Oct 2011, Ming Lei wrote:
+When customizing omap2plus_defconfig to build for only
+one board (omap3evm), I came across these warnings and
+errors (filenames truncated):
 
-> Hi,
-> 
-> On Thu, Oct 13, 2011 at 10:31 PM, Alan Stern <stern@rowland.harvard.edu>
-> >> Maybe we should understand the correct model of the ordering constraints
-> >> for the multiple device dependancies first, could you give a description or
-> >> some examples about it?
-> >
-> > The requirement is that devices must be capable of resuming in the
-> > order given by dpm_list, and they must be capable of suspending in
-> > the reverse order.
-> >
-> > Therefore if device A can't work unless device B is functional, then B
-> > must come before A in dpm_list.
-> 
-> If all devices can support async suspend and resume correctly, looks like
-> the device order given by dpm_list is not needed any longer, doesn't it?
+arch/arm/mach-omap2/board-generic.c:76:20: warning: 'omap4_init' defined but not used
+arch/arm/mach-omap2/built-in.o: In function `omap2420_init_early':
+arch/arm/mach-omap2/io.c:364: undefined reference to `omap2_set_globals_242x'
+arch/arm/mach-omap2/io.c:366: undefined reference to `omap2xxx_voltagedomains_init'
+arch/arm/mach-omap2/io.c:367: undefined reference to `omap242x_powerdomains_init'
+arch/arm/mach-omap2/io.c:368: undefined reference to `omap242x_clockdomains_init'
+arch/arm/mach-omap2/io.c:369: undefined reference to `omap2420_hwmod_init'
+arch/arm/mach-omap2/built-in.o: In function `omap2430_init_early':
+arch/arm/mach-omap2/io.c:376: undefined reference to `omap2_set_globals_243x'
+arch/arm/mach-omap2/io.c:378: undefined reference to `omap2xxx_voltagedomains_init'
+arch/arm/mach-omap2/io.c:379: undefined reference to `omap243x_powerdomains_init'
+arch/arm/mach-omap2/io.c:380: undefined reference to `omap243x_clockdomains_init'
+arch/arm/mach-omap2/io.c:381: undefined reference to `omap2430_hwmod_init'
+arch/arm/mach-omap2/built-in.o: In function `omap4430_init_early':
+arch/arm/mach-omap2/io.c:436: undefined reference to `omap2_set_globals_443x'
+arch/arm/mach-omap2/io.c:438: undefined reference to `omap44xx_voltagedomains_init'
+arch/arm/mach-omap2/io.c:439: undefined reference to `omap44xx_powerdomains_init'
+arch/arm/mach-omap2/io.c:440: undefined reference to `omap44xx_clockdomains_init'
+arch/arm/mach-omap2/io.c:441: undefined reference to `omap44xx_hwmod_init'
 
-It _is_ needed, because the user can disable async suspend/resume via 
-/sys/power/pm_async.
+This patch fixes them.
 
-Also, not all devices do support async suspend/resume.
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
 
-Alan Stern
+ Changes since v1:
+    - #if defined() to #ifdef
+    - Moved an #ifdef to take care of additional warning
+      related to sdp4430_twldata. Had missed squashing the
+      patch before sending v1.
+
+ Adding ifdefs makes the code bit ugly and is prone to propagate
+ further. Not sure if DT will help here, but this patch would be
+ useful for people trying to build for individual boards.
+
+ Compile tested for OMAP3EVM.
+
+ Applies to linux-omap/master at:
+   fb4df0f : ARM: OMAP1: Fix warnings about enabling 32 KiHz timer
+
+
+ arch/arm/mach-omap2/board-generic.c |    8 ++++++++
+ arch/arm/mach-omap2/io.c            |    6 ++++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index d9ccb9d..b36003f 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -29,6 +29,7 @@
+  * XXX: Still needed to boot until the i2c & twl driver is adapted to
+  * device-tree
+  */
++#ifdef CONFIG_ARCH_OMAP4
+ static struct twl4030_platform_data sdp4430_twldata = {
+ 	.irq_base	= TWL6030_IRQ_BASE,
+ 	.irq_end	= TWL6030_IRQ_END,
+@@ -38,16 +39,19 @@ static void __init omap4_i2c_init(void)
+ {
+ 	omap4_pmic_init("twl6030", &sdp4430_twldata);
+ }
++#endif
+ 
+ static struct twl4030_platform_data beagle_twldata = {
+ 	.irq_base	= TWL4030_IRQ_BASE,
+ 	.irq_end	= TWL4030_IRQ_END,
+ };
+ 
++#ifdef CONFIG_ARCH_OMAP3
+ static void __init omap3_i2c_init(void)
+ {
+ 	omap3_pmic_init("twl4030", &beagle_twldata);
+ }
++#endif
+ 
+ static struct of_device_id omap_dt_match_table[] __initdata = {
+ 	{ .compatible = "simple-bus", },
+@@ -73,17 +77,21 @@ static void __init omap_generic_init(void)
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
+ 
++#ifdef CONFIG_ARCH_OMAP4
+ static void __init omap4_init(void)
+ {
+ 	omap4_i2c_init();
+ 	omap_generic_init();
+ }
++#endif
+ 
++#ifdef CONFIG_ARCH_OMAP3
+ static void __init omap3_init(void)
+ {
+ 	omap3_i2c_init();
+ 	omap_generic_init();
+ }
++#endif
+ 
+ #if defined(CONFIG_SOC_OMAP2420)
+ static const char *omap242x_boards_compat[] __initdata = {
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index aa96538..08c30c1 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -359,6 +359,7 @@ static void __init omap_hwmod_init_postsetup(void)
+ 	omap_pm_if_early_init();
+ }
+ 
++#ifdef CONFIG_ARCH_OMAP2
+ void __init omap2420_init_early(void)
+ {
+ 	omap2_set_globals_242x();
+@@ -382,11 +383,13 @@ void __init omap2430_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap2430_clk_init();
+ }
++#endif
+ 
+ /*
+  * Currently only board-omap3beagle.c should call this because of the
+  * same machine_id for 34xx and 36xx beagle.. Will get fixed with DT.
+  */
++#ifdef CONFIG_ARCH_OMAP3
+ void __init omap3_init_early(void)
+ {
+ 	omap2_set_globals_3xxx();
+@@ -430,7 +433,9 @@ void __init ti816x_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap3xxx_clk_init();
+ }
++#endif
+ 
++#ifdef CONFIG_ARCH_OMAP4
+ void __init omap4430_init_early(void)
+ {
+ 	omap2_set_globals_443x();
+@@ -442,6 +447,7 @@ void __init omap4430_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap4xxx_clk_init();
+ }
++#endif
+ 
+ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1)
+-- 
+1.7.0.4
 
