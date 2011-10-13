@@ -1,59 +1,41 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 22/27] cbus: tahvo: drop static global pointer
-Date: Thu, 13 Oct 2011 11:34:57 +0300
-Message-ID: <1318494902-13093-22-git-send-email-balbi@ti.com>
+Subject: [PATCH 16/27] cbus: tahvo: usb: drop unused variable
+Date: Thu, 13 Oct 2011 11:34:51 +0300
+Message-ID: <1318494902-13093-16-git-send-email-balbi@ti.com>
 References: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:44767 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753840Ab1JMIfv (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:50064 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753918Ab1JMIfj (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Oct 2011 04:35:51 -0400
-Received: by mail-bw0-f53.google.com with SMTP id zt12so1277410bkb.12
-        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:50 -0700 (PDT)
+	Thu, 13 Oct 2011 04:35:39 -0400
+Received: by mail-bw0-f45.google.com with SMTP id t2so1237595bka.4
+        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:38 -0700 (PDT)
 In-Reply-To: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-that's not used anywhere anymore. We can
-safely drop it.
+no functional changes.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/tahvo.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ drivers/cbus/tahvo-usb.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index 784431c..43f6d6a 100644
---- a/drivers/cbus/tahvo.c
-+++ b/drivers/cbus/tahvo.c
-@@ -56,8 +56,6 @@ struct tahvo {
- 	unsigned int	is_betty:1;
- };
+diff --git a/drivers/cbus/tahvo-usb.c b/drivers/cbus/tahvo-usb.c
+index 10619a8..e078440 100644
+--- a/drivers/cbus/tahvo-usb.c
++++ b/drivers/cbus/tahvo-usb.c
+@@ -116,7 +116,6 @@ static struct platform_device *tahvo_otg_dev;
  
--static struct tahvo *the_tahvo;
--
- /**
-  * __tahvo_read_reg - Reads a value from a register in Tahvo
-  * @tahvo: pointer to tahvo structure
-@@ -334,7 +332,6 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
- 	tahvo->irq_end	= ret + MAX_TAHVO_IRQ_HANDLERS;
- 	tahvo->dev	= &pdev->dev;
- 	tahvo->irq	= irq;
--	the_tahvo	= tahvo;
+ static irqreturn_t omap_otg_irq(int irq, void *arg)
+ {
+-	struct tahvo_usb *tu = arg;
+ 	u16 otg_irq;
  
- 	tahvo_irq_init(tahvo);
- 
-@@ -388,7 +385,6 @@ static int __devexit tahvo_remove(struct platform_device *pdev)
- 	free_irq(irq, 0);
- 	irq_free_descs(tahvo->irq_base, MAX_TAHVO_IRQ_HANDLERS);
- 	kfree(tahvo);
--	the_tahvo = NULL;
- 
- 	return 0;
- }
+ 	otg_irq = omap_readw(OTG_IRQ_SRC);
 -- 
 1.7.6.396.ge0613
 
