@@ -1,61 +1,75 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 17/27] cbus: tahvo: no need to mask interrupts on exit
-Date: Thu, 13 Oct 2011 11:34:52 +0300
-Message-ID: <1318494902-13093-17-git-send-email-balbi@ti.com>
+Subject: [PATCH 19/27] cbus: tahvo: drop more unused interfaces
+Date: Thu, 13 Oct 2011 11:34:54 +0300
+Message-ID: <1318494902-13093-19-git-send-email-balbi@ti.com>
 References: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:59041 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753918Ab1JMIfl (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:58766 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753904Ab1JMIfp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Oct 2011 04:35:41 -0400
-Received: by mail-bw0-f46.google.com with SMTP id zt4so1495500bkb.33
-        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:40 -0700 (PDT)
+	Thu, 13 Oct 2011 04:35:45 -0400
+Received: by bkat2 with SMTP id t2so1426004bka.18
+        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:43 -0700 (PDT)
 In-Reply-To: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-the children will be unloaded first and they
-will make sure to mask their own IRQ.
-
-While at that, also move subsys_init_call()
-close to tahvo_init().
+we have the IRQ chip which is the standard
+way of handling IRQs.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/tahvo.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ drivers/cbus/tahvo.c |   34 ----------------------------------
+ 1 files changed, 0 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index d92a05d..ab6e7ea 100644
+index 2597672..8192a24 100644
 --- a/drivers/cbus/tahvo.c
 +++ b/drivers/cbus/tahvo.c
-@@ -470,8 +470,6 @@ static int __devexit tahvo_remove(struct platform_device *pdev)
- 
- 	irq = platform_get_irq(pdev, 0);
- 
--	/* Mask all TAHVO interrupts */
--	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, 0xffff);
- 	free_irq(irq, 0);
- 	irq_free_descs(tahvo->irq_base, MAX_TAHVO_IRQ_HANDLERS);
- 	kfree(tahvo);
-@@ -491,13 +489,12 @@ static int __init tahvo_init(void)
- {
- 	return platform_driver_probe(&tahvo_driver, tahvo_probe);
+@@ -129,40 +129,6 @@ void tahvo_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
+ 	mutex_unlock(&tahvo->mutex);
  }
-+subsys_initcall(tahvo_init);
  
- static void __exit tahvo_exit(void)
- {
- 	platform_driver_unregister(&tahvo_driver);
- }
+-void tahvo_disable_irq(int id)
+-{
+-	struct tahvo		*tahvo = the_tahvo;
+-	u16			mask;
 -
--subsys_initcall(tahvo_init);
- module_exit(tahvo_exit);
- 
- MODULE_DESCRIPTION("Tahvo ASIC control");
+-	mutex_lock(&tahvo->mutex);
+-	mask = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
+-	mask |= 1 << id;
+-	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, mask);
+-	mutex_unlock(&tahvo->mutex);
+-}
+-EXPORT_SYMBOL(tahvo_disable_irq);
+-
+-void tahvo_enable_irq(int id)
+-{
+-	struct tahvo		*tahvo = the_tahvo;
+-	u16			mask;
+-
+-	mutex_lock(&tahvo->mutex);
+-	mask = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
+-	mask &= ~(1 << id);
+-	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, mask);
+-	mutex_unlock(&tahvo->mutex);
+-}
+-EXPORT_SYMBOL(tahvo_enable_irq);
+-
+-void tahvo_ack_irq(int id)
+-{
+-	struct tahvo		*tahvo = the_tahvo;
+-
+-	__tahvo_write_reg(tahvo, TAHVO_REG_IDR, 1 << id);
+-}
+-EXPORT_SYMBOL(tahvo_ack_irq);
+-
+ int tahvo_get_backlight_level(void)
+ {
+ 	struct tahvo		*tahvo = the_tahvo;
 -- 
 1.7.6.396.ge0613
 
