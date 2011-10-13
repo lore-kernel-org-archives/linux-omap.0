@@ -1,93 +1,275 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
-Date: Thu, 13 Oct 2011 08:59:57 +0200
-Message-ID: <CAORVsuUsE09P0v-Ro7PctkE96mF4Cnefe9cASYJu447tVNBJ-g@mail.gmail.com>
-References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
-	<87vcrv2xox.fsf@ti.com>
-	<CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
-	<87wrcangkq.fsf@ti.com>
-	<CAAL8m4zAOw9=qFCYV6-FxqGxQKwNZf71McCUtXSxoFMdOqz5PA@mail.gmail.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
+ for omap3
+Date: Thu, 13 Oct 2011 12:42:41 +0530
+Message-ID: <CAP05o4K2EzAKDgC9EdfEURCfcM=M7TRJdBuAtRafL2RHg+qTag@mail.gmail.com>
+References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
+	<1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
+	<alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
+	<CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
+	<alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
+	<CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
+	<cbad72cea703d117067f7c628f7db806@mail.gmail.com>
+	<1317127327.3820.31.camel@sokoban>
+	<CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAL8m4zAOw9=qFCYV6-FxqGxQKwNZf71McCUtXSxoFMdOqz5PA@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:46438 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751055Ab1JMHMn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Oct 2011 03:12:43 -0400
+In-Reply-To: <CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gadiyar, Anand" <gadiyar@ti.com>, sameo@linux.intel.com, tony@atomide.com, "Hilman, Kevin" <khilman@ti.com>, johnstul@us.ibm.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-Hi Govindraj,
+On Tue, Sep 27, 2011 at 6:48 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Tue, Sep 27, 2011 at 6:12 PM, Tero Kristo <t-kristo@ti.com> wrote:
+>> On Tue, 2011-09-27 at 08:04 +0200, Basak, Partha wrote:
+>>> >
+>> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 011504=
+0-6. Kotipaikka: Helsinki
+>>
+>> -----Original Message-----
+>>
+>>> >From: Munegowda, Keshava [mailto:keshava_mgowda@ti.com]
+>>> >Sent: Monday, September 26, 2011 7:49 PM
+>>> >To: Paul Walmsley; Tero Kristo; b-cousson@ti.com; balbi@ti.com;
+>>> >parthab@india.ti.com
+>>> >Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; linux-
+>>> >kernel@vger.kernel.org; gadiyar@ti.com; sameo@linux.intel.com;
+>>> >tony@atomide.com; khilman@ti.com; johnstul@us.ibm.com;
+>>> >vishwanath.bs@ti.com
+>>> >Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod
+>>> >structures for omap3
+>>> >
+>>> >On Sat, Sep 24, 2011 at 12:00 PM, Paul Walmsley <paul@pwsan.com> w=
+rote:
+>>> >> On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
+>>> >>
+>>> >>> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul@pwsan.com=
+>
+>>> >wrote:
+>>> >>>
+>>> >>> But the question arises here , why do we need these ehci and oh=
+ci as
+>>> >two
+>>> >>> different hwmods containing only irq and base address? It is re=
+quired
+>>> >>> for future - to implement remote wakeup feature for ehci and oh=
+ci
+>>> >ports
+>>> >>> depending on irq-chain handler patches by Tero. Separate hwmods=
+ for
+>>> >ehci
+>>> >>> and ohci are needed to enable prcm chain-handler to uniquely id=
+entify
+>>> >>> the wakeup source as ehci or ohci and call only the correspondi=
+ng
+>>> >>> interrupt handler. We will be using omap_hwmod_mux_init for ehc=
+i and
+>>> >>> ohci hwmods to enable I/O wakeup capability for respective IO-p=
+ads.
+>>> >>> Depending on the particular wakeup source(ehci/ohci), the
+>>> >corresponding
+>>> >>> ehci or ohci irq handler will be called.
+>>> >>>
+>>> >>> If ehci and ohci are combined with usbhs hwmod as a single hwmo=
+d ,
+>>> >then
+>>> >>> for every wakeup (either ehci or ohci port wakeup) only the fir=
+st
+>>> >>> interrupt handler will be called (please look at the function
+>>> >>> omap_hwmod_mux_handle_irq of
+>>> >>>
+>>> >>> /arch/arm/mach-omap2/mux.c file ; in tero's latest patch:
+>>> >>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg53139=
+=2Ehtml)
+>>> >>> , so in this
+>>> >>> case, if ehci interrupt is the first interrupt , then even for =
+ohci
+>>> >wakeup
+>>> >>> , only ehci interrupt will get called; which will break the
+>>> >functionality.
+>>> >>
+>>> >> Any reason why this couldn't be handled either by:
+>>> >>
+>>> >> 1. adding an IRQ number field to struct omap_hwmod_mux_info, and
+>>> >changing
+>>> >> _omap_hwmod_mux_handle_irq() to raise that IRQ number?
+>>> >
+>>> >
+>>> >yes, it is possible by changing the existing irq-chain handler by =
+tero
+>>> >Kristo
+>>> >
+>>> >I am looping tero too.
+>>> >
+>>> >So here are new requirements for the irq-chain handler
+>>> >
+>>> >1. The hwmod should have have option to have multiple mux structur=
+es
+>>> >
+>>> >This is something like:
+>>> >
+>>> >The existing mux structure definition in omap_hwmod [file:
+>>> >/arch/arm/plat-omap/include/plat/omap_hwmod.h ] structure
+>>> >
+>>> > =A0 =A0 struct omap_hwmod_mux_info =A0 =A0 =A0*mux;
+>>> >
+>>> >it should changed to
+>>> >
+>>> > =A0 =A0 struct omap_hwmod_mux_info =A0 =A0 =A0**pmux;
+>>> > =A0 =A0 =A0 =A0 U32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mux_cnt;
+>>> >
+>>> >
+>>> >pmux - pointers to mux ; array of mux structures.
+>>> >mux_cnt - number of mux per hwmod.
+>>> >
+>>> >
+>>> >2. The mux =A0omap_hwmod_mux_info =A0structure should have new mem=
+ber
+>>> >called irq, like as follows:
+>>> >
+>>> >struct omap_hwmod_mux_info {
+>>> > =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ nr_pads;
+>>> > =A0 =A0 ...
+>>> > =A0 =A0 =A0 =A0....
+>>> > =A0 =A0 =A0 =A0u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 irq;
+>>> >
+>>> >};
+>>> >
+>>> >Upon wakeup of the I/O pad of the mux , the irq-chain handler shou=
+ld
+>>> >invoke the irq handler of the irq numbered <map_hwmod_mux_info.irq=
+>
+>>> >
+>>> >3. =A0There should be "SOME WAY" to supply the irqs =A0from hwmod
+>>> >structure (omap_hwmod) to mux structure (omap_hwmod_mux_info)
+>>> >
+>>> >
+>>> >if you , tero and other opensource people are aligned on the propo=
+sed
+>>> >changes on the irq-handler ;
+>>> >then it is possible to have two hwmods ( usbhs and tll) for usbhos=
+t
+>>> >driver.
+>>> >please let me know you comments on the above approach.
+>>> >
+>>>
+>>> Hello Tero,
+>>>
+>>> I would like to draw your attention to the following thread:
+>>>
+>>> We need to support the following:
+>>> 1. Ability to associate multiple mux info to a hwmod.
+>>> 2. Able to associate a particular irq handler to a mux info.
+>>> 3. PRCM Chain handler should loop through all mux-info arrays
+>>> =A0 =A0for a particular hwmod to identify the possible wakeup sourc=
+e(s)
+>>> =A0 =A0and call the appropriate irq handler for that mux-info.
+>>> =A0 =A0(It is possible that both mux-info are woken up in which cas=
+e both
+>>> handlers should be called).
+>>>
+>>> To give you a little more perspective, EHCI & OHCI are co-controlle=
+rs
+>>> under UHH/TLL.
+>>> They do not get presented separately to the OCP bus, hence do not q=
+ualify
+>>> as separate hwmods
+>>> (Paul had objected to the design approach representing EHCI & OHCI =
+as
+>>> different hwmods).
+>>>
+>>> However, we need a mechanism to efficiently identify/distinguish
+>>> remote-wakeup, connect/disconnect
+>>> On to an EHCI port vs an OHCI port & call only the correct interrup=
+t
+>>> handler(EHCI or OHCI).
+>>>
+>>> =A0To incorporate this, chain handler implementation would need som=
+e
+>>> enhancements.
+>>> =A0We can look into the details in the next merge window cycle in
+>>> conjunction with aggressive clock management support for EHCI/OHCI.
+>>> =A0But fundamentally, if you are aligned to the approach, we can go=
+ ahead
+>>> collapsing the EHCI & OHCI hwmods into one.
+>>
+>> Hi,
+>>
+>> So, you would need a mechanism to do something like this:
+>>
+>> pad a or b wakeup detected -> irq0
+>> pad c or d wakeup detected -> irq1?
+>
+> yes, if get something like this , its perfect.
 
-On Thu, Oct 13, 2011 at 3:09 AM, Govindraj <govindraj.ti@gmail.com> wro=
-te:
-=2E..
->>
->> Yes, but obviously comes at the expense of power savings. =A0IOW, Th=
-is is
->> a hard-coded power vs. performance trade off that we are trying to g=
-et
->> away from.
->>
->> So, the root of the problem is that the MPU wakeup latency is causin=
-g a
->> "sluggish" console. =A0The solution? =A0request an MPU wakeup latenc=
-y
->> constraint.
->>
->
-> Okay, Will explore this.
->
->> This is a classic use-case for such a constraint, and the serial dri=
-ver
->> should have the option of requesting a constraint to prevent the slu=
-ggish
->> console. =A0The constraint only needs to be held until the auto-susp=
-end
->> delay expires, so should be relased in the ->runtime_suspend() metho=
-d of
->> the driver.
->>
->> This constraint needs to be configurable, probably from the board fi=
-le,
->> so that it is optional, and so users who don't care about sluggish
->> consoles (or non-console UART users who don't care about response ti=
-me)
->> have the option of preferring power savings over UART responsiveness=
+Hi Tero
+           Are you posting the patches with these changes?
+please let me know when you will be able to post the patches.
+so that I start the design of usb host remote wakeup using your changes=
 =2E
->>
->> As a reference, the i2c driver is currently doing something similar
->> in that it request an MPU constraint to prevent the MPU from going i=
-nto
->> retention/off while waiting for an i2c interrupt to arrive.
->>
->
-> Thanks, will check and try to use the mpu constraints
-As a reference the pm-qos branch of
-https://gitorious.org/jpihet/omap-pm has the latest code for the
-per-device constraints framework.
 
-Please refer to the documentation at Documentation/power/pm_qos_interfa=
-ce.txt.
-The commit dbec9ed1 [1] shows how I2C is using the framework.
+regards
+keshava
 
-[1] https://gitorious.org/jpihet/omap-pm/commit/dbec9ed1a6d6341d2ad2352=
-a9578d66d15d198f4
 
-Regards,
-Jean
+
 
 >
-> --
-> Govindraj.R.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>> Is it okay to do this:
+>>
+>> pad a...d wakeup -> irq0 and irq1?
+>
+> No, we dont need multiple irq handlers for single wakeup source.
+>
+>>
+>> I am okay doing something like this, we just need to agree how this
+>> would be represented from the hwmod point of view. Currently the cha=
+in
+>> handler set does not change hwmod structures at all to provide what =
+it
+>> does.
+>
+> paul and benoit are the people to design the mechanisam for this.
+>
+> paul/Benoit
+> =A0 =A0 =A0 =A0 =A0 =A0please give you thoughts on this.
+>
+> regards
+> keshava
+>
+>
+>>
+>> -Tero
+>>
+>>> >
+>>> >>
+>>> >> or
+>>> >>
+>>> >> 2. using shared interrupts?
+>>> >>
+>>> >>
+>>> >> - Paul
+>>> >>
+>>
+>>
+>>
 >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
