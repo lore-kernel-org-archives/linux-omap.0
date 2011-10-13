@@ -1,75 +1,122 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 19/27] cbus: tahvo: drop more unused interfaces
-Date: Thu, 13 Oct 2011 11:34:54 +0300
-Message-ID: <1318494902-13093-19-git-send-email-balbi@ti.com>
+Subject: [PATCH 21/27] cbus: tahvo: drop backlight interfaces
+Date: Thu, 13 Oct 2011 11:34:56 +0300
+Message-ID: <1318494902-13093-21-git-send-email-balbi@ti.com>
 References: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:58766 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753904Ab1JMIfp (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48898 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753957Ab1JMIft (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Oct 2011 04:35:45 -0400
-Received: by bkat2 with SMTP id t2so1426004bka.18
-        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:43 -0700 (PDT)
+	Thu, 13 Oct 2011 04:35:49 -0400
+Received: by mail-bw0-f48.google.com with SMTP id r19so1581388bka.35
+        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:48 -0700 (PDT)
 In-Reply-To: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-we have the IRQ chip which is the standard
-way of handling IRQs.
+they aren't used by anyone and they should
+be, anyways, on a child LED driver not on
+core Tahvo.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/tahvo.c |   34 ----------------------------------
- 1 files changed, 0 insertions(+), 34 deletions(-)
+ drivers/cbus/tahvo.c |   51 +-------------------------------------------------
+ drivers/cbus/tahvo.h |    3 --
+ 2 files changed, 1 insertions(+), 53 deletions(-)
 
 diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index 2597672..8192a24 100644
+index 12d95ac..784431c 100644
 --- a/drivers/cbus/tahvo.c
 +++ b/drivers/cbus/tahvo.c
-@@ -129,40 +129,6 @@ void tahvo_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
+@@ -51,7 +51,6 @@ struct tahvo {
+ 	int		ack;
+ 	int		mask;
+ 
+-	unsigned int	wide_backlight:1;
+ 	unsigned int	mask_pending:1;
+ 	unsigned int	ack_pending:1;
+ 	unsigned int	is_betty:1;
+@@ -133,42 +132,6 @@ void tahvo_set_clear_reg_bits(struct device *child, unsigned reg, u16 set,
  	mutex_unlock(&tahvo->mutex);
  }
  
--void tahvo_disable_irq(int id)
+-int tahvo_get_backlight_level(void)
 -{
 -	struct tahvo		*tahvo = the_tahvo;
--	u16			mask;
+-	int			mask;
 -
--	mutex_lock(&tahvo->mutex);
--	mask = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
--	mask |= 1 << id;
--	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, mask);
--	mutex_unlock(&tahvo->mutex);
+-	if (tahvo->wide_backlight)
+-		mask = 0x7f;
+-	else
+-		mask = 0x0f;
+-	return __tahvo_read_reg(tahvo, TAHVO_REG_LEDPWMR) & mask;
 -}
--EXPORT_SYMBOL(tahvo_disable_irq);
+-EXPORT_SYMBOL(tahvo_get_backlight_level);
 -
--void tahvo_enable_irq(int id)
--{
--	struct tahvo		*tahvo = the_tahvo;
--	u16			mask;
--
--	mutex_lock(&tahvo->mutex);
--	mask = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
--	mask &= ~(1 << id);
--	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, mask);
--	mutex_unlock(&tahvo->mutex);
--}
--EXPORT_SYMBOL(tahvo_enable_irq);
--
--void tahvo_ack_irq(int id)
+-int tahvo_get_max_backlight_level(void)
 -{
 -	struct tahvo		*tahvo = the_tahvo;
 -
--	__tahvo_write_reg(tahvo, TAHVO_REG_IDR, 1 << id);
+-	if (tahvo->wide_backlight)
+-		return 0x7f;
+-	else
+-		return 0x0f;
 -}
--EXPORT_SYMBOL(tahvo_ack_irq);
+-EXPORT_SYMBOL(tahvo_get_max_backlight_level);
 -
- int tahvo_get_backlight_level(void)
+-void tahvo_set_backlight_level(int level)
+-{
+-	struct tahvo		*tahvo = the_tahvo;
+-	int			max_level;
+-
+-	max_level = tahvo_get_max_backlight_level();
+-	if (level > max_level)
+-		level = max_level;
+-	__tahvo_write_reg(tahvo, TAHVO_REG_LEDPWMR, level);
+-}
+-EXPORT_SYMBOL(tahvo_set_backlight_level);
+-
+ static irqreturn_t tahvo_irq_handler(int irq, void *_tahvo)
  {
- 	struct tahvo		*tahvo = the_tahvo;
+ 	struct tahvo		*tahvo = _tahvo;
+@@ -379,20 +342,8 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
+ 
+ 	id = (rev >> 8) & 0xff;
+ 
+-	switch (id) {
+-	case 0x03:
+-		if ((rev & 0xff) >= 0x50)
+-			tahvo->wide_backlight = true;
+-		break;
+-	case 0x0b:
++	if (id == 0x0b)
+ 		tahvo->is_betty = true;
+-		tahvo->wide_backlight = true;
+-		break;
+-	default:
+-		dev_err(&pdev->dev, "Tahvo/Betty chip not found");
+-		ret = -ENODEV;
+-		goto err2;
+-	}
+ 
+ 	ret = tahvo_allocate_children(&pdev->dev, tahvo->irq_base);
+ 	if (ret < 0) {
+diff --git a/drivers/cbus/tahvo.h b/drivers/cbus/tahvo.h
+index 1281710..f151a43 100644
+--- a/drivers/cbus/tahvo.h
++++ b/drivers/cbus/tahvo.h
+@@ -54,8 +54,5 @@ int tahvo_read_reg(struct device *child, unsigned reg);
+ void tahvo_write_reg(struct device *child, unsigned reg, u16 val);
+ void tahvo_set_clear_reg_bits(struct device *child, unsigned reg, u16 set,
+ 		u16 clear);
+-int tahvo_get_backlight_level(void);
+-int tahvo_get_max_backlight_level(void);
+-void tahvo_set_backlight_level(int level);
+ 
+ #endif /* __DRIVERS_CBUS_TAHVO_H */
 -- 
 1.7.6.396.ge0613
 
