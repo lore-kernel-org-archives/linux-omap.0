@@ -1,50 +1,93 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 4/5] gpiolib: handle deferral probe error
-Date: Wed, 12 Oct 2011 22:12:50 -0600
-Message-ID: <20111013041250.GG15829@ponder.secretlab.ca>
-References: <1317963790-29426-1-git-send-email-manjugk@ti.com>
- <1317963790-29426-5-git-send-email-manjugk@ti.com>
- <20111007110615.7638e905@lxorguk.ukuu.org.uk>
- <CACxGe6tmjQGw77NMNYLWJHMAtmF9fk_9HnHtbrMhzkKEC1HG=Q@mail.gmail.com>
- <20111012061432.GA2080@manju-desktop>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v6 10/16] OMAP2+: UART: Modify omap_uart_can_sleep function
+Date: Thu, 13 Oct 2011 08:59:57 +0200
+Message-ID: <CAORVsuUsE09P0v-Ro7PctkE96mF4Cnefe9cASYJu447tVNBJ-g@mail.gmail.com>
+References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
+	<87vcrv2xox.fsf@ti.com>
+	<CAAL8m4xTmz+-ureDiGPoKUu634q1Wy=h01kpfRWCk9LFCV0+Dg@mail.gmail.com>
+	<87wrcangkq.fsf@ti.com>
+	<CAAL8m4zAOw9=qFCYV6-FxqGxQKwNZf71McCUtXSxoFMdOqz5PA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111012061432.GA2080@manju-desktop>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, Dilan Lee <dilee@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <greg@kroah.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Manjunath GKondaiah <manjunath.gkondaiah@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CAAL8m4zAOw9=qFCYV6-FxqGxQKwNZf71McCUtXSxoFMdOqz5PA@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Oct 12, 2011 at 11:44:32AM +0530, G, Manjunath Kondaiah wrote:
-> On Fri, Oct 07, 2011 at 04:09:38PM -0600, Grant Likely wrote:
-> > On Fri, Oct 7, 2011 at 4:06 AM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> > > On Fri, 07 Oct 2011 10:33:09 +0500
-> > > "G, Manjunath Kondaiah" <manjugk@ti.com> wrote:
-> > >
-> > >>
-> > >> The gpio library should return -EPROBE_DEFER in gpio_request
-> > >> if gpio driver is not ready.
-> > >
-> > > Why not use the perfectly good existing error codes we have for this ?
-> > >
-> > > We have EAGAIN and EUNATCH both of which look sensible.
-> > 
-> > I want a distinct error code for probe deferral so that a) it doesn't
-> > overlap with something a driver is already doing, and b) so that all
-> > the users can be found again at a later date.
-> > 
-> > That said, I'm not in agreement with this patch.  It is fine for gpio
-> > lib to have a code that means the pin doesn't exist (yet), but the
-> > device driver needs to be the one to decide whether or not it is
-> > appropriate to use probe deferral.
-> 
-> During gpio_request, driver gpio_request is not available. How can we expect
-> driver to request deferred probe in this case?
+Hi Govindraj,
 
-If gpio_request fails, the driver can then explicitly make the
-decision to return -EPROBE_DEFER.  It isn't forced to pass on the
-error code from gpio_request().
+On Thu, Oct 13, 2011 at 3:09 AM, Govindraj <govindraj.ti@gmail.com> wro=
+te:
+=2E..
+>>
+>> Yes, but obviously comes at the expense of power savings. =A0IOW, Th=
+is is
+>> a hard-coded power vs. performance trade off that we are trying to g=
+et
+>> away from.
+>>
+>> So, the root of the problem is that the MPU wakeup latency is causin=
+g a
+>> "sluggish" console. =A0The solution? =A0request an MPU wakeup latenc=
+y
+>> constraint.
+>>
+>
+> Okay, Will explore this.
+>
+>> This is a classic use-case for such a constraint, and the serial dri=
+ver
+>> should have the option of requesting a constraint to prevent the slu=
+ggish
+>> console. =A0The constraint only needs to be held until the auto-susp=
+end
+>> delay expires, so should be relased in the ->runtime_suspend() metho=
+d of
+>> the driver.
+>>
+>> This constraint needs to be configurable, probably from the board fi=
+le,
+>> so that it is optional, and so users who don't care about sluggish
+>> consoles (or non-console UART users who don't care about response ti=
+me)
+>> have the option of preferring power savings over UART responsiveness=
+=2E
+>>
+>> As a reference, the i2c driver is currently doing something similar
+>> in that it request an MPU constraint to prevent the MPU from going i=
+nto
+>> retention/off while waiting for an i2c interrupt to arrive.
+>>
+>
+> Thanks, will check and try to use the mpu constraints
+As a reference the pm-qos branch of
+https://gitorious.org/jpihet/omap-pm has the latest code for the
+per-device constraints framework.
 
-g.
+Please refer to the documentation at Documentation/power/pm_qos_interfa=
+ce.txt.
+The commit dbec9ed1 [1] shows how I2C is using the framework.
+
+[1] https://gitorious.org/jpihet/omap-pm/commit/dbec9ed1a6d6341d2ad2352=
+a9578d66d15d198f4
+
+Regards,
+Jean
+
+>
+> --
+> Govindraj.R.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
