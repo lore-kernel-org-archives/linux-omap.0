@@ -1,135 +1,91 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 02/27] cbus: tahvo: move to __devinit/__devexit sections
-Date: Thu, 13 Oct 2011 11:34:37 +0300
-Message-ID: <1318494902-13093-2-git-send-email-balbi@ti.com>
+Subject: [PATCH 05/27] cbus: tahvo: drop the tasklet
+Date: Thu, 13 Oct 2011 11:34:40 +0300
+Message-ID: <1318494902-13093-5-git-send-email-balbi@ti.com>
 References: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:35444 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753827Ab1JMIfO (ORCPT
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:53635 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753880Ab1JMIfS (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Oct 2011 04:35:14 -0400
-Received: by bkbc12 with SMTP id c12so1594629bkb.22
-        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:12 -0700 (PDT)
+	Thu, 13 Oct 2011 04:35:18 -0400
+Received: by mail-bw0-f44.google.com with SMTP id zv3so1730657bkb.17
+        for <linux-omap@vger.kernel.org>; Thu, 13 Oct 2011 01:35:17 -0700 (PDT)
 In-Reply-To: <1318494902-13093-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-while at that, also remove a few annoying and pretty
-much useless comments.
+by moving to threaded IRQ.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/cbus/tahvo.c |   36 +++---------------------------------
- 1 files changed, 3 insertions(+), 33 deletions(-)
+ drivers/cbus/tahvo.c |   16 ++++------------
+ 1 files changed, 4 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index bc3ca6d..0da156e 100644
+index 0e28208..4b062de 100644
 --- a/drivers/cbus/tahvo.c
 +++ b/drivers/cbus/tahvo.c
-@@ -108,9 +108,6 @@ void tahvo_set_clear_reg_bits(unsigned reg, u16 set, u16 clear)
- 	mutex_unlock(&tahvo_lock);
- }
+@@ -43,7 +43,6 @@
+ static int tahvo_initialized;
+ static int tahvo_is_betty;
  
--/*
-- * Disable given TAHVO interrupt
-- */
- void tahvo_disable_irq(int id)
- {
- 	u16 mask;
-@@ -123,9 +120,6 @@ void tahvo_disable_irq(int id)
- }
- EXPORT_SYMBOL(tahvo_disable_irq);
+-static struct tasklet_struct tahvo_tasklet;
+ static struct mutex tahvo_lock;
  
--/*
-- * Enable given TAHVO interrupt
-- */
- void tahvo_enable_irq(int id)
- {
- 	u16 mask;
-@@ -138,9 +132,6 @@ void tahvo_enable_irq(int id)
- }
- EXPORT_SYMBOL(tahvo_enable_irq);
+ static struct device *the_dev;
+@@ -174,12 +173,6 @@ EXPORT_SYMBOL(tahvo_set_backlight_level);
  
--/*
-- * Acknowledge given TAHVO interrupt
-- */
- void tahvo_ack_irq(int id)
- {
- 	tahvo_write_reg(TAHVO_REG_IDR, 1 << id);
-@@ -181,18 +172,12 @@ void tahvo_set_backlight_level(int level)
- }
- EXPORT_SYMBOL(tahvo_set_backlight_level);
- 
--/*
-- * TAHVO interrupt handler. Only schedules the tasklet.
-- */
  static irqreturn_t tahvo_irq_handler(int irq, void *dev_id)
  {
- 	tasklet_schedule(&tahvo_tasklet);
- 	return IRQ_HANDLED;
- }
- 
--/*
-- * Tasklet handler
-- */
- static void tahvo_tasklet_handler(unsigned long data)
- {
+-	tasklet_schedule(&tahvo_tasklet);
+-	return IRQ_HANDLED;
+-}
+-
+-static void tahvo_tasklet_handler(unsigned long data)
+-{
  	struct tahvo_irq_handler_desc *hnd;
-@@ -283,14 +268,7 @@ void tahvo_free_irq(int id)
+ 	u16 id;
+ 	u16 im;
+@@ -212,6 +205,8 @@ static void tahvo_tasklet_handler(unsigned long data)
+ 			 */
+ 		}
+ 	}
++
++	return IRQ_HANDLED;
  }
- EXPORT_SYMBOL(tahvo_free_irq);
  
--/**
-- * tahvo_probe - Probe for Tahvo ASIC
-- * @dev: the Tahvo device
-- *
-- * Probe for the Tahvo ASIC and allocate memory
-- * for its device-struct if found
-- */
--static int __init tahvo_probe(struct platform_device *pdev)
-+static int __devinit tahvo_probe(struct platform_device *pdev)
- {
- 	int rev, id, ret;
- 	int irq;
-@@ -334,7 +312,7 @@ static int __init tahvo_probe(struct platform_device *pdev)
+ /*
+@@ -276,9 +271,6 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
+ 	mutex_init(&tahvo_lock);
+ 	the_dev = &pdev->dev;
+ 
+-	/* Prepare tasklet */
+-	tasklet_init(&tahvo_tasklet, tahvo_tasklet_handler, 0);
+-
+ 	tahvo_initialized = 1;
+ 
+ 	rev = tahvo_read_reg(TAHVO_REG_ASICR);
+@@ -308,7 +300,8 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
+ 	/* Mask all TAHVO interrupts */
+ 	tahvo_write_reg(TAHVO_REG_IMR, 0xffff);
+ 
+-	ret = request_irq(irq, tahvo_irq_handler, IRQF_TRIGGER_RISING,
++	ret = request_threaded_irq(irq, NULL, tahvo_irq_handler,
++			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+ 			"tahvo", 0);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "Unable to register IRQ handler\n");
+@@ -326,7 +319,6 @@ static int __devexit tahvo_remove(struct platform_device *pdev)
+ 	/* Mask all TAHVO interrupts */
+ 	tahvo_write_reg(TAHVO_REG_IMR, 0xffff);
+ 	free_irq(irq, 0);
+-	tasklet_kill(&tahvo_tasklet);
+ 	the_dev = NULL;
+ 
  	return 0;
- }
- 
--static int __exit tahvo_remove(struct platform_device *pdev)
-+static int __devexit tahvo_remove(struct platform_device *pdev)
- {
- 	int irq;
- 
-@@ -350,25 +328,17 @@ static int __exit tahvo_remove(struct platform_device *pdev)
- }
- 
- static struct platform_driver tahvo_driver = {
--	.remove		= __exit_p(tahvo_remove),
-+	.remove		= __devexit_p(tahvo_remove),
- 	.driver		= {
- 		.name	= "tahvo",
- 	},
- };
- 
--/**
-- * tahvo_init - initialise Tahvo driver
-- *
-- * Initialise the Tahvo driver and return 0 if everything worked ok
-- */
- static int __init tahvo_init(void)
- {
- 	return platform_driver_probe(&tahvo_driver, tahvo_probe);
- }
- 
--/*
-- * Cleanup
-- */
- static void __exit tahvo_exit(void)
- {
- 	platform_driver_unregister(&tahvo_driver);
 -- 
 1.7.6.396.ge0613
 
