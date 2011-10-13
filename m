@@ -1,166 +1,69 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH v2] arm: omap: Fix errors and warnings when building for one board
-Date: Thu, 13 Oct 2011 21:44:10 +0530
-Message-ID: <1318522450-18425-1-git-send-email-premi@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+Date: Thu, 13 Oct 2011 10:38:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110131033410.24155@utopia.booyaka.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
+	<1316781986-30642-4-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com>
+	<4E934D79.4080000@ti.com>
+	<alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
+	<4E936F0E.9050203@ti.com>
+	<alpine.DEB.2.00.1110101725140.5205@utopia.booyaka.com>
+	<4E954CDA.10107@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32901 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755260Ab1JMQOY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Oct 2011 12:14:24 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4E954CDA.10107@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sanjeev Premi <premi@ti.com>
 
-When customizing omap2plus_defconfig to build for only
-one board (omap3evm), I came across these warnings and
-errors (filenames truncated):
+On Wed, 12 Oct 2011, Cousson, Benoit wrote:
 
-arch/arm/mach-omap2/board-generic.c:76:20: warning: 'omap4_init' defined but not used
-arch/arm/mach-omap2/built-in.o: In function `omap2420_init_early':
-arch/arm/mach-omap2/io.c:364: undefined reference to `omap2_set_globals_242x'
-arch/arm/mach-omap2/io.c:366: undefined reference to `omap2xxx_voltagedomains_init'
-arch/arm/mach-omap2/io.c:367: undefined reference to `omap242x_powerdomains_init'
-arch/arm/mach-omap2/io.c:368: undefined reference to `omap242x_clockdomains_init'
-arch/arm/mach-omap2/io.c:369: undefined reference to `omap2420_hwmod_init'
-arch/arm/mach-omap2/built-in.o: In function `omap2430_init_early':
-arch/arm/mach-omap2/io.c:376: undefined reference to `omap2_set_globals_243x'
-arch/arm/mach-omap2/io.c:378: undefined reference to `omap2xxx_voltagedomains_init'
-arch/arm/mach-omap2/io.c:379: undefined reference to `omap243x_powerdomains_init'
-arch/arm/mach-omap2/io.c:380: undefined reference to `omap243x_clockdomains_init'
-arch/arm/mach-omap2/io.c:381: undefined reference to `omap2430_hwmod_init'
-arch/arm/mach-omap2/built-in.o: In function `omap4430_init_early':
-arch/arm/mach-omap2/io.c:436: undefined reference to `omap2_set_globals_443x'
-arch/arm/mach-omap2/io.c:438: undefined reference to `omap44xx_voltagedomains_init'
-arch/arm/mach-omap2/io.c:439: undefined reference to `omap44xx_powerdomains_init'
-arch/arm/mach-omap2/io.c:440: undefined reference to `omap44xx_clockdomains_init'
-arch/arm/mach-omap2/io.c:441: undefined reference to `omap44xx_hwmod_init'
+> On 10/11/2011 1:26 AM, Paul Walmsley wrote:
+> > On Tue, 11 Oct 2011, Cousson, Benoit wrote:
+> > 
+> > > In fact the device name does not have to match the hwmod name. So we 
+> > > can just create an "omap2_prm" omap_device for OMAP2, "omap3_prm" 
+> > > omap_device for OMAP3... That will allow the relevant PRM driver to 
+> > > be bound to the proper device.
+> > 
+> > Incidentally, given that we would be using the hwmod name and the version
+> > number to determine the appropriate omap_device name, what IP version
+> > numbers should we assign to these PRM IP blocks for different SoCs?
+> 
+> It can just be 1, 2 and 3... The idea is just to differentiate the IP for each
+> OMAP.
 
-This patch fixes them.
+So those are basically arbitrary?  Something is not clear here.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
+In the current hwmod design, IP blocks with different interfaces were 
+intended to be uniquely identified by the hwmod name alone.  That is why 
+omap_hwmod_lookup() only takes a 'name' parameter.
 
- Changes since v1:
-    - #if defined() to #ifdef
-    - Moved an #ifdef to take care of additional warning
-      related to sdp4430_twldata. Had missed squashing the
-      patch before sending v1.
+If I understand what you want to do, you wish to change this to uniquely 
+identify them by a (name, interface version number) tuple.
 
- Adding ifdefs makes the code bit ugly and is prone to propagate
- further. Not sure if DT will help here, but this patch would be
- useful for people trying to build for individual boards.
+I don't have a problem with this in theory, but it implies some changes to 
+the existing model.  Specifically:
 
- Compile tested for OMAP3EVM.
+- we'll need to add an interface version number to the struct omap_hwmod
 
- Applies to linux-omap/master at:
-   fb4df0f : ARM: OMAP1: Fix warnings about enabling 32 KiHz timer
+- we'll need to modify omap_hwmod_lookup() to take an interface version 
+number
+
+- the "ti,hwmod" DT binding that you proposed earlier will need to include 
+an interface version number
 
 
- arch/arm/mach-omap2/board-generic.c |    8 ++++++++
- arch/arm/mach-omap2/io.c            |    6 ++++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index d9ccb9d..b36003f 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -29,6 +29,7 @@
-  * XXX: Still needed to boot until the i2c & twl driver is adapted to
-  * device-tree
-  */
-+#ifdef CONFIG_ARCH_OMAP4
- static struct twl4030_platform_data sdp4430_twldata = {
- 	.irq_base	= TWL6030_IRQ_BASE,
- 	.irq_end	= TWL6030_IRQ_END,
-@@ -38,16 +39,19 @@ static void __init omap4_i2c_init(void)
- {
- 	omap4_pmic_init("twl6030", &sdp4430_twldata);
- }
-+#endif
- 
- static struct twl4030_platform_data beagle_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
- };
- 
-+#ifdef CONFIG_ARCH_OMAP3
- static void __init omap3_i2c_init(void)
- {
- 	omap3_pmic_init("twl4030", &beagle_twldata);
- }
-+#endif
- 
- static struct of_device_id omap_dt_match_table[] __initdata = {
- 	{ .compatible = "simple-bus", },
-@@ -73,17 +77,21 @@ static void __init omap_generic_init(void)
- 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
- }
- 
-+#ifdef CONFIG_ARCH_OMAP4
- static void __init omap4_init(void)
- {
- 	omap4_i2c_init();
- 	omap_generic_init();
- }
-+#endif
- 
-+#ifdef CONFIG_ARCH_OMAP3
- static void __init omap3_init(void)
- {
- 	omap3_i2c_init();
- 	omap_generic_init();
- }
-+#endif
- 
- #if defined(CONFIG_SOC_OMAP2420)
- static const char *omap242x_boards_compat[] __initdata = {
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index aa96538..08c30c1 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -359,6 +359,7 @@ static void __init omap_hwmod_init_postsetup(void)
- 	omap_pm_if_early_init();
- }
- 
-+#ifdef CONFIG_ARCH_OMAP2
- void __init omap2420_init_early(void)
- {
- 	omap2_set_globals_242x();
-@@ -382,11 +383,13 @@ void __init omap2430_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap2430_clk_init();
- }
-+#endif
- 
- /*
-  * Currently only board-omap3beagle.c should call this because of the
-  * same machine_id for 34xx and 36xx beagle.. Will get fixed with DT.
-  */
-+#ifdef CONFIG_ARCH_OMAP3
- void __init omap3_init_early(void)
- {
- 	omap2_set_globals_3xxx();
-@@ -430,7 +433,9 @@ void __init ti816x_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap3xxx_clk_init();
- }
-+#endif
- 
-+#ifdef CONFIG_ARCH_OMAP4
- void __init omap4430_init_early(void)
- {
- 	omap2_set_globals_443x();
-@@ -442,6 +447,7 @@ void __init omap4430_init_early(void)
- 	omap_hwmod_init_postsetup();
- 	omap4xxx_clk_init();
- }
-+#endif
- 
- void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 				      struct omap_sdrc_params *sdrc_cs1)
--- 
-1.7.0.4
-
+- Paul
