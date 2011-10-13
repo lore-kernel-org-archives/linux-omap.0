@@ -1,141 +1,131 @@
 From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v6 14/16] OMAP2+: UART: Take console_lock in suspend path
- if not taken
-Date: Thu, 13 Oct 2011 06:41:37 +0530
-Message-ID: <CAAL8m4zacdFDLKSe67_4-pLPZN2Sxp92OaFvre2oxXJZW-+z_w@mail.gmail.com>
+Subject: Re: [PATCH v6 15/16] OMAP2+: UART: Enable back uart clocks with
+ runtime API for early console
+Date: Thu, 13 Oct 2011 06:52:04 +0530
+Message-ID: <CAAL8m4wzT-ecmVeU--EQGF1PxuZuB6WZj54MmVAk-kCtFUcUSg@mail.gmail.com>
 References: <1317380561-661-1-git-send-email-govindraj.raja@ti.com>
- <1317380561-661-5-git-send-email-govindraj.raja@ti.com> <87sjmz1hfm.fsf@ti.com>
- <CAAL8m4zrveqqS3vq=dqMkS2gT24_=1UO+ukbxnQVf+AX4TBaVQ@mail.gmail.com> <87mxd5n55y.fsf@ti.com>
+ <1317380561-661-6-git-send-email-govindraj.raja@ti.com> <87pqi3z19z.fsf@ti.com>
+ <CAAL8m4xmGQaQZm5Oz8B5e6Mt7VP7c_VwQ=AnfpKotZRci32JiQ@mail.gmail.com> <871uuhn4kw.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87mxd5n55y.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:45797 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751067Ab1JMBWZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Oct 2011 21:22:25 -0400
+In-Reply-To: <871uuhn4kw.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 13, 2011 at 5:17 AM, Kevin Hilman <khilman@ti.com> wrote:
+On Thu, Oct 13, 2011 at 5:30 AM, Kevin Hilman <khilman@ti.com> wrote:
 > Govindraj <govindraj.ti@gmail.com> writes:
 >
->> On Wed, Oct 12, 2011 at 12:31 AM, Kevin Hilman <khilman@ti.com> wrot=
-e:
+>> On Wed, Oct 12, 2011 at 2:36 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
 >>> "Govindraj.R" <govindraj.raja@ti.com> writes:
 >>>
->>>> In suspend path the console_lock is taken by uart_port_suspend
->>>> however when no_console_suspend is used console_lock is not taken.
+>>>> For the early console probing we had avoided hwmod reset and idlin=
+g
+>>>> and uart was idled using hwmod API and enabled back using omap_dev=
+ice API
+>>>> after omap_device registration.
 >>>>
->>>> During system wide suspend omap_pwr_domain hooks cut all
->>>> clocks that are left enabled. So its unsafe to proceed printing af=
-ter
->>>> clocks are cut by pwr_domain hooks.
+>>>> Now since we are using runtime API's to enable back uart, move hwm=
+od
+>>>> idling and use runtime API to enable back UART.
+>>>>
+>>>> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 >>>
->>> As I've mentioned in previous reviews, when no_console_suspend is
->>> enabled, the user has explicitly requested console output during
->>> suspend. =A0In order to support that, we should not be cutting cloc=
-ks at
->>> all in that mode.
+>>> Now that the driver is using runtime PM. =A0Why do we still need
+>>> HWMOD_INIT_NO_IDLE and HWMOD_INIT_NO_RESET?
 >>>
->>> One way to address this would be to just disable runtime PM in the
->>> ->prepare method of the driver if no_console_suspend is enabled.
+>>> The comment in the code says:
+>>>
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/*
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * During UART early init, device ne=
+ed to be probed
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * to determine SoC specific init be=
+fore omap_device
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * is ready. =A0Therefore, don't all=
+ow idle here
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+>>>
+>>> This was true when using the 8250 driver because it was not using
+>>> runtime PM so could not know how to (re)enable the device.
+>>>
+>>> However, since the driver is now runtime PM adapted, any device acc=
+ess
+>>> should be contained within a runtime PM get/put block, so there sho=
+uld
+>>> no longer be a reason not allow the IP blocks to be reset during bo=
+ot.
 >>>
 >>
->> Okay fine exploring this option, right API's would be to use
->> pm_runtime_forbid/allow.
+>> Forgot to add, this is still needed for
+>> earlyprintk(CONFIG_EARLY_PRINTK) use case,
 >
-> Yes.
+> Ah, right. =A0I forgot about that. =A0Please update the changelog (an=
+d
+> comment in the code) to reflect that.
 >
->> <<SNIP>>
+>> The initial boot prints until a console driver is available is from
+>> "arch/arm/kernel/early_printk.c" which does a tx on uart console
+>> and relies on configuration from bootloader.
 >>
->> +static int serial_omap_runtime_prepare(struct device *dev)
->> +{
->> + =A0 =A0 =A0 if (!console_suspend_enabled)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_forbid(dev);
->> +
->> + =A0 =A0 =A0 return 0;
->> +}
->> +
->> +static void serial_omap_runtime_complete(struct device *dev)
->> +{
->> + =A0 =A0 =A0 if (!console_suspend_enabled)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_allow(dev);
->> +}
->> +
->> =A0static const struct dev_pm_ops serial_omap_dev_pm_ops =3D {
->> =A0 =A0 =A0 =A0 SET_SYSTEM_SLEEP_PM_OPS(serial_omap_suspend, serial_=
-omap_resume)
->> =A0 =A0 =A0 =A0 SET_RUNTIME_PM_OPS(serial_omap_runtime_suspend,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 seri=
-al_omap_runtime_resume, NULL)
->> + =A0 =A0 =A0 .prepare =3D serial_omap_runtime_prepare,
->> + =A0 =A0 =A0 .complete =3D =A0serial_omap_runtime_complete,
->> =A0};
->
-> OK, but please add comments to these functions about exactly why they
-> are needed.
->
+>> during bootup earlyprink does a tx on uart console and if =A0uart dr=
+iver
+>> is not available yet
+>> uart reset or idle done by hwmod layer can cause boot failures.
 >>
->> But to either use runtime forbid or disable we have ensure that
->> power_domain hooks don't go ahead and disable
->> the clocks with omap_device_idle as *runtime forbid or disable will
->> not set runtime_status to RPM_SUSPENDED*
->> and will stay in RPM_ACTIVE if we call runtime disable or forbid fro=
-m
->> active state.
->
-> Correct.
->
->> in power_domain hooks we just check the pm_runtime_status_suspended
->> this will be false even if
->> we do runtime disable/forbid and it will cut uart clocks always.
+>> --> put_char from earlyprintk.c
+>> =A0 =A0 =A0--> reset/idle from hwmod layer
+>> =A0 =A0 =A0 =A0 =A0 --> put_char from earlyprintk.c
 >>
->> So we may need below check also:
 >>
->> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/o=
-map_device.c
->> index 26aee5c..286a534 100644
->> --- a/arch/arm/plat-omap/omap_device.c
->> +++ b/arch/arm/plat-omap/omap_device.c
->> @@ -592,7 +592,8 @@ static int _od_suspend_noirq(struct device *dev)
->>
->> =A0 =A0 =A0 =A0 ret =3D pm_generic_suspend_noirq(dev);
->>
->> - =A0 =A0 =A0 if (!ret && !pm_runtime_status_suspended(dev)) {
->> + =A0 =A0 =A0 if (!ret && pm_runtime_enabled(dev) &&
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 !pm_runtime_status_sus=
-pended(dev)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pm_generic_runtime_suspend(dev) =
-=3D=3D 0) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_device_idle(pde=
-v);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 od->flags |=3D OMAP_=
-DEVICE_SUSPENDED;
+>> So console_uart reset or clock gating must be done only after uart
+>> driver is available or be prevented using these available hwmod_flag=
+s.
 >
-> This isn't right either because devices that may not yet be initializ=
-ed
-> (or loaded) may not have runtime PM enabled, so those devices may not
-> be properly idled.
+> So why not leave the driver out of it and solve it like the current c=
+ode
+> does?
 >
-> We have an omap_device API to disable this feature at the PM domain l=
-evel:
-> omap_device_disable_idle_on_suspend(). =A0All you should have to do i=
-s to
-> use this API in the device init code on the console UART if
-> no_console_suspend has been enabled.
+> The current codes use the hwmod flags, then waits until the UART driv=
+er
+> is available (after omap_device_build) and uses omap_hwmod_idle() to =
+do
+> an clean idle of the device.
+>
+> Notably this is inside a console_lock/console_unlock block so that
+> prints are buffered.
+>
+> The current code then does an omap_device_enable() to re-enable the
+> device, but you shouldn't need that after the driver is converted to
+> runtime PM.
 
+Yes similar approach here, We are not doing hwmod idle
+until console driver is available, once omap-serial is available
+from probe doing hwmod_idle* and then get_sync.
 
-Yes seems okay to me,
-
-Will check if no_console_suspend is used then set
-omap_device_disable_idle_on_suspend
-in serial.c.
+hwmod idle in serial.c will still cause problems if ealryprintk tries t=
+o print
+until omap-uart console driver is not available, as now with rumtime ad=
+aptation
+only driver can enable back clocks. So have added a function pointer
+to pdata which
+calls hwmod_idle implemented in serial.c calling omap_hwmod_idle.
 
 --
 Thanks,
 Govindraj.R
+
+*function pointer implemented in serial.c not directly calling
+omap_hmwod_idle API.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
