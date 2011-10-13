@@ -1,51 +1,75 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 3.1-rc3] gpio/omap: fix build error with certain OMAP1
- configs
-Date: Thu, 13 Oct 2011 11:47:48 -0600
-Message-ID: <20111013174748.GI18574@ponder.secretlab.ca>
-References: <201108231342.25101.jkrzyszt@tis.icnet.pl>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 5/5 v14] omap: usb: host: Replace usbhs core driver APIs
+ by Runtime pm APIs
+Date: Thu, 13 Oct 2011 20:59:21 +0300
+Message-ID: <20111013175921.GN28290@legolas.emea.dhcp.ti.com>
+References: <1318319531-20476-1-git-send-email-keshava_mgowda@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hD6P3ib1XCFtz2ni"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201108231342.25101.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <1318319531-20476-1-git-send-email-keshava_mgowda@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+To: Keshava Munegowda <keshava_mgowda@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Aug 23, 2011 at 01:42:24PM +0200, Janusz Krzysztofik wrote:
-> With commit f64ad1a0e21a, "gpio/omap: cleanup _set_gpio_wakeup(), remove 
-> ifdefs", access to build time conditionally omitted 'suspend_wakeup' 
-> member of the 'gpio_bank' structure has been placed unconditionally in 
-> function _set_gpio_wakeup(), which is always built. This resulted in the 
-> driver compilation broken for certain OMAP1, i.e., non-OMAP16xx, 
-> configurations.
-> 
-> Really required or not in previously excluded cases, define this 
-> structure member unconditionally as a fix.
-> 
-> Tested with a custom OMAP1510 only configuration.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Applied, thanks.
+--hD6P3ib1XCFtz2ni
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-g.
+Hi,
 
-> ---
->  drivers/gpio/gpio-omap.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- git/drivers/gpio/gpio-omap.c.orig	2011-08-22 08:34:02.000000000 +0200
-> +++ git/drivers/gpio/gpio-omap.c	2011-08-23 12:47:36.000000000 +0200
-> @@ -34,8 +34,8 @@ struct gpio_bank {
->  	u16 irq;
->  	u16 virtual_irq_start;
->  	int method;
-> -#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
->  	u32 suspend_wakeup;
-> +#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP2PLUS)
->  	u32 saved_wakeup;
->  #endif
->  	u32 non_wakeup_gpios;
+On Tue, Oct 11, 2011 at 01:22:11PM +0530, Keshava Munegowda wrote:
+> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>=20
+> The ehci and ohci drivers does not use the APIs of the usbhs
+> core driver; the runtime pm APIs are used for clock
+> enable/disable. Since usbhs is parent platform device of the
+> ehci and ohci devices, the runtime apis indirectly uses the
+> usb hs core device as input parameter to for clock functions.
+>=20
+> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> Reviewed-by: Partha Basak <parthab@india.ti.com>
+
+I'm not sure who should queue this one. Alan, maybe ?
+
+FWIW:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+as an extra comment, this patch has a very deep dependency on the hwmod
+conversion patches which come before this. If those aren't applied on
+the same merge window, we will have a non-working *HCI driver on OMAP.
+
+--=20
+balbi
+
+--hD6P3ib1XCFtz2ni
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOlyb5AAoJEIaOsuA1yqREhlwQAI1ERq45siI5di45Gt/E+OHg
+htcgCnnHlDCXVsTlNp4cnD6o+wFheJghEPc8D9YdvGKYwqtvsiSCRSz9R+M/2tVs
+XUzr7XjBlL2Lv4GoNVI6gtP6Hixdk6KSeWUAuW8WpMUfVWdrFhXIoJ2/csj0WHtU
+mBzbEdwy+ew/SNoKbDCa3zvu47hbrcW1czJTbXZKdtZOKLLMC1yNVAK9mqKGHXjA
+ALmeVv+utPZBKQGLrftRAbUYh6f9dZ4q0i346YwI8nWAJq0ROgM+6cxlzyUgZozv
+wDNWOiTWuz07sdogUQj2xN8ImGL0VBD0/LML80Vu4w/D9kdmREyDNJ+RVotGXNSj
+16mNjq8AEqKL6X9QnJ3DxGN8qVLZzKdzY8IdD7UZbpgGJojCYQdBMfgKD4OToK2k
++IM3WOFlIaHunTMrGmiMPgCK0havS6KJtqh3/A/O0VQiPO8xjdBwrZ2ym4XhPysY
+cRac2AXDMnV4XiyPyl4Q5tYNfOVf5pLmv0oKjjw3xpuA/U7PdsEYlMEHU9fo6zZU
++FsXLkA5uLq6z6ctqLQmbxDebd3o6+/ibyrZv+6hlfEesc2y5P/UODRn5W+jMj1z
+Gvr8QxDB+p6PR3sVvS1esdQzNAC4LWQQQTTX7XvpfjkIepJxrZlirBzbn3H60MBO
+5JXavfdXawO0V47KWZvq
+=1iJT
+-----END PGP SIGNATURE-----
+
+--hD6P3ib1XCFtz2ni--
