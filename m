@@ -1,44 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: omap: Fix errors and warnings when building for
-	one board
-Date: Thu, 13 Oct 2011 16:21:42 +0100
-Message-ID: <20111013152142.GC22076@n2100.arm.linux.org.uk>
-References: <1318517623-16066-1-git-send-email-premi@ti.com> <20111013145615.GB22076@n2100.arm.linux.org.uk> <B85A65D85D7EB246BE421B3FB0FBB5930257A57F4E@dbde02.ent.ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+Date: Thu, 13 Oct 2011 12:04:25 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1110131202350.2026-100000@iolanthe.rowland.org>
+References: <CACVXFVMoac7psbfO6UdDvNux4c8bQYS4YNUdz1C-o+CiJzyuZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39581 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932093Ab1JMPVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Oct 2011 11:21:51 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930257A57F4E@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CACVXFVMoac7psbfO6UdDvNux4c8bQYS4YNUdz1C-o+CiJzyuZA@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM List <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Oct 13, 2011 at 08:36:19PM +0530, Premi, Sanjeev wrote:
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-> > Sent: Thursday, October 13, 2011 8:26 PM
-> > To: Premi, Sanjeev
-> > Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Subject: Re: [PATCH] arm: omap: Fix errors and warnings when 
-> > building for one board
-> > 
-> > On Thu, Oct 13, 2011 at 08:23:43PM +0530, Sanjeev Premi wrote:
-> > > +#if defined(CONFIG_ARCH_OMAP4)
-> > 
-> > Please use #ifdef unless you're intending to expand the condition.
-> > 
+On Thu, 13 Oct 2011, Ming Lei wrote:
+
+> Hi,
 > 
-> I tried to be consistent with existing use of #if defined() in the
-> file(s). Will change it.
+> On Thu, Oct 13, 2011 at 10:31 PM, Alan Stern <stern@rowland.harvard.edu>
+> >> Maybe we should understand the correct model of the ordering constraints
+> >> for the multiple device dependancies first, could you give a description or
+> >> some examples about it?
+> >
+> > The requirement is that devices must be capable of resuming in the
+> > order given by dpm_list, and they must be capable of suspending in
+> > the reverse order.
+> >
+> > Therefore if device A can't work unless device B is functional, then B
+> > must come before A in dpm_list.
+> 
+> If all devices can support async suspend and resume correctly, looks like
+> the device order given by dpm_list is not needed any longer, doesn't it?
 
-Thanks.
+It _is_ needed, because the user can disable async suspend/resume via 
+/sys/power/pm_async.
 
-> Should I change the other instances as well?
+Also, not all devices do support async suspend/resume.
 
-I'd suggest not - though I can't really tell as I don't have a version
-with that to look at.
+Alan Stern
+
