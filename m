@@ -1,84 +1,72 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Fri, 14 Oct 2011 12:33:31 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1110141229450.2036-100000@iolanthe.rowland.org>
-References: <CACxGe6vF6em0-PnJ7UuH0CQ0_StJTfmFKBsktvb9O+ccCx6E8A@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH v3 1/6] iommu/core: split mapping to page sizes as
+	supported by the hardware
+Date: Fri, 14 Oct 2011 19:03:39 +0200
+Message-ID: <CAK=Wgbar+z_Nm1cDM4bJgrP5yWbjCsVBW=orfYwsZsT7uET8ng@mail.gmail.com>
+References: <20110927131222.GL2138@amd.com>
+	<CAK=WgbYG2tpMJ2SikZhm=R9j5kQ6Hm8CGg=q1bko3idzF53Q3Q@mail.gmail.com>
+	<20110927181438.GM2138@amd.com>
+	<CAK=WgbbNs5fWHDEputZ=jzU5YN0sn0tf6AETkcsoq_Jbvc2XgQ@mail.gmail.com>
+	<20111010094738.GW2138@amd.com>
+	<CAK=WgbZ7Wyax1yfS1jSXw9OdwMtxxidwLO8PTsNUXX9CWzmVrw@mail.gmail.com>
+	<20111010153609.GB2138@amd.com>
+	<CAK=WgbbnuO67X46sqS87q2vw2TWq3Ekvw5p1PmXvXinQXMyowg@mail.gmail.com>
+	<20111011103820.GF2138@amd.com>
+	<CAK=WgbYOUZNX0OmRwZNO1mMG+3DZXwff+S60ESWixf04HOcbtw@mail.gmail.com>
+	<20111014133510.GC2198@amd.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6vF6em0-PnJ7UuH0CQ0_StJTfmFKBsktvb9O+ccCx6E8A@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Ming Lei <tom.leiming@gmail.com>, Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM List <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20111014133510.GC2198@amd.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Cc: "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Hiroshi Doyu <hdoyu@nvidia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Stepan Moskovchenko <stepanm@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 14 Oct 2011, Grant Likely wrote:
+On Fri, Oct 14, 2011 at 3:35 PM, Roedel, Joerg <Joerg.Roedel@amd.com> wrote:
+> This patch looks good. Please include it in the page-size patch-set.
 
-> > How can a device acquire children before it has a driver?
->=20
-> There are a few potential situations in embedded systems (or at least
-> nothing currently prevents it) where platform setup code constructs a
-> device hierarchy without the aid of device drivers, and it is still
-> possible for a parent device to be attached to a driver.  IIUC, SPARC
-> creates an entire hierarchy of platform_devices from all the nodes in
-> the OpenFirmware device tree, and any of those devices can be bound t=
-o
-> a driver.  I don't like that approach, but at the very least it needs
-> to be guarded against.
+will do.
 
-Do these devices ever require deferred probes?
+> Hmm, I'd like to constify the iommu_ops structures in the future. This
+> wouldn't work then anymore. How about renaming it to io_page_size
+> (because it is the base page-size of the iommu) and let the driver set
+> it?
 
-> On Fri, Oct 14, 2011 at 9:39 AM, Alan Stern <stern@rowland.harvard.ed=
-u> wrote:
-> > On Thu, 13 Oct 2011, Grant Likely wrote:
-> >> I saw those. =A0I also notice that they are only used by device_mo=
-ve()
-> >> when reparenting a device (which is another wrinkle I hadn't thoug=
-h
-> >> about). =A0Reparenting a device becomes problematic if the probe o=
-rder
-> >> is also represented in the list. =A0If device_move() gets called, =
-then
-> >> any implicit probe-order sorting for that device would be lost.
-> >>
-> >> I also notice that device_move disregards any children when moving=
- a
-> >> device, which could also be a problem.
-> >>
-> >> Although it looks like the only users of device_move are:
-> >>
-> >> drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-> >> drivers/s390/cio/device.c
-> >> net/bluetooth/hci_sysfs.c
-> >> net/bluetooth/rfcomm/tty.c
-> >>
-> >> So it may not be significant to adapt.
-> >
-> > I trust that very little will be needed. =A0I haven't checked the
-> > existing callers, but it's reasonable to require that a device bein=
-g
-> > moved not have any children.
->=20
-> Yes, that does indeed simplify the issue considerably.  Let's do that=
-=2E
->  So, for this patch, there will be two bits added.  First, don't allo=
-w
-> deferral on devices with children, and second a successful probe
-> (deferred or otherwise) should always move a device to the end of the
-> dap_list if it doesn't have children to guarantee that the list order
-> satisfies both the hierarchical and probe order.  Manjunath, do you
-> think you can prototype this?
+Sure, that'd work. Though asking the driver to provide this feels a
+bit redundant, as it already provided this info in the supported page
+sizes.
 
-I don't think the second part needs to be quite so invasive. =20
-Certainly drivers that never defer probes shouldn't require anything to
-be moved.
+I guess a cleaner solution might be allocating a 'struct iommu' in
+which drivers will set a 'const struct iommu_ops *' member. That new
+struct would then contain the base page-size and any other state the
+iommu core would ever need.
 
-A deferred probe _should_ move the device to the end of the list.  But
-this needs to happen in the probe routine itself (after it has verified
-that all the other required devices are present and before it has
-registered any children) to prevent races.  It can't be done in a
-central location.
+This whole thing is quite marginal though and also very easy to change
+later, so we can start with the "driver-provided io_page_size"
+approach for now.
 
-Alan Stern
+> This needs to be (left > 0). The drivers are allowed to unmap more then
+> requested, so this value may turn negative.
 
+Good point. 'left' is size_t though, so i'll fix this a bit differently.
+
+> Btw, how have you tested this code?
+
+Of course. Every patch I send is always tested on both OMAP3 (with
+omap3isp) and OMAP4 (with rpmsg/remoteproc). In addition, everyone who
+uses my wip rpmsg tree (there are several developers who do) is always
+testing this without even knowing, as I'm always rebasing that tree on
+the latest iommu patches (my wip branches are not linear).
+
+Thanks,
+Ohad.
