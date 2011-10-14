@@ -1,49 +1,28 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
-	regulator_init_data
-Date: Thu, 13 Oct 2011 23:12:33 +0100
-Message-ID: <20111013221232.GB2866@opensource.wolfsonmicro.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
-	<1318263578-7407-4-git-send-email-rnayak@ti.com>
-	<20111010172222.GG3607@opensource.wolfsonmicro.com>
-	<4E93DB41.2080900@ti.com>
-	<20111013183821.GN18574@ponder.secretlab.ca>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 5/5 v14] omap: usb: host: Replace usbhs core driver APIs
+ by Runtime pm APIs
+Date: Thu, 13 Oct 2011 18:09:57 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.1110131809290.24155@utopia.booyaka.com>
+References: <Pine.LNX.4.44L0.1110131408440.2026-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20111013183821.GN18574@ponder.secretlab.ca>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1110131408440.2026-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Felipe Balbi <balbi@ti.com>, Keshava Munegowda <keshava_mgowda@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 13, 2011 at 12:38:21PM -0600, Grant Likely wrote:
+On Thu, 13 Oct 2011, Alan Stern wrote:
 
-> These *sound* like flags that the driver would set based on its own
-> capabilities; in which case it is something that would be encoded
-> directly into the driver.
+> To keep things simple, this patch should go through the same submission 
+> path as the others in the series.  I view it more as an OMAP thing than 
+> an EHCI thing anyway.  For the record:
+> 
+> Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
-They're almost entirely a combination of system specifics and software
-capabilities - it's not even reliably one or the other.  For example the
-ability to switch regulator modes is going to depend on a combination of
-the modes a specific regulator offers, the set of things connected to
-the regulator in the current system (not all of which will be software
-visible), how good all the connected consumer drivers are at providing
-accurate information about what they're going to need from the system in
-terms of quality of regulation and current draw and how good the board
-design is in making these things reality.
+Thanks, either I and/or Tony will take it from here, after we get 
+Samuel's ack.
 
-For robustness (for some of these things if you get it wrong we're
-talking catastrophic hardware failure) the Linux regulator API is
-extremely conservative and won't touch the hardware unless explicitly
-told that a specific thing is OK on a given board.
+
+- Paul
