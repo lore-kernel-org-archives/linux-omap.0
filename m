@@ -1,84 +1,79 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Fri, 14 Oct 2011 12:09:00 -0700
-Message-ID: <4E9888CC.4060104@gmail.com>
-References: <CACxGe6vF6em0-PnJ7UuH0CQ0_StJTfmFKBsktvb9O+ccCx6E8A@mail.gmail.com> <Pine.LNX.4.44L0.1110141229450.2036-100000@iolanthe.rowland.org> <CACxGe6t2Xu5B0AKZJe-6HEpxK6GfuNm0Y2Kb_bs8ZwaTz5XnRg@mail.gmail.com> <4E9885CF.1000301@gmail.com> <CACxGe6v=NuxX3b=7wG6hMZjO22_zEg3Q4LtjT3UPtv2bKFtjWQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CACxGe6v=NuxX3b=7wG6hMZjO22_zEg3Q4LtjT3UPtv2bKFtjWQ@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Alan Stern <stern@rowland.harvard.edu>, Ming Lei <tom.leiming@gmail.com>, Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM List <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: [PATCH 1/1] ARM: OMAP: Add conditional compilation for board specific init functions
+Date: Sat, 15 Oct 2011 00:00:18 +0200
+Message-ID: <1318629618-5313-1-git-send-email-martinez.javier@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:59112 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752051Ab1JNWAl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Oct 2011 18:00:41 -0400
+Received: by wyg36 with SMTP id 36so530707wyg.19
+        for <linux-omap@vger.kernel.org>; Fri, 14 Oct 2011 15:00:39 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Javier Martinez Canillas <martinez.javier@gmail.com>
 
-On 10/14/2011 12:03 PM, Grant Likely wrote:
-> On Fri, Oct 14, 2011 at 12:56 PM, David Daney<ddaney.cavm@gmail.com>  wrote:
->> On 10/14/2011 10:20 AM, Grant Likely wrote:
->>>
->>> On Fri, Oct 14, 2011 at 10:33 AM, Alan Stern<stern@rowland.harvard.edu>
->>>   wrote:
->>>>
->>>> On Fri, 14 Oct 2011, Grant Likely wrote:
->>>>
->>>>>> How can a device acquire children before it has a driver?
->>>>>
->>>>> There are a few potential situations in embedded systems (or at least
->>>>> nothing currently prevents it) where platform setup code constructs a
->>>>> device hierarchy without the aid of device drivers, and it is still
->>>>> possible for a parent device to be attached to a driver.  IIUC, SPARC
->>>>> creates an entire hierarchy of platform_devices from all the nodes in
->>>>> the OpenFirmware device tree, and any of those devices can be bound to
->>>>> a driver.  I don't like that approach, but at the very least it needs
->>>>> to be guarded against.
->>>>
->>>> Do these devices ever require deferred probes?
->>>
->>> Yes, they very well might.  However, I'm happy with the limitation
->>> that only leaf devices can take advantage of probe deferral.
->>>
->>
->>
->> I have:
->>
->> I2C-Bus-A
->>   +--Mux-I2C (controlled by parent I2C-Bus-A)
->>       +---I2C-Bus-1
->>       |      +--GPIO-Expander-A
->>       |
->>       +---I2C-Bus-2
->>              +--GPIO-Expander-B
->>
->> These all have a parent/child relationship so no deferral is needed, so far
->> so good.
->>
->>
->> Then this:
->>
->> MDIO-Bus-A
->>    +---Mux-MDIO (controlled by GPIO-Expander-A)
->>          +---MDIO-Bus-1
->>          |
->>          +---MDIO-Bus-2
->>                +---PHY-1
->>                |
->>                +---PHY-2
->>
->> In this case the driver for Mux-MDIO needs to be deferred until *both*
->> MDIO-Bus-A's driver *and* GPIO-Expander-B's driver are loaded.  A perfect
->> use case for the patch.
->>
->> Would you consider Mux-MDIO to be a 'leaf device'?  If not, then I have real
->> problems with 'the limitation that only leaf devices can take advantage of
->> probe deferral'
->
-> leaf device **at the time of its driver probe**.  :-)  After the
-> device has all of its dependencies met, it can freely add child
-> devices.  In your case, the child devices will get added by the
-> Mux-MDIO device driver, so all is good.
->
+The definition for board specific initialization functions:
+- omap2_set_globals_xxxx
+- omapxxxx_powerdomains_init
+- omapxxxx_clockdomains_init
+- omapxxxx_hwmod_init
 
-Indeed.  Thanks for the confirmation.
+is conditionally compiled. So we also have to conditionally compile
+the call to these functions or the linker will find undefined symbols.
 
-David Daney
+Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
+---
+ arch/arm/mach-omap2/io.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index aa96538..d2d045b 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -359,6 +359,7 @@ static void __init omap_hwmod_init_postsetup(void)
+ 	omap_pm_if_early_init();
+ }
+ 
++#ifdef CONFIG_SOC_OMAP2420
+ void __init omap2420_init_early(void)
+ {
+ 	omap2_set_globals_242x();
+@@ -370,7 +371,9 @@ void __init omap2420_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap2420_clk_init();
+ }
++#endif
+ 
++#ifdef CONFIG_SOC_OMAP2430
+ void __init omap2430_init_early(void)
+ {
+ 	omap2_set_globals_243x();
+@@ -382,6 +385,7 @@ void __init omap2430_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap2430_clk_init();
+ }
++#endif
+ 
+ /*
+  * Currently only board-omap3beagle.c should call this because of the
+@@ -431,6 +435,7 @@ void __init ti816x_init_early(void)
+ 	omap3xxx_clk_init();
+ }
+ 
++#ifdef CONFIG_ARCH_OMAP4
+ void __init omap4430_init_early(void)
+ {
+ 	omap2_set_globals_443x();
+@@ -442,6 +447,7 @@ void __init omap4430_init_early(void)
+ 	omap_hwmod_init_postsetup();
+ 	omap4xxx_clk_init();
+ }
++#endif
+ 
+ void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+ 				      struct omap_sdrc_params *sdrc_cs1)
+-- 
+1.7.4.1
+
