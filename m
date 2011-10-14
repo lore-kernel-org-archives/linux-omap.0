@@ -1,28 +1,118 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/5 v14] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Fri, 14 Oct 2011 12:20:35 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110141218240.19504@utopia.booyaka.com>
-References: <1318319355-20168-1-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1110131227270.24155@utopia.booyaka.com> <alpine.DEB.2.00.1110131857350.24155@utopia.booyaka.com> <CAP05o4JMnhd+59ocTw+z9a7ukSmDn1deL5T4D9q5ZeKw_tEg0w@mail.gmail.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
+Date: Fri, 14 Oct 2011 12:25:03 -0600
+Message-ID: <CACxGe6sc8qOWDvLYSKwUzG8-VEZCXDKQX88qQsFYuP2QtEHvFg@mail.gmail.com>
+References: <CACxGe6t2Xu5B0AKZJe-6HEpxK6GfuNm0Y2Kb_bs8ZwaTz5XnRg@mail.gmail.com>
+ <Pine.LNX.4.44L0.1110141327170.2036-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAP05o4JMnhd+59ocTw+z9a7ukSmDn1deL5T4D9q5ZeKw_tEg0w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, balbi@ti.com, khilman@ti.com, b-cousson@ti.com, gadiyar@ti.com, sameo@linux.intel.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1110141327170.2036-100000@iolanthe.rowland.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Ming Lei <tom.leiming@gmail.com>, Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM List <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Keshava
+On Fri, Oct 14, 2011 at 11:33 AM, Alan Stern <stern@rowland.harvard.edu=
+> wrote:
+> On Fri, 14 Oct 2011, Grant Likely wrote:
+>
+>> > I don't think the second part needs to be quite so invasive.
+>> > Certainly drivers that never defer probes shouldn't require anythi=
+ng to
+>> > be moved.
+>>
+>> Think about that a minute. =A0Consider a dpm_list of devices:
+>> =A0 =A0 =A0 =A0 abcDefGh
+>>
+>> Now assume that D has an implicit dependency on G. =A0If D gets prob=
+ed
+>> first, then it will be deferred until G gets probed and then D will
+>> get retried and moved to the end of the list resulting in:
+>> =A0 =A0 =A0 =A0 abcefGhD
+>> Everything is good now for the order that things need to be suspende=
+d in.
+>>
+>> Now lets assume that the drivers get linked into the kernel in a
+>> different order (or the modules get loaded in a different order) and=
+ G
+>> gets probed first, followed by D. =A0No deferral occurred and so no
+>> reordering occurs, resulting in:
+>> =A0 =A0 =A0 =A0 abcDefGh (unchanged)
+>> But now suspend is broken because D depends on G, but G will be
+>> suspended before D.
+>
+> However D sometimes does defer probes. =A0Therefore the device always
+> needs to be moved, even though this particular probe wasn't deferred.
 
-On Fri, 14 Oct 2011, Munegowda, Keshava wrote:
+Yes, that's part of my point.
 
-> This updated patch is working perfectly on 3430 sdp.
+>> =A0This looks and smells like a bug to me. =A0In fact,
+>> even without using probe deferral it looks like a bug because the
+>> dap_list isn't taking into account the fact that there are very like=
+ly
+>> to be implicit dependencies between devices that are not represented
+>> in the device hierarchy (maybe not common in PCs, but certainly is t=
+he
+>> case for embedded). =A0But, it is also easy to solve by ensuring the
+>> dap_list is also probe-order sorted.
+>>
+>> > A deferred probe _should_ move the device to the end of the list. =
+=A0But
+>> > this needs to happen in the probe routine itself (after it has ver=
+ified
+>> > that all the other required devices are present and before it has
+>> > registered any children) to prevent races. =A0It can't be done in =
+a
+>> > central location.
+>>
+>> I'm really concerned about drivers having to implement this and not
+>> getting it correct; particularly when moving a device to the end of
+>> the list is cheap, and it shouldn't be a problem to do the move
+>> unconditionally after a driver has been matches, but before probe() =
+is
+>> called.
+>
+> But that's too early. =A0What if D gets moved to the end of the list,
+> then G gets added to the list and probed, and then D's probe succeeds=
+?
 
-Great, thanks for testing this and the OMAP4 patch.  So, just FYI, I've 
-pulled these patches into the branch 'usbhost_runtime_pm_14_devel_3.2' on 
-git://git.pwsan.com/linux-2.6 - but I can't send these upstream until 
-Samuel acks the MFD patch in this series.
+So the argument is that if really_probe() called dpm_move_last()
+immediately before the dev->bus->probe()/drv->probe() call then there
+is a race condition that G could get both registered and probed before
+D's probe() starts using G's resources.  And so, the list would still
+have G after D which is in the wrong order.  Do I understand
+correctly?
 
+> And after the probe returns is too late, because by then there may we=
+ll
+> be child devices.
 
-- Paul
+Agreed, after probe returns is definitely too late.
+
+>> =A0We may be able to keep watch to make sure that drivers using
+>> probe deferral are also reordering themselves, but that does nothing
+>> for the cases described above where the link order of the drivers
+>> determines probe order, not the dap_list order.
+>
+> Devices need to be moved whenever they have any external dependencies=
+,
+> regardless of the particular order they get probed in.
+
+I suspect this gets messy in a hurry, but perhaps it is worth trying.
+So, any device that makes use of a PHY, GPIO line, codec, etc will
+need to call dpm_move_last() before adding child devices, correct?
+I'd be much happier to find a way to do this in core code though.  And
+there is still a potential race condition here.  For example, if G is
+in the middle of it's probe routine, and D gets probed between G
+registering GPIOs and calling dpm_move_last(), then we're in the same
+boat again.  I think the window for this race can be considered to be
+of the same magnitude as the moved to early race described above.  I
+need to think about this more...
+
+g.
+
+--=20
+Grant Likely, B.Sc., P.Eng.
+Secret Lab Technologies Ltd.
