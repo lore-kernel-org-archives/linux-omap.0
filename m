@@ -1,118 +1,147 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 2/5] drivercore: Add driver probe deferral mechanism
-Date: Fri, 14 Oct 2011 12:25:03 -0600
-Message-ID: <CACxGe6sc8qOWDvLYSKwUzG8-VEZCXDKQX88qQsFYuP2QtEHvFg@mail.gmail.com>
-References: <CACxGe6t2Xu5B0AKZJe-6HEpxK6GfuNm0Y2Kb_bs8ZwaTz5XnRg@mail.gmail.com>
- <Pine.LNX.4.44L0.1110141327170.2036-100000@iolanthe.rowland.org>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v6 09/16] OMAP2+: UART: Add runtime pm support for
+ omap-serial driver
+Date: Fri, 14 Oct 2011 23:59:53 +0530
+Message-ID: <CAAL8m4zt1aA2ysRTRazQgn=1QGJkzcYLMCi2m_dUqNKf+0Sh7w@mail.gmail.com>
+References: <1317380495-584-1-git-send-email-govindraj.raja@ti.com>
+ <1317380495-584-9-git-send-email-govindraj.raja@ti.com> <878voplppo.fsf@ti.com>
+ <CAAL8m4yrXo4KRYxXxWECU99B6--FCMBDFUbNk+vsBV0Jnt0bcg@mail.gmail.com>
+ <87obxkio3e.fsf@ti.com> <CAAL8m4zbdA9rtwLhft8UGQTtvroNbYYoBoq4BG2Eu2nCToX5+w@mail.gmail.com>
+ <87ehyfec7t.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1110141327170.2036-100000@iolanthe.rowland.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Ming Lei <tom.leiming@gmail.com>, Andrei Warkentin <awarkentin@vmware.com>, Greg KH <greg@kroah.com>, Dilan Lee <dilee@nvidia.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, Josh Triplett <josh@joshtriplett.org>, Manjunath@jasper.es, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PM List <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87ehyfec7t.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 14, 2011 at 11:33 AM, Alan Stern <stern@rowland.harvard.edu=
-> wrote:
-> On Fri, 14 Oct 2011, Grant Likely wrote:
+On Fri, Oct 14, 2011 at 10:34 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Govindraj <govindraj.ti@gmail.com> writes:
 >
->> > I don't think the second part needs to be quite so invasive.
->> > Certainly drivers that never defer probes shouldn't require anythi=
-ng to
->> > be moved.
+>> On Fri, Oct 14, 2011 at 2:52 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>>> Govindraj <govindraj.ti@gmail.com> writes:
+>>>
+>>>> On Thu, Oct 13, 2011 at 5:36 AM, Kevin Hilman <khilman@ti.com> wro=
+te:
+>>>>> "Govindraj.R" <govindraj.raja@ti.com> writes:
+>>>>>
+>>>>> [...]
+>>>>>
+>>>>>> Use device_may_wakeup to check whether uart has wakeup capabilit=
+ies
+>>>>>> and then enable uart runtime usage for the uart.
+>>>>>
+>>>>> Curious about what happens when device_may_wakeup() is not set du=
+ring
+>>>>> device init.
+>>>>>
+>>>>> [...]
+>>>>>
+>>>>>> @@ -1305,6 +1363,16 @@ static int serial_omap_probe(struct platf=
+orm_device *pdev)
+>>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->uart_dma.rx_dma_channel =3D OMAP=
+_UART_DMA_CH_FREE;
+>>>>>> =A0 =A0 =A0 }
+>>>>>>
+>>>>>> + =A0 =A0 pm_runtime_use_autosuspend(&pdev->dev);
+>>>>>> + =A0 =A0 pm_runtime_set_autosuspend_delay(&pdev->dev,
+>>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_UART_AUTOSUSPEND_=
+DELAY);
+>>>>>> +
+>>>>>> + =A0 =A0 pm_runtime_irq_safe(&pdev->dev);
+>>>>>> + =A0 =A0 if (device_may_wakeup(&pdev->dev)) {
+>>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_enable(&pdev->dev);
+>>>>>
+>>>>> So if device_may_wakeup() is false, runtime PM is not enabled, th=
+en...
+>>>>>
+>>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(&pdev->dev);
+>>>>>
+>>>>> ...this get doesn't happen, and the first register access causes =
+a crash.
+>>>>
+>>>> Actually no crash, clocks will left enabled from boot up (hwmod_no=
+_reset/idle)
+>>>> that are idled and enabled back here.
+>>>>
+>>>> Since hwmod_idle is binded here later ([PATCH v6 15/16]),
+>>>
+>>> IMO, That's not a very maintainable solution.
+>>>
+>>> What happens when when someone fixes serial.c to only set
+>>> HWMOD_INIT_NO_IDLE on the console UART? =A0or if we fix things so w=
+e don't
+>>> need INIT_NO_IDLE anymore? =A0Then this will crash.
+>>>
+>>> Driver code should not make assumptions like this about what device=
+ init
+>>> code is or isn't doing.
+>>>
 >>
->> Think about that a minute. =A0Consider a dpm_list of devices:
->> =A0 =A0 =A0 =A0 abcDefGh
+>> Okay, How about doing as below ensuring get_sync always
+>> and forbid runtime to avoid clock_gating if wakeup is not set.
 >>
->> Now assume that D has an implicit dependency on G. =A0If D gets prob=
-ed
->> first, then it will be deferred until G gets probed and then D will
->> get retried and moved to the end of the list resulting in:
->> =A0 =A0 =A0 =A0 abcefGhD
->> Everything is good now for the order that things need to be suspende=
-d in.
->>
->> Now lets assume that the drivers get linked into the kernel in a
->> different order (or the modules get loaded in a different order) and=
- G
->> gets probed first, followed by D. =A0No deferral occurred and so no
->> reordering occurs, resulting in:
->> =A0 =A0 =A0 =A0 abcDefGh (unchanged)
->> But now suspend is broken because D depends on G, but G will be
->> suspended before D.
 >
-> However D sometimes does defer probes. =A0Therefore the device always
-> needs to be moved, even though this particular probe wasn't deferred.
-
-Yes, that's part of my point.
-
->> =A0This looks and smells like a bug to me. =A0In fact,
->> even without using probe deferral it looks like a bug because the
->> dap_list isn't taking into account the fact that there are very like=
-ly
->> to be implicit dependencies between devices that are not represented
->> in the device hierarchy (maybe not common in PCs, but certainly is t=
-he
->> case for embedded). =A0But, it is also easy to solve by ensuring the
->> dap_list is also probe-order sorted.
->>
->> > A deferred probe _should_ move the device to the end of the list. =
-=A0But
->> > this needs to happen in the probe routine itself (after it has ver=
-ified
->> > that all the other required devices are present and before it has
->> > registered any children) to prevent races. =A0It can't be done in =
-a
->> > central location.
->>
->> I'm really concerned about drivers having to implement this and not
->> getting it correct; particularly when moving a device to the end of
->> the list is cheap, and it shouldn't be a problem to do the move
->> unconditionally after a driver has been matches, but before probe() =
-is
->> called.
+> This is better, I'm not crazy about that either.
 >
-> But that's too early. =A0What if D gets moved to the end of the list,
-> then G gets added to the list and probed, and then D's probe succeeds=
-?
-
-So the argument is that if really_probe() called dpm_move_last()
-immediately before the dev->bus->probe()/drv->probe() call then there
-is a race condition that G could get both registered and probed before
-D's probe() starts using G's resources.  And so, the list would still
-have G after D which is in the wrong order.  Do I understand
-correctly?
-
-> And after the probe returns is too late, because by then there may we=
-ll
-> be child devices.
-
-Agreed, after probe returns is definitely too late.
-
->> =A0We may be able to keep watch to make sure that drivers using
->> probe deferral are also reordering themselves, but that does nothing
->> for the cases described above where the link order of the drivers
->> determines probe order, not the dap_list order.
+> Consider a platform that doesn't have wakeups, but the UARTs are not
+> used (at least initially.) =A0 That means on power up, all the UARTs =
+are
+> left enabled to consume power even when they're not used.
 >
-> Devices need to be moved whenever they have any external dependencies=
-,
-> regardless of the particular order they get probed in.
 
-I suspect this gets messy in a hurry, but perhaps it is worth trying.
-So, any device that makes use of a PHY, GPIO line, codec, etc will
-need to call dpm_move_last() before adding child devices, correct?
-I'd be much happier to find a way to do this in core code though.  And
-there is still a potential race condition here.  For example, if G is
-in the middle of it's probe routine, and D gets probed between G
-registering GPIOs and calling dpm_move_last(), then we're in the same
-boat again.  I think the window for this race can be considered to be
-of the same magnitude as the moved to early race described above.  I
-need to think about this more...
+okay, the right place would be serial_omap_pm
+to do add runtime forbid.
 
-g.
+whenever the uart port is used it will call serial_omap_pm
+with state param assigned value zero from serial_core layer
+for open system call from user space.
 
---=20
-Grant Likely, B.Sc., P.Eng.
-Secret Lab Technologies Ltd.
+Also when uart port is closed it will shutdown where we can add runtime=
+_allow.
+So for uart ports not wakeup capable keep uart clocks on until
+used and once port is shutdown cut uart clocks.
+
+
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap=
+-serial.c
+index 8a955fc..2c43744 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -608,6 +608,10 @@ static void serial_omap_shutdown(struct uart_port =
+*port)
+                        up->uart_dma.rx_buf_dma_phys);
+                up->uart_dma.rx_buf =3D NULL;
+        }
++
++       if (!device_may_wakeup(&up->pdev->dev))
++               pm_runtime_allow(&up->pdev->dev);
++
+        pm_runtime_put(&up->pdev->dev);
+        free_irq(up->port.irq, up);
+ }
+@@ -893,6 +897,10 @@ serial_omap_pm(struct uart_port *port, unsigned in=
+t state,
+        serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+        serial_out(up, UART_EFR, efr);
+        serial_out(up, UART_LCR, 0);
++
++       if (!state && !device_may_wakeup(&up->pdev->dev))
++               pm_runtime_forbid(&up->pdev->dev);
++
+        pm_runtime_put(&up->pdev->dev);
+ }
+
+
+--
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
