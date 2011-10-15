@@ -1,110 +1,73 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] OMAP4 MPU sub-system PM for v3.2
-Date: Fri, 14 Oct 2011 15:54:02 -0700
-Message-ID: <878vonchh1.fsf@ti.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v14] mfd: omap: usb: Runtime PM support (fwd)
+Date: Sat, 15 Oct 2011 03:14:37 +0200
+Message-ID: <20111015011437.GC10229@sortiz-mobl>
+References: <alpine.DEB.2.00.1110131810250.24155@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1110131810250.24155-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Tony,
+Hi Paul,
 
-Please pull the OMAP4 PM support for the MPU sub-system.
+On Thu, Oct 13, 2011 at 06:11:26PM -0600, Paul Walmsley wrote:
+> 
+> Hi Samuel,
+> 
+> Care to ack this patch?  If so, we'll merge this series through the OMAP 
+> tree.
+> 
+> 
+> - Paul
+> 
+> ---------- Forwarded message ----------
+> Date: Tue, 11 Oct 2011 13:23:29 +0530
+> From: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+>     linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org,
+>     b-cousson-l0cyMroinI0@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org
+> Cc: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>, gadiyar-l0cyMroinI0@public.gmane.org,
+>     sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org,
+>     johnstul-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, vishwanath.bs-l0cyMroinI0@public.gmane.org,
+>     Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> Subject: [PATCH v14] mfd: omap: usb: Runtime PM support
+> 
+> From: Keshava Munegowda <Keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> 
+> The usbhs core driver does not enable/disable the interface and
+> functional clocks directly, These clocks are handled by runtime pm,
+> hence instead of the clock enable/disable, the runtime pm APIS are
+> used. however,the optional clocks and port clocks are handled by
+> the usbhs core.
+> 
+> Dependency:
+> This patch is dependent on this series:
+> [PATCH 0/5 v13 or latest version] omap: usb: host: Runtime PM preparation 
+> for EHCI and OHCI drivers.
+> 
+> Validation performed:
+> The global suspend/resume of EHCI and OHCI is validated on 
+> OMAP3430 sdp board with this patch combined with the series:
+> [PATCH 0/5 v13 or latest version] omap: usb: host: Runtime PM preparation 
+> for EHCI and OHCI drivers. 
+> 
+> Signed-off-by: Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Partha Basak <parthab-PpE0FKYn9XJWk0Htik3J/w@public.gmane.org>
+Acked-by: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-This branch is built on top of my for_3.2/omap4-pm-base branch which is
-simply a merge of Russell's devel-stable and Thomas' irq/core branch
-(both already part of Arnd's arm-soc/for-next branch.)
+Cheers,
+Samuel.
 
-Special thanks to Santosh for this series and also the quick response on
-a few last minute build/test issues I came across so we can hopefully
-still get this in for v3.2.
-
-Kevin
-
-The following changes since commit fe7f69ad79056043413aeb7e5ce27841fe3eb20e:
-
-  Merge branch 'irq/core' of git://tesla.tglx.de/git/linux-2.6-tip into for_3.2/omap4-mpuss-pm (2011-10-07 11:29:32 -0700)
-
-are available in the git repository at:
-
-  git://github.com/khilman/linux-omap-pm.git for_3.2/omap4-pm
-
-Kevin Hilman (1):
-      Merge branch 'for_3.2/omap4-mpuss-pm' into for_3.2/omap4-pm
-
-Santosh Shilimkar (24):
-      ARM: OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
-      ARM: OMAP4: Export omap4_get_base*() rather than global address pointers
-      ARM: OMAP4: PM: Add SAR RAM support
-      ARM: OMAP4: PM: Keep static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3
-      ARM: OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
-      ARM: OMAP4: PM: Initialise all the clockdomains to supported states
-      ARM: OMAP: Add Secure HAL and monitor mode API infrastructure.
-      ARM: OMAP: PM: Add support to allocate the memory for secure RAM
-      ARM: OMAP4: PM: Add WakeupGen module as OMAP gic_arch_extn
-      ARM: OMAP4: PM: Add CPUX OFF mode support
-      ARM: OMAP4: Remove __INIT from omap_secondary_startup() to re-use it for hotplug.
-      ARM: OMAP4: PM: Program CPU1 to hit OFF when off-lined
-      ARM: OMAP4: PM: CPU1 wakeup workaround from Low power modes
-      ARM: OMAP4: PM: Use custom omap_do_wfi() for default idle.
-      ARM: OMAP4: suspend: Add MPUSS power domain RETENTION support
-      ARM: OMAP4: Remove un-used do_wfi() macro.
-      ARM: OMAP4: PM: Add WakeupGen and secure GIC low power support
-      ARM: OMAP4: PM: Add L2X0 cache lowpower support
-      ARM: OMAP4: PM: Add MPUSS power domain OSWR support
-      ARM: OMAP4: PM: Add power domain statistics support
-      ARM: OMAP4: PM: Add CPUidle support
-      ARM: OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
-      ARM: OMAP3: CPUidle: Make use of CPU PM notifiers
-      ARM: OMAP4: Fix errata i688 with MPU interconnect barriers.
-
- arch/arm/mach-omap2/Kconfig                        |   21 +
- arch/arm/mach-omap2/Makefile                       |   16 +-
- arch/arm/mach-omap2/cpuidle34xx.c                  |   15 +
- arch/arm/mach-omap2/cpuidle44xx.c                  |  218 +++++++++++
- arch/arm/mach-omap2/include/mach/barriers.h        |   31 ++
- arch/arm/mach-omap2/include/mach/omap-secure.h     |   57 +++
- arch/arm/mach-omap2/include/mach/omap-wakeupgen.h  |   39 ++
- arch/arm/mach-omap2/include/mach/omap4-common.h    |   67 +++-
- arch/arm/mach-omap2/io.c                           |    9 +
- arch/arm/mach-omap2/omap-headsmp.S                 |    5 -
- arch/arm/mach-omap2/omap-hotplug.c                 |   14 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  398 ++++++++++++++++++++
- arch/arm/mach-omap2/omap-secure.c                  |   81 ++++
- arch/arm/mach-omap2/{omap44xx-smc.S => omap-smc.S} |   23 ++
- arch/arm/mach-omap2/omap-smp.c                     |   45 +++
- arch/arm/mach-omap2/omap-wakeupgen.c               |  389 +++++++++++++++++++
- arch/arm/mach-omap2/omap4-common.c                 |   94 +++++-
- arch/arm/mach-omap2/omap4-sar-layout.h             |   50 +++
- arch/arm/mach-omap2/pm.h                           |    1 +
- arch/arm/mach-omap2/pm44xx.c                       |  156 ++++++++-
- arch/arm/mach-omap2/sleep44xx.S                    |  378 +++++++++++++++++++
- arch/arm/plat-omap/common.c                        |    3 +
- arch/arm/plat-omap/include/plat/omap-secure.h      |   13 +
- arch/arm/plat-omap/include/plat/omap44xx.h         |    1 +
- arch/arm/plat-omap/include/plat/sram.h             |    5 +
- arch/arm/plat-omap/sram.c                          |   11 +-
- 26 files changed, 2104 insertions(+), 36 deletions(-)
- create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
- create mode 100644 arch/arm/mach-omap2/include/mach/barriers.h
- create mode 100644 arch/arm/mach-omap2/include/mach/omap-secure.h
- create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
- create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
- create mode 100644 arch/arm/mach-omap2/omap-secure.c
- rename arch/arm/mach-omap2/{omap44xx-smc.S => omap-smc.S} (70%)
- create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
- create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
- create mode 100644 arch/arm/mach-omap2/sleep44xx.S
- create mode 100644 arch/arm/plat-omap/include/plat/omap-secure.h
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
