@@ -1,226 +1,171 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
- regulator_init_data
-Date: Sun, 16 Oct 2011 22:55:37 +0800
-Message-ID: <20111016145536.GA29885@S2100-06.ap.freescale.net>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
- <1318263578-7407-4-git-send-email-rnayak@ti.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: Re: [PATCH] OMAP: iommu flush page table entries from L1 and L2 cache
+Date: Sun, 16 Oct 2011 13:32:05 -0500
+Message-ID: <CAPCu-pThH6K10MExTZH0jhZC3VnWsj7c-QN=8iy5xV+OaiThbQ@mail.gmail.com>
+References: <1302817968-28516-1-git-send-email-fernando.lugo@ti.com>
+	<20110414223036.GA7335@n2100.arm.linux.org.uk>
+	<BANLkTin8gugnVoai6VHC7qMgK4eKRXRtHg@mail.gmail.com>
+	<20110428134055.GA19709@n2100.arm.linux.org.uk>
+	<BANLkTikKnE-9WncNCADKfZVqkP1LFPYeXA@mail.gmail.com>
+	<CADysL2bp08WP798_MvUJthGi9ACySDE=Dc_BM9Vd0A=YcKpm+Q@mail.gmail.com>
+	<20110811222940.GA26209@n2100.arm.linux.org.uk>
+	<CADysL2Z9XfQNgY3spOaC9yK-gb1dL+87j14R85izF0dY29ah0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1318263578-7407-4-git-send-email-rnayak@ti.com>
+In-Reply-To: <CADysL2Z9XfQNgY3spOaC9yK-gb1dL+87j14R85izF0dY29ah0A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: "Gupta, Ramesh" <grgupta@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, tony@atomide.com, Ohad Ben-Cohen <ohad@wizery.com>, Subin Gangadharan <subin.kg@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 10, 2011 at 09:49:36PM +0530, Rajendra Nayak wrote:
-> The helper routine is meant to be used by regulator drivers
-> to extract the regulator_init_data structure from the data
-> that is passed from device tree.
-> 'consumer_supplies' which is part of regulator_init_data is not extracted
-> as the regulator consumer mappings are passed through DT differently,
-> implemented in subsequent patches.
-> Similarly the regulator<-->parent/supply mapping is handled in
-> subsequent patches.
-> 
-> Also add documentation for regulator bindings to be used to pass
-> regulator_init_data struct information from device tree.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  .../devicetree/bindings/regulator/regulator.txt    |   44 +++++++++
->  drivers/regulator/Kconfig                          |    8 ++
->  drivers/regulator/Makefile                         |    1 +
->  drivers/regulator/of_regulator.c                   |   93 ++++++++++++++++++++
->  include/linux/regulator/of_regulator.h             |   21 +++++
->  5 files changed, 167 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
->  create mode 100644 drivers/regulator/of_regulator.c
->  create mode 100644 include/linux/regulator/of_regulator.h
-> 
-> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
-> new file mode 100644
-> index 0000000..a623fdd
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-> @@ -0,0 +1,44 @@
-> +Voltage/Current Regulators
-> +
-> +Optional properties:
-> +- regulator-min-uV: smallest voltage consumers may set
-> +- regulator-max-uV: largest voltage consumers may set
-> +- regulator-uV-offset: Offset applied to voltages to compensate for voltage drops
-> +- regulator-min-uA: smallest current consumers may set
-> +- regulator-max-uA: largest current consumers may set
-> +- regulator-change-voltage: boolean, Output voltage can be changed by software
-> +- regulator-change-current: boolean, Output current can be chnaged by software
-> +- regulator-change-mode: boolean, Operating mode can be changed by software
-> +- regulator-change-status: boolean, Enable/Disable control for regulator exists
-> +- regulator-change-drms: boolean, Dynamic regulator mode switching is enabled
-> +- regulator-mode-fast: boolean, allow/set fast mode for the regulator
-> +- regulator-mode-normal: boolean, allow/set normal mode for the regulator
-> +- regulator-mode-idle: boolean, allow/set idle mode for the regulator
-> +- regulator-mode-standby: boolean, allow/set standby mode for the regulator
-> +- regulator-input-uV: Input voltage for regulator when supplied by another regulator
-> +- regulator-always-on: boolean, regulator should never be disabled
-> +- regulator-boot-on: bootloader/firmware enabled regulator
-> +- <name>-supply: phandle to the parent supply/regulator node
-> +
-> +Example:
-> +
-> +	xyzreg: regulator@0 {
-> +		regulator-min-uV = <1000000>;
-> +		regulator-max-uV = <2500000>;
-> +		regulator-mode-fast;
-> +		regulator-change-voltage;
-> +		regulator-always-on;
-> +		vin-supply = <&vin>;
-> +	};
-> +
-> +The same binding used by a regulator to reference its
-> +supply can be used by any consumer to reference its
-> +regulator/supply
-> +
-> +Example of a device node referencing a regulator node,
-> +
-> +	devicenode: node@0x0 {
-> +		...
-> +		...
-> +		<name>-supply = <&xyzreg>;
-> +	};
-> diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-> index c7fd2c0..981c92e 100644
-> --- a/drivers/regulator/Kconfig
-> +++ b/drivers/regulator/Kconfig
-> @@ -64,6 +64,14 @@ config REGULATOR_USERSPACE_CONSUMER
->  
->            If unsure, say no.
->  
-> +config OF_REGULATOR
-> +	tristate "OF regulator helpers"
-> +	depends on OF
-> +	default y if OF
-> +	help
-> +	  OpenFirmware regulator framework helper routines that can
-> +	  used by regulator drivers to extract data from device tree.
-> +
->  config REGULATOR_BQ24022
->  	tristate "TI bq24022 Dual Input 1-Cell Li-Ion Charger IC"
->  	help
-> diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-> index 040d5aa..e6bc009 100644
-> --- a/drivers/regulator/Makefile
-> +++ b/drivers/regulator/Makefile
-> @@ -7,6 +7,7 @@ obj-$(CONFIG_REGULATOR) += core.o dummy.o
->  obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
->  obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
->  obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
-> +obj-$(CONFIG_OF_REGULATOR) += of_regulator.o
->  
->  obj-$(CONFIG_REGULATOR_AD5398) += ad5398.o
->  obj-$(CONFIG_REGULATOR_BQ24022) += bq24022.o
-> diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-> new file mode 100644
-> index 0000000..9262d06
-> --- /dev/null
-> +++ b/drivers/regulator/of_regulator.c
-> @@ -0,0 +1,93 @@
-> +/*
-> + * OF helpers for regulator framework
-> + *
-> + * Copyright (C) 2011 Texas Instruments, Inc.
-> + * Rajendra Nayak <rnayak@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + */
-> +
-> +#include <linux/slab.h>
-> +#include <linux/of.h>
-> +#include <linux/regulator/machine.h>
-> +
-> +static void of_get_regulation_constraints(struct device_node *np,
-> +					struct regulator_init_data **init_data)
-> +{
-> +	const __be32 *min_uV, *max_uV, *uV_offset;
-> +	const __be32 *min_uA, *max_uA, *input_uV;
-> +	unsigned int valid_modes_mask = 0, valid_ops_mask = 0;
-> +
-> +	min_uV = of_get_property(np, "regulator-min-uV", NULL);
-> +	if (min_uV)
-> +		(*init_data)->constraints.min_uV = be32_to_cpu(*min_uV);
-> +	max_uV = of_get_property(np, "regulator-max-uV", NULL);
-> +	if (max_uV)
-> +		(*init_data)->constraints.max_uV = be32_to_cpu(*max_uV);
-> +	uV_offset = of_get_property(np, "regulator-uV-offset", NULL);
-> +	if (uV_offset)
-> +		(*init_data)->constraints.uV_offset = be32_to_cpu(*uV_offset);
-> +	min_uA = of_get_property(np, "regulator-min-uA", NULL);
-> +	if (min_uA)
-> +		(*init_data)->constraints.min_uA = be32_to_cpu(*min_uA);
-> +	max_uA = of_get_property(np, "regulator-max-uA", NULL);
-> +	if (max_uA)
-> +		(*init_data)->constraints.max_uA = be32_to_cpu(*max_uA);
-> +	input_uV = of_get_property(np, "regulator-input-uV", NULL);
-> +	if (input_uV)
-> +		(*init_data)->constraints.input_uV = be32_to_cpu(*input_uV);
-> +
-> +	/* valid modes mask */
-> +	if (of_find_property(np, "regulator-mode-fast", NULL))
-> +				valid_modes_mask |= REGULATOR_MODE_FAST;
-> +	if (of_find_property(np, "regulator-mode-normal", NULL))
-> +				valid_modes_mask |= REGULATOR_MODE_NORMAL;
-> +	if (of_find_property(np, "regulator-mode-idle", NULL))
-> +				valid_modes_mask |= REGULATOR_MODE_IDLE;
-> +	if (of_find_property(np, "regulator-mode-standby", NULL))
-> +				valid_modes_mask |= REGULATOR_MODE_STANDBY;
-> +
-> +	/* valid ops mask */
-> +	if (of_find_property(np, "regulator-change-voltage", NULL))
-> +				valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
-> +	if (of_find_property(np, "regulator-change-current", NULL))
-> +				valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
-> +	if (of_find_property(np, "regulator-change-mode", NULL))
-> +				valid_ops_mask |= REGULATOR_CHANGE_MODE;
-> +	if (of_find_property(np, "regulator-change-status", NULL))
-> +				valid_ops_mask |= REGULATOR_CHANGE_STATUS;
-> +
-> +	(*init_data)->constraints.valid_modes_mask = valid_modes_mask;
-> +	(*init_data)->constraints.valid_ops_mask = valid_ops_mask;
-> +
-> +	if (of_find_property(np, "regulator-always-on", NULL))
-> +				(*init_data)->constraints.always_on = true;
-> +	if (of_find_property(np, "regulator-boot-on", NULL))
-> +				(*init_data)->constraints.boot_on = true;
-> +}
-> +
-I do not see that of_get_regulation_constraints() covers the following
-fields.  We do not support them for DT probe?
+Hi Russell,
 
-struct regulation_constraints {
+On Fri, Aug 12, 2011 at 11:05 AM, Gupta, Ramesh <grgupta@ti.com> wrote:
+>
+> On Thu, Aug 11, 2011 at 5:29 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Thu, Aug 11, 2011 at 02:28:39PM -0500, Gupta, Ramesh wrote:
+> >> Hi Russel,
+> >
+> > grr.
+>
+> Sorry, typo.
+>
+> >
+> >> On Thu, Apr 28, 2011 at 11:48 AM, Gupta, Ramesh <grgupta@ti.com> w=
+rote:
+> >> > Hi Russel,
+> >> >
+> >> > On Thu, Apr 28, 2011 at 8:40 AM, Russell King - ARM Linux
+> >> > <linux@arm.linux.org.uk> wrote:
+> >> >> We _could_ invent a new API to deal with this, which is probabl=
+y going
+> >> >> to be far better in the longer term for page table based iommus=
+=2E =C2=A0That's
+> >> >> going to need some thought - eg, do we need to pass a struct de=
+vice
+> >> >> argument for the iommu cache flushing so we know whether we nee=
+d to flush
+> >> >> or not (eg, if we have cache coherent iommus)...
+> >>
+> >> my apologies for a late mail on this topic.
+> >>
+> >> do you think of any other requirements for this new API?
+> >>
+> >> Could we use the existing dmac_flush_range(), outer_flush_range()
+> >> for this purpose instead of a new API?
+> >>
+> >> I see a comment in the arch/arm/include/asm/cacheflush.h
+> >> for =C2=A0_not_ to use these APIs directly, but I am not really un=
+derstand
+> >> the reason for that.
+> >
+> > When I create APIs, I create them to solve a _purpose_ to code whic=
+h wants
+> > to do something. =C2=A0They're not created to provide some facility=
+ which can
+> > be re-used for unrelated stuff.
+> >
+> > This has been proven many times to be the correct approach. =C2=A0O=
+ver time,
+> > things change.
+> >
+>
+> I agree.
+>
+> > Let's say for arguments sake that you decide to use the DMA API stu=
+ff
+> > to achieve your goals. =C2=A0Then, lets say that ARM DMA becomes fu=
+lly
+> > cache coherent, but your IOMMU tables still need to be flushed from
+> > the L1 caches.
+> >
+> > Suddenly, dmac_flush_range() starts doing absolutely nothing. =C2=A0=
+Your
+> > driver breaks. =C2=A0I get whinged at because a previously working =
+driver
+> > stops working. =C2=A0In effect, that usage _prevents_ me making the=
+ changes
+> > necessary to keep the core architecture support moving forward as
+> > things develop. =C2=A0Or, alternatively I just ignore your driver, =
+make the
+> > changes anyway and leave it to rot.
+> >
+> > So, APIs get created to provide a purpose. =C2=A0Like - handling th=
+e DMA
+> > issues when mapping a buffer to DMA. =C2=A0Like handling the DMA is=
+sues
+> > when unmapping a buffer from DMA. =C2=A0If you start using those _b=
+ecause_
+> > they happen to clean or invalidate the cache for you, you're really
+> > asking for your driver to be broken at some point in the future.
+> >
+> > What is far better to do is to ensure that we have the right APIs i=
+n
+> > place for the purposes for which they are to be used. =C2=A0So, if =
+we need
+> > an API to flush out the IOMMU page table entries, then that's what
+> > we need, not some bodged lets-reuse-the-dma-flushing-functions thin=
+g.
+> > Inside the processors implementation, yes, it may well be the same
+> > thing, but that's a decision for the _processor_ support code to ma=
+ke,
+> > not the IOMMU writer.
+>
+> I completely agree, thank you for explaining the need to use the corr=
+ect API.
+>
+=46ollowing what you suggested, we looked at the cache flush APIs
+available (for v7).
+There is a v7_flush_kern_dcache_area that does the same job (from what
+I  understand), as
+the dma_inv_range. I have a patch that I have validated for OMAP4, to
+use this API to flush
+iommu pte/pgd entries. I would like to know your opinion before I send
+out the patch.
 
-        char *name;
+>
+> > As to what shape a new API should be - as I said above, maybe it sh=
+ould
+> > take a struct device argument, virtual base address and size. =C2=A0=
+Or maybe
+> > if we don't have any coherent IOMMUs then just ignore the device
+> > argument for the time being, and just pass the virtual base address=
+ and
+> > size.
+> >
+> > The next issue is whether it should require the virtual base addres=
+s to
+> > be in the kernel direct mapped region. =C2=A0If you're touching L2,=
+ then
+> > that's a yes, because we need to use virt_to_phys on it to get at t=
+he
+> > phys address for the L2 operations.
+> >
+> > So, I think: extend the cpu cache operations structure to have a me=
+thod
+> > for dealing with IOMMUs. =C2=A0Add an inline function to deal with =
+calling
+> > that, and the L2 ops if that's what's required.
+>
+> Once again thanks for the API requirements, I will work on this and s=
+end
+> the patches for review.
+>
+> Regards
+> Ramesh Gupta G
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
 
-	...
 
-        /* regulator suspend states for global PMIC STANDBY/HIBERNATE */
-        struct regulator_state state_disk;
-        struct regulator_state state_mem;
-        struct regulator_state state_standby;
-        suspend_state_t initial_state; /* suspend state to set at init */
 
-        /* mode to set on startup */
-        unsigned int initial_mode;
+--
 
-        /* constraint flags */
-	...
-        unsigned apply_uV:1;    /* apply uV constraint if min == max */
-};
-
--- 
-Regards,
-Shawn
+Thank you and Regards
+Subbu
