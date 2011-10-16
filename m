@@ -1,393 +1,226 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: [PATCH 1/1] OMAP: DSS2: Add TI Boxer display panel driver
-Date: Sat, 15 Oct 2011 16:45:57 +0200
-Message-ID: <1318689957-14743-1-git-send-email-martinez.javier@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:64515 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab1JOOqO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Oct 2011 10:46:14 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+ regulator_init_data
+Date: Sun, 16 Oct 2011 22:55:37 +0800
+Message-ID: <20111016145536.GA29885@S2100-06.ap.freescale.net>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
+ <1318263578-7407-4-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1318263578-7407-4-git-send-email-rnayak@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: David Bolcsfoldi <dbolcsfoldi@intrinsyc.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Javier Martinez Canillas <martinez.javier@gmail.com>
 
-Add panel driver for TI Boxer LCD.
+On Mon, Oct 10, 2011 at 09:49:36PM +0530, Rajendra Nayak wrote:
+> The helper routine is meant to be used by regulator drivers
+> to extract the regulator_init_data structure from the data
+> that is passed from device tree.
+> 'consumer_supplies' which is part of regulator_init_data is not extracted
+> as the regulator consumer mappings are passed through DT differently,
+> implemented in subsequent patches.
+> Similarly the regulator<-->parent/supply mapping is handled in
+> subsequent patches.
+> 
+> Also add documentation for regulator bindings to be used to pass
+> regulator_init_data struct information from device tree.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  .../devicetree/bindings/regulator/regulator.txt    |   44 +++++++++
+>  drivers/regulator/Kconfig                          |    8 ++
+>  drivers/regulator/Makefile                         |    1 +
+>  drivers/regulator/of_regulator.c                   |   93 ++++++++++++++++++++
+>  include/linux/regulator/of_regulator.h             |   21 +++++
+>  5 files changed, 167 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
+>  create mode 100644 drivers/regulator/of_regulator.c
+>  create mode 100644 include/linux/regulator/of_regulator.h
+> 
+> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
+> new file mode 100644
+> index 0000000..a623fdd
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
+> @@ -0,0 +1,44 @@
+> +Voltage/Current Regulators
+> +
+> +Optional properties:
+> +- regulator-min-uV: smallest voltage consumers may set
+> +- regulator-max-uV: largest voltage consumers may set
+> +- regulator-uV-offset: Offset applied to voltages to compensate for voltage drops
+> +- regulator-min-uA: smallest current consumers may set
+> +- regulator-max-uA: largest current consumers may set
+> +- regulator-change-voltage: boolean, Output voltage can be changed by software
+> +- regulator-change-current: boolean, Output current can be chnaged by software
+> +- regulator-change-mode: boolean, Operating mode can be changed by software
+> +- regulator-change-status: boolean, Enable/Disable control for regulator exists
+> +- regulator-change-drms: boolean, Dynamic regulator mode switching is enabled
+> +- regulator-mode-fast: boolean, allow/set fast mode for the regulator
+> +- regulator-mode-normal: boolean, allow/set normal mode for the regulator
+> +- regulator-mode-idle: boolean, allow/set idle mode for the regulator
+> +- regulator-mode-standby: boolean, allow/set standby mode for the regulator
+> +- regulator-input-uV: Input voltage for regulator when supplied by another regulator
+> +- regulator-always-on: boolean, regulator should never be disabled
+> +- regulator-boot-on: bootloader/firmware enabled regulator
+> +- <name>-supply: phandle to the parent supply/regulator node
+> +
+> +Example:
+> +
+> +	xyzreg: regulator@0 {
+> +		regulator-min-uV = <1000000>;
+> +		regulator-max-uV = <2500000>;
+> +		regulator-mode-fast;
+> +		regulator-change-voltage;
+> +		regulator-always-on;
+> +		vin-supply = <&vin>;
+> +	};
+> +
+> +The same binding used by a regulator to reference its
+> +supply can be used by any consumer to reference its
+> +regulator/supply
+> +
+> +Example of a device node referencing a regulator node,
+> +
+> +	devicenode: node@0x0 {
+> +		...
+> +		...
+> +		<name>-supply = <&xyzreg>;
+> +	};
+> diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+> index c7fd2c0..981c92e 100644
+> --- a/drivers/regulator/Kconfig
+> +++ b/drivers/regulator/Kconfig
+> @@ -64,6 +64,14 @@ config REGULATOR_USERSPACE_CONSUMER
+>  
+>            If unsure, say no.
+>  
+> +config OF_REGULATOR
+> +	tristate "OF regulator helpers"
+> +	depends on OF
+> +	default y if OF
+> +	help
+> +	  OpenFirmware regulator framework helper routines that can
+> +	  used by regulator drivers to extract data from device tree.
+> +
+>  config REGULATOR_BQ24022
+>  	tristate "TI bq24022 Dual Input 1-Cell Li-Ion Charger IC"
+>  	help
+> diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+> index 040d5aa..e6bc009 100644
+> --- a/drivers/regulator/Makefile
+> +++ b/drivers/regulator/Makefile
+> @@ -7,6 +7,7 @@ obj-$(CONFIG_REGULATOR) += core.o dummy.o
+>  obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
+>  obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
+>  obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
+> +obj-$(CONFIG_OF_REGULATOR) += of_regulator.o
+>  
+>  obj-$(CONFIG_REGULATOR_AD5398) += ad5398.o
+>  obj-$(CONFIG_REGULATOR_BQ24022) += bq24022.o
+> diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
+> new file mode 100644
+> index 0000000..9262d06
+> --- /dev/null
+> +++ b/drivers/regulator/of_regulator.c
+> @@ -0,0 +1,93 @@
+> +/*
+> + * OF helpers for regulator framework
+> + *
+> + * Copyright (C) 2011 Texas Instruments, Inc.
+> + * Rajendra Nayak <rnayak@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <linux/slab.h>
+> +#include <linux/of.h>
+> +#include <linux/regulator/machine.h>
+> +
+> +static void of_get_regulation_constraints(struct device_node *np,
+> +					struct regulator_init_data **init_data)
+> +{
+> +	const __be32 *min_uV, *max_uV, *uV_offset;
+> +	const __be32 *min_uA, *max_uA, *input_uV;
+> +	unsigned int valid_modes_mask = 0, valid_ops_mask = 0;
+> +
+> +	min_uV = of_get_property(np, "regulator-min-uV", NULL);
+> +	if (min_uV)
+> +		(*init_data)->constraints.min_uV = be32_to_cpu(*min_uV);
+> +	max_uV = of_get_property(np, "regulator-max-uV", NULL);
+> +	if (max_uV)
+> +		(*init_data)->constraints.max_uV = be32_to_cpu(*max_uV);
+> +	uV_offset = of_get_property(np, "regulator-uV-offset", NULL);
+> +	if (uV_offset)
+> +		(*init_data)->constraints.uV_offset = be32_to_cpu(*uV_offset);
+> +	min_uA = of_get_property(np, "regulator-min-uA", NULL);
+> +	if (min_uA)
+> +		(*init_data)->constraints.min_uA = be32_to_cpu(*min_uA);
+> +	max_uA = of_get_property(np, "regulator-max-uA", NULL);
+> +	if (max_uA)
+> +		(*init_data)->constraints.max_uA = be32_to_cpu(*max_uA);
+> +	input_uV = of_get_property(np, "regulator-input-uV", NULL);
+> +	if (input_uV)
+> +		(*init_data)->constraints.input_uV = be32_to_cpu(*input_uV);
+> +
+> +	/* valid modes mask */
+> +	if (of_find_property(np, "regulator-mode-fast", NULL))
+> +				valid_modes_mask |= REGULATOR_MODE_FAST;
+> +	if (of_find_property(np, "regulator-mode-normal", NULL))
+> +				valid_modes_mask |= REGULATOR_MODE_NORMAL;
+> +	if (of_find_property(np, "regulator-mode-idle", NULL))
+> +				valid_modes_mask |= REGULATOR_MODE_IDLE;
+> +	if (of_find_property(np, "regulator-mode-standby", NULL))
+> +				valid_modes_mask |= REGULATOR_MODE_STANDBY;
+> +
+> +	/* valid ops mask */
+> +	if (of_find_property(np, "regulator-change-voltage", NULL))
+> +				valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
+> +	if (of_find_property(np, "regulator-change-current", NULL))
+> +				valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
+> +	if (of_find_property(np, "regulator-change-mode", NULL))
+> +				valid_ops_mask |= REGULATOR_CHANGE_MODE;
+> +	if (of_find_property(np, "regulator-change-status", NULL))
+> +				valid_ops_mask |= REGULATOR_CHANGE_STATUS;
+> +
+> +	(*init_data)->constraints.valid_modes_mask = valid_modes_mask;
+> +	(*init_data)->constraints.valid_ops_mask = valid_ops_mask;
+> +
+> +	if (of_find_property(np, "regulator-always-on", NULL))
+> +				(*init_data)->constraints.always_on = true;
+> +	if (of_find_property(np, "regulator-boot-on", NULL))
+> +				(*init_data)->constraints.boot_on = true;
+> +}
+> +
+I do not see that of_get_regulation_constraints() covers the following
+fields.  We do not support them for DT probe?
 
-This panel is used on many embedded devices such as
-Barnes & Nobles's Nook Color e-reader.
+struct regulation_constraints {
 
-Signed-off-by: Javier Martinez Canillas <martinez.javier@gmail.com>
----
- drivers/video/omap2/displays/Kconfig       |    6 +
- drivers/video/omap2/displays/Makefile      |    1 +
- drivers/video/omap2/displays/panel-boxer.c |  333 ++++++++++++++++++++++++++++
- 3 files changed, 340 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-boxer.c
+        char *name;
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 609a280..6c9fe26 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -48,4 +48,10 @@ config PANEL_ACX565AKM
- 	select BACKLIGHT_CLASS_DEVICE
- 	help
- 	  This is the LCD panel used on Nokia N900
-+
-+config PANEL_BOXER
-+        tristate "TI Boxer Panel"
-+        help
-+          LCD Panel used in the TI Boxer
-+
- endmenu
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 0f601ab3a..26c662e 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -6,3 +6,4 @@ obj-$(CONFIG_PANEL_NEC_NL8048HL11_01B) += panel-nec-nl8048hl11-01b.o
- obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
- obj-$(CONFIG_PANEL_TPO_TD043MTEA1) += panel-tpo-td043mtea1.o
- obj-$(CONFIG_PANEL_ACX565AKM) += panel-acx565akm.o
-+obj-$(CONFIG_PANEL_BOXER) += panel-boxer.o
-diff --git a/drivers/video/omap2/displays/panel-boxer.c b/drivers/video/omap2/displays/panel-boxer.c
-new file mode 100644
-index 0000000..6429960
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-boxer.c
-@@ -0,0 +1,333 @@
-+/*
-+ * Boxer panel support
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Copyright (c) 2010 Barnes & Noble
-+ * David Bolcsfoldi <dbolcsfoldi@intrinsyc.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/spi/spi.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/err.h>
-+#include <linux/workqueue.h>
-+
-+#include <plat/mcspi.h>
-+#include <mach/gpio.h>
-+#include <mach/gpio.h>
-+#include <plat/mux.h>
-+#include <asm/mach-types.h>
-+
-+#include <video/omapdss.h>
-+
-+/* Delay between Panel configuration and Panel enabling */
-+#define LCD_RST_DELAY		100
-+#define LCD_INIT_DELAY		200
-+
-+#define LCD_XRES		1024
-+#define LCD_YRES		600
-+
-+#define LCD_PIXCLOCK_MIN	39000 /* CPT MIN PIX Clock is 39MHz */
-+#define Lcd_Pixclock_Typ	45000 /* Typical PIX clock is 45MHz */
-+#define LCD_PIXCLOCK_MAX	52000 /* Maximum is 52MHz */
-+
-+/* Current Pixel clock */
-+#define LCD_PIXEL_CLOCK		68000
-+
-+static struct workqueue_struct *boxer_panel_wq;
-+static struct omap_dss_device *boxer_panel_dssdev;
-+static struct regulator *boxer_panel_regulator;
-+static struct spi_device *boxer_spi_device;
-+static atomic_t boxer_panel_is_enabled = ATOMIC_INIT(0);
-+
-+/*NEC NL8048HL11-01B  Manual
-+ * defines HFB, HSW, HBP, VFP, VSW, VBP as shown below
-+ */
-+
-+static struct omap_video_timings boxer_panel_timings = {
-+	/* 1024 x 600 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-+	.x_res          = LCD_XRES,
-+	.y_res          = LCD_YRES,
-+	.pixel_clock    = LCD_PIXEL_CLOCK,
-+	.hfp            = 48,
-+	.hsw            = 40,
-+	.hbp            = 65,
-+	.vfp            = 3,
-+	.vsw            = 10,
-+	.vbp            = 25,
-+};
-+
-+static void boxer_get_resolution(struct omap_dss_device *dssdev,
-+				 u16 *xres, u16 *yres)
-+{
-+
-+	*xres = dssdev->panel.timings.x_res;
-+	*yres = dssdev->panel.timings.y_res;
-+}
-+
-+int boxer_get_recommended_bpp(struct omap_dss_device *dssdev)
-+{
-+	return 24;
-+}
-+
-+
-+static int boxer_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+		OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC;
-+	dssdev->panel.timings = boxer_panel_timings;
-+	return 0;
-+}
-+
-+static void boxer_panel_remove(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static int spi_send(struct spi_device *spi, unsigned char reg_addr,
-+		    unsigned char reg_data)
-+{
-+	int ret = 0;
-+	uint16_t msg;
-+	msg = (reg_addr << 10) | reg_data;
-+
-+	if (spi_write(spi, (unsigned char *)&msg, 2))
-+		printk(KERN_ERR "error in spi_write %x\n", msg);
-+
-+	udelay(10);
-+
-+	return ret;
-+}
-+
-+static void boxer_init_panel(void)
-+{
-+	spi_send(boxer_spi_device, 0, 0x00);
-+
-+	spi_send(boxer_spi_device,   0, 0xad);
-+	spi_send(boxer_spi_device,   1, 0x30);
-+	spi_send(boxer_spi_device,   2, 0x40);
-+	spi_send(boxer_spi_device, 0xe, 0x5f);
-+	spi_send(boxer_spi_device, 0xf, 0xa4);
-+	spi_send(boxer_spi_device, 0xd, 0x00);
-+	spi_send(boxer_spi_device, 0x2, 0x43);
-+	spi_send(boxer_spi_device, 0xa, 0x28);
-+	spi_send(boxer_spi_device, 0x10, 0x41);
-+}
-+
-+static void boxer_panel_work_func(struct work_struct *work)
-+{
-+	if (!regulator_is_enabled(boxer_panel_regulator))
-+		regulator_enable(boxer_panel_regulator);
-+
-+	msleep(LCD_RST_DELAY);
-+
-+	boxer_spi_device->mode = SPI_MODE_0;
-+	boxer_spi_device->bits_per_word = 16;
-+	spi_setup(boxer_spi_device);
-+
-+	boxer_init_panel();
-+
-+	msleep(LCD_INIT_DELAY);
-+
-+	if (boxer_panel_dssdev->platform_enable)
-+		boxer_panel_dssdev->platform_enable(boxer_panel_dssdev);
-+}
-+
-+static DECLARE_WORK(boxer_panel_work, boxer_panel_work_func);
-+
-+static int boxer_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	if (atomic_add_unless(&boxer_panel_is_enabled, 1, 1)) {
-+		boxer_panel_dssdev = dssdev;
-+		queue_work(boxer_panel_wq, &boxer_panel_work);
-+	}
-+
-+	return 0;
-+}
-+
-+static void boxer_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	if (atomic_dec_and_test(&boxer_panel_is_enabled)) {
-+		cancel_work_sync(&boxer_panel_work);
-+
-+		if (dssdev->platform_disable)
-+			dssdev->platform_disable(dssdev);
-+
-+		if (regulator_is_enabled(boxer_panel_regulator))
-+			regulator_disable(boxer_panel_regulator);
-+	} else {
-+		printk(KERN_WARNING "%s: attempting to disable panel twice!\n",
-+		       __func__);
-+		WARN_ON(1);
-+	}
-+}
-+
-+static int boxer_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	boxer_panel_disable(dssdev);
-+	return 0;
-+}
-+
-+static int boxer_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	return boxer_panel_enable(dssdev);
-+}
-+
-+static struct omap_dss_driver boxer_driver = {
-+	.probe          = boxer_panel_probe,
-+	.remove         = boxer_panel_remove,
-+
-+	.enable         = boxer_panel_enable,
-+	.disable        = boxer_panel_disable,
-+	.suspend        = boxer_panel_suspend,
-+	.resume         = boxer_panel_resume,
-+	.get_resolution = boxer_get_resolution,
-+	.get_recommended_bpp = boxer_get_recommended_bpp,
-+	.driver		= {
-+		.name	= "boxer_panel",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static ssize_t lcd_reg_store(struct device *dev, struct device_attribute *attr,
-+			     const char *buf, size_t count)
-+{
-+	int argc;
-+	char **args;
-+	unsigned long r, val;
-+	int ret;
-+
-+	struct spi_device *spi = to_spi_device(dev);
-+
-+	args = argv_split(GFP_KERNEL, buf, &argc);
-+
-+	if (args == NULL) {
-+		dev_err(dev, "error getting arguments\n");
-+		return count;
-+	}
-+
-+	if (argc == 2) {
-+		ret = strict_strtoul(*args, 0, (unsigned long *)&r);
-+		if (ret)
-+			return ret;
-+		args++;
-+		ret = strict_strtoul(*args, 0, (unsigned long *)&val);
-+		if (ret)
-+			return ret;
-+		dev_info(dev, "set lcd panel spi reg %lu = %lu\n", r, val);
-+		spi_send(spi, r, val);
-+	}
-+	argv_free(args);
-+
-+	return count;
-+}
-+
-+
-+static DEVICE_ATTR(lcd_reg, S_IWUSR, NULL, lcd_reg_store);
-+
-+static struct attribute *boxer_lcd_spi_attributes[] = {
-+	&dev_attr_lcd_reg,
-+	NULL
-+};
-+
-+
-+static struct attribute_group boxer_lcd_spi_attributes_group = {
-+	.attrs = boxer_lcd_spi_attributes,
-+};
-+
-+
-+
-+static int boxer_spi_probe(struct spi_device *spi)
-+{
-+	spi->mode = SPI_MODE_0;
-+	spi->bits_per_word = 16;
-+	spi_setup(spi);
-+
-+	boxer_spi_device = spi;
-+
-+	boxer_init_panel();
-+
-+	if (sysfs_create_group(&spi->dev.kobj, &boxer_lcd_spi_attributes_group))
-+		printk(KERN_WARNING "error creating sysfs entries\n");
-+
-+	omap_dss_register_driver(&boxer_driver);
-+	return 0;
-+}
-+
-+static int boxer_spi_remove(struct spi_device *spi)
-+{
-+	sysfs_remove_group(&spi->dev.kobj, &boxer_lcd_spi_attributes_group);
-+	omap_dss_unregister_driver(&boxer_driver);
-+
-+	return 0;
-+}
-+
-+
-+static struct spi_driver boxer_spi_driver = {
-+	.probe           = boxer_spi_probe,
-+	.remove	= __devexit_p(boxer_spi_remove),
-+	.driver         = {
-+		.name   = "boxer_disp_spi",
-+		.bus    = &spi_bus_type,
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int __init boxer_lcd_init(void)
-+{
-+	int ret = 0;
-+
-+	boxer_panel_wq = create_singlethread_workqueue("boxer-panel-wq");
-+
-+	printk(KERN_WARNING "Enabling power for LCD\n");
-+	boxer_panel_regulator = regulator_get(NULL, "vlcd");
-+
-+	if (IS_ERR(boxer_panel_regulator)) {
-+		printk(KERN_ERR "Unable to get vlcd regulator, reason: %ld!\n",
-+		       IS_ERR(boxer_panel_regulator));
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+
-+	ret = regulator_enable(boxer_panel_regulator);
-+
-+	if (ret) {
-+		printk(KERN_ERR "Failed to enable regulator vlcd!\n");
-+		regulator_put(boxer_panel_regulator);
-+		goto out;
-+	}
-+
-+	return spi_register_driver(&boxer_spi_driver);
-+out:
-+	return ret;
-+}
-+
-+static void __exit boxer_lcd_exit(void)
-+{
-+	spi_unregister_driver(&boxer_spi_driver);
-+	regulator_disable(boxer_panel_regulator);
-+	regulator_put(boxer_panel_regulator);
-+	destroy_workqueue(boxer_panel_wq);
-+}
-+
-+
-+module_init(boxer_lcd_init);
-+module_exit(boxer_lcd_exit);
-+MODULE_LICENSE("GPL");
-+
+	...
+
+        /* regulator suspend states for global PMIC STANDBY/HIBERNATE */
+        struct regulator_state state_disk;
+        struct regulator_state state_mem;
+        struct regulator_state state_standby;
+        suspend_state_t initial_state; /* suspend state to set at init */
+
+        /* mode to set on startup */
+        unsigned int initial_mode;
+
+        /* constraint flags */
+	...
+        unsigned apply_uV:1;    /* apply uV constraint if min == max */
+};
+
 -- 
-1.7.4.1
-
+Regards,
+Shawn
