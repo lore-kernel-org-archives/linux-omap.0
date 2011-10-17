@@ -1,7 +1,7 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v4 5/7] iommu/amd: announce supported page sizes
-Date: Mon, 17 Oct 2011 13:27:24 +0200
-Message-ID: <1318850846-16066-6-git-send-email-ohad@wizery.com>
+Subject: [PATCH v4 7/7] iommu/core: remove the temporary pgsize settings
+Date: Mon, 17 Oct 2011 13:27:26 +0200
+Message-ID: <1318850846-16066-8-git-send-email-ohad@wizery.com>
 References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1318850846-16066-1-git-send-email-ohad@wizery.com>
@@ -10,56 +10,34 @@ To: iommu@lists.linux-foundation.org
 Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-Let the IOMMU core know we support arbitrary page sizes (as long as
-they're an order of 4KiB).
-
-This way the IOMMU core will retain the existing behavior we're used to;
-it will let us map regions that:
-- their size is an order of 4KiB
-- they are naturally aligned
+Now that all IOMMU drivers are exporting their supported pgsizes,
+we can remove the default pgsize settings in register_iommu().
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Joerg Roedel <Joerg.Roedel@amd.com>
 ---
- drivers/iommu/amd_iommu.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+ drivers/iommu/iommu.c |   10 ----------
+ 1 files changed, 0 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/iommu/amd_iommu.c b/drivers/iommu/amd_iommu.c
-index 32d502e..d654b59 100644
---- a/drivers/iommu/amd_iommu.c
-+++ b/drivers/iommu/amd_iommu.c
-@@ -41,6 +41,24 @@
+diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+index 91df958..ff8d524 100644
+--- a/drivers/iommu/iommu.c
++++ b/drivers/iommu/iommu.c
+@@ -49,16 +49,6 @@ int bus_set_iommu(struct bus_type *bus, struct iommu_ops *ops)
+ 	if (bus->iommu_ops != NULL)
+ 		return -EBUSY;
  
- #define LOOP_TIMEOUT	100000
+-	/*
+-	 * Set the default pgsize values, which retain the existing
+-	 * IOMMU API behavior: drivers will be called to map
+-	 * regions that are sized/aligned to order of 4KiB pages.
+-	 *
+-	 * This will be removed once all drivers are migrated.
+-	 */
+-	if (!ops->pgsize_bitmap)
+-		ops->pgsize_bitmap = ~0xFFFUL;
+-
+ 	bus->iommu_ops = ops;
  
-+/*
-+ * This bitmap is used to advertise the page sizes our hardware support
-+ * to the IOMMU core, which will then use this information to split
-+ * physically contiguous memory regions it is mapping into page sizes
-+ * that we support.
-+ *
-+ * Traditionally the IOMMU core just handed us the mappings directly,
-+ * after making sure the size is an order of a 4KiB page and that the
-+ * mapping has natural alignment.
-+ *
-+ * To retain this behavior, we currently advertise that we support
-+ * all page sizes that are an order of 4KiB.
-+ *
-+ * If at some point we'd like to utilize the IOMMU core's new behavior,
-+ * we could change this to advertise the real page sizes we support.
-+ */
-+#define AMD_IOMMU_PGSIZES	(~0xFFFUL)
-+
- static DEFINE_RWLOCK(amd_iommu_devtable_lock);
- 
- /* A list of preallocated protection domains */
-@@ -2779,6 +2797,7 @@ static struct iommu_ops amd_iommu_ops = {
- 	.unmap = amd_iommu_unmap,
- 	.iova_to_phys = amd_iommu_iova_to_phys,
- 	.domain_has_cap = amd_iommu_domain_has_cap,
-+	.pgsize_bitmap	= AMD_IOMMU_PGSIZES,
- };
- 
- /*****************************************************************************
+ 	/* Do IOMMU specific setup for this bus-type */
 -- 
 1.7.4.1
