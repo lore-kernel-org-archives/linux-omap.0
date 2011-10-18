@@ -1,84 +1,177 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v7 21/21] OMAP2+: UART: Do not gate uart clocks if used for debug_prints
-Date: Tue, 18 Oct 2011 21:05:41 +0530
-Message-ID: <1318952141-10697-2-git-send-email-govindraj.raja@ti.com>
-References: <1318952141-10697-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v7 19/21] OMAP2+: UART: Use custom activate func for console uart.
+Date: Tue, 18 Oct 2011 21:05:10 +0530
+Message-ID: <1318952110-10659-5-git-send-email-govindraj.raja@ti.com>
+References: <1318952110-10659-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1318952141-10697-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:34589 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932944Ab1JRPfW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Oct 2011 11:35:22 -0400
+In-Reply-To: <1318952110-10659-1-git-send-email-govindraj.raja@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-If OMAP UART is used as console uart and debug is enabled,
-avoid gating of uart clocks to print all debug prints.
+Omap-uart can be used as console uart to print early boot
+messages using earlyprintk so for console uart prevent
+hwmod reset or idling during bootup.
 
-If uart clocks are gated then the debug prints from omap_device
-framework or hwmod framework can cause uart to enter recursive
-pm_runtime calls, which can cause a deadlock over power lock usage.
+Identify the console_uart set the id and use the custom
+pm_latency ops for console uart for the first time
+to idle console uart left enabled from bootup and then enable
+them back and reset pm_latency ops to default ops.
 
-For example: Say, uart clocks are cut and we get a print from
-omap_device_disable stating disabling uart clocks. This print
-calls omap_uart driver console_write which will call runtime API
-get_sync which means we enter from runtime API put context to
-runtime API get context.
-
---> runtime put (take power lock)
-    --> print disabling uart clocks
-        --> call uart console write
-            --> call get_sync (try to take power lock)
-
-Also any clock enable API call from uart driver should not call any uart
-operation until clocks are enabled back. Like get_sync having debug print
-calling uart console write even before clocks are enabled.
-
-So to avoid these scenarios, identify from bootargs if OMAP_UART(ttyO) is used
-in debug mode. If so, do not set device_may_wakeup. This will prevent
-pm_runtime_enable in uart driver and will avoid uart clock gating.
+Thanks to Kevin Hilman <khilman@ti.com> for suggesting
+this approach.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/serial.c |   79 ++++++++++++++++++++++++++++-------------
+ 1 files changed, 54 insertions(+), 25 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 5e3bbce..e83951a 100644
+index e1eba7f..55903f0 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -65,6 +65,7 @@ static LIST_HEAD(uart_list);
+@@ -63,6 +63,7 @@ struct omap_uart_state {
+ 
+ static LIST_HEAD(uart_list);
  static u8 num_uarts;
- static u8 console_uart_id = -1;
- static u8 no_console_suspend;
-+static u8 uart_debug;
++static u8 console_uart_id = -1;
  
  #define DEFAULT_RXDMA_POLLRATE		1	/* RX DMA polling rate (us) */
  #define DEFAULT_RXDMA_BUFSIZE		4096	/* RX DMA buffer size */
-@@ -310,6 +311,13 @@ static int __init omap_serial_early_init(void)
- 		if (cmdline_find_option(uart_name)) {
- 			console_uart_id = uart->num;
+@@ -87,6 +88,29 @@ static struct omap_device_pm_latency omap_uart_latency[] = {
+ 	},
+ };
  
-+			if (cmdline_find_option("debug")) {
-+				uart_debug = true;
-+				pr_info("%s used as console in debug mode"
-+						" uart%d clocks will not be"
-+						" gated", uart_name, uart->num);
-+			}
++static int console_uart_enable_hwmod(struct omap_device *od)
++{
++	/* For early console we prevented hwmod reset and idle
++	 * So before we enable the uart clocks idle and then
++	 */
++	omap_hwmod_idle(od->hwmods[0]);
++	omap_hwmod_enable(od->hwmods[0]);
 +
- 			if (cmdline_find_option("no_console_suspend"))
- 				no_console_suspend = true;
++	/* restore the default activate/deactivate funcs,
++	 * since now we have set the hwmod state machine right
++	 * with the idle/enable for console uart
++	 */
++	od->pm_lats = omap_uart_latency;
++
++	return 0;
++}
++
++static struct omap_device_pm_latency console_uart_latency[] = {
++	{
++		.activate_func	 = console_uart_enable_hwmod,
++	},
++};
++
+ #ifdef CONFIG_PM
+ static void omap_uart_enable_wakeup(struct platform_device *pdev, bool enable)
+ {
+@@ -251,12 +275,20 @@ static void omap_serial_fill_default_pads(struct omap_board_data *bdata)
+ static void omap_serial_fill_default_pads(struct omap_board_data *bdata) {}
+ #endif
  
-@@ -414,7 +422,8 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
++char *cmdline_find_option(char *str)
++{
++	extern char *saved_command_line;
++
++	return strstr(saved_command_line, str);
++}
++
+ static int __init omap_serial_early_init(void)
+ {
+ 	do {
+ 		char oh_name[MAX_UART_HWMOD_NAME_LEN];
+ 		struct omap_hwmod *oh;
+ 		struct omap_uart_state *uart;
++		char uart_name[MAX_UART_HWMOD_NAME_LEN];
+ 
+ 		snprintf(oh_name, MAX_UART_HWMOD_NAME_LEN,
+ 			 "uart%d", num_uarts + 1);
+@@ -271,18 +303,23 @@ static int __init omap_serial_early_init(void)
+ 		uart->oh = oh;
+ 		uart->num = num_uarts++;
+ 		list_add_tail(&uart->node, &uart_list);
++		snprintf(uart_name, MAX_UART_HWMOD_NAME_LEN,
++				"%s%d", OMAP_SERIAL_NAME, uart->num);
++
++		if (cmdline_find_option(uart_name)) {
++			console_uart_id = uart->num;
++			/*
++			 * omap-uart can be used for earlyprintk logs
++			 * So if omap-uart is used as console then prevent
++			 * uart reset and idle to get logs from omap-uart
++			 * until uart console driver is available to take
++			 * care for console messages.
++			 * Idling or resetting omap-uart while printing logs
++			 * early boot logs can stall the boot-up.
++			 */
++			oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
++		}
+ 
+-		/*
+-		 * NOTE: omap_hwmod_setup*() has not yet been called,
+-		 *       so no hwmod functions will work yet.
+-		 */
+-
+-		/*
+-		 * During UART early init, device need to be probed
+-		 * to determine SoC specific init before omap_device
+-		 * is ready.  Therefore, don't allow idle here
+-		 */
+-		uart->oh->flags |= HWMOD_INIT_NO_IDLE | HWMOD_INIT_NO_RESET;
+ 	} while (1);
+ 
+ 	return 0;
+@@ -311,6 +348,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+ 	u32 pdata_size = 0;
+ 	char *name;
+ 	struct omap_uart_port_info omap_up;
++	struct omap_device *od;
+ 
+ 	if (WARN_ON(!bdata))
+ 		return;
+@@ -357,6 +395,11 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
+ 	WARN(IS_ERR(pdev), "Could not build omap_device for %s: %s.\n",
+ 	     name, oh->name);
+ 
++	if (console_uart_id == bdata->id) {
++		od = to_omap_device(pdev);
++		od->pm_lats = console_uart_latency;
++	}
++
+ 	omap_device_disable_idle_on_suspend(pdev);
+ 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+ 
+@@ -364,20 +407,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
  
  	oh->dev_attr = uart;
  
--	if ((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-+	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-+			&& !uart_debug)
+-	console_lock(); /* in case the earlycon is on the UART */
+-
+-	/*
+-	 * Because of early UART probing, UART did not get idled
+-	 * on init.  Now that omap_device is ready, ensure full idle
+-	 * before doing omap_device_enable().
+-	 */
+-	omap_hwmod_idle(uart->oh);
+-
+-	omap_device_enable(uart->pdev);
+-	omap_device_idle(uart->pdev);
+-
+-	console_unlock();
+-
+ 	if ((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
  		device_init_wakeup(&pdev->dev, true);
  }
- 
 -- 
 1.7.4.1
 
