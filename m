@@ -1,65 +1,42 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v7 20/21] OMAP2+: UART: Avoid uart idling on suspend for no_console_suspend usecase
-Date: Tue, 18 Oct 2011 21:05:40 +0530
-Message-ID: <1318952141-10697-1-git-send-email-govindraj.raja@ti.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+ regulator_init_data
+Date: Tue, 18 Oct 2011 17:00:46 +0100
+Message-ID: <20111018160046.GD28501@opensource.wolfsonmicro.com>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
+ <1318263578-7407-4-git-send-email-rnayak@ti.com>
+ <20111016145536.GA29885@S2100-06.ap.freescale.net>
+ <4E9BAC4D.3010402@ti.com>
+ <20111018115836.GC30703@S2100-06.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20111018115836.GC30703-+NayF8gZjK2ctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Shawn Guo <shawn.guo-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-If no_console_suspend is used we have prevent uart idling during suspend
-to provide debug prints.
+On Tue, Oct 18, 2011 at 07:58:37PM +0800, Shawn Guo wrote:
 
-Power domain hooks can idle uarts if left enabled during system wide suspend
-so re-use the omap_device_disable_idle_on_suspend API's to ensure console_uart
-is not idled during suspend.
+> I understand that ideally device tree is supposed to describe pure
+> hardware configurations.  But practically, when migrating a driver
+> to device tree probe, we are trying to move the configurations
+> described by platform_data into device tree to save the use of
+> platform_data for device tree probe.  Then some of the configuration
+> may not be so purely hardware related.  But I do not see this is a
+> critical problem.
 
-omap_device_disable_idle_on_suspend API was used on all uarts since the uart
-driver was not runtime adapted, now with runtime adaptation we can re-use this
-API only for no_console_suspend use cases.
-
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/serial.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 55903f0..5e3bbce 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -64,6 +64,7 @@ struct omap_uart_state {
- static LIST_HEAD(uart_list);
- static u8 num_uarts;
- static u8 console_uart_id = -1;
-+static u8 no_console_suspend;
- 
- #define DEFAULT_RXDMA_POLLRATE		1	/* RX DMA polling rate (us) */
- #define DEFAULT_RXDMA_BUFSIZE		4096	/* RX DMA buffer size */
-@@ -308,6 +309,10 @@ static int __init omap_serial_early_init(void)
- 
- 		if (cmdline_find_option(uart_name)) {
- 			console_uart_id = uart->num;
-+
-+			if (cmdline_find_option("no_console_suspend"))
-+				no_console_suspend = true;
-+
- 			/*
- 			 * omap-uart can be used for earlyprintk logs
- 			 * So if omap-uart is used as console then prevent
-@@ -400,7 +405,9 @@ void __init omap_serial_init_port(struct omap_board_data *bdata,
- 		od->pm_lats = console_uart_latency;
- 	}
- 
--	omap_device_disable_idle_on_suspend(pdev);
-+	if (no_console_suspend)
-+		omap_device_disable_idle_on_suspend(pdev);
-+
- 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
- 
- 	uart->pdev = pdev;
--- 
-1.7.4.1
-
+It's not just Linux-specific stuff, some of this is even specific to
+what current Linux drivers can do - updating the kernel could mean a
+different set of constraints.
