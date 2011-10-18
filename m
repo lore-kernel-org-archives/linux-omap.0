@@ -1,62 +1,60 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v14] mfd: omap: usb: Runtime PM support
-Date: Tue, 18 Oct 2011 11:11:09 +0200
-Message-ID: <20111018091109.GC7694@sortiz-mobl>
-References: <1318319609-20522-1-git-send-email-keshava_mgowda@ti.com>
- <20111013173204.GL28290@legolas.emea.dhcp.ti.com>
- <CAP05o4K6RS5YawJ8POy7ZifJ7W8MRA0d77iwjZZ1ojTQnQS=nA@mail.gmail.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+	regulator_init_data
+Date: Tue, 18 Oct 2011 19:58:37 +0800
+Message-ID: <20111018115836.GC30703@S2100-06.ap.freescale.net>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
+	<1318263578-7407-4-git-send-email-rnayak@ti.com>
+	<20111016145536.GA29885@S2100-06.ap.freescale.net>
+	<4E9BAC4D.3010402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAP05o4K6RS5YawJ8POy7ZifJ7W8MRA0d77iwjZZ1ojTQnQS=nA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, gadiyar@ti.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
+In-Reply-To: <4E9BAC4D.3010402@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Keshava,
-
-On Tue, Oct 18, 2011 at 11:37:28AM +0530, Munegowda, Keshava wrote:
-> On Thu, Oct 13, 2011 at 11:02 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Tue, Oct 11, 2011 at 01:23:29PM +0530, Keshava Munegowda wrote:
-> >> From: Keshava Munegowda <Keshava_mgowda@ti.com>
-> >>
-> >> The usbhs core driver does not enable/disable the interface and
-> >> functional clocks directly, These clocks are handled by runtime pm,
-> >> hence instead of the clock enable/disable, the runtime pm APIS are
-> >> used. however,the optional clocks and port clocks are handled by
-> >> the usbhs core.
-> >>
-> >> Dependency:
-> >> This patch is dependent on this series:
-> >> [PATCH 0/5 v13 or latest version] omap: usb: host: Runtime PM preparation
-> >> for EHCI and OHCI drivers.
-> >>
-> >> Validation performed:
-> >> The global suspend/resume of EHCI and OHCI is validated on
-> >> OMAP3430 sdp board with this patch combined with the series:
-> >> [PATCH 0/5 v13 or latest version] omap: usb: host: Runtime PM preparation
-> >> for EHCI and OHCI drivers.
-> >>
-> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
-> >> Reviewed-by: Kevin Hilman <khilman@ti.com>
-> >> Reviewed-by: Partha Basak <parthab@india.ti.com>
-> >
+On Mon, Oct 17, 2011 at 09:47:17AM +0530, Rajendra Nayak wrote:
 > 
+> >I do not see that of_get_regulation_constraints() covers the following
+> >fields.  We do not support them for DT probe?
 > 
-> Hi Sameo
->         The prior series of this patch is acked by balbi , paul ,
-> benoit and kevin.
-> I request if you think everything is OK in this patch please ack ;
-> otherwise if you have any review comment I have to close them ASAP.
-I replied to an email from Paul and ACKed it. I just realized that you were
-not cc'ed on this one, let me forward it to you.
-This patch should be queued on the OMAP tree now.
+> I left these out as I wasn't sure how such (if at all) Linux
+> specific params should be passed through dt, and I am still not
+> quite sure :(
+> 
+I'm seeing some linux specific parameters encoded in the device tree
+below.
 
-Cheers,
-Samuel.
+  Documentation/devicetree/bindings/gpio/gpio_keys.txt
+  Documentation/devicetree/bindings/gpio/led.txt
+
+Mark,
+
+I understand that ideally device tree is supposed to describe pure
+hardware configurations.  But practically, when migrating a driver
+to device tree probe, we are trying to move the configurations
+described by platform_data into device tree to save the use of
+platform_data for device tree probe.  Then some of the configuration
+may not be so purely hardware related.  But I do not see this is a
+critical problem.
+
+What do you think?  Is it what you want that we classify the
+configurations clearly and put only strict hardware configurations
+into device tree and keep others still in platform_data?
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Regards,
+Shawn
