@@ -1,59 +1,62 @@
-From: "Subhash Jadavani" <subhashj@codeaurora.org>
-Subject: RE: Linux v3.1-rc8 : SDHC card do not switch to high speed mode
-Date: Tue, 18 Oct 2011 11:41:03 +0530
-Message-ID: <000301cc8d5c$b9deb630$2d9c2290$@org>
-References: <C82BA3053CFD354AACBD25EFBD2A4EC603F959EF6E@dbde02.ent.ti.com>	<19F8576C6E063C45BE387C64729E739404ECE22D47@dbde02.ent.ti.com>	<6C03668EAF45B747AF947A1603D1B30001E3579366@SAUSEXMBP01.amd.com>	<19F8576C6E063C45BE387C64729E739404ECE22DBA@dbde02.ent.ti.com>	<000001cc8d59$3af39730$b0dac590$@org> <m27h426e56.fsf@bob.laptop.org>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v14] mfd: omap: usb: Runtime PM support
+Date: Tue, 18 Oct 2011 11:11:09 +0200
+Message-ID: <20111018091109.GC7694@sortiz-mobl>
+References: <1318319609-20522-1-git-send-email-keshava_mgowda@ti.com>
+ <20111013173204.GL28290@legolas.emea.dhcp.ti.com>
+ <CAP05o4K6RS5YawJ8POy7ZifJ7W8MRA0d77iwjZZ1ojTQnQS=nA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:60775 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306Ab1JRGLS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Oct 2011 02:11:18 -0400
-In-Reply-To: <m27h426e56.fsf@bob.laptop.org>
-Content-Language: en-us
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAP05o4K6RS5YawJ8POy7ZifJ7W8MRA0d77iwjZZ1ojTQnQS=nA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, khilman@ti.com, b-cousson@ti.com, paul@pwsan.com, gadiyar@ti.com, parthab@india.ti.com, tony@atomide.com, johnstul@us.ibm.com, vishwanath.bs@ti.com
 List-Id: linux-omap@vger.kernel.org
-To: 'Chris Ball' <cjb@laptop.org>
-Cc: "'Hiremath, Vaibhav'" <hvaibhav@ti.com>, "'Nath, Arindam'" <Arindam.Nath@amd.com>, "'Hebbar, Gururaja'" <gururaja.hebbar@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, prakity@marvell.com, zhangfei.gao@marvell.com, "'Saxena, Parth'" <parth.saxena@ti.com>
 
-Chris,
+Hi Keshava,
 
-I had already posted the proper patch with signed off:
-http://permalink.gmane.org/gmane.linux.ports.arm.msm/1875
-
-Regards,
-Subhash
-
-> -----Original Message-----
-> From: Chris Ball [mailto:cjb@laptop.org]
-> Sent: Tuesday, October 18, 2011 11:22 AM
-> To: Subhash Jadavani
-> Cc: 'Hiremath, Vaibhav'; 'Nath, Arindam'; 'Hebbar, Gururaja'; linux-
-> mmc@vger.kernel.org; linux-omap@vger.kernel.org; prakity@marvell.com;
-> zhangfei.gao@marvell.com; 'Saxena, Parth'
-> Subject: Re: Linux v3.1-rc8 : SDHC card do not switch to high speed
-> mode
+On Tue, Oct 18, 2011 at 11:37:28AM +0530, Munegowda, Keshava wrote:
+> On Thu, Oct 13, 2011 at 11:02 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Tue, Oct 11, 2011 at 01:23:29PM +0530, Keshava Munegowda wrote:
+> >> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+> >>
+> >> The usbhs core driver does not enable/disable the interface and
+> >> functional clocks directly, These clocks are handled by runtime pm,
+> >> hence instead of the clock enable/disable, the runtime pm APIS are
+> >> used. however,the optional clocks and port clocks are handled by
+> >> the usbhs core.
+> >>
+> >> Dependency:
+> >> This patch is dependent on this series:
+> >> [PATCH 0/5 v13 or latest version] omap: usb: host: Runtime PM preparation
+> >> for EHCI and OHCI drivers.
+> >>
+> >> Validation performed:
+> >> The global suspend/resume of EHCI and OHCI is validated on
+> >> OMAP3430 sdp board with this patch combined with the series:
+> >> [PATCH 0/5 v13 or latest version] omap: usb: host: Runtime PM preparation
+> >> for EHCI and OHCI drivers.
+> >>
+> >> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+> >> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> >> Reviewed-by: Partha Basak <parthab@india.ti.com>
+> >
 > 
-> Hi Subhash,
 > 
-> On Tue, Oct 18 2011, Subhash Jadavani wrote:
-> > Arindam,
-> > No, I had not posted the final version of the patch. Chris wanted to
-> use
-> > some macros instead of magic numbers.
-> > One mentioned by Vaibhav
-> > (http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg09358.html)
-> is the
-> > last patch.
-> 
-> If you provide a Signed-off-by: for your original patch, I'll go ahead
-> and merge it now.  Thanks,
-> 
-> - Chris.
-> --
-> Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-> One Laptop Per Child
+> Hi Sameo
+>         The prior series of this patch is acked by balbi , paul ,
+> benoit and kevin.
+> I request if you think everything is OK in this patch please ack ;
+> otherwise if you have any review comment I have to close them ASAP.
+I replied to an email from Paul and ACKed it. I just realized that you were
+not cc'ed on this one, let me forward it to you.
+This patch should be queued on the OMAP tree now.
 
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
