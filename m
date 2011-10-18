@@ -1,243 +1,148 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH v2 5/5] regulator: map consumer regulator based on device
- tree
-Date: Tue, 18 Oct 2011 21:33:55 +0800
-Message-ID: <20111018133354.GE30703@S2100-06.ap.freescale.net>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
- <1318263578-7407-6-git-send-email-rnayak@ti.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH v7 00/21] OMAP2+: UART: Runtime adaptation + cleanup
+Date: Tue, 18 Oct 2011 20:55:55 +0530
+Message-ID: <1318951576-10165-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1318263578-7407-6-git-send-email-rnayak@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 10, 2011 at 09:49:38PM +0530, Rajendra Nayak wrote:
-> Device nodes in DT can associate themselves with one or more
-> regulators/supply by providing a list of phandles (to regulator nodes)
-> and corresponding supply names.
-> 
-> For Example:
-> 	devicenode: node@0x0 {
-> 		...
-> 		...
-> 		vmmc-supply = <&regulator1>;
-> 		vpll-supply = <&regulator1>;
+Converting uart driver to adapt to pm runtime API's.
+Code re-org + cleanup.
+Moving some functionality from serial.c to omap-serial.c
 
-s/regulator1/regulator2
+Changes involves:
+================
+1.) Cleaning up certain uart calls from sram_idle func.
+2.) Removed all types of uart clock handling code from serial.c
+3.) Using hwmod_mux API enable wakeup capability for uart pad during
+   hwmod_idle state i.e., when uart clocks are disabled we can enable
+   io-pad wakeup capability for uart if mux_data is available for
+   given uart. Also during during resume from idle call to uart we need
+   to enable clocks back conditionally and this can be done only when io-pad
+   wakeup event bit is set for uart_rx pad. So we need a hwmod API
+   which can probe the uart pad and let us know whether a uart wakeup
+   happened. So omap_hmwod_pad_wakeup_status API is added to meet this
+   requirement.
+3.) Adapted omap-serial driver to use runtime API's.
+4.) Modify serial_init calls to accept uart parameters from board file.
+    Like dma_usage, rx_timeout, dma_rx_pollrate, auto_suspend_timeout etc.
+5.) Use the omap_prm driver with irq_chaining to wake up uart after clocks are
+    cut.
+	
+Patch series is based on 3.1.0-rc9 + omap_device fixes from Kevin's tree.
+git://gitorious.org/khilman/linux-omap-pm.git for_3.2/omap_device
 
-> 	};
-> 
-> The driver would then do a regulator_get(dev, "vmmc"); to get
-> regulator1 and do a regulator_get(dev, "vpll"); to get
-> regulator2.
-> 
-> of_get_regulator() extracts the regulator node for a given
-> device, based on the supply name.
-> 
-> Use it to look up the regulator for a given consumer from device tree, during
-> a regulator_get(). If not found fallback and lookup through
-> the regulator_map_list instead.
-> 
-> Also, since the regulator dt nodes can use the same binding to
-> associate with a parent regulator/supply, allow the drivers to
-> specify a supply_name, which can then be used to lookup dt
-> to find the parent phandle.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  drivers/regulator/core.c         |   91 +++++++++++++++++++++++++++++++------
->  include/linux/regulator/driver.h |    2 +
->  2 files changed, 78 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-> index d8e6a42..9a5ebbe 100644
-> --- a/drivers/regulator/core.c
-> +++ b/drivers/regulator/core.c
-> @@ -25,9 +25,11 @@
->  #include <linux/mutex.h>
->  #include <linux/suspend.h>
->  #include <linux/delay.h>
-> +#include <linux/of.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/regulator/driver.h>
->  #include <linux/regulator/machine.h>
-> +#include <linux/regulator/of_regulator.h>
->  
->  #define CREATE_TRACE_POINTS
->  #include <trace/events/regulator.h>
-> @@ -131,6 +133,33 @@ static struct regulator *get_device_regulator(struct device *dev)
->  	return NULL;
->  }
->  
-> +/**
-> + * of_get_regulator - get a regulator device node based on supply name
-> + * @dev: Device pointer for the consumer (of regulator) device
-> + * @supply: regulator supply name
-> + *
-> + * Extract the regulator device node corresponding to the supply name.
-> + * retruns the device node corresponding to the regulator if found, else
-> + * returns NULL.
-> + */
-> +struct device_node *of_get_regulator(struct device *dev, const char *supply)
-> +{
-> +	struct device_node *regnode = NULL;
-> +	char prop_name[32]; /* 32 is max size of property name */
-> +
-> +	dev_dbg(dev, "Looking up %s-supply from device tree\n", supply);
-> +
-> +	snprintf(prop_name, 32, "%s-supply", supply);
-> +	regnode = of_parse_phandle(dev->of_node, prop_name, 0);
-> +
-> +	if (!regnode) {
-> +		pr_warn("%s: %s property in node %s references invalid phandle",
-> +			__func__, prop_name, dev->of_node->full_name);
-> +		return NULL;
-> +	}
-> +	return regnode;
-> +}
-> +
->  /* Platform voltage constraint check */
->  static int regulator_check_voltage(struct regulator_dev *rdev,
->  				   int *min_uV, int *max_uV)
-> @@ -1155,6 +1184,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->  	struct regulator_map *map;
->  	struct regulator *regulator = ERR_PTR(-ENODEV);
->  	const char *devname = NULL;
-> +	struct device_node *node;
->  	int ret;
->  
->  	if (id == NULL) {
-> @@ -1167,6 +1197,23 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->  
->  	mutex_lock(&regulator_list_mutex);
->  
-> +	/*
-> +	 * Lookup happens in 3 ways
-> +	 * 1. If a dev and dev->of_node exist, look for a
-> +	 * regulator mapping in dt node.
-> +	 * 2. Check if a match can be found in regulator_map_list
-> +	 * if regulator info is still passed in non-dt way
-> +	 * 3. if !dev, then just look for a matching regulator name.
-> +	 * Useful for dt builds using regulator_get() without specifying
-> +	 * a device.
-> +	 */
-> +	if (dev && dev->of_node) {
-> +		node = of_get_regulator(dev, id);
-> +		if (node)
-> +			list_for_each_entry(rdev, &regulator_list, list)
-> +				if (node == rdev->dev.parent->of_node)
+Also the patch series depends on *Tero's v9 Irq_chaining patches*.
+Dependent irq_chaining patches are as below.
 
-If we move DT parsing procedure into regulator core, we will be able to
-find the of_node for given regulator and attach it to rdev->dev when
-regulator_register() gets called by regulator drivers.  Then we will
-have 'if (node == rdev->dev.of_node)' here which makes more sense to me.
+e9e7ae1 omap3+: add omap prm driver initialization
+e52486f OMAP3: pm: do not enable PRCM MPU interrupts manually
+ae5f2af omap3: pm: use prcm chain handler
+61ad50f OMAP2+: mux: add support for PAD wakeup interrupts
+cab47bf mfd: omap-prm: added suspend prepare and complete callbacks
+8ed5bcd mfd: omap-prm: added chain interrupt handler
+024f0e3 mfd: omap-prm: add driver skeleton
+d285827 TEMP: OMAP4xxx: hwmod data: add PRM hwmod
+da6f48f TEMP: OMAP3xxx: hwmod data: add PRM hwmod
 
-Regards,
-Shawn
+Same combination is hosted at:
+git://gitorious.org/runtime_3-0/runtime_3-0.git v7_rc9_uart_runtime
 
-> +					goto found;
-> +	}
->  	list_for_each_entry(map, &regulator_map_list, list) {
->  		/* If the mapping has a device set up it must match */
->  		if (map->dev_name &&
-> @@ -1178,6 +1225,10 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->  			goto found;
->  		}
->  	}
-> +	if (!dev)
-> +		list_for_each_entry(rdev, &regulator_list, list)
-> +			if (strcmp(rdev_get_name(rdev), id))
-> +				goto found;
->  
->  	if (board_wants_dummy_regulator) {
->  		rdev = dummy_regulator_rdev;
-> @@ -2579,6 +2630,7 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->  	static atomic_t regulator_no = ATOMIC_INIT(0);
->  	struct regulator_dev *rdev;
->  	int ret, i;
-> +	const char *supply;
->  
->  	if (regulator_desc == NULL)
->  		return ERR_PTR(-EINVAL);
-> @@ -2653,25 +2705,34 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->  	if (ret < 0)
->  		goto scrub;
->  
-> -	if (init_data->supply_regulator) {
-> -		struct regulator_dev *r;
-> -		int found = 0;
-> +	if (init_data->supply_regulator)
-> +		supply = init_data->supply_regulator;
-> +	else if (regulator_desc->supply_name);
-> +		supply = regulator_desc->supply_name;
->  
-> -		list_for_each_entry(r, &regulator_list, list) {
-> -			if (strcmp(rdev_get_name(r),
-> -				   init_data->supply_regulator) == 0) {
-> -				found = 1;
-> -				break;
-> -			}
-> +	if (supply) {
-> +		struct regulator_dev *r;
-> +		struct device_node *node;
-> +
-> +		/* first do a dt based lookup */
-> +		if (dev) {
-> +			node = of_get_regulator(dev, supply);
-> +			if (node)
-> +				list_for_each_entry(r, &regulator_list, list)
-> +					if (node == r->dev.parent->of_node)
-> +						goto found;
->  		}
->  
-> -		if (!found) {
-> -			dev_err(dev, "Failed to find supply %s\n",
-> -				init_data->supply_regulator);
-> -			ret = -ENODEV;
-> -			goto scrub;
-> -		}
-> +		/* next try doing it non-dt way */
-> +		list_for_each_entry(r, &regulator_list, list)
-> +			if (strcmp(rdev_get_name(r), supply) == 0)
-> +				goto found;
->  
-> +		dev_err(dev, "Failed to find supply %s\n", supply);
-> +		ret = -ENODEV;
-> +		goto scrub;
-> +
-> +found:
->  		ret = set_supply(rdev, r);
->  		if (ret < 0)
->  			goto scrub;
-> diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
-> index 1a80bc7..65ca5ff 100644
-> --- a/include/linux/regulator/driver.h
-> +++ b/include/linux/regulator/driver.h
-> @@ -153,6 +153,7 @@ enum regulator_type {
->   * this type.
->   *
->   * @name: Identifying name for the regulator.
-> + * @supply_name: Identifying the regulator supply
->   * @id: Numerical identifier for the regulator.
->   * @n_voltages: Number of selectors available for ops.list_voltage().
->   * @ops: Regulator operations table.
-> @@ -162,6 +163,7 @@ enum regulator_type {
->   */
->  struct regulator_desc {
->  	const char *name;
-> +	const char *supply_name;
->  	int id;
->  	unsigned n_voltages;
->  	struct regulator_ops *ops;
-> -- 
-> 1.7.1
-> 
-> _______________________________________________
-> devicetree-discuss mailing list
-> devicetree-discuss@lists.ozlabs.org
-> https://lists.ozlabs.org/listinfo/devicetree-discuss
-> 
+Ensure CONFIG_OMAP_PRM is set while testing irq_chaining with uart.
+
+Changes from v6:
+---------------
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57469.html
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57538.html
+
+Errata handling:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57543.html
+
+PM_qos usage suggestion:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57588.html
+
+Adding custom hwmod activate func.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57679.html
+
+Changes from v5:
+---------------
+* Incorporating omap_uart_can_sleep function to avoid
+  console sluglishness as reported by tero.
+* fixing below comments adding omap4 for autosuspend and wakeup.
+  http://www.mail-archive.com/linux-omap@vger.kernel.org/msg56221.html
+
+  In addition cleaning up pads from omap4430sdp/panda board file
+  to use default pads from serial.c
+
+Changes from v4:
+---------------
+
+1.) Fixing v4 comments from Kevin.
+    Spilt into smaller logical patches.
+2.) Using Irq_chaining OMAP_PRM driver for waking up uart.
+
+Testing updates:
+----------------
+OMAP2420/2430SDP: Boot tested.
+
+OMAP3430SDP:
+retention, off_mode, system_wide suspend is tested.
+(earlyprintk & no_console_suspend checked)
+
+OMAP3630 - Zoom3:
+pm-retention checked with quart/omap-uart3
+[Also tested with uart3 as console uart and pm-ret checked]
+
+BeagleBoard XM Rev C(3630):
+retention, off_mode, system_wide suspend is tested.
+
+
+Deepak K (1):
+  OMAP2+: UART: Allow UART parameters to be configured from board file.
+
+Govindraj.R (19):
+  OMAP2+: UART: cleanup + remove uart pm specific API
+  OMAP2+: UART: cleanup 8250 console driver support
+  OMAP2+: UART: Cleanup part of clock gating mechanism for uart
+  OMAP2+: UART: Add default mux for all uarts.
+  OMAP2+: UART: Remove mapbase/membase fields from pdata.
+  OMAP2+: UART: Add runtime pm support for omap-serial driver
+  OMAP2+: UART: Remove context_save and move context restore to driver
+  OMAP2+: UART: Ensure all reg values configured are available from
+    port structure
+  OMAP2+: UART: Remove uart reset function.
+  OMAP2+: UART: Get context loss count to context restore
+  OMAP2+: UART: Move errata handling from serial.c to omap-serial
+  OMAP2+: UART: Add wakeup mechanism for omap-uarts
+  OMAP2+: UART: Remove old and unused clocks handling funcs
+  OMAP2+: UART: Remove custom activate funcs and use generic funcs.
+  OMAP2+: UART: Remove omap_uart_can_sleep and add pm_qos
+  OMAP2+: UART: remove temporary variable used to count uart instance
+  OMAP2+: UART: Use custom activate func for console uart.
+  OMAP2+: UART: Avoid uart idling on suspend for no_console_suspend
+    usecase
+  OMAP2+: UART: Do not gate uart clocks if used for debug_prints
+
+Jon Hunter (1):
+  OMAP2+: UART: Make the RX_TIMEOUT for DMA configurable for each UART
+
+ arch/arm/mach-omap2/board-3430sdp.c           |  100 +---
+ arch/arm/mach-omap2/board-4430sdp.c           |   68 +--
+ arch/arm/mach-omap2/board-n8x0.c              |    6 +-
+ arch/arm/mach-omap2/board-omap4panda.c        |   68 +--
+ arch/arm/mach-omap2/cpuidle34xx.c             |    5 -
+ arch/arm/mach-omap2/pm24xx.c                  |   20 -
+ arch/arm/mach-omap2/pm34xx.c                  |   33 -
+ arch/arm/mach-omap2/serial.c                  |  937 +++++++------------------
+ arch/arm/plat-omap/include/plat/omap-serial.h |   38 +-
+ arch/arm/plat-omap/include/plat/serial.h      |   10 +-
+ drivers/tty/serial/omap-serial.c              |  345 ++++++++--
+ 11 files changed, 609 insertions(+), 1021 deletions(-)
+
+-- 
+1.7.4.1
+
