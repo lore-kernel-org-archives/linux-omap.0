@@ -1,15 +1,15 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: [PATCH 4/4] arm: omap3: cm-t35: add reset for sb-t35 usb hub
-Date: Wed, 19 Oct 2011 11:39:20 +0200
-Message-ID: <1319017160-20391-5-git-send-email-grinberg@compulab.co.il>
-References: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il>
+Subject: [PATCH 4/4 v2] ARM: OMAP3: cm-t35: add reset for sb-t35 usb hub
+Date: Wed, 19 Oct 2011 11:56:32 +0200
+Message-ID: <1319018192-30906-1-git-send-email-grinberg@compulab.co.il>
+References: <1319017160-20391-5-git-send-email-grinberg@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:49181
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:41224
 	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751865Ab1JSJjn (ORCPT
+	by vger.kernel.org with ESMTP id S1752936Ab1JSJ4n (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Oct 2011 05:39:43 -0400
-In-Reply-To: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il>
+	Wed, 19 Oct 2011 05:56:43 -0400
+In-Reply-To: <1319017160-20391-5-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
@@ -18,6 +18,8 @@ Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinb
 
 Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
 ---
+v2: fixed subject, no change functional changes
+
  arch/arm/mach-omap2/board-cm-t35.c |   22 ++++++++++++++++++++--
  1 files changed, 20 insertions(+), 2 deletions(-)
 
