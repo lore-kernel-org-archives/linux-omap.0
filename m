@@ -1,35 +1,33 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: Help with interfacing to OMAP2+: McBSP
-Date: Wed, 19 Oct 2011 09:54:50 +0300
-Message-ID: <20111019095450.edaefce276ef5c03c454cfbb@bitmer.com>
-References: <51A4F524D105AA4C93787F33E2C90E62EE5B4D@greysvr02.GreyInnovation.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH 0/4] ARM: OMAP3: cm-t35/cm-t3730 fixes
+Date: Wed, 19 Oct 2011 11:39:16 +0200
+Message-ID: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:54265 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719Ab1JSGzT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Oct 2011 02:55:19 -0400
-In-Reply-To: <51A4F524D105AA4C93787F33E2C90E62EE5B4D@greysvr02.GreyInnovation.local>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:49167
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751865Ab1JSJjj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Oct 2011 05:39:39 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Chiha <paul.chiha@greyinnovation.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
-On Wed, 19 Oct 2011 17:18:54 +1100
-"Paul Chiha" <paul.chiha@greyinnovation.com> wrote:
+This patch series fixes several issues on boards in subj.
+It is based on Tony's board branch at [1].
 
-> Hi,
-> 
-> I need to write a simple driver sends and receives packets over McBSP3
-> on the DM3730 processor, and was wondering if anyone has already this.
-> I understand that the functions in arch/arm/plat-omap/mcbsp.c need to be
-> used, and so I would like to see an example driver which uses them that
-> I can base mine one.
-> Any help would be appreciated.
-> 
-Only public user at the moment is sound/soc/omap/omap-mcbsp.c.
+[1] git://github.com/tmlind/linux.git
+
+
+Igor Grinberg (4):
+  ARM: OMAP3: cm-t35: add regulator supply for ads7846
+  ARM: OMAP3: cm-t35: fix DSS regulator supply
+  ARM: OMAP3: cm-t35: fix audio
+  arm: omap3: cm-t35: add reset for sb-t35 usb hub
+
+ arch/arm/mach-omap2/board-cm-t35.c |   50 ++++++++++++++++++++++++++++-------
+ 1 files changed, 40 insertions(+), 10 deletions(-)
 
 -- 
-Jarkko
+1.7.3.4
+
