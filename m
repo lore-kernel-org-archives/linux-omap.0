@@ -1,242 +1,203 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] CPUIdle: Reevaluate C-states under CPU load to favor deeper C-states
-Date: Wed, 19 Oct 2011 15:11:55 +0200
-Message-ID: <8739epxh0k.fsf@ti.com>
-References: <1316475315-5905-1-git-send-email-khilman@ti.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: Re: Linux 3.0 DSS support
+Date: Wed, 19 Oct 2011 09:27:38 -0400
+Message-ID: <CANLagX8wKWW6Q9wQhM_Dm30LUWW9V=jPTwzPd654mKAQ=2oJ9g@mail.gmail.com>
+References: <CANLagX8WaHGkqOZ2UnLR1ihOABbdDy1ZAyW19yO=f-JNUaLKfw@mail.gmail.com>
+	<4E9BD71A.90703@ti.com>
+	<CANLagX9R9DKi1MCa11t4REDFzRgXdJQWxNG4Q6mv46f8dACdSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:53075 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751679Ab1JSNMJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 19 Oct 2011 09:12:09 -0400
-In-Reply-To: <1316475315-5905-1-git-send-email-khilman@ti.com> (Kevin Hilman's
-	message of "Mon, 19 Sep 2011 16:35:15 -0700")
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:61930 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752833Ab1JSN1j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Oct 2011 09:27:39 -0400
+Received: by vws1 with SMTP id 1so1193861vws.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Oct 2011 06:27:38 -0700 (PDT)
+In-Reply-To: <CANLagX9R9DKi1MCa11t4REDFzRgXdJQWxNG4Q6mv46f8dACdSQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arjan van de Ven <arjan@infradead.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, Nicole Chalhoub <n-chalhoub@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi Arjan,
+Sending to the mailing list properly to see if anyone has any other
+ideas for me to pursue..darn rich formatting prevented the previous
+mails from getting to the list!
 
-Kevin Hilman <khilman@ti.com> writes:
-
-> From: Nicole Chalhoub <n-chalhoub@ti.com>
+On Tue, Oct 18, 2011 at 12:59 PM, Ashwin Bihari <abihari@gmail.com> wro=
+te:
+> On Mon, Oct 17, 2011 at 3:19 AM, Tomi Valkeinen <tomi.valkeinen@ti.co=
+m>
+> wrote:
+>>
+>> On 10/14/2011 07:52 PM, Ashwin Bihari wrote:
+>>>
+>>> Greetings,
+>>>
+>>> I'm trying to add support for our custom DM3730 based board to the =
+Linux
+>>> 3.0 Kernel and am having issues with the DSS support. I also have a
+>>> AM3517 and BeagleBoard xM devkit as reference hardware. I've done s=
+ome
+>>> searching and have found that the AM3517 display support isn't full=
+y
+>>> functioning, so I tried to focus on the BeagleBoard xM which seems =
+to be
+>>> doing something but the LCD never comes to life.
+>>
+>> I don't have any of those boards, and I'm totally unfamiliar with DM=
+3730
+>> and AM3517, so I can't if the mainline works with them or not. But I=
+ presume
+>> DM3730 and AM3517 are using the same DSS hardware than OMAPs? From D=
+SS
+>> driver's perspective everything should be there, and if their board =
+files
+>> contain the definitions for the displays, then they should work.
 >
-> While there is CPU load, program a C-state specific one-shot timer in
-> order to give CPUidle another opportunity to pick a deeper C-state
-> instead of spending potentially long idle times in a shallow C-state.
-
-Any comments on this?
-
-This is an implementation of an idea proposed by you on our previous
-attempt[1] to do something similar.
-
-Thanks,
-
-Kevin
-
-[1] http://lkml.org/lkml/2011/4/7/155
+> The DM3730 is essentially a die-shrink of the OMAP3530, so faster spe=
+ed but
+> same functionality. Heck, virtually all of the same OMAP3530 drivers =
+just
+> work on the DM3730, which is why I'm so darn confused as to why this =
+isn't
+> working.
 >
-> Long winded version:
-> When going idle with a high load average, CPUidle menu governor will
-> decide to pick a shallow C-state since one of the guiding principles
-> of the menu governor is "The busier the system, the less impact of
-> C-states is acceptable" (taken from cpuidle/governors/menu.c.)
-> That makes perfect sense.
+>>>
+>>> I'm currently using the following bootargs:
+>>>
+>>> console=3DttyO2,115200n8 mpurate=3Dauto buddy=3Dnone vram=3D12M
+>>> omapfb.mode=3Ddvi:640x480MR-16@60 omapfb.debug=3Dy omapdss.def_disp=
+=3Ddvi
+>>> root=3D/dev/ram0 rw ramdisk_size=3D65536 initrd=3D0x81000000,64M
+>>> rootfstype=3Dext2
+>>>
+>>> I have tried different resolutions which all yield the same blank s=
+creen
+>>> on the LCD with it going into power-save mode..
+>>>
+>>> I've looked at all the current board-* files that define displays a=
+nd
+>>> have done the same for my display, and the display portion itself s=
+eems
+>>> to run and my LCD gets powered-on and the backlight turned on, but =
+I
+>>> don't see a valid HSYNC or VSYNC signal out there..
+>>
+>> So are you using the DVI output or what? If so, is the DVI framer en=
+abled?
+>> Is pin muxing set up correctly?
 >
-> However, there are missed power-saving opportunities for bursty
-> workloads with long idle times (e.g. MP3 playback.)  Given such a
-> workload, because of the load average, CPUidle tends to pick a shallow
-> C-state.  Because we also go tickless, this shallow C-state is used
-> for the duration of the idle period. If the idle period is long, a
-> deeper C state would've resulted in better power savings.
-> This patch provides an additional opportuntity for CPUidle to pick a
-> deeper C-state by programming a timer (with a C-state specific timeout)
-> such that the CPUidle governor will have another opportunity to pick a
-> deeper C-state.
+> On the BeagleBoardXM, yes I was using the DVI for the output, on my c=
+ustom
+> DM3730 hardware, we're using the LCD as the output. The pin muxing is=
+ setup
+> correctly as far as I can tell, and I will check on the DVI framer to
+> confirm that it's working.
+> The pin muxing for all of the DSS pins are set to be MODE0..
 >
-> Adding this timer for C-state reevaluation improved the load estimation
-> on our ARM/OMAP4 platform and increased the time spent in deep C-states
-> (~50% of idle time in C-states deeper than C1).  A power saving of ~10mA
-> at battery level is observed during MP3 playback on OMAP4/Blaze board.
+>>>
+>>> On the BeagleBoard xM, I also see the following debug messages from
+>>> OMAPDSS and OMAPFB
+>>>
+>>> ---Begin OMAPDSS--
+>>> [ =A0 =A01.175659] omapdss DSS: clk ick, rate 50000000
+>>> [ =A0 =A01.175689] omapdss DSS: clk fck, rate 96000000
+>>> [ =A0 =A01.175720] omapdss DSS: clk sys_clk, rate 13000000
+>>> [ =A0 =A01.175750] omapdss DSS: clk tv_clk, rate 54000000
+>>> [ =A0 =A01.175781] omapdss DSS: clk video_clk, rate 96000000
+>>> [ =A0 =A01.175842] omapdss DSS: initial ctx id 0
+>>> [ =A0 =A01.264221] omapdss CORE: bus_match. dev display0/generic_dp=
+i_panel,
+>>> drv venc
+>>> [ =A0 =A01.264953] omapdss CORE: bus_match. dev display1/venc, drv =
+venc
+>>> [ =A0 =A01.265045] omapdss CORE: driver_probe: dev display1/venc, d=
+rv venc
+>>> [ =A0 =A01.265045] omapdss VENC: init_display
+>>> [ =A0 =A01.265533] omapdss CORE: probe done for device display1
+>>> [ =A0 =A01.265594] omapdss DSS: save context
+>>> [ =A0 =A01.266479] omapdss CORE: bus_match. dev display0/generic_dp=
+i_panel,
+>>> drv generic_dpi_panel
+>>> [ =A0 =A01.266540] omapdss CORE: driver_probe: dev
+>>> display0/generic_dpi_panel, drv generic_dpi_panel
+>>> [ =A0 =A01.266571] omapdss DPI: init_display
+>>> [ =A0 =A01.266815] omapdss DSS: save context
+>>> [ =A0 =A01.266906] omapdss DSS: save context
+>>> [ =A0 =A01.266967] omapdss DSS: save context
+>>> [ =A0 =A01.267028] omapdss CORE: probe done for device display0
+>>> [ =A0 =A01.267059] omapdss CORE: bus_match. dev display1/venc, drv
+>>> generic_dpi_panel
+>>> [ =A0 =A02.689788] omapdss DPI: dpi_set_timings
+>>> [ =A0 =A02.698883] omapdss MANAGER: omap_dss_mgr_apply(lcd)
+>>> [ =A0 =A02.699157] omapdss MANAGER: configure_manager(0)
+>>> [ =A0 =A02.699218] omapdss MANAGER: configure_manager(1)
+>>> [ =A0 =A02.699279] omapdss DSS: save context
+>>> [ =A0 =A02.715332] omapdss OVERLAY: check_overlay 0: (0,0 640x480 -=
 >
-> Signed-off-by: Nicole Chalhoub <n-chalhoub@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
->  drivers/cpuidle/cpuidle.c        |   28 +++++++++++++++++++++++++-
->  drivers/cpuidle/governors/menu.c |   39 ++++++++++++++++++++++++++++++++-----
->  include/linux/cpuidle.h          |    4 +++
->  3 files changed, 63 insertions(+), 8 deletions(-)
+>>> 640x480) disp (640x480)
+>>> [ =A0 =A02.715362] omapdss MANAGER: omap_dss_mgr_apply(lcd)
+>>> [ =A0 =A02.715423] omapdss OVERLAY: check_overlay 0: (0,0 640x480 -=
 >
-> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
-> index 1994885..4b1ac0c 100644
-> --- a/drivers/cpuidle/cpuidle.c
-> +++ b/drivers/cpuidle/cpuidle.c
-> @@ -92,13 +92,33 @@ static void cpuidle_idle_call(void)
->  	target_state->time += (unsigned long long)dev->last_residency;
->  	target_state->usage++;
->  
-> -	/* give the governor an opportunity to reflect on the outcome */
-> -	if (cpuidle_curr_governor->reflect)
-> +	hrtimer_cancel(&dev->cstate_timer);
-> +
-> +	/*
-> +	 * Give the governor an opportunity to reflect on the outcome
-> +	 * Do not take into account the wakeups due to the hrtimer, they
-> +	 * should not impact the predicted idle time.
-> +	 */
-> +	if ((!dev->hrtimer_expired) && cpuidle_curr_governor->reflect)
->  		cpuidle_curr_governor->reflect(dev);
->  	trace_power_end(0);
->  }
->  
->  /**
-> + * cstate_reassessment_timer - interrupt handler of the cstate hrtimer
-> + * @handle:	the expired hrtimer
-> + */
-> +static enum hrtimer_restart cstate_reassessment_timer(struct hrtimer *handle)
-> +{
-> +	struct cpuidle_device *data =
-> +		container_of(handle, struct cpuidle_device, cstate_timer);
-> +
-> +	data->hrtimer_expired = 1;
-> +
-> +	return HRTIMER_NORESTART;
-> +}
-> +
-> +/**
->   * cpuidle_install_idle_handler - installs the cpuidle idle loop handler
->   */
->  void cpuidle_install_idle_handler(void)
-> @@ -185,6 +205,10 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
->  
->  	dev->enabled = 1;
->  
-> +	dev->hrtimer_expired = 0;
-> +	hrtimer_init(&dev->cstate_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-> +	dev->cstate_timer.function = cstate_reassessment_timer;
-> +
->  	enabled_devices++;
->  	return 0;
->  
-> diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
-> index 1b12870..fd54584 100644
-> --- a/drivers/cpuidle/governors/menu.c
-> +++ b/drivers/cpuidle/governors/menu.c
-> @@ -125,10 +125,21 @@ struct menu_device {
->  #define LOAD_INT(x) ((x) >> FSHIFT)
->  #define LOAD_FRAC(x) LOAD_INT(((x) & (FIXED_1-1)) * 100)
->  
-> -static int get_loadavg(void)
-> +static int get_loadavg(struct cpuidle_device *dev)
->  {
-> -	unsigned long this = this_cpu_load();
-> +	unsigned long this;
->  
-> +	/*
-> +	 * this_cpu_load() returns the value of rq->load.weight
-> +	 * at the previous scheduler tick and not the current value.
-> +	 * If the timer expired, that means we are in idle,there
-> +	 * are no more runnable processes in the current queue
-> +	 * =>return the current value of rq->load.weight which is 0.
-> +	 */
-> +	if (dev->hrtimer_expired == 1)
-> +		return 0;
-> +	else
-> +		this = this_cpu_load();
->  
->  	return LOAD_INT(this) * 10 + LOAD_FRAC(this) / 10;
->  }
-> @@ -166,13 +177,13 @@ static inline int which_bucket(unsigned int duration)
->   * to be, the higher this multiplier, and thus the higher
->   * the barrier to go to an expensive C state.
->   */
-> -static inline int performance_multiplier(void)
-> +static inline int performance_multiplier(struct cpuidle_device *dev)
->  {
->  	int mult = 1;
->  
->  	/* for higher loadavg, we are more reluctant */
->  
-> -	mult += 2 * get_loadavg();
-> +	mult += 2 * get_loadavg(dev);
->  
->  	/* for IO wait tasks (per cpu!) we add 5x each */
->  	mult += 10 * nr_iowait_cpu(smp_processor_id());
-> @@ -236,6 +247,7 @@ static int menu_select(struct cpuidle_device *dev)
->  	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
->  	int i;
->  	int multiplier;
-> +	ktime_t timeout;
->  
->  	if (data->needs_update) {
->  		menu_update(dev);
-> @@ -256,7 +268,7 @@ static int menu_select(struct cpuidle_device *dev)
->  
->  	data->bucket = which_bucket(data->expected_us);
->  
-> -	multiplier = performance_multiplier();
-> +	multiplier = performance_multiplier(dev);
->  
->  	/*
->  	 * if the correction factor is 0 (eg first time init or cpu hotplug
-> @@ -287,12 +299,27 @@ static int menu_select(struct cpuidle_device *dev)
->  			break;
->  		if (s->exit_latency > latency_req)
->  			break;
-> -		if (s->exit_latency * multiplier > data->predicted_us)
-> +		if (s->exit_latency * multiplier > data->predicted_us) {
-> +			/*
-> +			 * Could not enter the next C-state because of a high
-> +			 * load. Set a timer in order to check the load again
-> +			 * after the timeout expires and re-evaluate cstate.
-> +			 */
-> +			if (s->hrtimer_timeout != 0 && get_loadavg(dev)) {
-> +				timeout =
-> +				       ktime_set(0,
-> +					   s->hrtimer_timeout * NSEC_PER_USEC);
-> +				hrtimer_start(&dev->cstate_timer, timeout,
-> +					   HRTIMER_MODE_REL);
-> +			}
->  			break;
-> +		}
->  		data->exit_us = s->exit_latency;
->  		data->last_state_idx = i;
->  	}
->  
-> +	/* Reset hrtimer_expired which is set when the hrtimer fires */
-> +	dev->hrtimer_expired = 0;
->  	return data->last_state_idx;
->  }
->  
-> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
-> index 55215cc..8d11b52 100644
-> --- a/include/linux/cpuidle.h
-> +++ b/include/linux/cpuidle.h
-> @@ -16,6 +16,7 @@
->  #include <linux/module.h>
->  #include <linux/kobject.h>
->  #include <linux/completion.h>
-> +#include <linux/hrtimer.h>
->  
->  #define CPUIDLE_STATE_MAX	8
->  #define CPUIDLE_NAME_LEN	16
-> @@ -37,6 +38,7 @@ struct cpuidle_state {
->  	unsigned int	exit_latency; /* in US */
->  	unsigned int	power_usage; /* in mW */
->  	unsigned int	target_residency; /* in US */
-> +	unsigned int	hrtimer_timeout; /* in US */
->  
->  	unsigned long long	usage;
->  	unsigned long long	time; /* in US */
-> @@ -97,6 +99,8 @@ struct cpuidle_device {
->  	struct completion	kobj_unregister;
->  	void			*governor_data;
->  	struct cpuidle_state	*safe_state;
-> +	struct hrtimer          cstate_timer;
-> +	unsigned int            hrtimer_expired;
->  };
->  
->  DECLARE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
+>>> 640x480) disp (640x480)
+>>> [ =A0 =A02.715484] omapdss MANAGER: configure_overlay(0)
+>>> [ =A0 =A02.715515] omapdss DISPC: dispc_setup_plane 0, pa 8f400000,=
+ sw 640,
+>>> 0, 0, 640x480 -> 640x480, ilace 0, cmode 40, rot 0, mir 0 chan 0
+>>> [ =A0 =A02.715545] omapdss DISPC: calc_rot(0): scrw 640, 640x480
+>>> [ =A0 =A02.715576] omapdss DISPC: offset0 0, offset1 0, row_inc 1, =
+pix_inc 1
+>>> [ =A0 =A02.715576] omapdss DISPC: 0,0 640x480 -> 640x480
+>>> [ =A0 =A02.715637] omapdss DISPC: fifo(0) low/high old 960/1023, ne=
+w 960/1023
+>>> [ =A0 =A02.715667] omapdss DISPC: dispc_enable_plane 0, 1
+>>> [ =A0 =A02.715698] omapdss DSS: save context
+>>> [ =A0 =A02.715728] omapdss MANAGER: omap_dss_mgr_apply(tv)
+>>> [ =A0 =A02.715759] omapdss DSS: save context
+>>> [ =A0 =A02.716186] omapdss DISPC: onoff 0 rf 0 ieo 0 ipc 0 ihs 0 iv=
+s 0 acbi
+>>> 0 acb 0
+>>> [ =A0 =A02.716217] omapdss DSS: dpll4_m4 =3D 864000000
+>>> [ =A0 =A02.716247] omapdss DSS: fck =3D 48000000 (18)
+>>> [ =A0 =A02.716278] omapdss DISPC: lck =3D 48000000 (1)
+>>> [ =A0 =A02.716278] omapdss DISPC: pck =3D 24000000 (2)
+>>> [ =A0 =A02.716339] omapdss DISPC: channel 0 xres 640 yres 480
+>>> [ =A0 =A02.716339] omapdss DISPC: pck 24000
+>>> [ =A0 =A02.716369] omapdss DISPC: hsw 32 hfp 48 hbp 80 vsw 4 vfp 7 =
+vbp 3
+>>> [ =A0 =A02.716369] omapdss DISPC: hsync 30000Hz, vsync 60Hz
+>>> ---End OMAPDSS--
+>>>
+>>> ---Begin OMAPFB--
+>>> [ =A0 =A02.684204] OMAPFB: omapfb_init
+>>> [ =A0 =A02.684478] OMAPFB: omapfb_probe
+>>> [ =A0 =A02.684570] fbcvt: 640x480@60: CVT Name - .307M3-R
+>>> [ =A0 =A02.689849] OMAPFB: fb_infos allocated
+>>> [ =A0 =A02.689880] OMAPFB: allocating 614400 bytes for fb 0
+>>> [ =A0 =A02.693847] OMAPFB: fbmems allocated
+>>> [ =A0 =A02.694030] OMAPFB: check_fb_var 0
+>>> [ =A0 =A02.694091] OMAPFB: set_fb_fix
+>>> [ =A0 =A02.694427] OMAPFB: fb_infos initialized
+>>> [ =A0 =A02.698822] OMAPFB: set_fb_fix
+>>> [ =A0 =A02.698822] OMAPFB: apply_changes, fb 0, ovl 0
+>>> [ =A0 =A02.715209] OMAPFB: apply_changes, fb 0, ovl 0
+>>> [ =A0 =A02.715270] OMAPFB: apply_changes, fb 1, ovl 1
+>>> [ =A0 =A02.715301] OMAPFB: apply_changes, fb 2, ovl 2
+>>> [ =A0 =A02.718109] OMAPFB: create sysfs for fbs
+>>> [ =A0 =A02.718109] OMAPFB: create sysfs for fbs
+>>> ---End OMAPFB--
+>>
+>> Everything seems to be ok there as far as I see.
+>>
+>> =A0Tomi
+>
+>
+> -- Ashwin
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
