@@ -1,14 +1,16 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH v4 0/6] PM QoS: implement the OMAP low level constraints management code
-Date: Wed, 19 Oct 2011 15:50:57 +0200
-Message-ID: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 1/6] OMAP2+: powerdomain: control power domains next state
+Date: Wed, 19 Oct 2011 15:50:58 +0200
+Message-ID: <1319032263-22699-2-git-send-email-j-pihet@ti.com>
+References: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:33300 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944Ab1JSNvV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Oct 2011 09:51:21 -0400
-Received: by wyg36 with SMTP id 36so1742510wyg.19
-        for <linux-omap@vger.kernel.org>; Wed, 19 Oct 2011 06:51:20 -0700 (PDT)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:56814 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751191Ab1JSNvZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Oct 2011 09:51:25 -0400
+Received: by wwe6 with SMTP id 6so2560056wwe.1
+        for <linux-omap@vger.kernel.org>; Wed, 19 Oct 2011 06:51:24 -0700 (PDT)
+In-Reply-To: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.co>
@@ -16,76 +18,367 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-. Implement the devices wake-up latency constraints using the global
-  device PM QoS notification handler which applies the constraints to the
-  underlying layer
-. Implement the low level code which controls the power domains next power
-  states, through the hwmod and pwrdm layers
-. Add cpuidle and power domains wake-up latency figures for OMAP3, cf. 
-  comments in the code and [1] for the details on where the numbers
-  are magically coming from
-. Implement the relation between the cpuidle and per-device PM QoS frameworks
-  in the OMAP3 specific idle callbacks.
-  The chosen C-state shall satisfy the following conditions:
-   . the 'valid' field is enabled,
-   . it satisfies the enable_off_mode flag,
-   . the next state for MPU and CORE power domains is not lower than the
-     state programmed by the per-device PM QoS.
+When a PM QoS device latency constraint is requested or removed the
+PM QoS layer notifies the underlying layer with the updated aggregated
+constraint value. The constraint is stored in the powerdomain constraints
+list and then applied to the corresponding power domain.
+The power domains get the next power state programmed directly in the
+registers via pwrdm_wakeuplat_update_pwrst.
 
+Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
+wake-up latency constraints on MPU, CORE and PER.
 
-ToDo:
-1. validate the constraints framework on OMAP4 HW (done on OMAP3)
-2. Re-visit the OMAP power domains states initialization procedure. Currently
-   the power states that have been changed from the constraints API which were
-   applied before the initialization of the power domains are lost
-3. Further clean-up the OMAP PM layer, use the generic frameworks instead (OPP,
-   PM QoS...)
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/powerdomain.c |  237 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h |   35 +++++-
+ 2 files changed, 270 insertions(+), 2 deletions(-)
 
-
-Based on the pm-qos branch of the linux-pm git tree (3.1.0-rc3), cf. [2].
-
-Tested on OMAP3 Beagleboard (ES2.x) with constraints on MPU, CORE, PER in
-RETention and OFF modes.
-
-[1] http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-[2] git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git
-
-
-v4:
-. split up the patches which remove the omap_pm_ code from the patch set.
-  Those patches are to be submitted later, on top of this patch set.
-. latency numbers: provide the measurements setup and conditions in the code
-  comments, added the link to the details on wiki [1].
-. improved kerneldoc
-. split big functions into smaller ones, in order to improve the readability
-
-v3: reworked the error return path and improved the kerneldoc
-
-v2: reworked the OMAP specific cpuidle code to demote the initial C-state to
-     a valid C-state which fulfills the per-device constraints
-
-v1: initial version
-
-
-Jean Pihet (6):
-  OMAP2+: powerdomain: control power domains next state
-  OMAP2+: omap_hwmod: manage the wake-up latency constraints
-  OMAP: PM: register to the per-device PM QoS framework
-  OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and
-    CORE constraints
-  OMAP3: update cpuidle latency and threshold figures
-  OMAP3: powerdomain data: add wake-up latency figures
-
- arch/arm/mach-omap2/cpuidle34xx.c            |   99 +++++++----
- arch/arm/mach-omap2/omap_hwmod.c             |   27 +++-
- arch/arm/mach-omap2/pm.c                     |   63 +++++++
- arch/arm/mach-omap2/pm.h                     |   17 ++-
- arch/arm/mach-omap2/powerdomain.c            |  237 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h            |   35 ++++-
- arch/arm/mach-omap2/powerdomains3xxx_data.c  |   83 +++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 8 files changed, 520 insertions(+), 43 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 9af0847..351766d 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -17,8 +17,10 @@
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
++#include <linux/pm_qos.h>
+ #include <trace/events/power.h>
+ 
+ #include "cm2xxx_3xxx.h"
+@@ -104,6 +106,12 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		pwrdm->ret_mem_off_counter[i] = 0;
+ 
++	/* Initialize the per-od wake-up constraints data */
++	spin_lock_init(&pwrdm->wkup_lat_plist_lock);
++	plist_head_init(&pwrdm->wkup_lat_plist_head);
++	pwrdm->wkup_lat_next_state = PWRDM_POWER_OFF;
++
++	/* Initialize the pwrdm state */
+ 	pwrdm_wait_transition(pwrdm);
+ 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+ 	pwrdm->state_counter[pwrdm->state] = 1;
+@@ -191,6 +199,158 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ 	return 0;
+ }
+ 
++/**
++ * _pwrdm_wakeuplat_update_list - Set/update/remove a powerdomain wakeup
++ *  latency constraint from the pwrdm's constraint list
++ * @pwrdm: struct powerdomain * which the constraint applies to
++ * @cookie: constraint identifier, used for tracking.
++ * @min_latency: minimum wakeup latency constraint (in microseconds) for
++ *  the given pwrdm. The value of PM_QOS_DEV_LAT_DEFAULT_VALUE removes
++ *  the constraint.
++ * @user: pointer to the current list entry
++ * @new_user: allocated list entry, used for insertion of new constraints
++ *  in the list
++ * @free_new_user: set to non-zero if the newly allocated list entry
++ *  is unused and needs to be freed
++ * @free_node: set to non-zero if the current list entry is not in use
++ *  anymore and needs to be freed
++ *
++ * Tracks the constraints by @cookie.
++ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
++ * constraint list.
++ * If the constraint identifier already exists in the list, the old value is
++ * overwritten.
++ * Constraint removal: Removes the identifier's entry from powerdomain's
++ * wakeup latency constraint list.
++ *
++ * Called with the pwrdm wakeup latency spinlock held.
++ *
++ * Returns 0 upon success, -EINVAL if the constraint is not existing.
++ */
++static inline int _pwrdm_update_wakeuplat_list(
++			struct powerdomain *pwrdm,
++			void *cookie,
++			long min_latency,
++			struct pwrdm_wkup_constraints_entry *user,
++			struct pwrdm_wkup_constraints_entry *new_user,
++			int *free_new_user,
++			int *free_node)
++{
++	struct pwrdm_wkup_constraints_entry *tmp_user;
++
++	/* Check if there already is a constraint for cookie */
++	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
++		if (tmp_user->cookie == cookie) {
++			user = tmp_user;
++			break;
++		}
++	}
++
++	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
++		/* If nothing to update, job done */
++		if (user && (user->node.prio == min_latency))
++			return 0;
++
++		if (!user) {
++			/* Add new entry to the list */
++			user = new_user;
++			user->cookie = cookie;
++			*free_new_user = 0;
++		} else {
++			/* Update existing entry */
++			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
++		}
++
++		plist_node_init(&user->node, min_latency);
++		plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
++	} else {
++		if (user) {
++			/* Remove the constraint from the list */
++			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
++			*free_node = 1;
++		} else {
++			/* Constraint not existing or list empty, do nothing */
++			return -EINVAL;
++		}
++
++	}
++
++	return 0;
++}
++
++/**
++ * _pwrdm_wakeuplat_update_pwrst - Update power domain power state if needed
++ * @pwrdm: struct powerdomain * to which requesting device belongs to.
++ * @min_latency: the allowed wake-up latency for the given power domain. A
++ *  value of PM_QOS_DEV_LAT_DEFAULT_VALUE means 'no constraint' on the pwrdm.
++ *
++ * Finds the power domain next power state that fulfills the constraint.
++ * Programs a new target state if it is different from current power state.
++ * The power domains get the next power state programmed directly in the
++ * registers.
++ *
++ * Returns 0 in case of success, -EINVAL in case of invalid parameters,
++ * or the return value from omap_set_pwrdm_state.
++ */
++static int _pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm,
++					long min_latency)
++{
++	int ret = 0, new_state;
++
++	if (!pwrdm) {
++		WARN(1, "powerdomain: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
++	}
++
++	/*
++	 * Find the next supported power state with
++	 * wakeup latency < minimum constraint
++	 */
++	for (new_state = 0x0; new_state < PWRDM_MAX_PWRSTS; new_state++) {
++		if (min_latency == PM_QOS_DEV_LAT_DEFAULT_VALUE)
++			break;
++		if ((pwrdm->wakeup_lat[new_state] != UNSUP_STATE) &&
++		    (pwrdm->wakeup_lat[new_state] <= min_latency))
++			break;
++	}
++
++	switch (new_state) {
++	case PWRDM_FUNC_PWRST_OFF:
++		new_state = PWRDM_POWER_OFF;
++		break;
++	case PWRDM_FUNC_PWRST_OSWR:
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
++		new_state = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_CSWR:
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
++		new_state = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_INACTIVE:
++		new_state = PWRDM_POWER_INACTIVE;
++		break;
++	case PWRDM_FUNC_PWRST_ON:
++		new_state = PWRDM_POWER_ON;
++		break;
++	default:
++		pr_warn("powerdomain: requested latency constraint not "
++			"supported %s set to ON state\n", pwrdm->name);
++		new_state = PWRDM_POWER_ON;
++		break;
++	}
++
++	pwrdm->wkup_lat_next_state = new_state;
++	if (pwrdm_read_next_pwrst(pwrdm) != new_state)
++		ret = omap_set_pwrdm_state(pwrdm, new_state);
++
++	pr_debug("powerdomain: %s pwrst: curr=%d, prev=%d next=%d "
++		 "min_latency=%ld, set_state=%d\n", pwrdm->name,
++		 pwrdm_read_pwrst(pwrdm), pwrdm_read_prev_pwrst(pwrdm),
++		 pwrdm_read_next_pwrst(pwrdm), min_latency, new_state);
++
++	return ret;
++}
++
+ /* Public functions */
+ 
+ /**
+@@ -931,6 +1091,83 @@ int pwrdm_post_transition(void)
+ }
+ 
+ /**
++ * pwrdm_set_wkup_lat_constraint - Set/update/remove a powerdomain wakeup
++ *  latency constraint and apply it
++ * @pwrdm: struct powerdomain * which the constraint applies to
++ * @cookie: constraint identifier, used for tracking.
++ * @min_latency: minimum wakeup latency constraint (in microseconds) for
++ *  the given pwrdm. The value of PM_QOS_DEV_LAT_DEFAULT_VALUE removes
++ *  the constraint.
++ *
++ * Tracks the constraints by @cookie.
++ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
++ * constraint list.
++ * If the constraint identifier already exists in the list, the old value is
++ * overwritten.
++ * Constraint removal: Removes the identifier's entry from powerdomain's
++ * wakeup latency constraint list.
++ *
++ * Applies the aggregated constraint value for the given pwrdm by calling
++ * _pwrdm_wakeuplat_update_pwrst.
++ *
++ * Returns 0 upon success, -ENOMEM in case of memory shortage, -EINVAL in
++ * case of invalid parameters, or the return value from
++ * _pwrdm_wakeuplat_update_pwrst.
++ *
++ * The caller must check the validity of the parameters.
++ */
++int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
++				  long min_latency)
++{
++	struct pwrdm_wkup_constraints_entry *user = NULL, *new_user = NULL;
++	int ret = 0, free_new_user = 0, free_node = 0;
++	long value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
++	unsigned long flags;
++
++	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
++		 __func__, pwrdm->name, cookie, min_latency);
++
++	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
++		new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
++				   GFP_KERNEL);
++		if (!new_user) {
++			pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
++			return -ENOMEM;
++		}
++		free_new_user = 1;
++	}
++
++	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
++
++	/* Manage the constraints list */
++	ret = _pwrdm_update_wakeuplat_list(pwrdm, cookie, min_latency,
++					   user, new_user,
++					   &free_new_user, &free_node);
++
++	/* Find the aggregated constraint value from the list */
++	if (!ret)
++		if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
++			value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
++
++	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
++
++	if (free_node)
++		kfree(user);
++
++	if (free_new_user)
++		kfree(new_user);
++
++	/* Apply the constraint to the pwrdm */
++	if (!ret) {
++		pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
++			 __func__, pwrdm->name, value);
++		ret = _pwrdm_wakeuplat_update_pwrst(pwrdm, value);
++	}
++
++	return ret;
++}
++
++/**
+  * pwrdm_get_context_loss_count - get powerdomain's context loss count
+  * @pwrdm: struct powerdomain * to wait for
+  *
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index d23d979..41630ec 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -19,7 +19,9 @@
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
+-
++#include <linux/plist.h>
++#include <linux/mutex.h>
++#include <linux/spinlock.h>
+ #include <linux/atomic.h>
+ 
+ #include <plat/cpu.h>
+@@ -43,6 +45,16 @@
+ #define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
+ #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+ 
++/* Powerdomain functional power states */
++#define PWRDM_FUNC_PWRST_OFF		0x0
++#define PWRDM_FUNC_PWRST_OSWR		0x1
++#define PWRDM_FUNC_PWRST_CSWR		0x2
++#define PWRDM_FUNC_PWRST_INACTIVE	0x3
++#define PWRDM_FUNC_PWRST_ON		0x4
++
++#define PWRDM_MAX_FUNC_PWRSTS	5
++
++#define UNSUP_STATE		-1
+ 
+ /* Powerdomain flags */
+ #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+@@ -93,7 +105,13 @@ struct powerdomain;
+  * @state_counter:
+  * @timer:
+  * @state_timer:
+- *
++ * @wakeup_lat: wakeup latencies (in us) for possible powerdomain power states
++ * Note about the wakeup latencies ordering: the values must be sorted
++ *  in decremental order
++ * @wkup_lat_plist_head: pwrdm wake-up latency constraints list
++ * @wkup_lat_plist_lock: spinlock that protects the constraints lists
++ *  domains states
++ * @wkup_lat_next_state: next pwrdm state, calculated from the constraints list
+  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
+  */
+ struct powerdomain {
+@@ -118,6 +136,16 @@ struct powerdomain {
+ 	s64 timer;
+ 	s64 state_timer[PWRDM_MAX_PWRSTS];
+ #endif
++	const s32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
++	struct plist_head wkup_lat_plist_head;
++	spinlock_t wkup_lat_plist_lock;
++	int wkup_lat_next_state;
++};
++
++/* Linked list for the wake-up latency constraints */
++struct pwrdm_wkup_constraints_entry {
++	void			*cookie;
++	struct plist_node	node;
+ };
+ 
+ /**
+@@ -207,6 +235,9 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+ int pwrdm_pre_transition(void);
+ int pwrdm_post_transition(void);
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
++
++int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
++				  long min_latency);
+ u32 pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+ 
 -- 
 1.7.4.1
 
