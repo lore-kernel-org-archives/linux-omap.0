@@ -1,42 +1,35 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v7 21/21] OMAP2+: UART: Do not gate uart clocks if used
- for	debug_prints
-Date: Wed, 19 Oct 2011 12:21:19 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59303286934E1@dbde02.ent.ti.com>
-References: <1318952141-10697-1-git-send-email-govindraj.raja@ti.com>
- <1318952141-10697-2-git-send-email-govindraj.raja@ti.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: Help with interfacing to OMAP2+: McBSP
+Date: Wed, 19 Oct 2011 09:54:50 +0300
+Message-ID: <20111019095450.edaefce276ef5c03c454cfbb@bitmer.com>
+References: <51A4F524D105AA4C93787F33E2C90E62EE5B4D@greysvr02.GreyInnovation.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36344 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab1JSGve convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Oct 2011 02:51:34 -0400
-Content-Language: en-US
+Received: from bitmer.com ([213.157.87.50]:54265 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752719Ab1JSGzT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Oct 2011 02:55:19 -0400
+In-Reply-To: <51A4F524D105AA4C93787F33E2C90E62EE5B4D@greysvr02.GreyInnovation.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "R, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Hilman, Kevin" <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Paul Chiha <paul.chiha@greyinnovation.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Govindraj,
+On Wed, 19 Oct 2011 17:18:54 +1100
+"Paul Chiha" <paul.chiha@greyinnovation.com> wrote:
 
-On Wed, Oct 19, 2011 at 11:05:02, Mohammed, Afzal wrote:
-> Hi Govindraj,
+> Hi,
 > 
-> On Tue, Oct 18, 2011 at 21:05:41, R, Govindraj wrote:
-> > If OMAP UART is used as console uart and debug is enabled,
-> > avoid gating of uart clocks to print all debug prints.
-> : 
-> :
-> >  			console_uart_id = uart->num;
-> >  
-> > +			if (cmdline_find_option("debug")) {
-> > +				uart_debug = true;
+> I need to write a simple driver sends and receives packets over McBSP3
+> on the DM3730 processor, and was wondering if anyone has already this.
+> I understand that the functions in arch/arm/plat-omap/mcbsp.c need to be
+> used, and so I would like to see an example driver which uses them that
+> I can base mine one.
+> Any help would be appreciated.
 > 
-> Shouldn't "loglevel" also be checked?
+Only public user at the moment is sound/soc/omap/omap-mcbsp.c.
 
-Or use console_loglevel instead ?
-
-Regards
-Afzal
+-- 
+Jarkko
