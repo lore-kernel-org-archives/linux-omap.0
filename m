@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 3/6] OMAP: PM: register to the per-device PM QoS framework
-Date: Wed, 19 Oct 2011 15:51:00 +0200
-Message-ID: <1319032263-22699-4-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 5/6] OMAP3: update cpuidle latency and threshold figures
+Date: Wed, 19 Oct 2011 15:51:02 +0200
+Message-ID: <1319032263-22699-6-git-send-email-j-pihet@ti.com>
 References: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:56814 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753101Ab1JSNv3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Oct 2011 09:51:29 -0400
-Received: by mail-ww0-f44.google.com with SMTP id 6so2560056wwe.1
-        for <linux-omap@vger.kernel.org>; Wed, 19 Oct 2011 06:51:28 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33300 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753159Ab1JSNvd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Oct 2011 09:51:33 -0400
+Received: by mail-wy0-f174.google.com with SMTP id 36so1742510wyg.19
+        for <linux-omap@vger.kernel.org>; Wed, 19 Oct 2011 06:51:33 -0700 (PDT)
 In-Reply-To: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,111 +18,85 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Implement the devices wake-up latency constraints using the global
-device PM QoS notification handler which applies the constraints to the
-underlying layer by calling the corresponding function at hwmod level.
+Update the data from the measurements performed at HW and SW levels.
 
-Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
-latency constraints on MPU, CORE and PER.
+Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
+for a detailed explanation on where are the numbers coming from.
+
+ToDo:
+- Measure the wake-up latencies for all power domains for OMAP3
+- Correct some numbers when sys_clkreq and sys_offmode are supported
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/pm.c |   63 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 63 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cpuidle34xx.c |   52 +++++++++++++++++++++++-------------
+ 1 files changed, 33 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 3feb359..58b4b76 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -11,13 +11,16 @@
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 1b8e0da..336a4ec 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -37,27 +37,41 @@
+ #ifdef CONFIG_CPU_IDLE
  
- #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/notifier.h>
- #include <linux/io.h>
- #include <linux/err.h>
- #include <linux/opp.h>
-+#include <linux/pm_qos.h>
+ /*
+- * The MPU latencies/thresholds for various C states have
+- * to be configured from the respective board files.
+- * These are some default values (which might not provide
+- * the best power savings) used on boards which do not
+- * pass these details from the board file.
++ * The MPU latency and threshold values for the C-states are the worst case
++ * values from the HW and SW, as described in details at
++ * http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#cpuidle_results
++ *
++ * Measurements conditions and remarks:
++ *  . the measurements have been performed at OPP50
++ *  . the sys_offmode signal is not supported and so not used for the
++ *    measurements. Instead the latency and threshold values for C9 are
++ *    corrected with the value for Triton 2, which is 11.5ms
++ *  . the sys_clkreq signal is not used and so a correction is needed - TBD
++ *  . the sys_clkoff signal is supported, this value need to be corrected with
++ *    the correct value of SYSCLK on/off timings (1ms for sysclk on, 2.5ms
++ *    for sysclk off)
++ *  . in order to force the cpuidle algorithm to chose the power efficient
++ *    C-states (C1, C3, C5, C7) in preference, the other C-states have a
++ *    threshold value equal to the next power efficient C-state
++ * 
++ * The latency and threshold values can be overriden by data from the board
++ * files, using omap3_pm_init_cpuidle.
+  */
+ static struct cpuidle_params cpuidle_params_table[] = {
+-	/* C1 */
+-	{2 + 2, 5, 1},
+-	/* C2 */
+-	{10 + 10, 30, 1},
+-	/* C3 */
+-	{50 + 50, 300, 1},
+-	/* C4 */
+-	{1500 + 1800, 4000, 1},
+-	/* C5 */
+-	{2500 + 7500, 12000, 1},
+-	/* C6 */
+-	{3000 + 8500, 15000, 1},
+-	/* C7 */
+-	{10000 + 30000, 300000, 1},
++	/* C1 . MPU WFI + Core active */
++	{73 + 78, 152, 1},
++	/* C2 . MPU WFI + Core inactive */
++	{165 + 88, 345, 1},
++	/* C3 . MPU CSWR + Core inactive */
++	{163 + 182, 345, 1},
++	/* C4 . MPU OFF + Core inactive */
++	{2852 + 605, 150000, 1},
++	/* C5 . MPU RET + Core RET */
++	{800 + 366, 2120, 1},
++	/* C6 . MPU OFF + Core RET */
++	{4080 + 801, 215000, 1},
++	/* C7 . MPU OFF + Core OFF */
++	{4300 + 13000, 215000, 1},
+ };
+ #define OMAP3_NUM_STATES ARRAY_SIZE(cpuidle_params_table)
  
- #include <plat/omap-pm.h>
- #include <plat/omap_device.h>
- #include <plat/common.h>
-+#include <plat/omap_hwmod.h>
- 
- #include "voltage.h"
- #include "powerdomain.h"
-@@ -242,11 +245,71 @@ static void __init omap4_init_voltages(void)
- 	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", iva_dev);
- }
- 
-+/* Interface to the per-device PM QoS framework */
-+static int omap2_dev_pm_qos_handler(struct notifier_block *nb,
-+				    unsigned long new_value,
-+				    void *req)
-+{
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+	struct dev_pm_qos_request *dev_pm_qos_req = req;
-+
-+	pr_debug("OMAP PM CONSTRAINTS: req@0x%p, new_value=%lu\n",
-+		 req, new_value);
-+
-+	/* Look for the platform device for the constraint target device */
-+	pdev = to_platform_device(dev_pm_qos_req->dev);
-+
-+	/* Try to catch non platform devices */
-+	if (pdev->name == NULL) {
-+		pr_err("%s: Error: platform device for device %s not valid\n",
-+		       __func__, dev_name(dev_pm_qos_req->dev));
-+		return -EINVAL;
-+	}
-+
-+	/* Find the associated omap_device for dev */
-+	od = container_of(pdev, struct omap_device, pdev);
-+	if (od->hwmods_cnt != 1) {
-+		pr_err("%s: Error: No unique hwmod for device %s\n",
-+		       __func__, dev_name(dev_pm_qos_req->dev));
-+		return -EINVAL;
-+	}
-+
-+	/* Find the primary omap_hwmod for dev */
-+	oh = od->hwmods[0];
-+
-+	pr_debug("OMAP PM CONSTRAINTS: req@0x%p, dev=0x%p, new_value=%lu\n",
-+		 req, dev_pm_qos_req->dev, new_value);
-+
-+	/* Apply the constraint */
-+	return omap_hwmod_set_wkup_lat_constraint(oh, dev_pm_qos_req,
-+						  new_value);
-+}
-+
-+static struct notifier_block omap2_dev_pm_qos_notifier = {
-+	.notifier_call	= omap2_dev_pm_qos_handler,
-+};
-+
-+static int __init omap2_dev_pm_qos_init(void)
-+{
-+	int ret;
-+
-+	ret = dev_pm_qos_add_global_notifier(&omap2_dev_pm_qos_notifier);
-+	if (ret)
-+		WARN(1, KERN_ERR "Cannot add global notifier for dev PM QoS\n");
-+
-+	return ret;
-+}
-+
- static int __init omap2_common_pm_init(void)
- {
- 	omap2_init_processor_devices();
- 	omap_pm_if_init();
- 
-+	/* Register to the per-device PM QoS framework */
-+	omap2_dev_pm_qos_init();
-+
- 	return 0;
- }
- postcore_initcall(omap2_common_pm_init);
 -- 
 1.7.4.1
 
