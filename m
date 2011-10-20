@@ -1,78 +1,67 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v7 21/21] OMAP2+: UART: Do not gate uart clocks if used
- for debug_prints
-Date: Thu, 20 Oct 2011 15:17:30 +0530
-Message-ID: <CAAL8m4wrWKndf3o9jN1R7+1MDgPwrJVA1qWcDPdU-d5wdWTu6Q@mail.gmail.com>
-References: <1318952141-10697-1-git-send-email-govindraj.raja@ti.com>
- <1318952141-10697-2-git-send-email-govindraj.raja@ti.com> <B85A65D85D7EB246BE421B3FB0FBB593032869342E@dbde02.ent.ti.com>
- <CAAL8m4wKu8w2iTBXmtekD09RaD200qFAG6jH=RgdmjJ2uuX8cA@mail.gmail.com>
- <B85A65D85D7EB246BE421B3FB0FBB5930328693855@dbde02.ent.ti.com>
- <CAAL8m4ztvsGiJz_2uPd8rtEYSsVv24oSPi4eK==U30k==75muA@mail.gmail.com> <B85A65D85D7EB246BE421B3FB0FBB5930328693C85@dbde02.ent.ti.com>
+From: <mythripk@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: HDMI: Panda: Disable HDMI DDC internal pull up
+Date: Thu, 20 Oct 2011 16:13:55 +0530
+Message-ID: <1319107435-15574-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930328693C85@dbde02.ent.ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "R, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:34014 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932160Ab1JTKvy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 20 Oct 2011 06:51:54 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
-On Thu, Oct 20, 2011 at 2:58 PM, Mohammed, Afzal <afzal@ti.com> wrote:
-> Hi Govindraj,
->
-> On Thu, Oct 20, 2011 at 14:09:22, Govindraj wrote:
->> Yes correct, I missed that part here is the updated patch [1]
->> Updated change-log for debug/loglevel and checked console_loglevel
->> in addition to debug in bootargs.
->
-> Perhaps checking console_loglevel only is sufficient, if I am not
-> missing anything, passing "debug" thr' bootargs only causes loglevel
-> to be set to 10 and nothing else.
+From: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
-Agree, Updated [1]
+Disables the internal pull resistor for SDA and SCL enabled by
+default as there are expernal pull up's to avoid the EDID read failure.
 
---
-Thanks,
-Govindraj.R
+Patch done mainly by Mythri P K <mythripk@ti.com>
 
-[1]
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-https://gitorious.org/runtime_3-0/runtime_3-0/commit/4b04aa54e61540f1f358ef412f2aaa3bab8de7c1
-
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 5e3bbce..4f41369 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -65,6 +65,7 @@ static LIST_HEAD(uart_list);
- static u8 num_uarts;
- static u8 console_uart_id = -1;
- static u8 no_console_suspend;
-+static u8 uart_debug;
-
- #define DEFAULT_RXDMA_POLLRATE         1       /* RX DMA polling rate (us) */
- #define DEFAULT_RXDMA_BUFSIZE          4096    /* RX DMA buffer size */
-@@ -310,6 +311,13 @@ static int __init omap_serial_early_init(void)
-                if (cmdline_find_option(uart_name)) {
-                        console_uart_id = uart->num;
-
-+                       if (console_loglevel >= 10) {
-+                               uart_debug = true;
-+                               pr_info("%s used as console in debug mode"
-+                                               " uart%d clocks will not be"
-+                                               " gated", uart_name, uart->num);
-+                       }
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index a38ed273..b94ccbc 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -487,6 +487,9 @@ int __init omap4_panda_dvi_init(void)
+ 
+ static void omap4_panda_hdmi_mux_init(void)
+ {
++	u32 reg;
++	u16 control_i2c_1;
 +
-                        if (cmdline_find_option("no_console_suspend"))
-                                no_console_suspend = true;
-
-@@ -414,7 +422,8 @@ void __init omap_serial_init_port(struct
-omap_board_data *bdata,
-
-        oh->dev_attr = uart;
-
--       if ((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-+       if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
-+                       && !uart_debug)
-                device_init_wakeup(&pdev->dev, true);
+ 	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+ 	omap_mux_init_signal("hdmi_hpd",
+ 			OMAP_PIN_INPUT_PULLUP);
+@@ -497,6 +500,21 @@ static void omap4_panda_hdmi_mux_init(void)
+ 			OMAP_PIN_INPUT_PULLUP);
+ 	omap_mux_init_signal("hdmi_ddc_sda",
+ 			OMAP_PIN_INPUT_PULLUP);
++
++	/*
++	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
++	 * HDMI_DDC_SCL_PULLUPRESX (bit 24) are set to disable
++	 * internal pull up resistor - This is a change needed in
++	 * OMAP4460 and OMAP4430 ES2.3 as the external pull up
++	 * are present. This is needed to avoid EDID read failure.
++	 */
++	if (cpu_is_omap446x() || (omap_rev() > OMAP4430_REV_ES2_2)) {
++		control_i2c_1 = OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_1;
++		reg = omap4_ctrl_pad_readl(control_i2c_1);
++		reg |= (OMAP4_HDMI_DDC_SDA_PULLUPRESX_MASK |
++				OMAP4_HDMI_DDC_SCL_PULLUPRESX_MASK);
++		omap4_ctrl_pad_writel(reg, control_i2c_1);
++	}
  }
+ 
+ static struct gpio panda_hdmi_gpios[] = {
+-- 
+1.7.5.4
+
