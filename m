@@ -1,44 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Build error while adding debug LL support for new board
-Date: Thu, 20 Oct 2011 09:12:52 -0700
-Message-ID: <20111020161251.GL3842@atomide.com>
-References: <1318856432-20219-1-git-send-email-afzal@ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB5930328B2D71D@dbde02.ent.ti.com>
- <20111020125721.GD22076@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+	regulator_init_data
+Date: Thu, 20 Oct 2011 09:27:43 -0700
+Message-ID: <20111020162743.GB31337@atomide.com>
+References: <20111016145536.GA29885@S2100-06.ap.freescale.net>
+	<4E9BAC4D.3010402@ti.com>
+	<20111018115836.GC30703@S2100-06.ap.freescale.net>
+	<20111018160046.GD28501@opensource.wolfsonmicro.com>
+	<20111019053354.GB31162@S2100-06.ap.freescale.net>
+	<20111019144734.GI18713@sirena.org.uk>
+	<20111019150448.GB32007@S2100-06.ap.freescale.net>
+	<20111019151031.GA4275@opensource.wolfsonmicro.com>
+	<4E9F9892.9070007@ti.com> <20111020094140.GK18713@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13139 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244Ab1JTQNC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Oct 2011 12:13:02 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20111020125721.GD22076@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20111020094140.GK18713@sirena.org.uk>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: patches@linaro.org, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, Shawn Guo <shawn.guo@freescale.com>, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [111020 05:23]:
-> On Thu, Oct 20, 2011 at 05:09:07PM +0530, Mohammed, Afzal wrote:
-> > Hi Russell,
-> > 
-> > n Mon, Oct 17, 2011 at 18:30:32, Mohammed, Afzal wrote:
-> > > Hi, Russell,
-> > > 
-> > > While adding low level debug support for new board in OMAP2+ family, we
-> > > came across following error,
-> > > 
-> > > arch/arm/kernel/debug.S: Assembler messages:
-> > > arch/arm/kernel/debug.S:138: Error: invalid constant (428) after fixup
-> > > 
-> > > Following patch fixes it, I am not sure whether this is the right fix,
-> > > please let us know your comments.
-> > 
-> > ping
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [111020 02:07]:
+> On Thu, Oct 20, 2011 at 09:12:10AM +0530, Rajendra Nayak wrote:
+> > On Wednesday 19 October 2011 08:40 PM, Mark Brown wrote:
 > 
-> The patch looks fine.  Who's merging it?
+> > >I don't see any issue with leaving some things out of the DT bindings;
+> > >you were the one raising that as a concern.
+> 
+> > The problem is, that there doesn't seem to be a clean way to embed
+> > *board data* into the kernel with DT, if left out of the DT bindings.
+> > There is the auxdata way of still attaching platform_data, but that I
+> > thought was a stopgap for just handling function pointers.
+> 
+> We can always start off just completely omitting the data and then see
+> how we go from there.  If we only cover 50% of users that's still 50%
+> more than are currently covered with device tree right now and it means
+> we can then spin round and look at the bits that are hard again without
+> review fatigue on the bits that are easy.
 
-Can you please take it?
+We still need to pass the board configuration somehow, otherwise we can
+never remove all the platform data glue layers. And if we can't do that,
+we'll forever have all the nasty merge conflicts when adding new drivers.
+And there's an unnecessary dependency between adding drivers and the
+core SoC code.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+So we really need to remove all the platform data glue layers so driver
+probe can initialize things automagically.
+
+Kernel cmdline is of course one way to pass options, but probably won't
+scale for all the board wirings.. And the kernel cmdline should really
+be for user configurable options.
+
+So should we just have a cmdline string for each DT entry to pass the
+board specific options from DT to the driver? Something along the
+lines module options?
+
+Regards,
+
+Tony
