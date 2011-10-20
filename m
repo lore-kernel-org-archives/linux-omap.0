@@ -1,37 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Build error while adding debug LL support for new board
-Date: Thu, 20 Oct 2011 13:57:21 +0100
-Message-ID: <20111020125721.GD22076@n2100.arm.linux.org.uk>
-References: <1318856432-20219-1-git-send-email-afzal@ti.com> <B85A65D85D7EB246BE421B3FB0FBB5930328B2D71D@dbde02.ent.ti.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [RFC PATCHv5 0/7] HSI framework and drivers
+Date: Thu, 20 Oct 2011 14:57:05 +0200
+Message-ID: <20111020125705.GA2121@earth.universe>
+References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53474 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752520Ab1JTM5f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Oct 2011 08:57:35 -0400
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930328B2D71D@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, govindraj.ti@gmail.com, pawel.szyszuk@stericsson.com, sjur.brandeland@stericsson.com, peter_henn@gmx.de
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 20, 2011 at 05:09:07PM +0530, Mohammed, Afzal wrote:
-> Hi Russell,
-> 
-> n Mon, Oct 17, 2011 at 18:30:32, Mohammed, Afzal wrote:
-> > Hi, Russell,
-> > 
-> > While adding low level debug support for new board in OMAP2+ family, we
-> > came across following error,
-> > 
-> > arch/arm/kernel/debug.S: Assembler messages:
-> > arch/arm/kernel/debug.S:138: Error: invalid constant (428) after fixup
-> > 
-> > Following patch fixes it, I am not sure whether this is the right fix,
-> > please let us know your comments.
-> 
-> ping
 
-The patch looks fine.  Who's merging it?
+--J/dobhs11T7y2rNN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi,
+
+What's the status of this patch? Are there plans to merge it into
+3.2?
+
+-- Sebastian
+
+--J/dobhs11T7y2rNN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJOoBqhAAoJENju1/PIO/qasiUQAIKofyjaxeTtyEKsYj0CmWaz
+IsbBMl7laPxhGYsoR60nq0QrUyyFMnZ/LLboLbdla0dmiraaCo/ajKJR9lG931Oh
+6bFw44igbJDaXXLVH6JgamNMCQfD+k5vUu8TFvO4OOvR3SFVbGHIaHbC8pl7dVHP
+0TwRg/ipSy3ZDWLClevfAODyaMUpSwsvdKd4yazn42lVp9bhPPeVxSgBx1wZEBLw
++yH7fG7Ew+sO7OgEIHehmM9kEBJQN7RxHA3qvGO0culFkDdCSS27nfxQvBbEx8Xu
+mjxSkK0CycBOnDguAhrGH5LmB6Elce2Zm7N5Xgq4ZZQyZr/W6J6rnyc0c5GSefZQ
+dwoyRE9L7GMr5al3v8gdoxOm8yL4XpY6ntENoI+z81Lp+JwcunOxcJRkgyA2hJCw
+imbYZDcsGkGNnEmduWS/C4GDu0wNw3OU3TmmeFWFvLSvzmvT/tIm8kVPfaGUv/YZ
+AH0hgYBR5XAB8to0r3mmEkMS4M9Fr+JqPl8Ph2EZoEtaV7D/2zVqfU+ojyH3sM9N
+SBKXv1CrhmJ2M9RBZp7dFV4Uh73pZWUxoNiOh+2Ov16k4J2e5fX//+TmQjyITlKE
+E0yduMGTxfVXWxZ5blkWDr8MJGqOFxrxI8rtVUxoUOI5TlhRX7AC31xvH1jIGkdN
+I0Wrvv4c1cEka+60Tydg
+=8564
+-----END PGP SIGNATURE-----
+
+--J/dobhs11T7y2rNN--
