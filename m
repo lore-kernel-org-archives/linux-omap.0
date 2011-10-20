@@ -1,51 +1,98 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: [RFC PATCHv5 0/7] HSI framework and drivers
-Date: Thu, 20 Oct 2011 14:57:05 +0200
-Message-ID: <20111020125705.GA2121@earth.universe>
-References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv9 03/18] TEMP: OMAP3xxx: hwmod data: add PRM hwmod
+Date: Thu, 20 Oct 2011 16:43:37 +0200
+Message-ID: <4EA03399.6080309@ti.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
+	<1316781986-30642-4-git-send-email-t-kristo@ti.com>
+	<alpine.DEB.2.00.1110101320180.5205@utopia.booyaka.com>
+	<4E934D79.4080000@ti.com>
+	<alpine.DEB.2.00.1110101416530.5205@utopia.booyaka.com>
+	<4E936F0E.9050203@ti.com>
+	<alpine.DEB.2.00.1110101725140.5205@utopia.booyaka.com>
+	<4E954CDA.10107@ti.com>
+	<alpine.DEB.2.00.1110131033410.24155@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linus.walleij@linaro.org, govindraj.ti@gmail.com, pawel.szyszuk@stericsson.com, sjur.brandeland@stericsson.com, peter_henn@gmx.de
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1110131033410.24155@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
+Hi Paul,
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Sorry, I kind of forgot to answer that email.
 
-Hi,
+On 10/13/2011 6:38 PM, Paul Walmsley wrote:
+> On Wed, 12 Oct 2011, Cousson, Benoit wrote:
+>
+>> On 10/11/2011 1:26 AM, Paul Walmsley wrote:
+>>> On Tue, 11 Oct 2011, Cousson, Benoit wrote:
+>>>
+>>>> In fact the device name does not have to match the hwmod name. So we
+>>>> can just create an "omap2_prm" omap_device for OMAP2, "omap3_prm"
+>>>> omap_device for OMAP3... That will allow the relevant PRM driver to
+>>>> be bound to the proper device.
+>>>
+>>> Incidentally, given that we would be using the hwmod name and the version
+>>> number to determine the appropriate omap_device name, what IP version
+>>> numbers should we assign to these PRM IP blocks for different SoCs?
+>>
+>> It can just be 1, 2 and 3... The idea is just to differentiate the IP for each
+>> OMAP.
+>
+> So those are basically arbitrary?  Something is not clear here.
 
-What's the status of this patch? Are there plans to merge it into
-3.2?
+Yeah, for me too, I think I did not get your concern...
 
--- Sebastian
+> In the current hwmod design, IP blocks with different interfaces were
+> intended to be uniquely identified by the hwmod name alone.  That is why
+> omap_hwmod_lookup() only takes a 'name' parameter.
+>
+> If I understand what you want to do, you wish to change this to uniquely
+> identify them by a (name, interface version number) tuple.
 
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+No, not for the same OMAP. The version is different for different OMAP 
+version. So far the only IP with 2 different hwmod name for the same 
+functionality is the timer. We have timer and timer_1ms, and that's for 
+that kind of IP that we introduced the class to still be able to 
+identify the functionality for the driver.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> I don't have a problem with this in theory, but it implies some changes to
+> the existing model.  Specifically:
+>
+> - we'll need to add an interface version number to the struct omap_hwmod
+>
+> - we'll need to modify omap_hwmod_lookup() to take an interface version
+> number
+>
+> - the "ti,hwmod" DT binding that you proposed earlier will need to include
+> an interface version number
 
-iQIcBAEBCAAGBQJOoBqhAAoJENju1/PIO/qasiUQAIKofyjaxeTtyEKsYj0CmWaz
-IsbBMl7laPxhGYsoR60nq0QrUyyFMnZ/LLboLbdla0dmiraaCo/ajKJR9lG931Oh
-6bFw44igbJDaXXLVH6JgamNMCQfD+k5vUu8TFvO4OOvR3SFVbGHIaHbC8pl7dVHP
-0TwRg/ipSy3ZDWLClevfAODyaMUpSwsvdKd4yazn42lVp9bhPPeVxSgBx1wZEBLw
-+yH7fG7Ew+sO7OgEIHehmM9kEBJQN7RxHA3qvGO0culFkDdCSS27nfxQvBbEx8Xu
-mjxSkK0CycBOnDguAhrGH5LmB6Elce2Zm7N5Xgq4ZZQyZr/W6J6rnyc0c5GSefZQ
-dwoyRE9L7GMr5al3v8gdoxOm8yL4XpY6ntENoI+z81Lp+JwcunOxcJRkgyA2hJCw
-imbYZDcsGkGNnEmduWS/C4GDu0wNw3OU3TmmeFWFvLSvzmvT/tIm8kVPfaGUv/YZ
-AH0hgYBR5XAB8to0r3mmEkMS4M9Fr+JqPl8Ph2EZoEtaV7D/2zVqfU+ojyH3sM9N
-SBKXv1CrhmJ2M9RBZp7dFV4Uh73pZWUxoNiOh+2Ov16k4J2e5fX//+TmQjyITlKE
-E0yduMGTxfVXWxZ5blkWDr8MJGqOFxrxI8rtVUxoUOI5TlhRX7AC31xvH1jIGkdN
-I0Wrvv4c1cEka+60Tydg
-=8564
------END PGP SIGNATURE-----
+I still do not understand why we need that for the PRM.
+AFAIK, we do have only one version of the PRM at the time. It is not 
+similar to the timer case.
 
---J/dobhs11T7y2rNN--
+I'm still a little bit confused by your usecase.
+
+You have only one PRM instance per OMAP. So you just have to do 
+omap_hwmod_lookup("prm") to retrieve the relevant hwmod for the SoC.
+
+If you need to build a different device per SoC to allow different 
+driver to be bound to it, you can just append the version number to the 
+hwmod name to build the device name.
+
+Am I still missing something?
+
+Regards,
+Benoit
