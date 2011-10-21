@@ -1,63 +1,210 @@
-From: =?utf-8?B?5LuFMTDlhYPmr4/lpKk=?= <admin@mail.hbqj.gov.cn>
-Subject: =?utf-8?B?576k5Y+R6L2v5Lu2K+S5sOWutuaQnOe0ouacuisxMDnlsYrlub/kuqTkvJrkubDlrrY=?=
-	=?utf-8?B?44CB5rW35YWz5pWw5o2uLEIyQuivouebmOS5sOWutjUwMOS4h+OAgg==?=
-Date: Fri, 21 Oct 2011 01:08:23 +0000 (UTC)
-Message-ID: <20121013144024572227__48807.0161002271$1319159303$gmane$org@mail.hbqj.gov.cn>
-Reply-To: <1339625218@qq.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+	regulator_init_data
+Date: Fri, 21 Oct 2011 16:23:12 +0800
+Message-ID: <20111021082309.GA337@S2100-06.ap.freescale.net>
+References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
+	<1318263578-7407-4-git-send-email-rnayak@ti.com>
+	<20111018132032.GD30703@S2100-06.ap.freescale.net>
+	<4E9EB61C.1040207@ti.com>
+	<20111019144215.GA32007@S2100-06.ap.freescale.net>
+	<4E9FAF42.5060200@ti.com>
+	<20111020061408.GE32007@S2100-06.ap.freescale.net>
+	<4EA00F7C.1080005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [219.138.156.132] ([219.138.156.132]:59310 "EHLO
-	mail.hbqj.gov.cn" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138Ab1JUBIM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Oct 2011 21:08:12 -0400
-Date: Sat, 13 Oct 2012 14:40:18 +0800
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <4EA00F7C.1080005@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linna_qin@hotmail.com, linuoglassware@gmail.com, linus2202@verizon.net, linuskeptah@hotmail.com, linustr@yahoo.com, linux_keyboard_specialist@ymail.com, linux-biz@lege.co
 
-576k5Y+R6L2v5Lu2KzEwOeWxiuW5v+S6pOS8muS5sOWutuOAgea1t+WFs+aVsOaNruOAgeaQnOe0
-ouW8leaTjuS5sOWutixCMkLor6Lnm5jkubDlrrblhbE1MDDkuIcs5LuFMTDlhYPmr4/lpKnjgIIg
-DQrnvqTlj5Hova/ku7YrMTA55bGK5bm/5Lqk5Lya5Lmw5a6244CB5rW35YWz5pWw5o2u44CB5pCc
-57Si5byV5pOO5Lmw5a62LEIyQuivouebmOS5sOWutuWFsTUwMOS4hyzku4UxMOWFg+avj+WkqeOA
-giANCuS/neivgeavj+WkqemDveacieS5sOWutuWbnuWkjeOAgg0K5L+d6K+B5q+P5aSp6YO95pyJ
-5Lmw5a625Zue5aSN44CCDQrkv53or4Hmr4/lpKnpg73mnInkubDlrrblm57lpI3jgIINCg0KMeOA
-gee+pOWPkei9r+S7tu+8miDmk43kvZznroDljZXvvIzlip/og73lvLrlpKfvvIzmqKHku7/kurrl
-t6Xmk43kvZzmqKHlvI/vvIzliLDovr7njofpq5jvvIzml6Xlj5HpgIE15LiH5bCB5Lul5LiK44CC
-IA0KMuOAgTUwMOS4h+S5sOWutui1hOa6kO+8miDotaDpgIHnmoQ1MDDkuIfkubDlrrbotYTmupDl
-upPvvIzmm7TmlrAgKOWPr+S7peaMieeFp+aCqOeahOS6p+WTgeaPkOWPluWHuuadpe+8jOabtOey
-vuWHhuW8gOWPkSnjgIIgDQoz44CB6LaF57qn5rW35aSW5Lmw5a62RW1haWzmkJzntKLmnLrvvJog
-5YaF572u5LqGNjAw5LiH6KGM5Lia5YWz6ZSu6K+N77yM5qC55o2u6ZW/5bC+6K+N5pCc57Si77yM
-57uT5p6c5pu057K+56Gu5Yy56YWN77yb5q+P5aSp6IO95pCc57SiMS0y5LiH5Lul5LiK5Lmw5a62
-55yf5a6eRU1BSUzvvIzmiJDljZXnjofpq5jjgIIgDQogDQoNCuimgeeahOaKk+e0p+iBlOezu1FR
-OiAxMzM5NjI1MjE4ICAgIOaIluiAheeri+WNs+WbnuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5j
-b20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5NjI1MjE4ICAgIOaIluiAheeri+WNs+WbnuWk
-jemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzM5NjI1
-MjE4ICAgIOaIluiAheeri+WNs+WbnuWkjemCrueusTogMTMzOTYyNTIxOEBxcS5jb20NCiANCuWF
-jei0uei1oOmAgToNCuS4gOWFsTjkuKrljIUo5pWw5o2u5piv5YWo6KGM5Lia55qE77yM5oyJ54Wn
-6KGM5Lia5YiG5aW957G777yM5bm25LiU5Y+v5Lul5oyJ54Wn5YWz6ZSu6K+N5p+l6K+i55qEKe+8
-miANCjHvvIwyMDEx5pil5a2jMTA55bGK5bm/5Lqk5Lya5Lmw5a62546w5Zy66K+i55uY5pWw5o2u
-5bqT5paw6bKc5Ye654KJ77yM6LaF57qn5paw6bKc5Lmw5a6277yM5paw6bKc5pWw5o2u77yM5a65
-5piT5oiQ5Y2V77yBIA0KMu+8jOi0reS5sOWQjuWPr+S7peWFjei0ueabtOaWsDIwMTHnp4vlraPl
-ub/kuqTkvJorMjAxMuaYpeWto+W5v+S6pOS8muS5sOWutuaVsOaNruOAguWkqui2heWAvOS6huOA
-gg0KM++8jOacgOaWsOWFqOeQg+S5sOWutuW6kyzlhbE0NTE2NjDmnaHmlbDmja7jgIIgKOacgOaW
-sOabtOaWsOaXpeacnyAyMDExLTA1LTE25pelKQ0KNO+8jDIwMDjlubQsMjAwOeW5tCwyMDEw5bm0
-IOaYpeWtoyvnp4vlraPlub/kuqTkvJrkubDlrrblkI3lvZXvvIwxMDMgMTA0IDEwNSAxMDYgMTA3
-IDEwOCDlhbHlha3lsYog5YWxMTIwLjbkuIfmlbDmja7jgIINCjXvvIwyMDEw5bm05Zu96ZmF5L+D
-6ZSA5Y2P5Lya77yIUFBBSe+8ieaIkOWRmOWQjeWNlSBQUEFJIE1lbWJlcnMgRGlyZWN0b3J577yM
-6Z2e5bi46YeN6KaB55qE5aSn5Lmw5a6244CCDQo277yMMjAxMOW5tOWIsOmmmea4r+mHh+i0reea
-hOWbveWkluWuouS6uuWQjeW9lSjpppnmuK/otLjlj5HlsYDmj5Dkvpsp77yM5YWxNy4y5LiH5pWw
-5o2u77yM6LaF57qn6YeN6KaB55qE5Lmw5a6244CCDQo377yMNDguNjjkuIfmnaHmnIDmlrDkubDl
-rrbor6Lnm5jvvIzotK3kubDlkI7mr4/mnIjmm7TmlrAgMS0y5LiH5p2h77yM5YyF5ousMumDqOWI
-hu+8jDHvvIzmnIDmlrDnmoTor6Lnm5ggMu+8jOacgOaWsOeahOWxleS8muS5sOWutuOAguWFjei0
-ueabtOaWsDM25Liq5pyI44CCDQo477yMMjAwOeW5tOa1t+WFs+aPkOWNleaVsOaNrnBpZXJz54mI
-5pWw5o2uIDHljYPkuIfjgIINCg0KDQror5rkv6HkuLrmnKzvvIzmlK/mjIHmlK/ku5jlrp3mi4Xk
-v53kuqTmmJMgKOWFiOWPkei0p+W5tuWuieijheiuvue9rue+pOWPkei9r+S7tu+8jOeEtuWQjuS7
-mOasvikg5b275bqV5omT5raI5oKo55qEIOmhvuiZkeOAgg0KDQogDQoNCg0KIA0KDQrnsr7lh4bm
-lbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7l
-h4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrnsr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrn
-sr7lh4bmlbDmja4t5oiQ5Y2V546H5p6B6auYDQo=
+On Thu, Oct 20, 2011 at 05:39:32PM +0530, Rajendra Nayak wrote:
+> On Thursday 20 October 2011 11:44 AM, Shawn Guo wrote:
+> >On Thu, Oct 20, 2011 at 10:48:58AM +0530, Rajendra Nayak wrote:
+> >>>Let's look at mc13892-regulator driver.  There are 23 regulators defined
+> >>>in array mc13892_regulators.  Needless to say, there is a dev behind
+> >>>mc13892-regulator driver.  And when getting probed, this driver will
+> >>>call regulator_register() to register those 23 regulators individually.
+> >>>That said, for non-dt world, we have 1 + 23 'dev' with that 1 as the
+> >>>parent of all other 23 'dev' (wrapped by regulator_dev).  But with the
+> >>>current DT implementation, we will have at least 1 + 23 * 2 'dev'.
+> >>>These extra 23 'dev' is totally new with DT.
+> >>>
+> >>
+> >>but thats only because the mc13892-regulator driver is implemeted in
+> >>such a way that all the regulators on the platform are bundled in as
+> >>*one* device.
+> >
+> >I did not look into too many regulator drivers, but I expect this is
+> >way that most regulator drivers are implemented in.  Having
+> >mc13892-regulator being probed 23 times to register these 23 regulators
+> >just makes less sense to me.
+> >
+> >>It would again depend on how you would pass these from
+> >>the DT, if you indeed stick to the same way of bundling all regulators
+> >>as one device from DT, the mc13892-regulator probe would just get called
+> >>once and there would be one device associated, no?
+> >>
+> >Yes, I indeed would stick to the same way of bundling the registration
+> >of all regulators with mc13892-regulator being probed once.  The problem
+> >I have with the current regulator core DT implementation is that it
+> >assumes the device_node of rdev->dev (dev wrapped in regulator_dev) is
+> >being attached to rdev->dev.parent rather than itself.  Back to
+> >mc13892-regulator example, that said, it requires the dev of
+> >mc13892-regulator have the device_node of individual regulator attached
+> >to.  IOW, the current implementation forces mc13892-regulator to be
+> >probed 23 times to register those 23 regulators.  This is wrong to me.
+> 
+> I think I now understand to some extent the problem that you seem to be
+> reporting. It is mainly with drivers which bundle all regulators and
+> pass them as one device and would want to do so with DT too.
+> 
+> however I am still not clear on how what you seem to suggest would
+> solve this problem. Note that not all drivers do it this way, and
+> there are drivers where each regulator is considered as one device
+> and I suspect they would remain that way with DT too. And hence we
+> need to support both.
+> 
+> Do you have any RFC patch/code which could explain better what you are
+> suggesting we do here?
+> >
+Here is what I changed based on your patches.  It only changes
+drivers/regulator/core.c.
 
+---8<-------
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index 9a5ebbe..8fe132d 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -1211,7 +1211,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
+                node = of_get_regulator(dev, id);
+                if (node)
+                        list_for_each_entry(rdev, &regulator_list, list)
+-                               if (node == rdev->dev.parent->of_node)
++                               if (node == rdev->dev.of_node)
+                                        goto found;
+        }
+        list_for_each_entry(map, &regulator_map_list, list) {
+@@ -2642,9 +2642,6 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
+            regulator_desc->type != REGULATOR_CURRENT)
+                return ERR_PTR(-EINVAL);
 
+-       if (!init_data)
+-               return ERR_PTR(-EINVAL);
+-
+        /* Only one of each should be implemented */
+        WARN_ON(regulator_desc->ops->get_voltage &&
+                regulator_desc->ops->get_voltage_sel);
+@@ -2675,12 +2672,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
+        INIT_LIST_HEAD(&rdev->list);
+        BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
+
+-       /* preform any regulator specific init */
+-       if (init_data->regulator_init) {
+-               ret = init_data->regulator_init(rdev->reg_data);
+-               if (ret < 0)
+-                       goto clean;
+-       }
++       /* find device_node and attach it */
++       rdev->dev.of_node = of_find_node_by_name(NULL, regulator_desc->name);
+
+        /* register with sysfs */
+        rdev->dev.class = &regulator_class;
+@@ -2693,6 +2686,20 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
+                goto clean;
+        }
+
++       if (!init_data) {
++               /* try to get init_data from device tree */
++               init_data = of_get_regulator_init_data(&rdev->dev);
++               if (!init_data)
++                       return ERR_PTR(-EINVAL);
++       }
++
++       /* preform any regulator specific init */
++       if (init_data->regulator_init) {
++               ret = init_data->regulator_init(rdev->reg_data);
++               if (ret < 0)
++                       goto clean;
++       }
++
+        dev_set_drvdata(&rdev->dev, rdev);
+
+        /* set regulator constraints */
+@@ -2719,7 +2726,7 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
+                        node = of_get_regulator(dev, supply);
+                        if (node)
+                                list_for_each_entry(r, &regulator_list, list)
+-                                       if (node == r->dev.parent->of_node)
++                                       if (node == r->dev.of_node)
+                                                goto found;
+                }
+
+------->8---
+
+And my dts file looks like something below.
+
+	ecspi@70010000 { /* ECSPI1 */
+		fsl,spi-num-chipselects = <2>;
+		cs-gpios = <&gpio3 24 0>, /* GPIO4_24 */
+			   <&gpio3 25 0>; /* GPIO4_25 */
+		status = "okay";
+
+		pmic: mc13892@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "fsl,mc13892";
+			spi-max-frequency = <6000000>;
+			reg = <0>;
+			mc13xxx-irq-gpios = <&gpio0 8 0>; /* GPIO1_8 */
+
+			regulators {
+				sw1reg: mc13892_sw1 {
+					regulator-min-uV = <600000>;
+					regulator-max-uV = <1375000>;
+					regulator-change-voltage;
+					regulator-boot-on;
+					regulator-always-on;
+				};
+
+				sw2reg: mc13892_sw2 {
+					regulator-min-uV = <900000>;
+					regulator-max-uV = <1850000>;
+					regulator-change-voltage;
+					regulator-boot-on;
+					regulator-always-on;
+				};
+
+				......
+			};
+
+			leds {
+				......
+			};
+
+			buttons {
+				......
+			};
+		};
+
+		flash: at45db321d@1 {
+			......
+		};
+	};
+};
+
+-- 
+Regards,
+Shawn
