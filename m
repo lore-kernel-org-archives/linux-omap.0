@@ -1,152 +1,162 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract regulator_init_data
-Date: Fri, 21 Oct 2011 14:11:55 +0530
-Message-ID: <4EA13053.7080306@ti.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com> <1318263578-7407-4-git-send-email-rnayak@ti.com> <20111018132032.GD30703@S2100-06.ap.freescale.net> <4E9EB61C.1040207@ti.com> <20111019144215.GA32007@S2100-06.ap.freescale.net> <4E9FAF42.5060200@ti.com> <20111020061408.GE32007@S2100-06.ap.freescale.net> <4EA00F7C.1080005@ti.com> <20111021082309.GA337@S2100-06.ap.freescale.net>
+From: <mythripk@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: HDMI: Move duplicate code from boardfile to
+Date: Fri, 21 Oct 2011 14:56:51 +0530
+Message-ID: <1319189211-10991-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111021082309.GA337@S2100-06.ap.freescale.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@freescale.com>
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48238 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753596Ab1JUJer (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Oct 2011 05:34:47 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p9L9Yimj023699
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 21 Oct 2011 04:34:46 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id p9L9YhVK025382
+	for <linux-omap@vger.kernel.org>; Fri, 21 Oct 2011 15:04:43 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
->>
->> Do you have any RFC patch/code which could explain better what you are
->> suggesting we do here?
->>>
-> Here is what I changed based on your patches.  It only changes
-> drivers/regulator/core.c.
->
-> ---8<-------
-> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-> index 9a5ebbe..8fe132d 100644
-> --- a/drivers/regulator/core.c
-> +++ b/drivers/regulator/core.c
-> @@ -1211,7 +1211,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
->                  node = of_get_regulator(dev, id);
->                  if (node)
->                          list_for_each_entry(rdev,&regulator_list, list)
-> -                               if (node == rdev->dev.parent->of_node)
-> +                               if (node == rdev->dev.of_node)
->                                          goto found;
->          }
->          list_for_each_entry(map,&regulator_map_list, list) {
-> @@ -2642,9 +2642,6 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->              regulator_desc->type != REGULATOR_CURRENT)
->                  return ERR_PTR(-EINVAL);
->
-> -       if (!init_data)
-> -               return ERR_PTR(-EINVAL);
-> -
->          /* Only one of each should be implemented */
->          WARN_ON(regulator_desc->ops->get_voltage&&
->                  regulator_desc->ops->get_voltage_sel);
-> @@ -2675,12 +2672,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->          INIT_LIST_HEAD(&rdev->list);
->          BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
->
-> -       /* preform any regulator specific init */
-> -       if (init_data->regulator_init) {
-> -               ret = init_data->regulator_init(rdev->reg_data);
-> -               if (ret<  0)
-> -                       goto clean;
-> -       }
-> +       /* find device_node and attach it */
-> +       rdev->dev.of_node = of_find_node_by_name(NULL, regulator_desc->name);
+From: Mythri P K <mythripk@ti.com>
 
-so would this do a complete dt search for every regulator?
-we would also need the driver names and dt names to match for this to
-work, right?
+Move duplicate HDMI mux_init code from omap4 and panda board file
+to display file.
 
-The approach otherwise looks fine to me and should work for both cases
-of one device per regulator and one device for all regulators.
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c    |   15 ---------------
+ arch/arm/mach-omap2/board-omap4panda.c |   16 ----------------
+ arch/arm/mach-omap2/display.c          |   25 +++++++++++++++++++++++++
+ 3 files changed, 25 insertions(+), 31 deletions(-)
 
->
->          /* register with sysfs */
->          rdev->dev.class =&regulator_class;
-> @@ -2693,6 +2686,20 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->                  goto clean;
->          }
->
-> +       if (!init_data) {
-> +               /* try to get init_data from device tree */
-> +               init_data = of_get_regulator_init_data(&rdev->dev);
-> +               if (!init_data)
-> +                       return ERR_PTR(-EINVAL);
-> +       }
-> +
-> +       /* preform any regulator specific init */
-> +       if (init_data->regulator_init) {
-> +               ret = init_data->regulator_init(rdev->reg_data);
-> +               if (ret<  0)
-> +                       goto clean;
-> +       }
-> +
->          dev_set_drvdata(&rdev->dev, rdev);
->
->          /* set regulator constraints */
-> @@ -2719,7 +2726,7 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
->                          node = of_get_regulator(dev, supply);
->                          if (node)
->                                  list_for_each_entry(r,&regulator_list, list)
-> -                                       if (node == r->dev.parent->of_node)
-> +                                       if (node == r->dev.of_node)
->                                                  goto found;
->                  }
->
-> ------->8---
->
-> And my dts file looks like something below.
->
-> 	ecspi@70010000 { /* ECSPI1 */
-> 		fsl,spi-num-chipselects =<2>;
-> 		cs-gpios =<&gpio3 24 0>, /* GPIO4_24 */
-> 			<&gpio3 25 0>; /* GPIO4_25 */
-> 		status = "okay";
->
-> 		pmic: mc13892@0 {
-> 			#address-cells =<1>;
-> 			#size-cells =<0>;
-> 			compatible = "fsl,mc13892";
-> 			spi-max-frequency =<6000000>;
-> 			reg =<0>;
-> 			mc13xxx-irq-gpios =<&gpio0 8 0>; /* GPIO1_8 */
->
-> 			regulators {
-> 				sw1reg: mc13892_sw1 {
-> 					regulator-min-uV =<600000>;
-> 					regulator-max-uV =<1375000>;
-> 					regulator-change-voltage;
-> 					regulator-boot-on;
-> 					regulator-always-on;
-> 				};
->
-> 				sw2reg: mc13892_sw2 {
-> 					regulator-min-uV =<900000>;
-> 					regulator-max-uV =<1850000>;
-> 					regulator-change-voltage;
-> 					regulator-boot-on;
-> 					regulator-always-on;
-> 				};
->
-> 				......
-> 			};
->
-> 			leds {
-> 				......
-> 			};
->
-> 			buttons {
-> 				......
-> 			};
-> 		};
->
-> 		flash: at45db321d@1 {
-> 			......
-> 		};
-> 	};
-> };
->
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 6d16306..4fcdf38 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -601,20 +601,6 @@ static void __init omap_sfh7741prox_init(void)
+ 			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
+ }
+ 
+-static void sdp4430_hdmi_mux_init(void)
+-{
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_cec",
+-			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+-	omap_mux_init_signal("hdmi_ddc_scl",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_ddc_sda",
+-			OMAP_PIN_INPUT_PULLUP);
+-}
+-
+ static struct gpio sdp4430_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+@@ -844,7 +830,6 @@ static void omap_4430sdp_display_init(void)
+ 		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+ 
+ 	sdp4430_lcd_init();
+-	sdp4430_hdmi_mux_init();
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
+ }
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index a38ed273..bb5fca2 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -484,21 +484,6 @@ int __init omap4_panda_dvi_init(void)
+ 	return r;
+ }
+ 
+-
+-static void omap4_panda_hdmi_mux_init(void)
+-{
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_cec",
+-			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+-	omap_mux_init_signal("hdmi_ddc_scl",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_ddc_sda",
+-			OMAP_PIN_INPUT_PULLUP);
+-}
+-
+ static struct gpio panda_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+@@ -550,7 +535,6 @@ void omap4_panda_display_init(void)
+ 	if (r)
+ 		pr_err("error initializing panda DVI\n");
+ 
+-	omap4_panda_hdmi_mux_init();
+ 	omap_display_init(&omap4_panda_dss_data);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index 94a96ce..f6590b9 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -28,6 +28,7 @@
+ #include <plat/omap-pm.h>
+ #include <plat/common.h>
+ 
++#include "mux.h"
+ #include "control.h"
+ #include "display.h"
+ 
+@@ -103,6 +104,20 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
+ 	{ "dss_hdmi", "omapdss_hdmi", -1 },
+ };
+ 
++static void omap4_hdmi_mux_pads(void)
++{
++	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
++	omap_mux_init_signal("hdmi_hpd",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_cec",
++			OMAP_PIN_INPUT_PULLUP);
++	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
++	omap_mux_init_signal("hdmi_ddc_scl",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_ddc_sda",
++			OMAP_PIN_INPUT_PULLUP);
++}
++
+ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ {
+ 	u32 enable_mask, enable_shift;
+@@ -136,6 +151,14 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 	return 0;
+ }
+ 
++static int omap_hdmi_enable_pads(void)
++{
++	if (cpu_is_omap44xx())
++		omap4_hdmi_mux_pads();
++
++	return 0;
++}
++
+ static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+ {
+ 	if (cpu_is_omap44xx())
+@@ -172,6 +195,8 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+ 		oh_count = ARRAY_SIZE(omap4_dss_hwmod_data);
+ 	}
+ 
++	omap_hdmi_enable_pads();
++
+ 	if (board_data->dsi_enable_pads == NULL)
+ 		board_data->dsi_enable_pads = omap_dsi_enable_pads;
+ 	if (board_data->dsi_disable_pads == NULL)
+-- 
+1.7.5.4
+
