@@ -1,26 +1,42 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [RFC PATCHv5 0/7] HSI framework and drivers
-Date: Fri, 21 Oct 2011 14:36:17 +0100
-Message-ID: <20111021143617.7b37032c@lxorguk.ukuu.org.uk>
-References: <1307713124-3946-1-git-send-email-carlos.chinea@nokia.com>
-	<20111020125705.GA2121@earth.universe>
-	<CACRpkdYBFGp4+oFUZvXn-wpUk0fmLiKixchQKcFo9XTDW=51+g@mail.gmail.com>
-	<1319192913.2702.38.camel@groo>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: OMAP HSMMC data timeout calculation
+Date: Fri, 21 Oct 2011 20:31:58 +0530
+Message-ID: <C82BA3053CFD354AACBD25EFBD2A4EC6059555895E@dbde02.ent.ti.com>
+References: <CANYdXnqDYn5-zehsJ9ibviJ7FoofcY=YLUqrROoK8k53v-czNA@mail.gmail.com>
+ <29942744.123457.1319122534256.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1319192913.2702.38.camel@groo>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: ext Linus Walleij <linus.walleij@linaro.org>, Sebastian Reichel <sre@debian.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, govindraj.ti@gmail.com, pawel.szyszuk@stericsson.com, sjur.brandeland@stericsson.com, peter_henn@gmx.de
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <29942744.123457.1319122534256.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "madhu.cr@ti.com" <madhu.cr@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-> A. I create the branch with just the hsi_char and the hsi framework
-> B. The same as A but with STE or another hsi/ssi controller driver.
-
-With my Intel hat on we've also got stuff using this framework and
-controllers that we'd want to sync with the current version of the core
-code (I think it's diverged a bit).
-
-Alan
+SGkgYWxsLA0KDQoNCkkgYW0gdHJ5aW5nIHRvIHVuZGVyc3RhbmQgZGF0YSB0aW1lb3V0IHZhbHVl
+IChkdG8pIGNhbGN1bGF0aW9uIGRvbmUgaW4gb21hcCBoc21tYyBkcml2ZXIgKG9tYXBfaHNtbWMu
+YykNCg0KSSBzdW1tZWQgbXkgdW5kZXJzdGFuZGluZyAmIG15IGRvdWJ0cyBpbiBiZWxvdyBjb2Rl
+IFtHSF0uDQoNCkNhbiBzb21lb25lIGhlbHAgbWUgaW4gdW5kZXJzdGFuZGluZyB0aGUgY29kZQ0K
+DQoNClRoYW5rcyBpbiBhZHZhbmNlLg0KDQpSZWdhcmRzDQpHdXJ1cmFqYQ0KDQpzdGF0aWMgdm9p
+ZCBzZXRfZGF0YV90aW1lb3V0KHN0cnVjdCBvbWFwX2hzbW1jX2hvc3QgKmhvc3QsDQoJCQkgICAg
+IHVuc2lnbmVkIGludCB0aW1lb3V0X25zLA0KCQkJICAgICB1bnNpZ25lZCBpbnQgdGltZW91dF9j
+bGtzKQ0Kew0KCXVuc2lnbmVkIGludCB0aW1lb3V0LCBjeWNsZV9uczsNCgl1aW50MzJfdCByZWcs
+IGNsa2QsIGR0byA9IDA7DQoNCglyZWcgPSBPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lT
+Q1RMKTsNCgljbGtkID0gKHJlZyAmIENMS0RfTUFTSykgPj4gQ0xLRF9TSElGVDsNCglpZiAoY2xr
+ZCA9PSAwKQ0KCQljbGtkID0gMTsNCg0KCWN5Y2xlX25zID0gMTAwMDAwMDAwMCAvIChjbGtfZ2V0
+X3JhdGUoaG9zdC0+ZmNsaykgLyBjbGtkKTsNCgl0aW1lb3V0ID0gdGltZW91dF9ucyAvIGN5Y2xl
+X25zOw0KCXRpbWVvdXQgKz0gdGltZW91dF9jbGtzOw0KDQpbR0hdIHRpbGwgaGVyZSwgZGF0YSB0
+aW1lIG91dCBjYWxjdWxhdGlvbiBmb3IgdGhlIGNhcmQgaXMgY2FsY2xhdGVkIGluIHRlcm1zIG9m
+IGhvc3QgY29udHJvbGxlciBjbG9jayByYXRlDQoNCg0KCWlmICh0aW1lb3V0KSB7DQoJCXdoaWxl
+ICgodGltZW91dCAmIDB4ODAwMDAwMDApID09IDApIHsNCgkJCWR0byArPSAxOw0KCQkJdGltZW91
+dCA8PD0gMTsNCgkJfQ0KCQlkdG8gPSAzMSAtIGR0bzsNCg0KW0dIXSB3aGF0IGlzIGFjaGlldmVk
+IGhlcmU/DQoNCg0KCQl0aW1lb3V0IDw8PSAxOw0KCQlpZiAodGltZW91dCAmJiBkdG8pDQoJCQlk
+dG8gKz0gMTsNCg0KW0dIXSB3aGF0IGlzIGFjaGlldmVkIGhlcmU/DQoNCg0KCQlpZiAoZHRvID49
+IDEzKQ0KCQkJZHRvIC09IDEzOw0KCQllbHNlDQoJCQlkdG8gPSAwOw0KDQpbR0hdIHdoeSBpcyAx
+MyBzdWJ0cmFjdGVkIHdoZW4gdGhlIHZhbHVlIGlzID4xMyAmIGlmIDwxMywgd2h5IGlzIGl0IG1h
+ZGUgMA0KDQoNCgkJaWYgKGR0byA+IDE0KQ0KCQkJZHRvID0gMTQ7DQoNCltHSF0gVGhpcyBpcyBk
+b25lIHRvIGxpbWl0IHRoZSBtYXggdmFsdWUuDQoNCgl9DQoNCg0KCXJlZyAmPSB+RFRPX01BU0s7
+DQoJcmVnIHw9IGR0byA8PCBEVE9fU0hJRlQ7DQoJT01BUF9IU01NQ19XUklURShob3N0LT5iYXNl
+LCBTWVNDVEwsIHJlZyk7DQp9DQoNCg0KUmVnYXJkcw0KR3VydXJhamENCg==
