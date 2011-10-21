@@ -1,42 +1,50 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: OMAP HSMMC data timeout calculation
-Date: Fri, 21 Oct 2011 20:31:58 +0530
-Message-ID: <C82BA3053CFD354AACBD25EFBD2A4EC6059555895E@dbde02.ent.ti.com>
-References: <CANYdXnqDYn5-zehsJ9ibviJ7FoofcY=YLUqrROoK8k53v-czNA@mail.gmail.com>
- <29942744.123457.1319122534256.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
+From: BBC NATIONAL PROMO <beacon_bgl@youbroadband.in>
+Subject: Congratulations
+Date: Sat, 22 Oct 2011 02:52:26 +0530
+Message-ID: <20111022025226.mlsnhbcgo0kcg448__14711.2588085749$1319234898$gmane$org@webmail.youbroadband.in>
+Reply-To: bbconline224@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <29942744.123457.1319122534256.JavaMail.root@zimbra-prod-mbox-2.vmware.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "madhu.cr@ti.com" <madhu.cr@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from sendmail1.youbroadband.in ([203.187.192.25]:53974 "HELO
+	sendmail1.youbroadband.in" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753192Ab1JUWID convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Oct 2011 18:08:03 -0400
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-SGkgYWxsLA0KDQoNCkkgYW0gdHJ5aW5nIHRvIHVuZGVyc3RhbmQgZGF0YSB0aW1lb3V0IHZhbHVl
-IChkdG8pIGNhbGN1bGF0aW9uIGRvbmUgaW4gb21hcCBoc21tYyBkcml2ZXIgKG9tYXBfaHNtbWMu
-YykNCg0KSSBzdW1tZWQgbXkgdW5kZXJzdGFuZGluZyAmIG15IGRvdWJ0cyBpbiBiZWxvdyBjb2Rl
-IFtHSF0uDQoNCkNhbiBzb21lb25lIGhlbHAgbWUgaW4gdW5kZXJzdGFuZGluZyB0aGUgY29kZQ0K
-DQoNClRoYW5rcyBpbiBhZHZhbmNlLg0KDQpSZWdhcmRzDQpHdXJ1cmFqYQ0KDQpzdGF0aWMgdm9p
-ZCBzZXRfZGF0YV90aW1lb3V0KHN0cnVjdCBvbWFwX2hzbW1jX2hvc3QgKmhvc3QsDQoJCQkgICAg
-IHVuc2lnbmVkIGludCB0aW1lb3V0X25zLA0KCQkJICAgICB1bnNpZ25lZCBpbnQgdGltZW91dF9j
-bGtzKQ0Kew0KCXVuc2lnbmVkIGludCB0aW1lb3V0LCBjeWNsZV9uczsNCgl1aW50MzJfdCByZWcs
-IGNsa2QsIGR0byA9IDA7DQoNCglyZWcgPSBPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lT
-Q1RMKTsNCgljbGtkID0gKHJlZyAmIENMS0RfTUFTSykgPj4gQ0xLRF9TSElGVDsNCglpZiAoY2xr
-ZCA9PSAwKQ0KCQljbGtkID0gMTsNCg0KCWN5Y2xlX25zID0gMTAwMDAwMDAwMCAvIChjbGtfZ2V0
-X3JhdGUoaG9zdC0+ZmNsaykgLyBjbGtkKTsNCgl0aW1lb3V0ID0gdGltZW91dF9ucyAvIGN5Y2xl
-X25zOw0KCXRpbWVvdXQgKz0gdGltZW91dF9jbGtzOw0KDQpbR0hdIHRpbGwgaGVyZSwgZGF0YSB0
-aW1lIG91dCBjYWxjdWxhdGlvbiBmb3IgdGhlIGNhcmQgaXMgY2FsY2xhdGVkIGluIHRlcm1zIG9m
-IGhvc3QgY29udHJvbGxlciBjbG9jayByYXRlDQoNCg0KCWlmICh0aW1lb3V0KSB7DQoJCXdoaWxl
-ICgodGltZW91dCAmIDB4ODAwMDAwMDApID09IDApIHsNCgkJCWR0byArPSAxOw0KCQkJdGltZW91
-dCA8PD0gMTsNCgkJfQ0KCQlkdG8gPSAzMSAtIGR0bzsNCg0KW0dIXSB3aGF0IGlzIGFjaGlldmVk
-IGhlcmU/DQoNCg0KCQl0aW1lb3V0IDw8PSAxOw0KCQlpZiAodGltZW91dCAmJiBkdG8pDQoJCQlk
-dG8gKz0gMTsNCg0KW0dIXSB3aGF0IGlzIGFjaGlldmVkIGhlcmU/DQoNCg0KCQlpZiAoZHRvID49
-IDEzKQ0KCQkJZHRvIC09IDEzOw0KCQllbHNlDQoJCQlkdG8gPSAwOw0KDQpbR0hdIHdoeSBpcyAx
-MyBzdWJ0cmFjdGVkIHdoZW4gdGhlIHZhbHVlIGlzID4xMyAmIGlmIDwxMywgd2h5IGlzIGl0IG1h
-ZGUgMA0KDQoNCgkJaWYgKGR0byA+IDE0KQ0KCQkJZHRvID0gMTQ7DQoNCltHSF0gVGhpcyBpcyBk
-b25lIHRvIGxpbWl0IHRoZSBtYXggdmFsdWUuDQoNCgl9DQoNCg0KCXJlZyAmPSB+RFRPX01BU0s7
-DQoJcmVnIHw9IGR0byA8PCBEVE9fU0hJRlQ7DQoJT01BUF9IU01NQ19XUklURShob3N0LT5iYXNl
-LCBTWVNDVEwsIHJlZyk7DQp9DQoNCg0KUmVnYXJkcw0KR3VydXJhamENCg==
+
+
+BBC E-MAIL PROMOTION WINNERS NOTICE,
+WINNING NOTIFICATION !!!
+BBC NATIONAL LOTTERY PROMO
+UK HEAD OFFICE.
+SUITES 23-30,LION TOWERS
+CENTRAL LONDON
+ENGLAND,
+http://www.bbc.co.uk/lottery/
+
+Your Email Address was selected thereby Winning for you,=A31.000,000 =20
+(one million
+pounds) in the British Broadcasting corporation (BBC) Online Promo =20
+Held on this
+month of 17th October 2011,and you are to acknowledge the receipt of th=
+is mail
+with the details below to.
+
+
+1.Full name:
+2.Tel:
+3.Country :
+
+Sincerely,
+Mr. Scott Carson
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
