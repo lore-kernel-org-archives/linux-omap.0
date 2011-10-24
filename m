@@ -1,187 +1,80 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH] of: Add a reg-names property to name reg entries
-Date: Tue, 25 Oct 2011 00:19:16 +0200
-Message-ID: <20111024221916.GF4394@ponder.secretlab.ca>
-References: <1319471697-8970-1-git-send-email-b-cousson@ti.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+	regulator_init_data
+Date: Tue, 25 Oct 2011 00:21:13 +0200
+Message-ID: <20111024222113.GG4394@ponder.secretlab.ca>
+References: <4EA00F7C.1080005@ti.com>
+	<20111021082309.GA337@S2100-06.ap.freescale.net>
+	<20111024092411.GE8708@ponder.secretlab.ca>
+	<20111024130429.GD1755@S2100-06.ap.freescale.net>
+	<20111024130636.GB26033@opensource.wolfsonmicro.com>
+	<20111024134025.GE1755@S2100-06.ap.freescale.net>
+	<20111024135950.GV8708@ponder.secretlab.ca>
+	<20111024145139.GH1755@S2100-06.ap.freescale.net>
+	<20111024145631.GB8708@ponder.secretlab.ca>
+	<20111024155132.GI1755@S2100-06.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36700 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165Ab1JXWTT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2011 18:19:19 -0400
-Received: by faan17 with SMTP id n17so134649faa.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Oct 2011 15:19:18 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1319471697-8970-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20111024155132.GI1755@S2100-06.ap.freescale.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Shawn Guo <shawn.guo@freescale.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Oct 24, 2011 at 05:54:57PM +0200, Benoit Cousson wrote:
-> In a HW system, resources in general have name to identify them.
-> The is the case as well for DT "reg" entries.
-> The current DT mechanism is relying on the "reg" order to identify
-> the proper resource.
-> Add a reg-names property to allow the possiblity to provide a name
-> to any reg entries.
-> If the name is available, use it to name the resource, otherwise
-> keep the legacy device name.
+On Mon, Oct 24, 2011 at 11:51:33PM +0800, Shawn Guo wrote:
+> On Mon, Oct 24, 2011 at 04:56:31PM +0200, Grant Likely wrote:
+> > On Mon, Oct 24, 2011 at 10:51:40PM +0800, Shawn Guo wrote:
+> > > On Mon, Oct 24, 2011 at 03:59:50PM +0200, Grant Likely wrote:
+> > > > On Mon, Oct 24, 2011 at 09:40:26PM +0800, Shawn Guo wrote:
+> > > > > diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+> > > > > index 8fe132d..29dcf90 100644
+> > > > > --- a/drivers/regulator/core.c
+> > > > > +++ b/drivers/regulator/core.c
+> > > > > @@ -2673,7 +2673,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
+> > > > >         BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
+> > > > > 
+> > > > >         /* find device_node and attach it */
+> > > > > -       rdev->dev.of_node = of_find_node_by_name(NULL, regulator_desc->name);
+> > > > > +       rdev->dev.of_node = of_find_node_by_name(dev->parent->of_node,
+> > > > > +                                                regulator_desc->name);
+> > > > 
+> > > > of_find_node_by_name() doesn't work that way.  The first argument is a
+> > > > starting point, but it doesn't restrict the search to children of a
+> > > > node.
+> > > > 
+> > > > for_each_child_of_node() is what you want to use when iterating over
+> > > > the children which unfortunately changes the structure of this
+> > > > function.
+> > > > 
+> > > The dev->parent->of_node is meant to point to node 'pmic: mc13892@0'.
+> > > And the intention here is not to iterate over the children, but to
+> > > start a search from a reasonable point rather than the top root node.
+> > 
+> > It is always better to attach the of_node at struct device
+> > registration time instead of searching the tree in common code.  The
+> > of_node should already be assigned by the time regulator_register() is
+> > called.
 > 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> ---
-> 
->  Documentation/devicetree/bindings/reg-names.txt |   48 +++++++++++++++++++++++
->  drivers/of/address.c                            |   22 ++++++++--
->  2 files changed, 65 insertions(+), 5 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/reg-names.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/reg-names.txt b/Documentation/devicetree/bindings/reg-names.txt
-> new file mode 100644
-> index 0000000..5554065
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/reg-names.txt
-> @@ -0,0 +1,48 @@
-> +reg-names property
-> +
-> +In a HW system, resources in general have name to identify them.
-> +The is the case as well for register entries.
-> +The current DT mechanism is relying on the "reg" order to identify
-> +the proper resource. The reg-names is adding the possiblity to
-> +provide a name to reg entries.
-> +
-> +Usage:
-> +
-> +This attribute must be used along with a regular reg entry. If not
-> +it will be simply ignored.
-> +The number of entry must match otherwise the default device name will
-> +be used to as the resource name.
-> +
-> +
-> +Example:
-> +
-> +
-> +l4-abe {
-> +	compatible = "simple-bus";
-> +	#address-cells = <2>;
-> +	#size-cells = <1>;
-> +	ranges = <0 0 0x48000000 0x00001000>, /* MPU path */
-> +		 <1 0 0x49000000 0x00001000>; /* L3 path */
-> +	mcasp {
-> +		compatible = "ti,mcasp";
-> +		reg = <0 0x10 0x10>, <0 0x20 0x10>,
-> +		      <1 0x10 0x10>, <1 0x20 0x10>;
-> +		reg-names = "mpu", "dat",
-> +			    "dma", "dma_dat";
-> +	};
-> +
-> +	timer {
-> +		compatible = "ti,timer";
-> +		reg = <0 0x40 0x10>, <1 0x40 0x10>;
-> +		reg-names = "mpu", "dma";
-> +	};
-> +};
-> +
-> +
-> +usb {
-> +	compatible = "ti,usb-host";
-> +	reg = <0x4a064000 0x800>, <0x4a064800 0x200>,
-> +	      <0x4a064c00 0x200>;
-> +	reg-names = "config", "ohci", "ehci";
-> +};
-> +
-> diff --git a/drivers/of/address.c b/drivers/of/address.c
-> index 72c33fb..1f9f8cb 100644
-> --- a/drivers/of/address.c
-> +++ b/drivers/of/address.c
-> @@ -14,7 +14,7 @@
->  static struct of_bus *of_match_bus(struct device_node *np);
->  static int __of_address_to_resource(struct device_node *dev,
->  		const __be32 *addrp, u64 size, unsigned int flags,
-> -				    struct resource *r);
-> +		const char *name, struct resource *r);
->  
->  /* Debug utility */
->  #ifdef DEBUG
-> @@ -215,7 +215,7 @@ int of_pci_address_to_resource(struct device_node *dev, int bar,
->  	addrp = of_get_pci_address(dev, bar, &size, &flags);
->  	if (addrp == NULL)
->  		return -EINVAL;
-> -	return __of_address_to_resource(dev, addrp, size, flags, r);
-> +	return __of_address_to_resource(dev, addrp, size, flags, NULL, r);
->  }
->  EXPORT_SYMBOL_GPL(of_pci_address_to_resource);
->  #endif /* CONFIG_PCI */
-> @@ -529,7 +529,7 @@ EXPORT_SYMBOL(of_get_address);
->  
->  static int __of_address_to_resource(struct device_node *dev,
->  		const __be32 *addrp, u64 size, unsigned int flags,
-> -				    struct resource *r)
-> +		const char *name, struct resource *r)
->  {
->  	u64 taddr;
->  
-> @@ -551,7 +551,11 @@ static int __of_address_to_resource(struct device_node *dev,
->  		r->end = taddr + size - 1;
->  	}
->  	r->flags = flags;
-> -	r->name = dev->full_name;
-> +	if (name)
-> +		r->name = name;
-> +	else
-> +		r->name = dev->full_name;
+> That's the problem we have.  There is no 'struct dev' to attach of_node
+> for each regulator by the time regulator_register() is called, because
+> the 'struct dev' for each regulator is created inside
+> regulator_register() as wrapped by 'struct regulator_dev'.
 
-This form please:
-	r->name = name ? name : dev->full_name;
+Then regulator_register must be split in half.  This is a common use
+case, and other libraries have had to do the same.  One half to
+allocate the structure, and then a second half for registration, and
+regulator_register() becomes a simpler helper that calls both.  That
+way a caller can insert extra initialization between the two steps.
 
-In general, I'm inclined to accept this patch as we talked about at
-plumbers.  However, this particular hunk gives me pause as there is
-still the objection that Russell raised about the (ab)use of r->name
-for insert the resource name.
-
-So, no I won't reject this patch, but I first what to have some idea
-of what the plan is to migrate away from using r->name.  Perhaps we
-can talk about this tomorrow.
-
->  	return 0;
->  }
->  
-> @@ -569,11 +573,19 @@ int of_address_to_resource(struct device_node *dev, int index,
->  	const __be32	*addrp;
->  	u64		size;
->  	unsigned int	flags;
-> +	const char	*name = NULL;
-> +	int		name_cnt;
->  
->  	addrp = of_get_address(dev, index, &size, &flags);
->  	if (addrp == NULL)
->  		return -EINVAL;
-> -	return __of_address_to_resource(dev, addrp, size, flags, r);
-> +
-> +	/* Get "reg-names" property to add a name to a resource */
-> +	name_cnt = of_property_count_strings(dev, "reg-names");
-> +	if (name_cnt > 0)
-> +		of_property_read_string_index(dev, "reg-names",	index, &name);
-
-Why not simply:
-	of_property_read_string_index(dev, "reg-names", index, &name);
-
-If it fails, then name remains NULL and everything works.
-
-
-> +
-> +	return __of_address_to_resource(dev, addrp, size, flags, name, r);
->  }
->  EXPORT_SYMBOL_GPL(of_address_to_resource);
->  
-> -- 
-> 1.7.5.4
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+g.
