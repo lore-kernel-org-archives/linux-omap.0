@@ -1,29 +1,48 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract regulator_init_data
-Date: Mon, 24 Oct 2011 15:35:50 +0530
-Message-ID: <4EA5387E.8090500@ti.com>
-References: <20111019144215.GA32007@S2100-06.ap.freescale.net> <4E9FAF42.5060200@ti.com> <20111020061408.GE32007@S2100-06.ap.freescale.net> <4EA00F7C.1080005@ti.com> <20111021082309.GA337@S2100-06.ap.freescale.net> <4EA13053.7080306@ti.com> <20111021115809.GB337@S2100-06.ap.freescale.net> <4EA4FF6B.2080906@ti.com> <20111024081706.GC8708@ponder.secretlab.ca> <4EA5279E.3000505@ti.com> <20111024091924.GA6148@opensource.wolfsonmicro.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+ regulator_init_data
+Date: Mon, 24 Oct 2011 13:35:37 +0200
+Message-ID: <20111024113537.GH8708@ponder.secretlab.ca>
+References: <20111020061408.GE32007@S2100-06.ap.freescale.net>
+ <4EA00F7C.1080005@ti.com>
+ <20111021082309.GA337@S2100-06.ap.freescale.net>
+ <4EA13053.7080306@ti.com>
+ <20111021115809.GB337@S2100-06.ap.freescale.net>
+ <4EA4FF6B.2080906@ti.com>
+ <20111024081706.GC8708@ponder.secretlab.ca>
+ <20111024090228.GA1755@S2100-06.ap.freescale.net>
+ <4EA52851.8000203@ti.com>
+ <20111024091158.GB1755@S2100-06.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111024091924.GA6148@opensource.wolfsonmicro.com>
+Content-Disposition: inline
+In-Reply-To: <20111024091158.GB1755@S2100-06.ap.freescale.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Shawn Guo <shawn.guo@freescale.com>, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Shawn Guo <shawn.guo@freescale.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, broonie@opensource.wolfsonmicro.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 24 October 2011 02:49 PM, Mark Brown wrote:
-> On Mon, Oct 24, 2011 at 02:23:50PM +0530, Rajendra Nayak wrote:
->
->> How about the driver passing the of_node to be associated with the
->> regulator, as part of regulator_desc, to the regulator core,
->> instead of this complete DT search and the restriction of having
->> to match DT node names with names in regulator_desc.
->
-> regulator_desc should be const so that we handle multiple instances of
-> the same device nicely.  We could pass the information in as an argument
-> I guess.
+On Mon, Oct 24, 2011 at 05:11:58PM +0800, Shawn Guo wrote:
+> On Mon, Oct 24, 2011 at 02:26:49PM +0530, Rajendra Nayak wrote:
+> > On Monday 24 October 2011 02:32 PM, Shawn Guo wrote:
+> > >Okay, it's wrong then since so many people say it's wrong :)  I guess
+> > >a quick fix would be adding one property in device tree node for
+> > >matching some unique field in regulator_desc, id, maybe?  Mark, any
+> > >suggestion?
+> > 
+> > Thats basically what the DT compatible property is for :)
+> 
+> But adding compatible property will get DT core create 'struct dev'
+> for each regulator node, while we are trying to avoid that since
+> regulator core has been doing this.
 
-Ok, will do. The only downside being that all existing users would
-need to be changed.
+By design, of_platform_populate() will only go one level deep except
+if it matches the passed in list of bus compatible properties.  Having
+a compatible property does not necessarily create a struct dev.
+
+That said, I agree with you that a compatible property isn't really
+needed in the child nodes **if it is defined as part of the parent
+node's binding**.
+
+g.
