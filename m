@@ -1,97 +1,44 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] pending DT patches and cleanup for map_io for v3.2
- merge window
-Date: Mon, 24 Oct 2011 02:17:04 -0700
-Message-ID: <20111024091704.GF31337@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
+	regulator_init_data
+Date: Mon, 24 Oct 2011 11:19:25 +0200
+Message-ID: <20111024091924.GA6148@opensource.wolfsonmicro.com>
+References: <20111019144215.GA32007@S2100-06.ap.freescale.net>
+	<4E9FAF42.5060200@ti.com>
+	<20111020061408.GE32007@S2100-06.ap.freescale.net>
+	<4EA00F7C.1080005@ti.com>
+	<20111021082309.GA337@S2100-06.ap.freescale.net>
+	<4EA13053.7080306@ti.com>
+	<20111021115809.GB337@S2100-06.ap.freescale.net>
+	<4EA4FF6B.2080906@ti.com>
+	<20111024081706.GC8708@ponder.secretlab.ca>
+	<4EA5279E.3000505@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:42742 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754222Ab1JXJRJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2011 05:17:09 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4EA5279E.3000505@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, lrg@ti.com, Shawn Guo <shawn.guo@freescale.com>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Nicolas Pitre <nico@fluxnic.net>, Russell King <linux@arm.linux.org.uk>
 
-Arnd,
+On Mon, Oct 24, 2011 at 02:23:50PM +0530, Rajendra Nayak wrote:
 
-As discussed in the ARM kernel meeting yesterday, here's are
-the pending omap things to pull for v3.2 merge window.
+> How about the driver passing the of_node to be associated with the
+> regulator, as part of regulator_desc, to the regulator core,
+> instead of this complete DT search and the restriction of having
+> to match DT node names with names in regulator_desc.
 
-These would be nice to get still in as other people's work
-such as Nico's map_io changes need #2 below.
-
-1. Initial DT support posted few weeks ago
-
-   Please see the earlier pull request at:
-
-   http://lkml.org/lkml/2011/10/4/441
-
-2. Cleanup for map_io posted few weeks ago
-
-   This depends on the #1 above, and also requires
-   the ioremap_exec patch. Russell said he has applied
-   into devel-stable (But not pushed out yet?).
-
-   When you have the ioremap_exec patch from Russell,
-   please pull this from:
-
-   git://github.com/tmlind/linux.git sram-map-io
-
-   Pull request against #1 attached below.
-
-Regards,
-
-Tony
-
-
-The following changes since commit 3ae3e253db7385238dd9d6c67c085afa3e770a56:
-  Tony Lindgren (1):
-        Merge branch 'for_3.2/3_omap_devicetree' of git://gitorious.org/omap-pm/linux into dt
-
-are available in the git repository at:
-
-  git://github.com/tmlind/linux.git sram-map-io
-
-Tony Lindgren (6):
-      ARM: OMAP1: Use generic map_io, init_early and init_irq
-      ARM: OMAP: Avoid cpu_is_omapxxxx usage until map_io is done
-      ARM: OMAP: Remove calls to SRAM allocations for framebuffer
-      ARM: OMAP: Map SRAM later on with ioremap_exec()
-      ARM: OMAP: Move set_globals initialization to happen in init_early
-      ARM: OMAP: Warn if omap_ioremap is called before SoC detection
-
- arch/arm/mach-omap1/board-ams-delta.c    |   16 +---
- arch/arm/mach-omap1/board-fsample.c      |   76 +++++++++---------
- arch/arm/mach-omap1/board-generic.c      |   16 +---
- arch/arm/mach-omap1/board-h2.c           |   16 +---
- arch/arm/mach-omap1/board-h3.c           |   16 +---
- arch/arm/mach-omap1/board-htcherald.c    |   12 +--
- arch/arm/mach-omap1/board-innovator.c    |   36 ++++-----
- arch/arm/mach-omap1/board-nokia770.c     |   34 +++-----
- arch/arm/mach-omap1/board-osk.c          |   16 +---
- arch/arm/mach-omap1/board-palmte.c       |   16 +---
- arch/arm/mach-omap1/board-palmtt.c       |   16 +---
- arch/arm/mach-omap1/board-palmz71.c      |   18 +----
- arch/arm/mach-omap1/board-perseus2.c     |   75 +++++++++---------
- arch/arm/mach-omap1/board-sx1.c          |   17 +---
- arch/arm/mach-omap1/board-voiceblue.c    |   16 +---
- arch/arm/mach-omap1/devices.c            |    3 +
- arch/arm/mach-omap1/io.c                 |   57 ++++++--------
- arch/arm/mach-omap2/board-omap3beagle.c  |    7 +--
- arch/arm/mach-omap2/board-ti8168evm.c    |    1 -
- arch/arm/mach-omap2/common.c             |   50 ++++++------
- arch/arm/mach-omap2/control.c            |   16 +---
- arch/arm/mach-omap2/io.c                 |  127 +++++++++++++++---------------
- arch/arm/mach-omap2/io.h                 |    7 --
- arch/arm/mach-omap2/omap-smp.c           |    7 +-
- arch/arm/mach-omap2/prcm.c               |   19 ++---
- arch/arm/mach-omap2/sdrc.c               |   13 +--
- arch/arm/plat-omap/include/plat/common.h |   17 +++--
- arch/arm/plat-omap/include/plat/io.h     |   29 ++++++-
- arch/arm/plat-omap/io.c                  |   10 +++
- arch/arm/plat-omap/sram.c                |   85 +++++---------------
- 30 files changed, 335 insertions(+), 509 deletions(-)
+regulator_desc should be const so that we handle multiple instances of
+the same device nicely.  We could pass the information in as an argument
+I guess.
