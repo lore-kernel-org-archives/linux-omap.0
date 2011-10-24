@@ -1,37 +1,29 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
- regulator_init_data
-Date: Mon, 24 Oct 2011 11:39:27 +0200
-Message-ID: <20111024093925.GB6148@opensource.wolfsonmicro.com>
-References: <1318263578-7407-1-git-send-email-rnayak@ti.com>
- <1318263578-7407-4-git-send-email-rnayak@ti.com>
- <20111018132032.GD30703@S2100-06.ap.freescale.net>
- <4E9EB61C.1040207@ti.com>
- <20111019144215.GA32007@S2100-06.ap.freescale.net>
- <4E9FAF42.5060200@ti.com>
- <20111020061408.GE32007@S2100-06.ap.freescale.net>
- <4EA00F7C.1080005@ti.com>
- <20111021082309.GA337@S2100-06.ap.freescale.net>
- <20111024092411.GE8708@ponder.secretlab.ca>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract regulator_init_data
+Date: Mon, 24 Oct 2011 15:35:50 +0530
+Message-ID: <4EA5387E.8090500@ti.com>
+References: <20111019144215.GA32007@S2100-06.ap.freescale.net> <4E9FAF42.5060200@ti.com> <20111020061408.GE32007@S2100-06.ap.freescale.net> <4EA00F7C.1080005@ti.com> <20111021082309.GA337@S2100-06.ap.freescale.net> <4EA13053.7080306@ti.com> <20111021115809.GB337@S2100-06.ap.freescale.net> <4EA4FF6B.2080906@ti.com> <20111024081706.GC8708@ponder.secretlab.ca> <4EA5279E.3000505@ti.com> <20111024091924.GA6148@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111024092411.GE8708@ponder.secretlab.ca>
+In-Reply-To: <20111024091924.GA6148@opensource.wolfsonmicro.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Shawn Guo <shawn.guo@freescale.com>, Rajendra Nayak <rnayak@ti.com>, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Shawn Guo <shawn.guo@freescale.com>, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 24, 2011 at 11:24:11AM +0200, Grant Likely wrote:
+On Monday 24 October 2011 02:49 PM, Mark Brown wrote:
+> On Mon, Oct 24, 2011 at 02:23:50PM +0530, Rajendra Nayak wrote:
+>
+>> How about the driver passing the of_node to be associated with the
+>> regulator, as part of regulator_desc, to the regulator core,
+>> instead of this complete DT search and the restriction of having
+>> to match DT node names with names in regulator_desc.
+>
+> regulator_desc should be const so that we handle multiple instances of
+> the same device nicely.  We could pass the information in as an argument
+> I guess.
 
-> To follow up from my earlier comment, this .dts structure looks fine
-> and reasonable to me, and it would also be fine for the mc13892 driver
-> to use for_each_child_of_node() to find all the children of the
-> regulators node.  Even finding the 'regulators' node by name from the
-> mc13892 driver is perfectly fine provided for_each_child_of_node is
-> used to find it.  All of this is okay because it is under the umbrella
-> of the "fsl,mc13892" binding.
-
-Yes, a search of children of the device node that the driver is probing
-off seems like a sensible approach.
+Ok, will do. The only downside being that all existing users would
+need to be changed.
