@@ -1,50 +1,72 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract regulator_init_data
-Date: Mon, 24 Oct 2011 14:26:49 +0530
-Message-ID: <4EA52851.8000203@ti.com>
-References: <4E9EB61C.1040207@ti.com> <20111019144215.GA32007@S2100-06.ap.freescale.net> <4E9FAF42.5060200@ti.com> <20111020061408.GE32007@S2100-06.ap.freescale.net> <4EA00F7C.1080005@ti.com> <20111021082309.GA337@S2100-06.ap.freescale.net> <4EA13053.7080306@ti.com> <20111021115809.GB337@S2100-06.ap.freescale.net> <4EA4FF6B.2080906@ti.com> <20111024081706.GC8708@ponder.secretlab.ca> <20111024090228.GA1755@S2100-06.ap.freescale.net>
+From: Manoharan Vijaya Raghavan <thenewsymbol@gmail.com>
+Subject: TI OMAP4430 - UHS support
+Date: Mon, 24 Oct 2011 08:56:07 +0000 (UTC)
+Message-ID: <loom.20111024T105435-408@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111024090228.GA1755@S2100-06.ap.freescale.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@freescale.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, broonie@opensource.wolfsonmicro.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:48450 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752355Ab1JXJAI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Oct 2011 05:00:08 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1RIGO6-00039h-Tt
+	for linux-omap@vger.kernel.org; Mon, 24 Oct 2011 11:00:07 +0200
+Received: from 125.19.39.117 ([125.19.39.117])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 24 Oct 2011 11:00:06 +0200
+Received: from thenewsymbol by 125.19.39.117 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Mon, 24 Oct 2011 11:00:06 +0200
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Monday 24 October 2011 02:32 PM, Shawn Guo wrote:
-> On Mon, Oct 24, 2011 at 10:17:06AM +0200, Grant Likely wrote:
->> On Mon, Oct 24, 2011 at 11:32:19AM +0530, Rajendra Nayak wrote:
->>> On Friday 21 October 2011 05:28 PM, Shawn Guo wrote:
->>>> On Fri, Oct 21, 2011 at 02:11:55PM +0530, Rajendra Nayak wrote:
->>>> [...]
->>>>>> +       /* find device_node and attach it */
->>>>>> +       rdev->dev.of_node = of_find_node_by_name(NULL, regulator_desc->name);
->>>>>
->>>>> so would this do a complete dt search for every regulator?
->>>>
->>>> Yes, with the first param being NULL, tthe entire device tree will be
->>>> searched.
->>>>
->>>>> we would also need the driver names and dt names to match for this to
->>>>> work, right?
->>>>>
->>>> Driver name does not matter.  The key for this search to work is having
->>>> regulator's name (regulator_desc->name) match device tree node's name,
->>>> case ignored.
->>>
->>> Mark, whats your take on this? I am somehow not quite sure if we should
->>> have this limitation put in to match DT node names with whats in the
->>> driver structs (regulator_desc).
->>
->> This looks wrong to me.  Matching based on node /name/, particularly
->> when searching the entire tree, will cause problems.
->>
-> Okay, it's wrong then since so many people say it's wrong :)  I guess
-> a quick fix would be adding one property in device tree node for
-> matching some unique field in regulator_desc, id, maybe?  Mark, any
-> suggestion?
+Hi, 
+ 
+I need your help in writing a UHS-I driver for OMAP4430.
+I would like to know the feasibility in implementing a UHS-I driver (for SD 
+card) in OMAP4430. (I am using Pandaboard).
+The purpose is to have readspeed more than 40MB/s for SD cards (Which as per 
+the SD card specification 3.01 is possible only in UHS-I mode).
+For this I see that OMAP4430 supports 1.8V and DDR50 mode also. 
+ 
+ 
+Please let me know your informed opinion about whether UHS-I can be 
+implemented for Pandaboard. 
+ 
+I am having trouble in switching to UHS-I mode in Pandaboard. 
+Following are my queries. 
+ 
+I am using an SD card which does support UHS-I mode. (Sandisk UHS Extreme Pro 
+(45 MB/s quoted speed))
+ 
+I am trying to switch the card to UHS mode by first sending a ACMD41. 
+                   For this I have modified the mmc_send_app_op_cond () in 
+drivers/mmc/core/sd_ops.c to set the S18R bit. 
+                   And in the response from the SD card I see that S18A bit is 
+set. 
+After this response response from the SD Card I am sending CMD11 to SD Card. 
+ 
+After receiving the response from SD Card I am changing the SDVS in MMCHS_HCTL 
+to 0x5 which is for 1.8V.(As per mentioned in the Specification).
+However I am not able to read the DLEV as 0xF from PSTATE register as per 
+mentioned in the OMAP4430 specification.
+ 
+Please let me know what I might be missing. 
+ 
+Is there is a possbility that we could achieve 40MB/s of read speed in SD mode 
+without using the UHS-I ? 
+We see in the spec that it does support upto 48MB/s in DDR mode. 
+But as per the SD card specification 3.01 DDR mode is supported only in UHS-I 
+mode. 
+This is the reason I am trying to switch the card to UHS-I mode.
+Please let me know  if there is a way to use DDR mode in Pandaboard for SD 
+card without having to switch to UHS-I to achieve read speeds of around 40MB/s.
+ 
+with thanks,
+V.Manoharan
 
-Thats basically what the DT compatible property is for :)
->
