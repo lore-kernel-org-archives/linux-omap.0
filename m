@@ -1,15 +1,15 @@
 From: ming.lei@canonical.com
-Subject: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
-Date: Mon, 24 Oct 2011 22:45:56 +0800
-Message-ID: <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
+Subject: [PATCH v5 5/7] arm: omap4: create pmu device via hwmod
+Date: Mon, 24 Oct 2011 22:45:57 +0800
+Message-ID: <1319467559-5518-6-git-send-email-ming.lei@canonical.com>
 References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:40855 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932642Ab1JXOrt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2011 10:47:49 -0400
-Received: by iaby12 with SMTP id y12so1404735iab.19
-        for <linux-omap@vger.kernel.org>; Mon, 24 Oct 2011 07:47:49 -0700 (PDT)
+Received: from mail-pz0-f42.google.com ([209.85.210.42]:55197 "EHLO
+	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932642Ab1JXOsG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Oct 2011 10:48:06 -0400
+Received: by pzk36 with SMTP id 36so17108710pzk.1
+        for <linux-omap@vger.kernel.org>; Mon, 24 Oct 2011 07:48:06 -0700 (PDT)
 In-Reply-To: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,58 +18,94 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@de
 
 From: Ming Lei <ming.lei@canonical.com>
 
-So that access to cross trigger interface can be allowed, which
-will be introduce in later patches.
+The following modules is required to be enabled before configuring
+cross trigger interface for enabling pmu irq:
+
+        emu, l3_instr, l3_main_3
+
+so build the arm-pmu device via the three hwmods.
 
 Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/devices.c |   61 ++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 57 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 393afac..c7289a8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -5276,6 +5276,30 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 0f8e0eb..6e16274 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -384,14 +384,67 @@ static struct platform_device omap_pmu_device = {
+ 	.num_resources	= 1,
  };
  
-+static struct omap_hwmod_class omap44xx_emu_hwmod_class = {
-+	.name	= "emu",
-+};
-+
-+static struct omap_hwmod_irq_info omap44xx_emu_irqs[] = {
-+	{ .name = "cti0", .irq = 1 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "cti1", .irq = 2 + OMAP44XX_IRQ_GIC_START },
-+	{ .irq = -1 }
-+};
-+
-+/*emu hwmod*/
-+static struct omap_hwmod omap44xx_emu_hwmod = {
-+	.name		= "emu",
-+	.class		= &omap44xx_emu_hwmod_class,
-+	.clkdm_name	= "emu_sys_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP4_CM_EMU_CLKSTCTRL_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
+-static void omap_init_pmu(void)
++static struct arm_pmu_platdata omap4_pmu_data;
++static struct omap_device_pm_latency omap_pmu_latency[] = {
++	[0] = {
++		.deactivate_func = omap_device_idle_hwmods,
++		.activate_func   = omap_device_enable_hwmods,
++		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
 +	},
-+	.mpu_irqs	= omap44xx_emu_irqs,
 +};
 +
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
++static struct platform_device* __init omap4_init_pmu(void)
+ {
+-	if (cpu_is_omap24xx())
++	int id = -1;
++	const char *hw;
++	struct platform_device *pd;
++	struct omap_hwmod* oh[3];
++	char *dev_name = "arm-pmu";
++
++	hw = "l3_main_3";
++	oh[0] = omap_hwmod_lookup(hw);
++	if (!oh[0]) {
++		pr_err("Could not look up %s hwmod\n", hw);
++		return NULL;
++	}
++	hw = "l3_instr";
++	oh[1] = omap_hwmod_lookup(hw);
++	if (!oh[1]) {
++		pr_err("Could not look up %s hwmod\n", hw);
++		return NULL;
++	}
++	hw = "emu";
++	oh[2] = omap_hwmod_lookup(hw);
++	if (!oh[2]) {
++		pr_err("Could not look up %s hwmod\n", hw);
++		return NULL;
++	}
++
++	pd = omap_device_build_ss(dev_name, id, oh, 3, &omap4_pmu_data,
++				sizeof(omap4_pmu_data),
++				omap_pmu_latency,
++				ARRAY_SIZE(omap_pmu_latency), 0);
++	WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
++				dev_name);
++	return pd;
++}
++static void __init omap_init_pmu(void)
++{
++	if (cpu_is_omap24xx()) {
+ 		omap_pmu_device.resource = &omap2_pmu_resource;
+-	else if (cpu_is_omap34xx())
++	} else if (cpu_is_omap34xx()) {
+ 		omap_pmu_device.resource = &omap3_pmu_resource;
+-	else
++	} else if (cpu_is_omap44xx()) {
++		struct platform_device *pd;
++
++		pd = omap4_init_pmu();
++		if (!pd)
++			return;
++		omap_device_enable(pd);
++		return;
++	} else {
+ 		return;
++	}
  
- 	/* dmm class */
-@@ -5422,6 +5446,8 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_wd_timer2_hwmod,
- 	&omap44xx_wd_timer3_hwmod,
- 
-+	/*emu class*/
-+	&omap44xx_emu_hwmod,
- 	NULL,
- };
- 
+ 	platform_device_register(&omap_pmu_device);
+ }
 -- 
 1.7.5.4
 
