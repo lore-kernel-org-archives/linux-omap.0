@@ -1,80 +1,83 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
-	regulator_init_data
-Date: Tue, 25 Oct 2011 00:21:13 +0200
-Message-ID: <20111024222113.GG4394@ponder.secretlab.ca>
-References: <4EA00F7C.1080005@ti.com>
-	<20111021082309.GA337@S2100-06.ap.freescale.net>
-	<20111024092411.GE8708@ponder.secretlab.ca>
-	<20111024130429.GD1755@S2100-06.ap.freescale.net>
-	<20111024130636.GB26033@opensource.wolfsonmicro.com>
-	<20111024134025.GE1755@S2100-06.ap.freescale.net>
-	<20111024135950.GV8708@ponder.secretlab.ca>
-	<20111024145139.GH1755@S2100-06.ap.freescale.net>
-	<20111024145631.GB8708@ponder.secretlab.ca>
-	<20111024155132.GI1755@S2100-06.ap.freescale.net>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] of: Add a reg-names property to name reg entries
+Date: Tue, 25 Oct 2011 00:56:53 +0200
+Message-ID: <4EA5ED35.7000806@ti.com>
+References: <1319471697-8970-1-git-send-email-b-cousson@ti.com> <20111024221916.GF4394@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20111024155132.GI1755@S2100-06.ap.freescale.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Shawn Guo <shawn.guo@freescale.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:45069 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753949Ab1JXW5H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Oct 2011 18:57:07 -0400
+In-Reply-To: <20111024221916.GF4394@ponder.secretlab.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Oct 24, 2011 at 11:51:33PM +0800, Shawn Guo wrote:
-> On Mon, Oct 24, 2011 at 04:56:31PM +0200, Grant Likely wrote:
-> > On Mon, Oct 24, 2011 at 10:51:40PM +0800, Shawn Guo wrote:
-> > > On Mon, Oct 24, 2011 at 03:59:50PM +0200, Grant Likely wrote:
-> > > > On Mon, Oct 24, 2011 at 09:40:26PM +0800, Shawn Guo wrote:
-> > > > > diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-> > > > > index 8fe132d..29dcf90 100644
-> > > > > --- a/drivers/regulator/core.c
-> > > > > +++ b/drivers/regulator/core.c
-> > > > > @@ -2673,7 +2673,8 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
-> > > > >         BLOCKING_INIT_NOTIFIER_HEAD(&rdev->notifier);
-> > > > > 
-> > > > >         /* find device_node and attach it */
-> > > > > -       rdev->dev.of_node = of_find_node_by_name(NULL, regulator_desc->name);
-> > > > > +       rdev->dev.of_node = of_find_node_by_name(dev->parent->of_node,
-> > > > > +                                                regulator_desc->name);
-> > > > 
-> > > > of_find_node_by_name() doesn't work that way.  The first argument is a
-> > > > starting point, but it doesn't restrict the search to children of a
-> > > > node.
-> > > > 
-> > > > for_each_child_of_node() is what you want to use when iterating over
-> > > > the children which unfortunately changes the structure of this
-> > > > function.
-> > > > 
-> > > The dev->parent->of_node is meant to point to node 'pmic: mc13892@0'.
-> > > And the intention here is not to iterate over the children, but to
-> > > start a search from a reasonable point rather than the top root node.
-> > 
-> > It is always better to attach the of_node at struct device
-> > registration time instead of searching the tree in common code.  The
-> > of_node should already be assigned by the time regulator_register() is
-> > called.
-> 
-> That's the problem we have.  There is no 'struct dev' to attach of_node
-> for each regulator by the time regulator_register() is called, because
-> the 'struct dev' for each regulator is created inside
-> regulator_register() as wrapped by 'struct regulator_dev'.
+On 10/25/2011 12:19 AM, Grant Likely wrote:
+> On Mon, Oct 24, 2011 at 05:54:57PM +0200, Benoit Cousson wrote:
 
-Then regulator_register must be split in half.  This is a common use
-case, and other libraries have had to do the same.  One half to
-allocate the structure, and then a second half for registration, and
-regulator_register() becomes a simpler helper that calls both.  That
-way a caller can insert extra initialization between the two steps.
+[...]
 
-g.
+>> @@ -551,7 +551,11 @@ static int __of_address_to_resource(struct device_node *dev,
+>>   		r->end = taddr + size - 1;
+>>   	}
+>>   	r->flags = flags;
+>> -	r->name = dev->full_name;
+>> +	if (name)
+>> +		r->name = name;
+>> +	else
+>> +		r->name = dev->full_name;
+>
+> This form please:
+> 	r->name = name ? name : dev->full_name;
+
+Much better, indeed.
+
+> In general, I'm inclined to accept this patch as we talked about at
+> plumbers.  However, this particular hunk gives me pause as there is
+> still the objection that Russell raised about the (ab)use of r->name
+> for insert the resource name.
+>
+> So, no I won't reject this patch, but I first what to have some idea
+> of what the plan is to migrate away from using r->name.  Perhaps we
+> can talk about this tomorrow.
+
+OK, sure, let's discuss about that.
+But I still think that Russell's concern is not related at all with this 
+patch. That means that it should be fixed separately if needed. It can 
+be done before or after, but this is somehow orthogonal to the DT 
+reg-names support problem.
+
+>>   	return 0;
+>>   }
+>>
+>> @@ -569,11 +573,19 @@ int of_address_to_resource(struct device_node *dev, int index,
+>>   	const __be32	*addrp;
+>>   	u64		size;
+>>   	unsigned int	flags;
+>> +	const char	*name = NULL;
+>> +	int		name_cnt;
+>>
+>>   	addrp = of_get_address(dev, index,&size,&flags);
+>>   	if (addrp == NULL)
+>>   		return -EINVAL;
+>> -	return __of_address_to_resource(dev, addrp, size, flags, r);
+>> +
+>> +	/* Get "reg-names" property to add a name to a resource */
+>> +	name_cnt = of_property_count_strings(dev, "reg-names");
+>> +	if (name_cnt>  0)
+>> +		of_property_read_string_index(dev, "reg-names",	index,&name);
+>
+> Why not simply:
+> 	of_property_read_string_index(dev, "reg-names", index,&name);
+>
+> If it fails, then name remains NULL and everything works.
+
+Good point, that API is already taking care of that.
+
+Thanks,
+Benoit
