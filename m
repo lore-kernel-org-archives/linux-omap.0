@@ -1,32 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 3/7] arm: perf: support device with other non-irq
- resources
-Date: Tue, 25 Oct 2011 02:44:41 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110250242130.27118@utopia.booyaka.com>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-4-git-send-email-ming.lei@canonical.com> <20111024150814.GA4771@mudshark.cambridge.arm.com> <CACVXFVOzQ0QEnaAb=mLFdr7AU3H3TsT=wXcNgtqeUGVLXahd4Q@mail.gmail.com>
- <20111025083420.GA6184@mudshark.cambridge.arm.com>
+From: Mr Ahmed Hassan <beacon_bgl@youbroadband.in>
+Subject: I Need Your Assistance
+Date: Tue, 25 Oct 2011 14:50:55 +0530
+Message-ID: <20111025145055.50036zhm9wkcs8sg__11057.5121631429$1319534612$gmane$org@webmail.youbroadband.in>
+Reply-To: mr_ahmedhassan74@live.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42850 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026Ab1JYIon (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Oct 2011 04:44:43 -0400
-In-Reply-To: <20111025083420.GA6184@mudshark.cambridge.arm.com>
+Received: from sendmail1.youbroadband.in ([203.187.192.25]:65378 "HELO
+	sendmail1.youbroadband.in" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752796Ab1JYJXU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Oct 2011 05:23:20 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Ming Lei <ming.lei@canonical.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-
-On Tue, 25 Oct 2011, Will Deacon wrote:
-
-> Hurrah! If you can get the OMAP / hwmod bits acked by the OMAP guys then I'm
-> happy to take the perf and PMU changes into my tree.
-
-I'd suggest that you take the perf/PMU stuff yourself if you are happy 
-with it, and then we'll deal with the OMAP bits ourselves, since it looks 
-like they aren't dependent on each other, and the OMAP parts will need 
-changes.
 
 
-- Paul
+
+Dear Beloved,
+
+As you read this, I don't want you to feel sorry for me, because, I
+believe everyone will die someday. My name is AHMED HASSAN a merchant
+in Dubai, in the U.A.E. I have been diagnosed with Esophageal cancer .
+
+It has defiled all forms of medical treatment, and right now I have
+only about a few months to live, according to medical experts. I
+have not particularly lived my life so well, as I never really cared
+for anyone(not even myself) but my business.Though I am very rich.
+I was never generous, I was always hostile to people and only focused
+on my business as that was the only thing I cared for.But now I regret
+all this as I now know that there is more to life than just wanting to
+have or make all the money in the world.I believe when God gives me a
+second chance to come into this world I would live my life a different
+way from how I have lived it. Now that God has called me.
+
+I have willed and given most of my property and assets to my immediate
+and extended family members as well as a few close friends.
+I want God to be merciful to me and accept my soul, so i have decided
+to give alms to charity organizations, as I want this to be one of the
+last good deeds I have done on earth. So far, I have distributed money
+to some charity organizations in the U.A.E, Algeria and Malaysia.
+
+Now that my health has deteriorated so badly, I cannot do this myself
+anymore.I once asked members of my family to close one of my accounts
+and distribute the money which, I have there to charity organization in
+Bulgaria and Pakistan,they refused and kept the money to themselves.
+Hence, I do not trust them anymore, as they seem not to be contended
+with what I have left for them. The last of my money which no one knows
+of is the huge cash deposit of Twenty One million dollars
+$21,000,000,00 that I have with a finance Company abroad.I will want
+you to help me collect this deposit and dispatched it to charity
+organizations. I have set aside 25% for you and for your time.
+
+NOTE; IS VERY IMPORTANT THAT YOU REPLY THROUGH MY PRIVATE
+EMAIL:mr_ahmedhassan74@live.com
+
+Regards
+Mr. Ahmed Hassan.
+
