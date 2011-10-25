@@ -1,81 +1,64 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+From: Shawn Guo <shawn.guo@freescale.com>
 Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
- regulator_init_data
-Date: Tue, 25 Oct 2011 12:26:01 +0530
-Message-ID: <4EA65D81.6030109@ti.com>
-References: <4EA13053.7080306@ti.com>
- <20111021115809.GB337@S2100-06.ap.freescale.net> <4EA4FF6B.2080906@ti.com>
- <20111024081706.GC8708@ponder.secretlab.ca>
- <20111024090228.GA1755@S2100-06.ap.freescale.net> <4EA52851.8000203@ti.com>
- <20111024091158.GB1755@S2100-06.ap.freescale.net> <4EA52C56.3080908@ti.com>
- <20111024134727.GF1755@S2100-06.ap.freescale.net> <4EA65073.7050205@ti.com>
- <20111025065216.GD2119@S2100-06.ap.freescale.net>
+	regulator_init_data
+Date: Tue, 25 Oct 2011 15:08:39 +0800
+Message-ID: <20111025070837.GE2119@S2100-06.ap.freescale.net>
+References: <20111021082309.GA337@S2100-06.ap.freescale.net>
+	<20111024092411.GE8708@ponder.secretlab.ca>
+	<20111024130429.GD1755@S2100-06.ap.freescale.net>
+	<20111024130636.GB26033@opensource.wolfsonmicro.com>
+	<20111024134025.GE1755@S2100-06.ap.freescale.net>
+	<20111024135950.GV8708@ponder.secretlab.ca>
+	<20111024145139.GH1755@S2100-06.ap.freescale.net>
+	<20111024145631.GB8708@ponder.secretlab.ca>
+	<20111024155132.GI1755@S2100-06.ap.freescale.net>
+	<4EA652DA.5050901@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20111025065216.GD2119-+NayF8gZjK2ctlrPMvKcciBecyulp+rMXqFh9Ls21Oc@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Shawn Guo <shawn.guo-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <4EA652DA.5050901@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tuesday 25 October 2011 12:22 PM, Shawn Guo wrote:
-> On Tue, Oct 25, 2011 at 11:30:19AM +0530, Rajendra Nayak wrote:
->> On Monday 24 October 2011 07:17 PM, Shawn Guo wrote:
->>> On Mon, Oct 24, 2011 at 02:43:58PM +0530, Rajendra Nayak wrote:
->>>> Case 2:
->>>> One device for all regulators:
->>>>
->>>> DT nodes look something like this
->>>>
->>>> regulators {
->>>> 	reg1: reg@1 {
->>>> 			...
->>>> 			...
->>>> 	};
->>>>
->>>> 	reg2: reg@2 {
->>>> 			...
->>>> 			...
->>>> 	};
->>>> };
->>>>
->>>> The regulator driver probes only one device and the dev->of_node
->>>> points to the "regulators" node above.
->>>
->>> The mc13892 example I put in the reply to Grant demonstrates that
->>> for some case, dev->of_node is NULL (devices are created by mfd core).
->>
->> In that case should you not be first converting the mfd driver to
->> register regulator devices using DT?
->
-> The mc13892 mfd driver calls mfd_add_devices() to add device for
-> mc13892 regulator driver.  Are you suggesting that I should hack
-> mfd_add_devices() to have device_node of 'regulators' attached?
-> The mfd is not a bus like i2c and spi, so I'm not sure this is the
-> right thing to do.
->
->> Thats what we did for OMAP, and hence we always have the of_node
->> populated when the regulator devices are probed.
->> See this patch from Benoit on how thats done for twl devices..
->> http://marc.info/?l=linux-omap&m=131489864814428&w=2
->>
-> OMAP is "Case 1", and we are talking about "Case 2".
+On Tue, Oct 25, 2011 at 11:40:34AM +0530, Rajendra Nayak wrote:
+> On Monday 24 October 2011 09:21 PM, Shawn Guo wrote:
+> >On Mon, Oct 24, 2011 at 04:56:31PM +0200, Grant Likely wrote:
+[...]
+> >>It is always better to attach the of_node at struct device
+> >>registration time instead of searching the tree in common code.  The
+> >>of_node should already be assigned by the time regulator_register() is
+> >>called.
+> >
+> >That's the problem we have.  There is no 'struct dev' to attach of_node
+> >for each regulator by the time regulator_register() is called, because
+> >the 'struct dev' for each regulator is created inside
+> >regulator_register() as wrapped by 'struct regulator_dev'.
+> 
+> The root of your problem seems to be that your pmic driver isn't
+> registering regulator devices from DT, and if it did, you wouldn't
+> need to do a search in dev->parent->of_node and instead the driver
+> would have the right dev->of_node populated.
+> 
+No, it's not the root of my problem.  Again, we are talking about
+'Case 2', where multiple regulator devices are registered to
+regulator core with regulator driver being probed once, where each
+regulator node is taken as the child of 'regulators' node.  Having
+device_node of 'regulators' attached to dev->of_node does not help
+at all.  What we need is to have each child node attached to
+regulator_dev->dev.of_node.
 
-I don't see why it wouldn't work for "Case 2". The only difference
-is in case of "Case 1", the dev->of_node would already point to
-the right regulator node, like 'reg1', 'reg2' above.
-In case of "Case 2", the dev->of_node would point to the 'regulators'
-node instead, and the driver could then do a for_each_child_of_node()
-to iterate over all its children to get 'reg1', 'reg2' etc.
-
->
+-- 
+Regards,
+Shawn
