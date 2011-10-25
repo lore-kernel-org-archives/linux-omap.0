@@ -1,46 +1,35 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Linux 3.0 DSS support
-Date: Tue, 25 Oct 2011 10:37:09 +0300
-Message-ID: <1319528229.1684.20.camel@lappyti>
-References: <CANLagX8WaHGkqOZ2UnLR1ihOABbdDy1ZAyW19yO=f-JNUaLKfw@mail.gmail.com>
-	 <4E9BD71A.90703@ti.com>  <4EA5A677.3050704@logicpd.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] of: Add a reg-names property to name reg entries
+Date: Tue, 25 Oct 2011 10:26:33 +0200
+Message-ID: <20111025082632.GJ4429@atomide.com>
+References: <1319471697-8970-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:44091 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752656Ab1JYHhV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Oct 2011 03:37:21 -0400
-Received: by mail-bw0-f49.google.com with SMTP id c12so332315bkb.22
-        for <linux-omap@vger.kernel.org>; Tue, 25 Oct 2011 00:37:20 -0700 (PDT)
-In-Reply-To: <4EA5A677.3050704@logicpd.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57418 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750998Ab1JYI0k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Oct 2011 04:26:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1319471697-8970-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peter.barada@logicpd.com>
-Cc: Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Benoit Cousson <b-cousson@ti.com> [111024 17:20]:
+> +		compatible = "ti,mcasp";
+> +		reg = <0 0x10 0x10>, <0 0x20 0x10>,
+> +		      <1 0x10 0x10>, <1 0x20 0x10>;
+> +		reg-names = "mpu", "dat",
+> +			    "dma", "dma_dat";
 
-On Mon, 2011-10-24 at 13:55 -0400, Peter Barada wrote:
-> 
-> In the above case (and my case where I'm looking for a 9Mhz pixel 
-> clock), fck_div is calculated at higher than 16 - and the video
-> output 
-> is wrong (i.e. no pixel clock and hsync runs at 32x the requested
-> rate). 
+Hmm for some systems looks like this can also solve how to pass the
+mux signal names cleanly from DT.
 
-DM37x TRM says:
+For some systems we may also need reg-bits in addition to reg-names
+to describe the signal names. Or do we already have something for
+that?
 
-"DSS1_ALWON_FCLK: Issued from DPLL4. Its frequency can be a division by
-1 to 16 of the frequency of the DPLL4 synthesized clock."
-
-I take it that DM37x is detected as cpu_is_3630()?
-
-The DSS driver currently handles only OMAPs, so for other SoCs the
-driver may contain lots of bugs like this.
-
- Tomi
-
+Tony
 
