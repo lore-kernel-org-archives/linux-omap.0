@@ -1,45 +1,43 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] ARM: remove NR_IRQS dependency for ARM-specific HARDIRQ_BITS definition
-Date: Tue, 25 Oct 2011 15:36:10 +0200
-Message-ID: <87wrbtnqgl.fsf@ti.com>
-References: <1319541948-10035-1-git-send-email-khilman@ti.com>
-	<alpine.LFD.2.02.1110251343580.31312@xanadu.home>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] of: Add a reg-names property to name reg entries
+Date: Tue, 25 Oct 2011 15:40:36 +0200
+Message-ID: <4EA6BC54.7030007@ti.com>
+References: <1319471697-8970-1-git-send-email-b-cousson@ti.com> <20111025082632.GJ4429@atomide.com> <440786C5-FA1C-4750-9990-0BA5AABC2190@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:57903 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933399Ab1JYNgX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Oct 2011 09:36:23 -0400
-Received: by mail-bw0-f41.google.com with SMTP id zt12so586874bkb.0
-        for <linux-omap@vger.kernel.org>; Tue, 25 Oct 2011 06:36:19 -0700 (PDT)
-In-Reply-To: <alpine.LFD.2.02.1110251343580.31312@xanadu.home> (Nicolas
-	Pitre's message of "Tue, 25 Oct 2011 13:45:27 +0200 (CEST)")
+Received: from bear.ext.ti.com ([192.94.94.41]:52332 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933466Ab1JYNlf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Oct 2011 09:41:35 -0400
+In-Reply-To: <440786C5-FA1C-4750-9990-0BA5AABC2190@kernel.crashing.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Segher Boessenkool <segher@kernel.crashing.org>
+Cc: Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>
 
-Nicolas Pitre <nico@fluxnic.net> writes:
-
-> On Tue, 25 Oct 2011, Kevin Hilman wrote:
+On 10/25/2011 12:29 PM, Segher Boessenkool wrote:
+>>> +		compatible = "ti,mcasp";
+>>> +		reg =<0 0x10 0x10>,<0 0x20 0x10>,
+>>> +		<1 0x10 0x10>,<1 0x20 0x10>;
+>>> +		reg-names = "mpu", "dat",
+>>> +			    "dma", "dma_dat";
+>>
+>> Hmm for some systems looks like this can also solve how to pass the
+>> mux signal names cleanly from DT.
 >
->> As a first step towards removing NR_IRQS, remove the ARM customization
->> of HARDIRQ_BITS based on NR_IRQS.
->> 
->> The generic code in <linux/hardirq.h> already has a default value of
->> 10 for HARDIRQ_BITS which is the max used on ARM, so let's just remove
->> the NR_IRQS based customization and use the generic default.
->> 
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->
-> Acked-by: Nicolas Pitre <nicolas.pitre@linaro.org>
+> What problem does any of this solve?  The device binding for the
+> "mcasp" device will have to describe the possible "reg-names", and
+> what those mean; but the binding already has to describe its "reg"
+> property anyway.
 
-Thanks.
+What this solve is the ability to use the platform_get_resource_byname 
+directly to retrieve the proper register base address. The binding is 
+just a text description that the driver will not be able to use 
+directly. It will have to get the resource using an abstract index.
+It thus removes a level of indirection that is error prone and useless 
+most of the time.
 
-FYI, this is now in Russell's patch system as 7140/1:
+Benoit
 
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=7140/1
-
-Kevin
