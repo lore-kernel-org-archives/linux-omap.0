@@ -1,78 +1,46 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH v2 3/5] regulator: helper routine to extract
-	regulator_init_data
-Date: Tue, 25 Oct 2011 15:42:46 +0800
-Message-ID: <20111025074245.GH2119@S2100-06.ap.freescale.net>
-References: <20111024090228.GA1755@S2100-06.ap.freescale.net>
-	<4EA52851.8000203@ti.com>
-	<20111024091158.GB1755@S2100-06.ap.freescale.net>
-	<4EA52C56.3080908@ti.com>
-	<20111024134727.GF1755@S2100-06.ap.freescale.net>
-	<4EA65073.7050205@ti.com>
-	<20111025065216.GD2119@S2100-06.ap.freescale.net>
-	<4EA65D81.6030109@ti.com>
-	<20111025072003.GF2119@S2100-06.ap.freescale.net>
-	<4EA661B3.6010006@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Linux 3.0 DSS support
+Date: Tue, 25 Oct 2011 10:37:09 +0300
+Message-ID: <1319528229.1684.20.camel@lappyti>
+References: <CANLagX8WaHGkqOZ2UnLR1ihOABbdDy1ZAyW19yO=f-JNUaLKfw@mail.gmail.com>
+	 <4E9BD71A.90703@ti.com>  <4EA5A677.3050704@logicpd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <4EA661B3.6010006@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:44091 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752656Ab1JYHhV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 25 Oct 2011 03:37:21 -0400
+Received: by mail-bw0-f49.google.com with SMTP id c12so332315bkb.22
+        for <linux-omap@vger.kernel.org>; Tue, 25 Oct 2011 00:37:20 -0700 (PDT)
+In-Reply-To: <4EA5A677.3050704@logicpd.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Barada <peter.barada@logicpd.com>
+Cc: Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Oct 25, 2011 at 12:43:55PM +0530, Rajendra Nayak wrote:
-> On Tuesday 25 October 2011 12:50 PM, Shawn Guo wrote:
-> >On Tue, Oct 25, 2011 at 12:26:01PM +0530, Rajendra Nayak wrote:
-> >>On Tuesday 25 October 2011 12:22 PM, Shawn Guo wrote:
-> >>>On Tue, Oct 25, 2011 at 11:30:19AM +0530, Rajendra Nayak wrote:
-> >[...]
-> >>>>Thats what we did for OMAP, and hence we always have the of_node
-> >>>>populated when the regulator devices are probed.
-> >>>>See this patch from Benoit on how thats done for twl devices..
-> >>>>http://marc.info/?l=linux-omap&m=131489864814428&w=2
-> >>>>
-> >>>OMAP is "Case 1", and we are talking about "Case 2".
-> >>
-> >>I don't see why it wouldn't work for "Case 2".
-> >
-> >I did not say it wouldn't work for "Case 2".  I meant they work in
-> >different way.
-> >
-> >>The only difference
-> >>is in case of "Case 1", the dev->of_node would already point to
-> >>the right regulator node, like 'reg1', 'reg2' above.
-> >>In case of "Case 2", the dev->of_node would point to the 'regulators'
-> >>node instead, and the driver could then do a for_each_child_of_node()
-> >>to iterate over all its children to get 'reg1', 'reg2' etc.
-> >>
-> >Yes, that's the difference.  So you will need to distinguish these
-> >two cases in regulator_register()?  How?
+Hi,
+
+On Mon, 2011-10-24 at 13:55 -0400, Peter Barada wrote:
 > 
-> You don't need to distinguish these cases in regulator_register().
-> The driver knows if its handling "Case 1" devices or "Case 2" devices
-> and it needs to handle things accordingly and pass the right of_node
-> which regulator_register() can then attach to regulator_dev->dev.
-> 
-Ah, you are thinking about (for Case 2) calling for_each_child_of_node()
-in regulator driver and passing the of_node found for each regulator to
-regulator core as a new parameter of regulator_register().  Yes, that
-would work, though my thought is to put the device_node discovery in
-regulator core and hide it from regulator driver.
+> In the above case (and my case where I'm looking for a 9Mhz pixel 
+> clock), fck_div is calculated at higher than 16 - and the video
+> output 
+> is wrong (i.e. no pixel clock and hsync runs at 32x the requested
+> rate). 
 
-Okay, I'm good with this solution.  Grant, Mark, what about you?
+DM37x TRM says:
 
--- 
-Regards,
-Shawn
+"DSS1_ALWON_FCLK: Issued from DPLL4. Its frequency can be a division by
+1 to 16 of the frequency of the DPLL4 synthesized clock."
+
+I take it that DM37x is detected as cpu_is_3630()?
+
+The DSS driver currently handles only OMAPs, so for other SoCs the
+driver may contain lots of bugs like this.
+
+ Tomi
+
+
