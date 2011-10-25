@@ -1,24 +1,26 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 2/7] amp/remoteproc: add debugfs entries
-Date: Tue, 25 Oct 2011 11:48:21 +0200
-Message-ID: <1319536106-25802-3-git-send-email-ohad@wizery.com>
+Subject: [PATCH 7/7] samples/amp: add an rpmsg driver sample
+Date: Tue, 25 Oct 2011 11:48:26 +0200
+Message-ID: <1319536106-25802-8-git-send-email-ohad@wizery.com>
 References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:40772 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936Ab1JYJtA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Oct 2011 05:49:00 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1319536106-25802-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>
+List-Id: linux-omap@vger.kernel.org
 
-Expose several remote processor properties (name, state, trace buffer)
-that are helpful for debugging.
+Add an rpmsg driver sample, which demonstrates how to communicate with
+an AMP-configured remote processor over the rpmsg bus.
 
-This part is extracted to a separate patch just to keep the review load
-down.
+The driver repeatedly sends a "Hello World!" message to the remote
+processor.
+
+Note that once probed, the driver can immediately start sending messages
+using the rpmsg_send() API, without having to worry about creating endpoints
+or allocating rpmsg addresses: all that work is done by the rpmsg bus,
+and the required information is already embedded in the rpmsg channel
+that the driver is probed with.
 
 Designed with Brian Swetland <swetland@google.com>.
 
@@ -33,44 +35,66 @@ Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Greg KH <greg@kroah.com>
 Cc: Stephen Boyd <sboyd@codeaurora.org>
 ---
- drivers/amp/remoteproc/Makefile             |    1 +
- drivers/amp/remoteproc/remoteproc_debugfs.c |  182 +++++++++++++++++++++++++++
- 2 files changed, 183 insertions(+), 0 deletions(-)
- create mode 100644 drivers/amp/remoteproc/remoteproc_debugfs.c
+ samples/Kconfig                   |    8 +++
+ samples/Makefile                  |    2 +-
+ samples/amp/Makefile              |    1 +
+ samples/amp/rpmsg_client_sample.c |  100 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 110 insertions(+), 1 deletions(-)
+ create mode 100644 samples/amp/Makefile
+ create mode 100644 samples/amp/rpmsg_client_sample.c
 
-diff --git a/drivers/amp/remoteproc/Makefile b/drivers/amp/remoteproc/Makefile
-index 2a5fd79..b888c37 100644
---- a/drivers/amp/remoteproc/Makefile
-+++ b/drivers/amp/remoteproc/Makefile
-@@ -4,3 +4,4 @@
+diff --git a/samples/Kconfig b/samples/Kconfig
+index 96a7572..997ddd3 100644
+--- a/samples/Kconfig
++++ b/samples/Kconfig
+@@ -67,4 +67,12 @@ config SAMPLE_HIDRAW
+ 	help
+ 	  Build an example of how to use hidraw from userspace.
  
- obj-$(CONFIG_REMOTEPROC)		+= remoteproc.o
- remoteproc-y				:= remoteproc_core.o
-+remoteproc-y				+= remoteproc_debugfs.o
-\ No newline at end of file
-diff --git a/drivers/amp/remoteproc/remoteproc_debugfs.c b/drivers/amp/remoteproc/remoteproc_debugfs.c
++config SAMPLE_RPMSG_CLIENT
++	tristate "Build rpmsg client sample -- loadable modules only"
++	depends on RPMSG && m
++	help
++	  Build an rpmsg client sample driver, which demonstrates how
++	  to communicate with an AMP-configured remote processor over
++	  the rpmsg bus.
++
+ endif # SAMPLES
+diff --git a/samples/Makefile b/samples/Makefile
+index 6280817..040f424 100644
+--- a/samples/Makefile
++++ b/samples/Makefile
+@@ -1,4 +1,4 @@
+ # Makefile for Linux samples code
+ 
+ obj-$(CONFIG_SAMPLES)	+= kobject/ kprobes/ tracepoints/ trace_events/ \
+-			   hw_breakpoint/ kfifo/ kdb/ hidraw/
++			   hw_breakpoint/ kfifo/ kdb/ hidraw/ amp/
+diff --git a/samples/amp/Makefile b/samples/amp/Makefile
 new file mode 100644
-index 0000000..4c849db
+index 0000000..2d4973c
 --- /dev/null
-+++ b/drivers/amp/remoteproc/remoteproc_debugfs.c
-@@ -0,0 +1,182 @@
++++ b/samples/amp/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_SAMPLE_RPMSG_CLIENT) += rpmsg_client_sample.o
+diff --git a/samples/amp/rpmsg_client_sample.c b/samples/amp/rpmsg_client_sample.c
+new file mode 100644
+index 0000000..7b23380
+--- /dev/null
++++ b/samples/amp/rpmsg_client_sample.c
+@@ -0,0 +1,100 @@
 +/*
-+ * Remote Processor Framework
++ * Remote processor messaging - sample client driver
 + *
 + * Copyright (C) 2011 Texas Instruments, Inc.
 + * Copyright (C) 2011 Google, Inc.
 + *
 + * Ohad Ben-Cohen <ohad@wizery.com>
-+ * Mark Grosen <mgrosen@ti.com>
 + * Brian Swetland <swetland@google.com>
-+ * Fernando Guzman Lugo <fernando.lugo@ti.com>
-+ * Suman Anna <s-anna@ti.com>
-+ * Robert Tivy <rtivy@ti.com>
-+ * Armando Uribe De Leon <x0095078@ti.com>
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -78,164 +102,86 @@ index 0000000..4c849db
 + * GNU General Public License for more details.
 + */
 +
-+#define pr_fmt(fmt)    "%s: " fmt, __func__
-+
 +#include <linux/kernel.h>
-+#include <linux/debugfs.h>
-+#include <linux/amp/remoteproc.h>
-+#include <linux/device.h>
++#include <linux/module.h>
++#include <linux/amp/rpmsg.h>
 +
-+/* remoteproc debugfs parent dir */
-+static struct dentry *rproc_dbg;
++#define MSG		"hello world!"
++#define MSG_LIMIT	100
 +
-+/*
-+ * Some remote processors may support dumping trace logs into a shared
-+ * memory buffer. We expose this trace buffer using debugfs, so users
-+ * can easily tell what's going on remotely.
-+ *
-+ * We will most probably improve the rproc tracing facilities later on,
-+ * but this kind of lightweight and simple mechanism is always good to have,
-+ * as it provides very early tracing with little to no dependencies at all.
-+ */
-+static ssize_t rproc_trace_read(struct file *filp, char __user *userbuf,
-+						size_t count, loff_t *ppos)
++static void rpmsg_sample_cb(struct rpmsg_channel *rpdev, void *data, int len,
++						void *priv, u32 src)
 +{
-+	struct rproc_mem_entry *trace = filp->private_data;
-+	int len = strnlen(trace->va, trace->len);
++	int ret;
++	static int rx_count;
 +
-+	return simple_read_from_buffer(userbuf, count, ppos, trace->va, len);
++	dev_info(&rpdev->dev, "incoming msg %d (src: 0x%x)\n", ++rx_count, src);
++
++	print_hex_dump(KERN_DEBUG, __func__, DUMP_PREFIX_NONE, 16, 1,
++		       data, len,  true);
++
++	/* samples should not live forever */
++	if (rx_count >= MSG_LIMIT) {
++		dev_info(&rpdev->dev, "goodbye!\n");
++		return;
++	}
++
++	/* send a new message now */
++	ret = rpmsg_send(rpdev, MSG, strlen(MSG));
++	if (ret)
++		dev_err(&rpdev->dev, "rpmsg_send failed: %d\n", ret);
 +}
 +
-+static int rproc_open_generic(struct inode *inode, struct file *file)
++static int rpmsg_sample_probe(struct rpmsg_channel *rpdev)
 +{
-+	file->private_data = inode->i_private;
++	int ret;
++
++	dev_info(&rpdev->dev, "new channel: 0x%x -> 0x%x!\n",
++					rpdev->src, rpdev->dst);
++
++	/* send a message to our remote processor */
++	ret = rpmsg_send(rpdev, MSG, strlen(MSG));
++	if (ret) {
++		dev_err(&rpdev->dev, "rpmsg_send failed: %d\n", ret);
++		return ret;
++	}
 +
 +	return 0;
 +}
 +
-+static const struct file_operations trace_rproc_ops = {
-+	.read = rproc_trace_read,
-+	.open = rproc_open_generic,
-+	.llseek	= generic_file_llseek,
++static void __devexit rpmsg_sample_remove(struct rpmsg_channel *rpdev)
++{
++	dev_info(&rpdev->dev, "rpmsg sample client driver is removed\n");
++}
++
++static struct rpmsg_device_id rpmsg_driver_sample_id_table[] = {
++	{ .name	= "rpmsg-client-sample" },
++	{ },
++};
++MODULE_DEVICE_TABLE(rpmsg, rpmsg_driver_sample_id_table);
++
++static struct rpmsg_driver rpmsg_sample_client = {
++	.drv.name	= KBUILD_MODNAME,
++	.drv.owner	= THIS_MODULE,
++	.id_table	= rpmsg_driver_sample_id_table,
++	.probe		= rpmsg_sample_probe,
++	.callback	= rpmsg_sample_cb,
++	.remove		= __devexit_p(rpmsg_sample_remove),
 +};
 +
-+/*
-+ * A state-to-string lookup table, for exposing a human readable state
-+ * via debugfs. Always keep in sync with enum rproc_state
-+ */
-+static const char * const rproc_state_string[] = {
-+	"offline",
-+	"suspended",
-+	"running",
-+	"crashed",
-+	"invalid",
-+};
-+
-+/* expose the state of the remote processor via debugfs */
-+static ssize_t rproc_state_read(struct file *filp, char __user *userbuf,
-+						size_t count, loff_t *ppos)
++static int __init rpmsg_client_sample_init(void)
 +{
-+	struct rproc *rproc = filp->private_data;
-+	unsigned int state;
-+	char buf[30];
-+	int i;
-+
-+	state = rproc->state > RPROC_LAST ? RPROC_LAST : rproc->state;
-+
-+	i = snprintf(buf, 30, "%.28s (%d)\n", rproc_state_string[state],
-+							rproc->state);
-+
-+	return simple_read_from_buffer(userbuf, count, ppos, buf, i);
++	return register_rpmsg_driver(&rpmsg_sample_client);
 +}
++module_init(rpmsg_client_sample_init);
 +
-+static const struct file_operations rproc_state_ops = {
-+	.read = rproc_state_read,
-+	.open = rproc_open_generic,
-+	.llseek	= generic_file_llseek,
-+};
-+
-+/* expose the name of the remote processor via debugfs */
-+static ssize_t rproc_name_read(struct file *filp, char __user *userbuf,
-+						size_t count, loff_t *ppos)
++static void __exit rpmsg_client_sample_fini(void)
 +{
-+	struct rproc *rproc = filp->private_data;
-+	/* need room for the name, a newline and a terminating null */
-+	char buf[100];
-+	int i;
-+
-+	i = snprintf(buf, sizeof(buf), "%.98s\n", rproc->name);
-+
-+	return simple_read_from_buffer(userbuf, count, ppos, buf, i);
++	unregister_rpmsg_driver(&rpmsg_sample_client);
 +}
++module_exit(rpmsg_client_sample_fini);
 +
-+static const struct file_operations rproc_name_ops = {
-+	.read = rproc_name_read,
-+	.open = rproc_open_generic,
-+	.llseek	= generic_file_llseek,
-+};
-+
-+void rproc_remove_trace_file(struct dentry *tfile)
-+{
-+	debugfs_remove(tfile);
-+}
-+
-+struct dentry *rproc_create_trace_file(const char *name, struct rproc *rproc,
-+					struct rproc_mem_entry *trace)
-+{
-+	struct dentry *tfile;
-+
-+	tfile = debugfs_create_file(name, 0400, rproc->dbg_dir,
-+						trace, &trace_rproc_ops);
-+	if (!tfile) {
-+		dev_err(rproc->dev, "failed to create debugfs trace entry\n");
-+		return NULL;
-+	}
-+
-+	return tfile;
-+}
-+
-+void rproc_delete_debug_dir(struct rproc *rproc)
-+{
-+	if (!rproc->dbg_dir)
-+		return;
-+
-+	debugfs_remove_recursive(rproc->dbg_dir);
-+}
-+
-+void rproc_create_debug_dir(struct rproc *rproc)
-+{
-+	struct device *dev = rproc->dev;
-+
-+	if (!rproc_dbg)
-+		return;
-+
-+	rproc->dbg_dir = debugfs_create_dir(dev_name(dev), rproc_dbg);
-+	if (!rproc->dbg_dir)
-+		return;
-+
-+	debugfs_create_file("name", 0400, rproc->dbg_dir,
-+					rproc, &rproc_name_ops);
-+	debugfs_create_file("state", 0400, rproc->dbg_dir,
-+					rproc, &rproc_state_ops);
-+}
-+
-+void __init rproc_init_debugfs(void)
-+{
-+	if (debugfs_initialized()) {
-+		rproc_dbg = debugfs_create_dir(KBUILD_MODNAME, NULL);
-+		if (!rproc_dbg)
-+			pr_err("can't create debugfs dir\n");
-+	}
-+}
-+
-+void __exit rproc_exit_debugfs(void)
-+{
-+	if (rproc_dbg)
-+		debugfs_remove(rproc_dbg);
-+}
-+
++MODULE_DESCRIPTION("Remote processor messaging sample client driver");
 +MODULE_LICENSE("GPL v2");
-+MODULE_DESCRIPTION("Generic Remote Processor Framework");
 -- 
 1.7.5.4
-
