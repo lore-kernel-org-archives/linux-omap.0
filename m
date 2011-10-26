@@ -1,116 +1,53 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] of: Add a reg-names property to name reg entries
-Date: Wed, 26 Oct 2011 19:40:45 +0200
-Message-ID: <4EA8461D.6070600@ti.com>
-References: <1319471697-8970-1-git-send-email-b-cousson@ti.com>
-	<20111025082632.GJ4429@atomide.com>
-	<440786C5-FA1C-4750-9990-0BA5AABC2190@kernel.crashing.org>
-	<4EA6BC54.7030007@ti.com>
-	<BC60AF8F-C329-44B9-BEC9-EA5821725E1B@kernel.crashing.org>
-	<4EA6DF88.2080704@ti.com>
-	<FD4B90D7-4B26-42C2-8CF9-7AA9971BCBEB@kernel.crashing.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <FD4B90D7-4B26-42C2-8CF9-7AA9971BCBEB@kernel.crashing.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: Tony Lindgren <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Subject: Re: msub: error running host mode on 3.1.0rc4
+Date: Wed, 26 Oct 2011 20:18:27 +0200
+Message-ID: <9F0AF703-F647-43E0-90EB-3711D9396458@gmail.com>
+References: <4E8454C2.8060002@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1251.1)
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49312 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932818Ab1JZSSe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Oct 2011 14:18:34 -0400
+Received: by bkbzt19 with SMTP id zt19so1862254bkb.19
+        for <linux-omap@vger.kernel.org>; Wed, 26 Oct 2011 11:18:32 -0700 (PDT)
+In-Reply-To: <4E8454C2.8060002@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On 10/26/2011 5:57 AM, Segher Boessenkool wrote:
->>>>> What problem does any of this solve?  The device binding for the
->>>>> "mcasp" device will have to describe the possible "reg-names", and
->>>>> what those mean; but the binding already has to describe its "reg"
->>>>> property anyway.
->>>>
->>>> What this solve is the ability to use the
->>>> platform_get_resource_byname directly to retrieve the proper
->>>> register base address.
->>>
->>> You do not have to put it in the device tree for that, the device
->>> driver can implement this itself if it cares.
->>
->> ???
->>
->> The driver is the user of that name, so it has to be populated
->> before into the resource during device creation.
->
-> It can be as simple as
->
-> #define FOO_REG_INDEX 0
-> #define BAR_REG_INDEX 1
->
-> but you can use C strings if you want to.
 
-But that will add an extra level of indirection...
+On Sep 29, 2011, at 1:21 PM, Tasslehoff Kjappfot wrote:
 
-The idea is to avoid that and use directly:
+> We have a board similar to the beagleboard C3, but we have forced musb to host-mode and added an "smsc95xx" and an RJ45 connector instead. In 2.6.39 I configured the musb driver to operate in host-mode, and that was all that was needed to make it work.
+> 
+> In 3.1.0rc4 that option has been removed from the Kconfig, and the default configuration of the musb driver is otg-mode. In my boardfile I changed the musb_board_data to:
+> 
+> static struct omap_musb_board_data musb_board_data = {
+>        .interface_type     = MUSB_INTERFACE_ULPI,
+>        .mode           = MUSB_HOST,
+>        .power          = 100,
+> }
+> 
+> That gives me the following output in dmesg:
+> 
+> [    0.120544] musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
+> [    0.120697] omap_device: musb-omap2430.-1: new worst case activate latency 0: 30517
+> [    0.120727] musb-hdrc musb-hdrc: musb_init_controller failed with status -19
+> [    0.120758] (NULL device *): gadget not registered.
+> 
+> Reading drivers/usb/musb/omap2430.c, it seems the problem is that no transceiver is configured, but I'm not sure if its a configuration problem or a bug.
+> 
+> Tasslehoff
 
-platform_get_resource_byname(pdev, IORESOURCE_MEM, "smem");
-platform_get_resource_byname(pdev, IORESOURCE_MEM, "cmem");
-....
+Finally got around to looking at this a bit more. The issue is that no musb->isr is configured. omap2430.c doesn't set up an isr, so it should use the generic one. That one is, however, enclosed in the following #ifdef's:
 
->>>> The binding is just a text description that the driver will not be
->>>> able to use directly. It will have to get the resource using an
->>>> abstract index.
->>>
->>> Your reg-names are abstract identifiers just as well.
->>
->> This is the name used in the HW documentation.
->
-> So?  The device binding will still have to list them, for exact spelling
-> and register block size etc.
+#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) ||                                                                                                    
+defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500) ||
+defined(CONFIG_ARCH_U5500)
 
-The binding is *just* a text... so instead of having to read a text file 
-and then getting an index, we can just use the text that represent the 
-memory entry.
+None of these are set in my defconfig, but I see that CONFIG_SOC_OMAP3430 was set in the old one. Should this one be set for my 3530-board, or is there a missing condition here?
 
->> Ordering them to get a number is purely arbitrary.
->
-> Ordering them is required, "reg" is an array.  It also matters which
-> entry is the first entry (for the unit address).
->
->> That's why using the name will allow the driver to get the resource
->> the way it is represented in the documentation and thus avoid some
->> intermediate number.
->
-> You use an intermediate string instead, and add code and binding to
-> translate that to that same number.
-
-Nope. We use a string to get the resource directly. There is no 
-intermediate index.
-
->>>> It thus removes a level of indirection that is error prone and
->>>> useless most of the time.
->>>
->>> It *adds* a level of indirection.  I doubt it helps prevent errors
->>> either, but who knows.
->>
->> Well, if that does not bring anything to you, you can just not use it.
->
-> I could, if you did this for your device binding only, but it seems
-> you are adding this as a generic thing.  I am very much against that.
-> The device tree should describe the hardware; it shouldn't describe
-> the description of the hardware, that's what bindings are for.
-
-Not really, it is still a representation of the HW using a more readable 
-way. I kept the original "reg" for legacy only.
-
-This idea is to extend that to any kind of resources attached to a 
-device: irq, dma_req, clock, regulator...
-FWIW, using a name is already the natural way to get a clock and a 
-regulator.
-The point here is to extend legacy binding and thus improve the 
-consistency in the device resource representation.
-
-Benoit
+- Tasslehoff
