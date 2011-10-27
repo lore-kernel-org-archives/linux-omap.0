@@ -1,34 +1,33 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 1/4] regulator: helper routine to extract
- regulator_init_data
-Date: Thu, 27 Oct 2011 13:49:36 +0200
-Message-ID: <20111027114935.GA7384@opensource.wolfsonmicro.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [PATCH v3 2/4] regulator: adapt fixed regulator driver to dt
+Date: Thu, 27 Oct 2011 13:18:00 +0100
+Message-ID: <20111027121800.GA10089@sirena.org.uk>
 References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
- <1319702185-16108-2-git-send-email-rnayak@ti.com>
- <20111027080953.GB18360@opensource.wolfsonmicro.com>
- <CACYZBRG+_mm1O7Qg+ENCcLBX72iEWWyJohD_9EpAaT+Pb54cEA@mail.gmail.com>
+ <1319702185-16108-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CACYZBRG+_mm1O7Qg+ENCcLBX72iEWWyJohD_9EpAaT+Pb54cEA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linux-kernel@vger.kernel.org, shawn.guo@freescale.com
+In-Reply-To: <1319702185-16108-3-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 27, 2011 at 04:13:08PM +0530, Nayak, Rajendra wrote:
+On Thu, Oct 27, 2011 at 01:26:23PM +0530, Rajendra Nayak wrote:
+> The fixed regulator driver uses of_get_fixed_voltage_config()
+> to extract fixed_voltage_config structure contents from device tree.
+> 
+> Also add documenation for additional bindings for fixed
+> regulators that can be passed through dt.
 
-> okay, here's an updated patch which does that. I also added a binding to
-> specify a descriptive name to the regulator outputs as you suggested in
-> the other thread.
-
-Looks good!  I guess we may run into issues with the status change thing
-but I think we need to gather some experience to figure that out and
-since it's implicit hopefully that won't have any compatibility issues
-if it does happen.
-
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-
-I guess it might be useful to resend without this bit at the top to make
-it easier for Liam to apply.
+Acked-by: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
