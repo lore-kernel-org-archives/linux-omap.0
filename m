@@ -1,12 +1,18 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v4 1/4] regulator: helper routine to extract
+Subject: Re: [PATCH v3 1/4] regulator: helper routine to extract
 	regulator_init_data
-Date: Thu, 27 Oct 2011 18:54:24 +0530
-Message-ID: <1319721864-30067-1-git-send-email-rnayak@ti.com>
+Date: Thu, 27 Oct 2011 18:57:20 +0530
+Message-ID: <4EA95C38.2020804@ti.com>
+References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
+	<1319702185-16108-2-git-send-email-rnayak@ti.com>
+	<20111027080953.GB18360@opensource.wolfsonmicro.com>
+	<CACYZBRG+_mm1O7Qg+ENCcLBX72iEWWyJohD_9EpAaT+Pb54cEA@mail.gmail.com>
+	<20111027114935.GA7384@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20111027114935.GA7384@opensource.wolfsonmicro.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -16,221 +22,25 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
-Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, shawn.guo@freescale.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, shawn.guo@freescale.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The helper routine is meant to be used by the regulator drivers
-to extract the regulator_init_data structure from the data
-that is passed from device tree.
-'consumer_supplies' which is part of regulator_init_data is not extracted
-as the regulator consumer mappings are passed through DT differently,
-implemented in subsequent patches.
-Similarly the regulator<-->parent/supply mapping is handled in
-subsequent patches.
+On Thursday 27 October 2011 05:19 PM, Mark Brown wrote:
+> On Thu, Oct 27, 2011 at 04:13:08PM +0530, Nayak, Rajendra wrote:
+>
+>> okay, here's an updated patch which does that. I also added a binding to
+>> specify a descriptive name to the regulator outputs as you suggested in
+>> the other thread.
+>
+> Looks good!  I guess we may run into issues with the status change thing
+> but I think we need to gather some experience to figure that out and
+> since it's implicit hopefully that won't have any compatibility issues
+> if it does happen.
+>
+> Acked-by: Mark Brown<broonie@opensource.wolfsonmicro.com>
+>
+> I guess it might be useful to resend without this bit at the top to make
+> it easier for Liam to apply.
 
-Also add documentation for regulator bindings to be used to pass
-regulator_init_data struct information from device tree.
-
-Some of the regulator properties which are linux and board specific,
-are left out since its not clear if they can
-be in someway embedded into the kernel or passed in from DT.
-They will be revisited later.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
----
- .../devicetree/bindings/regulator/regulator.txt    |   33 ++++++++
- drivers/regulator/Kconfig                          |    7 ++
- drivers/regulator/Makefile                         |    1 +
- drivers/regulator/of_regulator.c                   |   81 ++++++++++++++++++++
- include/linux/regulator/of_regulator.h             |   20 +++++
- 5 files changed, 142 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
- create mode 100644 drivers/regulator/of_regulator.c
- create mode 100644 include/linux/regulator/of_regulator.h
-
-diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
-new file mode 100644
-index 0000000..c488bf3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-@@ -0,0 +1,33 @@
-+Voltage/Current Regulators
-+
-+Optional properties:
-+- regulator-name: A string used as a descriptive name for regulator outputs
-+- regulator-min-uV: smallest voltage consumers may set
-+- regulator-max-uV: largest voltage consumers may set
-+- regulator-uV-offset: Offset applied to voltages to compensate for voltage drops
-+- regulator-min-uA: smallest current consumers may set
-+- regulator-max-uA: largest current consumers may set
-+- regulator-always-on: boolean, regulator should never be disabled
-+- regulator-boot-on: bootloader/firmware enabled regulator
-+- <name>-supply: phandle to the parent supply/regulator node
-+
-+Example:
-+
-+	xyzreg: regulator@0 {
-+		regulator-min-uV = <1000000>;
-+		regulator-max-uV = <2500000>;
-+		regulator-always-on;
-+		vin-supply = <&vin>;
-+	};
-+
-+The same binding used by a regulator to reference its
-+supply can be used by any consumer to reference its
-+regulator/supply
-+
-+Example of a device node referencing a regulator node,
-+
-+	devicenode: node@0x0 {
-+		...
-+		...
-+		<name>-supply = <&xyzreg>;
-+	};
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index c7fd2c0..8106958 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -64,6 +64,13 @@ config REGULATOR_USERSPACE_CONSUMER
- 
-           If unsure, say no.
- 
-+config OF_REGULATOR
-+	bool
-+	depends on OF
-+	help
-+	  OpenFirmware regulator framework helper routines that can
-+	  used by regulator drivers to extract data from device tree.
-+
- config REGULATOR_BQ24022
- 	tristate "TI bq24022 Dual Input 1-Cell Li-Ion Charger IC"
- 	help
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 040d5aa..e6bc009 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -7,6 +7,7 @@ obj-$(CONFIG_REGULATOR) += core.o dummy.o
- obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
- obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
- obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
-+obj-$(CONFIG_OF_REGULATOR) += of_regulator.o
- 
- obj-$(CONFIG_REGULATOR_AD5398) += ad5398.o
- obj-$(CONFIG_REGULATOR_BQ24022) += bq24022.o
-diff --git a/drivers/regulator/of_regulator.c b/drivers/regulator/of_regulator.c
-new file mode 100644
-index 0000000..798faaa
---- /dev/null
-+++ b/drivers/regulator/of_regulator.c
-@@ -0,0 +1,81 @@
-+/*
-+ * OF helpers for regulator framework
-+ *
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/of.h>
-+#include <linux/regulator/machine.h>
-+
-+static void of_get_regulation_constraints(struct device_node *np,
-+					struct regulator_init_data **init_data)
-+{
-+	const __be32 *min_uV, *max_uV, *uV_offset;
-+	const __be32 *min_uA, *max_uA;
-+	struct regulation_constraints *constraints = &(*init_data)->constraints;
-+
-+	constraints->name = of_get_property(np, "regulator-name", NULL);
-+
-+	min_uV = of_get_property(np, "regulator-min-uV", NULL);
-+	if (min_uV)
-+		constraints->min_uV = be32_to_cpu(*min_uV);
-+	max_uV = of_get_property(np, "regulator-max-uV", NULL);
-+	if (max_uV)
-+		constraints->max_uV = be32_to_cpu(*max_uV);
-+
-+	/* Voltage change possible? */
-+	if (constraints->min_uV != constraints->max_uV)
-+		constraints->valid_ops_mask |= REGULATOR_CHANGE_VOLTAGE;
-+
-+	uV_offset = of_get_property(np, "regulator-uV-offset", NULL);
-+	if (uV_offset)
-+		constraints->uV_offset = be32_to_cpu(*uV_offset);
-+	min_uA = of_get_property(np, "regulator-min-uA", NULL);
-+	if (min_uA)
-+		constraints->min_uA = be32_to_cpu(*min_uA);
-+	max_uA = of_get_property(np, "regulator-max-uA", NULL);
-+	if (max_uA)
-+		constraints->max_uA = be32_to_cpu(*max_uA);
-+
-+	/* Current change possible? */
-+	if (constraints->min_uA != constraints->max_uA)
-+		constraints->valid_ops_mask |= REGULATOR_CHANGE_CURRENT;
-+
-+	if (of_find_property(np, "regulator-boot-on", NULL))
-+		constraints->boot_on = true;
-+
-+	if (of_find_property(np, "regulator-always-on", NULL))
-+		constraints->always_on = true;
-+	else /* status change should be possible if not always on. */
-+		constraints->valid_ops_mask |= REGULATOR_CHANGE_STATUS;
-+}
-+
-+/**
-+ * of_get_regulator_init_data - extract regulator_init_data structure info
-+ * @dev: device requesting for regulator_init_data
-+ *
-+ * Populates regulator_init_data structure by extracting data from device
-+ * tree node, returns a pointer to the populated struture or NULL if memory
-+ * alloc fails.
-+ */
-+struct regulator_init_data *of_get_regulator_init_data(struct device *dev)
-+{
-+	struct regulator_init_data *init_data;
-+
-+	if (!dev->of_node)
-+		return NULL;
-+
-+	init_data = devm_kzalloc(dev, sizeof(*init_data), GFP_KERNEL);
-+	if (!init_data)
-+		return NULL; /* Out of memory? */
-+
-+	of_get_regulation_constraints(dev->of_node, &init_data);
-+	return init_data;
-+}
-diff --git a/include/linux/regulator/of_regulator.h b/include/linux/regulator/of_regulator.h
-new file mode 100644
-index 0000000..621c071
---- /dev/null
-+++ b/include/linux/regulator/of_regulator.h
-@@ -0,0 +1,20 @@
-+/*
-+ * OpenFirmware regulator support routines
-+ *
-+ */
-+
-+#ifndef __LINUX_OF_REG_H
-+#define __LINUX_OF_REG_H
-+
-+#if defined(CONFIG_OF_REGULATOR)
-+extern struct regulator_init_data
-+	*of_get_regulator_init_data(struct device *dev);
-+#else
-+static inline struct regulator_init_data
-+	*of_get_regulator_init_data(struct device *dev)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_OF_REGULATOR */
-+
-+#endif /* __LINUX_OF_REG_H */
--- 
-1.7.1
+Thanks Mark, just resent the patch with your Ack included.
