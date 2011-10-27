@@ -1,46 +1,31 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v3 1/4] regulator: helper routine to extract
-	regulator_init_data
-Date: Thu, 27 Oct 2011 18:57:20 +0530
-Message-ID: <4EA95C38.2020804@ti.com>
-References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
-	<1319702185-16108-2-git-send-email-rnayak@ti.com>
-	<20111027080953.GB18360@opensource.wolfsonmicro.com>
-	<CACYZBRG+_mm1O7Qg+ENCcLBX72iEWWyJohD_9EpAaT+Pb54cEA@mail.gmail.com>
-	<20111027114935.GA7384@opensource.wolfsonmicro.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/2 v3] net/smsc911x: Add regulator support
+Date: Thu, 27 Oct 2011 16:46:38 +0100
+Message-ID: <20111027154638.GA16946@sirena.org.uk>
+References: <1319719691-15799-1-git-send-email-linus.walleij@stericsson.com>
+ <CAJaTeTrzFwxsn22U-NHQ8iCiaUM+mj8PyicavR-DN0HgE08ZEQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20111027114935.GA7384@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, shawn.guo@freescale.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJaTeTrzFwxsn22U-NHQ8iCiaUM+mj8PyicavR-DN0HgE08ZEQ@mail.gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Mike Frysinger <vapier@gentoo.org>
+Cc: Linus Walleij <linus.walleij@stericsson.com>, netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirer <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 27 October 2011 05:19 PM, Mark Brown wrote:
-> On Thu, Oct 27, 2011 at 04:13:08PM +0530, Nayak, Rajendra wrote:
->
->> okay, here's an updated patch which does that. I also added a binding to
->> specify a descriptive name to the regulator outputs as you suggested in
->> the other thread.
->
-> Looks good!  I guess we may run into issues with the status change thing
-> but I think we need to gather some experience to figure that out and
-> since it's implicit hopefully that won't have any compatibility issues
-> if it does happen.
->
-> Acked-by: Mark Brown<broonie@opensource.wolfsonmicro.com>
->
-> I guess it might be useful to resend without this bit at the top to make
-> it easier for Liam to apply.
+On Thu, Oct 27, 2011 at 03:21:47PM +0200, Mike Frysinger wrote:
 
-Thanks Mark, just resent the patch with your Ack included.
+> my gut reaction: smsc911x is working just fine without regulator
+> support for many people, so why do we suddenly need to make it a
+> requirement ?  this is a fairly small amount of code, so adding a
+> smsc911x Kconfig symbol to control the regulator support seems like
+> overkill.  only other option would be to change the patch to not make
+> missing regulators non-fatal.  so i'd probably lean towards the latter
+> (and it sounds like you changed this with earlier versions).
+
+The regulator API contains a series of generic facilities for stubbing
+itself out when not in use - there's no need for individual drivers to
+worry about this stuff, they should just rely on the framework.  The
+main one at the minute is REGULATOR_DUMMY which does what you suggest
+and makes regulator_get() never fail.
