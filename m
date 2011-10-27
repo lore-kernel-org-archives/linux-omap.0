@@ -1,53 +1,59 @@
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Subject: Re: msub: error running host mode on 3.1.0rc4
-Date: Wed, 26 Oct 2011 20:18:27 +0200
-Message-ID: <9F0AF703-F647-43E0-90EB-3711D9396458@gmail.com>
-References: <4E8454C2.8060002@gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1251.1)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: "Nori, Sekhar" <nsekhar@ti.com>
+Subject: RE: [RFC/PATCH] ARM: OMAP: Fix build for OMAP3 only builds
+Date: Thu, 27 Oct 2011 11:02:12 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB5930328C7C406@dbde02.ent.ti.com>
+References: <1318421036-1498-1-git-send-email-weber@corscience.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:49312 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932818Ab1JZSSe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Oct 2011 14:18:34 -0400
-Received: by bkbzt19 with SMTP id zt19so1862254bkb.19
-        for <linux-omap@vger.kernel.org>; Wed, 26 Oct 2011 11:18:32 -0700 (PDT)
-In-Reply-To: <4E8454C2.8060002@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60683 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801Ab1J0Fca convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Oct 2011 01:32:30 -0400
+In-Reply-To: <1318421036-1498-1-git-send-email-weber@corscience.de>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Thomas Weber <weber@corscience.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-
-On Sep 29, 2011, at 1:21 PM, Tasslehoff Kjappfot wrote:
-
-> We have a board similar to the beagleboard C3, but we have forced musb to host-mode and added an "smsc95xx" and an RJ45 connector instead. In 2.6.39 I configured the musb driver to operate in host-mode, and that was all that was needed to make it work.
+On Wed, Oct 12, 2011 at 17:33:56, Thomas Weber wrote:
+> When building for OMAP3 only I get the
+> following errors:
 > 
-> In 3.1.0rc4 that option has been removed from the Kconfig, and the default configuration of the musb driver is otg-mode. In my boardfile I changed the musb_board_data to:
+> In function `omap2420_init_early':
+> undefined reference to `omap2_set_globals_242x'
+> undefined reference to `omap2xxx_voltagedomains_init'
+> undefined reference to `omap242x_powerdomains_init'
+> undefined reference to `omap242x_clockdomains_init'
+> undefined reference to `omap2420_hwmod_init'
 > 
-> static struct omap_musb_board_data musb_board_data = {
->        .interface_type     = MUSB_INTERFACE_ULPI,
->        .mode           = MUSB_HOST,
->        .power          = 100,
-> }
+> In function `omap2430_init_early':
+> undefined reference to `omap2_set_globals_243x'
+> undefined reference to `omap2xxx_voltagedomains_init'
+> undefined reference to `omap243x_powerdomains_init'
+> undefined reference to `omap243x_clockdomains_init'
+> undefined reference to `omap2430_hwmod_init'
 > 
-> That gives me the following output in dmesg:
+> In function `omap4430_init_early':
+> undefined reference to `omap2_set_globals_443x'
+> undefined reference to `omap44xx_voltagedomains_init'
+> undefined reference to `omap44xx_powerdomains_init'
+> undefined reference to `omap44xx_clockdomains_init'
+> undefined reference to `omap44xx_hwmod_init'
+> undefined reference to `omap4xxx_clk_init'
 > 
-> [    0.120544] musb-hdrc: version 6.0, ?dma?, otg (peripheral+host)
-> [    0.120697] omap_device: musb-omap2430.-1: new worst case activate latency 0: 30517
-> [    0.120727] musb-hdrc musb-hdrc: musb_init_controller failed with status -19
-> [    0.120758] (NULL device *): gadget not registered.
+> With this patch the omapXXXX_init_early will be compiled only
+> when their SOC's are selected.
 > 
-> Reading drivers/usb/musb/omap2430.c, it seems the problem is that no transceiver is configured, but I'm not sure if its a configuration problem or a bug.
-> 
-> Tasslehoff
+> Signed-off-by: Thomas Weber <weber@corscience.de>
 
-Finally got around to looking at this a bit more. The issue is that no musb->isr is configured. omap2430.c doesn't set up an isr, so it should use the generic one. That one is, however, enclosed in the following #ifdef's:
+I was facing the same problem and this patch helped
+me get rid of it.
 
-#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430) ||                                                                                                    
-defined(CONFIG_ARCH_OMAP4) || defined(CONFIG_ARCH_U8500) ||
-defined(CONFIG_ARCH_U5500)
+Tested-by: Sekhar Nori <nsekhar@ti.com>
 
-None of these are set in my defconfig, but I see that CONFIG_SOC_OMAP3430 was set in the old one. Should this one be set for my 3530-board, or is there a missing condition here?
+Thanks,
+Sekhar
 
-- Tasslehoff
