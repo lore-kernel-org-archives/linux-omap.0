@@ -1,29 +1,35 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/3] omap4: sdp: Pass regulator data from dt
-Date: Thu, 27 Oct 2011 09:58:36 +0100
-Message-ID: <20111027085835.GB6641@opensource.wolfsonmicro.com>
-References: <1319702674-16304-1-git-send-email-rnayak@ti.com> <1319702674-16304-3-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH v3 0/4] Device tree support for regulators
+Date: Thu, 27 Oct 2011 10:08:47 +0100
+Message-ID: <20111027090847.GC6641@opensource.wolfsonmicro.com>
+References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:48720 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754977Ab1J0I6h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Oct 2011 04:58:37 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1319702674-16304-3-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1319702185-16108-1-git-send-email-rnayak@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Rajendra Nayak <rnayak@ti.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org
+Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, shawn.guo@freescale.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 27, 2011 at 01:34:33PM +0530, Rajendra Nayak wrote:
+On Thu, Oct 27, 2011 at 01:26:21PM +0530, Rajendra Nayak wrote:
 
-> Also add documentation for TWL regulator specific bindings.
+> v3 is based on the latest devicetree/next and is tested
+> (with twl adaptaions, which will be posted seperately)
+> on the OMAP4 panda and OMAP4 sdp boards.
 
-This should've been in the previous patch.
-
-> +For twl6030 regulators/LDO's
-
-LDOs.
+Looking at the device bindings I notice that these bindings loose the
+ability to assign a descriptive name to regulator outputs.  This is
+really useful for making it easy to tie the code and the schematics
+together - you can make the runing system use the same name as the
+schematic.
