@@ -1,74 +1,46 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 3/3] omap4: panda: Pass regulator data from DT
-Date: Thu, 27 Oct 2011 13:34:34 +0530
-Message-ID: <1319702674-16304-4-git-send-email-rnayak@ti.com>
-References: <1319702674-16304-1-git-send-email-rnayak@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 1/4] regulator: helper routine to extract
+	regulator_init_data
+Date: Thu, 27 Oct 2011 10:09:53 +0200
+Message-ID: <20111027080953.GB18360@opensource.wolfsonmicro.com>
+References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
+	<1319702185-16108-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51177 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353Ab1J0IFc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 27 Oct 2011 04:05:32 -0400
-In-Reply-To: <1319702674-16304-1-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1319702185-16108-2-git-send-email-rnayak@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: b-cousson@ti.com, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, shawn.guo@freescale.com, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, Rajendra Nayak <rnayak@ti.com>
 
-Pass the fixed and adjustable voltage regulator information for
-omap4panda board from device tree.
+On Thu, Oct 27, 2011 at 01:26:22PM +0530, Rajendra Nayak wrote:
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/boot/dts/omap4-panda.dts |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+> +	min_uV = of_get_property(np, "regulator-min-uV", NULL);
+> +	if (min_uV)
+> +		(*init_data)->constraints.min_uV = be32_to_cpu(*min_uV);
+> +	max_uV = of_get_property(np, "regulator-max-uV", NULL);
+> +	if (max_uV)
+> +		(*init_data)->constraints.max_uV = be32_to_cpu(*max_uV);
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 2c6ce2b..4c3069f 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -48,6 +48,40 @@
- 			compatible = "ti,twl4030-rtc";
- 			interrupts = <11>;
- 		};
-+
-+		vwl1271: fixedregulator@0 {
-+			compatible = "regulator-fixed";
-+			regulator-fixed-supply = "vwl1271";
-+			regulator-fixed-microvolts = <1800000>;
-+			regulator-fixed-gpio = <43>;
-+			regulator-fixed-startup-delay = <70000>;
-+			regulator-fixed-enable-high;
-+			regulator-fixed-enabled-at-boot;
-+		};
-+
-+		vaux2: regulator@0 {
-+			compatible = "ti,twl6030-vaux2","ti,twl6030";
-+			regulator-min-uV = <1200000>;
-+			regulator-max-uV = <2800000>;
-+		};
-+
-+		vaux3: regulator@1 {
-+			compatible = "ti,twl6030-vaux3","ti,twl6030";
-+			regulator-min-uV = <1000000>;
-+			regulator-max-uV = <3000000>;
-+		};
-+
-+		vmmc: regulator@2 {
-+			compatible = "ti,twl6030-vmmc","ti,twl6030";
-+			regulator-min-uV = <1200000>;
-+			regulator-max-uV = <3000000>;
-+		};
-+
-+		vpp: regulator@3 {
-+			compatible = "ti,twl6030-vpp","ti,twl6030";
-+			regulator-min-uV = <1800000>;
-+			regulator-max-uV = <2500000>;
-+		};
- 	};
- };
- 
--- 
-1.7.1
+If we have min_uV and max_uV we should also set REGULATOR_CHANGE_VOLTAGE
+(and similarly for the currents).  
 
+We should also have a way to enable status changes - since there's an
+always_on property (which does make sense) I'd suggest that as a first
+pass we should enable status changes if always_on is not set (these two
+things are a bit redundant in the existing constrints).  This is
+slightly risky as you can get a situation where new device driver
+support for regulators starts unexpectedly turning off supplies but
+that's always going to be a risk with constraints disassociated from the
+kernel.
