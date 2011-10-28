@@ -1,69 +1,56 @@
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: Re: HSI framework for linux-next
-Date: Fri, 28 Oct 2011 14:23:12 +0300
-Message-ID: <1319800996.31184.131.camel@sauron>
-References: <1319794066.28874.22.camel@groo>
-Reply-To: artem.bityutskiy@linux.intel.com
+From: Matthieu CASTET <matthieu.castet@parrot.com>
+Subject: Re: [RFC] Change ECC algorithm from userspace
+Date: Fri, 28 Oct 2011 13:51:27 +0200
+Message-ID: <4EAA973F.8060104@parrot.com>
+References: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com> <4EAA845B.1020009@parrot.com> <CAAwP0s32AJCm_AjxubDSu8ikzhXeRWUqqsPrBmygUHPkRvtv8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-OHo85efx7DxUVzEuCCAl"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1319794066.28874.22.camel@groo>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Sebastian Reichel <sre@debian.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from co202.xi-lite.net ([149.6.83.202]:59406 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755370Ab1J1Lvw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Oct 2011 07:51:52 -0400
+In-Reply-To: <CAAwP0s32AJCm_AjxubDSu8ikzhXeRWUqqsPrBmygUHPkRvtv8g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
+
+Javier Martinez Canillas a =C3=A9crit :
+> On Fri, Oct 28, 2011 at 12:30 PM, Matthieu CASTET
+> <matthieu.castet@parrot.com> wrote:
+>> PS : note that some OMAP ROM support a better protection than Hammin=
+g (but the
+>> details are not public AFAIK)
+>>
+>> From OMAP34xx Multimedia Device, Silicon Revision 3.1.x, public vers=
+ion :
+>>
+>> Pages can contain errors caused by memory alteration. To correct the=
+se errors,
+>> the ROM code uses ECC,
+>> based on Hamming codes for SLC NAND and BCH (Bose, Ray-Chaudhuri, Ho=
+cquenghem)
+>> code for
+>> multilevel cell (MLC) devices. The computed ECC is compared to ECC s=
+tored in the
+>> spare area of the
+>> corresponding page. If there are uncorrectable errors, the ROM code =
+returns with
+>> FAIL.
+>>
+>
+> Yes I've read that on the DM3730 TRM but as far as I understand only
+> applies to MLC devices, but ours is SLC.
+>
+It also works on SLC devices. We are using it on micron slc that need 4=
+ bits ECC.
 
 
---=-OHo85efx7DxUVzEuCCAl
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2011-10-28 at 12:27 +0300, Carlos Chinea wrote:
-> Hi Stephen,
->=20
-> I have been working in an HSI framework for linux:
->=20
-> https://lkml.org/lkml/2011/6/10/280
->=20
-> The framework is in good shape and is currently being used for some
-> people so we would like it to see it integrated, if possible, for 3.3
->=20
-> Latest discussion for integration:
-> https://lkml.org/lkml/2011/10/20/177
-
-Stephen,
-
-I confirm that this is useful and solid framework, works well, and we
-are also interested to see it upstream.
-
-Thanks!
-
---=20
-Best Regards,
-Artem Bityutskiy
-
---=-OHo85efx7DxUVzEuCCAl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJOqpCgAAoJECmIfjd9wqK0r4YQAInT7X1/D/rFM5HtO+6iFqq7
-ZV32HT3lEWyc3USM1dfHtjUD3PongTagaEos17fglyUnbDWbBUrA/3iDbuadng45
-fhx28ENBX9BL6f68u/Fem6325l6Ki770YfTNFWwdn6wAAeCQv7lQ/DFJoDM7ThMV
-xYY/arQffjqB7yKCQkT+fmCaKnaR84C8AwXyz74TCfyw+B9IyjfPi7QAaFbKq1QD
-nDc+oOkwDuvJQtmtXWY5OlR7eipP5MCarAkOiWJcLcIKJ+ASs7l0jH5W2K3a9vYL
-bvUA4mQ+iq/9NayYSpzsuJG2TE0vi7UB949pnaSHKEzxGOH0nxph1hPvBIqMuqpQ
-klhE1tfNcWuNqBJDKs1kIxl3s33JfJt1gH+XPA0Rc5KpD/tLyOOqoNrv6I3m3pEl
-tx4HRimRsCviWSGVZIaMUvKvEsL9AoOLKavKTP7EJ0ykfXk9dbgMZj9ag+bMu4lN
-TIZiQBvi2FEZJAFzCNudzbb4XD4YkvFv9tH73N3uqCgLgXjdC44prSg3OOq5M0b1
-7va87QjGtEDLTmHTP4fouAEduAIqfaogUzpApNNyqOo2cDw0SaadVp17Elf/7Ew7
-aAAQDvvNMs/5ZXG1mf9MUKzSEEoDznsOkN+dNUfivTNOWJoCfrZzvjB//slPdLKn
-mV+eEAAm+pzIshQsuWF6
-=aQuY
------END PGP SIGNATURE-----
-
---=-OHo85efx7DxUVzEuCCAl--
+Matthieu
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
