@@ -1,104 +1,61 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH v2] arm: omap: Fix errors and warnings when building for
-	one board
-Date: Fri, 28 Oct 2011 14:10:50 +0000
-Message-ID: <E28AAFD00EFAA646AE3DF9B89CD24A8901CD80@DBDE01.ent.ti.com>
-References: <1318522450-18425-1-git-send-email-premi@ti.com>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: Re: [PATCH v9 2/4] cpuidle: Remove CPUIDLE_FLAG_IGNORE
+	and dev->prepare()
+Date: Fri, 28 Oct 2011 07:24:07 -0700
+Message-ID: <4EAABB07.3000305@linux.intel.com>
+References: <20111028104945.7520.83828.stgit@localhost6.localdomain6>
+	<20111028105020.7520.68014.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1318522450-18425-1-git-send-email-premi@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "tony@atomide.com" <tony@atomide.com>
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20111028105020.7520.68014.stgit@localhost6.localdomain6>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Premi, Sanjeev 
-> Sent: Thursday, October 13, 2011 9:44 PM
-> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Cc: Premi, Sanjeev
-> Subject: [PATCH v2] arm: omap: Fix errors and warnings when 
-> building for one board
-> 
-> When customizing omap2plus_defconfig to build for only
-> one board (omap3evm), I came across these warnings and
-> errors (filenames truncated):
-> 
-> arch/arm/mach-omap2/board-generic.c:76:20: warning: 
-> 'omap4_init' defined but not used
-> arch/arm/mach-omap2/built-in.o: In function `omap2420_init_early':
-> arch/arm/mach-omap2/io.c:364: undefined reference to 
-> `omap2_set_globals_242x'
-> arch/arm/mach-omap2/io.c:366: undefined reference to 
-> `omap2xxx_voltagedomains_init'
-> arch/arm/mach-omap2/io.c:367: undefined reference to 
-> `omap242x_powerdomains_init'
-> arch/arm/mach-omap2/io.c:368: undefined reference to 
-> `omap242x_clockdomains_init'
-> arch/arm/mach-omap2/io.c:369: undefined reference to 
-> `omap2420_hwmod_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap2430_init_early':
-> arch/arm/mach-omap2/io.c:376: undefined reference to 
-> `omap2_set_globals_243x'
-> arch/arm/mach-omap2/io.c:378: undefined reference to 
-> `omap2xxx_voltagedomains_init'
-> arch/arm/mach-omap2/io.c:379: undefined reference to 
-> `omap243x_powerdomains_init'
-> arch/arm/mach-omap2/io.c:380: undefined reference to 
-> `omap243x_clockdomains_init'
-> arch/arm/mach-omap2/io.c:381: undefined reference to 
-> `omap2430_hwmod_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap4430_init_early':
-> arch/arm/mach-omap2/io.c:436: undefined reference to 
-> `omap2_set_globals_443x'
-> arch/arm/mach-omap2/io.c:438: undefined reference to 
-> `omap44xx_voltagedomains_init'
-> arch/arm/mach-omap2/io.c:439: undefined reference to 
-> `omap44xx_powerdomains_init'
-> arch/arm/mach-omap2/io.c:440: undefined reference to 
-> `omap44xx_clockdomains_init'
-> arch/arm/mach-omap2/io.c:441: undefined reference to 
-> `omap44xx_hwmod_init'
-> 
-> This patch fixes them.
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
-> 
->  Changes since v1:
->     - #if defined() to #ifdef
->     - Moved an #ifdef to take care of additional warning
->       related to sdp4430_twldata. Had missed squashing the
->       patch before sending v1.
-> 
->  Adding ifdefs makes the code bit ugly and is prone to propagate
->  further. Not sure if DT will help here, but this patch would be
->  useful for people trying to build for individual boards.
-> 
->  Compile tested for OMAP3EVM.
-> 
->  Applies to linux-omap/master at:
->    fb4df0f : ARM: OMAP1: Fix warnings about enabling 32 KiHz timer
-> 
-> 
->  arch/arm/mach-omap2/board-generic.c |    8 ++++++++
->  arch/arm/mach-omap2/io.c            |    6 ++++++
->  2 files changed, 14 insertions(+), 0 deletions(-)
-> 
 
-Tony,
-
-Just wanted to check the status of this patch.
-
-~sanjeev
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+On 10/28/2011 3:50 AM, Deepthi Dharwar wrote:
+> The cpuidle_device->prepare() mechanism causes updates to the
+> cpuidle_state[].flags, setting and clearing CPUIDLE_FLAG_IGNORE
+> to tell the governor not to chose a state on a per-cpu basis at
+> run-time. State demotion is now handled by the driver and it returns
+> the actual state entered. Hence, this mechanism is not required.
+> Also this removes per-cpu flags from cpuidle_state enabling
+> it to be made global.
+>
+ 
+having worked on some newer platforms....
+this one is really still needed. doing this inside the actual states
+does not work,
+because if the deepest 3 states are invalid, the same (somewhat
+expensive) test would have to be done 3 times,
+and each of the states would have to fail before the 4th one gets chosen.
+that's just not going to work
+ 
+(in the state handler you can't know what other state to fall back to,
+and especially not how to enter such a fallback state)
+ 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (MingW32)
+ 
+iQEcBAEBAgAGBQJOqrsGAAoJEEHdSxh4DVnEu7EH/i5lEJctBAIubJOcZz/tvBFp
+XYmAe/HqNtSXeHOVsJkTf8y4ppE8487exF7xxMik4GRN0CZNCtkyMezqDVu+eDim
+O/UUbScsAc5cSY6mkjOFXLFup+mi1nkRUnAbxXEyTMhWwcbfr2OvcuO7l7TmATML
+hu87P3PVEafEop3q2+uWMc57fFxnNFfEDqRx6N9V+OJKV5dHrRYL4G4E01fYGFLo
+xTR0IW7nB15L0C29zk9uk/Dqow8SoJZA83c7p7AieP5zdntb6p7noIf03qmdp19f
+fulwMwembCHivo+pLO+jAMhKD1T6VYoCyiYW0LHrQ2E07fayBhFJCxlazgKFcl0=
+=FL6o
+-----END PGP SIGNATURE-----
