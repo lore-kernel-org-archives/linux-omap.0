@@ -1,40 +1,38 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: Re: [PATCH 2/2 v3] net/smsc911x: Add regulator support
-Date: Fri, 28 Oct 2011 00:43:35 +0200
-Message-ID: <CAJaTeTpPxmFKa4D-NOXvuoL52esaouT-tkCupZm86nR1ZFVfxA@mail.gmail.com>
-References: <1319719691-15799-1-git-send-email-linus.walleij@stericsson.com>
- <CAJaTeTrzFwxsn22U-NHQ8iCiaUM+mj8PyicavR-DN0HgE08ZEQ@mail.gmail.com>
- <20111027154638.GA16946@sirena.org.uk> <CAJaTeTpzFOdgqGH3vDWY8Mdx7zra8R9nUQYHgsEBfy_yGkEWOw@mail.gmail.com>
- <20111027214241.GA11534@opensource.wolfsonmicro.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: HSI framework for linux-next
+Date: Fri, 28 Oct 2011 12:27:46 +0300
+Message-ID: <1319794066.28874.22.camel@groo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <20111027214241.GA11534@opensource.wolfsonmicro.com>
-Sender: linux-sh-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Linus Walleij <linus.walleij@stericsson.com>, netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirer <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Oct 27, 2011 at 23:42, Mark Brown wrote:
-> On Thu, Oct 27, 2011 at 10:59:14PM +0200, Mike Frysinger wrote:
->> i saw that !CONFIG_REGULATOR works great. =A0my concern is that thes=
-e
->> boards don't define any regulators for smsc resources, so if
->> CONFIG_REGULATOR is enabled to test out unrelated daughter cards, i
->> don't want the network driver suddenly failing. =A0Linus' comments
->> suggest that this is what would happen unless each board file has it=
-s
->> smsc platform resources extended. =A0maybe i misunderstood what he w=
-as saying ?
->
-> That's the case that's handled by CONFIG_REGULATOR_DUMMY - if the loo=
-kup
-> fails the core will provide a virtual regulator to the consumer. =A0I=
-f
-> you're running a setup like that you probably want to enable dummy
-> regulators anyway.
+Hi Stephen,
 
-ok, if people configuring need only select that Kconfig symbol to make
-it work, i'm fine with things.  thanks for the explanation.
--mike
+I have been working in an HSI framework for linux:
+
+https://lkml.org/lkml/2011/6/10/280
+
+The framework is in good shape and is currently being used for some
+people so we would like it to see it integrated, if possible, for 3.3
+
+Latest discussion for integration:
+https://lkml.org/lkml/2011/10/20/177
+
+Therefore, could you add the following tree to linux-next ? 
+	git@gitorious.org:kernel-hsi/kernel-hsi.git for-next
+
+Currently the framework does not have any HSI/SSI controller driver, but
+myself I am working on an SSI OMAP one, which needs some changes to get
+full acceptance. So hopefully I will have the changes done and acked on
+time.
+There are also other people preparing their controllers for integration
+(see the integration discussion)
+
+Thanks and br,
+-- 
+Carlos Chinea <carlos.chinea@nokia.com>
