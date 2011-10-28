@@ -1,182 +1,64 @@
 From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH] regulator: Provide dummy supply support
-Date: Fri, 28 Oct 2011 22:26:58 +0200
-Message-ID: <1319833618-25190-2-git-send-email-s.hauer@pengutronix.de>
-References: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de>
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de>
-Sender: linux-sh-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, Mike Frysinger <vapier@gentoo.org>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 2/2 v3] net/smsc911x: Add regulator support
+Date: Fri, 28 Oct 2011 22:33:53 +0200
+Message-ID: <20111028203353.GE23421@pengutronix.de>
+References: <1319719691-15799-1-git-send-email-linus.walleij@stericsson.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1319719691-15799-1-git-send-email-linus.walleij@stericsson.com>
+Sender: netdev-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@stericsson.com>
+Cc: netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirer <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Mike Frysinger <vapier@gentoo.org>, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Currently we have CONFIG_REGULATOR_DUMMY which provides a fallback
-dummy regulator if none is found. Enabling this option shadows
-real regulator_get errors though and can't be used in production.
-Also there is regulator_use_dummy_regulator() which has the
-same behaviour but can be used during runtime.
+Hi Linus,
 
-This patch allows a board to register dummy supplies for devices
-which need a regulator but which is not software controllable
-on this board.
+On Thu, Oct 27, 2011 at 02:48:11PM +0200, Linus Walleij wrote:
+> From: Robert Marklund <robert.marklund@stericsson.com>
+> 
+> Add some basic regulator support for the power pins, as needed
+> by the ST-Ericsson Snowball platform that powers up the SMSC911
+> chip using an external regulator.
+> 
+> Platforms that use regulators and the smsc911x and have no defined
+> regulator for the smsc911x and claim complete regulator
+> constraints with no dummy regulators will need to provide it, for
+> example using a fixed voltage regulator. It appears that this may
+> affect (apart from Ux500 Snowball) possibly these archs/machines
+> that from some grep:s appear to define both CONFIG_SMSC911X and
+> CONFIG_REGULATOR:
+> 
+> - ARM Freescale mx3 and OMAP 2 plus, Raumfeld machines
+> - Blackfin
+> - Super-H
+> 
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- drivers/regulator/Makefile        |    2 +-
- drivers/regulator/dummy-supply.c  |   88 +++++++++++++++++++++++++++++++++++++
- include/linux/regulator/machine.h |   18 ++++++++
- 3 files changed, 107 insertions(+), 1 deletions(-)
- create mode 100644 drivers/regulator/dummy-supply.c
+...
 
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 040d5aa..ff618b9 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- 
--obj-$(CONFIG_REGULATOR) += core.o dummy.o
-+obj-$(CONFIG_REGULATOR) += core.o dummy.o dummy-supply.o
- obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
- obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
- obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
-diff --git a/drivers/regulator/dummy-supply.c b/drivers/regulator/dummy-supply.c
-new file mode 100644
-index 0000000..4e62b1f
---- /dev/null
-+++ b/drivers/regulator/dummy-supply.c
-@@ -0,0 +1,88 @@
-+/*
-+ * dummy-supply.c
-+ *
-+ * Copyright 2011 Sascha Hauer <s.hauer@pengutronix.de>, Pengutronix
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version.
-+ *
-+ * This is useful for systems with mixed controllable and
-+ * non-controllable regulators, as well as for allowing testing on
-+ * systems with no controllable regulators.
-+ */
-+#include <linux/err.h>
-+#include <linux/slab.h>
-+#include <linux/regulator/driver.h>
-+#include <linux/regulator/machine.h>
-+
-+struct dummy_regulator {
-+	struct regulator_desc desc;
-+	struct regulator_init_data initdata;
-+	struct regulator_dev *rdev;
-+};
-+
-+static struct regulator_ops dummy_ops;
-+
-+/**
-+ * regulator_register_dummy - register a dummy supply
-+ *
-+ * Calling this function will register a dummy regulator
-+ * for devices for which no software controllable regulator
-+ * is available.
-+ */
-+struct dummy_regulator *regulator_register_dummy(
-+		struct regulator_consumer_supply *__supply,
-+		int num_supplies)
-+{
-+	struct dummy_regulator *dummy;
-+	struct regulator_consumer_supply *supply;
-+
-+	dummy = kzalloc(sizeof(*dummy), GFP_KERNEL);
-+	if (!dummy)
-+		return NULL;
-+
-+	dummy->desc.name = "dummy";
-+	dummy->desc.id = -1;
-+	dummy->desc.type = REGULATOR_VOLTAGE;
-+	dummy->desc.owner = THIS_MODULE;
-+	dummy->desc.ops = &dummy_ops;
-+
-+	supply = kzalloc(sizeof(*supply) * num_supplies, GFP_KERNEL);
-+	if (!supply)
-+		goto err_alloc;
-+	memcpy(supply, __supply, sizeof(*supply) * num_supplies);
-+
-+	dummy->initdata.num_consumer_supplies = num_supplies;
-+	dummy->initdata.consumer_supplies = supply,
-+
-+	dummy->rdev = regulator_register(&dummy->desc, NULL,
-+						  &dummy->initdata, NULL);
-+	if (!dummy->rdev)
-+		goto err_register;
-+
-+	return dummy;
-+
-+err_register:
-+	kfree(supply);
-+err_alloc:
-+	kfree(dummy);
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(regulator_register_dummy);
-+
-+/**
-+ * regulator_unregister_dummy - unregister a dummy supply
-+ *
-+ * This function unregisters a supply previously registered
-+ * with regulator_register_dummy.
-+ */
-+void regulator_unregister_dummy(struct dummy_regulator *dummy)
-+{
-+	regulator_unregister(dummy->rdev);
-+	kfree(dummy->initdata.consumer_supplies);
-+	kfree(dummy);
-+}
-+EXPORT_SYMBOL_GPL(regulator_unregister_dummy);
-diff --git a/include/linux/regulator/machine.h b/include/linux/regulator/machine.h
-index ce3127a..13245cb 100644
---- a/include/linux/regulator/machine.h
-+++ b/include/linux/regulator/machine.h
-@@ -186,12 +186,20 @@ struct regulator_init_data {
- 	void *driver_data;	/* core does not touch this */
- };
- 
-+/**
-+ * cookie for regulator_register_dummy
-+ */
-+struct dummy_regulator;
-+
- int regulator_suspend_prepare(suspend_state_t state);
- int regulator_suspend_finish(void);
- 
- #ifdef CONFIG_REGULATOR
- void regulator_has_full_constraints(void);
- void regulator_use_dummy_regulator(void);
-+struct dummy_regulator *regulator_register_dummy(
-+		struct regulator_consumer_supply *, int);
-+void regulator_unregister_dummy(struct dummy_regulator *);
- #else
- static inline void regulator_has_full_constraints(void)
- {
-@@ -200,6 +208,16 @@ static inline void regulator_has_full_constraints(void)
- static inline void regulator_use_dummy_regulator(void)
- {
- }
-+
-+static inline struct dummy_regulator *regulator_register_dummy(
-+		struct regulator_consumer_supply *, int)
-+{
-+	return (void *)-1;
-+};
-+
-+void regulator_unregister_dummy(struct dummy_regulator *)
-+{
-+}
- #endif
- 
- #endif
+>  
+> +
+> +/*
+> + * Request or free resources, currently just regulators.
+> + *
+> + * The SMSC911x has two power pins: vddvario and vdd33a, in designs where
+> + * these are not always-on we need to request regulators to be turned on
+> + * before we can try to access the device registers.
+> + */
+> +static int smsc911x_request_free_resources(struct platform_device *pdev,
+> +		bool request)
+
+I had to look twice at this function name. First I thought "request the
+free resources?", which other resources would you request if not the
+free ones? I think it would be nicer to have two functions instead.
+Just my 2 cents.
+
+Sascha
+
+
 -- 
-1.7.7
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
