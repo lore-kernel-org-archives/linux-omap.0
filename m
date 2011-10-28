@@ -1,80 +1,129 @@
-From: Atlant Schmidt <aschmidt@dekaresearch.com>
-Subject: RE: [RFC] Change ECC algorithm from userspace
-Date: Fri, 28 Oct 2011 06:43:29 -0400
-Message-ID: <0A40042D85E7C84DB443060EC44B3FD33254FA3BBC@dekaexchange07.deka.local>
-References: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: [PATCH v9 0/4] cpuidle: Global registration of idle states with
+ per-cpu statistics
+Date: Fri, 28 Oct 2011 16:19:55 +0530
+Message-ID: <20111028104945.7520.83828.stgit@localhost6.localdomain6>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: 'Javier Martinez Canillas' <martinez.javier@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from e23smtp04.au.ibm.com ([202.81.31.146]:47718 "EHLO
+	e23smtp04.au.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755059Ab1J1KuF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 06:50:05 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, rjw@sisk.pl, santosh.shilimkar@ti.com, arjan@linux.intel.com, lenb@kernel.org
+Cc: linux-pm@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SmF2aWVyOg0KDQogIFRoYXQncyB3aHkgbW9zdCBwZW9wbGUgYm9vdCBmcm9tIE5PUiBGbGFzaA0K
-ICB3aGVyZSBhIDEtYml0IEVDQyBpcyBhZGVxdWF0ZS4NCg0KICBJIGRvbid0IHNlZSBob3cgeW91
-IGNhbiBwb3NzaWJseSBleHBlY3QgdG8NCiAgcmVsaWFibHksIHN1Y2Nlc3NmdWxseSBib290IGZy
-b20gYSBOQU5EIEZsYXNoDQogIHVzaW5nIGp1c3QgMSBiaXQgRUNDOyB5b3UndmUgZWl0aGVyIGdv
-dCB0bw0KICBjaGFuZ2UgdGhlIGJvb3QgbG9hZGVyIHRvIGFsbG93IG1vcmUgRUNDIG9yDQogIHVz
-ZSBtb3JlLXJlbGlhYmxlIEZsYXNoIGhhcmR3YXJlLg0KDQogICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgQXRsYW50DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1t
-dGQtYm91bmNlc0BsaXN0cy5pbmZyYWRlYWQub3JnIFttYWlsdG86bGludXgtbXRkLWJvdW5jZXNA
-bGlzdHMuaW5mcmFkZWFkLm9yZ10gT24gQmVoYWxmIE9mIEphdmllciBNYXJ0aW5leiBDYW5pbGxh
-cw0KU2VudDogRnJpZGF5LCBPY3RvYmVyIDI4LCAyMDExIDA1OjQzDQpUbzogbGludXgtbXRkQGxp
-c3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQpDYzogRW5yaWMg
-QmFsbGV0Ym8gaSBTZXJyYQ0KU3ViamVjdDogW1JGQ10gQ2hhbmdlIEVDQyBhbGdvcml0aG0gZnJv
-bSB1c2Vyc3BhY2UNCg0KSGVsbG8sDQoNCldlJ3ZlIGEgY3VzdG9tIGJvYXJkIHVzaW5nIGFuIEFS
-TSBPTUFQIERNMzczMCB3aG9zZSBST00gYm9vdCBsb2FkZXINCm9ubHkgc3VwcG9ydHMgMS1iaXQg
-RUNDIGNvcnJlY3Rpb24gdXNpbmcgSGFtbWluZyBhbGdvcml0aG0uDQoNClNvLCBpbiBvcmRlciB0
-byBiZSBhYmxlIHRvIGJvb3QgZnJvbSB0aGUgTkFORCwgd2UgaGF2ZSB0byBjb25maWd1cmUNCnRo
-ZSBHUE1DIChPTUFQJ3MgbWVtb3J5IGNvbnRyb2xsZXIgdGhhdCBpbnRlcmZhY2VzIHdpdGggTkFO
-RCBkZXZpY2VzKQ0KdG8gdXNlIDEtYml0IEhXIEVDQyBhbmQgd3JpdGUgdGhlIGxvYWRlciBiaW5h
-cnkgdG8gdGhlIGZpcnN0IE5BTkQNCnNlY3Rvci4gVGhhdCB3YXkgdGhlIFJPTSBib290IHdpbGwg
-dGFrZSB0aGlzIHNlY3RvciBhcyB2YWxpZCBhbmQgbG9hZA0KdGhlIGxvYWRlciBiaW5hcnkgdG8g
-UkFNLg0KDQpUaGUgcHJvYmxlbSBpcyB0aGF0IHRoZSBTTEMgTkFORCBkZXZpY2UgdGhhdCB3ZSBh
-cmUgdXNpbmcgaGFzIGENCm1pbmltdW0gcmVxdWlyZWQgRUNDIG9mIDQtYml0IGNvcnJlY3Rpb24g
-cGVyIGVhY2ggNTEyIGJ5dGVzLg0KDQpJIHdhbnQgdG8gYmUgYWJsZSB0byB1c2UgMS1iaXQgRUND
-IGZvciB0aGUgZmlyc3QgcGFydGl0aW9uIHdoZXJlIEkNCnNhdmUgdGhlIGxvYWRlciBiaW5hcnkg
-YW5kIGhhcyB0byBiZSBhY2Nlc3NlZCBieSB0aGUgUk9NIGJvb3QgYnV0IHVzZQ0KYSA0LWJpdCBF
-Q0MgZm9yIG15IHJvb3RmcyBwYXJ0aXRpb24uDQoNCkRvZXMgYW55b25lIGhhdmUgdGhpcyBzYW1l
-IGlzc3VlPw0KDQpXaGF0IGlzIHRoZSBiZXN0IGFwcHJvYWNoIHRvIHN0b3JlIGRhdGEgaW4gYSBO
-QU5EIGRldmljZSB1c2luZw0KZGlmZmVyZW50IEVDQyB0ZWNobmlxdWVzPw0KDQpJJ3ZlIHRoaW5r
-IG9mIHR3byBhcHByb2FjaGVzOg0KDQoxLSBBZGRpbmcgYW4gaW9jdGwgdG8gbXRkY2hhciAoc29t
-ZXRoaW5nIGxpa2UgRUNDU0VUQklUUykgdG8gY2hhbmdlDQp0aGUgRUNDIHRlY2huaXF1ZSB1c2Vk
-Lg0KMi0gVXNlIGEgcGxhdGZvcm0gZGF0YSBmaWVsZCB0byBub3RpZnkgdGhlIG9tYXAyIG5hbmQg
-ZHJpdmVyIHRoYXQgdGhlDQpST00gYm9vdCBvbmx5IHN1cHBvcnRzIDEtYml0IEVDQy4gU28gaXQg
-Y2FuIHVzZSBhIDEtYml0IEVDQyB0byB3cml0ZQ0KYW5kIHJlYWQgdGhlIGZpcnN0IDQgc2VjdG9y
-cyBidXQgYSA0LWJpdCBFQ0MgZm9yIHRoZSByZXN0Lg0KDQpPZiBjb3Vyc2UgYm90aCBhcHByb2Fj
-aGVzIGNhbiBvbmx5IGJlIHVzZWQgaWYgdGhlIG5vbmUgb2YgdGhlIG5hbmQNCm1lbW9yeSBwYXJ0
-aXRpb25zIGFyZSBtb3VudGVkLg0KDQpUaGFuayB5b3UgYW5kIGJlc3QgcmVnYXJkcywNCg0KLS0N
-CkphdmllciBNYXJ0w61uZXogQ2FuaWxsYXMNCigrMzQpIDY4MiAzOSA4MSA2OQ0KQmFyY2Vsb25h
-LCBTcGFpbg0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18NCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdA0KaHR0cDovL2xpc3Rz
-LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvDQoNCg0KIENsaWNrIGh0
-dHBzOi8vd3d3Lm1haWxjb250cm9sLmNvbS9zci95NzZ6VzgraW9QclRuZHhJIW9YN1VsdndsMUdx
-RkFQciFGN093VEtoaFVHTlZRNUVmWWwhMlVRd203Z0NQOVJxYUwhZUF5RVIybHdqcCttbU1WN0pJ
-dz09ICB0byByZXBvcnQgdGhpcyBlbWFpbCBhcyBzcGFtLg0KDQpUaGlzIGUtbWFpbCBhbmQgdGhl
-IGluZm9ybWF0aW9uLCBpbmNsdWRpbmcgYW55IGF0dGFjaG1lbnRzLCBpdCBjb250YWlucyBhcmUg
-aW50ZW5kZWQgdG8gYmUgYSBjb25maWRlbnRpYWwgY29tbXVuaWNhdGlvbiBvbmx5IHRvIHRoZSBw
-ZXJzb24gb3IgZW50aXR5IHRvIHdob20gaXQgaXMgYWRkcmVzc2VkIGFuZCBtYXkgY29udGFpbiBp
-bmZvcm1hdGlvbiB0aGF0IGlzIHByaXZpbGVnZWQuIElmIHRoZSByZWFkZXIgb2YgdGhpcyBtZXNz
-YWdlIGlzIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBpZW50LCB5b3UgYXJlIGhlcmVieSBub3RpZmll
-ZCB0aGF0IGFueSBkaXNzZW1pbmF0aW9uLCBkaXN0cmlidXRpb24gb3IgY29weWluZyBvZiB0aGlz
-IGNvbW11bmljYXRpb24gaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGhhdmUgcmVjZWl2
-ZWQgdGhpcyBjb21tdW5pY2F0aW9uIGluIGVycm9yLCBwbGVhc2UgaW1tZWRpYXRlbHkgbm90aWZ5
-IHRoZSBzZW5kZXIgYW5kIGRlc3Ryb3kgdGhlIG9yaWdpbmFsIG1lc3NhZ2UuDQoNClRoYW5rIHlv
-dS4NCg0KUGxlYXNlIGNvbnNpZGVyIHRoZSBlbnZpcm9ubWVudCBiZWZvcmUgcHJpbnRpbmcgdGhp
-cyBlbWFpbC4NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3RzLmlu
-ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
+Version 6 of this patch series dated 22nd Sept 2011 was 
+Acked-by: Arjan van de Ven <arjan@linux.intel.com>
+Acked-by: Kevin Hilman <khilman@ti.com> for OMAP specific parts.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Tested-by: Jean Pihet <j-pihet@ti.com>
+
+Hi Len, 
+Can you please queue this series for the next mainline merge window by merging
+it into your development tree and also linux-next for further testing.
+
+I have also tested it by applying these patches on your ACPI tree hosted @github.
+
+Thanks
+-Deepthi
+
+--
+
+The following patch series implements global registration of cpuidle
+states, and also has the necessary data structure changes to
+accommodate the per-cpu writable members of the cpuidle_states
+structure.
+
+This patch series had been in discussion earlier and
+following are the links to the previous discussions.
+
+v8 --> https://lkml.org/lkml/2011/10/3/52
+v7 --> https://lkml.org/lkml/2011/9/27/74 
+v6 --> https://lkml.org/lkml/2011/9/22/58
+v5 --> https://lkml.org/lkml/2011/6/6/259
+v4 --> https://lkml.org/lkml/2011/4/28/312
+v3 --> https://lkml.org/lkml/2011/2/8/73
+v2 --> https://lkml.org/lkml/2011/1/13/98
+v1 --> https://lkml.org/lkml/2011/3/22/161
+
+Changes from previous version (v8):
+
+   1. Rebased and tested on 3.1
+
+Tests done:
+
+    1. Compile tested for ARM using the following configs: da8xx_omapl_defconfig,
+    kirkwood_defconfig, omap2plus_defconfig, at91rm9200_defconfig
+      
+    2. Boot tested on x86 nehalem with multiple C-states for both intel_idle
+    and acpi_idle drivers.
+
+    3. Boot tested on T60p thinkpad that has T2600 cpu with multiple C-states. 
+    Also tested the case when there is dynamic changes in C-states 
+    AC <-> Battery Power switch.
+
+Brief description of the patches:
+
+Core change in this series is to split the cpuidle_device structure 
+into two parts, i.e  global and per-cpu basis. 
+
+The per-cpu pieces are mostly generic statistics that can be independent 
+of current running driver. As a result of these changes, there is single 
+copy of cpuidle_states structure and single registration done by one 
+cpu. The low level driver is free to set per-cpu driver data on
+each cpu if needed using the cpuidle_set_statedata() as the case
+today. Only in very rare cases asymmetric C-states exist which can be 
+handled within the cpuidle driver. Most architectures do not have 
+asymmetric C-states.
+
+First two patches in the series facilitate splitting of cpuidle_states
+and cpuidle_device structure and next two patches do the actual split,
+change the API's and make existing code follow the changed API.
+
+[1/4] - Move the idle residency accounting part from cpuidle.c to
+the respective low level drivers, so that the accounting can
+be accurately maintained if the driver decides to demote the
+chosen (suggested) by the governor.
+
+[2/4] - removes the cpuidle_device()->prepare API since is is not
+widely used and the only use case was to allow software
+demotion using CPUIDLE_FLAG_IGNORE flag.  Both these
+functions can be absorbed within the cpuidle back-end
+driver ad hence deprecating the prepare routine and the
+CPUIDLE_FLAG_IGNORE flag.
+
+    - Ref: https://lkml.org/lkml/2011/3/25/52
+
+[3/4] - Splits the usage statistics (read/write) part out of
+cpuidle_state structure, so that the states can become read
+only and hence made global.
+
+[4/4] - Most APIs will now need to pass pointer to both global
+cpuidle_driver and per-cpu cpuidle_device structure.
+
+ arch/arm/mach-at91/cpuidle.c          |   41 +++--
+ arch/arm/mach-davinci/cpuidle.c       |   51 ++++---
+ arch/arm/mach-exynos4/cpuidle.c       |   30 ++--
+ arch/arm/mach-kirkwood/cpuidle.c      |   42 +++---
+ arch/arm/mach-omap2/cpuidle34xx.c     |  133 +++++++++++------
+ arch/sh/kernel/cpu/shmobile/cpuidle.c |   28 ++--
+ drivers/acpi/processor_driver.c       |   20 ---
+ drivers/acpi/processor_idle.c         |  251 +++++++++++++++++++++++++++------
+ drivers/cpuidle/cpuidle.c             |   86 ++++-------
+ drivers/cpuidle/driver.c              |   25 +++
+ drivers/cpuidle/governors/ladder.c    |   41 ++++-
+ drivers/cpuidle/governors/menu.c      |   29 ++--
+ drivers/cpuidle/sysfs.c               |   22 ++-
+ drivers/idle/intel_idle.c             |  130 +++++++++++++----
+ include/acpi/processor.h              |    1 
+ include/linux/cpuidle.h               |   52 ++++---
+ 16 files changed, 650 insertions(+), 332 deletions(-)
+
+
+-- 
+
+-Deepthi
