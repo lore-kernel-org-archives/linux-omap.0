@@ -1,164 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 17/51] ARM: OMAP: convert reset to use arm_arch_reset (fwd)
-Date: Fri, 28 Oct 2011 09:47:35 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.1110280947270.24690@utopia.booyaka.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: HSI framework for linux-next
+Date: Sat, 29 Oct 2011 05:45:47 +1100
+Message-ID: <20111029054547.d38e09b870ad5b8b2dd2008a@canb.auug.org.au>
+References: <1319794066.28874.22.camel@groo>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Sat__29_Oct_2011_05_45_47_+1100_EvX5N.aYlL/.=rwS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53842 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755491Ab1J1Prg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 11:47:36 -0400
+Received: from calzone.tip.net.au ([203.10.76.15]:46403 "EHLO
+	calzone.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933096Ab1J1SqD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 14:46:03 -0400
+In-Reply-To: <1319794066.28874.22.camel@groo>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Sebastian Reichel <sre@debian.org>
 
+--Signature=_Sat__29_Oct_2011_05_45_47_+1100_EvX5N.aYlL/.=rwS
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-fyi
+Hi Carlos,
 
+On Fri, 28 Oct 2011 12:27:46 +0300 Carlos Chinea <carlos.chinea@nokia.com> =
+wrote:
+>
+> I have been working in an HSI framework for linux:
+>=20
+> https://lkml.org/lkml/2011/6/10/280
+>=20
+> The framework is in good shape and is currently being used for some
+> people so we would like it to see it integrated, if possible, for 3.3
+>=20
+> Latest discussion for integration:
+> https://lkml.org/lkml/2011/10/20/177
+>=20
+> Therefore, could you add the following tree to linux-next ?=20
 
+I will try to remember, but if I forget, then ping me when v3.2-rc1 has
+been released.  I don't put future code into linux-next until after -rc1
+to save false problems with the stuff that has still not been sent to
+Linus.
 
-- Paul
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
----------- Forwarded message ----------
-Date: Fri, 28 Oct 2011 15:43:45 +0100
-From: Will Deacon <will.deacon@arm.com>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, Will Deacon <will.deacon@arm.com>
-Subject: [PATCH 17/51] ARM: OMAP: convert reset to use arm_arch_reset
+--Signature=_Sat__29_Oct_2011_05_45_47_+1100_EvX5N.aYlL/.=rwS
+Content-Type: application/pgp-signature
 
-From: Paul Walmsley <paul@pwsan.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Align the OMAP reset code with Will Deacon's "ARM: reset: introduce
-arm_arch_reset function pointer" cleanup patch.
+iQIcBAEBCAAGBQJOqvhbAAoJEECxmPOUX5FE4hoP/1X8lSwA6g1wMEjG4CnBnMKj
+Tsy052nOpmo1KmFuQvG1uAGLHOIdGY3WymrhG40mC/jkPE+1Bci7KDvXeq04WsCS
+QCPVQxKc9n+EzzGLNDkeTH+MZLYKpzaCdMz7HKyNsRbrcVTYA7nz71LfBc6uIrsk
+KtZlDd4OT0qQcW4eT8NtYoc/DGWIexmTQsW2KQc1L9brzwZdEJFHDpzMbHEAR13O
+RLihPOwudn9JwUC8gWjReG2LwKrWZnh07n6gXBf5jtvVrbmtt9KrjLr4v0L+Rzht
+ikSR3EexIUQtur4y5NsohlY792ZPHhVb0oxCIydMRsiDvgLTqIw4eOwqDCKh+lad
+UBgVyp8ugs5ygcY/lQLUjrVvLtPi65ENfAMpIgRhpgtCLfAdov42hrH/5xXQkmma
+0dm4HwK3WKelSPc1nKpWe6JfrvooXXMXMnlHeCW14pO45Ns4VgMEcJyQuHaV6B7t
+EDQ4X7rOvCnkEjE4//3o1EKVD+rVuKcidMVJ7Scdrpk4e7yf+DAeQQvOCLs+a1NI
+o/XUdKaic+OlNYqnM71m4EYoHy2BWWsCQC8ydzWTiI/7eaI4FehIN5XfXSPLGN00
+4bTMejWBn3nPy2Il7GFa5LTUsjUePiGXGkYNtZ5LGhImo5zukmaim4BTrbGrgv47
+XsiLrNqokzPotk9qsHAW
+=qhtN
+-----END PGP SIGNATURE-----
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
----
- arch/arm/mach-omap1/board-voiceblue.c    |    2 +-
- arch/arm/mach-omap1/io.c                 |    4 ++++
- arch/arm/mach-omap1/reset.c              |    2 --
- arch/arm/mach-omap2/io.c                 |    7 ++++++-
- arch/arm/mach-omap2/prcm.c               |    4 +---
- arch/arm/plat-omap/include/plat/system.h |    6 +++++-
- 6 files changed, 17 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index 036edc0e..e2a24a0 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -296,7 +296,7 @@ static void __init voiceblue_init(void)
- 	omap_writeb(0x00, OMAP_LPG1_LCR);
- 	omap_writeb(0x00, OMAP_LPG1_PMR);	/* Disable clock */
- 
--	arch_reset = voiceblue_reset;
-+	arm_arch_reset = voiceblue_reset;
- }
- 
- MACHINE_START(VOICEBLUE, "VoiceBlue OMAP5910")
-diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
-index 870886a..d3b54da 100644
---- a/arch/arm/mach-omap1/io.c
-+++ b/arch/arm/mach-omap1/io.c
-@@ -15,8 +15,10 @@
- 
- #include <asm/tlb.h>
- #include <asm/mach/map.h>
-+#include <asm/system.h>
- #include <plat/mux.h>
- #include <plat/tc.h>
-+#include <plat/system.h>
- 
- #include "clock.h"
- 
-@@ -140,6 +142,8 @@ void __init omap1_init_common_hw(void)
- 	omap1_clk_init();
- 
- 	omap1_mux_init();
-+
-+	arm_arch_reset = omap1_arch_reset;
- }
- 
- /*
-diff --git a/arch/arm/mach-omap1/reset.c b/arch/arm/mach-omap1/reset.c
-index ad951ee..a5ed979 100644
---- a/arch/arm/mach-omap1/reset.c
-+++ b/arch/arm/mach-omap1/reset.c
-@@ -21,5 +21,3 @@ void omap1_arch_reset(char mode, const char *cmd)
- 
- 	omap_writew(1, ARM_RSTCT1);
- }
--
--void (*arch_reset)(char, const char *) = omap1_arch_reset;
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 2ce1ce6..b94e1a2 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -31,6 +31,7 @@
- #include <plat/sram.h>
- #include <plat/sdrc.h>
- #include <plat/serial.h>
-+#include <plat/system.h>
- 
- #include "clock2xxx.h"
- #include "clock3xxx.h"
-@@ -44,6 +45,8 @@
- #include <plat/omap_hwmod.h>
- #include <plat/multi.h>
- 
-+#include "prcm-common.h"
-+
- /*
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-@@ -358,7 +361,9 @@ void __init omap2_init_common_infrastructure(void)
- 		omap44xx_hwmod_init();
- 	} else {
- 		pr_err("Could not init hwmod data - unknown SoC\n");
--        }
-+	}
-+
-+	arm_arch_reset = omap_prcm_arch_reset;
- 
- 	/* Set the default postsetup state for all hwmods */
- #ifdef CONFIG_PM_RUNTIME
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index 2e40a5c..ad3ac5c 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -58,7 +58,7 @@ u32 omap_prcm_get_reset_sources(void)
- EXPORT_SYMBOL(omap_prcm_get_reset_sources);
- 
- /* Resets clock rates and reboots the system. Only called from system.h */
--static void omap_prcm_arch_reset(char mode, const char *cmd)
-+void omap_prcm_arch_reset(char mode, const char *cmd)
- {
- 	s16 prcm_offs = 0;
- 
-@@ -109,8 +109,6 @@ static void omap_prcm_arch_reset(char mode, const char *cmd)
- 	omap2_prm_read_mod_reg(prcm_offs, OMAP2_RM_RSTCTRL); /* OCP barrier */
- }
- 
--void (*arch_reset)(char, const char *) = omap_prcm_arch_reset;
--
- /**
-  * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
-  * @reg: physical address of module IDLEST register
-diff --git a/arch/arm/plat-omap/include/plat/system.h b/arch/arm/plat-omap/include/plat/system.h
-index c5fa9e9..ac32d88 100644
---- a/arch/arm/plat-omap/include/plat/system.h
-+++ b/arch/arm/plat-omap/include/plat/system.h
-@@ -12,6 +12,10 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--extern void (*arch_reset)(char, const char *);
-+/* To be removed in a future ARM-wide cleanup */
-+static inline void arch_reset(char mode, const char *cmd) {}
-+
-+extern void omap1_arch_reset(char mode, const char *cmd);
-+extern void omap_prcm_arch_reset(char mode, const char *cmd);
- 
- #endif
--- 
-1.7.4.1
+--Signature=_Sat__29_Oct_2011_05_45_47_+1100_EvX5N.aYlL/.=rwS--
