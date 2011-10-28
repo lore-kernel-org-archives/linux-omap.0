@@ -1,33 +1,75 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [GIT PULL] pending DT patches and cleanup for map_io for v3.2
-	merge window
-Date: Fri, 28 Oct 2011 11:09:18 +0100
-Message-ID: <20111028100918.GA14916@n2100.arm.linux.org.uk>
-References: <20111024091704.GF31337@atomide.com>
-	<20111028093907.GD26205@atomide.com>
+From: Matthieu CASTET <matthieu.castet@parrot.com>
+Subject: Re: [RFC] Change ECC algorithm from userspace
+Date: Fri, 28 Oct 2011 12:30:51 +0200
+Message-ID: <4EAA845B.1020009@parrot.com>
+References: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20111028093907.GD26205@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Nicolas Pitre <nico@fluxnic.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from co202.xi-lite.net ([149.6.83.202]:52752 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751772Ab1J1Ka4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Oct 2011 06:30:56 -0400
+In-Reply-To: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-On Fri, Oct 28, 2011 at 11:39:21AM +0200, Tony Lindgren wrote:
-> FYI, the ioremap_exec patch seems is available as commit
-> 6c5482d53f195d3ca61c9ec1be25b0f4a92575fe (ARM: 7129/1:
-> Add __arm_ioremap_exec for mapping external memory)
-> in Russell's for-linus branch.
+Hi,
 
-And is in mainline.
+Javier Martinez Canillas a =C3=A9crit :
+> Hello,
+>=20
+> I want to be able to use 1-bit ECC for the first partition where I
+> save the loader binary and has to be accessed by the ROM boot but use
+> a 4-bit ECC for my rootfs partition.
+>=20
+> Does anyone have this same issue?
+We use raw programming and compute the ecc in software.
+
+
+>=20
+> What is the best approach to store data in a NAND device using
+> different ECC techniques?
+>=20
+> I've think of two approaches:
+>=20
+> 1- Adding an ioctl to mtdchar (something like ECCSETBITS) to change
+> the ECC technique used.
+But this won't work if there is concurrent acess to mtd. One program ma=
+y want 1
+bit ecc other want 4 bits ecc.
+
+> 2- Use a platform data field to notify the omap2 nand driver that the
+> ROM boot only supports 1-bit ECC. So it can use a 1-bit ECC to write
+> and read the first 4 sectors but a 4-bit ECC for the rest.
+This may be better.
+
+Matthieu
+
+PS : note that some OMAP ROM support a better protection than Hamming (=
+but the
+details are not public AFAIK)
+
+=46rom OMAP34xx Multimedia Device, Silicon Revision 3.1.x, public versi=
+on :
+
+Pages can contain errors caused by memory alteration. To correct these =
+errors,
+the ROM code uses ECC,
+based on Hamming codes for SLC NAND and BCH (Bose, Ray-Chaudhuri, Hocqu=
+enghem)
+code for
+multilevel cell (MLC) devices. The computed ECC is compared to ECC stor=
+ed in the
+spare area of the
+corresponding page. If there are uncorrectable errors, the ROM code ret=
+urns with
+=46AIL.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
