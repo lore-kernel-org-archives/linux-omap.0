@@ -1,302 +1,104 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures
- for omap3
-Date: Fri, 28 Oct 2011 17:44:37 +0530
-Message-ID: <CAP05o4+BEx8nzxDQpneojOo3A5eSF6DwyJU+sRaVD_4t7qbefQ@mail.gmail.com>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com>
-	<1316691479-1849-2-git-send-email-keshava_mgowda@ti.com>
-	<1316691479-1849-3-git-send-email-keshava_mgowda@ti.com>
-	<alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com>
-	<CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com>
-	<alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com>
-	<CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com>
-	<cbad72cea703d117067f7c628f7db806@mail.gmail.com>
-	<1317127327.3820.31.camel@sokoban>
-	<CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com>
-	<CAP05o4K2EzAKDgC9EdfEURCfcM=M7TRJdBuAtRafL2RHg+qTag@mail.gmail.com>
-	<1318505283.23199.4.camel@sokoban>
-	<CAP05o4LUpo=H9_2sXswYzk_vkgyvm2F2qT3Pdo6cqSzMKMYi5A@mail.gmail.com>
-	<1319803416.12919.2.camel@sokoban>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH v2] arm: omap: Fix errors and warnings when building for
+	one board
+Date: Fri, 28 Oct 2011 14:10:50 +0000
+Message-ID: <E28AAFD00EFAA646AE3DF9B89CD24A8901CD80@DBDE01.ent.ti.com>
+References: <1318522450-18425-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:42114 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932506Ab1J1MOj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Oct 2011 08:14:39 -0400
-In-Reply-To: <1319803416.12919.2.camel@sokoban>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1318522450-18425-1-git-send-email-premi@ti.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "tony@atomide.com" <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gadiyar, Anand" <gadiyar@ti.com>, sameo@linux.intel.com, tony@atomide.com, "Hilman, Kevin" <khilman@ti.com>, johnstul@us.ibm.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-On Fri, Oct 28, 2011 at 5:33 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> Hi Again,
->
-> I created a new version of the patch which should be better than this
-> hack, I'll send it as an RFC to the l-o list in a bit.
-
-cool ! our discussion helped me.
-please send the patch..
-
-
-
-> On Thu, 2011-10-13 at 13:49 +0200, Munegowda, Keshava wrote:
->> On Thu, Oct 13, 2011 at 4:58 PM, Tero Kristo <t-kristo@ti.com> wrote=
-:
->> > On Thu, 2011-10-13 at 09:12 +0200, Munegowda, Keshava wrote:
->> >> On Tue, Sep 27, 2011 at 6:48 PM, Munegowda, Keshava
->> >> <keshava_mgowda@ti.com> wrote:
->> >> > On Tue, Sep 27, 2011 at 6:12 PM, Tero Kristo <t-kristo@ti.com> =
-wrote:
->> >> >> On Tue, 2011-09-27 at 08:04 +0200, Basak, Partha wrote:
->> >> >>> >
->> >> >> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: =
-0115040-6. Kotipaikka: Helsinki
->> >> >>
->> >> >>
->> > Texas Instruments Oy, Porkkalankatu 22, 00180 Helsinki, Finland. B=
-usiness ID: 0115040-6. Domicile: Helsinki
->> >
->> >
-> Texas Instruments Oy, Porkkalankatu 22, 00180 Helsinki, Finland. Busi=
-ness ID: 0115040-6. Domicile: Helsinki
->
 > -----Original Message-----
->
->> >
->> >> >>
->> >> >>> >From: Munegowda, Keshava [mailto:keshava_mgowda@ti.com]
->> >> >>> >Sent: Monday, September 26, 2011 7:49 PM
->> >> >>> >To: Paul Walmsley; Tero Kristo; b-cousson@ti.com; balbi@ti.c=
-om;
->> >> >>> >parthab@india.ti.com
->> >> >>> >Cc: linux-usb@vger.kernel.org; linux-omap@vger.kernel.org; l=
-inux-
->> >> >>> >kernel@vger.kernel.org; gadiyar@ti.com; sameo@linux.intel.co=
-m;
->> >> >>> >tony@atomide.com; khilman@ti.com; johnstul@us.ibm.com;
->> >> >>> >vishwanath.bs@ti.com
->> >> >>> >Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci h=
-wmod
->> >> >>> >structures for omap3
->> >> >>> >
->> >> >>> >On Sat, Sep 24, 2011 at 12:00 PM, Paul Walmsley <paul@pwsan.=
-com> wrote:
->> >> >>> >> On Fri, 23 Sep 2011, Munegowda, Keshava wrote:
->> >> >>> >>
->> >> >>> >>> On Thu, Sep 22, 2011 at 11:31 PM, Paul Walmsley <paul@pws=
-an.com>
->> >> >>> >wrote:
->> >> >>> >>>
->> >> >>> >>> But the question arises here , why do we need these ehci =
-and ohci as
->> >> >>> >two
->> >> >>> >>> different hwmods containing only irq and base address? It=
- is required
->> >> >>> >>> for future - to implement remote wakeup feature for ehci =
-and ohci
->> >> >>> >ports
->> >> >>> >>> depending on irq-chain handler patches by Tero. Separate =
-hwmods for
->> >> >>> >ehci
->> >> >>> >>> and ohci are needed to enable prcm chain-handler to uniqu=
-ely identify
->> >> >>> >>> the wakeup source as ehci or ohci and call only the corre=
-sponding
->> >> >>> >>> interrupt handler. We will be using omap_hwmod_mux_init f=
-or ehci and
->> >> >>> >>> ohci hwmods to enable I/O wakeup capability for respectiv=
-e IO-pads.
->> >> >>> >>> Depending on the particular wakeup source(ehci/ohci), the
->> >> >>> >corresponding
->> >> >>> >>> ehci or ohci irq handler will be called.
->> >> >>> >>>
->> >> >>> >>> If ehci and ohci are combined with usbhs hwmod as a singl=
-e hwmod ,
->> >> >>> >then
->> >> >>> >>> for every wakeup (either ehci or ohci port wakeup) only t=
-he first
->> >> >>> >>> interrupt handler will be called (please look at the func=
-tion
->> >> >>> >>> omap_hwmod_mux_handle_irq of
->> >> >>> >>>
->> >> >>> >>> /arch/arm/mach-omap2/mux.c file ; in tero's latest patch:
->> >> >>> >>> http://www.mail-archive.com/linux-omap@vger.kernel.org/ms=
-g53139.html)
->> >> >>> >>> , so in this
->> >> >>> >>> case, if ehci interrupt is the first interrupt , then eve=
-n for ohci
->> >> >>> >wakeup
->> >> >>> >>> , only ehci interrupt will get called; which will break t=
-he
->> >> >>> >functionality.
->> >> >>> >>
->> >> >>> >> Any reason why this couldn't be handled either by:
->> >> >>> >>
->> >> >>> >> 1. adding an IRQ number field to struct omap_hwmod_mux_inf=
-o, and
->> >> >>> >changing
->> >> >>> >> _omap_hwmod_mux_handle_irq() to raise that IRQ number?
->> >> >>> >
->> >> >>> >
->> >> >>> >yes, it is possible by changing the existing irq-chain handl=
-er by tero
->> >> >>> >Kristo
->> >> >>> >
->> >> >>> >I am looping tero too.
->> >> >>> >
->> >> >>> >So here are new requirements for the irq-chain handler
->> >> >>> >
->> >> >>> >1. The hwmod should have have option to have multiple mux st=
-ructures
->> >> >>> >
->> >> >>> >This is something like:
->> >> >>> >
->> >> >>> >The existing mux structure definition in omap_hwmod [file:
->> >> >>> >/arch/arm/plat-omap/include/plat/omap_hwmod.h ] structure
->> >> >>> >
->> >> >>> > =A0 =A0 struct omap_hwmod_mux_info =A0 =A0 =A0*mux;
->> >> >>> >
->> >> >>> >it should changed to
->> >> >>> >
->> >> >>> > =A0 =A0 struct omap_hwmod_mux_info =A0 =A0 =A0**pmux;
->> >> >>> > =A0 =A0 =A0 =A0 U32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mux_cnt;
->> >> >>> >
->> >> >>> >
->> >> >>> >pmux - pointers to mux ; array of mux structures.
->> >> >>> >mux_cnt - number of mux per hwmod.
->> >> >>> >
->> >> >>> >
->> >> >>> >2. The mux =A0omap_hwmod_mux_info =A0structure should have n=
-ew member
->> >> >>> >called irq, like as follows:
->> >> >>> >
->> >> >>> >struct omap_hwmod_mux_info {
->> >> >>> > =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 nr_pads;
->> >> >>> > =A0 =A0 ...
->> >> >>> > =A0 =A0 =A0 =A0....
->> >> >>> > =A0 =A0 =A0 =A0u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 irq;
->> >> >>> >
->> >> >>> >};
->> >> >>> >
->> >> >>> >Upon wakeup of the I/O pad of the mux , the irq-chain handle=
-r should
->> >> >>> >invoke the irq handler of the irq numbered <map_hwmod_mux_in=
-fo.irq>
->> >> >>> >
->> >> >>> >3. =A0There should be "SOME WAY" to supply the irqs =A0from =
-hwmod
->> >> >>> >structure (omap_hwmod) to mux structure (omap_hwmod_mux_info=
-)
->> >> >>> >
->> >> >>> >
->> >> >>> >if you , tero and other opensource people are aligned on the=
- proposed
->> >> >>> >changes on the irq-handler ;
->> >> >>> >then it is possible to have two hwmods ( usbhs and tll) for =
-usbhost
->> >> >>> >driver.
->> >> >>> >please let me know you comments on the above approach.
->> >> >>> >
->> >> >>>
->> >> >>> Hello Tero,
->> >> >>>
->> >> >>> I would like to draw your attention to the following thread:
->> >> >>>
->> >> >>> We need to support the following:
->> >> >>> 1. Ability to associate multiple mux info to a hwmod.
->> >> >>> 2. Able to associate a particular irq handler to a mux info.
->> >> >>> 3. PRCM Chain handler should loop through all mux-info arrays
->> >> >>> =A0 =A0for a particular hwmod to identify the possible wakeup=
- source(s)
->> >> >>> =A0 =A0and call the appropriate irq handler for that mux-info=
-=2E
->> >> >>> =A0 =A0(It is possible that both mux-info are woken up in whi=
-ch case both
->> >> >>> handlers should be called).
->> >> >>>
->> >> >>> To give you a little more perspective, EHCI & OHCI are co-con=
-trollers
->> >> >>> under UHH/TLL.
->> >> >>> They do not get presented separately to the OCP bus, hence do=
- not qualify
->> >> >>> as separate hwmods
->> >> >>> (Paul had objected to the design approach representing EHCI &=
- OHCI as
->> >> >>> different hwmods).
->> >> >>>
->> >> >>> However, we need a mechanism to efficiently identify/distingu=
-ish
->> >> >>> remote-wakeup, connect/disconnect
->> >> >>> On to an EHCI port vs an OHCI port & call only the correct in=
-terrupt
->> >> >>> handler(EHCI or OHCI).
->> >> >>>
->> >> >>> =A0To incorporate this, chain handler implementation would ne=
-ed some
->> >> >>> enhancements.
->> >> >>> =A0We can look into the details in the next merge window cycl=
-e in
->> >> >>> conjunction with aggressive clock management support for EHCI=
-/OHCI.
->> >> >>> =A0But fundamentally, if you are aligned to the approach, we =
-can go ahead
->> >> >>> collapsing the EHCI & OHCI hwmods into one.
->> >> >>
->> >> >> Hi,
->> >> >>
->> >> >> So, you would need a mechanism to do something like this:
->> >> >>
->> >> >> pad a or b wakeup detected -> irq0
->> >> >> pad c or d wakeup detected -> irq1?
->> >> >
->> >> > yes, if get something like this , its perfect.
->> >>
->> >> Hi Tero
->> >> =A0 =A0 =A0 =A0 =A0 =A0Are you posting the patches with these cha=
-nges?
->> >> please let me know when you will be able to post the patches.
->> >> so that I start the design of usb host remote wakeup using your c=
-hanges.
->> >>
->> >> regards
->> >> keshava
->> >>
->> >
->> > Sorry for the delay, but I am still not quite sure how this should=
- be
->> > handled for upstream. Attached is a proposal hack patch that shoul=
-d
->> > work, you can at least try it out to see what happens. It applies =
-on top
->> > of my latest PRCM chain handler set (version 9.) Patch desc contai=
-ns a
->> > guide how to use it.
->> >
->> > -Tero
->>
->>
->> Thanks tero,
->> =A0 =A0 =A0 =A0 =A0 we are still in the internal design discussion o=
-f usbhs remote wakeup.
->> but, we are looking for the upstreamable code.
->> I request please send it as formal patch so that we will align with
->> Paul, benoit, kevin
->> Felipe and all other USB and PM experts.
->>
->> regards
->> keshava
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Premi, Sanjeev 
+> Sent: Thursday, October 13, 2011 9:44 PM
+> To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Cc: Premi, Sanjeev
+> Subject: [PATCH v2] arm: omap: Fix errors and warnings when 
+> building for one board
+> 
+> When customizing omap2plus_defconfig to build for only
+> one board (omap3evm), I came across these warnings and
+> errors (filenames truncated):
+> 
+> arch/arm/mach-omap2/board-generic.c:76:20: warning: 
+> 'omap4_init' defined but not used
+> arch/arm/mach-omap2/built-in.o: In function `omap2420_init_early':
+> arch/arm/mach-omap2/io.c:364: undefined reference to 
+> `omap2_set_globals_242x'
+> arch/arm/mach-omap2/io.c:366: undefined reference to 
+> `omap2xxx_voltagedomains_init'
+> arch/arm/mach-omap2/io.c:367: undefined reference to 
+> `omap242x_powerdomains_init'
+> arch/arm/mach-omap2/io.c:368: undefined reference to 
+> `omap242x_clockdomains_init'
+> arch/arm/mach-omap2/io.c:369: undefined reference to 
+> `omap2420_hwmod_init'
+> arch/arm/mach-omap2/built-in.o: In function `omap2430_init_early':
+> arch/arm/mach-omap2/io.c:376: undefined reference to 
+> `omap2_set_globals_243x'
+> arch/arm/mach-omap2/io.c:378: undefined reference to 
+> `omap2xxx_voltagedomains_init'
+> arch/arm/mach-omap2/io.c:379: undefined reference to 
+> `omap243x_powerdomains_init'
+> arch/arm/mach-omap2/io.c:380: undefined reference to 
+> `omap243x_clockdomains_init'
+> arch/arm/mach-omap2/io.c:381: undefined reference to 
+> `omap2430_hwmod_init'
+> arch/arm/mach-omap2/built-in.o: In function `omap4430_init_early':
+> arch/arm/mach-omap2/io.c:436: undefined reference to 
+> `omap2_set_globals_443x'
+> arch/arm/mach-omap2/io.c:438: undefined reference to 
+> `omap44xx_voltagedomains_init'
+> arch/arm/mach-omap2/io.c:439: undefined reference to 
+> `omap44xx_powerdomains_init'
+> arch/arm/mach-omap2/io.c:440: undefined reference to 
+> `omap44xx_clockdomains_init'
+> arch/arm/mach-omap2/io.c:441: undefined reference to 
+> `omap44xx_hwmod_init'
+> 
+> This patch fixes them.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+> 
+>  Changes since v1:
+>     - #if defined() to #ifdef
+>     - Moved an #ifdef to take care of additional warning
+>       related to sdp4430_twldata. Had missed squashing the
+>       patch before sending v1.
+> 
+>  Adding ifdefs makes the code bit ugly and is prone to propagate
+>  further. Not sure if DT will help here, but this patch would be
+>  useful for people trying to build for individual boards.
+> 
+>  Compile tested for OMAP3EVM.
+> 
+>  Applies to linux-omap/master at:
+>    fb4df0f : ARM: OMAP1: Fix warnings about enabling 32 KiHz timer
+> 
+> 
+>  arch/arm/mach-omap2/board-generic.c |    8 ++++++++
+>  arch/arm/mach-omap2/io.c            |    6 ++++++
+>  2 files changed, 14 insertions(+), 0 deletions(-)
+> 
+
+Tony,
+
+Just wanted to check the status of this patch.
+
+~sanjeev
