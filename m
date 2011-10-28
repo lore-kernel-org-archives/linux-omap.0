@@ -1,54 +1,80 @@
-From: Matthieu CASTET <matthieu.castet@parrot.com>
-Subject: Re: [RFC] Change ECC algorithm from userspace
-Date: Fri, 28 Oct 2011 12:40:03 +0200
-Message-ID: <4EAA8683.4080202@parrot.com>
-References: <70E876B0EA86DD4BAF101844BC814DFE0BF244FAD1@Cloud.RL.local>
+From: Atlant Schmidt <aschmidt@dekaresearch.com>
+Subject: RE: [RFC] Change ECC algorithm from userspace
+Date: Fri, 28 Oct 2011 06:43:29 -0400
+Message-ID: <0A40042D85E7C84DB443060EC44B3FD33254FA3BBC@dekaexchange07.deka.local>
+References: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from co202.xi-lite.net ([149.6.83.202]:39377 "EHLO co202.xi-lite.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754762Ab1J1KkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Oct 2011 06:40:05 -0400
-In-Reply-To: <70E876B0EA86DD4BAF101844BC814DFE0BF244FAD1@Cloud.RL.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: 'Javier Martinez Canillas' <martinez.javier@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Povey <Jon.Povey@racelogic.co.uk>
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>
 
-Jon Povey a =E9crit :
-> linux-mtd-bounces@lists.infradead.org wrote:
->> I want to be able to use 1-bit ECC for the first partition where I
->> save the loader binary and has to be accessed by the ROM boot but us=
-e
->> a 4-bit ECC for my rootfs partition.
->>
->> Does anyone have this same issue?
->=20
-> DM355 and DM365 has similar issues as the RBL expects a different OOB=
-/ECC
-> layout to Linux.
->=20
->> What is the best approach to store data in a NAND device using
->> different ECC techniques?
->=20
-> What I have done is write a utility that calculates ECC and writes to
-> the mtd device in RAW mode. So to rewrite the bootloader I take care =
-of
-> the ECC and layout at application level without changing the kernel.
->
-Note that the kernel raw mode doesn't write the page in one time : it w=
-rite data
-and then ecc. This may cause problem with NOP1 nand.
-
-see http://lists.infradead.org/pipermail/linux-mtd/2010-August/031262.h=
-tml
-
-
-Matthieu
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SmF2aWVyOg0KDQogIFRoYXQncyB3aHkgbW9zdCBwZW9wbGUgYm9vdCBmcm9tIE5PUiBGbGFzaA0K
+ICB3aGVyZSBhIDEtYml0IEVDQyBpcyBhZGVxdWF0ZS4NCg0KICBJIGRvbid0IHNlZSBob3cgeW91
+IGNhbiBwb3NzaWJseSBleHBlY3QgdG8NCiAgcmVsaWFibHksIHN1Y2Nlc3NmdWxseSBib290IGZy
+b20gYSBOQU5EIEZsYXNoDQogIHVzaW5nIGp1c3QgMSBiaXQgRUNDOyB5b3UndmUgZWl0aGVyIGdv
+dCB0bw0KICBjaGFuZ2UgdGhlIGJvb3QgbG9hZGVyIHRvIGFsbG93IG1vcmUgRUNDIG9yDQogIHVz
+ZSBtb3JlLXJlbGlhYmxlIEZsYXNoIGhhcmR3YXJlLg0KDQogICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgQXRsYW50DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1t
+dGQtYm91bmNlc0BsaXN0cy5pbmZyYWRlYWQub3JnIFttYWlsdG86bGludXgtbXRkLWJvdW5jZXNA
+bGlzdHMuaW5mcmFkZWFkLm9yZ10gT24gQmVoYWxmIE9mIEphdmllciBNYXJ0aW5leiBDYW5pbGxh
+cw0KU2VudDogRnJpZGF5LCBPY3RvYmVyIDI4LCAyMDExIDA1OjQzDQpUbzogbGludXgtbXRkQGxp
+c3RzLmluZnJhZGVhZC5vcmc7IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQpDYzogRW5yaWMg
+QmFsbGV0Ym8gaSBTZXJyYQ0KU3ViamVjdDogW1JGQ10gQ2hhbmdlIEVDQyBhbGdvcml0aG0gZnJv
+bSB1c2Vyc3BhY2UNCg0KSGVsbG8sDQoNCldlJ3ZlIGEgY3VzdG9tIGJvYXJkIHVzaW5nIGFuIEFS
+TSBPTUFQIERNMzczMCB3aG9zZSBST00gYm9vdCBsb2FkZXINCm9ubHkgc3VwcG9ydHMgMS1iaXQg
+RUNDIGNvcnJlY3Rpb24gdXNpbmcgSGFtbWluZyBhbGdvcml0aG0uDQoNClNvLCBpbiBvcmRlciB0
+byBiZSBhYmxlIHRvIGJvb3QgZnJvbSB0aGUgTkFORCwgd2UgaGF2ZSB0byBjb25maWd1cmUNCnRo
+ZSBHUE1DIChPTUFQJ3MgbWVtb3J5IGNvbnRyb2xsZXIgdGhhdCBpbnRlcmZhY2VzIHdpdGggTkFO
+RCBkZXZpY2VzKQ0KdG8gdXNlIDEtYml0IEhXIEVDQyBhbmQgd3JpdGUgdGhlIGxvYWRlciBiaW5h
+cnkgdG8gdGhlIGZpcnN0IE5BTkQNCnNlY3Rvci4gVGhhdCB3YXkgdGhlIFJPTSBib290IHdpbGwg
+dGFrZSB0aGlzIHNlY3RvciBhcyB2YWxpZCBhbmQgbG9hZA0KdGhlIGxvYWRlciBiaW5hcnkgdG8g
+UkFNLg0KDQpUaGUgcHJvYmxlbSBpcyB0aGF0IHRoZSBTTEMgTkFORCBkZXZpY2UgdGhhdCB3ZSBh
+cmUgdXNpbmcgaGFzIGENCm1pbmltdW0gcmVxdWlyZWQgRUNDIG9mIDQtYml0IGNvcnJlY3Rpb24g
+cGVyIGVhY2ggNTEyIGJ5dGVzLg0KDQpJIHdhbnQgdG8gYmUgYWJsZSB0byB1c2UgMS1iaXQgRUND
+IGZvciB0aGUgZmlyc3QgcGFydGl0aW9uIHdoZXJlIEkNCnNhdmUgdGhlIGxvYWRlciBiaW5hcnkg
+YW5kIGhhcyB0byBiZSBhY2Nlc3NlZCBieSB0aGUgUk9NIGJvb3QgYnV0IHVzZQ0KYSA0LWJpdCBF
+Q0MgZm9yIG15IHJvb3RmcyBwYXJ0aXRpb24uDQoNCkRvZXMgYW55b25lIGhhdmUgdGhpcyBzYW1l
+IGlzc3VlPw0KDQpXaGF0IGlzIHRoZSBiZXN0IGFwcHJvYWNoIHRvIHN0b3JlIGRhdGEgaW4gYSBO
+QU5EIGRldmljZSB1c2luZw0KZGlmZmVyZW50IEVDQyB0ZWNobmlxdWVzPw0KDQpJJ3ZlIHRoaW5r
+IG9mIHR3byBhcHByb2FjaGVzOg0KDQoxLSBBZGRpbmcgYW4gaW9jdGwgdG8gbXRkY2hhciAoc29t
+ZXRoaW5nIGxpa2UgRUNDU0VUQklUUykgdG8gY2hhbmdlDQp0aGUgRUNDIHRlY2huaXF1ZSB1c2Vk
+Lg0KMi0gVXNlIGEgcGxhdGZvcm0gZGF0YSBmaWVsZCB0byBub3RpZnkgdGhlIG9tYXAyIG5hbmQg
+ZHJpdmVyIHRoYXQgdGhlDQpST00gYm9vdCBvbmx5IHN1cHBvcnRzIDEtYml0IEVDQy4gU28gaXQg
+Y2FuIHVzZSBhIDEtYml0IEVDQyB0byB3cml0ZQ0KYW5kIHJlYWQgdGhlIGZpcnN0IDQgc2VjdG9y
+cyBidXQgYSA0LWJpdCBFQ0MgZm9yIHRoZSByZXN0Lg0KDQpPZiBjb3Vyc2UgYm90aCBhcHByb2Fj
+aGVzIGNhbiBvbmx5IGJlIHVzZWQgaWYgdGhlIG5vbmUgb2YgdGhlIG5hbmQNCm1lbW9yeSBwYXJ0
+aXRpb25zIGFyZSBtb3VudGVkLg0KDQpUaGFuayB5b3UgYW5kIGJlc3QgcmVnYXJkcywNCg0KLS0N
+CkphdmllciBNYXJ0w61uZXogQ2FuaWxsYXMNCigrMzQpIDY4MiAzOSA4MSA2OQ0KQmFyY2Vsb25h
+LCBTcGFpbg0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18NCkxpbnV4IE1URCBkaXNjdXNzaW9uIG1haWxpbmcgbGlzdA0KaHR0cDovL2xpc3Rz
+LmluZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvDQoNCg0KIENsaWNrIGh0
+dHBzOi8vd3d3Lm1haWxjb250cm9sLmNvbS9zci95NzZ6VzgraW9QclRuZHhJIW9YN1VsdndsMUdx
+RkFQciFGN093VEtoaFVHTlZRNUVmWWwhMlVRd203Z0NQOVJxYUwhZUF5RVIybHdqcCttbU1WN0pJ
+dz09ICB0byByZXBvcnQgdGhpcyBlbWFpbCBhcyBzcGFtLg0KDQpUaGlzIGUtbWFpbCBhbmQgdGhl
+IGluZm9ybWF0aW9uLCBpbmNsdWRpbmcgYW55IGF0dGFjaG1lbnRzLCBpdCBjb250YWlucyBhcmUg
+aW50ZW5kZWQgdG8gYmUgYSBjb25maWRlbnRpYWwgY29tbXVuaWNhdGlvbiBvbmx5IHRvIHRoZSBw
+ZXJzb24gb3IgZW50aXR5IHRvIHdob20gaXQgaXMgYWRkcmVzc2VkIGFuZCBtYXkgY29udGFpbiBp
+bmZvcm1hdGlvbiB0aGF0IGlzIHByaXZpbGVnZWQuIElmIHRoZSByZWFkZXIgb2YgdGhpcyBtZXNz
+YWdlIGlzIG5vdCB0aGUgaW50ZW5kZWQgcmVjaXBpZW50LCB5b3UgYXJlIGhlcmVieSBub3RpZmll
+ZCB0aGF0IGFueSBkaXNzZW1pbmF0aW9uLCBkaXN0cmlidXRpb24gb3IgY29weWluZyBvZiB0aGlz
+IGNvbW11bmljYXRpb24gaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGhhdmUgcmVjZWl2
+ZWQgdGhpcyBjb21tdW5pY2F0aW9uIGluIGVycm9yLCBwbGVhc2UgaW1tZWRpYXRlbHkgbm90aWZ5
+IHRoZSBzZW5kZXIgYW5kIGRlc3Ryb3kgdGhlIG9yaWdpbmFsIG1lc3NhZ2UuDQoNClRoYW5rIHlv
+dS4NCg0KUGxlYXNlIGNvbnNpZGVyIHRoZSBlbnZpcm9ubWVudCBiZWZvcmUgcHJpbnRpbmcgdGhp
+cyBlbWFpbC4NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpMaW51eCBNVEQgZGlzY3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3RzLmlu
+ZnJhZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1tdGQvCg==
