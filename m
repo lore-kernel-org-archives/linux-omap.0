@@ -1,17 +1,39 @@
-From: Juergen Kilb <J.Kilb@phytec.de>
-Subject: [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
-Date: Sat, 29 Oct 2011 21:39:11 +0200
-Message-ID: <1319917151-5626-1-git-send-email-J.Kilb@phytec.de>
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
-Cc: Girish K S <girish.shivananjappa@linaro.org>, linux-omap@vger.kernel.org, Juergen Kilb <J.Kilb@phytec.de>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: fix compile break
+Date: Sat, 29 Oct 2011 16:44:07 -0700
+Message-ID: <1319931847-5140-1-git-send-email-vikram.pandita@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46872 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755384Ab1J2XoM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 29 Oct 2011 19:44:12 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id p9TNiBEt030400
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sat, 29 Oct 2011 18:44:11 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id p9TNiBu1025275
+	for <linux-omap@vger.kernel.org>; Sat, 29 Oct 2011 18:44:11 -0500 (CDT)
+Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id p9TNiBru018127
+	for <linux-omap@vger.kernel.org>; Sat, 29 Oct 2011 18:44:11 -0500 (CDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-In commit a3c76eb9 (mmc: replace printk with appropriate
-display macro) the opening parenthesis of pr_info was missing.
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-Signed-off-by: Juergen Kilb <J.Kilb@phytec.de>
+omap_hsmmc.c: In function 'omap_hsmmc_protect_card':
+omap_hsmmc.c:1273: error: 'pr_info' undeclared (first use in this function)
+omap_hsmmc.c:1273: error: (Each undeclared identifier is reported only once
+omap_hsmmc.c:1273: error: for each function it appears in.)
+omap_hsmmc.c:1273: error: expected ';' before string constant
+omap_hsmmc.c:1275: error: expected statement before ')' token
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
  drivers/mmc/host/omap_hsmmc.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
@@ -30,5 +52,5 @@ index e8ff123..101cd31 100644
  					 mmc_hostname(host->mmc));
  			host->protect_card = 1;
 -- 
-1.7.0.4
+1.7.5.4
 
