@@ -1,78 +1,28 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH] usb: ehci: report Data Buffer Error in debug mode
-Date: Sat, 29 Oct 2011 13:00:45 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1110291255390.883-100000@netrider.rowland.org>
-References: <1319846874-10106-1-git-send-email-vikram.pandita@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] regulator: Provide dummy supply support
+Date: Sat, 29 Oct 2011 18:42:02 +0100
+Message-ID: <20111029174202.GA9646@opensource.wolfsonmicro.com>
+References: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de> <1319833618-25190-2-git-send-email-s.hauer@pengutronix.de> <20111028215931.GA30366@opensource.wolfsonmicro.com> <20111028224757.GG23421@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1319846874-10106-1-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111028224757.GG23421@pengutronix.de>
+Sender: linux-sh-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, Mike Frysinger <vapier@gentoo.org>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 28 Oct 2011, Vikram Pandita wrote:
+On Sat, Oct 29, 2011 at 12:47:57AM +0200, Sascha Hauer wrote:
 
-> From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-> 
-> Data Buffer Error as per spec section 4.15.1.1.2
-> results when there is Underrun or Overrun condition.
-> 
-> This error is considered non-fatal and never gets reported.
-> Its a very good indication on things going wrong at system level,
-> like running memory at much slower speed.
-> 
-> This is a good error to flag allowing system level corrections.
-> 
-> An issue was found with OMAP4460 board where DDR had to be run
-> at full speed and this logging helped.
+> My main concern with the fixed regulator is that it needs quite much
+> boilerplate code just to say that we have no regulator at all for a
+> given device. That could also be handled with a helper function which
+> registers a fixed regulator and only takes the regulator_consumer_supply
+> as an argument. Would that be ok for you?
 
-Generally okay, but ...
-
-> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/usb/host/ehci-q.c |   14 ++++++++++++++
->  1 files changed, 14 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
-> index 4e4066c..2451361 100644
-> --- a/drivers/usb/host/ehci-q.c
-> +++ b/drivers/usb/host/ehci-q.c
-> @@ -373,6 +373,20 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
->   retry_xacterr:
->  		if ((token & QTD_STS_ACTIVE) == 0) {
->  
-> +			/* Report Data Buffer Error: non-fatal but useful */
-> +			if (token & QTD_STS_DBE) {
-> +
-> +				ehci_dbg(ehci,
-> +				"detected DataBufferErr %s for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
-> +				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ?
-> +						"OVER-RUN" : "UNDER-RUN",
-> +				urb, urb->ep->desc.bEndpointAddress & 0x0f,
-> +				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ? "in" : "out",
-
-You should use the usb_endpoint_dir_in() routine instead of open-coding 
-it.  (Or, if you prefer, use usb_pipein(urb->pipe).)  Similarly, use 
-usb_endpoint_num().
-
-Also, what point is there in checking the direction twice?  Get rid of
-the OVER-RUN/UNDER-RUN part of the message; it doesn't add any new
-information.
-
-> +				urb->transfer_buffer_length,
-> +				qtd, urb->ep->hcpriv);
-> +
-
-Unnecessary blank line here and above.
-
-> +			}
-> +
-
-Alan Stern
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+All you're actually doing in this code is adding a function to register
+a new type of regulator which is exactly equivalent to what the existing
+regulators provide - there's nothing particularly wrong with the helper
+function but defining an entirely new regulator type for it doesn't seem
+useful.
