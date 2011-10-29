@@ -1,52 +1,63 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: Re: [PATCH 2/2 v3] net/smsc911x: Add regulator support
-Date: Sat, 29 Oct 2011 01:33:16 +0200
-Message-ID: <CAJaTeTqerTxTnxB9jkeYGUkCRoaeOuzQPaQ0jyE7yjw7jO6rFQ@mail.gmail.com>
-References: <1319719691-15799-1-git-send-email-linus.walleij@stericsson.com> <20111028203353.GE23421@pengutronix.de>
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] usb: ehci: report Data Buffer Error in debug mode
+Date: Fri, 28 Oct 2011 17:07:54 -0700
+Message-ID: <1319846874-10106-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:49873 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933831Ab1J1Xdj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 19:33:39 -0400
-In-Reply-To: <20111028203353.GE23421@pengutronix.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Linus Walleij <linus.walleij@stericsson.com>, netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirer <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
 
-On Fri, Oct 28, 2011 at 22:33, Sascha Hauer wrote:
-> On Thu, Oct 27, 2011 at 02:48:11PM +0200, Linus Walleij wrote:
->> +/*
->> + * Request or free resources, currently just regulators.
->> + *
->> + * The SMSC911x has two power pins: vddvario and vdd33a, in designs=
- where
->> + * these are not always-on we need to request regulators to be turn=
-ed on
->> + * before we can try to access the device registers.
->> + */
->> +static int smsc911x_request_free_resources(struct platform_device *=
-pdev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 bool request)
->
-> I had to look twice at this function name. First I thought "request t=
-he
-> free resources?", which other resources would you request if not the
-> free ones? I think it would be nicer to have two functions instead.
-> Just my 2 cents.
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 
-i'll add my 2 cents and we'll almost have a nickle.  maybe i'm dense,
-but i had to look (more than) twice at both funcs before i could get
-my head around what was happening.  no, it's not complicated, but it
-is unusual in the kernel world.  either that or i haven't read enough
-kernel code to consider this a common paradigm.  hopefully it's the
-former ;).
--mike
+Data Buffer Error as per spec section 4.15.1.1.2
+results when there is Underrun or Overrun condition.
+
+This error is considered non-fatal and never gets reported.
+Its a very good indication on things going wrong at system level,
+like running memory at much slower speed.
+
+This is a good error to flag allowing system level corrections.
+
+An issue was found with OMAP4460 board where DDR had to be run
+at full speed and this logging helped.
+
+Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+---
+ drivers/usb/host/ehci-q.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
+index 4e4066c..2451361 100644
+--- a/drivers/usb/host/ehci-q.c
++++ b/drivers/usb/host/ehci-q.c
+@@ -373,6 +373,20 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
+  retry_xacterr:
+ 		if ((token & QTD_STS_ACTIVE) == 0) {
+ 
++			/* Report Data Buffer Error: non-fatal but useful */
++			if (token & QTD_STS_DBE) {
++
++				ehci_dbg(ehci,
++				"detected DataBufferErr %s for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
++				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ?
++						"OVER-RUN" : "UNDER-RUN",
++				urb, urb->ep->desc.bEndpointAddress & 0x0f,
++				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ? "in" : "out",
++				urb->transfer_buffer_length,
++				qtd, urb->ep->hcpriv);
++
++			}
++
+ 			/* on STALL, error, and short reads this urb must
+ 			 * complete and all its qtds must be recycled.
+ 			 */
+-- 
+1.7.5.4
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
