@@ -1,63 +1,45 @@
-From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH] usb: ehci: report Data Buffer Error in debug mode
-Date: Fri, 28 Oct 2011 17:07:54 -0700
-Message-ID: <1319846874-10106-1-git-send-email-vikram.pandita@ti.com>
+From: "OCTOBER PROMO" <info@beam.com>
+Subject: Microsoft is paying you
+Date: Sat, 29 Oct 2011 05:39:39 +0530
+Message-ID: <20111029000946.EJYU1538.viefep15-int.chello.at@edge04.upcmail.net>
+Reply-To: <update60@gra1m.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fep27.mx.upcmail.net ([62.179.121.47]:43143 "EHLO
+	fep27.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755078Ab1J2AJv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 20:09:51 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+YOUR EMAIL BOX HAS WON 1,000,000.00 GBP in the British MICRO-SOFT ONLINE PROMO 2011.
 
-Data Buffer Error as per spec section 4.15.1.1.2
-results when there is Underrun or Overrun condition.
 
-This error is considered non-fatal and never gets reported.
-Its a very good indication on things going wrong at system level,
-like running memory at much slower speed.
+You have been advised to furnish the following details below to enable the
+immediate processing of your Winning payment ASAP.
+===========================================================
+REQUIRED DATA VERIFICATION FORM TO CLAIM YOUR WINNING PRIZE
+===========================================================
+1. Full Name: ......................
+2. Address: ........................
+3. Marital Status: .................
+4. Occupation: .....................
+5. Age: ............................
+6. Sex: ............................
+7. Nationality: ....................
+8. Tel: ............................
 
-This is a good error to flag allowing system level corrections.
-
-An issue was found with OMAP4460 board where DDR had to be run
-at full speed and this logging helped.
-
-Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/host/ehci-q.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
-index 4e4066c..2451361 100644
---- a/drivers/usb/host/ehci-q.c
-+++ b/drivers/usb/host/ehci-q.c
-@@ -373,6 +373,20 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
-  retry_xacterr:
- 		if ((token & QTD_STS_ACTIVE) == 0) {
- 
-+			/* Report Data Buffer Error: non-fatal but useful */
-+			if (token & QTD_STS_DBE) {
-+
-+				ehci_dbg(ehci,
-+				"detected DataBufferErr %s for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
-+				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ?
-+						"OVER-RUN" : "UNDER-RUN",
-+				urb, urb->ep->desc.bEndpointAddress & 0x0f,
-+				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ? "in" : "out",
-+				urb->transfer_buffer_length,
-+				qtd, urb->ep->hcpriv);
-+
-+			}
-+
- 			/* on STALL, error, and short reads this urb must
- 			 * complete and all its qtds must be recycled.
- 			 */
--- 
-1.7.5.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mr. Terry William
+Online Co-ordinator
+---------------------------------------------
+NOTICE:
+* This is NOT a SPAM Email
+* The wining Information contained in this e-mail is private and
+confidential.
+* If you are not the intended recipient, note that any review, dissemination
+ or copying of this e-mail and information contained herein is prohibited.
+* If you have received this e-mail in error, please immediately notify the
+sender by return e-mail and delete this e-mail from your computer system.
