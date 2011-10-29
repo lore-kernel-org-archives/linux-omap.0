@@ -1,45 +1,71 @@
-From: "OCTOBER PROMO" <info@beam.com>
-Subject: Microsoft is paying you
-Date: Sat, 29 Oct 2011 05:39:39 +0530
-Message-ID: <20111029000946.EJYU1538.viefep15-int.chello.at@edge04.upcmail.net>
-Reply-To: <update60@gra1m.net>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [PATCH] usb: ehci: report Data Buffer Error in debug mode
+Date: Sat, 29 Oct 2011 02:22:22 +0200
+Message-ID: <201110290222.22990.marek.vasut@gmail.com>
+References: <1319846874-10106-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fep27.mx.upcmail.net ([62.179.121.47]:43143 "EHLO
-	fep27.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755078Ab1J2AJv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 20:09:51 -0400
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:35993 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755945Ab1J2AWZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Oct 2011 20:22:25 -0400
+In-Reply-To: <1319846874-10106-1-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: stern@rowland.harvard.edu, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-YOUR EMAIL BOX HAS WON 1,000,000.00 GBP in the British MICRO-SOFT ONLINE PROMO 2011.
+> From: Vikram Pandita <vikram.pandita@ti.com>
+> 
+> Data Buffer Error as per spec section 4.15.1.1.2
+> results when there is Underrun or Overrun condition.
+> 
+> This error is considered non-fatal and never gets reported.
+> Its a very good indication on things going wrong at system level,
+> like running memory at much slower speed.
+> 
+> This is a good error to flag allowing system level corrections.
+> 
+> An issue was found with OMAP4460 board where DDR had to be run
+> at full speed and this logging helped.
+> 
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> ---
+>  drivers/usb/host/ehci-q.c |   14 ++++++++++++++
+>  1 files changed, 14 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
+> index 4e4066c..2451361 100644
+> --- a/drivers/usb/host/ehci-q.c
+> +++ b/drivers/usb/host/ehci-q.c
+> @@ -373,6 +373,20 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh
+> *qh) retry_xacterr:
+>  		if ((token & QTD_STS_ACTIVE) == 0) {
+> 
+> +			/* Report Data Buffer Error: non-fatal but useful */
+> +			if (token & QTD_STS_DBE) {
+> +
+> +				ehci_dbg(ehci,
+> +				"detected DataBufferErr %s for urb %p ep%d%s len 
+%d, qtd %p [qh
+> %p]\n", +				(urb->ep->desc.bEndpointAddress & 
+USB_DIR_IN) ?
+> +						"OVER-RUN" : "UNDER-RUN",
+> +				urb, urb->ep->desc.bEndpointAddress & 0x0f,
+> +				(urb->ep->desc.bEndpointAddress & USB_DIR_IN) ? 
+"in" : "out",
+> +				urb->transfer_buffer_length,
+> +				qtd, urb->ep->hcpriv);
+> +
+> +			}
+> +
+>  			/* on STALL, error, and short reads this urb must
+>  			 * complete and all its qtds must be recycled.
+>  			 */
 
+Looks basically ok to me.
 
-You have been advised to furnish the following details below to enable the
-immediate processing of your Winning payment ASAP.
-===========================================================
-REQUIRED DATA VERIFICATION FORM TO CLAIM YOUR WINNING PRIZE
-===========================================================
-1. Full Name: ......................
-2. Address: ........................
-3. Marital Status: .................
-4. Occupation: .....................
-5. Age: ............................
-6. Sex: ............................
-7. Nationality: ....................
-8. Tel: ............................
-
-Mr. Terry William
-Online Co-ordinator
----------------------------------------------
-NOTICE:
-* This is NOT a SPAM Email
-* The wining Information contained in this e-mail is private and
-confidential.
-* If you are not the intended recipient, note that any review, dissemination
- or copying of this e-mail and information contained herein is prohibited.
-* If you have received this e-mail in error, please immediately notify the
-sender by return e-mail and delete this e-mail from your computer system.
+Reviewed-by: Marek Vasut <marek.vasut@gmail.com>
