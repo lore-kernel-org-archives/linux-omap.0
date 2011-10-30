@@ -1,64 +1,57 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v2] usb: ehci: report Data Buffer Error in debug mode
-Date: Sat, 29 Oct 2011 16:53:45 -0700
-Message-ID: <1319932425-10404-1-git-send-email-vikram.pandita@ti.com>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [PATCH] mmc: omap_hsmmc: fix compile break
+Date: Sun, 30 Oct 2011 02:39:55 +0200
+Message-ID: <201110300239.55207.marek.vasut@gmail.com>
+References: <1319931847-5140-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50257 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932412Ab1J2Xx5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Oct 2011 19:53:57 -0400
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:52381 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932547Ab1J3Aj6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Oct 2011 20:39:58 -0400
+Received: by faan17 with SMTP id n17so4600505faa.19
+        for <linux-omap@vger.kernel.org>; Sat, 29 Oct 2011 17:39:57 -0700 (PDT)
+In-Reply-To: <1319931847-5140-1-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: stern@rowland.harvard.edu
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+> From: Vikram Pandita <vikram.pandita@ti.com>
+> 
+> omap_hsmmc.c: In function 'omap_hsmmc_protect_card':
+> omap_hsmmc.c:1273: error: 'pr_info' undeclared (first use in this function)
+> omap_hsmmc.c:1273: error: (Each undeclared identifier is reported only once
+> omap_hsmmc.c:1273: error: for each function it appears in.)
+> omap_hsmmc.c:1273: error: expected ';' before string constant
+> omap_hsmmc.c:1275: error: expected statement before ')' token
+> 
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index e8ff123..101cd31 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1270,7 +1270,7 @@ static void omap_hsmmc_protect_card(struct
+> omap_hsmmc_host *host) }
+>  	} else {
+>  		if (!host->protect_card) {
+> -			pr_info"%s: cover is open, "
+> +			pr_info("%s: cover is open, "
+>  					 "card is now inaccessible\n",
+>  					 mmc_hostname(host->mmc));
+>  			host->protect_card = 1;
 
-Data Buffer Error as per spec section 4.15.1.1.2
-results when there is Underrun or Overrun condition.
+Hey,
 
-This error is considered non-fatal and never gets reported.
-Its a very good indication on things going wrong at system level,
-like running memory at much slower speed.
+please care to check mailing list next time before you submit patch. This is 
+already fixed for about five hours now. Actually, the last patch submitted to 
+the mailing list fixes exactly this problem:
 
-This is a good error to flag allowing system level corrections.
-
-An issue was found with OMAP4460 board where DDR had to be run
-at full speed and this logging helped.
-
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Reviewed-by: Marek Vasut <marek.vasut@gmail.com>
----
-v1: original patch
-
-v2: fix review comments from Alan Stern<stern@rowland.harvard.edu>
-
- drivers/usb/host/ehci-q.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
-index 4e4066c..f81c6de 100644
---- a/drivers/usb/host/ehci-q.c
-+++ b/drivers/usb/host/ehci-q.c
-@@ -373,6 +373,16 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
-  retry_xacterr:
- 		if ((token & QTD_STS_ACTIVE) == 0) {
- 
-+			/* Report Data Buffer Error: non-fatal but useful */
-+			if (token & QTD_STS_DBE) {
-+				ehci_dbg(ehci,
-+				"detected DataBufferErr for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
-+				urb, usb_endpoint_num(urb->ep),
-+				usb_endpoint_dir_in(urb->ep) ? "in" : "out",
-+				urb->transfer_buffer_length,
-+				qtd, urb->ep->hcpriv);
-+			}
-+
- 			/* on STALL, error, and short reads this urb must
- 			 * complete and all its qtds must be recycled.
- 			 */
--- 
-1.7.5.4
-
+[PATCH] omap_hsmmc: fix missing parenthesis in pr_info
