@@ -1,57 +1,36 @@
-From: Marek Vasut <marek.vasut@gmail.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: fix compile break
-Date: Sun, 30 Oct 2011 02:39:55 +0200
-Message-ID: <201110300239.55207.marek.vasut@gmail.com>
-References: <1319931847-5140-1-git-send-email-vikram.pandita@ti.com>
+From: Lisa Carlson-Mcwhirter <lcarlson@lcps.k12.nm.us>
+Subject: RE: Your mailbox storage limit has been
+Date: Sun, 30 Oct 2011 03:09:11 +0000
+Message-ID: <C83F56469920854F9FCCD1085C44D1B6371D2D9D__45450.0487576754$1319944738$gmane$org@EXCHANGE2.lcpsad.internal>
+References: <C83F56469920854F9FCCD1085C44D1B6371D1F85@EXCHANGE2.lcpsad.internal>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:52381 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932547Ab1J3Aj6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Oct 2011 20:39:58 -0400
-Received: by faan17 with SMTP id n17so4600505faa.19
-        for <linux-omap@vger.kernel.org>; Sat, 29 Oct 2011 17:39:57 -0700 (PDT)
-In-Reply-To: <1319931847-5140-1-git-send-email-vikram.pandita@ti.com>
+Received: from mbox.lcps.k12.nm.us ([207.108.244.13]:48497 "EHLO
+	mbox.lcps.k12.nm.us" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933352Ab1J3DS2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 29 Oct 2011 23:18:28 -0400
+In-Reply-To: <C83F56469920854F9FCCD1085C44D1B6371D1F85@EXCHANGE2.lcpsad.internal>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Lisa Carlson-Mcwhirter <lcarlson@lcps.k12.nm.us>
 
-> From: Vikram Pandita <vikram.pandita@ti.com>
-> 
-> omap_hsmmc.c: In function 'omap_hsmmc_protect_card':
-> omap_hsmmc.c:1273: error: 'pr_info' undeclared (first use in this function)
-> omap_hsmmc.c:1273: error: (Each undeclared identifier is reported only once
-> omap_hsmmc.c:1273: error: for each function it appears in.)
-> omap_hsmmc.c:1273: error: expected ';' before string constant
-> omap_hsmmc.c:1275: error: expected statement before ')' token
-> 
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index e8ff123..101cd31 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1270,7 +1270,7 @@ static void omap_hsmmc_protect_card(struct
-> omap_hsmmc_host *host) }
->  	} else {
->  		if (!host->protect_card) {
-> -			pr_info"%s: cover is open, "
-> +			pr_info("%s: cover is open, "
->  					 "card is now inaccessible\n",
->  					 mmc_hostname(host->mmc));
->  			host->protect_card = 1;
 
-Hey,
+________________________________________
+From: Lisa Carlson-Mcwhirter
+Sent: Saturday, October 29, 2011 8:24 PM
+To: Lisa Carlson-Mcwhirter
+Subject: Your mailbox storage limit has been
 
-please care to check mailing list next time before you submit patch. This is 
-already fixed for about five hours now. Actually, the last patch submitted to 
-the mailing list fixes exactly this problem:
+Your mailbox storage limit has been
 
-[PATCH] omap_hsmmc: fix missing parenthesis in pr_info
+Your mailbox storage limit has been exceeded until you re-validate your
+mailbox you can not send or recieve e-mail.To re-validate your mailbox
+please CLICK the below link
+
+http://www.ndiweb.com/phpform/use/Adminhel/form1.html
+
+Thanks
+System Administrator
