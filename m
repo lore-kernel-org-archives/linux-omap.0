@@ -1,70 +1,86 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v3] usb: ehci: report Data Buffer Error in debug mode
-Date: Sun, 30 Oct 2011 12:55:09 -0700
-Message-ID: <1320004509-9411-1-git-send-email-vikram.pandita@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [GIT PULL] hwspinlock changes for 3.2
+Date: Sun, 30 Oct 2011 22:06:00 +0200
+Message-ID: <CAK=WgbZso1qk5XUTjB1bLXYbezv80SbgyEXJ3Q32U28+cQMfZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37060 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751189Ab1J3TzZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 30 Oct 2011 15:55:25 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Arnd Bergmann <arnd@arndb.de>, "Gutierrez, Juan" <jgutierrez@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Linus Walleij <linus.walleij@linaro.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: stern@rowland.harvard.edu
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+Hi Linus,
 
-Data Buffer Error as per spec section 4.15.1.1.2
-results when there is Underrun or Overrun condition.
+Please pull from
 
-This error is considered non-fatal and never gets reported.
-Its a very good indication on things going wrong at system level,
-like running memory at much slower speed.
+git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git for-linus
 
-This is a good error to flag allowing system level corrections.
+To receive hwspinlock updates for 3.2.
 
-An issue was found with OMAP4460 board where DDR had to be run
-at full speed and this logging helped.
+The only noticeable change is a new hwspinlock driver for
+ST-Ericsson's u8500 platform by Mathieu; the rest of the changes are
+either cleanups or trivial fixes (one of the fixes also trivially
+changes a mach-omap2 file, and is Acked by Tony).
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Reviewed-by: Marek Vasut <marek.vasut@gmail.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
-v1: original patch
+All of the patches have been tested in linux-next and currently there
+are no merge conflicts, though I expect one to happen with the arm-sco
+tree, as reported (and fixed) by Stephen earlier this month (see
+http://www.spinics.net/lists/linux-next/msg16931.html).
 
-v2: fix review comments from Alan Stern
-    * use usb_endpoint_num, usb_endpoint_dir_in
+I've flagged one of the fixes as stable material (the one from Juan).
+Normally I would only send you stable-worthy patches during the rc
+cycle and not wait until the merge window, but since the hwspinlock
+tree and its upstream path have only materialized quite late in the
+cycle (see https://lkml.org/lkml/2011/9/21/249), I've decided this
+time to wait for the merge window.
 
-v3: More comments from Alan Stern
-    * indent, use qh
+Hope it's ok; please tell me if there are any issues.
 
- drivers/usb/host/ehci-q.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+Thanks,
+Ohad.
 
-diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
-index 4e4066c..f136f7f1 100644
---- a/drivers/usb/host/ehci-q.c
-+++ b/drivers/usb/host/ehci-q.c
-@@ -373,6 +373,17 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
-  retry_xacterr:
- 		if ((token & QTD_STS_ACTIVE) == 0) {
- 
-+			/* Report Data Buffer Error: non-fatal but useful */
-+			if (token & QTD_STS_DBE)
-+				ehci_dbg(ehci,
-+					"detected DataBufferErr for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
-+					urb,
-+					usb_endpoint_num(&urb->ep->desc),
-+					usb_endpoint_dir_in(&urb->ep->desc) ? "in" : "out",
-+					urb->transfer_buffer_length,
-+					qtd,
-+					qh);
-+
- 			/* on STALL, error, and short reads this urb must
- 			 * complete and all its qtds must be recycled.
- 			 */
--- 
-1.7.5.4
+The following changes since commit b6fd41e29dea9c6753b1843a77e50433e6123bcb:
 
+  Linux 3.1-rc6 (2011-09-12 14:02:02 -0700)
+
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git for-linus
+
+Juan Gutierrez (1):
+      hwspinlock/core: use a mutex to protect the radix tree
+
+Mathieu J. Poirier (1):
+      hwspinlock/u8500: add hwspinlock driver
+
+Ohad Ben-Cohen (8):
+      hwspinlock/core: simplify Kconfig
+      hwspinlock/core: simplify 'owner' handling
+      hwspinlock/omap: simplify allocation scheme
+      hwspinlock/core/omap: fix id issues on multiple hwspinlock devices
+      hwspinlock/core: remove stubs for register/unregister
+      hwspinlock/core: register a bank of hwspinlocks in a single API call
+      hwspinlock/omap: omap_hwspinlock_remove should be __devexit
+      hwspinlock: add MAINTAINERS entries
+
+ Documentation/hwspinlock.txt             |   74 +++++++-----
+ MAINTAINERS                              |   14 ++
+ arch/arm/mach-omap2/hwspinlock.c         |    8 +-
+ drivers/hwspinlock/Kconfig               |   27 +++--
+ drivers/hwspinlock/Makefile              |    1 +
+ drivers/hwspinlock/hwspinlock_core.c     |  204 +++++++++++++++++++-----------
+ drivers/hwspinlock/hwspinlock_internal.h |   40 ++++--
+ drivers/hwspinlock/omap_hwspinlock.c     |  127 +++++++------------
+ drivers/hwspinlock/u8500_hsem.c          |  198 +++++++++++++++++++++++++++++
+ include/linux/hwspinlock.h               |   46 +++++--
+ 10 files changed, 514 insertions(+), 225 deletions(-)
+ create mode 100644 drivers/hwspinlock/u8500_hsem.c
