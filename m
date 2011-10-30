@@ -1,81 +1,68 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: fix compile break
-Date: Sat, 29 Oct 2011 23:24:02 -0700
-Message-ID: <CAFm5wm15LQBZU4_MxK51SDutmrkR5JJCyE2UHndyvpMrXtvLrg@mail.gmail.com>
-References: <1319931847-5140-1-git-send-email-vikram.pandita@ti.com> <201110300239.55207.marek.vasut@gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v2] usb: ehci: report Data Buffer Error in debug mode
+Date: Sun, 30 Oct 2011 15:14:37 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1110301512170.17906-100000@netrider.rowland.org>
+References: <1319932425-10404-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:56840 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751604Ab1J3GYY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 30 Oct 2011 02:24:24 -0400
-Received: by qabj40 with SMTP id j40so4458307qab.19
-        for <linux-omap@vger.kernel.org>; Sat, 29 Oct 2011 23:24:23 -0700 (PDT)
-In-Reply-To: <201110300239.55207.marek.vasut@gmail.com>
+Received: from netrider.rowland.org ([192.131.102.5]:52118 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751088Ab1J3TOi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 30 Oct 2011 15:14:38 -0400
+In-Reply-To: <1319932425-10404-1-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marek Vasut <marek.vasut@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Sat, Oct 29, 2011 at 5:39 PM, Marek Vasut <marek.vasut@gmail.com> wr=
-ote:
->
-> > From: Vikram Pandita <vikram.pandita@ti.com>
-> >
-> > omap_hsmmc.c: In function 'omap_hsmmc_protect_card':
-> > omap_hsmmc.c:1273: error: 'pr_info' undeclared (first use in this f=
-unction)
-> > omap_hsmmc.c:1273: error: (Each undeclared identifier is reported o=
-nly once
-> > omap_hsmmc.c:1273: error: for each function it appears in.)
-> > omap_hsmmc.c:1273: error: expected ';' before string constant
-> > omap_hsmmc.c:1275: error: expected statement before ')' token
-> >
-> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> > ---
-> > =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A02 +-
-> > =A01 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_=
-hsmmc.c
-> > index e8ff123..101cd31 100644
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -1270,7 +1270,7 @@ static void omap_hsmmc_protect_card(struct
-> > omap_hsmmc_host *host) }
-> > =A0 =A0 =A0 } else {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!host->protect_card) {
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info"%s: cover is open=
-, "
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info("%s: cover is ope=
-n, "
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0"card is now inaccessible\n",
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0mmc_hostname(host->mmc));
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 host->protect_card =3D =
-1;
->
-> Hey,
->
-> please care to check mailing list next time before you submit patch.
+On Sat, 29 Oct 2011, Vikram Pandita wrote:
 
-Cool down sir, no need to sound like hell broke loose.
-If its already there, i may have missed it.
+> From: Vikram Pandita <vikram.pandita@ti.com>
+> 
+> Data Buffer Error as per spec section 4.15.1.1.2
+> results when there is Underrun or Overrun condition.
+> 
+> This error is considered non-fatal and never gets reported.
+> Its a very good indication on things going wrong at system level,
+> like running memory at much slower speed.
+> 
+> This is a good error to flag allowing system level corrections.
+> 
+> An issue was found with OMAP4460 board where DDR had to be run
+> at full speed and this logging helped.
+> 
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> Reviewed-by: Marek Vasut <marek.vasut@gmail.com>
+> ---
+> v1: original patch
+> 
+> v2: fix review comments from Alan Stern<stern@rowland.harvard.edu>
 
-Please ignore.
+I'm sorry, there was one more thing that I forgot to mention last time.
 
-> This is
-> already fixed for about five hours now. Actually, the last patch subm=
-itted to
-> the mailing list fixes exactly this problem:
->
-> [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/usb/host/ehci-q.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
+> index 4e4066c..f81c6de 100644
+> --- a/drivers/usb/host/ehci-q.c
+> +++ b/drivers/usb/host/ehci-q.c
+> @@ -373,6 +373,16 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
+>   retry_xacterr:
+>  		if ((token & QTD_STS_ACTIVE) == 0) {
+>  
+> +			/* Report Data Buffer Error: non-fatal but useful */
+> +			if (token & QTD_STS_DBE) {
+> +				ehci_dbg(ehci,
+> +				"detected DataBufferErr for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
+> +				urb, usb_endpoint_num(urb->ep),
+> +				usb_endpoint_dir_in(urb->ep) ? "in" : "out",
+> +				urb->transfer_buffer_length,
+> +				qtd, urb->ep->hcpriv);
+
+Don't use urb->ep->hcpriv; use qh instead.  Also, the continuation 
+lines should be indented relative to the start of the statement.
+
+Alan Stern
+
