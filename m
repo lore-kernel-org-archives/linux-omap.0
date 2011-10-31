@@ -1,108 +1,249 @@
-From: Florian Fainelli <ffainelli@freebox.fr>
-Subject: Re: [RFC] Change ECC algorithm from userspace
-Date: Mon, 31 Oct 2011 10:02:35 +0100
-Message-ID: <5769554.XO3QpDQ76H@flexo>
-References: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
-	<4EAA845B.1020009@parrot.com>
+From: Robert Marklund <robert.marklund@stericsson.com>
+Subject: [PATCH 2/2 v4] net/smsc911x: Add regulator support
+Date: Mon, 31 Oct 2011 13:38:39 +0100
+Message-ID: <1320064719-14449-1-git-send-email-robert.marklund@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <4EAA845B.1020009@parrot.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: linux-mtd@lists.infradead.org
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Matthieu CASTET <matthieu.castet@parrot.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from eu1sys200aog109.obsmtp.com ([207.126.144.127]:55554 "EHLO
+	eu1sys200aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750736Ab1JaNEo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Oct 2011 09:04:44 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>
+Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Mike Frysinger <vapier@gentoo.org>, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
 
-Hi,
+Add some basic regulator support for the power pins, as needed
+by the ST-Ericsson Snowball platform that powers up the SMSC911
+chip using an external regulator.
 
-On Friday 28 October 2011 12:30:51 Matthieu CASTET wrote:
-> Hi,
-> =
+Platforms that use regulators and the smsc911x and have no defined
+regulator for the smsc911x and claim complete regulator
+constraints with no dummy regulators will need to provide it, for
+example using a fixed voltage regulator. It appears that this may
+affect (apart from Ux500 Snowball) possibly these archs/machines
+that from some grep:s appear to define both CONFIG_SMSC911X and
+CONFIG_REGULATOR:
 
-> Javier Martinez Canillas a =E9crit :
-> > Hello,
-> > =
+- ARM Freescale mx3 and OMAP 2 plus, Raumfeld machines
+- Blackfin
+- Super-H
 
-> > I want to be able to use 1-bit ECC for the first partition where I
-> > save the loader binary and has to be accessed by the ROM boot but use
-> > a 4-bit ECC for my rootfs partition.
-> > =
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: linux-sh@vger.kernel.org
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
+Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: uclinux-dist-devel@blackfin.uclinux.org
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Robert Marklund <robert.marklund@stericsson.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ChangeLog v3->v4:
+- Remove dual prints and old comment on Mike's request.
+- Split the request_free fucntion on Mike and Sascha request.
+ChangeLog v2->v3:
+- Use bulk regulators on Mark's request.
+- Add Cc-fileds to some possibly affected platforms.
+ChangeLog v1->v2:
+- Don't check for NULL regulators and error out properly if the
+  regulators can't be found. All platforms using the smsc911x
+  and the regulator framework simultaneously need to provide some
+  kind of regulator for it.
+---
+ drivers/net/ethernet/smsc/smsc911x.c |  103 ++++++++++++++++++++++++++++++----
+ 1 files changed, 92 insertions(+), 11 deletions(-)
 
-> > Does anyone have this same issue?
-> =
+diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
+index 8843071..9a2e792 100644
+--- a/drivers/net/ethernet/smsc/smsc911x.c
++++ b/drivers/net/ethernet/smsc/smsc911x.c
+@@ -44,6 +44,7 @@
+ #include <linux/module.h>
+ #include <linux/netdevice.h>
+ #include <linux/platform_device.h>
++#include <linux/regulator/consumer.h>
+ #include <linux/sched.h>
+ #include <linux/timer.h>
+ #include <linux/bug.h>
+@@ -88,6 +89,8 @@ struct smsc911x_ops {
+ 				unsigned int *buf, unsigned int wordcount);
+ };
+ 
++#define SMSC911X_NUM_SUPPLIES 2
++
+ struct smsc911x_data {
+ 	void __iomem *ioaddr;
+ 
+@@ -138,6 +141,9 @@ struct smsc911x_data {
+ 
+ 	/* register access functions */
+ 	const struct smsc911x_ops *ops;
++
++	/* regulators */
++	struct regulator_bulk_data supplies[SMSC911X_NUM_SUPPLIES];
+ };
+ 
+ /* Easy access to information */
+@@ -362,6 +368,68 @@ out:
+ 	spin_unlock_irqrestore(&pdata->dev_lock, flags);
+ }
+ 
++/*
++ * Enable or disable resources, currently just regulators.
++ */
++static int smsc911x_enable_disable_resources(struct platform_device *pdev,
++					     bool enable)
++{
++	struct net_device *ndev = platform_get_drvdata(pdev);
++	struct smsc911x_data *pdata = netdev_priv(ndev);
++	int ret = 0;
++
++	/* enable/disable regulators */
++	if (enable) {
++		ret = regulator_bulk_enable(ARRAY_SIZE(pdata->supplies),
++				pdata->supplies);
++		if (ret)
++			netdev_err(ndev, "failed to enable regulators %d\n",
++					ret);
++	} else
++		ret = regulator_bulk_disable(ARRAY_SIZE(pdata->supplies),
++				pdata->supplies);
++	return ret;
++}
++
++/*
++ * Request resources, currently just regulators.
++ *
++ * The SMSC911x has two power pins: vddvario and vdd33a, in designs where
++ * these are not always-on we need to request regulators to be turned on
++ * before we can try to access the device registers.
++ */
++static int smsc911x_request_resources(struct platform_device *pdev)
++{
++	struct net_device *ndev = platform_get_drvdata(pdev);
++	struct smsc911x_data *pdata = netdev_priv(ndev);
++	int ret = 0;
++
++	/* Request regulators */
++	pdata->supplies[0].supply = "vdd33a";
++	pdata->supplies[1].supply = "vddvario";
++	ret = regulator_bulk_get(&pdev->dev,
++			ARRAY_SIZE(pdata->supplies),
++			pdata->supplies);
++	if (ret)
++		netdev_err(ndev, "couldn't get regulators %d\n",
++				ret);
++	return ret;
++}
++
++/*
++ * Free resources, currently just regulators.
++ *
++ */
++static void smsc911x_free_resources(struct platform_device *pdev)
++{
++	struct net_device *ndev = platform_get_drvdata(pdev);
++	struct smsc911x_data *pdata = netdev_priv(ndev);
++
++	/* Free regulators */
++	regulator_bulk_free(ARRAY_SIZE(pdata->supplies),
++			pdata->supplies);
++}
++
+ /* waits for MAC not busy, with timeout.  Only called by smsc911x_mac_read
+  * and smsc911x_mac_write, so assumes mac_lock is held */
+ static int smsc911x_mac_complete(struct smsc911x_data *pdata)
+@@ -2092,6 +2160,9 @@ static int __devexit smsc911x_drv_remove(struct platform_device *pdev)
+ 
+ 	iounmap(pdata->ioaddr);
+ 
++	(void)smsc911x_enable_disable_resources(pdev, false);
++	smsc911x_free_resources(pdev);
++
+ 	free_netdev(dev);
+ 
+ 	return 0;
+@@ -2218,10 +2289,20 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
+ 	pdata->dev = dev;
+ 	pdata->msg_enable = ((1 << debug) - 1);
+ 
++	platform_set_drvdata(pdev, dev);
++
++	retval = smsc911x_request_resources(pdev);
++	if (retval)
++		goto out_return_resources;
++
++	retval = smsc911x_enable_disable_resources(pdev, true);
++	if (retval)
++		goto out_disable_resources;
++
+ 	if (pdata->ioaddr == NULL) {
+ 		SMSC_WARN(pdata, probe, "Error smsc911x base address invalid");
+ 		retval = -ENOMEM;
+-		goto out_free_netdev_2;
++		goto out_disable_resources;
+ 	}
+ 
+ 	retval = smsc911x_probe_config_dt(&pdata->config, np);
+@@ -2233,7 +2314,7 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
+ 
+ 	if (retval) {
+ 		SMSC_WARN(pdata, probe, "Error smsc911x config not found");
+-		goto out_unmap_io_3;
++		goto out_disable_resources;
+ 	}
+ 
+ 	/* assume standard, non-shifted, access to HW registers */
+@@ -2244,7 +2325,7 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
+ 
+ 	retval = smsc911x_init(dev);
+ 	if (retval < 0)
+-		goto out_unmap_io_3;
++		goto out_disable_resources;
+ 
+ 	/* configure irq polarity and type before connecting isr */
+ 	if (pdata->config.irq_polarity == SMSC911X_IRQ_POLARITY_ACTIVE_HIGH)
+@@ -2264,15 +2345,13 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
+ 	if (retval) {
+ 		SMSC_WARN(pdata, probe,
+ 			  "Unable to claim requested irq: %d", dev->irq);
+-		goto out_unmap_io_3;
++		goto out_free_irq;
+ 	}
+ 
+-	platform_set_drvdata(pdev, dev);
+-
+ 	retval = register_netdev(dev);
+ 	if (retval) {
+ 		SMSC_WARN(pdata, probe, "Error %i registering device", retval);
+-		goto out_unset_drvdata_4;
++		goto out_free_irq;
+ 	} else {
+ 		SMSC_TRACE(pdata, probe,
+ 			   "Network interface: \"%s\"", dev->name);
+@@ -2321,12 +2400,14 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
+ 
+ out_unregister_netdev_5:
+ 	unregister_netdev(dev);
+-out_unset_drvdata_4:
+-	platform_set_drvdata(pdev, NULL);
++out_free_irq:
+ 	free_irq(dev->irq, dev);
+-out_unmap_io_3:
++out_disable_resources:
++	(void)smsc911x_enable_disable_resources(pdev, false);
++out_return_resources:
++	smsc911x_free_resources(pdev);
++	platform_set_drvdata(pdev, NULL);
+ 	iounmap(pdata->ioaddr);
+-out_free_netdev_2:
+ 	free_netdev(dev);
+ out_release_io_1:
+ 	release_mem_region(res->start, resource_size(res));
+-- 
+1.7.1
 
-> We use raw programming and compute the ecc in software.
-
-We are doing something similar here as well. Our bootloader also requires t=
-he =
-
-data to be layed out differently (data + ecc interleaved inside a page + oo=
-b).
-
-> =
-
-> > What is the best approach to store data in a NAND device using
-> > different ECC techniques?
-> > =
-
-> > I've think of two approaches:
-> > =
-
-> > 1- Adding an ioctl to mtdchar (something like ECCSETBITS) to change
-> > the ECC technique used.
-> =
-
-> But this won't work if there is concurrent acess to mtd. One program may
-> want 1 bit ecc other want 4 bits ecc.
-> =
-
-> > 2- Use a platform data field to notify the omap2 nand driver that the
-> > ROM boot only supports 1-bit ECC. So it can use a 1-bit ECC to write
-> > and read the first 4 sectors but a 4-bit ECC for the rest.
-> =
-
-> This may be better.
-
-Would not it better to add infrastructure for allowing per-partition ECC =
-
-scheme? This should allow the kernel to also be able to properly handle the =
-
-bootloader partitions (bad-block scanning ...).
-
-> =
-
-> Matthieu
-> =
-
-> PS : note that some OMAP ROM support a better protection than Hamming (but
-> the details are not public AFAIK)
-> =
-
-> From OMAP34xx Multimedia Device, Silicon Revision 3.1.x, public version :
-> =
-
-> Pages can contain errors caused by memory alteration. To correct these
-> errors, the ROM code uses ECC,
-> based on Hamming codes for SLC NAND and BCH (Bose, Ray-Chaudhuri,
-> Hocquenghem) code for
-> multilevel cell (MLC) devices. The computed ECC is compared to ECC stored=
- in
-> the spare area of the
-> corresponding page. If there are uncorrectable errors, the ROM code retur=
-ns
-> with FAIL.
---
-Florian
-
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
