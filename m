@@ -1,81 +1,108 @@
-From: Thomas Weber <thomas.weber.linux@googlemail.com>
-Subject: Re: [PATCH 17/51] ARM: OMAP: convert reset to use arm_arch_reset (fwd)
-Date: Mon, 31 Oct 2011 09:40:40 +0100
-Message-ID: <CABoOg6x_v8Z+3VhRzc4E3TtbSxkvf0mZdqLpUX5RaYL7eCGhPQ@mail.gmail.com>
-References: <alpine.DEB.2.00.1110280947270.24690@utopia.booyaka.com>
+From: Florian Fainelli <ffainelli@freebox.fr>
+Subject: Re: [RFC] Change ECC algorithm from userspace
+Date: Mon, 31 Oct 2011 10:02:35 +0100
+Message-ID: <5769554.XO3QpDQ76H@flexo>
+References: <CAAwP0s059H3BGhYbYLux2gR6ZNb+sFDue676OM2Evz5cA2q6DA@mail.gmail.com>
+	<4EAA845B.1020009@parrot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:48029 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754421Ab1JaIkl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Oct 2011 04:40:41 -0400
-Received: by wwi36 with SMTP id 36so1197120wwi.1
-        for <linux-omap@vger.kernel.org>; Mon, 31 Oct 2011 01:40:40 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.1110280947270.24690@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <4EAA845B.1020009@parrot.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: linux-mtd@lists.infradead.org
+Cc: Javier Martinez Canillas <martinez.javier@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Enric Balletbo i Serra <eballetbo@iseebcn.com>, Matthieu CASTET <matthieu.castet@parrot.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
 
-Hello Paul, hello Will,
+Hi,
 
-On Fri, Oct 28, 2011 at 5:47 PM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> fyi
->
->
->
-> - Paul
->
-> ---------- Forwarded message ----------
-> Date: Fri, 28 Oct 2011 15:43:45 +0100
-> From: Will Deacon <will.deacon@arm.com>
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: Paul Walmsley <paul@pwsan.com>, Will Deacon <will.deacon@arm.com>
-> Subject: [PATCH 17/51] ARM: OMAP: convert reset to use arm_arch_reset
->
-> From: Paul Walmsley <paul@pwsan.com>
->
-> Align the OMAP reset code with Will Deacon's "ARM: reset: introduce
-> arm_arch_reset function pointer" cleanup patch.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Will Deacon <will.deacon@arm.com>
-> ---
-> =A0arch/arm/mach-omap1/board-voiceblue.c =A0 =A0| =A0 =A02 +-
-> =A0arch/arm/mach-omap1/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
-4 ++++
-> =A0arch/arm/mach-omap1/reset.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 =
+On Friday 28 October 2011 12:30:51 Matthieu CASTET wrote:
+> Hi,
+> =
+
+> Javier Martinez Canillas a =E9crit :
+> > Hello,
+> > =
+
+> > I want to be able to use 1-bit ECC for the first partition where I
+> > save the loader binary and has to be accessed by the ROM boot but use
+> > a 4-bit ECC for my rootfs partition.
+> > =
+
+> > Does anyone have this same issue?
+> =
+
+> We use raw programming and compute the ecc in software.
+
+We are doing something similar here as well. Our bootloader also requires t=
+he =
+
+data to be layed out differently (data + ecc interleaved inside a page + oo=
+b).
+
+> =
+
+> > What is the best approach to store data in a NAND device using
+> > different ECC techniques?
+> > =
+
+> > I've think of two approaches:
+> > =
+
+> > 1- Adding an ioctl to mtdchar (something like ECCSETBITS) to change
+> > the ECC technique used.
+> =
+
+> But this won't work if there is concurrent acess to mtd. One program may
+> want 1 bit ecc other want 4 bits ecc.
+> =
+
+> > 2- Use a platform data field to notify the omap2 nand driver that the
+> > ROM boot only supports 1-bit ECC. So it can use a 1-bit ECC to write
+> > and read the first 4 sectors but a 4-bit ECC for the rest.
+> =
+
+> This may be better.
+
+Would not it better to add infrastructure for allowing per-partition ECC =
+
+scheme? This should allow the kernel to also be able to properly handle the =
+
+bootloader partitions (bad-block scanning ...).
+
+> =
+
+> Matthieu
+> =
+
+> PS : note that some OMAP ROM support a better protection than Hamming (but
+> the details are not public AFAIK)
+> =
+
+> From OMAP34xx Multimedia Device, Silicon Revision 3.1.x, public version :
+> =
+
+> Pages can contain errors caused by memory alteration. To correct these
+> errors, the ROM code uses ECC,
+> based on Hamming codes for SLC NAND and BCH (Bose, Ray-Chaudhuri,
+> Hocquenghem) code for
+> multilevel cell (MLC) devices. The computed ECC is compared to ECC stored=
+ in
+> the spare area of the
+> corresponding page. If there are uncorrectable errors, the ROM code retur=
+ns
+> with FAIL.
 --
-> =A0arch/arm/mach-omap2/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A0=
-7 ++++++-
-> =A0arch/arm/mach-omap2/prcm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A04 =
-+---
-> =A0arch/arm/plat-omap/include/plat/system.h | =A0 =A06 +++++-
-> =A06 files changed, 17 insertions(+), 8 deletions(-)
->
-<snip>
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index 2e40a5c..ad3ac5c 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -58,7 +58,7 @@ u32 omap_prcm_get_reset_sources(void)
-> =A0EXPORT_SYMBOL(omap_prcm_get_reset_sources);
->
-> =A0/* Resets clock rates and reboots the system. Only called from sys=
-tem.h */
-I think it is no longer called from system.h only, isn't?
-> -static void omap_prcm_arch_reset(char mode, const char *cmd)
-> +void omap_prcm_arch_reset(char mode, const char *cmd)
-> =A0{
-> =A0 =A0 =A0 =A0s16 prcm_offs =3D 0;
->
+Florian
 
-Thomas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
