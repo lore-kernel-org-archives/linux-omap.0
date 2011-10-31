@@ -1,59 +1,62 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: [PATCH 2/5 v11] arm: omap: usb: ehci and ohci hwmod structures for omap3
-Date: Mon, 31 Oct 2011 11:37:59 -0400
-Message-ID: <152227.1320075479@turing-police.cc.vt.edu>
-References: <1316691479-1849-1-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-2-git-send-email-keshava_mgowda@ti.com> <1316691479-1849-3-git-send-email-keshava_mgowda@ti.com> <alpine.DEB.2.00.1109221115320.10719@utopia.booyaka.com> <CAP05o4+Zc2z6sBOX_rQeoDQ9PneypcLRCyBbaaB2m+ZjeXZnaw@mail.gmail.com> <alpine.DEB.2.00.1109240020510.22872@utopia.booyaka.com> <CAP05o4Lwk2uUz5ou84GQsrsBdjW-FEYP-55pBzH+a74hP4g1Dw@mail.gmail.com> <cbad72cea703d117067f7c628f7db806@mail.gmail.com> <1317127327.3820.31.camel@sokoban> <CAP05o4J75jGLTH8prOGD79Mte4DOg9ukgwe3V-KHFnB1Q-fi4w@mail.gmail.com> <CAP05o4K2EzAKDgC9EdfEURCfcM=M7TRJdBuAtRafL2RHg+qTag@mail.gmail.com> <1318505283.23199.4.camel@sokoban> <CAP05o4LUpo=H9_2sXswYzk_vkgyvm2F2qT3Pdo6cqSzMKMYi5A@mail.gmail.com>
-            <1319803416.12919.2.camel@sokoban>
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: Re: [PATCH 2/2 v4] net/smsc911x: Add regulator support
+Date: Mon, 31 Oct 2011 14:21:15 -0400
+Message-ID: <201110311421.18653.vapier@gentoo.org>
+References: <1320064719-14449-1-git-send-email-robert.marklund@stericsson.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1320075479_32791P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: multipart/signed;
+  boundary="nextPart2026611.Zm7YYLeAMb";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: Your message of "Fri, 28 Oct 2011 15:03:36 +0300."
-             <1319803416.12919.2.camel@sokoban>
-Sender: linux-kernel-owner@vger.kernel.org
-To: t-kristo@ti.com
-Cc: "Munegowda, Keshava" <keshava_mgowda@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Balbi, Felipe" <balbi@ti.com>, parthab@india.ti.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, "Gadiyar, Anand" <gadiyar@ti.com>, sameo@linux.intel.com, tony@atomide.com, "Hilman, Kevin" <khilman@ti.com>, johnstul@us.ibm.com, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1320064719-14449-1-git-send-email-robert.marklund@stericsson.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Robert Marklund <robert.marklund@stericsson.com>
+Cc: netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
---==_Exmh_1320075479_32791P
-Content-Type: text/plain; charset=us-ascii
+--nextPart2026611.Zm7YYLeAMb
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 28 Oct 2011 15:03:36 +0300, Tero Kristo said:
-> Hi Again,
+On Monday 31 October 2011 08:38:39 Robert Marklund wrote:
+> ChangeLog v3->v4:
+> - Remove dual prints and old comment on Mike's request.
+> - Split the request_free fucntion on Mike and Sascha request.
 
-> I created a new version of the patch which should be better than this
-> hack, I'll send it as an RFC to the l-o list in a bit.
-> On Thu, 2011-10-13 at 13:49 +0200, Munegowda, Keshava wrote:
-> > On Thu, Oct 13, 2011 at 4:58 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> > > On Thu, 2011-10-13 at 09:12 +0200, Munegowda, Keshava wrote:
-> > >> On Tue, Sep 27, 2011 at 6:48 PM, Munegowda, Keshava
-> > >> <keshava_mgowda@ti.com> wrote:
-> > >> > On Tue, Sep 27, 2011 at 6:12 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> > >> >> On Tue, 2011-09-27 at 08:04 +0200, Basak, Partha wrote:
-> > >> >> Texas Instruments Oy, Tekniikantie 12, 02150 Espoo. Y-tunnus: 0115040-6. Kotipaikka: Helsinki
-> > > Texas Instruments Oy, Porkkalankatu 22, 00180 Helsinki, Finland. Business ID: 0115040-6. Domicile: Helsinki
-> Texas Instruments Oy, Porkkalankatu 22, 00180 Helsinki, Finland. Business ID: 0115040-6. Domicile: Helsinki
+would be nice if the enable/disable were split as well ...
 
-Moral: Just leave current street addresses out of it. :)
+>  	iounmap(pdata->ioaddr);
+>=20
+> +	(void)smsc911x_enable_disable_resources(pdev, false);
 
-And can we *please* trim irrelevant stuff?  You top-posted a 2 line reply,
-followed by the entire note, which a bunch of kernel developers got to scroll
-through and wonder if they missed an in-line comment. *Especially* after the
-top part had one line that it wasn't clear if it was a top-posted sig line gone
-wrong, or 3 attempts to get an address right for inclusion in a patch.
+i don't think the (void) cast is necessary
 
+otherwise looks fine
+=2Dmike
 
---==_Exmh_1320075479_32791P
-Content-Type: application/pgp-signature
+--nextPart2026611.Zm7YYLeAMb
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
+Version: GnuPG v2.0.17 (GNU/Linux)
 
-iD8DBQFOrsDXcC3lWbTT17ARAjfaAKDcIcwP1SUqRa0i9EgwPlKai6OKXwCgiDvp
-Mp4qAd/UEGsFBldTRFKjxEM=
-=bLst
+iQIcBAABAgAGBQJOruceAAoJEEFjO5/oN/WBcEAP/37XHSiSXFvf1xdbFmVmVH20
+I9kwyxsxV/A7v3czWCf88uAXhOeDGVC7gWesSDt1qgighu3HK+Idyjegg1T2lsG+
+m0v98wG1b/RQDJJ0NJq+0xoqY9va0qLw27Y6S0Bkzg9fYfElFoRQr9p68cFnY9rO
+25oT6Ebd8ha7LyrN8pQXv8Ghy3ZN2Lhr/zvasbfE8wFTRddoqBmWSHWtlslZXxcx
+fjMEVMr1L5PoBiCD1v4ZM77k3BXPBL2kLFmW2PxI5S3gCCfj7UKXBKtozbsw6VpX
+6/AyWnRSK08kziBnmEcisNitjElBrk4hS/5j4zkHlvQ8PnTRfWBlSeqKw3NW0Euu
+51usSjczj22TepHaELzpkvAHNPG5IC336ZXGvlI7JUUYM4qfN1d+FDj2V5izgOpM
+mZBs+PfYSRRCrwv5h7bXkAov4RUdNEWWo34y9U58ulbWFF50L0FrwCdp3Hn7ywSI
+cLng/BSg726VMrVDZuk4UvFUzx+1YlaJw6E4HTdUDWyw4y+dEMXH8pUQcIF4tWoA
+nK/CxWeyB1GMMwNrKDyWiwi1H5MzkCQ3VDKJK0MSuN4GA3WRMMg1nUH2xpNxNAmy
+sOiOIUPFpLzc/GvKxVZNVKAxYm7aXb8kP9J/wsjsj3XLnhYkCOf9WMIpPDG9XcRR
+TtXLTcJxl/QS/hLcqRj+
+=zKGV
 -----END PGP SIGNATURE-----
 
---==_Exmh_1320075479_32791P--
+--nextPart2026611.Zm7YYLeAMb--
