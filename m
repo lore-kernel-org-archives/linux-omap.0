@@ -1,249 +1,74 @@
-From: Robert Marklund <robert.marklund@stericsson.com>
-Subject: [PATCH 2/2 v4] net/smsc911x: Add regulator support
-Date: Mon, 31 Oct 2011 13:38:39 +0100
-Message-ID: <1320064719-14449-1-git-send-email-robert.marklund@stericsson.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH v3] usb: ehci: report Data Buffer Error in debug mode
+Date: Mon, 31 Oct 2011 10:17:46 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1110311016510.1998-100000@iolanthe.rowland.org>
+References: <1320004509-9411-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog109.obsmtp.com ([207.126.144.127]:55554 "EHLO
-	eu1sys200aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750736Ab1JaNEo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 31 Oct 2011 09:04:44 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1320004509-9411-1-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Mike Frysinger <vapier@gentoo.org>, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
 
-Add some basic regulator support for the power pins, as needed
-by the ST-Ericsson Snowball platform that powers up the SMSC911
-chip using an external regulator.
+On Sun, 30 Oct 2011, Vikram Pandita wrote:
 
-Platforms that use regulators and the smsc911x and have no defined
-regulator for the smsc911x and claim complete regulator
-constraints with no dummy regulators will need to provide it, for
-example using a fixed voltage regulator. It appears that this may
-affect (apart from Ux500 Snowball) possibly these archs/machines
-that from some grep:s appear to define both CONFIG_SMSC911X and
-CONFIG_REGULATOR:
+> From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+> 
+> Data Buffer Error as per spec section 4.15.1.1.2
+> results when there is Underrun or Overrun condition.
+> 
+> This error is considered non-fatal and never gets reported.
+> Its a very good indication on things going wrong at system level,
+> like running memory at much slower speed.
+> 
+> This is a good error to flag allowing system level corrections.
+> 
+> An issue was found with OMAP4460 board where DDR had to be run
+> at full speed and this logging helped.
+> 
+> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+> ---
+> v1: original patch
+> 
+> v2: fix review comments from Alan Stern
+>     * use usb_endpoint_num, usb_endpoint_dir_in
+> 
+> v3: More comments from Alan Stern
+>     * indent, use qh
+> 
+>  drivers/usb/host/ehci-q.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
+> index 4e4066c..f136f7f1 100644
+> --- a/drivers/usb/host/ehci-q.c
+> +++ b/drivers/usb/host/ehci-q.c
+> @@ -373,6 +373,17 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
+>   retry_xacterr:
+>  		if ((token & QTD_STS_ACTIVE) == 0) {
+>  
+> +			/* Report Data Buffer Error: non-fatal but useful */
+> +			if (token & QTD_STS_DBE)
+> +				ehci_dbg(ehci,
+> +					"detected DataBufferErr for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
+> +					urb,
+> +					usb_endpoint_num(&urb->ep->desc),
+> +					usb_endpoint_dir_in(&urb->ep->desc) ? "in" : "out",
+> +					urb->transfer_buffer_length,
+> +					qtd,
+> +					qh);
+> +
+>  			/* on STALL, error, and short reads this urb must
+>  			 * complete and all its qtds must be recycled.
+>  			 */
 
-- ARM Freescale mx3 and OMAP 2 plus, Raumfeld machines
-- Blackfin
-- Super-H
+Signed-off-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: linux-sh@vger.kernel.org
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: uclinux-dist-devel@blackfin.uclinux.org
-Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Signed-off-by: Robert Marklund <robert.marklund@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
-ChangeLog v3->v4:
-- Remove dual prints and old comment on Mike's request.
-- Split the request_free fucntion on Mike and Sascha request.
-ChangeLog v2->v3:
-- Use bulk regulators on Mark's request.
-- Add Cc-fileds to some possibly affected platforms.
-ChangeLog v1->v2:
-- Don't check for NULL regulators and error out properly if the
-  regulators can't be found. All platforms using the smsc911x
-  and the regulator framework simultaneously need to provide some
-  kind of regulator for it.
----
- drivers/net/ethernet/smsc/smsc911x.c |  103 ++++++++++++++++++++++++++++++----
- 1 files changed, 92 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-index 8843071..9a2e792 100644
---- a/drivers/net/ethernet/smsc/smsc911x.c
-+++ b/drivers/net/ethernet/smsc/smsc911x.c
-@@ -44,6 +44,7 @@
- #include <linux/module.h>
- #include <linux/netdevice.h>
- #include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
- #include <linux/sched.h>
- #include <linux/timer.h>
- #include <linux/bug.h>
-@@ -88,6 +89,8 @@ struct smsc911x_ops {
- 				unsigned int *buf, unsigned int wordcount);
- };
- 
-+#define SMSC911X_NUM_SUPPLIES 2
-+
- struct smsc911x_data {
- 	void __iomem *ioaddr;
- 
-@@ -138,6 +141,9 @@ struct smsc911x_data {
- 
- 	/* register access functions */
- 	const struct smsc911x_ops *ops;
-+
-+	/* regulators */
-+	struct regulator_bulk_data supplies[SMSC911X_NUM_SUPPLIES];
- };
- 
- /* Easy access to information */
-@@ -362,6 +368,68 @@ out:
- 	spin_unlock_irqrestore(&pdata->dev_lock, flags);
- }
- 
-+/*
-+ * Enable or disable resources, currently just regulators.
-+ */
-+static int smsc911x_enable_disable_resources(struct platform_device *pdev,
-+					     bool enable)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+	int ret = 0;
-+
-+	/* enable/disable regulators */
-+	if (enable) {
-+		ret = regulator_bulk_enable(ARRAY_SIZE(pdata->supplies),
-+				pdata->supplies);
-+		if (ret)
-+			netdev_err(ndev, "failed to enable regulators %d\n",
-+					ret);
-+	} else
-+		ret = regulator_bulk_disable(ARRAY_SIZE(pdata->supplies),
-+				pdata->supplies);
-+	return ret;
-+}
-+
-+/*
-+ * Request resources, currently just regulators.
-+ *
-+ * The SMSC911x has two power pins: vddvario and vdd33a, in designs where
-+ * these are not always-on we need to request regulators to be turned on
-+ * before we can try to access the device registers.
-+ */
-+static int smsc911x_request_resources(struct platform_device *pdev)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+	int ret = 0;
-+
-+	/* Request regulators */
-+	pdata->supplies[0].supply = "vdd33a";
-+	pdata->supplies[1].supply = "vddvario";
-+	ret = regulator_bulk_get(&pdev->dev,
-+			ARRAY_SIZE(pdata->supplies),
-+			pdata->supplies);
-+	if (ret)
-+		netdev_err(ndev, "couldn't get regulators %d\n",
-+				ret);
-+	return ret;
-+}
-+
-+/*
-+ * Free resources, currently just regulators.
-+ *
-+ */
-+static void smsc911x_free_resources(struct platform_device *pdev)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+
-+	/* Free regulators */
-+	regulator_bulk_free(ARRAY_SIZE(pdata->supplies),
-+			pdata->supplies);
-+}
-+
- /* waits for MAC not busy, with timeout.  Only called by smsc911x_mac_read
-  * and smsc911x_mac_write, so assumes mac_lock is held */
- static int smsc911x_mac_complete(struct smsc911x_data *pdata)
-@@ -2092,6 +2160,9 @@ static int __devexit smsc911x_drv_remove(struct platform_device *pdev)
- 
- 	iounmap(pdata->ioaddr);
- 
-+	(void)smsc911x_enable_disable_resources(pdev, false);
-+	smsc911x_free_resources(pdev);
-+
- 	free_netdev(dev);
- 
- 	return 0;
-@@ -2218,10 +2289,20 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 	pdata->dev = dev;
- 	pdata->msg_enable = ((1 << debug) - 1);
- 
-+	platform_set_drvdata(pdev, dev);
-+
-+	retval = smsc911x_request_resources(pdev);
-+	if (retval)
-+		goto out_return_resources;
-+
-+	retval = smsc911x_enable_disable_resources(pdev, true);
-+	if (retval)
-+		goto out_disable_resources;
-+
- 	if (pdata->ioaddr == NULL) {
- 		SMSC_WARN(pdata, probe, "Error smsc911x base address invalid");
- 		retval = -ENOMEM;
--		goto out_free_netdev_2;
-+		goto out_disable_resources;
- 	}
- 
- 	retval = smsc911x_probe_config_dt(&pdata->config, np);
-@@ -2233,7 +2314,7 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 
- 	if (retval) {
- 		SMSC_WARN(pdata, probe, "Error smsc911x config not found");
--		goto out_unmap_io_3;
-+		goto out_disable_resources;
- 	}
- 
- 	/* assume standard, non-shifted, access to HW registers */
-@@ -2244,7 +2325,7 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 
- 	retval = smsc911x_init(dev);
- 	if (retval < 0)
--		goto out_unmap_io_3;
-+		goto out_disable_resources;
- 
- 	/* configure irq polarity and type before connecting isr */
- 	if (pdata->config.irq_polarity == SMSC911X_IRQ_POLARITY_ACTIVE_HIGH)
-@@ -2264,15 +2345,13 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 	if (retval) {
- 		SMSC_WARN(pdata, probe,
- 			  "Unable to claim requested irq: %d", dev->irq);
--		goto out_unmap_io_3;
-+		goto out_free_irq;
- 	}
- 
--	platform_set_drvdata(pdev, dev);
--
- 	retval = register_netdev(dev);
- 	if (retval) {
- 		SMSC_WARN(pdata, probe, "Error %i registering device", retval);
--		goto out_unset_drvdata_4;
-+		goto out_free_irq;
- 	} else {
- 		SMSC_TRACE(pdata, probe,
- 			   "Network interface: \"%s\"", dev->name);
-@@ -2321,12 +2400,14 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 
- out_unregister_netdev_5:
- 	unregister_netdev(dev);
--out_unset_drvdata_4:
--	platform_set_drvdata(pdev, NULL);
-+out_free_irq:
- 	free_irq(dev->irq, dev);
--out_unmap_io_3:
-+out_disable_resources:
-+	(void)smsc911x_enable_disable_resources(pdev, false);
-+out_return_resources:
-+	smsc911x_free_resources(pdev);
-+	platform_set_drvdata(pdev, NULL);
- 	iounmap(pdata->ioaddr);
--out_free_netdev_2:
- 	free_netdev(dev);
- out_release_io_1:
- 	release_mem_region(res->start, resource_size(res));
--- 
-1.7.1
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
