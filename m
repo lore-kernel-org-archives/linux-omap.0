@@ -1,74 +1,71 @@
-From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Subject: Re: [PATCH v3] usb: ehci: report Data Buffer Error in debug mode
-Date: Mon, 31 Oct 2011 10:17:46 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1110311016510.1998-100000@iolanthe.rowland.org>
-References: <1320004509-9411-1-git-send-email-vikram.pandita@ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1320004509-9411-1-git-send-email-vikram.pandita-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Cc: USB list <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH 1/2] OMAP2+: DMA: Workaround for invalid source position
+Date: Mon, 31 Oct 2011 16:20:16 +0200
+Message-ID: <1320070817-9638-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1320070817-9638-1-git-send-email-peter.ujfalusi@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:33914 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754949Ab1JaOUt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Oct 2011 10:20:49 -0400
+Received: by mail-fx0-f54.google.com with SMTP id r19so7815587faa.41
+        for <linux-omap@vger.kernel.org>; Mon, 31 Oct 2011 07:20:48 -0700 (PDT)
+In-Reply-To: <1320070817-9638-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On Sun, 30 Oct 2011, Vikram Pandita wrote:
+If the DMA source position has been asked before the
+first actual data transfer has been done, the CSAC
+register does not contain valid information.
+We can identify this situation by checking the CDAC
+register:
+CDAC != 0 indicates that the DMA transfer on the channel has
+been started already.
+When CDAC == 0 we can not trust the CSAC value since it has
+not been updated, and can contain random number.
+Return the start address in case the DMA has not jet started.
 
-> From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-> 
-> Data Buffer Error as per spec section 4.15.1.1.2
-> results when there is Underrun or Overrun condition.
-> 
-> This error is considered non-fatal and never gets reported.
-> Its a very good indication on things going wrong at system level,
-> like running memory at much slower speed.
-> 
-> This is a good error to flag allowing system level corrections.
-> 
-> An issue was found with OMAP4460 board where DDR had to be run
-> at full speed and this logging helped.
-> 
-> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-> Reviewed-by: Marek Vasut <marek.vasut-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-> ---
-> v1: original patch
-> 
-> v2: fix review comments from Alan Stern
->     * use usb_endpoint_num, usb_endpoint_dir_in
-> 
-> v3: More comments from Alan Stern
->     * indent, use qh
-> 
->  drivers/usb/host/ehci-q.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ehci-q.c b/drivers/usb/host/ehci-q.c
-> index 4e4066c..f136f7f1 100644
-> --- a/drivers/usb/host/ehci-q.c
-> +++ b/drivers/usb/host/ehci-q.c
-> @@ -373,6 +373,17 @@ qh_completions (struct ehci_hcd *ehci, struct ehci_qh *qh)
->   retry_xacterr:
->  		if ((token & QTD_STS_ACTIVE) == 0) {
->  
-> +			/* Report Data Buffer Error: non-fatal but useful */
-> +			if (token & QTD_STS_DBE)
-> +				ehci_dbg(ehci,
-> +					"detected DataBufferErr for urb %p ep%d%s len %d, qtd %p [qh %p]\n",
-> +					urb,
-> +					usb_endpoint_num(&urb->ep->desc),
-> +					usb_endpoint_dir_in(&urb->ep->desc) ? "in" : "out",
-> +					urb->transfer_buffer_length,
-> +					qtd,
-> +					qh);
-> +
->  			/* on STALL, error, and short reads this urb must
->  			 * complete and all its qtds must be recycled.
->  			 */
+Note: The CDAC register has been initialized to 0 at dma_start
+time.
 
-Signed-off-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/plat-omap/dma.c |   15 +++++++++++++--
+ 1 files changed, 13 insertions(+), 2 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index c22217c..38b0d44 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1024,12 +1024,23 @@ EXPORT_SYMBOL(omap_set_dma_callback);
+  */
+ dma_addr_t omap_get_dma_src_pos(int lch)
+ {
++	u32 cdac;
+ 	dma_addr_t offset = 0;
+ 
+ 	if (cpu_is_omap15xx())
+ 		offset = p->dma_read(CPC, lch);
+-	else
+-		offset = p->dma_read(CSAC, lch);
++	else {
++		/*
++		 * CDAC == 0 indicates that the DMA transfer on the channel has
++		 * not been started (no data has been transferred so far).
++		 * Return the programmed source start address in this case.
++		 */
++		cdac = p->dma_read(CDAC, lch);
++		if (likely(cdac))
++			offset = p->dma_read(CSAC, lch);
++		else
++			offset = p->dma_read(CSSA, lch);
++	}
+ 
+ 	if (IS_DMA_ERRATA(DMA_ERRATA_3_3) && offset == 0)
+ 		offset = p->dma_read(CSAC, lch);
+-- 
+1.7.7.1
+
