@@ -1,69 +1,81 @@
-From: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] usb: ehci: make HC see up-to-date qh/qtd descriptor ASAP
-Date: Sun, 30 Oct 2011 23:49:58 -0700
-Message-ID: <CAFm5wm21mck_cKA0K+9JUy1XtON8=T9Ar29BscDN0sMKPT2m3w@mail.gmail.com>
-References: <20110830172642.GE3464@e102144-lin.cambridge.arm.com>
- <20110830174859.GA23098@kroah.com> <20110830175432.GG3464@e102144-lin.cambridge.arm.com>
- <5484D075-A7DA-41B7-B8FA-9B6D72A23723@freescale.com> <20110831084922.GA8777@e102144-lin.cambridge.arm.com>
- <1314798215.2344.76.camel@deneb.redhat.com> <20110831152137.GG8777@e102144-lin.cambridge.arm.com>
- <alpine.LFD.2.00.1108311332410.20358@xanadu.home> <20110831175147.GI8777@e102144-lin.cambridge.arm.com>
- <4E5E7B35.9080008@gmail.com> <20110831193525.GA27476@e102144-lin.cambridge.arm.com>
- <1315521779.2313.29.camel@deneb.redhat.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: [PATCH v9 2/4] cpuidle: Remove CPUIDLE_FLAG_IGNORE and dev->prepare()
+Date: Mon, 31 Oct 2011 13:02:27 +0530
+Message-ID: <4EAE4F0B.2050500@linux.vnet.ibm.com>
+References: <20111028104945.7520.83828.stgit@localhost6.localdomain6> <20111028105020.7520.68014.stgit@localhost6.localdomain6> <4EAABB07.3000305@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1315521779.2313.29.camel-PDpCo7skNiwAicBL8TP8PQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Nicolas Pitre <nico-vtqb6HGKxmzR7s880joybQ@public.gmane.org>, Chen Peter-B29397 <B29397-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, "ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org" <ming.lei-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+In-Reply-To: <4EAABB07.3000305@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: khilman@ti.com, venki@google.com, ak@linux.intel.com, len.brown@intel.com, peterz@infradead.org, rjw@sisk.pl, santosh.shilimkar@ti.com, lenb@kernel.org, linux-pm@vger.kernel.org, linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Sep 8, 2011 at 3:41 PM, Mark Salter <msalter-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Wed, 2011-08-31 at 20:35 +0100, Will Deacon wrote:
->> On Wed, Aug 31, 2011 at 07:19:33PM +0100, Rob Herring wrote:
->> > On 08/31/2011 12:51 PM, Will Deacon wrote:
->> > > Another thing that Marc and I tried on OMAP4 was not bringing up the secondary
->> > > CPU during boot (by commenting out most of smp_init). In this case, I/O
->> > > performance was good until we tried to online the secondary CPU. The online
->> > > failed but after that the I/O performance was certainly degraded.
->> > >
->> >
->> > Was the SCU enabled at that point? One diff between nosmp boot and
->> > offlining the 2nd core would be that the SCU remains enabled in the
->> > latter case. I think the SCU does not get enabled for nosmp.
+On Friday 28 October 2011 07:54 PM, Arjan van de Ven wrote:
+> 
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> On 10/28/2011 3:50 AM, Deepthi Dharwar wrote:
+>> The cpuidle_device->prepare() mechanism causes updates to the
+>> cpuidle_state[].flags, setting and clearing CPUIDLE_FLAG_IGNORE
+>> to tell the governor not to chose a state on a per-cpu basis at
+>> run-time. State demotion is now handled by the driver and it returns
+>> the actual state entered. Hence, this mechanism is not required.
+>> Also this removes per-cpu flags from cpuidle_state enabling
+>> it to be made global.
 >>
->> Our rudimentary test (printing out the SCU control register during boot)
->> showed that it *was* enabled for nosmp. I think this is due to the secure
->> world having to do that on OMAP so it's probably not true for other
->> platforms.
->
-> I've done a little test and found that turning on the MMU of the second
-> core causes the problem to show up. I patched head.S so I stopped the
-> second core in an infinite loop just before turning on the MMU. The
-> system continues booting on core#0 and I see ~20MB/s with hdparm -t to
-> an attached usb disk. Same setup but with second core being stopped with
-> infinite loop just after MMU is enabled shows ~5MB/s. So whatever is
-> going wrong, its not because of anything the second core is doing beyond
-> turning on its MMU and doing an empty loop.
+> 
+> having worked on some newer platforms....
+> this one is really still needed. doing this inside the actual states
+> does not work,
+> because if the deepest 3 states are invalid, the same (somewhat
+> expensive) test would have to be done 3 times,
+> and each of the states would have to fail before the 4th one gets chosen.
+> that's just not going to work
+> 
+> (in the state handler you can't know what other state to fall back to,
+> and especially not how to enter such a fallback state)
+> 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v2.0.17 (MingW32)
+> 
+> iQEcBAEBAgAGBQJOqrsGAAoJEEHdSxh4DVnEu7EH/i5lEJctBAIubJOcZz/tvBFp
+> XYmAe/HqNtSXeHOVsJkTf8y4ppE8487exF7xxMik4GRN0CZNCtkyMezqDVu+eDim
+> O/UUbScsAc5cSY6mkjOFXLFup+mi1nkRUnAbxXEyTMhWwcbfr2OvcuO7l7TmATML
+> hu87P3PVEafEop3q2+uWMc57fFxnNFfEDqRx6N9V+OJKV5dHrRYL4G4E01fYGFLo
+> xTR0IW7nB15L0C29zk9uk/Dqow8SoJZA83c7p7AieP5zdntb6p7noIf03qmdp19f
+> fulwMwembCHivo+pLO+jAMhKD1T6VYoCyiYW0LHrQ2E07fayBhFJCxlazgKFcl0=
+> =FL6o
+> -----END PGP SIGNATURE-----
+> 
+Hi Arjan,
 
-what was the final take on the optimization?
-Excuse if i could not follow the whole thread - could someone
-summarize for the benefit of many.
+Thanks for the review. 
 
-Thanks
+We retain the dev->prepare() routine and CPUIDLE_FLAG_IGNORE 
+but still allow the dev->enter() to return index ? 
+So by retaining it, transition to the idle states
+would be much quicker in case one more states are invalid.
 
->
-> --Mark
->
->
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also to note is that in the newer design, we have split the 
+cpuidle_state structure. One global struct, cpuidle_states[] that
+contains all the state related information including flags, and 
+the other cpuidle_device that contain statistics and other data 
+that are per-cpu basis. 
+So the flags are not per cpu per state basis but 
+maintained globally as per state basis. 
+
+So if we have to enable CPUIDLE_FLAG_IGNORE flag in this 
+current new design, then I am thinking if we needed to have this 
+on a per-cpu basis. If so, then flags have to be moved into cpuidle_device 
+struct rather than cpuidle_state struct. 
+
+Is it a good idea to retain these flags as global (part of cpuidle_states) 
+or make it per-cpu basis ? 
+
+-Thanks
+Deepthi   
+
