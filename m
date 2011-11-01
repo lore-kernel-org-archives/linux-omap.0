@@ -1,75 +1,39 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: DaVinci NAND writing utility release, was: RE: [RFC] Change ECC
- algorithm from userspace
-Date: Tue, 1 Nov 2011 11:34:53 +0100
-Message-ID: <CAAwP0s2xeh6Bn0u-VmVsy=fo0UHo9ZGo8ps7zDWoJxU-Z75JSg@mail.gmail.com>
-References: <CAAwP0s0TzB2iFzYkjAsN6q-YA9d0MEd7ViOd-UUvbMf_11q8gw@mail.gmail.com>
- <70E876B0EA86DD4BAF101844BC814DFE0BF244FEEE@Cloud.RL.local>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v5 2/7] arm: pmu: allow platform specific irq
+	enable/disable handling
+Date: Tue, 1 Nov 2011 12:52:12 +0000
+Message-ID: <20111101125212.GB15232@mudshark.cambridge.arm.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
+	<1319467559-5518-3-git-send-email-ming.lei@canonical.com>
+	<20111101112646.75fba9db@tom-ThinkPad-T410>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:61942 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057Ab1KAKfP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Nov 2011 06:35:15 -0400
-Received: by gyb13 with SMTP id 13so6882480gyb.19
-        for <linux-omap@vger.kernel.org>; Tue, 01 Nov 2011 03:35:14 -0700 (PDT)
-In-Reply-To: <70E876B0EA86DD4BAF101844BC814DFE0BF244FEEE@Cloud.RL.local>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20111101112646.75fba9db@tom-ThinkPad-T410>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jon Povey <Jon.Povey@racelogic.co.uk>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, dlos <davinci-linux-open-source@linux.davincidsp.com>
 
-On Tue, Nov 1, 2011 at 5:18 AM, Jon Povey <Jon.Povey@racelogic.co.uk> w=
-rote:
-> Adding davinci linux open source ML to CC as folk there might find th=
-is
-> utility useful.
->
-> Javier Martinez Canillas wrote:
->> On Fri, Oct 28, 2011 at 12:33 PM, Jon Povey
->> <Jon.Povey@racelogic.co.uk> wrote:
->>> linux-mtd-bounces@lists.infradead.org wrote:
->>> DM355 and DM365 has similar issues as the RBL expects a different
->>> OOB/ECC layout to Linux.
->>>
->>> What I have done is write a utility that calculates ECC and writes =
-to
->>> the mtd device in RAW mode. So to rewrite the bootloader I take car=
-e
->>> of the ECC and layout at application level without changing the
->>> kernel.
->
->> Is your utility publicly available? It would be great if I can use i=
-t
->> as an starting point.
->
-> Management have given the thumbs-up, this is now released under GPL v=
-2
-> at https://github.com/jonpovey/flashtool
->
-> Supports DM355 and DM365 RBL layouts, ECC generation, UBI image writi=
-ng,
-> and various bad block / range handling.
->
-> Enjoy!
->
-> --
+On Tue, Nov 01, 2011 at 03:26:46AM +0000, Ming Lei wrote:
+> Attach the patch [PATCH v5 2/7] which is rebased on 3.1 -next.
 
-Hi Jon, thanks for sharing your tool!
+Great, thanks for that.
 
-Today is holiday in Spain and I don't have proper hardware to test.
-But tomorrow I will definitely give a try.
+> BTW: The [PATCH v5 3/7] should be dropped as commented before, other patches
+> are OK against 3.1 -next.
 
-Thanks a lot and best regards,
+Ok, I'll pick up patches 1 and 2. The OMAP guys can take the rest as and
+when they're happy with them.
 
---=20
-Javier Mart=C3=ADnez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Will
