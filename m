@@ -1,130 +1,106 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH v5 2/7] arm: pmu: allow platform specific irq
- enable/disable handling
-Date: Tue, 1 Nov 2011 11:26:46 +0800
-Message-ID: <20111101112646.75fba9db@tom-ThinkPad-T410>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
-	<1319467559-5518-3-git-send-email-ming.lei@canonical.com>
+From: MING ZHOU <a17711@motorola.com>
+Subject: May I ask a question about scheduler (sched_rt.c)?
+Date: Tue, 1 Nov 2011 11:46:47 +0800
+Message-ID: <CAFf0ej7RB_jBPF60rnf0Yo7XhcJzzJvi4e03ymAD4EpJP7PDfw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59890 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753711Ab1KAD1E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Oct 2011 23:27:04 -0400
-In-Reply-To: <1319467559-5518-3-git-send-email-ming.lei@canonical.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: will.deacon@arm.com
-Cc: ming.lei@canonical.com, linux@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
+
+Hi  all,
+
+ May I ask a question about scheduler (sched_rt.c)? I want to make
+sure a patch related  in kernel-linux mailing list is valid or not.
+ http://lkml.org/lkml/2008/9/25/189
+
+ I encountered a kernel panic recently which caused by BUG_ON in
+pick_next_pushable_task ( my kernel version is 2.6.35, on arm
+platform).
+
+static struct task_struct *pick_next_pushable_task(struct rq *rq)
+{
+   ...
+     BUG_ON(task_current(rq, p));  <------------ panic here!!!
+   ...
+}
+
+<4>[17583.180664] [<c00a3888>] (pick_next_pushable_task+0x4c/0xa4)
+from [<c00ae21c>] (push_rt_task+0x20/0x264)
+<4>[17583.180725] [<c00ae21c>] (push_rt_task+0x20/0x264) from
+[<c00ae554>] (post_schedule_rt+0x14/0x20)
+<4>[17583.180816] [<c00ae554>] (post_schedule_rt+0x14/0x20) from
+[<c069352c>] (schedule+0x738/0x7c8)
 
 
-Hi,
+ I checked patch history related to push_rt_task, and I think the
+following patch may be the reason, since if dequeue task improperly,
+it may ruin task pointer by mistake.
 
-Attach the patch [PATCH v5 2/7] which is rebased on 3.1 -next.
+ https://lkml.org/lkml/2011/8/14/71
+Commit-ID:  311e800e16f63d909136a64ed17ca353a160be59
+Author:     Hillf Danton <dhillf@gmail.com>
 
-BTW: The [PATCH v5 3/7] should be dropped as commented before, other patches
-are OK against 3.1 -next.
+sched, rt: Fix rq->rt.pushable_tasks bug in push_rt_task()
 
-thanks,
---
-Ming Lei
+Do not call dequeue_pushable_task() when failing to push an eligible
+task, as it remains pushable, merely not at this particular moment.
 
---
->From 6125bef1aeee84ef22efdf743077f27f5274b6da Mon Sep 17 00:00:00 2001
-From: Ming Lei <ming.lei@canonical.com>
-Date: Wed, 2 Mar 2011 15:00:08 +0800
-Subject: [PATCH v6 2/6] arm: pmu: allow platform specific irq enable/disable
- handling
+Signed-off-by: Hillf Danton <dhillf@gmail.com>
+Signed-off-by: Mike Galbraith <mgalbraith@gmx.de>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Yong Zhang <yong.zhang0@gmail.com>
 
-This patch introduces .enable_irq and .disable_irq into
-struct arm_pmu_platdata, so platform specific irq enablement
-can be handled after request_irq, and platform specific irq
-disablement can be handled before free_irq.
+And I also noticed in commit history of sched_rt.c, I found the
+similar patch is submitted before at 2008.
+However, it was not picked up in latest kernel code.  So, I am
+wondering whether this patch is valid?
 
-This patch is for support of  pmu irq routed from CTI on omap4.
+commit 1563513d34ed4b12ef32bc2adde4a53ce05701a1
+Author: Gregory Haskins <ghaskins@novell.com>
+Date:   Mon Dec 29 09:39:53 2008 -0500
 
-Acked-by: Jean Pihet <j-pihet@ti.com>
-Reviewed-by: Will Deacon <will.deacon@arm.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- arch/arm/include/asm/pmu.h   |   15 ++++++++++++---
- arch/arm/kernel/perf_event.c |   10 ++++++++--
- 2 files changed, 20 insertions(+), 5 deletions(-)
+RT: fix push_rt_task() to handle dequeue_pushable properly
 
-diff --git a/arch/arm/include/asm/pmu.h b/arch/arm/include/asm/pmu.h
-index 71d99b8..46a96a8 100644
---- a/arch/arm/include/asm/pmu.h
-+++ b/arch/arm/include/asm/pmu.h
-@@ -27,13 +27,22 @@ enum arm_pmu_type {
- /*
-  * struct arm_pmu_platdata - ARM PMU platform data
-  *
-- * @handle_irq: an optional handler which will be called from the interrupt and
-- * passed the address of the low level handler, and can be used to implement
-- * any platform specific handling before or after calling it.
-+ * @handle_irq: an optional handler which will be called from the
-+ *	interrupt and passed the address of the low level handler,
-+ *	and can be used to implement any platform specific handling
-+ *	before or after calling it.
-+ * @enable_irq: an optional handler which will be called after
-+ *	request_irq and be used to handle some platform specific
-+ *	irq enablement
-+ * @disable_irq: an optional handler which will be called before
-+ *	free_irq and be used to handle some platform specific
-+ *	irq disablement
-  */
- struct arm_pmu_platdata {
- 	irqreturn_t (*handle_irq)(int irq, void *dev,
- 				  irq_handler_t pmu_handler);
-+	void (*enable_irq)(int irq);
-+	void (*disable_irq)(int irq);
- };
- 
- #ifdef CONFIG_CPU_HAS_PMU
-diff --git a/arch/arm/kernel/perf_event.c b/arch/arm/kernel/perf_event.c
-index e6e5d7c..4c4aa83 100644
---- a/arch/arm/kernel/perf_event.c
-+++ b/arch/arm/kernel/perf_event.c
-@@ -374,6 +374,8 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
- {
- 	int i, irq, irqs;
- 	struct platform_device *pmu_device = armpmu->plat_device;
-+	struct arm_pmu_platdata *plat =
-+		dev_get_platdata(&pmu_device->dev);
- 
- 	irqs = min(pmu_device->num_resources, num_possible_cpus());
- 
-@@ -381,8 +383,11 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
- 		if (!cpumask_test_and_clear_cpu(i, &armpmu->active_irqs))
- 			continue;
- 		irq = platform_get_irq(pmu_device, i);
--		if (irq >= 0)
-+		if (irq >= 0) {
-+			if (plat && plat->disable_irq)
-+				plat->disable_irq(irq);
- 			free_irq(irq, armpmu);
-+		}
- 	}
- 
- 	release_pmu(armpmu->type);
-@@ -439,7 +444,8 @@ armpmu_reserve_hardware(struct arm_pmu *armpmu)
- 				irq);
- 			armpmu_release_hardware(armpmu);
- 			return err;
--		}
-+		} else if (plat && plat->enable_irq)
-+			plat->enable_irq(irq);
- 
- 		cpumask_set_cpu(i, &armpmu->active_irqs);
- 	}
--- 
-1.7.5.4
+  A panic was discovered by Chirag Jog where a BUG_ON sanity check
+  in the new "pushable_task" logic would trigger a panic under
+  certain circumstances:
+
+  http://lkml.org/lkml/2008/9/25/189
+
+  Gilles Carry discovered that the root cause was attributed to the
+  pushable_tasks list getting corrupted in the push_rt_task logic.
+  This was the result of a dropped rq lock in double_lock_balance
+  allowing a task in the process of being pushed to potentially migrate
+  away, and thus corrupt the pushable_tasks() list.
+
+  I traced back the problem as introduced by the pushable_tasks patch
+  that went in recently.   There is a "retry" path in push_rt_task()
+  that actually had a compound conditional to decide whether to
+  retry or exit.  I missed the meaning behind the rationale for the
+  virtual "if(!task) goto out;" portion of the compound statement and
+  thus did not handle it properly.  The new pushable_tasks logic
+  actually creates three distinct conditions:
+
+  1) an untouched and unpushable task should be dequeued
+  2) a migrated task where more pushable tasks remain should be retried
+  3) a migrated task where no more pushable tasks exist should exit
+
+  The original logic mushed (1) and (3) together, resulting in the
+  system dequeuing a migrated task (against an unlocked foreign run-queue
+  nonetheless).
+
+  To fix this, we get rid of the notion of "paranoid" and we support the
+  three unique conditions properly.  The paranoid feature is no longer
+  relevant with the new pushable logic (since pushable naturally limits
+  the loop) anyway, so lets just remove it.
+
+  Reported-By: Chirag Jog <chirag@linux.vnet.ibm.com>
+  Found-by: Gilles Carry <gilles.carry@bull.net>
+  Signed-off-by: Gregory Haskins <ghaskins@novell.com>
 
 
-
-
-
--- 
-Ming Lei
+Best Regards,
+Jane Zhou
