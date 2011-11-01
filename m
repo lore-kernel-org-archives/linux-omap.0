@@ -1,106 +1,66 @@
-From: MING ZHOU <a17711@motorola.com>
-Subject: May I ask a question about scheduler (sched_rt.c)?
-Date: Tue, 1 Nov 2011 11:46:47 +0800
-Message-ID: <CAFf0ej7RB_jBPF60rnf0Yo7XhcJzzJvi4e03ymAD4EpJP7PDfw@mail.gmail.com>
+From: Jon Povey <Jon.Povey@racelogic.co.uk>
+Subject: DaVinci NAND writing utility release, was: RE: [RFC] Change ECC
+	algorithm from userspace
+Date: Tue, 1 Nov 2011 04:18:53 +0000
+Message-ID: <70E876B0EA86DD4BAF101844BC814DFE0BF244FEEE@Cloud.RL.local>
+References: <CAAwP0s0TzB2iFzYkjAsN6q-YA9d0MEd7ViOd-UUvbMf_11q8gw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+Content-Class: urn:content-classes:message
+In-Reply-To: <CAAwP0s0TzB2iFzYkjAsN6q-YA9d0MEd7ViOd-UUvbMf_11q8gw@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi  all,
+Adding davinci linux open source ML to CC as folk there might find this
+utility useful.
 
- May I ask a question about scheduler (sched_rt.c)? I want to make
-sure a patch related  in kernel-linux mailing list is valid or not.
- http://lkml.org/lkml/2008/9/25/189
+Javier Martinez Canillas wrote:
+> On Fri, Oct 28, 2011 at 12:33 PM, Jon Povey
+> <Jon.Povey@racelogic.co.uk> wrote:
+>> linux-mtd-bounces@lists.infradead.org wrote:
+>> DM355 and DM365 has similar issues as the RBL expects a different
+>> OOB/ECC layout to Linux.
+>>
+>> What I have done is write a utility that calculates ECC and writes to
+>> the mtd device in RAW mode. So to rewrite the bootloader I take care
+>> of the ECC and layout at application level without changing the
+>> kernel.
 
- I encountered a kernel panic recently which caused by BUG_ON in
-pick_next_pushable_task ( my kernel version is 2.6.35, on arm
-platform).
+> Is your utility publicly available? It would be great if I can use it
+> as an starting point.
 
-static struct task_struct *pick_next_pushable_task(struct rq *rq)
-{
-   ...
-     BUG_ON(task_current(rq, p));  <------------ panic here!!!
-   ...
-}
+Management have given the thumbs-up, this is now released under GPL v2
+at https://github.com/jonpovey/flashtool
 
-<4>[17583.180664] [<c00a3888>] (pick_next_pushable_task+0x4c/0xa4)
-from [<c00ae21c>] (push_rt_task+0x20/0x264)
-<4>[17583.180725] [<c00ae21c>] (push_rt_task+0x20/0x264) from
-[<c00ae554>] (post_schedule_rt+0x14/0x20)
-<4>[17583.180816] [<c00ae554>] (post_schedule_rt+0x14/0x20) from
-[<c069352c>] (schedule+0x738/0x7c8)
+Supports DM355 and DM365 RBL layouts, ECC generation, UBI image writing,
+and various bad block / range handling.
 
+Enjoy!
 
- I checked patch history related to push_rt_task, and I think the
-following patch may be the reason, since if dequeue task improperly,
-it may ruin task pointer by mistake.
+--
+Jon Povey
+jon.povey@racelogic.co.uk
 
- https://lkml.org/lkml/2011/8/14/71
-Commit-ID:  311e800e16f63d909136a64ed17ca353a160be59
-Author:     Hillf Danton <dhillf@gmail.com>
+Racelogic is a limited company registered in England. Registered number 2743719 .
+Registered Office Unit 10, Swan Business Centre, Osier Way, Buckingham, Bucks, MK18 1TB .
 
-sched, rt: Fix rq->rt.pushable_tasks bug in push_rt_task()
-
-Do not call dequeue_pushable_task() when failing to push an eligible
-task, as it remains pushable, merely not at this particular moment.
-
-Signed-off-by: Hillf Danton <dhillf@gmail.com>
-Signed-off-by: Mike Galbraith <mgalbraith@gmx.de>
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Yong Zhang <yong.zhang0@gmail.com>
-
-And I also noticed in commit history of sched_rt.c, I found the
-similar patch is submitted before at 2008.
-However, it was not picked up in latest kernel code.  So, I am
-wondering whether this patch is valid?
-
-commit 1563513d34ed4b12ef32bc2adde4a53ce05701a1
-Author: Gregory Haskins <ghaskins@novell.com>
-Date:   Mon Dec 29 09:39:53 2008 -0500
-
-RT: fix push_rt_task() to handle dequeue_pushable properly
-
-  A panic was discovered by Chirag Jog where a BUG_ON sanity check
-  in the new "pushable_task" logic would trigger a panic under
-  certain circumstances:
-
-  http://lkml.org/lkml/2008/9/25/189
-
-  Gilles Carry discovered that the root cause was attributed to the
-  pushable_tasks list getting corrupted in the push_rt_task logic.
-  This was the result of a dropped rq lock in double_lock_balance
-  allowing a task in the process of being pushed to potentially migrate
-  away, and thus corrupt the pushable_tasks() list.
-
-  I traced back the problem as introduced by the pushable_tasks patch
-  that went in recently.   There is a "retry" path in push_rt_task()
-  that actually had a compound conditional to decide whether to
-  retry or exit.  I missed the meaning behind the rationale for the
-  virtual "if(!task) goto out;" portion of the compound statement and
-  thus did not handle it properly.  The new pushable_tasks logic
-  actually creates three distinct conditions:
-
-  1) an untouched and unpushable task should be dequeued
-  2) a migrated task where more pushable tasks remain should be retried
-  3) a migrated task where no more pushable tasks exist should exit
-
-  The original logic mushed (1) and (3) together, resulting in the
-  system dequeuing a migrated task (against an unlocked foreign run-queue
-  nonetheless).
-
-  To fix this, we get rid of the notion of "paranoid" and we support the
-  three unique conditions properly.  The paranoid feature is no longer
-  relevant with the new pushable logic (since pushable naturally limits
-  the loop) anyway, so lets just remove it.
-
-  Reported-By: Chirag Jog <chirag@linux.vnet.ibm.com>
-  Found-by: Gilles Carry <gilles.carry@bull.net>
-  Signed-off-by: Gregory Haskins <ghaskins@novell.com>
+The information contained in this electronic mail transmission is intended by Racelogic Ltd for the use of the named individual or entity to which it is directed and may contain information that is confidential or privileged. If you have received this electronic mail transmission in error, please delete it from your system without copying or forwarding it, and notify the sender of the error by reply email so that the sender's address records can be corrected. The views expressed by the sender of this communication do not necessarily represent those of Racelogic Ltd. Please note that Racelogic reserves the right to monitor e-mail communications passing through its network
 
 
-Best Regards,
-Jane Zhou
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
