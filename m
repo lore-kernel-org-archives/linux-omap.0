@@ -1,50 +1,35 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH 0/2] OMAP2+: DMA: fix src/dst position reporting
-Date: Tue, 01 Nov 2011 21:26:06 +0200
-Message-ID: <4EB047CE.2010807@bitmer.com>
-References: <1320070817-9638-1-git-send-email-peter.ujfalusi@ti.com>
+From: Vishal Mahaveer <vishalm@ti.com>
+Subject: [PATCH 0/1] OMAP: TWL: set clk32kg regulator on
+Date: Tue, 1 Nov 2011 09:40:51 -0600
+Message-ID: <1320162052-32276-1-git-send-email-vishalm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:52116 "EHLO bitmer.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55320 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754223Ab1KAT0p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Nov 2011 15:26:45 -0400
-In-Reply-To: <1320070817-9638-1-git-send-email-peter.ujfalusi@ti.com>
+	id S1753020Ab1KAUhd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Nov 2011 16:37:33 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pA1KbXJT016473
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 1 Nov 2011 15:37:33 -0500
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id pA1KbWV7003895
+	for <linux-omap@vger.kernel.org>; Tue, 1 Nov 2011 15:37:32 -0500 (CDT)
+Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pA1KbWHZ004312
+	for <linux-omap@vger.kernel.org>; Tue, 1 Nov 2011 15:37:32 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: linux-omap@vger.kernel.org
+Cc: Vishal Mahaveer <vishalm@ti.com>
 
-On 10/31/2011 04:20 PM, Peter Ujfalusi wrote:
-> Hello,
->
-> If the user asks for the sDMA current position before the first
-> data has been transmitted (before the first DMA request has been
-> generated), the reported position is not valid:
-> src position: CSAC is uninitialized
-> dst position: CDAC is 0
->
-> The return values in both case considered invalid.
-> This sitation can be identified by checking if the CDAC register
-> is 0 (it is initialized to 0 in omap_dam_start call).
-> In this case return the programmed source/destination address.
->
-> The affected omap_get_dma_src_pos/omap_get_dma_dst_pos functions
-> are used by the audio stack mainly for checking the current position
-> of the audio stream.
->
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (2):
->    OMAP2+: DMA: Workaround for invalid source position
->    OMAP2+: DMA: Workaround for invalid destination position
->
->   arch/arm/plat-omap/dma.c |   25 ++++++++++++++++++++++---
->   1 files changed, 22 insertions(+), 3 deletions(-)
->
-Both,
+Set constraint always_on for clk32kg regulator.
+This regulator is used by connectivity chip (wl12xx) on OMAP platforms.
 
-Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Vishal Mahaveer (1):
+  OMAP: TWL: set clk32kg regulator on
+
+ arch/arm/mach-omap2/twl-common.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
