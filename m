@@ -1,66 +1,62 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH] regulator: Provide dummy supply support
-Date: Wed, 2 Nov 2011 15:29:31 +0100
-Message-ID: <20111102142931.GL23421@pengutronix.de>
-References: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de>
- <20111028215931.GA30366@opensource.wolfsonmicro.com>
- <20111028224757.GG23421@pengutronix.de>
- <201111011350.17425.vapier@gentoo.org>
- <20111101182720.GH10029@opensource.wolfsonmicro.com>
- <20111102100355.GJ23421@pengutronix.de>
- <20111102104126.GA2678@opensource.wolfsonmicro.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v3 0/4] OMAP: iommu: hwmod support and runtime PM
+Date: Wed, 2 Nov 2011 09:56:28 -0500
+Message-ID: <CAB-zwWiTA7O4CiP7HmY3hEA3sZ-05FbR0WsA1NVJD4aExE5wow@mail.gmail.com>
+References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111102104126.GA2678@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ohad Ben-Cohen <ohad@wizery.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, lm <linux-media@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>, "Roedel, Joerg" <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 02, 2011 at 10:41:27AM +0000, Mark Brown wrote:
-> On Wed, Nov 02, 2011 at 11:03:56AM +0100, Sascha Hauer wrote:
-> > On Tue, Nov 01, 2011 at 06:27:21PM +0000, Mark Brown wrote:
-> 
-> > > As I think I said earlier I'd use the fixed regulator for this, all
-> > > Sascha's actually doing here is adding a wrapper to simplify
-> > > registration of that.
-> 
-> > There's one difference between the fixed and the dummy regulator though:
-> > The fixed regulator has a voltage. The same dummy regulator instance can
-> 
-> No, the voltage is optional.
++ Joerg, iommu-list
 
-Ok, didn't know this.
-
-> 
-> > be used for all devices which do not have a software controllable
-> > regulator. I think the same can be done with the fixed regulator aswell,
-> > but the bogus voltage showing up in the sysfs entry might be confusing
-> > to users.
-> 
-> I don't think that's a meaningful issue, any in any case it'd be better
-> practice to fill it in so devices can use the information if they want
-> to (which really shouldn't be hard
-> 
-> > Another approach to this topic would be to allow a board to explicitely
-> > bind to the existing dummy regulator, like the following (error path
-> > should of course be implemented before applying this)
-> 
-> If you know you've got a fixed voltage supply I don't understand why you
-> wouldn't want to set one up.  There clearly is an actual supply in the
-> system...
-
-It's just that it's simpler for a board to provide all dummy supplies in
-a single array, no matter if the real voltage is 1.8V or 3.3V. Anyway,
-as the voltage is optional in a fixed regulator this is no problem. I'll
-update my patch to use the fixed regulator then.
-
-Sascha
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+On Tue, Nov 1, 2011 at 5:15 PM, Omar Ramirez Luna <omar.ramirez@ti.com>=
+ wrote:
+> Introduced hwmod support for OMAP3 (iva, isp) and OMAP4 (ipu, dsp),
+> along with the corresponding runtime PM routines to deassert reset
+> lines, enable/disable clocks and configure sysc registers.
+>
+> v3:
+> - Rebased to 3.1-rc10 lo rebuilt, added structure terminators, and
+> removed .omap_chip field.
+>
+> v2:
+> - Added oh reset info to assert/deassert mmu reset lines.
+> - Addressed previous comments on v1
+> http://www.spinics.net/lists/arm-kernel/msg103271.html
+>
+> Due to compatibility an ifdef needs to be propagated (previously on
+> iommu resource info) to hwmod data in OMAP3, so users of iommu and
+> tidspbridge can avoid issues of two modules managing mmu data/irqs/re=
+sets;
+> this until tidspbridge can be safely migrated to iommu framework.
+>
+> Omar Ramirez Luna (4):
+> =A0OMAP3: hwmod data: add mmu data for iva and isp
+> =A0OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+> =A0OMAP3/4: iommu: migrate to hwmod framework
+> =A0OMAP3/4: iommu: adapt to runtime pm
+>
+> =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0| =A0 36 -----
+> =A0arch/arm/mach-omap2/omap-iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0162 ++++-----------------
+> =A0arch/arm/mach-omap2/omap_hwmod_3xxx_data.c =A0 =A0 =A0 =A0| =A0131=
+ +++++++++++++++++
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c =A0 =A0 =A0 =A0| =A0154=
+ ++++++++++++++++++--
+> =A0arch/arm/plat-omap/include/plat/iommu.h =A0 =A0 =A0 =A0 =A0 | =A0 =
+17 ++-
+> =A0arch/arm/plat-omap/include/plat/iommu2.h =A0 =A0 =A0 =A0 =A0| =A0 =
+=A02 -
+> =A0drivers/iommu/omap-iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| =A0 49 +++----
+> =A0drivers/media/video/omap3isp/isp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 =A02 +-
+> =A0drivers/staging/tidspbridge/core/tiomap3430_pwr.c | =A0 =A02 +-
+> =A09 files changed, 339 insertions(+), 216 deletions(-)
