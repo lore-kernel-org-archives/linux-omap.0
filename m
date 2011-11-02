@@ -1,30 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] mmc: omap_hsmmc: Fix build for hsmmc
-Date: Wed, 2 Nov 2011 12:39:52 -0700
-Message-ID: <20111102193952.GL31337@atomide.com>
-References: <20111102170619.GJ31337@atomide.com>
- <CABoOg6wtN-t-DRKCWukauMQZ=FRDUcVRxVAVaaYco+sWAqT3Ug@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 00/10] cpufreq: OMAP: move into drivers, cleanups/fixes
+ for v3.2
+Date: Wed, 02 Nov 2011 15:02:37 -0700
+Message-ID: <4EB1BDFD.2060403@ti.com>
+References: <1316725648-26710-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CABoOg6wtN-t-DRKCWukauMQZ=FRDUcVRxVAVaaYco+sWAqT3Ug@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Thomas Weber <thomas.weber.linux@googlemail.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-kernel@vger.kernel.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Girish K S <girish.shivananjappa@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1316725648-26710-1-git-send-email-khilman@ti.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: cpufreq@vger.kernel.org, Dave Jones <davej@redhat.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Thomas Weber <thomas.weber.linux@googlemail.com> [111102 11:22]:
-> Hello Tony, hello
-> Chris,https://mail.google.com/mail/?shva=1#label/linux-omap/133653efb30ae047
-> 
-> isn't this already fixed?
-> 
-> http://marc.info/?l=linux-omap&m=131991921316862&w=2
-> 
-> [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
+Hi Dave,
 
-Heh looks like this is actually the third fix to this posted :)
-I'm happy with the first one thanks.
+On 09/22/2011 02:07 PM, Kevin Hilman wrote:
+> This series moves the OMAP CPUfreq driver into drivers/cpufreq, add
+> support for SMP devices (OMAP4+) and includes several cleanups and
+> fixes from Nishanth Menon.
+> 
+> This series applies to v3.1-rc6, and is available here:
+> 
+>    git://github.com/khilman/linux-omap-pm.git for_3.2/omap-cpufreq
+> 
+> Kevin
 
-Tony
+Any chance of this making it in for v3.2?
+
+Kevin
+
+> Colin Cross (1):
+>   cpufreq: OMAP: notify even with bad boot frequency
+> 
+> Nishanth Menon (6):
+>   cpufreq: OMAP: move clk name decision to init
+>   cpufreq: OMAP: deny initialization if no mpudev
+>   cpufreq: OMAP: dont support !freq_table
+>   cpufreq: OMAP: only supports OPP library
+>   cpufreq: OMAP: put clk if cpu_init failed
+>   cpufreq: OMAP: fix freq_table leak
+> 
+> Russell King (1):
+>   cpufreq: OMAP: Add SMP support for OMAP4+
+> 
+> Santosh Shilimkar (1):
+>   cpufreq: OMAP: cleanup for multi-SoC support, move into
+>     drivers/cpufreq
+> 
+> Todd Poynor (1):
+>   cpufreq: OMAP: Enable all CPUs in shared policy mask
+> 
+>  arch/arm/plat-omap/Makefile    |    1 -
+>  arch/arm/plat-omap/cpu-omap.c  |  171 -------------------------
+>  drivers/cpufreq/Makefile       |    1 +
+>  drivers/cpufreq/omap-cpufreq.c |  271 ++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 272 insertions(+), 172 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/cpu-omap.c
+>  create mode 100644 drivers/cpufreq/omap-cpufreq.c
+> 
+
