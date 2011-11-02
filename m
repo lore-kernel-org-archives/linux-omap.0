@@ -1,101 +1,48 @@
-From: MyungJoo Ham <myungjoo.ham@gmail.com>
-Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
-Date: Wed, 2 Nov 2011 19:16:50 +0900
-Message-ID: <CAJ0PZbSpxtp1bvbdWxK-hsg=XUbfodgY-7D37rOn=s3yB-Upjw@mail.gmail.com>
-References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
-	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] regulator: Provide dummy supply support
+Date: Wed, 2 Nov 2011 10:41:27 +0000
+Message-ID: <20111102104126.GA2678@opensource.wolfsonmicro.com>
+References: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de>
+ <20111028215931.GA30366@opensource.wolfsonmicro.com>
+ <20111028224757.GG23421@pengutronix.de>
+ <201111011350.17425.vapier@gentoo.org>
+ <20111101182720.GH10029@opensource.wolfsonmicro.com>
+ <20111102100355.GJ23421@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44592 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab1KBKQv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 06:16:51 -0400
-In-Reply-To: <1320185752-568-5-git-send-email-omar.ramirez@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-sh-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111102100355.GJ23421@pengutronix.de>
+Sender: linux-sh-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lm <linux-media@vger.kernel.org>
 
-On Wed, Nov 2, 2011 at 7:15 AM, Omar Ramirez Luna <omar.ramirez@ti.com>=
- wrote:
-> Use runtime PM functionality interfaced with hwmod enable/idle
-> functions, to replace direct clock operations, reset and sysconfig
-> handling.
->
-> Tidspbridge uses a macro removed with this patch, for now the value
-> is hardcoded to avoid breaking compilation.
->
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0| =A0 17 --------
-> =A0arch/arm/mach-omap2/omap-iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-| =A0 =A01 -
-> =A0arch/arm/plat-omap/include/plat/iommu.h =A0 =A0 =A0 =A0 =A0 | =A0 =
-=A02 -
-> =A0arch/arm/plat-omap/include/plat/iommu2.h =A0 =A0 =A0 =A0 =A0| =A0 =
-=A02 -
-> =A0drivers/iommu/omap-iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0| =A0 46 ++++++++-------------
-> =A0drivers/staging/tidspbridge/core/tiomap3430_pwr.c | =A0 =A02 +-
-> =A06 files changed, 19 insertions(+), 51 deletions(-)
->
-> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
-> index bbbf747..3c55be0 100644
-> --- a/drivers/iommu/omap-iommu.c
-> +++ b/drivers/iommu/omap-iommu.c
-> @@ -123,11 +123,11 @@ static int iommu_enable(struct omap_iommu *obj)
-> =A0 =A0 =A0 =A0if (!arch_iommu)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
->
-> - =A0 =A0 =A0 clk_enable(obj->clk);
-> + =A0 =A0 =A0 pm_runtime_enable(obj->dev);
-> + =A0 =A0 =A0 pm_runtime_get_sync(obj->dev);
->
-> =A0 =A0 =A0 =A0err =3D arch_iommu->enable(obj);
->
-> - =A0 =A0 =A0 clk_disable(obj->clk);
-> =A0 =A0 =A0 =A0return err;
-> =A0}
->
-> @@ -136,11 +136,10 @@ static void iommu_disable(struct omap_iommu *ob=
-j)
-> =A0 =A0 =A0 =A0if (!obj)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->
-> - =A0 =A0 =A0 clk_enable(obj->clk);
-> -
-> =A0 =A0 =A0 =A0arch_iommu->disable(obj);
->
-> - =A0 =A0 =A0 clk_disable(obj->clk);
-> + =A0 =A0 =A0 pm_runtime_put_sync(obj->dev);
-> + =A0 =A0 =A0 pm_runtime_disable(obj->dev);
-> =A0}
+On Wed, Nov 02, 2011 at 11:03:56AM +0100, Sascha Hauer wrote:
+> On Tue, Nov 01, 2011 at 06:27:21PM +0000, Mark Brown wrote:
 
-Hello Omar,
+> > As I think I said earlier I'd use the fixed regulator for this, all
+> > Sascha's actually doing here is adding a wrapper to simplify
+> > registration of that.
 
+> There's one difference between the fixed and the dummy regulator though:
+> The fixed regulator has a voltage. The same dummy regulator instance can
 
-I'm just curious here... Is there any reason to do
-pm_runtime_enable/disable at iommu_enable/iommu_disable which are
-called by iommu_attach/detach?
-I thought that normally, ideal locations of pm_runtime_enable/disable
-for such devices are in probe/remove() because it assures that the
-device is suspended after the probe.
-It seems that the device might be kept on after probe and before the
-first iommu_attach if it is default-on.
+No, the voltage is optional.
 
+> be used for all devices which do not have a software controllable
+> regulator. I think the same can be done with the fixed regulator aswell,
+> but the bogus voltage showing up in the sysfs entry might be confusing
+> to users.
 
-Thanks,
-MyungJoo
+I don't think that's a meaningful issue, any in any case it'd be better
+practice to fill it in so devices can use the information if they want
+to (which really shouldn't be hard
 
+> Another approach to this topic would be to allow a board to explicitely
+> bind to the existing dummy regulator, like the following (error path
+> should of course be implemented before applying this)
 
---=20
-MyungJoo Ham, Ph.D.
-Mobile Software Platform Lab, DMC Business, Samsung Electronics
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you know you've got a fixed voltage supply I don't understand why you
+wouldn't want to set one up.  There clearly is an actual supply in the
+system...
