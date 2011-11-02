@@ -1,47 +1,58 @@
-From: Peter Barada <peter.barada@gmail.com>
-Subject: Re: Linux 3.0 DSS support
-Date: Wed, 02 Nov 2011 11:42:23 -0400
-Message-ID: <4EB164DF.506@gmail.com>
-References: <CANLagX8WaHGkqOZ2UnLR1ihOABbdDy1ZAyW19yO=f-JNUaLKfw@mail.gmail.com>	 <4E9BD71A.90703@ti.com>  <4EA5A677.3050704@logicpd.com> <1319528229.1684.20.camel@lappyti>
+From: Tony Lindgren <tony@atomide.com>
+Subject: PM / OPP: Fix build when CONFIG_PM_OPP is not set
+Date: Wed, 2 Nov 2011 10:00:56 -0700
+Message-ID: <20111102170055.GI31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:58260 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932374Ab1KBPfV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 11:35:21 -0400
-Received: by gyb13 with SMTP id 13so247730gyb.19
-        for <linux-omap@vger.kernel.org>; Wed, 02 Nov 2011 08:35:21 -0700 (PDT)
-In-Reply-To: <1319528229.1684.20.camel@lappyti>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Kevin Hilman <khilman@ti.com>, linux-kernel@vger.kernel.org, Kyungmin Park <kyungmin.park@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Peter Barada <peter.barada@logicpd.com>, Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 10/25/2011 03:37 AM, Tomi Valkeinen wrote:
-> Hi,
->
-> On Mon, 2011-10-24 at 13:55 -0400, Peter Barada wrote:
->> In the above case (and my case where I'm looking for a 9Mhz pixel 
->> clock), fck_div is calculated at higher than 16 - and the video
->> output 
->> is wrong (i.e. no pixel clock and hsync runs at 32x the requested
->> rate). 
-> DM37x TRM says:
->
-> "DSS1_ALWON_FCLK: Issued from DPLL4. Its frequency can be a division by
-> 1 to 16 of the frequency of the DPLL4 synthesized clock."
->
-> I take it that DM37x is detected as cpu_is_3630()?
->
-> The DSS driver currently handles only OMAPs, so for other SoCs the
-> driver may contain lots of bugs like this.
-Yes, cpu_is_omap3630() returns true on a DM3730.  I'll rework the patch
-(I think all that is needed is to drop the "cpu_is_omap3630() ||" from
-the test - then fck_div_max will remain at 16 for the DM3730.
+Commit 03ca370fbf7b76d6d002380dbdc2cdc2319f9c80 (PM / OPP: Add
+OPP availability change notifier) does not compile if CONFIG_PM_OPP
+is not set:
 
--- 
-Peter Barada
-peter.barada@gmail.com
+arch/arm/plat-omap/omap-pm-noop.o: In function `opp_get_notifier':
+include/linux/opp.h:103: multiple definition of `opp_get_notifier'
+include/linux/opp.h:103: first defined here
 
+Also fix incorrect comment.
+
+Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mike Turquette <mturquette@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+
+I'm seeing this with omap1_defconfig at least.
+
+--- a/include/linux/opp.h
++++ b/include/linux/opp.h
+@@ -97,11 +97,11 @@ static inline int opp_disable(struct device *dev, unsigned long freq)
+ 	return 0;
+ }
+ 
+-struct srcu_notifier_head *opp_get_notifier(struct device *dev)
++static inline struct srcu_notifier_head *opp_get_notifier(struct device *dev)
+ {
+ 	return ERR_PTR(-EINVAL);
+ }
+-#endif		/* CONFIG_PM */
++#endif		/* CONFIG_PM_OPP */
+ 
+ #if defined(CONFIG_CPU_FREQ) && defined(CONFIG_PM_OPP)
+ int opp_init_cpufreq_table(struct device *dev,
