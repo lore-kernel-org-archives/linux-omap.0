@@ -1,48 +1,73 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator: Provide dummy supply support
-Date: Wed, 2 Nov 2011 10:41:27 +0000
-Message-ID: <20111102104126.GA2678@opensource.wolfsonmicro.com>
-References: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de>
- <20111028215931.GA30366@opensource.wolfsonmicro.com>
- <20111028224757.GG23421@pengutronix.de>
- <201111011350.17425.vapier@gentoo.org>
- <20111101182720.GH10029@opensource.wolfsonmicro.com>
- <20111102100355.GJ23421@pengutronix.de>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: [RFC/PATCH] ARM: OMAP: Fix build for OMAP3 only builds
+Date: Wed, 02 Nov 2011 13:37:31 +0100
+Message-ID: <4EB1398B.80901@gmail.com>
+References: <1318421036-1498-1-git-send-email-weber@corscience.de> <B85A65D85D7EB246BE421B3FB0FBB5930328C7C406@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111102100355.GJ23421@pengutronix.de>
-Sender: linux-sh-owner@vger.kernel.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34196 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499Ab1KBLiV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 07:38:21 -0400
+Received: by eye27 with SMTP id 27so27205eye.19
+        for <linux-omap@vger.kernel.org>; Wed, 02 Nov 2011 04:38:19 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB5930328C7C406@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Nori, Sekhar" <nsekhar@ti.com>
+Cc: Thomas Weber <weber@corscience.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-On Wed, Nov 02, 2011 at 11:03:56AM +0100, Sascha Hauer wrote:
-> On Tue, Nov 01, 2011 at 06:27:21PM +0000, Mark Brown wrote:
+Am 27.10.2011 07:32, schrieb Nori, Sekhar:
+> On Wed, Oct 12, 2011 at 17:33:56, Thomas Weber wrote:
+>> When building for OMAP3 only I get the
+>> following errors:
+>>
+>> In function `omap2420_init_early':
+>> undefined reference to `omap2_set_globals_242x'
+>> undefined reference to `omap2xxx_voltagedomains_init'
+>> undefined reference to `omap242x_powerdomains_init'
+>> undefined reference to `omap242x_clockdomains_init'
+>> undefined reference to `omap2420_hwmod_init'
+>>
+>> In function `omap2430_init_early':
+>> undefined reference to `omap2_set_globals_243x'
+>> undefined reference to `omap2xxx_voltagedomains_init'
+>> undefined reference to `omap243x_powerdomains_init'
+>> undefined reference to `omap243x_clockdomains_init'
+>> undefined reference to `omap2430_hwmod_init'
+>>
+>> In function `omap4430_init_early':
+>> undefined reference to `omap2_set_globals_443x'
+>> undefined reference to `omap44xx_voltagedomains_init'
+>> undefined reference to `omap44xx_powerdomains_init'
+>> undefined reference to `omap44xx_clockdomains_init'
+>> undefined reference to `omap44xx_hwmod_init'
+>> undefined reference to `omap4xxx_clk_init'
+>>
+>> With this patch the omapXXXX_init_early will be compiled only
+>> when their SOC's are selected.
+>>
+>> Signed-off-by: Thomas Weber <weber@corscience.de>
+> 
+> I was facing the same problem and this patch helped
+> me get rid of it.
+> 
+> Tested-by: Sekhar Nori <nsekhar@ti.com>
+> 
+> Thanks,
+> Sekhar
+> 
+> --
 
-> > As I think I said earlier I'd use the fixed regulator for this, all
-> > Sascha's actually doing here is adding a wrapper to simplify
-> > registration of that.
+Hello Tony,
 
-> There's one difference between the fixed and the dummy regulator though:
-> The fixed regulator has a voltage. The same dummy regulator instance can
+what is the status of this patch?
 
-No, the voltage is optional.
+There is also another patch fixing the same problem.
 
-> be used for all devices which do not have a software controllable
-> regulator. I think the same can be done with the fixed regulator aswell,
-> but the bogus voltage showing up in the sysfs entry might be confusing
-> to users.
+[PATCH v2] arm: omap: Fix errors and warnings when building for one board
 
-I don't think that's a meaningful issue, any in any case it'd be better
-practice to fill it in so devices can use the information if they want
-to (which really shouldn't be hard
+Thomas
 
-> Another approach to this topic would be to allow a board to explicitely
-> bind to the existing dummy regulator, like the following (error path
-> should of course be implemented before applying this)
-
-If you know you've got a fixed voltage supply I don't understand why you
-wouldn't want to set one up.  There clearly is an actual supply in the
-system...
