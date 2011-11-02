@@ -1,73 +1,72 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] OMAP: clock: optimize dpll locking logic
-Date: Wed, 2 Nov 2011 00:12:58 -0700
-Message-ID: <1320217978-3088-1-git-send-email-vikram.pandita@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [GIT PULL] hwspinlock changes for 3.2
+Date: Wed, 2 Nov 2011 09:45:11 +0200
+Message-ID: <CAK=Wgbb9yfFeubc8jfTe5urMz4WoCpOL=LwP9=Lr7mYaWrt1Vw@mail.gmail.com>
+References: <CAK=WgbZso1qk5XUTjB1bLXYbezv80SbgyEXJ3Q32U28+cQMfZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53779 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752178Ab1KBHNH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 2 Nov 2011 03:13:07 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pA27D7dS032035
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 2 Nov 2011 02:13:07 -0500
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id pA27D6kr013828
-	for <linux-omap@vger.kernel.org>; Wed, 2 Nov 2011 02:13:06 -0500 (CDT)
-Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pA27D6AQ003261
-	for <linux-omap@vger.kernel.org>; Wed, 2 Nov 2011 02:13:06 -0500 (CDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbZso1qk5XUTjB1bLXYbezv80SbgyEXJ3Q32U28+cQMfZA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Chris Ball <cjb@laptop.org>
+Cc: linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, "Gutierrez, Juan" <jgutierrez@ti.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, Linus Walleij <linus.walleij@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-mmc@vger.kernel.org, Girish K S <girish.shivananjappa@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+On Sun, Oct 30, 2011 at 10:06 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Please pull from
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git for-linus
+...
+> All of the patches have been tested in linux-next and currently there
+> are no merge conflicts, though I expect one to happen with the arm-sco
+> tree, as reported (and fixed) by Stephen earlier this month (see
+> http://www.spinics.net/lists/linux-next/msg16931.html).
 
-If the dpll is already locked, code can be optimized
-to return much earlier than doing redundent set of lock mode
-and wait on idlest.
+Now that arm-soc is merged, I fixed the conflict with the hwspinlock
+tree and pushed it (just for reference) at:
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/dpll3xxx.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+for-linus-merged
 
-diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
-index f77022b..d100391 100644
---- a/arch/arm/mach-omap2/dpll3xxx.c
-+++ b/arch/arm/mach-omap2/dpll3xxx.c
-@@ -135,8 +135,9 @@ static u16 _omap3_dpll_compute_freqsel(struct clk *clk, u8 n)
-  */
- static int _omap3_noncore_dpll_lock(struct clk *clk)
- {
-+	const struct dpll_data *dd;
- 	u8 ai;
--	int r;
-+	int r = 0;
- 
- 	pr_debug("clock: locking DPLL %s\n", clk->name);
- 
-@@ -144,10 +145,16 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
- 
- 	omap3_dpll_deny_idle(clk);
- 
-+	dd = clk->dpll_data;
-+	/* Check if already locked */
-+	if ((__raw_readl(dd->idlest_reg) & dd->idlest_mask) == 1)
-+		goto done;
-+
- 	_omap3_dpll_write_clken(clk, DPLL_LOCKED);
- 
- 	r = _omap3_wait_dpll_status(clk, 1);
- 
-+done:
- 	if (ai)
- 		omap3_dpll_allow_idle(clk);
- 
--- 
-1.7.5.4
+There also seems to be a (trivial) omap_hsmmc build issue which I've
+fixed and pushed to that branch (Chris I'm also attaching it below in
+case you prefer to take it through the mmc tree).
 
+> the hwspinlock
+> tree and its upstream path have only materialized quite late in the
+> cycle (see https://lkml.org/lkml/2011/9/21/249)
+
+Linus, in the aforementioned thread, Arnd, Tony and Linus W preferred
+that I send you direct pull requests for hwspinlock changes, but were
+also ok with other upstream paths (e.g. through the arm-soc or the
+omap trees), so please express your preference :) I don't expect much
+hwspinlock activity anytime soon (at least not until we'll get either
+c6x support or additional u8500 functionality).
+
+Thanks,
+Ohad.
+
+commit f6e49189a11622f8675bd386db560309a05e581a
+Author: Ohad Ben-Cohen <ohad@wizery.com>
+Date:   Wed Nov 2 08:57:23 2011 +0200
+
+    mmc: omap_hsmmc: fix build
+
+    Fix omap_hsmmc build issue that was introduced by commit a3c76eb
+    "mmc: replace printk with appropriate display macro".
+
+    Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index e8ff123..101cd31 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1270,7 +1270,7 @@ static void omap_hsmmc_protect_card(struct omap_hsmmc_host
+                }
+        } else {
+                if (!host->protect_card) {
+-                       pr_info"%s: cover is open, "
++                       pr_info("%s: cover is open, "
+                                         "card is now inaccessible\n",
+                                         mmc_hostname(host->mmc));
+                        host->protect_card = 1;
