@@ -1,153 +1,101 @@
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH] regulator: Provide dummy supply support
-Date: Wed, 2 Nov 2011 11:03:56 +0100
-Message-ID: <20111102100355.GJ23421@pengutronix.de>
-References: <1319833618-25190-1-git-send-email-s.hauer@pengutronix.de>
- <20111028215931.GA30366@opensource.wolfsonmicro.com>
- <20111028224757.GG23421@pengutronix.de>
- <201111011350.17425.vapier@gentoo.org>
- <20111101182720.GH10029@opensource.wolfsonmicro.com>
+From: MyungJoo Ham <myungjoo.ham@gmail.com>
+Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
+Date: Wed, 2 Nov 2011 19:16:50 +0900
+Message-ID: <CAJ0PZbSpxtp1bvbdWxK-hsg=XUbfodgY-7D37rOn=s3yB-Upjw@mail.gmail.com>
+References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
+	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58042 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755200Ab1KBKEL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 06:04:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20111101182720.GH10029@opensource.wolfsonmicro.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:44592 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab1KBKQv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 06:16:51 -0400
+In-Reply-To: <1320185752-568-5-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Mike Frysinger <vapier@gentoo.org>, linux-kernel@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Mundt <lethal@linux-sh.org>, Tony Lindgren <tony@atomide.com>, linux-sh@vger.kernel.org, linux-omap@vger.kernel.org, uclinux-dist-devel@blackfin.uclinux.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lm <linux-media@vger.kernel.org>
 
-On Tue, Nov 01, 2011 at 06:27:21PM +0000, Mark Brown wrote:
-> On Tue, Nov 01, 2011 at 01:50:14PM -0400, Mike Frysinger wrote:
-> > On Friday 28 October 2011 18:47:57 Sascha Hauer wrote:
-> 
-> > > > We already have a dummy regulator driver and a fixed voltage regulator
-> > > > driver, we shouldn't be adding a third implementation of the same thing.
-> > > > Just use the fixed voltage regulator for this.
-> 
-> > > I explained in my mail why I think that the current implementation of
-> > > the dummy regulator is not suitable for things apart from debugging.
-> 
-> > your complaints seem to be specific to how the dummy regulator gets hooked in 
-> > and not in the specific regulator implementation.  so it seems like the right 
-> > thing would be to split the kconfig knobs:
-> 
-> Quite.  Sascha, your mail doesn't refer to the implementation of the
-> regulator itself at all.  Nothing in your changelog even mentions that
-> you're introducing a new regulator driver.
-> 
-> I think there's a big abstraction understanding failure here, reading
-> your changelog I'm not sure you understand the existing mechainsms that
-> are in place.  You say:
-> 
-> | This patch allows a board to register dummy supplies for devices
-> | which need a regulator but which is not software controllable
-> | on this board.
-> 
-> but this is exactly the use case the fixed voltage regulator is there
-> for.
-> 
-> >  config REGULATOR_DUMMY
-> > -	bool "Provide a dummy regulator if regulator lookups fail"
-> > +	bool "Provide a dummy regulator"
-> > +config REGULATOR_DUMMY_FALLBACK
-> > +	bool "Fallback to dummy regulator if lookup fails"
-> > +	depends on REGULATOR_DUMMY
-> 
-> As I think I said earlier I'd use the fixed regulator for this, all
-> Sascha's actually doing here is adding a wrapper to simplify
-> registration of that.
+On Wed, Nov 2, 2011 at 7:15 AM, Omar Ramirez Luna <omar.ramirez@ti.com>=
+ wrote:
+> Use runtime PM functionality interfaced with hwmod enable/idle
+> functions, to replace direct clock operations, reset and sysconfig
+> handling.
+>
+> Tidspbridge uses a macro removed with this patch, for now the value
+> is hardcoded to avoid breaking compilation.
+>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+> =A0arch/arm/mach-omap2/iommu2.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0| =A0 17 --------
+> =A0arch/arm/mach-omap2/omap-iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+| =A0 =A01 -
+> =A0arch/arm/plat-omap/include/plat/iommu.h =A0 =A0 =A0 =A0 =A0 | =A0 =
+=A02 -
+> =A0arch/arm/plat-omap/include/plat/iommu2.h =A0 =A0 =A0 =A0 =A0| =A0 =
+=A02 -
+> =A0drivers/iommu/omap-iommu.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| =A0 46 ++++++++-------------
+> =A0drivers/staging/tidspbridge/core/tiomap3430_pwr.c | =A0 =A02 +-
+> =A06 files changed, 19 insertions(+), 51 deletions(-)
+>
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index bbbf747..3c55be0 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -123,11 +123,11 @@ static int iommu_enable(struct omap_iommu *obj)
+> =A0 =A0 =A0 =A0if (!arch_iommu)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
+>
+> - =A0 =A0 =A0 clk_enable(obj->clk);
+> + =A0 =A0 =A0 pm_runtime_enable(obj->dev);
+> + =A0 =A0 =A0 pm_runtime_get_sync(obj->dev);
+>
+> =A0 =A0 =A0 =A0err =3D arch_iommu->enable(obj);
+>
+> - =A0 =A0 =A0 clk_disable(obj->clk);
+> =A0 =A0 =A0 =A0return err;
+> =A0}
+>
+> @@ -136,11 +136,10 @@ static void iommu_disable(struct omap_iommu *ob=
+j)
+> =A0 =A0 =A0 =A0if (!obj)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
+>
+> - =A0 =A0 =A0 clk_enable(obj->clk);
+> -
+> =A0 =A0 =A0 =A0arch_iommu->disable(obj);
+>
+> - =A0 =A0 =A0 clk_disable(obj->clk);
+> + =A0 =A0 =A0 pm_runtime_put_sync(obj->dev);
+> + =A0 =A0 =A0 pm_runtime_disable(obj->dev);
+> =A0}
 
-There's one difference between the fixed and the dummy regulator though:
-The fixed regulator has a voltage. The same dummy regulator instance can
-be used for all devices which do not have a software controllable
-regulator. I think the same can be done with the fixed regulator aswell,
-but the bogus voltage showing up in the sysfs entry might be confusing
-to users.
-That's the reason I implemented a (second) dummy regulator driver.
-Indeed it's not nice to have two of them.
+Hello Omar,
 
-Another approach to this topic would be to allow a board to explicitely
-bind to the existing dummy regulator, like the following (error path
-should of course be implemented before applying this)
 
-Sascha
+I'm just curious here... Is there any reason to do
+pm_runtime_enable/disable at iommu_enable/iommu_disable which are
+called by iommu_attach/detach?
+I thought that normally, ideal locations of pm_runtime_enable/disable
+for such devices are in probe/remove() because it assures that the
+device is suspended after the probe.
+It seems that the device might be kept on after probe and before the
+first iommu_attach if it is default-on.
 
-8<------------------------------------
 
-[PATCH] regulator: allow boards to bind to the dummy regulator
+Thanks,
+MyungJoo
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- drivers/regulator/core.c          |   19 +++++++++++++++++++
- include/linux/regulator/machine.h |    8 ++++++++
- 2 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index d8e6a42..a7a38ba 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -1046,6 +1046,25 @@ static void unset_regulator_supplies(struct regulator_dev *rdev)
- 	}
- }
- 
-+int regulator_add_dummy_supply(struct regulator_consumer_supply *supply,
-+		int num_supplies)
-+{
-+	int i, ret;
-+
-+	for (i = 0; i < num_supplies; i++) {
-+		ret = set_consumer_device_supply(dummy_regulator_rdev, NULL,
-+				supply[i].dev_name, supply[i].supply);
-+		if (ret)
-+			goto err_out;
-+	}
-+
-+	return 0;
-+err_out:
-+	/* FIXME: unset device supply */
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(regulator_add_dummy_supply);
-+
- #define REG_STR_SIZE	64
- 
- static struct regulator *create_regulator(struct regulator_dev *rdev,
-diff --git a/include/linux/regulator/machine.h b/include/linux/regulator/machine.h
-index ce3127a..89089cd 100644
---- a/include/linux/regulator/machine.h
-+++ b/include/linux/regulator/machine.h
-@@ -192,6 +192,8 @@ int regulator_suspend_finish(void);
- #ifdef CONFIG_REGULATOR
- void regulator_has_full_constraints(void);
- void regulator_use_dummy_regulator(void);
-+int regulator_add_dummy_supply(struct regulator_consumer_supply *supply,
-+		int num_supplies);
- #else
- static inline void regulator_has_full_constraints(void)
- {
-@@ -200,6 +202,12 @@ static inline void regulator_has_full_constraints(void)
- static inline void regulator_use_dummy_regulator(void)
- {
- }
-+
-+static inline int regulator_add_dummy_supply(struct regulator_consumer_supply *supply,
-+		int num_supplies)
-+{
-+	return 0;
-+}
- #endif
- 
- #endif
--- 
-1.7.7
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+--=20
+MyungJoo Ham, Ph.D.
+Mobile Software Platform Lab, DMC Business, Samsung Electronics
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
