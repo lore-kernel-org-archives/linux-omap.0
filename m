@@ -1,80 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH] net: Add back alignment for size for __alloc_skb
-Date: Wed, 02 Nov 2011 23:55:11 +0100
-Message-ID: <4EB1CA4F.3090403@gmail.com>
+Date: Wed, 02 Nov 2011 19:09:55 -0400 (EDT)
+Message-ID: <20111102.190955.1902322759075682192.davem@davemloft.net>
 References: <20111102224317.GM31337@atomide.com>
+	<4EB1CA4F.3090403@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:34350 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752429Ab1KBWzc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 18:55:32 -0400
-In-Reply-To: <20111102224317.GM31337@atomide.com>
+Received: from shards.monkeyblade.net ([198.137.202.13]:53840 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752614Ab1KBXKC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 19:10:02 -0400
+In-Reply-To: <4EB1CA4F.3090403@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: eric.dumazet@gmail.com
+Cc: tony@atomide.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 02/11/2011 23:43, Tony Lindgren wrote:
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Wed, 02 Nov 2011 23:55:11 +0100
 
-> Commit 87fb4b7b533073eeeaed0b6bf7c2328995f6c075 (net: more
-> accurate skb truesize) changed the alignment of size. This
-> can cause problems at least on some machines with NFS root:
+> There is a problem with your kmalloc() or alignments on your architecture.
 > 
-> Unhandled fault: alignment exception (0x801) at 0xc183a43a
-> Internal error: : 801 [#1] PREEMPT
-> Modules linked in:
-> CPU: 0    Not tainted  (3.1.0-08784-g5eeee4a #733)
-> pc : [<c02fbba0>]    lr : [<c02fbb9c>]    psr: 60000013
-> sp : c180fef8  ip : 00000000  fp : c181f580
-> r10: 00000000  r9 : c044b28c  r8 : 00000001
-> r7 : c183a3a0  r6 : c1835be0  r5 : c183a412  r4 : 000001f2
-> r3 : 00000000  r2 : 00000000  r1 : ffffffe6  r0 : c183a43a
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 0005317f  Table: 10004000  DAC: 00000017
-> Process swapper (pid: 1, stack limit = 0xc180e270)
-> Stack: (0xc180fef8 to 0xc1810000)
-> fee0:                                                       00000024 00000000
-> ff00: 00000000 c183b9c0 c183b8e0 c044b28c c0507ccc c019dfc4 c180ff2c c0503cf8
-> ff20: c180ff4c c180ff4c 00000000 c1835420 c182c740 c18349c0 c05233c0 00000000
-> ff40: 00000000 c00e6bb8 c180e000 00000000 c04dd82c c0507e7c c050cc18 c183b9c0
-> ff60: c05233c0 00000000 00000000 c01f34f4 c0430d70 c019d364 c04dd898 c04dd898
-> ff80: c04dd82c c0507e7c c180e000 00000000 c04c584c c01f4918 c04dd898 c04dd82c
-> ffa0: c04ddd28 c180e000 00000000 c0008758 c181fa60 3231d82c 00000037 00000000
-> ffc0: 00000000 c04dd898 c04dd82c c04ddd28 00000013 00000000 00000000 00000000
-> ffe0: 00000000 c04b2224 00000000 c04b21a0 c001056c c001056c 00000000 00000000
-> Function entered at [<c02fbba0>] from [<c019dfc4>]
-> Function entered at [<c019dfc4>] from [<c01f34f4>]
-> Function entered at [<c01f34f4>] from [<c01f4918>]
-> Function entered at [<c01f4918>] from [<c0008758>]
-> Function entered at [<c0008758>] from [<c04b2224>]
-> Function entered at [<c04b2224>] from [<c001056c>]
-> Code: e1a00005 e3a01028 ebfa7cb0 e35a0000 (e5858028)
-> 
-> Here PC is at __alloc_skb and &shinfo->dataref is unaligned because
-> skb->end can be unaligned without this patch.
-> 
-> Cc: Eric Dumazet <eric.dumazet@gmail.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> --- a/net/core/skbuff.c
-> +++ b/net/core/skbuff.c
-> @@ -189,6 +189,7 @@ struct sk_buff *__alloc_skb(unsigned int size, gfp_t gfp_mask,
->  	 * aligned memory blocks, unless SLUB/SLAB debug is enabled.
->  	 * Both skb->head and skb_shared_info are cache line aligned.
->  	 */
-> +	size = SKB_DATA_ALIGN(size);
->  	size += SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
->  	data = kmalloc_node_track_caller(size, gfp_mask, node);
->  	if (!data)
+> What is the SMP_CACHE_BYTES value ?
 
+kmalloc() behavior doesn't have anything to do with this bug.
 
+The issue is calculation of skb->end, which is based upon calculated
+'size' variable.
 
-Hmm, I dont think this is the right way to fix the bug.
-
-There is a problem with your kmalloc() or alignments on your architecture.
-
-What is the SMP_CACHE_BYTES value ?
+skb->end determines alignment of skb_shared_info, which is where the
+alignment problem is occuring for Tony.
 
