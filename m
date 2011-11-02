@@ -1,48 +1,44 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] net: Add back alignment for size for __alloc_skb
-Date: Thu, 03 Nov 2011 00:31:19 +0100
-Message-ID: <4EB1D2C7.2070700@gmail.com>
-References: <4EB1CA4F.3090403@gmail.com> <20111102.190955.1902322759075682192.davem@davemloft.net> <4EB1CEC4.3090909@gmail.com> <20111102.191716.1682282796914825621.davem@davemloft.net> <20111102231917.GN31337@atomide.com> <4EB1D05B.6020605@gmail.com> <20111102232403.GO31337@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 00/10] cpufreq: OMAP: move into drivers, cleanups/fixes for v3.2
+Date: Wed, 02 Nov 2011 16:37:10 -0700
+Message-ID: <8762j2jduh.fsf@ti.com>
+References: <1316725648-26710-1-git-send-email-khilman@ti.com>
+	<4EB1BDFD.2060403@ti.com> <20111102220813.GA931@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:47067 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419Ab1KBXba (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 19:31:30 -0400
-In-Reply-To: <20111102232403.GO31337@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <20111102220813.GA931@redhat.com> (Dave Jones's message of "Wed,
+	2 Nov 2011 18:08:14 -0400")
+Sender: cpufreq-owner@vger.kernel.org
+To: Dave Jones <davej@redhat.com>
+Cc: cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tytso@mit.edu
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On 03/11/2011 00:24, Tony Lindgren wrote:
+Dave Jones <davej@redhat.com> writes:
 
+> On Wed, Nov 02, 2011 at 03:02:37PM -0700, Kevin Hilman wrote:
+>  > Hi Dave,
+>  > 
+>  > On 09/22/2011 02:07 PM, Kevin Hilman wrote:
+>  > > This series moves the OMAP CPUfreq driver into drivers/cpufreq, add
+>  > > support for SMP devices (OMAP4+) and includes several cleanups and
+>  > > fixes from Nishanth Menon.
+>  > > 
+>  > > This series applies to v3.1-rc6, and is available here:
+>  > > 
+>  > >    git://github.com/khilman/linux-omap-pm.git for_3.2/omap-cpufreq
+>  > > 
+>  > > Kevin
+>  > 
+>  > Any chance of this making it in for v3.2?
+>
+> My kernel.org account being created is blocking on Ted uploading my
+> signed gpg key.  If you want to ask Linus to pull directly until I get
+> that sorted, feel free.  (Though I understand he has a dislike for github trees)
 
-> 
-> Seems to be SLOB for omap1_defconfig.
-> 
-> Tony
+Can I take that as an Ack from you for this series?
 
+With your ack, we can maybe merge this via the OMAP tree, or the arm-soc
+tree (although it's probably too late now for v3.2.)
 
-OK this makes sense now
-
-Your patch is absolutely needed, I completely forgot about SLOB :(
-
-since, kmalloc(386) on SLOB gives exactly ksize=386 bytes, not nearest
-power of two.
-
-[   60.305763] malloc(size=385)->ffff880112c11e38 ksize=386 -> nsize=2
-[   60.305921] malloc(size=385)->ffff88007c92ce28 ksize=386 -> nsize=2
-[   60.306898] malloc(size=656)->ffff88007c44ad28 ksize=656 -> nsize=272
-[   60.325385] malloc(size=656)->ffff88007c575868 ksize=656 -> nsize=272
-[   60.325531] malloc(size=656)->ffff88011c777230 ksize=656 -> nsize=272
-[   60.325701] malloc(size=656)->ffff880114011008 ksize=656 -> nsize=272
-[   60.346716] malloc(size=385)->ffff880114142008 ksize=386 -> nsize=2
-[   60.346900] malloc(size=385)->ffff88011c777690 ksize=386 -> nsize=2
-
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
-
-Thanks !
-
+Kevin
