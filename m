@@ -1,46 +1,55 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: Re: [PATCH RESEND] ARM: OMAP: omap_device: Include linux/export.h
-Date: Thu, 3 Nov 2011 10:47:35 -0400
-Message-ID: <4EB2A987.2040805@windriver.com>
-References: <1320303638.17983.5.camel@phoenix> <87d3d9i8ni.fsf@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Thu, 3 Nov 2011 20:47:08 +0530
+Message-ID: <1320333428-23532-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87d3d9i8ni.fsf@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Axel Lin <axel.lin@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36765 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932995Ab1KCPRU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Nov 2011 11:17:20 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On 11-11-03 10:26 AM, Kevin Hilman wrote:
-> Axel Lin <axel.lin@gmail.com> writes:
-> 
->> Include linux/export.h to fix below build warning:
->>
->>   CC      arch/arm/plat-omap/omap_device.o
->> arch/arm/plat-omap/omap_device.c:1055: warning: data definition has no type or storage class
->> arch/arm/plat-omap/omap_device.c:1055: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
->> arch/arm/plat-omap/omap_device.c:1055: warning: parameter names (without types) in function declaration
->>
->> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> 
-> Thanks, will queue as a fix for v3.2-rc
+Currently the fifo depth is set to zero for OMAP4 which disables
+the FIFO usage. This patch enables the FIFO usage for I2C transactions
+on OMAP4 also.
 
-It is probably better if I track this, since export.h won't
-exist until Linus pulls the module.h-split tree, and I'm
-guessing that will be closer to the end of the merge window.
+Tested on omap4430 and 3430.
 
-Thanks,
-Paul.
+Tested-and-Reported-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-> 
-> Kevin
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index a43d002..fa23faa 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1047,13 +1047,14 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		 * size. This is to ensure that we can handle the status on int
+ 		 * call back latencies.
+ 		 */
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
+-			dev->fifo_size = 0;
++
++		dev->fifo_size = (dev->fifo_size / 2);
++
++		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+-		} else {
+-			dev->fifo_size = (dev->fifo_size / 2);
++		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+-		}
++
+ 		/* calculate wakeup latency constraint for MPU */
+ 		if (dev->set_mpu_wkup_lat != NULL)
+ 			dev->latency = (1000000 * dev->fifo_size) /
+-- 
+1.7.1
+
