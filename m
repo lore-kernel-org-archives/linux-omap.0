@@ -1,185 +1,210 @@
-From: Thomas Weber <thomas.weber.linux@googlemail.com>
-Subject: Re: [RFC/PATCH] ARM: OMAP: Fix build for OMAP3 only builds
-Date: Thu, 03 Nov 2011 22:24:56 +0100
-Message-ID: <4EB306A8.3030602@gmail.com>
-References: <1318421036-1498-1-git-send-email-weber@corscience.de> <B85A65D85D7EB246BE421B3FB0FBB5930328C7C406@dbde02.ent.ti.com> <4EB1398B.80901@gmail.com> <20111102171605.GK31337@atomide.com> <20111103183001.GU31337@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41532 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035Ab1KCUXG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 16:23:06 -0400
-Received: by faao14 with SMTP id o14so1918780faa.19
-        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 13:23:05 -0700 (PDT)
-In-Reply-To: <20111103183001.GU31337@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+From: Thomas Weber <weber@corscience.de>
+Subject: [RFC/PATCH] ARM: OMAP2+: Add chip_select to ads7846 init
+Date: Thu,  3 Nov 2011 23:23:19 +0100
+Message-ID: <1320358999-11016-1-git-send-email-weber@corscience.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Weber <thomas.weber.linux@googlemail.com>, "Nori, Sekhar" <nsekhar@ti.com>, Thomas Weber <weber@corscience.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>
+Cc: Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Am 03.11.2011 19:30, schrieb Tony Lindgren:
-> * Tony Lindgren <tony@atomide.com> [111102 09:41]:
->> * Thomas Weber <thomas.weber.linux@googlemail.com> [111102 04:03]:
->>> Am 27.10.2011 07:32, schrieb Nori, Sekhar:
->>>> On Wed, Oct 12, 2011 at 17:33:56, Thomas Weber wrote:
->>>>> When building for OMAP3 only I get the
->>>>> following errors:
-> ...
->
->>>> I was facing the same problem and this patch helped
->>>> me get rid of it.
->>>>
->>>> Tested-by: Sekhar Nori <nsekhar@ti.com>
->>> Hello Tony,
->>>
->>> what is the status of this patch?
->>>
->>> There is also another patch fixing the same problem.
->>>
->>> [PATCH v2] arm: omap: Fix errors and warnings when building for one board
->> Well looks like we got the initial DT changes merged! Only two
->> minor patches needed for compile errors that I just posted.
->>
->> Will take a look at this and other fixes needed to fixes-part2
->> next.
-> Considering we now have the DT branch merged, I'll apply the earlier
-> patch from Sanjeev with a minor modification to avoid a build
-> warning in board-generic.c.
->
-> Updated patch below, Sekhar & Thomas, care to ack?
->
-> Regards,
->
-> Tony
->
->
-> From: Sanjeev Premi <premi@ti.com>
-> Date: Thu, 13 Oct 2011 21:44:10 +0530
-> Subject: [PATCH] ARM: OMAP: Fix errors and warnings when building for one board
->
-> When customizing omap2plus_defconfig to build for only
-> one board (omap3evm), I came across these warnings and
-> errors (filenames truncated):
->
-> arch/arm/mach-omap2/board-generic.c:76:20: warning: 'omap4_init' defined but not used
-> arch/arm/mach-omap2/built-in.o: In function `omap2420_init_early':
-> arch/arm/mach-omap2/io.c:364: undefined reference to `omap2_set_globals_242x'
-> arch/arm/mach-omap2/io.c:366: undefined reference to `omap2xxx_voltagedomains_init'
-> arch/arm/mach-omap2/io.c:367: undefined reference to `omap242x_powerdomains_init'
-> arch/arm/mach-omap2/io.c:368: undefined reference to `omap242x_clockdomains_init'
-> arch/arm/mach-omap2/io.c:369: undefined reference to `omap2420_hwmod_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap2430_init_early':
-> arch/arm/mach-omap2/io.c:376: undefined reference to `omap2_set_globals_243x'
-> arch/arm/mach-omap2/io.c:378: undefined reference to `omap2xxx_voltagedomains_init'
-> arch/arm/mach-omap2/io.c:379: undefined reference to `omap243x_powerdomains_init'
-> arch/arm/mach-omap2/io.c:380: undefined reference to `omap243x_clockdomains_init'
-> arch/arm/mach-omap2/io.c:381: undefined reference to `omap2430_hwmod_init'
-> arch/arm/mach-omap2/built-in.o: In function `omap4430_init_early':
-> arch/arm/mach-omap2/io.c:436: undefined reference to `omap2_set_globals_443x'
-> arch/arm/mach-omap2/io.c:438: undefined reference to `omap44xx_voltagedomains_init'
-> arch/arm/mach-omap2/io.c:439: undefined reference to `omap44xx_powerdomains_init'
-> arch/arm/mach-omap2/io.c:440: undefined reference to `omap44xx_clockdomains_init'
-> arch/arm/mach-omap2/io.c:441: undefined reference to `omap44xx_hwmod_init'
->
-> This patch fixes them.
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> [tony@atomide.com: updated to fix warnings for board-generic.c]
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
->
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -28,6 +28,7 @@
->   * XXX: Still needed to boot until the i2c & twl driver is adapted to
->   * device-tree
->   */
-> +#ifdef CONFIG_ARCH_OMAP4
->  static struct twl4030_platform_data sdp4430_twldata = {
->  	.irq_base	= TWL6030_IRQ_BASE,
->  	.irq_end	= TWL6030_IRQ_END,
-> @@ -37,7 +38,9 @@ static void __init omap4_i2c_init(void)
->  {
->  	omap4_pmic_init("twl6030", &sdp4430_twldata);
->  }
-> +#endif
->  
-> +#ifdef CONFIG_ARCH_OMAP3
->  static struct twl4030_platform_data beagle_twldata = {
->  	.irq_base	= TWL4030_IRQ_BASE,
->  	.irq_end	= TWL4030_IRQ_END,
-> @@ -47,6 +50,7 @@ static void __init omap3_i2c_init(void)
->  {
->  	omap3_pmic_init("twl4030", &beagle_twldata);
->  }
-> +#endif
->  
->  static struct of_device_id omap_dt_match_table[] __initdata = {
->  	{ .compatible = "simple-bus", },
-> @@ -72,17 +76,21 @@ static void __init omap_generic_init(void)
->  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->  }
->  
-> +#ifdef CONFIG_ARCH_OMAP4
->  static void __init omap4_init(void)
->  {
->  	omap4_i2c_init();
->  	omap_generic_init();
->  }
-> +#endif
->  
-> +#ifdef CONFIG_ARCH_OMAP3
->  static void __init omap3_init(void)
->  {
->  	omap3_i2c_init();
->  	omap_generic_init();
->  }
-> +#endif
->  
->  #if defined(CONFIG_SOC_OMAP2420)
->  static const char *omap242x_boards_compat[] __initdata = {
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -359,6 +359,7 @@ static void __init omap_hwmod_init_postsetup(void)
->  	omap_pm_if_early_init();
->  }
->  
-> +#ifdef CONFIG_ARCH_OMAP2
->  void __init omap2420_init_early(void)
->  {
->  	omap2_set_globals_242x();
-> @@ -382,11 +383,13 @@ void __init omap2430_init_early(void)
->  	omap_hwmod_init_postsetup();
->  	omap2430_clk_init();
->  }
-> +#endif
->  
->  /*
->   * Currently only board-omap3beagle.c should call this because of the
->   * same machine_id for 34xx and 36xx beagle.. Will get fixed with DT.
->   */
-> +#ifdef CONFIG_ARCH_OMAP3
->  void __init omap3_init_early(void)
->  {
->  	omap2_set_globals_3xxx();
-> @@ -430,7 +433,9 @@ void __init ti816x_init_early(void)
->  	omap_hwmod_init_postsetup();
->  	omap3xxx_clk_init();
->  }
-> +#endif
->  
-> +#ifdef CONFIG_ARCH_OMAP4
->  void __init omap4430_init_early(void)
->  {
->  	omap2_set_globals_443x();
-> @@ -442,6 +447,7 @@ void __init omap4430_init_early(void)
->  	omap_hwmod_init_postsetup();
->  	omap4xxx_clk_init();
->  }
-> +#endif
->  
->  void __init omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
->  				      struct omap_sdrc_params *sdrc_cs1)
+This patch adds the chip_select as parameter to
+omap_ads7846_init.
+All existing omap2-boards use chip select 0 on
+different spi busses. I work on bringing a board
+mainline where the ads7846 is connected to
+chip select 1. This patch prepares the omap_ads7846_init
+function for this board.
 
-Acked-by: Thomas Weber <weber@corscience.de>
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+ arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
+ arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
+ arch/arm/mach-omap2/board-ldp.c            |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
+ arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
+ arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
+ arch/arm/mach-omap2/board-overo.c          |    2 +-
+ arch/arm/mach-omap2/common-board-devices.c |   13 ++++++++-----
+ arch/arm/mach-omap2/common-board-devices.h |    3 ++-
+ 11 files changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 77142c1..dec6407 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -710,7 +710,7 @@ static void __init omap_3430sdp_init(void)
+ 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV2;
+ 	else
+ 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV1;
+-	omap_ads7846_init(1, gpio_pendown, 310, NULL);
++	omap_ads7846_init(1, 0, gpio_pendown, 310, NULL);
+ 	board_serial_init();
+ 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
+ 	usb_musb_init(NULL);
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index bd1bcac..3c82640 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -606,7 +606,7 @@ static void __init cm_t3x_common_init(void)
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+ 			     mt46h32m32lf6_sdrc_params);
+ 	cm_t35_init_i2c();
+-	omap_ads7846_init(1, CM_T35_GPIO_PENDOWN, 0, NULL);
++	omap_ads7846_init(1, 0, CM_T35_GPIO_PENDOWN, 0, NULL);
+ 	cm_t35_init_ethernet();
+ 	cm_t35_init_led();
+ 	cm_t35_init_display();
+diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
+index 90154e4..669ada3 100644
+--- a/arch/arm/mach-omap2/board-devkit8000.c
++++ b/arch/arm/mach-omap2/board-devkit8000.c
+@@ -642,7 +642,7 @@ static void __init devkit8000_init(void)
+ 
+ 	omap_display_init(&devkit8000_dss_data);
+ 
+-	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
++	omap_ads7846_init(2, 0, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
+ 
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index e179da0..0c19262 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -417,7 +417,7 @@ static void __init omap_ldp_init(void)
+ 	ldp_init_smsc911x();
+ 	omap_i2c_init();
+ 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+-	omap_ads7846_init(1, 54, 310, NULL);
++	omap_ads7846_init(1, 0, 54, 310, NULL);
+ 	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+ 	usb_musb_init(NULL);
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 2d24e28..57fd2d4 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -661,7 +661,7 @@ static void __init omap3_evm_init(void)
+ 	}
+ 	usb_musb_init(&musb_board_data);
+ 	usbhs_init(&usbhs_bdata);
+-	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
++	omap_ads7846_init(1, 0, OMAP3_EVM_TS_GPIO, 310, NULL);
+ 	omap3evm_init_smsc911x();
+ 	omap3_evm_display_init();
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index f7811f4..9606a51 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -590,7 +590,7 @@ static void __init omap3pandora_init(void)
+ 				  mt46h32m32lf6_sdrc_params);
+ 	spi_register_board_info(omap3pandora_spi_board_info,
+ 			ARRAY_SIZE(omap3pandora_spi_board_info));
+-	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
++	omap_ads7846_init(1, 0, OMAP3_PANDORA_TS_GPIO, 0, NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	usb_musb_init(NULL);
+ 	gpmc_nand_init(&pandora_nand_data);
+diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+index ddb7d66..808e8e6 100644
+--- a/arch/arm/mach-omap2/board-omap3stalker.c
++++ b/arch/arm/mach-omap2/board-omap3stalker.c
+@@ -436,7 +436,7 @@ static void __init omap3_stalker_init(void)
+ 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+-	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
++	omap_ads7846_init(1, 0, OMAP3_STALKER_TS_GPIO, 310, NULL);
+ 
+ 	omap_mux_init_gpio(21, OMAP_PIN_OUTPUT);
+ 	omap_mux_init_gpio(18, OMAP_PIN_INPUT_PULLUP);
+diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+index a2d0d19..3821e9a 100644
+--- a/arch/arm/mach-omap2/board-omap3touchbook.c
++++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+@@ -363,7 +363,7 @@ static void __init omap3_touchbook_init(void)
+ 	gpio_request_one(176, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
+ 
+ 	/* Touchscreen and accelerometer */
+-	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
++	omap_ads7846_init(4, 0, OMAP3_TS_GPIO, 310, &ads7846_pdata);
+ 	usb_musb_init(NULL);
+ 	usbhs_init(&usbhs_bdata);
+ 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3touchbook_nand_partitions,
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 4cf7aea..3323e11 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -105,7 +105,7 @@ static struct platform_device vads7846_device = {
+ 
+ static void __init overo_ads7846_init(void)
+ {
+-	omap_ads7846_init(1, OVERO_GPIO_PENDOWN, 0, NULL);
++	omap_ads7846_init(1, 0, OVERO_GPIO_PENDOWN, 0, NULL);
+ 	platform_device_register(&vads7846_device);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index bcb0c58..a02cca6 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -51,14 +51,15 @@ static struct ads7846_platform_data ads7846_config = {
+ static struct spi_board_info ads7846_spi_board_info __initdata = {
+ 	.modalias		= "ads7846",
+ 	.bus_num		= -EINVAL,
+-	.chip_select		= 0,
++	.chip_select		= -EINVAL,
+ 	.max_speed_hz		= 1500000,
+ 	.controller_data	= &ads7846_mcspi_config,
+ 	.irq			= -EINVAL,
+ 	.platform_data		= &ads7846_config,
+ };
+ 
+-void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
++void __init omap_ads7846_init(int bus_num, int chip_select,
++			      int gpio_pendown, int gpio_debounce,
+ 			      struct ads7846_platform_data *board_pdata)
+ {
+ 	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
+@@ -78,8 +79,9 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 
+ 	ads7846_config.gpio_pendown = gpio_pendown;
+ 
+-	spi_bi->bus_num	= bus_num;
+-	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
++	spi_bi->bus_num	    = bus_num;
++	spi_bi->chip_select = chip_select;
++	spi_bi->irq	    = OMAP_GPIO_IRQ(gpio_pendown);
+ 
+ 	if (board_pdata)
+ 		spi_bi->platform_data = board_pdata;
+@@ -87,7 +89,8 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 	spi_register_board_info(&ads7846_spi_board_info, 1);
+ }
+ #else
+-void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
++void __init omap_ads7846_init(int bus_num,  int chip_select,
++			      int gpio_pendown, int gpio_debounce,
+ 			      struct ads7846_platform_data *board_pdata)
+ {
+ }
+diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
+index a0b4a428..784be17 100644
+--- a/arch/arm/mach-omap2/common-board-devices.h
++++ b/arch/arm/mach-omap2/common-board-devices.h
+@@ -8,7 +8,8 @@
+ struct mtd_partition;
+ struct ads7846_platform_data;
+ 
+-void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
++void omap_ads7846_init(int bus_num, int chip_select,
++		       int gpio_pendown, int gpio_debounce,
+ 		       struct ads7846_platform_data *board_pdata);
+ void omap_nand_flash_init(int opts, struct mtd_partition *parts, int n_parts);
+ 
+-- 
+1.7.7.1
