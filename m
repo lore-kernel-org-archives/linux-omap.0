@@ -1,72 +1,88 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Thu, 03 Nov 2011 16:49:32 +0530
-Message-ID: <4EB278C4.6030006@ti.com>
-References: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com> <8739ikp9aa.fsf@ti.com> <20110713192055.GC3369@freya.fluff.org>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V3 2/4] arm:omap:am33xx: Update common OMAP machine
+ specific sources
+Date: Thu, 3 Nov 2011 13:48:20 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A801E53A@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1316529142-27564-3-git-send-email-hvaibhav@ti.com> <87fwjjcfbt.fsf@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB5930257840691@dbde02.ent.ti.com>
+ <87ehyyj6ts.fsf@ti.com> <20111006230308.GX6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110713192055.GC3369-RazCHl0VsYgkUSuvROHNpA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59643 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752067Ab1KCNsc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 09:48:32 -0400
+In-Reply-To: <20111006230308.GX6324@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-On Thursday 14 July 2011 12:50 AM, Ben Dooks wrote:
-> On Tue, Jul 05, 2011 at 05:01:01PM -0700, Kevin Hilman wrote:
->> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
->>
->>> Currently the fifo depth is set to zero for OMAP4 which disables
->>> the FIFO usage. This patch enables the FIFO usage for I2C transactions
->>> on OMAP4 also.
->>>
->>> Tested on omap4430 and 3430.
->>>
->>> Reported-By: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->>> ---
->>> Rebased on top of the series by Andy Green
->>> http://www.spinics.net/lists/linux-i2c/msg05632.html
->> Thanks.
->>
->> This is v3.1 material, but would be nice to see a couple tested-by or
->> acked-by tags from folks that are more actively using the I2C driver
->> before merging
->>
->> Kevin
-> guess you'll be picking these up?
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, October 07, 2011 4:33 AM
+> To: Hilman, Kevin
+> Cc: Premi, Sanjeev; Hiremath, Vaibhav; linux-omap@vger.kernel.org;
+> paul@pwsan.com; linux-arm-kernel@lists.infradead.org; Mohammed, Afzal
+> Subject: Re: [PATCH-V3 2/4] arm:omap:am33xx: Update common OMAP machine
+> specific sources
+> 
+> * Kevin Hilman <khilman@ti.com> [110930 09:35]:
+> > "Premi, Sanjeev" <premi@ti.com> writes:
+> >
+> > Actually, looking at this closer, I think the infrastructure is already
+> > there to handle this cleanly.
+> >
+> > Basically, dpll5 should not even be registered for SoCs where it doesn't
+> > exist.  Then, any attempts to use DPLL5 would know it doesn't exist
+> > because the call to clk_get() in omap3_clk_lock_dpll5() would fail.
+> 
+> Yes please use the SoC specific lists, see what we have now queued
+> up in sram-map-io branch. So using SoC specific map_io + init_early +
+> set_globals should do the trick.
+> 
+Sorry for delayed response, was on festival vacation...
 
-Ben Could this patch be lined up as well?
->  
->>>  drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
->>>  1 files changed, 6 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->>> index d53cd61..8f87a37 100644
->>> --- a/drivers/i2c/busses/i2c-omap.c
->>> +++ b/drivers/i2c/busses/i2c-omap.c
->>> @@ -1068,13 +1068,14 @@ omap_i2c_probe(struct platform_device *pdev)
->>>  		 * size. This is to ensure that we can handle the status on int
->>>  		 * call back latencies.
->>>  		 */
->>> -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
->>> -			dev->fifo_size = 0;
->>> +
->>> +		dev->fifo_size = (dev->fifo_size / 2);
->>> +
->>> +		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
->>>  			dev->b_hw = 0; /* Disable hardware fixes */
->>> -		} else {
->>> -			dev->fifo_size = (dev->fifo_size / 2);
->>> +		else
->>>  			dev->b_hw = 1; /* Enable hardware fixes */
->>> -		}
->>> +
->>>  		/* calculate wakeup latency constraint for MPU */
->>>  		if (dev->set_mpu_wkup_lat != NULL)
->>>  			dev->latency = (1000000 * dev->fifo_size) /
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > I think the clock3xxx_data.c needs a bit more cleanup so that only
+> > clocks that exist for a given SoC are registered.
+> >
+> > Paul already did a similar cleanup for the powerdomain data files by
+> > creating separate lists for common ones and unique ones.  Looks like we
+> > need the same for the clock data.
+> 
+> Right.
+> 
+I agree that we need to clean clock data, but with the current discussion,
+feel it may not be so useful, since the clock tree of the AM335x device is
+different than OMAP3 family of devices -
+
+http://www.ti.com/product/am3359
+
+Public TRM -
+http://www.ti.com/lit/ug/spruh73/spruh73.pdf
+
+
+While porting Linux kernel to AM335x EVM, I had created separate clock data
+file for AM33xx -
+	- arch/arm/mach-omap2/clock33xx_data.c
+
+Similar for clock domain data -
+	- arch/arm/mach-omap2/clockdomains33xx_data.c
+
+So we don't need any of the changes which we are discussing about, since execution doesn't reach there.
+
+
+Currently looking at clock data, to see how this cleanup can be achieved,
+any suggestions/comments/pointers would be helpful.
+
+
+Thanks,
+Vaibhav
+
+> Regards,
+> 
+> Tony
