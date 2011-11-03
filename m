@@ -1,36 +1,69 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
-Date: Wed, 02 Nov 2011 16:59:27 -0700
-Message-ID: <87ty6mhy8w.fsf@ti.com>
-References: <1319917151-5626-1-git-send-email-J.Kilb@phytec.de>
-	<m239ebef9b.fsf@bob.laptop.org>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: PM / OPP: Fix build when CONFIG_PM_OPP is not set
+Date: Thu, 3 Nov 2011 01:21:42 +0100
+Message-ID: <201111030121.42432.rjw@sisk.pl>
+References: <20111102170055.GI31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:47070 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752614Ab1KBX7b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Nov 2011 19:59:31 -0400
-In-Reply-To: <m239ebef9b.fsf@bob.laptop.org> (Chris Ball's message of "Sat, 29
-	Oct 2011 16:04:16 -0400")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20111102170055.GI31337@atomide.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-kernel@vger.kernel.org, Kyungmin Park <kyungmin.park@samsung.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Juergen Kilb <J.Kilb@phytec.de>, linux-mmc@vger.kernel.org, Girish K S <girish.shivananjappa@linaro.org>, linux-omap@vger.kernel.org
 
-Hi Chris,
+On Wednesday, November 02, 2011, Tony Lindgren wrote:
+> Commit 03ca370fbf7b76d6d002380dbdc2cdc2319f9c80 (PM / OPP: Add
+> OPP availability change notifier) does not compile if CONFIG_PM_OPP
+> is not set:
+> 
+> arch/arm/plat-omap/omap-pm-noop.o: In function `opp_get_notifier':
+> include/linux/opp.h:103: multiple definition of `opp_get_notifier'
+> include/linux/opp.h:103: first defined here
+> 
+> Also fix incorrect comment.
+> 
+> Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Mike Turquette <mturquette@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rafael J. Wysocki <rjw@sisk.pl>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Chris Ball <cjb@laptop.org> writes:
-
-[...]
-
-> Oops.  Thank you; I've pushed this to mmc-next now, and will send the
-> fix to Linus.  I've checked for other errors in the original patch.
-
-Where did you push this fix?
-
-I don't see this in the mmc-next branch of git://dev.laptop.org/users/cjb/mmc
+Applied to linux-pm/linux-next.
 
 Thanks,
+Rafael
 
-Kevin
+
+> ---
+> 
+> I'm seeing this with omap1_defconfig at least.
+> 
+> --- a/include/linux/opp.h
+> +++ b/include/linux/opp.h
+> @@ -97,11 +97,11 @@ static inline int opp_disable(struct device *dev, unsigned long freq)
+>  	return 0;
+>  }
+>  
+> -struct srcu_notifier_head *opp_get_notifier(struct device *dev)
+> +static inline struct srcu_notifier_head *opp_get_notifier(struct device *dev)
+>  {
+>  	return ERR_PTR(-EINVAL);
+>  }
+> -#endif		/* CONFIG_PM */
+> +#endif		/* CONFIG_PM_OPP */
+>  
+>  #if defined(CONFIG_CPU_FREQ) && defined(CONFIG_PM_OPP)
+>  int opp_init_cpufreq_table(struct device *dev,
+> 
+> 
