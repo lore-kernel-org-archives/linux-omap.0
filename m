@@ -1,210 +1,101 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: [RFC/PATCH] ARM: OMAP2+: Add chip_select to ads7846 init
-Date: Thu,  3 Nov 2011 23:23:19 +0100
-Message-ID: <1320358999-11016-1-git-send-email-weber@corscience.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: omap_hsmmc noisy/broken for suspend resume
+Date: Thu, 03 Nov 2011 14:24:24 -0700
+Message-ID: <878vnwhpbr.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:52674 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751381Ab1KCVYb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 17:24:31 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: svenkatr@ti.com, linux-omap <linux-omap@vger.kernel.org>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, cjb@laptop.org, linux-mmc@vger.kernel.org
 
-This patch adds the chip_select as parameter to
-omap_ads7846_init.
-All existing omap2-boards use chip select 0 on
-different spi busses. I work on bringing a board
-mainline where the ads7846 is connected to
-chip select 1. This patch prepares the omap_ads7846_init
-function for this board.
+Hello,
 
-Signed-off-by: Thomas Weber <weber@corscience.de>
----
- arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c         |    2 +-
- arch/arm/mach-omap2/board-devkit8000.c     |    2 +-
- arch/arm/mach-omap2/board-ldp.c            |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
- arch/arm/mach-omap2/board-omap3stalker.c   |    2 +-
- arch/arm/mach-omap2/board-omap3touchbook.c |    2 +-
- arch/arm/mach-omap2/board-overo.c          |    2 +-
- arch/arm/mach-omap2/common-board-devices.c |   13 ++++++++-----
- arch/arm/mach-omap2/common-board-devices.h |    3 ++-
- 11 files changed, 19 insertions(+), 15 deletions(-)
+Using Linus' master branch, I was testing PM functionality on OMAP3/4
+and noticed that the MMC driver is now rather noisy during suspend on
+OMAP3[1], but seems to work.
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 77142c1..dec6407 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -710,7 +710,7 @@ static void __init omap_3430sdp_init(void)
- 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV2;
- 	else
- 		gpio_pendown = SDP3430_TS_GPIO_IRQ_SDPV1;
--	omap_ads7846_init(1, gpio_pendown, 310, NULL);
-+	omap_ads7846_init(1, 0, gpio_pendown, 310, NULL);
- 	board_serial_init();
- 	omap_sdrc_init(hyb18m512160af6_sdrc_params, NULL);
- 	usb_musb_init(NULL);
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index bd1bcac..3c82640 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -606,7 +606,7 @@ static void __init cm_t3x_common_init(void)
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params,
- 			     mt46h32m32lf6_sdrc_params);
- 	cm_t35_init_i2c();
--	omap_ads7846_init(1, CM_T35_GPIO_PENDOWN, 0, NULL);
-+	omap_ads7846_init(1, 0, CM_T35_GPIO_PENDOWN, 0, NULL);
- 	cm_t35_init_ethernet();
- 	cm_t35_init_led();
- 	cm_t35_init_display();
-diff --git a/arch/arm/mach-omap2/board-devkit8000.c b/arch/arm/mach-omap2/board-devkit8000.c
-index 90154e4..669ada3 100644
---- a/arch/arm/mach-omap2/board-devkit8000.c
-+++ b/arch/arm/mach-omap2/board-devkit8000.c
-@@ -642,7 +642,7 @@ static void __init devkit8000_init(void)
- 
- 	omap_display_init(&devkit8000_dss_data);
- 
--	omap_ads7846_init(2, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
-+	omap_ads7846_init(2, 0, OMAP3_DEVKIT_TS_GPIO, 0, NULL);
- 
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index e179da0..0c19262 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -417,7 +417,7 @@ static void __init omap_ldp_init(void)
- 	ldp_init_smsc911x();
- 	omap_i2c_init();
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
--	omap_ads7846_init(1, 54, 310, NULL);
-+	omap_ads7846_init(1, 0, 54, 310, NULL);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
- 	usb_musb_init(NULL);
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 2d24e28..57fd2d4 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -661,7 +661,7 @@ static void __init omap3_evm_init(void)
- 	}
- 	usb_musb_init(&musb_board_data);
- 	usbhs_init(&usbhs_bdata);
--	omap_ads7846_init(1, OMAP3_EVM_TS_GPIO, 310, NULL);
-+	omap_ads7846_init(1, 0, OMAP3_EVM_TS_GPIO, 310, NULL);
- 	omap3evm_init_smsc911x();
- 	omap3_evm_display_init();
- 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index f7811f4..9606a51 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -590,7 +590,7 @@ static void __init omap3pandora_init(void)
- 				  mt46h32m32lf6_sdrc_params);
- 	spi_register_board_info(omap3pandora_spi_board_info,
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
--	omap_ads7846_init(1, OMAP3_PANDORA_TS_GPIO, 0, NULL);
-+	omap_ads7846_init(1, 0, OMAP3_PANDORA_TS_GPIO, 0, NULL);
- 	usbhs_init(&usbhs_bdata);
- 	usb_musb_init(NULL);
- 	gpmc_nand_init(&pandora_nand_data);
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index ddb7d66..808e8e6 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -436,7 +436,7 @@ static void __init omap3_stalker_init(void)
- 	omap_sdrc_init(mt46h32m32lf6_sdrc_params, NULL);
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
--	omap_ads7846_init(1, OMAP3_STALKER_TS_GPIO, 310, NULL);
-+	omap_ads7846_init(1, 0, OMAP3_STALKER_TS_GPIO, 310, NULL);
- 
- 	omap_mux_init_gpio(21, OMAP_PIN_OUTPUT);
- 	omap_mux_init_gpio(18, OMAP_PIN_INPUT_PULLUP);
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index a2d0d19..3821e9a 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -363,7 +363,7 @@ static void __init omap3_touchbook_init(void)
- 	gpio_request_one(176, GPIOF_OUT_INIT_HIGH, "DVI_nPD");
- 
- 	/* Touchscreen and accelerometer */
--	omap_ads7846_init(4, OMAP3_TS_GPIO, 310, &ads7846_pdata);
-+	omap_ads7846_init(4, 0, OMAP3_TS_GPIO, 310, &ads7846_pdata);
- 	usb_musb_init(NULL);
- 	usbhs_init(&usbhs_bdata);
- 	omap_nand_flash_init(NAND_BUSWIDTH_16, omap3touchbook_nand_partitions,
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 4cf7aea..3323e11 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -105,7 +105,7 @@ static struct platform_device vads7846_device = {
- 
- static void __init overo_ads7846_init(void)
- {
--	omap_ads7846_init(1, OVERO_GPIO_PENDOWN, 0, NULL);
-+	omap_ads7846_init(1, 0, OVERO_GPIO_PENDOWN, 0, NULL);
- 	platform_device_register(&vads7846_device);
- }
- 
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index bcb0c58..a02cca6 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -51,14 +51,15 @@ static struct ads7846_platform_data ads7846_config = {
- static struct spi_board_info ads7846_spi_board_info __initdata = {
- 	.modalias		= "ads7846",
- 	.bus_num		= -EINVAL,
--	.chip_select		= 0,
-+	.chip_select		= -EINVAL,
- 	.max_speed_hz		= 1500000,
- 	.controller_data	= &ads7846_mcspi_config,
- 	.irq			= -EINVAL,
- 	.platform_data		= &ads7846_config,
- };
- 
--void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
-+void __init omap_ads7846_init(int bus_num, int chip_select,
-+			      int gpio_pendown, int gpio_debounce,
- 			      struct ads7846_platform_data *board_pdata)
- {
- 	struct spi_board_info *spi_bi = &ads7846_spi_board_info;
-@@ -78,8 +79,9 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 
- 	ads7846_config.gpio_pendown = gpio_pendown;
- 
--	spi_bi->bus_num	= bus_num;
--	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
-+	spi_bi->bus_num	    = bus_num;
-+	spi_bi->chip_select = chip_select;
-+	spi_bi->irq	    = OMAP_GPIO_IRQ(gpio_pendown);
- 
- 	if (board_pdata)
- 		spi_bi->platform_data = board_pdata;
-@@ -87,7 +89,8 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 	spi_register_board_info(&ads7846_spi_board_info, 1);
- }
- #else
--void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
-+void __init omap_ads7846_init(int bus_num,  int chip_select,
-+			      int gpio_pendown, int gpio_debounce,
- 			      struct ads7846_platform_data *board_pdata)
- {
- }
-diff --git a/arch/arm/mach-omap2/common-board-devices.h b/arch/arm/mach-omap2/common-board-devices.h
-index a0b4a428..784be17 100644
---- a/arch/arm/mach-omap2/common-board-devices.h
-+++ b/arch/arm/mach-omap2/common-board-devices.h
-@@ -8,7 +8,8 @@
- struct mtd_partition;
- struct ads7846_platform_data;
- 
--void omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
-+void omap_ads7846_init(int bus_num, int chip_select,
-+		       int gpio_pendown, int gpio_debounce,
- 		       struct ads7846_platform_data *board_pdata);
- void omap_nand_flash_init(int opts, struct mtd_partition *parts, int n_parts);
- 
--- 
-1.7.7.1
+On OMAP4, MMC seems to prevent suspend/resume all together.  I haven't
+found the root cause, but know that by not buidling the MMC driver, I
+have working suspend/resume again on OMAP4.
+
+Venkat, can you investigate this?
+
+For OMAP4, please use my for_3.2/omap4-pm branch which has the OMAP4
+MPUSS retention support from Santosh.
+
+Kevin
+
+
+[1]
+/ # echo mem > /sys/power/state 
+[  811.145507] PM: Syncing filesystems ... done.
+[  811.150268] PM: Preparing system for mem sleep
+[  811.155059] Freezing user space processes ... (elapsed 0.01 seconds) done.
+[  811.179992] Freezing remaining freezable tasks ... (elapsed 0.01 seconds) done.
+[  811.203460] PM: Entering mem sleep
+[  811.207489] Suspending console(s) (use no_console_suspend to debug)
+a[  811.225860] ------------[ cut here ]------------
+[  811.225891] WARNING: at /work/kernel/omap/pm/drivers/mmc/core/core.c:453 mmc_wait_for_cmd+0x78/0x84()
+[  811.225921] Modules linked in:
+[  811.225952] [<c001a810>] (unwind_backtrace+0x0/0xf0) from [<c00525d0>] (warn_slowpath_common+0x4c/0x64)
+[  811.225982] [<c00525d0>] (warn_slowpath_common+0x4c/0x64) from [<c0052604>] (warn_slowpath_null+0x1c/0x24)
+[  811.226013] [<c0052604>] (warn_slowpath_null+0x1c/0x24) from [<c033a494>] (mmc_wait_for_cmd+0x78/0x84)
+[  811.226043] [<c033a494>] (mmc_wait_for_cmd+0x78/0x84) from [<c033e7b8>] (mmc_switch+0x74/0x118)
+[  811.226074] [<c033e7b8>] (mmc_switch+0x74/0x118) from [<c033b034>] (mmc_power_off+0xd8/0x108)
+[  811.226104] [<c033b034>] (mmc_power_off+0xd8/0x108) from [<c033b3a4>] (mmc_suspend_host+0xe4/0x1b8)
+[  811.226135] [<c033b3a4>] (mmc_suspend_host+0xe4/0x1b8) from [<c034a77c>] (omap_hsmmc_suspend+0x74/0xfc)
+[  811.226165] [<c034a77c>] (omap_hsmmc_suspend+0x74/0xfc) from [<c028df74>] (platform_pm_suspend+0x2c/0x5c)
+[  811.226196] [<c028df74>] (platform_pm_suspend+0x2c/0x5c) from [<c0291a60>] (pm_op.clone.4+0x70/0xb8)
+[  811.226226] [<c0291a60>] (pm_op.clone.4+0x70/0xb8) from [<c0291b70>] (__device_suspend+0xc8/0x1f0)
+[  811.226257] [<c0291b70>] (__device_suspend+0xc8/0x1f0) from [<c02929d0>] (dpm_suspend+0x5c/0x218)
+[  811.226287] [<c02929d0>] (dpm_suspend+0x5c/0x218) from [<c00970c8>] (suspend_devices_and_enter+0x8c/0x18c)
+[  811.226318] [<c00970c8>] (suspend_devices_and_enter+0x8c/0x18c) from [<c0097308>] (enter_state+0x140/0x180)
+[  811.226318] [<c0097308>] (enter_state+0x140/0x180) from [<c00961d4>] (state_store+0xb8/0x104)
+[  811.226348] [<c00961d4>] (state_store+0xb8/0x104) from [<c022f7b8>] (kobj_attr_store+0x14/0x20)
+[  811.226379] [<c022f7b8>] (kobj_attr_store+0x14/0x20) from [<c01542a8>] (sysfs_write_file+0x100/0x184)
+[  811.226409] [<c01542a8>] (sysfs_write_file+0x100/0x184) from [<c00f8d88>] (vfs_write+0xb4/0x148)
+[  811.226440] [<c00f8d88>] (vfs_write+0xb4/0x148) from [<c00f9010>] (sys_write+0x40/0x70)
+[  811.226470] [<c00f9010>] (sys_write+0x40/0x70) from [<c00132a0>] (ret_fast_syscall+0x0/0x3c)
+[  811.226501] ---[ end trace 870223ea4a1b1518 ]---
+[  811.226501] ------------[ cut here ]------------
+[  811.226531] WARNING: at /work/kernel/omap/pm/drivers/mmc/core/core.c:210 mmc_start_request+0xd4/0xdc()
+[  811.226531] Modules linked in:
+[  811.226562] [<c001a810>] (unwind_backtrace+0x0/0xf0) from [<c00525d0>] (warn_slowpath_common+0x4c/0x64)
+[  811.226593] [<c00525d0>] (warn_slowpath_common+0x4c/0x64) from [<c0052604>] (warn_slowpath_null+0x1c/0x24)
+[  811.226623] [<c0052604>] (warn_slowpath_null+0x1c/0x24) from [<c0339da8>] (mmc_start_request+0xd4/0xdc)
+[  811.226654] [<c0339da8>] (mmc_start_request+0xd4/0xdc) from [<c033a404>] (mmc_wait_for_req+0x34/0x4c)
+[  811.226684] [<c033a404>] (mmc_wait_for_req+0x34/0x4c) from [<c033a47c>] (mmc_wait_for_cmd+0x60/0x84)
+[  811.226715] [<c033a47c>] (mmc_wait_for_cmd+0x60/0x84) from [<c033e7b8>] (mmc_switch+0x74/0x118)
+[  811.226715] [<c033e7b8>] (mmc_switch+0x74/0x118) from [<c033b034>] (mmc_power_off+0xd8/0x108)
+[  811.226745] [<c033b034>] (mmc_power_off+0xd8/0x108) from [<c033b3a4>] (mmc_suspend_host+0xe4/0x1b8)
+[  811.226776] [<c033b3a4>] (mmc_suspend_host+0xe4/0x1b8) from [<c034a77c>] (omap_hsmmc_suspend+0x74/0xfc)
+[  811.226806] [<c034a77c>] (omap_hsmmc_suspend+0x74/0xfc) from [<c028df74>] (platform_pm_suspend+0x2c/0x5c)
+[  811.226837] [<c028df74>] (platform_pm_suspend+0x2c/0x5c) from [<c0291a60>] (pm_op.clone.4+0x70/0xb8)
+[  811.226867] [<c0291a60>] (pm_op.clone.4+0x70/0xb8) from [<c0291b70>] (__device_suspend+0xc8/0x1f0)
+[  811.226867] [<c0291b70>] (__device_suspend+0xc8/0x1f0) from [<c02929d0>] (dpm_suspend+0x5c/0x218)
+[  811.226898] [<c02929d0>] (dpm_suspend+0x5c/0x218) from [<c00970c8>] (suspend_devices_and_enter+0x8c/0x18c)
+[  811.226928] [<c00970c8>] (suspend_devices_and_enter+0x8c/0x18c) from [<c0097308>] (enter_state+0x140/0x180)
+[  811.226959] [<c0097308>] (enter_state+0x140/0x180) from [<c00961d4>] (state_store+0xb8/0x104)
+[  811.226989] [<c00961d4>] (state_store+0xb8/0x104) from [<c022f7b8>] (kobj_attr_store+0x14/0x20)
+[  811.227020] [<c022f7b8>] (kobj_attr_store+0x14/0x20) from [<c01542a8>] (sysfs_write_file+0x100/0x184)
+[  811.227020] [<c01542a8>] (sysfs_write_file+0x100/0x184) from [<c00f8d88>] (vfs_write+0xb4/0x148)
+[  811.227050] [<c00f8d88>] (vfs_write+0xb4/0x148) from [<c00f9010>] (sys_write+0x40/0x70)
+[  811.227081] [<c00f9010>] (sys_write+0x40/0x70) from [<c00132a0>] (ret_fast_syscall+0x0/0x3c)
+[  811.227111] ---[ end trace 870223ea4a1b1519 ]---
+[  811.227294] Device failed to respond within 0 poweroff time. Forcefully powering down the device
+[  811.336791] PM: suspend of devices complete after 119.435 msecs
+[  811.340118] PM: late suspend of devices complete after 3.328 msecs
+[  811.340148] Disabling non-boot CPUs ...
+[  811.340393] PM: Resume timer in 4.000 secs (131072 ticks at 32768 ticks/sec.)
+[  812.226165] Successfully put all powerdomains to target state
+[  812.228851] PM: early resume of devices complete after 2.229 msecs
+[  812.994049] PM: resume of devices complete after 763.887 msecs
+[  813.452484] PM: Finishing wakeup.
+[  813.455871] Restarting tasks ... done.
+/ # a
