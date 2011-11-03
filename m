@@ -1,100 +1,53 @@
-From: Manfred <manfred@student.ethz.ch>
-Subject: linux-omap3-2.6.39: spurious irq 95, during heavy SD card load
-Date: Thu, 3 Nov 2011 09:46:30 +0000 (UTC)
-Message-ID: <loom.20111103T103055-675@post.gmane.org>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
+Date: Thu, 03 Nov 2011 06:42:13 -0400
+Message-ID: <m2sjm58p2y.fsf@bob.laptop.org>
+References: <1319917151-5626-1-git-send-email-J.Kilb@phytec.de>
+	<m239ebef9b.fsf@bob.laptop.org> <87ty6mhy8w.fsf@ti.com>
+	<CANfBPZ8JBJg5QtUcuiDJiORAQkpn6aHvQHddzXO=Qmdo8S1MYw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:50972 "EHLO lo.gmane.org"
+Received: from void.printf.net ([89.145.121.20]:54479 "EHLO void.printf.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754871Ab1KCJuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Nov 2011 05:50:10 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1RLtw0-0007AM-Re
-	for linux-omap@vger.kernel.org; Thu, 03 Nov 2011 10:50:08 +0100
-Received: from quackm-ifa.ee.ethz.ch ([129.132.29.66])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 10:50:08 +0100
-Received: from manfred by quackm-ifa.ee.ethz.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 10:50:08 +0100
+	id S1755749Ab1KCKm3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 06:42:29 -0400
+In-Reply-To: <CANfBPZ8JBJg5QtUcuiDJiORAQkpn6aHvQHddzXO=Qmdo8S1MYw@mail.gmail.com>
+	(Venkatraman S.'s message of "Thu, 3 Nov 2011 13:40:46 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Juergen Kilb <J.Kilb@phytec.de>, linux-mmc@vger.kernel.org, Girish K S <girish.shivananjappa@linaro.org>, linux-omap@vger.kernel.org
 
-Dear users/developers, 
+Hi,
 
-I am trying to install the xenomai real-time linux on a gumstix overo fire with
-an omap3530. 
-After some starting problems, I succeed to patch the 2.6.33 kernel and run some
-latency tests
- with normal worst case latencies ~60us. However, the overall worst case latency
-is very bad (5ms), 
-because i occasionally get spurious interrupt errors like this:
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+On Thu, Nov 03 2011, S, Venkatraman wrote:
+>>> Oops. =C2=A0Thank you; I've pushed this to mmc-next now, and will s=
+end the
+>>> fix to Linus. =C2=A0I've checked for other errors in the original p=
+atch.
+>>
+>> Where did you push this fix?
+>>
+>> I don't see this in the mmc-next branch of git://dev.laptop.org/user=
+s/cjb/mmc
+>>
+> MMC tree is back to kernel.org
+> http://git.kernel.org/?p=3Dlinux/kernel/git/cjb/mmc.git;a=3Dsummary
 
-I then tried the precompiled development images
-(http://cumulus.gumstix.org/images/angstrom/developer/), 
-which use kernel 2.6.39, but I also get these messages there. 
-To reproduce the error, I did the following:
-1.) Boot:
-Linux overo 2.6.39 #1 Mon Aug 15 19:04:09 PDT 2011 armv7l GNU/Linux
-booting from SD card.
+I've deleted the dev.laptop.org mmc tree now, so that there's a clue
+that it's moved back to kernel.org.  (linux-next is already back to
+pulling the kernel.org tree.)
 
-2.)
-dd if=/dev/zero of=ddfile bs=100000 count=1000
---> creates a 1GB file in /home/root
-3.)
-connect to wireless:
-iwconfig wlan0 mode ad-hoc
-iwconfig wlan0 essid myovero
-ifconfig wlan0 192.168.1.33 netmask 255.255.255.0 up
-4.)a)
-then pull via scp  ddfile onto your dev. machine.
-scp scp username@192.168.1.33:/home/root/ddfile .
-4.)b)
-at the same time create a second empty file on the sd-card:
-dd if=/dev/zero of=ddfile2 bs=100000 count=4000
+Thanks,
 
---> output in dmesg:
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-
-whenever i write a new file that is bigger then the first one, 
-I get two instances of this message:
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
-
-I am not sure if it is related to the SD-reader driver, or the 
-wireless (libertas_SDIO) driver, or only the combination of both.
-
-
-This issue seemed to have already existed in previous kernel versions, 
-there are many posts on the web, some of them saying it has been fixed in kernel
-version >2.6.30, 
-which seems however not apply to the linux-omap3-2.6.39 kernel.
-
-The latest message about spurious irqs that i could find is related to kernel
-3.0-rc1.
-Has anyone running an kernel-3.0 on an omap3530 (perhaps overo fire) and could
-try to reproduce? 
-
-Or is there a specific patch to resolve this?
-I was not able to reproduce this on the NAND-flash, 
-but it is also to small to make large continous data transfers. 
-
-Any help with this is appreciated. 
-
-Regards, 
-Manfred
-
-
-
+- Chris.
+--=20
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
