@@ -1,91 +1,72 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP: hmwod: Add support for per hwmod/module context lost count
-Date: Thu, 3 Nov 2011 16:24:23 +0530
-Message-ID: <1320317665-6381-2-git-send-email-rnayak@ti.com>
-References: <1320317665-6381-1-git-send-email-rnayak@ti.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Thu, 03 Nov 2011 16:49:32 +0530
+Message-ID: <4EB278C4.6030006@ti.com>
+References: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com> <8739ikp9aa.fsf@ti.com> <20110713192055.GC3369@freya.fluff.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51443 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752815Ab1KCKyw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 3 Nov 2011 06:54:52 -0400
-In-Reply-To: <1320317665-6381-1-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110713192055.GC3369-RazCHl0VsYgkUSuvROHNpA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: b-cousson@ti.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-OMAP4 has module specific context lost registers which
-makes it now possible to have module level context loss
-count, instead of relying on the powerdomain level context
-count.
+On Thursday 14 July 2011 12:50 AM, Ben Dooks wrote:
+> On Tue, Jul 05, 2011 at 05:01:01PM -0700, Kevin Hilman wrote:
+>> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+>>
+>>> Currently the fifo depth is set to zero for OMAP4 which disables
+>>> the FIFO usage. This patch enables the FIFO usage for I2C transactions
+>>> on OMAP4 also.
+>>>
+>>> Tested on omap4430 and 3430.
+>>>
+>>> Reported-By: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+>>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>>> ---
+>>> Rebased on top of the series by Andy Green
+>>> http://www.spinics.net/lists/linux-i2c/msg05632.html
+>> Thanks.
+>>
+>> This is v3.1 material, but would be nice to see a couple tested-by or
+>> acked-by tags from folks that are more actively using the I2C driver
+>> before merging
+>>
+>> Kevin
+> guess you'll be picking these up?
 
-Add 2 private hwmod api's to update/clear the hwmod/module specific
-context lost counters/register.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c             |   26 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 ++
- 2 files changed, 28 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d713807..d7f9dd1 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1426,6 +1426,32 @@ static int _reset(struct omap_hwmod *oh)
- 	return ret;
- }
- 
-+static void _update_context_lost(struct omap_hwmod *oh)
-+{
-+	if (oh->prcm.omap4.context_offs)
-+		if (omap4_prminst_read_inst_reg(
-+				oh->clkdm->pwrdm.ptr->prcm_partition,
-+				oh->clkdm->pwrdm.ptr->prcm_offs,
-+				oh->prcm.omap4.context_offs))
-+				oh->prcm.omap4.context_lost_counter++;
-+}
-+
-+static void _clear_context_lost(struct omap_hwmod *oh)
-+{
-+	u32 context_reg;
-+
-+	if (oh->prcm.omap4.context_offs) {
-+		context_reg = omap4_prminst_read_inst_reg(
-+				oh->clkdm->pwrdm.ptr->prcm_partition,
-+				oh->clkdm->pwrdm.ptr->prcm_offs,
-+				oh->prcm.omap4.context_offs);
-+		omap4_prminst_write_inst_reg(context_reg,
-+				oh->clkdm->pwrdm.ptr->prcm_partition,
-+				oh->clkdm->pwrdm.ptr->prcm_offs,
-+				oh->prcm.omap4.context_offs);
-+	}
-+}
-+
- /**
-  * _enable - enable an omap_hwmod
-  * @oh: struct omap_hwmod *
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 5419f1a..540e424 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -363,12 +363,14 @@ struct omap_hwmod_omap2_prcm {
-  * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
-  * @clkctrl_reg: PRCM address of the clock control register
-  * @rstctrl_reg: address of the XXX_RSTCTRL register located in the PRM
-+ * context_lost_counter: Count of module level context lost
-  * @submodule_wkdep_bit: bit shift of the WKDEP range
-  */
- struct omap_hwmod_omap4_prcm {
- 	u16		clkctrl_offs;
- 	u16		rstctrl_offs;
- 	u16		context_offs;
-+	unsigned	context_lost_counter;
- 	u8		submodule_wkdep_bit;
- 	u8		modulemode;
- };
--- 
-1.7.1
-
+Ben Could this patch be lined up as well?
+>  
+>>>  drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+>>>  1 files changed, 6 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>>> index d53cd61..8f87a37 100644
+>>> --- a/drivers/i2c/busses/i2c-omap.c
+>>> +++ b/drivers/i2c/busses/i2c-omap.c
+>>> @@ -1068,13 +1068,14 @@ omap_i2c_probe(struct platform_device *pdev)
+>>>  		 * size. This is to ensure that we can handle the status on int
+>>>  		 * call back latencies.
+>>>  		 */
+>>> -		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
+>>> -			dev->fifo_size = 0;
+>>> +
+>>> +		dev->fifo_size = (dev->fifo_size / 2);
+>>> +
+>>> +		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+>>>  			dev->b_hw = 0; /* Disable hardware fixes */
+>>> -		} else {
+>>> -			dev->fifo_size = (dev->fifo_size / 2);
+>>> +		else
+>>>  			dev->b_hw = 1; /* Enable hardware fixes */
+>>> -		}
+>>> +
+>>>  		/* calculate wakeup latency constraint for MPU */
+>>>  		if (dev->set_mpu_wkup_lat != NULL)
+>>>  			dev->latency = (1000000 * dev->fifo_size) /
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
