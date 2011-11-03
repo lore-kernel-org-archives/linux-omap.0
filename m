@@ -1,79 +1,60 @@
-From: Kyle Manna <kyle.manna@fuel7.com>
-Subject: [PATCH v3 1/6] mfd: TPS65910: Handle non-existent devices
-Date: Thu,  3 Nov 2011 12:08:01 -0500
-Message-ID: <1320340086-15371-2-git-send-email-kyle.manna@fuel7.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3 4/6] mfd: TPS65910: Move linux/gpio.h include to header
+Date: Thu, 3 Nov 2011 19:25:12 +0200
+Message-ID: <20111103172511.GC30472@legolas.emea.dhcp.ti.com>
 References: <1320340086-15371-1-git-send-email-kyle.manna@fuel7.com>
+ <1320340086-15371-5-git-send-email-kyle.manna@fuel7.com>
+Reply-To: balbi@ti.com
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XMCwj5IQnwKtuyBG"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1320340086-15371-1-git-send-email-kyle.manna@fuel7.com>
+Content-Disposition: inline
+In-Reply-To: <1320340086-15371-5-git-send-email-kyle.manna@fuel7.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kyle Manna <kyle.manna@fuel7.com>
+To: Kyle Manna <kyle.manna@fuel7.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-The JTAGREVNUM register contains a silicon revision number in the lower
-four bits and the upper four bits are to always read 0.
 
-To detect the presence of the device, attempt to read JTAGREVNUM
-register and check that it returns a valid value.  If the I2C device
-fails to respond or returns an invalid value, return -ENODEV.
+--XMCwj5IQnwKtuyBG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Kyle Manna <kyle.manna@fuel7.com>
----
- drivers/mfd/tps65910.c |   22 ++++++++++++++++------
- 1 files changed, 16 insertions(+), 6 deletions(-)
+Hi,
 
-diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
-index 6f5b8cf..0d9c3eb 100644
---- a/drivers/mfd/tps65910.c
-+++ b/drivers/mfd/tps65910.c
-@@ -138,6 +138,7 @@ static int tps65910_i2c_probe(struct i2c_client *i2c,
- 	struct tps65910_board *pmic_plat_data;
- 	struct tps65910_platform_data *init_data;
- 	int ret = 0;
-+	char reg = 0;
- 
- 	pmic_plat_data = dev_get_platdata(&i2c->dev);
- 	if (!pmic_plat_data)
-@@ -161,11 +162,19 @@ static int tps65910_i2c_probe(struct i2c_client *i2c,
- 	tps65910->write = tps65910_i2c_write;
- 	mutex_init(&tps65910->io_mutex);
- 
--	ret = mfd_add_devices(tps65910->dev, -1,
--			      tps65910s, ARRAY_SIZE(tps65910s),
--			      NULL, 0);
--	if (ret < 0)
-+	/* Check that the device is there */
-+	ret = tps65910_i2c_read(tps65910, TPS65910_JTAGVERNUM, 1, &reg);
-+	if (ret < 0 || (reg & ~JTAGVERNUM_VERNUM_MASK)) {
-+		dev_err(tps65910->dev, "unknown version: JTAGREVNUM = 0x%x\n",
-+				       reg);
-+		ret = -ENODEV;
- 		goto err;
-+	}
-+
-+	ret = mfd_add_devices(tps65910->dev, -1, tps65910s,
-+			ARRAY_SIZE(tps65910s), NULL, 0);
-+	if (ret < 0)
-+		goto err2;
- 
- 	init_data->irq = pmic_plat_data->irq;
- 	init_data->irq_base = pmic_plat_data->irq;
-@@ -174,13 +183,14 @@ static int tps65910_i2c_probe(struct i2c_client *i2c,
- 
- 	ret = tps65910_irq_init(tps65910, init_data->irq, init_data);
- 	if (ret < 0)
--		goto err;
-+		goto err2;
- 
- 	kfree(init_data);
- 	return ret;
- 
--err:
-+err2:
- 	mfd_remove_devices(tps65910->dev);
-+err:
- 	kfree(tps65910);
- 	kfree(init_data);
- 	return ret;
--- 
-1.7.5.4
+On Thu, Nov 03, 2011 at 12:08:04PM -0500, Kyle Manna wrote:
+> The tps65910.h file depends on linux/gpio.h.  Move the include from the
+> source file to the tps65910.h header file.
+
+you should never rely on indirect inclusion of header files. If both
+header and C source need the header, include on both. The header should
+be safe for multiple inclusions anyway.
+
+--=20
+balbi
+
+--XMCwj5IQnwKtuyBG
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOss53AAoJEIaOsuA1yqREBCoP/166at3IMofgGa83H5vJiI2j
+sB9plUfjYCvHp8rrK8JlcQMdFLorbTdPjSbiBJEr4vxAtAvzpk1IPvsfQdy7DLWa
+cVbLL8QvKU1G0xsqguY1M2qWr5xQWgw0ec42jMUFojChyKDh8PiBHcxnKj7yfM8s
+WRVR8ByOjJNJa1bHM7xo8Nhz7vET8sftri96+BMXrWHnpOZzjvwLb32lECM82Kye
+snFohO1I6Ji0imaVojPJSObAAsmpNbt9xSk8m4rEHUYu1n71F6tP83z34icYNOoK
+Oml4j4h9GTQkLP4/gFZC3NmT98EtQcQfacIzDSqDnpYY9yHNFduiS0loDa6rXxrb
+4fOyD27PEO2A1ueAFF9tXE4tSAmj9ULmcsHNyYm7trpERye/I6pzIH8AFXm/YIhF
+2nSH0K9QPCxBKRqxwxxQQDhtQZ8eX9ZMMh6Yn83lW8Kn8QtvkRoWPbENovQU7RN1
+gfQeZikJfVxJuEZFGyKASH3+KSOLC2nGr4qzwGItYDgx74UsogJLFy+IR3gvwsW7
+P9Ub85/BMLAVYU+dh8y2sWofk2HnormWGa1oSt8SrL/7kj2FTZLh/az5nhlPuEYc
+MbhtXmV2qDSOEKczFrSlzAYW4AJEbRlRQ7xLeixN7ZoG9ZH0JI/Y5eSGVKg05PGg
++ZcuvdyLq3bbk62G9A/a
+=DdO+
+-----END PGP SIGNATURE-----
+
+--XMCwj5IQnwKtuyBG--
