@@ -1,7 +1,7 @@
 From: Kyle Manna <kyle.manna@fuel7.com>
-Subject: [PATCH v3 6/6] regulator: TPS65910: Create an array for init data
-Date: Thu,  3 Nov 2011 12:08:06 -0500
-Message-ID: <1320340086-15371-7-git-send-email-kyle.manna@fuel7.com>
+Subject: [PATCH v3 4/6] mfd: TPS65910: Move linux/gpio.h include to header
+Date: Thu,  3 Nov 2011 12:08:04 -0500
+Message-ID: <1320340086-15371-5-git-send-email-kyle.manna@fuel7.com>
 References: <1320340086-15371-1-git-send-email-kyle.manna@fuel7.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1320340086-15371-1-git-send-email-kyle.manna@fuel7.com>
@@ -10,73 +10,40 @@ To: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kyle Manna <kyle.manna@fuel7.com>
 List-Id: linux-omap@vger.kernel.org
 
-Create an array of fixed size for the platform to pass regulator
-initalization data through.
-
-Passing an array of pointers to init data also allows more flexible
-definition of init data as well as prevents reading past the end of the
-array should the platform define an incorrectly sized array.
+The tps65910.h file depends on linux/gpio.h.  Move the include from the
+source file to the tps65910.h header file.
 
 Signed-off-by: Kyle Manna <kyle.manna@fuel7.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- drivers/regulator/tps65910-regulator.c |   13 ++++++++++---
- include/linux/mfd/tps65910.h           |    5 ++++-
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/mfd/tps65910.c       |    1 -
+ include/linux/mfd/tps65910.h |    3 +++
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index 44b4f22..a620e25 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -861,8 +861,6 @@ static __devinit int tps65910_probe(struct platform_device *pdev)
- 	if (!pmic_plat_data)
- 		return -EINVAL;
- 
--	reg_data = pmic_plat_data->tps65910_pmic_init_data;
--
- 	pmic = kzalloc(sizeof(*pmic), GFP_KERNEL);
- 	if (!pmic)
- 		return -ENOMEM;
-@@ -913,7 +911,16 @@ static __devinit int tps65910_probe(struct platform_device *pdev)
- 		goto err_free_info;
- 	}
- 
--	for (i = 0; i < pmic->num_regulators; i++, info++, reg_data++) {
-+	for (i = 0; i < pmic->num_regulators && i < TPS65910_NUM_REGS;
-+			i++, info++) {
-+
-+		reg_data = pmic_plat_data->tps65910_pmic_init_data[i];
-+
-+		/* Regulator API handles empty constraints but not NULL
-+		 * constraints */
-+		if (!reg_data)
-+			continue;
-+
- 		/* Register the regulators */
- 		pmic->info[i] = info;
+diff --git a/drivers/mfd/tps65910.c b/drivers/mfd/tps65910.c
+index 87cb3c9..f48a4ae 100644
+--- a/drivers/mfd/tps65910.c
++++ b/drivers/mfd/tps65910.c
+@@ -18,7 +18,6 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+-#include <linux/gpio.h>
+ #include <linux/mfd/core.h>
+ #include <linux/mfd/tps65910.h>
  
 diff --git a/include/linux/mfd/tps65910.h b/include/linux/mfd/tps65910.h
-index 84108bb..207b8b2 100644
+index 399d80a..503ded3 100644
 --- a/include/linux/mfd/tps65910.h
 +++ b/include/linux/mfd/tps65910.h
-@@ -771,6 +771,9 @@
- #define TPS65911_REG_LDO7				11
- #define TPS65911_REG_LDO8				12
+@@ -17,6 +17,9 @@
+ #ifndef __LINUX_MFD_TPS65910_H
+ #define __LINUX_MFD_TPS65910_H
  
-+/* Max number of TPS65910/11 regulators */
-+#define TPS65910_NUM_REGS				13
++#include <linux/gpio.h>
++#include <linux/regulator/machine.h>
 +
- /**
-  * struct tps65910_board
-  * Board platform data may be used to initialize regulators.
-@@ -782,7 +785,7 @@ struct tps65910_board {
- 	int irq_base;
- 	int vmbch_threshold;
- 	int vmbch2_threshold;
--	struct regulator_init_data *tps65910_pmic_init_data;
-+	struct regulator_init_data *tps65910_pmic_init_data[TPS65910_NUM_REGS];
- };
- 
- /**
+ /* TPS chip id list */
+ #define TPS65910			0
+ #define TPS65911			1
 -- 
 1.7.5.4
