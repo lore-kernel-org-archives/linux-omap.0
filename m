@@ -1,49 +1,35 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH RESEND] ARM: OMAP: omap_device: Include linux/export.h
-Date: Thu, 03 Nov 2011 15:00:38 +0800
-Message-ID: <1320303638.17983.5.camel@phoenix>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
+Date: Thu, 3 Nov 2011 13:40:46 +0530
+Message-ID: <CANfBPZ8JBJg5QtUcuiDJiORAQkpn6aHvQHddzXO=Qmdo8S1MYw@mail.gmail.com>
+References: <1319917151-5626-1-git-send-email-J.Kilb@phytec.de>
+ <m239ebef9b.fsf@bob.laptop.org> <87ty6mhy8w.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:55755 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572Ab1KCHAp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 03:00:45 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <87ty6mhy8w.fsf@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Chris Ball <cjb@laptop.org>, Juergen Kilb <J.Kilb@phytec.de>, linux-mmc@vger.kernel.org, Girish K S <girish.shivananjappa@linaro.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Felipe Balbi <balbi@ti.com>
 
-Include linux/export.h to fix below build warning:
-
-  CC      arch/arm/plat-omap/omap_device.o
-arch/arm/plat-omap/omap_device.c:1055: warning: data definition has no type or storage class
-arch/arm/plat-omap/omap_device.c:1055: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
-arch/arm/plat-omap/omap_device.c:1055: warning: parameter names (without types) in function declaration
-
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
-This resend also CC linux-omap@vger.kernel.org and linux-arm-kernel@lists.infradead.org.
-This patch is against linux-next 20111103.
-
- arch/arm/plat-omap/omap_device.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index cd90bed..f839f94 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -78,6 +78,7 @@
- #undef DEBUG
- 
- #include <linux/kernel.h>
-+#include <linux/export.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/err.h>
--- 
-1.7.5.4
-
-
-
+On Thu, Nov 3, 2011 at 5:29 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Chris,
+>
+> Chris Ball <cjb@laptop.org> writes:
+>
+> [...]
+>
+>> Oops. =A0Thank you; I've pushed this to mmc-next now, and will send =
+the
+>> fix to Linus. =A0I've checked for other errors in the original patch=
+=2E
+>
+> Where did you push this fix?
+>
+> I don't see this in the mmc-next branch of git://dev.laptop.org/users=
+/cjb/mmc
+>
+MMC tree is back to kernel.org
+http://git.kernel.org/?p=3Dlinux/kernel/git/cjb/mmc.git;a=3Dsummary
