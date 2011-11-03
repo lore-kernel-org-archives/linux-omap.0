@@ -1,53 +1,52 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] omap_hsmmc: fix missing parenthesis in pr_info
-Date: Thu, 03 Nov 2011 06:42:13 -0400
-Message-ID: <m2sjm58p2y.fsf@bob.laptop.org>
-References: <1319917151-5626-1-git-send-email-J.Kilb@phytec.de>
-	<m239ebef9b.fsf@bob.laptop.org> <87ty6mhy8w.fsf@ti.com>
-	<CANfBPZ8JBJg5QtUcuiDJiORAQkpn6aHvQHddzXO=Qmdo8S1MYw@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP: hwmod: Look for hwmod/module level context lost count if supported
+Date: Thu, 3 Nov 2011 16:24:25 +0530
+Message-ID: <1320317665-6381-4-git-send-email-rnayak@ti.com>
+References: <1320317665-6381-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:54479 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755749Ab1KCKm3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 06:42:29 -0400
-In-Reply-To: <CANfBPZ8JBJg5QtUcuiDJiORAQkpn6aHvQHddzXO=Qmdo8S1MYw@mail.gmail.com>
-	(Venkatraman S.'s message of "Thu, 3 Nov 2011 13:40:46 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:36801 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753829Ab1KCKyz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 06:54:55 -0400
+In-Reply-To: <1320317665-6381-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Juergen Kilb <J.Kilb@phytec.de>, linux-mmc@vger.kernel.org, Girish K S <girish.shivananjappa@linaro.org>, linux-omap@vger.kernel.org
+To: b-cousson@ti.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+Now that OMAP4 has hwmod/module level context lost counters, make
+omap_hwmod_get_context_loss_count() return them on platforms where they
+exist, else fall back on the pwrdm level counters for older platforms.
 
-On Thu, Nov 03 2011, S, Venkatraman wrote:
->>> Oops. =C2=A0Thank you; I've pushed this to mmc-next now, and will s=
-end the
->>> fix to Linus. =C2=A0I've checked for other errors in the original p=
-atch.
->>
->> Where did you push this fix?
->>
->> I don't see this in the mmc-next branch of git://dev.laptop.org/user=
-s/cjb/mmc
->>
-> MMC tree is back to kernel.org
-> http://git.kernel.org/?p=3Dlinux/kernel/git/cjb/mmc.git;a=3Dsummary
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |   11 ++++++++---
+ 1 files changed, 8 insertions(+), 3 deletions(-)
 
-I've deleted the dev.laptop.org mmc tree now, so that there's a clue
-that it's moved back to kernel.org.  (linux-next is already back to
-pulling the kernel.org tree.)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index ac17748..9d140c4 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2658,9 +2658,14 @@ u32 omap_hwmod_get_context_loss_count(struct omap_hwmod *oh)
+ 	struct powerdomain *pwrdm;
+ 	int ret = 0;
+ 
+-	pwrdm = omap_hwmod_get_pwrdm(oh);
+-	if (pwrdm)
+-		ret = pwrdm_get_context_loss_count(pwrdm);
++	if (oh->prcm.omap4.context_offs) {
++		/* Support for per-hwmod context register */
++		ret = oh->prcm.omap4.context_lost_counter;
++	} else {
++		pwrdm = omap_hwmod_get_pwrdm(oh);
++		if (pwrdm)
++			ret = pwrdm_get_context_loss_count(pwrdm);
++	}
+ 
+ 	return ret;
+ }
+-- 
+1.7.1
 
-Thanks,
-
-- Chris.
---=20
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
