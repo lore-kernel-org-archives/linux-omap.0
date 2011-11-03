@@ -1,83 +1,100 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: Linux 3.0 DSS support
-Date: Thu, 03 Nov 2011 11:46:18 +0200
-Message-ID: <1320313578.1859.55.camel@deskari>
-References: <CANLagX8WaHGkqOZ2UnLR1ihOABbdDy1ZAyW19yO=f-JNUaLKfw@mail.gmail.com>
-	 <4E9BD71A.90703@ti.com>  <4EA5A677.3050704@logicpd.com>
-	 <1319528229.1684.20.camel@lappyti>
-	 <49A85CFF-CB0B-435C-BB54-12D247ABB6BE@dominion.thruhere.net>
+From: Manfred <manfred@student.ethz.ch>
+Subject: linux-omap3-2.6.39: spurious irq 95, during heavy SD card load
+Date: Thu, 3 Nov 2011 09:46:30 +0000 (UTC)
+Message-ID: <loom.20111103T103055-675@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-2w8SL13W62f6VQObPrQv"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:36136 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754452Ab1KCJq2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 05:46:28 -0400
-Received: by mail-bw0-f50.google.com with SMTP id zu17so943762bkb.9
-        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 02:46:27 -0700 (PDT)
-In-Reply-To: <49A85CFF-CB0B-435C-BB54-12D247ABB6BE@dominion.thruhere.net>
+Received: from lo.gmane.org ([80.91.229.12]:50972 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754871Ab1KCJuK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Nov 2011 05:50:10 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1RLtw0-0007AM-Re
+	for linux-omap@vger.kernel.org; Thu, 03 Nov 2011 10:50:08 +0100
+Received: from quackm-ifa.ee.ethz.ch ([129.132.29.66])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 10:50:08 +0100
+Received: from manfred by quackm-ifa.ee.ethz.ch with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 10:50:08 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>
-Cc: Peter Barada <peter.barada@logicpd.com>, Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+
+Dear users/developers, 
+
+I am trying to install the xenomai real-time linux on a gumstix overo fire with
+an omap3530. 
+After some starting problems, I succeed to patch the 2.6.33 kernel and run some
+latency tests
+ with normal worst case latencies ~60us. However, the overall worst case latency
+is very bad (5ms), 
+because i occasionally get spurious interrupt errors like this:
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+
+I then tried the precompiled development images
+(http://cumulus.gumstix.org/images/angstrom/developer/), 
+which use kernel 2.6.39, but I also get these messages there. 
+To reproduce the error, I did the following:
+1.) Boot:
+Linux overo 2.6.39 #1 Mon Aug 15 19:04:09 PDT 2011 armv7l GNU/Linux
+booting from SD card.
+
+2.)
+dd if=/dev/zero of=ddfile bs=100000 count=1000
+--> creates a 1GB file in /home/root
+3.)
+connect to wireless:
+iwconfig wlan0 mode ad-hoc
+iwconfig wlan0 essid myovero
+ifconfig wlan0 192.168.1.33 netmask 255.255.255.0 up
+4.)a)
+then pull via scp  ddfile onto your dev. machine.
+scp scp username@192.168.1.33:/home/root/ddfile .
+4.)b)
+at the same time create a second empty file on the sd-card:
+dd if=/dev/zero of=ddfile2 bs=100000 count=4000
+
+--> output in dmesg:
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+
+whenever i write a new file that is bigger then the first one, 
+I get two instances of this message:
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+Spurious irq 95: 0xffffffdf, please flush posted write for irq 86
+
+I am not sure if it is related to the SD-reader driver, or the 
+wireless (libertas_SDIO) driver, or only the combination of both.
 
 
---=-2w8SL13W62f6VQObPrQv
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This issue seemed to have already existed in previous kernel versions, 
+there are many posts on the web, some of them saying it has been fixed in kernel
+version >2.6.30, 
+which seems however not apply to the linux-omap3-2.6.39 kernel.
 
-On Thu, 2011-11-03 at 10:35 +0100, Koen Kooi wrote:
-> Op 25 okt. 2011, om 09:37 heeft Tomi Valkeinen het volgende geschreven:
->=20
-> > Hi,
-> >=20
-> > On Mon, 2011-10-24 at 13:55 -0400, Peter Barada wrote:
-> >>=20
-> >> In the above case (and my case where I'm looking for a 9Mhz pixel=20
-> >> clock), fck_div is calculated at higher than 16 - and the video
-> >> output=20
-> >> is wrong (i.e. no pixel clock and hsync runs at 32x the requested
-> >> rate).=20
-> >=20
-> > DM37x TRM says:
-> >=20
-> > "DSS1_ALWON_FCLK: Issued from DPLL4. Its frequency can be a division by
-> > 1 to 16 of the frequency of the DPLL4 synthesized clock."
-> >=20
-> > I take it that DM37x is detected as cpu_is_3630()?
-> >=20
-> > The DSS driver currently handles only OMAPs, so for other SoCs the
-> > driver may contain lots of bugs like this.
->=20
-> dm3730 is just a different marketing name for omap3630, it should not hav=
-e any functional changes.
+The latest message about spurious irqs that i could find is related to kernel
+3.0-rc1.
+Has anyone running an kernel-3.0 on an omap3530 (perhaps overo fire) and could
+try to reproduce? 
 
-According to the TRM and experiments by Peter, it does.
+Or is there a specific patch to resolve this?
+I was not able to reproduce this on the NAND-flash, 
+but it is also to small to make large continous data transfers. 
 
- Tomi
+Any help with this is appreciated. 
+
+Regards, 
+Manfred
 
 
---=-2w8SL13W62f6VQObPrQv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJOsmLqAAoJEPo9qoy8lh71fBEQAJX9j2FznCnhAIQMyp8LWxXi
-eL8p2+67pgqR1kHCiPxbPKUhFVgLDids3Hdf/9NPpsGPSKpOLx/G4dPnAOtB+8fx
-cY0ESTxVGj6VcJ2pw6KASuJA5yBEjtxXQPmf55AbwwSCiJEPqQJVqu45+ehePF/4
-5AcbB2xREtHkkdgR9r/VuR9ywp7PpALXMz/jkArV1ZTAvmtpyNcrX+LYITDigLXJ
-C9WA8UujOZwZJ3sAhhngpslViFgKscLh/d9TL8tU/82yJCzDPLP1jr+hc6yprj+u
-7z+FP2V5ksOn2t6HEl01heVrKJPoBfWSXlK2VxFDRsZxluXjmDv9/CGYWBNBwaP5
-UAfLmzrMSA1WchCYLHAcvWYg6Z4VsQKeBzM7AloM3NzS4rHgGFQQS+XURj8loDP9
-9PmLixD/ZAt6ERi+3BsqiPTE6unPaiOf3eRxnkbny1yHGWtvi/arbrE9m11gT99n
-IvLB5bFVHXsa6wakKan9knEHRTV+mWIam+Akq7XfOfS4nz63PNq8GwjPn4Y9YLoV
-YSYVQ8f4TDz3C1oG4rG1y1XScfeyMNrb+q7jxe3qi2chHsG4WIYpHdm5Dqkq0H+Y
-BHQUmEuwnsisOtoZRLunlli6g4/AGsM9KPw9GmpbOREpUo1lscVyuue355h3E52R
-ZoKFRGZkby1LytPHr4v8
-=T631
------END PGP SIGNATURE-----
-
---=-2w8SL13W62f6VQObPrQv--
 
