@@ -1,60 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v3 4/6] mfd: TPS65910: Move linux/gpio.h include to header
-Date: Thu, 3 Nov 2011 19:25:12 +0200
-Message-ID: <20111103172511.GC30472@legolas.emea.dhcp.ti.com>
-References: <1320340086-15371-1-git-send-email-kyle.manna@fuel7.com>
- <1320340086-15371-5-git-send-email-kyle.manna@fuel7.com>
-Reply-To: balbi@ti.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [RFC] omap build warnings gone in fixes branch
+Date: Thu, 3 Nov 2011 10:44:35 -0700
+Message-ID: <20111103174434.GS31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XMCwj5IQnwKtuyBG"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1320340086-15371-5-git-send-email-kyle.manna@fuel7.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kyle Manna <kyle.manna@fuel7.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
-List-Id: linux-omap@vger.kernel.org
-
-
---XMCwj5IQnwKtuyBG
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:31379 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756168Ab1KCRoh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 13:44:37 -0400
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+Hi all,
 
-On Thu, Nov 03, 2011 at 12:08:04PM -0500, Kyle Manna wrote:
-> The tps65910.h file depends on linux/gpio.h.  Move the include from the
-> source file to the tps65910.h header file.
+So what we have in the current fixes branch does not produce
+any compiler warnings for omap1_defconfig or omap2plus_defconfig.
+Let's plan on keeping it that way.
 
-you should never rely on indirect inclusion of header files. If both
-header and C source need the header, include on both. The header should
-be safe for multiple inclusions anyway.
+I'll be test compiling all the new patches with the following
+patch applied, and I suggest anybody queueing patches touching
+arch/arm/*omap*/ code will do the same.
 
---=20
-balbi
+Looks some makefiles have -Werror flags in them, but
+I don't think we want to enable this by default because of
+different compiler versions emitting different warnings.
 
---XMCwj5IQnwKtuyBG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+If we wanted to enable it by default, we should test it with
+a range of compilers. And I could see a bunch of warnings
+popping up, for example, if we start compiling for 64-bit at
+some point.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Cheers,
 
-iQIcBAEBAgAGBQJOss53AAoJEIaOsuA1yqREBCoP/166at3IMofgGa83H5vJiI2j
-sB9plUfjYCvHp8rrK8JlcQMdFLorbTdPjSbiBJEr4vxAtAvzpk1IPvsfQdy7DLWa
-cVbLL8QvKU1G0xsqguY1M2qWr5xQWgw0ec42jMUFojChyKDh8PiBHcxnKj7yfM8s
-WRVR8ByOjJNJa1bHM7xo8Nhz7vET8sftri96+BMXrWHnpOZzjvwLb32lECM82Kye
-snFohO1I6Ji0imaVojPJSObAAsmpNbt9xSk8m4rEHUYu1n71F6tP83z34icYNOoK
-Oml4j4h9GTQkLP4/gFZC3NmT98EtQcQfacIzDSqDnpYY9yHNFduiS0loDa6rXxrb
-4fOyD27PEO2A1ueAFF9tXE4tSAmj9ULmcsHNyYm7trpERye/I6pzIH8AFXm/YIhF
-2nSH0K9QPCxBKRqxwxxQQDhtQZ8eX9ZMMh6Yn83lW8Kn8QtvkRoWPbENovQU7RN1
-gfQeZikJfVxJuEZFGyKASH3+KSOLC2nGr4qzwGItYDgx74UsogJLFy+IR3gvwsW7
-P9Ub85/BMLAVYU+dh8y2sWofk2HnormWGa1oSt8SrL/7kj2FTZLh/az5nhlPuEYc
-MbhtXmV2qDSOEKczFrSlzAYW4AJEbRlRQ7xLeixN7ZoG9ZH0JI/Y5eSGVKg05PGg
-+ZcuvdyLq3bbk62G9A/a
-=DdO+
------END PGP SIGNATURE-----
+Tony
 
---XMCwj5IQnwKtuyBG--
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 3 Nov 2011 10:12:40 -0700
+Subject: [RFC] ARM: OMAP: Set -Werror flags for arch/arm/*omap*/Makefile
+
+With the remaining build warnings finally gone, let's keep
+things that way. Please use this patch to test build new
+patches so the new code won't add warnings.
+
+We probably don't want to enable this by default as the
+warnings may depend on compiler version.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- a/arch/arm/mach-omap1/Makefile
++++ b/arch/arm/mach-omap1/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for the linux kernel.
+ #
+ 
++ccflags-y := -Werror
++
+ # Common support
+ obj-y := io.o id.o sram.o time.o irq.o mux.o flash.o serial.o devices.o dma.o
+ obj-y += clock.o clock_data.o opp_data.o reset.o pm_bus.o timer.o
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for the linux kernel.
+ #
+ 
++ccflags-y := -Werror
++
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
+ 	 common.o gpio.o dma.o wd_timer.o
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for the linux kernel.
+ #
+ 
++flags-y := -Werror
++
+ # Common support
+ obj-y := common.o sram.o clock.o devices.o dma.o mux.o \
+ 	 usb.o fb.o io.o counter_32k.o
