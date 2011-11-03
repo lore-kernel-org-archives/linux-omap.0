@@ -1,51 +1,38 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Thu, 03 Nov 2011 07:21:02 -0700
-Message-ID: <87ipn1i8xd.fsf@ti.com>
-References: <1309849870-25660-1-git-send-email-shubhrajyoti@ti.com>
-	<8739ikp9aa.fsf@ti.com> <20110713192055.GC3369@freya.fluff.org>
-	<4EB278C4.6030006@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH RESEND] ARM: OMAP: omap_device: Include linux/export.h
+Date: Thu, 03 Nov 2011 07:26:57 -0700
+Message-ID: <87d3d9i8ni.fsf@ti.com>
+References: <1320303638.17983.5.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EB278C4.6030006-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Thu,
-	03 Nov 2011 16:49:32 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1320303638.17983.5.camel@phoenix> (Axel Lin's message of "Thu,
+	03 Nov 2011 15:00:38 +0800")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Paul Gortmaker <paul.gortmaker@windriver.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Axel Lin <axel.lin@gmail.com> writes:
 
-> On Thursday 14 July 2011 12:50 AM, Ben Dooks wrote:
->> On Tue, Jul 05, 2011 at 05:01:01PM -0700, Kevin Hilman wrote:
->>> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
->>>
->>>> Currently the fifo depth is set to zero for OMAP4 which disables
->>>> the FIFO usage. This patch enables the FIFO usage for I2C transactions
->>>> on OMAP4 also.
->>>>
->>>> Tested on omap4430 and 3430.
->>>>
->>>> Reported-By: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
->>>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->>>> ---
->>>> Rebased on top of the series by Andy Green
->>>> http://www.spinics.net/lists/linux-i2c/msg05632.html
->>> Thanks.
->>>
->>> This is v3.1 material, but would be nice to see a couple tested-by or
->>> acked-by tags from folks that are more actively using the I2C driver
->>> before merging
->>>
->>> Kevin
->> guess you'll be picking these up?
+> Include linux/export.h to fix below build warning:
 >
-> Ben Could this patch be lined up as well?
+>   CC      arch/arm/plat-omap/omap_device.o
+> arch/arm/plat-omap/omap_device.c:1055: warning: data definition has no type or storage class
+> arch/arm/plat-omap/omap_device.c:1055: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
+> arch/arm/plat-omap/omap_device.c:1055: warning: parameter names (without types) in function declaration
+>
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-Please update this patch against my for_3.2/i2c-cleanup branch, and add
-the Tested-by from Nishanth Menon.
-
-Then I will push to get this in as a fix for v3.2-rc.
+Thanks, will queue as a fix for v3.2-rc
 
 Kevin
