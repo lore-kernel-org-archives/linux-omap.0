@@ -1,72 +1,73 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH] ARM: OMAP2+: devices: Fixes for McPDM
-Date: Thu,  3 Nov 2011 10:41:22 +0200
-Message-ID: <1320309682-30513-1-git-send-email-peter.ujfalusi@ti.com>
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: Linux 3.0 DSS support
+Date: Thu, 3 Nov 2011 10:35:22 +0100
+Message-ID: <49A85CFF-CB0B-435C-BB54-12D247ABB6BE@dominion.thruhere.net>
+References: <CANLagX8WaHGkqOZ2UnLR1ihOABbdDy1ZAyW19yO=f-JNUaLKfw@mail.gmail.com> <4E9BD71A.90703@ti.com>  <4EA5A677.3050704@logicpd.com> <1319528229.1684.20.camel@lappyti>
+Mime-Version: 1.0 (Apple Message framework v1251.1)
+Content-Type: multipart/signed; boundary="Apple-Mail=_9AD4F89F-381F-4FB0-AC33-5B5B9D665D44"; protocol="application/pgp-signature"; micalg=pgp-sha1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57041 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754788Ab1KCIly (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 04:41:54 -0400
-Received: by mail-fx0-f54.google.com with SMTP id r19so2563325faa.27
-        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 01:41:53 -0700 (PDT)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47612 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974Ab1KCJfc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Nov 2011 05:35:32 -0400
+Received: by wwi36 with SMTP id 36so1556025wwi.1
+        for <linux-omap@vger.kernel.org>; Thu, 03 Nov 2011 02:35:30 -0700 (PDT)
+In-Reply-To: <1319528229.1684.20.camel@lappyti>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Peter Barada <peter.barada@logicpd.com>, Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Clean up the omap-mcpdm init function since this part comes via sound
-tree, and there has been changes regarding to hwmod/omap_device_build.
 
-Missed patches:
-The ARM: OMAP2+: devices: Remove all omap_device_pm_latency structures
-OMAP: omap_device: when building return platform_device instead of
-omap_device
+--Apple-Mail=_9AD4F89F-381F-4FB0-AC33-5B5B9D665D44
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Benoit Cousson <b-cousson@ti.com>
-CC: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/devices.c |   17 +++--------------
- 1 files changed, 3 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 68ec031..c15cfad 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -318,18 +318,10 @@ static inline void omap_init_audio(void) {}
- #if defined(CONFIG_SND_OMAP_SOC_MCPDM) || \
- 		defined(CONFIG_SND_OMAP_SOC_MCPDM_MODULE)
- 
--static struct omap_device_pm_latency omap_mcpdm_latency[] = {
--	{
--		.deactivate_func = omap_device_idle_hwmods,
--		.activate_func = omap_device_enable_hwmods,
--		.flags = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
--	},
--};
--
- static void omap_init_mcpdm(void)
- {
- 	struct omap_hwmod *oh;
--	struct omap_device *od;
-+	struct platform_device *pdev;
- 
- 	oh = omap_hwmod_lookup("mcpdm");
- 	if (!oh) {
-@@ -337,11 +329,8 @@ static void omap_init_mcpdm(void)
- 		return;
- 	}
- 
--	od = omap_device_build("omap-mcpdm", -1, oh, NULL, 0,
--				omap_mcpdm_latency,
--				ARRAY_SIZE(omap_mcpdm_latency), 0);
--	if (IS_ERR(od))
--		printk(KERN_ERR "Could not build omap_device for omap-mcpdm-dai\n");
-+	pdev = omap_device_build("omap-mcpdm", -1, oh, NULL, 0, NULL, 0, 0);
-+	WARN(IS_ERR(pdev), "Can't build omap_device for omap-mcpdm.\n");
- }
- #else
- static inline void omap_init_mcpdm(void) {}
--- 
-1.7.7.1
+Op 25 okt. 2011, om 09:37 heeft Tomi Valkeinen het volgende geschreven:
 
+> Hi,
+>=20
+> On Mon, 2011-10-24 at 13:55 -0400, Peter Barada wrote:
+>>=20
+>> In the above case (and my case where I'm looking for a 9Mhz pixel=20
+>> clock), fck_div is calculated at higher than 16 - and the video
+>> output=20
+>> is wrong (i.e. no pixel clock and hsync runs at 32x the requested
+>> rate).=20
+>=20
+> DM37x TRM says:
+>=20
+> "DSS1_ALWON_FCLK: Issued from DPLL4. Its frequency can be a division =
+by
+> 1 to 16 of the frequency of the DPLL4 synthesized clock."
+>=20
+> I take it that DM37x is detected as cpu_is_3630()?
+>=20
+> The DSS driver currently handles only OMAPs, so for other SoCs the
+> driver may contain lots of bugs like this.
+
+dm3730 is just a different marketing name for omap3630, it should not =
+have any functional changes.
+
+regards,
+
+Koen=
+
+--Apple-Mail=_9AD4F89F-381F-4FB0-AC33-5B5B9D665D44
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename=signature.asc
+Content-Type: application/pgp-signature;
+	name=signature.asc
+Content-Description: Message signed with OpenPGP using GPGMail
+
+-----BEGIN PGP SIGNATURE-----
+
+iEYEARECAAYFAk6yYFoACgkQMkyGM64RGpGQJACguToKfZSwqilHX+/VDAiqnfwe
+yKwAn0jhg2goJFlmuwjcHjZ7xqNgo8hT
+=GwsC
+-----END PGP SIGNATURE-----
+
+--Apple-Mail=_9AD4F89F-381F-4FB0-AC33-5B5B9D665D44--
