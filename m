@@ -1,37 +1,32 @@
-From: "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
-Subject: Re: OMAP: TWL4030: Sound broken in 3.1
-Date: Fri, 4 Nov 2011 20:53:57 +0200
-Message-ID: <CAPo=G1x0t3S_0wzT7w5Hrc8NtLKovxRZtgr_-VoysyTt-4=WTg@mail.gmail.com>
-References: <5pnedado9d5sjx7aq18gu9d1.1320432419713@email.android.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH 1/4] mmc: Add additional binding for mmc host controller
+Date: Fri, 4 Nov 2011 12:58:38 -0700
+Message-ID: <20111104195838.GB3045@quad.lixom.net>
+References: <1320407441-29697-1-git-send-email-rnayak@ti.com>
+ <1320407441-29697-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:50977 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755758Ab1KDSx7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Nov 2011 14:53:59 -0400
-Received: by mail-qw0-f46.google.com with SMTP id j40so3222314qab.33
-        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 11:53:58 -0700 (PDT)
-In-Reply-To: <5pnedado9d5sjx7aq18gu9d1.1320432419713@email.android.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:37739 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab1KDT6S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 15:58:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1320407441-29697-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Weber <thomas.weber.linux@googlemail.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, thomas.abraham@linaro.org, balajitk@ti.com, cjb@laptop.org, tony@atomide.com
 
-On Fri, Nov 4, 2011 at 8:49 PM, Thomas Weber
-<thomas.weber.linux@googlemail.com> wrote:
-> Isn't this patch fixing it already?
->
-> https://lkml.org/lkml/2011/9/5/37
+On Fri, Nov 04, 2011 at 05:20:38PM +0530, Rajendra Nayak wrote:
+> Add mmc host controller capability binding to support
+> 'MMC_CAP_POWER_OFF_CARD' powering off of the card after boot.
 
-Yes, it should.
+This adds a new undocumented property (also, see comments on Thomas Abraham's
+patch for more comments on that approach and why it's the wrong thing to do).
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This needs to be handled differently.
+
+
+-Olof
+
