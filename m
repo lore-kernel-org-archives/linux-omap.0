@@ -1,40 +1,288 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCH v3 0/4] Device tree support for regulators
-Date: Fri, 4 Nov 2011 21:02:41 +0000
-Message-ID: <20111104210241.GB2541@opensource.wolfsonmicro.com>
-References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
- <20111027090847.GC6641@opensource.wolfsonmicro.com>
- <CAOesGMii8v3DOCjWpuF3=+EVu+-HYGys=7RRgpk+9U=FxTHwOA@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 06/11] omap3+: vc: use new vc_params and vp_params in parameter calculations
+Date: Fri, 04 Nov 2011 14:11:28 -0700
+Message-ID: <87zkgb7fun.fsf@ti.com>
+References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
+	<1317835031-8201-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAOesGMii8v3DOCjWpuF3=+EVu+-HYGys=7RRgpk+9U=FxTHwOA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:50142 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751016Ab1KDVLc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 17:11:32 -0400
+Received: by mail-yw0-f49.google.com with SMTP id 1so3161068ywn.8
+        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 14:11:31 -0700 (PDT)
+In-Reply-To: <1317835031-8201-7-git-send-email-t-kristo@ti.com> (Tero Kristo's
+	message of "Wed, 5 Oct 2011 20:17:06 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Nov 04, 2011 at 01:21:26PM -0700, Olof Johansson wrote:
-> On Thu, Oct 27, 2011 at 2:08 AM, Mark Brown
+Tero Kristo <t-kristo@ti.com> writes:
 
-> > Looking at the device bindings I notice that these bindings loose the
-> > ability to assign a descriptive name to regulator outputs. =A0This is
-> > really useful for making it easy to tie the code and the schematics
-> > together - you can make the runing system use the same name as the
-> > schematic.
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-> That can easily be added by having a output-name property in the
-> regulator device node.
+Missing descriptive changelog.
 
-Which is pretty much what Rajendra's updated version in response to my
-above comment did FWIW.
+Some minor comments below...
+
+Also, all of these timing calculations would benefit from a few more
+pairs of eyes looking at this stuff, as I'm not the expert here.   In
+particular, I'd like to see a reviewed-by/acked-by on this stuff from
+Nishanth Menon and anyone else who is familiar with the various timing
+calculations.
+
+> ---
+>  arch/arm/mach-omap2/vc.c |  166 ++++++++++++++++++++++++++++++++++++++--------
+>  1 files changed, 138 insertions(+), 28 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index 16fa912..c50e598 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -1,14 +1,18 @@
+>  #include <linux/kernel.h>
+>  #include <linux/delay.h>
+>  #include <linux/init.h>
+> +#include <linux/clk.h>
+> +#include <linux/io.h>
+>  
+>  #include <plat/cpu.h>
+> +#include <plat/prcm.h>
+>  
+>  #include "voltage.h"
+>  #include "vc.h"
+>  #include "prm-regbits-34xx.h"
+>  #include "prm-regbits-44xx.h"
+>  #include "prm44xx.h"
+> +#include "scrm44xx.h"
+>  
+>  /**
+>   * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
+> @@ -194,44 +198,156 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+>  	return 0;
+>  }
+>  
+> -static void __init omap3_vfsm_init(struct voltagedomain *voltdm)
+> +static void omap3_set_ret_timings(struct voltagedomain *voltdm)
+>  {
+> -	/*
+> -	 * Voltage Manager FSM parameters init
+> -	 * XXX This data should be passed in from the board file
+> -	 */
+> -	voltdm->write(OMAP3_CLKSETUP, OMAP3_PRM_CLKSETUP_OFFSET);
+> -	voltdm->write(OMAP3_VOLTOFFSET, OMAP3_PRM_VOLTOFFSET_OFFSET);
+> -	voltdm->write(OMAP3_VOLTSETUP2, OMAP3_PRM_VOLTSETUP2_OFFSET);
+> +	unsigned long voltsetup1;
+> +	struct clk *sys_ck;
+> +	u32 sys_clk_rate;
+> +
+> +	sys_ck = clk_get(NULL, "sys_ck");
+> +	if (IS_ERR(sys_ck)) {
+> +		pr_warning("%s: unable to get sys_ck to calculate "
+> +			"vdd_%s timings\n", __func__, voltdm->name);
+> +		return;
+> +	}
+> +	sys_clk_rate = clk_get_rate(sys_ck);
+> +	clk_put(sys_ck);
+
+sys_clk_rate is already available in voltdm->sys_clk.rate, initialized
+in late_init.
+
+> +	voltsetup1 = (voltdm->vc_param->on - voltdm->vc_param->ret) /
+> +			voltdm->pmic->slew_rate;
+> +
+> +	voltsetup1 = voltsetup1 * sys_clk_rate / 8 / 1000000 + 1;
+> +	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
+> +		voltsetup1 << __ffs(voltdm->vfsm->voltsetup_mask),
+> +		voltdm->vfsm->voltsetup_reg);
+> +
+> +	/* set voltsetup 2 to 0 */
+
+Comment is not helpful.  Either describe why, or remove the comment
+(preferably the former.)
+
+> +	voltdm->write(0, OMAP3_PRM_VOLTSETUP2_OFFSET);
+> +}
+> +
+> +static void omap3_set_off_timings(struct voltagedomain *voltdm)
+> +{
+> +	unsigned long clksetup;
+> +	unsigned long voltsetup2;
+> +
+> +	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
+> +
+> +	/* voltsetup 2 in us */
+> +	voltsetup2 = voltdm->vc_param->on / voltdm->pmic->slew_rate;
+> +
+> +	/* convert to 32k clk cycles */
+> +	voltsetup2 = voltsetup2 * 32768 / 1000000 + 1;
+> +
+> +	voltdm->write(voltsetup2, OMAP3_PRM_VOLTSETUP2_OFFSET);
+> +
+> +	/* set voltsetup1 to 0 */
+> +	voltdm->rmw(voltdm->vfsm->voltsetup_mask, 0,
+> +		voltdm->vfsm->voltsetup_reg);
+> +
+> +	/* set voltoffset */
+
+comment not helpful
+
+> +	voltdm->write(clksetup - voltsetup2, OMAP3_PRM_VOLTOFFSET_OFFSET);
+>  }
+>  
+>  static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
+>  {
+> -	static bool is_initialized;
+> +	omap3_set_off_timings(voltdm);
+> +}
+>  
+> -	if (is_initialized)
+> -		return;
+> +static u32 omap4_calc_volt_ramp(struct voltagedomain *voltdm, u32 voltage_diff,
+> +		u32 clk_rate)
+> +{
+> +	u32 prescaler;
+> +	u32 cycles;
+> +	u32 time;
+> +
+> +	time = voltage_diff / voltdm->pmic->slew_rate;
+> +
+> +	cycles = clk_rate / 1000 * time;
+> +
+> +	cycles /= 64;
+> +	prescaler = 0;
+> +
+> +	/* shift to next prescaler until no overflow */
+> +
+> +	/* scale for div 256 = 64 * 4 */
+> +	if (cycles > 63) {
+> +		cycles /= 4;
+> +		prescaler++;
+> +	}
+> +
+> +	/* scale for div 512 = 256 * 2 */
+> +	if (cycles > 63) {
+> +		cycles /= 2;
+> +		prescaler++;
+> +	}
+> +
+> +	/* scale for div 2048 = 512 * 4 */
+> +	if (cycles > 63) {
+> +		cycles /= 4;
+> +		prescaler++;
+> +	}
+> +
+> +	/* check for overflow => invalid ramp time */
+> +	if (cycles > 63) {
+> +		pr_warning("%s: invalid setuptime for vdd_%s\n", __func__,
+> +			voltdm->name);
+> +		return 0;
+> +	}
+>  
+> -	omap3_vfsm_init(voltdm);
+> +	cycles++;
+>  
+> -	is_initialized = true;
+> +	return (prescaler << OMAP4430_RAMP_UP_PRESCAL_SHIFT) |
+> +		(cycles << OMAP4430_RAMP_UP_COUNT_SHIFT);
+>  }
+>  
+> +static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
+> +{
+> +	struct clk *sys_ck;
+> +	u32 sys_clk_rate;
+> +	u32 val;
+> +	u32 ramp;
+> +
+> +	sys_ck = clk_get(NULL, "sys_clkin_ck");
+> +	if (IS_ERR(sys_ck)) {
+> +		pr_warning("%s: unable to get sys_ck to calculate "
+> +			"vdd_%s timings\n", __func__, voltdm->name);
+> +		return;
+> +	}
+> +	sys_clk_rate = clk_get_rate(sys_ck);
+> +	clk_put(sys_ck);
+> +
+> +	/* configure the setup times */
+> +	val = voltdm->read(voltdm->vfsm->voltsetup_reg);
+> +
+> +	if (off_mode)
+> +		ramp = omap4_calc_volt_ramp(voltdm,
+> +			voltdm->vc_param->on - voltdm->vc_param->off,
+> +			sys_clk_rate);
+> +	else
+> +		ramp = omap4_calc_volt_ramp(voltdm,
+> +			voltdm->vc_param->on - voltdm->vc_param->ret,
+> +			sys_clk_rate);
+> +
+> +	if (!ramp)
+> +		return;
+> +
+> +	val |= ramp << OMAP4430_RAMP_DOWN_COUNT_SHIFT;
+> +
+> +	val |= ramp << OMAP4430_RAMP_UP_COUNT_SHIFT;
+> +
+> +	voltdm->write(val, voltdm->vfsm->voltsetup_reg);
+> +}
+>  
+>  /* OMAP4 specific voltage init functions */
+>  static void __init omap4_vc_init_channel(struct voltagedomain *voltdm)
+>  {
+> -	static bool is_initialized;
+>  	u32 vc_val;
+>  
+> -	if (is_initialized)
+> -		return;
+> +	omap4_set_timings(voltdm, true);
+
+Why the 2nd argument (off_mode)?   Is it planned to change the timings
+at runtime later?
+
+>  	/* XXX These are magic numbers and do not belong! */
+>  	vc_val = (0x60 << OMAP4430_SCLL_SHIFT | 0x26 << OMAP4430_SCLH_SHIFT);
+>  	voltdm->write(vc_val, OMAP4_PRM_VC_CFG_I2C_CLK_OFFSET);
+> -
+> -	is_initialized = true;
+>  }
+>  
+>  /**
+> @@ -305,7 +421,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+>  	vc->i2c_slave_addr = voltdm->pmic->i2c_slave_addr;
+>  	vc->volt_reg_addr = voltdm->pmic->volt_reg_addr;
+>  	vc->cmd_reg_addr = voltdm->pmic->cmd_reg_addr;
+> -	vc->setup_time = voltdm->pmic->volt_setup_time;
+>  
+>  	/* Configure the i2c slave address for this VC */
+>  	voltdm->rmw(vc->smps_sa_mask,
+> @@ -329,10 +444,10 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+>  	}
+>  
+>  	/* Set up the on, inactive, retention and off voltage */
+> -	on_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->on_volt);
+> -	onlp_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->onlp_volt);
+> -	ret_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->ret_volt);
+> -	off_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->off_volt);
+> +	on_vsel = voltdm->pmic->uv_to_vsel(voltdm->vc_param->on);
+> +	onlp_vsel = voltdm->pmic->uv_to_vsel(voltdm->vc_param->onlp);
+> +	ret_vsel = voltdm->pmic->uv_to_vsel(voltdm->vc_param->ret);
+> +	off_vsel = voltdm->pmic->uv_to_vsel(voltdm->vc_param->off);
+>  	val = ((on_vsel << vc->common->cmd_on_shift) |
+>  	       (onlp_vsel << vc->common->cmd_onlp_shift) |
+>  	       (ret_vsel << vc->common->cmd_ret_shift) |
+> @@ -343,11 +458,6 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
+>  	/* Channel configuration */
+>  	omap_vc_config_channel(voltdm);
+>  
+> -	/* Configure the setup times */
+> -	voltdm->rmw(voltdm->vfsm->voltsetup_mask,
+> -		    vc->setup_time << __ffs(voltdm->vfsm->voltsetup_mask),
+> -		    voltdm->vfsm->voltsetup_reg);
+> -
+>  	omap_vc_i2c_init(voltdm);
+>  
+>  	if (cpu_is_omap34xx())
+
+Kevin
