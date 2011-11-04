@@ -1,82 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Re: [PATCH 1/2] OMAP2+: DMA: Workaround for invalid source
- position
-Date: Fri, 4 Nov 2011 13:08:26 -0700
-Message-ID: <20111104200826.GE31337@atomide.com>
-References: <1320070817-9638-1-git-send-email-peter.ujfalusi@ti.com>
- <1320070817-9638-2-git-send-email-peter.ujfalusi@ti.com>
- <20111103212756.GZ31337@atomide.com>
- <2603119.amz7RjSE3J@barack>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v3 0/4] Device tree support for regulators
+Date: Fri, 4 Nov 2011 13:21:26 -0700
+Message-ID: <CAOesGMii8v3DOCjWpuF3=+EVu+-HYGys=7RRgpk+9U=FxTHwOA@mail.gmail.com>
+References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
+	<20111027090847.GC6641@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51534 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750779Ab1KDUIi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 16:08:38 -0400
-Content-Disposition: inline
-In-Reply-To: <2603119.amz7RjSE3J@barack>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20111027090847.GC6641@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org
 
-* P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> [111104 02:00]:
-> On Thursday 03 November 2011 14:27:56 Tony Lindgren wrote:
-> >=20
-> > Should these tests be done only after the errata re-read for both
-> > src and dst patches? Otherwise the errata will not be handled?
->=20
-> Yes that might be a good idea.
-> I was trying to locate the original errata description for DMA_ERRATA=
-_3_3, but=20
-> it does not exist, or at least I can not find it. This only been ment=
-ioned in=20
-> the kernel's comment.
+On Thu, Oct 27, 2011 at 2:08 AM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Thu, Oct 27, 2011 at 01:26:21PM +0530, Rajendra Nayak wrote:
+>
+>> v3 is based on the latest devicetree/next and is tested
+>> (with twl adaptaions, which will be posted seperately)
+>> on the OMAP4 panda and OMAP4 sdp boards.
+>
+> Looking at the device bindings I notice that these bindings loose the
+> ability to assign a descriptive name to regulator outputs. =A0This is
+> really useful for making it easy to tie the code and the schematics
+> together - you can make the runing system use the same name as the
+> schematic.
 
-Seems it got added with commit d3c9be2f.
+That can easily be added by having a output-name property in the
+regulator device node.
 
-> I'm not sure when this DMA_ERRATA_3_3 would have been in force. My gu=
-ess would=20
-> be that if someone wants to read the src/dst position right after the=
- channel=20
-> is disabled, but what would we expect it to return when the channel h=
-as been=20
-> disabled?
-
-No idea.. Or read it after stopping it?
-
-> I mean what is the reasonable src/dst for a disabled channel? 0 is as=
- good as=20
-> any other number, probably the programmed start of the DMA transfer w=
-ould be=20
-> my best bet.
-> I think the errata description for DMA_ERRATA_3_3 is not correct, and=
- it is in=20
-> fact to handle the case I'm also handling: Before the first DMA reque=
-st the=20
-> CDAC is 0 (since we configured it to be), the CSAC contains _somethin=
-g_ (most=20
-> of the time 0, but can be random number).
-> In some situation re-reading the src/dst position will give enough ti=
-me to=20
-> receive the first DMA request, which will update CDAC/CSAC registers.
-
-Yeah could be since the handling is just an immediate re-read of the re=
-gister..
-=20
-> What do you think?
-
-Probably the safest thing to do is move your check after the re-read te=
-st
-in case there's more to the ERRATA_3_3.
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Olof
