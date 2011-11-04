@@ -1,60 +1,75 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
-Date: Fri, 04 Nov 2011 16:27:53 -0700
-Message-ID: <87obwr1n9i.fsf@ti.com>
-References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
-	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP3: cm-t35: add regulator supply for
+ ads7846
+Date: Fri, 4 Nov 2011 16:39:38 -0700
+Message-ID: <20111104233938.GF31337@atomide.com>
+References: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il>
+ <1319017160-20391-2-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1320185752-568-5-git-send-email-omar.ramirez@ti.com> (Omar
-	Ramirez Luna's message of "Tue, 1 Nov 2011 17:15:52 -0500")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lm <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:15127 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751209Ab1KDXjl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 19:39:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1319017160-20391-2-git-send-email-grinberg@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Omar Ramirez Luna <omar.ramirez@ti.com> writes:
-
-> Use runtime PM functionality interfaced with hwmod enable/idle
-> functions, to replace direct clock operations, reset and sysconfig
-> handling.
->
-> Tidspbridge uses a macro removed with this patch, for now the value
-> is hardcoded to avoid breaking compilation.
->
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-
-Looks like a good cleanup.
-
-I agree with the comments from Myungjoo, and have a question below..
-
-[...]
-
-> @@ -821,9 +820,7 @@ static irqreturn_t iommu_fault_handler(int irq, void *data)
->  	if (!obj->refcount)
->  		return IRQ_NONE;
+* Igor Grinberg <grinberg@compulab.co.il> [111019 02:05]:
+> 
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> ---
+>  arch/arm/mach-omap2/board-cm-t35.c |   18 ++++++++++++++++++
+>  1 files changed, 18 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+> index e15d39b..6d93db0 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -343,6 +343,10 @@ static struct regulator_consumer_supply cm_t35_vdvi_supply[] = {
+>  	REGULATOR_SUPPLY("vdvi", "omapdss"),
+>  };
 >  
-> -	clk_enable(obj->clk);
->  	errs = iommu_report_fault(obj, &da);
-> -	clk_disable(obj->clk);
->  	if (errs == 0)
->  		return IRQ_HANDLED;
+> +static struct regulator_consumer_supply cm_t35_vio_supplies[] = {
+> +	REGULATOR_SUPPLY("vcc", "spi1.0"),
+> +};
+> +
+>  /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+>  static struct regulator_init_data cm_t35_vmmc1 = {
+>  	.constraints = {
+> @@ -373,6 +377,19 @@ static struct regulator_init_data cm_t35_vsim = {
+>  	.consumer_supplies	= cm_t35_vsim_supply,
+>  };
+>  
+> +static struct regulator_init_data cm_t35_vio = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE,
+> +	},
+> +	.num_consumer_supplies	= ARRAY_SIZE(cm_t35_vio_supplies),
+> +	.consumer_supplies	= cm_t35_vio_supplies,
+> +};
+> +
+>  static uint32_t cm_t35_keymap[] = {
+>  	KEY(0, 0, KEY_A),	KEY(0, 1, KEY_B),	KEY(0, 2, KEY_LEFT),
+>  	KEY(1, 0, KEY_UP),	KEY(1, 1, KEY_ENTER),	KEY(1, 2, KEY_DOWN),
+> @@ -456,6 +473,7 @@ static struct twl4030_platform_data cm_t35_twldata = {
+>  	.gpio		= &cm_t35_gpio_data,
+>  	.vmmc1		= &cm_t35_vmmc1,
+>  	.vsim		= &cm_t35_vsim,
+> +	.vio		= &cm_t35_vio,
+>  };
+>  
+>  static void __init cm_t35_init_i2c(void)
 
-I'm not terribly familiar with this IOMMU code, but this one looks
-suspiciou because you're removing the clock calls but not replacing them
-with runtime PM get/put calls.
+Applying to board branch for v3.3 merge window.
 
-I just want to make sure that's intentional.  If so, you might want to
-add a comment about that to the changelog.
-
-Kevin
+Tony
