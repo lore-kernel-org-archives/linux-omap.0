@@ -1,167 +1,57 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 3/4] omap4: mmc: Pass SoC and board data for omap4 mmc from dt
-Date: Fri, 4 Nov 2011 17:20:40 +0530
-Message-ID: <1320407441-29697-4-git-send-email-rnayak@ti.com>
-References: <1320407441-29697-1-git-send-email-rnayak@ti.com>
+From: Philip Balister <philip@balister.org>
+Subject: Re: Simple GPMC device driver with basic User application
+Date: Fri, 04 Nov 2011 07:48:14 -0400
+Message-ID: <4EB3D0FE.2080400@balister.org>
+References: <CAOy7-nNxRgB21JSFcWvD4T3AwDDuh9MjBeB+8nFiwX-Cv+13Mw@mail.gmail.com> <CAOy7-nMMyk3kMc9aShigxuvdB5O3S+B319SCR36kzM0ZTmSQ6w@mail.gmail.com> <20111103192532.GX31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54654 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932111Ab1KDLvQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 07:51:16 -0400
-In-Reply-To: <1320407441-29697-1-git-send-email-rnayak@ti.com>
+Received: from mail.geekisp.com ([216.168.135.169]:14730 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754029Ab1KDLy5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 07:54:57 -0400
+In-Reply-To: <20111103192532.GX31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, thomas.abraham@linaro.org, balajitk@ti.com, cjb@laptop.org, tony@atomide.com, Rajendra Nayak <rnayak@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: James <angweiyang@gmail.com>, linux-omap@vger.kernel.org
 
-Pass all omap4-hsmmc related data from device tree.
-Currenly limited to only omap4-panda and omap4-sdp
-boards.
+On 11/03/2011 03:25 PM, Tony Lindgren wrote:
+> * James <angweiyang@gmail.com> [111023 18:13]:
+>> Dear all,
+>>
+>> I'm learning embedded linux development and need help on my task.
+>>
+>> I'm trying to communicate with a FPGA via the GPMC bus on my Overo FE
+>> board and need assistance with writing a simple device driver & test
+>> application that uses the GPMC bus to read & write a WORD size data
+>> and also a BLOCK of WORD data to the FPGA.
+>>
+>> The FPGA-OMAP3530 will be use synchronous read/write over the 16-bit
+>> datapath and CS 6.
+>> The GPMC bus is shared with an Ethernet chip and NAND chip as per
+>> Gumstix COM + TOBI/Chestnut design and these standard devices must
+>> still work as per norm.
+>>
+>> I've been searching via GMANE for similar questions but some are
+>> pointing to non-existence archives.
+>>
+>> I believe I have to develop a kernel device driver to register the
+>> FPGA and from which will expose a device node for the test
+>> application.
+>> or is there a generic GPMC driver that does it?
+>>
+>> Can someone share with me similar layout and code so that I can base
+>> my learning from a starting point?
+>>
+>> Many thanks in adv.
+> 
+> Please take a look at the various arch/arm/mach-omap2/gpmc-*.c files.
+> The biggest pain is to get the timings right.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/boot/dts/omap4-panda.dts |   23 ++++++++++++++++++
- arch/arm/boot/dts/omap4-sdp.dts   |   33 ++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4.dtsi      |   46 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 102 insertions(+), 0 deletions(-)
+Also take a look at:
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 4c3069f..07c5433 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -105,3 +105,26 @@
- &i2c4 {
- 	clock-frequency = <400000>;
- };
-+
-+&mmc1 {
-+	ti,hsmmc-nr-slots = <1>;
-+	vmmc-supply = <&vmmc>;
-+	slot@1 {
-+		linux,mmc_cap_4_bit_data;
-+		linux,mmc_cap_8_bit_data;
-+		ti,hsmmc-has-special-reset;
-+	};
-+};
-+
-+&mmc5 {
-+	ti,hsmmc-nr-slots = <1>;
-+	vmmc-supply = <&vwl1271>;
-+	slot@1 {
-+		ti,hsmmc-slot-name = "wl1271";
-+		linux,mmc_cap_4_bit_data;
-+		linux,mmc_cap_power_off_card;
-+		ti,hsmmc-ocr-mask = <0x80>;
-+		ti,hsmmc-nonremovable;
-+		ti,hsmmc-has-special-reset;
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index adc7faf..d37d416 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -125,3 +125,36 @@
- 		reg = <0x1e>;
- 	};
- };
-+
-+&mmc1 {
-+	ti,hsmmc-nr-slots = <1>;
-+	vmmc-supply = <&vmmc>;
-+	slots@1 {
-+		linux,mmc_cap_4_bit_data;
-+		linux,mmc_cap_8_bit_data;
-+		ti,hsmmc-has-special-reset;
-+	};
-+};
-+
-+&mmc2 {
-+	ti,hsmmc-nr-slots = <1>;
-+	vmmc-supply = <&vaux1>;
-+	slots@1 {
-+		linux,mmc_cap_4_bit_data;
-+		linux,mmc_cap_8_bit_data;
-+		ti,hsmmc-nonremovable;
-+		ti,hsmmc-ocr-mask = <0x20000>;
-+		ti,hsmmc-has-special-reset;
-+	};
-+};
-+
-+&mmc5 {
-+	ti,hsmmc-nr-slots = <1>;
-+	slots@1 {
-+		linux,mmc_cap_4_bit_data;
-+		linux,mmc_cap_power_off_card;
-+		ti,hsmmc-nonremovable;
-+		ti,hsmmc-ocr-mask = <0x80>;
-+		ti,hsmmc-has-special-reset;
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 447f482..f4e0540 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -25,6 +25,11 @@
- 		i2c2 = &i2c2;
- 		i2c3 = &i2c3;
- 		i2c4 = &i2c4;
-+		mmc1 = &mmc1;
-+		mmc2 = &mmc2;
-+		mmc3 = &mmc3;
-+		mmc4 = &mmc4;
-+		mmc5 = &mmc5;
- 	};
- 
- 	cpus {
-@@ -205,5 +210,46 @@
- 			#size-cells = <0>;
- 			ti,hwmods = "i2c4";
- 		};
-+
-+		mmc1: mmc@0x4809c000 {
-+			compatible = "ti,omap-hsmmc0", "ti,omap4-hsmmc";
-+			reg = <0x4809c000 0x400>;
-+			ti,hwmods = "mmc1";
-+			ti,hsmmc-supports-dual-volt;
-+			ti,hsmmc-dma-mask = <0xffffffff>;
-+			ti,hsmmc-has-pbias;
-+		};
-+
-+		mmc2: mmc@0x480b4000 {
-+			compatible = "ti,omap-hsmmc1", "ti,omap4-hsmmc";
-+			reg = <0x480b4000 0x400>;
-+			ti,hwmods = "mmc2";
-+			ti,hsmmc-dma-mask = <0xffffffff>;
-+			ti,hsmmc-has-pbias;
-+		};
-+
-+		mmc3: mmc@0x480ad000 {
-+			compatible = "ti,omap-hsmmc2", "ti,omap4-hsmmc";
-+			reg = <0x480ad000 0x400>;
-+			ti,hwmods = "mmc3";
-+			ti,hsmmc-dma-mask = <0xffffffff>;
-+			ti,hsmmc-has-pbias;
-+		};
-+
-+		mmc4: mmc@0x480d1000 {
-+			compatible = "ti,omap-hsmmc3", "ti,omap4-hsmmc";
-+			reg = <0x480d1000 0x400>;
-+			ti,hwmods = "mmc4";
-+			ti,hsmmc-dma-mask = <0xffffffff>;
-+			ti,hsmmc-has-pbias;
-+		};
-+
-+		mmc5: mmc@0x480d5000 {
-+			compatible = "ti,omap-hsmmc4", "ti,omap4-hsmmc";
-+			reg = <0x480d5000 0x400>;
-+			ti,hwmods = "mmc5";
-+			ti,hsmmc-dma-mask = <0xffffffff>;
-+			ti,hsmmc-has-pbias;
-+		};
- 	};
- };
--- 
-1.7.1
+https://github.com/balister/linux-omap-philip/commits/e100-2.6.38-2
 
+Philip
