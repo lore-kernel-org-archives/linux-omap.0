@@ -1,33 +1,69 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH v3 1/6] mfd: TPS65910: Handle non-existent devices
-Date: Fri, 4 Nov 2011 06:22:43 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9018E8F@DBDE01.ent.ti.com>
-References: <1320340086-15371-1-git-send-email-kyle.manna@fuel7.com>
- <1320340086-15371-2-git-send-email-kyle.manna@fuel7.com>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH v2] OMAP: clock: optimize dpll locking logic
+Date: Fri, 4 Nov 2011 00:12:29 -0700
+Message-ID: <1320390749-19698-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39554 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:41427 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031Ab1KDGXh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 02:23:37 -0400
-In-Reply-To: <1320340086-15371-2-git-send-email-kyle.manna@fuel7.com>
-Content-Language: en-US
+	with ESMTP id S1751328Ab1KDHMe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 03:12:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyle Manna <kyle.manna@fuel7.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org
+Cc: Todd Poynor <toddpoynor@google.com>, Vikram Pandita <vikram.pandita@ti.com>
 
-Hi Kyle,
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-On Thu, Nov 03, 2011 at 22:38:01, Kyle Manna wrote:
-> +	ret = mfd_add_devices(tps65910->dev, -1, tps65910s,
-> +			ARRAY_SIZE(tps65910s), NULL, 0);
-> +	if (ret < 0)
-> +		goto err2;
+If the dpll is already locked, code can be optimized
+to return much earlier than doing redundent set of lock mode
+and wait on idlest.
 
-Isn't goto err sufficient
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Reviewed-by: Todd Poynor <toddpoynor@google.com>
+---
+v1: initial draft
 
-Regards
-Afzal
+v2: fix review comments
+
+ arch/arm/mach-omap2/dpll3xxx.c |   12 +++++++++++-
+ 1 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/dpll3xxx.c b/arch/arm/mach-omap2/dpll3xxx.c
+index f77022b..2d4f6bd 100644
+--- a/arch/arm/mach-omap2/dpll3xxx.c
++++ b/arch/arm/mach-omap2/dpll3xxx.c
+@@ -135,11 +135,20 @@ static u16 _omap3_dpll_compute_freqsel(struct clk *clk, u8 n)
+  */
+ static int _omap3_noncore_dpll_lock(struct clk *clk)
+ {
++	const struct dpll_data *dd;
+ 	u8 ai;
+-	int r;
++	u8 state = 1;
++	int r = 0;
+ 
+ 	pr_debug("clock: locking DPLL %s\n", clk->name);
+ 
++	dd = clk->dpll_data;
++	state <<= __ffs(dd->idlest_mask);
++
++	/* Check if already locked */
++	if ((__raw_readl(dd->idlest_reg) & dd->idlest_mask) == state)
++		goto done;
++
+ 	ai = omap3_dpll_autoidle_read(clk);
+ 
+ 	omap3_dpll_deny_idle(clk);
+@@ -151,6 +160,7 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
+ 	if (ai)
+ 		omap3_dpll_allow_idle(clk);
+ 
++done:
+ 	return r;
+ }
+ 
+-- 
+1.7.5.4
+
