@@ -1,39 +1,27 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: OMAP: TWL4030: Sound broken in 3.1
-Date: Fri, 04 Nov 2011 15:18:05 +0000
-Message-ID: <WC20111104151805.630235@terrafix.co.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/2] mfd: TPS65910: Improvements
+Date: Fri, 4 Nov 2011 15:24:11 +0000
+Message-ID: <20111104152411.GB28615@opensource.wolfsonmicro.com>
+References: <1320410912-20293-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:53153 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751219Ab1KDPSQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 11:18:16 -0400
-Received: from terrafix.co.uk (reverse.keele.netcentral.co.uk [212.57.249.250] (may be forged))
-	by smtp3.keele.netcentral.co.uk (8.14.2/8.14.2) with ESMTP id pA4FI7YN009432
-	for <linux-omap@vger.kernel.org>; Fri, 4 Nov 2011 15:18:13 GMT
-Received: from WorldClient by terrafix.co.uk (MDaemon PRO v12.0.4)
-	with ESMTP id md50002104076.msg
-	for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 15:18:08 +0000
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1320410912-20293-1-git-send-email-afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-kernel@vger.kernel.org, lrg@ti.com, sameo@linux.intel.com, nsekhar@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-In 3.1 sound support is broken for any boards using a TWL4030-based CODEC.
+On Fri, Nov 04, 2011 at 06:18:32PM +0530, Afzal Mohammed wrote:
+> Two changes,
 
-The Kconfig option for the TWL4030 CODEC used to be TWL4030_CODEC, and in 
-3.1 this has been changed to MFD_TWL4030_AUDIO.
+...should be in two separate commits.
 
-I believe this has caused a problem in drives/mfd/twl-core.c:112 as the 
-define for the twl_has_codec() macro still tests for CONFIG_TWL4030_CODEC. 
-Hence the macro always returns false and during boot I get:
+> 2. struct tps65910_platform_data usage can be avoided
+>  by making use of struct tps65910_board to simplify
+>  driver. Hence remove it
 
-[    2.417999] ALSA device list:
-[    2.421142]   No soundcards found.
-
-Is this likely to be the problem?
-
-Cheers,
-Joe
-
-
+Why is this a simplification?  Note that one of the reasons platform
+data is kept separate from any runtime data the device needs is that it
+makes the configuration available easier to see and understand.
