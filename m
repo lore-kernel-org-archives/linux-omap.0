@@ -1,41 +1,37 @@
-From: Michael Opdenacker <michael.opdenacker@linaro.org>
-Subject: Re: [PATCH 1/1] arm: omap: removed obsolete IRQF_DISABLED
-Date: Fri, 04 Nov 2011 10:10:06 -0400
-Message-ID: <4EB3F23E.3060009@linaro.org>
-References: <1318139198-6865-1-git-send-email-michael.opdenacker@linaro.org> <1318139198-6865-2-git-send-email-michael.opdenacker@linaro.org> <20111103221501.GD31337@atomide.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH 2/2] regulator:TPS65910: VDD1/2 voltage selector count
+Date: Fri, 4 Nov 2011 14:26:05 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A90194B0@DBDE01.ent.ti.com>
+References: <1320410928-20349-1-git-send-email-afzal@ti.com>
+ <20111104140422.GA28615@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:44496 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578Ab1KDOKK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 10:10:10 -0400
-In-Reply-To: <20111103221501.GD31337@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111104140422.GA28615@opensource.wolfsonmicro.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: khilman@ti.com, linux@arm.linux.org.uk, patches@linaro.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tony,
+Hi Brown,
 
-On 11/03/2011 06:15 PM, Tony Lindgren wrote:
-> * Michael Opdenacker <michael.opdenacker@linaro.org> [111008 22:13]:
->> This flag is a NOOP since 2.6.36
-> Looks like there's an ARM wide patch to do this with
-> "[PATCH 03/55] arm: irq: Remove IRQF_DISABLED".
-Good. Let's take this one then. I hadn't gone through all the sub
-maintainers yet.
+On Fri, Nov 04, 2011 at 19:34:22, Mark Brown wrote:
+> On Fri, Nov 04, 2011 at 06:18:48PM +0530, Afzal Mohammed wrote:
+> 
+> >  		if (i == TPS65910_REG_VDD1 || i == TPS65910_REG_VDD2) {
+> >  			pmic->desc[i].ops = &tps65910_ops_dcdc;
+> > +			pmic->desc[i].n_voltages = VDD1_2_NUM_VOLTS * 3;
+> 
+> This looks suspicous - what's the * 3 about?
+> 
 
-Thanks for your reply,
+Gain in voltage possible is x1, 0x2 & 0x3, I am shaky
+about this change, but voltage could be changed with this,
+cc'ing original author's
 
-Cheers,
+Specification @ http://www.ti.com/product/tps65910
 
-Michael.
-
--- 
-Michael Opdenacker - Community Manager
-Linaro, http://linaro.org
-Phone: +33 484 253 396
-IRC: 'opm' in #linaro on irc.freenode.net
-
+Regards
+Afzal
