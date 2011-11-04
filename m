@@ -1,36 +1,38 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/2] regulator:TPS65910: VDD1/2 voltage selector count
-Date: Fri, 4 Nov 2011 17:26:18 +0000
-Message-ID: <20111104172617.GA20002@opensource.wolfsonmicro.com>
-References: <1320410928-20349-1-git-send-email-afzal@ti.com>
- <20111104140422.GA28615@opensource.wolfsonmicro.com>
- <C8443D0743D26F4388EA172BF4E2A7A90194B0@DBDE01.ent.ti.com>
- <20111104152559.GC28615@opensource.wolfsonmicro.com>
- <C8443D0743D26F4388EA172BF4E2A7A9019607@DBDE01.ent.ti.com>
- <20111104161855.GC28902@opensource.wolfsonmicro.com>
- <C8443D0743D26F4388EA172BF4E2A7A9019650@DBDE01.ent.ti.com>
- <20111104164009.GA753@opensource.wolfsonmicro.com>
- <C8443D0743D26F4388EA172BF4E2A7A9019691@DBDE01.ent.ti.com>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: OMAP: TWL4030: Sound broken in 3.1
+Date: Fri, 04 Nov 2011 19:49:31 +0100
+Message-ID: <5pnedado9d5sjx7aq18gu9d1.1320432419713@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A9019691@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47249 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093Ab1KDSrA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 14:47:00 -0400
+Received: by faao14 with SMTP id o14so2937710faa.19
+        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 11:46:59 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: =?ISO-8859-1?Q?P=E9ter_Ujfalusi?= <peter.ujfalusi@ti.com>, Joe Woodward <jw@terrafix.co.uk>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Nov 04, 2011 at 04:48:09PM +0000, Mohammed, Afzal wrote:
+SXNuJ3QgdGhpcyBwYXRjaCBmaXhpbmcgaXQgYWxyZWFkeT8KCmh0dHBzOi8vbGttbC5vcmcvbGtt
+bC8yMDExLzkvNS8zNwoKVGhvbWFzCgpQw6l0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFsdXNpQHRp
+LmNvbT4gd3JvdGU6Cgo+T24gRnJpZGF5IDA0IE5vdmVtYmVyIDIwMTEgMTU6MTg6MDUgSm9lIFdv
+b2R3YXJkIHdyb3RlOgo+PiBJbiAzLjEgc291bmQgc3VwcG9ydCBpcyBicm9rZW4gZm9yIGFueSBi
+b2FyZHMgdXNpbmcgYSBUV0w0MDMwLWJhc2VkIENPREVDLgo+PiAKPj4gVGhlIEtjb25maWcgb3B0
+aW9uIGZvciB0aGUgVFdMNDAzMCBDT0RFQyB1c2VkIHRvIGJlIFRXTDQwMzBfQ09ERUMsIGFuZCBp
+bgo+PiAzLjEgdGhpcyBoYXMgYmVlbiBjaGFuZ2VkIHRvIE1GRF9UV0w0MDMwX0FVRElPLgo+PiAK
+Pj4gSSBiZWxpZXZlIHRoaXMgaGFzIGNhdXNlZCBhIHByb2JsZW0gaW4gZHJpdmVzL21mZC90d2wt
+Y29yZS5jOjExMiBhcyB0aGUKPj4gZGVmaW5lIGZvciB0aGUgdHdsX2hhc19jb2RlYygpIG1hY3Jv
+IHN0aWxsIHRlc3RzIGZvciBDT05GSUdfVFdMNDAzMF9DT0RFQy4KPj4gSGVuY2UgdGhlIG1hY3Jv
+IGFsd2F5cyByZXR1cm5zIGZhbHNlIGFuZCBkdXJpbmcgYm9vdCBJIGdldDoKPj4gCj4+IFsgICAg
+Mi40MTc5OTldIEFMU0EgZGV2aWNlIGxpc3Q6Cj4+IFsgICAgMi40MjExNDJdICAgTm8gc291bmRj
+YXJkcyBmb3VuZC4KPj4gCj4+IElzIHRoaXMgbGlrZWx5IHRvIGJlIHRoZSBwcm9ibGVtPwo+Cj5T
+ZWUgSmFya2tvJ3MgcGF0Y2g6Cj5odHRwczovL2xrbWwub3JnL2xrbWwvMjAxMS8xMC8xOS8xMjUK
+Pgo+LS0KPlDDqXRlcgo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
+ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbgo+dGhlIGJvZHkgb2YgYSBtZXNzYWdl
+IHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
+dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
 
-> Effective voltage expression is (value1 * 12.5mV + 562.5 mV) * value2.
-
-> In this value2 is being called as gain.
-
-> value1 can have values from 3 to 75, both inclusive (73 steps)
-> value2 can have from 1 to 3, both inclusive (3 numbers)
-
-Right, that makes sense.  It looks like you need a new constant for the
-gain and the existing constant for value1 should be renamed to make it
-more obvious that it's not the only part of the selector, the current
-constant is confusingly named given the above.
