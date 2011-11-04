@@ -1,99 +1,82 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH 2/4] mmc: omap: adapt the hsmmc driver to device tree
-Date: Fri, 4 Nov 2011 13:04:15 -0700
-Message-ID: <20111104200415.GC3045@quad.lixom.net>
-References: <1320407441-29697-1-git-send-email-rnayak@ti.com>
- <1320407441-29697-3-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Re: [PATCH 1/2] OMAP2+: DMA: Workaround for invalid source
+ position
+Date: Fri, 4 Nov 2011 13:08:26 -0700
+Message-ID: <20111104200826.GE31337@atomide.com>
+References: <1320070817-9638-1-git-send-email-peter.ujfalusi@ti.com>
+ <1320070817-9638-2-git-send-email-peter.ujfalusi@ti.com>
+ <20111103212756.GZ31337@atomide.com>
+ <2603119.amz7RjSE3J@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:49192 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689Ab1KDUD5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 16:03:57 -0400
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:51534 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750779Ab1KDUIi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 16:08:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1320407441-29697-3-git-send-email-rnayak@ti.com>
+In-Reply-To: <2603119.amz7RjSE3J@barack>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-mmc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grant.likely@secretlab.ca, rob.herring@calxeda.com, thomas.abraham@linaro.org, balajitk@ti.com, cjb@laptop.org, tony@atomide.com
+To: =?utf-8?B?UMOpdGVy?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org
 
-On Fri, Nov 04, 2011 at 05:20:39PM +0530, Rajendra Nayak wrote:
-> Define dt bindings for the ti-omap-hsmmc, and adapt
-> the driver to extract data (which was earlier passed as
-> platform_data) from device tree node.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   50 +++++++++
->  drivers/mmc/host/omap_hsmmc.c                      |  117 ++++++++++++++++++++
->  2 files changed, 167 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> new file mode 100644
-> index 0000000..370af1b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
-> @@ -0,0 +1,50 @@
-> +* TI Highspeed MMC host controller for OMAP
-> +
-> +The Highspeed MMC Host Controller on TI OMAP family
-> +provides an interface for MMC, SD, and SDIO types of memory cards.
-> +
-> +Required properties:
-> +- compatible: Should be "ti,omap-hsmmc<n>", "ti,omap2-hsmmc";
-> +n is controller instance starting 0, for OMAP2/3 controllers
+* P=C3=A9ter Ujfalusi <peter.ujfalusi@ti.com> [111104 02:00]:
+> On Thursday 03 November 2011 14:27:56 Tony Lindgren wrote:
+> >=20
+> > Should these tests be done only after the errata re-read for both
+> > src and dst patches? Otherwise the errata will not be handled?
+>=20
+> Yes that might be a good idea.
+> I was trying to locate the original errata description for DMA_ERRATA=
+_3_3, but=20
+> it does not exist, or at least I can not find it. This only been ment=
+ioned in=20
+> the kernel's comment.
 
-No, no, no. You should not have to specify the unit-address in the compatible
-field. They are all programmed the same way, right?
+Seems it got added with commit d3c9be2f.
 
-Also, they should go from the specific to the generic, but the first property
-is the same for 2/3 and 4. That's wrong.
+> I'm not sure when this DMA_ERRATA_3_3 would have been in force. My gu=
+ess would=20
+> be that if someone wants to read the src/dst position right after the=
+ channel=20
+> is disabled, but what would we expect it to return when the channel h=
+as been=20
+> disabled?
 
-> +- compatible: Should be "ti,omap-hsmmc<n>", "ti,omap4-hsmmc";
-> +n is controller instance starting 0, for OMAP4 controllers
-> +- ti,hwmods: Must be "mmc<n>", n is controller instance starting 1
+No idea.. Or read it after stopping it?
 
-I didn't think hwmod bindings were settled on yet?
+> I mean what is the reasonable src/dst for a disabled channel? 0 is as=
+ good as=20
+> any other number, probably the programmed start of the DMA transfer w=
+ould be=20
+> my best bet.
+> I think the errata description for DMA_ERRATA_3_3 is not correct, and=
+ it is in=20
+> fact to handle the case I'm also handling: Before the first DMA reque=
+st the=20
+> CDAC is 0 (since we configured it to be), the CSAC contains _somethin=
+g_ (most=20
+> of the time 0, but can be random number).
+> In some situation re-reading the src/dst position will give enough ti=
+me to=20
+> receive the first DMA request, which will update CDAC/CSAC registers.
 
-> +- reg : should contain hsmmc registers location and length
-> +
-> +Optional properties:
-> +ti,hsmmc-supports-dual-volt: boolean, supports dual voltage cards
+Yeah could be since the handling is just an immediate re-read of the re=
+gister..
+=20
+> What do you think?
 
-ti,dual-voltage is a better name here (by definition, if it has the property it
-supports it, the word "supports" is redundant).
+Probably the safest thing to do is move your check after the re-read te=
+st
+in case there's more to the ERRATA_3_3.
 
-> +ti,hsmmc-nr-slots: Number of mmc slots
+Regards,
 
-You shouldn't have to specify this, it can be derived from the number of child
-nodes.
-
-> +<supply-name>-supply: phandle to the regulator device tree node
-> +"supply-name" examples are "vmmc", "vmmc_aux" etc
-> +ti,hsmmc-has-pbias: Has PBIAS cell support
-> +ti,hsmmc-has-special-reset: Requires a special softreset sequence
-
-you can drop hsmmc- from the properties here
-
-> +
-> +For every supported slot a slot node can be defined
-> +with the following optional properties
-> +
-> +ti,hsmmc-slot-name: Name assocaited to the mmc slot
-> +ti,hsmmc-gpio-cd: gpio for card detect
-> +ti,hsmmc-gpio-wp: gpio for write protect
-
-Please use the same standard as the other mmc controllers for CD/WP.
-
-> +ti,hsmmc-ocr-mask: mmc/sd/sdio ocr mask
-
-What is OCR mask?
-
-> +ti,hsmmc-non-removable: non-removable slot (like eMMC)
-
-Same here, non-removable should be standardized.
-
-
--Olof
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
