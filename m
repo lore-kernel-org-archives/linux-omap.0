@@ -1,34 +1,107 @@
-From: Segher Boessenkool <segher@kernel.crashing.org>
-Subject: Re: [PATCH 2/4] mmc: omap: adapt the hsmmc driver to device tree
-Date: Fri, 4 Nov 2011 23:15:59 +0100
-Message-ID: <461DAB8E-1828-44C9-9A0B-D9C09ED9CA0A@kernel.crashing.org>
-References: <1320407441-29697-1-git-send-email-rnayak@ti.com>
-	<1320407441-29697-3-git-send-email-rnayak@ti.com>
-	<20111104200415.GC3045@quad.lixom.net>
-Mime-Version: 1.0 (Apple Message framework v753.1)
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20111104200415.GC3045@quad.lixom.net>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, balajitk@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, cjb@laptop.org, linux-arm-kernel@lists.infradead.org
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [PATCH v4 1/4] regulator: helper routine to extract regulator_init_data
+Date: Fri, 4 Nov 2011 15:16:12 -0700
+Message-ID: <CAOesGMjkcExKXhNN1nFGey=wBie0PQGp2XS_r-5Rr3X0p4eNhg@mail.gmail.com>
+References: <1319721864-30067-1-git-send-email-rnayak@ti.com>
+	<20111104202905.GA3918@quad.lixom.net>
+	<20111104211447.GC2541@opensource.wolfsonmicro.com>
+	<20111104212216.GA5756@quad.lixom.net>
+	<20111104212910.GB8266@opensource.wolfsonmicro.com>
+	<CAOesGMgA7UayF9SJUP0YLnj86GmKBrajsBxv4_kRNNqCsvKTYg@mail.gmail.com>
+	<20111104214650.GC8266@opensource.wolfsonmicro.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111104214650.GC8266@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
->> +ti,hsmmc-non-removable: non-removable slot (like eMMC)
+On Fri, Nov 4, 2011 at 2:46 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Fri, Nov 04, 2011 at 02:34:35PM -0700, Olof Johansson wrote:
+>> On Fri, Nov 4, 2011 at 2:29 PM, Mark Brown
 >
-> Same here, non-removable should be standardized.
+>> > I think it's useful to define how consumers are supposed to do thi=
+s
+>> > somewhere - it is actually part of the core binding how consumers =
+are
+>> > supposed to do this.
+>
+>> Yeah, ok, but it shouldn't be part of the description of regulator
+>> properties per se. See how gpio does it, defining how a gpio-specifi=
+er
+>> is crafted. The equivalent should be done for regulators.
+>
+> That seems to be pretty much exactly what's being done here, and like
+> the GPIO bindings it's specified in the core document. =A0Though perh=
+aps
+> there's some aspect of how the document is written that's missing.
 
-CHRP has a "built-in" property for this.  That was standardised in 1998,
-you could reuse it :-)
+Yep, sounds good. A slightly more elaborate description of the binding
+inspired by the gpio.txt document would be the way to do that.
+
+> If you're talking about the specifics of the binding the GPIO binding=
+s
+> do suffer from the whole magic indexes into arrays problem that makes=
+ a
+> lot of the older device tree bindings quite hard to read.
+
+I wasn't talking about that in this case, but that is unfortunate and
+I do agree that the ordered array of gpios is messy and hard to
+follow.
+
+I've been trying to catch those as they are introduced -- i.e. we
+moved away from the magic array-of-three-gpios to discrete properties
+on the sdhci binding for tegra, for example. We'll keep an eye on the
+same for regulators.
+
+>> > There's also a bit of magic here for chained supplies with one reg=
+ulator
+>> > supplying another (eg, using a DCDC to drop the system supply down=
+ to a
+>> > lower voltage to supply a bunch of LDOs for improved efficiency).
+>
+>> Describing that in the device tree using regulator-specifiers
+>> shouldn't be too bad? The LDO will reference the DCDC as the parent
+>> supply (or input or whatever language you prefer). They don't have t=
+o
+>> be in the same topology, they will instead be under whatever
+>> controller/bus they are on for control -- i2c, etc.
+>
+> That's not great as it means you've got a separate binding for suppli=
+es
+> that happen to be connected to another regulator from that used for
+> other supplies on the device which is particularly confusing in the
+> fairly common case where a regulator chip has multiple supplies. =A0U=
+sing
+> the same method for binding all supplies seems much neater.
+
+I'm not following the above 100%, but I think you are saying that you
+would prefer to describe the regulator / power hierarchy in the
+functional topology instead of how the various regulators and supplies
+are organized on i2c busses and other controllers?  And the obvious
+one that would be less than trivial to find a home for would be the
+top-level or freestanding fixed regulators that don't sit on a
+controlling bus.
+
+If that is the case then this is yet another case of where we have a
+couple of different structures that are overlaid on each other in the
+device tree. Another is/will be clocking.
+
+That should be OK, since you can have a binding for your PMIC that
+splits up the various rails in separate subnodes, where each can
+specify a reference to the upstream supply for that rail, etc. Would
+that work?
+
+=46inding a best-practices location for where to put the fixed
+regulators that don't sit on a controlling bus would be the trickiest
+part, and I suppose we will just have to make up a location for those
+(/power-supplies or something).  But various regulators will need to
+be spread around the device tree a bit, in particular the i2c vs gpio
+controlled ones will need to sit on their controlling busses.
 
 
-Segher
+-Olof
