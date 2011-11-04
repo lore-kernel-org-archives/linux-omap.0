@@ -1,96 +1,138 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v4 1/4] regulator: helper routine to extract
-	regulator_init_data
-Date: Fri, 4 Nov 2011 13:29:05 -0700
-Message-ID: <20111104202905.GA3918@quad.lixom.net>
-References: <1319721864-30067-1-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH v3 2/4] regulator: adapt fixed regulator driver to dt
+Date: Fri, 4 Nov 2011 13:34:22 -0700
+Message-ID: <20111104203422.GB3918@quad.lixom.net>
+References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
+ <1319702185-16108-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:47718 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab1KDUeF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 16:34:05 -0400
 Content-Disposition: inline
-In-Reply-To: <1319721864-30067-1-git-send-email-rnayak@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1319702185-16108-3-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Thu, Oct 27, 2011 at 06:54:24PM +0530, Rajendra Nayak wrote:
-> The helper routine is meant to be used by the regulator drivers
-> to extract the regulator_init_data structure from the data
-> that is passed from device tree.
-> 'consumer_supplies' which is part of regulator_init_data is not extracted
-> as the regulator consumer mappings are passed through DT differently,
-> implemented in subsequent patches.
-> Similarly the regulator<-->parent/supply mapping is handled in
-> subsequent patches.
+On Thu, Oct 27, 2011 at 01:26:23PM +0530, Rajendra Nayak wrote:
+> The fixed regulator driver uses of_get_fixed_voltage_config()
+> to extract fixed_voltage_config structure contents from device tree.
 > 
-> Also add documentation for regulator bindings to be used to pass
-> regulator_init_data struct information from device tree.
-> 
-> Some of the regulator properties which are linux and board specific,
-> are left out since its not clear if they can
-> be in someway embedded into the kernel or passed in from DT.
-> They will be revisited later.
+> Also add documenation for additional bindings for fixed
+> regulators that can be passed through dt.
 > 
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+
+Shouldn't a fixed regulator just be a subset of a fixed one? If so, should the
+binding be merged with that one?
+
 > ---
->  .../devicetree/bindings/regulator/regulator.txt    |   33 ++++++++
->  drivers/regulator/Kconfig                          |    7 ++
->  drivers/regulator/Makefile                         |    1 +
->  drivers/regulator/of_regulator.c                   |   81 ++++++++++++++++++++
->  include/linux/regulator/of_regulator.h             |   20 +++++
->  5 files changed, 142 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/regulator/regulator.txt
->  create mode 100644 drivers/regulator/of_regulator.c
->  create mode 100644 include/linux/regulator/of_regulator.h
+>  .../bindings/regulator/fixed-regulator.txt         |   25 +++++++++
+>  drivers/regulator/fixed.c                          |   57 ++++++++++++++++++++
+>  2 files changed, 82 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/regulator/fixed-regulator.txt
 > 
-> diff --git a/Documentation/devicetree/bindings/regulator/regulator.txt b/Documentation/devicetree/bindings/regulator/regulator.txt
+> diff --git a/Documentation/devicetree/bindings/regulator/fixed-regulator.txt b/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
 > new file mode 100644
-> index 0000000..c488bf3
+> index 0000000..049df3d
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-> @@ -0,0 +1,33 @@
-> +Voltage/Current Regulators
+> +++ b/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
+> @@ -0,0 +1,25 @@
+> +Fixed Voltage regulators
 > +
-
-There should be a mandatory compatible field here, right? I.e. a topmost
-generic one, "regulator" or similar.
-
+> +Required properties:
+> +- compatible: Must be "regulator-fixed";
+> +
 > +Optional properties:
-> +- regulator-name: A string used as a descriptive name for regulator outputs
+> +- regulator-fixed-supply: Name of the regulator supply
+> +- regulator-fixed-microvolts: Output voltage of regulator
 
-Ah, there it is. Ignore my previous comment then, Mark. :)
+Other regulator binding usese uV, here it's microvolts. Pick one, microvolts
+has the benefit of not needing caps. :)
 
-> +- regulator-min-uV: smallest voltage consumers may set
-> +- regulator-max-uV: largest voltage consumers may set
-> +- regulator-uV-offset: Offset applied to voltages to compensate for voltage drops
-> +- regulator-min-uA: smallest current consumers may set
-> +- regulator-max-uA: largest current consumers may set
-> +- regulator-always-on: boolean, regulator should never be disabled
-> +- regulator-boot-on: bootloader/firmware enabled regulator
+> +- regulator-fixed-gpio: gpio to use for enable control
+> +- regulator-fixed-startup-delay: startup time in microseconds
 
-Once you have a compatible field that can determine what kind of device node,
-and binding, this is, you can drop the regulator- prefix and save some space in
-the device tree. Properties are rarely prefixed by their subsystem. Only
-exception would/could be the regulator-name property where it could make
-sense to keep the prefix.
+startup-delay-ms ?
 
-Also, lower-caps is common instead of V and A.
+> +- regulator-fixed-enable-high: Polarity of enable GPIO,
+> +  1 = Active High, 0 = Active low
 
-> +- <name>-supply: phandle to the parent supply/regulator node
+Some gpio specifiers allow you to specify active high or low flags, but either
+way something like "enable-active-low" as a property (with active high as
+default if property is missing) is a more devicetreey convention.
 
-Having a fixed name here instead of a free form string would probably be a good
-idea?
+> +- regulator-fixed-enabled-at-boot: 1 = yes, 0 = no
+
+Same here, you can drop the prefix. Also, the regular regulators use
+"regulator-name" for the supply name, it would make sense to reuse the same
+naming here, right?
+
+> +
+> +Example:
+> +
+> +	abc: fixedregulator@0 {
+> +		compatible = "regulator-fixed";
+> +		regulator-fixed-supply = "fixed-supply";
+> +		regulator-fixed-microvolts = <1800000>;
+> +		regulator-fixed-gpio = <43>;
+
+This is not a valid gpio specifier.
+
+> +		regulator-fixed-startup-delay = <70000>;
+> +		regulator-fixed-enable-high;
+> +		regulator-fixed-enabled-at-boot;
+> +	};
+> diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+> index 2fe9d99..9851b42 100644
+> --- a/drivers/regulator/fixed.c
+> +++ b/drivers/regulator/fixed.c
+> @@ -26,6 +26,9 @@
+>  #include <linux/gpio.h>
+>  #include <linux/delay.h>
+>  #include <linux/slab.h>
+> +#include <linux/of.h>
+> +#include <linux/regulator/of_regulator.h>
+> +#include <linux/regulator/machine.h>
+>  
+>  struct fixed_voltage_data {
+>  	struct regulator_desc desc;
+> @@ -37,6 +40,46 @@ struct fixed_voltage_data {
+>  	bool is_enabled;
+>  };
+>  
+> +
+> +/**
+> + * of_get_fixed_voltage_config - extract fixed_voltage_config structure info
+> + * @dev: device requesting for fixed_voltage_config
+> + *
+> + * Populates fixed_voltage_config structure by extracting data from device
+> + * tree node, returns a pointer to the populated structure of NULL if memory
+> + * alloc fails.
+> + */
+> +struct fixed_voltage_config *of_get_fixed_voltage_config(struct device *dev)
+> +{
+> +	struct fixed_voltage_config *config;
+> +	struct device_node *np = dev->of_node;
+> +	const __be32 *microvolts, *gpio, *delay;
+> +
+> +	config = devm_kzalloc(dev, sizeof(struct fixed_voltage_config), GFP_KERNEL);
+> +	if (!config)
+> +		return NULL;
+> +
+> +	config->supply_name = of_get_property(np, "regulator-fixed-supply", NULL);
+> +	microvolts = of_get_property(np, "regulator-fixed-microvolts", NULL);
+> +	if (microvolts)
+> +		config->microvolts = be32_to_cpu(*microvolts);
+> +	gpio = of_get_property(np, "regulator-fixed-gpio", NULL);
+> +	if (gpio)
+> +		config->gpio = be32_to_cpu(*gpio);
+
+This needs to be fixed to parse a gpio properly instead.
 
 
 
