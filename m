@@ -1,55 +1,88 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v3 2/4] regulator: adapt fixed regulator driver to dt
-Date: Fri, 4 Nov 2011 14:18:24 -0700
-Message-ID: <20111104211824.GA5608@quad.lixom.net>
-References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
-	<1319702185-16108-3-git-send-email-rnayak@ti.com>
-	<20111104203422.GB3918@quad.lixom.net>
-	<20111104210151.GA2541@opensource.wolfsonmicro.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 09/11] omap4: twl: added pmic startup / shutdown times
+Date: Fri, 04 Nov 2011 14:21:01 -0700
+Message-ID: <877h3f7feq.fsf@ti.com>
+References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
+	<1317835031-8201-10-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20111104210151.GA2541@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37663 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752747Ab1KDVVF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 17:21:05 -0400
+Received: by mail-iy0-f179.google.com with SMTP id i7so2680728iaf.38
+        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 14:21:03 -0700 (PDT)
+In-Reply-To: <1317835031-8201-10-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 5 Oct 2011 20:17:09 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Nov 04, 2011 at 09:01:52PM +0000, Mark Brown wrote:
-> On Fri, Nov 04, 2011 at 01:34:22PM -0700, Olof Johansson wrote:
-> 
-> > Shouldn't a fixed regulator just be a subset of a fixed one? If so, should the
-> > binding be merged with that one?
-> 
-> No, the fixed voltage regultor is a superset of a general regulator - it
-> has additional information like the voltage it supplies and the optional
-> enable GPIO.
+Tero Kristo <t-kristo@ti.com> writes:
 
-Still, seems like it could be merged into one regulator binding.
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-> > > +- regulator-fixed-enabled-at-boot: 1 = yes, 0 = no
-> 
-> > Same here, you can drop the prefix. Also, the regular regulators use
-> > "regulator-name" for the supply name, it would make sense to reuse the same
-> > naming here, right?
-> 
-> I'm having a hard time associating your second comment with the property
-> being discussed - could you clarify please?
+Missing descriptive changelog.
 
-It was the first comment I wrote on the whole block and later interspersed
-other comments above, so I don't blame you for not understanding. The
-second comment was related to the "regulator-fixed-supply" property at
-the top of the block.
+> ---
+>  arch/arm/mach-omap2/omap_twl.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+> index 62ed050..c095cf2 100644
+> --- a/arch/arm/mach-omap2/omap_twl.c
+> +++ b/arch/arm/mach-omap2/omap_twl.c
+> @@ -55,6 +55,13 @@ static bool __initdata twl_sr_enable_autoinit;
+>  #define REG_SMPS_OFFSET         0xE0
+>  #define SMARTREFLEX_ENABLE     BIT(3)
+>  
+> +struct twl_lp_description {
+> +	u32 osc_shut_time;
+> +	u32 osc_start_time;
 
+These are unused.
 
--Olof
+Also, how are oscillator setup/shutdown times related to the PMIC?
+
+> +	u32 pmic_shut_time;
+> +	u32 pmic_start_time;
+> +};
+> +
+>  static unsigned long twl4030_vsel_to_uv(const u8 vsel)
+>  {
+>  	return (((vsel * 125) + 6000)) * 100;
+> @@ -220,9 +227,15 @@ static struct omap_voltdm_pmic omap4_core_pmic = {
+>  	.uv_to_vsel		= twl6030_uv_to_vsel,
+>  };
+>  
+> +static struct twl_lp_description omap4_pmic_lp_desc = {
+> +	.pmic_shut_time		= 500,
+> +	.pmic_start_time	= 500,
+> +};
+> +
+>  int __init omap4_twl_init(void)
+>  {
+>  	struct voltagedomain *voltdm;
+> +	struct twl_lp_description *desc;
+>  
+>  	if (!cpu_is_omap44xx())
+>  		return -ENODEV;
+> @@ -236,6 +249,10 @@ int __init omap4_twl_init(void)
+>  	voltdm = voltdm_lookup("core");
+>  	omap_voltage_register_pmic(voltdm, &omap4_core_pmic);
+>  
+> +	desc = &omap4_pmic_lp_desc;
+> +
+> +	omap_pm_set_pmic_lp_time(desc->pmic_start_time, desc->pmic_shut_time);
+> +
+>  	return 0;
+>  }
+
+See comment on 5/11.  IMO, the PMIC timings should just be going into
+omap_voltdm_pmic along with slew_rate, step_size etc.  I don't follow
+why we need a different mechanism to customize these timings that is
+different from the rest of the PMIC settings.
+
+Kevin
