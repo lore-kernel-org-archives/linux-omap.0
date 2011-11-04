@@ -1,139 +1,56 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v3 2/4] regulator: adapt fixed regulator driver to dt
-Date: Fri, 4 Nov 2011 13:34:22 -0700
-Message-ID: <20111104203422.GB3918@quad.lixom.net>
-References: <1319702185-16108-1-git-send-email-rnayak@ti.com>
- <1319702185-16108-3-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 11/11] omap4: use lp params for calculating pmic setup times
+Date: Fri, 04 Nov 2011 13:49:31 -0700
+Message-ID: <87ty6j8vfo.fsf@ti.com>
+References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
+	<1317835031-8201-12-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:47718 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349Ab1KDUeF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 16:34:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1319702185-16108-3-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:59015 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751621Ab1KDUte (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 16:49:34 -0400
+Received: by mail-qw0-f51.google.com with SMTP id g24so2419352qab.10
+        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 13:49:33 -0700 (PDT)
+In-Reply-To: <1317835031-8201-12-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 5 Oct 2011 20:17:11 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Oct 27, 2011 at 01:26:23PM +0530, Rajendra Nayak wrote:
-> The fixed regulator driver uses of_get_fixed_voltage_config()
-> to extract fixed_voltage_config structure contents from device tree.
-> 
-> Also add documenation for additional bindings for fixed
-> regulators that can be passed through dt.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Tero Kristo <t-kristo@ti.com> writes:
 
-Shouldn't a fixed regulator just be a subset of a fixed one? If so, should the
-binding be merged with that one?
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+
+Missing descriptive changelog.
+
+Why are the PMIC timings not relevant for OMAP3?
+
+Kevin
 
 > ---
->  .../bindings/regulator/fixed-regulator.txt         |   25 +++++++++
->  drivers/regulator/fixed.c                          |   57 ++++++++++++++++++++
->  2 files changed, 82 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/regulator/fixed-regulator.txt b/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-> new file mode 100644
-> index 0000000..049df3d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-> @@ -0,0 +1,25 @@
-> +Fixed Voltage regulators
-> +
-> +Required properties:
-> +- compatible: Must be "regulator-fixed";
-> +
-> +Optional properties:
-> +- regulator-fixed-supply: Name of the regulator supply
-> +- regulator-fixed-microvolts: Output voltage of regulator
-
-Other regulator binding usese uV, here it's microvolts. Pick one, microvolts
-has the benefit of not needing caps. :)
-
-> +- regulator-fixed-gpio: gpio to use for enable control
-> +- regulator-fixed-startup-delay: startup time in microseconds
-
-startup-delay-ms ?
-
-> +- regulator-fixed-enable-high: Polarity of enable GPIO,
-> +  1 = Active High, 0 = Active low
-
-Some gpio specifiers allow you to specify active high or low flags, but either
-way something like "enable-active-low" as a property (with active high as
-default if property is missing) is a more devicetreey convention.
-
-> +- regulator-fixed-enabled-at-boot: 1 = yes, 0 = no
-
-Same here, you can drop the prefix. Also, the regular regulators use
-"regulator-name" for the supply name, it would make sense to reuse the same
-naming here, right?
-
-> +
-> +Example:
-> +
-> +	abc: fixedregulator@0 {
-> +		compatible = "regulator-fixed";
-> +		regulator-fixed-supply = "fixed-supply";
-> +		regulator-fixed-microvolts = <1800000>;
-> +		regulator-fixed-gpio = <43>;
-
-This is not a valid gpio specifier.
-
-> +		regulator-fixed-startup-delay = <70000>;
-> +		regulator-fixed-enable-high;
-> +		regulator-fixed-enabled-at-boot;
-> +	};
-> diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
-> index 2fe9d99..9851b42 100644
-> --- a/drivers/regulator/fixed.c
-> +++ b/drivers/regulator/fixed.c
-> @@ -26,6 +26,9 @@
->  #include <linux/gpio.h>
->  #include <linux/delay.h>
->  #include <linux/slab.h>
-> +#include <linux/of.h>
-> +#include <linux/regulator/of_regulator.h>
-> +#include <linux/regulator/machine.h>
+>  arch/arm/mach-omap2/vc.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index ee0edf3..badf28b 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -381,6 +381,15 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
+>  		OMAP4_DOWNTIME_MASK);
 >  
->  struct fixed_voltage_data {
->  	struct regulator_desc desc;
-> @@ -37,6 +40,46 @@ struct fixed_voltage_data {
->  	bool is_enabled;
->  };
+>  	__raw_writel(val, OMAP4_SCRM_CLKSETUPTIME);
+> +
+> +	omap_pm_get_pmic_lp_time(&tstart, &tshut);
+> +
+> +	val = omap4_usec_to_val_scrm(tstart, OMAP4_WAKEUPTIME_SHIFT,
+> +		OMAP4_WAKEUPTIME_MASK);
+> +	val |= omap4_usec_to_val_scrm(tshut, OMAP4_SLEEPTIME_SHIFT,
+> +		OMAP4_SLEEPTIME_MASK);
+> +
+> +	__raw_writel(val, OMAP4_SCRM_PMICSETUPTIME);
+>  }
 >  
-> +
-> +/**
-> + * of_get_fixed_voltage_config - extract fixed_voltage_config structure info
-> + * @dev: device requesting for fixed_voltage_config
-> + *
-> + * Populates fixed_voltage_config structure by extracting data from device
-> + * tree node, returns a pointer to the populated structure of NULL if memory
-> + * alloc fails.
-> + */
-> +struct fixed_voltage_config *of_get_fixed_voltage_config(struct device *dev)
-> +{
-> +	struct fixed_voltage_config *config;
-> +	struct device_node *np = dev->of_node;
-> +	const __be32 *microvolts, *gpio, *delay;
-> +
-> +	config = devm_kzalloc(dev, sizeof(struct fixed_voltage_config), GFP_KERNEL);
-> +	if (!config)
-> +		return NULL;
-> +
-> +	config->supply_name = of_get_property(np, "regulator-fixed-supply", NULL);
-> +	microvolts = of_get_property(np, "regulator-fixed-microvolts", NULL);
-> +	if (microvolts)
-> +		config->microvolts = be32_to_cpu(*microvolts);
-> +	gpio = of_get_property(np, "regulator-fixed-gpio", NULL);
-> +	if (gpio)
-> +		config->gpio = be32_to_cpu(*gpio);
-
-This needs to be fixed to parse a gpio properly instead.
-
-
-
--Olof
+>  /* OMAP4 specific voltage init functions */
