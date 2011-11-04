@@ -1,61 +1,152 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [PATCH v4 1/4] regulator: helper routine to extract
-	regulator_init_data
-Date: Fri, 4 Nov 2011 14:34:35 -0700
-Message-ID: <CAOesGMgA7UayF9SJUP0YLnj86GmKBrajsBxv4_kRNNqCsvKTYg@mail.gmail.com>
-References: <1319721864-30067-1-git-send-email-rnayak@ti.com>
-	<20111104202905.GA3918@quad.lixom.net>
-	<20111104211447.GC2541@opensource.wolfsonmicro.com>
-	<20111104212216.GA5756@quad.lixom.net>
-	<20111104212910.GB8266@opensource.wolfsonmicro.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv3 10/11] omap3+: use lp params for calculating clock setup times
+Date: Fri, 04 Nov 2011 14:38:59 -0700
+Message-ID: <87lirv600c.fsf@ti.com>
+References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
+	<1317835031-8201-11-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20111104212910.GB8266@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, Rajendra Nayak <rnayak@ti.com>, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:53222 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751493Ab1KDVjD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 17:39:03 -0400
+Received: by mail-qy0-f178.google.com with SMTP id 14so2564699qyg.16
+        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 14:39:02 -0700 (PDT)
+In-Reply-To: <1317835031-8201-11-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Wed, 5 Oct 2011 20:17:10 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Nov 4, 2011 at 2:29 PM, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Fri, Nov 04, 2011 at 02:22:16PM -0700, Olof Johansson wrote:
->> On Fri, Nov 04, 2011 at 09:14:48PM +0000, Mark Brown wrote:
+Tero Kristo <t-kristo@ti.com> writes:
+
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+
+Missing descriptive changelog.
+
+> ---
+>  arch/arm/mach-omap2/vc.c |   47 +++++++++++++++++++++++++++++++++++++++++++++-
+>  1 files changed, 46 insertions(+), 1 deletions(-)
 >
->> > The name will be fixed by the individual device bindings, this is
->> > specifying the general form of a supply property. =A0Each device bindi=
-ng
->> > will define the set of supplies that the device can use.
->
->> Ah, ok. It shouldn't be a part of this binding then and instead be added
->> to the bindings for the consumers.
->
-> I think it's useful to define how consumers are supposed to do this
-> somewhere - it is actually part of the core binding how consumers are
-> supposed to do this.
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index c50e598..ee0edf3 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -4,6 +4,8 @@
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+>  
+> +#include <asm/div64.h>
+> +
+>  #include <plat/cpu.h>
+>  #include <plat/prcm.h>
+>  
+> @@ -13,6 +15,7 @@
+>  #include "prm-regbits-44xx.h"
+>  #include "prm44xx.h"
+>  #include "scrm44xx.h"
+> +#include "pm.h"
+>  
+>  /**
+>   * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
+> @@ -198,12 +201,28 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+>  	return 0;
+>  }
+>  
+> +static u32 omap_usec_to_32k(u32 usec)
+> +{
+> +	/* DIV_ROUND_UP expanded to 64bit to avoid overflow */
+> +	u64 val = 32768ULL * (u64)usec + 1000000ULL - 1;
+> +	do_div(val, 1000000ULL);
+> +	return val;
+> +}
+> +
+> +static void omap3_set_clksetup(u32 usec)
+> +{
+> +	omap3_prm_vcvp_write(omap_usec_to_32k(usec), OMAP3_PRM_CLKSETUP_OFFSET);
 
-Yeah, ok, but it shouldn't be part of the description of regulator
-properties per se. See how gpio does it, defining how a gpio-specifier
-is crafted. The equivalent should be done for regulators.
+Please pass in voltdm and use voltdm->write()
 
-> There's also a bit of magic here for chained supplies with one regulator
-> supplying another (eg, using a DCDC to drop the system supply down to a
-> lower voltage to supply a bunch of LDOs for improved efficiency).
+> +}
+> +
+>  static void omap3_set_ret_timings(struct voltagedomain *voltdm)
+>  {
+>  	unsigned long voltsetup1;
+>  	struct clk *sys_ck;
+>  	u32 sys_clk_rate;
+>  
+> +	/* In retention oscillator is not shut down */
+> +	omap3_set_clksetup(1);
+> +
+>  	sys_ck = clk_get(NULL, "sys_ck");
+>  	if (IS_ERR(sys_ck)) {
+>  		pr_warning("%s: unable to get sys_ck to calculate "
+> @@ -229,6 +248,10 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
+>  {
+>  	unsigned long clksetup;
+>  	unsigned long voltsetup2;
+> +	u32 tstart, tshut;
+> +
+> +	omap_pm_get_osc_lp_time(&tstart, &tshut);
+> +	omap3_set_clksetup(tstart);
+>  
+>  	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
+>  
+> @@ -236,7 +259,7 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
+>  	voltsetup2 = voltdm->vc_param->on / voltdm->pmic->slew_rate;
+>  
+>  	/* convert to 32k clk cycles */
+> -	voltsetup2 = voltsetup2 * 32768 / 1000000 + 1;
+> +	voltsetup2 = DIV_ROUND_UP(voltsetup2 * 32768, 1000000);
+>  
+>  	voltdm->write(voltsetup2, OMAP3_PRM_VOLTSETUP2_OFFSET);
+>  
+> @@ -300,12 +323,25 @@ static u32 omap4_calc_volt_ramp(struct voltagedomain *voltdm, u32 voltage_diff,
+>  		(cycles << OMAP4430_RAMP_UP_COUNT_SHIFT);
+>  }
+>  
+> +static u32 omap4_usec_to_val_scrm(u32 usec, int shift, u32 mask)
+> +{
+> +	u32 val;
+> +
+> +	val = omap_usec_to_32k(usec) << shift;
+> +
+> +	if (val > mask)
+> +		val = mask;
 
-Describing that in the device tree using regulator-specifiers
-shouldn't be too bad? The LDO will reference the DCDC as the parent
-supply (or input or whatever language you prefer). They don't have to
-be in the same topology, they will instead be under whatever
-controller/bus they are on for control -- i2c, etc.
+This isn't entirely obvious.  At first I thought it should just be 
+'val &= mask', but staring at it for awhile I think I understand now.
+Adding a comment above with a description would be helpful.
 
+> +	return val;
+> +}
+> +
+>  static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
+>  {
+>  	struct clk *sys_ck;
+>  	u32 sys_clk_rate;
+>  	u32 val;
+>  	u32 ramp;
+> +	u32 tstart, tshut;
+>  
+>  	sys_ck = clk_get(NULL, "sys_clkin_ck");
+>  	if (IS_ERR(sys_ck)) {
+> @@ -336,6 +372,15 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
+>  	val |= ramp << OMAP4430_RAMP_UP_COUNT_SHIFT;
+>  
+>  	voltdm->write(val, voltdm->vfsm->voltsetup_reg);
+> +
+> +	omap_pm_get_osc_lp_time(&tstart, &tshut);
+> +
+> +	val = omap4_usec_to_val_scrm(tstart, OMAP4_SETUPTIME_SHIFT,
+> +		OMAP4_SETUPTIME_MASK);
+> +	val |= omap4_usec_to_val_scrm(tshut, OMAP4_DOWNTIME_SHIFT,
+> +		OMAP4_DOWNTIME_MASK);
+> +	__raw_writel(val, OMAP4_SCRM_CLKSETUPTIME);
+>  }
+>  
+>  /* OMAP4 specific voltage init functions */
 
--Olof
+Kevin
