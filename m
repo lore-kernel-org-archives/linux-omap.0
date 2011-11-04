@@ -1,152 +1,236 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv3 10/11] omap3+: use lp params for calculating clock setup times
-Date: Fri, 04 Nov 2011 14:38:59 -0700
-Message-ID: <87lirv600c.fsf@ti.com>
-References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
-	<1317835031-8201-11-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH] CPUIdle: Reevaluate C-states under CPU load to favor
+	deeper C-states
+Date: Fri, 04 Nov 2011 14:46:17 -0700
+Message-ID: <87d3d75zo6.fsf@ti.com>
+References: <1316475315-5905-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:53222 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751493Ab1KDVjD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 17:39:03 -0400
-Received: by mail-qy0-f178.google.com with SMTP id 14so2564699qyg.16
-        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 14:39:02 -0700 (PDT)
-In-Reply-To: <1317835031-8201-11-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Wed, 5 Oct 2011 20:17:10 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1316475315-5905-1-git-send-email-khilman@ti.com> (Kevin Hilman's
+	message of "Mon, 19 Sep 2011 16:35:15 -0700")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Nicole Chalhoub <n-chalhoub@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+ping v2
 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Kevin Hilman <khilman@ti.com> writes:
 
-Missing descriptive changelog.
-
-> ---
->  arch/arm/mach-omap2/vc.c |   47 +++++++++++++++++++++++++++++++++++++++++++++-
->  1 files changed, 46 insertions(+), 1 deletions(-)
+> From: Nicole Chalhoub <n-chalhoub@ti.com>
 >
-> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-> index c50e598..ee0edf3 100644
-> --- a/arch/arm/mach-omap2/vc.c
-> +++ b/arch/arm/mach-omap2/vc.c
-> @@ -4,6 +4,8 @@
->  #include <linux/clk.h>
->  #include <linux/io.h>
+> While there is CPU load, program a C-state specific one-shot timer in
+> order to give CPUidle another opportunity to pick a deeper C-state
+> instead of spending potentially long idle times in a shallow C-state.
+>
+> Long winded version:
+> When going idle with a high load average, CPUidle menu governor will
+> decide to pick a shallow C-state since one of the guiding principles
+> of the menu governor is "The busier the system, the less impact of
+> C-states is acceptable" (taken from cpuidle/governors/menu.c.)
+> That makes perfect sense.
+>
+> However, there are missed power-saving opportunities for bursty
+> workloads with long idle times (e.g. MP3 playback.)  Given such a
+> workload, because of the load average, CPUidle tends to pick a shallow
+> C-state.  Because we also go tickless, this shallow C-state is used
+> for the duration of the idle period. If the idle period is long, a
+> deeper C state would've resulted in better power savings.
+> This patch provides an additional opportuntity for CPUidle to pick a
+> deeper C-state by programming a timer (with a C-state specific timeout)
+> such that the CPUidle governor will have another opportunity to pick a
+> deeper C-state.
+>
+> Adding this timer for C-state reevaluation improved the load estimation
+> on our ARM/OMAP4 platform and increased the time spent in deep C-states
+> (~50% of idle time in C-states deeper than C1).  A power saving of ~10mA
+> at battery level is observed during MP3 playback on OMAP4/Blaze board.
+>
+> Signed-off-by: Nicole Chalhoub <n-chalhoub@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  drivers/cpuidle/cpuidle.c        |   28 +++++++++++++++++++++++++-
+>  drivers/cpuidle/governors/menu.c |   39 ++++++++++++++++++++++++++++++++-----
+>  include/linux/cpuidle.h          |    4 +++
+>  3 files changed, 63 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> index 1994885..4b1ac0c 100644
+> --- a/drivers/cpuidle/cpuidle.c
+> +++ b/drivers/cpuidle/cpuidle.c
+> @@ -92,13 +92,33 @@ static void cpuidle_idle_call(void)
+>  	target_state->time += (unsigned long long)dev->last_residency;
+>  	target_state->usage++;
 >  
-> +#include <asm/div64.h>
+> -	/* give the governor an opportunity to reflect on the outcome */
+> -	if (cpuidle_curr_governor->reflect)
+> +	hrtimer_cancel(&dev->cstate_timer);
 > +
->  #include <plat/cpu.h>
->  #include <plat/prcm.h>
->  
-> @@ -13,6 +15,7 @@
->  #include "prm-regbits-44xx.h"
->  #include "prm44xx.h"
->  #include "scrm44xx.h"
-> +#include "pm.h"
+> +	/*
+> +	 * Give the governor an opportunity to reflect on the outcome
+> +	 * Do not take into account the wakeups due to the hrtimer, they
+> +	 * should not impact the predicted idle time.
+> +	 */
+> +	if ((!dev->hrtimer_expired) && cpuidle_curr_governor->reflect)
+>  		cpuidle_curr_governor->reflect(dev);
+>  	trace_power_end(0);
+>  }
 >  
 >  /**
->   * struct omap_vc_channel_cfg - describe the cfg_channel bitfield
-> @@ -198,12 +201,28 @@ int omap_vc_bypass_scale(struct voltagedomain *voltdm,
+> + * cstate_reassessment_timer - interrupt handler of the cstate hrtimer
+> + * @handle:	the expired hrtimer
+> + */
+> +static enum hrtimer_restart cstate_reassessment_timer(struct hrtimer *handle)
+> +{
+> +	struct cpuidle_device *data =
+> +		container_of(handle, struct cpuidle_device, cstate_timer);
+> +
+> +	data->hrtimer_expired = 1;
+> +
+> +	return HRTIMER_NORESTART;
+> +}
+> +
+> +/**
+>   * cpuidle_install_idle_handler - installs the cpuidle idle loop handler
+>   */
+>  void cpuidle_install_idle_handler(void)
+> @@ -185,6 +205,10 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+>  
+>  	dev->enabled = 1;
+>  
+> +	dev->hrtimer_expired = 0;
+> +	hrtimer_init(&dev->cstate_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+> +	dev->cstate_timer.function = cstate_reassessment_timer;
+> +
+>  	enabled_devices++;
 >  	return 0;
+>  
+> diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
+> index 1b12870..fd54584 100644
+> --- a/drivers/cpuidle/governors/menu.c
+> +++ b/drivers/cpuidle/governors/menu.c
+> @@ -125,10 +125,21 @@ struct menu_device {
+>  #define LOAD_INT(x) ((x) >> FSHIFT)
+>  #define LOAD_FRAC(x) LOAD_INT(((x) & (FIXED_1-1)) * 100)
+>  
+> -static int get_loadavg(void)
+> +static int get_loadavg(struct cpuidle_device *dev)
+>  {
+> -	unsigned long this = this_cpu_load();
+> +	unsigned long this;
+>  
+> +	/*
+> +	 * this_cpu_load() returns the value of rq->load.weight
+> +	 * at the previous scheduler tick and not the current value.
+> +	 * If the timer expired, that means we are in idle,there
+> +	 * are no more runnable processes in the current queue
+> +	 * =>return the current value of rq->load.weight which is 0.
+> +	 */
+> +	if (dev->hrtimer_expired == 1)
+> +		return 0;
+> +	else
+> +		this = this_cpu_load();
+>  
+>  	return LOAD_INT(this) * 10 + LOAD_FRAC(this) / 10;
+>  }
+> @@ -166,13 +177,13 @@ static inline int which_bucket(unsigned int duration)
+>   * to be, the higher this multiplier, and thus the higher
+>   * the barrier to go to an expensive C state.
+>   */
+> -static inline int performance_multiplier(void)
+> +static inline int performance_multiplier(struct cpuidle_device *dev)
+>  {
+>  	int mult = 1;
+>  
+>  	/* for higher loadavg, we are more reluctant */
+>  
+> -	mult += 2 * get_loadavg();
+> +	mult += 2 * get_loadavg(dev);
+>  
+>  	/* for IO wait tasks (per cpu!) we add 5x each */
+>  	mult += 10 * nr_iowait_cpu(smp_processor_id());
+> @@ -236,6 +247,7 @@ static int menu_select(struct cpuidle_device *dev)
+>  	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
+>  	int i;
+>  	int multiplier;
+> +	ktime_t timeout;
+>  
+>  	if (data->needs_update) {
+>  		menu_update(dev);
+> @@ -256,7 +268,7 @@ static int menu_select(struct cpuidle_device *dev)
+>  
+>  	data->bucket = which_bucket(data->expected_us);
+>  
+> -	multiplier = performance_multiplier();
+> +	multiplier = performance_multiplier(dev);
+>  
+>  	/*
+>  	 * if the correction factor is 0 (eg first time init or cpu hotplug
+> @@ -287,12 +299,27 @@ static int menu_select(struct cpuidle_device *dev)
+>  			break;
+>  		if (s->exit_latency > latency_req)
+>  			break;
+> -		if (s->exit_latency * multiplier > data->predicted_us)
+> +		if (s->exit_latency * multiplier > data->predicted_us) {
+> +			/*
+> +			 * Could not enter the next C-state because of a high
+> +			 * load. Set a timer in order to check the load again
+> +			 * after the timeout expires and re-evaluate cstate.
+> +			 */
+> +			if (s->hrtimer_timeout != 0 && get_loadavg(dev)) {
+> +				timeout =
+> +				       ktime_set(0,
+> +					   s->hrtimer_timeout * NSEC_PER_USEC);
+> +				hrtimer_start(&dev->cstate_timer, timeout,
+> +					   HRTIMER_MODE_REL);
+> +			}
+>  			break;
+> +		}
+>  		data->exit_us = s->exit_latency;
+>  		data->last_state_idx = i;
+>  	}
+>  
+> +	/* Reset hrtimer_expired which is set when the hrtimer fires */
+> +	dev->hrtimer_expired = 0;
+>  	return data->last_state_idx;
 >  }
 >  
-> +static u32 omap_usec_to_32k(u32 usec)
-> +{
-> +	/* DIV_ROUND_UP expanded to 64bit to avoid overflow */
-> +	u64 val = 32768ULL * (u64)usec + 1000000ULL - 1;
-> +	do_div(val, 1000000ULL);
-> +	return val;
-> +}
-> +
-> +static void omap3_set_clksetup(u32 usec)
-> +{
-> +	omap3_prm_vcvp_write(omap_usec_to_32k(usec), OMAP3_PRM_CLKSETUP_OFFSET);
-
-Please pass in voltdm and use voltdm->write()
-
-> +}
-> +
->  static void omap3_set_ret_timings(struct voltagedomain *voltdm)
->  {
->  	unsigned long voltsetup1;
->  	struct clk *sys_ck;
->  	u32 sys_clk_rate;
+> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+> index 55215cc..8d11b52 100644
+> --- a/include/linux/cpuidle.h
+> +++ b/include/linux/cpuidle.h
+> @@ -16,6 +16,7 @@
+>  #include <linux/module.h>
+>  #include <linux/kobject.h>
+>  #include <linux/completion.h>
+> +#include <linux/hrtimer.h>
 >  
-> +	/* In retention oscillator is not shut down */
-> +	omap3_set_clksetup(1);
-> +
->  	sys_ck = clk_get(NULL, "sys_ck");
->  	if (IS_ERR(sys_ck)) {
->  		pr_warning("%s: unable to get sys_ck to calculate "
-> @@ -229,6 +248,10 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
->  {
->  	unsigned long clksetup;
->  	unsigned long voltsetup2;
-> +	u32 tstart, tshut;
-> +
-> +	omap_pm_get_osc_lp_time(&tstart, &tshut);
-> +	omap3_set_clksetup(tstart);
+>  #define CPUIDLE_STATE_MAX	8
+>  #define CPUIDLE_NAME_LEN	16
+> @@ -37,6 +38,7 @@ struct cpuidle_state {
+>  	unsigned int	exit_latency; /* in US */
+>  	unsigned int	power_usage; /* in mW */
+>  	unsigned int	target_residency; /* in US */
+> +	unsigned int	hrtimer_timeout; /* in US */
 >  
->  	clksetup = voltdm->read(OMAP3_PRM_CLKSETUP_OFFSET);
+>  	unsigned long long	usage;
+>  	unsigned long long	time; /* in US */
+> @@ -97,6 +99,8 @@ struct cpuidle_device {
+>  	struct completion	kobj_unregister;
+>  	void			*governor_data;
+>  	struct cpuidle_state	*safe_state;
+> +	struct hrtimer          cstate_timer;
+> +	unsigned int            hrtimer_expired;
+>  };
 >  
-> @@ -236,7 +259,7 @@ static void omap3_set_off_timings(struct voltagedomain *voltdm)
->  	voltsetup2 = voltdm->vc_param->on / voltdm->pmic->slew_rate;
->  
->  	/* convert to 32k clk cycles */
-> -	voltsetup2 = voltsetup2 * 32768 / 1000000 + 1;
-> +	voltsetup2 = DIV_ROUND_UP(voltsetup2 * 32768, 1000000);
->  
->  	voltdm->write(voltsetup2, OMAP3_PRM_VOLTSETUP2_OFFSET);
->  
-> @@ -300,12 +323,25 @@ static u32 omap4_calc_volt_ramp(struct voltagedomain *voltdm, u32 voltage_diff,
->  		(cycles << OMAP4430_RAMP_UP_COUNT_SHIFT);
->  }
->  
-> +static u32 omap4_usec_to_val_scrm(u32 usec, int shift, u32 mask)
-> +{
-> +	u32 val;
-> +
-> +	val = omap_usec_to_32k(usec) << shift;
-> +
-> +	if (val > mask)
-> +		val = mask;
-
-This isn't entirely obvious.  At first I thought it should just be 
-'val &= mask', but staring at it for awhile I think I understand now.
-Adding a comment above with a description would be helpful.
-
-> +	return val;
-> +}
-> +
->  static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
->  {
->  	struct clk *sys_ck;
->  	u32 sys_clk_rate;
->  	u32 val;
->  	u32 ramp;
-> +	u32 tstart, tshut;
->  
->  	sys_ck = clk_get(NULL, "sys_clkin_ck");
->  	if (IS_ERR(sys_ck)) {
-> @@ -336,6 +372,15 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
->  	val |= ramp << OMAP4430_RAMP_UP_COUNT_SHIFT;
->  
->  	voltdm->write(val, voltdm->vfsm->voltsetup_reg);
-> +
-> +	omap_pm_get_osc_lp_time(&tstart, &tshut);
-> +
-> +	val = omap4_usec_to_val_scrm(tstart, OMAP4_SETUPTIME_SHIFT,
-> +		OMAP4_SETUPTIME_MASK);
-> +	val |= omap4_usec_to_val_scrm(tshut, OMAP4_DOWNTIME_SHIFT,
-> +		OMAP4_DOWNTIME_MASK);
-> +	__raw_writel(val, OMAP4_SCRM_CLKSETUPTIME);
->  }
->  
->  /* OMAP4 specific voltage init functions */
-
-Kevin
+>  DECLARE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
