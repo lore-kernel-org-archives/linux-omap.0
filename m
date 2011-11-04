@@ -1,40 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/2] regulator:TPS65910: VDD1/2 voltage selector count
-Date: Fri, 4 Nov 2011 15:25:59 +0000
-Message-ID: <20111104152559.GC28615@opensource.wolfsonmicro.com>
-References: <1320410928-20349-1-git-send-email-afzal@ti.com>
- <20111104140422.GA28615@opensource.wolfsonmicro.com>
- <C8443D0743D26F4388EA172BF4E2A7A90194B0@DBDE01.ent.ti.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: OMAP: TWL4030: Sound broken in 3.1
+Date: Fri, 04 Nov 2011 17:28:45 +0200
+Message-ID: <6555903.9RbRJEkmHF@barack>
+References: <WC20111104151805.630235@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38797 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752708Ab1KDP0B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 11:26:01 -0400
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A90194B0@DBDE01.ent.ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47167 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755201Ab1KDP2v convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Nov 2011 11:28:51 -0400
+Received: by mail-fx0-f41.google.com with SMTP id f16so3602267faa.0
+        for <linux-omap@vger.kernel.org>; Fri, 04 Nov 2011 08:28:50 -0700 (PDT)
+In-Reply-To: <WC20111104151805.630235@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Girdwood, Liam" <lrg@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>, Jorge Eduardo Candelaria <jedu@slimlogic.co.uk>
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Nov 04, 2011 at 02:26:05PM +0000, Mohammed, Afzal wrote:
-> Hi Brown,
+On Friday 04 November 2011 15:18:05 Joe Woodward wrote:
+> In 3.1 sound support is broken for any boards using a TWL4030-based C=
+ODEC.
+>=20
+> The Kconfig option for the TWL4030 CODEC used to be TWL4030_CODEC, an=
+d in
+> 3.1 this has been changed to MFD_TWL4030_AUDIO.
+>=20
+> I believe this has caused a problem in drives/mfd/twl-core.c:112 as t=
+he
+> define for the twl_has_codec() macro still tests for CONFIG_TWL4030_C=
+ODEC.
+> Hence the macro always returns false and during boot I get:
+>=20
+> [    2.417999] ALSA device list:
+> [    2.421142]   No soundcards found.
+>=20
+> Is this likely to be the problem?
 
-Ahem.
+See Jarkko's patch:
+https://lkml.org/lkml/2011/10/19/125
 
-> On Fri, Nov 04, 2011 at 19:34:22, Mark Brown wrote:
-> > On Fri, Nov 04, 2011 at 06:18:48PM +0530, Afzal Mohammed wrote:
-
-> > >  		if (i == TPS65910_REG_VDD1 || i == TPS65910_REG_VDD2) {
-> > >  			pmic->desc[i].ops = &tps65910_ops_dcdc;
-> > > +			pmic->desc[i].n_voltages = VDD1_2_NUM_VOLTS * 3;
-
-> > This looks suspicous - what's the * 3 about?
-
-> Gain in voltage possible is x1, 0x2 & 0x3, I am shaky
-> about this change, but voltage could be changed with this,
-
-That doesn't really clarify things - the question is why the number of
-voltages we can set is three times a constant called _NUM_VOLTS?
+--
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
