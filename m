@@ -1,70 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: I2C: Fix omap_register_i2c_bus() return value on
- success
-Date: Fri, 4 Nov 2011 17:19:38 -0700
-Message-ID: <20111105001937.GL31337@atomide.com>
-References: <1320234843-29115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL] ARM: OMAP: DSS hwmod/reset fixes for 3.2
+Date: Fri, 4 Nov 2011 17:35:50 -0700
+Message-ID: <20111105003550.GM31337@atomide.com>
+References: <alpine.DEB.2.00.1110061806150.4611@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:42810 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52708 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763Ab1KEATj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 20:19:39 -0400
+	with ESMTP id S1752121Ab1KEAfx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Nov 2011 20:35:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1320234843-29115-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <alpine.DEB.2.00.1110061806150.4611@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [111102 04:19]:
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -165,7 +165,7 @@ static inline int omap2_i2c_add_bus(int bus_id)
->  			omap_i2c_latency, ARRAY_SIZE(omap_i2c_latency), 0);
->  	WARN(IS_ERR(od), "Could not build omap_device for %s\n", name);
->  
-> -	return PTR_ERR(od);
-> +	return PTR_RET(od);
->  }
->  #else
->  static inline int omap2_i2c_add_bus(int bus_id)
+* Paul Walmsley <paul@pwsan.com> [111006 16:33]:
+> Hi Tony,
+> 
+> The following changes since commit be73246058737beec52ae232bcab7776332a9e06:
+> 
+>   ARM: OMAP2+: Remove custom init_irq for remaining boards (2011-09-26 17:50:37 -0700)
+> 
+> are available in the git repository at:
+>   git://git.pwsan.com/linux-2.6 hwmod_dss_fixes_3.2
 
-Thanks applying into fixes after updating it to return pdev instead
-of od as below.
+Looks like you should take a look at the merge conflicts with
+this one, maybe rebase it on 994c0e992522c123298b4a91b72f5e67ba2d1123.
+
+Regards,
 
 Tony
-
-
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Wed, 2 Nov 2011 12:54:03 +0100
-Subject: [PATCH] ARM: OMAP: I2C: Fix omap_register_i2c_bus() return value on success
-
-Commit 4d17aeb1c5b2375769446d13012a98e6d265ec13 ("OMAP: I2C: split
-device registration and convert OMAP2+ to omap_device") makes
-omap2_i2c_add_bus() return a pointer to an omap_device instead on
-success instead of 0.
-
-This breaks the omap_register_i2c_bus() ABI and results in the igep0020
-board code detecting an I2C bus registration error when there is none.
-
-Fix the problem by using PTR_RET() instead of PTR_ERR() in
-omap2_i2c_add_bus().
-
-Reported-by: Alexander Kinzer <a.kinzer@plusoptix.de>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-[tony@atomide.com: updated to return pdev instead of od]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -184,7 +184,7 @@ static inline int omap2_i2c_add_bus(int bus_id)
- 			NULL, 0, 0);
- 	WARN(IS_ERR(pdev), "Could not build omap_device for %s\n", name);
  
--	return PTR_ERR(pdev);
-+	return PTR_RET(pdev);
- }
- #else
- static inline int omap2_i2c_add_bus(int bus_id)
+> Archit Taneja (1):
+>       ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
+> 
+> Tomi Valkeinen (9):
+>       ARM: OMAP2xxx: HWMOD: Fix DSS reset
+>       ARM: OMAP2xxx: HWMOD: fix DSS clock data
+>       ARM: OMAP3: HWMOD: Fix DSS reset
+>       ARM: OMAP3: HWMOD: fix DSS clock data
+>       ARM: OMAP4: HWMOD: remove extra clocks
+>       ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
+>       ARM: OMAP4: HWMOD: fix DSS clock data
+>       ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
+>       ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
+> 
+>  arch/arm/mach-omap2/Makefile                       |    5 +-
+>  arch/arm/mach-omap2/display.c                      |  160 ++++++++++++++++++++
+>  arch/arm/mach-omap2/display.h                      |   29 ++++
+>  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
+>  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
+>  .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
+>  arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
+>  arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
+>  arch/arm/plat-omap/include/plat/common.h           |    3 +
+>  include/video/omapdss.h                            |    7 -
+>  12 files changed, 277 insertions(+), 35 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/display.h
