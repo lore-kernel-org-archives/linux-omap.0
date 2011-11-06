@@ -1,44 +1,141 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 1/4] ARM: OMAP3: cm-t35: add regulator supply for ads7846
-Date: Sun, 06 Nov 2011 15:19:48 +0200
-Message-ID: <4EB68974.5090907@compulab.co.il>
-References: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il> <1319017160-20391-2-git-send-email-grinberg@compulab.co.il> <20111104233938.GF31337@atomide.com> <20111104235720.GG31337@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Pet Peaves about Platform code, and arch_reset
+Date: Sun, 6 Nov 2011 13:52:50 +0000
+Message-ID: <20111106135250.GC15294@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:46963
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752148Ab1KFNT4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Nov 2011 08:19:56 -0500
-In-Reply-To: <20111104235720.GG31337@atomide.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47271 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752381Ab1KFNxA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Nov 2011 08:53:00 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
 
-Hi Tony,
+Here's a list of my peaves about current platform code - which are
+causing me great issue when trying to clean up the arch_reset() stuff:
 
-On 11/05/11 01:57, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [111104 16:05]:
->> * Igor Grinberg <grinberg@compulab.co.il> [111019 02:05]:
->>
->> Applying to board branch for v3.3 merge window.
-> 
-> Hmm, actually I suggest you respin patches 2 and 3 so they apply
-> on their own to current fixes branch. Then update 1 and 4 to
-> apply on top of those.
-> 
-> This way we can apply 2 and 3 during the -rc cycle, and then
-> queue 1 and 4 for the next merge window.
+1. Lack of trailing ',' on structure initializers
+   This makes it much harder to add additional initializers at the end
+   of existing initializers, and increases the risks of conflicts being
+   caused due to more lines having to be modified.
 
-Well, actually all them are fixes, although it cannot be understood
-from the subject.
-I will adjust the subjects (and may be the commit messages also)
-to be more specific and resend.
+(This won't work directly because the tabs have been converted to space.
+The empty-looking [] contain a space plus a tab.)
+$ grep '[   ][      ]*\.[[:alnum:]_][[:alnum:]_]*[  ]*=[    ]*[[:alnum:]_{][[:alnum:]_|()}]*[^,]$' arch/arm -r|wc -l
+768
+$ grep '[   ][      ]*\.[[:alnum:]_][[:alnum:]_]*[  ]*=[    ]*[[:alnum:]_{][[:alnum:]_|()}]*[^,]$' arch/arm/*omap* -r|wc -l
+325
 
-Thanks
+   Note that this is _far_ too big a problem - and trivial - to fix in
+   a set of silly churn generating patches - it's a problem to be fixed
+   as a part of _other_ changes to the files.
 
--- 
-Regards,
-Igor.
+   But most importantly _stop_ introducing versions of this problem.
+
+2. Lack of consistent formatting for structure initializers within a
+   mach- subdirectory.  Some use tabs to align the '=' sign.  Others
+   use one space.  This makes a repeated paste of a new initializer
+   mismatch the rest of the formatting of the structure.
+
+   I _really_ don't care to fix the new initializer I'm introducing to
+   match the random formatting within a subdirectory.
+
+3. Files containing one data structure or function are quite an annoyance
+   when trying to do something like move arch_reset() out of the header
+   file into the platform .c code; this requires creating yet another
+   file containing one function, or consolidating the platform code
+   together first.  I've fixed clps711x for that (so I can convert it),
+   but left others.
+
+4. People who think that include files must be stored under a directory
+   with 'include' somewhere mentioned in its path.  This is a big one
+   and a *REAL* hate.  Include files _private_ to a group of source files
+   in a directory should live in the same directory as those files.
+   For instance, this should be zero because the 'map_io' function should
+   not be exported outside of the arch/arm/mach-* subdirectory:
+
+$ grep -l map_io arch/arm/mach-*/include/mach/*.h | wc -l
+21
+
+   Let's look at some specific cases:
+
+$ grep omap15xx_map_io arch/arm/mach-omap1 arch/arm/plat-omap/ -r
+arch/arm/mach-omap1/board-innovator.c:      omap15xx_map_io();
+arch/arm/mach-omap1/board-palmte.c: .map_io         = omap15xx_map_io,
+arch/arm/mach-omap1/board-palmz71.c:        .map_io         = omap15xx_map_io,
+arch/arm/mach-omap1/board-voiceblue.c:      .map_io         = omap15xx_map_io,
+arch/arm/mach-omap1/io.c:void __init omap15xx_map_io(void)
+arch/arm/mach-omap1/board-palmtt.c: .map_io         = omap15xx_map_io,
+arch/arm/mach-omap1/board-fsample.c:        omap15xx_map_io();
+arch/arm/mach-omap1/board-sx1.c:    .map_io         = omap15xx_map_io,
+arch/arm/mach-omap1/board-ams-delta.c:      .map_io         = omap15xx_map_io,
+arch/arm/plat-omap/include/plat/io.h:void omap15xx_map_io(void);
+arch/arm/plat-omap/include/plat/io.h:static inline void omap15xx_map_io(void)
+
+   What is the point of the omap15xx_map_io prototype being is a
+   _completely_ different place to where it is defined?
+
+   The problem is where do I put a function prototype for omap1_restart()
+   amongst these header files for OMAP1 board files to pick up?  Better
+   still, don't tell me, but fix this stuff so that OMAP1 private stuff
+   is in a 'common.h' or 'board.h' header file in arch/arm/mach-omap1.
+
+$ grep s5pv210_init_irq arch/arm -r
+arch/arm/mach-s5pv210/mach-aquila.c:        .init_irq       = s5pv210_init_irq,
+arch/arm/mach-s5pv210/mach-torbreck.c:      .init_irq       = s5pv210_init_irq,
+arch/arm/mach-s5pv210/mach-goni.c:  .init_irq       = s5pv210_init_irq,
+arch/arm/mach-s5pv210/cpu.c:void __init s5pv210_init_irq(void)
+arch/arm/mach-s5pv210/mach-smdkc110.c:      .init_irq       = s5pv210_init_irq,
+arch/arm/mach-s5pv210/mach-smdkv210.c:      .init_irq       = s5pv210_init_irq,
+arch/arm/plat-samsung/include/plat/s5pv210.h:extern void s5pv210_init_irq(void);
+
+   Again, what is the point of this lack of locality?  And more-over,
+   where the hell do I put a prototype for my new s5pv210_restart()
+   which is in arch/arm/mach-s5pv210/cpu.c ?  Again, don't tell me but
+   fix stuff so that the function prototypes etc are closer to their
+   definitions and uses.
+
+   There is no excuse for this kind of crap, other than people being
+   sheep and following idiotic and rediculous ideas like "include files
+   must be under a directory called include".
+
+The arch_reset() branch, when published, will end with a commit removing
+the converted (and therefore empty) arch_reset() functions in mach/system.h,
+and its call site.  Those platforms which haven't been converted will
+still have an arch_reset() function but this will no longer be called.
+
+I currently have a couple of commits which move things like OMAP1
+(dangling arch_reset), Exynos4 and S5PV210 (converted but missing a
+function prototype, and therefore fail to build) in the right direction
+_but_ will break because of the issues raised above, particularly (4).
+Whether I care to fix it depends on the reaction to this mail and whether
+people change their behaviour to how they lay code out.
+
+One point to note (for those who question whether it's a good idea to
+touch the old code): the problem platform code is not the old stuff.
+The old stuff, being older, is much less complex and therefore easier
+to convert.  What's proving to be more of a headache is the more modern
+and current stuff, particularly where people have decided to follow
+non-kernel convention about things like placement of include files.
+
+For reference, he's the list - after five days work - of those platforms
+which are proving hard to convert:
+
+arch/arm/mach-bcmring/include/mach/system.h
+arch/arm/mach-davinci/include/mach/system.h
+arch/arm/mach-gemini/include/mach/system.h
+arch/arm/mach-ks8695/include/mach/system.h
+arch/arm/mach-netx/include/mach/system.h
+arch/arm/mach-nomadik/include/mach/system.h
+arch/arm/mach-omap1/include/mach/system.h
+arch/arm/mach-omap2/include/mach/system.h
+arch/arm/mach-s3c2410/include/mach/system-reset.h
+arch/arm/mach-s3c64xx/include/mach/system.h
+arch/arm/mach-shmobile/include/mach/system.h
+arch/arm/mach-vt8500/include/mach/system.h
+arch/arm/plat-mxc/include/mach/system.h
+arch/arm/plat-samsung/include/plat/system-reset.h
+arch/arm/plat-tcc/include/mach/system.h
