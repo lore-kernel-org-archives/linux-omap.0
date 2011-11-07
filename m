@@ -1,103 +1,158 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v8 24/24] gpio/omap: handle set_dataout reg capable IP on restore
-Date: Mon, 7 Nov 2011 17:35:37 +0530
-Message-ID: <CAC83Zv+gac_Wd8+V+o6USxv73ia5i8JLjLDHj8VQiRiqZ7DOtQ@mail.gmail.com>
-References: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
-	<1317803593-12259-25-git-send-email-tarun.kanti@ti.com>
-	<87aa8bde2d.fsf@ti.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCH] OMAP2+: Fix Compilation break on current mainline
+Date: Mon, 7 Nov 2011 18:08:28 +0530
+Message-ID: <1320669508-32204-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:38460 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752374Ab1KGMFj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Nov 2011 07:05:39 -0500
-Received: by mail-qy0-f172.google.com with SMTP id 16so2418328qyl.3
-        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 04:05:39 -0800 (PST)
-In-Reply-To: <87aa8bde2d.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57464 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755374Ab1KGMit (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 7 Nov 2011 07:38:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-On Fri, Nov 4, 2011 at 10:23 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
->> From: Nishanth Menon <nm@ti.com>
->>
->> GPIO IP revisions such as those used in OMAP4 have a set_dataout
->> while the previous revisions used a single dataout register.
->> Depending on what is available restore the dataout settings
->> to the right register.
->>
->> Signed-off-by: Nishanth Menon <nm@ti.com>
->> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->> =A0drivers/gpio/gpio-omap.c | =A0 =A09 +++++++--
->> =A01 files changed, 7 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index 4009446..3df7a98 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -1073,7 +1073,7 @@ static int __devinit omap_gpio_probe(struct pl=
-atform_device *pdev)
->> =A0 =A0 =A0 bank->get_context_loss_count =3D pdata->get_context_loss=
-_count;
->> =A0 =A0 =A0 bank->regs =3D pdata->regs;
->>
->> - =A0 =A0 if (bank->regs->set_dataout && bank->regs->clr_dataout)
->> + =A0 =A0 if (bank->regs->set_dataout)
->
-> This change isn't right.
->
-> The _set_gpio_dataout_reg function depends on the existence of
-> ->clr_dataout too.
-Ok, I will add the clr_dataout condtion as well.
+I see below errors and warnings on latest mainline commit
+b32fc0a0629bf5894b35f33554c118aacfd0d1e2 with omap2plus_defconfig.
 
->
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->set_dataout =3D _set_gpio_dataout_=
-reg;
->> =A0 =A0 =A0 else
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->set_dataout =3D _set_gpio_dataout_=
-mask;
->> @@ -1351,7 +1351,12 @@ static void omap_gpio_restore_context(struct =
-gpio_bank *bank)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->ba=
-se + bank->regs->risingdetect);
->> =A0 =A0 =A0 __raw_writel(bank->context.fallingdetect,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->ba=
-se + bank->regs->fallingdetect);
->> - =A0 =A0 __raw_writel(bank->context.dataout, bank->base + bank->reg=
-s->dataout);
->> + =A0 =A0 if (bank->regs->set_dataout)
->
-> Why the check again? =A0The check has already been done in probe.
->
-> Just use bank->set_dataout() here.
-Sure, i will make the change.
---
-Tarun
->
-> Kevin
->
->> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.dataout,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base=
- + bank->regs->set_dataout);
->> + =A0 =A0 else
->> + =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(bank->context.dataout,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->base=
- + bank->regs->dataout);
->> =A0 =A0 =A0 __raw_writel(bank->context.oe, bank->base + bank->regs->=
-direction);
->>
->> =A0 =A0 =A0 if (bank->dbck_enable_mask) {
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch to fix the same.
+
+arch/arm/plat-omap/dmtimer.c:184: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:184: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:184: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:215: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:215: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:215: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:228: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:228: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:228: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:234: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:234: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:234: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:240: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:240: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:240: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:248: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:248: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:248: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:294: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:294: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:294: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:302: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:302: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:302: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:316: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:316: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:316: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:344: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:344: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:344: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:361: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:361: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:361: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:380: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:380: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:380: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:406: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:406: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:406: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:443: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:443: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:443: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:468: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:468: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:468: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:494: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:494: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:494: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:517: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:517: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:517: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:534: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:534: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:534: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:549: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:549: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:549: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:561: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:561: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:561: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:572: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:572: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:572: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:587: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:587: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:587: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:604: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:604: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL_GPL'
+arch/arm/plat-omap/dmtimer.c:604: warning: parameter names (without types) in function declaration
+arch/arm/plat-omap/dmtimer.c:746: error: expected declaration specifiers or '...' before string constant
+arch/arm/plat-omap/dmtimer.c:746: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:746: warning: type defaults to 'int' in declaration of 'MODULE_DESCRIPTION'
+arch/arm/plat-omap/dmtimer.c:746: warning: function declaration isn't a prototype
+arch/arm/plat-omap/dmtimer.c:747: error: expected declaration specifiers or '...' before string constant
+arch/arm/plat-omap/dmtimer.c:747: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:747: warning: type defaults to 'int' in declaration of 'MODULE_LICENSE'
+arch/arm/plat-omap/dmtimer.c:747: warning: function declaration isn't a prototype
+arch/arm/plat-omap/dmtimer.c:748: error: expected declaration specifiers or '...' before string constant
+arch/arm/plat-omap/dmtimer.c:748: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:748: warning: type defaults to 'int' in declaration of 'MODULE_ALIAS'
+arch/arm/plat-omap/dmtimer.c:748: warning: function declaration isn't a prototype
+arch/arm/plat-omap/dmtimer.c:749: error: expected declaration specifiers or '...' before string constant
+arch/arm/plat-omap/dmtimer.c:749: warning: data definition has no type or storage class
+arch/arm/plat-omap/dmtimer.c:749: warning: type defaults to 'int' in declaration of 'MODULE_AUTHOR'
+arch/arm/plat-omap/dmtimer.c:749: warning: function declaration isn't a prototype
+make[1]: *** [arch/arm/plat-omap/dmtimer.o] Error 1
+make: *** [arch/arm/plat-omap] Error 2
+make: *** Waiting for unfinished jobs....
+arch/arm/mach-omap2/omap_l3_noc.c:240: error: expected ',' or ';' before 'MODULE_DEVICE_TABLE'
+arch/arm/mach-omap2/omap_l3_noc.c:250: error: 'THIS_MODULE' undeclared here (not in a function)
+make[1]: *** [arch/arm/mach-omap2/omap_l3_noc.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
+
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+Sorry for the noise if this is already fixed.
+
+ arch/arm/mach-omap2/omap_l3_noc.c |    3 ++-
+ arch/arm/plat-omap/dmtimer.c      |    1 +
+ 2 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
+index c8b1bef..eacbe55 100644
+--- a/arch/arm/mach-omap2/omap_l3_noc.c
++++ b/arch/arm/mach-omap2/omap_l3_noc.c
+@@ -26,6 +26,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
++#include <linux/module.h>
+ 
+ #include "omap_l3_noc.h"
+ 
+@@ -236,7 +237,7 @@ static int __devexit omap4_l3_remove(struct platform_device *pdev)
+ static const struct of_device_id l3_noc_match[] = {
+ 	{.compatible = "ti,omap4-l3-noc", },
+ 	{},
+-}
++};
+ MODULE_DEVICE_TABLE(of, l3_noc_match);
+ #else
+ #define l3_noc_match NULL
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 2def4e1..b9acaca 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -39,6 +39,7 @@
+ #include <linux/slab.h>
+ #include <linux/err.h>
+ #include <linux/pm_runtime.h>
++#include <linux/module.h>
+ 
+ #include <plat/dmtimer.h>
+ 
+-- 
+1.7.4.1
+
