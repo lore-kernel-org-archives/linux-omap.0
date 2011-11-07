@@ -1,143 +1,182 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: omap2+: hwmod: fix breakage introduced by d6504acd
-Date: Mon, 7 Nov 2011 21:27:07 +0000
-Message-ID: <20111107212707.GH15294@n2100.arm.linux.org.uk>
-References: <1320688617-4543-1-git-send-email-balbi@ti.com> <20111107183208.GG15294@n2100.arm.linux.org.uk> <20111107193908.GA5059@legolas.emea.dhcp.ti.com>
+Subject: Re: [GIT PULL] omap fixes for v3.2 merge window breakage
+Date: Mon, 7 Nov 2011 21:29:19 +0000
+Message-ID: <20111107212919.GI15294@n2100.arm.linux.org.uk>
+References: <20111107204929.GZ31337@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42968 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42974 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013Ab1KGV1X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 16:27:23 -0500
+	with ESMTP id S1751246Ab1KGV3c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 16:29:32 -0500
 Content-Disposition: inline
-In-Reply-To: <20111107193908.GA5059@legolas.emea.dhcp.ti.com>
+In-Reply-To: <20111107204929.GZ31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Nov 07, 2011 at 09:39:09PM +0200, Felipe Balbi wrote:
-> Hi,
+Arnd,
+
+Don't pull this - there's yet more crap in OMAP to be fixed before
+these go to mainline.  OMAP3 is severely broken at the moment with,
+to put it bluntly, totally fucked up OMAP hwmod code, and should be
+fixed *now* by folk before this pull request.
+
+The fixes are damned trivial I expect even Tony can fix it without
+reference to Paul.
+
+On Mon, Nov 07, 2011 at 12:49:29PM -0800, Tony Lindgren wrote:
+> Hi Arnd,
 > 
-> On Mon, Nov 07, 2011 at 06:32:08PM +0000, Russell King - ARM Linux wrote:
-> > On Mon, Nov 07, 2011 at 07:56:57PM +0200, Felipe Balbi wrote:
-> > > commit d6504acd (OMAP2+: hwmod: remove OMAP_CHIP*) has
-> > > mistakenly added MUSB as a hwmod available only on ES2.0
-> > > of OMAP3430.
-> > > 
-> > > MUSB hwmod has always be available on all OMAP revisions
-> > > since OMAP2430.
-> > 
-> > This doesn't seem to solve it:
+> Please pull omap fixes from:
 > 
-> then i can't help. From all I know the LDP is based on OMAP3430 so that
-> should work. If it doesn't, it's something deeper on hwmod, maybe ?
-
-Nothing here is specific to the LDP.
-
-> Paul, it's your call.
-
-I think I've found it.
-
-Okay, so.  Clearly, *no* one has even tested this stuff on *any* OMAP3
-platform:
-
-        /* Register hwmods common to all OMAP3 */
-        r = omap_hwmod_register(omap3xxx_hwmods);
-        if (!r)
-                return r;
-
-Hint: it returns ZERO on success.  What follows is:
-
-        rev = omap_rev();
-
-        /*
-         * Register hwmods common to individual OMAP3 families, all
-         * silicon revisions (e.g., 34xx, or AM3505/3517, or 36xx)
-         * All possible revisions should be included in this conditional.
-         */
-        if (rev == OMAP3430_REV_ES1_0 || rev == OMAP3430_REV_ES2_0 ||
-            rev == OMAP3430_REV_ES2_1 || rev == OMAP3430_REV_ES3_0 ||
-            rev == OMAP3430_REV_ES3_1 || rev == OMAP3430_REV_ES3_1_2) {
-...
-which can only ever be reached _iff_ registering omap3xxx_hwmods _fails_.
-Not succeeds, but _fails_.
-
-Not surprisingly, the same error is repeated below this group of if
-statements:
-
-        r = omap_hwmod_register(h);
-        if (!r)
-                return r;
-
-So, multiple instances of the same brokenness.
-
-With those both fixed, we come to the next pile of BROKENNESS:
-
-WARNING: at /home/rmk/git/linux-rmk/arch/arm/mach-omap2/omap_hwmod.c:1963 omap_hwmod_register+0x130/0x168()
-omap_hwmod: sr1_hwmod: _register returned -22
-Modules linked in:
-Backtrace:
-[<c0017920>] (dump_backtrace+0x0/0x10c) from [<c02d9918>] (dump_stack+0x18/0x1c) r7:c03f3ef0 r6:c03cc318 r5:c0370c9f r4:000007ab
-[<c02d9900>] (dump_stack+0x0/0x1c) from [<c003ae88>] (warn_slowpath_common+0x58/0x70)
-[<c003ae30>] (warn_slowpath_common+0x0/0x70) from [<c003af44>] (warn_slowpath_fmt+0x38/0x40)
- r8:c0433e84 r7:00000001 r6:c03f9550 r5:c03eb41c r4:c0402f4c
-[<c003af0c>] (warn_slowpath_fmt+0x0/0x40) from [<c03cc318>] (omap_hwmod_register+0x130/0x168)
- r3:c0374aba r2:c037127b
-[<c03cc1e8>] (omap_hwmod_register+0x0/0x168) from [<c03cdc70>] (omap3xxx_hwmod_init+0xd8/0x170)
- r8:c0818fb4 r7:c03f7968 r6:00000000 r5:00000000 r4:34300234
-[<c03cdb98>] (omap3xxx_hwmod_init+0x0/0x170) from [<c03c9c70>] (omap3_init_early+0x24/0x30)
- r6:c03e6484 r5:c0818fe4 r4:c0932980
-[<c03c9c4c>] (omap3_init_early+0x0/0x30) from [<c03c9cc8>] (omap3430_init_early+0x10/0x14)
-[<c03c6a24>] (setup_arch+0x0/0x818) from [<c03c3638>] (start_kernel+0x80/0x308)
-[<c03c35b8>] (start_kernel+0x0/0x308) from [<80008040>] (0x80008040)
- r8:80004059 r7:c03f789c r6:c03e79c8 r5:c03f4098 r4:10c53c7d
----[ end trace 1b75b31a2719ed1c ]---
-------------[ cut here ]------------
-WARNING: at /home/rmk/git/linux-rmk/arch/arm/mach-omap2/omap_hwmod.c:1963 omap_hwmod_register+0x130/0x168()
-omap_hwmod: sr2_hwmod: _register returned -22
-Modules linked in:
-Backtrace:
-[<c0017920>] (dump_backtrace+0x0/0x10c) from [<c02d9918>] (dump_stack+0x18/0x1c) r7:c03f3ef0 r6:c03cc318 r5:c0370c9f r4:000007ab
-[<c02d9900>] (dump_stack+0x0/0x1c) from [<c003ae88>] (warn_slowpath_common+0x58/0x70)
-[<c003ae30>] (warn_slowpath_common+0x0/0x70) from [<c003af44>] (warn_slowpath_fmt+0x38/0x40)
- r8:c0433e84 r7:00000001 r6:c03f9550 r5:c03eb420 r4:c0402fd0
-[<c003af0c>] (warn_slowpath_fmt+0x0/0x40) from [<c03cc318>] (omap_hwmod_register+0x130/0x168)
- r3:c0374ac4 r2:c037127b
-[<c03cc1e8>] (omap_hwmod_register+0x0/0x168) from [<c03cdc70>] (omap3xxx_hwmod_init+0xd8/0x170)
- r8:c0818fb4 r7:c03f7968 r6:00000000 r5:00000000 r4:34300234
-[<c03cdb98>] (omap3xxx_hwmod_init+0x0/0x170) from [<c03c9c70>] (omap3_init_early+0x24/0x30)
- r6:c03e6484 r5:c0818fe4 r4:c0932980
-[<c03c9c4c>] (omap3_init_early+0x0/0x30) from [<c03c9cc8>] (omap3430_init_early+0x10/0x14)
-[<c03c9cb8>] (omap3430_init_early+0x0/0x14) from [<c03c7120>] (setup_arch+0x6fc/0x818)
-[<c03c6a24>] (setup_arch+0x0/0x818) from [<c03c3638>] (start_kernel+0x80/0x308)
-[<c03c35b8>] (start_kernel+0x0/0x308) from [<80008040>] (0x80008040)
- r8:80004059 r7:c03f789c r6:c03e79c8 r5:c03f4098 r4:10c53c7d
----[ end trace 1b75b31a2719ed1d ]---
-
-Again, this is not specific to the LDP.  It's whinging about:
-
-static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
-
-btw, this should be:
-
-static struct omap_hwmod *omap3xxx_hwmods[] __initdata = {
-
-...
-        &omap34xx_sr1_hwmod,		<<== XXX
-        &omap34xx_sr2_hwmod,		<<== XXX
-...
-};
-
-static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
-        &omap34xx_sr1_hwmod,		<<== XXX
-        &omap34xx_sr2_hwmod,		<<== XXX
-        &omap3xxx_usbhsotg_hwmod,
-        NULL
-};
-
-Again, can never have been tested on OMAP3.
-
-Does anyone apart from me bother doing any testing what so ever on OMAP3
-platforms?  Am I the only one?
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+> 
+> This contains the pending fixes I've found in my inbox.
+> Some of these I would have sent earlier, but was waiting
+> for the DT branch merge to clear first.
+> 
+> This series fixes all the arch/arm/*omap*/ build warnings finally,
+> looks like there's one new one for hwspinlock that already has
+> a fix queued elsewhere.
+> 
+> Some patches also remove some dead code, so ideally these should
+> get merged early on during the merge cycle. Overall a negative
+> negative diffstat anyways ;)
+> 
+> Also not that I applied two trivial patches today to fix the
+> remaining modsplit related build issues.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+> The following changes since commit 32aaeffbd4a7457bf2f7448b33b5946ff2a960eb:
+>   Linus Torvalds (1):
+>         Merge branch 'modsplit-Oct31_2011' of git://git.kernel.org/.../paulg/linux
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+> 
+> Abhilash K V (1):
+>       ARM: OMAP: AM35x: remove hwmods that aren't generic
+> 
+> Archit Taneja (1):
+>       ARM: OMAP: ctrl: Fix CONTROL_DSIPHY register fields
+> 
+> Axel Lin (3):
+>       ARM: OMAP2+: l3-noc: Include linux/module.h
+>       ARM: OMAP: dmtimer: Include linux/module.h
+>       ARM: OMAP: omap_device: Include linux/export.h
+> 
+> Balaji T K (2):
+>       ARM: OMAP4: hsmmc: Fix Pbias configuration on regulator OFF
+>       ARM: OMAP4: hsmmc: configure SDMMC1_DR0 properly
+> 
+> Benoit Cousson (2):
+>       ARM: OMAP2+: clock data: Remove redundant timer clkdev
+>       ARM: OMAP2+: timer: Remove omap_device_pm_latency
+> 
+> Bjarne Steinsbo (1):
+>       ARM: OMAP: usb: musb: OMAP: Delete unused function
+> 
+> Charulatha V (1):
+>       ARM: OMAP3: PM: fix pwrdm_post_transition call sequence
+> 
+> Jarkko Nikula (2):
+>       MAINTAINERS: Update linux-omap git repository
+>       ARM: OMAP1: Remove unused omap-alsa.h
+> 
+> Jon Hunter (3):
+>       ARM: OMAP3+: dpll: use DPLLs recalc function instead of omap2_get_dpll_rate
+>       ARM: OMAP4: clock: Add missing clock divider for OCP_ABE_ICLK
+>       ARM: OMAP3+: Update DPLL Fint range for OMAP36xx and OMAP4xxx devices
+> 
+> Laurent Pinchart (1):
+>       ARM: OMAP: I2C: Fix omap_register_i2c_bus() return value on success
+> 
+> Mike Turquette (3):
+>       ARM: OMAP4: clock: round_rate and recalc functions for DPLL_ABE
+>       ARM: OMAP3+: dpll: use DPLL's round_rate when setting rate
+>       ARM: OMAP3+: dpll: assign clk rate from rounded rate during rate set
+> 
+> Paul Walmsley (4):
+>       ARM: OMAP4460: Clock: Adding support for 4460 specific clocks
+>       ARM: OMAP3: PM: fix I/O wakeup and I/O chain clock control detection
+>       ARM: OMAP3: PM: restrict erratum i443 handling to OMAP3430 only
+>       ARM: OMAP3: hwmod: fix variant registration and remove SmartReflex from common list
+> 
+> Peter Ujfalusi (1):
+>       ARM: OMAP2+: devices: Fixes for McPDM
+> 
+> Sanjeev Premi (1):
+>       ARM: OMAP: Fix errors and warnings when building for one board
+> 
+> Thomas Weber (1):
+>       ARM: OMAP: Devkit8000: Remove double omap_mux_init_gpio
+> 
+> Tomi Valkeinen (1):
+>       ARM: OMAP: change get_context_loss_count ret value to int
+> 
+> Tony Lindgren (7):
+>       Merge branch 'omap_clock_fixes_3.2' of git://git.pwsan.com/linux-2.6 into fixes
+>       Merge branch 'prcm_scm_misc_fixes_3.2' of git://git.pwsan.com/linux-2.6 into fixes
+>       Merge branch 'for_3.2/pm-cleanup-2' of git://github.com/khilman/linux-omap-pm into fixes
+>       ARM: OMAP1: Fix warnings about enabling 32 KiHz timer
+>       ARM: OMAP2: Fix H4 matrix keyboard warning
+>       ARM: OMAP: Fix export.h or module.h includes
+>       Merge branch 'fixes-modulesplit' into fixes
+> 
+>  MAINTAINERS                                        |    2 +-
+>  arch/arm/mach-omap1/board-palmz71.c                |    1 -
+>  arch/arm/mach-omap1/pm.c                           |    2 +-
+>  arch/arm/mach-omap2/board-devkit8000.c             |    1 -
+>  arch/arm/mach-omap2/board-generic.c                |    8 ++
+>  arch/arm/mach-omap2/board-h4.c                     |  122 +++++++++++---------
+>  arch/arm/mach-omap2/clkt_dpll.c                    |   51 ++++++---
+>  arch/arm/mach-omap2/clock.h                        |    2 +
+>  arch/arm/mach-omap2/clock2420_data.c               |   12 --
+>  arch/arm/mach-omap2/clock2430_data.c               |   12 --
+>  arch/arm/mach-omap2/clock3xxx_data.c               |   12 --
+>  arch/arm/mach-omap2/clock44xx.h                    |    7 +
+>  arch/arm/mach-omap2/clock44xx_data.c               |   43 ++++---
+>  arch/arm/mach-omap2/devices.c                      |   17 +---
+>  arch/arm/mach-omap2/dpll3xxx.c                     |    9 +-
+>  arch/arm/mach-omap2/dpll44xx.c                     |   69 +++++++++++
+>  arch/arm/mach-omap2/dsp.c                          |    1 +
+>  arch/arm/mach-omap2/hsmmc.c                        |   16 +--
+>  arch/arm/mach-omap2/id.c                           |    5 +-
+>  .../include/mach/ctrl_module_pad_core_44xx.h       |    8 +-
+>  arch/arm/mach-omap2/io.c                           |    6 +
+>  arch/arm/mach-omap2/mailbox.c                      |    1 +
+>  arch/arm/mach-omap2/omap-iommu.c                   |    1 +
+>  arch/arm/mach-omap2/omap_hwmod.c                   |    2 +-
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   17 ++-
+>  arch/arm/mach-omap2/omap_l3_noc.c                  |    1 +
+>  arch/arm/mach-omap2/pm34xx.c                       |   70 ++++++-----
+>  arch/arm/mach-omap2/powerdomain.c                  |   14 ++-
+>  arch/arm/mach-omap2/powerdomain.h                  |    2 +-
+>  arch/arm/mach-omap2/smartreflex.c                  |    1 +
+>  arch/arm/mach-omap2/timer.c                        |   12 +--
+>  arch/arm/mach-omap2/usb-musb.c                     |   38 ------
+>  arch/arm/plat-omap/dmtimer.c                       |    1 +
+>  arch/arm/plat-omap/i2c.c                           |    2 +-
+>  arch/arm/plat-omap/include/plat/cpu.h              |   17 ++-
+>  arch/arm/plat-omap/include/plat/dmtimer.h          |    4 +-
+>  arch/arm/plat-omap/include/plat/omap-alsa.h        |  123 --------------------
+>  arch/arm/plat-omap/include/plat/omap-pm.h          |    4 +-
+>  arch/arm/plat-omap/include/plat/omap_device.h      |    2 +-
+>  arch/arm/plat-omap/include/plat/omap_hwmod.h       |    2 +-
+>  arch/arm/plat-omap/omap-pm-noop.c                  |   24 +++-
+>  arch/arm/plat-omap/omap_device.c                   |    3 +-
+>  42 files changed, 345 insertions(+), 402 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/include/plat/omap-alsa.h
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
