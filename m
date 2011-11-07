@@ -1,72 +1,52 @@
-From: David Anders <x0132446@ti.com>
-Subject: [PATCH] omap: id: add chip id recognition for omap4430 es2.3
-Date: Mon, 7 Nov 2011 12:17:54 -0600
-Message-ID: <1320689874-9179-1-git-send-email-x0132446@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
+Date: Mon, 7 Nov 2011 12:21:41 -0600
+Message-ID: <CAB-zwWhkdv430aD8Osgi7Kyi6ScvhkwZ7BSW1cs3Nyzxc10VYg@mail.gmail.com>
+References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
+	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
+	<87obwr1n9i.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46324 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755817Ab1KGSR6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 13:17:58 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <87obwr1n9i.fsf@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lm <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: danders.dev@gmail.com, linux-omap@vger.kernel.org, tony@atomide.com, nm@ti.com, aneesh@ti.com, jayabharath@ti.com
-Cc: David Anders <x0132446@ti.com>
 
-allow for the omap4430 es2.3 revision to be recognized in the
-omap4_check_revision() function.
+Hi,
 
-most aspects of all omap4430 es2.x versions are identical, however
-a number of small variations such as default pullup or pulldown
-resistor configurations vary between revisions.
+On Fri, Nov 4, 2011 at 6:27 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> @@ -821,9 +820,7 @@ static irqreturn_t iommu_fault_handler(int irq, =
+void *data)
+>> =A0 =A0 =A0 if (!obj->refcount)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_NONE;
+>>
+>> - =A0 =A0 clk_enable(obj->clk);
+>> =A0 =A0 =A0 errs =3D iommu_report_fault(obj, &da);
+>> - =A0 =A0 clk_disable(obj->clk);
+>> =A0 =A0 =A0 if (errs =3D=3D 0)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
+>
+> I'm not terribly familiar with this IOMMU code, but this one looks
+> suspiciou because you're removing the clock calls but not replacing t=
+hem
+> with runtime PM get/put calls.
+>
+> I just want to make sure that's intentional. =A0If so, you might want=
+ to
+> add a comment about that to the changelog.
 
-detailed information on silicon errata for omap4430 revisions can
-be found at http://focus.ti.com/pdfs/wtbu/swpz009D.pdf
+Yes it is intentional, reason is that in order to get an interrupt,
+the device should be powered on in advance, right now it is working
+because the modules share a common clock so the users of the
+omap-iommu indirectly give power to it. However I made another change
+to do pm_runtime_get/put on attach/detach so it doesn't rely on others
+to keep the clocks on.
 
-Signed-off-by: David Anders <x0132446@ti.com>
----
- arch/arm/mach-omap2/id.c              |    6 ++++--
- arch/arm/plat-omap/include/plat/cpu.h |    1 +
- 2 files changed, 5 insertions(+), 2 deletions(-)
+I'll add the comment.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index d27daf9..6681238 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -386,8 +386,10 @@ static void __init omap4_check_revision(void)
- 			omap_revision = OMAP4430_REV_ES2_1;
- 			break;
- 		case 4:
--		default:
- 			omap_revision = OMAP4430_REV_ES2_2;
-+		case 6:
-+		default:
-+			omap_revision = OMAP4430_REV_ES2_3;
- 		}
- 		break;
- 	case 0xb94e:
-@@ -400,7 +402,7 @@ static void __init omap4_check_revision(void)
- 		break;
- 	default:
- 		/* Unknown default to latest silicon rev as default */
--		omap_revision = OMAP4430_REV_ES2_2;
-+		omap_revision = OMAP4430_REV_ES2_3;
- 	}
- 
- 	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 649b370..a2fc6d3 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -416,6 +416,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP4430_REV_ES2_0	(OMAP443X_CLASS | (0x20 << 8))
- #define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
- #define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
-+#define OMAP4430_REV_ES2_3	(OMAP443X_CLASS | (0x23 << 8))
- 
- #define OMAP446X_CLASS		0x44600044
- #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
--- 
-1.7.0.4
+Thanks,
 
+Omar
