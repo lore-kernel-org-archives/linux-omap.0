@@ -1,37 +1,39 @@
-From: David Anders <x0132446-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] omap4: i2c: add post idle reset registers flag
-Date: Mon, 7 Nov 2011 15:31:40 -0600
-Message-ID: <1320701500-14535-1-git-send-email-x0132446@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] omap fixes for v3.2 merge window breakage
+Date: Mon, 7 Nov 2011 13:47:24 -0800
+Message-ID: <20111107214724.GA31337@atomide.com>
+References: <20111107204929.GZ31337@atomide.com>
+ <20111107212919.GI15294@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: danders.dev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, aneesh-l0cyMroinI0@public.gmane.org, jayabharath-l0cyMroinI0@public.gmane.org, andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, David Anders <x0132446-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:18208 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750767Ab1KGVr3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 16:47:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20111107212919.GI15294@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-omap44xx i2c devices need to have the registers reset post idle
-similar to omap3xxx devices. this adds the additional flag for
-OMAP_I2C_FLAG_RESET_REGS_POSTIDLE to the omap44xx i2c_dev_attr.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [111107 12:54]:
+> Arnd,
+> 
+> Don't pull this - there's yet more crap in OMAP to be fixed before
+> these go to mainline.  OMAP3 is severely broken at the moment with,
+> to put it bluntly, totally fucked up OMAP hwmod code, and should be
+> fixed *now* by folk before this pull request.
+> 
+> The fixes are damned trivial I expect even Tony can fix it without
+> reference to Paul.
 
-Signed-off-by: David Anders <x0132446-l0cyMroinI0@public.gmane.org>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+> >       ARM: OMAP3: hwmod: fix variant registration and remove SmartReflex from common list
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 7695e5d..e93dc40 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2257,7 +2257,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
- };
- 
- static struct omap_i2c_dev_attr i2c_dev_attr = {
--	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE,
-+	.flags	= OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
-+		  OMAP_I2C_FLAG_BUS_SHIFT_NONE,
- };
- 
- /* i2c1 */
--- 
-1.7.0.4
+Sounds like the above patch already queued should fix the issues you
+are seeing with hwmod?
+
+Or do you still have other issues you're having?
+
+Tony
