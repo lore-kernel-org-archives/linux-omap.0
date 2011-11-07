@@ -1,49 +1,49 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH] arm: omap2+: hwmod: fix breakage introduced by d6504acd
-Date: Mon,  7 Nov 2011 19:56:57 +0200
-Message-ID: <1320688617-4543-1-git-send-email-balbi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH-V3 4/4] arm:omap:am33xx: Add low level debugging support
+Date: Mon, 7 Nov 2011 10:16:55 -0800
+Message-ID: <20111107181655.GV31337@atomide.com>
+References: <hvaibhav@ti.com>
+ <1316529142-27564-5-git-send-email-hvaibhav@ti.com>
+ <20111006230904.GA6324@atomide.com>
+ <79CD15C6BA57404B839C016229A409A8023D3A@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:37058 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932732Ab1KGR5E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 12:57:04 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14801 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755817Ab1KGSQ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 13:16:58 -0500
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8023D3A@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-commit d6504acd (OMAP2+: hwmod: remove OMAP_CHIP*) has
-mistakenly added MUSB as a hwmod available only on ES2.0
-of OMAP3430.
+* Hiremath, Vaibhav <hvaibhav@ti.com> [111107 06:42]:
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Friday, October 07, 2011 4:39 AM
+> > To: Hiremath, Vaibhav
+> > Cc: linux-omap@vger.kernel.org; Hilman, Kevin; paul@pwsan.com; linux-arm-
+> > kernel@lists.infradead.org; Mohammed, Afzal
+> > Subject: Re: [PATCH-V3 4/4] arm:omap:am33xx: Add low level debugging
+> > support
+> > 
+> > * hvaibhav@ti.com <hvaibhav@ti.com> [110920 06:59]:
+> > > From: Afzal Mohammed <afzal@ti.com>
+> > >
+> > > Add support for low level debugging on AM335X EVM (AM33XX family).
+> > > Currently only support for UART1 console, which is used on AM335X EVM
+> > > is added.
+> > 
+> > Let's wait a bit on this one as there are other DEBUG_LL patches
+> > pending from Nico.
+> > 
+> Tony,
+> 
+> Is there any branch or repo against which I can rebase my patches?
 
-MUSB hwmod has always be available on all OMAP revisions
-since OMAP2430.
+I recommend the current fixes branch.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 3008e16..74f1454 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3232,7 +3232,6 @@ static __initdata struct omap_hwmod *omap3430es1_hwmods[] = {
- /* 3430ES2+-only hwmods */
- static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
- 	&omap3xxx_dss_core_hwmod,
--	&omap3xxx_usbhsotg_hwmod,
- 	NULL
- };
- 
-@@ -3240,6 +3239,7 @@ static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
- static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
- 	&omap34xx_sr1_hwmod,
- 	&omap34xx_sr2_hwmod,
-+	&omap3xxx_usbhsotg_hwmod,
- 	NULL
- };
- 
--- 
-1.7.8.rc0
-
+Tony
