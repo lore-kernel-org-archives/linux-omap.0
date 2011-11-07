@@ -1,52 +1,73 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v3 4/4] OMAP3/4: iommu: adapt to runtime pm
-Date: Mon, 7 Nov 2011 12:21:41 -0600
-Message-ID: <CAB-zwWhkdv430aD8Osgi7Kyi6ScvhkwZ7BSW1cs3Nyzxc10VYg@mail.gmail.com>
-References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
-	<1320185752-568-5-git-send-email-omar.ramirez@ti.com>
-	<87obwr1n9i.fsf@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/1] mmc: omap_hsmmc: DMA unmap only once in case of
+	MMC error
+Date: Mon, 7 Nov 2011 18:29:39 +0000
+Message-ID: <20111107182939.GF15294@n2100.arm.linux.org.uk>
+References: <1320683111-12577-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <87obwr1n9i.fsf@ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lm <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1320683111-12577-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Balaji T K <balajitk@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Per Forlin <per.forlin@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, Nov 07, 2011 at 09:55:11PM +0530, Balaji T K wrote:
+> From: Per Forlin <per.forlin@linaro.org>
+> 
+> Reported by Russell King:
+> mmcblk0: error -84 transferring data, sector 149201, nr 64,
+> cmd response 0x900, card status 0xb00
+> mmcblk0: retrying using single block read
+> 
+> WARNING: at lib/dma-debug.c:811 check_unmap
+> omap_hsmmc omap_hsmmc.0: DMA-API: device driver tries to free DMA memory
+> it has not allocated [device address=0x0000000080933000] [size=20480 bytes]
+> 
+> In case of an error dma_unmap() is issued in omap_hsmmc_dma_cleanup()
+> and then again in omap_hsmmc_post_req(). Resolve this by clearing the
+> host_cookie to indicate there is no DMA mapped memory to unmap.
+> 
+> Signed-off-by: Per Forlin <per.forlin@linaro.org>
+> Tested-by: Balaji T K <balajitk@ti.com>
+> ---
+> Repost with my Tested-by
 
-On Fri, Nov 4, 2011 at 6:27 PM, Kevin Hilman <khilman@ti.com> wrote:
->> @@ -821,9 +820,7 @@ static irqreturn_t iommu_fault_handler(int irq, =
-void *data)
->> =A0 =A0 =A0 if (!obj->refcount)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_NONE;
->>
->> - =A0 =A0 clk_enable(obj->clk);
->> =A0 =A0 =A0 errs =3D iommu_report_fault(obj, &da);
->> - =A0 =A0 clk_disable(obj->clk);
->> =A0 =A0 =A0 if (errs =3D=3D 0)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IRQ_HANDLED;
->
-> I'm not terribly familiar with this IOMMU code, but this one looks
-> suspiciou because you're removing the clock calls but not replacing t=
-hem
-> with runtime PM get/put calls.
->
-> I just want to make sure that's intentional. =A0If so, you might want=
- to
-> add a comment about that to the changelog.
+Thanks.
 
-Yes it is intentional, reason is that in order to get an interrupt,
-the device should be powered on in advance, right now it is working
-because the modules share a common clock so the users of the
-omap-iommu indirectly give power to it. However I made another change
-to do pm_runtime_get/put on attach/detach so it doesn't rely on others
-to keep the clocks on.
+Tested-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-I'll add the comment.
-
-Thanks,
-
-Omar
+> 
+>  drivers/mmc/host/omap_hsmmc.c |    7 +++++--
+>  1 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 101cd31..d5fe43d 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1010,6 +1010,7 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
+>  			host->data->sg_len,
+>  			omap_hsmmc_get_dma_dir(host, host->data));
+>  		omap_free_dma(dma_ch);
+> +		host->data->host_cookie = 0;
+>  	}
+>  	host->data = NULL;
+>  }
+> @@ -1575,8 +1576,10 @@ static void omap_hsmmc_post_req(struct mmc_host *mmc, struct mmc_request *mrq,
+>  	struct mmc_data *data = mrq->data;
+>  
+>  	if (host->use_dma) {
+> -		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
+> -			     omap_hsmmc_get_dma_dir(host, data));
+> +		if (data->host_cookie)
+> +			dma_unmap_sg(mmc_dev(host->mmc), data->sg,
+> +				     data->sg_len,
+> +				     omap_hsmmc_get_dma_dir(host, data));
+>  		data->host_cookie = 0;
+>  	}
+>  }
+> -- 
+> 1.7.0.4
+> 
