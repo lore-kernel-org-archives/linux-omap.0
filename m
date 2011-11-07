@@ -1,73 +1,88 @@
-From: =?ISO-8859-1?Q?Per_F=F6rlin?= <per.forlin@stericsson.com>
-Subject: Re: OMAP CRAP: The Continuing Story Of Brokenness
-Date: Sun, 6 Nov 2011 16:29:54 +0100
-Message-ID: <4EB6A7F2.1010606@stericsson.com>
-References: <20111106121829.GB15294@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] cbus-tahvo: Add tahvo_write_reg locking
+Date: Mon, 7 Nov 2011 08:10:45 +0200
+Message-ID: <20111107061044.GB4265@legolas.emea.dhcp.ti.com>
+References: <20111105171954.230d12fb@milhouse>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:54289 "EHLO
-	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752621Ab1KFPai (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 6 Nov 2011 10:30:38 -0500
-In-Reply-To: <20111106121829.GB15294@n2100.arm.linux.org.uk>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:39076 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751600Ab1KGGKu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 01:10:50 -0500
+Received: by bkbzv15 with SMTP id zv15so5044514bkb.17
+        for <linux-omap@vger.kernel.org>; Sun, 06 Nov 2011 22:10:48 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20111105171954.230d12fb@milhouse>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Per Forlin <per.forlin@linaro.org>, Chris Ball <cjb@laptop.org>
+To: Michael =?iso-8859-1?Q?B=FCsch?= <m@bues.ch>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On 11/06/2011 01:18 PM, Russell King - ARM Linux wrote:
-> Yet again I find that I'm having to email about crap on OMAP3.
-> 
-> I'm getting really fed up with OMAP stuff which keeps breaking in
-> idiotic ways - and the way there's fatal build errors at EVERY merge
-> window.  The OMAP workflow is totally broken.  Something MUST change
-> in the way the OMAP community works to stop the continual breakage
-> at every single bloody merge window.
-> 
-> One is new:
-> 
-> WARNING: at arch/arm/mach-omap2/usb-musb.c:141 usb_musb_init+0xc0/0x174()
-> usb_musb_init: could not find omap_hwmod for usb_otg_hs
-> Modules linked in:
-> Backtrace:
-> [<c0017920>] (dump_backtrace+0x0/0x10c) from [<c02d9368>] (dump_stack+0x18/0x1c) r7:c181ff20 r6:c03ceb54 r5:c037545b r4:0000008d
-> [<c02d9350>] (dump_stack+0x0/0x1c) from [<c003adfc>] (warn_slowpath_common+0x58/0x70)
-> [<c003ada4>] (warn_slowpath_common+0x0/0x70) from [<c003aeb8>] (warn_slowpath_fmt+0x38/0x40)
->  r8:00000000 r7:00000013 r6:c0374b05 r5:c03f06e4 r4:c0374190
-> [<c003ae80>] (warn_slowpath_fmt+0x0/0x40) from [<c03ceb54>] (usb_musb_init+0xc0/0x174)
->  r3:c02df894 r2:c03707d9
-> [<c03cea94>] (usb_musb_init+0x0/0x174) from [<c03ce02c>] (omap_ldp_init+0xb0/0x100)
->  r6:c003e7d8 r5:c03f06e4 r4:c04053e4
-> [<c03cdf7c>] (omap_ldp_init+0x0/0x100) from [<c03c6788>] (customize_machine+0x24/0x30)
->  r4:c03f03a8
-> [<c03c6764>] (customize_machine+0x0/0x30) from [<c0008710>] (do_one_initcall+0x9c/0x164)
-> [<c0008674>] (do_one_initcall+0x0/0x164) from [<c03c3284>] (kernel_init+0x7c/0x120)
-> [<c03c3208>] (kernel_init+0x0/0x120) from [<c003e7d8>] (do_exit+0x0/0x62c)
->  r5:c03c3208 r4:00000000
-> ---[ end trace 1b75b31a2719ed1c ]---
->  omap_timer.1: alias fck already exists
->  omap_timer.2: alias fck already exists
->  omap_timer.3: alias fck already exists
->  omap_timer.4: alias fck already exists
->  omap_timer.5: alias fck already exists
->  omap_timer.6: alias fck already exists
->  omap_timer.7: alias fck already exists
->  omap_timer.8: alias fck already exists
->  omap_timer.9: alias fck already exists
->  omap_timer.10: alias fck already exists
->  omap_timer.11: alias fck already exists
->  omap_timer.12: alias fck already exists
->  omap-mcbsp.2: alias fck already exists
->  omap-mcbsp.3: alias fck already exists
-> 
-> And this, which I reported on August 26th - so it's now over three months
-> old is still there.  Clearly, no one cares about this driver so shall I
-> delete the omap-hsmmc driver, or is someone going to clean up their crap?
-> Or shall we revert all those patches for adding the asynchronous mapping
-> of MMC requests until the _REGRESSION_ is fixed properly?
-It's possible to disable async mapping in omap_hsmmc.c. Set pre_req and post_req to NULL.
 
-Regards,
-Per
+--jho1yZJdad60DJr+
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Sat, Nov 05, 2011 at 05:19:54PM +0100, Michael B=FCsch wrote:
+> tahvo_write_reg() needs to take the mutex to avoid a race
+> condition with tahvo_set_clear_reg_bits:
+>=20
+> tahvo_set_clear_reg_bits():   |  tahvo_write_reg():
+>     __tahvo_read_reg()        |
+>                               |      __tahvo_write_reg() <-- race here
+>     __tahvo_write_reg()       |
+>=20
+> Signed-off-by: Michael Buesch <m@bues.ch>
+>=20
+> ---
+>=20
+> Index: linux-3.1/drivers/cbus/tahvo.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-3.1.orig/drivers/cbus/tahvo.c	2011-11-05 17:03:39.598846119 +01=
+00
+> +++ linux-3.1/drivers/cbus/tahvo.c	2011-11-05 17:04:36.274768324 +0100
+> @@ -104,7 +104,9 @@ void tahvo_write_reg(struct device *chil
+>  {
+>  	struct tahvo		*tahvo =3D dev_get_drvdata(child->parent);
+> =20
+> +	mutex_lock(&tahvo->mutex);
+>  	__tahvo_write_reg(tahvo, reg, val);
+> +	mutex_unlock(&tahvo->mutex);
+
+yeah, my bad. The same should be done with tahvo_read_reg(). Care to
+resend this patch adding the change to tahvo_read_reg() too...
+
+--=20
+balbi
+
+--jho1yZJdad60DJr+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOt3ZkAAoJEIaOsuA1yqREy1gQAKGBV0gVrq2bBx6CD4HBiq0W
+JM9bGpOFpUXe96j95DdmNvyRC9GYqX90f8Z5HJghruSuURFfC1KvvCPEJBhwKTpL
+4JG3px90z2oS1I/8vI99lIGAmsVVOErEgJOkv6yFvW0bMzd9s/4mcBn0/xsSSjXD
+tlxiFa3ZuVl1BwB5DVNcIc7XbQA0LKL5ngs0vgHLN+dJXrj8wdmxKAB0zHOz6+V5
+Ni0GLU8XsRvYhyA/imGtNX/nhTCyfhHDqRpgQrugEv0oGEEYp6UbPGW7jHk8BGpu
+epujyRhX+381i1M4JDo+LpCOX872ZbzS3iHb3okNCZCu2C68CBIMMPU/nhVP7I6/
+3Vk8Qnc/FFZvh2/k/qFMudeljyC80qtI4g16E6iYZay2velPt+TKEVc4A/Ate2LL
+uyugvR62Z6uYSsi31fQWV6vDLqLOeUoy+XhVY0rrGuOf+PwbGsYAywu7GctCDMJy
+3OXL6f1G823SUckmOxVXWmmoc/yn3Qu8S58FukH6JpavqfZ+0NRZcYv0RHx0DTmh
+ImBRxF2dYaDD4UvXWfIFp9X9+Vphm3exnMsGNZxLvsUL4UdSTfA1U2dAyd3FbSWi
+rTu8r3NeCFmSfjZ+ZxJYE1zjRW9PetDNmaeeVczlzBMq2s+Y8JDim6O8d9tPcFDF
+694ROBu9l0KtJ3Cha4hl
+=iVW4
+-----END PGP SIGNATURE-----
+
+--jho1yZJdad60DJr+--
