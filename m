@@ -1,101 +1,69 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v7 19/21] OMAP2+: UART: Use custom activate func for
- console uart.
-Date: Mon, 7 Nov 2011 14:12:49 +0530
-Message-ID: <CAAL8m4yoN0MCXSE=Y7qnpywy1m9xVsuHoPoMt6tyM_5_eTs8dw@mail.gmail.com>
-References: <1318952110-10659-1-git-send-email-govindraj.raja@ti.com>
- <1318952110-10659-5-git-send-email-govindraj.raja@ti.com> <878vnv334f.fsf@ti.com>
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+Subject: Re: [PATCH] cbus-tahvo: Add tahvo_write_reg locking
+Date: Mon, 7 Nov 2011 09:18:36 +0000
+Message-ID: <20111107091836.61377657@Nokia-N900>
+References: <20111105171954.230d12fb@milhouse>
+	<20111107061044.GB4265@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53016 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab1KGInL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 03:43:11 -0500
-In-Reply-To: <878vnv334f.fsf@ti.com>
+Received: from bues.ch ([80.190.117.144]:38206 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752019Ab1KGJKT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 04:10:19 -0500
+In-Reply-To: <20111107061044.GB4265@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
+To: balbi@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Sat, Nov 5, 2011 at 4:30 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
->
->> Omap-uart can be used as console uart to print early boot
->> messages using earlyprintk so for console uart prevent
->> hwmod reset or idling during bootup.
->>
->> Identify the console_uart set the id and use the custom
->> pm_latency ops for console uart for the first time
->> to idle console uart left enabled from bootup and then enable
->> them back and reset pm_latency ops to default ops.
->>
->> Thanks to Kevin Hilman <khilman@ti.com> for suggesting
->> this approach.
->>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->> ---
->> =A0arch/arm/mach-omap2/serial.c | =A0 79 +++++++++++++++++++++++++++=
-+-------------
->> =A01 files changed, 54 insertions(+), 25 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seri=
-al.c
->> index e1eba7f..55903f0 100644
->> --- a/arch/arm/mach-omap2/serial.c
->> +++ b/arch/arm/mach-omap2/serial.c
->> @@ -63,6 +63,7 @@ struct omap_uart_state {
->>
->> =A0static LIST_HEAD(uart_list);
->> =A0static u8 num_uarts;
->> +static u8 console_uart_id =3D -1;
->>
->> =A0#define DEFAULT_RXDMA_POLLRATE =A0 =A0 =A0 =A0 =A0 =A0 =A0 1 =A0 =
-=A0 =A0 /* RX DMA polling rate (us) */
->> =A0#define DEFAULT_RXDMA_BUFSIZE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A04096=
- =A0 =A0/* RX DMA buffer size */
->> @@ -87,6 +88,29 @@ static struct omap_device_pm_latency omap_uart_la=
-tency[] =3D {
->> =A0 =A0 =A0 },
->> =A0};
->>
->> +static int console_uart_enable_hwmod(struct omap_device *od)
->> +{
->> + =A0 =A0 /* For early console we prevented hwmod reset and idle
->> + =A0 =A0 =A0* So before we enable the uart clocks idle and then
->> + =A0 =A0 =A0*/
->
-> minor: fix multi-line comment style (search for multi-line in
-> Documentation/CodingStyle). =A0Another one below.
->
+On Mon, 7 Nov 2011 08:10:45 +0200
+=46elipe Balbi <balbi@ti.com> wrote:
 
-will correct this.
+> Hi,
+>=20
+> On Sat, Nov 05, 2011 at 05:19:54PM +0100, Michael B=C3=BCsch wrote:
+> > tahvo_write_reg() needs to take the mutex to avoid a race
+> > condition with tahvo_set_clear_reg_bits:
+> >=20
+> > tahvo_set_clear_reg_bits():   |  tahvo_write_reg():
+> >     __tahvo_read_reg()        |
+> >                               |      __tahvo_write_reg() <-- race h=
+ere
+> >     __tahvo_write_reg()       |
+> >=20
+> > Signed-off-by: Michael Buesch <m@bues.ch>
+> >=20
+> > ---
+> >=20
+> > Index: linux-3.1/drivers/cbus/tahvo.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- linux-3.1.orig/drivers/cbus/tahvo.c	2011-11-05 17:03:39.5988461=
+19 +0100
+> > +++ linux-3.1/drivers/cbus/tahvo.c	2011-11-05 17:04:36.274768324 +0=
+100
+> > @@ -104,7 +104,9 @@ void tahvo_write_reg(struct device *chil
+> >  {
+> >  	struct tahvo		*tahvo =3D dev_get_drvdata(child->parent);
+> > =20
+> > +	mutex_lock(&tahvo->mutex);
+> >  	__tahvo_write_reg(tahvo, reg, val);
+> > +	mutex_unlock(&tahvo->mutex);
+>=20
+> yeah, my bad. The same should be done with tahvo_read_reg(). Care to
+> resend this patch adding the change to tahvo_read_reg() too...
 
-> Notice that you're moving existing code here, but also changing the
-> functionality without a description as to why. =A0 =A0Based on the ex=
-isting code:
->
-> You need a console_lock() here...
->
->> + =A0 =A0 omap_hwmod_idle(od->hwmods[0]);
->> + =A0 =A0 omap_hwmod_enable(od->hwmods[0]);
->
-> ...and this should be omap_device_enable().
->
-> And =A0you need a console_unlock() here.
->
-> Yes, you're subsequent patches avoid this problem, but we still need =
-a real
-> fix other than checking for 'debug/loglevel', and when that happens,
-> we'll need a console lock here.
->
+I think tahvo_read_reg is fine without a lock.
+read vs write is already atomic due to the cbus lock.
 
-yes correct, we need console_lock/unlock binding here will update this.
+it's the same situation as for retu. where we also don't need the lock =
+in retu_read_reg.
 
---
-Thanks,
-Govindraj.R
+--=20
+Greetings, Michael.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
