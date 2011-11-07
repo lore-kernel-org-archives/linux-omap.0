@@ -1,48 +1,33 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] BUILD FIX:hwspinlock: do not return any value from void funtion
-Date: Mon, 7 Nov 2011 18:28:06 +0530
-Message-ID: <1320670686-29286-1-git-send-email-hvaibhav@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] OMAP2+: Fix Compilation break on current mainline
+Date: Mon, 7 Nov 2011 18:29:20 +0530
+Message-ID: <CAMQu2gzTDLi4sj8XcUzJx-mNYZv155+rehH4XDbtCLmyyd7RqQ@mail.gmail.com>
+References: <1320669508-32204-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35415 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932072Ab1KGM6S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Nov 2011 07:58:18 -0500
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43396 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932072Ab1KGM7m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 07:59:42 -0500
+Received: by mail-qw0-f51.google.com with SMTP id b40so912163qad.24
+        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 04:59:41 -0800 (PST)
+In-Reply-To: <1320669508-32204-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, ohad@wizery.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Fixes below compilation error -
+On Mon, Nov 7, 2011 at 6:08 PM, Govindraj.R <govindraj.raja@ti.com> wrote:
+> I see below errors and warnings on latest mainline commit
+> b32fc0a0629bf5894b35f33554c118aacfd0d1e2 with omap2plus_defconfig.
+>
+> Patch to fix the same.
+>
+Patches are already posted and applied by Tony on linux-omap master.
 
-  CC      arch/arm/mach-omap2/hwspinlock.o
-  cc1: warnings being treated as errors
-  In file included from arch/arm/mach-omap2/hwspinlock.c:22:0:
-  include/linux/hwspinlock.h: In function '__hwspin_unlock':
-  include/linux/hwspinlock.h:121:2: error: 'return' with a value, in function
-  returning void
-  make[1]: *** [arch/arm/mach-omap2/hwspinlock.o] Error 1
-  make: *** [arch/arm/mach-omap2] Error 2
+http://www.spinics.net/lists/linux-omap/msg59848.html
+http://www.spinics.net/lists/linux-omap/msg59847.html
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- include/linux/hwspinlock.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
-index 08a2fee..192710a 100644
---- a/include/linux/hwspinlock.h
-+++ b/include/linux/hwspinlock.h
-@@ -118,7 +118,7 @@ int __hwspin_trylock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
- static inline
- void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
- {
--	return 0;
-+	return;
- }
-
- static inline int hwspin_lock_get_id(struct hwspinlock *hwlock)
---
-1.7.0.4
-
+Regards
+Santosh
