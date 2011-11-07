@@ -1,39 +1,50 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: 10-bit address support in i2c-omap and i2c-davinci
-Date: Mon, 07 Nov 2011 07:09:38 -0800
-Message-ID: <87hb2g0y19.fsf@ti.com>
-References: <20111107094614.0062a3f7@endymion.delvare>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V3 4/4] arm:omap:am33xx: Add low level debugging support
+Date: Mon, 7 Nov 2011 15:17:00 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8023D3A@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1316529142-27564-5-git-send-email-hvaibhav@ti.com>
+ <20111006230904.GA6324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:59395 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751751Ab1KGPJn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 10:09:43 -0500
-In-Reply-To: <20111107094614.0062a3f7@endymion.delvare> (Jean Delvare's
-	message of "Mon, 7 Nov 2011 09:46:14 +0100")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37186 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751113Ab1KGPRS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 10:17:18 -0500
+In-Reply-To: <20111006230904.GA6324@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Ben Dooks <ben-linux@fluff.org>, Tony Lindgren <tony@atomide.com>, Andy Green <andy.green@linaro.org>, Lucas De Marchi <lucas.demarchi@profusion.mobi>, Linux I2C <linux-i2c@vger.kernel.org>, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-Adding linux-omap and linux-davinci lists
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Friday, October 07, 2011 4:39 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; Hilman, Kevin; paul@pwsan.com; linux-arm-
+> kernel@lists.infradead.org; Mohammed, Afzal
+> Subject: Re: [PATCH-V3 4/4] arm:omap:am33xx: Add low level debugging
+> support
+> 
+> * hvaibhav@ti.com <hvaibhav@ti.com> [110920 06:59]:
+> > From: Afzal Mohammed <afzal@ti.com>
+> >
+> > Add support for low level debugging on AM335X EVM (AM33XX family).
+> > Currently only support for UART1 console, which is used on AM335X EVM
+> > is added.
+> 
+> Let's wait a bit on this one as there are other DEBUG_LL patches
+> pending from Nico.
+> 
+Tony,
 
-Jean Delvare <khali@linux-fr.org> writes:
+Is there any branch or repo against which I can rebase my patches?
 
-> Both bus drivers i2c-omap and i2c-davinci apparently handle 10-bit addresses:
->
-> (i2c-omap.c)
-> 	if (msg->flags & I2C_M_TEN)
-> 		w |= OMAP_I2C_CON_XA;
->
-> (i2c-davinci.c)
-> 	/* if the slave address is ten bit address, enable XA bit */
-> 	if (msg->flags & I2C_M_TEN)
-> 		flag |= DAVINCI_I2C_MDR_XA;
->
-> However neither driver declares functionality flag I2C_FUNC_10BIT_ADDR,
-> so chip drivers would normally refuse to bind to these buses. If 10-bit
-> address support is incomplete or broken then it should be removed
-> completely. If it works then these drivers should declare so by adding
-> I2C_FUNC_10BIT_ADDR to the functionality flags they return.
+Thanks,
+Vaibhav
+> Regards,
+> 
+> Tony
