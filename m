@@ -1,113 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP CRAP: The Continuing Story Of Brokenness
-Date: Mon, 7 Nov 2011 09:56:45 -0800
-Message-ID: <20111107175645.GU31337@atomide.com>
-References: <20111106121829.GB15294@n2100.arm.linux.org.uk>
- <20111107172600.GS31337@atomide.com>
- <20111107174645.GE15294@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] arm: omap2+: hwmod: fix breakage introduced by d6504acd
+Date: Mon,  7 Nov 2011 19:56:57 +0200
+Message-ID: <1320688617-4543-1-git-send-email-balbi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:27477 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932732Ab1KGR4t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 12:56:49 -0500
-Content-Disposition: inline
-In-Reply-To: <20111107174645.GE15294@n2100.arm.linux.org.uk>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:37058 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932732Ab1KGR5E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 12:57:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Per Forlin <per.forlin@linaro.org>, Chris Ball <cjb@laptop.org>, Felipe Balbi <balbi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Felipe Balbi <balbi@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [111107 09:12]:
-> On Mon, Nov 07, 2011 at 09:26:00AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [111106 03:44]:
-> > > Yet again I find that I'm having to email about crap on OMAP3.
-> > > 
-> > > I'm getting really fed up with OMAP stuff which keeps breaking in
-> > > idiotic ways - and the way there's fatal build errors at EVERY merge
-> > > window.  The OMAP workflow is totally broken.  Something MUST change
-> > > in the way the OMAP community works to stop the continual breakage
-> > > at every single bloody merge window.
-> > 
-> > Hmm he following fixes are queued elsewhere and now merged:
-> > 
-> > omap_hsmmc: fix missing parenthesis in pr_info
-> > PM / OPP: Fix build when CONFIG_PM_OPP is not set 
-> > net: Add back alignment for size for __alloc_skb
-> > 
-> > Or have you seen some other build errors?
-> > 
-> > FYI, now all the compile warnings are finally gone with what
-> > I have in fixes branch.
-> 
-> It was the errors in the "ARM: OMAP: Fix build for OMAP3 only builds"
-> thread.
+commit d6504acd (OMAP2+: hwmod: remove OMAP_CHIP*) has
+mistakenly added MUSB as a hwmod available only on ES2.0
+of OMAP3430.
 
-OK, that's queued up.
+MUSB hwmod has always be available on all OMAP revisions
+since OMAP2430.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 3008e16..74f1454 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3232,7 +3232,6 @@ static __initdata struct omap_hwmod *omap3430es1_hwmods[] = {
+ /* 3430ES2+-only hwmods */
+ static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
+ 	&omap3xxx_dss_core_hwmod,
+-	&omap3xxx_usbhsotg_hwmod,
+ 	NULL
+ };
  
-> However, rebuilding today gives brand new breakage - for my OMAP4430SDP
-> config.  This seems to be because more linux/module.h includes have been
-> deleted from include/linux/*.h includes.
-> 
-> arch/arm/plat-omap/dmtimer.c:184: warning: data definition has no type or storage class
-...
-
-Got a fix for that one queued up too.
-
+@@ -3240,6 +3239,7 @@ static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
+ static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
+ 	&omap34xx_sr1_hwmod,
+ 	&omap34xx_sr2_hwmod,
++	&omap3xxx_usbhsotg_hwmod,
+ 	NULL
+ };
  
-> In addition, for OMAP3430 LDP:
-> 
-> arch/arm/plat-omap/omap_device.c:1055: warning: data definition has no type or storage class
-> arch/arm/plat-omap/omap_device.c:1055: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
-> arch/arm/plat-omap/omap_device.c:1055: warning: parameter names (without types) in function declaration
+-- 
+1.7.8.rc0
 
-Looks like there's a fix for this one posted, will add that.
-
-> arch/arm/mach-omap2/mailbox.c:417: error: expected declaration specifiers or '...' before string constant
-> arch/arm/mach-omap2/mailbox.c:417: warning: data definition has no type or storage class
-> arch/arm/mach-omap2/mailbox.c:417: warning: type defaults to 'int' in declaration of 'MODULE_LICENSE'
-...
-
-> drivers/video/omap/dispc.c:276: warning: data definition has no type or storage class
-> drivers/video/omap/dispc.c:276: warning: type defaults to 'int' in declaration of 'EXPORT_SYMBOL'
-
-Yeah after pulling in the current mainline I see at least the above
-two need to be patched.
-
- 
-> It might be an idea to do this:
-> 
-> grep -rl EXPORT_SYMBOL arch/arm/*omap* | xargs grep -L linux/export.h
-> 
-> and for any OMAP drivers as well.  This gives:
-> 
-> arch/arm/mach-omap1/id.c
-> arch/arm/mach-omap1/lcd_dma.c
-> arch/arm/mach-omap1/io.c
-> arch/arm/mach-omap1/ams-delta-fiq.c
-> arch/arm/mach-omap2/gpmc.c
-> arch/arm/mach-omap2/id.c
-> arch/arm/mach-omap2/io.c
-> arch/arm/plat-omap/ocpi.c
-> arch/arm/plat-omap/mcbsp.c
-> arch/arm/plat-omap/omap_device.c
-> arch/arm/plat-omap/mux.c
-> arch/arm/plat-omap/devices.c
-> arch/arm/plat-omap/io.c
-> arch/arm/plat-omap/dma.c
-> arch/arm/plat-omap/dmtimer.c
-> arch/arm/plat-omap/mailbox.c
-> 
-> which probably should all be fixed before any more of these errors
-> spring up.
-
-Except for the ones that have module.h included as that already
-includes export.h. At least the dmtimer.c will be moved to drivers,
-and could be a loadable module so module.h is better there.
-
-Anyways, will check these and post patches.
-
-Regards,
-
-Tony
