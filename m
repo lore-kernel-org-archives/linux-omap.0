@@ -1,73 +1,50 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 1/1] mmc: omap_hsmmc: DMA unmap only once in case of
-	MMC error
-Date: Mon, 7 Nov 2011 18:29:39 +0000
-Message-ID: <20111107182939.GF15294@n2100.arm.linux.org.uk>
-References: <1320683111-12577-1-git-send-email-balajitk@ti.com>
+Subject: Re: [PATCH] arm: omap2+: hwmod: fix breakage introduced by d6504acd
+Date: Mon, 7 Nov 2011 18:32:08 +0000
+Message-ID: <20111107183208.GG15294@n2100.arm.linux.org.uk>
+References: <1320688617-4543-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45922 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871Ab1KGScW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 13:32:22 -0500
 Content-Disposition: inline
-In-Reply-To: <1320683111-12577-1-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Balaji T K <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Per Forlin <per.forlin@linaro.org>
+In-Reply-To: <1320688617-4543-1-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Nov 07, 2011 at 09:55:11PM +0530, Balaji T K wrote:
-> From: Per Forlin <per.forlin@linaro.org>
+On Mon, Nov 07, 2011 at 07:56:57PM +0200, Felipe Balbi wrote:
+> commit d6504acd (OMAP2+: hwmod: remove OMAP_CHIP*) has
+> mistakenly added MUSB as a hwmod available only on ES2.0
+> of OMAP3430.
 > 
-> Reported by Russell King:
-> mmcblk0: error -84 transferring data, sector 149201, nr 64,
-> cmd response 0x900, card status 0xb00
-> mmcblk0: retrying using single block read
-> 
-> WARNING: at lib/dma-debug.c:811 check_unmap
-> omap_hsmmc omap_hsmmc.0: DMA-API: device driver tries to free DMA memory
-> it has not allocated [device address=0x0000000080933000] [size=20480 bytes]
-> 
-> In case of an error dma_unmap() is issued in omap_hsmmc_dma_cleanup()
-> and then again in omap_hsmmc_post_req(). Resolve this by clearing the
-> host_cookie to indicate there is no DMA mapped memory to unmap.
-> 
-> Signed-off-by: Per Forlin <per.forlin@linaro.org>
-> Tested-by: Balaji T K <balajitk@ti.com>
-> ---
-> Repost with my Tested-by
+> MUSB hwmod has always be available on all OMAP revisions
+> since OMAP2430.
 
-Thanks.
+This doesn't seem to solve it:
 
-Tested-by: Russell King <rmk+kernel@arm.linux.org.uk>
-
-> 
->  drivers/mmc/host/omap_hsmmc.c |    7 +++++--
->  1 files changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 101cd31..d5fe43d 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -1010,6 +1010,7 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
->  			host->data->sg_len,
->  			omap_hsmmc_get_dma_dir(host, host->data));
->  		omap_free_dma(dma_ch);
-> +		host->data->host_cookie = 0;
->  	}
->  	host->data = NULL;
->  }
-> @@ -1575,8 +1576,10 @@ static void omap_hsmmc_post_req(struct mmc_host *mmc, struct mmc_request *mrq,
->  	struct mmc_data *data = mrq->data;
->  
->  	if (host->use_dma) {
-> -		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
-> -			     omap_hsmmc_get_dma_dir(host, data));
-> +		if (data->host_cookie)
-> +			dma_unmap_sg(mmc_dev(host->mmc), data->sg,
-> +				     data->sg_len,
-> +				     omap_hsmmc_get_dma_dir(host, data));
->  		data->host_cookie = 0;
->  	}
->  }
-> -- 
-> 1.7.0.4
-> 
+dpll3_m2_clk rate change failed: -22
+------------[ cut here ]------------
+WARNING: at arch/arm/mach-omap2/usb-musb.c:141 usb_musb_init+0xc0/0x174()
+usb_musb_init: could not find omap_hwmod for usb_otg_hs
+Modules linked in:
+Backtrace:
+[<c0017920>] (dump_backtrace+0x0/0x10c) from [<c02d9898>] (dump_stack+0x18/0x1c) r7:c181ff20 r6:c03ceb54 r5:c037547b r4:0000008d
+[<c02d9880>] (dump_stack+0x0/0x1c) from [<c003ae08>] (warn_slowpath_common+0x58/0x70)
+[<c003adb0>] (warn_slowpath_common+0x0/0x70) from [<c003aec4>] (warn_slowpath_fmt+0x38/0x40)
+ r8:00000000 r7:00000013 r6:c0374b09 r5:c03f06e4 r4:c03741b0
+[<c003ae8c>] (warn_slowpath_fmt+0x0/0x40) from [<c03ceb54>] (usb_musb_init+0xc0/0x174)
+ r3:c02df894 r2:c03707f9
+[<c03cea94>] (usb_musb_init+0x0/0x174) from [<c03ce02c>] (omap_ldp_init+0xb0/0x100)
+ r6:c003e7e4 r5:c03f06e4 r4:c04053e4
+[<c03cdf7c>] (omap_ldp_init+0x0/0x100) from [<c03c6788>] (customize_machine+0x24/0x30)
+ r4:c03f03a8
+[<c03c6764>] (customize_machine+0x0/0x30) from [<c0008710>] (do_one_initcall+0x9c/0x164)
+[<c0008674>] (do_one_initcall+0x0/0x164) from [<c03c3284>] (kernel_init+0x7c/0x120)
+[<c03c3208>] (kernel_init+0x0/0x120) from [<c003e7e4>] (do_exit+0x0/0x62c)
+ r5:c03c3208 r4:00000000
+---[ end trace 1b75b31a2719ed1c ]---
