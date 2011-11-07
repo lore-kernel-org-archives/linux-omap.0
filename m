@@ -1,73 +1,79 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] ARM: omap4: prm: Fix up swapped offset macros
-Date: Mon, 7 Nov 2011 14:24:05 +0100
-Message-ID: <4EB7DBF5.8000305@ti.com>
-References: <1320660386-18148-1-git-send-email-rnayak@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] BUILD FIX:hwspinlock: do not return any value from void
+ funtion
+Date: Mon, 7 Nov 2011 13:40:01 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8023A6D@DBDE01.ent.ti.com>
+References: <1320670686-29286-1-git-send-email-hvaibhav@ti.com>
+ <4EB7D80D.2080108@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52286 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37116 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754377Ab1KGNYI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Nov 2011 08:24:08 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id pA7DO7sG008432
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 7 Nov 2011 07:24:07 -0600
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pA7DO7eo017276
-	for <linux-omap@vger.kernel.org>; Mon, 7 Nov 2011 07:24:07 -0600 (CST)
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pA7DO74X003745
-	for <linux-omap@vger.kernel.org>; Mon, 7 Nov 2011 07:24:07 -0600 (CST)
-In-Reply-To: <1320660386-18148-1-git-send-email-rnayak@ti.com>
+	id S1754691Ab1KGNkO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 08:40:14 -0500
+In-Reply-To: <4EB7D80D.2080108@compulab.co.il>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, Gina Glaser <g-glaser@ti.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "ohad@wizery.com" <ohad@wizery.com>
 
-Hi Rajendra,
 
-On 11/7/2011 11:06 AM, Rajendra Nayak wrote:
-> The offset macros for OMAP4_RM_RSTST and OMAP4_RM_RSTTIME
-> are wrongly swapped up.
+> -----Original Message-----
+> From: Igor Grinberg [mailto:grinberg@compulab.co.il]
+> Sent: Monday, November 07, 2011 6:37 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; ohad@wizery.com
+> Subject: Re: [PATCH] BUILD FIX:hwspinlock: do not return any value from
+> void funtion
 > 
-> Thanks to Gina Glaser for identifying and reporting this.
+> Hi Vaibhav,
 > 
-> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
-> Cc: Gina Glaser<g-glaser@ti.com>
-> ---
->   arch/arm/mach-omap2/prm44xx.h |    4 ++--
->   1 files changed, 2 insertions(+), 2 deletions(-)
+> On 11/07/11 14:58, Vaibhav Hiremath wrote:
+> > Fixes below compilation error -
+> >
+> >   CC      arch/arm/mach-omap2/hwspinlock.o
+> >   cc1: warnings being treated as errors
+> >   In file included from arch/arm/mach-omap2/hwspinlock.c:22:0:
+> >   include/linux/hwspinlock.h: In function '__hwspin_unlock':
+> >   include/linux/hwspinlock.h:121:2: error: 'return' with a value, in
+> function
+> >   returning void
+> >   make[1]: *** [arch/arm/mach-omap2/hwspinlock.o] Error 1
+> >   make: *** [arch/arm/mach-omap2] Error 2
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  include/linux/hwspinlock.h |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+> > index 08a2fee..192710a 100644
+> > --- a/include/linux/hwspinlock.h
+> > +++ b/include/linux/hwspinlock.h
+> > @@ -118,7 +118,7 @@ int __hwspin_trylock(struct hwspinlock *hwlock, int
+> mode, unsigned long *flags)
+> >  static inline
+> >  void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long
+> *flags)
+> >  {
+> > -	return 0;
+> > +	return;
 > 
-> diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-> index 3d66ccd..aa8593e 100644
-> --- a/arch/arm/mach-omap2/prm44xx.h
-> +++ b/arch/arm/mach-omap2/prm44xx.h
-> @@ -62,8 +62,8 @@
+> Isn't it better to just remove this line?
 > 
->   /* OMAP4 specific register offsets */
->   #define OMAP4_RM_RSTCTRL				0x0000
-> -#define OMAP4_RM_RSTTIME				0x0004
-> -#define OMAP4_RM_RSTST				0x0008
-> +#define OMAP4_RM_RSTST				0x0004
-> +#define OMAP4_RM_RSTTIME				0x0008
->   #define OMAP4_PM_PWSTCTRL				0x0000
->   #define OMAP4_PM_PWSTST				0x0004
+[Hiremath, Vaibhav] Yeup, we can do that... Submitting it again.
 
-In fact these defines were already defined correctly later (with a slightly different name):
+Thanks,
+Vaibhav
 
-/* PRM.DEVICE_PRM register offsets */
-
-[...]
-
-#define OMAP4_PRM_RSTST_OFFSET		0x0004
-#define OMAP4430_PRM_RSTST		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0004)
-#define OMAP4_PRM_RSTTIME_OFFSET	0x0008
-#define OMAP4430_PRM_RSTTIME		OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0008)
-
-
-I don't know where these defines are used, but we'd better use the existing ones.
-
-Benoit
+> >  }
+> >
+> >  static inline int hwspin_lock_get_id(struct hwspinlock *hwlock)
+> 
+> 
+> --
+> Regards,
+> Igor.
