@@ -1,67 +1,55 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 1/1] mmc: omap_hsmmc: DMA unmap only once in case of MMC error
-Date: Mon, 7 Nov 2011 21:55:11 +0530
-Message-ID: <1320683111-12577-1-git-send-email-balajitk@ti.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: 10-bit address support in i2c-omap and i2c-davinci
+Date: Mon, 7 Nov 2011 17:59:37 +0100
+Message-ID: <20111107175937.7099f6e9@endymion.delvare>
+References: <20111107094614.0062a3f7@endymion.delvare>
+	<87hb2g0y19.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47359 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932792Ab1KGQXe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 7 Nov 2011 11:23:34 -0500
+Received: from zone0.gcu-squad.org ([212.85.147.21]:17379 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755119Ab1KGRAG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 12:00:06 -0500
+In-Reply-To: <87hb2g0y19.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mmc@vger.kernel.org, cjb@laptop.org
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, Per Forlin <per.forlin@linaro.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Ben Dooks <ben-linux@fluff.org>, Tony Lindgren <tony@atomide.com>, Andy Green <andy.green@linaro.org>, Lucas De Marchi <lucas.demarchi@profusion.mobi>, Linux I2C <linux-i2c@vger.kernel.org>, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com
 
-From: Per Forlin <per.forlin@linaro.org>
+On Mon, 07 Nov 2011 07:09:38 -0800, Kevin Hilman wrote:
+> Adding linux-omap and linux-davinci lists
 
-Reported by Russell King:
-mmcblk0: error -84 transferring data, sector 149201, nr 64,
-cmd response 0x900, card status 0xb00
-mmcblk0: retrying using single block read
+Good point, sorry for missing that. Maybe the following would help?
 
-WARNING: at lib/dma-debug.c:811 check_unmap
-omap_hsmmc omap_hsmmc.0: DMA-API: device driver tries to free DMA memory
-it has not allocated [device address=0x0000000080933000] [size=20480 bytes]
+List i2c-omap and i2c-davinci in MAINTAINERS.
 
-In case of an error dma_unmap() is issued in omap_hsmmc_dma_cleanup()
-and then again in omap_hsmmc_post_req(). Resolve this by clearing the
-host_cookie to indicate there is no DMA mapped memory to unmap.
-
-Signed-off-by: Per Forlin <per.forlin@linaro.org>
-Tested-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
-Repost with my Tested-by
+ MAINTAINERS |    3 +++
+ 1 file changed, 3 insertions(+)
 
- drivers/mmc/host/omap_hsmmc.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 101cd31..d5fe43d 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1010,6 +1010,7 @@ static void omap_hsmmc_dma_cleanup(struct omap_hsmmc_host *host, int errno)
- 			host->data->sg_len,
- 			omap_hsmmc_get_dma_dir(host, host->data));
- 		omap_free_dma(dma_ch);
-+		host->data->host_cookie = 0;
- 	}
- 	host->data = NULL;
- }
-@@ -1575,8 +1576,10 @@ static void omap_hsmmc_post_req(struct mmc_host *mmc, struct mmc_request *mrq,
- 	struct mmc_data *data = mrq->data;
+--- linux-3.2-rc0.orig/MAINTAINERS	2011-11-07 17:55:46.000000000 +0100
++++ linux-3.2-rc0/MAINTAINERS	2011-11-07 17:55:55.000000000 +0100
+@@ -4675,6 +4675,8 @@ Q:	http://patchwork.kernel.org/project/l
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+ S:	Maintained
+ F:	arch/arm/*omap*/
++F:	drivers/i2c/busses/i2c-omap.c
++F:	include/linux/i2c-omap.h
  
- 	if (host->use_dma) {
--		dma_unmap_sg(mmc_dev(host->mmc), data->sg, data->sg_len,
--			     omap_hsmmc_get_dma_dir(host, data));
-+		if (data->host_cookie)
-+			dma_unmap_sg(mmc_dev(host->mmc), data->sg,
-+				     data->sg_len,
-+				     omap_hsmmc_get_dma_dir(host, data));
- 		data->host_cookie = 0;
- 	}
- }
--- 
-1.7.0.4
+ OMAP CLOCK FRAMEWORK SUPPORT
+ M:	Paul Walmsley <paul@pwsan.com>
+@@ -5940,6 +5942,7 @@ L:	davinci-linux-open-source@linux.davin
+ Q:	http://patchwork.kernel.org/project/linux-davinci/list/
+ S:	Supported
+ F:	arch/arm/mach-davinci
++F:	drivers/i2c/busses/i2c-davinci.c
+ 
+ SIS 190 ETHERNET DRIVER
+ M:	Francois Romieu <romieu@fr.zoreil.com>
 
+
+-- 
+Jean Delvare
