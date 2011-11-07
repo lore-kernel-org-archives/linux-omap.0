@@ -1,36 +1,33 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 1/4] regulator: helper routine to extract
- regulator_init_data
-Date: Mon, 07 Nov 2011 11:57:15 +0530
-Message-ID: <4EB77A43.8050206@ti.com>
-References: <1319721864-30067-1-git-send-email-rnayak@ti.com>
- <20111104202905.GA3918@quad.lixom.net>
- <20111104211447.GC2541@opensource.wolfsonmicro.com>
- <20111104212216.GA5756@quad.lixom.net>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v4 1/4] regulator: helper routine to extract regulator_init_data
+Date: Mon, 07 Nov 2011 11:57:27 +0530
+Message-ID: <4EB77A4F.5010007@ti.com>
+References: <1319721864-30067-1-git-send-email-rnayak@ti.com>	<20111104202905.GA3918@quad.lixom.net>	<20111104211447.GC2541@opensource.wolfsonmicro.com>	<20111104212216.GA5756@quad.lixom.net>	<20111104212910.GB8266@opensource.wolfsonmicro.com>	<CAOesGMgA7UayF9SJUP0YLnj86GmKBrajsBxv4_kRNNqCsvKTYg@mail.gmail.com>	<20111104214650.GC8266@opensource.wolfsonmicro.com> <CAOesGMjkcExKXhNN1nFGey=wBie0PQGp2XS_r-5Rr3X0p4eNhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20111104212216.GA5756-O5ziIzlqnXUVNXGz7ipsyg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:56315 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932224Ab1KGG1f (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 01:27:35 -0500
+In-Reply-To: <CAOesGMjkcExKXhNN1nFGey=wBie0PQGp2XS_r-5Rr3X0p4eNhg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, grant.likely@secretlab.ca, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Saturday 05 November 2011 02:52 AM, Olof Johansson wrote:
->>> >  >  Also, lower-caps is common instead of V and A.
+On Saturday 05 November 2011 03:46 AM, Olof Johansson wrote:
+>>> Yeah, ok, but it shouldn't be part of the description of regulator
+>>> >>  properties per se. See how gpio does it, defining how a gpio-specifier
+>>> >>  is crafted. The equivalent should be done for regulators.
 >> >
->> >  On the other hand the case is pretty important for SI units
-> Yeah, true. The fixed regulators used microvolt instead, which could be a good
-> way to do it.
+>> >  That seems to be pretty much exactly what's being done here, and like
+>> >  the GPIO bindings it's specified in the core document.  Though perhaps
+>> >  there's some aspect of how the document is written that's missing.
+ >
+> Yep, sounds good. A slightly more elaborate description of the binding
+> inspired by the gpio.txt document would be the way to do that.
 >
-
-Ok, will use microvolt and microamp across all bindings.
+Ok, will add more elaborate documentation for this in the core
+bindings.
