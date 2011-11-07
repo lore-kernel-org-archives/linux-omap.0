@@ -1,54 +1,68 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/1] OMAP: TWL: set clk32kg regulator on
-Date: Mon, 07 Nov 2011 11:26:18 -0800
-Message-ID: <871utju42t.fsf@ti.com>
-References: <1320162052-32276-1-git-send-email-vishalm@ti.com>
-	<1320162052-32276-2-git-send-email-vishalm@ti.com>
-	<87zkgb1nta.fsf@ti.com>
-	<59CD7F2B651AD44A9EFE2AFA6166395D083879@DFLE34.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] arm: omap2+: hwmod: fix breakage introduced by d6504acd
+Date: Mon, 7 Nov 2011 21:39:09 +0200
+Message-ID: <20111107193908.GA5059@legolas.emea.dhcp.ti.com>
+References: <1320688617-4543-1-git-send-email-balbi@ti.com>
+ <20111107183208.GG15294@n2100.arm.linux.org.uk>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:36733 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752186Ab1KGT0W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 14:26:22 -0500
-Received: by mail-qy0-f177.google.com with SMTP id 10so6926446qyk.1
-        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 11:26:21 -0800 (PST)
-In-Reply-To: <59CD7F2B651AD44A9EFE2AFA6166395D083879@DFLE34.ent.ti.com>
-	(Vishal Mahaveer's message of "Fri, 4 Nov 2011 23:20:49 +0000")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3V7upXqbjpZ4EhLz"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111107183208.GG15294@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <balbi@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Mahaveer, Vishal" <vishalm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Mahaveer, Vishal" <vishalm@ti.com> writes:
 
->>> omap4_clk32kg regulator is used by connectivity (WLAN/BT/GPS) chip on
->>> omap4 platforms.
->>> Set always_on flag to true for connectivity chip to operate.
->>
->> The driver/init for the connectivity chip should be using the regulator
->> API to enable/disable the regulator as needed.
->
-> The connectivity chip is used for BT, WLAN, FM and GPS. So we want it
-> on at all times.
+--3V7upXqbjpZ4EhLz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-No.
+Hi,
 
-You want it on only
+On Mon, Nov 07, 2011 at 06:32:08PM +0000, Russell King - ARM Linux wrote:
+> On Mon, Nov 07, 2011 at 07:56:57PM +0200, Felipe Balbi wrote:
+> > commit d6504acd (OMAP2+: hwmod: remove OMAP_CHIP*) has
+> > mistakenly added MUSB as a hwmod available only on ES2.0
+> > of OMAP3430.
+> >=20
+> > MUSB hwmod has always be available on all OMAP revisions
+> > since OMAP2430.
+>=20
+> This doesn't seem to solve it:
 
-1) if the connectivity chip is present, *and*
-2) BT, WLAN, FM or GPS are being used.
+then i can't help. From all I know the LDP is based on OMAP3430 so that
+should work. If it doesn't, it's something deeper on hwmod, maybe ?
 
-The current patch assumes that a connectivity chip is present whenever
-the TWL is present, which may be true on the platform you're currently
-working on, but is not true in general.
+Paul, it's your call.
 
-And, even if it were present, for power reasons the regulator should be
-enabled only when it's needed, not because it might be needed.  That
-means that the device-specific (or board specific) code should be
-configuring the regulators used for the various modules so the drivers
-can request the regulators when they're needed.
+--=20
+balbi
 
-Kevin
+--3V7upXqbjpZ4EhLz
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOuDPcAAoJEIaOsuA1yqREKx0QAKAm1ByGrBRsS662BsjwPe3g
+7EzPZo4+QeRkgVGUBimAItrI76ktvOpsFkVUoQUuzA1LZpZekuW8ajpagfPpUyhP
+EkNS9QOzpxfl/ecOlEm2Cw40E7W4qONY7ejJE8NuTKp9mOjdz2533TSQToWl4GVs
+abSvrXw653tFhD556E0bljaupKE4merYN0HaCqKx+VfQJsPSjAI9QMXwZz3yku/O
+ZKgT/PJJ0fPV7xxqIUdIv3uZzbQbyCRjsoR9P9DOyPq1NslM9/8ebCUz5K++F+Hr
+VKIjADTgKXPjXH33VnfTC1v2Lzja55NwIOPaRg85RIxxo41S+E92yi7ETxGkhwah
+f5MeAPVOxcaFpGBek2HJ/9+jLOA09ytHfPrE8k7O261eCQauIDO/5SMdz358QN/2
+IM6J7FcSuP5btSiuUIPms5MFz94rV2ChU9AEuskiQtGjyDAFc0Z59OfkWdFfaucg
+r4Yvgd8WGdJcK8fxWdFgpoCYlw5jdBRrNf6GV6/ulXC5llCrW03kekpLNzs1T9HY
+tEwpjY5qp8rIIgMoXI62o2b82RutqpyzoIda0/YCifOrSArQyIt/kuK6+AsdE9Zb
+JwNSAGQ4WcTjNzxXiHz6585OPLeh4bFiZeCEEBcpnBUjHU07PqHCvrAqTLQXr5U8
+/8ngvsXvwRZPXLV/tcKS
+=KH3I
+-----END PGP SIGNATURE-----
+
+--3V7upXqbjpZ4EhLz--
