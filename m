@@ -1,88 +1,55 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] cbus-tahvo: Add tahvo_write_reg locking
-Date: Mon, 7 Nov 2011 08:10:45 +0200
-Message-ID: <20111107061044.GB4265@legolas.emea.dhcp.ti.com>
-References: <20111105171954.230d12fb@milhouse>
-Reply-To: balbi@ti.com
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 2/4] mmc: omap: adapt the hsmmc driver to device tree
+Date: Mon, 07 Nov 2011 11:44:43 +0530
+Message-ID: <4EB77753.8040606@ti.com>
+References: <1320407441-29697-1-git-send-email-rnayak@ti.com> <1320407441-29697-3-git-send-email-rnayak@ti.com> <20111104200415.GC3045@quad.lixom.net> <4EB45844.5000603@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jho1yZJdad60DJr+"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:39076 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751600Ab1KGGKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 01:10:50 -0500
-Received: by bkbzv15 with SMTP id zv15so5044514bkb.17
-        for <linux-omap@vger.kernel.org>; Sun, 06 Nov 2011 22:10:48 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20111105171954.230d12fb@milhouse>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4EB45844.5000603@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Olof Johansson <olof@lixom.net>, cjb@laptop.org, balajitk@ti.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Michael =?iso-8859-1?Q?B=FCsch?= <m@bues.ch>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
+On Saturday 05 November 2011 02:55 AM, Cousson, Benoit wrote:
+>>> +Required properties:
+>>> +- compatible: Should be "ti,omap-hsmmc<n>", "ti,omap2-hsmmc";
+>>> +n is controller instance starting 0, for OMAP2/3 controllers
+>>
+>> No, no, no. You should not have to specify the unit-address in the
+>> compatible
+>> field. They are all programmed the same way, right?
+>
+> AFAIR, 2 instances contain a DMA engine, but that should anyway be
+> detected using a "ti,had-dma-engine" extra property and not like that.
+>
+> Checking the code in #2, it is used to get the instance of the MMC.
+>
+> +static unsigned int of_get_hsmmc_instance(struct device_node *np)
+> +{
+> +    int i;
+> +    char comp[32];
+> +
+> +    for (; i < OMAP_MMC_DEV_MAX; i++) {
+> +        snprintf(comp, 32, "ti,omap-hsmmc%d", i);
+> +        if (of_device_is_compatible(np, comp))
+> +            break;
+> +    }
+> +    return i;
+> +}
+>
+> Which does not seems to be a good usage of the compatible property anyway.
+> For a similar issue someone on the list suggested using the "cell-index"
+> property. But the definition I found in some binding documentation seems
+> to reserve that to: "enumerate logical devices within an IP core."
+> Ideally the driver should probably get rid of the need for an index.
+> I didn't check the original driver, but that should be needed for some
+> legacy reason.
 
---jho1yZJdad60DJr+
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Sat, Nov 05, 2011 at 05:19:54PM +0100, Michael B=FCsch wrote:
-> tahvo_write_reg() needs to take the mutex to avoid a race
-> condition with tahvo_set_clear_reg_bits:
->=20
-> tahvo_set_clear_reg_bits():   |  tahvo_write_reg():
->     __tahvo_read_reg()        |
->                               |      __tahvo_write_reg() <-- race here
->     __tahvo_write_reg()       |
->=20
-> Signed-off-by: Michael Buesch <m@bues.ch>
->=20
-> ---
->=20
-> Index: linux-3.1/drivers/cbus/tahvo.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- linux-3.1.orig/drivers/cbus/tahvo.c	2011-11-05 17:03:39.598846119 +01=
-00
-> +++ linux-3.1/drivers/cbus/tahvo.c	2011-11-05 17:04:36.274768324 +0100
-> @@ -104,7 +104,9 @@ void tahvo_write_reg(struct device *chil
->  {
->  	struct tahvo		*tahvo =3D dev_get_drvdata(child->parent);
-> =20
-> +	mutex_lock(&tahvo->mutex);
->  	__tahvo_write_reg(tahvo, reg, val);
-> +	mutex_unlock(&tahvo->mutex);
-
-yeah, my bad. The same should be done with tahvo_read_reg(). Care to
-resend this patch adding the change to tahvo_read_reg() too...
-
---=20
-balbi
-
---jho1yZJdad60DJr+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOt3ZkAAoJEIaOsuA1yqREy1gQAKGBV0gVrq2bBx6CD4HBiq0W
-JM9bGpOFpUXe96j95DdmNvyRC9GYqX90f8Z5HJghruSuURFfC1KvvCPEJBhwKTpL
-4JG3px90z2oS1I/8vI99lIGAmsVVOErEgJOkv6yFvW0bMzd9s/4mcBn0/xsSSjXD
-tlxiFa3ZuVl1BwB5DVNcIc7XbQA0LKL5ngs0vgHLN+dJXrj8wdmxKAB0zHOz6+V5
-Ni0GLU8XsRvYhyA/imGtNX/nhTCyfhHDqRpgQrugEv0oGEEYp6UbPGW7jHk8BGpu
-epujyRhX+381i1M4JDo+LpCOX872ZbzS3iHb3okNCZCu2C68CBIMMPU/nhVP7I6/
-3Vk8Qnc/FFZvh2/k/qFMudeljyC80qtI4g16E6iYZay2velPt+TKEVc4A/Ate2LL
-uyugvR62Z6uYSsi31fQWV6vDLqLOeUoy+XhVY0rrGuOf+PwbGsYAywu7GctCDMJy
-3OXL6f1G823SUckmOxVXWmmoc/yn3Qu8S58FukH6JpavqfZ+0NRZcYv0RHx0DTmh
-ImBRxF2dYaDD4UvXWfIFp9X9+Vphm3exnMsGNZxLvsUL4UdSTfA1U2dAyd3FbSWi
-rTu8r3NeCFmSfjZ+ZxJYE1zjRW9PetDNmaeeVczlzBMq2s+Y8JDim6O8d9tPcFDF
-694ROBu9l0KtJ3Cha4hl
-=iVW4
------END PGP SIGNATURE-----
-
---jho1yZJdad60DJr+--
+yes, there are a bunch of things done inside the driver based on the
+instance id which seem wrong, but I agree, encoding the instance
+in the compatible property seems really bad and non-scalable.
+Will look at how some of this legacy code in the driver can be
+removed/cleaned up.
