@@ -1,39 +1,87 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
-Date: Tue, 08 Nov 2011 12:01:38 -0800
-Message-ID: <8762iu1izh.fsf@ti.com>
-References: <1320333428-23532-1-git-send-email-shubhrajyoti@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: HSI framework for linux-next
+Date: Wed, 9 Nov 2011 08:51:40 +1100
+Message-ID: <20111109085140.908f89d0e2b8160cc959d67c@canb.auug.org.au>
+References: <1319794066.28874.22.camel@groo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1320333428-23532-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Thu, 3 Nov 2011 20:47:08 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Wed__9_Nov_2011_08_51_40_+1100_BlUvxPXo0PhUn6A2"
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <1319794066.28874.22.camel@groo>
+Sender: linux-next-owner@vger.kernel.org
+To: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Sebastian Reichel <sre@debian.org>
 List-Id: linux-omap@vger.kernel.org
 
-+Ben Dooks
+--Signature=_Wed__9_Nov_2011_08_51_40_+1100_BlUvxPXo0PhUn6A2
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Hi Carlos,
 
-> Currently the fifo depth is set to zero for OMAP4 which disables
-> the FIFO usage. This patch enables the FIFO usage for I2C transactions
-> on OMAP4 also.
+On Fri, 28 Oct 2011 12:27:46 +0300 Carlos Chinea <carlos.chinea@nokia.com> =
+wrote:
 >
-> Tested on omap4430 and 3430.
->
-> Tested-and-Reported-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> I have been working in an HSI framework for linux:
+>=20
+> https://lkml.org/lkml/2011/6/10/280
+>=20
+> The framework is in good shape and is currently being used for some
+> people so we would like it to see it integrated, if possible, for 3.3
+>=20
+> Latest discussion for integration:
+> https://lkml.org/lkml/2011/10/20/177
+>=20
+> Therefore, could you add the following tree to linux-next ?=20
+> 	git@gitorious.org:kernel-hsi/kernel-hsi.git for-next
+>=20
+> Currently the framework does not have any HSI/SSI controller driver, but
+> myself I am working on an SSI OMAP one, which needs some changes to get
+> full acceptance. So hopefully I will have the changes done and acked on
+> time.
+> There are also other people preparing their controllers for integration
+> (see the integration discussion)
 
-Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Right, so -rc1 has been released so I can consider this.  Just a couple of =
+things:
 
-Ben, please queue as a fix for the v3.2-rc.  It applies cleanly to
-v3.2-rc1.
+	Linus (and the rest of us) is being a bit nmore paranoid about
+where to fetch trees from.  Public git hosters (like gitorious) can be
+problematic since it is hard for us to verify the owners of trees
+reliably.  You either need to apply for a kernel.org account, or you will
+need to add a signed tag to your tree before asking Linus to pull from
+it.  And that atg will have to be singned with a GPG key that can be
+verified by Linus ...
 
-If you prefer a branch:
-https://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.2/fixes/i2c
+	I am not sure how to translate that gitorious URI above into a
+simple, publically fetchable URI (git://gitorious.org...).
 
-Thanks,
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Kevin
+--Signature=_Wed__9_Nov_2011_08_51_40_+1100_BlUvxPXo0PhUn6A2
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJOuaRsAAoJEECxmPOUX5FEH28P/3QXJgKwfLjKLOITZKNv6Gya
+dAir4rs5TSb6IJlxjxjJSyY7fDkaK/ees1y9ptCEVyvWTSegGaVWSHzrqp4+fb1l
+66ew0UwFAph6FRVgCswAXOQTDlAUL2Eny4xebjBYlkefZUJCjy1vG0hz92jeEcKt
++aVA9OUVRhBH5Wtf11o8yyCGESyaNMG702uKBXujj4E0dEN8TtonE8zE6Nojcwkg
+cIGo1eSdc1b3HedLhqDB1DavBjvA/w3SqcDtSA3NR7VmmvlWe+3WxQjpFBPt1H3I
+PGbAseq1T56lUCrijxPyz3ESS/MF9hRfiUYhL/UBhOHwneEW/PN77EpRiiHSSO15
+PabNmmKJBPaxusj/quF7NxV7s5F+qG2AjY8WpE7jGy07kJG5O02T84qGQBGiTasa
+PvoiTJ/vKZwOUdkBDlHcSEAqosJ912GI7mfLyr8LsLZt1Ws7YmHPLvrZqWnyRuhG
+nbYg0ioYgP0dBWD8ghwbpRv5U4KxKfDIdiXXyKDc6dCmemHbEpTtUyZi8Yvl/auh
+ek/rGRUWN2gHBXRjCvgC9WM+1qtGzZK3fUERULzQtabYa1KU4lX86v7Cdt2kQTcg
+wKjDQXsTkAMIisByirNNyGHDMM805//tECkSWLn/3lyOqSejmwBPRn4Bcs5UV5PJ
+WVW7j16VifjWUrpUAcxU
+=TpD1
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__9_Nov_2011_08_51_40_+1100_BlUvxPXo0PhUn6A2--
