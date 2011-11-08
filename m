@@ -1,68 +1,57 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v4 0/7] iommu: split mapping to page sizes as supported by
- the hardware
-Date: Tue, 8 Nov 2011 14:57:02 +0200
-Message-ID: <CAK=Wgbb5K+rqPNdM2sC8z+9d4-hdcPwV-vXk6gcAYWaO+dVx3w@mail.gmail.com>
-References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP: DSS hwmod/reset fixes for 3.2-rc
+Date: Tue, 8 Nov 2011 06:08:45 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1111080607090.8313@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1318850846-16066-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: iommu@lists.linux-foundation.org, Joerg Roedel <Joerg.Roedel@amd.com>
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:56380 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752033Ab1KHNIq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 08:08:46 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com
 
-Joerg, gentle reminder. thanks.
 
-On Mon, Oct 17, 2011 at 1:27 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote=
-:
-> v3->v4:
-> - simplify splitter logic (Joerg)
-> - declare supported page-sizes in the iommu_ops, without extending io=
-mmu_register (Joerg)
-> - iommu_unmap should now return bytes too (Joerg)
-> - don't cache min_pgsize anymore (Joerg)
-> - handle cases when ->unmap() actually unmaps more than requested (Jo=
-erg)
-> - unroll iommu_unmap completely in case it fails (KyongHo)
-> - use size_t for size parameters (KyongHo)
-> - add a patch to remove the bytes->order->bytes conversion we had
-> - rabase to master branch of the iommu tree (Joerg)
->
-> v2->v3:
-> - s/KB/KiB/ (David W)
->
-> v1->v2:
-> - split to patches (by keeping the old code around until all drivers =
-are converted) (Joerg)
->
-> Tested with OMAP3 (omap3isp) and OMAP4 (rpmsg/remoteproc).
-> Compile tested with X86_64.
->
-> Ohad Ben-Cohen (7):
-> =A0iommu/core: stop converting bytes to page order back and forth
-> =A0iommu/core: split mapping to page sizes as supported by the hardwa=
-re
-> =A0iommu/omap: announce supported page sizes
-> =A0iommu/msm: announce supported page sizes
-> =A0iommu/amd: announce supported page sizes
-> =A0iommu/intel: announce supported page sizes
-> =A0iommu/core: remove the temporary pgsize settings
->
-> =A0drivers/iommu/amd_iommu.c =A0 | =A0 32 +++++++++---
-> =A0drivers/iommu/intel-iommu.c | =A0 30 ++++++++---
-> =A0drivers/iommu/iommu.c =A0 =A0 =A0 | =A0119 +++++++++++++++++++++++=
-+++++++++++++++----
-> =A0drivers/iommu/msm_iommu.c =A0 | =A0 25 ++++-----
-> =A0drivers/iommu/omap-iommu.c =A0| =A0 18 +++---
-> =A0drivers/iommu/omap-iovmm.c =A0| =A0 17 ++----
-> =A0include/linux/iommu.h =A0 =A0 =A0 | =A0 26 +++++++--
-> =A0virt/kvm/iommu.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A08 ++--
-> =A08 files changed, 205 insertions(+), 70 deletions(-)
->
-> --
-> 1.7.4.1
->
->
+Hi Tony
+
+The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
+
+  Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
+
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 hwmod_dss_fixes_3.2rc
+
+Archit Taneja (1):
+      ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
+
+Tomi Valkeinen (9):
+      ARM: OMAP2xxx: HWMOD: Fix DSS reset
+      ARM: OMAP2xxx: HWMOD: fix DSS clock data
+      ARM: OMAP3: HWMOD: Fix DSS reset
+      ARM: OMAP3: HWMOD: fix DSS clock data
+      ARM: OMAP4: HWMOD: remove extra clocks
+      ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
+      ARM: OMAP4: HWMOD: fix DSS clock data
+      ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
+      ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
+
+ arch/arm/mach-omap2/Makefile                       |    5 +-
+ arch/arm/mach-omap2/display.c                      |  159 ++++++++++++++++++++
+ arch/arm/mach-omap2/display.h                      |   29 ++++
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
+ arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
+ arch/arm/plat-omap/include/plat/common.h           |    3 +
+ include/video/omapdss.h                            |    7 -
+ 12 files changed, 276 insertions(+), 35 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/display.h
+
+
+- Paul
