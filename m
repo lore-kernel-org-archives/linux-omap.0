@@ -1,86 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH] ARM: omap4: prm: Fix up swapped offset macros
-Date: Tue, 08 Nov 2011 12:34:58 +0530
-Message-ID: <4EB8D49A.8040605@ti.com>
-References: <1320660386-18148-1-git-send-email-rnayak@ti.com> <4EB7DBF5.8000305@ti.com> <4EB8CA93.3020706@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [GIT PULL] hwspinlock fixes for 3.2
+Date: Tue, 8 Nov 2011 09:44:45 +0200
+Message-ID: <CAK=WgbYWeYQf2dRsD2iBf+d7Eo=HiTynifVP3DhES5CwPUzCwQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45017 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750860Ab1KHHFG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 02:05:06 -0500
-Received: by mail-gx0-f180.google.com with SMTP id v5so318068ggn.11
-        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 23:05:04 -0800 (PST)
-In-Reply-To: <4EB8CA93.3020706@ti.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:62192 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752681Ab1KHHpH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 02:45:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, Gina Glaser <g-glaser@ti.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Axel Lin <axel.lin@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Paul Gortmaker <paul.gortmaker@windriver.com>
 
-On Tuesday 08 November 2011 11:52 AM, Rajendra Nayak wrote:
->>>
->>> /* OMAP4 specific register offsets */
->>> #define OMAP4_RM_RSTCTRL 0x0000
->>> -#define OMAP4_RM_RSTTIME 0x0004
->>> -#define OMAP4_RM_RSTST 0x0008
->>> +#define OMAP4_RM_RSTST 0x0004
->>> +#define OMAP4_RM_RSTTIME 0x0008
->>> #define OMAP4_PM_PWSTCTRL 0x0000
->>> #define OMAP4_PM_PWSTST 0x0004
->>
->> In fact these defines were already defined correctly later (with a
->> slightly different name):
->>
->> /* PRM.DEVICE_PRM register offsets */
->>
->> [...]
->>
->> #define OMAP4_PRM_RSTST_OFFSET 0x0004
->> #define OMAP4430_PRM_RSTST
->> OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0004)
->> #define OMAP4_PRM_RSTTIME_OFFSET 0x0008
->> #define OMAP4430_PRM_RSTTIME
->> OMAP44XX_PRM_REGADDR(OMAP4430_PRM_DEVICE_INST, 0x0008)
->>
->>
->> I don't know where these defines are used, but we'd better use the
->> existing ones.
->
-> Yes, it looks like it makes sense to completely get rid of these and
-> instead use the auto-generated ones.
-> I see there are these multiple defines for omap3 too, maybe its best to
-> get rid of them for omap3 too?
+Hi Linus,
 
-Looking at it a little more closely, I now see why some of these
-are needed.
+Please pull:
 
-#define OMAP4_PM_PWSTCTRL                               0x0000
-#define OMAP4_PM_PWSTST                                 0x0004
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git fixes
 
-These seem to be needed because the autogen output throws out offsets
-with the individual domain names embedded, which can't be used in
-generic powerdomain code, and since all of them are the same, the
-ones with the individual domain names never get used.
-Maybe a case for the autogen script updates to get rid of all those and
-just generate something like the above. Should give some good -ve
-diffstat :)
+To get two hwspinlock fixes from Axel.
 
-#define OMAP4_RM_RSTCTRL                                0x0000
-#define OMAP4_RM_RSTTIME                                0x0004
+There was a third, "module.h split merge"-related fix from Axel that I
+dropped because I saw Paul picked it up in his pull request.
 
-These don't seem to be used at all.
+Thanks,
+Ohad.
 
-#define OMAP4_RM_RSTST                                  0x0008
+The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
 
-The only instance of this being used I see is in 
-omap_prcm_get_reset_sources() and seems completely wrong
-as its using a omap2/3 api (omap2_prm_read_mod_reg())
-on omap4.
+  Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
 
->
->>
->> Benoit
->
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git fixes
 
+Axel Lin (2):
+      hwspinlock: Don't return a value in __hwspin_unlock
+      hwspinlock/u8500: fix build error due to undefined label
+
+ drivers/hwspinlock/u8500_hsem.c |    6 ++----
+ include/linux/hwspinlock.h      |    1 -
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/hwspinlock/u8500_hsem.c b/drivers/hwspinlock/u8500_hsem.c
+index 143461a..a120f14 100644
+--- a/drivers/hwspinlock/u8500_hsem.c
++++ b/drivers/hwspinlock/u8500_hsem.c
+@@ -108,10 +108,8 @@ static int __devinit u8500_hsem_probe(struct
+platform_device *pdev)
+ 		return -ENODEV;
+
+ 	io_base = ioremap(res->start, resource_size(res));
+-	if (!io_base) {
+-		ret = -ENOMEM;
+-		goto free_state;
+-	}
++	if (!io_base)
++		return -ENOMEM;
+
+ 	/* make sure protocol 1 is selected */
+ 	val = readl(io_base + HSEM_CTRL_REG);
+diff --git a/include/linux/hwspinlock.h b/include/linux/hwspinlock.h
+index 08a2fee..aad6bd4 100644
+--- a/include/linux/hwspinlock.h
++++ b/include/linux/hwspinlock.h
+@@ -118,7 +118,6 @@ int __hwspin_trylock(struct hwspinlock *hwlock,
+int mode, unsigned long *flags)
+ static inline
+ void __hwspin_unlock(struct hwspinlock *hwlock, int mode, unsigned long *flags)
+ {
+-	return 0;
+ }
+
+ static inline int hwspin_lock_get_id(struct hwspinlock *hwlock)
