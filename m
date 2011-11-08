@@ -1,53 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: CPUidle: include <linux/export.h>
-Date: Mon, 7 Nov 2011 16:12:15 -0800
-Message-ID: <20111108001214.GE31337@atomide.com>
-References: <1320710320-8279-1-git-send-email-khilman@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC] omap: mux: add support for selecting mpu_irq for each wakeup pad
+Date: Mon, 07 Nov 2011 16:17:55 -0800
+Message-ID: <87wrbbqxfw.fsf@ti.com>
+References: <1319803425-13154-1-git-send-email-t-kristo@ti.com>
+	<1319803425-13154-2-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:47158 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750816Ab1KHAMS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 19:12:18 -0500
-Content-Disposition: inline
-In-Reply-To: <1320710320-8279-1-git-send-email-khilman@ti.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:46799 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750871Ab1KHAR7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 19:17:59 -0500
+Received: by mail-gy0-f174.google.com with SMTP id 15so6697734gyc.33
+        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 16:17:58 -0800 (PST)
+In-Reply-To: <1319803425-13154-2-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Fri, 28 Oct 2011 15:03:45 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-* Kevin Hilman <khilman@ti.com> [111107 15:23]:
-> The CPUidle use THIS_MODULE, so needs <linux/export.h>
-> 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Tony, one more for omap/fixes.   This one applies to Linus' master branch,
-> but also applies to your current omap/fixes.
+Tero Kristo <t-kristo@ti.com> writes:
 
-Thanks, applying into fixes. Looks like I did not grep for THIS_MODULE..
+> By default all registered pads will trigger mpu_irqs[0]. Now there is
+> an API for selecting used mpu_irq on pad basis, which can be used to
+> trigger different irq handlers for different pads in the same hwmod.
+> Each pad that requires its interrupt to be re-routed this way must
+> have a separate call to omap_hwmod_pad_route_irq(hwmod, pad, irq).
+>
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-Tony
- 
->  arch/arm/mach-omap2/cpuidle34xx.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index 4bf6e6e..2e0fa5a 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -24,6 +24,7 @@
->  
->  #include <linux/sched.h>
->  #include <linux/cpuidle.h>
-> +#include <linux/export.h>
->  
->  #include <plat/prcm.h>
->  #include <plat/irqs.h>
-> -- 
-> 1.7.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+FWIW, I like this approach.
+
+Kevin
