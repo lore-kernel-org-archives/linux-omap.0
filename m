@@ -1,66 +1,41 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [GIT PULL v3] ARM: OMAP: Cortex-A9 PERIPHCLK node for 3.2
-Date: Tue, 8 Nov 2011 13:37:34 +0530
-Message-ID: <CAMQu2gwAezM7WZRyZFijYf0vLGEWRaUOGkyctBp=9A5+7oV=tA@mail.gmail.com>
-References: <alpine.DEB.2.00.1110101342010.5205@utopia.booyaka.com>
- <alpine.DEB.2.00.1110101415560.5205@utopia.booyaka.com> <alpine.DEB.2.00.1110101840440.5205@utopia.booyaka.com>
- <20111105005312.GQ31337@atomide.com> <alpine.DEB.2.00.1111080051471.12394@utopia.booyaka.com>
+From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] omap4: i2c: add post idle reset registers flag
+Date: Tue, 08 Nov 2011 13:41:49 +0530
+Message-ID: <4EB8E445.4050604@ti.com>
+References: <1320701500-14535-1-git-send-email-x0132446@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:37784 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753177Ab1KHIH5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Nov 2011 03:07:57 -0500
-Received: by mail-qw0-f44.google.com with SMTP id c10so104587qad.10
-        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2011 00:07:56 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1111080051471.12394@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1320701500-14535-1-git-send-email-x0132446-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Anders <x0132446-l0cyMroinI0@public.gmane.org>
+Cc: danders.dev-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, aneesh-l0cyMroinI0@public.gmane.org, jayabharath-l0cyMroinI0@public.gmane.org, andy.green-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, keshava_mgowda@ti.com
 
-On Tue, Nov 8, 2011 at 1:23 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Fri, 4 Nov 2011, Tony Lindgren wrote:
->
->> * Paul Walmsley <paul@pwsan.com> [111010 17:09]:
->> > The following changes since commit be73246058737beec52ae232bcab777=
-6332a9e06:
->> >
->> > =A0 ARM: OMAP2+: Remove custom init_irq for remaining boards (2011=
--09-26 17:50:37 -0700)
->> >
->> > are available in the git repository at:
->> > =A0 git://git.pwsan.com/linux-2.6 clock_hwmod_devel_3.2
->> >
->> > This pull request drops the EHCI/OHCI hwmod data due to some
->> > inconsistencies that were just found in the data.
->> >
->> > Santosh Shilimkar (1):
->> > =A0 =A0 =A0 ARM: OMAP4: clock: Add CPU local timer clock node.
->> >
->> > =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A09 +++++++++
->> > =A01 files changed, 9 insertions(+), 0 deletions(-)
->>
->> Should this be pulled into fixes for v3.2 -rc cycle?
->
-> Santosh would be the right person to ask. =A0Santosh, is anything bro=
-ken in
-> 3.2 if this patch doesn't get merged in -rc? =A0Or is it just a featu=
-re
-> which could be added in 3.3?
->
-Nope nothing broken now since OMAP CPUFreq has not
-got into mainline yet. We need this patch to present once we
-start supporting MPU frequency scaling which I guess would
-happen now in 3.3.
+On Tuesday 08 November 2011 03:01 AM, David Anders wrote:
+> omap44xx i2c devices need to have the registers reset post idle
+> similar to omap3xxx devices. this adds the additional flag for
+> OMAP_I2C_FLAG_RESET_REGS_POSTIDLE to the omap44xx i2c_dev_attr.
+Hello Anders a similar patch is already posted
+http://www.spinics.net/lists/linux-i2c/msg05913.html
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: David Anders <x0132446-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 7695e5d..e93dc40 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -2257,7 +2257,8 @@ static struct omap_hwmod_class omap44xx_i2c_hwmod_class = {
+>  };
+>  
+>  static struct omap_i2c_dev_attr i2c_dev_attr = {
+> -	.flags	= OMAP_I2C_FLAG_BUS_SHIFT_NONE,
+> +	.flags	= OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
+> +		  OMAP_I2C_FLAG_BUS_SHIFT_NONE,
+>  };
+>  
+>  /* i2c1 */
