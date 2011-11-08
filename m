@@ -1,23 +1,39 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH RESEND v2 2/2] regulator: TPS65910: VDD1/2 voltage
- selector count
-Date: Tue, 8 Nov 2011 15:56:39 +0000
-Message-ID: <20111108155639.GE5632@opensource.wolfsonmicro.com>
-References: <1320758650-29180-1-git-send-email-afzal@ti.com>
+From: Joerg Roedel <joerg.roedel@amd.com>
+Subject: [PATCH] arm: cpuidle34xx.c: Fix compile error
+Date: Tue, 8 Nov 2011 17:11:05 +0100
+Message-ID: <1320768665-9759-1-git-send-email-joerg.roedel@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1320758650-29180-1-git-send-email-afzal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-kernel@vger.kernel.org, lrg@ti.com, sameo@linux.intel.com, nsekhar@ti.com, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from va3ehsobe001.messaging.microsoft.com ([216.32.180.11]:22044
+	"EHLO VA3EHSOBE001.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755158Ab1KHQL0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 11:11:26 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Joerg Roedel <joerg.roedel@amd.com>
 
-On Tue, Nov 08, 2011 at 06:54:10PM +0530, Afzal Mohammed wrote:
-> Count of selector voltage is required for regulator_set_voltage
-> to work via set_voltage_sel. VDD1/2 currently have it as zero,
-> so regulator_set_voltage won't work for VDD1/2.
-> Update count (n_voltages) for VDD1/2.
+Add missing module.h include to provide THIS_MODULE.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 1fe35c2..158c17e 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -24,6 +24,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/cpuidle.h>
++#include <linux/module.h>
+ 
+ #include <plat/prcm.h>
+ #include <plat/irqs.h>
+-- 
+1.7.5.4
+
+
