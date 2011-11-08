@@ -1,84 +1,47 @@
-From: James <angweiyang@gmail.com>
-Subject: Re: Simple GPMC device driver with basic User application
-Date: Tue, 8 Nov 2011 10:07:31 +0800
-Message-ID: <CAOy7-nO5mWvnz5AHNzdeGb=K9cSeEn07QiVSTG36VkuNRxPqPg@mail.gmail.com>
-References: <CAOy7-nNxRgB21JSFcWvD4T3AwDDuh9MjBeB+8nFiwX-Cv+13Mw@mail.gmail.com>
-	<CAOy7-nMMyk3kMc9aShigxuvdB5O3S+B319SCR36kzM0ZTmSQ6w@mail.gmail.com>
-	<20111103192532.GX31337@atomide.com>
-	<4EB3D0FE.2080400@balister.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: tom.leiming@gmail.com
+Subject: [PATCH] arm: omap2: fix build failure
+Date: Tue,  8 Nov 2011 12:34:09 +0800
+Message-ID: <1320726849-11854-1-git-send-email-tom.leiming@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:39790 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750783Ab1KHCHc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 21:07:32 -0500
-Received: by wwi36 with SMTP id 36so29488wwi.1
-        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 18:07:31 -0800 (PST)
-In-Reply-To: <4EB3D0FE.2080400@balister.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:49904 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893Ab1KHEfu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Nov 2011 23:35:50 -0500
+Received: by gyc15 with SMTP id 15so124050gyc.19
+        for <linux-omap@vger.kernel.org>; Mon, 07 Nov 2011 20:35:50 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: tony@atomide.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ming Lei <tom.leiming@gmail.com>
 
-Hi Philip,
+From: Ming Lei <tom.leiming@gmail.com>
 
-On Fri, Nov 4, 2011 at 7:48 PM, Philip Balister <philip@balister.org> wrote:
-> On 11/03/2011 03:25 PM, Tony Lindgren wrote:
->> * James <angweiyang@gmail.com> [111023 18:13]:
->>> Dear all,
->>>
->>> I'm learning embedded linux development and need help on my task.
->>>
->>> I'm trying to communicate with a FPGA via the GPMC bus on my Overo FE
->>> board and need assistance with writing a simple device driver & test
->>> application that uses the GPMC bus to read & write a WORD size data
->>> and also a BLOCK of WORD data to the FPGA.
->>>
->>> The FPGA-OMAP3530 will be use synchronous read/write over the 16-bit
->>> datapath and CS 6.
->>> The GPMC bus is shared with an Ethernet chip and NAND chip as per
->>> Gumstix COM + TOBI/Chestnut design and these standard devices must
->>> still work as per norm.
->>>
->>> I've been searching via GMANE for similar questions but some are
->>> pointing to non-existence archives.
->>>
->>> I believe I have to develop a kernel device driver to register the
->>> FPGA and from which will expose a device node for the test
->>> application.
->>> or is there a generic GPMC driver that does it?
->>>
->>> Can someone share with me similar layout and code so that I can base
->>> my learning from a starting point?
->>>
->>> Many thanks in adv.
->>
->> Please take a look at the various arch/arm/mach-omap2/gpmc-*.c files.
->> The biggest pain is to get the timings right.
->
-> Also take a look at:
->
-> https://github.com/balister/linux-omap-philip/commits/e100-2.6.38-2
->
-> Philip
->
+The patch fixes the compile failure:
 
-I've been reading the codes from your e100-2.6.38-2 repo as suggested
-by your earlier replies to me in Gumstix Mailing List. (^^,)
+  CC      arch/arm/mach-omap2/cpuidle34xx.o
+arch/arm/mach-omap2/cpuidle34xx.c:317:12: error: 'THIS_MODULE'
+undeclared here (not in a function)
+make[1]: *** [arch/arm/mach-omap2/cpuidle34xx.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
+make: *** Waiting for unfinished jobs....
 
-In usrp1_e_init() inside board-overo.c, GPMC_CS_CONFIG7 for both CS4
-and CS6 are both written with 0x00.
+Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-I couldn't understand the background/why behind this line of code as
-the Use-case in the TRM writes the base address of the device to it.
-
-Do you have some timing diagram or documents that explains the data
-flow / interactions / protocol between the FPGA and Overo as reference
-to the codes?
-
-Many many thanks in adv.
-
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 1fe35c2..158c17e 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -24,6 +24,7 @@
+ 
+ #include <linux/sched.h>
+ #include <linux/cpuidle.h>
++#include <linux/module.h>
+ 
+ #include <plat/prcm.h>
+ #include <plat/irqs.h>
 -- 
-Regards,
-James
+1.7.5.4
+
