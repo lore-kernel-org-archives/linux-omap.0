@@ -1,39 +1,37 @@
-From: Joerg Roedel <joerg.roedel@amd.com>
-Subject: [PATCH] arm: cpuidle34xx.c: Fix compile error
-Date: Tue, 8 Nov 2011 17:11:05 +0100
-Message-ID: <1320768665-9759-1-git-send-email-joerg.roedel@amd.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v3 2/4] OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+Date: Tue, 8 Nov 2011 10:21:08 -0600
+Message-ID: <CAB-zwWgd5U+8UNFe_rLY99VpiaHhTqscwYNF+SmuRTyDi+h3+A@mail.gmail.com>
+References: <1320185752-568-1-git-send-email-omar.ramirez@ti.com>
+	<1320185752-568-3-git-send-email-omar.ramirez@ti.com>
+	<87sjm31ngz.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from va3ehsobe001.messaging.microsoft.com ([216.32.180.11]:22044
-	"EHLO VA3EHSOBE001.bigfish.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755158Ab1KHQL0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 11:11:26 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87sjm31ngz.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Russell King <linux@arm.linux.org.uk>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Ohad Ben-Cohen <ohad@wizery.com>, lo <linux-omap@vger.kernel.org>, lak <linux-arm-kernel@lists.infradead.org>, lkml <linux-kernel@vger.kernel.org>, lm <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Joerg Roedel <joerg.roedel@amd.com>
 
-Add missing module.h include to provide THIS_MODULE.
+Hi,
 
-Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On Fri, Nov 4, 2011 at 6:23 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> + =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_INIT_NO_RESET,
+>
+> Why is this needed?
+=2E..
+>> + =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_INIT_NO_RESET,
+>
+> And this?
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 1fe35c2..158c17e 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -24,6 +24,7 @@
- 
- #include <linux/sched.h>
- #include <linux/cpuidle.h>
-+#include <linux/module.h>
- 
- #include <plat/prcm.h>
- #include <plat/irqs.h>
--- 
-1.7.5.4
+I have this because the hwmod complains about a failure in hard reset,
+even though the reset deassert does complete after the clock is
+enabled. Later on, hwmod will warn again because of a wrong state when
+enabling, I believe because of the failure on _setup but didn't dig
+into it yet.
 
+Regards,
 
+Omar
