@@ -1,32 +1,39 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [PATCH 00/10] cpufreq: OMAP: move into drivers, cleanups/fixes
- for v3.2
-Date: Tue, 8 Nov 2011 14:59:02 -0500
-Message-ID: <20111108195901.GA18300@redhat.com>
-References: <1316725648-26710-1-git-send-email-khilman@ti.com>
- <4EB1BDFD.2060403@ti.com>
- <20111102220813.GA931@redhat.com>
- <4EB9879C.9030904@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] OMAP4: I2C: Enable FIFO usage for OMAP4
+Date: Tue, 08 Nov 2011 12:01:38 -0800
+Message-ID: <8762iu1izh.fsf@ti.com>
+References: <1320333428-23532-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4EB9879C.9030904@ti.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: cpufreq@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Nishanth Menon <nm@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, tytso@mit.edu
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1320333428-23532-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Thu, 3 Nov 2011 20:47:08 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 08, 2011 at 11:48:44AM -0800, Kevin Hilman wrote:
++Ben Dooks
 
- > OK, due to some other changes in v3.2 (including the module.h stuff) I
- > need to refresh this against v3.2-rc1.
- > 
- > I see the cpufreq tree is now back on kernel.org, so I'll send you and
- > updated pull request for this series targeted for inclusion in v3.3.
+Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-Sharp eyes ;)  I'm still getting the hang of the new setup there,
-but I'm ready to start queuing stuff up again.
+> Currently the fifo depth is set to zero for OMAP4 which disables
+> the FIFO usage. This patch enables the FIFO usage for I2C transactions
+> on OMAP4 also.
+>
+> Tested on omap4430 and 3430.
+>
+> Tested-and-Reported-by: Nishanth Menon <nm-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
-	Dave
- 
+Acked-by: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+
+Ben, please queue as a fix for the v3.2-rc.  It applies cleanly to
+v3.2-rc1.
+
+If you prefer a branch:
+https://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.2/fixes/i2c
+
+Thanks,
+
+Kevin
