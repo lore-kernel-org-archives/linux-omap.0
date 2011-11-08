@@ -1,77 +1,76 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [PATCH v5 3/7] arm: perf: support device with other non-irq resources
-Date: Tue, 8 Nov 2011 17:25:52 +0800
-Message-ID: <CACVXFVPD90q0euQXXG+3ujyvzxCjAovFSSPKvqf6esU7vkD7Tg@mail.gmail.com>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
-	<1319467559-5518-4-git-send-email-ming.lei@canonical.com>
-	<20111024150814.GA4771@mudshark.cambridge.arm.com>
-	<CACVXFVOzQ0QEnaAb=mLFdr7AU3H3TsT=wXcNgtqeUGVLXahd4Q@mail.gmail.com>
-	<20111025083420.GA6184@mudshark.cambridge.arm.com>
-	<alpine.DEB.2.00.1110250242130.27118@utopia.booyaka.com>
-	<CACVXFVOVeuWpVGSUP-sDDbiWb=W8XVB+PDYns4ttK9+ty0GMmA@mail.gmail.com>
-	<alpine.DEB.2.00.1110250459160.12667@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: DSS hwmod/reset fixes for 3.2
+Date: Tue, 08 Nov 2011 12:08:31 +0200
+Message-ID: <1320746911.1907.47.camel@deskari>
+References: <alpine.DEB.2.00.1110061806150.4611@utopia.booyaka.com>
+	 <20111105003550.GM31337@atomide.com>
+	 <alpine.DEB.2.00.1111080049470.12394@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-16ZB4BRbmHU9toUatRV3"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39730 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab1KHJZy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 04:25:54 -0500
-Received: from mail-gx0-f174.google.com ([209.85.161.174])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1RNhwH-0007FU-Hh
-	for linux-omap@vger.kernel.org; Tue, 08 Nov 2011 09:25:53 +0000
-Received: by ggnb2 with SMTP id b2so331094ggn.19
-        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2011 01:25:52 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1110250459160.12667@utopia.booyaka.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:33338 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750878Ab1KHKIi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 05:08:38 -0500
+Received: by mail-bw0-f49.google.com with SMTP id t2so292259bka.36
+        for <linux-omap@vger.kernel.org>; Tue, 08 Nov 2011 02:08:37 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1111080049470.12394@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, b-cousson@ti.com, "tony@atomide.com" <tony@atomide.com>, Will Deacon <will.deacon@arm.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 25, 2011 at 7:00 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> + Beno=EEt
->
-> Hi
->
-> On Tue, 25 Oct 2011, Ming Lei wrote:
->
->> On Tue, Oct 25, 2011 at 4:44 PM, Paul Walmsley <paul@pwsan.com> wrot=
-e:
->> > On Tue, 25 Oct 2011, Will Deacon wrote:
->> >
->> >> Hurrah! If you can get the OMAP / hwmod bits acked by the OMAP gu=
-ys then I'm
->> >> happy to take the perf and PMU changes into my tree.
->> >
->> > I'd suggest that you take the perf/PMU stuff yourself if you are h=
-appy
->> > with it, and then we'll deal with the OMAP bits ourselves, since i=
-t looks
->> > like they aren't dependent on each other, and the OMAP parts will =
-need
->> > changes.
->>
->> One omap4 patch(struct arm_pmu_platdata related) depends on 2/7, whi=
-ch
->> need to be rebased. But I still suggest that arm perf/PMU stuff may =
-be
->> merged first.
->>
->> Paul, expect your comments on OMAP4 parts.
->
-> Beno=EEt is the right person to review OMAP4 hwmod data.
 
-Beno=EEt, gentle ping, :-)
+--=-16ZB4BRbmHU9toUatRV3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-thanks,
---
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tue, 2011-11-08 at 00:50 -0700, Paul Walmsley wrote:
+> On Fri, 4 Nov 2011, Tony Lindgren wrote:
+>=20
+> > * Paul Walmsley <paul@pwsan.com> [111006 16:33]:
+> > > Hi Tony,
+> > >=20
+> > > The following changes since commit be73246058737beec52ae232bcab777633=
+2a9e06:
+> > >=20
+> > >   ARM: OMAP2+: Remove custom init_irq for remaining boards (2011-09-2=
+6 17:50:37 -0700)
+> > >=20
+> > > are available in the git repository at:
+> > >   git://git.pwsan.com/linux-2.6 hwmod_dss_fixes_3.2
+> >=20
+> > Looks like you should take a look at the merge conflicts with
+> > this one, maybe rebase it on 994c0e992522c123298b4a91b72f5e67ba2d1123.
+>=20
+> Do you want this series for 3.2-rc or 3.3 at this point?
+
+Seems that at least HDMI output is broken due to this series missing.
+
+ Tomi
+
+
+--=-16ZB4BRbmHU9toUatRV3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJOuP+fAAoJEPo9qoy8lh71Z4QP/1SbU5WsF61GaD6U9cgzoVN6
+Woncp0o2wSDE/b0OZPvunBBo5a1rbFBPmnshFtrLbfVw6WUE0EYNWg8Z+NRC4nD6
+P71bDp9h3fnkgqHLBTxN+u2/3r0PpaHeEtCZWlbZQ+AhP4zmOrkTc8A13W96tGjj
+iEMHviz/3PoP3kwSg3Aab4z4BUkGJ5n5p/KC8bDQqJ5qz0j8rPkLLXDiD6eYenjj
+8RsQZr/KjImq8QXTBigrHZXBY07gZm+mgLqXera3cT+QHyd6fi4dUZkwyeRMt7m9
+kWZQB849ffv2FlHogfgPjDc/No2ztJgL5p7ADcO94MCUawaIx1lkumPfTMLIDEnt
+kWF5TyrPGpKkOq+JYCTwhJ4KaRax0FftSGZDXQxXmbUhgM6eZKIDFmGOuITIXeDT
+A0wFjNJaToerAjo+tEYEoJX3p8pjz66qCs6YPyFXVZK/G1yt38Tu8Ml+hBuDKdyw
+Zgs7+21er/Qc2EspP86yQ6DtWqS9VnZ24L7VNlrf42QuAX4nwNbsDZGqZA3hhXmw
+myYeXLpe1OPei/5Z7pBphPe3CJVsrszJU+Au+q1ackZ0rWfpf+d4n1VtpuPQFjmY
+ejemSjdHsfDwZWks3b46cUvCEmJxwhefF1unLfUVjybFPCoBpnZShraJlEmzbl+9
+XJNhTT6mLcEEhgjh3Oya
+=CIIq
+-----END PGP SIGNATURE-----
+
+--=-16ZB4BRbmHU9toUatRV3--
+
