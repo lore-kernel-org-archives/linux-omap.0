@@ -1,41 +1,64 @@
-From: Joerg Roedel <joerg.roedel@amd.com>
-Subject: Re: [PATCH] arm: cpuidle34xx.c: Fix compile error
-Date: Tue, 8 Nov 2011 18:43:08 +0100
-Message-ID: <20111108174308.GG5182@amd.com>
-References: <1320768665-9759-1-git-send-email-joerg.roedel@amd.com>
- <87hb2eqzwv.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v7 17/21] OMAP2+: UART: Remove omap_uart_can_sleep and add pm_qos
+Date: Tue, 08 Nov 2011 11:20:57 -0800
+Message-ID: <87r51i1kva.fsf@ti.com>
+References: <1318952110-10659-1-git-send-email-govindraj.raja@ti.com>
+	<1318952110-10659-3-git-send-email-govindraj.raja@ti.com>
+	<87vcqz33y8.fsf@ti.com> <4EB8F368.5070603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87hb2eqzwv.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4EB8F368.5070603@ti.com> (Rajendra Nayak's message of "Tue, 08
+	Nov 2011 14:46:24 +0530")
+Sender: linux-serial-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 08, 2011 at 09:36:48AM -0800, Kevin Hilman wrote:
-> Joerg Roedel <joerg.roedel@amd.com> writes:
-> 
-> > Add missing module.h include to provide THIS_MODULE.
-> >
-> > Signed-off-by: Joerg Roedel <joerg.roedel@amd.com>
-> 
-> FYI...
-> 
-> Tony has already queued fix for this in his fixes branch.
-> 
->      http://marc.info/?l=linux-arm-kernel&m=132071036621713&w=2
+Rajendra Nayak <rnayak@ti.com> writes:
 
-Great. I stumbled over it while compile-testing the iommu-tree for omap.
+> Hi Kevin,
+>
+> On Saturday 05 November 2011 04:12 AM, Kevin Hilman wrote:
+>> However, as mentioned previously[1], due to a HW sleepdep between MPU
+>> and CORE, this constraint isn't actually needed for CORE UARTs, so it's
+>> a bit wasteful to go through all the constraint setting for no reason.
+>
+> I had a short chat with Govind on this and was trying to understand
+> this better.
+> Are you referring to the 'autodeps' for omap3 here, because they would
+> prevent any clock domain from idling as long as MPU or IVA are active,
 
-Thanks,
+No, I was thinking of HW sleepdeps.  However, I looked back at the
+OMAP3430 TRM and see that MPU does not have a HW sleepdep on CORE like I
+thought.
 
-	Joerg
+> but not the other way round. Which means MPU can still idle, while CORE
+> does not.
+>
+> My guess was, its probably the CORE domain idling itself thats causing
+> the UART sluggishness, (and not MPU idling), due to higher latency,
+> which is prevented with an active UART module in CORE, but not in PER.
 
--- 
-AMD Operating System Research Center
+OK, that indeed makes sense.  Thanks for correcting me.
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+> So Govind did a small experiment to prevent just CORE idling and let MPU
+> idle alone and that did not show any sluggishness.
+
+OK, good.
+
+> Now, putting a pm-qos constraint for a UART in CORE still looks
+> redundant because the latency requirement that UART has is in
+> some way *indirectly* met (because the active UART in CORE prevents
+> CORE transitions in idle).
+> But don't you think the UART driver should express its
+> latency constraints regardless, without thinking of any indirect ways
+> in which the same requirements would have already been met?
+
+Yes, you're right.  The driver should not need to know which powerdomain
+a given UART is in.  It's probably best (and most portable) to have UART
+always express its requirements all the time.
+
+Thanks for digging into this,
+
+Kevin
