@@ -1,57 +1,96 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP: DSS hwmod/reset fixes for 3.2-rc
-Date: Tue, 8 Nov 2011 06:08:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1111080607090.8313@utopia.booyaka.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 1/4] ARM: OMAP3: cm-t35: add regulator supply for ads7846
+Date: Tue, 08 Nov 2011 15:21:42 +0200
+Message-ID: <4EB92CE6.1000408@compulab.co.il>
+References: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il> <1319017160-20391-2-git-send-email-grinberg@compulab.co.il> <20111104233938.GF31337@atomide.com> <20111104235720.GG31337@atomide.com> <4EB68974.5090907@compulab.co.il> <20111107203110.GX31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56380 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752033Ab1KHNIq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 08:08:46 -0500
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:33763
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752869Ab1KHNVy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 08:21:54 -0500
+In-Reply-To: <20111107203110.GX31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tomi.valkeinen@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On 11/07/11 22:31, Tony Lindgren wrote:
+> * Igor Grinberg <grinberg@compulab.co.il> [111106 04:45]:
+>> Hi Tony,
+>>
+>> On 11/05/11 01:57, Tony Lindgren wrote:
+>>> * Tony Lindgren <tony@atomide.com> [111104 16:05]:
+>>>> * Igor Grinberg <grinberg@compulab.co.il> [111019 02:05]:
+>>>>
+>>>> Applying to board branch for v3.3 merge window.
+>>>
+>>> Hmm, actually I suggest you respin patches 2 and 3 so they apply
+>>> on their own to current fixes branch. Then update 1 and 4 to
+>>> apply on top of those.
+>>>
+>>> This way we can apply 2 and 3 during the -rc cycle, and then
+>>> queue 1 and 4 for the next merge window.
+>>
+>> Well, actually all them are fixes, although it cannot be understood
+>> from the subject.
+>> I will adjust the subjects (and may be the commit messages also)
+>> to be more specific and resend.
+> 
+> Hmm 1 & 4 are "features that never worked" type fixes, so they
+> have flame potential. Those have to wait for the next merge window.
 
-Hi Tony
+Not exactly:
 
-The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
+1/4 is a fix that I should have submitted more than a year ago,
+just after the ads7846 got support for the regulators:
+---------
+commit 91143379b01b2020d8878d627ebe9dfb9d6eb4c8
+Author: Grazvydas Ignotas <notasas@gmail.com>
+Date:   Thu Feb 25 02:04:56 2010 -0800
 
-  Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
+    Input: ads7846 - add regulator support
+    
+    The ADS7846/TSC2046 touchscreen controllers can (and usually are)
+    connected to various regulators for power, so add regulator support.
+    
+    Valid regulator will now be required, so boards without complete
+    regulator setup should either disable regulator framework or enable
+    CONFIG_REGULATOR_DUMMY.
+    
+    Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+    Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+    Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---------
 
-are available in the git repository at:
-  git://git.pwsan.com/linux-2.6 hwmod_dss_fixes_3.2rc
+4/4 is a functionality fix, that also should have been submitted
+some time ago. We had this one locally and finally I've sent it out.
+With out it, the USB hub sometimes works, but not always.
+I've came back to that issue while working on CM-T3730 and
+finally sent it.
 
-Archit Taneja (1):
-      ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
+So now, when I'm sure you have all the information,
+what will it be?
+If you still think it should be split up - that's fine with me,
+I will do the thing and resend.
+Otherwise, what about the v2 I've sent?
 
-Tomi Valkeinen (9):
-      ARM: OMAP2xxx: HWMOD: Fix DSS reset
-      ARM: OMAP2xxx: HWMOD: fix DSS clock data
-      ARM: OMAP3: HWMOD: Fix DSS reset
-      ARM: OMAP3: HWMOD: fix DSS clock data
-      ARM: OMAP4: HWMOD: remove extra clocks
-      ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
-      ARM: OMAP4: HWMOD: fix DSS clock data
-      ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
-      ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
+> 
+> Patches 2 & 3 could be justified as fixes during the -rc cycle.
 
- arch/arm/mach-omap2/Makefile                       |    5 +-
- arch/arm/mach-omap2/display.c                      |  159 ++++++++++++++++++++
- arch/arm/mach-omap2/display.h                      |   29 ++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
- arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
- arch/arm/plat-omap/include/plat/common.h           |    3 +
- include/video/omapdss.h                            |    7 -
- 12 files changed, 276 insertions(+), 35 deletions(-)
- create mode 100644 arch/arm/mach-omap2/display.h
+So here we have no doubt. Good.
 
+> 
+> Or I can just apply all of them into board branch to wait for the
+> next merge window.
 
-- Paul
+That can be an option, if it bothers you too much,
+but I prefer to have this already in 3.2.
+
+Thanks
+
+-- 
+Regards,
+Igor.
