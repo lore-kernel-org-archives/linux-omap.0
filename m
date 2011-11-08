@@ -1,56 +1,79 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH] OMAP2+: Fix Compilation error on current mainline
-Date: Tue, 8 Nov 2011 16:25:34 +0100
-Message-ID: <4EB949EE.7030109@ti.com>
-References: <4EB7E50D.40406@ti.com> <1320733698-23411-1-git-send-email-govindraj.raja@ti.com> <4EB908A1.40404@ti.com> <4EB90A62.7010206@ti.com> <CAAL8m4w4Zr-P4ywOYwZ7VwOtTNp5Yz=Zsw0y_SrkcY4yN6n49A@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
+Date: Tue, 8 Nov 2011 08:26:52 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50380 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755159Ab1KHPZj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 8 Nov 2011 10:25:39 -0500
-In-Reply-To: <CAAL8m4w4Zr-P4ywOYwZ7VwOtTNp5Yz=Zsw0y_SrkcY4yN6n49A@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58495 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755159Ab1KHP0x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 10:26:53 -0500
+In-Reply-To: <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Ming Lei <ming.lei@canonical.com>
+Cc: linux@arm.linux.org.uk, will.deacon@arm.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-On 11/8/2011 12:59 PM, Govindraj wrote:
-> On Tue, Nov 8, 2011 at 4:24 PM, Santosh Shilimkar
-> <santosh.shilimkar@ti.com>  wrote:
+Hi
 
-[...]
+some comments
 
->> Opps. I missed that one while acking the patch.
->> Indeed the semi-colon one was agreed to be the left over
->> in the last patch discussion.
->
-> Sorry, my bad sent the wrong patch here's the right one.[1]
->
-> --
-> Thanks,
-> Govindraj.R
->
-> [1]:
->
->  From 9d244c0dea4de10ab9052fc1fe7bde8846ad389e Mon Sep 17 00:00:00 2001
-> From: Govindraj.R<govindraj.raja@ti.com>
-> Date: Tue, 8 Nov 2011 16:57:22 +0530
-> Subject: [PATCH] OMAP2+: Fix Compilation error on current mainline
->
-> Fix below compilation failure on mainline kernel commit id
-> 1ea6b8f48918282bdca0b32a34095504ee65bab5
->
-> arch/arm/mach-omap2/omap_l3_noc.c:240: error: expected ',' or ';'
-> before 'MODULE_DEVICE_TABLE'
+On Mon, 24 Oct 2011, ming.lei@canonical.com wrote:
 
-The issue is that 3.2-rc1 does not have that build error anymore...
-It should appear only with this driver built as a module, and that's not 
-possible yet for the l3_noc.
+> From: Ming Lei <ming.lei@canonical.com>
+> 
+> So that access to cross trigger interface can be allowed, which
+> will be introduce in later patches.
+> 
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   26 ++++++++++++++++++++++++++
+>  1 files changed, 26 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> index 393afac..c7289a8 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -5276,6 +5276,30 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+>  	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
+>  };
+>  
+> +static struct omap_hwmod_class omap44xx_emu_hwmod_class = {
+> +	.name	= "emu",
+> +};
+> +
+> +static struct omap_hwmod_irq_info omap44xx_emu_irqs[] = {
+> +	{ .name = "cti0", .irq = 1 + OMAP44XX_IRQ_GIC_START },
+> +	{ .name = "cti1", .irq = 2 + OMAP44XX_IRQ_GIC_START },
+> +	{ .irq = -1 }
+> +};
 
-The fix is still good to have, but the changelog should probably be updated.
+Are you sure these are part of the emulation IP?  We already have those 
+IRQs in the MPU hwmod, see omap44xx_mpu_irqs[] in the same file.
 
-Regards,
-Benoit
+> +/*emu hwmod*/
+> +static struct omap_hwmod omap44xx_emu_hwmod = {
+> +	.name		= "emu",
+> +	.class		= &omap44xx_emu_hwmod_class,
+> +	.clkdm_name	= "emu_sys_clkdm",
+> +	.prcm = {
+> +		.omap4 = {
+> +			.clkctrl_offs = OMAP4_CM_EMU_CLKSTCTRL_OFFSET,
+
+This doesn't look right either: EMU is a clockdomain, not an IP block.
+
+> +			.modulemode   = MODULEMODE_HWCTRL,
+> +		},
+> +	},
+> +	.mpu_irqs	= omap44xx_emu_irqs,
+> +};
+> +
+>  static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>  
+>  	/* dmm class */
+
+
+
+- Paul
