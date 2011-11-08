@@ -1,34 +1,23 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
-Date: Tue, 8 Nov 2011 08:42:15 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1111080837250.10451@utopia.booyaka.com>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH RESEND v2 2/2] regulator: TPS65910: VDD1/2 voltage
+ selector count
+Date: Tue, 8 Nov 2011 15:56:39 +0000
+Message-ID: <20111108155639.GE5632@opensource.wolfsonmicro.com>
+References: <1320758650-29180-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43135 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755907Ab1KHPmQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Nov 2011 10:42:16 -0500
-In-Reply-To: <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1320758650-29180-1-git-send-email-afzal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-kernel@vger.kernel.org, lrg@ti.com, sameo@linux.intel.com, nsekhar@ti.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>, b-cousson@ti.com
-Cc: linux@arm.linux.org.uk, will.deacon@arm.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
+On Tue, Nov 08, 2011 at 06:54:10PM +0530, Afzal Mohammed wrote:
+> Count of selector voltage is required for regulator_set_voltage
+> to work via set_voltage_sel. VDD1/2 currently have it as zero,
+> so regulator_set_voltage won't work for VDD1/2.
+> Update count (n_voltages) for VDD1/2.
 
-Hi
-
-I just read 
-
-http://comments.gmane.org/gmane.comp.embedded.pandaboard/168
-
-Looks to me that the L3_EMU interconnect and the emulation IP blocks need 
-to be added to the OMAP4 hwmod data, based on Section 2.2.1 "L3_EMU Memory 
-Space Mapping" in the OMAP4460 TRM Rev. I.  If the clockdomain & 
-powerdomain are correctly defined then the OMAP framework code will 
-automatically enable these too.
-
-
-
-- Paul
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
