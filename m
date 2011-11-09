@@ -1,111 +1,38 @@
-From: Patrick Combes <p-combes@ti.com>
-Subject: [RFC][PATCH] gpiolib: add irq_wake (power-management) sysfs file
-Date: Wed, 9 Nov 2011 17:01:51 +0100
-Message-ID: <1320854511-15065-1-git-send-email-p-combes@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48110 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752085Ab1KIQCD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Nov 2011 11:02:03 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Subject: [PATCH] input: ams_delta_serio: include linux/module.h
+Date: Wed,  9 Nov 2011 20:06:45 +0200
+Message-ID: <1320862005-6049-1-git-send-email-aaro.koskinen@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dmitry.torokhov@gmail.com, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: david-b@pacbell.net, tony@atomide.com, linux-omap@vger.kernel.org
-Cc: b-cousson@ti.com, f-mazard@ti.com, dmurphy@ti.com, Hugo Dupras <h-dupras@ti.com>, Patrick Combes <p-combes@ti.com>
 
-From: Hugo Dupras <h-dupras@ti.com>
+Fix the following compilation failure with v3.2-rc1 by including module.h:
 
-By calling poll() on the /sys/class/gpio/gpioN/value sysfs file, usermode
-application can take benefit of gpio interrupts.
-However, depending on the power state reached, this interrupt may not wake-up
-the CPU.
-This patch creates a new sysfs file /sys/class/gpio/gpioN/irq_wake to enable
-usermode application to set the wake properties of a gpio IRQ.
-This option can be set or not for each gpio to preserve power consumption (e.g
-embedded systems).
+  CC      drivers/input/serio/ams_delta_serio.o
+drivers/input/serio/ams_delta_serio.c:33:15: error: expected declaration specifiers or '...' before string constant
+drivers/input/serio/ams_delta_serio.c:34:20: error: expected declaration specifiers or '...' before string constant
+drivers/input/serio/ams_delta_serio.c:35:16: error: expected declaration specifiers or '...' before string constant
+drivers/input/serio/ams_delta_serio.c: In function 'ams_delta_serio_init':
+drivers/input/serio/ams_delta_serio.c:155:2: error: 'THIS_MODULE' undeclared (first use in this function)
+drivers/input/serio/ams_delta_serio.c:155:2: note: each undeclared identifier is reported only once for each function it appears in
 
-Signed-off-by: Hugo Dupras <h-dupras@ti.com>
-Signed-off-by: Patrick Combes <p-combes@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 ---
- drivers/gpio/gpiolib.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 54 insertions(+), 1 deletions(-)
+ drivers/input/serio/ams_delta_serio.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-index a971e3d..cf03aed 100644
---- a/drivers/gpio/gpiolib.c
-+++ b/drivers/gpio/gpiolib.c
-@@ -543,6 +543,55 @@ static ssize_t gpio_active_low_store(struct device *dev,
- static const DEVICE_ATTR(active_low, 0644,
- 		gpio_active_low_show, gpio_active_low_store);
+diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
+index 4b2a42f..d4d08bd 100644
+--- a/drivers/input/serio/ams_delta_serio.c
++++ b/drivers/input/serio/ams_delta_serio.c
+@@ -24,6 +24,7 @@
+ #include <linux/irq.h>
+ #include <linux/serio.h>
+ #include <linux/slab.h>
++#include <linux/module.h>
  
-+static ssize_t gpio_irq_wake_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t size)
-+{
-+	const struct gpio_desc  *desc = dev_get_drvdata(dev);
-+	unsigned		gpio = desc - gpio_desc;
-+	ssize_t			status;
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	if (!test_bit(FLAG_EXPORT, &desc->flags))
-+		status = -EIO;
-+	else if (sysfs_streq(buf, "enable") || sysfs_streq(buf, "1"))
-+		status = enable_irq_wake(gpio_to_irq(gpio));
-+	else if (sysfs_streq(buf, "disable") || sysfs_streq(buf, "0"))
-+		status = disable_irq_wake(gpio_to_irq(gpio));
-+	else
-+		status = -EINVAL;
-+
-+	mutex_unlock(&sysfs_lock);
-+
-+	return status ? : size;
-+}
-+
-+static ssize_t gpio_irq_wake_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	const struct gpio_desc	*desc = dev_get_drvdata(dev);
-+	unsigned		gpio = desc - gpio_desc;
-+	int			irq = gpio_to_irq(gpio);
-+	ssize_t			status;
-+	struct irq_data		*gpio_irq_data = irq_get_irq_data(irq);
-+
-+	mutex_lock(&sysfs_lock);
-+
-+	if (gpio_irq_data)
-+		status = sprintf(buf, " Wakeup %s\n",
-+					irqd_is_wakeup_set(gpio_irq_data)
-+					? " enable" : "disable");
-+	else
-+		status = -EINVAL;
-+
-+	mutex_unlock(&sysfs_lock);
-+
-+	return status;
-+}
-+
-+static const DEVICE_ATTR(irq_wake, 0644,
-+		gpio_irq_wake_show, gpio_irq_wake_store);
-+
- static const struct attribute *gpio_attrs[] = {
- 	&dev_attr_value.attr,
- 	&dev_attr_active_low.attr,
-@@ -744,9 +793,13 @@ int gpio_export(unsigned gpio, bool direction_may_change)
- 			if (!status && gpio_to_irq(gpio) >= 0
- 					&& (direction_may_change
- 						|| !test_bit(FLAG_IS_OUT,
--							&desc->flags)))
-+							&desc->flags))) {
- 				status = device_create_file(dev,
- 						&dev_attr_edge);
-+				if (!status)
-+					status = device_create_file(dev,
-+							&dev_attr_irq_wake);
-+			}
- 
- 			if (status != 0)
- 				device_unregister(dev);
+ #include <asm/mach-types.h>
+ #include <plat/board-ams-delta.h>
 -- 
-1.7.1
-
+1.7.2.5
