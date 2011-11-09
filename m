@@ -1,65 +1,32 @@
-From: "Chalhoub, Nicole" <n-chalhoub@ti.com>
-Subject: RE: [PATCH] CPUIdle: Reevaluate C-states under CPU load to favor
- deeper C-states
-Date: Wed, 9 Nov 2011 18:06:41 +0000
-Message-ID: <37CAE120BAE10B42A790DD1418C8021D0136C7@DNCE02.ent.ti.com>
-References: <1316475315-5905-1-git-send-email-khilman@ti.com>
- <87d3d75zo6.fsf@ti.com> <4EBA6046.2060305@linux.vnet.ibm.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] input: ams_delta_serio: include linux/module.h
+Date: Wed, 9 Nov 2011 10:14:17 -0800
+Message-ID: <20111109181417.GB26633@core.coreip.homeip.net>
+References: <1320862005-6049-1-git-send-email-aaro.koskinen@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43374 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756051Ab1KISHE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2011 13:07:04 -0500
-In-Reply-To: <4EBA6046.2060305@linux.vnet.ibm.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1320862005-6049-1-git-send-email-aaro.koskinen@iki.fi>
+Sender: linux-input-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Arjan van de Ven <arjan@infradead.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 
-Hi Deepthi,
+On Wed, Nov 09, 2011 at 08:06:45PM +0200, Aaro Koskinen wrote:
+> Fix the following compilation failure with v3.2-rc1 by including module.h:
+> 
+>   CC      drivers/input/serio/ams_delta_serio.o
+> drivers/input/serio/ams_delta_serio.c:33:15: error: expected declaration specifiers or '...' before string constant
+> drivers/input/serio/ams_delta_serio.c:34:20: error: expected declaration specifiers or '...' before string constant
+> drivers/input/serio/ams_delta_serio.c:35:16: error: expected declaration specifiers or '...' before string constant
+> drivers/input/serio/ams_delta_serio.c: In function 'ams_delta_serio_init':
+> drivers/input/serio/ams_delta_serio.c:155:2: error: 'THIS_MODULE' undeclared (first use in this function)
+> drivers/input/serio/ams_delta_serio.c:155:2: note: each undeclared identifier is reported only once for each function it appears in
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
 
->
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+Thank you Aaro.
 
------Original Message-----
-> From: Deepthi Dharwar [mailto:deepthi@linux.vnet.ibm.com]
-> Sent: Wednesday, November 09, 2011 12:13 PM
-> To: Hilman, Kevin
-> Cc: linux-kernel@vger.kernel.org; Arjan van de Ven; linux-arm-
-> kernel@lists.infradead.org; linux-omap@vger.kernel.org; linux-
-> pm@lists.linux-foundation.org; Chalhoub, Nicole
-> Subject: Re: [PATCH] CPUIdle: Reevaluate C-states under CPU load to favor
-> deeper C-states
-
-[...]
-> By setting timers when we enter non-deepest C-state possible, such that
-> when it fires we
-> can re-evaluate and try moving into deeper and deeper C-states enhancing
-> the
-> power savings is a good feature to have.
->
-> Looking at the current implementation, is it possible to have it as
-> configurable option
-> where one can enable/disable this functionality through the backhand
-> driver ?
-
-The timeout values of the c state timers are set in the backhand driver.
-By setting the timeout to 0 the timers will not fire so you'll not have this functionality enabled
-
-> Also I am thinking, instead of having them in governor
-> wouldnt it be a good idea to have it implemented in
-> the backhand driver itself ?
-> --Deepthi
-
-
-In fact each C-state had its own configurable timer, so it is a parameter characterizing a C-state as it is for the exit_latency and target_residency parameters.
-And we wanted the timer to fire only when we do not go in deep Cstate due to a high load. This decision is made in the CPU idle governor. So the functionality should be seen from the governor..
-
-Thanks and Regards
-Nicole
-
-
+-- 
+Dmitry
