@@ -1,151 +1,256 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: PM: only register TWL with voltage layer
- when device is present
-Date: Wed, 9 Nov 2011 10:11:03 +0000
-Message-ID: <E28AAFD00EFAA646AE3DF9B89CD24A89036E64@DBDE01.ent.ti.com>
-References: <1320797670-21460-1-git-send-email-khilman@ti.com>
+From: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Subject: Re: [PATCH] CPUIdle: Reevaluate C-states under CPU load
+ to favor deeper C-states
+Date: Wed, 09 Nov 2011 16:43:10 +0530
+Message-ID: <4EBA6046.2060305@linux.vnet.ibm.com>
+References: <1316475315-5905-1-git-send-email-khilman@ti.com>
+	<87d3d75zo6.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48760 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751258Ab1KIKLP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2011 05:11:15 -0500
-In-Reply-To: <1320797670-21460-1-git-send-email-khilman@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <87d3d75zo6.fsf@ti.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-kernel@vger.kernel.org, Nicole Chalhoub <n-chalhoub@ti.com>, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arjan van de Ven <arjan@infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hilman, Kevin
-> Sent: Wednesday, November 09, 2011 5:45 AM
-> To: linux-omap@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; Koyamangalath, Abhilash
-> Subject: [PATCH] ARM: OMAP: PM: only register TWL with 
-> voltage layer when device is present
+On Saturday 05 November 2011 03:16 AM, Kevin Hilman wrote:
+> ping v2
 > 
-> Current code registers voltage layer details for TWL PMIC 
-> even when a TWL
-> has not been registered.  Fix this to only register the TWL 
-> with voltage
-> layer when the TWL PMIC is initialized by board-level code.
+> Kevin Hilman <khilman@ti.com> writes:
 > 
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> ---
-> Barring any objections, will be queued as a fix for v3.2-rc cycle.
-> 
-> Originally posted here: 
-> http://marc.info/?l=linux-omap&m=131831996730420&w=2,
-> but posting again since it was buried inside this thread.
-> 
->  arch/arm/mach-omap2/pm.c         |    6 ++----
->  arch/arm/mach-omap2/twl-common.c |   11 +++++++++++
->  arch/arm/mach-omap2/twl-common.h |    3 +++
->  3 files changed, 16 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 1e79bdf..00bff46 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -24,6 +24,7 @@
->  #include "powerdomain.h"
->  #include "clockdomain.h"
->  #include "pm.h"
-> +#include "twl-common.h"
->  
->  static struct omap_device_pm_latency *pm_lats;
->  
-> @@ -226,11 +227,8 @@ postcore_initcall(omap2_common_pm_init);
->  
->  static int __init omap2_common_pm_late_init(void)
->  {
-> -	/* Init the OMAP TWL parameters */
-> -	omap3_twl_init();
-> -	omap4_twl_init();
-> -
->  	/* Init the voltage layer */
-> +	omap_pmic_late_init();
->  	omap_voltage_late_init();
->  
->  	/* Initialize the voltages */
-> diff --git a/arch/arm/mach-omap2/twl-common.c 
-> b/arch/arm/mach-omap2/twl-common.c
-> index 52243577..10b20c6 100644
-> --- a/arch/arm/mach-omap2/twl-common.c
-> +++ b/arch/arm/mach-omap2/twl-common.c
-> @@ -30,6 +30,7 @@
->  #include <plat/usb.h>
->  
->  #include "twl-common.h"
-> +#include "pm.h"
->  
->  static struct i2c_board_info __initdata pmic_i2c_board_info = {
->  	.addr		= 0x48,
-> @@ -48,6 +49,16 @@ void __init omap_pmic_init(int bus, u32 clkrate,
->  	omap_register_i2c_bus(bus, clkrate, &pmic_i2c_board_info, 1);
->  }
->  
-> +void __init omap_pmic_late_init(void)
-> +{
-> +	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
-> +	if (!pmic_i2c_board_info.irq)
-> +		return;
-
-Kevin,
-
-I have been out-of-loop from PM for some time. So my query may be
-redundant:
-
-1) What happens when different PMIC (not TWL series) is registered
-   for AM35x? e.g. TPS65023
-   http://www.spinics.net/lists/linux-omap/msg48630.html
-
-2) Wouldn't we still fall back into omap3_twl_init()?
-
-~sanjeev
-
-> +
-> +	omap3_twl_init();
-> +	omap4_twl_init();
-> +}
-> +
->  #if defined(CONFIG_ARCH_OMAP3)
->  static struct twl4030_usb_data omap3_usb_pdata = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
-> diff --git a/arch/arm/mach-omap2/twl-common.h 
-> b/arch/arm/mach-omap2/twl-common.h
-> index 5e83a5b..275dde8 100644
-> --- a/arch/arm/mach-omap2/twl-common.h
-> +++ b/arch/arm/mach-omap2/twl-common.h
-> @@ -1,6 +1,8 @@
->  #ifndef __OMAP_PMIC_COMMON__
->  #define __OMAP_PMIC_COMMON__
->  
-> +#include <plat/irqs.h>
-> +
->  #define TWL_COMMON_PDATA_USB		(1 << 0)
->  #define TWL_COMMON_PDATA_BCI		(1 << 1)
->  #define TWL_COMMON_PDATA_MADC		(1 << 2)
-> @@ -30,6 +32,7 @@ struct twl4030_platform_data;
->  
->  void omap_pmic_init(int bus, u32 clkrate, const char 
-> *pmic_type, int pmic_irq,
->  		    struct twl4030_platform_data *pmic_data);
-> +void omap_pmic_late_init(void);
->  
->  static inline void omap2_pmic_init(const char *pmic_type,
->  				   struct twl4030_platform_data 
-> *pmic_data)
-> -- 
-> 1.7.6
-> 
+>> From: Nicole Chalhoub <n-chalhoub@ti.com>
+>>
+>> While there is CPU load, program a C-state specific one-shot timer in
+>> order to give CPUidle another opportunity to pick a deeper C-state
+>> instead of spending potentially long idle times in a shallow C-state.
+>>
+>> Long winded version:
+>> When going idle with a high load average, CPUidle menu governor will
+>> decide to pick a shallow C-state since one of the guiding principles
+>> of the menu governor is "The busier the system, the less impact of
+>> C-states is acceptable" (taken from cpuidle/governors/menu.c.)
+>> That makes perfect sense.
+>>
+>> However, there are missed power-saving opportunities for bursty
+>> workloads with long idle times (e.g. MP3 playback.)  Given such a
+>> workload, because of the load average, CPUidle tends to pick a shallow
+>> C-state.  Because we also go tickless, this shallow C-state is used
+>> for the duration of the idle period. If the idle period is long, a
+>> deeper C state would've resulted in better power savings.
+>> This patch provides an additional opportuntity for CPUidle to pick a
+>> deeper C-state by programming a timer (with a C-state specific timeout)
+>> such that the CPUidle governor will have another opportunity to pick a
+>> deeper C-state.
+>>
+>> Adding this timer for C-state reevaluation improved the load estimation
+>> on our ARM/OMAP4 platform and increased the time spent in deep C-states
+>> (~50% of idle time in C-states deeper than C1).  A power saving of ~10mA
+>> at battery level is observed during MP3 playback on OMAP4/Blaze board.
+>>
+>> Signed-off-by: Nicole Chalhoub <n-chalhoub@ti.com>
+>> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> ---
+>>  drivers/cpuidle/cpuidle.c        |   28 +++++++++++++++++++++++++-
+>>  drivers/cpuidle/governors/menu.c |   39 ++++++++++++++++++++++++++++++++-----
+>>  include/linux/cpuidle.h          |    4 +++
+>>  3 files changed, 63 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+>> index 1994885..4b1ac0c 100644
+>> --- a/drivers/cpuidle/cpuidle.c
+>> +++ b/drivers/cpuidle/cpuidle.c
+>> @@ -92,13 +92,33 @@ static void cpuidle_idle_call(void)
+>>  	target_state->time += (unsigned long long)dev->last_residency;
+>>  	target_state->usage++;
+>>  
+>> -	/* give the governor an opportunity to reflect on the outcome */
+>> -	if (cpuidle_curr_governor->reflect)
+>> +	hrtimer_cancel(&dev->cstate_timer);
+>> +
+>> +	/*
+>> +	 * Give the governor an opportunity to reflect on the outcome
+>> +	 * Do not take into account the wakeups due to the hrtimer, they
+>> +	 * should not impact the predicted idle time.
+>> +	 */
+>> +	if ((!dev->hrtimer_expired) && cpuidle_curr_governor->reflect)
+>>  		cpuidle_curr_governor->reflect(dev);
+>>  	trace_power_end(0);
+>>  }
+>>  
+>>  /**
+>> + * cstate_reassessment_timer - interrupt handler of the cstate hrtimer
+>> + * @handle:	the expired hrtimer
+>> + */
+>> +static enum hrtimer_restart cstate_reassessment_timer(struct hrtimer *handle)
+>> +{
+>> +	struct cpuidle_device *data =
+>> +		container_of(handle, struct cpuidle_device, cstate_timer);
+>> +
+>> +	data->hrtimer_expired = 1;
+>> +
+>> +	return HRTIMER_NORESTART;
+>> +}
+>> +
+>> +/**
+>>   * cpuidle_install_idle_handler - installs the cpuidle idle loop handler
+>>   */
+>>  void cpuidle_install_idle_handler(void)
+>> @@ -185,6 +205,10 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+>>  
+>>  	dev->enabled = 1;
+>>  
+>> +	dev->hrtimer_expired = 0;
+>> +	hrtimer_init(&dev->cstate_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+>> +	dev->cstate_timer.function = cstate_reassessment_timer;
+>> +
+>>  	enabled_devices++;
+>>  	return 0;
+>>  
+>> diff --git a/drivers/cpuidle/governors/menu.c b/drivers/cpuidle/governors/menu.c
+>> index 1b12870..fd54584 100644
+>> --- a/drivers/cpuidle/governors/menu.c
+>> +++ b/drivers/cpuidle/governors/menu.c
+>> @@ -125,10 +125,21 @@ struct menu_device {
+>>  #define LOAD_INT(x) ((x) >> FSHIFT)
+>>  #define LOAD_FRAC(x) LOAD_INT(((x) & (FIXED_1-1)) * 100)
+>>  
+>> -static int get_loadavg(void)
+>> +static int get_loadavg(struct cpuidle_device *dev)
+>>  {
+>> -	unsigned long this = this_cpu_load();
+>> +	unsigned long this;
+>>  
+>> +	/*
+>> +	 * this_cpu_load() returns the value of rq->load.weight
+>> +	 * at the previous scheduler tick and not the current value.
+>> +	 * If the timer expired, that means we are in idle,there
+>> +	 * are no more runnable processes in the current queue
+>> +	 * =>return the current value of rq->load.weight which is 0.
+>> +	 */
+>> +	if (dev->hrtimer_expired == 1)
+>> +		return 0;
+>> +	else
+>> +		this = this_cpu_load();
+>>  
+>>  	return LOAD_INT(this) * 10 + LOAD_FRAC(this) / 10;
+>>  }
+>> @@ -166,13 +177,13 @@ static inline int which_bucket(unsigned int duration)
+>>   * to be, the higher this multiplier, and thus the higher
+>>   * the barrier to go to an expensive C state.
+>>   */
+>> -static inline int performance_multiplier(void)
+>> +static inline int performance_multiplier(struct cpuidle_device *dev)
+>>  {
+>>  	int mult = 1;
+>>  
+>>  	/* for higher loadavg, we are more reluctant */
+>>  
+>> -	mult += 2 * get_loadavg();
+>> +	mult += 2 * get_loadavg(dev);
+>>  
+>>  	/* for IO wait tasks (per cpu!) we add 5x each */
+>>  	mult += 10 * nr_iowait_cpu(smp_processor_id());
+>> @@ -236,6 +247,7 @@ static int menu_select(struct cpuidle_device *dev)
+>>  	int latency_req = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
+>>  	int i;
+>>  	int multiplier;
+>> +	ktime_t timeout;
+>>  
+>>  	if (data->needs_update) {
+>>  		menu_update(dev);
+>> @@ -256,7 +268,7 @@ static int menu_select(struct cpuidle_device *dev)
+>>  
+>>  	data->bucket = which_bucket(data->expected_us);
+>>  
+>> -	multiplier = performance_multiplier();
+>> +	multiplier = performance_multiplier(dev);
+>>  
+>>  	/*
+>>  	 * if the correction factor is 0 (eg first time init or cpu hotplug
+>> @@ -287,12 +299,27 @@ static int menu_select(struct cpuidle_device *dev)
+>>  			break;
+>>  		if (s->exit_latency > latency_req)
+>>  			break;
+>> -		if (s->exit_latency * multiplier > data->predicted_us)
+>> +		if (s->exit_latency * multiplier > data->predicted_us) {
+>> +			/*
+>> +			 * Could not enter the next C-state because of a high
+>> +			 * load. Set a timer in order to check the load again
+>> +			 * after the timeout expires and re-evaluate cstate.
+>> +			 */
+>> +			if (s->hrtimer_timeout != 0 && get_loadavg(dev)) {
+>> +				timeout =
+>> +				       ktime_set(0,
+>> +					   s->hrtimer_timeout * NSEC_PER_USEC);
+>> +				hrtimer_start(&dev->cstate_timer, timeout,
+>> +					   HRTIMER_MODE_REL);
+>> +			}
+>>  			break;
+>> +		}
+>>  		data->exit_us = s->exit_latency;
+>>  		data->last_state_idx = i;
+>>  	}
+>>  
+>> +	/* Reset hrtimer_expired which is set when the hrtimer fires */
+>> +	dev->hrtimer_expired = 0;
+>>  	return data->last_state_idx;
+>>  }
+>>  
+>> diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+>> index 55215cc..8d11b52 100644
+>> --- a/include/linux/cpuidle.h
+>> +++ b/include/linux/cpuidle.h
+>> @@ -16,6 +16,7 @@
+>>  #include <linux/module.h>
+>>  #include <linux/kobject.h>
+>>  #include <linux/completion.h>
+>> +#include <linux/hrtimer.h>
+>>  
+>>  #define CPUIDLE_STATE_MAX	8
+>>  #define CPUIDLE_NAME_LEN	16
+>> @@ -37,6 +38,7 @@ struct cpuidle_state {
+>>  	unsigned int	exit_latency; /* in US */
+>>  	unsigned int	power_usage; /* in mW */
+>>  	unsigned int	target_residency; /* in US */
+>> +	unsigned int	hrtimer_timeout; /* in US */
+>>  
+>>  	unsigned long long	usage;
+>>  	unsigned long long	time; /* in US */
+>> @@ -97,6 +99,8 @@ struct cpuidle_device {
+>>  	struct completion	kobj_unregister;
+>>  	void			*governor_data;
+>>  	struct cpuidle_state	*safe_state;
+>> +	struct hrtimer          cstate_timer;
+>> +	unsigned int            hrtimer_expired;
+>>  };
+>>  
+>>  DECLARE_PER_CPU(struct cpuidle_device *, cpuidle_devices);
 > --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 > 
+
+By setting timers when we enter non-deepest C-state possible, such that when it fires we
+can re-evaluate and try moving into deeper and deeper C-states enhancing the
+power savings is a good feature to have. 
+
+Looking at the current implementation, is it possible to have it as configurable option
+where one can enable/disable this functionality through the backhand driver ?
+
+Also I am thinking, instead of having them in governor
+wouldnt it be a good idea to have it implemented in 
+the backhand driver itself ? 
+
+--Deepthi
