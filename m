@@ -1,77 +1,111 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH] OMAP2+: Fix Compilation error on current mainline
-Date: Wed, 9 Nov 2011 17:48:43 +0530
-Message-ID: <CAAL8m4wW8BPsZoQh59J7RRyLJnpq5SnaJo1q==X84ZjTwW+cXQ@mail.gmail.com>
-References: <4EB7E50D.40406@ti.com> <1320733698-23411-1-git-send-email-govindraj.raja@ti.com>
- <4EB908A1.40404@ti.com> <4EB90A62.7010206@ti.com> <CAAL8m4w4Zr-P4ywOYwZ7VwOtTNp5Yz=Zsw0y_SrkcY4yN6n49A@mail.gmail.com>
- <4EB949EE.7030109@ti.com>
+From: Patrick Combes <p-combes@ti.com>
+Subject: [RFC][PATCH] gpiolib: add irq_wake (power-management) sysfs file
+Date: Wed, 9 Nov 2011 17:01:51 +0100
+Message-ID: <1320854511-15065-1-git-send-email-p-combes@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53249 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751758Ab1KIMTH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2011 07:19:07 -0500
-Received: by bke11 with SMTP id 11so1278245bke.19
-        for <linux-omap@vger.kernel.org>; Wed, 09 Nov 2011 04:19:05 -0800 (PST)
-In-Reply-To: <4EB949EE.7030109@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48110 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085Ab1KIQCD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 9 Nov 2011 11:02:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: david-b@pacbell.net, tony@atomide.com, linux-omap@vger.kernel.org
+Cc: b-cousson@ti.com, f-mazard@ti.com, dmurphy@ti.com, Hugo Dupras <h-dupras@ti.com>, Patrick Combes <p-combes@ti.com>
 
-On Tue, Nov 8, 2011 at 8:55 PM, Cousson, Benoit <b-cousson@ti.com> wrot=
-e:
-> On 11/8/2011 12:59 PM, Govindraj wrote:
->>
->> On Tue, Nov 8, 2011 at 4:24 PM, Santosh Shilimkar
->> <santosh.shilimkar@ti.com> =A0wrote:
->
-> [...]
->
->>> Opps. I missed that one while acking the patch.
->>> Indeed the semi-colon one was agreed to be the left over
->>> in the last patch discussion.
->>
->> Sorry, my bad sent the wrong patch here's the right one.[1]
->>
->> --
->> Thanks,
->> Govindraj.R
->>
->> [1]:
->>
->> =A0From 9d244c0dea4de10ab9052fc1fe7bde8846ad389e Mon Sep 17 00:00:00=
- 2001
->> From: Govindraj.R<govindraj.raja@ti.com>
->> Date: Tue, 8 Nov 2011 16:57:22 +0530
->> Subject: [PATCH] OMAP2+: Fix Compilation error on current mainline
->>
->> Fix below compilation failure on mainline kernel commit id
->> 1ea6b8f48918282bdca0b32a34095504ee65bab5
->>
->> arch/arm/mach-omap2/omap_l3_noc.c:240: error: expected ',' or ';'
->> before 'MODULE_DEVICE_TABLE'
->
-> The issue is that 3.2-rc1 does not have that build error anymore...
-> It should appear only with this driver built as a module, and that's =
-not
-> possible yet for the l3_noc.
->
-> The fix is still good to have, but the changelog should probably be u=
-pdated.
->
+From: Hugo Dupras <h-dupras@ti.com>
 
-Have posted a updated patch.
+By calling poll() on the /sys/class/gpio/gpioN/value sysfs file, usermode
+application can take benefit of gpio interrupts.
+However, depending on the power state reached, this interrupt may not wake-up
+the CPU.
+This patch creates a new sysfs file /sys/class/gpio/gpioN/irq_wake to enable
+usermode application to set the wake properties of a gpio IRQ.
+This option can be set or not for each gpio to preserve power consumption (e.g
+embedded systems).
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg58415.html
+Signed-off-by: Hugo Dupras <h-dupras@ti.com>
+Signed-off-by: Patrick Combes <p-combes@ti.com>
+---
+ drivers/gpio/gpiolib.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 54 insertions(+), 1 deletions(-)
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index a971e3d..cf03aed 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -543,6 +543,55 @@ static ssize_t gpio_active_low_store(struct device *dev,
+ static const DEVICE_ATTR(active_low, 0644,
+ 		gpio_active_low_show, gpio_active_low_store);
+ 
++static ssize_t gpio_irq_wake_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t size)
++{
++	const struct gpio_desc  *desc = dev_get_drvdata(dev);
++	unsigned		gpio = desc - gpio_desc;
++	ssize_t			status;
++
++	mutex_lock(&sysfs_lock);
++
++	if (!test_bit(FLAG_EXPORT, &desc->flags))
++		status = -EIO;
++	else if (sysfs_streq(buf, "enable") || sysfs_streq(buf, "1"))
++		status = enable_irq_wake(gpio_to_irq(gpio));
++	else if (sysfs_streq(buf, "disable") || sysfs_streq(buf, "0"))
++		status = disable_irq_wake(gpio_to_irq(gpio));
++	else
++		status = -EINVAL;
++
++	mutex_unlock(&sysfs_lock);
++
++	return status ? : size;
++}
++
++static ssize_t gpio_irq_wake_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	const struct gpio_desc	*desc = dev_get_drvdata(dev);
++	unsigned		gpio = desc - gpio_desc;
++	int			irq = gpio_to_irq(gpio);
++	ssize_t			status;
++	struct irq_data		*gpio_irq_data = irq_get_irq_data(irq);
++
++	mutex_lock(&sysfs_lock);
++
++	if (gpio_irq_data)
++		status = sprintf(buf, " Wakeup %s\n",
++					irqd_is_wakeup_set(gpio_irq_data)
++					? " enable" : "disable");
++	else
++		status = -EINVAL;
++
++	mutex_unlock(&sysfs_lock);
++
++	return status;
++}
++
++static const DEVICE_ATTR(irq_wake, 0644,
++		gpio_irq_wake_show, gpio_irq_wake_store);
++
+ static const struct attribute *gpio_attrs[] = {
+ 	&dev_attr_value.attr,
+ 	&dev_attr_active_low.attr,
+@@ -744,9 +793,13 @@ int gpio_export(unsigned gpio, bool direction_may_change)
+ 			if (!status && gpio_to_irq(gpio) >= 0
+ 					&& (direction_may_change
+ 						|| !test_bit(FLAG_IS_OUT,
+-							&desc->flags)))
++							&desc->flags))) {
+ 				status = device_create_file(dev,
+ 						&dev_attr_edge);
++				if (!status)
++					status = device_create_file(dev,
++							&dev_attr_irq_wake);
++			}
+ 
+ 			if (status != 0)
+ 				device_unregister(dev);
+-- 
+1.7.1
+
