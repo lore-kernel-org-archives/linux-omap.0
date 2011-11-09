@@ -1,32 +1,38 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] input: ams_delta_serio: include linux/module.h
-Date: Wed, 9 Nov 2011 10:14:17 -0800
-Message-ID: <20111109181417.GB26633@core.coreip.homeip.net>
-References: <1320862005-6049-1-git-send-email-aaro.koskinen@iki.fi>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: [PATCH 1/4] AM35xx: DSS: there is no VDDS_DSI on AM35xx
+Date: Wed, 09 Nov 2011 22:26:47 +0400
+Message-ID: <4EBAC5E7.4060400@emcraft.com>
+References: <1320797568-11169-1-git-send-email-yanok@emcraft.com> <1320797568-11169-2-git-send-email-yanok@emcraft.com> <4EBA518C.6050405@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1320862005-6049-1-git-send-email-aaro.koskinen@iki.fi>
-Sender: linux-input-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@iki.fi>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ocean.emcraft.com ([213.221.7.182]:45546 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817Ab1KIS0t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2011 13:26:49 -0500
+In-Reply-To: <4EBA518C.6050405@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
 
-On Wed, Nov 09, 2011 at 08:06:45PM +0200, Aaro Koskinen wrote:
-> Fix the following compilation failure with v3.2-rc1 by including module.h:
-> 
->   CC      drivers/input/serio/ams_delta_serio.o
-> drivers/input/serio/ams_delta_serio.c:33:15: error: expected declaration specifiers or '...' before string constant
-> drivers/input/serio/ams_delta_serio.c:34:20: error: expected declaration specifiers or '...' before string constant
-> drivers/input/serio/ams_delta_serio.c:35:16: error: expected declaration specifiers or '...' before string constant
-> drivers/input/serio/ams_delta_serio.c: In function 'ams_delta_serio_init':
-> drivers/input/serio/ams_delta_serio.c:155:2: error: 'THIS_MODULE' undeclared (first use in this function)
-> drivers/input/serio/ams_delta_serio.c:155:2: note: each undeclared identifier is reported only once for each function it appears in
-> 
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Hi Archit,
 
-Thank you Aaro.
+09.11.2011 14:10, Archit Taneja wrote:
+>> AM35xx don't have VDDS_DSI regulator.
+>
+> AM35xx do have vdds_dsi regulator. Are you saying that your particular
+> board doesn't have vdds_dsi connected to a regulator?
 
--- 
-Dmitry
+Yes, you are right. But looking at the manual (and name) I think it's 
+needed only for DSI operation. On our board we have LCD connected 
+through DPI.
+
+> I assumed that vdds_dsi regulator was required for DPI to function
+> properly on omap3 devices.
+
+Ok, please ignore this patch then. I think I'll create fake regulator 
+from the board code to fix this.
+
+Regards, Ilya.
