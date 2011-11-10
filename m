@@ -1,47 +1,54 @@
-From: Grant Erickson <marathon96@gmail.com>
-Subject: Re: Which toolchain are we using?
-Date: Thu, 10 Nov 2011 09:07:04 -0800
-Message-ID: <CAE144B8.32218%marathon96@gmail.com>
-References: <E28AAFD00EFAA646AE3DF9B89CD24A8903B687@DBDE01.ent.ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/4] dts/omap3: split omap3.dtsi
+Date: Thu, 10 Nov 2011 18:09:08 +0100
+Message-ID: <4EBC0534.4020306@ti.com>
+References: <1320797568-11169-1-git-send-email-yanok@emcraft.com> <1320797568-11169-4-git-send-email-yanok@emcraft.com> <4EBBC10B.6070206@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:48284 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933053Ab1KJRHO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Nov 2011 12:07:14 -0500
-Received: by pzk36 with SMTP id 36so1795860pzk.1
-        for <linux-omap@vger.kernel.org>; Thu, 10 Nov 2011 09:07:14 -0800 (PST)
-In-Reply-To: <E28AAFD00EFAA646AE3DF9B89CD24A8903B687@DBDE01.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36858 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753806Ab1KJRJh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Nov 2011 12:09:37 -0500
+In-Reply-To: <4EBBC10B.6070206@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Ilya Yanok <yanok@emcraft.com>, linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On 11/10/11 12:47 AM, Premi, Sanjeev wrote:
-> I have been running latest linux-omap/master on OMAP3EVM (boot from MMC).
-> When building with CodeSourcery 2011.03-41, I see frequent "hangs" just
-> after "Uncompressing Linux... done, booting the kernel"
-> 
-> However, builds with CodeSourcery 2009q1-203 boot consistently all the
-> time.
-> 
-> Before trying to investigate further, wanted to know if someone else has
-> seen the problem. If no, which toolchain is being used.
++ devicetree ml
 
-Sanjeev:
+On 11/10/2011 1:18 PM, Igor Grinberg wrote:
+> Hi Ilya,
+>
+> On 11/09/11 02:12, Ilya Yanok wrote:
+>> Split omap3.dtsi file into common part, OM3xxx specific part and
+>> AM35xx specific part. For now the only difference is missing IVA node on
+>> AM35xx.
+>>
+>> Signed-off-by: Ilya Yanok<yanok@emcraft.com>
+>> ---
+>>   arch/arm/boot/dts/am35xx.dtsi      |   15 +++++++++++++++
+>>   arch/arm/boot/dts/om3xxx.dtsi      |   28 ++++++++++++++++++++++++++++
+>>   arch/arm/boot/dts/omap3-beagle.dts |    2 +-
+>>   arch/arm/boot/dts/omap3.dtsi       |    9 ---------
+>>   4 files changed, 44 insertions(+), 10 deletions(-)
+>>   create mode 100644 arch/arm/boot/dts/am35xx.dtsi
+>>   create mode 100644 arch/arm/boot/dts/om3xxx.dtsi
+>
+> om3xxx name is confusing - I haven't seen this name
+> in any documentation/code before...
+> Am I missing something?
+>
+> What do you think of omap3-iva.dtsi or omap3-dsp.dtsi?
 
-I've seen this behavior with kernels as far back as 2.6.32. The solutions
-explored in discussions on the Web seem to be around soft- vs. hardware
-alignment exception handling.
+Cannot we avoid at all hacking the original file and use instead the 
+status = "disabled" field for any variant that will not have the 
+functionality?
 
-Mentor is aware of the issue but has no specific recommendations at this
-time.
+It will be a nightmare for us to maintain a consistent OMAP3 file if 
+every variants force us to change the original file.
 
-Best,
-
-Grant
-
-
+Regards,
+Benoit
