@@ -1,136 +1,69 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 3/4] dts/omap3: split omap3.dtsi
-Date: Thu, 10 Nov 2011 14:18:19 +0200
-Message-ID: <4EBBC10B.6070206@compulab.co.il>
-References: <1320797568-11169-1-git-send-email-yanok@emcraft.com> <1320797568-11169-4-git-send-email-yanok@emcraft.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH v2 1/2] OMAP2+: DMA: Workaround for invalid source position
+Date: Thu, 10 Nov 2011 14:46:22 +0200
+Message-ID: <4EBBC79E.30701@bitmer.com>
+References: <1320658387-21067-1-git-send-email-peter.ujfalusi@ti.com> <1320658387-21067-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:51213
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932395Ab1KJMSb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Nov 2011 07:18:31 -0500
-In-Reply-To: <1320797568-11169-4-git-send-email-yanok@emcraft.com>
+Received: from bitmer.com ([213.157.87.50]:55960 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753591Ab1KJMqk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Nov 2011 07:46:40 -0500
+In-Reply-To: <1320658387-21067-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Ilya,
-
-On 11/09/11 02:12, Ilya Yanok wrote:
-> Split omap3.dtsi file into common part, OM3xxx specific part and
-> AM35xx specific part. For now the only difference is missing IVA node on
-> AM35xx.
-> 
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+On 11/07/2011 11:33 AM, Peter Ujfalusi wrote:
+> If the DMA source position has been asked before the
+> first actual data transfer has been done, the CSAC
+> register does not contain valid information.
+> We can identify this situation by checking the CDAC
+> register:
+> CDAC != 0 indicates that the DMA transfer on the channel has
+> been started already.
+> When CDAC == 0 we can not trust the CSAC value since it has
+> not been updated, and can contain random number.
+> Return the start address in case the DMA has not jet started.
+>
+> Note: The CDAC register has been initialized to 0 at dma_start
+> time.
+>
+> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
 > ---
->  arch/arm/boot/dts/am35xx.dtsi      |   15 +++++++++++++++
->  arch/arm/boot/dts/om3xxx.dtsi      |   28 ++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap3-beagle.dts |    2 +-
->  arch/arm/boot/dts/omap3.dtsi       |    9 ---------
->  4 files changed, 44 insertions(+), 10 deletions(-)
->  create mode 100644 arch/arm/boot/dts/am35xx.dtsi
->  create mode 100644 arch/arm/boot/dts/om3xxx.dtsi
+>   arch/arm/plat-omap/dma.c |   12 ++++++++++++
+>   1 files changed, 12 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index c22217c..a9983b6 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -1034,6 +1034,18 @@ dma_addr_t omap_get_dma_src_pos(int lch)
+>   	if (IS_DMA_ERRATA(DMA_ERRATA_3_3)&&  offset == 0)
+>   		offset = p->dma_read(CSAC, lch);
+>
+> +	if (!cpu_is_omap15xx()) {
+> +		/*
+> +		 * CDAC == 0 indicates that the DMA transfer on the channel has
+> +		 * not been started (no data has been transferred so far).
+> +		 * Return the programmed source start address in this case.
+> +		 */
+> +		if (likely(p->dma_read(CDAC, lch)))
+> +			offset = p->dma_read(CSAC, lch);
+> +		else
+> +			offset = p->dma_read(CSSA, lch);
+> +	}
+> +
 
-om3xxx name is confusing - I haven't seen this name
-in any documentation/code before...
-Am I missing something?
+I think this is enough:
 
-What do you think of omap3-iva.dtsi or omap3-dsp.dtsi?
+if (unlikely(p->dma_read(CDAC, lch) == 0))
+	offset = p->dma_read(CSSA, lch);
 
-> 
-> diff --git a/arch/arm/boot/dts/am35xx.dtsi b/arch/arm/boot/dts/am35xx.dtsi
-> new file mode 100644
-> index 0000000..0dbc69d
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/am35xx.dtsi
-> @@ -0,0 +1,15 @@
-> +/*
-> + * Device Tree Source for TI AM35xx SoCs
-> + *
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2.  This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> + */
-> +
-> +/include/ "omap3.dtsi"
-> +
-> +/ {
-> +	compatible = "ti,am35xx", "ti,omap3";
-> +};
-> diff --git a/arch/arm/boot/dts/om3xxx.dtsi b/arch/arm/boot/dts/om3xxx.dtsi
-> new file mode 100644
-> index 0000000..e8a17dd
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/om3xxx.dtsi
-> @@ -0,0 +1,28 @@
-> +/*
-> + * Device Tree Source for TI OM3xxx SoCs
-> + *
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This file is licensed under the terms of the GNU General Public License
-> + * version 2.  This program is licensed "as is" without any warranty of any
-> + * kind, whether express or implied.
-> + */
-> +
-> +/include/ "omap3.dtsi"
-> +
-> +/ {
-> +	/*
-> +	 * The soc node represents the soc top level view. It is uses for IPs
-> +	 * that are not memory mapped in the MPU view or for the MPU itself.
-> +	 */
-> +	soc {
-> +		iva {
-> +			compatible = "ti,iva2.2";
-> +			ti,hwmods = "iva";
-> +
-> +			dsp {
-> +				compatible = "ti,omap3-c64";
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> index 9486be6..63e4be1 100644
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -7,7 +7,7 @@
->   */
->  /dts-v1/;
->  
-> -/include/ "omap3.dtsi"
-> +/include/ "om3xxx.dtsi"
->  
->  / {
->  	model = "TI OMAP3 BeagleBoard";
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index d202bb5..2b12b0e 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -29,15 +29,6 @@
->  			compatible = "ti,omap3-mpu";
->  			ti,hwmods = "mpu";
->  		};
-> -
-> -		iva {
-> -			compatible = "ti,iva2.2";
-> -			ti,hwmods = "iva";
-> -
-> -			dsp {
-> -				compatible = "ti,omap3-c64";
-> -			};
-> -		};
->  	};
->  
->  	/*
+I suppose offset is ok for normal case as it is already read (twise) above.
 
 -- 
-Regards,
-Igor.
+Jarkko
