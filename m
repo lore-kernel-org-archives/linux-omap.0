@@ -1,73 +1,58 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH v2 1/2] OMAP2+: DMA: Workaround for invalid source position
-Date: Thu, 10 Nov 2011 15:02:04 +0200
-Message-ID: <4EBBCB4C.9030202@bitmer.com>
-References: <1320658387-21067-1-git-send-email-peter.ujfalusi@ti.com> <1320658387-21067-2-git-send-email-peter.ujfalusi@ti.com> <4EBBC79E.30701@bitmer.com>
+From: Joerg Roedel <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH v4 2/7] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Thu, 10 Nov 2011 14:08:01 +0100
+Message-ID: <20111110130801.GC13213@amd.com>
+References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+ <1318850846-16066-3-git-send-email-ohad@wizery.com>
+ <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
+ <CAK=WgbZbfCRJqA-wwHN=iLH6rYyoKjJCaL0zMfY93Tg6Jw2uvA@mail.gmail.com>
+ <4EBBC090.4070109@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:43731 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757646Ab1KJNCO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Nov 2011 08:02:14 -0500
-In-Reply-To: <4EBBC79E.30701@bitmer.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4EBBC090.4070109@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: cody <mail.kai.huang@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, kvm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 11/10/2011 02:46 PM, Jarkko Nikula wrote:
-> On 11/07/2011 11:33 AM, Peter Ujfalusi wrote:
->> If the DMA source position has been asked before the
->> first actual data transfer has been done, the CSAC
->> register does not contain valid information.
->> We can identify this situation by checking the CDAC
->> register:
->> CDAC != 0 indicates that the DMA transfer on the channel has
->> been started already.
->> When CDAC == 0 we can not trust the CSAC value since it has
->> not been updated, and can contain random number.
->> Return the start address in case the DMA has not jet started.
->>
->> Note: The CDAC register has been initialized to 0 at dma_start
->> time.
->>
->> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
->> ---
->> arch/arm/plat-omap/dma.c | 12 ++++++++++++
->> 1 files changed, 12 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
->> index c22217c..a9983b6 100644
->> --- a/arch/arm/plat-omap/dma.c
->> +++ b/arch/arm/plat-omap/dma.c
->> @@ -1034,6 +1034,18 @@ dma_addr_t omap_get_dma_src_pos(int lch)
->> if (IS_DMA_ERRATA(DMA_ERRATA_3_3)&& offset == 0)
->> offset = p->dma_read(CSAC, lch);
->>
->> + if (!cpu_is_omap15xx()) {
->> + /*
->> + * CDAC == 0 indicates that the DMA transfer on the channel has
->> + * not been started (no data has been transferred so far).
->> + * Return the programmed source start address in this case.
->> + */
->> + if (likely(p->dma_read(CDAC, lch)))
->> + offset = p->dma_read(CSAC, lch);
->> + else
->> + offset = p->dma_read(CSSA, lch);
->> + }
->> +
->
-> I think this is enough:
->
-> if (unlikely(p->dma_read(CDAC, lch) == 0))
-> offset = p->dma_read(CSSA, lch);
->
-> I suppose offset is ok for normal case as it is already read (twise) above.
->
-Or actually my proposal could have a race if CDAC changes between CSAC 
-read and CDAC read. In that case it's better to re-read CSAC as your 
-patch does after CDAC test and give to both:
+On Thu, Nov 10, 2011 at 08:16:16PM +0800, cody wrote:
+> On 11/10/2011 03:31 PM, Ohad Ben-Cohen wrote:
+> >On Thu, Nov 10, 2011 at 8:17 AM, Kai Huang<mail.kai.huang@gmail.com>  wrote:
+> >>Seems the unmap function don't take phys as parameter, does this mean
+> >>domain->ops->unmap will walk through the page table to find out the
+> >>actual page size?
+> >The short answer is yes, and furthermore, we also consider to remove
+> >the size param from domain->ops->unmap entirely at some point.
+> >
+> >We had a long discussion about it, please see:
+> >
+> >https://lkml.org/lkml/2011/10/10/234
+> Yes I've seen your discussion, I followed this thread from beginning:)
+> 
+> How about the IOTLB flush? As I said I think we need to consider
+> that IOMMU (even does not exist now) may have some limitation on
+> IOTLB flush, and hiding page size from IOTLB flush code may hurt
+> performance, or even worse, trigger undefined behaviors.
 
-Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
+We can only care about IOMMUs that exist today or ones that will exist
+and we already know of.
+In general for the hardware I know of a page-size is not required for
+implementing unmap operations. Requiring this would imply that any user
+of the IOMMU-API needs to keeps track of the page-sizes used to map a
+given area.
+This would be a huge burden which is not really necessary because the
+IOMMU driver already has this information and can return it to the user.
+So if you want to change that you need a very good reason for it.
+
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
