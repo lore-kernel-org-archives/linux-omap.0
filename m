@@ -1,55 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Introduce local common.h files
-Date: Thu, 10 Nov 2011 15:33:47 -0800
-Message-ID: <20111110233347.GZ31337@atomide.com>
-References: <20111106135250.GC15294@n2100.arm.linux.org.uk>
- <20111108004550.GH31337@atomide.com>
- <20111110201719.GW31337@atomide.com>
- <20111110202356.GQ15294@n2100.arm.linux.org.uk>
- <20111110215008.GX31337@atomide.com>
- <20111110222907.GR15294@n2100.arm.linux.org.uk>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH v7 11/21] OMAP2+: UART: Move errata handling from serial.c
+ to omap-serial
+Date: Thu, 10 Nov 2011 17:44:27 -0600
+Message-ID: <4EBC61DB.9020402@ti.com>
+References: <1318951576-10165-1-git-send-email-govindraj.raja@ti.com> <1318951576-10165-12-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111110222907.GR15294@n2100.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1318951576-10165-12-git-send-email-govindraj.raja@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [111110 13:54]:
-> On Thu, Nov 10, 2011 at 01:50:09PM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [111110 11:49]:
-> > 
-> > OK, a stable branch is needed badly for this.. If possible please
-> > publish some minimal stable base branch as soon as you can as pretty
-> > much all omap patches need to be updated for this one.
-> 
-> I want to give it something between a week and two before closing the
-> window for acked-bys etc (amongst other reasons).
+Hi Govindraj,
 
-OK
- 
-> > > If you agree, could you put it in the patch system please?  Thanks.
-> > 
-> > Sounds good to me, it there now as patch 7159/1.
-> 
-> Thanks, merged that into the series.  The updated OMAP patch updated is
-> below, which has been moved to part 2.  Lastly, the final patch of part
-> 2 has been updated to delete the empty arch_reset(), so OMAP is now
-> entirely free of arch_reset() references.  This leaves a total of 12
-> references left to nobble.
+On 10/18/2011 10:26, Govindraj.R wrote:
+> Move the errata handling mechanism from serial.c to omap-serial file
+> and utilise the same func in driver file.
+>
+> Errata i202, i291 are moved to be handled with omap-serial
+> Moving the errata macro from serial.c file to driver header file
+> as from on errata will be handled in driver file itself.
+> Corrected errata id from chapter reference 2.15 to errata id i291.
+>
+> Removed errata and dma_enabled feilds from omap_uart_state struct
+> as they are no more needed with errata handling done within omap-serial.
+>
+> Acked-by: Alan Cox<alan@linux.intel.com>
+> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
+> ---
+>   arch/arm/mach-omap2/serial.c                  |   97 +++++++------------------
+>   arch/arm/plat-omap/include/plat/omap-serial.h |    6 ++
+>   drivers/tty/serial/omap-serial.c              |   66 ++++++++++++++++-
+>   3 files changed, 95 insertions(+), 74 deletions(-)
 
-Great, good to hear.
- 
-> 8<---
-> From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Subject: [PATCH] ARM: restart: omap: use new restart hook
-> 
-> Hook these platforms restart code into the new restart hook rather
-> than using arch_reset().
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+[snip]
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> +	/* Enable the MDR1 errata for OMAP3 */
+> +	if (cpu_is_omap34xx()&&  !cpu_is_ti816x())
+> +		omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
+
+This errata (i202) is applicable to all devices from OMAP2430 to 
+OMAP4460 (apparently this one is not getting fixed). So could you make 
+sure this is enabled for 2430, 3430, 3630, 4430 and 4460?
+
+[snip]
+
+> +/*
+> + * Work Around for Errata i202 (3430 - 1.12, 3630 - 1.6)
+
+We should update the comment to be "Work Around for Errata i202 (2430, 
+3430, 3630, 4430 and 4460)". The "1.12" and "1.6" are just the section 
+references in the errata docs, but I think that you can drop these as 
+you can just search for the errata ID which is i202.
+
+Cheers
+Jon
+
+
+
