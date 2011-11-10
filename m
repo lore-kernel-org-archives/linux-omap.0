@@ -1,64 +1,103 @@
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-Subject: Re: [PATCH] ARM: OMAP: Fix map_io for Amstrad E3
-Date: Thu, 10 Nov 2011 02:28:58 +0200
-Message-ID: <B1EBACB3-C974-43B7-AE8A-61C000E285AF@iki.fi>
-References: <B8A6ED05-78AC-4140-A9B8-8265F1E9C32F@iki.fi> <20111109231900.GS31337@atomide.com> <20111109232525.GT31337@atomide.com> <20111109233900.GP15294@n2100.arm.linux.org.uk> <20D8B951-2E77-42DF-B735-6062994D47D5@iki.fi> <20111110000421.GU31337@atomide.com>
-Mime-Version: 1.0 (Apple Message framework v753.1)
-Content-Type: text/plain; charset=US-ASCII; delsp=yes; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filtteri6.pp.htv.fi ([213.243.153.189]:54929 "EHLO
-	filtteri6.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932214Ab1KJA15 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Nov 2011 19:27:57 -0500
-In-Reply-To: <20111110000421.GU31337@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kai Huang <mail.kai.huang@gmail.com>
+Subject: Re: [PATCH v4 2/7] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Thu, 10 Nov 2011 14:17:24 +0800
+Message-ID: <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
+References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+	<1318850846-16066-3-git-send-email-ohad@wizery.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1318850846-16066-3-git-send-email-ohad@wizery.com>
+Sender: kvm-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, kvm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
-
-On 10.11.2011, at 2.04, Tony Lindgren wrote:
-> * Aaro Koskinen <aaro.koskinen@iki.fi> [111109 15:25]:
->> On 10.11.2011, at 1.39, Russell King - ARM Linux wrote:
->>> On Wed, Nov 09, 2011 at 03:25:25PM -0800, Tony Lindgren wrote:
->>>> Commit 7b88e62f5d219a86d81bdf4388012c97dc42e8f8 (ARM: OMAP1: Use
->>>> generic
->>>> map_io, init_early and init_irq) changed omap1 to use generic  
->>>> map_io.
->>>>
->>>> Looks like I missed one board though. Fix this by adding a custom
->>>> map_io for Amstrad E3.
->>>>
->>>> Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
->>>> Signed-off-by: Tony Lindgren <tony@atomide.com>
->>>>
->>>> ---
->>>> Untested, does this help?
->>>> --- a/arch/arm/mach-omap1/board-ams-delta.c
->>>> +++ b/arch/arm/mach-omap1/board-ams-delta.c
->>>> @@ -302,8 +302,6 @@ static void __init ams_delta_init(void)
->>>> 	omap_cfg_reg(J19_1610_CAM_D6);
->>>> 	omap_cfg_reg(J18_1610_CAM_D7);
->>>>
->>>> -	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
->>>> -
->>>
->>> This is definitely wrong.  Using iotable_init() after map_io has
->>> returned
->>> has (and remains) a serious bug - doing so may _appear_ to work
->>> but as it
->>> doesn't obtain its memory from the standard kernel memory
->>> allocators, it
->>> will lead to duplicate usage of that memory.
->>
->> Also, the patch did not help. It still hangs like before.
 >
-> Hmm that patch is needed for sure but sounds like there's also
-> something else wrong.. Can you try to git bisect it?
+> -int iommu_unmap(struct iommu_domain *domain, unsigned long iova, int=
+ gfp_order)
+> +size_t iommu_unmap(struct iommu_domain *domain, unsigned long iova, =
+size_t size)
+> =A0{
+> - =A0 =A0 =A0 size_t size, unmapped;
+> + =A0 =A0 =A0 size_t unmapped_page, unmapped =3D 0;
+> + =A0 =A0 =A0 unsigned int min_pagesz;
+>
+> =A0 =A0 =A0 =A0if (unlikely(domain->ops->unmap =3D=3D NULL))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
+>
+> - =A0 =A0 =A0 size =A0 =A0 =A0 =A0 =3D PAGE_SIZE << gfp_order;
+> -
+> - =A0 =A0 =A0 BUG_ON(!IS_ALIGNED(iova, size));
+> -
+> - =A0 =A0 =A0 unmapped =3D domain->ops->unmap(domain, iova, size);
+> -
+> - =A0 =A0 =A0 return get_order(unmapped);
+> + =A0 =A0 =A0 /* find out the minimum page size supported */
+> + =A0 =A0 =A0 min_pagesz =3D 1 << __ffs(domain->ops->pgsize_bitmap);
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* The virtual address, as well as the size of the ma=
+pping, must be
+> + =A0 =A0 =A0 =A0* aligned (at least) to the size of the smallest pag=
+e supported
+> + =A0 =A0 =A0 =A0* by the hardware
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (!IS_ALIGNED(iova | size, min_pagesz)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("unaligned: iova 0x%lx size 0x%l=
+x min_pagesz 0x%x\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 iova, (unsigned long)size, min_pagesz);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 pr_debug("unmap this: iova 0x%lx size 0x%lx\n", iova,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (unsigned long)size);
+> +
+> + =A0 =A0 =A0 /*
+> + =A0 =A0 =A0 =A0* Keep iterating until we either unmap 'size' bytes =
+(or more)
+> + =A0 =A0 =A0 =A0* or we hit an area that isn't mapped.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 while (unmapped < size) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 size_t left =3D size - unmapped;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unmapped_page =3D domain->ops->unmap(do=
+main, iova, left);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!unmapped_page)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_debug("unmapped: iova 0x%lx size %lx=
+\n", iova,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 (unsigned long)unmapped_page);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iova +=3D unmapped_page;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 unmapped +=3D unmapped_page;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return unmapped;
+> =A0}
+> =A0EXPORT_SYMBOL_GPL(iommu_unmap);
+>
 
-Ok, I'll try bisecting tomorrow.
+Seems the unmap function don't take phys as parameter, does this mean
+domain->ops->unmap will walk through the page table to find out the
+actual page size?
 
-A.
+And another question: have we considered the IOTLB flush operation? I
+think we need to implement similar logic when flush the DVMA range.
+Intel VT-d's manual says software needs to specify the appropriate
+mask value to flush large pages, but it does not say we need to
+exactly match the page size as it is mapped. I guess it's not
+necessary for Intel IOMMU, but other vendor's IOMMU may have such
+limitation (or some other limitations). In my understanding current
+implementation does not provide page size information for particular
+DVMA ranges that has been mapped, and it's not flexible to implement
+IOTLB flush code (ex, we may need to walk through page table to find
+out actual page size). Maybe we can also add iommu_ops->flush_iotlb ?
 
+-cody
