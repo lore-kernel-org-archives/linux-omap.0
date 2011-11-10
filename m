@@ -1,79 +1,61 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v4-rebased 6/7] iommu/intel: announce supported page sizes
-Date: Thu, 10 Nov 2011 11:32:30 +0200
-Message-ID: <1320917551-11328-7-git-send-email-ohad@wizery.com>
+Subject: [PATCH v4-rebased 4/7] iommu/msm: announce supported page sizes
+Date: Thu, 10 Nov 2011 11:32:28 +0200
+Message-ID: <1320917551-11328-5-git-send-email-ohad@wizery.com>
 References: <1320917551-11328-1-git-send-email-ohad@wizery.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1320917551-11328-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: iommu@lists.linux-foundation.org
-Cc: linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, KyongHo Cho <pullip.cho@samsung.com>, Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-kernel@vger.kernel.org, Stepan Moskovchenko <stepanm@codeaurora.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Hiroshi Doyu <hdoyu@nvidia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Let the IOMMU core know we support arbitrary page sizes (as long as
-they're an order of 4KiB).
+Let the IOMMU core know we support 4KiB, 64KiB, 1MiB and 16MiB page sizes.
 
-This way the IOMMU core will retain the existing behavior we're used to;
-it will let us map regions that:
-- their size is an order of 4KiB
-- they are naturally aligned
-
-Note: Intel IOMMU hardware doesn't support arbitrary page sizes,
-but the driver does (it splits arbitrary-sized mappings into
-the pages supported by the hardware).
-
-To make everything simpler for now, though, this patch effectively tells
-the IOMMU core to keep giving this driver the same memory regions it did
-before, so nothing is changed as far as it's concerned.
-
-At this point, the page sizes announced remain static within the IOMMU
-core. To correctly utilize the pgsize-splitting of the IOMMU core by
-this driver, it seems that some core changes should still be done,
-because Intel's IOMMU page size capabilities seem to have the potential
-to be different between different DMA remapping devices.
+This way the IOMMU core can split any arbitrary-sized physically
+contiguous regions (that it needs to map) as needed.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: David Brown <davidb@codeaurora.org>
+Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
 ---
- drivers/iommu/intel-iommu.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+ drivers/iommu/msm_iommu.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/iommu/intel-iommu.c b/drivers/iommu/intel-iommu.c
-index 2a16501..4c780ef 100644
---- a/drivers/iommu/intel-iommu.c
-+++ b/drivers/iommu/intel-iommu.c
-@@ -78,6 +78,24 @@
- #define LEVEL_STRIDE		(9)
- #define LEVEL_MASK		(((u64)1 << LEVEL_STRIDE) - 1)
+diff --git a/drivers/iommu/msm_iommu.c b/drivers/iommu/msm_iommu.c
+index 13718d9..08a90b8 100644
+--- a/drivers/iommu/msm_iommu.c
++++ b/drivers/iommu/msm_iommu.c
+@@ -42,6 +42,9 @@ __asm__ __volatile__ (							\
+ #define RCP15_PRRR(reg)		MRC(reg, p15, 0, c10, c2, 0)
+ #define RCP15_NMRR(reg)		MRC(reg, p15, 0, c10, c2, 1)
  
-+/*
-+ * This bitmap is used to advertise the page sizes our hardware support
-+ * to the IOMMU core, which will then use this information to split
-+ * physically contiguous memory regions it is mapping into page sizes
-+ * that we support.
-+ *
-+ * Traditionally the IOMMU core just handed us the mappings directly,
-+ * after making sure the size is an order of a 4KiB page and that the
-+ * mapping has natural alignment.
-+ *
-+ * To retain this behavior, we currently advertise that we support
-+ * all page sizes that are an order of 4KiB.
-+ *
-+ * If at some point we'd like to utilize the IOMMU core's new behavior,
-+ * we could change this to advertise the real page sizes we support.
-+ */
-+#define INTEL_IOMMU_PGSIZES	(~0xFFFUL)
++/* bitmap of the page sizes currently supported */
++#define MSM_IOMMU_PGSIZES	(SZ_4K | SZ_64K | SZ_1M | SZ_16M)
 +
- static inline int agaw_to_level(int agaw)
- {
- 	return agaw + 2;
-@@ -4066,6 +4084,7 @@ static struct iommu_ops intel_iommu_ops = {
- 	.unmap		= intel_iommu_unmap,
- 	.iova_to_phys	= intel_iommu_iova_to_phys,
- 	.domain_has_cap = intel_iommu_domain_has_cap,
-+	.pgsize_bitmap	= INTEL_IOMMU_PGSIZES,
+ static int msm_iommu_tex_class[4];
+ 
+ DEFINE_SPINLOCK(msm_iommu_lock);
+@@ -679,7 +682,8 @@ static struct iommu_ops msm_iommu_ops = {
+ 	.map = msm_iommu_map,
+ 	.unmap = msm_iommu_unmap,
+ 	.iova_to_phys = msm_iommu_iova_to_phys,
+-	.domain_has_cap = msm_iommu_domain_has_cap
++	.domain_has_cap = msm_iommu_domain_has_cap,
++	.pgsize_bitmap = MSM_IOMMU_PGSIZES,
  };
  
- static void __devinit quirk_iommu_rwbf(struct pci_dev *dev)
+ static int __init get_tex_class(int icp, int ocp, int mt, int nos)
 -- 
 1.7.5.4
