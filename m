@@ -1,36 +1,65 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] omap-serial: add RS485 mode support
-Date: Thu, 10 Nov 2011 10:39:06 -0800
-Message-ID: <87y5vnesad.fsf@ti.com>
-References: <1317587234-20619-1-git-send-email-yanok@emcraft.com>
-	<4EB9C749.5010601@emcraft.com>
+Subject: Re: [RFC][PATCH] gpiolib: add irq_wake (power-management) sysfs file
+Date: Thu, 10 Nov 2011 10:50:13 -0800
+Message-ID: <87k477erru.fsf@ti.com>
+References: <1320854511-15065-1-git-send-email-p-combes@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:57503 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754343Ab1KJSon (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:36082 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754593Ab1KJSuW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Nov 2011 13:44:43 -0500
-Received: by qadb12 with SMTP id b12so1172692qad.9
-        for <linux-omap@vger.kernel.org>; Thu, 10 Nov 2011 10:44:42 -0800 (PST)
-In-Reply-To: <4EB9C749.5010601@emcraft.com> (Ilya Yanok's message of "Wed, 09
-	Nov 2011 04:20:25 +0400")
+	Thu, 10 Nov 2011 13:50:22 -0500
+Received: by mail-ey0-f175.google.com with SMTP id 9so3521880eyd.20
+        for <linux-omap@vger.kernel.org>; Thu, 10 Nov 2011 10:50:21 -0800 (PST)
+In-Reply-To: <1320854511-15065-1-git-send-email-p-combes@ti.com> (Patrick
+	Combes's message of "Wed, 9 Nov 2011 17:01:51 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org
+To: Patrick Combes <p-combes@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, b-cousson@ti.com, f-mazard@ti.com, dmurphy@ti.com, Hugo Dupras <h-dupras@ti.com>
 
-Ilya Yanok <yanok@emcraft.com> writes:
+Patrick Combes <p-combes@ti.com> writes:
 
-> Hi guys,
+> From: Hugo Dupras <h-dupras@ti.com>
 >
-> any comments on this? Is anybody interested?
+> By calling poll() on the /sys/class/gpio/gpioN/value sysfs file, usermode
+> application can take benefit of gpio interrupts.
+> However, depending on the power state reached, this interrupt may not wake-up
+> the CPU.
+> This patch creates a new sysfs file /sys/class/gpio/gpioN/irq_wake to enable
+> usermode application to set the wake properties of a gpio IRQ.
+> This option can be set or not for each gpio to preserve power consumption (e.g
+> embedded systems).
+>
+> Signed-off-by: Hugo Dupras <h-dupras@ti.com>
+> Signed-off-by: Patrick Combes <p-combes@ti.com>
 
-There's a major cleanup of the OMAP UART driver in progress[1].  I
-suggest you rebase on top of that, or hold onto this until the cleanup
-is merged.
+Hello,
+
+This is a change to the GPIO core but you only have the OMAP-specific
+list here.
+
+Please send this to the GPIO maintainer[1] and the lists.
+
+Also, please copy linux-arm-kernel@lists.infradead.org where there are
+lots of GPIOlib users who might be interested in this, and also copy
+LKML (linux-kernel@vger.kernel.org)
+
+Thanks,
 
 Kevin
 
-[1] http://marc.info/?l=linux-omap&m=131914563820506&w=2
+P.S. David Brownell passed away earlier this year, so I removed his
+     email from the to list: http://lkml.org/lkml/2011/6/6/32
+
+[1] excerpt from MAINTAINERS file
+GPIO SUBSYSTEM
+M:	Grant Likely <grant.likely@secretlab.ca>
+S:	Maintained
+T:	git git://git.secretlab.ca/git/linux-2.6.git
+F:	Documentation/gpio.txt
+F:	drivers/gpio/
+F:	include/linux/gpio*
+
