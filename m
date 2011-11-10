@@ -1,61 +1,104 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH v4-rebased 4/7] iommu/msm: announce supported page sizes
-Date: Thu, 10 Nov 2011 11:32:28 +0200
-Message-ID: <1320917551-11328-5-git-send-email-ohad@wizery.com>
-References: <1320917551-11328-1-git-send-email-ohad@wizery.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v7 17/21] OMAP2+: UART: Remove omap_uart_can_sleep and add pm_qos
+Date: Thu, 10 Nov 2011 17:30:05 +0530
+Message-ID: <CAAL8m4zLEnQE+BkK4xmLUBkREYOuqjmbBweKS0_qcEYUMo71nQ@mail.gmail.com>
+References: <1318952110-10659-1-git-send-email-govindraj.raja@ti.com>
+ <1318952110-10659-3-git-send-email-govindraj.raja@ti.com> <87vcqz33y8.fsf@ti.com>
+ <4EB8F368.5070603@ti.com> <87r51i1kva.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1320917551-11328-1-git-send-email-ohad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: iommu@lists.linux-foundation.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, KyongHo Cho <pullip.cho@samsung.com>, Arnd Bergmann <arnd@arndb.de>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-kernel@vger.kernel.org, Stepan Moskovchenko <stepanm@codeaurora.org>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, Hiroshi Doyu <hdoyu@nvidia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <87r51i1kva.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Let the IOMMU core know we support 4KiB, 64KiB, 1MiB and 16MiB page sizes.
+Hi Kevin,
 
-This way the IOMMU core can split any arbitrary-sized physically
-contiguous regions (that it needs to map) as needed.
+On Wed, Nov 9, 2011 at 12:50 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Rajendra Nayak <rnayak@ti.com> writes:
+>
+>> Hi Kevin,
+>>
+>> On Saturday 05 November 2011 04:12 AM, Kevin Hilman wrote:
+>>> However, as mentioned previously[1], due to a HW sleepdep between M=
+PU
+>>> and CORE, this constraint isn't actually needed for CORE UARTs, so =
+it's
+>>> a bit wasteful to go through all the constraint setting for no reas=
+on.
+>>
+>> I had a short chat with Govind on this and was trying to understand
+>> this better.
+>> Are you referring to the 'autodeps' for omap3 here, because they wou=
+ld
+>> prevent any clock domain from idling as long as MPU or IVA are activ=
+e,
+>
+> No, I was thinking of HW sleepdeps. =A0However, I looked back at the
+> OMAP3430 TRM and see that MPU does not have a HW sleepdep on CORE lik=
+e I
+> thought.
+>
+>> but not the other way round. Which means MPU can still idle, while C=
+ORE
+>> does not.
+>>
+>> My guess was, its probably the CORE domain idling itself thats causi=
+ng
+>> the UART sluggishness, (and not MPU idling), due to higher latency,
+>> which is prevented with an active UART module in CORE, but not in PE=
+R.
+>
+> OK, that indeed makes sense. =A0Thanks for correcting me.
+>
+>> So Govind did a small experiment to prevent just CORE idling and let=
+ MPU
+>> idle alone and that did not show any sluggishness.
+>
+> OK, good.
+>
+>> Now, putting a pm-qos constraint for a UART in CORE still looks
+>> redundant because the latency requirement that UART has is in
+>> some way *indirectly* met (because the active UART in CORE prevents
+>> CORE transitions in idle).
+>> But don't you think the UART driver should express its
+>> latency constraints regardless, without thinking of any indirect way=
+s
+>> in which the same requirements would have already been met?
+>
+> Yes, you're right. =A0The driver should not need to know which powerd=
+omain
+> a given UART is in. =A0It's probably best (and most portable) to have=
+ UART
+> always express its requirements all the time.
+>
+> Thanks for digging into this,
+>
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Acked-by: David Brown <davidb@codeaurora.org>
-Cc: Stepan Moskovchenko <stepanm@codeaurora.org>
----
- drivers/iommu/msm_iommu.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+I have fixed this and other uart_v7 comments and have re-based the
+patch series on top
+of 3.2-rc1 along with Tero's v9 irq chaining patches and tested the sam=
+e.
+Available here [1].
 
-diff --git a/drivers/iommu/msm_iommu.c b/drivers/iommu/msm_iommu.c
-index 13718d9..08a90b8 100644
---- a/drivers/iommu/msm_iommu.c
-+++ b/drivers/iommu/msm_iommu.c
-@@ -42,6 +42,9 @@ __asm__ __volatile__ (							\
- #define RCP15_PRRR(reg)		MRC(reg, p15, 0, c10, c2, 0)
- #define RCP15_NMRR(reg)		MRC(reg, p15, 0, c10, c2, 1)
- 
-+/* bitmap of the page sizes currently supported */
-+#define MSM_IOMMU_PGSIZES	(SZ_4K | SZ_64K | SZ_1M | SZ_16M)
-+
- static int msm_iommu_tex_class[4];
- 
- DEFINE_SPINLOCK(msm_iommu_lock);
-@@ -679,7 +682,8 @@ static struct iommu_ops msm_iommu_ops = {
- 	.map = msm_iommu_map,
- 	.unmap = msm_iommu_unmap,
- 	.iova_to_phys = msm_iommu_iova_to_phys,
--	.domain_has_cap = msm_iommu_domain_has_cap
-+	.domain_has_cap = msm_iommu_domain_has_cap,
-+	.pgsize_bitmap = MSM_IOMMU_PGSIZES,
- };
- 
- static int __init get_tex_class(int icp, int ocp, int mt, int nos)
--- 
-1.7.5.4
+Can this patches series be added to a test branch for upstreaming or do=
+ you
+think there are still some outstanding comments that needs to be discus=
+sed?
+
+--
+Thanks,
+Govindraj.R
+
+[1]:
+
+git://gitorious.org/runtime_3-0/runtime_3-0.git
+3.2-rc1_uart_runtime
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
