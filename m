@@ -1,112 +1,79 @@
-From: "Iziumtsev, Leonid" <x0153368@ti.com>
-Subject: [PATCH] OMAP4: ID: Chip detection for OMAP4470
-Date: Thu, 10 Nov 2011 17:54:55 +0300
-Message-ID: <CALROJkn5CyENpvvO3bp4WL7m8nUuMusmYzt0JUcCWkfYJhvoGg@mail.gmail.com>
+From: David Woodhouse <dwmw2@infradead.org>
+Subject: Re: [PATCH v4 2/7] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Thu, 10 Nov 2011 15:28:50 +0000
+Message-ID: <1320938930.22195.17.camel@i7.infradead.org>
+References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+	 <1318850846-16066-3-git-send-email-ohad@wizery.com>
+	 <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50404 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933896Ab1KJOy5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Nov 2011 09:54:57 -0500
-Received: by yenl7 with SMTP id l7so2009517yen.3
-        for <linux-omap@vger.kernel.org>; Thu, 10 Nov 2011 06:54:55 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kai Huang <mail.kai.huang@gmail.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, kvm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-From: Leonid Iziumtsev <x0153368@ti.com>
+On Thu, 2011-11-10 at 14:17 +0800, Kai Huang wrote:
+> And another question: have we considered the IOTLB flush operation? I
+> think we need to implement similar logic when flush the DVMA range.
+> Intel VT-d's manual says software needs to specify the appropriate
+> mask value to flush large pages, but it does not say we need to
+> exactly match the page size as it is mapped. I guess it's not
+> necessary for Intel IOMMU, but other vendor's IOMMU may have such
+> limitation (or some other limitations). In my understanding current
+> implementation does not provide page size information for particular
+> DVMA ranges that has been mapped, and it's not flexible to implement
+> IOTLB flush code (ex, we may need to walk through page table to find
+> out actual page size). Maybe we can also add iommu_ops->flush_iotlb ? 
 
-Add support for detection of the next chip in the OMAP4 family: OMAP4470 ES1.0
+Which brings me to another question I have been pondering... do we even
+have a consensus on exactly *when* the IOTLB should be flushed?
 
-For more details on OMAP4470, visit:
-http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12869&contentId=123362
+Even just for the Intel IOMMU, we have three different behaviours:
 
-Signed-off-by: Leonid Iziumtsev <x0153368@ti.com>
----
- arch/arm/mach-omap2/id.c              |   10 +++++++++-
- arch/arm/plat-omap/include/plat/cpu.h |    8 ++++++++
- 2 files changed, 17 insertions(+), 1 deletions(-)
+  - For DMA API users by default, we do 'batched unmap', so a mapping
+    may be active for a period of time after the driver has requested
+    that it be unmapped.
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 7f47092..c8667c0 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -367,7 +367,7 @@ static void __init omap4_check_revision(void)
- 	 * Few initial 4430 ES2.0 samples IDCODE is same as ES1.0
- 	 * Use ARM register to detect the correct ES version
- 	 */
--	if (!rev && (hawkeye != 0xb94e)) {
-+	if (!rev && (hawkeye != 0xb94e) && (hawkeye != 0xb975)) {
- 		idcode = read_cpuid(CPUID_ID);
- 		rev = (idcode & 0xf) - 1;
- 	}
-@@ -401,6 +401,14 @@ static void __init omap4_check_revision(void)
- 			break;
- 		}
- 		break;
-+	case 0xb975:
-+		switch (rev) {
-+		case 0:
-+		default:
-+			omap_revision = OMAP4470_REV_ES1_0;
-+			break;
-+		}
-+		break;
- 	default:
- 		/* Unknown default to latest silicon rev as default */
- 		omap_revision = OMAP4430_REV_ES2_2;
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h
-b/arch/arm/plat-omap/include/plat/cpu.h
-index aa52d1e..d99b3be 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -69,6 +69,7 @@ unsigned int omap_rev(void);
-  * cpu_is_omap343x():	True for OMAP3430
-  * cpu_is_omap443x():	True for OMAP4430
-  * cpu_is_omap446x():	True for OMAP4460
-+ * cpu_is_omap447x():	True for OMAP4470
-  */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
+  - ... unless booted with 'intel_iommu=strict', in which case we do the
+    unmap and IOTLB flush immediately before returning to the driver.
 
-@@ -120,6 +121,7 @@ IS_OMAP_SUBCLASS(343x, 0x343)
- IS_OMAP_SUBCLASS(363x, 0x363)
- IS_OMAP_SUBCLASS(443x, 0x443)
- IS_OMAP_SUBCLASS(446x, 0x446)
-+IS_OMAP_SUBCLASS(447x, 0x447)
+  - But the IOMMU API for virtualisation is different. In fact that
+    doesn't seem to flush the IOTLB at all. Which is probably a bug.
 
- IS_TI_SUBCLASS(816x, 0x816)
- IS_AM_SUBCLASS(335x, 0x335)
-@@ -138,6 +140,7 @@ IS_AM_SUBCLASS(335x, 0x335)
- #define cpu_is_omap44xx()		0
- #define cpu_is_omap443x()		0
- #define cpu_is_omap446x()		0
-+#define cpu_is_omap447x()		0
+What is acceptable, though? That batched unmap is quite important for
+performance, because it means that we don't have to bash on the hardware
+and wait for a flush to complete in the fast path of network driver RX,
+for example.
 
- #if defined(MULTI_OMAP1)
- # if defined(CONFIG_ARCH_OMAP730)
-@@ -368,9 +371,11 @@ IS_OMAP_TYPE(3517, 0x3517)
- # undef cpu_is_omap44xx
- # undef cpu_is_omap443x
- # undef cpu_is_omap446x
-+# undef cpu_is_omap447x
- # define cpu_is_omap44xx()		is_omap44xx()
- # define cpu_is_omap443x()		is_omap443x()
- # define cpu_is_omap446x()		is_omap446x()
-+# define cpu_is_omap447x()		is_omap447x()
- # endif
+If we move to a model where we have a separate ->flush_iotlb() call, we
+need to be careful that we still allow necessary optimisations to
+happen.
 
- /* Macros to detect if we have OMAP1 or OMAP2 */
-@@ -420,6 +425,9 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP446X_CLASS		0x44600044
- #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
+Since I have the right people on Cc and the iommu list is still down,
+and it's vaguely tangentially related...
 
-+#define OMAP447X_CLASS		0x44700044
-+#define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
-+
- void omap2_check_revision(void);
+I'm looking at fixing performance issues in the Intel IOMMU code, with
+its virtual address space allocation (the rbtree-based one in iova.c
+that nobody else uses, which has a single spinlock that *all* CPUs bash
+on when they need to allocate).
 
- /*
+The plan is, vaguely, to allocate large chunks of space to each CPU, and
+then for each CPU to allocate from its own region first, thus ensuring
+that the common case doesn't bounce locks between CPUs. It'll be rare
+for one CPU to have to touch a subregion 'belonging' to another CPU, so
+lock contention should be drastically reduced.
+
+Should I be planning to drop the DMA API support from intel-iommu.c
+completely, and have the new allocator just call into the IOMMU API
+functions instead? Other people have been looking at that, haven't they?
+Is there any code? Or special platform-specific requirements for such a
+generic wrapper that I might not have thought of? Details about when to
+flush the IOTLB are one such thing which might need special handling for
+certain hardware...
+
 -- 
-1.7.1
+dwmw2
