@@ -1,44 +1,122 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/4] mcx: initial support for HTKW mcx board
-Date: Thu, 10 Nov 2011 16:12:03 -0800
-Message-ID: <20111111001203.GD31337@atomide.com>
-References: <1320797568-11169-1-git-send-email-yanok@emcraft.com>
- <1320797568-11169-5-git-send-email-yanok@emcraft.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: Pet Peaves about Platform code, and arch_reset
+Date: Fri, 11 Nov 2011 09:17:28 +0800
+Message-ID: <20111111011727.GA8700@S2100-06.ap.freescale.net>
+References: <20111106135250.GC15294@n2100.arm.linux.org.uk>
+ <20111108004550.GH31337@atomide.com>
+ <20111109214652.GM31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22306 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752237Ab1KKAMH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Nov 2011 19:12:07 -0500
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1320797568-11169-5-git-send-email-yanok@emcraft.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20111109214652.GM31337@atomide.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
 
-* Ilya Yanok <yanok@emcraft.com> [111108 15:38]:
-> Support for the HTKW mcx board (TI AM3517 based) including serial,
-> Ethernet, I2C, USB host, HSMMC, DSS and RTC.
+On Wed, Nov 09, 2011 at 01:46:52PM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [111107 16:11]:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [111106 05:18]:
+> > > Here's a list of my peaves about current platform code - which are
+> > > causing me great issue when trying to clean up the arch_reset() stuff:
+> > > 
+> > > 1. Lack of trailing ',' on structure initializers
+> > >    This makes it much harder to add additional initializers at the end
+> > >    of existing initializers, and increases the risks of conflicts being
+> > >    caused due to more lines having to be modified.
+> > > 
+> > > (This won't work directly because the tabs have been converted to space.
+> > > The empty-looking [] contain a space plus a tab.)
+> > > $ grep '[   ][      ]*\.[[:alnum:]_][[:alnum:]_]*[  ]*=[    ]*[[:alnum:]_{][[:alnum:]_|()}]*[^,]$' arch/arm -r|wc -l
+> > > 768
+> > > $ grep '[   ][      ]*\.[[:alnum:]_][[:alnum:]_]*[  ]*=[    ]*[[:alnum:]_{][[:alnum:]_|()}]*[^,]$' arch/arm/*omap* -r|wc -l
+> > > 325
+> > > 
+> > >    Note that this is _far_ too big a problem - and trivial - to fix in
+> > >    a set of silly churn generating patches - it's a problem to be fixed
+> > >    as a part of _other_ changes to the files.
+> > > 
+> > >    But most importantly _stop_ introducing versions of this problem.
+> > 
+> > Sounds like we need a spatch for this issue?
 > 
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
-> ---
->  arch/arm/boot/dts/mcx.dts                    |   29 ++
->  arch/arm/mach-omap2/Kconfig                  |    5 +
->  arch/arm/mach-omap2/Makefile                 |    3 +
->  arch/arm/mach-omap2/board-mcx.c              |  618 ++++++++++++++++++++++++++
+> I guess spatch would need some patching to deal with this.. I tried
+> with something like:
+> 
+> @r@
+> identifier I, s, fld;
+> position p0,p;
+> expression E;
+> @@
+> 
+> struct I s =@p0 {
+> ...
+> -       .fld@p = E,
+> +       .fld = E,
+> ...
+> };
+> 
+> That catches them, but adds an extra comma in the beginning :)
+> 
+> --- a/ams-delta-fiq.c 2011-11-08 18:03:20.110707512 -0800
+> +++ b/ams-delta-fiq.c 2011-11-08 18:04:36.094948038 -0800
+> @@ -25,7 +25,7 @@
+>  #include <mach/ams-delta-fiq.h>
+>  
+>  static struct fiq_handler fh = {
+> -	.name	= "ams-delta-fiq"
+> +	,.name = "ams-delta-fiq",
+>  };
+>  
+>  /*
+> 
+> And it also messes up the formatting for other structs..
+> 
+> Anyways, I think I got most of these fixed for all ARM subarchitectures
+> in a pile of 72 patches, the stats are: 
+> 
+> 486 files changed, 2296 insertions(+), 2296 deletions(-)
+> 
+> This is something people can then use as a base to start chipping away at
+> the problem. I'm thinking it may be possible to use this as a base for
+> search and replacement type work and then hopefully git mergetool will
+> pick the relevant changes when rebasing a working branch to the mainline.
+> 
+> I can also post the patches here if people want, but sounds like we're
+> not going to merge them as they are, but instead will slowly fix the
+> issue in other related patches?
+> 
+> I've pushed the patches into a git branch at:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap formatting:
+> 
+> Web interface at:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=shortlog;h=refs/heads/formatting
+> 
 
-This looks OK but let's concentrate on getting things working with
-board-generic.c and DT only in mainline kernel.
+For record, we may not want to do this for cases below, since we should
+never add entry after sentinel.
 
-I can apply this into testing-board, but let's not cause more churn
-in mainline with the board files that will be disappearing.
+ static const struct of_device_id imx53_iomuxc_of_match[] __initconst = {
+@@ -75,7 +75,7 @@ static const struct of_device_id imx53_iomuxc_of_match[] __initconst = {
+        { .compatible = "fsl,imx53-iomuxc-evk", .data = imx53_evk_common_init, },
+        { .compatible = "fsl,imx53-iomuxc-qsb", .data = imx53_qsb_common_init, },
+        { .compatible = "fsl,imx53-iomuxc-smd", .data = imx53_smd_common_init, },
+-       { /* sentinel */ }
++       { /* sentinel */ },
+ };
+ 
+ static void __init imx53_dt_init(void)
+@@ -112,7 +112,7 @@ static const char *imx53_dt_board_compat[] __initdata = {
+        "fsl,imx53-evk",
+        "fsl,imx53-qsb",
+        "fsl,imx53-smd",
+-       NULL
++       NULL,
+ };
 
-Can you please split it into something minimal for mainline that
-allows booting with DT, and then another patch for testing-board
-branch?
-
-Thanks,
-
-Tony
+-- 
+Regards,
+Shawn
