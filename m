@@ -1,44 +1,110 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
-Date: Fri, 11 Nov 2011 11:59:55 +0000
-Message-ID: <20111111115955.GG12410@mudshark.cambridge.arm.com>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
- <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
- <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com>
- <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com>
- <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com>
- <20111111114147.GE12410@mudshark.cambridge.arm.com>
- <20111111114735.GC5114@totoro>
+From: Joerg Roedel <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH v4 2/7] iommu/core: split mapping to page sizes as
+ supported by the hardware
+Date: Fri, 11 Nov 2011 13:58:37 +0100
+Message-ID: <20111111125837.GF13213@amd.com>
+References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+ <1318850846-16066-3-git-send-email-ohad@wizery.com>
+ <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
+ <1320938930.22195.17.camel@i7.infradead.org>
+ <20111110170918.GE13213@amd.com>
+ <1320953319.535.11.camel@i7.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:61913 "EHLO
-	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751694Ab1KKMAK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Nov 2011 07:00:10 -0500
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20111111114735.GC5114@totoro>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1320953319.535.11.camel@i7.infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: Kai Huang <mail.kai.huang@gmail.com>, Ohad Ben-Cohen <ohad@wizery.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, kvm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jamie Iles <jamie@jamieiles.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "b-cousson@ti.com" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, Ming Lei <ming.lei@canonical.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Nov 11, 2011 at 11:47:35AM +0000, Jamie Iles wrote:
-> On Fri, Nov 11, 2011 at 11:41:47AM +0000, Will Deacon wrote:
-> > The issue stems from the fact that we have to route the PMU interrupts to
-> > the correct CPU manually (I think only MSM routes them as PPIs, which is
-> > clearly the correct thing to do). To do this, we expect the IRQ resources to
-> > be laid out in CPU order. In hindsight, maybe naming the resources might
-> > have been a good idea, but them we'd still have to generate the names using
-> > CPU numbers when iterating through the platform device.
-> 
-> There isn't yet a way to do naming of resources with DT, and although I 
-> think there was a proposal for doing named register resources I don't 
-> think this has been accepted and there wasn't anything for IRQ 
-> resources...
+On Thu, Nov 10, 2011 at 07:28:39PM +0000, David Woodhouse wrote:
 
-That's good news - means I have an excuse other than laziness for not
-implementing this for perf :)
+> ... which implies that a mapping, once made, might *never* actually g=
+et
+> torn down until we loop and start reusing address space? That has
+> interesting security implications.
 
-Will
+Yes, it is a trade-off between security and performance. But if the use=
+r
+wants more security the unmap_flush parameter can be used.
+
+> Is it true even for devices which have been assigned to a VM and then
+> unassigned?
+
+No, this is only used in the DMA-API path. The device-assignment code
+uses the IOMMU-API directly. There the IOTLB is always flushed on unmap=
+=2E
+
+> > There is something similar on the AMD IOMMU side. There it is calle=
+d
+> > unmap_flush.
+>=20
+> OK, so that definitely wants consolidating into a generic option.
+
+Agreed.
+
+> > Some time ago I proposed the iommu_commit() interface which changes
+> > these requirements. With this interface the requirement is that aft=
+er a
+> > couple of map/unmap operations the IOMMU-API user has to call
+> > iommu_commit() to make these changes visible to the hardware (so mo=
+stly
+> > sync the IOTLBs). As discussed at that time this would make sense f=
+or
+> > the Intel and AMD IOMMU drivers.
+>=20
+> I would *really* want to keep those off the fast path (thinking mostl=
+y
+> about DMA API here, since that's the performance issue). But as long =
+as
+> we can achieve that, that's fine.
+
+=46or AMD IOMMU there is a feature called not-present cache. It says th=
+at
+the IOMMU caches non-present entries as well and needs an IOTLB flush
+when something is mapped (meant for software implementations of the
+IOMMU).
+So it can't be really taken out of the fast-path. But the IOMMU driver
+can optimize the function so that it only flushes the IOTLB when there
+was an unmap-call before. It is also an improvement over the current
+situation where every iommu_unmap call results in a flush implicitly.
+This pretty much a no-go for using IOMMU-API in DMA mapping at the
+moment.
+
+> But also, it's not *so* much of an issue to divide the space up even
+> when it's limited. The idea was not to have it *strictly* per-CPU, bu=
+t
+> just for a CPU to try allocating from "its own" subrange first, and t=
+hen
+> fall back to allocating a new subrange, and *then* fall back to
+> allocating from subranges "belonging" to other CPUs. It's not that th=
+e
+> allocation from a subrange would be lockless =E2=80=94 it's that the =
+lock would
+> almost never leave the l1 cache of the CPU that *normally* uses that
+> subrange.
+
+Yeah, I get the idea. I fear that the memory consumption will get prett=
+y
+high with that approach. It basically means one round-robin allocator
+per cpu and device. What does that mean on a 4096 CPU machine :)
+How much lock contention will be lowered also depends on the work-load.
+If dma-handles are frequently freed from another cpu than they were
+allocated from the same problem re-appears.
+But in the end we have to try it out and see what works best :)
+
+
+Regards,
+
+	Joerg
+
+--=20
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr.=
+ 43632
