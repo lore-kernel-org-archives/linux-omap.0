@@ -1,14 +1,14 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v8 08/20] OMAP2+: UART: Ensure all reg values configured are available from port structure
-Date: Fri, 11 Nov 2011 15:27:25 +0530
-Message-ID: <1321005446-21741-9-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v8 02/20] OMAP2+: UART: cleanup 8250 console driver support
+Date: Fri, 11 Nov 2011 15:27:19 +0530
+Message-ID: <1321005446-21741-3-git-send-email-govindraj.raja@ti.com>
 References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44413 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44412 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751972Ab1KKJ6l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751707Ab1KKJ6l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 11 Nov 2011 04:58:41 -0500
 In-Reply-To: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,180 +16,188 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 
-Add missing uart regs to uart_port structure which can be used in
-context restore. Store dll, dlh, mdr1, scr, efr, lcr, mcr reg values
-into uart_port structure while configuring individual port in termios
-function.
+We had been using traditional 8250 driver as uart console driver
+prior to omap-serial driver. Since we have omap-serial driver
+in mainline kernel for some time now it has been used as default
+uart console driver on omap2+ platforms. Remove 8250 support for
+omap-uarts.
+
+Serial_in and serial_out override for 8250 serial driver is also
+removed. Empty fifo read fix is already taken care with omap-serial
+driver with data ready bit check from LSR reg before reading RX fifo.
+Also waiting for THRE(transmit hold reg empty) is done with wait_for_xmitr
+in omap-serial driver.
+
+Serial_in/out overrides are not neceesary for omap-serial driver
+and things that are taken with omap-serial driver are removed here.
+
+Remove headers that were necessary to support 8250 support
+and remove all config bindings done to keep 8250 backward compatibility
+while adding omap-serial driver. Remove omap_uart_reset needed for
+8250 autoconf.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/plat-omap/include/plat/omap-serial.h |    4 ++
- drivers/tty/serial/omap-serial.c              |   43 +++++++++++++++----------
- 2 files changed, 30 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/serial.c |   97 ------------------------------------------
+ 1 files changed, 0 insertions(+), 97 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index db9bda9..70e7738 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -97,6 +97,10 @@ struct uart_omap_port {
- 	unsigned char		mcr;
- 	unsigned char		fcr;
- 	unsigned char		efr;
-+	unsigned char		dll;
-+	unsigned char		dlh;
-+	unsigned char		mdr1;
-+	unsigned char		scr;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 8254067..8499f06 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -19,23 +19,17 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/serial_reg.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ #include <linux/delay.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-#include <linux/serial_8250.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/console.h>
  
- 	int			use_dma;
- 	/*
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index a834e91..5327ff0 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -466,8 +466,9 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
- 		mcr |= UART_MCR_LOOP;
- 
- 	pm_runtime_get_sync(&up->pdev->dev);
--	mcr |= up->mcr;
--	serial_out(up, UART_MCR, mcr);
-+	up->mcr = serial_in(up, UART_MCR);
-+	up->mcr |= mcr;
-+	serial_out(up, UART_MCR, up->mcr);
- 	pm_runtime_put(&up->pdev->dev);
- }
- 
-@@ -616,8 +617,6 @@ static inline void
- serial_omap_configure_xonxoff
- 		(struct uart_omap_port *up, struct ktermios *termios)
- {
--	unsigned char efr = 0;
+-#ifdef CONFIG_SERIAL_OMAP
+ #include <plat/omap-serial.h>
+-#endif
 -
- 	up->lcr = serial_in(up, UART_LCR);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
- 	up->efr = serial_in(up, UART_EFR);
-@@ -627,8 +626,7 @@ serial_omap_configure_xonxoff
- 	serial_out(up, UART_XOFF1, termios->c_cc[VSTOP]);
+ #include <plat/common.h>
+ #include <plat/board.h>
+-#include <plat/clock.h>
+ #include <plat/dma.h>
+ #include <plat/omap_hwmod.h>
+ #include <plat/omap_device.h>
+@@ -47,10 +41,8 @@
+ #include "control.h"
+ #include "mux.h"
  
- 	/* clear SW control mode bits */
--	efr = up->efr;
--	efr &= OMAP_UART_SW_CLR;
-+	up->efr &= OMAP_UART_SW_CLR;
+-#define UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV	0x52
+ #define UART_OMAP_WER		0x17	/* Wake-up enable register */
  
- 	/*
- 	 * IXON Flag:
-@@ -636,7 +634,7 @@ serial_omap_configure_xonxoff
- 	 * Transmit XON1, XOFF1
- 	 */
- 	if (termios->c_iflag & IXON)
--		efr |= OMAP_UART_SW_TX;
-+		up->efr |= OMAP_UART_SW_TX;
+-#define UART_ERRATA_FIFO_FULL_ABORT	(0x1 << 0)
+ #define UART_ERRATA_i202_MDR1_ACCESS	(0x1 << 1)
  
- 	/*
- 	 * IXOFF Flag:
-@@ -644,7 +642,7 @@ serial_omap_configure_xonxoff
- 	 * Receiver compares XON1, XOFF1.
- 	 */
- 	if (termios->c_iflag & IXOFF)
--		efr |= OMAP_UART_SW_RX;
-+		up->efr |= OMAP_UART_SW_RX;
+ /*
+@@ -533,41 +525,6 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+ #define DEV_CREATE_FILE(dev, attr)
+ #endif /* CONFIG_PM */
  
- 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
-@@ -667,7 +665,7 @@ serial_omap_configure_xonxoff
- 	 * load the new software flow control mode IXON or IXOFF
- 	 * and restore the UARTi.EFR_REG[4] ENHANCED_EN value.
- 	 */
--	serial_out(up, UART_EFR, efr | UART_EFR_SCD);
-+	serial_out(up, UART_EFR, up->efr | UART_EFR_SCD);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+-#ifndef CONFIG_SERIAL_OMAP
+-/*
+- * Override the default 8250 read handler: mem_serial_in()
+- * Empty RX fifo read causes an abort on omap3630 and omap4
+- * This function makes sure that an empty rx fifo is not read on these silicons
+- * (OMAP1/2/3430 are not affected)
+- */
+-static unsigned int serial_in_override(struct uart_port *up, int offset)
+-{
+-	if (UART_RX == offset) {
+-		unsigned int lsr;
+-		lsr = __serial_read_reg(up, UART_LSR);
+-		if (!(lsr & UART_LSR_DR))
+-			return -EPERM;
+-	}
+-
+-	return __serial_read_reg(up, offset);
+-}
+-
+-static void serial_out_override(struct uart_port *up, int offset, int value)
+-{
+-	unsigned int status, tmout = 10000;
+-
+-	status = __serial_read_reg(up, UART_LSR);
+-	while (!(status & UART_LSR_THRE)) {
+-		/* Wait up to 10ms for the character(s) to be sent. */
+-		if (--tmout == 0)
+-			break;
+-		udelay(1);
+-		status = __serial_read_reg(up, UART_LSR);
+-	}
+-	__serial_write_reg(up, offset, value);
+-}
+-#endif
+-
+ static int __init omap_serial_early_init(void)
+ {
+ 	int i = 0;
+@@ -628,15 +585,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 	void *pdata = NULL;
+ 	u32 pdata_size = 0;
+ 	char *name;
+-#ifndef CONFIG_SERIAL_OMAP
+-	struct plat_serial8250_port ports[2] = {
+-		{},
+-		{.flags = 0},
+-	};
+-	struct plat_serial8250_port *p = &ports[0];
+-#else
+ 	struct omap_uart_port_info omap_up;
+-#endif
  
- 	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
-@@ -714,6 +712,10 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/13);
- 	quot = serial_omap_get_divisor(port, baud);
+ 	if (WARN_ON(!bdata))
+ 		return;
+@@ -651,51 +600,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
  
-+	up->dll = quot & 0xff;
-+	up->dlh = quot >> 8;
-+	up->mdr1 = UART_OMAP_MDR1_DISABLE;
-+
- 	up->fcr = UART_FCR_R_TRIG_01 | UART_FCR_T_TRIG_01 |
- 			UART_FCR_ENABLE_FIFO;
- 	if (up->use_dma)
-@@ -767,6 +769,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 		up->ier |= UART_IER_MSI;
- 	serial_out(up, UART_IER, up->ier);
- 	serial_out(up, UART_LCR, cval);		/* reset DLAB */
-+	up->lcr = cval;
+ 	oh = uart->oh;
+ 	uart->dma_enabled = 0;
+-#ifndef CONFIG_SERIAL_OMAP
+-	name = "serial8250";
+-
+-	/*
+-	 * !! 8250 driver does not use standard IORESOURCE* It
+-	 * has it's own custom pdata that can be taken from
+-	 * the hwmod resource data.  But, this needs to be
+-	 * done after the build.
+-	 *
+-	 * ?? does it have to be done before the register ??
+-	 * YES, because platform_device_data_add() copies
+-	 * pdata, it does not use a pointer.
+-	 */
+-	p->flags = UPF_BOOT_AUTOCONF;
+-	p->iotype = UPIO_MEM;
+-	p->regshift = 2;
+-	p->uartclk = OMAP24XX_BASE_BAUD * 16;
+-	p->irq = oh->mpu_irqs[0].irq;
+-	p->mapbase = oh->slaves[0]->addr->pa_start;
+-	p->membase = omap_hwmod_get_mpu_rt_va(oh);
+-	p->irqflags = IRQF_SHARED;
+-	p->private_data = uart;
+-
+-	/*
+-	 * omap44xx, ti816x: Never read empty UART fifo
+-	 * omap3xxx: Never read empty UART fifo on UARTs
+-	 * with IP rev >=0x52
+-	 */
+-	uart->regshift = p->regshift;
+-	uart->membase = p->membase;
+-	if (cpu_is_omap44xx() || cpu_is_ti816x())
+-		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
+-	else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
+-			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
+-		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
+-
+-	if (uart->errata & UART_ERRATA_FIFO_FULL_ABORT) {
+-		p->serial_in = serial_in_override;
+-		p->serial_out = serial_out_override;
+-	}
+-
+-	pdata = &ports[0];
+-	pdata_size = 2 * sizeof(struct plat_serial8250_port);
+-#else
+-
+ 	name = DRIVER_NAME;
  
- 	/* FIFOs and DMA Settings */
+ 	omap_up.dma_enabled = uart->dma_enabled;
+@@ -707,7 +611,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
  
-@@ -793,17 +796,18 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	pdata = &omap_up;
+ 	pdata_size = sizeof(struct omap_uart_port_info);
+-#endif
  
- 	if (up->use_dma) {
- 		serial_out(up, UART_TI752_TLR, 0);
--		serial_out(up, UART_OMAP_SCR,
--			(UART_FCR_TRIGGER_4 | UART_FCR_TRIGGER_8));
-+		up->scr |= (UART_FCR_TRIGGER_4 | UART_FCR_TRIGGER_8);
- 	}
- 
-+	serial_out(up, UART_OMAP_SCR, up->scr);
-+
- 	serial_out(up, UART_EFR, up->efr);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 	serial_out(up, UART_MCR, up->mcr);
- 
- 	/* Protocol, Baud Rate, and Interrupt Settings */
- 
--	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
-+	serial_out(up, UART_OMAP_MDR1, up->mdr1);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
- 
- 	up->efr = serial_in(up, UART_EFR);
-@@ -813,8 +817,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	serial_out(up, UART_IER, 0);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
- 
--	serial_out(up, UART_DLL, quot & 0xff);          /* LS of divisor */
--	serial_out(up, UART_DLM, quot >> 8);            /* MS of divisor */
-+	serial_out(up, UART_DLL, up->dll);	/* LS of divisor */
-+	serial_out(up, UART_DLM, up->dlh);	/* MS of divisor */
- 
- 	serial_out(up, UART_LCR, 0);
- 	serial_out(up, UART_IER, up->ier);
-@@ -824,9 +828,11 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
- 	serial_out(up, UART_LCR, cval);
- 
- 	if (baud > 230400 && baud != 3000000)
--		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_13X_MODE);
-+		up->mdr1 = UART_OMAP_MDR1_13X_MODE;
- 	else
--		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
-+		up->mdr1 = UART_OMAP_MDR1_16X_MODE;
-+
-+	serial_out(up, UART_OMAP_MDR1, up->mdr1);
- 
- 	/* Hardware Flow Control Configuration */
- 
-@@ -1416,15 +1422,18 @@ static void serial_omap_restore_context(struct uart_omap_port *up)
- 	serial_out(up, UART_LCR, 0x0); /* Operational mode */
- 	serial_out(up, UART_IER, 0x0);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
-+	serial_out(up, UART_DLL, up->dll);
-+	serial_out(up, UART_DLM, up->dlh);
- 	serial_out(up, UART_LCR, 0x0); /* Operational mode */
- 	serial_out(up, UART_IER, up->ier);
- 	serial_out(up, UART_FCR, up->fcr);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
- 	serial_out(up, UART_MCR, up->mcr);
- 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
-+	serial_out(up, UART_OMAP_SCR, up->scr);
- 	serial_out(up, UART_EFR, up->efr);
- 	serial_out(up, UART_LCR, up->lcr);
--	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
-+	serial_out(up, UART_OMAP_MDR1, up->mdr1);
- }
- 
- #ifdef CONFIG_PM_RUNTIME
+ 	if (WARN_ON(!oh))
+ 		return;
 -- 
 1.7.4.1
 
