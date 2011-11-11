@@ -1,110 +1,172 @@
-From: Joerg Roedel <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH v4 2/7] iommu/core: split mapping to page sizes as
- supported by the hardware
-Date: Fri, 11 Nov 2011 13:58:37 +0100
-Message-ID: <20111111125837.GF13213@amd.com>
-References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
- <1318850846-16066-3-git-send-email-ohad@wizery.com>
- <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
- <1320938930.22195.17.camel@i7.infradead.org>
- <20111110170918.GE13213@amd.com>
- <1320953319.535.11.camel@i7.infradead.org>
+From: <mythripk@ti.com>
+Subject: [PATCH v2 1/2] OMAPDSS: HDMI: Move duplicate code from boardfile to
+Date: Fri, 11 Nov 2011 18:38:17 +0530
+Message-ID: <1321016900-1714-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1320953319.535.11.camel@i7.infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: Kai Huang <mail.kai.huang@gmail.com>, Ohad Ben-Cohen <ohad@wizery.com>, iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>, kvm@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52828 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757830Ab1KKNQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Nov 2011 08:16:09 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id pABDG6tg016206
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 11 Nov 2011 07:16:08 -0600
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id pABDG54U021858
+	for <linux-omap@vger.kernel.org>; Fri, 11 Nov 2011 18:46:05 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-On Thu, Nov 10, 2011 at 07:28:39PM +0000, David Woodhouse wrote:
+From: Mythri P K <mythripk@ti.com>
 
-> ... which implies that a mapping, once made, might *never* actually g=
-et
-> torn down until we loop and start reusing address space? That has
-> interesting security implications.
+Move duplicate HDMI mux_init code from omap4 and panda board file
+to display file.
 
-Yes, it is a trade-off between security and performance. But if the use=
-r
-wants more security the unmap_flush parameter can be used.
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c    |   16 +---------------
+ arch/arm/mach-omap2/board-omap4panda.c |   17 +----------------
+ arch/arm/mach-omap2/display.c          |   23 +++++++++++++++++++++++
+ include/video/omapdss.h                |    2 ++
+ 4 files changed, 27 insertions(+), 31 deletions(-)
 
-> Is it true even for devices which have been assigned to a VM and then
-> unassigned?
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 73b1e99..4a519a3 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -595,20 +595,6 @@ static void __init omap_sfh7741prox_init(void)
+ 			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
+ }
+ 
+-static void sdp4430_hdmi_mux_init(void)
+-{
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_cec",
+-			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+-	omap_mux_init_signal("hdmi_ddc_scl",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_ddc_sda",
+-			OMAP_PIN_INPUT_PULLUP);
+-}
+-
+ static struct gpio sdp4430_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+@@ -838,9 +824,9 @@ static void omap_4430sdp_display_init(void)
+ 		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+ 
+ 	sdp4430_lcd_init();
+-	sdp4430_hdmi_mux_init();
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
++	omap_hdmi_enable_pads();
+ }
+ 
+ #ifdef CONFIG_OMAP_MUX
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index a5b576b..26c6440 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -478,21 +478,6 @@ int __init omap4_panda_dvi_init(void)
+ 	return r;
+ }
+ 
+-
+-static void omap4_panda_hdmi_mux_init(void)
+-{
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_cec",
+-			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+-	omap_mux_init_signal("hdmi_ddc_scl",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_ddc_sda",
+-			OMAP_PIN_INPUT_PULLUP);
+-}
+-
+ static struct gpio panda_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+@@ -555,8 +540,8 @@ void omap4_panda_display_init(void)
+ 	if (r)
+ 		pr_err("error initializing panda DVI\n");
+ 
+-	omap4_panda_hdmi_mux_init();
+ 	omap_display_init(&omap4_panda_dss_data);
++	omap_hdmi_enable_pads();
+ }
+ 
+ static void __init omap4_panda_init(void)
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index dce9905..ec7ac1b 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -29,6 +29,7 @@
+ #include <plat/omap-pm.h>
+ #include <plat/common.h>
+ 
++#include "mux.h"
+ #include "control.h"
+ #include "display.h"
+ 
+@@ -96,6 +97,20 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
+ 	{ "dss_hdmi", "omapdss_hdmi", -1 },
+ };
+ 
++static void omap4_hdmi_mux_pads(void)
++{
++	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
++	omap_mux_init_signal("hdmi_hpd",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_cec",
++			OMAP_PIN_INPUT_PULLUP);
++	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
++	omap_mux_init_signal("hdmi_ddc_scl",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_ddc_sda",
++			OMAP_PIN_INPUT_PULLUP);
++}
++
+ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ {
+ 	u32 enable_mask, enable_shift;
+@@ -129,6 +144,14 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 	return 0;
+ }
+ 
++int omap_hdmi_enable_pads(void)
++{
++	if (cpu_is_omap44xx())
++		omap4_hdmi_mux_pads();
++
++	return 0;
++}
++
+ static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+ {
+ 	if (cpu_is_omap44xx())
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 378c7ed..f4913d6 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -309,6 +309,8 @@ struct omap_dss_board_info {
+ 
+ /* Init with the board info */
+ extern int omap_display_init(struct omap_dss_board_info *board_data);
++/* HDMI mux init*/
++extern int omap_hdmi_enable_pads(void);
+ 
+ struct omap_display_platform_data {
+ 	struct omap_dss_board_info *board_data;
+-- 
+1.7.5.4
 
-No, this is only used in the DMA-API path. The device-assignment code
-uses the IOMMU-API directly. There the IOTLB is always flushed on unmap=
-=2E
-
-> > There is something similar on the AMD IOMMU side. There it is calle=
-d
-> > unmap_flush.
->=20
-> OK, so that definitely wants consolidating into a generic option.
-
-Agreed.
-
-> > Some time ago I proposed the iommu_commit() interface which changes
-> > these requirements. With this interface the requirement is that aft=
-er a
-> > couple of map/unmap operations the IOMMU-API user has to call
-> > iommu_commit() to make these changes visible to the hardware (so mo=
-stly
-> > sync the IOTLBs). As discussed at that time this would make sense f=
-or
-> > the Intel and AMD IOMMU drivers.
->=20
-> I would *really* want to keep those off the fast path (thinking mostl=
-y
-> about DMA API here, since that's the performance issue). But as long =
-as
-> we can achieve that, that's fine.
-
-=46or AMD IOMMU there is a feature called not-present cache. It says th=
-at
-the IOMMU caches non-present entries as well and needs an IOTLB flush
-when something is mapped (meant for software implementations of the
-IOMMU).
-So it can't be really taken out of the fast-path. But the IOMMU driver
-can optimize the function so that it only flushes the IOTLB when there
-was an unmap-call before. It is also an improvement over the current
-situation where every iommu_unmap call results in a flush implicitly.
-This pretty much a no-go for using IOMMU-API in DMA mapping at the
-moment.
-
-> But also, it's not *so* much of an issue to divide the space up even
-> when it's limited. The idea was not to have it *strictly* per-CPU, bu=
-t
-> just for a CPU to try allocating from "its own" subrange first, and t=
-hen
-> fall back to allocating a new subrange, and *then* fall back to
-> allocating from subranges "belonging" to other CPUs. It's not that th=
-e
-> allocation from a subrange would be lockless =E2=80=94 it's that the =
-lock would
-> almost never leave the l1 cache of the CPU that *normally* uses that
-> subrange.
-
-Yeah, I get the idea. I fear that the memory consumption will get prett=
-y
-high with that approach. It basically means one round-robin allocator
-per cpu and device. What does that mean on a 4096 CPU machine :)
-How much lock contention will be lowered also depends on the work-load.
-If dma-handles are frequently freed from another cpu than they were
-allocated from the same problem re-appears.
-But in the end we have to try it out and see what works best :)
-
-
-Regards,
-
-	Joerg
-
---=20
-AMD Operating System Research Center
-
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr.=
- 43632
