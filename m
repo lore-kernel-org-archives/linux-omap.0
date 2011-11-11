@@ -1,65 +1,76 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Help with clk API
-Date: Fri, 11 Nov 2011 13:32:00 +0200
-Message-ID: <20111111113159.GK19090@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
+Date: Fri, 11 Nov 2011 11:41:47 +0000
+Message-ID: <20111111114147.GE12410@mudshark.cambridge.arm.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
+ <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
+ <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com>
+ <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com>
+ <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3xQkynibq3FKlJyM"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:35369 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752578Ab1KKLcH (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:59879 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752620Ab1KKLmJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Nov 2011 06:32:07 -0500
-Received: by faan15 with SMTP id n15so4619027faa.40
-        for <linux-omap@vger.kernel.org>; Fri, 11 Nov 2011 03:32:03 -0800 (PST)
+	Fri, 11 Nov 2011 06:42:09 -0500
 Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Ming Lei <ming.lei@canonical.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, b-cousson@ti.com
 
+[Adding Benoit to CC].
 
---3xQkynibq3FKlJyM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Nov 10, 2011 at 09:02:14AM +0000, Paul Walmsley wrote:
+> On Wed, 9 Nov 2011, Ming Lei wrote:
+> > Also, current arm perf code don't handle three IRQs(one pl310 irq a=
+nd=20
+> > two CTI irq) inside one device correctly.
+>=20
+> To fix this, that ARM perf code should either be using=20
+> platform_get_irq_byname(), or the hwmod hardware data will need to be=
+=20
+> rearranged to meet the arbitrary ordering requirement.  I'd suggest=20
+> pinging Will on this issue to see what he wants to do.
 
-Hi Paul,
+The issue stems from the fact that we have to route the PMU interrupts =
+to
+the correct CPU manually (I think only MSM routes them as PPIs, which i=
+s
+clearly the correct thing to do). To do this, we expect the IRQ resourc=
+es to
+be laid out in CPU order. In hindsight, maybe naming the resources migh=
+t
+have been a good idea, but them we'd still have to generate the names u=
+sing
+CPU numbers when iterating through the platform device.
 
-I have a doubt about using clk API to change CLKSEL_UTMI_P1 bit for a
-silicon errata (OMAP4460 i693) implementation.
+So although the ordering requirements are a bit of a pain, I do think i=
+t's
+reasonable for perf to expect that it's not being handed some random ot=
+her
+interrupts along with those for the PMU.
 
-According to errata, I need to switch from external to internal clock
-during USB port suspend, wait 1ms and switch back from internal to
-external.
+> So the clockdomain is already defined in=20
+> mach-omap2/clockdomains44xx_data.c and there's code to control it - s=
+ee=20
+> for example clkdm_enable_idle().  But this code should not be called=20
+> directly by any device driver code or driver integration code.  The t=
+hing=20
+> to do here is to ask Beno=EEt to release the hwmod data for the DEBUG=
+SS=20
+> hwmod, then someone will need to write an MFD driver for that which=20
+> exposes the PMU address space to the PMU platform driver.
 
-How can I do that with clk API ? Is it by changing clk parent ? Any tips
-would be helpful ;-) thanks
+Benoit? Please can you chime in here?
 
---=20
-balbi
-
---3xQkynibq3FKlJyM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOvQevAAoJEIaOsuA1yqREjmMP/3WAlpBNTyRhmw+BjysMGM5+
-ESa4BdtO99FDF/KESyLu6CvG4QmLzy1vrbYzspORHJmoSEOLvnTWDLqpq1VaYRd1
-Pk7GqkwMyAOAUZrB7rfNMMXXh4OgsLgHDixqFh/2ZGcrgdsntYGW86H1lIEZ6baE
-7/POba4NfLPXHfJG/Y02Ewv/NtLXgCHWkpDXuHb9Ay9VofIPN5bQwSCEbEb4ViUA
-Fv0ibzwGqBzqVPjAlTvUu+l9hUaHH3a83Q/F/RszZEPR4l8nyrWh9PbrkN99boEw
-YBFhqAIknTz1p3LTQl3CLwcfCaF4aR465ALmMSgrIc+q3Phavv95T/SYubHYJOuj
-nlJJGLcI9ImIvwI4BE3QX6pGXsDDbGKM8eO0dwJJvHylIqRdhJ/Zg88SyMTcT1kl
-BSKpIIxzoFyM+kHX/21RRruK3bzJxKJCPdzpedJAnkmczqUcu45EqQVQQ3+Fjj3l
-xz3Q2drPzvL5HHVxLBnx+gW2L2ETAzMFRC6h0wYq516RQtxL90u+6DH+msWRxfVn
-a94x+U8LCFcoiEI0FbJ83+yLiDO7arklITA/6OlQuqNCt3oJTsaxYdQCtni3x5JB
-fgjLRfsOVb7JLj5Xsu/UrZKuSzzfF4NV6zX+CVpSlJu5zwEUvNx62pcZpSC4d2Cp
-G2HgBDebn25MiN60Q+aS
-=S3eu
------END PGP SIGNATURE-----
-
---3xQkynibq3FKlJyM--
+Will
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
