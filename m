@@ -1,92 +1,65 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: PM: only register TWL with voltage layer
- when device is present
-Date: Fri, 11 Nov 2011 10:21:44 +0000
-Message-ID: <E28AAFD00EFAA646AE3DF9B89CD24A8903E1A5@DBDE01.ent.ti.com>
-References: <1320797670-21460-1-git-send-email-khilman@ti.com>
-	<E28AAFD00EFAA646AE3DF9B89CD24A89036E64@DBDE01.ent.ti.com>
- <8762irg73n.fsf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Help with clk API
+Date: Fri, 11 Nov 2011 13:32:00 +0200
+Message-ID: <20111111113159.GK19090@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3xQkynibq3FKlJyM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33397 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752453Ab1KKKV6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Nov 2011 05:21:58 -0500
-In-Reply-To: <8762irg73n.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:35369 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752578Ab1KKLcH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Nov 2011 06:32:07 -0500
+Received: by faan15 with SMTP id n15so4619027faa.40
+        for <linux-omap@vger.kernel.org>; Fri, 11 Nov 2011 03:32:03 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+To: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
- 
 
-> -----Original Message-----
-> From: Hilman, Kevin 
-> Sent: Friday, November 11, 2011 12:04 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Koyamangalath, Abhilash
-> Subject: Re: [PATCH] ARM: OMAP: PM: only register TWL with 
-> voltage layer when device is present
-> 
-> "Premi, Sanjeev" <premi@ti.com> writes:
-> 
-> >> Current code registers voltage layer details for TWL PMIC 
-> even when a
-> >> TWL has not been registered.  Fix this to only register 
-> the TWL with
-> >> voltage layer when the TWL PMIC is initialized by board-level code.
-> >> 
-> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
-> 
-> [...]
-> 
-> > I have been out-of-loop from PM for some time. So my query may be
-> > redundant:
-> >
-> > 1) What happens when different PMIC (not TWL series) is registered
-> >    for AM35x? e.g. TPS65023
-> >    http://www.spinics.net/lists/linux-omap/msg48630.html
-> >
-> > 2) Wouldn't we still fall back into omap3_twl_init()?
-> 
-> I'm not sure I follow the question.
-> 
-> If you're not using a TWL PMIC (or similar derivative) then
-> omap*_twl_init() should not be called.
-> 
-> If you are using a TWL PMIC, then no, the omap*_twl_init functions
-> should not be called.
+--3xQkynibq3FKlJyM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-When I read this function (in the patch), if pmic_i2c_board_info.irq
-is non-zero, omap3_twl_init() and omap4_twl_init() are called.
+Hi Paul,
 
-So my question was, for the case when PMIC is not TWL family. Then,
-is checking ".irq" sufficient to prevent the execution of twl specific
-functions.
+I have a doubt about using clk API to change CLKSEL_UTMI_P1 bit for a
+silicon errata (OMAP4460 i693) implementation.
 
- void __init omap_pmic_late_init(void)
- {
- 	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
- 	if (!pmic_i2c_board_info.irq)
- 		return;
- 
- 	omap3_twl_init();
- 	omap4_twl_init();
- }
+According to errata, I need to switch from external to internal clock
+during USB port suspend, wait 1ms and switch back from internal to
+external.
 
-Shouldn't we check for some "signature" or equiv, before calling the
-PMIC specific init? This "signature" can be set when the PMIC is
-registered?
+How can I do that with clk API ? Is it by changing clk parent ? Any tips
+would be helpful ;-) thanks
 
-Another simplification would be to register the PMIC specific init
-function itself during registration; and call here.
+--=20
+balbi
 
-~sanjeev
+--3xQkynibq3FKlJyM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 
-> Kevin
-> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOvQevAAoJEIaOsuA1yqREjmMP/3WAlpBNTyRhmw+BjysMGM5+
+ESa4BdtO99FDF/KESyLu6CvG4QmLzy1vrbYzspORHJmoSEOLvnTWDLqpq1VaYRd1
+Pk7GqkwMyAOAUZrB7rfNMMXXh4OgsLgHDixqFh/2ZGcrgdsntYGW86H1lIEZ6baE
+7/POba4NfLPXHfJG/Y02Ewv/NtLXgCHWkpDXuHb9Ay9VofIPN5bQwSCEbEb4ViUA
+Fv0ibzwGqBzqVPjAlTvUu+l9hUaHH3a83Q/F/RszZEPR4l8nyrWh9PbrkN99boEw
+YBFhqAIknTz1p3LTQl3CLwcfCaF4aR465ALmMSgrIc+q3Phavv95T/SYubHYJOuj
+nlJJGLcI9ImIvwI4BE3QX6pGXsDDbGKM8eO0dwJJvHylIqRdhJ/Zg88SyMTcT1kl
+BSKpIIxzoFyM+kHX/21RRruK3bzJxKJCPdzpedJAnkmczqUcu45EqQVQQ3+Fjj3l
+xz3Q2drPzvL5HHVxLBnx+gW2L2ETAzMFRC6h0wYq516RQtxL90u+6DH+msWRxfVn
+a94x+U8LCFcoiEI0FbJ83+yLiDO7arklITA/6OlQuqNCt3oJTsaxYdQCtni3x5JB
+fgjLRfsOVb7JLj5Xsu/UrZKuSzzfF4NV6zX+CVpSlJu5zwEUvNx62pcZpSC4d2Cp
+G2HgBDebn25MiN60Q+aS
+=S3eu
+-----END PGP SIGNATURE-----
+
+--3xQkynibq3FKlJyM--
