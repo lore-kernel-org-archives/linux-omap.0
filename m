@@ -1,233 +1,278 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v8 12/20] OMAP2+: UART: Add wakeup mechanism for omap-uarts
-Date: Fri, 11 Nov 2011 15:29:10 +0530
-Message-ID: <1321005551-21786-3-git-send-email-govindraj.raja@ti.com>
-References: <1321005551-21786-1-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v8 14/20] OMAP2+: UART: Allow UART parameters to be configured from board file.
+Date: Fri, 11 Nov 2011 15:29:54 +0530
+Message-ID: <1321005594-21837-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1321005551-21786-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60432 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752616Ab1KKKAF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Nov 2011 05:00:05 -0500
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
->From the runtime callbacks enable hwmod wakeups for uart which will
-internally enable io-pad wakeups for uarts if they have rx-pad pins
-set as wakeup capabale.
+From: Deepak K <deepak.k@ti.com>
 
-Use the io-ring wakeup mechanism after uart clock gating and leave
-the PM_WKST set for uart to default reset values cleanup the
-code in serial.c which was handling PM_WKST reg.
-Irq_chaing(PRM_DRIVER) is used to wakeup uart after uart clocks are gated
-using pad wakeup mechanism.
+The following UART parameters are defined within the UART driver:
 
+1). Whether the UART uses DMA (dma_enabled), by default set to 0
+2). The size of dma buffer (set to 4096 bytes)
+3). The time after which the dma should stop if no more data is received.
+4). The auto suspend delay that will be passed for pm_runtime_autosuspend
+    where uart will be disabled after timeout
+
+Different UARTs may be used for different purpose such as the console,
+for interfacing bluetooth chip, for interfacing to a modem chip, etc.
+Therefore, it is necessary to be able to customize the above settings
+for a given board on a per UART basis.
+
+This change allows these parameters to be configured from the board file
+and allows the parameters to be configured for each UART independently.
+
+If a board does not define its own custom parameters for the UARTs, then
+use the default parameters in the structure "omap_serial_default_info".
+The default parameters are defined to be the same as the current settings
+in the UART driver to avoid breaking the UART for any cuurnelty supported
+boards. By default, make all boards use the default UART parameters.
+
+Signed-off-by: Deepak K <deepak.k@ti.com>
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c                  |   96 +++---------------------
- arch/arm/plat-omap/include/plat/omap-serial.h |    2 +
- drivers/tty/serial/omap-serial.c              |   15 ++++
- 3 files changed, 29 insertions(+), 84 deletions(-)
+ arch/arm/mach-omap2/board-n8x0.c              |    6 +-
+ arch/arm/mach-omap2/serial.c                  |   56 ++++++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/omap-serial.h |    7 ++-
+ arch/arm/plat-omap/include/plat/serial.h      |    5 ++-
+ drivers/tty/serial/omap-serial.c              |    8 +--
+ 5 files changed, 60 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index a52bd99..d1d8b88 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -56,10 +56,6 @@ struct omap_uart_state {
- 	int num;
- 	int can_sleep;
+diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
+index e9d5f4a..fbafa71 100644
+--- a/arch/arm/mach-omap2/board-n8x0.c
++++ b/arch/arm/mach-omap2/board-n8x0.c
+@@ -644,15 +644,15 @@ static inline void board_serial_init(void)
+ 	bdata.pads_cnt = 0;
  
--	void __iomem *wk_st;
--	void __iomem *wk_en;
--	u32 wk_mask;
--
- 	int clocked;
+ 	bdata.id = 0;
+-	omap_serial_init_port(&bdata);
++	omap_serial_init_port(&bdata, NULL);
  
- 	struct list_head node;
-@@ -92,26 +88,6 @@ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
- 	omap_device_idle(uart->pdev);
- }
+ 	bdata.id = 1;
+-	omap_serial_init_port(&bdata);
++	omap_serial_init_port(&bdata, NULL);
  
--static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
--{
--	/* Set wake-enable bit */
--	if (uart->wk_en && uart->wk_mask) {
--		u32 v = __raw_readl(uart->wk_en);
--		v |= uart->wk_mask;
--		__raw_writel(v, uart->wk_en);
--	}
--}
--
--static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
--{
--	/* Clear wake-enable bit */
--	if (uart->wk_en && uart->wk_mask) {
--		u32 v = __raw_readl(uart->wk_en);
--		v &= ~uart->wk_mask;
--		__raw_writel(v, uart->wk_en);
--	}
--}
--
- static void omap_uart_block_sleep(struct omap_uart_state *uart)
- {
- 	omap_uart_enable_clocks(uart);
-@@ -141,65 +117,17 @@ int omap_uart_can_sleep(void)
- 	return can_sleep;
- }
- 
--static void omap_uart_idle_init(struct omap_uart_state *uart)
-+static void omap_uart_enable_wakeup(struct platform_device *pdev, bool enable)
- {
--	int ret;
--
--	uart->can_sleep = 0;
--	omap_uart_smart_idle_enable(uart, 0);
-+	struct omap_device *od = to_omap_device(pdev);
- 
--	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
--		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
--		u32 wk_mask = 0;
-+	if (!od)
-+		return;
- 
--		/* XXX These PRM accesses do not belong here */
--		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
--		uart->wk_st = OMAP34XX_PRM_REGADDR(mod, PM_WKST1);
--		switch (uart->num) {
--		case 0:
--			wk_mask = OMAP3430_ST_UART1_MASK;
--			break;
--		case 1:
--			wk_mask = OMAP3430_ST_UART2_MASK;
--			break;
--		case 2:
--			wk_mask = OMAP3430_ST_UART3_MASK;
--			break;
--		case 3:
--			wk_mask = OMAP3630_ST_UART4_MASK;
--			break;
--		}
--		uart->wk_mask = wk_mask;
--	} else if (cpu_is_omap24xx()) {
--		u32 wk_mask = 0;
--		u32 wk_en = PM_WKEN1, wk_st = PM_WKST1;
--
--		switch (uart->num) {
--		case 0:
--			wk_mask = OMAP24XX_ST_UART1_MASK;
--			break;
--		case 1:
--			wk_mask = OMAP24XX_ST_UART2_MASK;
--			break;
--		case 2:
--			wk_en = OMAP24XX_PM_WKEN2;
--			wk_st = OMAP24XX_PM_WKST2;
--			wk_mask = OMAP24XX_ST_UART3_MASK;
--			break;
--		}
--		uart->wk_mask = wk_mask;
--		if (cpu_is_omap2430()) {
--			uart->wk_en = OMAP2430_PRM_REGADDR(CORE_MOD, wk_en);
--			uart->wk_st = OMAP2430_PRM_REGADDR(CORE_MOD, wk_st);
--		} else if (cpu_is_omap2420()) {
--			uart->wk_en = OMAP2420_PRM_REGADDR(CORE_MOD, wk_en);
--			uart->wk_st = OMAP2420_PRM_REGADDR(CORE_MOD, wk_st);
--		}
--	} else {
--		uart->wk_en = NULL;
--		uart->wk_st = NULL;
--		uart->wk_mask = 0;
--	}
-+	if (enable)
-+		omap_hwmod_enable_wakeup(od->hwmods[0]);
-+	else
-+		omap_hwmod_disable_wakeup(od->hwmods[0]);
- }
- 
- /*
-@@ -222,6 +150,8 @@ static void omap_uart_set_forceidle(struct platform_device *pdev)
+ 	bdata.id = 2;
+ 	bdata.pads = serial2_pads;
+ 	bdata.pads_cnt = ARRAY_SIZE(serial2_pads);
+-	omap_serial_init_port(&bdata);
++	omap_serial_init_port(&bdata, NULL);
  }
  
  #else
-+static void omap_uart_enable_wakeup(struct platform_device *pdev, bool enable)
-+{}
- static void omap_uart_set_noidle(struct platform_device *pdev) {}
- static void omap_uart_set_forceidle(struct platform_device *pdev) {}
- static void omap_uart_block_sleep(struct omap_uart_state *uart)
-@@ -437,6 +367,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 6d574f0..3eb2469 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -43,12 +43,12 @@
+ #include "mux.h"
+ 
+ /*
+- * NOTE: By default the serial timeout is disabled as it causes lost characters
+- * over the serial ports. This means that the UART clocks will stay on until
+- * disabled via sysfs. This also causes that any deeper omap sleep states are
+- * blocked. 
++ * NOTE: By default the serial auto_suspend timeout is disabled as it causes
++ * lost characters over the serial ports. This means that the UART clocks will
++ * stay on until power/autosuspend_delay is set for the uart from sysfs.
++ * This also causes that any deeper omap sleep states are blocked.
+  */
+-#define DEFAULT_TIMEOUT 0
++#define DEFAULT_AUTOSUSPEND_DELAY	-1
+ 
+ #define MAX_UART_HWMOD_NAME_LEN		16
+ 
+@@ -64,6 +64,18 @@ struct omap_uart_state {
+ static LIST_HEAD(uart_list);
+ static u8 num_uarts;
+ 
++#define DEFAULT_RXDMA_TIMEOUT		1	/* RX DMA polling rate (us) */
++#define DEFAULT_RXDMA_BUFSIZE		4096	/* RX DMA buffer size */
++
++static struct omap_uart_port_info omap_serial_default_info[] __initdata = {
++	{
++		.dma_enabled	= false,
++		.dma_rx_buf_size = DEFAULT_RXDMA_BUFSIZE,
++		.dma_rx_timeout = DEFAULT_RXDMA_TIMEOUT,
++		.autosuspend_timeout = DEFAULT_AUTOSUSPEND_DELAY,
++	},
++};
++
+ #ifdef CONFIG_PM
+ 
+ int omap_uart_can_sleep(void)
+@@ -294,6 +306,7 @@ core_initcall(omap_serial_early_init);
+ /**
+  * omap_serial_init_port() - initialize single serial port
+  * @bdata: port specific board data pointer
++ * @info: platform specific data pointer
+  *
+  * This function initialies serial driver for given port only.
+  * Platforms can call this function instead of omap_serial_init()
+@@ -302,7 +315,8 @@ core_initcall(omap_serial_early_init);
+  * Don't mix calls to omap_serial_init_port() and omap_serial_init(),
+  * use only one of the two.
+  */
+-void __init omap_serial_init_port(struct omap_board_data *bdata)
++void __init omap_serial_init_port(struct omap_board_data *bdata,
++			struct omap_uart_port_info *info)
+ {
+ 	struct omap_uart_state *uart;
+ 	struct omap_hwmod *oh;
+@@ -322,17 +336,22 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ 	list_for_each_entry(uart, &uart_list, node)
+ 		if (bdata->id == uart->num)
+ 			break;
++	if (!info)
++		info = omap_serial_default_info;
+ 
+ 	oh = uart->oh;
+ 	name = DRIVER_NAME;
+ 
+-	omap_up.dma_enabled = uart->dma_enabled;
++	omap_up.dma_enabled = info->dma_enabled;
+ 	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
+ 	omap_up.flags = UPF_BOOT_AUTOCONF;
  	omap_up.get_context_loss_count = omap_pm_get_dev_context_loss_count;
  	omap_up.set_forceidle = omap_uart_set_forceidle;
  	omap_up.set_noidle = omap_uart_set_noidle;
-+	omap_up.enable_wakeup = omap_uart_enable_wakeup;
+ 	omap_up.enable_wakeup = omap_uart_enable_wakeup;
++	omap_up.dma_rx_buf_size = info->dma_rx_buf_size;
++	omap_up.dma_rx_timeout = info->dma_rx_timeout;
++	omap_up.autosuspend_timeout = info->autosuspend_timeout;
  
  	/* Enable the MDR1 errata for OMAP2/3/4 */
  	if ((cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) &&
-@@ -471,15 +402,12 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 	omap_hwmod_idle(uart->oh);
- 
- 	omap_device_enable(uart->pdev);
--	omap_uart_idle_init(uart);
--	omap_hwmod_enable_wakeup(uart->oh);
- 	omap_device_idle(uart->pdev);
- 
- 	omap_uart_block_sleep(uart);
- 	console_unlock();
- 
--	if (((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads) ||
--		(pdata->wk_en && pdata->wk_mask))
-+	if ((cpu_is_omap34xx() || cpu_is_omap44xx()) && bdata->pads)
- 		device_init_wakeup(&pdev->dev, true);
+@@ -376,13 +395,14 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
  }
  
+ /**
+- * omap_serial_init() - initialize all supported serial ports
++ * omap_serial_board_init() - initialize all supported serial ports
++ * @info: platform specific data pointer
+  *
+  * Initializes all available UARTs as serial ports. Platforms
+  * can call this function when they want to have default behaviour
+  * for serial ports (e.g initialize them all as serial ports).
+  */
+-void __init omap_serial_init(void)
++void __init omap_serial_board_init(struct omap_uart_port_info *info)
+ {
+ 	struct omap_uart_state *uart;
+ 	struct omap_board_data bdata;
+@@ -396,7 +416,21 @@ void __init omap_serial_init(void)
+ 		if (cpu_is_omap44xx() || cpu_is_omap34xx())
+ 			omap_serial_fill_default_pads(&bdata);
+ 
+-		omap_serial_init_port(&bdata);
+-
++		if (!info)
++			omap_serial_init_port(&bdata, NULL);
++		else
++			omap_serial_init_port(&bdata, &info[uart->num]);
+ 	}
+ }
++
++/**
++ * omap_serial_init() - initialize all supported serial ports
++ *
++ * Initializes all available UARTs.
++ * Platforms can call this function when they want to have default behaviour
++ * for serial ports (e.g initialize them all as serial ports).
++ */
++void __init omap_serial_init(void)
++{
++	omap_serial_board_init(NULL);
++}
 diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index fd3d2f7..f3ecfb2 100644
+index f3ecfb2..84906e9 100644
 --- a/arch/arm/plat-omap/include/plat/omap-serial.h
 +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -69,6 +69,7 @@ struct omap_uart_port_info {
+@@ -65,6 +65,9 @@ struct omap_uart_port_info {
+ 	unsigned int		uartclk;	/* UART clock rate */
+ 	upf_t			flags;		/* UPF_* flags */
+ 	u32			errata;
++	unsigned int		dma_rx_buf_size;
++	unsigned int		dma_rx_timeout;
++	unsigned int		autosuspend_timeout;
+ 
  	int (*get_context_loss_count)(struct device *);
  	void (*set_forceidle)(struct platform_device *);
- 	void (*set_noidle)(struct platform_device *);
-+	void (*enable_wakeup)(struct platform_device *, bool);
+@@ -93,8 +96,8 @@ struct uart_omap_dma {
+ 	spinlock_t		rx_lock;
+ 	/* timer to poll activity on rx dma */
+ 	struct timer_list	rx_timer;
+-	int			rx_buf_size;
+-	int			rx_timeout;
++	unsigned int		rx_buf_size;
++	unsigned int		rx_timeout;
  };
  
- struct uart_omap_dma {
-@@ -123,6 +124,7 @@ struct uart_omap_port {
- 	unsigned long		port_activity;
- 	u32			context_loss_cnt;
- 	u32			errata;
-+	u8			wakeups_enabled;
- };
+ struct uart_omap_port {
+diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+index eb3f514..00a028f 100644
+--- a/arch/arm/plat-omap/include/plat/serial.h
++++ b/arch/arm/plat-omap/include/plat/serial.h
+@@ -106,10 +106,13 @@
+ #ifndef __ASSEMBLER__
  
- #endif /* __OMAP_SERIAL_H__ */
+ struct omap_board_data;
++struct omap_uart_port_info;
+ 
+ extern void omap_serial_init(void);
+-extern void omap_serial_init_port(struct omap_board_data *bdata);
+ extern int omap_uart_can_sleep(void);
++extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
++extern void omap_serial_init_port(struct omap_board_data *bdata,
++		struct omap_uart_port_info *platform_data);
+ #endif
+ 
+ #endif
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 77f0829..29cd401 100644
+index 29cd401..297fcec 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1496,9 +1496,24 @@ static int serial_omap_runtime_suspend(struct device *dev)
- 	if (!up)
- 		return -EINVAL;
+@@ -43,8 +43,6 @@
+ #include <plat/dmtimer.h>
+ #include <plat/omap-serial.h>
  
-+	if (!pdata->enable_wakeup)
-+		return 0;
-+
- 	if (pdata->get_context_loss_count)
- 		up->context_loss_cnt = pdata->get_context_loss_count(dev);
+-#define OMAP_UART_AUTOSUSPEND_DELAY -1
+-
+ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
  
-+	if (device_may_wakeup(dev)) {
-+		if (!up->wakeups_enabled) {
-+			pdata->enable_wakeup(up->pdev, true);
-+			up->wakeups_enabled = true;
-+		}
-+	} else {
-+		if (up->wakeups_enabled) {
-+			pdata->enable_wakeup(up->pdev, false);
-+			up->wakeups_enabled = false;
-+		}
-+	}
-+
- 	/* Errata i291 */
- 	if (up->use_dma && pdata->set_forceidle)
- 		pdata->set_forceidle(up->pdev);
+ /* Forward declaration of functions */
+@@ -1376,8 +1374,8 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		up->uart_dma.uart_dma_tx = dma_tx->start;
+ 		up->uart_dma.uart_dma_rx = dma_rx->start;
+ 		up->use_dma = 1;
+-		up->uart_dma.rx_buf_size = 4096;
+-		up->uart_dma.rx_timeout = 2;
++		up->uart_dma.rx_buf_size = omap_up_info->dma_rx_buf_size;
++		up->uart_dma.rx_timeout = omap_up_info->dma_rx_timeout;
+ 		spin_lock_init(&(up->uart_dma.tx_lock));
+ 		spin_lock_init(&(up->uart_dma.rx_lock));
+ 		up->uart_dma.tx_dma_channel = OMAP_UART_DMA_CH_FREE;
+@@ -1386,7 +1384,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 
+ 	pm_runtime_use_autosuspend(&pdev->dev);
+ 	pm_runtime_set_autosuspend_delay(&pdev->dev,
+-			OMAP_UART_AUTOSUSPEND_DELAY);
++			omap_up_info->autosuspend_timeout);
+ 
+ 	pm_runtime_irq_safe(&pdev->dev);
+ 	pm_runtime_enable(&pdev->dev);
 -- 
 1.7.4.1
 
