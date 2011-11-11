@@ -1,281 +1,236 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v8 03/20] OMAP2+: UART: Cleanup part of clock gating mechanism for uart
-Date: Fri, 11 Nov 2011 15:27:20 +0530
-Message-ID: <1321005446-21741-4-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v8 07/20] OMAP2+: UART: Remove context_save and move context restore to driver
+Date: Fri, 11 Nov 2011 15:27:24 +0530
+Message-ID: <1321005446-21741-8-git-send-email-govindraj.raja@ti.com>
 References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44414 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752063Ab1KKJ6m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Nov 2011 04:58:42 -0500
+Return-path: <linux-serial-owner@vger.kernel.org>
 In-Reply-To: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-serial-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Currently we use a shared irq handler to identify uart activity and then
-trigger a timer. By default the timeout value is zero and can be set or
-modified from sysfs. If there was no uart activity for the period set
-through sysfs, the timer will expire and call timer handler this will
-set a flag can_sleep using which decision to gate uart clocks can be taken.
+Remove context save function from serial.c and move context restore
+function to omap-serial. Remove all regs stored in omap_uart_state
+for contex_save/restore, reg read write funcs used in context_save/restore,
+io_addresses populated for read/write funcs.
 
-Since the clock gating mechanism is outside the uart driver, we currently
-use this mechanism. In preparation to runtime implementation for omap-serial
-driver we can cleanup this mechanism and use runtime API's to gate uart clocks.
-
-Removes the following:
-* timer related info from local uart_state struct
-* the code used to set timeout value from sysfs.
-* irqflags used to set shared irq handler.
-* un-used function omap_uart_check_wakeup.
+Clock gating mechanism was done in serial.c and had no info on uart state
+thus we needed context save and restore in serial.c
+With runtime conversion and clock gating done within uart driver
+context restore can be done from regs value available from uart_omap_port
+structure.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c                  |  118 +------------------------
- arch/arm/plat-omap/include/plat/omap-serial.h |    1 -
- arch/arm/plat-omap/include/plat/serial.h      |    1 -
- drivers/tty/serial/omap-serial.c              |    1 -
- 4 files changed, 2 insertions(+), 119 deletions(-)
+ arch/arm/mach-omap2/serial.c     |  118 --------------------------------------
+ drivers/tty/serial/omap-serial.c |   24 ++++++++
+ 2 files changed, 24 insertions(+), 118 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 8499f06..f6adb49 100644
+index beb46e8..3d5df9a 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -58,8 +58,6 @@
- struct omap_uart_state {
- 	int num;
- 	int can_sleep;
--	struct timer_list timer;
--	u32 timeout;
+@@ -41,8 +41,6 @@
+ #include "control.h"
+ #include "mux.h"
  
- 	void __iomem *wk_st;
- 	void __iomem *wk_en;
-@@ -67,13 +65,9 @@ struct omap_uart_state {
- 	u32 padconf;
- 	u32 dma_enabled;
+-#define UART_OMAP_WER		0x17	/* Wake-up enable register */
+-
+ #define UART_ERRATA_i202_MDR1_ACCESS	(0x1 << 1)
  
--	struct clk *ick;
--	struct clk *fck;
+ /*
+@@ -66,60 +64,16 @@ struct omap_uart_state {
+ 
  	int clocked;
  
--	int irq;
- 	int regshift;
--	int irqflags;
- 	void __iomem *membase;
- 	resource_size_t mapbase;
+-	int regshift;
+-	void __iomem *membase;
+-	resource_size_t mapbase;
+-
+ 	struct list_head node;
+ 	struct omap_hwmod *oh;
+ 	struct platform_device *pdev;
  
-@@ -331,32 +325,6 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+ 	u32 errata;
+-#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+-	int context_valid;
+-
+-	/* Registers to be saved/restored for OFF-mode */
+-	u16 dll;
+-	u16 dlh;
+-	u16 ier;
+-	u16 sysc;
+-	u16 scr;
+-	u16 wer;
+-	u16 mcr;
+-#endif
+ };
  
- 	omap_uart_smart_idle_enable(uart, 0);
- 	uart->can_sleep = 0;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
--	else
--		del_timer(&uart->timer);
+ static LIST_HEAD(uart_list);
+ static u8 num_uarts;
+ 
+-static inline unsigned int __serial_read_reg(struct uart_port *up,
+-					     int offset)
+-{
+-	offset <<= up->regshift;
+-	return (unsigned int)__raw_readb(up->membase + offset);
 -}
 -
--static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+-static inline unsigned int serial_read_reg(struct omap_uart_state *uart,
+-					   int offset)
 -{
--	if (device_may_wakeup(&uart->pdev->dev))
--		omap_uart_enable_wakeup(uart);
--	else
--		omap_uart_disable_wakeup(uart);
+-	offset <<= uart->regshift;
+-	return (unsigned int)__raw_readb(uart->membase + offset);
+-}
 -
--	if (!uart->clocked)
+-static inline void __serial_write_reg(struct uart_port *up, int offset,
+-		int value)
+-{
+-	offset <<= up->regshift;
+-	__raw_writeb(value, up->membase + offset);
+-}
+-
+-static inline void serial_write_reg(struct omap_uart_state *uart, int offset,
+-				    int value)
+-{
+-	offset <<= uart->regshift;
+-	__raw_writeb(value, uart->membase + offset);
+-}
+-
+ /*
+  * Internal UARTs need to be initialized for the 8250 autoconfig to work
+  * properly. Note that the TX watermark initialization may not be needed
+@@ -170,75 +124,6 @@ static void omap_uart_mdr1_errataset(struct omap_uart_state *uart, u8 mdr1_val,
+ 	}
+ }
+ 
+-static void omap_uart_save_context(struct omap_uart_state *uart)
+-{
+-	u16 lcr = 0;
+-
+-	if (!enable_off_mode)
 -		return;
 -
--	omap_uart_smart_idle_enable(uart, 1);
--	uart->can_sleep = 1;
--	del_timer(&uart->timer);
+-	lcr = serial_read_reg(uart, UART_LCR);
+-	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
+-	uart->dll = serial_read_reg(uart, UART_DLL);
+-	uart->dlh = serial_read_reg(uart, UART_DLM);
+-	serial_write_reg(uart, UART_LCR, lcr);
+-	uart->ier = serial_read_reg(uart, UART_IER);
+-	uart->sysc = serial_read_reg(uart, UART_OMAP_SYSC);
+-	uart->scr = serial_read_reg(uart, UART_OMAP_SCR);
+-	uart->wer = serial_read_reg(uart, UART_OMAP_WER);
+-	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_A);
+-	uart->mcr = serial_read_reg(uart, UART_MCR);
+-	serial_write_reg(uart, UART_LCR, lcr);
+-
+-	uart->context_valid = 1;
 -}
 -
--static void omap_uart_idle_timer(unsigned long data)
+-static void omap_uart_restore_context(struct omap_uart_state *uart)
 -{
--	struct omap_uart_state *uart = (struct omap_uart_state *)data;
+-	u16 efr = 0;
 -
--	omap_uart_allow_sleep(uart);
- }
- 
- int omap_uart_can_sleep(void)
-@@ -380,35 +348,11 @@ int omap_uart_can_sleep(void)
- 	return can_sleep;
- }
- 
--/**
-- * omap_uart_interrupt()
-- *
-- * This handler is used only to detect that *any* UART interrupt has
-- * occurred.  It does _nothing_ to handle the interrupt.  Rather,
-- * any UART interrupt will trigger the inactivity timer so the
-- * UART will not idle or sleep for its timeout period.
-- *
-- **/
--/* static int first_interrupt; */
--static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
--{
--	struct omap_uart_state *uart = dev_id;
+-	if (!enable_off_mode)
+-		return;
 -
--	omap_uart_block_sleep(uart);
+-	if (!uart->context_valid)
+-		return;
 -
--	return IRQ_NONE;
--}
+-	uart->context_valid = 0;
 -
- static void omap_uart_idle_init(struct omap_uart_state *uart)
- {
- 	int ret;
- 
- 	uart->can_sleep = 0;
--	uart->timeout = DEFAULT_TIMEOUT;
--	setup_timer(&uart->timer, omap_uart_idle_timer,
--		    (unsigned long) uart);
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
- 	omap_uart_smart_idle_enable(uart, 0);
- 
- 	if (cpu_is_omap34xx() && !cpu_is_ti816x()) {
-@@ -470,51 +414,8 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 		uart->wk_mask = 0;
- 		uart->padconf = 0;
- 	}
--
--	uart->irqflags |= IRQF_SHARED;
--	ret = request_threaded_irq(uart->irq, NULL, omap_uart_interrupt,
--				   IRQF_SHARED, "serial idle", (void *)uart);
--	WARN_ON(ret);
--}
--
--static ssize_t sleep_timeout_show(struct device *dev,
--				  struct device_attribute *attr,
--				  char *buf)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *odev = to_omap_device(pdev);
--	struct omap_uart_state *uart = odev->hwmods[0]->dev_attr;
--
--	return sprintf(buf, "%u\n", uart->timeout / HZ);
- }
- 
--static ssize_t sleep_timeout_store(struct device *dev,
--				   struct device_attribute *attr,
--				   const char *buf, size_t n)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omap_device *odev = to_omap_device(pdev);
--	struct omap_uart_state *uart = odev->hwmods[0]->dev_attr;
--	unsigned int value;
--
--	if (sscanf(buf, "%u", &value) != 1) {
--		dev_err(dev, "sleep_timeout_store: Invalid value\n");
--		return -EINVAL;
--	}
--
--	uart->timeout = value * HZ;
--	if (uart->timeout)
--		mod_timer(&uart->timer, jiffies + uart->timeout);
+-	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
+-		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_DISABLE, 0xA0);
 -	else
--		/* A zero value means disable timeout feature */
--		omap_uart_block_sleep(uart);
+-		serial_write_reg(uart, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
 -
--	return n;
+-	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
+-	efr = serial_read_reg(uart, UART_EFR);
+-	serial_write_reg(uart, UART_EFR, UART_EFR_ECB);
+-	serial_write_reg(uart, UART_LCR, 0x0); /* Operational mode */
+-	serial_write_reg(uart, UART_IER, 0x0);
+-	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
+-	serial_write_reg(uart, UART_DLL, uart->dll);
+-	serial_write_reg(uart, UART_DLM, uart->dlh);
+-	serial_write_reg(uart, UART_LCR, 0x0); /* Operational mode */
+-	serial_write_reg(uart, UART_IER, uart->ier);
+-	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_A);
+-	serial_write_reg(uart, UART_MCR, uart->mcr);
+-	serial_write_reg(uart, UART_LCR, UART_LCR_CONF_MODE_B);
+-	serial_write_reg(uart, UART_EFR, efr);
+-	serial_write_reg(uart, UART_LCR, UART_LCR_WLEN8);
+-	serial_write_reg(uart, UART_OMAP_SCR, uart->scr);
+-	serial_write_reg(uart, UART_OMAP_WER, uart->wer);
+-	serial_write_reg(uart, UART_OMAP_SYSC, uart->sysc);
+-
+-	if (uart->errata & UART_ERRATA_i202_MDR1_ACCESS)
+-		omap_uart_mdr1_errataset(uart, UART_OMAP_MDR1_16X_MODE, 0xA1);
+-	else
+-		/* UART 16x mode */
+-		serial_write_reg(uart, UART_OMAP_MDR1,
+-				UART_OMAP_MDR1_16X_MODE);
 -}
--
--static DEVICE_ATTR(sleep_timeout, 0644, sleep_timeout_show,
--		sleep_timeout_store);
--#define DEV_CREATE_FILE(dev, attr) WARN_ON(device_create_file(dev, attr))
- #else
- static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
- static void omap_uart_block_sleep(struct omap_uart_state *uart)
-@@ -522,7 +423,6 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
- 	/* Needed to enable UART clocks when built without CONFIG_PM */
- 	omap_uart_enable_clocks(uart);
- }
--#define DEV_CREATE_FILE(dev, attr)
- #endif /* CONFIG_PM */
+-#else
+-static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+-static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
+ #endif /* CONFIG_PM && CONFIG_ARCH_OMAP3 */
  
- static int __init omap_serial_early_init(void)
-@@ -606,8 +506,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
- 	omap_up.mapbase = oh->slaves[0]->addr->pa_start;
- 	omap_up.membase = omap_hwmod_get_mpu_rt_va(oh);
--	omap_up.irqflags = IRQF_SHARED;
--	omap_up.flags = UPF_BOOT_AUTOCONF | UPF_SHARE_IRQ;
-+	omap_up.flags = UPF_BOOT_AUTOCONF;
- 
- 	pdata = &omap_up;
- 	pdata_size = sizeof(struct omap_uart_port_info);
-@@ -623,7 +522,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
+ static inline void omap_uart_enable_clocks(struct omap_uart_state *uart)
+@@ -621,9 +506,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
  	omap_device_disable_idle_on_suspend(pdev);
  	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
  
--	uart->irq = oh->mpu_irqs[0].irq;
- 	uart->regshift = 2;
- 	uart->mapbase = oh->slaves[0]->addr->pa_start;
- 	uart->membase = omap_hwmod_get_mpu_rt_va(oh);
-@@ -646,24 +544,12 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 	omap_hwmod_enable_wakeup(uart->oh);
- 	omap_device_idle(uart->pdev);
+-	uart->regshift = 2;
+-	uart->mapbase = oh->slaves[0]->addr->pa_start;
+-	uart->membase = omap_hwmod_get_mpu_rt_va(oh);
+ 	uart->pdev = pdev;
  
--	/*
--	 * Need to block sleep long enough for interrupt driven
--	 * driver to start.  Console driver is in polling mode
--	 * so device needs to be kept enabled while polling driver
--	 * is in use.
--	 */
--	if (uart->timeout)
--		uart->timeout = (30 * HZ);
- 	omap_uart_block_sleep(uart);
--	uart->timeout = DEFAULT_TIMEOUT;
--
- 	console_unlock();
- 
- 	if ((cpu_is_omap34xx() && uart->padconf) ||
--	    (uart->wk_en && uart->wk_mask)) {
-+	    (uart->wk_en && uart->wk_mask))
- 		device_init_wakeup(&pdev->dev, true);
--		DEV_CREATE_FILE(&pdev->dev, &dev_attr_sleep_timeout);
--	}
- 
- 	/* Enable the MDR1 errata for OMAP3 */
- 	if (cpu_is_omap34xx() && !cpu_is_ti816x())
-diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 2682043..307cd6f 100644
---- a/arch/arm/plat-omap/include/plat/omap-serial.h
-+++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -61,7 +61,6 @@ struct omap_uart_port_info {
- 	unsigned int		uartclk;	/* UART clock rate */
- 	void __iomem		*membase;	/* ioremap cookie or NULL */
- 	resource_size_t		mapbase;	/* resource base */
--	unsigned long		irqflags;	/* request_irq flags */
- 	upf_t			flags;		/* UPF_* flags */
- };
- 
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index 73dd022..eb3f514 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -110,7 +110,6 @@ struct omap_board_data;
- extern void omap_serial_init(void);
- extern void omap_serial_init_port(struct omap_board_data *bdata);
- extern int omap_uart_can_sleep(void);
--extern void omap_uart_check_wakeup(void);
- #endif
- 
- #endif
+ 	oh->dev_attr = uart;
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 5e713d3..be368cf7 100644
+index f16ef4b9..a834e91 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1278,7 +1278,6 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	up->port.membase = omap_up_info->membase;
- 	up->port.mapbase = omap_up_info->mapbase;
- 	up->port.flags = omap_up_info->flags;
--	up->port.irqflags = omap_up_info->irqflags;
- 	up->port.uartclk = omap_up_info->uartclk;
- 	up->uart_dma.uart_base = mem->start;
+@@ -1408,6 +1408,25 @@ static int serial_omap_remove(struct platform_device *dev)
+ 	return 0;
+ }
  
++static void serial_omap_restore_context(struct uart_omap_port *up)
++{
++	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
++	serial_out(up, UART_EFR, UART_EFR_ECB);
++	serial_out(up, UART_LCR, 0x0); /* Operational mode */
++	serial_out(up, UART_IER, 0x0);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
++	serial_out(up, UART_LCR, 0x0); /* Operational mode */
++	serial_out(up, UART_IER, up->ier);
++	serial_out(up, UART_FCR, up->fcr);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
++	serial_out(up, UART_MCR, up->mcr);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
++	serial_out(up, UART_EFR, up->efr);
++	serial_out(up, UART_LCR, up->lcr);
++	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
++}
++
+ #ifdef CONFIG_PM_RUNTIME
+ static int serial_omap_runtime_suspend(struct device *dev)
+ {
+@@ -1416,6 +1435,11 @@ static int serial_omap_runtime_suspend(struct device *dev)
+ 
+ static int serial_omap_runtime_resume(struct device *dev)
+ {
++	struct uart_omap_port *up = dev_get_drvdata(dev);
++
++	if (up)
++		serial_omap_restore_context(up);
++
+ 	return 0;
+ }
+ #endif
 -- 
 1.7.4.1
 
