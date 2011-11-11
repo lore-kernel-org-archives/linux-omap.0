@@ -1,47 +1,92 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v7 17/21] OMAP2+: UART: Remove omap_uart_can_sleep and add pm_qos
-Date: Fri, 11 Nov 2011 15:47:58 +0530
-Message-ID: <CAAL8m4x82jAsVLknLisjML3HegrJnRF07MpojEyAQeS1dg4nKg@mail.gmail.com>
-References: <1318952110-10659-1-git-send-email-govindraj.raja@ti.com>
- <1318952110-10659-3-git-send-email-govindraj.raja@ti.com> <87vcqz33y8.fsf@ti.com>
- <4EB8F368.5070603@ti.com> <87r51i1kva.fsf@ti.com> <CAAL8m4zLEnQE+BkK4xmLUBkREYOuqjmbBweKS0_qcEYUMo71nQ@mail.gmail.com>
- <87aa83er84.fsf@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: PM: only register TWL with voltage layer
+ when device is present
+Date: Fri, 11 Nov 2011 10:21:44 +0000
+Message-ID: <E28AAFD00EFAA646AE3DF9B89CD24A8903E1A5@DBDE01.ent.ti.com>
+References: <1320797670-21460-1-git-send-email-khilman@ti.com>
+	<E28AAFD00EFAA646AE3DF9B89CD24A89036E64@DBDE01.ent.ti.com>
+ <8762irg73n.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87aa83er84.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33397 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752453Ab1KKKV6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Nov 2011 05:21:58 -0500
+In-Reply-To: <8762irg73n.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
 
-On Fri, Nov 11, 2011 at 12:32 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Govindraj <govindraj.ti@gmail.com> writes:
->
+ 
 
-[..]
+> -----Original Message-----
+> From: Hilman, Kevin 
+> Sent: Friday, November 11, 2011 12:04 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org; 
+> linux-arm-kernel@lists.infradead.org; Koyamangalath, Abhilash
+> Subject: Re: [PATCH] ARM: OMAP: PM: only register TWL with 
+> voltage layer when device is present
+> 
+> "Premi, Sanjeev" <premi@ti.com> writes:
+> 
+> >> Current code registers voltage layer details for TWL PMIC 
+> even when a
+> >> TWL has not been registered.  Fix this to only register 
+> the TWL with
+> >> voltage layer when the TWL PMIC is initialized by board-level code.
+> >> 
+> >> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> 
+> [...]
+> 
+> > I have been out-of-loop from PM for some time. So my query may be
+> > redundant:
+> >
+> > 1) What happens when different PMIC (not TWL series) is registered
+> >    for AM35x? e.g. TPS65023
+> >    http://www.spinics.net/lists/linux-omap/msg48630.html
+> >
+> > 2) Wouldn't we still fall back into omap3_twl_init()?
+> 
+> I'm not sure I follow the question.
+> 
+> If you're not using a TWL PMIC (or similar derivative) then
+> omap*_twl_init() should not be called.
+> 
+> If you are using a TWL PMIC, then no, the omap*_twl_init functions
+> should not be called.
 
->>
->> I have fixed this and other uart_v7 comments and have re-based the
->> patch series on top
->> of 3.2-rc1 along with Tero's v9 irq chaining patches and tested the same.
->> Available here [1].
->
-> Please repost your updated series.
+When I read this function (in the patch), if pmic_i2c_board_info.irq
+is non-zero, omap3_twl_init() and omap4_twl_init() are called.
 
-Yes done. v8 posted [1]
+So my question was, for the case when PMIC is not TWL family. Then,
+is checking ".irq" sufficient to prevent the execution of twl specific
+functions.
 
->
->> Can this patches series be added to a test branch for upstreaming or do you
->> think there are still some outstanding comments that needs to be discussed?
->
-> The PRCM IRQ chaining series is not yet finalized.
+ void __init omap_pmic_late_init(void)
+ {
+ 	/* Init the OMAP TWL parameters (if PMIC has been registerd) */
+ 	if (!pmic_i2c_board_info.irq)
+ 		return;
+ 
+ 	omap3_twl_init();
+ 	omap4_twl_init();
+ }
 
-okay fine.
+Shouldn't we check for some "signature" or equiv, before calling the
+PMIC specific init? This "signature" can be set when the PMIC is
+registered?
 
---
-Thanks,
-Govindraj.R
+Another simplification would be to register the PMIC specific init
+function itself during registration; and call here.
 
-[1]:
-http://www.spinics.net/lists/linux-omap/msg60115.html
+~sanjeev
+
+> 
+> Kevin
+> 
