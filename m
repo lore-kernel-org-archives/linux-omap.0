@@ -1,122 +1,74 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: Pet Peaves about Platform code, and arch_reset
-Date: Fri, 11 Nov 2011 09:17:28 +0800
-Message-ID: <20111111011727.GA8700@S2100-06.ap.freescale.net>
-References: <20111106135250.GC15294@n2100.arm.linux.org.uk>
- <20111108004550.GH31337@atomide.com>
- <20111109214652.GM31337@atomide.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH v7 11/21] OMAP2+: UART: Move errata handling from serial.c
+ to omap-serial
+Date: Fri, 11 Nov 2011 11:41:36 +0530
+Message-ID: <4EBCBC98.9040200@ti.com>
+References: <1318951576-10165-1-git-send-email-govindraj.raja@ti.com> <1318951576-10165-12-git-send-email-govindraj.raja@ti.com> <4EBC61DB.9020402@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111109214652.GM31337@atomide.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4EBC61DB.9020402@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Nov 09, 2011 at 01:46:52PM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [111107 16:11]:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [111106 05:18]:
-> > > Here's a list of my peaves about current platform code - which are
-> > > causing me great issue when trying to clean up the arch_reset() stuff:
-> > > 
-> > > 1. Lack of trailing ',' on structure initializers
-> > >    This makes it much harder to add additional initializers at the end
-> > >    of existing initializers, and increases the risks of conflicts being
-> > >    caused due to more lines having to be modified.
-> > > 
-> > > (This won't work directly because the tabs have been converted to space.
-> > > The empty-looking [] contain a space plus a tab.)
-> > > $ grep '[   ][      ]*\.[[:alnum:]_][[:alnum:]_]*[  ]*=[    ]*[[:alnum:]_{][[:alnum:]_|()}]*[^,]$' arch/arm -r|wc -l
-> > > 768
-> > > $ grep '[   ][      ]*\.[[:alnum:]_][[:alnum:]_]*[  ]*=[    ]*[[:alnum:]_{][[:alnum:]_|()}]*[^,]$' arch/arm/*omap* -r|wc -l
-> > > 325
-> > > 
-> > >    Note that this is _far_ too big a problem - and trivial - to fix in
-> > >    a set of silly churn generating patches - it's a problem to be fixed
-> > >    as a part of _other_ changes to the files.
-> > > 
-> > >    But most importantly _stop_ introducing versions of this problem.
-> > 
-> > Sounds like we need a spatch for this issue?
-> 
-> I guess spatch would need some patching to deal with this.. I tried
-> with something like:
-> 
-> @r@
-> identifier I, s, fld;
-> position p0,p;
-> expression E;
-> @@
-> 
-> struct I s =@p0 {
-> ...
-> -       .fld@p = E,
-> +       .fld = E,
-> ...
-> };
-> 
-> That catches them, but adds an extra comma in the beginning :)
-> 
-> --- a/ams-delta-fiq.c 2011-11-08 18:03:20.110707512 -0800
-> +++ b/ams-delta-fiq.c 2011-11-08 18:04:36.094948038 -0800
-> @@ -25,7 +25,7 @@
->  #include <mach/ams-delta-fiq.h>
->  
->  static struct fiq_handler fh = {
-> -	.name	= "ams-delta-fiq"
-> +	,.name = "ams-delta-fiq",
->  };
->  
->  /*
-> 
-> And it also messes up the formatting for other structs..
-> 
-> Anyways, I think I got most of these fixed for all ARM subarchitectures
-> in a pile of 72 patches, the stats are: 
-> 
-> 486 files changed, 2296 insertions(+), 2296 deletions(-)
-> 
-> This is something people can then use as a base to start chipping away at
-> the problem. I'm thinking it may be possible to use this as a base for
-> search and replacement type work and then hopefully git mergetool will
-> pick the relevant changes when rebasing a working branch to the mainline.
-> 
-> I can also post the patches here if people want, but sounds like we're
-> not going to merge them as they are, but instead will slowly fix the
-> issue in other related patches?
-> 
-> I've pushed the patches into a git branch at:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap formatting:
-> 
-> Web interface at:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=shortlog;h=refs/heads/formatting
-> 
+On Friday 11 November 2011 05:14 AM, Jon Hunter wrote:
+> Hi Govindraj,
+>
+> On 10/18/2011 10:26, Govindraj.R wrote:
+>> Move the errata handling mechanism from serial.c to omap-serial file
+>> and utilise the same func in driver file.
+>>
+>> Errata i202, i291 are moved to be handled with omap-serial
+>> Moving the errata macro from serial.c file to driver header file
+>> as from on errata will be handled in driver file itself.
+>> Corrected errata id from chapter reference 2.15 to errata id i291.
+>>
+>> Removed errata and dma_enabled feilds from omap_uart_state struct
+Nitpick.
+The field spelling could be corrected.
+>> as they are no more needed with errata handling done within omap-serial.
+>>
+>> Acked-by: Alan Cox<alan@linux.intel.com>
+>> Signed-off-by: Govindraj.R<govindraj.raja@ti.com>
+>> ---
+>>   arch/arm/mach-omap2/serial.c                  |   97
+>> +++++++------------------
+>>   arch/arm/plat-omap/include/plat/omap-serial.h |    6 ++
+>>   drivers/tty/serial/omap-serial.c              |   66 ++++++++++++++++-
+>>   3 files changed, 95 insertions(+), 74 deletions(-)
+>
+> [snip]
+>
+>> +    /* Enable the MDR1 errata for OMAP3 */
+>> +    if (cpu_is_omap34xx()&&  !cpu_is_ti816x())
+>> +        omap_up.errata |= UART_ERRATA_i202_MDR1_ACCESS;
+>
+> This errata (i202) is applicable to all devices from OMAP2430 to
+> OMAP4460 (apparently this one is not getting fixed). So could you make
+> sure this is enabled for 2430, 3430, 3630, 4430 and 4460?
+>
+Yes good point.
 
-For record, we may not want to do this for cases below, since we should
-never add entry after sentinel.
+> [snip]
+>
+>> +/*
+>> + * Work Around for Errata i202 (3430 - 1.12, 3630 - 1.6)
+>
+> We should update the comment to be "Work Around for Errata i202 (2430,
+> 3430, 3630, 4430 and 4460)". The "1.12" and "1.6" are just the section
+> references in the errata docs, but I think that you can drop these as
+> you can just search for the errata ID which is i202.
+>
+> Cheers
+> Jon
+>
+>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
- static const struct of_device_id imx53_iomuxc_of_match[] __initconst = {
-@@ -75,7 +75,7 @@ static const struct of_device_id imx53_iomuxc_of_match[] __initconst = {
-        { .compatible = "fsl,imx53-iomuxc-evk", .data = imx53_evk_common_init, },
-        { .compatible = "fsl,imx53-iomuxc-qsb", .data = imx53_qsb_common_init, },
-        { .compatible = "fsl,imx53-iomuxc-smd", .data = imx53_smd_common_init, },
--       { /* sentinel */ }
-+       { /* sentinel */ },
- };
- 
- static void __init imx53_dt_init(void)
-@@ -112,7 +112,7 @@ static const char *imx53_dt_board_compat[] __initdata = {
-        "fsl,imx53-evk",
-        "fsl,imx53-qsb",
-        "fsl,imx53-smd",
--       NULL
-+       NULL,
- };
-
--- 
-Regards,
-Shawn
