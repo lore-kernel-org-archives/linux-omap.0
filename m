@@ -1,171 +1,139 @@
 From: <mythripk@ti.com>
-Subject: [PATCH v2 1/2] OMAPDSS: HDMI: Move duplicate code from boardfile to
-Date: Fri, 11 Nov 2011 18:38:18 +0530
-Message-ID: <1321016900-1714-2-git-send-email-mythripk@ti.com>
+Subject: [PATCH v2 2/2] OMAPDSS: HDMI: Disable HDMI DDC internal pull up
+Date: Fri, 11 Nov 2011 18:38:19 +0530
+Message-ID: <1321016900-1714-3-git-send-email-mythripk@ti.com>
 References: <1321016900-1714-1-git-send-email-mythripk@ti.com>
+ <1321016900-1714-2-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40689 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757832Ab1KKNQJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Nov 2011 08:16:09 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pABDG626020033
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 11 Nov 2011 07:16:08 -0600
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id pABDG6Uu021862
-	for <linux-omap@vger.kernel.org>; Fri, 11 Nov 2011 18:46:06 +0530 (IST)
-In-Reply-To: <1321016900-1714-1-git-send-email-mythripk@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33939 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757841Ab1KKNQL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Nov 2011 08:16:11 -0500
+In-Reply-To: <1321016900-1714-2-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-Cc: Mythri P K <mythripk@ti.com>
+Cc: Mythri P K <mythripk@ti.com>, Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
 From: Mythri P K <mythripk@ti.com>
 
-Move duplicate HDMI mux_init code from omap4 and panda board file
-to display file.
+Disables the internal pull resistor for SDA and SCL enabled by
+default as there are expernal pull up's in 4460 and 4430 ES2.3,
+It is done to avoid the EDID read failure.
 
+Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c    |   16 +---------------
- arch/arm/mach-omap2/board-omap4panda.c |   17 +----------------
- arch/arm/mach-omap2/display.c          |   23 +++++++++++++++++++++++
- include/video/omapdss.h                |    2 ++
- 4 files changed, 27 insertions(+), 31 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c    |   12 +++++++++++-
+ arch/arm/mach-omap2/board-omap4panda.c |   13 ++++++++++++-
+ arch/arm/mach-omap2/display.c          |   17 ++++++++++++++---
+ include/video/omapdss.h                |    2 +-
+ 4 files changed, 38 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 73b1e99..4a519a3 100644
+index 4a519a3..91d3742 100644
 --- a/arch/arm/mach-omap2/board-4430sdp.c
 +++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -595,20 +595,6 @@ static void __init omap_sfh7741prox_init(void)
- 			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
- }
- 
--static void sdp4430_hdmi_mux_init(void)
--{
--	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
--	omap_mux_init_signal("hdmi_hpd",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_cec",
--			OMAP_PIN_INPUT_PULLUP);
--	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
--	omap_mux_init_signal("hdmi_ddc_scl",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_ddc_sda",
--			OMAP_PIN_INPUT_PULLUP);
--}
--
- static struct gpio sdp4430_hdmi_gpios[] = {
- 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
-@@ -838,9 +824,9 @@ static void omap_4430sdp_display_init(void)
- 		pr_err("%s: Could not get display_sel GPIO\n", __func__);
- 
+@@ -826,7 +826,17 @@ static void omap_4430sdp_display_init(void)
  	sdp4430_lcd_init();
--	sdp4430_hdmi_mux_init();
  	sdp4430_picodlp_init();
  	omap_display_init(&sdp4430_dss_data);
-+	omap_hdmi_enable_pads();
+-	omap_hdmi_enable_pads();
++	/*
++	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
++	 * HDMI_DDC_SCL_PULLUPRESX (bit 24) are set to disable
++	 * internal pull up resistor - This is a change needed in
++	 * OMAP4460 and OMAP4430 ES2.3 as the external pull up
++	 * are present. This is needed to avoid EDID read failure.
++	 */
++	if (cpu_is_omap446x() || (omap_rev() > OMAP4430_REV_ES2_2))
++		omap_hdmi_enable_pads(1);
++	else
++		omap_hdmi_enable_pads(0);
  }
  
  #ifdef CONFIG_OMAP_MUX
 diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index a5b576b..26c6440 100644
+index 26c6440..a4e7bf8 100644
 --- a/arch/arm/mach-omap2/board-omap4panda.c
 +++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -478,21 +478,6 @@ int __init omap4_panda_dvi_init(void)
- 	return r;
- }
- 
--
--static void omap4_panda_hdmi_mux_init(void)
--{
--	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
--	omap_mux_init_signal("hdmi_hpd",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_cec",
--			OMAP_PIN_INPUT_PULLUP);
--	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
--	omap_mux_init_signal("hdmi_ddc_scl",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_ddc_sda",
--			OMAP_PIN_INPUT_PULLUP);
--}
--
- static struct gpio panda_hdmi_gpios[] = {
- 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
-@@ -555,8 +540,8 @@ void omap4_panda_display_init(void)
- 	if (r)
+@@ -541,7 +541,18 @@ void omap4_panda_display_init(void)
  		pr_err("error initializing panda DVI\n");
  
--	omap4_panda_hdmi_mux_init();
  	omap_display_init(&omap4_panda_dss_data);
-+	omap_hdmi_enable_pads();
+-	omap_hdmi_enable_pads();
++
++	/*
++	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
++	 * HDMI_DDC_SCL_PULLUPRESX (bit 24) are set to disable
++	 * internal pull up resistor - This is a change needed in
++	 * OMAP4460 and OMAP4430 ES2.3 as the external pull up
++	 * are present. This is needed to avoid EDID read failure.
++	 */
++	if (cpu_is_omap446x() || (omap_rev() > OMAP4430_REV_ES2_2))
++		omap_hdmi_enable_pads(1);
++	else
++		omap_hdmi_enable_pads(0);
  }
  
  static void __init omap4_panda_init(void)
 diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index dce9905..ec7ac1b 100644
+index ec7ac1b..8af5714 100644
 --- a/arch/arm/mach-omap2/display.c
 +++ b/arch/arm/mach-omap2/display.c
-@@ -29,6 +29,7 @@
- #include <plat/omap-pm.h>
- #include <plat/common.h>
- 
-+#include "mux.h"
- #include "control.h"
- #include "display.h"
- 
-@@ -96,6 +97,20 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
+@@ -97,8 +97,11 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
  	{ "dss_hdmi", "omapdss_hdmi", -1 },
  };
  
-+static void omap4_hdmi_mux_pads(void)
-+{
-+	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
-+	omap_mux_init_signal("hdmi_hpd",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_cec",
-+			OMAP_PIN_INPUT_PULLUP);
-+	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
-+	omap_mux_init_signal("hdmi_ddc_scl",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_ddc_sda",
-+			OMAP_PIN_INPUT_PULLUP);
-+}
-+
- static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+-static void omap4_hdmi_mux_pads(void)
++static void omap4_hdmi_mux_pads(int ext_pull_up)
  {
- 	u32 enable_mask, enable_shift;
-@@ -129,6 +144,14 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
++	u32 reg;
++	u16 control_i2c_1;
++
+ 	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+ 	omap_mux_init_signal("hdmi_hpd",
+ 			OMAP_PIN_INPUT_PULLUP);
+@@ -109,6 +112,14 @@ static void omap4_hdmi_mux_pads(void)
+ 			OMAP_PIN_INPUT_PULLUP);
+ 	omap_mux_init_signal("hdmi_ddc_sda",
+ 			OMAP_PIN_INPUT_PULLUP);
++
++	if (ext_pull_up) {
++		control_i2c_1 = OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_1;
++		reg = omap4_ctrl_pad_readl(control_i2c_1);
++		reg |= (OMAP4_HDMI_DDC_SDA_PULLUPRESX_MASK |
++		OMAP4_HDMI_DDC_SCL_PULLUPRESX_MASK);
++		omap4_ctrl_pad_writel(reg, control_i2c_1);
++	}
+ }
+ 
+ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+@@ -144,10 +155,10 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
  	return 0;
  }
  
-+int omap_hdmi_enable_pads(void)
-+{
-+	if (cpu_is_omap44xx())
-+		omap4_hdmi_mux_pads();
-+
-+	return 0;
-+}
-+
- static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+-int omap_hdmi_enable_pads(void)
++int omap_hdmi_enable_pads(int ext_pull_up)
  {
  	if (cpu_is_omap44xx())
+-		omap4_hdmi_mux_pads();
++		omap4_hdmi_mux_pads(ext_pull_up);
+ 
+ 	return 0;
+ }
 diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 378c7ed..f4913d6 100644
+index f4913d6..27b71f4 100644
 --- a/include/video/omapdss.h
 +++ b/include/video/omapdss.h
-@@ -309,6 +309,8 @@ struct omap_dss_board_info {
- 
+@@ -310,7 +310,7 @@ struct omap_dss_board_info {
  /* Init with the board info */
  extern int omap_display_init(struct omap_dss_board_info *board_data);
-+/* HDMI mux init*/
-+extern int omap_hdmi_enable_pads(void);
+ /* HDMI mux init*/
+-extern int omap_hdmi_enable_pads(void);
++extern int omap_hdmi_enable_pads(int ext_pull_up);
  
  struct omap_display_platform_data {
  	struct omap_dss_board_info *board_data;
