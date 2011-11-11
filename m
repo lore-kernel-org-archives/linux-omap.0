@@ -1,14 +1,14 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH v8 05/20] OMAP2+: UART: Remove mapbase/membase fields from pdata.
-Date: Fri, 11 Nov 2011 15:27:22 +0530
-Message-ID: <1321005446-21741-6-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH v8 08/20] OMAP2+: UART: Ensure all reg values configured are available from port structure
+Date: Fri, 11 Nov 2011 15:27:25 +0530
+Message-ID: <1321005446-21741-9-git-send-email-govindraj.raja@ti.com>
 References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44411 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44413 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180Ab1KKJ6l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751972Ab1KKJ6l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 11 Nov 2011 04:58:41 -0500
 In-Reply-To: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,64 +16,180 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Govindraj R <govindraj.raja@ti.com>
 
-The mapbase (start_address), membase(io_remap cookie) part of
-pdata struct omap_uart_port_info are removed as this should be
-derived within driver.
+Add missing uart regs to uart_port structure which can be used in
+context restore. Store dll, dlh, mdr1, scr, efr, lcr, mcr reg values
+into uart_port structure while configuring individual port in termios
+function.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/serial.c                  |    2 --
- arch/arm/plat-omap/include/plat/omap-serial.h |    2 --
- drivers/tty/serial/omap-serial.c              |   10 ++++++++--
- 3 files changed, 8 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h |    4 ++
+ drivers/tty/serial/omap-serial.c              |   43 +++++++++++++++----------
+ 2 files changed, 30 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 0de1a56..beb46e8 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -605,8 +605,6 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 
- 	omap_up.dma_enabled = uart->dma_enabled;
- 	omap_up.uartclk = OMAP24XX_BASE_BAUD * 16;
--	omap_up.mapbase = oh->slaves[0]->addr->pa_start;
--	omap_up.membase = omap_hwmod_get_mpu_rt_va(oh);
- 	omap_up.flags = UPF_BOOT_AUTOCONF;
- 
- 	pdata = &omap_up;
 diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
-index 307cd6f..db9bda9 100644
+index db9bda9..70e7738 100644
 --- a/arch/arm/plat-omap/include/plat/omap-serial.h
 +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-@@ -59,8 +59,6 @@
- struct omap_uart_port_info {
- 	bool			dma_enabled;	/* To specify DMA Mode */
- 	unsigned int		uartclk;	/* UART clock rate */
--	void __iomem		*membase;	/* ioremap cookie or NULL */
--	resource_size_t		mapbase;	/* resource base */
- 	upf_t			flags;		/* UPF_* flags */
- };
+@@ -97,6 +97,10 @@ struct uart_omap_port {
+ 	unsigned char		mcr;
+ 	unsigned char		fcr;
+ 	unsigned char		efr;
++	unsigned char		dll;
++	unsigned char		dlh;
++	unsigned char		mdr1;
++	unsigned char		scr;
  
+ 	int			use_dma;
+ 	/*
 diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index be368cf7..31f0cbf 100644
+index a834e91..5327ff0 100644
 --- a/drivers/tty/serial/omap-serial.c
 +++ b/drivers/tty/serial/omap-serial.c
-@@ -1275,8 +1275,14 @@ static int serial_omap_probe(struct platform_device *pdev)
- 	up->port.ops = &serial_omap_pops;
- 	up->port.line = pdev->id;
+@@ -466,8 +466,9 @@ static void serial_omap_set_mctrl(struct uart_port *port, unsigned int mctrl)
+ 		mcr |= UART_MCR_LOOP;
  
--	up->port.membase = omap_up_info->membase;
--	up->port.mapbase = omap_up_info->mapbase;
-+	up->port.mapbase = mem->start;
-+	up->port.membase = ioremap(mem->start, resource_size(mem));
-+	if (!up->port.membase) {
-+		dev_err(&pdev->dev, "can't ioremap UART\n");
-+		ret = -ENOMEM;
-+		goto err;
-+	}
+ 	pm_runtime_get_sync(&up->pdev->dev);
+-	mcr |= up->mcr;
+-	serial_out(up, UART_MCR, mcr);
++	up->mcr = serial_in(up, UART_MCR);
++	up->mcr |= mcr;
++	serial_out(up, UART_MCR, up->mcr);
+ 	pm_runtime_put(&up->pdev->dev);
+ }
+ 
+@@ -616,8 +617,6 @@ static inline void
+ serial_omap_configure_xonxoff
+ 		(struct uart_omap_port *up, struct ktermios *termios)
+ {
+-	unsigned char efr = 0;
+-
+ 	up->lcr = serial_in(up, UART_LCR);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 	up->efr = serial_in(up, UART_EFR);
+@@ -627,8 +626,7 @@ serial_omap_configure_xonxoff
+ 	serial_out(up, UART_XOFF1, termios->c_cc[VSTOP]);
+ 
+ 	/* clear SW control mode bits */
+-	efr = up->efr;
+-	efr &= OMAP_UART_SW_CLR;
++	up->efr &= OMAP_UART_SW_CLR;
+ 
+ 	/*
+ 	 * IXON Flag:
+@@ -636,7 +634,7 @@ serial_omap_configure_xonxoff
+ 	 * Transmit XON1, XOFF1
+ 	 */
+ 	if (termios->c_iflag & IXON)
+-		efr |= OMAP_UART_SW_TX;
++		up->efr |= OMAP_UART_SW_TX;
+ 
+ 	/*
+ 	 * IXOFF Flag:
+@@ -644,7 +642,7 @@ serial_omap_configure_xonxoff
+ 	 * Receiver compares XON1, XOFF1.
+ 	 */
+ 	if (termios->c_iflag & IXOFF)
+-		efr |= OMAP_UART_SW_RX;
++		up->efr |= OMAP_UART_SW_RX;
+ 
+ 	serial_out(up, UART_EFR, up->efr | UART_EFR_ECB);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+@@ -667,7 +665,7 @@ serial_omap_configure_xonxoff
+ 	 * load the new software flow control mode IXON or IXOFF
+ 	 * and restore the UARTi.EFR_REG[4] ENHANCED_EN value.
+ 	 */
+-	serial_out(up, UART_EFR, efr | UART_EFR_SCD);
++	serial_out(up, UART_EFR, up->efr | UART_EFR_SCD);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+ 
+ 	serial_out(up, UART_MCR, up->mcr & ~UART_MCR_TCRTLR);
+@@ -714,6 +712,10 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	baud = uart_get_baud_rate(port, termios, old, 0, port->uartclk/13);
+ 	quot = serial_omap_get_divisor(port, baud);
+ 
++	up->dll = quot & 0xff;
++	up->dlh = quot >> 8;
++	up->mdr1 = UART_OMAP_MDR1_DISABLE;
 +
- 	up->port.flags = omap_up_info->flags;
- 	up->port.uartclk = omap_up_info->uartclk;
- 	up->uart_dma.uart_base = mem->start;
+ 	up->fcr = UART_FCR_R_TRIG_01 | UART_FCR_T_TRIG_01 |
+ 			UART_FCR_ENABLE_FIFO;
+ 	if (up->use_dma)
+@@ -767,6 +769,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 		up->ier |= UART_IER_MSI;
+ 	serial_out(up, UART_IER, up->ier);
+ 	serial_out(up, UART_LCR, cval);		/* reset DLAB */
++	up->lcr = cval;
+ 
+ 	/* FIFOs and DMA Settings */
+ 
+@@ -793,17 +796,18 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 
+ 	if (up->use_dma) {
+ 		serial_out(up, UART_TI752_TLR, 0);
+-		serial_out(up, UART_OMAP_SCR,
+-			(UART_FCR_TRIGGER_4 | UART_FCR_TRIGGER_8));
++		up->scr |= (UART_FCR_TRIGGER_4 | UART_FCR_TRIGGER_8);
+ 	}
+ 
++	serial_out(up, UART_OMAP_SCR, up->scr);
++
+ 	serial_out(up, UART_EFR, up->efr);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+ 	serial_out(up, UART_MCR, up->mcr);
+ 
+ 	/* Protocol, Baud Rate, and Interrupt Settings */
+ 
+-	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_DISABLE);
++	serial_out(up, UART_OMAP_MDR1, up->mdr1);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 
+ 	up->efr = serial_in(up, UART_EFR);
+@@ -813,8 +817,8 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_IER, 0);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+ 
+-	serial_out(up, UART_DLL, quot & 0xff);          /* LS of divisor */
+-	serial_out(up, UART_DLM, quot >> 8);            /* MS of divisor */
++	serial_out(up, UART_DLL, up->dll);	/* LS of divisor */
++	serial_out(up, UART_DLM, up->dlh);	/* MS of divisor */
+ 
+ 	serial_out(up, UART_LCR, 0);
+ 	serial_out(up, UART_IER, up->ier);
+@@ -824,9 +828,11 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	serial_out(up, UART_LCR, cval);
+ 
+ 	if (baud > 230400 && baud != 3000000)
+-		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_13X_MODE);
++		up->mdr1 = UART_OMAP_MDR1_13X_MODE;
+ 	else
+-		serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
++		up->mdr1 = UART_OMAP_MDR1_16X_MODE;
++
++	serial_out(up, UART_OMAP_MDR1, up->mdr1);
+ 
+ 	/* Hardware Flow Control Configuration */
+ 
+@@ -1416,15 +1422,18 @@ static void serial_omap_restore_context(struct uart_omap_port *up)
+ 	serial_out(up, UART_LCR, 0x0); /* Operational mode */
+ 	serial_out(up, UART_IER, 0x0);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
++	serial_out(up, UART_DLL, up->dll);
++	serial_out(up, UART_DLM, up->dlh);
+ 	serial_out(up, UART_LCR, 0x0); /* Operational mode */
+ 	serial_out(up, UART_IER, up->ier);
+ 	serial_out(up, UART_FCR, up->fcr);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_A);
+ 	serial_out(up, UART_MCR, up->mcr);
+ 	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B); /* Config B mode */
++	serial_out(up, UART_OMAP_SCR, up->scr);
+ 	serial_out(up, UART_EFR, up->efr);
+ 	serial_out(up, UART_LCR, up->lcr);
+-	serial_out(up, UART_OMAP_MDR1, UART_OMAP_MDR1_16X_MODE);
++	serial_out(up, UART_OMAP_MDR1, up->mdr1);
+ }
+ 
+ #ifdef CONFIG_PM_RUNTIME
 -- 
 1.7.4.1
 
