@@ -1,40 +1,36 @@
-From: KyongHo Cho <pullip.cho@samsung.com>
-Subject: Re: [PATCH v4 2/7] iommu/core: split mapping to page sizes as
- supported by the hardware
-Date: Sun, 13 Nov 2011 10:43:46 +0900
-Message-ID: <CAHQjnOPkhR2SWO5Tov_V6Zw=zYb9EOJPbC1bENXJ+ttw_TB1HA@mail.gmail.com>
-References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
-	<1318850846-16066-3-git-send-email-ohad@wizery.com>
-	<CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
-	<1320938930.22195.17.camel@i7.infradead.org>
-	<20111110170918.GE13213@amd.com>
-	<4EBC3E20.20301@codeaurora.org>
-	<20111111132411.GH13213@amd.com>
-	<4EBDD426.4050105@codeaurora.org>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: [QUESTION] omap iommu: a generic IOMMU?
+Date: Sun, 13 Nov 2011 19:04:51 +0800
+Message-ID: <CACVXFVPLgXfcpE9x2KKbU=r9_+ZeEbfo1TGndvm6yi34V15tPA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:33439 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab1KMBnr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Nov 2011 20:43:47 -0500
-In-Reply-To: <4EBDD426.4050105@codeaurora.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:38810 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281Ab1KMLEv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Nov 2011 06:04:51 -0500
+Received: by ggnb2 with SMTP id b2so5383557ggn.19
+        for <linux-omap@vger.kernel.org>; Sun, 13 Nov 2011 03:04:51 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stepan Moskovchenko <stepanm@codeaurora.org>
-Cc: Joerg Roedel <Joerg.Roedel@amd.com>, Ohad Ben-Cohen <ohad@wizery.com>, Kai Huang <mail.kai.huang@gmail.com>, kvm@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Brown <davidb@codeaurora.org>, linux-omap@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Joerg Roedel <joerg.roedel@amd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, Nov 12, 2011 at 11:04 AM, Stepan Moskovchenko
-<stepanm@codeaurora.org> wrote:
-> Yes, the scatterlist is allowed to have different page sizes. But, they are
-> required to have a length that is a multiple of 4K. If a page in the list is
+Hi  guys,
 
-An element in scatterlist may not be aligned by 4K but I think IOMMU driver
-must round it up to 4K if IOMMU API support iommu_map_range().
+I found that omap-iommu.c has been under drivers/iommu for some time.
 
-The first element in scatterlist is often not aligned by 4K if the pages are
-provided from userspace. Length + offset of  the element must be
-aligned by 4K, though.
+Just be curious, is it a generic IOMMU so that it can be used by all IO
+peripherals in OMAP4?  Could you give some use cases about
+the omap-iommu in kernel?
 
-Thank you,
-KyongHo.
+>From related source code[1] and OMAP4 TRM[2], looks like the omap iommu
+only belongs to Cortex-M3 MPU subsystem inside OMAP4 chip, so I am wondering
+why introduces the driver for arm v7 based linux kernel...
+
+[1], arch/arm/mach-omap2/omap-iommu.c
+[2], "20.5 MMU Register Manual" of "omap4 TRM Version O"
+
+thanks,
+-- 
+Ming Lei
