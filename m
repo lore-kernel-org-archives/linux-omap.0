@@ -1,36 +1,35 @@
-From: Ming Lei <tom.leiming@gmail.com>
-Subject: [QUESTION] omap iommu: a generic IOMMU?
-Date: Sun, 13 Nov 2011 19:04:51 +0800
-Message-ID: <CACVXFVPLgXfcpE9x2KKbU=r9_+ZeEbfo1TGndvm6yi34V15tPA@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [QUESTION] omap iommu: a generic IOMMU?
+Date: Sun, 13 Nov 2011 15:37:26 +0200
+Message-ID: <CAK=Wgba+m6D7hhr0CrfzrC7mAB=6NFhbik4qte7OPGGo0v6oYQ@mail.gmail.com>
+References: <CACVXFVPLgXfcpE9x2KKbU=r9_+ZeEbfo1TGndvm6yi34V15tPA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:38810 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751281Ab1KMLEv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Nov 2011 06:04:51 -0500
-Received: by ggnb2 with SMTP id b2so5383557ggn.19
-        for <linux-omap@vger.kernel.org>; Sun, 13 Nov 2011 03:04:51 -0800 (PST)
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:61221 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753131Ab1KMNhr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Nov 2011 08:37:47 -0500
+Received: by yenr9 with SMTP id r9so4395863yen.19
+        for <linux-omap@vger.kernel.org>; Sun, 13 Nov 2011 05:37:47 -0800 (PST)
+In-Reply-To: <CACVXFVPLgXfcpE9x2KKbU=r9_+ZeEbfo1TGndvm6yi34V15tPA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Joerg Roedel <joerg.roedel@amd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ming Lei <tom.leiming@gmail.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Omar Ramirez Luna <omar.ramirez@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <joerg.roedel@amd.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi  guys,
+Hello,
 
-I found that omap-iommu.c has been under drivers/iommu for some time.
+On Sun, Nov 13, 2011 at 1:04 PM, Ming Lei <tom.leiming@gmail.com> wrote:
+> Just be curious, is it a generic IOMMU so that it can be used by all IO
+> peripherals in OMAP4?
 
-Just be curious, is it a generic IOMMU so that it can be used by all IO
-peripherals in OMAP4?  Could you give some use cases about
-the omap-iommu in kernel?
+No, it's a dedicated iommu for the DSP and dual-M3 subsystems.
 
->From related source code[1] and OMAP4 TRM[2], looks like the omap iommu
-only belongs to Cortex-M3 MPU subsystem inside OMAP4 chip, so I am wondering
-why introduces the driver for arm v7 based linux kernel...
+> From related source code[1] and OMAP4 TRM[2], looks like the omap iommu
+> only belongs to Cortex-M3 MPU subsystem inside OMAP4 chip, so I am wondering
+> why introduces the driver for arm v7 based linux kernel...
 
-[1], arch/arm/mach-omap2/omap-iommu.c
-[2], "20.5 MMU Register Manual" of "omap4 TRM Version O"
+Because we control the iommus from the A9 (which is running Linux..) :)
 
-thanks,
--- 
-Ming Lei
+Ohad.
