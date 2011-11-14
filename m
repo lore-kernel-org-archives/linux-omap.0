@@ -1,135 +1,71 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [REPOST PATCH 1/2 v4] OMAP2+: hwmod: Add API to enable IO ring
- wakeup.
-Date: Mon, 14 Nov 2011 17:14:45 +0530
-Message-ID: <4EC0FF2D.5040006@ti.com>
-References: <1309603946-25395-2-git-send-email-govindraj.raja@ti.com> <1309755315-28564-1-git-send-email-govindraj.raja@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: Help with clk API
+Date: Mon, 14 Nov 2011 14:17:24 +0200
+Message-ID: <20111114121723.GS2834@legolas.emea.dhcp.ti.com>
+References: <20111111113159.GK19090@legolas.emea.dhcp.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FJ0JV+AOCbvjFtNn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:37858 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752849Ab1KNLox (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51058 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751988Ab1KNMR3 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Nov 2011 06:44:53 -0500
-Received: by yenr8 with SMTP id r8so6273334yen.18
-        for <linux-omap@vger.kernel.org>; Mon, 14 Nov 2011 03:44:51 -0800 (PST)
-In-Reply-To: <1309755315-28564-1-git-send-email-govindraj.raja@ti.com>
+	Mon, 14 Nov 2011 07:17:29 -0500
+Received: by bke17 with SMTP id 17so5649590bke.0
+        for <linux-omap@vger.kernel.org>; Mon, 14 Nov 2011 04:17:27 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20111111113159.GK19090@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Tero Kristo <t-kristo@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Monday 04 July 2011 10:25 AM, Govindraj.R wrote:
-> Add API to enable IO pad wakeup capability based on mux dynamic pad and
-> wake_up enable flag available from hwmod_mux initialization.
->
-> Use the wakeup_enable flag and enable wakeup capability
-> for the given pads. Wakeup capability will be enabled/disabled
-> during hwmod idle transition based on whether wakeup_flag is
-> set or cleared.
->
-> Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
->
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
->  1 files changed, 59 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-> index 293fa6c..3b28e0a 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1770,6 +1770,34 @@ static int __init omap_hwmod_setup_all(void)
->  core_initcall(omap_hwmod_setup_all);
->  
->  /**
-> + * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
-> + * @oh: struct omap_hwmod *
-> + * @set: bool value indicating to set or clear wakeup status.
-> + *
-> + * Set or Clear wakeup flag for the io_pad.
-> + */
-> +static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
-> +{
-> +	struct omap_device_pad *pad;
-> +	int ret = -EINVAL, j;
-> +
-> +	if (oh->mux && oh->mux->enabled) {
-> +		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
-> +			pad = oh->mux->pads_dynamic[j];
-> +			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-> +				if (set_wake)
-> +					pad->idle |= OMAP_WAKEUP_EN;
-> +				else
-> +					pad->idle &= ~OMAP_WAKEUP_EN;
 
-Will this not erase the other bits ?
-Should we read and erase only the wakeup  bits.
-Am I missing something ?
-> +				ret = 0;
-> +			}
-> +		}
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * omap_hwmod_enable - enable an omap_hwmod
->   * @oh: struct omap_hwmod *
->   *
-> @@ -2097,6 +2125,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
->  {
->  	return _del_initiator_dep(oh, init_oh);
->  }
-> +/**
-> + * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Traverse through dynamic pads, if pad is enabled then
-> + * set wakeup enable bit flag for the mux pin. Wakeup pad bit
-> + * will be set during hwmod idle transistion.
-> + * Return error if pads are not enabled or not available.
-> + */
-> +int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
-> +{
-> +	/* Enable pad wake-up capability */
-> +	return omap_hwmod_set_ioring_wakeup(oh, true);
-> +}
-> +
-> +/**
-> + * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
-> + * @oh: struct omap_hwmod *
-> + *
-> + * Traverse through dynamic pads, if pad is enabled then
-> + * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
-> + * will be set during hwmod idle transistion.
-> + * Return error if pads are not enabled or not available.
-> + */
-> +int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
-> +{
-> +	/* Disable pad wakeup capability */
-> +	return omap_hwmod_set_ioring_wakeup(oh, false);
-> +}
->  
->  /**
->   * omap_hwmod_enable_wakeup - allow device to wake up the system
-> @@ -2123,6 +2180,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
->  	v = oh->_sysc_cache;
->  	_enable_wakeup(oh, &v);
->  	_write_sysconfig(v, oh);
-> +	omap_hwmod_enable_ioring_wakeup(oh);
->  	spin_unlock_irqrestore(&oh->_lock, flags);
->  
->  	return 0;
-> @@ -2153,6 +2211,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
->  	v = oh->_sysc_cache;
->  	_disable_wakeup(oh, &v);
->  	_write_sysconfig(v, oh);
-> +	omap_hwmod_disable_ioring_wakeup(oh);
->  	spin_unlock_irqrestore(&oh->_lock, flags);
->  
->  	return 0;
+--FJ0JV+AOCbvjFtNn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
+
+On Fri, Nov 11, 2011 at 01:32:00PM +0200, Felipe Balbi wrote:
+> I have a doubt about using clk API to change CLKSEL_UTMI_P1 bit for a
+> silicon errata (OMAP4460 i693) implementation.
+>=20
+> According to errata, I need to switch from external to internal clock
+> during USB port suspend, wait 1ms and switch back from internal to
+> external.
+>=20
+> How can I do that with clk API ? Is it by changing clk parent ? Any tips
+> would be helpful ;-) thanks
+
+a gentle ping to this mail ;-)
+
+--=20
+balbi
+
+--FJ0JV+AOCbvjFtNn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOwQbTAAoJEIaOsuA1yqREp4gQAJa/mWp14SE51phzN23Kjlna
+DiVZYRCBCEg/Bzfln7ZUcXALQ3i1eVAb61u4bj4YqdG7MLgR7Tm+NeFTK/8/5blq
+KhAxOUqO+sxL4ATc23EoTFiuMVGiUnl8kbqbXWI1Tk5AN55VZKXQaPqQnsVjY+9a
++MvvXSyUb/Zgxhl9Tz3MQt1z1F5Ttm4fT4nIVr292DvmOBrnfB5QNdOXaLa4aIXp
+S+DA0LKaniCZUJdt7vlFBvGfYSdGGdafgqmGKxPAEwwaRLYvj7ey+hlfRXxt3tOX
+DTB+Rf1RyqQldhYm0JtvmfEhstrlY82ZJu1fZIFlfxUHCV5XzK76lU4N7ydgS9Gb
+cFDUSA+E3edtuKCO2/v7jBYD1FutshSjXNDwqp3S85ep0sKOHcwJDvg8ONEcVYy7
+LmsWZsk4G39/OjyGbVrpvWgH9CW0HTRcKm9VL1nk5lOuzFhDpu/FMpscAGML/U9r
+V1B7cAWZCUF6yZH92SPijTrQLG8aXsWsNsG+9+ykk9nnABB1JnlGJlUGkLKRjwTY
+IRNUHkVg3qC+pFWtOpyJSjLcGUFoCD10oFM2oIEfH2y8Hl0RUGYEAE6xJj3Y86Yk
+ezLWrPTCFqUMN8wnTr1piSMblnckD/a1dtOliY8PYQW5/kGSZCVaLKXSNpmIrKOl
+si8ZzEJPOk//kN48YV56
+=8ADN
+-----END PGP SIGNATURE-----
+
+--FJ0JV+AOCbvjFtNn--
