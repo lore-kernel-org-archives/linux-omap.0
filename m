@@ -1,77 +1,71 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 3/5] ARM: OMAP: iommu: declare a private iommu binding
- struct
-Date: Mon, 14 Nov 2011 13:01:13 -0800
-Message-ID: <20111114210113.GM31337@atomide.com>
+Subject: Re: [RFC 4/5] ARM: OMAP3: bind omap3isp_device to its iommu device
+Date: Mon, 14 Nov 2011 13:01:35 -0800
+Message-ID: <20111114210134.GN31337@atomide.com>
 References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
- <1316948337-7924-4-git-send-email-ohad@wizery.com>
+ <1316948337-7924-5-git-send-email-ohad@wizery.com>
+ <201111091017.18860.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1316948337-7924-4-git-send-email-ohad@wizery.com>
+In-Reply-To: <201111091017.18860.laurent.pinchart@ideasonboard.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
 
-* Ohad Ben-Cohen <ohad@wizery.com> [110925 03:27]:
-> Declare an omap iommu private struct, which binds an iommu user
-> to its iommu device. This struct should be placed at the iommu user's
-> dev_archdata so generic IOMMU API can be used without having to
-> utilize omap-specific plumbing anymore.
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [111109 00:42]:
+> Hi Ohad,
 > 
-> While at it, provide an accessor method to ease the retrieval of the
-> omap_iommu handle from a user device.
+> On Sunday 25 September 2011 12:58:56 Ohad Ben-Cohen wrote:
+> > Bind OMAP3's isp device to the isp's dedicated iommu, by setting
+> > the device's archdata iommu member.
+> > 
+> > This way omap3isp will be able to use the generic IOMMU API without
+> > having to call any omap-specific binding method.
+> > 
+> > Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > 
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 Acked-by: Tony Lindgren <tony@atomide.com>
-
-
-> ---
->  arch/arm/plat-omap/include/plat/iommu.h |   26 ++++++++++++++++++++++++++
->  1 files changed, 26 insertions(+), 0 deletions(-)
+ 
+> > ---
+> >  arch/arm/mach-omap2/devices.c |    7 +++++++
+> >  1 files changed, 7 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> > index 1077ad6..44122f7 100644
+> > --- a/arch/arm/mach-omap2/devices.c
+> > +++ b/arch/arm/mach-omap2/devices.c
+> > @@ -28,6 +28,7 @@
+> >  #include <plat/mcbsp.h>
+> >  #include <mach/gpio.h>
+> >  #include <plat/mmc.h>
+> > +#include <plat/iommu.h>
+> >  #include <plat/dma.h>
+> >  #include <plat/omap_hwmod.h>
+> >  #include <plat/omap_device.h>
+> > @@ -207,9 +208,15 @@ static struct platform_device omap3isp_device = {
+> >  	.resource	= omap3isp_resources,
+> >  };
+> > 
+> > +static struct omap_iommu_arch_data omap3_isp_iommu = {
+> > +	.name = "isp",
+> > +};
+> > +
+> >  int omap3_init_camera(struct isp_platform_data *pdata)
+> >  {
+> >  	omap3isp_device.dev.platform_data = pdata;
+> > +	omap3isp_device.dev.archdata.iommu = &omap3_isp_iommu;
+> > +
+> >  	return platform_device_register(&omap3isp_device);
+> >  }
 > 
-> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
-> index a1d79ee..fa11ee2 100644
-> --- a/arch/arm/plat-omap/include/plat/iommu.h
-> +++ b/arch/arm/plat-omap/include/plat/iommu.h
-> @@ -111,6 +111,32 @@ struct iommu_platform_data {
->  	u32 da_end;
->  };
->  
-> +/**
-> + * struct iommu_arch_data - omap iommu private data
-> + * @name: name of the iommu device
-> + * @iommu_dev: handle of the iommu device
-> + *
-> + * This is an omap iommu private data object, which binds an iommu user
-> + * to its iommu device. This object should be placed at the iommu user's
-> + * dev_archdata so generic IOMMU API can be used without having to
-> + * utilize omap-specific plumbing anymore.
-> + */
-> +struct omap_iommu_arch_data {
-> +	const char *name;
-> +	struct omap_iommu *iommu_dev;
-> +};
-> +
-> +/**
-> + * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
-> + * @dev: iommu client device
-> + */
-> +static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
-> +{
-> +	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
-> +
-> +	return arch_data->iommu_dev;
-> +}
-> +
->  /* IOMMU errors */
->  #define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
->  #define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
 > -- 
-> 1.7.4.1
+> Regards,
 > 
+> Laurent Pinchart
