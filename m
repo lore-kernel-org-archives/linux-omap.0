@@ -1,55 +1,77 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP: DSS hwmod/reset fixes for 3.2
-Date: Mon, 14 Nov 2011 12:46:49 -0800
-Message-ID: <20111114204649.GL31337@atomide.com>
-References: <alpine.DEB.2.00.1110061806150.4611@utopia.booyaka.com>
- <20111105003550.GM31337@atomide.com>
- <alpine.DEB.2.00.1111080049470.12394@utopia.booyaka.com>
- <1320746911.1907.47.camel@deskari>
- <alpine.DEB.2.00.1111080329300.8313@utopia.booyaka.com>
- <1320754489.1907.50.camel@deskari>
+Subject: Re: [RFC 3/5] ARM: OMAP: iommu: declare a private iommu binding
+ struct
+Date: Mon, 14 Nov 2011 13:01:13 -0800
+Message-ID: <20111114210113.GM31337@atomide.com>
+References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
+ <1316948337-7924-4-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15974 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab1KNUqw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Nov 2011 15:46:52 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1320754489.1907.50.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1316948337-7924-4-git-send-email-ohad@wizery.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [111108 03:40]:
-> On Tue, 2011-11-08 at 03:33 -0700, Paul Walmsley wrote:
-> > On Tue, 8 Nov 2011, Tomi Valkeinen wrote:
-> > 
-> > > On Tue, 2011-11-08 at 00:50 -0700, Paul Walmsley wrote:
-> > > > On Fri, 4 Nov 2011, Tony Lindgren wrote:
-> > > > 
-> > > > > * Paul Walmsley <paul@pwsan.com> [111006 16:33]:
-> > > > > > The following changes since commit be73246058737beec52ae232bcab7776332a9e06:
-> > > > > > 
-> > > > > >   ARM: OMAP2+: Remove custom init_irq for remaining boards (2011-09-26 17:50:37 -0700)
-> > > > > > 
-> > > > > > are available in the git repository at:
-> > > > > >   git://git.pwsan.com/linux-2.6 hwmod_dss_fixes_3.2
-> > > > > 
-> > > > > Looks like you should take a look at the merge conflicts with
-> > > > > this one, maybe rebase it on 994c0e992522c123298b4a91b72f5e67ba2d1123.
-> > > > 
-> > > > Do you want this series for 3.2-rc or 3.3 at this point?
-> > > 
-> > > Seems that at least HDMI output is broken due to this series missing.
-> > 
-> > OK thanks, 3.2-rc it is.
+* Ohad Ben-Cohen <ohad@wizery.com> [110925 03:27]:
+> Declare an omap iommu private struct, which binds an iommu user
+> to its iommu device. This struct should be placed at the iommu user's
+> dev_archdata so generic IOMMU API can be used without having to
+> utilize omap-specific plumbing anymore.
+> 
+> While at it, provide an accessor method to ease the retrieval of the
+> omap_iommu handle from a user device.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-I suggest we only merge the ones with "fix" in the subject during the -rc
-cycle. The others add new features for the reset, so they should wait until
-v3.3 merge window.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Regards,
 
-Tony
+> ---
+>  arch/arm/plat-omap/include/plat/iommu.h |   26 ++++++++++++++++++++++++++
+>  1 files changed, 26 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/iommu.h b/arch/arm/plat-omap/include/plat/iommu.h
+> index a1d79ee..fa11ee2 100644
+> --- a/arch/arm/plat-omap/include/plat/iommu.h
+> +++ b/arch/arm/plat-omap/include/plat/iommu.h
+> @@ -111,6 +111,32 @@ struct iommu_platform_data {
+>  	u32 da_end;
+>  };
+>  
+> +/**
+> + * struct iommu_arch_data - omap iommu private data
+> + * @name: name of the iommu device
+> + * @iommu_dev: handle of the iommu device
+> + *
+> + * This is an omap iommu private data object, which binds an iommu user
+> + * to its iommu device. This object should be placed at the iommu user's
+> + * dev_archdata so generic IOMMU API can be used without having to
+> + * utilize omap-specific plumbing anymore.
+> + */
+> +struct omap_iommu_arch_data {
+> +	const char *name;
+> +	struct omap_iommu *iommu_dev;
+> +};
+> +
+> +/**
+> + * dev_to_omap_iommu() - retrieves an omap iommu object from a user device
+> + * @dev: iommu client device
+> + */
+> +static inline struct omap_iommu *dev_to_omap_iommu(struct device *dev)
+> +{
+> +	struct omap_iommu_arch_data *arch_data = dev->archdata.iommu;
+> +
+> +	return arch_data->iommu_dev;
+> +}
+> +
+>  /* IOMMU errors */
+>  #define OMAP_IOMMU_ERR_TLB_MISS		(1 << 0)
+>  #define OMAP_IOMMU_ERR_TRANS_FAULT	(1 << 1)
+> -- 
+> 1.7.4.1
+> 
