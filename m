@@ -1,65 +1,110 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 3/3] OMAPDSS: DISPC: skip scaling calculations when not scaling
-Date: Mon, 14 Nov 2011 17:01:45 +0200
-Message-ID: <1321282905-12939-4-git-send-email-tomi.valkeinen@ti.com>
-References: <1321282905-12939-1-git-send-email-tomi.valkeinen@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
+Date: Mon, 14 Nov 2011 09:23:12 -0800
+Message-ID: <20111114172312.GI31337@atomide.com>
+References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
+ <1321274409-24643-2-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60437 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754585Ab1KNPCD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 14 Nov 2011 10:02:03 -0500
-In-Reply-To: <1321282905-12939-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:60368 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751719Ab1KNRXR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Nov 2011 12:23:17 -0500
+Content-Disposition: inline
+In-Reply-To: <1321274409-24643-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linus.walleij@stericsson.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
 
-Current code calculates scaling factors for video overlays even when the
-overlays are not scaled. Change the code to skip calculations when not
-scaling.
+* Rajendra Nayak <rnayak@ti.com> [111114 04:05]:
+> --- /dev/null
+> +++ b/drivers/pinctrl/pinmux-omap.c
+> @@ -0,0 +1,735 @@
+> +
+> +/* omap4 core pads */
+> +static const struct pinctrl_pin_desc omap4_core_pads[] = {
+> +	PINCTRL_PIN(0, "c12"),
+> +	PINCTRL_PIN(1, "d12"),
+> +	PINCTRL_PIN(2, "c13"),
+...
 
-This optimizes the code a bit, but also fixes a problem when configuring
-an overlay for a disabled display: if the display is disabled we don't
-necessarily know the pixel clock used when the display is enabled, and
-in some cases (like HDMI) the pixel clock is set to zero until a proper
-video mode is set later. A wrong pixel clock will mess up the
-scaling calculations, causing an error like:
+Let's not even plan on adding this data here. We already have
+about 6000 lines of pinmux data for omaps even without this patch.
 
-omapdss DISPC error: failed to set up scaling, required fclk rate = 0
-Hz, current fclk rate = 170666666 Hz
+Instead, just write something as a separate patch that populates
+omap pinmux data from the existing data until we have the data
+coming from DT.
 
-A proper fix would be to check later whether the clocks are enough for the
-scaling, at the point when the overlay or display is actually enabled,
-but this patch removes the problem for now.
+> +/* omap4 wkup pads */
+> +static const struct pinctrl_pin_desc omap4_wkup_pads[] = {
+> +	PINCTRL_PIN(0, "c12"),
+> +	PINCTRL_PIN(1, "d12"),
+> +	PINCTRL_PIN(2, "c13"),
+...
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dispc.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+This too needs to go.
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 3532782..5c81533 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1720,12 +1720,11 @@ static int dispc_ovl_calc_scaling(enum omap_plane plane,
- 	const int maxdownscale = dss_feat_get_param_max(FEAT_PARAM_DOWNSCALE);
- 	unsigned long fclk = 0;
- 
--	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0) {
--		if (width != out_width || height != out_height)
--			return -EINVAL;
--		else
--			return 0;
--	}
-+	if (width == out_width && height == out_height)
-+		return 0;
-+
-+	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0)
-+		return -EINVAL;
- 
- 	if (out_width < width / maxdownscale ||
- 			out_width > width * 8)
--- 
-1.7.4.1
+> +static const unsigned hdmi_pins[] = {
+> +	44, /* HDMI_HPD */
+> +	45, /* HDMI_CEC */
+> +	46, /* HDMI_DDC_SCL */
+> +	47, /* HDMI_DDC_SDA */
+> +};
+> +
+> +static const unsigned hdmi_muxmodes[] = {
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +};
+> +
+> +static const unsigned sdmmc5_pins[] = {
+> +	132, /* WLAN SDIO: MMC5 CMD */
+> +	133, /* WLAN SDIO: MMC5 CLK */
+> +	134, /* WLAN SDIO: MMC5 DAT0 */
+> +	135, /* WLAN SDIO: MMC5 DAT1 */
+> +	136, /* WLAN SDIO: MMC5 DAT2 */
+> +	137, /* WLAN SDIO: MMC5 DAT3 */
+> +};
+> +
+> +static const unsigned sdmmc5_muxmodes[] = {
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +	OMAP_MUX_MODE0,
+> +};
+> +
+> +static const unsigned dispc2_pins[] = {
+> +	145, /* dispc2_data23 */
+> +	146, /* dispc2_data22 */
+> +	147, /* dispc2_data21 */
+...
 
+And all of the above.. The same goes for all the static package
+specific data.
+
+> +/* handle 8 bit registers too, for now only worry about 16bit ones*/
+> +static u16 omap_pmx_read(struct omap_pmx *opmx, unsigned pin)
+> +{
+> +	return __raw_readw(opmx->virtbase + (pin * 2));
+> +}
+> +
+> +static void omap_pmx_write(u16 val, struct omap_pmx *opmx, unsigned pin)
+> +{
+> +	__raw_writew(val, opmx->virtbase + (pin * 2));
+> +}
+
+Might as well fix this one since we already have it working.
+
+The rest looks OK to me as a minimal driver. I don't know if
+we should still populate it with platform_data though, that
+seems already broken as it's omap4 only. Might as well go with
+the DT support to start with.
+
+Regards,
+
+Tony
