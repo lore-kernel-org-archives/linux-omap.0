@@ -1,100 +1,57 @@
-From: Omar Ramirez Luna <or.rmz1@gmail.com>
-Subject: Re: [PATCH v16 09/12] OMAP: dmtimer: low-power mode support
-Date: Tue, 15 Nov 2011 11:57:59 -0600
-Message-ID: <CAPTm=KGDEKGxLpJt0t6k_NL5Wz81NkMmRJ+OkmyvHedd6_exgQ@mail.gmail.com>
-References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
-	<1316518227-28116-10-git-send-email-tarun.kanti@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:53252 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757024Ab1KOR6A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Nov 2011 12:58:00 -0500
-Received: by yenq3 with SMTP id q3so905072yen.19
-        for <linux-omap@vger.kernel.org>; Tue, 15 Nov 2011 09:58:00 -0800 (PST)
-In-Reply-To: <1316518227-28116-10-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 0/4] mmc: logging neatening and mmc_host_<level>
+Date: Tue, 15 Nov 2011 15:32:04 -0800
+Message-ID: <cover.1321398814.git.joe@perches.com>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, uclinux-dist-devel@blackfin.uclinux.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Tarun,
+Joe Perches (4):
+  mmc: Update logging style
+  wbsd: Use current logging
+  mmc: Logging neatening
+  mmc: Add mmc_host_<level> logging
 
-On Tue, Sep 20, 2011 at 6:30 AM, Tarun Kanti DebBarma
-<tarun.kanti@ti.com> wrote:
-> Clock is enabled only when timer is started and disabled when the the=
- timer
-> is stopped. Therefore before accessing registers in functions clock i=
-s enabled
-> and then disabled back at the end of access. Context save is done dyn=
-amically
-> whenever the registers are modified. Context restore is called when c=
-ontext is
-> lost.
+ drivers/mmc/card/block.c        |    4 +-
+ drivers/mmc/card/mmc_test.c     |   77 ++++++---------
+ drivers/mmc/card/queue.c        |    6 +-
+ drivers/mmc/card/sdio_uart.c    |   10 +-
+ drivers/mmc/core/bus.c          |   27 ++---
+ drivers/mmc/core/core.c         |  116 ++++++++++-----------
+ drivers/mmc/core/host.c         |   14 +--
+ drivers/mmc/core/mmc.c          |   75 +++++---------
+ drivers/mmc/core/mmc_ops.c      |   12 +--
+ drivers/mmc/core/sd.c           |   73 +++++---------
+ drivers/mmc/core/sdio.c         |   11 +--
+ drivers/mmc/core/sdio_bus.c     |    6 +-
+ drivers/mmc/core/sdio_cis.c     |   10 +-
+ drivers/mmc/core/sdio_io.c      |   14 ++-
+ drivers/mmc/core/sdio_irq.c     |   24 ++--
+ drivers/mmc/host/at91_mci.c     |   12 +-
+ drivers/mmc/host/au1xmmc.c      |   35 +++---
+ drivers/mmc/host/bfin_sdh.c     |    3 +-
+ drivers/mmc/host/dw_mmc.c       |   18 ++--
+ drivers/mmc/host/mmc_spi.c      |    9 +-
+ drivers/mmc/host/mmci.c         |    8 +-
+ drivers/mmc/host/msm_sdcc.c     |  101 ++++++++----------
+ drivers/mmc/host/mvsdio.c       |   42 +++-----
+ drivers/mmc/host/omap_hsmmc.c   |   19 +---
+ drivers/mmc/host/pxamci.c       |    4 +-
+ drivers/mmc/host/s3cmci.c       |    3 +-
+ drivers/mmc/host/sdhci-pci.c    |   17 ++--
+ drivers/mmc/host/sdhci-pxav3.c  |    7 +-
+ drivers/mmc/host/sdhci.c        |  218 +++++++++++++++++----------------------
+ drivers/mmc/host/sdricoh_cs.c   |   12 +-
+ drivers/mmc/host/tifm_sd.c      |   12 +--
+ drivers/mmc/host/tmio_mmc.c     |    4 +-
+ drivers/mmc/host/tmio_mmc_pio.c |    4 +-
+ drivers/mmc/host/via-sdmmc.c    |   33 +++----
+ drivers/mmc/host/vub300.c       |   54 +++++-----
+ drivers/mmc/host/wbsd.c         |   72 ++++++--------
+ include/linux/mmc/host.h        |   11 ++
+ 37 files changed, 510 insertions(+), 667 deletions(-)
 
-Now that handling of the clock has been decoupled from
-omap_dm_timer_request_specific/free and placed in start/stop
-functions, there is a "possible irq lock inversion dependency
-detected" for any attempt to enable the clock from soft|hard irq.
-
-My use case is as follows:
-
-DSP sends a mailbox message to ARM, this triggers a tasklet in mailbox
-for processing the message, when it reaches tidspbridge it turns out
-that the DSP wants to enable a gpt timer; however, locks involved
-"clocks_mutex" and "dm_timer_lock" now could cause a deadlock as they
-have been called from unsafe contexts in the past
-(http://pastebin.com/7Dtz8t0f).
-
-Is the intention to restrict enabling the dmtimer clocks from hard|soft=
- irqs?
-
-=2E..
-> @@ -303,6 +342,22 @@ void omap_dm_timer_stop(struct omap_dm_timer *ti=
-mer)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rate =3D clk_get_rate(timer->fclk);
->
-> =A0 =A0 =A0 =A0__omap_dm_timer_stop(timer, timer->posted, rate, is_om=
-ap2);
-> +
-> + =A0 =A0 =A0 if (timer->loses_context) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (timer->get_context_loss_count)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->ctx_loss_count =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->get_context_loss=
-_count(&timer->pdev->dev);
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Since the register values are computed and written=
- within
-> + =A0 =A0 =A0 =A0* __omap_dm_timer_stop, we need to use read to retri=
-eve the
-> + =A0 =A0 =A0 =A0* context.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 timer->context.tclr =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dm_timer_read_reg(=
-timer, OMAP_TIMER_CTRL_REG);
-> + =A0 =A0 =A0 timer->context.tisr =3D __raw_readl(timer->irq_stat);
-> + =A0 =A0 =A0 omap_dm_timer_disable(timer);
-> =A0}
-> =A0EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
->
-
-I didn't review the whole patch, but at least this part is not in
-mainline, it seems like the patch modified by Tony and the v16 were
-not the same.
-
-I could diff and include the missing parts, if someone can confirm
-that we need v16, which I believe so, since current stop function
-doesn't call omap_dm_timer_disable.
-
-Regards,
-
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+1.7.6.405.gc1be0
