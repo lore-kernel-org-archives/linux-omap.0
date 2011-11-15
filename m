@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH/RESEND #3 4/7] arm: omap: smartreflex: move late_initcall() closer to its argument
-Date: Tue, 15 Nov 2011 10:46:02 +0200
-Message-ID: <1321346765-16633-5-git-send-email-balbi@ti.com>
+Subject: [PATCH/RESEND #3 7/7] arm: omap: smartreflex: micro-optimization for sanity check
+Date: Tue, 15 Nov 2011 10:46:05 +0200
+Message-ID: <1321346765-16633-8-git-send-email-balbi@ti.com>
 References: <1321346765-16633-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1321346765-16633-1-git-send-email-balbi@ti.com>
@@ -10,7 +10,7 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-no functional changes, trivial patch.
+val && (val != 1) == val > 1
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
@@ -18,22 +18,17 @@ Signed-off-by: Felipe Balbi <balbi@ti.com>
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index bb3bfc0..97375d2 100644
+index a5399df..9fee277 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -1095,12 +1095,12 @@ static int __init sr_init(void)
+@@ -868,7 +868,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
+ 	}
  
- 	return 0;
- }
-+late_initcall(sr_init);
- 
- static void __exit sr_exit(void)
- {
- 	platform_driver_unregister(&smartreflex_driver);
- }
--late_initcall(sr_init);
- module_exit(sr_exit);
- 
- MODULE_DESCRIPTION("OMAP Smartreflex Driver");
+ 	/* Sanity check */
+-	if (val && (val != 1)) {
++	if (val > 1) {
+ 		pr_warning("%s: Invalid argument %lld\n", __func__, val);
+ 		return -EINVAL;
+ 	}
 -- 
 1.7.8.rc0
