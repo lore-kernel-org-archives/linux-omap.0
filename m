@@ -1,50 +1,48 @@
-From: Joerg Roedel <Joerg.Roedel@amd.com>
-Subject: Re: [PATCH v4-rebased 0/7] iommu: split mapping to page sizes as
- supported by the hardware
-Date: Tue, 15 Nov 2011 16:49:54 +0100
-Message-ID: <20111115154954.GD5627@amd.com>
-References: <1320917551-11328-1-git-send-email-ohad@wizery.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 10/11] omap3+: use lp params for calculating clock
+ setup times
+Date: Tue, 15 Nov 2011 19:22:22 +0200
+Message-ID: <1321377742.2854.8.camel@sokoban>
+References: <1317835031-8201-1-git-send-email-t-kristo@ti.com>
+	 <1317835031-8201-11-git-send-email-t-kristo@ti.com> <87lirv600c.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:59645
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756434Ab1KOPuK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 15 Nov 2011 10:50:10 -0500
-Content-Disposition: inline
-In-Reply-To: <1320917551-11328-1-git-send-email-ohad@wizery.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:59865 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756836Ab1KORW0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 15 Nov 2011 12:22:26 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id pAFHMP5t004886
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 15 Nov 2011 11:22:25 -0600
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pAFHMPVs016066
+	for <linux-omap@vger.kernel.org>; Tue, 15 Nov 2011 11:22:25 -0600 (CST)
+Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pAFHMPYt027641
+	for <linux-omap@vger.kernel.org>; Tue, 15 Nov 2011 11:22:25 -0600 (CST)
+In-Reply-To: <87lirv600c.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, David Woodhouse <dwmw2@infradead.org>, linux-arm-kernel@lists.infradead.org, David Brown <davidb@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, Stepan Moskovchenko <stepanm@codeaurora.org>, KyongHo Cho <pullip.cho@samsung.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Nov 10, 2011 at 11:32:24AM +0200, Ohad Ben-Cohen wrote:
-> Ohad Ben-Cohen (7):
->   iommu/core: stop converting bytes to page order back and forth
->   iommu/core: split mapping to page sizes as supported by the hardware
->   iommu/omap: announce supported page sizes
->   iommu/msm: announce supported page sizes
->   iommu/amd: announce supported page sizes
->   iommu/intel: announce supported page sizes
->   iommu/core: remove the temporary pgsize settings
-> 
->  drivers/iommu/amd_iommu.c   |   32 +++++++++---
->  drivers/iommu/intel-iommu.c |   30 ++++++++---
->  drivers/iommu/iommu.c       |  119 ++++++++++++++++++++++++++++++++++++++----
->  drivers/iommu/msm_iommu.c   |   25 ++++-----
->  drivers/iommu/omap-iommu.c  |   18 +++---
->  drivers/iommu/omap-iovmm.c  |   17 ++----
->  include/linux/iommu.h       |   26 +++++++--
->  virt/kvm/iommu.c            |    8 ++--
->  8 files changed, 205 insertions(+), 70 deletions(-)
+Hi Kevin,
 
-Applied, thanks.
+Thanks for the comments and sorry for a bit late reply. I was busy with
+other stuff but can work on this again.
 
--- 
-AMD Operating System Research Center
+Anyway, all your comments to all of the patches make sense, and I will
+apply the changes to the next version of the set, also merging some of
+the patches back together again. One question though, do you want to
+have the auto_ret / auto_off support along with these changes? Some of
+the code in this set is only used when the auto_ret / auto_off is in,
+and it also makes it a bit more easier to test the resulting stuff.
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+-Tero
+
+
 
