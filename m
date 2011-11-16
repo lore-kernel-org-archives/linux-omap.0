@@ -1,67 +1,47 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: Re: [PATCH 3/4] mmc: Logging neatening
-Date: Wed, 16 Nov 2011 13:38:46 -0500
-Message-ID: <201111161338.53049.vapier@gentoo.org>
-References: <cover.1321398814.git.joe@perches.com> <d2c1a76fea1844ae7ac3e7e17183fb39df19178e.1321398814.git.joe@perches.com> <CAKYAXd8_mDF68PnEnpuZZQ+O8-QmrfRpP4jv+SpHDx1juTxFGQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart2319489.Vp8sye1eQN";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCHv2] ARM: OMAP: hsmmc: Fix mux for non-OMAP pins
+Date: Wed, 16 Nov 2011 19:56:12 +0100
+Message-ID: <1321469772-801-1-git-send-email-weber@corscience.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKYAXd8_mDF68PnEnpuZZQ+O8-QmrfRpP4jv+SpHDx1juTxFGQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: uclinux-dist-devel@blackfin.uclinux.org
-Cc: NamJae Jeon <linkinjeon@gmail.com>, Joe Perches <joe@perches.com>, Cliff Cai <cliff.cai@analog.com>, linux-omap@vger.kernel.org, Alex Dubov <oakad@yahoo.com>, Nicolas Pitre <nico@fluxnic.net>, linux-mmc@vger.kernel.org, linux-usb@vger.kernel.org, Nicolas Ferre <nicolas.ferre@atmel.com>, Harald Welte <HaraldWelte@viatech.com>, Bruce Chang <brucechang@via.com.tw>, Sascha Sommer <saschasommer@freenet.de>, linux-arm-kernel@lists.infradead.org, Tony Olech <tony.olech@elandigitalsystems.com>, Manuel Lauss <manuel.lauss@gmail.com>, Pierre Ossman <pierre@ossman.eu>, Chris Ball <cjb@laptop.org>, linux-kernel@vger.kernel.org
+To: tony@atomide.com
+Cc: Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, uwe.kleine-koenig@pengutronix.de
 List-Id: linux-omap@vger.kernel.org
 
---nextPart2319489.Vp8sye1eQN
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+The Devkit8000 uses a TWL4030 pin for card detection.
+Thats why the error:
+_omap_mux_init_gpio: Could not set gpio192
+occurs.
 
-On Tuesday 15 November 2011 20:48:05 NamJae Jeon wrote:
-> 2011/11/16 Joe Perches <joe@perches.com>:
-> >        mci_writel(host, CTRL, SDMMC_CTRL_INT_ENABLE); /* Enable mci
-> > interrupt */
-> >=20
-> > -       dev_info(&pdev->dev, "DW MMC controller at irq %d, "
-> > -                "%d bit host data width, "
-> > -                "%u deep fifo\n",
-> > +       dev_info(&pdev->dev,
-> > +       "DW MMC controller at irq %d, %d bit host data width, %u deep
-> > fifo\n", irq, width, fifo_size);
->=20
-> I think that tab is needed this "DW MMC controller at irq ...." ?
+This patch checks that the pin is on OMAP before
+calling omap_mux_init_gpio.
 
-looks to me like this was the only part you replied to.  could you please s=
-nip=20
-the unrelated context in the future ?  no reason to include ~1700 lines of=
-=20
-context when you only replying to like ~10 lines.
-=2Dmike
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+Changelog:
+v2: Remove backslash at end of line
 
---nextPart2319489.Vp8sye1eQN
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+ arch/arm/mach-omap2/hsmmc.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-
-iQIcBAABAgAGBQJOxAM8AAoJEEFjO5/oN/WB7usP/0XsO3sDmFr2DWVBW/lHyG50
-lrCFD215bQKBCxKw3SW8cDOGHPGQWKgwgpELLajPOEs7xsYeZTbSh1f79t07uaGL
-8Fzh+aKoM2dk4RXzJmBO1D2AavmMRZldMWGVeN8M/LIkPVmLeJ/0jgFmsMS/fa2c
-Ki+6dM7YApc3L0Keug7ehZ1SDhZjxT47uj7jCYa1wA6eJPyxxd1wPJ1V27MokdEt
-rJ/sMM61f2zKZ4T39idRsTiMToE9J57UnPocAdnw3IO2Nhq6gEmLfg6KE1DIz8w9
-Jfr1Scivr8BQdINhSXCng51LQvyNyp/3vGqHufD2zksyaGekWG46I34sIVp+hZzl
-/J1LcYxlebpl+6qblS4nzV/2ouIMmipF58grE+s71lsy9ptdQnSLZZEjSa+IXz22
-MfkXajA3XhNf0NdGw2TB0rq+gS/hgrSmwjofEt+TH0erm+CQxc/N5VqHA7okHJR5
-eLRokLZ8BmMBTkBEoac+u7858JoxUxpUoNkAFbTfT4PpXexAz4yd91WI6II+tG6b
-kW1Htbh+hm36unT7VluB1em3WGYcBhsACeHh620/Vp80L20E1Z9NK1OaiLF6uyfd
-8BIhqpY7RoXXto3Ce4tN3x0xhBD9XTlOh82geVHZ7JIJ60armEvtW+sJMF6uuPSF
-wNVbieuwRBXj1ji2jTsn
-=XUXI
------END PGP SIGNATURE-----
-
---nextPart2319489.Vp8sye1eQN--
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index f4a1020..c3aea79 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -200,10 +200,12 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
+ static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
+ {
+-	if (gpio_is_valid(mmc_controller->slots[0].switch_pin))
++	if (gpio_is_valid(mmc_controller->slots[0].switch_pin) &&
++		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
+ 		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
+ 					OMAP_PIN_INPUT_PULLUP);
+-	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp))
++	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp) &&
++		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
+ 		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
+ 					OMAP_PIN_INPUT_PULLUP);
+ 	if (cpu_is_omap34xx()) {
+-- 
+1.7.7.3
