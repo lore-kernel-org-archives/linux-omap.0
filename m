@@ -1,32 +1,41 @@
-From: David Brown <davidb@codeaurora.org>
-Subject: Re: [PATCH 4/4] mmc: Add mmc_host_<level> logging
-Date: Tue, 15 Nov 2011 21:00:46 -0800
-Message-ID: <20111116050046.GA422@huya.qualcomm.com>
-References: <cover.1321398814.git.joe@perches.com>
- <631c53d126feff0a99b61d9c9a00b308d2b638ee.1321398815.git.joe@perches.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] MTD: nand: Making  MTD_NAND_OMAP2 depend on ARCH_OMAP2PLUS
+Date: Wed, 16 Nov 2011 10:48:00 +0530
+Message-ID: <1321420680-4677-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <631c53d126feff0a99b61d9c9a00b308d2b638ee.1321398815.git.joe@perches.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Nicolas Pitre <nico@fluxnic.net>, Chris Ball <cjb@laptop.org>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, Ian Molton <ian@mnementh.co.uk>, Bruce Chang <brucechang@via.com.tw>, Harald Welte <HaraldWelte@viatech.com>, Pierre Ossman <pierre@ossman.eu>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-arm-msm@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40457 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752618Ab1KPFSU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Nov 2011 00:18:20 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-mtd@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On Tue, Nov 15, 2011 at 03:32:08PM -0800, Joe Perches wrote:
+Making  MTD_NAND_OMAP2 depend on ARCH_OMAP2PLUS instead of
+oring with ARCH2/3/4.
 
-> Centralize the pr_<level> uses of mmc_hostname into specific
-> mmc_host_<level> calls to allow a flexible presentation style
-> and shorten the code a bit.
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/mtd/nand/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
->  drivers/mmc/host/msm_sdcc.c     |  101 ++++++++++++++++++---------------------
-
-The MSM ones at least are quite straightforward, so I'm fine with this
-part of the change.
-
-Acked-by: David Brown <davidb@codeaurora.org>
-
+diff --git a/drivers/mtd/nand/Kconfig b/drivers/mtd/nand/Kconfig
+index cce7b70..b68dd5e 100644
+--- a/drivers/mtd/nand/Kconfig
++++ b/drivers/mtd/nand/Kconfig
+@@ -110,7 +110,7 @@ config MTD_NAND_AMS_DELTA
+ 
+ config MTD_NAND_OMAP2
+ 	tristate "NAND Flash device on OMAP2, OMAP3 and OMAP4"
+-	depends on ARM && (ARCH_OMAP2 || ARCH_OMAP3 || ARCH_OMAP4)
++	depends on ARCH_OMAP2PLUS
+ 	help
+           Support for NAND flash on Texas Instruments OMAP2, OMAP3 and OMAP4
+ 	  platforms.
 -- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+1.7.1
+
