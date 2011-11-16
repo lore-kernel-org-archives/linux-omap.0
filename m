@@ -1,55 +1,72 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 1/3] ARM: omap_device: handle first time activation of
- console device
-Date: Wed, 16 Nov 2011 08:50:44 -0600
-Message-ID: <4EC3CDC4.7000108@gmail.com>
-References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-2-git-send-email-rnayak@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] arm:omap:serial:cleanup: use module rev instead of
+ cpu_is_xxxx
+Date: Wed, 16 Nov 2011 14:53:15 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A803242D@DBDE01.ent.ti.com>
+References: <1320677860-32663-1-git-send-email-hvaibhav@ti.com>
+ <87k47bsonr.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1321441346-19591-2-git-send-email-rnayak@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, linaro-dev@lists.linaro.org, tony@atomide.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42387 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752268Ab1KPOxZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Nov 2011 09:53:25 -0500
+In-Reply-To: <87k47bsonr.fsf@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-On 11/16/2011 05:02 AM, Rajendra Nayak wrote:
-> console device on OMAP is never reset or idled by hwmod post
-> initial setup, early during boot, for obvious reasons not to
-> break early debug prints thrown on console.
-> This leaves the console device enabled at boot and the first activation
-> of it using hwmod needs to be handled in such a way that a disable is
-> called followed by an enable of the hwmod, the subsequent activations
-> can then use the default activation technique.
-> 
-> To handle this add a new binding to identify a hwmod which is used as
-> the console device.
-> 
-> This patch is based on the what is done in serial.c for non-DT builds.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  .../devicetree/bindings/arm/omap/omap.txt          |    1 +
->  arch/arm/plat-omap/omap_device.c                   |   33 +++++++++++++++++++-
->  2 files changed, 33 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> index dbdab40..46ffd41 100644
-> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> @@ -21,6 +21,7 @@ Required properties:
->  Optional properties:
->  - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
->    during suspend.
-> +- ti,console_hwmod: boolean, identifies the hwmod used as console device
->  
 
-This doesn't seem right. Which console is not a h/w property. Why can't
-you use aliases like other platforms are doing?
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Tuesday, November 08, 2011 1:15 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com
+> Subject: Re: [PATCH] arm:omap:serial:cleanup: use module rev instead of
+> cpu_is_xxxx
+> 
+> Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> 
+> > For OMAP3 uarts (module rev >= 0x52) and all successor devices
+> > (omap4, TI81xx, AM33xx, etc...) empty fifo read errata is applicable,
+> > so we can get rid of cpu_is_xxxx check and simply check for module rev
+> here.
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> > NOTE: This patch has been tested on OMAP3EVM, and I expect to work on
+> all OMAP3
+> > family of devices (including TI816x, TI814x, AM335x, etc...).
+> > but I am quite not sure about OMAP2 device, can anybody comment/test?
+> 
+> Leaving OMAP2 as it is should be fine.
+> 
+> There is a major UART cleanup in progress from Govindraj.  I suggest you
+> rework this patch on top of his series from 10/18:
+> 
+>        [PATCH v7 00/21] OMAP2+: UART: Runtime adaptation + cleanup
+> 
+> although it still has a few changes to go through before being ready to
+> merge.
+> 
+Kevin,
 
-Also, it's not clear in the documentation where this (and
-ti,no_idle_on_suspend) should go in the DT. Both seem like they should
-be kernel cmdline params.
+Sorry, I missed to update on this.
 
-Rob
+We do not need this patch anymore. With latest cleanup series from Govindraj, it is already taken care. Please read below commit description -
+
+-------------From Govindraj's commit (405b5009)------------
+Serial_in and serial_out override for 8250 serial driver is also
+removed. Empty fifo read fix is already taken care with omap-serial
+driver with data ready bit check from LSR reg before reading RX fifo.
+Also waiting for THRE(transmit hold reg empty) is done with wait_for_xmitr
+in omap-serial driver.
+
+Thanks,
+Vaibhav
+
+> Kevin
