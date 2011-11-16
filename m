@@ -1,137 +1,67 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] ARM: omap_device: handle first time activation of
- console device
-Date: Wed, 16 Nov 2011 19:18:49 +0100
-Message-ID: <4EC3FE89.5050303@ti.com>
-References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-2-git-send-email-rnayak@ti.com> <4EC3CDC4.7000108@gmail.com> <4EC3D360.8000800@ti.com> <4EC3D9BD.2080107@gmail.com>
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: Re: [PATCH 3/4] mmc: Logging neatening
+Date: Wed, 16 Nov 2011 13:38:46 -0500
+Message-ID: <201111161338.53049.vapier@gentoo.org>
+References: <cover.1321398814.git.joe@perches.com> <d2c1a76fea1844ae7ac3e7e17183fb39df19178e.1321398814.git.joe@perches.com> <CAKYAXd8_mDF68PnEnpuZZQ+O8-QmrfRpP4jv+SpHDx1juTxFGQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart2319489.Vp8sye1eQN";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55621 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751630Ab1KPSTD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Nov 2011 13:19:03 -0500
-In-Reply-To: <4EC3D9BD.2080107@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAKYAXd8_mDF68PnEnpuZZQ+O8-QmrfRpP4jv+SpHDx1juTxFGQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: uclinux-dist-devel@blackfin.uclinux.org
+Cc: NamJae Jeon <linkinjeon@gmail.com>, Joe Perches <joe@perches.com>, Cliff Cai <cliff.cai@analog.com>, linux-omap@vger.kernel.org, Alex Dubov <oakad@yahoo.com>, Nicolas Pitre <nico@fluxnic.net>, linux-mmc@vger.kernel.org, linux-usb@vger.kernel.org, Nicolas Ferre <nicolas.ferre@atmel.com>, Harald Welte <HaraldWelte@viatech.com>, Bruce Chang <brucechang@via.com.tw>, Sascha Sommer <saschasommer@freenet.de>, linux-arm-kernel@lists.infradead.org, Tony Olech <tony.olech@elandigitalsystems.com>, Manuel Lauss <manuel.lauss@gmail.com>, Pierre Ossman <pierre@ossman.eu>, Chris Ball <cjb@laptop.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, khilman@ti.com, linaro-dev@lists.linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, govindraj.raja@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 11/16/2011 4:41 PM, Rob Herring wrote:
-> Benoit,
->
-> On 11/16/2011 09:14 AM, Cousson, Benoit wrote:
->> Hi Rob,
->>
->> On 11/16/2011 3:50 PM, Rob Herring wrote:
->>> On 11/16/2011 05:02 AM, Rajendra Nayak wrote:
->>>> console device on OMAP is never reset or idled by hwmod post
->>>> initial setup, early during boot, for obvious reasons not to
->>>> break early debug prints thrown on console.
->>>> This leaves the console device enabled at boot and the first activation
->>>> of it using hwmod needs to be handled in such a way that a disable is
->>>> called followed by an enable of the hwmod, the subsequent activations
->>>> can then use the default activation technique.
->>>>
->>>> To handle this add a new binding to identify a hwmod which is used as
->>>> the console device.
->>>>
->>>> This patch is based on the what is done in serial.c for non-DT builds.
->>>>
->>>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->>>> ---
->>>>    .../devicetree/bindings/arm/omap/omap.txt          |    1 +
->>>>    arch/arm/plat-omap/omap_device.c                   |   33
->>>> +++++++++++++++++++-
->>>>    2 files changed, 33 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> index dbdab40..46ffd41 100644
->>>> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
->>>> @@ -21,6 +21,7 @@ Required properties:
->>>>    Optional properties:
->>>>    - ti,no_idle_on_suspend: When present, it prevents the PM to idle
->>>> the module
->>>>      during suspend.
->>>> +- ti,console_hwmod: boolean, identifies the hwmod used as console
->>>> device
->>>>
->>>
->>> This doesn't seem right. Which console is not a h/w property. Why can't
->>> you use aliases like other platforms are doing?
->>>
->>> Also, it's not clear in the documentation where this (and
->>> ti,no_idle_on_suspend) should go in the DT. Both seem like they should
->>> be kernel cmdline params.
->>
->> That raise the question about using DT to pass linux specific parameter.
->> We already discuss that on the mailing list, but never get a clear answer.
->> It seems that DT is already used to provide some OS specific information
->> using the "linux," prefix for example.
->
-> True, but "linux," properties will always face resistance and scrutiny.
+--nextPart2319489.Vp8sye1eQN
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-OK, that's good to know. So we should avoid abusing that kind of prefix.
+On Tuesday 15 November 2011 20:48:05 NamJae Jeon wrote:
+> 2011/11/16 Joe Perches <joe@perches.com>:
+> >        mci_writel(host, CTRL, SDMMC_CTRL_INT_ENABLE); /* Enable mci
+> > interrupt */
+> >=20
+> > -       dev_info(&pdev->dev, "DW MMC controller at irq %d, "
+> > -                "%d bit host data width, "
+> > -                "%u deep fifo\n",
+> > +       dev_info(&pdev->dev,
+> > +       "DW MMC controller at irq %d, %d bit host data width, %u deep
+> > fifo\n", irq, width, fifo_size);
+>=20
+> I think that tab is needed this "DW MMC controller at irq ...." ?
 
->> There are clearly a couple of parameters that can be provided by the
->> bootloader, but that does not reflect a HW property.
->>
->> So what is the guideline for that, should we stick to cmdline params for
->> that?
->>
->
-> I would say that if the setting does not depend on something in the DT,
-> then the cmdline is the right place. If you have a property that
-> references a phandle, then it can't be on the cmdline. For console
-> selection, there is already a defined way to select it with
-> console=blah. And there is an agreed way to define indexes in the DT
-> with aliases.
+looks to me like this was the only part you replied to.  could you please s=
+nip=20
+the unrelated context in the future ?  no reason to include ~1700 lines of=
+=20
+context when you only replying to like ~10 lines.
+=2Dmike
 
-OK, I saw that in some DT adapted serial driver, we can retrieve the 
-index from the string "serial<x>" and thus can get the console from the 
-ttyS number.
+--nextPart2319489.Vp8sye1eQN
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-> How were these properties set without DT?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
 
- From the board file most of the time. Or using some dirty hacks here 
-and there :-)
+iQIcBAABAgAGBQJOxAM8AAoJEEFjO5/oN/WB7usP/0XsO3sDmFr2DWVBW/lHyG50
+lrCFD215bQKBCxKw3SW8cDOGHPGQWKgwgpELLajPOEs7xsYeZTbSh1f79t07uaGL
+8Fzh+aKoM2dk4RXzJmBO1D2AavmMRZldMWGVeN8M/LIkPVmLeJ/0jgFmsMS/fa2c
+Ki+6dM7YApc3L0Keug7ehZ1SDhZjxT47uj7jCYa1wA6eJPyxxd1wPJ1V27MokdEt
+rJ/sMM61f2zKZ4T39idRsTiMToE9J57UnPocAdnw3IO2Nhq6gEmLfg6KE1DIz8w9
+Jfr1Scivr8BQdINhSXCng51LQvyNyp/3vGqHufD2zksyaGekWG46I34sIVp+hZzl
+/J1LcYxlebpl+6qblS4nzV/2ouIMmipF58grE+s71lsy9ptdQnSLZZEjSa+IXz22
+MfkXajA3XhNf0NdGw2TB0rq+gS/hgrSmwjofEt+TH0erm+CQxc/N5VqHA7okHJR5
+eLRokLZ8BmMBTkBEoac+u7858JoxUxpUoNkAFbTfT4PpXexAz4yd91WI6II+tG6b
+kW1Htbh+hm36unT7VluB1em3WGYcBhsACeHh620/Vp80L20E1Z9NK1OaiLF6uyfd
+8BIhqpY7RoXXto3Ce4tN3x0xhBD9XTlOh82geVHZ7JIJ60armEvtW+sJMF6uuPSF
+wNVbieuwRBXj1ji2jTsn
+=XUXI
+-----END PGP SIGNATURE-----
 
->> Quoting Grant's documentation, runtime configuration is supported:
->>
->> "Runtime configuration
->>
->> In most cases, a DT will be the sole method of communicating data from
->> firmware to the kernel, so also gets used to pass in runtime and
->> configuration data like the kernel parameters string and the location of
->> an initrd image.
->>
->> Most of this data is contained in the /chosen node, and when booting
->> Linux it will look something like this:
->>
->>      chosen {
->>          bootargs = "console=ttyS0,115200 loglevel=8";
->>          initrd-start =<0xc8000000>;
->>          initrd-end =<0xc8200000>;
->>      };
->>
->> The bootargs property contains the kernel arguments, and the initrd-*
->> properties define the address and size of an initrd blob. The chosen
->> node may also optionally contain an arbitrary number of additional
->> properties for platform-specific configuration data."
->>
->>
->> Does that mean that this is supported only if the bootloader does not
->> support cmdline?
->
-> No. I think it means chosen can be extended. However, how many other
-> chosen properties are defined? Not very many. Clearly, it's not a place
-> for adding whatever random property you want. chosen is really the boot
-> interface between the bootloader and kernel as it is ATAG type data.
-
-OK, thanks for the clarification.
-
-Regards,
-Benoit
+--nextPart2319489.Vp8sye1eQN--
