@@ -1,44 +1,54 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 4/6] OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and CORE constraints
-Date: Thu, 17 Nov 2011 13:29:54 -0800
-Message-ID: <877h2y30a5.fsf@ti.com>
-References: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
-	<1319032263-22699-5-git-send-email-j-pihet@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Thomas Weber <weber@corscience.de>
+Subject: [PATCHv2] ARM: OMAP: hsmmc: Fix mux for non-OMAP pins
+Date: Thu, 17 Nov 2011 22:39:40 +0100
+Message-ID: <1321565988-4511-3-git-send-email-weber@corscience.de>
+References: <1321565988-4511-1-git-send-email-weber@corscience.de>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56017 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752144Ab1KQVaA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 16:30:00 -0500
-Received: by mail-gx0-f179.google.com with SMTP id q2so2032507ggn.24
-        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 13:29:58 -0800 (PST)
-In-Reply-To: <1319032263-22699-5-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Wed, 19 Oct 2011 15:51:01 +0200")
+Received: from mail-out.m-online.net ([212.18.0.10]:50321 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751254Ab1KQVkL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Nov 2011 16:40:11 -0500
+In-Reply-To: <1321565988-4511-1-git-send-email-weber@corscience.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+To: trivial@kernel.org
+Cc: jkosina@suse.cz, Thomas Weber <weber@corscience.de>, Russell King <linux@arm.linux.org.uk>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, uwe.kleine-koenig@pengutronix.de
 
-jean.pihet@newoldbits.com writes:
+The Devkit8000 uses a TWL4030 pin for card detection.
+Thats why the error:
+_omap_mux_init_gpio: Could not set gpio192
+occurs.
 
-> From: Jean Pihet <j-pihet@ti.com>
->
-> The MPU latency figures for cpuidle include the MPU itself and also
-> the peripherals needed for the MPU to execute instructions (e.g.
-> main memory, caches, IRQ controller, MMU etc). On OMAP3 those
-> peripherals belong to the MPU and CORE power domains and so the
-> cpuidle C-states are a combination of MPU and CORE states.
->
-> This patch implements the relation between the cpuidle and per-
-> device PM QoS frameworks in the OMAP3 specific idle callbacks.
->
-> The chosen C-state shall satisfy the following conditions:
->  . the 'valid' field is enabled,
->  . it satisfies the enable_off_mode flag,
+This patch checks that the pin is on OMAP before
+calling omap_mux_init_gpio.
 
-Not directly related to this patch, but is there any reason to keep the
-'enable_off_mode' flag after this series?
+Signed-off-by: Thomas Weber <weber@corscience.de>
+---
+Changelog:
+v2: Remove backslash at end of line
 
-Kevin
+ arch/arm/mach-omap2/hsmmc.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index f4a1020..c3aea79 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -200,10 +200,12 @@ static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
+ static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
+ {
+-	if (gpio_is_valid(mmc_controller->slots[0].switch_pin))
++	if (gpio_is_valid(mmc_controller->slots[0].switch_pin) &&
++		(mmc_controller->slots[0].switch_pin < OMAP_MAX_GPIO_LINES))
+ 		omap_mux_init_gpio(mmc_controller->slots[0].switch_pin,
+ 					OMAP_PIN_INPUT_PULLUP);
+-	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp))
++	if (gpio_is_valid(mmc_controller->slots[0].gpio_wp) &&
++		(mmc_controller->slots[0].gpio_wp < OMAP_MAX_GPIO_LINES))
+ 		omap_mux_init_gpio(mmc_controller->slots[0].gpio_wp,
+ 					OMAP_PIN_INPUT_PULLUP);
+ 	if (cpu_is_omap34xx()) {
+-- 
+1.7.7.3
+
