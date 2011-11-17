@@ -1,71 +1,89 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v16 09/12] OMAP: dmtimer: low-power mode support
-Date: Thu, 17 Nov 2011 15:12:26 +0530
-Message-ID: <CAC83Zv+8+gh_bvtp90s+jiQNuxLcA=R2503V9swupnA1S91L_Q@mail.gmail.com>
-References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
-	<1316518227-28116-10-git-send-email-tarun.kanti@ti.com>
-	<CAPTm=KGDEKGxLpJt0t6k_NL5Wz81NkMmRJ+OkmyvHedd6_exgQ@mail.gmail.com>
-	<CAC83ZvJSev97waAOuzoJsFTX4vmeVFxkg6BzpjQm+Tjo3cbhpg@mail.gmail.com>
-	<CAPTm=KHxSvyCb4i02vnuU9Wz-0j3h+h_UvDc0An5mwb2472dPg@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/3] ARM: omap_device: handle first time activation of
+ console device
+Date: Thu, 17 Nov 2011 10:52:44 +0100
+Message-ID: <4EC4D96C.9050804@ti.com>
+References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-2-git-send-email-rnayak@ti.com> <4EC3D037.6020901@ti.com> <4EC4B56F.2040504@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:52229 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755461Ab1KQJm3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 04:42:29 -0500
-Received: by eyd10 with SMTP id 10so1990643eyd.41
-        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 01:42:26 -0800 (PST)
-In-Reply-To: <CAPTm=KHxSvyCb4i02vnuU9Wz-0j3h+h_UvDc0An5mwb2472dPg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <4EC4B56F.2040504@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <or.rmz1@gmail.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Thu, Nov 17, 2011 at 6:23 AM, Omar Ramirez Luna <or.rmz1@gmail.com> wrote:
-> On Wed, Nov 16, 2011 at 12:18 AM, DebBarma, Tarun Kanti
-> <tarun.kanti@ti.com> wrote:
-> ...
->>> My use case is as follows:
->>>
->>> DSP sends a mailbox message to ARM, this triggers a tasklet in mailbox
->>> for processing the message, when it reaches tidspbridge it turns out
->>> that the DSP wants to enable a gpt timer; however, locks involved
->>> "clocks_mutex" and "dm_timer_lock" now could cause a deadlock as they
->>> have been called from unsafe contexts in the past
->>> (http://pastebin.com/7Dtz8t0f).
->>>
->>> Is the intention to restrict enabling the dmtimer clocks from hard|soft irqs?
->> The aim is to prevent client drivers perform clock enable/disable independently.
->> Instead just use the request/start/stop APIs. In that way we can make clock
->> enable/disable functions static in the future.
+Hi Rajendra,
+
+On 11/17/2011 8:19 AM, Rajendra Nayak wrote:
+> [...]
+>>> +static int omap_console_hwmod_enable(struct omap_device *od)
+>>> +{
+>>> + console_lock();
+>>> + /*
+>>> + * For early console we prevented hwmod reset and idle
+>>
+>> A period is missing. Or maybe it should a comma with not capital letter.
+>>
+>>> + * So before we enable the uart clocks idle the console
+>>> + * uart clocks, then enable back the console uart hwmod.
+>>> + */
+>>> + omap_hwmod_idle(od->hwmods[0]);
+>>> + omap_hwmod_enable(od->hwmods[0]);
+>>
+>> Why do we have to idle -> enable? The module is already enabled, isn't
+>> it?
+>> The comment is not super clear for me :-)
+>> Is the goal is to reset the IP?
 >
-> Those are the APIs I'm using, omap_dm_timer_request_specific from a
-> softirq triggers this warning, this was not hinted by the patch or
-> cover letter of the series, hence the question:
+> Yes, now that I read it, it does sound confusing. I should have at-least
+> read it once before I picked it from serial.c
 >
-> Was this change intentional? Does omap_dm_timer_request_specific
-> should be allowed on other contexts (soft|hard irq)?
-omap_dm_timer_request_specific() uses spin_lock_irqsave and
-spin_unlock_irqrestore
-to protect the timer list. There is nothing specific to prevent this
-function from being
-called from interrupt context. But you probably have to be careful to
-avoid deadlock
-in the interrupt context by disabling interrupts appropriately so that
-we avoid trying
-to re-acquire the lock. If you send me the code snippet I can have a look.
---
-Tarun
+> But anyway, here's what the problem is.
 >
-> ...
->> You are right. This change some how got missed in mainline.
->> I have posted a patch for this already.
+> I feel its partly to do with the inability of hwmod to handle some
+> modules which are left enabled post a setup, due to the
+> 'HWMOD_INIT_NO_IDLE' flag set.
+> Such modules end up with a hwmod state as '_HWMOD_STATE_ENABLED' post
+> a setup. Now when a driver for such devices/modules tries to enable the
+> module the first time, hwmod throws up a big WARN stating the hwmod is
+> already in an enabled state.
+
+OK, now, that makes sense :-)
+We have hwmod in ENABLE state whereas the omap_device is still in IDLE 
+or even DISABLE.
+
+> [uart used as console is one such module, which cannot be idled post a
+> setup by hwmod]
 >
-> Ok.
->
-> Regards,
->
-> Omar
->
+> If hwmod could be made in some way intelligent enough to know that the
+> module is in enabled state because of the 'HWMOD_INIT_NO_IDLE' itself,
+> a lot of this hackery might not be needed at all.
+
+Fully agree, the fmwk should handle that.
+
+> Simplest way to do it could be to just add another intermediate state,
+> something like '_HWMOD_STATE_ENABLED_AT_INIT'.
+> I will post a patch for this, see if you like it being handled that way.
+
+That seems to be good. I'm just wondering if we need to introduce a new 
+state for that or use a dedicated flag.
+My concern is just that we will have two flavors of HWMOD_STATE_ENABLED 
+that we will have to check in various places in the hwmod core code.
+
+Maybe that's not such a big deal. Go ahead, and we will see how it looks 
+like.
+
+> The other part of the problem is also with the inability to hook up
+> 'custom' omap_device_pm_latency for omap devices created from DT.
+> Maybe a lot of such cases which need custom activate/deactivate
+> functions might have to be handled in some way in the framework
+> itself like the one above.
+
+For the moment, it looks like only the serial is requiring such custom 
+stuff, but anyway, we should have a mechanism to allow that...
+
+Thanks,
+Benoit
+
