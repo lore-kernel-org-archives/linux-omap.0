@@ -1,57 +1,62 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 1/3] ARM: omap_device: handle first time activation of
- console device
-Date: Thu, 17 Nov 2011 13:01:16 +0530
-Message-ID: <4EC4B844.5060603@ti.com>
-References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-2-git-send-email-rnayak@ti.com> <4EC3CDC4.7000108@gmail.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: arm pmu interrupt on pandaboard
+Date: Thu, 17 Nov 2011 15:53:05 +0800
+Message-ID: <CACVXFVOirXk63bxNbkAAoVg2syQAKkXL_zL4ONbkh9uZfaw55A@mail.gmail.com>
+References: <1321513474.40681.YahooMailNeo@web125720.mail.ne1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:53598 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752032Ab1KQHbY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 02:31:24 -0500
-In-Reply-To: <4EC3CDC4.7000108@gmail.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:41185 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab1KQHxH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Nov 2011 02:53:07 -0500
+Received: by wyh11 with SMTP id 11so1597710wyh.19
+        for <linux-omap@vger.kernel.org>; Wed, 16 Nov 2011 23:53:06 -0800 (PST)
+In-Reply-To: <1321513474.40681.YahooMailNeo@web125720.mail.ne1.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, linaro-dev@lists.linaro.org, tony@atomide.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org
+To: Fan Ye <mouseyefan@yahoo.com>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
 
-Hi Rob,
+Hi,
 
-On Wednesday 16 November 2011 08:20 PM, Rob Herring wrote:
-[]...
->>
->> diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
->> index dbdab40..46ffd41 100644
->> --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
->> +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
->> @@ -21,6 +21,7 @@ Required properties:
->>   Optional properties:
->>   - ti,no_idle_on_suspend: When present, it prevents the PM to idle the module
->>     during suspend.
->> +- ti,console_hwmod: boolean, identifies the hwmod used as console device
->>
+On Thu, Nov 17, 2011 at 3:04 PM, Fan Ye <mouseyefan@yahoo.com> wrote:
+> Hi Tom,
+> I am currently working on PMU interrupt on Pandaboard.I use the patch=
+ sent
+> by you:
+> http://lists.infradead.org/pipermail/linux-arm-kernel/2011-March/0452=
+83.html
 >
-> This doesn't seem right. Which console is not a h/w property. Why can't
-> you use aliases like other platforms are doing?
-
-After thinking of this some more, I figured its more of a hwmod problem
-to be solved, than with being able to identify which console.
-Will post a separate patch to fix it up in hmwod and drop this from the
-DT series.
-
-Thanks for the review.
-
-regards,
-Rajendra
-
+> But it will fail to boot the kernel. So I also apply the following pa=
+tch:
+> http://lists.linaro.org/pipermail/linaro-dev/2011-April/004019.html
 >
-> Also, it's not clear in the documentation where this (and
-> ti,no_idle_on_suspend) should go in the DT. Both seem like they should
-> be kernel cmdline params.
->
-> Rob
+> Now the kernel can boot up successfully. But I find that PMU interrup=
+t is
+> not=A0triggered=A0even if the PMU overflow happens and the interrupt =
+is enabled
+> in the=A0PMINTENSET register.
 
+I have posted some new code about the issue, see
+
+       http://marc.info/?t=3D131946776600001&r=3D1&w=3D2
+
+I think this one can make your pmu work, :-)
+
+> The code base I am using is
+> http://git.linaro.org/gitweb?p=3Dkernel/linux-linaro-2.6.39.git;a=3Ds=
+ummary
+> Thank you very much.
+> Ye Fan
+>
+
+thanks,
+--=20
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
