@@ -1,61 +1,46 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] arm: omap2: fix build failure
-Date: Thu, 17 Nov 2011 11:36:33 -0800
-Message-ID: <87aa7u4k3i.fsf@ti.com>
-References: <1320726849-11854-1-git-send-email-tom.leiming@gmail.com>
-	<87mxc61kpw.fsf@ti.com>
-	<CACVXFVMtaiFiKSRh8geVpOzymtZsaUKc9tDHfgJYR57N+RQZ-g@mail.gmail.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] I2C: OMAP: fix the clearing of interrupts
+Date: Thu, 17 Nov 2011 11:50:35 -0800
+Message-ID: <8762ii4jg4.fsf@ti.com>
+References: <1321425992-6189-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:44189 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752580Ab1KQTgl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 14:36:41 -0500
-Received: by mail-ey0-f180.google.com with SMTP id 5so3644637eyg.25
-        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 11:36:39 -0800 (PST)
-In-Reply-To: <CACVXFVMtaiFiKSRh8geVpOzymtZsaUKc9tDHfgJYR57N+RQZ-g@mail.gmail.com>
-	(Ming Lei's message of "Thu, 17 Nov 2011 11:00:18 +0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1321425992-6189-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Wed, 16 Nov 2011 12:16:32 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Ming Lei <tom.leiming@gmail.com> writes:
+Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-> On Wed, Nov 9, 2011 at 3:24 AM, Kevin Hilman <khilman@ti.com> wrote:
->> tom.leiming@gmail.com writes:
->>
->>> From: Ming Lei <tom.leiming@gmail.com>
->>>
->>> The patch fixes the compile failure:
->>>
->>> =C2=A0 CC =C2=A0 =C2=A0 =C2=A0arch/arm/mach-omap2/cpuidle34xx.o
->>> arch/arm/mach-omap2/cpuidle34xx.c:317:12: error: 'THIS_MODULE'
->>> undeclared here (not in a function)
->>> make[1]: *** [arch/arm/mach-omap2/cpuidle34xx.o] Error 1
->>> make: *** [arch/arm/mach-omap2] Error 2
->>> make: *** Waiting for unfinished jobs....
->>>
->>> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
->>
->> FYI...
->>
->> Tony has already queued fix for this in his fixes branch.
->>
->> =C2=A0 =C2=A0 http://marc.info/?l=3Dlinux-arm-kernel&m=3D13207103662=
-1713&w=3D2
+> The register IRQENABLE_CLR is a bit map of interrupt events.
+> All the bits have to be cleared to clear the interrupts.
 >
-> The fix is not merged into 3.2.0-rc2-next-20111116+ yet...
+> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 2dfb631..c7c6bb2 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -309,7 +309,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+>  
+>  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+>  	if (dev->rev >= OMAP_I2C_REV_ON_4430)
+> -		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 0x6FFF);
 
-OK, but that doesn't mean you have to keep sending it.  It just means
-Tony's fixes branch isn't in -next (yet.)
+While fixing, please #define this mask, and add a comment to why all the
+bits set in the mask.
+
+Thanks,
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>  	else
+>  		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
