@@ -1,174 +1,55 @@
 From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-Subject: [PATCH 1/2] cbus: Fix nested IRQ acking
-Date: Thu, 17 Nov 2011 23:38:42 +0100
-Message-ID: <20111117233842.35885b23@milhouse>
+Subject: [PATCH 2/2] cbus: Fix initialization of cached IRQ masks
+Date: Thu, 17 Nov 2011 23:38:47 +0100
+Message-ID: <20111117233847.64fad21a@milhouse>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:41966 "EHLO bues.ch"
+Received: from bues.ch ([80.190.117.144]:41969 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753534Ab1KQWkc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 17:40:32 -0500
+	id S1753579Ab1KQWke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Nov 2011 17:40:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-chip->irq_ack is never called for nested threaded IRQs, because they
-don't have a primary IRQ handler.
-So we must ACK the IRQs in the toplevel retu and tahvo IRQ handler threads.
+This fixes the initialization of retu/tahvo cached IRQ masks.
 
 Signed-off-by: Michael Buesch <m@bues.ch>
 
 ---
 
+
 Index: linux-3.1.1/drivers/cbus/retu.c
 ===================================================================
---- linux-3.1.1.orig/drivers/cbus/retu.c	2011-11-17 23:23:53.542699149 +0100
-+++ linux-3.1.1/drivers/cbus/retu.c	2011-11-17 23:23:55.830689859 +0100
-@@ -53,9 +53,6 @@ struct retu {
+--- linux-3.1.1.orig/drivers/cbus/retu.c	2011-11-17 23:09:26.498214061 +0100
++++ linux-3.1.1/drivers/cbus/retu.c	2011-11-17 23:15:50.280659655 +0100
+@@ -451,7 +451,8 @@ static int __devinit retu_probe(struct p
+ 			(rev >> 4) & 0x07, rev & 0x0f);
  
- 	int			irq;
+ 	/* Mask all RETU interrupts */
+-	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
++	retu->mask = 0xFFFF;
++	__retu_write_reg(retu, RETU_REG_IMR, retu->mask);
  
--	int			ack;
--	bool			ack_pending;
--
- 	int			mask;
- 	bool			mask_pending;
- 
-@@ -191,9 +188,10 @@ static irqreturn_t retu_irq_handler(int
- 	mutex_lock(&retu->mutex);
- 	idr = __retu_read_reg(retu, RETU_REG_IDR);
- 	imr = __retu_read_reg(retu, RETU_REG_IMR);
-+	idr &= ~imr;
-+	__retu_write_reg(retu, RETU_REG_IDR, idr);
- 	mutex_unlock(&retu->mutex);
- 
--	idr &= ~imr;
- 	if (!idr) {
- 		dev_vdbg(retu->dev, "No IRQ, spurious?\n");
- 		return IRQ_NONE;
-@@ -232,15 +230,6 @@ static void retu_irq_unmask(struct irq_d
- 
- }
- 
--static void retu_irq_ack(struct irq_data *data)
--{
--	struct retu		*retu = irq_data_get_irq_chip_data(data);
--	int			irq = data->irq;
--
--	retu->ack |= (1 << (irq - retu->irq_base));
--	retu->ack_pending = true;
--}
--
- static void retu_bus_lock(struct irq_data *data)
- {
- 	struct retu		*retu = irq_data_get_irq_chip_data(data);
-@@ -257,11 +246,6 @@ static void retu_bus_sync_unlock(struct
- 		retu->mask_pending = false;
- 	}
- 
--	if (retu->ack_pending) {
--		__retu_write_reg(retu, RETU_REG_IDR, retu->ack);
--		retu->ack_pending = false;
--	}
--
- 	mutex_unlock(&retu->mutex);
- }
- 
-@@ -271,7 +255,6 @@ static struct irq_chip retu_irq_chip = {
- 	.irq_bus_sync_unlock	= retu_bus_sync_unlock,
- 	.irq_mask		= retu_irq_mask,
- 	.irq_unmask		= retu_irq_unmask,
--	.irq_ack		= retu_irq_ack,
- };
- 
- static inline void retu_irq_setup(int irq)
-@@ -291,8 +274,7 @@ static void retu_irq_init(struct retu *r
- 
- 	for (irq = base; irq < end; irq++) {
- 		irq_set_chip_data(irq, retu);
--		irq_set_chip_and_handler(irq, &retu_irq_chip,
--				handle_simple_irq);
-+		irq_set_chip(irq, &retu_irq_chip);
- 		irq_set_nested_thread(irq, 1);
- 		retu_irq_setup(irq);
- 	}
+ 	ret = request_threaded_irq(retu->irq, NULL, retu_irq_handler,
+ 			IRQF_ONESHOT, "retu", retu);
 Index: linux-3.1.1/drivers/cbus/tahvo.c
 ===================================================================
---- linux-3.1.1.orig/drivers/cbus/tahvo.c	2011-11-17 23:23:54.358695836 +0100
-+++ linux-3.1.1/drivers/cbus/tahvo.c	2011-11-17 23:23:55.830689859 +0100
-@@ -48,11 +48,9 @@ struct tahvo {
- 	int		irq_end;
- 	int		irq;
+--- linux-3.1.1.orig/drivers/cbus/tahvo.c	2011-11-17 23:15:46.684674232 +0100
++++ linux-3.1.1/drivers/cbus/tahvo.c	2011-11-17 23:15:50.280659655 +0100
+@@ -346,7 +346,8 @@ static int __devinit tahvo_probe(struct
+ 			(rev >> 4) & 0x0f, rev & 0x0f);
  
--	int		ack;
- 	int		mask;
+ 	/* Mask all TAHVO interrupts */
+-	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, 0xffff);
++	tahvo->mask = 0xFFFF;
++	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, tahvo->mask);
  
- 	unsigned int	mask_pending:1;
--	unsigned int	ack_pending:1;
- 	unsigned int	is_betty:1;
- };
- 
-@@ -138,9 +136,12 @@ static irqreturn_t tahvo_irq_handler(int
- 	u16			id;
- 	u16			im;
- 
-+	mutex_lock(&tahvo->mutex);
- 	id = __tahvo_read_reg(tahvo, TAHVO_REG_IDR);
- 	im = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
- 	id &= ~im;
-+	__tahvo_write_reg(tahvo, TAHVO_REG_IDR, id);
-+	mutex_unlock(&tahvo->mutex);
- 
- 	if (!id) {
- 		dev_vdbg(tahvo->dev, "No IRQ, spurious ?\n");
-@@ -177,11 +178,6 @@ static void tahvo_irq_bus_sync_unlock(st
- 		tahvo->mask_pending = false;
- 	}
- 
--	if (tahvo->ack_pending) {
--		__tahvo_write_reg(tahvo, TAHVO_REG_IDR, tahvo->ack);
--		tahvo->ack_pending = false;
--	}
--
- 	mutex_unlock(&tahvo->mutex);
- }
- 
-@@ -203,22 +199,12 @@ static void tahvo_irq_unmask(struct irq_
- 	tahvo->mask_pending = true;
- }
- 
--static void tahvo_irq_ack(struct irq_data *data)
--{
--	struct tahvo		*tahvo = irq_data_get_irq_chip_data(data);
--	int			irq = data->irq;
--
--	tahvo->ack |= (1 << (irq - tahvo->irq_base));
--	tahvo->ack_pending = true;
--}
--
- static struct irq_chip tahvo_irq_chip = {
- 	.name			= "tahvo",
- 	.irq_bus_lock		= tahvo_irq_bus_lock,
- 	.irq_bus_sync_unlock	= tahvo_irq_bus_sync_unlock,
- 	.irq_mask		= tahvo_irq_mask,
- 	.irq_unmask		= tahvo_irq_unmask,
--	.irq_ack		= tahvo_irq_ack,
- };
- 
- static inline void tahvo_irq_setup(int irq)
-@@ -238,8 +224,7 @@ static void tahvo_irq_init(struct tahvo
- 
- 	for (irq = base; irq < end; irq++) {
- 		irq_set_chip_data(irq, tahvo);
--		irq_set_chip_and_handler(irq, &tahvo_irq_chip,
--				handle_simple_irq);
-+		irq_set_chip(irq, &tahvo_irq_chip);
- 		irq_set_nested_thread(irq, 1);
- 		tahvo_irq_setup(irq);
- 	}
+ 	ret = request_threaded_irq(irq, NULL, tahvo_irq_handler,
+ 			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
 
 
 -- 
