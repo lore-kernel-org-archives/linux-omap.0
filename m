@@ -1,14 +1,14 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH 1/3] ARM: omap_hwmod: Add a new state to handle hwmods left enabled at init
-Date: Thu, 17 Nov 2011 15:40:31 +0530
-Message-ID: <1321524631-10249-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH] ARM: omap_hwmod: Add a new state to handle hwmods left enabled at init
+Date: Thu, 17 Nov 2011 15:41:30 +0530
+Message-ID: <1321524690-10302-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52396 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756394Ab1KQKKs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 05:10:48 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:45791 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243Ab1KQKL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Nov 2011 05:11:57 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: b-cousson@ti.com, linux-omap@vger.kernel.org
