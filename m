@@ -1,60 +1,86 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: Re: [PATCH 2/2 v4] net/smsc911x: Add regulator support
-Date: Thu, 17 Nov 2011 00:07:21 -0500
-Message-ID: <201111170007.25084.vapier@gentoo.org>
-References: <1320064719-14449-1-git-send-email-robert.marklund@stericsson.com> <201110311421.18653.vapier@gentoo.org> <2B1D156D95AE9B4EAD379CB9E465FE7324AECE3650@EXDCVYMBSTM005.EQ1STM.local>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 2/4] omap_dss: add FocalTech ETM070003DH6 display support
+Date: Thu, 17 Nov 2011 08:52:54 +0200
+Message-ID: <4EC4AF46.3080601@compulab.co.il>
+References: <1320797568-11169-1-git-send-email-yanok@emcraft.com> <1320797568-11169-3-git-send-email-yanok@emcraft.com> <4EC45535.9060708@emcraft.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3064225.1jW3foyFWa";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <2B1D156D95AE9B4EAD379CB9E465FE7324AECE3650@EXDCVYMBSTM005.EQ1STM.local>
-Sender: linux-sh-owner@vger.kernel.org
-To: Robert MARKLUND <robert.marklund@stericsson.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, Paul Mundt <lethal@linux-sh.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "uclinux-dist-devel@blackfin.uclinux.org" <uclinux-dist-devel@blackfin.uclinux.org>, Linus Walleij <linus.walleij@linaro.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:41025
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751674Ab1KQGxE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Nov 2011 01:53:04 -0500
+In-Reply-To: <4EC45535.9060708@emcraft.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
 
---nextPart3064225.1jW3foyFWa
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Hi Ilya,
 
-On Wednesday 16 November 2011 07:59:41 Robert MARKLUND wrote:
-> From: Mike Frysinger [mailto:vapier@gentoo.org]
-> > On Monday 31 October 2011 08:38:39 Robert Marklund wrote:
-> > > ChangeLog v3->v4:
-> > > - Remove dual prints and old comment on Mike's request.
-> > > - Split the request_free fucntion on Mike and Sascha request.
-> >=20
-> > would be nice if the enable/disable were split as well ...
->=20
-> I interpret this as "nice if", if it's a "must be" then ill change it.
+You should have CC'd Tomi and linux-fbdev - done now.
 
-i would prefer it were split
-=2Dmike
+On 11/17/11 02:28, Ilya Yanok wrote:
+> Hi guys,
+> 
+> what about this patch? Can it be applied? It's pretty independent from
+> other ones.
+> 
+> Regards, Ilya.
+> 
+> On 09.11.2011 04:12, Ilya Yanok wrote:
+>> Add data for the FocalTech ETM070003DH6 display to the generic_dpi_panel
+>> display driver.
+>>
+>> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+>> ---
+>>  drivers/video/omap2/displays/panel-generic-dpi.c |   24 ++++++++++++++++++++++
+>>  1 files changed, 24 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+>> index 519c47d..42bfe47 100644
+>> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
+>> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+>> @@ -297,6 +297,30 @@ static struct panel_config generic_dpi_panels[] = {
+>>  
+>>  		.name			= "apollon",
+>>  	},
+>> +	/* FocalTech ETM070003DH6 */
+>> +	{
+>> +		{
+>> +			.x_res		= 800,
+>> +			.y_res		= 480,
+>> +
+>> +			.pixel_clock	= 28000,
+>> +
+>> +			.hsw		= 48,
+>> +			.hfp		= 40,
+>> +			.hbp		= 40,
+>> +
+>> +			.vsw		= 3,
+>> +			.vfp		= 13,
+>> +			.vbp		= 29,
+>> +		},
+>> +		.acbi			= 0x0,
+>> +		.acb			= 0x28,
+>> +		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
+>> +					  OMAP_DSS_LCD_IHS,
+>> +		.power_on_delay		= 50,
+>> +		.power_off_delay	= 100,
+>> +		.name			= "focaltech_etm070003dh6",
+>> +	},
+>>  };
+>>  
+>>  struct panel_drv_data {
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
---nextPart3064225.1jW3foyFWa
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.17 (GNU/Linux)
-
-iQIcBAABAgAGBQJOxJaMAAoJEEFjO5/oN/WBw7wP/R6BpgExQZxYQkgI1W7f8gkX
-Eop/e4ZhE4PQsKdCsVaB2Dse5FqCGGdHUAkNUxtCIjQF6ilRpidgXOAVJ1Cpec6t
-qjthktolSuCTLtbdHpIBQh7wYCIQYARNtCvHFpKDcqLQM+AwSB5AS+AH58nl9Ms5
-i7w4tcSEhHzj6tMPIG8fFAcKgjIt6G9xVgKCRgjhPFSautxYxWjOWKlCleXcxcAr
-u7AkAbZpJMsmuY2H6mgrcE76IMw8LVO9RVcs1rqAm+4C+dFXZnX26XdCFQ5yNgUu
-C73+75y4HSoeQSVAe80OUV5huG3kwjHE++2LxAq3c4b7cHzGya1yDYCpO7wavqdC
-pw8Nxm2MACEwh58hxi9YMc2MYOiZ7F//8Fh4JUanWC9rksAEIvsPNMAPuAqg9mxX
-lKWdS6C9h6tmCzCheyUcsVBLeh3BYL+CmJ5No0RhWPHnGPJeKVD1Pp2bMG1OWiiV
-C+xI7yk7d1SKCi9XOeWJ3fzsUUynqtA62GVMHRhWb9cpwokuswhnLQONH12emgAr
-24iwHHROGLq3PRIfcz/jZDv2P/vaPucBvaDSaTnTq293eCPy/zF64MAItSNA7lf2
-qCHpn7zR2ORUY+71KkpK1gr3XqgKZPwoD95lgxIThTSpDYvk334XIJTc/F9OBx+N
-1PFwQVVu9DnR7OXdgwnw
-=dBok
------END PGP SIGNATURE-----
-
---nextPart3064225.1jW3foyFWa--
+-- 
+Regards,
+Igor.
