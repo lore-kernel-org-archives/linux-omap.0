@@ -1,138 +1,117 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH] ARM: omap_hwmod: Add a new state to handle hwmods left
- enabled at init
-Date: Thu, 17 Nov 2011 16:18:55 +0530
-Message-ID: <CAAL8m4yQTB_vJe9G8ArJx1Uoatd8ffXYY7NqEyM6zgCiygFc0A@mail.gmail.com>
-References: <1321524690-10302-1-git-send-email-rnayak@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
+Date: Thu, 17 Nov 2011 16:20:46 +0530
+Message-ID: <4EC4E706.3050603@ti.com>
+References: <1321274409-24643-1-git-send-email-rnayak@ti.com>	<1321274409-24643-2-git-send-email-rnayak@ti.com> <CACRpkdbxU-ViubfGGt7mqzNPhn2E3MHAhQsvsgRsC555uBQBiQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:39113 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755511Ab1KQKtR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Nov 2011 05:49:17 -0500
-Received: by fagn18 with SMTP id n18so2715331fag.19
-        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 02:49:16 -0800 (PST)
-In-Reply-To: <1321524690-10302-1-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:34398 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755511Ab1KQKuy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Nov 2011 05:50:54 -0500
+Received: by mail-yx0-f169.google.com with SMTP id m10so1128018yen.14
+        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 02:50:53 -0800 (PST)
+In-Reply-To: <CACRpkdbxU-ViubfGGt7mqzNPhn2E3MHAhQsvsgRsC555uBQBiQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: linus.walleij@stericsson.com, tony@atomide.com, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org
 
-On Thu, Nov 17, 2011 at 3:41 PM, Rajendra Nayak <rnayak@ti.com> wrote:
-> A hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
-> enabled state by the hwmod framework post the initial setup.
-> Once a real user of the device (a driver) tries to enable it
-> at a later point, the hmwod framework throws a WARN() about
-> the device being already in enabled state.
+On Thursday 17 November 2011 01:50 PM, Linus Walleij wrote:
+> On Mon, Nov 14, 2011 at 1:40 PM, Rajendra Nayak<rnayak@ti.com>  wrote:
 >
-> Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
-> to identify such devices/hwmods, so nothing but just a state
-> change to '_HWMOD_STATE_ENABLED' can be done when the device/hwmod
-> is requested to be enabled (the first time) by its driver/user.
+> (...)
+>> + * The OMAP control module has a device-control sub-module
+>> + * which handles all pin/padmuxing for OMAP. The sub-module
+>> + * is further split into a 'core' instance within the CORE
+>> + * powerdomain and a 'wkup' instance within the WAKEUP
+>> + * powerdomain (which is always powered on)
+> (...)
+>> +/* omap4 core pads */
+>> +static const struct pinctrl_pin_desc omap4_core_pads[] = {
+>> +       PINCTRL_PIN(0, "c12"),
+>> +       PINCTRL_PIN(1, "d12"),
+>> +       PINCTRL_PIN(2, "c13"),
+> (...)
+>> +/* omap4 wkup pads */
+>> +static const struct pinctrl_pin_desc omap4_wkup_pads[] = {
+>> +       PINCTRL_PIN(0, "c12"),
+>> +       PINCTRL_PIN(1, "d12"),
+>> +       PINCTRL_PIN(2, "c13"),
+> (...)
 >
-> A good example of a such a device is an UART used as debug console.
-> The UART module needs to be kept enabled through the boot, until the
-> UART driver takes control of it, for debug prints to appear on
-> the console.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> I have a hard time wrapping my head around why you need to define
+> all the same pads twice and adding two almost identical pin
+> controllers.
 
-tested with uart runtime v8 patch series works fine.
-helps to simply the serial.c code without using custom console activate=
- funcs.
-thanks for handling this within the framework.
+Oops, I seem to have completely messed up with the omap4_wkup_pads
+table.. It should have been just these pins from the table
 
-=46WIW,
++	PINCTRL_PIN(50, "h4"),
++	PINCTRL_PIN(51, "j2"),
++	PINCTRL_PIN(52, "g2"),
++	PINCTRL_PIN(53, "j1"),
++	PINCTRL_PIN(54, "k1"),
++	PINCTRL_PIN(55, "ag9"),
++	PINCTRL_PIN(56, "af9"),
++	PINCTRL_PIN(57, "ah6"),
++	PINCTRL_PIN(58, "ag8"),
++	PINCTRL_PIN(59, "ad1"),
++	PINCTRL_PIN(60, "ad2"),
++	PINCTRL_PIN(61, "ad3"),
++	PINCTRL_PIN(62, "ad4"),
++	PINCTRL_PIN(63, "ac2"),
++	PINCTRL_PIN(64, "ac3"),
++	PINCTRL_PIN(65, "ag7"),
++	PINCTRL_PIN(66, "ae7"),
++	PINCTRL_PIN(67, "af7"),
++	PINCTRL_PIN(68, "ah7"),
++	PINCTRL_PIN(69, "ag6"),
++	PINCTRL_PIN(70, "af8"),
++	PINCTRL_PIN(71, "ae8"),
++	PINCTRL_PIN(72, "ah2"),
++	PINCTRL_PIN(73, "ag1"),
++	PINCTRL_PIN(74, "ae3"),
++	PINCTRL_PIN(75, "ah1"),
++	PINCTRL_PIN(76, "ae1"),
++	PINCTRL_PIN(77, "ae2"),
 
-Tested-by: Govindraj.R <govindraj.raja@ti.com>
+But somehow I ended up with having the first 49 pins duplicated from
+the omap4_core_pads table.
+Will fix up, and sorry for all the confusion.
 
---
-Thanks,
-Govindraj.R
+>
+> Probably it's just me lacking understanding ...
+>
+> My recent thinking about wakeups is rather (built on experience with
+> the hardware I've seen) that you define a number of states for each
+> pinmux group so it can be set in say active, low_power and sleep
+> state, which will reconfigure the pads associated with each mux for
+> respective mode.
+>
+> In the current pin config patch set we also have a
+> PIN_CONFIG_WAKEUP property that can be set on a per-pin
+> basis to say configure that a specific pin shall trigger a wakeup
+> of the system if it's in sleep state.
+>
+> So my idea is that when you switch states of pin muxes, say from
+> active to sleeping, the subsystem will call the driver to reprogram
+> the pins to sleep mode, typically grounding some pins, biasing
+> some other pins and setting the wakeup property of some
+> pins.
+>
+> So is this really two different sets of registers for the same pads at
+> totally different places in memory, or is this some way of modeling
+> different modes for the same pads? If it's the latter we need some
+> better abstraction than doing it all twice.
 
+These are different pads/pins and controlled through different set of
+registers.
 
-> ---
-> =A0arch/arm/mach-omap2/omap_hwmod.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 16 =
-++++++++++++++--
-> =A0arch/arm/plat-omap/include/plat/omap_hwmod.h | =A0 =A01 +
-> =A02 files changed, 15 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/o=
-map_hwmod.c
-> index d7f4623..7d94cc3 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> @@ -1441,6 +1441,17 @@ static int _enable(struct omap_hwmod *oh)
->
-> =A0 =A0 =A0 =A0pr_debug("omap_hwmod: %s: enabling\n", oh->name);
->
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* hwmods' with HWMOD_INIT_NO_IDLE flag set, are left
-> + =A0 =A0 =A0 =A0* in enabled state at init.
-> + =A0 =A0 =A0 =A0* Now that someone is really trying to enable them,
-> + =A0 =A0 =A0 =A0* just update the state.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 if (oh->_state =3D=3D _HWMOD_STATE_ENABLED_AT_INIT) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh->_state =3D _HWMOD_STATE_ENABLED;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
-> + =A0 =A0 =A0 }
-> +
-> =A0 =A0 =A0 =A0if (oh->_state !=3D _HWMOD_STATE_INITIALIZED &&
-> =A0 =A0 =A0 =A0 =A0 =A0oh->_state !=3D _HWMOD_STATE_IDLE &&
-> =A0 =A0 =A0 =A0 =A0 =A0oh->_state !=3D _HWMOD_STATE_DISABLED) {
-> @@ -1449,7 +1460,6 @@ static int _enable(struct omap_hwmod *oh)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
-> =A0 =A0 =A0 =A0}
->
-> -
-> =A0 =A0 =A0 =A0/*
-> =A0 =A0 =A0 =A0 * If an IP contains only one HW reset line, then de-a=
-ssert it in order
-> =A0 =A0 =A0 =A0 * to allow the module state transition. Otherwise the=
- PRCM will return
-> @@ -1744,8 +1754,10 @@ static int _setup(struct omap_hwmod *oh, void =
-*data)
-> =A0 =A0 =A0 =A0 * it should be set by the core code as a runtime flag=
- during startup
-> =A0 =A0 =A0 =A0 */
-> =A0 =A0 =A0 =A0if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
-> - =A0 =A0 =A0 =A0 =A0 (postsetup_state =3D=3D _HWMOD_STATE_IDLE))
-> + =A0 =A0 =A0 =A0 =A0 (postsetup_state =3D=3D _HWMOD_STATE_IDLE)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 oh->_state =3D _HWMOD_STATE_ENABLED_AT_=
-INIT;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0postsetup_state =3D _HWMOD_STATE_ENABL=
-ED;
-> + =A0 =A0 =A0 }
->
-> =A0 =A0 =A0 =A0if (postsetup_state =3D=3D _HWMOD_STATE_IDLE)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0_idle(oh);
-> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/=
-plat-omap/include/plat/omap_hwmod.h
-> index 1b81dfb..cd49d60 100644
-> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-> @@ -436,6 +436,7 @@ struct omap_hwmod_omap4_prcm {
-> =A0#define _HWMOD_STATE_ENABLED =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 4
-> =A0#define _HWMOD_STATE_IDLE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A05
-> =A0#define _HWMOD_STATE_DISABLED =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A06
-> +#define _HWMOD_STATE_ENABLED_AT_INIT =A0 =A0 =A0 =A0 =A0 7
->
-> =A0/**
-> =A0* struct omap_hwmod_class - the type of an IP block
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Yours,
+> Linus Walleij
+
