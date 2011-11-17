@@ -1,113 +1,175 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv9 06/18] mfd: omap-prm: added chain interrupt handler
-Date: Thu, 17 Nov 2011 14:34:46 -0800
-Message-ID: <87aa7u1ipl.fsf@ti.com>
-References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
-	<1316781986-30642-7-git-send-email-t-kristo@ti.com>
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+Subject: [PATCH 1/2] cbus: Fix nested IRQ acking
+Date: Thu, 17 Nov 2011 23:38:42 +0100
+Message-ID: <20111117233842.35885b23@milhouse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316781986-30642-7-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Fri, 23 Sep 2011 15:46:14 +0300")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, "Avinash.H.M" <avinashhm@ti.com>, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bues.ch ([80.190.117.144]:41966 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753534Ab1KQWkc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Nov 2011 17:40:32 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Tero Kristo <t-kristo@ti.com> writes:
+chip->irq_ack is never called for nested threaded IRQs, because they
+don't have a primary IRQ handler.
+So we must ACK the IRQs in the toplevel retu and tahvo IRQ handler threads.
 
-> Introduce a chained interrupt handler mechanism for the PRCM
-> interrupt, so that individual PRCM event can cleanly be handled by
-> handlers in separate drivers. We do this by introducing PRCM event
-> names, which are then matched to the particular PRCM interrupt bit
-> depending on the specific OMAP SoC being used.
->
-> PRCM interrupts have two priority levels, high or normal. High priority
-> is needed for IO event handling, so that we can be sure that IO events
-> are processed before other events. This reduces latency for IO event
-> customers and also prevents incorrect ack sequence on OMAP3.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Avinash.H.M <avinashhm@ti.com>
-> Cc: Cousson, Benoit <b-cousson@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Govindraj.R <govindraj.raja@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> ---
->  drivers/mfd/omap-prm-common.c |  239 +++++++++++++++++++++++++++++++++++++++++
->  drivers/mfd/omap-prm.h        |   40 +++++++
->  drivers/mfd/omap3xxx-prm.c    |   29 +++++-
->  drivers/mfd/omap4xxx-prm.c    |   28 +++++-
->  4 files changed, 334 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/mfd/omap-prm.h
->
-> diff --git a/drivers/mfd/omap-prm-common.c b/drivers/mfd/omap-prm-common.c
-> index 39b199c8..2886eb2 100644
-> --- a/drivers/mfd/omap-prm-common.c
-> +++ b/drivers/mfd/omap-prm-common.c
-> @@ -15,10 +15,249 @@
->  #include <linux/ctype.h>
->  #include <linux/module.h>
->  #include <linux/io.h>
-> +#include <linux/irq.h>
-> +#include <linux/interrupt.h>
->  #include <linux/slab.h>
->  #include <linux/init.h>
->  #include <linux/err.h>
->  
-> +#include "omap-prm.h"
-> +
-> +#define OMAP_PRCM_MAX_NR_PENDING_REG 2
-> +
-> +struct omap_prm_device {
-> +	const struct omap_prcm_irq_setup *irq_setup;
-> +	const struct omap_prcm_irq *irqs;
-> +	struct irq_chip_generic **irq_chips;
-> +	int nr_irqs;
-> +	u32 *saved_mask;
-> +	u32 *priority_mask;
-> +	int base_irq;
-> +	int irq;
-> +	void __iomem *base;
-> +};
-> +
-> +static struct omap_prm_device prm_dev;
+Signed-off-by: Michael Buesch <m@bues.ch>
 
-This shouldn't be statically allocated, and needlessly forces us to
-assume a single, global PRM (which is the case today, but who knows...)
+---
 
-Instead, it should be allocated at init time and associated with the
-instance (using set_drvdata or somthing.) 
+Index: linux-3.1.1/drivers/cbus/retu.c
+===================================================================
+--- linux-3.1.1.orig/drivers/cbus/retu.c	2011-11-17 23:23:53.542699149 +0100
++++ linux-3.1.1/drivers/cbus/retu.c	2011-11-17 23:23:55.830689859 +0100
+@@ -53,9 +53,6 @@ struct retu {
+ 
+ 	int			irq;
+ 
+-	int			ack;
+-	bool			ack_pending;
+-
+ 	int			mask;
+ 	bool			mask_pending;
+ 
+@@ -191,9 +188,10 @@ static irqreturn_t retu_irq_handler(int
+ 	mutex_lock(&retu->mutex);
+ 	idr = __retu_read_reg(retu, RETU_REG_IDR);
+ 	imr = __retu_read_reg(retu, RETU_REG_IMR);
++	idr &= ~imr;
++	__retu_write_reg(retu, RETU_REG_IDR, idr);
+ 	mutex_unlock(&retu->mutex);
+ 
+-	idr &= ~imr;
+ 	if (!idr) {
+ 		dev_vdbg(retu->dev, "No IRQ, spurious?\n");
+ 		return IRQ_NONE;
+@@ -232,15 +230,6 @@ static void retu_irq_unmask(struct irq_d
+ 
+ }
+ 
+-static void retu_irq_ack(struct irq_data *data)
+-{
+-	struct retu		*retu = irq_data_get_irq_chip_data(data);
+-	int			irq = data->irq;
+-
+-	retu->ack |= (1 << (irq - retu->irq_base));
+-	retu->ack_pending = true;
+-}
+-
+ static void retu_bus_lock(struct irq_data *data)
+ {
+ 	struct retu		*retu = irq_data_get_irq_chip_data(data);
+@@ -257,11 +246,6 @@ static void retu_bus_sync_unlock(struct
+ 		retu->mask_pending = false;
+ 	}
+ 
+-	if (retu->ack_pending) {
+-		__retu_write_reg(retu, RETU_REG_IDR, retu->ack);
+-		retu->ack_pending = false;
+-	}
+-
+ 	mutex_unlock(&retu->mutex);
+ }
+ 
+@@ -271,7 +255,6 @@ static struct irq_chip retu_irq_chip = {
+ 	.irq_bus_sync_unlock	= retu_bus_sync_unlock,
+ 	.irq_mask		= retu_irq_mask,
+ 	.irq_unmask		= retu_irq_unmask,
+-	.irq_ack		= retu_irq_ack,
+ };
+ 
+ static inline void retu_irq_setup(int irq)
+@@ -291,8 +274,7 @@ static void retu_irq_init(struct retu *r
+ 
+ 	for (irq = base; irq < end; irq++) {
+ 		irq_set_chip_data(irq, retu);
+-		irq_set_chip_and_handler(irq, &retu_irq_chip,
+-				handle_simple_irq);
++		irq_set_chip(irq, &retu_irq_chip);
+ 		irq_set_nested_thread(irq, 1);
+ 		retu_irq_setup(irq);
+ 	}
+Index: linux-3.1.1/drivers/cbus/tahvo.c
+===================================================================
+--- linux-3.1.1.orig/drivers/cbus/tahvo.c	2011-11-17 23:23:54.358695836 +0100
++++ linux-3.1.1/drivers/cbus/tahvo.c	2011-11-17 23:23:55.830689859 +0100
+@@ -48,11 +48,9 @@ struct tahvo {
+ 	int		irq_end;
+ 	int		irq;
+ 
+-	int		ack;
+ 	int		mask;
+ 
+ 	unsigned int	mask_pending:1;
+-	unsigned int	ack_pending:1;
+ 	unsigned int	is_betty:1;
+ };
+ 
+@@ -138,9 +136,12 @@ static irqreturn_t tahvo_irq_handler(int
+ 	u16			id;
+ 	u16			im;
+ 
++	mutex_lock(&tahvo->mutex);
+ 	id = __tahvo_read_reg(tahvo, TAHVO_REG_IDR);
+ 	im = __tahvo_read_reg(tahvo, TAHVO_REG_IMR);
+ 	id &= ~im;
++	__tahvo_write_reg(tahvo, TAHVO_REG_IDR, id);
++	mutex_unlock(&tahvo->mutex);
+ 
+ 	if (!id) {
+ 		dev_vdbg(tahvo->dev, "No IRQ, spurious ?\n");
+@@ -177,11 +178,6 @@ static void tahvo_irq_bus_sync_unlock(st
+ 		tahvo->mask_pending = false;
+ 	}
+ 
+-	if (tahvo->ack_pending) {
+-		__tahvo_write_reg(tahvo, TAHVO_REG_IDR, tahvo->ack);
+-		tahvo->ack_pending = false;
+-	}
+-
+ 	mutex_unlock(&tahvo->mutex);
+ }
+ 
+@@ -203,22 +199,12 @@ static void tahvo_irq_unmask(struct irq_
+ 	tahvo->mask_pending = true;
+ }
+ 
+-static void tahvo_irq_ack(struct irq_data *data)
+-{
+-	struct tahvo		*tahvo = irq_data_get_irq_chip_data(data);
+-	int			irq = data->irq;
+-
+-	tahvo->ack |= (1 << (irq - tahvo->irq_base));
+-	tahvo->ack_pending = true;
+-}
+-
+ static struct irq_chip tahvo_irq_chip = {
+ 	.name			= "tahvo",
+ 	.irq_bus_lock		= tahvo_irq_bus_lock,
+ 	.irq_bus_sync_unlock	= tahvo_irq_bus_sync_unlock,
+ 	.irq_mask		= tahvo_irq_mask,
+ 	.irq_unmask		= tahvo_irq_unmask,
+-	.irq_ack		= tahvo_irq_ack,
+ };
+ 
+ static inline void tahvo_irq_setup(int irq)
+@@ -238,8 +224,7 @@ static void tahvo_irq_init(struct tahvo
+ 
+ 	for (irq = base; irq < end; irq++) {
+ 		irq_set_chip_data(irq, tahvo);
+-		irq_set_chip_and_handler(irq, &tahvo_irq_chip,
+-				handle_simple_irq);
++		irq_set_chip(irq, &tahvo_irq_chip);
+ 		irq_set_nested_thread(irq, 1);
+ 		tahvo_irq_setup(irq);
+ 	}
 
-> +static inline u32 prm_read_reg(int offset)
-> +{
-> +	return __raw_readl(prm_dev.base + offset);
-> +}
-> +
-> +static inline void prm_write_reg(u32 value, int offset)
-> +{
-> +	__raw_writel(value, prm_dev.base + offset);
-> +}
 
-This doesn't seem right either.
-
-The register layout/access parts are what are are different between the
-OMAP3 and OMAP4 versions, so I would expect anything that accesses
-registers to be going through the SoC specific code.
-
-I'm having some second thoughts about the split of common and SoC
-specific code here.  Currently the SoC specific code is basically
-identical (ignoring the s/omap3/omap4/ throughout.)
-
-I think we need to discuss this further, but what seems to me that the
-current design is to have 2 separate drivers, with some common helper
-functions.  I'm starting to think that what we need instead is a single,
-common driver with a set of SoC-specific functions that implement the
-SoC-specific details.   This latter approach follows what is done in the
-powerdomain code today for example: common code in powerdomain.c and SoC
-specific implementation of all the "ops" in powerdomain2xxx_3xxx.c and
-powerdomain4xxx.c.
-
-Kevin
+-- 
+Greetings, Michael.
