@@ -1,56 +1,158 @@
-From: Omar Ramirez Luna <or.rmz1@gmail.com>
-Subject: Re: [PATCH v16 09/12] OMAP: dmtimer: low-power mode support
-Date: Wed, 16 Nov 2011 18:53:33 -0600
-Message-ID: <CAPTm=KHxSvyCb4i02vnuU9Wz-0j3h+h_UvDc0An5mwb2472dPg@mail.gmail.com>
-References: <1316518227-28116-1-git-send-email-tarun.kanti@ti.com>
-	<1316518227-28116-10-git-send-email-tarun.kanti@ti.com>
-	<CAPTm=KGDEKGxLpJt0t6k_NL5Wz81NkMmRJ+OkmyvHedd6_exgQ@mail.gmail.com>
-	<CAC83ZvJSev97waAOuzoJsFTX4vmeVFxkg6BzpjQm+Tjo3cbhpg@mail.gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: omap: pass minimal SoC/board data for UART from
+ dt
+Date: Wed, 16 Nov 2011 19:04:27 -0600
+Message-ID: <4EC45D9B.5020006@gmail.com>
+References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-4-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36840 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754173Ab1KQAxf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Nov 2011 19:53:35 -0500
-Received: by eye27 with SMTP id 27so1210525eye.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Nov 2011 16:53:34 -0800 (PST)
-In-Reply-To: <CAC83ZvJSev97waAOuzoJsFTX4vmeVFxkg6BzpjQm+Tjo3cbhpg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1321441346-19591-4-git-send-email-rnayak@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, linaro-dev@lists.linaro.org, tony@atomide.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Wed, Nov 16, 2011 at 12:18 AM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-...
->> My use case is as follows:
->>
->> DSP sends a mailbox message to ARM, this triggers a tasklet in mailbox
->> for processing the message, when it reaches tidspbridge it turns out
->> that the DSP wants to enable a gpt timer; however, locks involved
->> "clocks_mutex" and "dm_timer_lock" now could cause a deadlock as they
->> have been called from unsafe contexts in the past
->> (http://pastebin.com/7Dtz8t0f).
->>
->> Is the intention to restrict enabling the dmtimer clocks from hard|soft irqs?
-> The aim is to prevent client drivers perform clock enable/disable independently.
-> Instead just use the request/start/stop APIs. In that way we can make clock
-> enable/disable functions static in the future.
+On 11/16/2011 05:02 AM, Rajendra Nayak wrote:
+> Pass minimal data needed for console boot, from dt, for
+> OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
+> static initialization from generic board file.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/boot/dts/omap3-beagle.dts  |   17 +++++++++++++++++
+>  arch/arm/boot/dts/omap3.dtsi        |   27 +++++++++++++++++++++++++++
+>  arch/arm/boot/dts/omap4-panda.dts   |   17 +++++++++++++++++
+>  arch/arm/boot/dts/omap4-sdp.dts     |   17 +++++++++++++++++
+>  arch/arm/boot/dts/omap4.dtsi        |   24 ++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-generic.c |    1 -
+>  6 files changed, 102 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+> index 9486be6..4c8f11e 100644
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -27,3 +27,20 @@
+>  		reg = <0x80000000 0x20000000>; /* 512 MB */
+>  	};
+>  };
+> +
+> +&uart1 {
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart2 {
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart3 {
+> +	ti,console_hwmod;
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart4 {
+> +	clock-frequency = <48000000>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index d202bb5..ea591c5 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -13,6 +13,13 @@
+>  / {
+>  	compatible = "ti,omap3430", "ti,omap3";
+>  
+> +	aliases {
+> +		uart1 = &uart1;
+> +		uart2 = &uart2;
+> +		uart3 = &uart3;
+> +		uart4 = &uart4;
+> +	};
+> +
+>  	cpus {
+>  		cpu@0 {
+>  			compatible = "arm,cortex-a8";
+> @@ -59,5 +66,25 @@
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+>  		};
+> +
+> +		uart1: uart@1 {
 
-Those are the APIs I'm using, omap_dm_timer_request_specific from a
-softirq triggers this warning, this was not hinted by the patch or
-cover letter of the series, hence the question:
+Use the generic name serial and the address: uart1: serial@1234abcd
 
-Was this change intentional? Does omap_dm_timer_request_specific
-should be allowed on other contexts (soft|hard irq)?
+> +			compatible = "ti,omap-uart";
+> +			ti,hwmods = "uart1";
+> +		};
+> +
+> +		uart2: uart@2 {
+> +			compatible = "ti,omap-uart";
+> +			ti,hwmods = "uart2";
+> +		};
+> +
+> +		uart3: uart@3 {
+> +			compatible = "ti,omap-uart";
+> +			ti,hwmods = "uart3";
+> +		};
+> +
+> +		uart4: uart@4 {
+> +			compatible = "ti,omap-uart";
+> +			ti,hwmods = "uart4";
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+> index c702657..aa65449 100644
+> --- a/arch/arm/boot/dts/omap4-panda.dts
+> +++ b/arch/arm/boot/dts/omap4-panda.dts
+> @@ -27,3 +27,20 @@
+>  		reg = <0x80000000 0x40000000>; /* 1 GB */
+>  	};
+>  };
+> +
+> +&uart1 {
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart2 {
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart3 {
+> +	ti,console_hwmod;
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart4 {
+> +	clock-frequency = <48000000>;
+> +};
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+> index 066e28c..524f5bf 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -27,3 +27,20 @@
+>  		reg = <0x80000000 0x40000000>; /* 1 GB */
+>  	};
+>  };
+> +
+> +&uart1 {
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart2 {
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart3 {
+> +	ti,console_hwmod;
+> +	clock-frequency = <48000000>;
+> +};
+> +
+> +&uart4 {
+> +	clock-frequency = <48000000>;
 
-...
-> You are right. This change some how got missed in mainline.
-> I have posted a patch for this already.
+It doesn't seem that this frequency ever varies and is likely to be
+replaced with clock bindings, so maybe just put it in the dtsi files.
 
-Ok.
+Rob
 
-Regards,
-
-Omar
