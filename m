@@ -1,158 +1,57 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 3/3] ARM: omap: pass minimal SoC/board data for UART from
- dt
-Date: Wed, 16 Nov 2011 19:04:27 -0600
-Message-ID: <4EC45D9B.5020006@gmail.com>
-References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-4-git-send-email-rnayak@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] arm: omap2: fix build failure
+Date: Thu, 17 Nov 2011 11:00:18 +0800
+Message-ID: <CACVXFVMtaiFiKSRh8geVpOzymtZsaUKc9tDHfgJYR57N+RQZ-g@mail.gmail.com>
+References: <1320726849-11854-1-git-send-email-tom.leiming@gmail.com>
+	<87mxc61kpw.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1321441346-19591-4-git-send-email-rnayak@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, linaro-dev@lists.linaro.org, tony@atomide.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:59392 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755723Ab1KQDAT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Nov 2011 22:00:19 -0500
+Received: by wwe5 with SMTP id 5so1996982wwe.1
+        for <linux-omap@vger.kernel.org>; Wed, 16 Nov 2011 19:00:18 -0800 (PST)
+In-Reply-To: <87mxc61kpw.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 11/16/2011 05:02 AM, Rajendra Nayak wrote:
-> Pass minimal data needed for console boot, from dt, for
-> OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
-> static initialization from generic board file.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/boot/dts/omap3-beagle.dts  |   17 +++++++++++++++++
->  arch/arm/boot/dts/omap3.dtsi        |   27 +++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap4-panda.dts   |   17 +++++++++++++++++
->  arch/arm/boot/dts/omap4-sdp.dts     |   17 +++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi        |   24 ++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-generic.c |    1 -
->  6 files changed, 102 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> index 9486be6..4c8f11e 100644
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -27,3 +27,20 @@
->  		reg = <0x80000000 0x20000000>; /* 512 MB */
->  	};
->  };
-> +
-> +&uart1 {
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart2 {
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart3 {
-> +	ti,console_hwmod;
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart4 {
-> +	clock-frequency = <48000000>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index d202bb5..ea591c5 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -13,6 +13,13 @@
->  / {
->  	compatible = "ti,omap3430", "ti,omap3";
->  
-> +	aliases {
-> +		uart1 = &uart1;
-> +		uart2 = &uart2;
-> +		uart3 = &uart3;
-> +		uart4 = &uart4;
-> +	};
-> +
->  	cpus {
->  		cpu@0 {
->  			compatible = "arm,cortex-a8";
-> @@ -59,5 +66,25 @@
->  			interrupt-controller;
->  			#interrupt-cells = <1>;
->  		};
-> +
-> +		uart1: uart@1 {
+Hi,
 
-Use the generic name serial and the address: uart1: serial@1234abcd
+On Wed, Nov 9, 2011 at 3:24 AM, Kevin Hilman <khilman@ti.com> wrote:
+> tom.leiming@gmail.com writes:
+>
+>> From: Ming Lei <tom.leiming@gmail.com>
+>>
+>> The patch fixes the compile failure:
+>>
+>> =A0 CC =A0 =A0 =A0arch/arm/mach-omap2/cpuidle34xx.o
+>> arch/arm/mach-omap2/cpuidle34xx.c:317:12: error: 'THIS_MODULE'
+>> undeclared here (not in a function)
+>> make[1]: *** [arch/arm/mach-omap2/cpuidle34xx.o] Error 1
+>> make: *** [arch/arm/mach-omap2] Error 2
+>> make: *** Waiting for unfinished jobs....
+>>
+>> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+>
+> FYI...
+>
+> Tony has already queued fix for this in his fixes branch.
+>
+> =A0 =A0 http://marc.info/?l=3Dlinux-arm-kernel&m=3D132071036621713&w=3D=
+2
 
-> +			compatible = "ti,omap-uart";
-> +			ti,hwmods = "uart1";
-> +		};
-> +
-> +		uart2: uart@2 {
-> +			compatible = "ti,omap-uart";
-> +			ti,hwmods = "uart2";
-> +		};
-> +
-> +		uart3: uart@3 {
-> +			compatible = "ti,omap-uart";
-> +			ti,hwmods = "uart3";
-> +		};
-> +
-> +		uart4: uart@4 {
-> +			compatible = "ti,omap-uart";
-> +			ti,hwmods = "uart4";
-> +		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-> index c702657..aa65449 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -27,3 +27,20 @@
->  		reg = <0x80000000 0x40000000>; /* 1 GB */
->  	};
->  };
-> +
-> +&uart1 {
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart2 {
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart3 {
-> +	ti,console_hwmod;
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart4 {
-> +	clock-frequency = <48000000>;
-> +};
-> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-> index 066e28c..524f5bf 100644
-> --- a/arch/arm/boot/dts/omap4-sdp.dts
-> +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> @@ -27,3 +27,20 @@
->  		reg = <0x80000000 0x40000000>; /* 1 GB */
->  	};
->  };
-> +
-> +&uart1 {
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart2 {
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart3 {
-> +	ti,console_hwmod;
-> +	clock-frequency = <48000000>;
-> +};
-> +
-> +&uart4 {
-> +	clock-frequency = <48000000>;
+The fix is not merged into 3.2.0-rc2-next-20111116+ yet...
 
-It doesn't seem that this frequency ever varies and is likely to be
-replaced with clock bindings, so maybe just put it in the dtsi files.
-
-Rob
-
+thanks,
+--=20
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
