@@ -1,89 +1,95 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] ARM: omap_device: handle first time activation of
- console device
-Date: Thu, 17 Nov 2011 10:52:44 +0100
-Message-ID: <4EC4D96C.9050804@ti.com>
-References: <1321441346-19591-1-git-send-email-rnayak@ti.com> <1321441346-19591-2-git-send-email-rnayak@ti.com> <4EC3D037.6020901@ti.com> <4EC4B56F.2040504@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 1/3] ARM: omap_hwmod: Add a new state to handle hwmods left enabled at init
+Date: Thu, 17 Nov 2011 15:40:31 +0530
+Message-ID: <1321524631-10249-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <4EC4B56F.2040504@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:52396 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756394Ab1KQKKs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Nov 2011 05:10:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: b-cousson@ti.com, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com, Rajendra Nayak <rnayak@ti.com>
 
-Hi Rajendra,
+A hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
+enabled state by the hwmod framework post the initial setup.
+Once a real user of the device (a driver) tries to enable it
+at a later point, the hmwod framework throws a WARN() about
+the device being already in enabled state.
 
-On 11/17/2011 8:19 AM, Rajendra Nayak wrote:
-> [...]
->>> +static int omap_console_hwmod_enable(struct omap_device *od)
->>> +{
->>> + console_lock();
->>> + /*
->>> + * For early console we prevented hwmod reset and idle
->>
->> A period is missing. Or maybe it should a comma with not capital letter.
->>
->>> + * So before we enable the uart clocks idle the console
->>> + * uart clocks, then enable back the console uart hwmod.
->>> + */
->>> + omap_hwmod_idle(od->hwmods[0]);
->>> + omap_hwmod_enable(od->hwmods[0]);
->>
->> Why do we have to idle -> enable? The module is already enabled, isn't
->> it?
->> The comment is not super clear for me :-)
->> Is the goal is to reset the IP?
->
-> Yes, now that I read it, it does sound confusing. I should have at-least
-> read it once before I picked it from serial.c
->
-> But anyway, here's what the problem is.
->
-> I feel its partly to do with the inability of hwmod to handle some
-> modules which are left enabled post a setup, due to the
-> 'HWMOD_INIT_NO_IDLE' flag set.
-> Such modules end up with a hwmod state as '_HWMOD_STATE_ENABLED' post
-> a setup. Now when a driver for such devices/modules tries to enable the
-> module the first time, hwmod throws up a big WARN stating the hwmod is
-> already in an enabled state.
+Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
+to identify such devices/hwmods, so nothing but just a state
+change to '_HWMOD_STATE_ENABLED' can be done when the device/hwmod
+is requested to be enabled (the first time) by its driver/user.
 
-OK, now, that makes sense :-)
-We have hwmod in ENABLE state whereas the omap_device is still in IDLE 
-or even DISABLE.
+A good example of a such a device is an UART used as debug console.
+The UART module needs to be kept enabled through the boot, until the
+UART driver takes control of it, for debug prints to appear on
+the console.
 
-> [uart used as console is one such module, which cannot be idled post a
-> setup by hwmod]
->
-> If hwmod could be made in some way intelligent enough to know that the
-> module is in enabled state because of the 'HWMOD_INIT_NO_IDLE' itself,
-> a lot of this hackery might not be needed at all.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c             |   16 ++++++++++++++--
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 15 insertions(+), 2 deletions(-)
 
-Fully agree, the fmwk should handle that.
-
-> Simplest way to do it could be to just add another intermediate state,
-> something like '_HWMOD_STATE_ENABLED_AT_INIT'.
-> I will post a patch for this, see if you like it being handled that way.
-
-That seems to be good. I'm just wondering if we need to introduce a new 
-state for that or use a dedicated flag.
-My concern is just that we will have two flavors of HWMOD_STATE_ENABLED 
-that we will have to check in various places in the hwmod core code.
-
-Maybe that's not such a big deal. Go ahead, and we will see how it looks 
-like.
-
-> The other part of the problem is also with the inability to hook up
-> 'custom' omap_device_pm_latency for omap devices created from DT.
-> Maybe a lot of such cases which need custom activate/deactivate
-> functions might have to be handled in some way in the framework
-> itself like the one above.
-
-For the moment, it looks like only the serial is requiring such custom 
-stuff, but anyway, we should have a mechanism to allow that...
-
-Thanks,
-Benoit
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index d7f4623..7d94cc3 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1441,6 +1441,17 @@ static int _enable(struct omap_hwmod *oh)
+ 
+ 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+ 
++	/*
++	 * hwmods' with HWMOD_INIT_NO_IDLE flag set, are left
++	 * in enabled state at init.
++	 * Now that someone is really trying to enable them,
++	 * just update the state.
++	 */
++	if (oh->_state == _HWMOD_STATE_ENABLED_AT_INIT) {
++		oh->_state = _HWMOD_STATE_ENABLED;
++		return 0;
++	}
++
+ 	if (oh->_state != _HWMOD_STATE_INITIALIZED &&
+ 	    oh->_state != _HWMOD_STATE_IDLE &&
+ 	    oh->_state != _HWMOD_STATE_DISABLED) {
+@@ -1449,7 +1460,6 @@ static int _enable(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
+ 
+-
+ 	/*
+ 	 * If an IP contains only one HW reset line, then de-assert it in order
+ 	 * to allow the module state transition. Otherwise the PRCM will return
+@@ -1744,8 +1754,10 @@ static int _setup(struct omap_hwmod *oh, void *data)
+ 	 * it should be set by the core code as a runtime flag during startup
+ 	 */
+ 	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
+-	    (postsetup_state == _HWMOD_STATE_IDLE))
++	    (postsetup_state == _HWMOD_STATE_IDLE)) {
++		oh->_state = _HWMOD_STATE_ENABLED_AT_INIT;
+ 		postsetup_state = _HWMOD_STATE_ENABLED;
++	}
+ 
+ 	if (postsetup_state == _HWMOD_STATE_IDLE)
+ 		_idle(oh);
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 1b81dfb..cd49d60 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -436,6 +436,7 @@ struct omap_hwmod_omap4_prcm {
+ #define _HWMOD_STATE_ENABLED			4
+ #define _HWMOD_STATE_IDLE			5
+ #define _HWMOD_STATE_DISABLED			6
++#define _HWMOD_STATE_ENABLED_AT_INIT		7
+ 
+ /**
+  * struct omap_hwmod_class - the type of an IP block
+-- 
+1.7.1
 
