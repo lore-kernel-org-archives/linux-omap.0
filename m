@@ -1,66 +1,138 @@
-From: Thomas Abraham <thomas.abraham@linaro.org>
-Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
-Date: Thu, 17 Nov 2011 16:56:01 +0530
-Message-ID: <CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
-References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
-	<1321274409-24643-2-git-send-email-rnayak@ti.com>
-	<20111114172312.GI31337@atomide.com>
-	<4EC1EB9D.1000503@ti.com>
-	<CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH] ARM: omap_hwmod: Add a new state to handle hwmods left
+ enabled at init
+Date: Thu, 17 Nov 2011 17:23:28 +0530
+Message-ID: <4EC4F5B8.1070706@ti.com>
+References: <1321524690-10302-1-git-send-email-rnayak@ti.com> <4EC4E45B.5080106@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linus.walleij@stericsson.com, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:41218 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756681Ab1KQLxg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 17 Nov 2011 06:53:36 -0500
+Received: by mail-yx0-f180.google.com with SMTP id l8so1269826yen.11
+        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 03:53:35 -0800 (PST)
+In-Reply-To: <4EC4E45B.5080106@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com, Paul Walmsley <paul@pwsan.com>
 
-On 17 November 2011 13:38, Linus Walleij <linus.walleij@linaro.org> wrote:
->> Linus,
->> Is there a plan to move even the data that exists in the pinmux
->> drivers today (including the function/pin-groups definition)
->> eventually to DT? Or is it just the 'mapping' data to map
->> devices to functions (that today is done from board files) which
->> alone will be moved?
+On Thursday 17 November 2011 04:09 PM, Cousson, Benoit wrote:
+> + Paul
 >
-> Not for the U300 driver, for the simple reason that it cannot
-> use device tree. So both methods of providing the data need
-> to be allowed - either as static data (the U300 driver does not
-> even have platform data, the pin data is encoded in the driver
-> itself since it's tied to U300 and not used for any other systems
-> or variants) or as device tree lookups.
+> On 11/17/2011 11:11 AM, Rajendra Nayak wrote:
+>> A hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
+>> enabled state by the hwmod framework post the initial setup.
+>> Once a real user of the device (a driver) tries to enable it
+>> at a later point, the hmwod framework throws a WARN() about
 >
-> That said I have no clue on how to make the DT bindings
-> FTM, patches and suggestions welcome.
+> typo: -------------------^
+>
+>> the device being already in enabled state.
+>>
+>> Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
+>> to identify such devices/hwmods, so nothing but just a state
+>> change to '_HWMOD_STATE_ENABLED' can be done when the device/hwmod
+>> is requested to be enabled (the first time) by its driver/user.
+>>
+>> A good example of a such a device is an UART used as debug console.
+>> The UART module needs to be kept enabled through the boot, until the
+>> UART driver takes control of it, for debug prints to appear on
+>> the console.
+>>
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>> ---
+>> arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++++--
+>> arch/arm/plat-omap/include/plat/omap_hwmod.h | 1 +
+>> 2 files changed, 15 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+>> b/arch/arm/mach-omap2/omap_hwmod.c
+>> index d7f4623..7d94cc3 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -1441,6 +1441,17 @@ static int _enable(struct omap_hwmod *oh)
+>>
+>> pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+>>
+>> + /*
+>> + * hwmods' with HWMOD_INIT_NO_IDLE flag set, are left
+>
+> Is the ' needed here? But I'm not an expert in English grammar...
 
-For now, the Samsung GPIO, Pinconfig and Pinmux information is
-represented in device tree as listed below.
+Me neither, lets ask Paul :)
 
-i2c@1C004000 {
-          compatible = "...";
-          reg = <0x... 0x..>;
-           gpios = <&gpa0 2 2 3 0>,
-                      <&gpa0 3 2 3 0>;
-          ...
-};
+>
+>> + * in enabled state at init.
+>> + * Now that someone is really trying to enable them,
+>> + * just update the state.
+>> + */
+>> + if (oh->_state == _HWMOD_STATE_ENABLED_AT_INIT) {
+>> + oh->_state = _HWMOD_STATE_ENABLED;
+>> + return 0;
+>> + }
+>> +
+>> if (oh->_state != _HWMOD_STATE_INITIALIZED&&
+>> oh->_state != _HWMOD_STATE_IDLE&&
+>> oh->_state != _HWMOD_STATE_DISABLED) {
+>> @@ -1449,7 +1460,6 @@ static int _enable(struct omap_hwmod *oh)
+>> return -EINVAL;
+>> }
+>>
+>> -
+>
+> Not related to the patch changelog but that make senses to do it, so
+> just update the changelog.
 
-The format of the gpio specifier is
-<[Pad Controller phandle] [pin number within the controller] [Pin Mux
-Function] [Pull Up/Down] [Drive Strength]>
+No, its just a stay change. I'll get rid of it.
 
->From a perspective of writing a 'gpios' property for a device node,
-this is quite simple. Looking up the hardware manual of the SoC can
-provide all the values that should be used in the gpio specifier.
+>
+>> /*
+>> * If an IP contains only one HW reset line, then de-assert it in order
+>> * to allow the module state transition. Otherwise the PRCM will return
+>> @@ -1744,8 +1754,10 @@ static int _setup(struct omap_hwmod *oh, void
+>> *data)
+>> * it should be set by the core code as a runtime flag during startup
+>> */
+>> if ((oh->flags& HWMOD_INIT_NO_IDLE)&&
+>> - (postsetup_state == _HWMOD_STATE_IDLE))
+>> + (postsetup_state == _HWMOD_STATE_IDLE)) {
+>> + oh->_state = _HWMOD_STATE_ENABLED_AT_INIT;
+>> postsetup_state = _HWMOD_STATE_ENABLED;
+>> + }
+>>
+>> if (postsetup_state == _HWMOD_STATE_IDLE)
+>> _idle(oh);
+>> diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> index 1b81dfb..cd49d60 100644
+>> --- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> +++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+>> @@ -436,6 +436,7 @@ struct omap_hwmod_omap4_prcm {
+>> #define _HWMOD_STATE_ENABLED 4
+>> #define _HWMOD_STATE_IDLE 5
+>> #define _HWMOD_STATE_DISABLED 6
+>> +#define _HWMOD_STATE_ENABLED_AT_INIT 7
+>
+> You should update the comment before... yeah I know, the other states
+> are not documented, but they are much more understandable than this new
+> one.
 
-The GPIO/PinCtrl driver can provide a translate function that picks up
-the values for the gpio specifier and writes the same value to the
-pad-controller registers. But, this a deviation from the existing
-pinctrl subsystem code which mainly relies on name of the pin-group
-and pin-function.
+Yeah, makes sense. Will add comments.
 
-Does this seem to be a feasible option for specifying
-gpio/pinconfig/pinmux dt bindings?
+>
+>> /**
+>> * struct omap_hwmod_class - the type of an IP block
+>
+> +1 Looks good to me but someone else must approve...
+> Oops, sorry its not Gerrit :-)
+>
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+>
+> Thanks,
+> Benoit
 
-Thanks.
-Thomas.
