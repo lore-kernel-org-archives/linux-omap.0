@@ -1,46 +1,60 @@
-From: tom.leiming@gmail.com
-Subject: [PATCH -next] arm: omap2: fix compile failure on arch/arm/mach-omap2/cpuidle34xx.c
-Date: Thu, 17 Nov 2011 11:03:41 +0800
-Message-ID: <1321499021-23764-1-git-send-email-tom.leiming@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:45507 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755698Ab1KQDEC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Nov 2011 22:04:02 -0500
-Received: by mail-iy0-f174.google.com with SMTP id e36so1521694iag.19
-        for <linux-omap@vger.kernel.org>; Wed, 16 Nov 2011 19:04:02 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: Re: [PATCH 2/2 v4] net/smsc911x: Add regulator support
+Date: Thu, 17 Nov 2011 00:07:21 -0500
+Message-ID: <201111170007.25084.vapier@gentoo.org>
+References: <1320064719-14449-1-git-send-email-robert.marklund@stericsson.com> <201110311421.18653.vapier@gentoo.org> <2B1D156D95AE9B4EAD379CB9E465FE7324AECE3650@EXDCVYMBSTM005.EQ1STM.local>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart3064225.1jW3foyFWa";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <2B1D156D95AE9B4EAD379CB9E465FE7324AECE3650@EXDCVYMBSTM005.EQ1STM.local>
+Sender: linux-sh-owner@vger.kernel.org
+To: Robert MARKLUND <robert.marklund@stericsson.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Steve Glendinning <steve.glendinning@smsc.com>, Mathieu Poirier <mathieu.poirier@linaro.org>, Paul Mundt <lethal@linux-sh.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "uclinux-dist-devel@blackfin.uclinux.org" <uclinux-dist-devel@blackfin.uclinux.org>, Linus Walleij <linus.walleij@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ming Lei <tom.leiming@gmail.com>
 
-From: Ming Lei <tom.leiming@gmail.com>
+--nextPart3064225.1jW3foyFWa
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 
-  CC      arch/arm/mach-omap2/cpuidle34xx.o
-arch/arm/mach-omap2/cpuidle34xx.c: In function 'omap3_enter_idle':
-arch/arm/mach-omap2/cpuidle34xx.c:117:2: error: implicit declaration of
-function 'omap_irq_pending'
-make[1]: *** [arch/arm/mach-omap2/cpuidle34xx.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
-make: *** Waiting for unfinished jobs....
+On Wednesday 16 November 2011 07:59:41 Robert MARKLUND wrote:
+> From: Mike Frysinger [mailto:vapier@gentoo.org]
+> > On Monday 31 October 2011 08:38:39 Robert Marklund wrote:
+> > > ChangeLog v3->v4:
+> > > - Remove dual prints and old comment on Mike's request.
+> > > - Split the request_free fucntion on Mike and Sascha request.
+> >=20
+> > would be nice if the enable/disable were split as well ...
+>=20
+> I interpret this as "nice if", if it's a "must be" then ill change it.
 
-Signed-off-by: Ming Lei <tom.leiming@gmail.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+i would prefer it were split
+=2Dmike
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 158c17e..0f49834 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -34,6 +34,7 @@
- 
- #include "pm.h"
- #include "control.h"
-+#include "common.h"
- 
- #ifdef CONFIG_CPU_IDLE
- 
--- 
-1.7.5.4
+--nextPart3064225.1jW3foyFWa
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.17 (GNU/Linux)
+
+iQIcBAABAgAGBQJOxJaMAAoJEEFjO5/oN/WBw7wP/R6BpgExQZxYQkgI1W7f8gkX
+Eop/e4ZhE4PQsKdCsVaB2Dse5FqCGGdHUAkNUxtCIjQF6ilRpidgXOAVJ1Cpec6t
+qjthktolSuCTLtbdHpIBQh7wYCIQYARNtCvHFpKDcqLQM+AwSB5AS+AH58nl9Ms5
+i7w4tcSEhHzj6tMPIG8fFAcKgjIt6G9xVgKCRgjhPFSautxYxWjOWKlCleXcxcAr
+u7AkAbZpJMsmuY2H6mgrcE76IMw8LVO9RVcs1rqAm+4C+dFXZnX26XdCFQ5yNgUu
+C73+75y4HSoeQSVAe80OUV5huG3kwjHE++2LxAq3c4b7cHzGya1yDYCpO7wavqdC
+pw8Nxm2MACEwh58hxi9YMc2MYOiZ7F//8Fh4JUanWC9rksAEIvsPNMAPuAqg9mxX
+lKWdS6C9h6tmCzCheyUcsVBLeh3BYL+CmJ5No0RhWPHnGPJeKVD1Pp2bMG1OWiiV
+C+xI7yk7d1SKCi9XOeWJ3fzsUUynqtA62GVMHRhWb9cpwokuswhnLQONH12emgAr
+24iwHHROGLq3PRIfcz/jZDv2P/vaPucBvaDSaTnTq293eCPy/zF64MAItSNA7lf2
+qCHpn7zR2ORUY+71KkpK1gr3XqgKZPwoD95lgxIThTSpDYvk334XIJTc/F9OBx+N
+1PFwQVVu9DnR7OXdgwnw
+=dBok
+-----END PGP SIGNATURE-----
+
+--nextPart3064225.1jW3foyFWa--
