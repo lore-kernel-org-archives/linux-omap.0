@@ -1,673 +1,391 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v5 3/4] regulator: pass additional of_node to
-	regulator_register()
-Date: Fri, 18 Nov 2011 16:47:19 +0530
-Message-ID: <1321615040-13257-4-git-send-email-rnayak@ti.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
+Date: Fri, 18 Nov 2011 13:58:20 +0100
+Message-ID: <4EC6566C.70202@ti.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com> <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com> <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1321615040-13257-1-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: Dimitris Papastamos <dp-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ian Lartey <ian-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Zeng Zhaoming <b32542-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:55408 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751083Ab1KRM6o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Nov 2011 07:58:44 -0500
+In-Reply-To: <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux@arm.linux.org.uk, will.deacon@arm.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-With device tree support for regulators, its needed that the
-regulator_dev->dev device has the right of_node attached.
-To be able to do this add an additional parameter to the
-regulator_register() api, wherein the dt-adapted driver can
-then pass this additional info onto the regulator core.
+Hi Ming Lei,
 
-Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Acked-by: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>
-Cc: Ian Lartey <ian-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: Dimitris Papastamos <dp-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>
-Cc: Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>
-Cc: Wolfram Sang <w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-Cc: Zeng Zhaoming <b32542-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sorry, for the delay, it took me some time to gather the exhaustive dat=
+a for that block.=20
+
+On 11/10/2011 10:02 AM, Paul Walmsley wrote:
+> Hello Ming Lei,
+>=20
+> just a few quick comments for now -
+>=20
+> On Wed, 9 Nov 2011, Ming Lei wrote:
+>=20
+>> On Tue, Nov 8, 2011 at 11:26 PM, Paul Walmsley<paul@pwsan.com>  wrot=
+e:
+>>
+>>>> +static struct omap_hwmod_irq_info omap44xx_emu_irqs[] =3D {
+>>>> +     { .name =3D "cti0", .irq =3D 1 + OMAP44XX_IRQ_GIC_START },
+>>>> +     { .name =3D "cti1", .irq =3D 2 + OMAP44XX_IRQ_GIC_START },
+>>>> +     { .irq =3D -1 }
+>>>> +};
+>>>
+>>> Are you sure these are part of the emulation IP?  We already have t=
+hose
+>>
+>> I am not sure, I just figure out one way to make omap4 pmu work. Sin=
+ce there
+>> are few descriptions in TRM about it, it is a hacking based on [1], =
+:-)
+>>
+>>> IRQs in the MPU hwmod, see omap44xx_mpu_irqs[] in the same file.
+>>
+>> I just see it, but looks like the "mpu" hwmod isn't populated as oma=
+p_device,
+>> so the CTI irqs aren't requested now.
+>=20
+> Okay.  Maybe you can probably add some code in mach-omap2/devices.c t=
+o
+> build an omap_device for this for right now?  I am not 100% sure whet=
+her
+> those cti0/1 interrupts should be associated with the MPU or with the
+> DEBUGSS but Beno=EEt might be able to answer this.
+>=20
+>> Also, current arm perf code don't handle three IRQs(one pl310 irq an=
+d
+>> two CTI irq) inside one device correctly.
+>=20
+> To fix this, that ARM perf code should either be using
+> platform_get_irq_byname(), or the hwmod hardware data will need to be
+> rearranged to meet the arbitrary ordering requirement.  I'd suggest
+> pinging Will on this issue to see what he wants to do.
+>=20
+>> So any suggestion about CTI IRQs connecting to which hwmod, so that =
+they can
+>> be found by pmu driver?
+>>
+>>>> +/*emu hwmod*/
+>>>> +static struct omap_hwmod omap44xx_emu_hwmod =3D {
+>>>> +     .name           =3D "emu",
+>>>> +     .class          =3D&omap44xx_emu_hwmod_class,
+>>>> +     .clkdm_name     =3D "emu_sys_clkdm",
+>>>> +     .prcm =3D {
+>>>> +             .omap4 =3D {
+>>>> +                     .clkctrl_offs =3D OMAP4_CM_EMU_CLKSTCTRL_OFF=
+SET,
+>>>
+>>> This doesn't look right either: EMU is a clockdomain, not an IP blo=
+ck.
+>>
+>> I defined the 'emu' hwmod to control the clock state transition of t=
+he EMU
+>> clock domain by writing to CLKTRCTRL.CM_EMU_CLKSTCTRL with standard
+>> hwmod interface(_enable / _idle). Is there any other neat way to do =
+it?
+>=20
+> So the clockdomain is already defined in
+> mach-omap2/clockdomains44xx_data.c and there's code to control it - s=
+ee
+> for example clkdm_enable_idle().  But this code should not be called
+> directly by any device driver code or driver integration code.  The t=
+hing
+> to do here is to ask Beno=EEt to release the hwmod data for the DEBUG=
+SS
+> hwmod, then someone will need to write an MFD driver for that which
+> exposes the PMU address space to the PMU platform driver.
+
+=46ollowing that discussion, here is the patch to expose debugss hwmod.
+
+I have moved the CTIs irq from MPU to debugss and exposed all the inter=
+nals IP that are part of the OMAP debug subsystem.
+
+Since the DEBUGSS cannot be accessed at boot time if the l3_main_3 and =
+the l3_instr interconnects are not enable, you will have some warnings.
+
+[    0.416992] omap_hwmod: debugss: softreset failed (waited 10000 usec=
+)
+[    0.426727] omap_hwmod: debugss: _wait_target_disable failed
+
+Just let me know if you have any issue with that patch.
+
+Please note that will will need the fix "ARM: OMAP: hwmod: Fix the addr=
+ space, irq, dma count APIs" to avoid hwmod core messing up with the re=
+sources.
+
+I've just posted a pull request for Tony to get it for -rc3.
+http://comments.gmane.org/gmane.linux.ports.arm.kernel/140458
+
+I pushed these two patches on a branch based on mainline for your conve=
+nience.
+
+git://gitorious.org/omap-pm/linux.git wip-emu/debuss_hwmod
+
+Regards,
+Benoit=20
+
 ---
- drivers/regulator/88pm8607.c           |    2 +-
- drivers/regulator/aat2870-regulator.c  |    2 +-
- drivers/regulator/ab3100.c             |    2 +-
- drivers/regulator/ab8500.c             |    2 +-
- drivers/regulator/ad5398.c             |    2 +-
- drivers/regulator/bq24022.c            |    2 +-
- drivers/regulator/core.c               |    3 ++-
- drivers/regulator/da903x.c             |    2 +-
- drivers/regulator/db8500-prcmu.c       |    2 +-
- drivers/regulator/dummy.c              |    2 +-
- drivers/regulator/fixed.c              |    2 +-
- drivers/regulator/isl6271a-regulator.c |    2 +-
- drivers/regulator/lp3971.c             |    2 +-
- drivers/regulator/lp3972.c             |    2 +-
- drivers/regulator/max1586.c            |    2 +-
- drivers/regulator/max8649.c            |    2 +-
- drivers/regulator/max8660.c            |    2 +-
- drivers/regulator/max8925-regulator.c  |    2 +-
- drivers/regulator/max8952.c            |    2 +-
- drivers/regulator/max8997.c            |    2 +-
- drivers/regulator/max8998.c            |    2 +-
- drivers/regulator/mc13783-regulator.c  |    2 +-
- drivers/regulator/mc13892-regulator.c  |    2 +-
- drivers/regulator/pcap-regulator.c     |    2 +-
- drivers/regulator/pcf50633-regulator.c |    2 +-
- drivers/regulator/tps6105x-regulator.c |    3 ++-
- drivers/regulator/tps65023-regulator.c |    2 +-
- drivers/regulator/tps6507x-regulator.c |    2 +-
- drivers/regulator/tps6524x-regulator.c |    2 +-
- drivers/regulator/tps6586x-regulator.c |    2 +-
- drivers/regulator/tps65910-regulator.c |    2 +-
- drivers/regulator/tps65912-regulator.c |    2 +-
- drivers/regulator/twl-regulator.c      |    2 +-
- drivers/regulator/wm831x-dcdc.c        |    8 ++++----
- drivers/regulator/wm831x-isink.c       |    2 +-
- drivers/regulator/wm831x-ldo.c         |    6 +++---
- drivers/regulator/wm8350-regulator.c   |    2 +-
- drivers/regulator/wm8400-regulator.c   |    2 +-
- drivers/regulator/wm8994-regulator.c   |    2 +-
- include/linux/regulator/driver.h       |    2 +-
- sound/soc/codecs/sgtl5000.c            |    2 +-
- 41 files changed, 48 insertions(+), 46 deletions(-)
+=46rom: Benoit Cousson <b-cousson@ti.com>
+Date: Fri, 18 Nov 2011 11:42:12 +0100
+Subject: [PATCH] ARM: OMAP4: hwmod data: Add support for the debug modu=
+les
 
-diff --git a/drivers/regulator/88pm8607.c b/drivers/regulator/88pm8607.c
-index ca0d608..df33530 100644
---- a/drivers/regulator/88pm8607.c
-+++ b/drivers/regulator/88pm8607.c
-@@ -427,7 +427,7 @@ static int __devinit pm8607_regulator_probe(struct platform_device *pdev)
- 
- 	/* replace driver_data with info */
- 	info->regulator = regulator_register(&info->desc, &pdev->dev,
--					     pdata, info);
-+					     pdata, info, NULL);
- 	if (IS_ERR(info->regulator)) {
- 		dev_err(&pdev->dev, "failed to register regulator %s\n",
- 			info->desc.name);
-diff --git a/drivers/regulator/aat2870-regulator.c b/drivers/regulator/aat2870-regulator.c
-index 5abeb3a..07e98ec 100644
---- a/drivers/regulator/aat2870-regulator.c
-+++ b/drivers/regulator/aat2870-regulator.c
-@@ -188,7 +188,7 @@ static int aat2870_regulator_probe(struct platform_device *pdev)
- 	ri->pdev = pdev;
- 
- 	rdev = regulator_register(&ri->desc, &pdev->dev,
--				  pdev->dev.platform_data, ri);
-+				  pdev->dev.platform_data, ri, NULL);
- 	if (IS_ERR(rdev)) {
- 		dev_err(&pdev->dev, "Failed to register regulator %s\n",
- 			ri->desc.name);
-diff --git a/drivers/regulator/ab3100.c b/drivers/regulator/ab3100.c
-index 585e494..042271a 100644
---- a/drivers/regulator/ab3100.c
-+++ b/drivers/regulator/ab3100.c
-@@ -634,7 +634,7 @@ static int __devinit ab3100_regulators_probe(struct platform_device *pdev)
- 		rdev = regulator_register(&ab3100_regulator_desc[i],
- 					  &pdev->dev,
- 					  &plfdata->reg_constraints[i],
--					  reg);
-+					  reg, NULL);
- 
- 		if (IS_ERR(rdev)) {
- 			err = PTR_ERR(rdev);
-diff --git a/drivers/regulator/ab8500.c b/drivers/regulator/ab8500.c
-index 6e1ae69..e91b8dd 100644
---- a/drivers/regulator/ab8500.c
-+++ b/drivers/regulator/ab8500.c
-@@ -822,7 +822,7 @@ static __devinit int ab8500_regulator_probe(struct platform_device *pdev)
- 
- 		/* register regulator with framework */
- 		info->regulator = regulator_register(&info->desc, &pdev->dev,
--				&pdata->regulator[i], info);
-+				&pdata->regulator[i], info, NULL);
- 		if (IS_ERR(info->regulator)) {
- 			err = PTR_ERR(info->regulator);
- 			dev_err(&pdev->dev, "failed to register regulator %s\n",
-diff --git a/drivers/regulator/ad5398.c b/drivers/regulator/ad5398.c
-index a4be416..483c809 100644
---- a/drivers/regulator/ad5398.c
-+++ b/drivers/regulator/ad5398.c
-@@ -233,7 +233,7 @@ static int __devinit ad5398_probe(struct i2c_client *client,
- 	chip->current_mask = (chip->current_level - 1) << chip->current_offset;
- 
- 	chip->rdev = regulator_register(&ad5398_reg, &client->dev,
--					init_data, chip);
-+					init_data, chip, NULL);
- 	if (IS_ERR(chip->rdev)) {
- 		ret = PTR_ERR(chip->rdev);
- 		dev_err(&client->dev, "failed to register %s %s\n",
-diff --git a/drivers/regulator/bq24022.c b/drivers/regulator/bq24022.c
-index e24d1b7..9fab6d1 100644
---- a/drivers/regulator/bq24022.c
-+++ b/drivers/regulator/bq24022.c
-@@ -107,7 +107,7 @@ static int __init bq24022_probe(struct platform_device *pdev)
- 	ret = gpio_direction_output(pdata->gpio_nce, 1);
- 
- 	bq24022 = regulator_register(&bq24022_desc, &pdev->dev,
--				     pdata->init_data, pdata);
-+				     pdata->init_data, pdata, NULL);
- 	if (IS_ERR(bq24022)) {
- 		dev_dbg(&pdev->dev, "couldn't register regulator\n");
- 		ret = PTR_ERR(bq24022);
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index 669d021..8b01eb0 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -2637,7 +2637,7 @@ static void rdev_init_debugfs(struct regulator_dev *rdev)
-  */
- struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
- 	struct device *dev, const struct regulator_init_data *init_data,
--	void *driver_data)
-+	void *driver_data, struct device_node *of_node)
- {
- 	static atomic_t regulator_no = ATOMIC_INIT(0);
- 	struct regulator_dev *rdev;
-@@ -2696,6 +2696,7 @@ struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
- 
- 	/* register with sysfs */
- 	rdev->dev.class = &regulator_class;
-+	rdev->dev.of_node = of_node;
- 	rdev->dev.parent = dev;
- 	dev_set_name(&rdev->dev, "regulator.%d",
- 		     atomic_inc_return(&regulator_no) - 1);
-diff --git a/drivers/regulator/da903x.c b/drivers/regulator/da903x.c
-index e23ddfa..8dbc54d 100644
---- a/drivers/regulator/da903x.c
-+++ b/drivers/regulator/da903x.c
-@@ -537,7 +537,7 @@ static int __devinit da903x_regulator_probe(struct platform_device *pdev)
- 		ri->desc.ops = &da9030_regulator_ldo1_15_ops;
- 
- 	rdev = regulator_register(&ri->desc, &pdev->dev,
--				  pdev->dev.platform_data, ri);
-+				  pdev->dev.platform_data, ri, NULL);
- 	if (IS_ERR(rdev)) {
- 		dev_err(&pdev->dev, "failed to register regulator %s\n",
- 				ri->desc.name);
-diff --git a/drivers/regulator/db8500-prcmu.c b/drivers/regulator/db8500-prcmu.c
-index 7832975..515443f 100644
---- a/drivers/regulator/db8500-prcmu.c
-+++ b/drivers/regulator/db8500-prcmu.c
-@@ -486,7 +486,7 @@ static int __devinit db8500_regulator_probe(struct platform_device *pdev)
- 
- 		/* register with the regulator framework */
- 		info->rdev = regulator_register(&info->desc, &pdev->dev,
--				init_data, info);
-+				init_data, info, NULL);
- 		if (IS_ERR(info->rdev)) {
- 			err = PTR_ERR(info->rdev);
- 			dev_err(&pdev->dev, "failed to register %s: err %i\n",
-diff --git a/drivers/regulator/dummy.c b/drivers/regulator/dummy.c
-index b8f5205..0ee00de 100644
---- a/drivers/regulator/dummy.c
-+++ b/drivers/regulator/dummy.c
-@@ -42,7 +42,7 @@ static int __devinit dummy_regulator_probe(struct platform_device *pdev)
- 	int ret;
- 
- 	dummy_regulator_rdev = regulator_register(&dummy_desc, NULL,
--						  &dummy_initdata, NULL);
-+						  &dummy_initdata, NULL, NULL);
- 	if (IS_ERR(dummy_regulator_rdev)) {
- 		ret = PTR_ERR(dummy_regulator_rdev);
- 		pr_err("Failed to register regulator: %d\n", ret);
-diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
-index 0650856..db90919 100644
---- a/drivers/regulator/fixed.c
-+++ b/drivers/regulator/fixed.c
-@@ -234,7 +234,7 @@ static int __devinit reg_fixed_voltage_probe(struct platform_device *pdev)
- 	}
- 
- 	drvdata->dev = regulator_register(&drvdata->desc, &pdev->dev,
--					  config->init_data, drvdata);
-+					  config->init_data, drvdata, NULL);
- 	if (IS_ERR(drvdata->dev)) {
- 		ret = PTR_ERR(drvdata->dev);
- 		dev_err(&pdev->dev, "Failed to register regulator: %d\n", ret);
-diff --git a/drivers/regulator/isl6271a-regulator.c b/drivers/regulator/isl6271a-regulator.c
-index e4b3592..c1a456c 100644
---- a/drivers/regulator/isl6271a-regulator.c
-+++ b/drivers/regulator/isl6271a-regulator.c
-@@ -170,7 +170,7 @@ static int __devinit isl6271a_probe(struct i2c_client *i2c,
- 
- 	for (i = 0; i < 3; i++) {
- 		pmic->rdev[i] = regulator_register(&isl_rd[i], &i2c->dev,
--						init_data, pmic);
-+						init_data, pmic, NULL);
- 		if (IS_ERR(pmic->rdev[i])) {
- 			dev_err(&i2c->dev, "failed to register %s\n", id->name);
- 			err = PTR_ERR(pmic->rdev[i]);
-diff --git a/drivers/regulator/lp3971.c b/drivers/regulator/lp3971.c
-index 72b16b5..0cfabd3 100644
---- a/drivers/regulator/lp3971.c
-+++ b/drivers/regulator/lp3971.c
-@@ -451,7 +451,7 @@ static int __devinit setup_regulators(struct lp3971 *lp3971,
- 	for (i = 0; i < pdata->num_regulators; i++) {
- 		struct lp3971_regulator_subdev *reg = &pdata->regulators[i];
- 		lp3971->rdev[i] = regulator_register(&regulators[reg->id],
--					lp3971->dev, reg->initdata, lp3971);
-+				lp3971->dev, reg->initdata, lp3971, NULL);
- 
- 		if (IS_ERR(lp3971->rdev[i])) {
- 			err = PTR_ERR(lp3971->rdev[i]);
-diff --git a/drivers/regulator/lp3972.c b/drivers/regulator/lp3972.c
-index fbc5e37..49a15ee 100644
---- a/drivers/regulator/lp3972.c
-+++ b/drivers/regulator/lp3972.c
-@@ -555,7 +555,7 @@ static int __devinit setup_regulators(struct lp3972 *lp3972,
- 	for (i = 0; i < pdata->num_regulators; i++) {
- 		struct lp3972_regulator_subdev *reg = &pdata->regulators[i];
- 		lp3972->rdev[i] = regulator_register(&regulators[reg->id],
--					lp3972->dev, reg->initdata, lp3972);
-+				lp3972->dev, reg->initdata, lp3972, NULL);
- 
- 		if (IS_ERR(lp3972->rdev[i])) {
- 			err = PTR_ERR(lp3972->rdev[i]);
-diff --git a/drivers/regulator/max1586.c b/drivers/regulator/max1586.c
-index 3f49512..40e7a4d 100644
---- a/drivers/regulator/max1586.c
-+++ b/drivers/regulator/max1586.c
-@@ -214,7 +214,7 @@ static int __devinit max1586_pmic_probe(struct i2c_client *client,
- 		}
- 		rdev[i] = regulator_register(&max1586_reg[id], &client->dev,
- 					     pdata->subdevs[i].platform_data,
--					     max1586);
-+					     max1586, NULL);
- 		if (IS_ERR(rdev[i])) {
- 			ret = PTR_ERR(rdev[i]);
- 			dev_err(&client->dev, "failed to register %s\n",
-diff --git a/drivers/regulator/max8649.c b/drivers/regulator/max8649.c
-index 1062cf9..524a5da 100644
---- a/drivers/regulator/max8649.c
-+++ b/drivers/regulator/max8649.c
-@@ -347,7 +347,7 @@ static int __devinit max8649_regulator_probe(struct i2c_client *client,
- 	}
- 
- 	info->regulator = regulator_register(&dcdc_desc, &client->dev,
--					     pdata->regulator, info);
-+					     pdata->regulator, info, NULL);
- 	if (IS_ERR(info->regulator)) {
- 		dev_err(info->dev, "failed to register regulator %s\n",
- 			dcdc_desc.name);
-diff --git a/drivers/regulator/max8660.c b/drivers/regulator/max8660.c
-index 33f5d9a..a838e66 100644
---- a/drivers/regulator/max8660.c
-+++ b/drivers/regulator/max8660.c
-@@ -449,7 +449,7 @@ static int __devinit max8660_probe(struct i2c_client *client,
- 
- 		rdev[i] = regulator_register(&max8660_reg[id], &client->dev,
- 					     pdata->subdevs[i].platform_data,
--					     max8660);
-+					     max8660, NULL);
- 		if (IS_ERR(rdev[i])) {
- 			ret = PTR_ERR(rdev[i]);
- 			dev_err(&client->dev, "failed to register %s\n",
-diff --git a/drivers/regulator/max8925-regulator.c b/drivers/regulator/max8925-regulator.c
-index cc9ec0e..f976e5d 100644
---- a/drivers/regulator/max8925-regulator.c
-+++ b/drivers/regulator/max8925-regulator.c
-@@ -266,7 +266,7 @@ static int __devinit max8925_regulator_probe(struct platform_device *pdev)
- 	ri->chip = chip;
- 
- 	rdev = regulator_register(&ri->desc, &pdev->dev,
--				  pdata->regulator[pdev->id], ri);
-+				  pdata->regulator[pdev->id], ri, NULL);
- 	if (IS_ERR(rdev)) {
- 		dev_err(&pdev->dev, "failed to register regulator %s\n",
- 				ri->desc.name);
-diff --git a/drivers/regulator/max8952.c b/drivers/regulator/max8952.c
-index 3883d85..75d8940 100644
---- a/drivers/regulator/max8952.c
-+++ b/drivers/regulator/max8952.c
-@@ -208,7 +208,7 @@ static int __devinit max8952_pmic_probe(struct i2c_client *client,
- 	max8952->pdata = pdata;
- 
- 	max8952->rdev = regulator_register(&regulator, max8952->dev,
--			&pdata->reg_data, max8952);
-+			&pdata->reg_data, max8952, NULL);
- 
- 	if (IS_ERR(max8952->rdev)) {
- 		ret = PTR_ERR(max8952->rdev);
-diff --git a/drivers/regulator/max8997.c b/drivers/regulator/max8997.c
-index 6176129..d26e864 100644
---- a/drivers/regulator/max8997.c
-+++ b/drivers/regulator/max8997.c
-@@ -1146,7 +1146,7 @@ static __devinit int max8997_pmic_probe(struct platform_device *pdev)
- 			regulators[id].n_voltages = 16;
- 
- 		rdev[i] = regulator_register(&regulators[id], max8997->dev,
--				pdata->regulators[i].initdata, max8997);
-+				pdata->regulators[i].initdata, max8997, NULL);
- 		if (IS_ERR(rdev[i])) {
- 			ret = PTR_ERR(rdev[i]);
- 			dev_err(max8997->dev, "regulator init failed for %d\n",
-diff --git a/drivers/regulator/max8998.c b/drivers/regulator/max8998.c
-index 41a1495..2d38c24 100644
---- a/drivers/regulator/max8998.c
-+++ b/drivers/regulator/max8998.c
-@@ -847,7 +847,7 @@ static __devinit int max8998_pmic_probe(struct platform_device *pdev)
- 			regulators[index].n_voltages = count;
- 		}
- 		rdev[i] = regulator_register(&regulators[index], max8998->dev,
--				pdata->regulators[i].initdata, max8998);
-+				pdata->regulators[i].initdata, max8998, NULL);
- 		if (IS_ERR(rdev[i])) {
- 			ret = PTR_ERR(rdev[i]);
- 			dev_err(max8998->dev, "regulator init failed\n");
-diff --git a/drivers/regulator/mc13783-regulator.c b/drivers/regulator/mc13783-regulator.c
-index 8479082..56d4a67 100644
---- a/drivers/regulator/mc13783-regulator.c
-+++ b/drivers/regulator/mc13783-regulator.c
-@@ -357,7 +357,7 @@ static int __devinit mc13783_regulator_probe(struct platform_device *pdev)
- 		init_data = &pdata->regulators[i];
- 		priv->regulators[i] = regulator_register(
- 				&mc13783_regulators[init_data->id].desc,
--				&pdev->dev, init_data->init_data, priv);
-+				&pdev->dev, init_data->init_data, priv, NULL);
- 
- 		if (IS_ERR(priv->regulators[i])) {
- 			dev_err(&pdev->dev, "failed to register regulator %s\n",
-diff --git a/drivers/regulator/mc13892-regulator.c b/drivers/regulator/mc13892-regulator.c
-index 023d17d..2824804 100644
---- a/drivers/regulator/mc13892-regulator.c
-+++ b/drivers/regulator/mc13892-regulator.c
-@@ -573,7 +573,7 @@ static int __devinit mc13892_regulator_probe(struct platform_device *pdev)
- 		init_data = &pdata->regulators[i];
- 		priv->regulators[i] = regulator_register(
- 			&mc13892_regulators[init_data->id].desc,
--			&pdev->dev, init_data->init_data, priv);
-+			&pdev->dev, init_data->init_data, priv, NULL);
- 
- 		if (IS_ERR(priv->regulators[i])) {
- 			dev_err(&pdev->dev, "failed to register regulator %s\n",
-diff --git a/drivers/regulator/pcap-regulator.c b/drivers/regulator/pcap-regulator.c
-index 31f6e11..a5aab1b 100644
---- a/drivers/regulator/pcap-regulator.c
-+++ b/drivers/regulator/pcap-regulator.c
-@@ -277,7 +277,7 @@ static int __devinit pcap_regulator_probe(struct platform_device *pdev)
- 	void *pcap = dev_get_drvdata(pdev->dev.parent);
- 
- 	rdev = regulator_register(&pcap_regulators[pdev->id], &pdev->dev,
--				pdev->dev.platform_data, pcap);
-+				pdev->dev.platform_data, pcap, NULL);
- 	if (IS_ERR(rdev))
- 		return PTR_ERR(rdev);
- 
-diff --git a/drivers/regulator/pcf50633-regulator.c b/drivers/regulator/pcf50633-regulator.c
-index 69a11d9..1d1c310 100644
---- a/drivers/regulator/pcf50633-regulator.c
-+++ b/drivers/regulator/pcf50633-regulator.c
-@@ -320,7 +320,7 @@ static int __devinit pcf50633_regulator_probe(struct platform_device *pdev)
- 	pcf = dev_to_pcf50633(pdev->dev.parent);
- 
- 	rdev = regulator_register(&regulators[pdev->id], &pdev->dev,
--				  pdev->dev.platform_data, pcf);
-+				  pdev->dev.platform_data, pcf, NULL);
- 	if (IS_ERR(rdev))
- 		return PTR_ERR(rdev);
- 
-diff --git a/drivers/regulator/tps6105x-regulator.c b/drivers/regulator/tps6105x-regulator.c
-index 1011873..d9278da 100644
---- a/drivers/regulator/tps6105x-regulator.c
-+++ b/drivers/regulator/tps6105x-regulator.c
-@@ -151,7 +151,8 @@ static int __devinit tps6105x_regulator_probe(struct platform_device *pdev)
- 	/* Register regulator with framework */
- 	tps6105x->regulator = regulator_register(&tps6105x_regulator_desc,
- 					     &tps6105x->client->dev,
--					     pdata->regulator_data, tps6105x);
-+					     pdata->regulator_data, tps6105x,
-+					     NULL);
- 	if (IS_ERR(tps6105x->regulator)) {
- 		ret = PTR_ERR(tps6105x->regulator);
- 		dev_err(&tps6105x->client->dev,
-diff --git a/drivers/regulator/tps65023-regulator.c b/drivers/regulator/tps65023-regulator.c
-index 9fb4c7b..7fd3b90 100644
---- a/drivers/regulator/tps65023-regulator.c
-+++ b/drivers/regulator/tps65023-regulator.c
-@@ -496,7 +496,7 @@ static int __devinit tps_65023_probe(struct i2c_client *client,
- 
- 		/* Register the regulators */
- 		rdev = regulator_register(&tps->desc[i], &client->dev,
--					  init_data, tps);
-+					  init_data, tps, NULL);
- 		if (IS_ERR(rdev)) {
- 			dev_err(&client->dev, "failed to register %s\n",
- 				id->name);
-diff --git a/drivers/regulator/tps6507x-regulator.c b/drivers/regulator/tps6507x-regulator.c
-index bdef703..0b63ef7 100644
---- a/drivers/regulator/tps6507x-regulator.c
-+++ b/drivers/regulator/tps6507x-regulator.c
-@@ -599,7 +599,7 @@ int tps6507x_pmic_probe(struct platform_device *pdev)
- 		tps->desc[i].owner = THIS_MODULE;
- 
- 		rdev = regulator_register(&tps->desc[i],
--					tps6507x_dev->dev, init_data, tps);
-+					tps6507x_dev->dev, init_data, tps, NULL);
- 		if (IS_ERR(rdev)) {
- 			dev_err(tps6507x_dev->dev,
- 				"failed to register %s regulator\n",
-diff --git a/drivers/regulator/tps6524x-regulator.c b/drivers/regulator/tps6524x-regulator.c
-index 9166aa0..70b7b1f 100644
---- a/drivers/regulator/tps6524x-regulator.c
-+++ b/drivers/regulator/tps6524x-regulator.c
-@@ -651,7 +651,7 @@ static int __devinit pmic_probe(struct spi_device *spi)
- 			hw->desc[i].n_voltages = 1;
- 
- 		hw->rdev[i] = regulator_register(&hw->desc[i], dev,
--						 init_data, hw);
-+						 init_data, hw, NULL);
- 		if (IS_ERR(hw->rdev[i])) {
- 			ret = PTR_ERR(hw->rdev[i]);
- 			hw->rdev[i] = NULL;
-diff --git a/drivers/regulator/tps6586x-regulator.c b/drivers/regulator/tps6586x-regulator.c
-index 14b9389..c75fb20 100644
---- a/drivers/regulator/tps6586x-regulator.c
-+++ b/drivers/regulator/tps6586x-regulator.c
-@@ -396,7 +396,7 @@ static int __devinit tps6586x_regulator_probe(struct platform_device *pdev)
- 		return err;
- 
- 	rdev = regulator_register(&ri->desc, &pdev->dev,
--				  pdev->dev.platform_data, ri);
-+				  pdev->dev.platform_data, ri, NULL);
- 	if (IS_ERR(rdev)) {
- 		dev_err(&pdev->dev, "failed to register regulator %s\n",
- 				ri->desc.name);
-diff --git a/drivers/regulator/tps65910-regulator.c b/drivers/regulator/tps65910-regulator.c
-index 66d2d60..eaea9b4 100644
---- a/drivers/regulator/tps65910-regulator.c
-+++ b/drivers/regulator/tps65910-regulator.c
-@@ -963,7 +963,7 @@ static __devinit int tps65910_probe(struct platform_device *pdev)
- 		pmic->desc[i].owner = THIS_MODULE;
- 
- 		rdev = regulator_register(&pmic->desc[i],
--				tps65910->dev, reg_data, pmic);
-+				tps65910->dev, reg_data, pmic, NULL);
- 		if (IS_ERR(rdev)) {
- 			dev_err(tps65910->dev,
- 				"failed to register %s regulator\n",
-diff --git a/drivers/regulator/tps65912-regulator.c b/drivers/regulator/tps65912-regulator.c
-index 39d4a17..da00d88 100644
---- a/drivers/regulator/tps65912-regulator.c
-+++ b/drivers/regulator/tps65912-regulator.c
-@@ -727,7 +727,7 @@ static __devinit int tps65912_probe(struct platform_device *pdev)
- 		pmic->desc[i].owner = THIS_MODULE;
- 		range = tps65912_get_range(pmic, i);
- 		rdev = regulator_register(&pmic->desc[i],
--					tps65912->dev, reg_data, pmic);
-+					tps65912->dev, reg_data, pmic, NULL);
- 		if (IS_ERR(rdev)) {
- 			dev_err(tps65912->dev,
- 				"failed to register %s regulator\n",
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index ee8747f..9a2e07a 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -1070,7 +1070,7 @@ static int __devinit twlreg_probe(struct platform_device *pdev)
- 		break;
- 	}
- 
--	rdev = regulator_register(&info->desc, &pdev->dev, initdata, info);
-+	rdev = regulator_register(&info->desc, &pdev->dev, initdata, info, NULL);
- 	if (IS_ERR(rdev)) {
- 		dev_err(&pdev->dev, "can't register %s, %ld\n",
- 				info->desc.name, PTR_ERR(rdev));
-diff --git a/drivers/regulator/wm831x-dcdc.c b/drivers/regulator/wm831x-dcdc.c
-index bd3531d..7558a96 100644
---- a/drivers/regulator/wm831x-dcdc.c
-+++ b/drivers/regulator/wm831x-dcdc.c
-@@ -553,7 +553,7 @@ static __devinit int wm831x_buckv_probe(struct platform_device *pdev)
- 		wm831x_buckv_dvs_init(dcdc, pdata->dcdc[id]->driver_data);
- 
- 	dcdc->regulator = regulator_register(&dcdc->desc, &pdev->dev,
--					     pdata->dcdc[id], dcdc);
-+					     pdata->dcdc[id], dcdc, NULL);
- 	if (IS_ERR(dcdc->regulator)) {
- 		ret = PTR_ERR(dcdc->regulator);
- 		dev_err(wm831x->dev, "Failed to register DCDC%d: %d\n",
-@@ -747,7 +747,7 @@ static __devinit int wm831x_buckp_probe(struct platform_device *pdev)
- 	dcdc->desc.owner = THIS_MODULE;
- 
- 	dcdc->regulator = regulator_register(&dcdc->desc, &pdev->dev,
--					     pdata->dcdc[id], dcdc);
-+					     pdata->dcdc[id], dcdc, NULL);
- 	if (IS_ERR(dcdc->regulator)) {
- 		ret = PTR_ERR(dcdc->regulator);
- 		dev_err(wm831x->dev, "Failed to register DCDC%d: %d\n",
-@@ -874,7 +874,7 @@ static __devinit int wm831x_boostp_probe(struct platform_device *pdev)
- 	dcdc->desc.owner = THIS_MODULE;
- 
- 	dcdc->regulator = regulator_register(&dcdc->desc, &pdev->dev,
--					     pdata->dcdc[id], dcdc);
-+					     pdata->dcdc[id], dcdc, NULL);
- 	if (IS_ERR(dcdc->regulator)) {
- 		ret = PTR_ERR(dcdc->regulator);
- 		dev_err(wm831x->dev, "Failed to register DCDC%d: %d\n",
-@@ -973,7 +973,7 @@ static __devinit int wm831x_epe_probe(struct platform_device *pdev)
- 	dcdc->desc.owner = THIS_MODULE;
- 
- 	dcdc->regulator = regulator_register(&dcdc->desc, &pdev->dev,
--					     pdata->epe[id], dcdc);
-+					     pdata->epe[id], dcdc, NULL);
- 	if (IS_ERR(dcdc->regulator)) {
- 		ret = PTR_ERR(dcdc->regulator);
- 		dev_err(wm831x->dev, "Failed to register EPE%d: %d\n",
-diff --git a/drivers/regulator/wm831x-isink.c b/drivers/regulator/wm831x-isink.c
-index 01f27c7..d3ad3f5 100644
---- a/drivers/regulator/wm831x-isink.c
-+++ b/drivers/regulator/wm831x-isink.c
-@@ -189,7 +189,7 @@ static __devinit int wm831x_isink_probe(struct platform_device *pdev)
- 	isink->desc.owner = THIS_MODULE;
- 
- 	isink->regulator = regulator_register(&isink->desc, &pdev->dev,
--					     pdata->isink[id], isink);
-+					     pdata->isink[id], isink, NULL);
- 	if (IS_ERR(isink->regulator)) {
- 		ret = PTR_ERR(isink->regulator);
- 		dev_err(wm831x->dev, "Failed to register ISINK%d: %d\n",
-diff --git a/drivers/regulator/wm831x-ldo.c b/drivers/regulator/wm831x-ldo.c
-index 6709710..5e96a23 100644
---- a/drivers/regulator/wm831x-ldo.c
-+++ b/drivers/regulator/wm831x-ldo.c
-@@ -351,7 +351,7 @@ static __devinit int wm831x_gp_ldo_probe(struct platform_device *pdev)
- 	ldo->desc.owner = THIS_MODULE;
- 
- 	ldo->regulator = regulator_register(&ldo->desc, &pdev->dev,
--					     pdata->ldo[id], ldo);
-+					     pdata->ldo[id], ldo, NULL);
- 	if (IS_ERR(ldo->regulator)) {
- 		ret = PTR_ERR(ldo->regulator);
- 		dev_err(wm831x->dev, "Failed to register LDO%d: %d\n",
-@@ -621,7 +621,7 @@ static __devinit int wm831x_aldo_probe(struct platform_device *pdev)
- 	ldo->desc.owner = THIS_MODULE;
- 
- 	ldo->regulator = regulator_register(&ldo->desc, &pdev->dev,
--					     pdata->ldo[id], ldo);
-+					     pdata->ldo[id], ldo, NULL);
- 	if (IS_ERR(ldo->regulator)) {
- 		ret = PTR_ERR(ldo->regulator);
- 		dev_err(wm831x->dev, "Failed to register LDO%d: %d\n",
-@@ -818,7 +818,7 @@ static __devinit int wm831x_alive_ldo_probe(struct platform_device *pdev)
- 	ldo->desc.owner = THIS_MODULE;
- 
- 	ldo->regulator = regulator_register(&ldo->desc, &pdev->dev,
--					     pdata->ldo[id], ldo);
-+					     pdata->ldo[id], ldo, NULL);
- 	if (IS_ERR(ldo->regulator)) {
- 		ret = PTR_ERR(ldo->regulator);
- 		dev_err(wm831x->dev, "Failed to register LDO%d: %d\n",
-diff --git a/drivers/regulator/wm8350-regulator.c b/drivers/regulator/wm8350-regulator.c
-index 1bcb22c..6894009 100644
---- a/drivers/regulator/wm8350-regulator.c
-+++ b/drivers/regulator/wm8350-regulator.c
-@@ -1428,7 +1428,7 @@ static int wm8350_regulator_probe(struct platform_device *pdev)
- 	/* register regulator */
- 	rdev = regulator_register(&wm8350_reg[pdev->id], &pdev->dev,
- 				  pdev->dev.platform_data,
--				  dev_get_drvdata(&pdev->dev));
-+				  dev_get_drvdata(&pdev->dev), NULL);
- 	if (IS_ERR(rdev)) {
- 		dev_err(&pdev->dev, "failed to register %s\n",
- 			wm8350_reg[pdev->id].name);
-diff --git a/drivers/regulator/wm8400-regulator.c b/drivers/regulator/wm8400-regulator.c
-index 71632dd..706f395 100644
---- a/drivers/regulator/wm8400-regulator.c
-+++ b/drivers/regulator/wm8400-regulator.c
-@@ -326,7 +326,7 @@ static int __devinit wm8400_regulator_probe(struct platform_device *pdev)
- 	struct regulator_dev *rdev;
- 
- 	rdev = regulator_register(&regulators[pdev->id], &pdev->dev,
--				  pdev->dev.platform_data, wm8400);
-+				  pdev->dev.platform_data, wm8400, NULL);
- 
- 	if (IS_ERR(rdev))
- 		return PTR_ERR(rdev);
-diff --git a/drivers/regulator/wm8994-regulator.c b/drivers/regulator/wm8994-regulator.c
-index b87bf5c..435e335 100644
---- a/drivers/regulator/wm8994-regulator.c
-+++ b/drivers/regulator/wm8994-regulator.c
-@@ -269,7 +269,7 @@ static __devinit int wm8994_ldo_probe(struct platform_device *pdev)
- 		ldo->is_enabled = true;
- 
- 	ldo->regulator = regulator_register(&wm8994_ldo_desc[id], &pdev->dev,
--					     pdata->ldo[id].init_data, ldo);
-+					     pdata->ldo[id].init_data, ldo, NULL);
- 	if (IS_ERR(ldo->regulator)) {
- 		ret = PTR_ERR(ldo->regulator);
- 		dev_err(wm8994->dev, "Failed to register LDO%d: %d\n",
-diff --git a/include/linux/regulator/driver.h b/include/linux/regulator/driver.h
-index 52c89ae..8fbb696 100644
---- a/include/linux/regulator/driver.h
-+++ b/include/linux/regulator/driver.h
-@@ -212,7 +212,7 @@ struct regulator_dev {
- 
- struct regulator_dev *regulator_register(struct regulator_desc *regulator_desc,
- 	struct device *dev, const struct regulator_init_data *init_data,
--	void *driver_data);
-+	void *driver_data, struct device_node *of_node);
- void regulator_unregister(struct regulator_dev *rdev);
- 
- int regulator_notifier_call_chain(struct regulator_dev *rdev,
-diff --git a/sound/soc/codecs/sgtl5000.c b/sound/soc/codecs/sgtl5000.c
-index d15695d..fc7ab30 100644
---- a/sound/soc/codecs/sgtl5000.c
-+++ b/sound/soc/codecs/sgtl5000.c
-@@ -833,7 +833,7 @@ static int ldo_regulator_register(struct snd_soc_codec *codec,
- 	ldo->voltage = voltage;
- 
- 	ldo->dev = regulator_register(&ldo->desc, codec->dev,
--					  init_data, ldo);
-+					  init_data, ldo, NULL);
- 	if (IS_ERR(ldo->dev)) {
- 		int ret = PTR_ERR(ldo->dev);
- 
--- 
-1.7.1
+The OMAP4 DEBUG subsystem contains all the IPs used for emulation,
+included the ones from the CortexA9 MPU.
+Expose the individual modules base address.
+
+Re-map the CTIs IRQs from MPU to DEBUGSS.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Ming Lei <ming.lei@canonical.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  177 ++++++++++++++++++++=
++++++++-
+ 1 files changed, 174 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 7695e5d..6cf21ee 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -47,6 +47,7 @@
+=20
+ /* Backward references (IPs with Bus Master capability) */
+ static struct omap_hwmod omap44xx_aess_hwmod;
++static struct omap_hwmod omap44xx_debugss_hwmod;
+ static struct omap_hwmod omap44xx_dma_system_hwmod;
+ static struct omap_hwmod omap44xx_dmm_hwmod;
+ static struct omap_hwmod omap44xx_dsp_hwmod;
+@@ -337,6 +338,14 @@ static struct omap_hwmod omap44xx_l3_main_1_hwmod =
+=3D {
+ };
+=20
+ /* l3_main_2 */
++/* debugss -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_debugss__l3_main_2 =3D {
++	.master		=3D &omap44xx_debugss_hwmod,
++	.slave		=3D &omap44xx_l3_main_2_hwmod,
++	.clk		=3D "dbgclk_mux_ck",
++	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* dma_system -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 =3D {
+ 	.master		=3D &omap44xx_dma_system_hwmod,
+@@ -686,7 +695,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod=
+ =3D {
+  *  ctrl_module_pad_core
+  *  ctrl_module_pad_wkup
+  *  ctrl_module_wkup
+- *  debugss
+  *  efuse_ctrl_cust
+  *  efuse_ctrl_std
+  *  elm
+@@ -908,6 +916,168 @@ static struct omap_hwmod omap44xx_counter_32k_hwm=
+od =3D {
+ };
+=20
+ /*
++ * 'debugss' class
++ * debug and emulation sub system
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_debugss_sysc =3D {
++	.rev_offs	=3D 0x0000,
++	.sysc_offs	=3D 0x0010,
++	.syss_offs	=3D 0x0014,
++	.sysc_flags	=3D (SYSC_HAS_SOFTRESET | SYSS_HAS_RESET_STATUS),
++	.sysc_fields	=3D &omap_hwmod_sysc_type1,
++};
++
++static struct omap_hwmod_class omap44xx_debugss_hwmod_class =3D {
++	.name	=3D "debugss",
++	.sysc	=3D &omap44xx_debugss_sysc,
++};
++
++/* debugss */
++static struct omap_hwmod_irq_info omap44xx_debugss_irqs[] =3D {
++	{ .name =3D "cti0", .irq =3D 1 + OMAP44XX_IRQ_GIC_START },
++	{ .name =3D "cti1", .irq =3D 2 + OMAP44XX_IRQ_GIC_START },
++	{ .irq =3D -1 }
++};
++
++/* debugss master ports */
++static struct omap_hwmod_ocp_if *omap44xx_debugss_masters[] =3D {
++	&omap44xx_debugss__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap44xx_debugss_addrs[] =3D {
++	{
++		.name		=3D "mipi_stm_add_sp_0",
++		.pa_start	=3D 0x54000000,
++		.pa_end		=3D 0x540fffff,
++	},
++	{
++		.name		=3D "mipi_stm_add_sp_1",
++		.pa_start	=3D 0x54100000,
++		.pa_end		=3D 0x5413ffff,
++	},
++	{
++		.name		=3D "mpu_c0_debug",
++		.pa_start	=3D 0x54140000,
++		.pa_end		=3D 0x54141fff,
++	},
++	{
++		.name		=3D "mpu_c1_debug",
++		.pa_start	=3D 0x54142000,
++		.pa_end		=3D 0x54143fff,
++	},
++	{
++		.name		=3D "cti0_mpu",
++		.pa_start	=3D 0x54148000,
++		.pa_end		=3D 0x54148fff,
++	},
++	{
++		.name		=3D "cti1_mpu",
++		.pa_start	=3D 0x54149000,
++		.pa_end		=3D 0x54149fff,
++	},
++	{
++		.name		=3D "ptm0_mpu",
++		.pa_start	=3D 0x5414c000,
++		.pa_end		=3D 0x5414cfff,
++	},
++	{
++		.name		=3D "ptm1_mpu",
++		.pa_start	=3D 0x5414d000,
++		.pa_end		=3D 0x5414dfff,
++	},
++	{
++		.name		=3D "tf_mpu",
++		.pa_start	=3D 0x54158000,
++		.pa_end		=3D 0x54158fff,
++	},
++	{
++		.name		=3D "dap_pc_mpu",
++		.pa_start	=3D 0x54159000,
++		.pa_end		=3D 0x54159fff,
++	},
++	{
++		.name		=3D "apb_bridge_a_ctrl_time_out",
++		.pa_start	=3D 0x5415f000,
++		.pa_end		=3D 0x5415ffff,
++	},
++	{
++		.name		=3D "drm",
++		.pa_start	=3D 0x54160000,
++		.pa_end		=3D 0x54160fff,
++	},
++	{
++		.name		=3D "mipi_stm",
++		.pa_start	=3D 0x54161000,
++		.pa_end		=3D 0x54161fff,
++		.flags		=3D ADDR_TYPE_RT
++	},
++	{
++		.name		=3D "csetb",
++		.pa_start	=3D 0x54162000,
++		.pa_end		=3D 0x54162fff,
++	},
++	{
++		.name		=3D "cstpiu",
++		.pa_start	=3D 0x54163000,
++		.pa_end		=3D 0x54163fff,
++	},
++	{
++		.name		=3D "cstf1",
++		.pa_start	=3D 0x54164000,
++		.pa_end		=3D 0x54164fff,
++	},
++	{
++		.name		=3D "cstf2",
++		.pa_start	=3D 0x54165000,
++		.pa_end		=3D 0x54165fff,
++	},
++	{
++		.name		=3D "l4_cfg_emu_conf_regs",
++		.pa_start	=3D 0x54167000,
++		.pa_end		=3D 0x54167fff,
++	},
++	{
++		.name		=3D "l3_instr_emu_conf_regs",
++		.pa_start	=3D 0x54180000,
++		.pa_end		=3D 0x54180fff,
++	},
++	{ }
++};
++
++/* l3_instr -> debugss */
++static struct omap_hwmod_ocp_if omap44xx_l3_instr__debugss =3D {
++	.master		=3D &omap44xx_l3_instr_hwmod,
++	.slave		=3D &omap44xx_debugss_hwmod,
++	.clk		=3D "l3_div_ck",
++	.addr		=3D omap44xx_debugss_addrs,
++	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* debugss slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_debugss_slaves[] =3D {
++	&omap44xx_l3_instr__debugss,
++};
++
++static struct omap_hwmod omap44xx_debugss_hwmod =3D {
++	.name		=3D "debugss",
++	.class		=3D &omap44xx_debugss_hwmod_class,
++	.clkdm_name	=3D "emu_sys_clkdm",
++	.mpu_irqs	=3D omap44xx_debugss_irqs,
++	.main_clk	=3D "trace_clk_div_ck",
++	.prcm =3D {
++		.omap4 =3D {
++			.clkctrl_offs =3D OMAP4_CM_EMU_DEBUGSS_CLKCTRL_OFFSET,
++			.context_offs =3D OMAP4_RM_EMU_DEBUGSS_CONTEXT_OFFSET,
++		},
++	},
++	.slaves		=3D omap44xx_debugss_slaves,
++	.slaves_cnt	=3D ARRAY_SIZE(omap44xx_debugss_slaves),
++	.masters	=3D omap44xx_debugss_masters,
++	.masters_cnt	=3D ARRAY_SIZE(omap44xx_debugss_masters),
++};
++
++/*
+  * 'dma' class
+  * dma controller for data exchange between memory to memory (i.e. int=
+ernal or
+  * external memory) and gp peripherals to memory or memory to gp perip=
+herals
+@@ -3902,8 +4072,6 @@ static struct omap_hwmod_class omap44xx_mpu_hwmod=
+_class =3D {
+ /* mpu */
+ static struct omap_hwmod_irq_info omap44xx_mpu_irqs[] =3D {
+ 	{ .name =3D "pl310", .irq =3D 0 + OMAP44XX_IRQ_GIC_START },
+-	{ .name =3D "cti0", .irq =3D 1 + OMAP44XX_IRQ_GIC_START },
+-	{ .name =3D "cti1", .irq =3D 2 + OMAP44XX_IRQ_GIC_START },
+ 	{ .irq =3D -1 }
+ };
+=20
+@@ -5308,6 +5476,9 @@ static __initdata struct omap_hwmod *omap44xx_hwm=
+ods[] =3D {
+ 	/* counter class */
+ /*	&omap44xx_counter_32k_hwmod, */
+=20
++	/* debugss class */
++	&omap44xx_debugss_hwmod,
++
+ 	/* dma class */
+ 	&omap44xx_dma_system_hwmod,
+=20
+--=20
+1.7.0.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
