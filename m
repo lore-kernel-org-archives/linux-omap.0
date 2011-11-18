@@ -1,56 +1,47 @@
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-Subject: [PATCH 2/2] cbus: Fix initialization of cached IRQ masks
-Date: Thu, 17 Nov 2011 23:38:47 +0100
-Message-ID: <20111117233847.64fad21a@milhouse>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [PATCH] arm: omap2: fix build failure
+Date: Fri, 18 Nov 2011 09:16:50 +0800
+Message-ID: <CACVXFVPx86+F_P_pDkPkPmyB_hhDBv__q7J3Rf5AC4GpaUfPxw@mail.gmail.com>
+References: <1320726849-11854-1-git-send-email-tom.leiming@gmail.com>
+	<87mxc61kpw.fsf@ti.com>
+	<CACVXFVMtaiFiKSRh8geVpOzymtZsaUKc9tDHfgJYR57N+RQZ-g@mail.gmail.com>
+	<87aa7u4k3i.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:41969 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753579Ab1KQWke (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 17 Nov 2011 17:40:34 -0500
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:49782 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab1KRBQv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Nov 2011 20:16:51 -0500
+Received: by ggnb2 with SMTP id b2so1877557ggn.19
+        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 17:16:50 -0800 (PST)
+In-Reply-To: <87aa7u4k3i.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-This fixes the initialization of retu/tahvo cached IRQ masks.
+Hi,
 
-Signed-off-by: Michael Buesch <m@bues.ch>
+On Fri, Nov 18, 2011 at 3:36 AM, Kevin Hilman <khilman@ti.com> wrote:
 
----
+> OK, but that doesn't mean you have to keep sending it. =A0It just mea=
+ns
+> Tony's fixes branch isn't in -next (yet.)
 
+I do not care about which one is merged, but don't want to apply
+the fix patch manually for each test, :-)
 
-Index: linux-3.1.1/drivers/cbus/retu.c
-===================================================================
---- linux-3.1.1.orig/drivers/cbus/retu.c	2011-11-17 23:09:26.498214061 +0100
-+++ linux-3.1.1/drivers/cbus/retu.c	2011-11-17 23:15:50.280659655 +0100
-@@ -451,7 +451,8 @@ static int __devinit retu_probe(struct p
- 			(rev >> 4) & 0x07, rev & 0x0f);
- 
- 	/* Mask all RETU interrupts */
--	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
-+	retu->mask = 0xFFFF;
-+	__retu_write_reg(retu, RETU_REG_IMR, retu->mask);
- 
- 	ret = request_threaded_irq(retu->irq, NULL, retu_irq_handler,
- 			IRQF_ONESHOT, "retu", retu);
-Index: linux-3.1.1/drivers/cbus/tahvo.c
-===================================================================
---- linux-3.1.1.orig/drivers/cbus/tahvo.c	2011-11-17 23:15:46.684674232 +0100
-+++ linux-3.1.1/drivers/cbus/tahvo.c	2011-11-17 23:15:50.280659655 +0100
-@@ -346,7 +346,8 @@ static int __devinit tahvo_probe(struct
- 			(rev >> 4) & 0x0f, rev & 0x0f);
- 
- 	/* Mask all TAHVO interrupts */
--	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, 0xffff);
-+	tahvo->mask = 0xFFFF;
-+	__tahvo_write_reg(tahvo, TAHVO_REG_IMR, tahvo->mask);
- 
- 	ret = request_threaded_irq(irq, NULL, tahvo_irq_handler,
- 			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+In fact, there are several other non-merged build failures for omap bui=
+ld,
+looks like the process is a bit slow, :-)
 
-
--- 
-Greetings, Michael.
+thanks,
+--=20
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
