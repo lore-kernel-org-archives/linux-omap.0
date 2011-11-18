@@ -1,106 +1,108 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH] ARM: omap_hwmod: Add a new state to handle hwmods left
- enabled at init
-Date: Fri, 18 Nov 2011 12:14:32 +0530
-Message-ID: <4EC5FED0.3000202@ti.com>
-References: <1321524690-10302-1-git-send-email-rnayak@ti.com> <87fwhm4k5s.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/4] OMAPDSS: HDMI: change the timing match logic
+Date: Fri, 18 Nov 2011 09:16:15 +0200
+Message-ID: <1321600575.1814.14.camel@deskari>
+References: <1321016977-1808-1-git-send-email-mythripk@ti.com>
+	 <1321016977-1808-2-git-send-email-mythripk@ti.com>
+	 <1321016977-1808-3-git-send-email-mythripk@ti.com>
+	 <1321016977-1808-4-git-send-email-mythripk@ti.com>
+	 <1321255999.1931.18.camel@deskari>
+	 <CAP5A+B_8fm7unbvb9_=SC62v=3+XFcoOKKA2JOttQugRTPLW8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-kavR1o7cFXkq8x1RdVFQ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:44001 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750868Ab1KRGoj (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:38177 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751964Ab1KRHQW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Nov 2011 01:44:39 -0500
-Received: by mail-gy0-f170.google.com with SMTP id r20so221995ghr.15
-        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 22:44:39 -0800 (PST)
-In-Reply-To: <87fwhm4k5s.fsf@ti.com>
+	Fri, 18 Nov 2011 02:16:22 -0500
+Received: by bkbzt4 with SMTP id zt4so3295830bkb.15
+        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 23:16:19 -0800 (PST)
+In-Reply-To: <CAP5A+B_8fm7unbvb9_=SC62v=3+XFcoOKKA2JOttQugRTPLW8g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Kevin,
 
-On Friday 18 November 2011 01:05 AM, Kevin Hilman wrote:
-> Rajendra Nayak<rnayak@ti.com>  writes:
->
->> A hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
->> enabled state by the hwmod framework post the initial setup.
->> Once a real user of the device (a driver) tries to enable it
->> at a later point, the hmwod framework throws a WARN() about
->> the device being already in enabled state.
->>
->> Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
->> to identify such devices/hwmods, so nothing but just a state
->> change to '_HWMOD_STATE_ENABLED' can be done when the device/hwmod
->> is requested to be enabled (the first time) by its driver/user.
->>
->> A good example of a such a device is an UART used as debug console.
->> The UART module needs to be kept enabled through the boot, until the
->> UART driver takes control of it, for debug prints to appear on
->> the console.
->
-> Nice.  This is indeed much cleaner than what we're doing in the UART
-> code.  However...
->
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> ---
->>   arch/arm/mach-omap2/omap_hwmod.c             |   16 ++++++++++++++--
->>   arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
->>   2 files changed, 15 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
->> index d7f4623..7d94cc3 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -1441,6 +1441,17 @@ static int _enable(struct omap_hwmod *oh)
->>
->>   	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
->>
->> +	/*
->> +	 * hwmods' with HWMOD_INIT_NO_IDLE flag set, are left
->
-> (no the ' isn't necessary)
->
->> +	 * in enabled state at init.
->> +	 * Now that someone is really trying to enable them,
->> +	 * just update the state.
->> +	 */
->> +	if (oh->_state == _HWMOD_STATE_ENABLED_AT_INIT) {
->> +		oh->_state = _HWMOD_STATE_ENABLED;
->> +		return 0;
->> +	}
->
-> ...this subtly changes the behavior, at least compared to how the UART
-> code handles this today.
->
-> One thing that this doesn't do that the current UART code does is ensure
-> that the IP is actually in a state that can properly idle after this is
-> done.
->
-> For example, if the bootloader is dumb (most are) and has configured the
-> UARTs in mode that prevents idle (e.g. no-idle mode), then these UARTs
-> will never allow the SoC to hit low power states.
->
-> So, what's really needed is not just a return here, but an _idle() and
-> then continue so we know that the HW is in a state that we know can
-> idle from here on out.
+--=-kavR1o7cFXkq8x1RdVFQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I don't know if I completely understand what you are saying.
-The above change is in the _enable() call which would be triggered
-as part of runtime call from the serial driver to enable the module.
-(Since the module is already enabled, you just change state to suggest
-its now enabled by its user, rather than 'left enabled' at init)
-There would be another call from the serial driver to idle it when
-a corresponding hwmod _idle() call would idle the device.
-I don't seem to understand why would a call to _idle() be needed
-in an _enable() call.
+On Wed, 2011-11-16 at 11:01 +0530, K, Mythri P wrote:
+> On Mon, Nov 14, 2011 at 1:03 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+> > On Fri, 2011-11-11 at 18:39 +0530, mythripk@ti.com wrote:
 
-regards,
-Rajendra
+> >> -static int get_timings_index(void)
+> >> +static bool hdmi_find_code(const struct hdmi_config *timings_arr,
+> >> +                     int len, struct hdmi_config *timing)
+> >>  {
+> >> -     int code;
+> >> +     int i;
+> >>
+> >> -     if (hdmi.mode =3D=3D 0)
+> >> -             code =3D code_vesa[hdmi.code];
+> >> -     else
+> >> -             code =3D code_cea[hdmi.code];
+> >> +     for (i =3D 0; i < len; i++) {
+> >> +             if (timings_arr[i].cm.code =3D=3D hdmi.code) {
+> >> +                     *timing =3D timings_arr[i];
+> >> +                     return true;
+> >> +             }
+> >> +     }
+> >> +
+> >> +     return false;
+> >> +}
+> >
+> > You could return the hdmi_config pointer instead of making a copy and
+> > returning a bool.
+> In this function i'm passing the timing value and finally there needs
+> to be one copy whether it is in this function or after the return,
+> because the timings array is a const and dssdev->paneltimings and
+> config timings are not, so do you see any benefit of doing that later
+> or suggest any other method?
 
->
-> Kevin
+Well, I think it's just good design, even if it wouldn't help in this
+particular case.
+
+hdmi_find_code is a small utility function, and functions like that
+should be designed to be usable in any situation. In this particular
+situation you will anyway make a copy, and it doesn't matter if it's the
+utility function that does the copy.
+
+But in some other case you could perhaps be interested in only one value
+in the hdmi_config that is found. In that case doing a copy is extra,
+and it'd be better to return the const struct pointer.
+
+Also, it is a standard design pattern that a "find" function returns
+pointer to the found item, whereas your version returning a bool and
+making a copy of the found item is not very standard.
+
+ Tomi
+
+
+--=-kavR1o7cFXkq8x1RdVFQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJOxgY/AAoJEPo9qoy8lh71E2UP/Aw6XPzoNigmNWu7jzlVIj5g
+qy0jAe9k4PZ4owhPS2A39hN1fAZNITfTXrlSdeP3uWKV39QB6appI53CGUb/0zck
+IUCWXzVv3anR9HAPdYKprU32S4JcYSBNAEgw74w+wDnW9Ia7z3K99ZXec/xoAeQd
+I7GnUIktaUrFJBz9SKkgbXN4uYY6D2RZPmhoQ4BSdmA+tURrLV2lF05ExIKnb6N5
+3ssYkwrtwa0lHNfm6RQA6Xq6vVbz1q2kfgM4LOySUZRk8g2ABaC8WkGRITbYjiOS
++pgfK0JnEtTyPPo+ySsglNlS2Z2j27KwKCyab8pNEQq3PfX5zzowAtTfKfczWhNw
+ZUD3yvk2ahkv9RuYGtS9GphfaK4EChz7wLTu93GnQxHG82gHV6mUHBRF5EKqMkYo
+FJjr4PHxC0fyqoUDiRvD1CqVGGWxSdTjPyjl2vTWnmyvd5jtd3FkjsFiJq4mfSUs
+L6YizkQJ3TYHUccPTqczZoCCWHHMGNiKhCBOUQnyXst5HD/gf9jImuPy/KLxPcEu
+X4Gs0M1Scxs5DTSXK/iZ1duUZaMRkBW5tVnsjYewmzmHyZ7Jdv/rThvmh5PLPjtI
+wAMbKv/pajJ/EzlIvX6BFLT+LWapvuwUJfEWS5oUI4tuW+ah4qMjRVJ8pT38iBg5
+GYBHCsv86QiWGDEEXEw+
+=70xL
+-----END PGP SIGNATURE-----
+
+--=-kavR1o7cFXkq8x1RdVFQ--
 
