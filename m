@@ -1,108 +1,170 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 3/4] OMAPDSS: HDMI: change the timing match logic
-Date: Fri, 18 Nov 2011 09:16:15 +0200
-Message-ID: <1321600575.1814.14.camel@deskari>
-References: <1321016977-1808-1-git-send-email-mythripk@ti.com>
-	 <1321016977-1808-2-git-send-email-mythripk@ti.com>
-	 <1321016977-1808-3-git-send-email-mythripk@ti.com>
-	 <1321016977-1808-4-git-send-email-mythripk@ti.com>
-	 <1321255999.1931.18.camel@deskari>
-	 <CAP5A+B_8fm7unbvb9_=SC62v=3+XFcoOKKA2JOttQugRTPLW8g@mail.gmail.com>
+Subject: Re: [PATCH v3 2/2] OMAPDSS: HDMI: Disable DDC internal pull up
+Date: Fri, 18 Nov 2011 09:30:45 +0200
+Message-ID: <1321601445.1814.24.camel@deskari>
+References: <1321365035-9224-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-kavR1o7cFXkq8x1RdVFQ"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-p+WM0MsP08B4RJiaum5X"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:38177 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751964Ab1KRHQW (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:34391 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756326Ab1KRHax (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Nov 2011 02:16:22 -0500
-Received: by bkbzt4 with SMTP id zt4so3295830bkb.15
-        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 23:16:19 -0800 (PST)
-In-Reply-To: <CAP5A+B_8fm7unbvb9_=SC62v=3+XFcoOKKA2JOttQugRTPLW8g@mail.gmail.com>
+	Fri, 18 Nov 2011 02:30:53 -0500
+Received: by bkbzs8 with SMTP id zs8so4178562bkb.13
+        for <linux-omap@vger.kernel.org>; Thu, 17 Nov 2011 23:30:50 -0800 (PST)
+In-Reply-To: <1321365035-9224-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: mythripk@ti.com
+Cc: linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
 
---=-kavR1o7cFXkq8x1RdVFQ
+--=-p+WM0MsP08B4RJiaum5X
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2011-11-16 at 11:01 +0530, K, Mythri P wrote:
-> On Mon, Nov 14, 2011 at 1:03 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
-> > On Fri, 2011-11-11 at 18:39 +0530, mythripk@ti.com wrote:
+On Tue, 2011-11-15 at 19:20 +0530, mythripk@ti.com wrote:
+> From: Mythri P K <mythripk@ti.com>
+>=20
+> Disables the internal pull resistor for SDA and SCL which are enabled by
+> default, as there are expernal pull up's in 4460 and 4430 ES2.3
+> SDP, Blaze and Panda Boards, It is done to avoid the EDID read failure.
+>=20
+> Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-4430sdp.c    |   13 ++++++++++++-
+>  arch/arm/mach-omap2/board-omap4panda.c |   14 +++++++++++++-
+>  arch/arm/mach-omap2/display.c          |   17 ++++++++++++++---
+>  include/video/omapdss.h                |    4 +++-
+>  4 files changed, 42 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/bo=
+ard-4430sdp.c
+> index c3bd640..d0a82f9 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -826,7 +826,18 @@ static void omap_4430sdp_display_init(void)
+>  	sdp4430_lcd_init();
+>  	sdp4430_picodlp_init();
+>  	omap_display_init(&sdp4430_dss_data);
+> -	omap_hdmi_init();
+> +	/*
+> +	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
+> +	 * HDMI_DDC_SCL_PULLUPRESX (bit 24) are set to disable
+> +	 * internal pull up resistor - This is a change needed in
+> +	 * OMAP4460 and OMAP4430 ES2.3 SDP, Blaze and Panda as the
+> +	 * external pull up are present. This is needed to avoid
+> +	 * EDID read failure.
+> +	 */
 
-> >> -static int get_timings_index(void)
-> >> +static bool hdmi_find_code(const struct hdmi_config *timings_arr,
-> >> +                     int len, struct hdmi_config *timing)
-> >>  {
-> >> -     int code;
-> >> +     int i;
-> >>
-> >> -     if (hdmi.mode =3D=3D 0)
-> >> -             code =3D code_vesa[hdmi.code];
-> >> -     else
-> >> -             code =3D code_cea[hdmi.code];
-> >> +     for (i =3D 0; i < len; i++) {
-> >> +             if (timings_arr[i].cm.code =3D=3D hdmi.code) {
-> >> +                     *timing =3D timings_arr[i];
-> >> +                     return true;
-> >> +             }
-> >> +     }
-> >> +
-> >> +     return false;
-> >> +}
-> >
-> > You could return the hdmi_config pointer instead of making a copy and
-> > returning a bool.
-> In this function i'm passing the timing value and finally there needs
-> to be one copy whether it is in this function or after the return,
-> because the timings array is a const and dssdev->paneltimings and
-> config timings are not, so do you see any benefit of doing that later
-> or suggest any other method?
+I don't think this comment makes sense here. The register and bit
+details are not seen here, they are handled in the display.c.
 
-Well, I think it's just good design, even if it wouldn't help in this
-particular case.
+Also, the comment is still speaking of OMAP versions. This is about
+board revisions. And this is SDP board file, no need to talk about
+Panda.
 
-hdmi_find_code is a small utility function, and functions like that
-should be designed to be usable in any situation. In this particular
-situation you will anyway make a copy, and it doesn't matter if it's the
-utility function that does the copy.
+So the text should be something like "44xxSDP rev XYZ and later have
+external HDMI I2C line pull up. We detect the board revision with the
+OMAP revision."
 
-But in some other case you could perhaps be interested in only one value
-in the hdmi_config that is found. In that case doing a copy is extra,
-and it'd be better to return the const struct pointer.
+> +	if (cpu_is_omap446x() || (omap_rev() > OMAP4430_REV_ES2_2))
 
-Also, it is a standard design pattern that a "find" function returns
-pointer to the found item, whereas your version returning a bool and
-making a copy of the found item is not very standard.
+If you compare omap_rev() you should also use cpu_is_omap at the same
+time. In this case (cpu_is_omap443x() && omap_rev() >
+OMAP4430_REV_ES2_2). Otherwise the omap_rev check could match, say,
+omap3 or omap5 boards.
+
+> +		omap_hdmi_init(OMAP_HDMI_EXTERNAL_PULLUP);
+> +	else
+> +		omap_hdmi_init(0);
+>  }
+> =20
+>  #ifdef CONFIG_OMAP_MUX
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2=
+/board-omap4panda.c
+> index d95df2e..44ff8e0 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -541,7 +541,19 @@ void omap4_panda_display_init(void)
+>  		pr_err("error initializing panda DVI\n");
+> =20
+>  	omap_display_init(&omap4_panda_dss_data);
+> -	omap_hdmi_init();
+> +
+> +	/*
+> +	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
+> +	 * HDMI_DDC_SCL_PULLUPRESX (bit 24) are set to disable
+> +	 * internal pull up resistor - This is a change needed in
+> +	 * OMAP4460 and OMAP4430 ES2.3 SDP, Blaze and Panda as the
+> +	 * external pull up are present. This is needed to avoid
+> +	 * EDID read failure.
+> +	 */
+> +	if (cpu_is_omap446x() || (omap_rev() > OMAP4430_REV_ES2_2))
+> +		omap_hdmi_init(OMAP_HDMI_EXTERNAL_PULLUP);
+> +	else
+> +		omap_hdmi_init(0);
+>  }
+> =20
+>  static void __init omap4_panda_init(void)
+> diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.=
+c
+> index 8436088..a75e179 100644
+> --- a/arch/arm/mach-omap2/display.c
+> +++ b/arch/arm/mach-omap2/display.c
+> @@ -97,8 +97,11 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmo=
+d_data[] __initdata =3D {
+>  	{ "dss_hdmi", "omapdss_hdmi", -1 },
+>  };
+> =20
+> -static void omap4_hdmi_mux_pads()
+> +static void omap4_hdmi_mux_pads(int flags)
+>  {
+> +	u32 reg;
+> +	u16 control_i2c_1;
+> +
+>  	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+>  	omap_mux_init_signal("hdmi_hpd",
+>  			OMAP_PIN_INPUT_PULLUP);
+> @@ -109,6 +112,14 @@ static void omap4_hdmi_mux_pads()
+>  			OMAP_PIN_INPUT_PULLUP);
+>  	omap_mux_init_signal("hdmi_ddc_sda",
+>  			OMAP_PIN_INPUT_PULLUP);
+> +
+> +	if (flags & OMAP_HDMI_EXTERNAL_PULLUP) {
+> +		control_i2c_1 =3D OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_1;
+> +		reg =3D omap4_ctrl_pad_readl(control_i2c_1);
+> +		reg |=3D (OMAP4_HDMI_DDC_SDA_PULLUPRESX_MASK |
+> +		OMAP4_HDMI_DDC_SCL_PULLUPRESX_MASK);
+
+Indent is wrong here, and the parenthesis are extra.
 
  Tomi
 
 
---=-kavR1o7cFXkq8x1RdVFQ
+--=-p+WM0MsP08B4RJiaum5X
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJOxgY/AAoJEPo9qoy8lh71E2UP/Aw6XPzoNigmNWu7jzlVIj5g
-qy0jAe9k4PZ4owhPS2A39hN1fAZNITfTXrlSdeP3uWKV39QB6appI53CGUb/0zck
-IUCWXzVv3anR9HAPdYKprU32S4JcYSBNAEgw74w+wDnW9Ia7z3K99ZXec/xoAeQd
-I7GnUIktaUrFJBz9SKkgbXN4uYY6D2RZPmhoQ4BSdmA+tURrLV2lF05ExIKnb6N5
-3ssYkwrtwa0lHNfm6RQA6Xq6vVbz1q2kfgM4LOySUZRk8g2ABaC8WkGRITbYjiOS
-+pgfK0JnEtTyPPo+ySsglNlS2Z2j27KwKCyab8pNEQq3PfX5zzowAtTfKfczWhNw
-ZUD3yvk2ahkv9RuYGtS9GphfaK4EChz7wLTu93GnQxHG82gHV6mUHBRF5EKqMkYo
-FJjr4PHxC0fyqoUDiRvD1CqVGGWxSdTjPyjl2vTWnmyvd5jtd3FkjsFiJq4mfSUs
-L6YizkQJ3TYHUccPTqczZoCCWHHMGNiKhCBOUQnyXst5HD/gf9jImuPy/KLxPcEu
-X4Gs0M1Scxs5DTSXK/iZ1duUZaMRkBW5tVnsjYewmzmHyZ7Jdv/rThvmh5PLPjtI
-wAMbKv/pajJ/EzlIvX6BFLT+LWapvuwUJfEWS5oUI4tuW+ah4qMjRVJ8pT38iBg5
-GYBHCsv86QiWGDEEXEw+
-=70xL
+iQIcBAABAgAGBQJOxgmlAAoJEPo9qoy8lh71G8oP/3vcvc/fbOh4EIFT4xSdOza0
+FCkiXMNb5WkNM+FsysTnJX1PCPuSJHziU9gKKgMh20bYq+wxraEcquqoa42ulSj2
+x5tSWXdduIkVfpD+PyMtmv46oiaNQBoM+fOpGFxzCCzndVq1jX9PcefKeJ+iTSBn
+EokNUmOm0sfDck9heH9+QPq252kmPmUBb0/lGexa51kMfi02Xy+EJ5YzAnu5My/q
+1H/oS3eyn5NhzGppgLUwxdjjDccJVW45oR2KcSU+8EisYpz3P9j63JVoxN0QF/Hy
+DysUpH8Jtjyv5aqzKFot8d3ZnzTAI9zRzz4QeegaDvsfOw4DeV46aWYPubOkGdEm
+DehhfHDCsgDnvPPjHLQ14JGdGA+ZoEg6s8xawGraaY8iYO5icnH/gJNUwZCt7W3V
+f136/11pEPwYTegLUZEug9a7CLMzUp4A8vn88f4+8fdqJCkSwm6+dVuhG91fmz8F
+abOojaQaXwm8XYXyBfqrrIq5KlTCbpuM8uCjdxkgiz97gLUMdr8PkvYWsaDO5JcK
+MKxLyEUnFJkwnexPNjiS/Z0hfukayyE/6ZypR2Bu5gtAqsJLRx1US52oY3VuS8yI
+puJPivK4BAkXS7hi0kQ+QFbQchJUCcIIrHn+JHiMCUGnt44fYyP8AU6k8ScCZazt
+B42yqdb7uHNSAx6ns3tA
+=OlBI
 -----END PGP SIGNATURE-----
 
---=-kavR1o7cFXkq8x1RdVFQ--
+--=-p+WM0MsP08B4RJiaum5X--
 
