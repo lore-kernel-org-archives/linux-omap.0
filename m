@@ -1,90 +1,126 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Fri, 18 Nov 2011 16:18:54 -0600
-Message-ID: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Help with clk API
+Date: Fri, 18 Nov 2011 15:20:52 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1111181457390.23193@utopia.booyaka.com>
+References: <20111111113159.GK19090@legolas.emea.dhcp.ti.com> <alpine.DEB.2.00.1111150610330.19654@utopia.booyaka.com> <20111116105228.GB27980@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:37560 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753517Ab1KRWSp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Nov 2011 17:18:45 -0500
-Received: by ghrr13 with SMTP id r13so1675857ghr.39
-        for <linux-omap@vger.kernel.org>; Fri, 18 Nov 2011 14:18:43 -0800 (PST)
+Received: from utopia.booyaka.com ([72.9.107.138]:33666 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752987Ab1KRWUw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2011 17:20:52 -0500
+In-Reply-To: <20111116105228.GB27980@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, r-woodruff@ti.com, mturquette@ti.com
 
-Given that dm timer framework doesn't support request of clocks
-by soft | hard irqs because some recent changes, tidspbridge needs
-to request its clocks on init and enable/disable them on demand.
+Hi
 
-This was first seen on 3.2-rc1.
+On Wed, 16 Nov 2011, Felipe Balbi wrote:
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/staging/tidspbridge/core/dsp-clock.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
+> ok, so if I understood correctly, xclk60mhsp1_ck is the external clock
+> for port 1 and init_60m_clk is the internal optional 60MHz clock, right?
 
-diff --git a/drivers/staging/tidspbridge/core/dsp-clock.c b/drivers/staging/tidspbridge/core/dsp-clock.c
-index 3d1279c..7eb5617 100644
---- a/drivers/staging/tidspbridge/core/dsp-clock.c
-+++ b/drivers/staging/tidspbridge/core/dsp-clock.c
-@@ -54,6 +54,7 @@
- 
- /* Bridge GPT id (1 - 4), DM Timer id (5 - 8) */
- #define DMT_ID(id) ((id) + 4)
-+#define DM_TIMER_CLOCKS		4
- 
- /* Bridge MCBSP id (6 - 10), OMAP Mcbsp id (0 - 4) */
- #define MCBSP_ID(id) ((id) - 6)
-@@ -114,8 +115,13 @@ static s8 get_clk_type(u8 id)
-  */
- void dsp_clk_exit(void)
- {
-+	int i;
-+
- 	dsp_clock_disable_all(dsp_clocks);
- 
-+	for (i = 0; i < DM_TIMER_CLOCKS; i++)
-+		omap_dm_timer_free(timer[i]);
-+
- 	clk_put(iva2_clk);
- 	clk_put(ssi.sst_fck);
- 	clk_put(ssi.ssr_fck);
-@@ -130,9 +136,13 @@ void dsp_clk_exit(void)
- void dsp_clk_init(void)
- {
- 	static struct platform_device dspbridge_device;
-+	int i, id;
- 
- 	dspbridge_device.dev.bus = &platform_bus_type;
- 
-+	for (i = 0, id = 5; i < DM_TIMER_CLOCKS; i++, id++)
-+		timer[i] = omap_dm_timer_request_specific(id);
-+
- 	iva2_clk = clk_get(&dspbridge_device.dev, "iva2_ck");
- 	if (IS_ERR(iva2_clk))
- 		dev_err(bridge, "failed to get iva2 clock %p\n", iva2_clk);
-@@ -204,8 +214,7 @@ int dsp_clk_enable(enum dsp_clk_id clk_id)
- 		clk_enable(iva2_clk);
- 		break;
- 	case GPT_CLK:
--		timer[clk_id - 1] =
--				omap_dm_timer_request_specific(DMT_ID(clk_id));
-+		status = omap_dm_timer_start(timer[clk_id - 1]);
- 		break;
- #ifdef CONFIG_OMAP_MCBSP
- 	case MCBSP_CLK:
-@@ -281,7 +290,7 @@ int dsp_clk_disable(enum dsp_clk_id clk_id)
- 		clk_disable(iva2_clk);
- 		break;
- 	case GPT_CLK:
--		omap_dm_timer_free(timer[clk_id - 1]);
-+		status = omap_dm_timer_stop(timer[clk_id - 1]);
- 		break;
- #ifdef CONFIG_OMAP_MCBSP
- 	case MCBSP_CLK:
--- 
-1.7.0.4
+Yes.
 
+> So the final workaround would be something like:
+> 
+> clk = uhh->utmi_p1_fck;
+
+Since the struct clk representing the clock gate is currently defined to 
+be downstream of the struct clk representing the clock mux, rather than 
+upstream, you'll need to work with at least two different struct clks 
+here:
+
+1. the struct clk representing the gate: usb_host_hs_utmi_p1_clk.
+   Maybe call this 'clk_gate' or something.
+
+2. the struct clk representing the mux: utmi_p1_gfclk.
+   Maybe call this 'clk_mux'.
+
+Also you haven't explicitly defined 'parent'.
+
+So the above would instead be something like:
+
+clk_gate = uhh->usb_host_hs_utmi_p1_clk;
+clk_mux = uhh->utmi_p1_fck; /* assuming this is utmi_p1_gfclk */
+parent = uhh->init_60m_fclk;
+
+> /* ensure optional clock is disabled */
+> clk_disable(clk);
+
+clk_disable(clk_gate);
+
+And just to be explicit, it's only safe to disable it if the driver has 
+enabled it already.
+
+> ret = clk_set_parent(clk, parent);
+
+ret = clk_set_parent(clk_mux, parent);
+
+> if (ret) {
+> 	dev_err(uhh->dev, "can't change %s's parent to %s\n",
+> 		clk->name, parent->name);
+> 	return;
+
+Probably return some error code here.
+
+> }
+> 
+> ret = clk_enable(clk);
+
+ret = clk_enable(clk_gate);
+
+> if (ret) {
+> 	dev_err(uhh->dev, "failed to enable %s\n", clk->name);
+> 	return;
+
+Probably return some error code here.
+
+> }
+> 
+> /* wait 1ms */
+> msleep(1);
+
+I'd suggest using usleep_range().  See 
+Documentation/timers/timers-howto.txt
+
+> parent = uhh->xclk60mhsp1_ck;
+> clk_disable(clk);
+
+clk_disable(clk_gate);
+
+> ret = clk_set_parent(clk, parent);
+
+ret = clk_set_parent(clk_mux, parent);
+
+> if (ret) {
+> 	dev_err(uhh->dev, "can't change %s's parent to %s\n",
+> 		clk->name, parent->name);
+> 	return;
+
+error code
+
+> }
+> 
+> ret = clk_enable(clk);
+
+ret = clk_enable(clk_gate);
+
+> if (ret) {
+> dev_err(uhh->dev, "failed to enable %s\n", clk->name);
+
+return some error code
+
+> }
+> 
+> and similarly for port 2, but :%s/p1/p2/g
+> 
+> right ?
+
+yep ;-)
+
+
+- Paul
