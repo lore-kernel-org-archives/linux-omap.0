@@ -1,128 +1,80 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] ARM: omap_hwmod: Add a new state to handle hwmods left
-	enabled at init
-Date: Fri, 18 Nov 2011 10:05:05 +0100
-Message-ID: <4EC61FC1.8080002@ti.com>
-References: <1321524690-10302-1-git-send-email-rnayak@ti.com>
-	<87fwhm4k5s.fsf@ti.com> <4EC5FED0.3000202@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] cbus: Fix initialization of cached IRQ masks
+Date: Fri, 18 Nov 2011 11:15:26 +0200
+Message-ID: <20111118091524.GC9759@legolas.emea.dhcp.ti.com>
+References: <20111117233847.64fad21a@milhouse>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <4EC5FED0.3000202-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, govindraj.raja-l0cyMroinI0@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gr/z0/N6AeWAPJVB"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:42663 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751365Ab1KRJP3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Nov 2011 04:15:29 -0500
+Received: by mail-fx0-f49.google.com with SMTP id r25so4779856faa.8
+        for <linux-omap@vger.kernel.org>; Fri, 18 Nov 2011 01:15:28 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20111117233847.64fad21a@milhouse>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Michael =?iso-8859-1?Q?B=FCsch?= <m@bues.ch>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <balbi@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Kevin and Rajendra,
 
-On 11/18/2011 7:44 AM, Rajendra Nayak wrote:
-> Hi Kevin,
->
-> On Friday 18 November 2011 01:05 AM, Kevin Hilman wrote:
->> Rajendra Nayak<rnayak-l0cyMroinI0@public.gmane.org> writes:
->>
->>> A hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
->>> enabled state by the hwmod framework post the initial setup.
->>> Once a real user of the device (a driver) tries to enable it
->>> at a later point, the hmwod framework throws a WARN() about
->>> the device being already in enabled state.
->>>
->>> Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
->>> to identify such devices/hwmods, so nothing but just a state
->>> change to '_HWMOD_STATE_ENABLED' can be done when the device/hwmod
->>> is requested to be enabled (the first time) by its driver/user.
->>>
->>> A good example of a such a device is an UART used as debug console.
->>> The UART module needs to be kept enabled through the boot, until the
->>> UART driver takes control of it, for debug prints to appear on
->>> the console.
->>
->> Nice. This is indeed much cleaner than what we're doing in the UART
->> code. However...
->>
->>> Signed-off-by: Rajendra Nayak<rnayak-l0cyMroinI0@public.gmane.org>
->>> ---
->>> arch/arm/mach-omap2/omap_hwmod.c | 16 ++++++++++++++--
->>> arch/arm/plat-omap/include/plat/omap_hwmod.h | 1 +
->>> 2 files changed, 15 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->>> b/arch/arm/mach-omap2/omap_hwmod.c
->>> index d7f4623..7d94cc3 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->>> @@ -1441,6 +1441,17 @@ static int _enable(struct omap_hwmod *oh)
->>>
->>> pr_debug("omap_hwmod: %s: enabling\n", oh->name);
->>>
->>> + /*
->>> + * hwmods' with HWMOD_INIT_NO_IDLE flag set, are left
->>
->> (no the ' isn't necessary)
->>
->>> + * in enabled state at init.
->>> + * Now that someone is really trying to enable them,
->>> + * just update the state.
->>> + */
->>> + if (oh->_state == _HWMOD_STATE_ENABLED_AT_INIT) {
->>> + oh->_state = _HWMOD_STATE_ENABLED;
->>> + return 0;
->>> + }
->>
->> ...this subtly changes the behavior, at least compared to how the UART
->> code handles this today.
->>
->> One thing that this doesn't do that the current UART code does is ensure
->> that the IP is actually in a state that can properly idle after this is
->> done.
->>
->> For example, if the bootloader is dumb (most are) and has configured the
->> UARTs in mode that prevents idle (e.g. no-idle mode), then these UARTs
->> will never allow the SoC to hit low power states.
+--gr/z0/N6AeWAPJVB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-That will not happen because we already did the complete enable sequence 
-during setup phase that will set the sysconfig properly.
-So the device is properly initialized, we just skipped the idle phase 
-because we wanted to keep the device operational for the console.
+On Thu, Nov 17, 2011 at 11:38:47PM +0100, Michael B=FCsch wrote:
+> This fixes the initialization of retu/tahvo cached IRQ masks.
+>=20
+> Signed-off-by: Michael Buesch <m@bues.ch>
+>=20
+> ---
+>=20
+>=20
+> Index: linux-3.1.1/drivers/cbus/retu.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-3.1.1.orig/drivers/cbus/retu.c	2011-11-17 23:09:26.498214061 +0=
+100
+> +++ linux-3.1.1/drivers/cbus/retu.c	2011-11-17 23:15:50.280659655 +0100
+> @@ -451,7 +451,8 @@ static int __devinit retu_probe(struct p
+>  			(rev >> 4) & 0x07, rev & 0x0f);
+> =20
+>  	/* Mask all RETU interrupts */
+> -	__retu_write_reg(retu, RETU_REG_IMR, 0xffff);
+> +	retu->mask =3D 0xFFFF;
 
->> So, what's really needed is not just a return here, but an _idle() and
->> then continue so we know that the HW is in a state that we know can
->> idle from here on out.
+nitpicking but please use lowercase as it was before :-)
 
-We are in the enable call, so the driver / omap_device does expect the 
-IP to be operational at the moment, we cannot put it into idle.
+--=20
+balbi
 
-> I don't know if I completely understand what you are saying.
-> The above change is in the _enable() call which would be triggered
-> as part of runtime call from the serial driver to enable the module.
-> (Since the module is already enabled, you just change state to suggest
-> its now enabled by its user, rather than 'left enabled' at init)
-> There would be another call from the serial driver to idle it when
-> a corresponding hwmod _idle() call would idle the device.
-> I don't seem to understand why would a call to _idle() be needed
-> in an _enable() call.
+--gr/z0/N6AeWAPJVB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Yep, I agree. I think Kevin's point is due to the previous sequence used 
-by the uart:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-+	omap_hwmod_idle(od->hwmods[0]);
-+	omap_hwmod_enable(od->hwmods[0]);
+iQIcBAEBAgAGBQJOxiIsAAoJEIaOsuA1yqRETGoP/jXROA2knS4yEnazdp0dMpJG
+oS9VFZlEWG2gV42/SsbAO98W3qoquJmfG1Usf7XErzotuTbIa9NQzFgEqUEB48zg
+CjNE5x4zSaJntiZ9A1r914qv/Rg8xuet2wvHlTjg/UiVl64fGLrc4J1t9ERKA+ol
+iPggMI/fACf1pEl8bUL6ImAhQnrtWRXnC9mi6c56KDr9Ba6e+JrQ40W4IV0Tyf0P
+BysTVyiXVbQTEzN2yF7RVMvFFshZFqEfcvoM9A3oXTl5O9jOcFx4RsGu6fHvtkB+
+UCmwmwu0JP1F0elcGSNUAPafVkJE+NZZtP46/4FFyUFdmY+jYrhVwAwDlIFY1ZfL
+B2eLH2VmT9pS8Ru4KLQXd0v8QzW+JC5qXw0K3J9CRHzAHe/E2dE9yl8cZ/1Am/IQ
+D7iS6MKWZi1STqKdfEAo9izaee5oS/hqHcT3zUIsIZFH/JpVUnC5vt3fnGFYNwvH
+uNLiIreZO3q2QEbH2hozjj8foLuI+MyW3oFz7FazOC2JkupZmsGHpNoNPc/VrHiZ
+l1YvMIbfQ2asIzYBDO6LNcQs7q2+B219NQXPeLfXYJjta8iMwC55SWyg1tfX4E75
+fakr8n5oXEk6soYmyVOUcRTFaE6yNanFP+AhO/Etb1toxUpN73dr/lTt/gJhoYf/
+/qlJjJVv5LU0iuaA+UIV
+=i/WN
+-----END PGP SIGNATURE-----
 
-But that sequence is not needed for my point of view. The device is 
-already properly enabled. I don't think it was even needed in the 
-previous code. The hwmod was already enabled properly, only the 
-omap_device was disabled. So the original omap_console_hwmod_enable 
-should just do nothing.
-
-Regards,
-Benoit
+--gr/z0/N6AeWAPJVB--
