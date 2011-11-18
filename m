@@ -1,67 +1,37 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: PM: only register TWL with voltage layer
- when device is present
-Date: Fri, 18 Nov 2011 17:58:14 +0000
-Message-ID: <E28AAFD00EFAA646AE3DF9B89CD24A89052B4A@DBDE01.ent.ti.com>
-References: <1320797670-21460-1-git-send-email-khilman@ti.com>
-	<E28AAFD00EFAA646AE3DF9B89CD24A89036E64@DBDE01.ent.ti.com>
-	<8762irg73n.fsf@ti.com>
-	<E28AAFD00EFAA646AE3DF9B89CD24A8903E1A5@DBDE01.ent.ti.com>
-	<874ny37hdv.fsf@ti.com>
-	<E28AAFD00EFAA646AE3DF9B89CD24A8904BF32@DBDE01.ent.ti.com>
- <878vne5zeg.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv9 07/18] mfd: omap-prm: added suspend prepare and complete callbacks
+Date: Fri, 18 Nov 2011 11:02:55 -0800
+Message-ID: <87d3cpxnhc.fsf@ti.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com>
+	<1316781986-30642-8-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44326 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751971Ab1KRR6Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2011 12:58:25 -0500
-In-Reply-To: <878vne5zeg.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:39913 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755155Ab1KRTDF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 18 Nov 2011 14:03:05 -0500
+In-Reply-To: <1316781986-30642-8-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Fri, 23 Sep 2011 15:46:15 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Koyamangalath, Abhilash" <abhilash.kv@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 
-> -----Original Message-----
-> From: Hilman, Kevin 
-> Sent: Friday, November 18, 2011 12:51 AM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org; 
-> linux-arm-kernel@lists.infradead.org; Koyamangalath, Abhilash
-> Subject: Re: [PATCH] ARM: OMAP: PM: only register TWL with 
-> voltage layer when device is present
-> 
-> "Premi, Sanjeev" <premi@ti.com> writes:
-> 
-> [...]
-> 
-> >> 
-> >> If PMIC is not TWL family, then I don't expect any functions in
-> >> twl_common.c to be called.
-> >
-> > This is the reason I wanted to know if the check on ".irq" in the
-> > patch is sufficient. If any PMIC requires & sets 
-> "pmic_i2c_board_info.irq"
-> > then both omap3_twl_init() and omap4_twl_init() will be called.
-> 
-> Only TWL PMICs should be calling these functions, as they are in code
-> for TWL PMICs *only*.
-> 
-> If you have a non-TWL PMIC, then you should not be using the 
-> omap_pmic_*
-> functions.
-> 
-> Admittedly, these omap_pmic_* functions should be renamed to be clear
-> that they are TWL specific.
+Tero Kristo <t-kristo@ti.com> writes:
 
-Thanks. We also need mechanism - may be name - to identify the PMIC family
-at this stage; and that should be used to select the corresponding init function.
+> These are needed because runtime PM is disabled during suspend, and
+> it is bad if we get interrupts from the PRCM chain handler during it.
+> Now, PRCM interrupt forwarding is disabled until the suspend->complete,
+> which makes sure that all the needed drivers are up.
 
-~sanjeev
+Just to clarify...  based on reading the patch, the wakeup and PRCM
+interrupts themselves still happen (and are saved). They are just not
+dispatched to the drivers until ->complete().
 
-> 
-> Kevin
-> 
+I think the changelog should be a bit clearer about that.
+
+Thanks,
+
+Kevin
