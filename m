@@ -1,41 +1,36 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v8 17/20] OMAP2+: UART: Use custom activate func for console uart.
-Date: Fri, 18 Nov 2011 13:24:38 -0800
-Message-ID: <87vcqhuns9.fsf@ti.com>
-References: <1321005712-21871-1-git-send-email-govindraj.raja@ti.com>
-	<1321005712-21871-3-git-send-email-govindraj.raja@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv9 05/18] mfd: omap-prm: add driver skeleton
+Date: Fri, 18 Nov 2011 13:35:56 -0800
+Message-ID: <4EC6CFBC.3090502@deeprootsystems.com>
+References: <1316781986-30642-1-git-send-email-t-kristo@ti.com> <1316781986-30642-6-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:52256 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753070Ab1KRVYo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Nov 2011 16:24:44 -0500
-In-Reply-To: <1321005712-21871-3-git-send-email-govindraj.raja@ti.com>
-	(Govindraj R.'s message of "Fri, 11 Nov 2011 15:31:50 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1316781986-30642-6-git-send-email-t-kristo@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+On 09/23/2011 05:46 AM, Tero Kristo wrote:
+> This driver will eventually support OMAP soc PRM module features, e.g. PRCM
+> chain interrupts and voltage processor / controller. This patch only adds
+> basic skeleton for the driver that can be probed for omap3 and omap4.
+> 
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
 
-> Omap-uart can be used as console uart to print early boot
-> messages using earlyprintk so for console uart prevent
-> hwmod reset or idling during bootup.
->
-> Identify the console_uart set the id and use the custom
-> pm_latency ops for console uart for the first time
-> to idle console uart left enabled from bootup and then enable
-> them back and reset pm_latency ops to default ops.
->
-> Thanks to Kevin Hilman <khilman@ti.com> for suggesting
-> this approach.
+> +config OMAP_PRM
+> +	bool "OMAP Power and Reset Management driver"
+> +	depends on (ARCH_OMAP) && PM
 
-You're welcome, but Rajendra's solution is much better. ;)
+Minor: this should probably be
 
-Can you updated your branch without these custom hooks and using
-Rajendra's INIT_NO_IDLE change to the hwmod core.
+	default ARCH_OMAP && PM
+
+So it's enabled by default whenever a PM kernel is built for OMAP.
 
 Kevin
