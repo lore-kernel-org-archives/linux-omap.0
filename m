@@ -1,46 +1,49 @@
-From: WESTERN UNION OFFICE ANNEX <online2055263@telkomsa.net>
-Subject: U.N/ECOWAS COMPENSATION PAY OUT!!!
-Date: Sat, 19 Nov 2011 11:24:06 +0200 (SAST)
-Message-ID: <1302297562.2071171.1321694646174.JavaMail.root__31064.2089265913$1321695352$gmane$org@zimbra8-vm1.telkomsa.net>
-Reply-To: WESTERN UNION OFFICE ANNEX
-	  <westernunionofficeannex92@yahoo.com.ph>
+From: Thomas Weber <thomas.weber.linux@googlemail.com>
+Subject: Re: [PATCH] ARM: OMAP2+: Remove empty io.h
+Date: Sat, 19 Nov 2011 12:44:06 +0100
+Message-ID: <4EC79686.5010608@gmail.com>
+References: <1320755982-27005-1-git-send-email-weber@corscience.de> <20111119002916.GZ31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from draco.telkomsa.net ([196.25.211.120]:38340 "EHLO
-	draco.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738Ab1KSJf2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Nov 2011 04:35:28 -0500
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:34656 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753680Ab1KSLoT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Nov 2011 06:44:19 -0500
+Received: by bke11 with SMTP id 11so4474828bke.19
+        for <linux-omap@vger.kernel.org>; Sat, 19 Nov 2011 03:44:18 -0800 (PST)
+In-Reply-To: <20111119002916.GZ31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Weber <weber@corscience.de>, linux-omap@vger.kernel.org
 
-Hello,
+Hello Tony,
 
-  I write to inform you that we have already sent you $500O.00USD through Western Union as we have been given the mandate to transfer your full compensation payment of $1,800,000.00USD via Western Union Money Transfer by the United Nations (ECOWAS). This is because United Nations and (ECOWAS) are supporting individuals due to the worldwide economy meltdown.
+On 11/19/11 01:29, Tony Lindgren wrote:
+> * Thomas Weber<weber@corscience.de>  [111108 04:05]:
+>> The file arch/arm/mach-omap2/io.h is empty, so we can remove it.
+> Thanks applying into fixes.
+>
+> Tony
+>   
+The "resend" version has an Acked-by from Kevin.
 
-  I would have requested for your phone number to give you the information through phone but internet hackers were many. So i decided to email you the MTCN and sender name so that you can pick up this $5000.00USD to enable us send another $5000.00USD by tomorrow as you know that we will be sending you only $5000.00USD per day.  The fund was send in the name which you use in opening your e-mail address.
+Thomas
+>> Signed-off-by: Thomas Weber<weber@corscience.de>
+>> ---
+>>   0 files changed, 0 insertions(+), 0 deletions(-)
+>>   delete mode 100644 arch/arm/mach-omap2/io.h
+>>
+>> diff --git a/arch/arm/mach-omap2/io.h b/arch/arm/mach-omap2/io.h
+>> deleted file mode 100644
+>> index e69de29..0000000
+>> -- 
+>> 1.7.7.2
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Please pick up this information and rush to any western union to pick up the $500O.00USD and send us an email back to enable us send you another payment by tomorrow.
-
-Email or call me once you picked up this $5000.00USD today.
-
-Mr.Steven Colin
-
-westernunionofficeannex92@yahoo.com.ph
-
-
-Here is the western union information to pick up the $5000.00USD,
-
-MTCN :___________________526 841 7304 
-SENDER'S NAME:___________Glen Sawyer
-TEXT QUESTION:___________HONEST
-ANSWER:__________________TRUST
-AMOUNT SENT______________$5000.00USD
-COUNTRY:_________________Nigeria
-
-
-I am waiting for your email or call once you pick up the $5000.00USD,
-
-Thanks
-Mr.Steven Colin
