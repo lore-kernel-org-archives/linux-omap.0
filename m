@@ -1,71 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] ARM: OMAP3: cm-t35: add regulator supply for
- ads7846
-Date: Fri, 18 Nov 2011 16:14:28 -0800
-Message-ID: <20111119001428.GW31337@atomide.com>
-References: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il>
- <1319017160-20391-2-git-send-email-grinberg@compulab.co.il>
- <20111104233938.GF31337@atomide.com>
- <20111104235720.GG31337@atomide.com>
- <4EB68974.5090907@compulab.co.il>
- <20111107203110.GX31337@atomide.com>
- <4EB92CE6.1000408@compulab.co.il>
+Subject: Re: [PATCH 2/4] mmc: omap: adapt the hsmmc driver to device tree
+Date: Fri, 18 Nov 2011 16:21:40 -0800
+Message-ID: <20111119002140.GX31337@atomide.com>
+References: <1320407441-29697-1-git-send-email-rnayak@ti.com>
+ <1320407441-29697-3-git-send-email-rnayak@ti.com>
+ <20111114213026.GP31337@atomide.com>
+ <4EC1E757.2000308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:59198 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758447Ab1KSAOc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2011 19:14:32 -0500
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4EB92CE6.1000408@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <4EC1E757.2000308@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: cjb@laptop.org, balajitk@ti.com, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, thomas.abraham@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Igor Grinberg <grinberg@compulab.co.il> [111108 04:47]:
-> On 11/07/11 22:31, Tony Lindgren wrote:
-> > * Igor Grinberg <grinberg@compulab.co.il> [111106 04:45]:
-> >> Hi Tony,
-> >>
-> >> On 11/05/11 01:57, Tony Lindgren wrote:
-> >>> * Tony Lindgren <tony@atomide.com> [111104 16:05]:
-> >>>> * Igor Grinberg <grinberg@compulab.co.il> [111019 02:05]:
-> >>>>
-> >>>> Applying to board branch for v3.3 merge window.
-> >>>
-> >>> Hmm, actually I suggest you respin patches 2 and 3 so they apply
-> >>> on their own to current fixes branch. Then update 1 and 4 to
-> >>> apply on top of those.
-> >>>
-> >>> This way we can apply 2 and 3 during the -rc cycle, and then
-> >>> queue 1 and 4 for the next merge window.
-> >>
-> >> Well, actually all them are fixes, although it cannot be understood
-> >> from the subject.
-> >> I will adjust the subjects (and may be the commit messages also)
-> >> to be more specific and resend.
-> > 
-> > Hmm 1 & 4 are "features that never worked" type fixes, so they
-> > have flame potential. Those have to wait for the next merge window.
+* Rajendra Nayak <rnayak@ti.com> [111114 19:40]:
+> On Tuesday 15 November 2011 03:00 AM, Tony Lindgren wrote:
+> >* Rajendra Nayak<rnayak@ti.com>  [111104 04:16]:
+> >>@@ -1869,6 +1957,14 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+> >>  	struct omap_hsmmc_host *host = NULL;
+> >>  	struct resource *res;
+> >>  	int ret, irq;
+> >>+	const struct of_device_id *match;
+> >>+
+> >>+	match = of_match_device(omap_mmc_of_match,&pdev->dev);
+> >>+	if (match) {
+> >>+		pdata = of_get_hsmmc_pdata(&pdev->dev);
+> >>+		if (match->data)
+> >>+			pdata->reg_offset = *(u16 *)match->data;
+> >>+	}
+> >
+> >So this is now using both DT and pdata?
+> >
+> >We want to use DT only, and get rid of pdata. Other than the
+> >deferred probe, is there some other dependency remaining to
+> >having to use the pdata also?
 > 
-> Not exactly:
+> We are using pdata today mainly for the platform function pointers
+> that get passed for MMC, which can never be passed from DT.
 > 
-> 1/4 is a fix that I should have submitted more than a year ago,
-> just after the ads7846 got support for the regulators:
+> The  omap_mmc_platform_data structure today has '17' function pointers.
+> Most might be sparingly used, nevertheless, its an awfully large number.
 
-Sounds like it's not that urgent then :)
-
-> > Or I can just apply all of them into board branch to wait for the
-> > next merge window.
+Yeah OK.
+ 
+> Here's the list...
+> ---------
+> int (*switch_slot)(struct device *dev, int slot);
+> int (*init)(struct device *dev);
+> void (*cleanup)(struct device *dev);
+> void (*shutdown)(struct device *dev);
+> int (*suspend)(struct device *dev, int slot);
+> int (*resume)(struct device *dev, int slot);
+> int (*get_context_loss_count)(struct device *dev);
 > 
-> That can be an option, if it bothers you too much,
-> but I prefer to have this already in 3.2.
+> per-slot functions
+> 
+> int (*set_bus_mode)(struct device *dev, int slot, int bus_mode);
+> int (*set_power)(struct device *dev, int slot,
+>                                  int power_on, int vdd);
+> int (*get_ro)(struct device *dev, int slot);
+> int (*set_sleep)(struct device *dev, int slot, int sleep,
+>                                  int vdd, int cardsleep);
+> void (*remux)(struct device *dev, int slot, int power_on);
+> void (*before_set_reg)(struct device *dev, int slot,
+>                                        int power_on, int vdd);
+> void (*after_set_reg)(struct device *dev, int slot,
+>                                       int power_on, int vdd);
+> void (*init_card)(struct mmc_card *card);
+> int (*get_cover_state)(struct device *dev, int slot);
+> int (*card_detect)(struct device *dev, int slot);
+> ---------
 
-I'll just apply them into board branch to wait for the next merge
-window then.
+To me it seems we should move these into drivers/mmc/host/omap_hsmmc.c
+and set them based on DT compatible (or some other) property.
 
-Thanks,
+If these functions tinker with some internal registers, then we need
+to fix those too to use regulator/gpio API.
+
+This way we don't need the platform_data any longer.
+
+Regards,
 
 Tony
