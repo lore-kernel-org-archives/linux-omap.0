@@ -1,87 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] mmc: omap: adapt the hsmmc driver to device tree
-Date: Fri, 18 Nov 2011 16:21:40 -0800
-Message-ID: <20111119002140.GX31337@atomide.com>
-References: <1320407441-29697-1-git-send-email-rnayak@ti.com>
- <1320407441-29697-3-git-send-email-rnayak@ti.com>
- <20111114213026.GP31337@atomide.com>
- <4EC1E757.2000308@ti.com>
+Subject: Re: [PATCH] arm: omap2: select ARM_AMBA if OMAP3_EMU is defined
+Date: Fri, 18 Nov 2011 16:25:42 -0800
+Message-ID: <20111119002542.GY31337@atomide.com>
+References: <1320726974-11912-1-git-send-email-tom.leiming@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:33023 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750988Ab1KSAZp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2011 19:25:45 -0500
 Content-Disposition: inline
-In-Reply-To: <4EC1E757.2000308@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: cjb@laptop.org, balajitk@ti.com, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, thomas.abraham@linaro.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1320726974-11912-1-git-send-email-tom.leiming@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tom.leiming@gmail.com
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Rajendra Nayak <rnayak@ti.com> [111114 19:40]:
-> On Tuesday 15 November 2011 03:00 AM, Tony Lindgren wrote:
-> >* Rajendra Nayak<rnayak@ti.com>  [111104 04:16]:
-> >>@@ -1869,6 +1957,14 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
-> >>  	struct omap_hsmmc_host *host = NULL;
-> >>  	struct resource *res;
-> >>  	int ret, irq;
-> >>+	const struct of_device_id *match;
-> >>+
-> >>+	match = of_match_device(omap_mmc_of_match,&pdev->dev);
-> >>+	if (match) {
-> >>+		pdata = of_get_hsmmc_pdata(&pdev->dev);
-> >>+		if (match->data)
-> >>+			pdata->reg_offset = *(u16 *)match->data;
-> >>+	}
-> >
-> >So this is now using both DT and pdata?
-> >
-> >We want to use DT only, and get rid of pdata. Other than the
-> >deferred probe, is there some other dependency remaining to
-> >having to use the pdata also?
+* tom.leiming@gmail.com <tom.leiming@gmail.com> [111107 20:02]:
+> From: Ming Lei <tom.leiming@gmail.com>
 > 
-> We are using pdata today mainly for the platform function pointers
-> that get passed for MMC, which can never be passed from DT.
-> 
-> The  omap_mmc_platform_data structure today has '17' function pointers.
-> Most might be sparingly used, nevertheless, its an awfully large number.
+> This patch selects ARM_AMBA if OMAP3_EMU is defined because
+> OC_ETM depends on ARM_AMBA, so fix the link failure[1].
 
-Yeah OK.
- 
-> Here's the list...
-> ---------
-> int (*switch_slot)(struct device *dev, int slot);
-> int (*init)(struct device *dev);
-> void (*cleanup)(struct device *dev);
-> void (*shutdown)(struct device *dev);
-> int (*suspend)(struct device *dev, int slot);
-> int (*resume)(struct device *dev, int slot);
-> int (*get_context_loss_count)(struct device *dev);
-> 
-> per-slot functions
-> 
-> int (*set_bus_mode)(struct device *dev, int slot, int bus_mode);
-> int (*set_power)(struct device *dev, int slot,
->                                  int power_on, int vdd);
-> int (*get_ro)(struct device *dev, int slot);
-> int (*set_sleep)(struct device *dev, int slot, int sleep,
->                                  int vdd, int cardsleep);
-> void (*remux)(struct device *dev, int slot, int power_on);
-> void (*before_set_reg)(struct device *dev, int slot,
->                                        int power_on, int vdd);
-> void (*after_set_reg)(struct device *dev, int slot,
->                                       int power_on, int vdd);
-> void (*init_card)(struct mmc_card *card);
-> int (*get_cover_state)(struct device *dev, int slot);
-> int (*card_detect)(struct device *dev, int slot);
-> ---------
-
-To me it seems we should move these into drivers/mmc/host/omap_hsmmc.c
-and set them based on DT compatible (or some other) property.
-
-If these functions tinker with some internal registers, then we need
-to fix those too to use regulator/gpio API.
-
-This way we don't need the platform_data any longer.
-
-Regards,
+Thanks applying into fixes.
 
 Tony
+
+> 
+> [1],
+> arch/arm/kernel/built-in.o: In function `etm_remove':
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:609: undefined
+> reference to `amba_release_regions'
+> arch/arm/kernel/built-in.o: In function `etb_remove':
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:409: undefined
+> reference to `amba_release_regions'
+> arch/arm/kernel/built-in.o: In function `etm_init':
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:640: undefined
+> reference to `amba_driver_register'
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:646: undefined
+> reference to `amba_driver_register'
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:648: undefined
+> reference to `amba_driver_unregister'
+> arch/arm/kernel/built-in.o: In function `etm_probe':
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:545: undefined
+> reference to `amba_request_regions'
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:595: undefined
+> reference to `amba_release_regions'
+> arch/arm/kernel/built-in.o: In function `etb_probe':
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:347: undefined
+> reference to `amba_request_regions'
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/kernel/etm.c:392: undefined
+> reference to `amba_release_regions'
+> arch/arm/mach-omap2/built-in.o: In function `emu_init':
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/mach-omap2/emu.c:62:
+> undefined reference to `amba_device_register'
+> /home/tom/git/omap/linux-2.6-omap/arch/arm/mach-omap2/emu.c:63:
+> undefined reference to `amba_device_register'
+> make: *** [.tmp_vmlinux1] Error 1
+> making modules
+> 
+> Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 5034147..e1293aa 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -334,6 +334,7 @@ config MACH_OMAP4_PANDA
+>  config OMAP3_EMU
+>  	bool "OMAP3 debugging peripherals"
+>  	depends on ARCH_OMAP3
+> +	select ARM_AMBA
+>  	select OC_ETM
+>  	help
+>  	  Say Y here to enable debugging hardware of omap3
+> -- 
+> 1.7.5.4
+> 
