@@ -1,53 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2+: Fix Compilation error when omap_l3_noc built
- as module
-Date: Fri, 18 Nov 2011 16:37:37 -0800
-Message-ID: <20111119003737.GB31337@atomide.com>
-References: <1320839199-4006-1-git-send-email-govindraj.raja@ti.com>
+From: WESTERN UNION OFFICE ANNEX <online2055263@telkomsa.net>
+Subject: U.N/ECOWAS COMPENSATION PAY OUT!!!
+Date: Sat, 19 Nov 2011 11:24:06 +0200 (SAST)
+Message-ID: <1302297562.2071171.1321694646174.JavaMail.root__31064.2089265913$1321695352$gmane$org@zimbra8-vm1.telkomsa.net>
+Reply-To: WESTERN UNION OFFICE ANNEX
+	  <westernunionofficeannex92@yahoo.com.ph>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:12622 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752712Ab1KSAhj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Nov 2011 19:37:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1320839199-4006-1-git-send-email-govindraj.raja@ti.com>
+Received: from draco.telkomsa.net ([196.25.211.120]:38340 "EHLO
+	draco.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752738Ab1KSJf2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Nov 2011 04:35:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-* Govindraj.R <govindraj.raja@ti.com> [111109 03:12]:
-> Fix below compilation failure on mainline kernel 3.2-rc1
-> when omap_l3_noc.c is built as module.
-> 
-> arch/arm/mach-omap2/omap_l3_noc.c:240: error: expected ',' or ';' before 'MODULE_DEVICE_TABLE'
-> 
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Hello,
 
-Thanks applying into fixes.
+  I write to inform you that we have already sent you $500O.00USD through Western Union as we have been given the mandate to transfer your full compensation payment of $1,800,000.00USD via Western Union Money Transfer by the United Nations (ECOWAS). This is because United Nations and (ECOWAS) are supporting individuals due to the worldwide economy meltdown.
 
-Tony
+  I would have requested for your phone number to give you the information through phone but internet hackers were many. So i decided to email you the MTCN and sender name so that you can pick up this $5000.00USD to enable us send another $5000.00USD by tomorrow as you know that we will be sending you only $5000.00USD per day.  The fund was send in the name which you use in opening your e-mail address.
 
-> ---
->  arch/arm/mach-omap2/omap_l3_noc.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap_l3_noc.c b/arch/arm/mach-omap2/omap_l3_noc.c
-> index 6a66aa5..d15225f 100644
-> --- a/arch/arm/mach-omap2/omap_l3_noc.c
-> +++ b/arch/arm/mach-omap2/omap_l3_noc.c
-> @@ -237,7 +237,7 @@ static int __devexit omap4_l3_remove(struct platform_device *pdev)
->  static const struct of_device_id l3_noc_match[] = {
->  	{.compatible = "ti,omap4-l3-noc", },
->  	{},
-> -}
-> +};
->  MODULE_DEVICE_TABLE(of, l3_noc_match);
->  #else
->  #define l3_noc_match NULL
-> -- 
-> 1.7.4.1
-> 
+Please pick up this information and rush to any western union to pick up the $500O.00USD and send us an email back to enable us send you another payment by tomorrow.
+
+Email or call me once you picked up this $5000.00USD today.
+
+Mr.Steven Colin
+
+westernunionofficeannex92@yahoo.com.ph
+
+
+Here is the western union information to pick up the $5000.00USD,
+
+MTCN :___________________526 841 7304 
+SENDER'S NAME:___________Glen Sawyer
+TEXT QUESTION:___________HONEST
+ANSWER:__________________TRUST
+AMOUNT SENT______________$5000.00USD
+COUNTRY:_________________Nigeria
+
+
+I am waiting for your email or call once you pick up the $5000.00USD,
+
+Thanks
+Mr.Steven Colin
