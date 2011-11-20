@@ -1,42 +1,61 @@
 From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: [PATCH 2/4] omap_dss: add FocalTech ETM070003DH6 display support
-Date: Sun, 20 Nov 2011 22:12:22 +0400
-Message-ID: <4EC94306.4060505@emcraft.com>
-References: <1320797568-11169-1-git-send-email-yanok@emcraft.com>	 <1320797568-11169-3-git-send-email-yanok@emcraft.com> <1321525575.1919.78.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH V2] omap_dss: add FocalTech ETM070003DH6 display support
+Date: Sun, 20 Nov 2011 19:15:39 +0100
+Message-ID: <1321812939-22620-1-git-send-email-yanok@emcraft.com>
+References: <1321525575.1919.78.camel@deskari>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ocean.emcraft.com ([213.221.7.182]:40495 "EHLO
-	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab1KTSMV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Nov 2011 13:12:21 -0500
+Received: from mail-out.m-online.net ([212.18.0.10]:34603 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753709Ab1KTSPr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Nov 2011 13:15:47 -0500
 In-Reply-To: <1321525575.1919.78.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: wd@denx.de, dzu@denx.de, sasha_d@emcraft.com, Ilya Yanok <yanok@emcraft.com>
 
-Hi Tomi,
+Add data for the FocalTech ETM070003DH6 display to the generic_dpi_panel
+display driver.
 
-On 17.11.2011 14:26, Tomi Valkeinen wrote:
->> +		.acbi			= 0x0,
->> +		.acb			= 0x28,
-> 
-> You could just remove .acbi and .acb, I don't think they are needed.
+Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+---
+Changes from V1:
+ - acb, acbi, power_on_delay and power_off_delay fields removed.
 
-You are right.
+ drivers/video/omap2/displays/panel-generic-dpi.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
->> +		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
->> +					  OMAP_DSS_LCD_IHS,
->> +		.power_on_delay		= 50,
->> +		.power_off_delay	= 100,
-> 
-> Did you check from the panel spec if any delays are needed? These look
-> like just copied from the Sharp panel data.
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 519c47d..593f831 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -297,6 +297,26 @@ static struct panel_config generic_dpi_panels[] = {
+ 
+ 		.name			= "apollon",
+ 	},
++	/* FocalTech ETM070003DH6 */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 480,
++
++			.pixel_clock	= 28000,
++
++			.hsw		= 48,
++			.hfp		= 40,
++			.hbp		= 40,
++
++			.vsw		= 3,
++			.vfp		= 13,
++			.vbp		= 29,
++		},
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS,
++		.name			= "focaltech_etm070003dh6",
++	},
+ };
+ 
+ struct panel_drv_data {
+-- 
+1.7.6.4
 
-Actually they were copied from some vendor code, but you are right
-again, I can't see anything concerning the delays in the panel spec and
-panel works ok with the delays thrown out.
-
-Regards, Ilya.
