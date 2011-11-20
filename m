@@ -1,114 +1,431 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [RFC PATCH 11/11] arm:omap:am33xx: Add am335x support in generic omap_hwmod
-Date: Sun, 20 Nov 2011 22:49:15 +0530
-Message-ID: <1321809555-13833-12-git-send-email-hvaibhav@ti.com>
+Subject: [RFC PATCH 10/11] ARM:omap:am33xx: Add clock control api's
+Date: Sun, 20 Nov 2011 22:49:14 +0530
+Message-ID: <1321809555-13833-11-git-send-email-hvaibhav@ti.com>
 References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37459 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766Ab1KTRUD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Nov 2011 12:20:03 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:38623 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753766Ab1KTRUH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 20 Nov 2011 12:20:07 -0500
 In-Reply-To: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
-
-AM335X is bit different than OMAP3/4 architecture when it comes to
-PRCM module, for example, the way module is enabled/disabled.
-Although it is closer to OMAP4 architecure but the register offset
-and PRCM partitions won't match, so we need to seperate API's
-for AM335X.
+Cc: tony@atomide.com, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Afzal Mohammed <afzal@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   29 +++++++++++++++++++++++------
- 1 files changed, 23 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/Makefile     |    3 +-
+ arch/arm/mach-omap2/cminst33xx.c |  311 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cminst33xx.h |   63 ++++++++
+ 3 files changed, 376 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cminst33xx.c
+ create mode 100644 arch/arm/mach-omap2/cminst33xx.h
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index dfd3743..4360cb7 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -147,6 +147,7 @@
-
- #include "cm2xxx_3xxx.h"
- #include "cminst44xx.h"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 706a8ef..784428a 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -81,7 +81,8 @@ endif
+ obj-$(CONFIG_ARCH_OMAP2)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= prcm.o cm2xxx_3xxx.o prm2xxx_3xxx.o \
+ 					   vc3xxx_data.o vp3xxx_data.o
+-obj-$(CONFIG_SOC_OMAPAM33XX)		+= prminst33xx.o cm33xx.o
++obj-$(CONFIG_SOC_OMAPAM33XX)		+= cminst33xx.o prminst33xx.o cm33xx.o
++
+ # XXX The presence of cm2xxx_3xxx.o on the line below is temporary and
+ # will be removed once the OMAP4 part of the codebase is converted to
+ # use OMAP4-specific PRCM functions.
+diff --git a/arch/arm/mach-omap2/cminst33xx.c b/arch/arm/mach-omap2/cminst33xx.c
+new file mode 100644
+index 0000000..e534350
+--- /dev/null
++++ b/arch/arm/mach-omap2/cminst33xx.c
+@@ -0,0 +1,311 @@
++/*
++ * AM33XX CM instance functions
++ *
++ * Copyright (C) 2011 Texas Instruments, Inc.
++ * Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * Reference taken from from OMAP4
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/types.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/io.h>
++
++#include <plat/common.h>
++
++#include "cm.h"
++#include "cm33xx.h"
 +#include "cminst33xx.h"
- #include "prm2xxx_3xxx.h"
- #include "prm44xx.h"
- #include "prminst44xx.h"
-@@ -689,7 +690,7 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
- static void _enable_module(struct omap_hwmod *oh)
- {
- 	/* The module mode does not exist prior OMAP4 */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (!cpu_is_am33xx() && (cpu_is_omap24xx() || cpu_is_omap34xx()))
- 		return;
-
- 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
-@@ -698,7 +699,13 @@ static void _enable_module(struct omap_hwmod *oh)
- 	pr_debug("omap_hwmod: %s: _enable_module: %d\n",
- 		 oh->name, oh->prcm.omap4.modulemode);
-
--	omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
-+	if (cpu_is_am33xx())
-+		am33xx_cminst_module_enable(oh->prcm.omap4.modulemode,
-+				   oh->clkdm->cm_inst,
-+				   oh->clkdm->clkdm_offs,
-+				   oh->prcm.omap4.clkctrl_offs);
-+	else
-+		omap4_cminst_module_enable(oh->prcm.omap4.modulemode,
- 				   oh->clkdm->prcm_partition,
- 				   oh->clkdm->cm_inst,
- 				   oh->clkdm->clkdm_offs,
-@@ -715,7 +722,7 @@ static void _enable_module(struct omap_hwmod *oh)
- static void _disable_module(struct omap_hwmod *oh)
- {
- 	/* The module mode does not exist prior OMAP4 */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (!cpu_is_am33xx() && (cpu_is_omap24xx() || cpu_is_omap34xx()))
- 		return;
-
- 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
-@@ -723,7 +730,12 @@ static void _disable_module(struct omap_hwmod *oh)
-
- 	pr_debug("omap_hwmod: %s: _disable_module\n", oh->name);
-
--	omap4_cminst_module_disable(oh->clkdm->prcm_partition,
-+	if (cpu_is_am33xx())
-+		am33xx_cminst_module_disable(oh->clkdm->cm_inst,
-+				    oh->clkdm->clkdm_offs,
-+				    oh->prcm.omap4.clkctrl_offs);
-+	else
-+		omap4_cminst_module_disable(oh->clkdm->prcm_partition,
- 				    oh->clkdm->cm_inst,
- 				    oh->clkdm->clkdm_offs,
- 				    oh->prcm.omap4.clkctrl_offs);
-@@ -1169,7 +1181,7 @@ static int _wait_target_ready(struct omap_hwmod *oh)
- static int _wait_target_disable(struct omap_hwmod *oh)
- {
- 	/* TODO: For now just handle OMAP4+ */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (!cpu_is_am33xx() && (cpu_is_omap24xx() || cpu_is_omap34xx()))
- 		return 0;
-
- 	if (!oh)
-@@ -1181,7 +1193,12 @@ static int _wait_target_disable(struct omap_hwmod *oh)
- 	if (oh->flags & HWMOD_NO_IDLEST)
- 		return 0;
-
--	return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
-+	if (cpu_is_am33xx())
-+		return am33xx_cminst_wait_module_idle(oh->clkdm->cm_inst,
-+					     oh->clkdm->clkdm_offs,
-+					     oh->prcm.omap4.clkctrl_offs);
-+	else
-+		return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
- 					     oh->clkdm->cm_inst,
- 					     oh->clkdm->clkdm_offs,
- 					     oh->prcm.omap4.clkctrl_offs);
++#include "cm-regbits-34xx.h"
++#include "cm-regbits-33xx.h"
++#include "prm33xx.h"
++
++/*
++ * CLKCTRL_IDLEST_*: possible values for the CM_*_CLKCTRL.IDLEST bitfield:
++ *
++ *   0x0 func:     Module is fully functional, including OCP
++ *   0x1 trans:    Module is performing transition: wakeup, or sleep, or sleep
++ *                 abortion
++ *   0x2 idle:     Module is in Idle mode (only OCP part). It is functional if
++ *                 using separate functional clock
++ *   0x3 disabled: Module is disabled and cannot be accessed
++ *
++ */
++#define CLKCTRL_IDLEST_FUNCTIONAL		0x0
++#define CLKCTRL_IDLEST_INTRANSITION		0x1
++#define CLKCTRL_IDLEST_INTERFACE_IDLE		0x2
++#define CLKCTRL_IDLEST_DISABLED			0x3
++
++/* Private functions */
++
++/**
++ * _clkctrl_idlest - read a CM_*_CLKCTRL register; mask & shift IDLEST bitfield
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Return the IDLEST bitfield of a CM_*_CLKCTRL register, shifted down to
++ * bit 0.
++ */
++static u32 _clkctrl_idlest(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v = am33xx_cminst_read_inst_reg(inst, clkctrl_offs);
++	v &= AM33XX_IDLEST_MASK;
++	v >>= AM33XX_IDLEST_SHIFT;
++	return v;
++}
++
++/**
++ * _is_module_ready - can module registers be accessed without causing an abort?
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Returns true if the module's CM_*_CLKCTRL.IDLEST bitfield is either
++ * *FUNCTIONAL or *INTERFACE_IDLE; false otherwise.
++ */
++static bool _is_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = _clkctrl_idlest(inst, cdoffs, clkctrl_offs);
++
++	return (v == CLKCTRL_IDLEST_FUNCTIONAL ||
++		v == CLKCTRL_IDLEST_INTERFACE_IDLE) ? true : false;
++}
++
++/* Public functions */
++
++/* Read a register in a CM instance */
++u32 am33xx_cminst_read_inst_reg(s16 inst, u16 idx)
++{
++	return __raw_readl(cm_base + inst + idx);
++}
++
++/* Write into a register in a CM instance */
++void am33xx_cminst_write_inst_reg(u32 val, s16 inst, u16 idx)
++{
++	__raw_writel(val, cm_base + inst + idx);
++}
++
++/* Read-modify-write a register in CM1. Caller must lock */
++u32 am33xx_cminst_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx)
++{
++	u32 v;
++
++	v = am33xx_cminst_read_inst_reg(inst, idx);
++	v &= ~mask;
++	v |= bits;
++	am33xx_cminst_write_inst_reg(v, inst, idx);
++
++	return v;
++}
++
++u32 am33xx_cminst_set_inst_reg_bits(u32 bits, s16 inst, s16 idx)
++{
++	return am33xx_cminst_rmw_inst_reg_bits(bits, bits, inst, idx);
++}
++
++u32 am33xx_cminst_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx)
++{
++	return am33xx_cminst_rmw_inst_reg_bits(bits, 0x0, inst, idx);
++}
++
++u32 am33xx_cminst_read_inst_reg_bits(u16 inst, s16 idx, u32 mask)
++{
++	u32 v;
++
++	v = am33xx_cminst_read_inst_reg(inst, idx);
++	v &= mask;
++	v >>= __ffs(mask);
++
++	return v;
++}
++
++/**
++ * _clktrctrl_write - write @c to a CM_CLKSTCTRL.CLKTRCTRL register bitfield
++ * @c: CLKTRCTRL register bitfield (LSB = bit 0, i.e., unshifted)
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * @c must be the unshifted value for CLKTRCTRL - i.e., this function
++ * will handle the shift itself.
++ */
++static void _clktrctrl_write(u8 c, s16 inst, u16 cdoffs)
++{
++	u32 v;
++
++	v = am33xx_cminst_read_inst_reg(inst, cdoffs);
++	v &= ~AM33XX_CLKTRCTRL_MASK;
++	v |= c << AM33XX_CLKTRCTRL_SHIFT;
++	am33xx_cminst_write_inst_reg(v, inst, cdoffs);
++}
++
++/**
++ * am33xx_cminst_is_clkdm_in_hwsup - is a clockdomain in hwsup idle mode?
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Returns true if the clockdomain referred to by (@inst, @cdoffs)
++ * is in hardware-supervised idle mode, or 0 otherwise.
++ */
++bool am33xx_cminst_is_clkdm_in_hwsup(s16 inst, u16 cdoffs)
++{
++	u32 v;
++
++	v = am33xx_cminst_read_inst_reg(inst, cdoffs);
++	v &= AM33XX_CLKTRCTRL_MASK;
++	v >>= AM33XX_CLKTRCTRL_SHIFT;
++
++	return (v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ? true : false;
++}
++
++/**
++ * am33xx_cminst_clkdm_enable_hwsup - put a clockdomain in hwsup-idle mode
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Put a clockdomain referred to by (@inst, @cdoffs) into
++ * hardware-supervised idle mode.  No return value.
++ */
++void am33xx_cminst_clkdm_enable_hwsup(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_ENABLE_AUTO, inst, cdoffs);
++}
++
++/**
++ * am33xx_cminst_clkdm_disable_hwsup - put a clockdomain in swsup-idle mode
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Put a clockdomain referred to by (@inst, @cdoffs) into
++ * software-supervised idle mode, i.e., controlled manually by the
++ * Linux OMAP clockdomain code.  No return value.
++ */
++void am33xx_cminst_clkdm_disable_hwsup(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_DISABLE_AUTO, inst, cdoffs);
++}
++
++/**
++ * am33xx_cminst_clkdm_force_sleep - try to put a clockdomain into idle
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Put a clockdomain referred to by (@inst, @cdoffs) into idle
++ * No return value.
++ */
++void am33xx_cminst_clkdm_force_sleep(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_SLEEP, inst, cdoffs);
++}
++
++/**
++ * am33xx_cminst_clkdm_force_sleep - try to take a clockdomain out of idle
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ *
++ * Take a clockdomain referred to by (@inst, @cdoffs) out of idle,
++ * waking it up.  No return value.
++ */
++void am33xx_cminst_clkdm_force_wakeup(s16 inst, u16 cdoffs)
++{
++	_clktrctrl_write(OMAP34XX_CLKSTCTRL_FORCE_WAKEUP, inst, cdoffs);
++}
++
++/*
++ *
++ */
++
++/**
++ * am33xx_cminst_wait_module_ready - wait for a module to be in 'func' state
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Wait for the module IDLEST to be functional. If the idle state is in any
++ * the non functional state (trans, idle or disabled), module and thus the
++ * sysconfig cannot be accessed and will probably lead to an "imprecise
++ * external abort"
++ */
++int am33xx_cminst_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	int i = 0;
++
++	if (!clkctrl_offs)
++		return 0;
++
++	omap_test_timeout(_is_module_ready(inst, cdoffs, clkctrl_offs),
++			  MAX_MODULE_READY_TIME, i);
++
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
++
++/**
++ * am33xx_cminst_wait_module_idle - wait for a module to be in 'disabled'
++ * state
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * Wait for the module IDLEST to be disabled. Some PRCM transition,
++ * like reset assertion or parent clock de-activation must wait the
++ * module to be fully disabled.
++ */
++int am33xx_cminst_wait_module_idle(u16 inst, s16 cdoffs, u16 clkctrl_offs)
++{
++	int i = 0;
++
++	if (!clkctrl_offs)
++		return 0;
++
++	omap_test_timeout((_clkctrl_idlest(inst, cdoffs, clkctrl_offs) ==
++			   CLKCTRL_IDLEST_DISABLED),
++			  MAX_MODULE_READY_TIME, i);
++
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
++
++/**
++ * am33xx_cminst_module_enable - Enable the modulemode inside CLKCTRL
++ * @mode: Module mode (SW or HW)
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * No return value.
++ */
++void am33xx_cminst_module_enable(u8 mode, u16 inst, s16 cdoffs,
++				u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = am33xx_cminst_read_inst_reg(inst, clkctrl_offs);
++	v &= ~AM33XX_MODULEMODE_MASK;
++	v |= mode << AM33XX_MODULEMODE_SHIFT;
++	am33xx_cminst_write_inst_reg(v, inst, clkctrl_offs);
++}
++
++/**
++ * am33xx_cminst_module_disable - Disable the module inside CLKCTRL
++ * @inst: CM instance register offset (*_INST macro)
++ * @cdoffs: Clockdomain register offset (*_CDOFFS macro)
++ * @clkctrl_offs: Module clock control register offset (*_CLKCTRL macro)
++ *
++ * No return value.
++ */
++void am33xx_cminst_module_disable(u16 inst, s16 cdoffs,
++			     u16 clkctrl_offs)
++{
++	u32 v;
++
++	v = am33xx_cminst_read_inst_reg(inst, clkctrl_offs);
++	v &= ~AM33XX_MODULEMODE_MASK;
++	am33xx_cminst_write_inst_reg(v, inst, clkctrl_offs);
++}
+diff --git a/arch/arm/mach-omap2/cminst33xx.h b/arch/arm/mach-omap2/cminst33xx.h
+new file mode 100644
+index 0000000..881c0af
+--- /dev/null
++++ b/arch/arm/mach-omap2/cminst33xx.h
+@@ -0,0 +1,63 @@
++/*
++ * am33xx Clock Management (CM) function prototypes
++ *
++ * Copyright (C) 2010 Nokia Corporation
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __ARCH_ASM_MACH_OMAP2_CMINST33XX_H
++#define __ARCH_ASM_MACH_OMAP2_CMINST33XX_H
++
++extern bool am33xx_cminst_is_clkdm_in_hwsup(s16 inst, u16 cdoffs);
++extern void am33xx_cminst_clkdm_enable_hwsup(s16 inst, u16 cdoffs);
++extern void am33xx_cminst_clkdm_disable_hwsup(s16 inst, u16 cdoffs);
++extern void am33xx_cminst_clkdm_force_sleep(s16 inst, u16 cdoffs);
++extern void am33xx_cminst_clkdm_force_wakeup(s16 inst, u16 cdoffs);
++
++extern int am33xx_cminst_wait_module_ready(u16 inst, s16 cdoffs, u16 clkctrl_offs);
++
++#ifdef CONFIG_SOC_OMAPAM33XX
++extern int am33xx_cminst_wait_module_idle(u16 inst, s16 cdoffs,
++					 u16 clkctrl_offs);
++
++extern void am33xx_cminst_module_enable(u8 mode, u16 inst, s16 cdoffs,
++				       u16 clkctrl_offs);
++extern void am33xx_cminst_module_disable(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs);
++
++#else
++
++static inline int am33xx_cminst_wait_module_idle(u16 inst, s16 cdoffs,
++					u16 clkctrl_offs)
++{
++	return 0;
++}
++
++static inline void am33xx_cminst_module_enable(u8 mode, u16 inst,
++				s16 cdoffs, u16 clkctrl_offs)
++{
++}
++
++static inline void am33xx_cminst_module_disable(u16 inst, s16 cdoffs,
++				 u16 clkctrl_offs)
++{
++}
++
++#endif
++
++/*
++ * In an ideal world, we would not export these low-level functions,
++ * but this will probably take some time to fix properly
++ */
++extern u32 am33xx_cminst_read_inst_reg(s16 inst, u16 idx);
++extern void am33xx_cminst_write_inst_reg(u32 val, s16 inst, u16 idx);
++extern u32 am33xx_cminst_rmw_inst_reg_bits(u32 mask, u32 bits,
++					   s16 inst, s16 idx);
++extern u32 am33xx_cminst_set_inst_reg_bits(u32 bits, s16 inst, s16 idx);
++extern u32 am33xx_cminst_clear_inst_reg_bits(u32 bits, s16 inst, s16 idx);
++extern u32 am33xx_cminst_read_inst_reg_bits(u16 inst, s16 idx, u32 mask);
++
++#endif
 --
 1.7.0.4
 
