@@ -1,110 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.2-rc2
-Date: Sat, 19 Nov 2011 11:44:08 -0800
-Message-ID: <20111119194408.GD31337@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
+Date: Sat, 19 Nov 2011 20:27:19 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1111192019200.30133@utopia.booyaka.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com> <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com>
+ <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com> <4EC6566C.70202@ti.com> <20111118145635.GB17991@mudshark.cambridge.arm.com> <CACVXFVNuz62+2DzOks3-0io2Ni=LK5SJienU4GcGRMtkh92vvQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-438451069-1321759212=:30133"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:54979 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752159Ab1KSToM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Nov 2011 14:44:12 -0500
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:42178 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755153Ab1KTD1U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Nov 2011 22:27:20 -0500
+In-Reply-To: <CACVXFVNuz62+2DzOks3-0io2Ni=LK5SJienU4GcGRMtkh92vvQ@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1111192020260.30133@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-Hi Arnd,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Please pull omap fixes from:
+--155748971-438451069-1321759212=:30133
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1111192020261.30133@utopia.booyaka.com>
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+Hi
 
-Most of this pull request are fixes needed by Tomi for the
-display driver clocking.
+On Sat, 19 Nov 2011, Ming Lei wrote:
 
-Regards,
+> On Fri, Nov 18, 2011 at 10:56 PM, Will Deacon <will.deacon@arm.com> wrote=
+:
+>
+> > Ming Lei - can you take this into your patch series please?
+>=20
+> Yes, I have made omap4 pmu work already with Benoit's patch,
+> and if no one has objections on other patches(5/7, 6/7, 7/7), I
+> can post out the next version for -next tree.
+>=20
+> > Then we'll have:
+> >
+> > =A0 =A0 =A0 =A0- The two perf patches in my tree
+> > =A0 =A0 =A0 =A0- The hwmod fix in Tony's tree (pending pull)
+> > =A0 =A0 =A0 =A0- Your patches plus this one for hooking everything toge=
+ther
+> >
+> > The sooner we can push these into -next, the better.
 
-Tony
+The OMAP-specific parts should be queued up in my/Beno=EEt's/Tony's trees,=
+=20
+rather than placed directly into -next.  Otherwise they are likely to=20
+generate merge conflicts with other OMAP changes that we may generate.
+
+So I'd suggest splitting patches 1-3 off into a separate series that Will=
+=20
+can pass on to -next if he wishes.
 
 
-The following changes since commit 6aaf05f472c97ebceff47d9eef464574f1a55727:
-  Linus Torvalds (1):
-        Merge branch 'for-linus' of git://git390.marist.edu/pub/scm/linux-2.6
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
-
-Archit Taneja (1):
-      ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
-
-Felipe Balbi (1):
-      arm: omap: smartreflex: fix IRQ handling bug
-
-Govindraj.R (1):
-      ARM: OMAP2+: Fix Compilation error when omap_l3_noc built as module
-
-Kevin Hilman (2):
-      ARM: OMAP3: CPUidle: include <linux/export.h>
-      ARM: OMAP: PM: only register TWL with voltage layer when device is present
-
-Ming Lei (1):
-      arm: omap2: select ARM_AMBA if OMAP3_EMU is defined
-
-Thomas Weber (1):
-      ARM: OMAP2+: Remove empty io.h
-
-Tomi Valkeinen (9):
-      ARM: OMAP2xxx: HWMOD: Fix DSS reset
-      ARM: OMAP2xxx: HWMOD: fix DSS clock data
-      ARM: OMAP3: HWMOD: Fix DSS reset
-      ARM: OMAP3: HWMOD: fix DSS clock data
-      ARM: OMAP4: HWMOD: remove extra clocks
-      ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
-      ARM: OMAP4: HWMOD: fix DSS clock data
-      ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
-      ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
-
-Tony Lindgren (6):
-      ARM: OMAP: Fix map_io for Amstrad E3
-      ARM: OMAP: Fix dpll_data compile error when omap2 only is selected
-      ARM: OMAP: Fix reprogramming of dpll1 rate
-      Merge branch 'for_3.2-rc/hwmod-fixes' of git://gitorious.org/omap-pm/linux into fixes
-      Merge branch 'for_3.2/fixes/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
-      Merge branch 'hwmod_dss_fixes_3.2rc' of git://git.pwsan.com/linux-2.6 into fixes
-
-sricharan (1):
-      ARM: OMAP: hwmod: Fix the addr space, irq, dma count APIs
-
- arch/arm/configs/omap1_defconfig                   |    1 -
- arch/arm/mach-omap1/Kconfig                        |    8 -
- arch/arm/mach-omap1/board-ams-delta.c              |   10 +-
- arch/arm/mach-omap1/clock.h                        |    3 +-
- arch/arm/mach-omap1/clock_data.c                   |   53 ++++---
- arch/arm/mach-omap1/devices.c                      |    3 +
- arch/arm/mach-omap2/Kconfig                        |    1 +
- arch/arm/mach-omap2/Makefile                       |    5 +-
- arch/arm/mach-omap2/cpuidle34xx.c                  |    1 +
- arch/arm/mach-omap2/display.c                      |  159 ++++++++++++++++++++
- arch/arm/mach-omap2/display.h                      |   29 ++++
- arch/arm/mach-omap2/omap_hwmod.c                   |    6 +-
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
- arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
- arch/arm/mach-omap2/omap_l3_noc.c                  |    2 +-
- arch/arm/mach-omap2/pm.c                           |    6 +-
- arch/arm/mach-omap2/smartreflex.c                  |    2 +-
- arch/arm/mach-omap2/twl-common.c                   |   11 ++
- arch/arm/mach-omap2/twl-common.h                   |    3 +
- arch/arm/plat-omap/include/plat/clock.h            |    2 +-
- arch/arm/plat-omap/include/plat/common.h           |    3 +
- include/video/omapdss.h                            |    7 -
- 27 files changed, 346 insertions(+), 77 deletions(-)
- create mode 100644 arch/arm/mach-omap2/display.h
- delete mode 100644 arch/arm/mach-omap2/io.h
+- Paul
+--155748971-438451069-1321759212=:30133--
