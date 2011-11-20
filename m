@@ -1,62 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
-Date: Sat, 19 Nov 2011 20:27:19 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1111192019200.30133@utopia.booyaka.com>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com> <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com>
- <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com> <4EC6566C.70202@ti.com> <20111118145635.GB17991@mudshark.cambridge.arm.com> <CACVXFVNuz62+2DzOks3-0io2Ni=LK5SJienU4GcGRMtkh92vvQ@mail.gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH 1/4] ARM: OMAP3: cm-t35: add regulator supply for ads7846
+Date: Sun, 20 Nov 2011 10:38:13 +0200
+Message-ID: <4EC8BC75.7010100@compulab.co.il>
+References: <1319017160-20391-1-git-send-email-grinberg@compulab.co.il> <1319017160-20391-2-git-send-email-grinberg@compulab.co.il> <20111104233938.GF31337@atomide.com> <20111104235720.GG31337@atomide.com> <4EB68974.5090907@compulab.co.il> <20111107203110.GX31337@atomide.com> <4EB92CE6.1000408@compulab.co.il> <20111119001428.GW31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-438451069-1321759212=:30133"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42178 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755153Ab1KTD1U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Nov 2011 22:27:20 -0500
-In-Reply-To: <CACVXFVNuz62+2DzOks3-0io2Ni=LK5SJienU4GcGRMtkh92vvQ@mail.gmail.com>
-Content-ID: <alpine.DEB.2.00.1111192020260.30133@utopia.booyaka.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:57881
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751504Ab1KTIiU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 20 Nov 2011 03:38:20 -0500
+In-Reply-To: <20111119001428.GW31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 11/19/11 02:14, Tony Lindgren wrote:
+> * Igor Grinberg <grinberg@compulab.co.il> [111108 04:47]:
+>> On 11/07/11 22:31, Tony Lindgren wrote:
+>>> * Igor Grinberg <grinberg@compulab.co.il> [111106 04:45]:
+>>>> Hi Tony,
+>>>>
+>>>> On 11/05/11 01:57, Tony Lindgren wrote:
+>>>>> * Tony Lindgren <tony@atomide.com> [111104 16:05]:
+>>>>>> * Igor Grinberg <grinberg@compulab.co.il> [111019 02:05]:
+>>>>>>
+>>>>>> Applying to board branch for v3.3 merge window.
+>>>>>
+>>>>> Hmm, actually I suggest you respin patches 2 and 3 so they apply
+>>>>> on their own to current fixes branch. Then update 1 and 4 to
+>>>>> apply on top of those.
+>>>>>
+>>>>> This way we can apply 2 and 3 during the -rc cycle, and then
+>>>>> queue 1 and 4 for the next merge window.
+>>>>
+>>>> Well, actually all them are fixes, although it cannot be understood
+>>>> from the subject.
+>>>> I will adjust the subjects (and may be the commit messages also)
+>>>> to be more specific and resend.
+>>>
+>>> Hmm 1 & 4 are "features that never worked" type fixes, so they
+>>> have flame potential. Those have to wait for the next merge window.
+>>
+>> Not exactly:
+>>
+>> 1/4 is a fix that I should have submitted more than a year ago,
+>> just after the ads7846 got support for the regulators:
+> 
+> Sounds like it's not that urgent then :)
+> 
+>>> Or I can just apply all of them into board branch to wait for the
+>>> next merge window.
+>>
+>> That can be an option, if it bothers you too much,
+>> but I prefer to have this already in 3.2.
+> 
+> I'll just apply them into board branch to wait for the next merge
+> window then.
 
---155748971-438451069-1321759212=:30133
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1111192020261.30133@utopia.booyaka.com>
-
-Hi
-
-On Sat, 19 Nov 2011, Ming Lei wrote:
-
-> On Fri, Nov 18, 2011 at 10:56 PM, Will Deacon <will.deacon@arm.com> wrote=
-:
->
-> > Ming Lei - can you take this into your patch series please?
->=20
-> Yes, I have made omap4 pmu work already with Benoit's patch,
-> and if no one has objections on other patches(5/7, 6/7, 7/7), I
-> can post out the next version for -next tree.
->=20
-> > Then we'll have:
-> >
-> > =A0 =A0 =A0 =A0- The two perf patches in my tree
-> > =A0 =A0 =A0 =A0- The hwmod fix in Tony's tree (pending pull)
-> > =A0 =A0 =A0 =A0- Your patches plus this one for hooking everything toge=
-ther
-> >
-> > The sooner we can push these into -next, the better.
-
-The OMAP-specific parts should be queued up in my/Beno=EEt's/Tony's trees,=
-=20
-rather than placed directly into -next.  Otherwise they are likely to=20
-generate merge conflicts with other OMAP changes that we may generate.
-
-So I'd suggest splitting patches 1-3 off into a separate series that Will=
-=20
-can pass on to -next if he wishes.
+No problem, thanks
 
 
-- Paul
---155748971-438451069-1321759212=:30133--
+-- 
+Regards,
+Igor.
