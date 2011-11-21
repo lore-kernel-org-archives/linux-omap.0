@@ -1,87 +1,54 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] ARM: OMAP: dmtimer: fix missing content/correction in
- low-power mode support
-Date: Mon, 21 Nov 2011 10:42:52 -0600
-Message-ID: <CAB-zwWiNc=aFMd2ccyL=s1c5qa8dnu6c-M29K1CrezJ01YXZWg@mail.gmail.com>
-References: <1320732026-6783-1-git-send-email-tarun.kanti@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] OMAP: I2C: Fix the interrupt clearing in OMAP4
+Date: Mon, 21 Nov 2011 10:35:07 -0800
+Message-ID: <871ut1s4ro.fsf@ti.com>
+References: <1321859802-5386-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1320732026-6783-1-git-send-email-tarun.kanti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1321859802-5386-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Mon, 21 Nov 2011 12:46:42 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-On Tue, Nov 8, 2011 at 12:00 AM, Tarun Kanti DebBarma
-<tarun.kanti@ti.com> wrote:
-> Since omap_dm_timer_write_reg/__omap_dm_timer_write is now modified
-> to use timer->func_base OCP_CFG should not use this wrapper anymore.
-> Instead use __raw_writel() directly and use timer->io_base instead
-> to write to OCP_CFG.
->
-> The timer->sys_stat is valid only if timer->revision is 1. In the
-> context restore function make this correction.
->
-> Save the contexts and loss count when timer is stopped.
-> Also, disable the clock. Else, clock usecount would become imbalanced.
->
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-...
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index af3b92b..f042c82 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-...
-> @@ -357,6 +357,21 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
->
-> =A0 =A0 =A0 =A0__omap_dm_timer_stop(timer, timer->posted, rate);
->
-> + =A0 =A0 =A0 if (timer->loses_context) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (timer->get_context_loss_count)
+> For OMAP4 Interrupt enable register is a legacy register.
 
-Maybe: if (timer->loses_context && timer->get_context_loss_count)
+I don't see anything in the docs mentioning this is legacy.  In fact,
+that register is used extensivly throughout the driver, even for OMAP4.
 
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->ctx_loss_count =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 timer->get_context_loss_cou=
-nt(&timer->pdev->dev);
+I think the CLR/SET registers were added to aid atomically
+setting/clearing specific interrupts, but when disabling all, I don't
+see why I2C_IE cannot be used.
 
-could get rid  of this weird one-line formatting
+For that reason, any reason why the 4430-specific check cannot simply be
+removed to fix this interrupt clearing bug?
 
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /*
-> + =A0 =A0 =A0 =A0* Since the register values are computed and written wit=
-hin
-> + =A0 =A0 =A0 =A0* __omap_dm_timer_stop, we need to use read to retrieve =
-the
-> + =A0 =A0 =A0 =A0* context.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 timer->context.tclr =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_dm_timer_read_reg(time=
-r, OMAP_TIMER_CTRL_REG);
-> + =A0 =A0 =A0 timer->context.tisr =3D __raw_readl(timer->irq_stat);
-> + =A0 =A0 =A0 omap_dm_timer_disable(timer);
+> To clear the interrupts we were writing 0 to it. 
 
-FWIW, functionally it looks good to me, besides it fixes the broken
-dmtimer start/stop sequence from 3.2-rc1. Tested with tidspbridge on
-omap3.
+This patch still writes 0 to it, so I'm not seeing the point of this comment.
 
-If needed:
+> However on OMAP4 we were writing 1 to IRQENABLE_CLR which clears only
+> the arbitration lost interrupt. The patch intends to fix the same by
+> writing 1 to all the bits.
 
-Tested-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+This is the bug, and should come first in the changelog so readers know
+what the problem is.
 
-Regards,
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 
-Omar
+I believe this patch was originally from a fix by Vikram Pandita.  Even
+if you've now changed the implementation, please credit the original
+author (and Cc them) in the changelog.  It's common practice (and common
+courtesy) to say something like "Based on an a patch originally from
+Author <email>".  Thanks.
+
+Also, this patch doesn't apply to mainline or linux-omap master.  Can
+you please update?
+
+Thanks,
+
+Kevin
