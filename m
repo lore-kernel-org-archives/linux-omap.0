@@ -1,54 +1,56 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2] OMAP: I2C: Fix the interrupt clearing in OMAP4
-Date: Mon, 21 Nov 2011 10:35:07 -0800
-Message-ID: <871ut1s4ro.fsf@ti.com>
-References: <1321859802-5386-1-git-send-email-shubhrajyoti@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v3] ARM: OMAP2+: hwmod: Add a new state to handle hwmods left enabled at init
+Date: Mon, 21 Nov 2011 10:38:09 -0800
+Message-ID: <87vcqdqq26.fsf@ti.com>
+References: <1321877570-4333-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1321859802-5386-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Mon, 21 Nov 2011 12:46:42 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38175 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755843Ab1KUSiO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Nov 2011 13:38:14 -0500
+Received: by qabg14 with SMTP id g14so617525qab.18
+        for <linux-omap@vger.kernel.org>; Mon, 21 Nov 2011 10:38:13 -0800 (PST)
+In-Reply-To: <1321877570-4333-1-git-send-email-rnayak@ti.com> (Rajendra
+	Nayak's message of "Mon, 21 Nov 2011 17:42:50 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
 
-Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Rajendra Nayak <rnayak@ti.com> writes:
 
-> For OMAP4 Interrupt enable register is a legacy register.
+> An hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
+> enabled state by the hwmod framework post the initial setup.
+> Once a real user of the device (a driver) tries to enable it
+> at a later point, the hwmod framework throws a WARN() about
+> the device being already in enabled state.
+>
+> Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
+> to identify such devices/hwmods. When the device/hwmod
+> is requested to be enabled (the first time) by its driver/user,
+> nothing except the mux-enable and a state change to '_HWMOD_STATE_ENABLED'
+> is needed. The mux data is board specific and is unavailable during
+> initial enable() of the device, done by the framework as part of
+> setup().
+>
+> A good example of a such a device is an UART used as debug console.
+> The UART module needs to be kept enabled through the boot, until the
+> UART driver takes control of it, for debug prints to appear on
+> the console.
+>
+> Acked-by: Kevin Hilman <khilman@ti.com>
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
 
-I don't see anything in the docs mentioning this is legacy.  In fact,
-that register is used extensivly throughout the driver, even for OMAP4.
+Looks like we need a
 
-I think the CLR/SET registers were added to aid atomically
-setting/clearing specific interrupts, but when disabling all, I don't
-see why I2C_IE cannot be used.
+Tested-by: Govindraj Raja <govindraj.raja@ti.com>
 
-For that reason, any reason why the 4430-specific check cannot simply be
-removed to fix this interrupt clearing bug?
+here as well.   Thanks Govindraj for testing.
 
-> To clear the interrupts we were writing 0 to it. 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-This patch still writes 0 to it, so I'm not seeing the point of this comment.
-
-> However on OMAP4 we were writing 1 to IRQENABLE_CLR which clears only
-> the arbitration lost interrupt. The patch intends to fix the same by
-> writing 1 to all the bits.
-
-This is the bug, and should come first in the changelog so readers know
-what the problem is.
-
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-
-I believe this patch was originally from a fix by Vikram Pandita.  Even
-if you've now changed the implementation, please credit the original
-author (and Cc them) in the changelog.  It's common practice (and common
-courtesy) to say something like "Based on an a patch originally from
-Author <email>".  Thanks.
-
-Also, this patch doesn't apply to mainline or linux-omap master.  Can
-you please update?
-
-Thanks,
 
 Kevin
