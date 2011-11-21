@@ -1,61 +1,53 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v8 17/20] OMAP2+: UART: Use custom activate func for
- console uart.
-Date: Mon, 21 Nov 2011 19:21:53 +0530
-Message-ID: <CAAL8m4yAfzVEH7wW5zrOrnjCi_QnvCvXAZ0wfJ-6cKWNZ25Mfg@mail.gmail.com>
-References: <1321005712-21871-1-git-send-email-govindraj.raja@ti.com>
- <1321005712-21871-3-git-send-email-govindraj.raja@ti.com> <87vcqhuns9.fsf@ti.com>
- <CAAL8m4yft7_SQFrXtDZg5X5SJrKep0_j5D9_y1-QooSox+HZpg@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
+Date: Mon, 21 Nov 2011 13:58:28 +0000
+Message-ID: <20111121135828.GC20611@mudshark.cambridge.arm.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com>
+ <1319467559-5518-5-git-send-email-ming.lei@canonical.com>
+ <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com>
+ <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com>
+ <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com>
+ <4EC6566C.70202@ti.com>
+ <20111118145635.GB17991@mudshark.cambridge.arm.com>
+ <CACVXFVNuz62+2DzOks3-0io2Ni=LK5SJienU4GcGRMtkh92vvQ@mail.gmail.com>
+ <alpine.DEB.2.00.1111192019200.30133@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAL8m4yft7_SQFrXtDZg5X5SJrKep0_j5D9_y1-QooSox+HZpg@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:39553 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755118Ab1KUN6v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Nov 2011 08:58:51 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1111192019200.30133@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Ming Lei <ming.lei@canonical.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Mon, Nov 21, 2011 at 7:17 PM, Govindraj <govindraj.ti@gmail.com> wrote:
-> On Sat, Nov 19, 2011 at 2:54 AM, Kevin Hilman <khilman@ti.com> wrote:
->> "Govindraj.R" <govindraj.raja@ti.com> writes:
->>
->>> Omap-uart can be used as console uart to print early boot
->>> messages using earlyprintk so for console uart prevent
->>> hwmod reset or idling during bootup.
->>>
->>> Identify the console_uart set the id and use the custom
->>> pm_latency ops for console uart for the first time
->>> to idle console uart left enabled from bootup and then enable
->>> them back and reset pm_latency ops to default ops.
->>>
->>> Thanks to Kevin Hilman <khilman@ti.com> for suggesting
->>> this approach.
->>
->> You're welcome, but Rajendra's solution is much better. ;)
->
-> Agree.
->
->>
->> Can you updated your branch without these custom hooks and using
->> Rajendra's INIT_NO_IDLE change to the hwmod core.
->>
->
-> Yes done, rebased on 3.2-rc2 and created a new branch [1].
->
-> Removed custom activate function usage and used Rajendra's hwmod patch[2]
->
-> --
-> Thanks,
-> Govindraj.R
->
-> [1]:
-> git://gitorious.org/runtime_3-0/runtime_3-0.git
-> 3.2-rc1_uart_runtime
-   ^^^^^^^^^^^^^^^^^^^^^^^^^
+On Sun, Nov 20, 2011 at 03:27:19AM +0000, Paul Walmsley wrote:
+> The OMAP-specific parts should be queued up in my/Beno=EEt's/Tony's t=
+rees,=20
+> rather than placed directly into -next.  Otherwise they are likely to=
+=20
+> generate merge conflicts with other OMAP changes that we may generate=
+=2E
+>=20
+> So I'd suggest splitting patches 1-3 off into a separate series that =
+Will=20
+> can pass on to -next if he wishes.
 
-small correction new branch is
-3.2-rc2_uart_runtime
+=46ine by me. If Ming Lei posts a new series so that everything is in o=
+ne
+thread then I can pick out the bits I want.
 
+Cheers,
+
+Will
 --
-Thanks,
-Govindraj.R
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
