@@ -1,64 +1,60 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH v2] OMAP: I2C: Fix the interrupt clearing in OMAP4
-Date: Mon, 21 Nov 2011 12:46:42 +0530
-Message-ID: <1321859802-5386-1-git-send-email-shubhrajyoti@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: hwmod fix for 3.2-rc3
+Date: Mon, 21 Nov 2011 09:58:44 +0100
+Message-ID: <4ECA12C4.5070708@ti.com>
+References: <4EC3DE7D.9050609@ti.com> <20111118233756.GR31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44882 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58051 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752286Ab1KUHQ5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Nov 2011 02:16:57 -0500
+	id S1754456Ab1KUI6z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 21 Nov 2011 03:58:55 -0500
+In-Reply-To: <20111118233756.GR31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-For OMAP4 Interrupt enable register is a legacy register.
-To clear the interrupts we were writing 0 to it. However on OMAP4
-we were writing 1 to  IRQENABLE_CLR which clears only the arbitration
-lost interrupt. The patch intends to fix the same by writing 1
-to all the bits.
+On 11/19/2011 12:37 AM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [111116 07:27]:
+>> Hi Tony,
+>>
+>> That bug is becoming annoying, and a bunch of folks are hitting that issue during DT dev for 3.3, so it will be cool to fix that ASAP.
+>
+> OK pulling it in. BTW, next time, please try to base branches on some
+> recent tag like v3.2 or v3.2-rc2. Of course, that is assuming there's
+> no dependency to some recent fix :)
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   15 ++++++++++++++-
- 1 files changed, 14 insertions(+), 1 deletions(-)
+Oops, sorry, I thought the latest HEAD would be better than rc2.
+Next time, I'll stick to the latest tag.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 2dfb631..bf4376f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -167,6 +167,10 @@ enum {
- #define SYSC_IDLEMODE_SMART		0x2
- #define SYSC_CLOCKACTIVITY_FCLK		0x2
- 
-+
-+/* Mask to clear all the interrupts */
-+#define OMAP_I2C_IRQENABLE_CLR_ALL	0x6FFF
-+
- /* Errata definitions */
- #define I2C_OMAP_ERRATA_I207		(1 << 0)
- #define I2C_OMAP3_1P153			(1 << 1)
-@@ -308,8 +312,17 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 	pdata = pdev->dev.platform_data;
- 
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+
-+	/*
-+	 * The Interrupt enable register is a legacy register for OMAP4.
-+	 * However to clear all the interrupts we could write 0 to Interrupt
-+	 * enable reg  or  should write 1 to all the bits of the
-+	 * I2C_IRQENABLE_CLR register.
-+	 */
-+
- 	if (dev->rev >= OMAP_I2C_REV_ON_4430)
--		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-+		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR,
-+					OMAP_I2C_IRQENABLE_CLR_ALL);
- 	else
- 		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
- 
--- 
-1.7.1
+Thanks,
+Benoit
+
+>
+> Regards,
+>
+> Tony
+>
+>> It might already be in Paul's queue for 3.2-rc3.
+>>
+>> Thanks,
+>> Benoit
+>>
+>>
+>> The following changes since commit 6aaf05f472c97ebceff47d9eef464574f1a55727:
+>>    Linus Torvalds (1):
+>>          Merge branch 'for-linus' of git://git390.marist.edu/pub/scm/linux-2.6
+>>
+>> are available in the git repository at:
+>>
+>>    git://gitorious.org/omap-pm/linux.git for_3.2-rc/hwmod-fixes
+>>
+>> sricharan (1):
+>>        ARM: OMAP: hwmod: Fix the addr space, irq, dma count APIs
+>>
+>>   arch/arm/mach-omap2/omap_hwmod.c |    6 +++---
+>>   1 files changed, 3 insertions(+), 3 deletions(-)
 
