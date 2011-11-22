@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 05/26] OMAP: hwmod/SmartReflex: remove IP block instance-specific data from the driver code
-Date: Tue, 22 Nov 2011 16:05:49 +0100
-Message-ID: <1321974370-25800-6-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 08/26] OMAP: SmartReflex: make pdata distinct from other data
+Date: Tue, 22 Nov 2011 16:05:52 +0100
+Message-ID: <1321974370-25800-9-git-send-email-j-pihet@ti.com>
 References: <1321974370-25800-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48485 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756108Ab1KVPG6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 10:06:58 -0500
-Received: by mail-ey0-f174.google.com with SMTP id 27so270729eye.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2011 07:06:57 -0800 (PST)
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38321 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757035Ab1KVPHD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 10:07:03 -0500
+Received: by mail-fx0-f46.google.com with SMTP id n18so497590fag.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2011 07:07:03 -0800 (PST)
 In-Reply-To: <1321974370-25800-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,235 +18,184 @@ Cc: Jean Pihet <j-pihet@ti.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Add SmartReflex IP instance-specific data (dev_attr data) to the hwmod
-data.  This data is IP block instance-specific and may even be
-semiconductor process-specific; it definitely should not be hardcoded
-in the driver.
-
-The pdev_inst_id field is only needed until the clkdev entries for
-SmartReflex can be removed.
-
-ToDo:
-. this patch needs to be reviewed to determine the correct SmartReflex
-omap_sr_dev_attr values for OMAP4.
-. kerneldoc needed in smartreflex.h
+Rename "struct omap_sr_data" to "struct smartreflex_platform_data" to
+highlight that this structure contains platform_data.  Rename the
+sr_data variable in arch/arm/mach-omap2/sr_device.c to pdata to
+indicate that this data is platform_data.  This patch should result in
+no functional change.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   33 ++++++++++++++++++++++---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   37 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/smartreflex.h          |   11 ++++++++
- 3 files changed, 77 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    7 +++--
+ arch/arm/mach-omap2/smartreflex.h |    4 +-
+ arch/arm/mach-omap2/sr_device.c   |   50 ++++++++++++++++++------------------
+ 3 files changed, 31 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 7f8915a..403421a 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -32,6 +32,7 @@
- #include "prm-regbits-34xx.h"
- #include "cm-regbits-34xx.h"
- #include "wd_timer.h"
-+#include "smartreflex.h"
- #include <mach/am35xx.h>
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index ca3987a..4b0dafc 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -194,7 +194,8 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
+ static int sr_late_init(struct omap_sr *sr_info)
+ {
+ 	char *name;
+-	struct omap_sr_data *pdata = sr_info->pdev->dev.platform_data;
++	struct smartreflex_platform_data *pdata =
++					sr_info->pdev->dev.platform_data;
+ 	struct resource *mem;
+ 	int ret = 0;
  
- /*
-@@ -2592,8 +2593,18 @@ static struct omap_hwmod_ocp_if *omap3_sr1_slaves[] = {
- 	&omap3_l4_core__sr1,
- };
+@@ -732,7 +733,7 @@ DEFINE_SIMPLE_ATTRIBUTE(pm_sr_fops, omap_sr_autocomp_show,
+ static int __init omap_sr_probe(struct platform_device *pdev)
+ {
+ 	struct omap_sr *sr_info = kzalloc(sizeof(struct omap_sr), GFP_KERNEL);
+-	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct smartreflex_platform_data *pdata = pdev->dev.platform_data;
+ 	struct resource *mem, *irq;
+ 	struct dentry *nvalue_dir;
+ 	struct omap_volt_data *volt_data;
+@@ -893,7 +894,7 @@ err_free_devinfo:
  
-+static struct omap_sr_dev_attr omap3xxx_sr1_dev_attr = {
-+	.pdev_inst_id = 0,
-+	.sensor_voltdm_name = "mpu",
-+	.errweight = OMAP3430_SR_ERRWEIGHT,
-+	.errmaxlimit = OMAP3430_SR_ERRMAXLIMIT,
-+	.accumdata = OMAP3430_SR_ACCUMDATA,
-+	.senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT,
-+	.senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT,
-+};
-+
- static struct omap_hwmod omap34xx_sr1_hwmod = {
--	.name		= "sr1_hwmod",
-+	.name		= "sr1",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.vdd_name	= "mpu_iva",
-@@ -2608,11 +2619,12 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- 	},
- 	.slaves		= omap3_sr1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
-+	.dev_attr	= &omap3xxx_sr1_dev_attr,
- 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
- };
+ static int __devexit omap_sr_remove(struct platform_device *pdev)
+ {
+-	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct smartreflex_platform_data *pdata = pdev->dev.platform_data;
+ 	struct omap_sr *sr_info;
+ 	struct resource *mem;
  
- static struct omap_hwmod omap36xx_sr1_hwmod = {
--	.name		= "sr1_hwmod",
-+	.name		= "sr1",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.vdd_name	= "mpu_iva",
-@@ -2627,6 +2639,7 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
- 	},
- 	.slaves		= omap3_sr1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
-+	.dev_attr	= &omap3xxx_sr1_dev_attr,
- };
- 
- /* SR2 */
-@@ -2634,8 +2647,18 @@ static struct omap_hwmod_ocp_if *omap3_sr2_slaves[] = {
- 	&omap3_l4_core__sr2,
- };
- 
-+static struct omap_sr_dev_attr omap3xxx_sr2_dev_attr = {
-+	.pdev_inst_id = 1,
-+	.sensor_voltdm_name = "core",
-+	.errweight = OMAP3430_SR_ERRWEIGHT,
-+	.errmaxlimit = OMAP3430_SR_ERRMAXLIMIT,
-+	.accumdata = OMAP3430_SR_ACCUMDATA,
-+	.senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT,
-+	.senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT,
-+};
-+
- static struct omap_hwmod omap34xx_sr2_hwmod = {
--	.name		= "sr2_hwmod",
-+	.name		= "sr2",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.vdd_name	= "core",
-@@ -2650,11 +2673,12 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
- 	},
- 	.slaves		= omap3_sr2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
-+	.dev_attr	= &omap3xxx_sr2_dev_attr,
- 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
- };
- 
- static struct omap_hwmod omap36xx_sr2_hwmod = {
--	.name		= "sr2_hwmod",
-+	.name		= "sr2",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.vdd_name	= "core",
-@@ -2669,6 +2693,7 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
- 	},
- 	.slaves		= omap3_sr2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
-+	.dev_attr	= &omap3xxx_sr2_dev_attr,
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index daaf165..3fbeadc 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -39,6 +39,7 @@
- #include "prm44xx.h"
- #include "prm-regbits-44xx.h"
- #include "wd_timer.h"
-+#include "smartreflex.h"
- 
- /* Base offset for all OMAP4 interrupts external to MPUSS */
- #define OMAP44XX_IRQ_GIC_START	32
-@@ -3987,6 +3988,17 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_core_slaves[] = {
- 	&omap44xx_l4_cfg__smartreflex_core,
- };
- 
-+#warning omap44xx_sr_core_dev_attr values are likely wrong
-+static struct omap_sr_dev_attr omap44xx_sr_core_dev_attr = {
-+	.pdev_inst_id = 0,
-+	.sensor_voltdm_name = "core",
-+	.errweight = OMAP3430_SR_ERRWEIGHT,
-+	.errmaxlimit = OMAP3430_SR_ERRMAXLIMIT,
-+	.accumdata = OMAP3430_SR_ACCUMDATA,
-+	.senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT,
-+	.senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT,
-+};
-+
- static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
- 	.name		= "smartreflex_core",
- 	.class		= &omap44xx_smartreflex_hwmod_class,
-@@ -4004,6 +4016,7 @@ static struct omap_hwmod omap44xx_smartreflex_core_hwmod = {
- 	},
- 	.slaves		= omap44xx_smartreflex_core_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_core_slaves),
-+	.dev_attr	= &omap44xx_sr_core_dev_attr,
- };
- 
- /* smartreflex_iva */
-@@ -4036,6 +4049,17 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_iva_slaves[] = {
- 	&omap44xx_l4_cfg__smartreflex_iva,
- };
- 
-+#warning omap44xx_sr_iva_dev_attr values are likely wrong
-+static struct omap_sr_dev_attr omap44xx_sr_iva_dev_attr = {
-+	.pdev_inst_id = 1,
-+	.sensor_voltdm_name = "iva",
-+	.errweight = OMAP3430_SR_ERRWEIGHT,
-+	.errmaxlimit = OMAP3430_SR_ERRMAXLIMIT,
-+	.accumdata = OMAP3430_SR_ACCUMDATA,
-+	.senn_avgweight = OMAP3430_SR2_SENNAVGWEIGHT,
-+	.senp_avgweight = OMAP3430_SR2_SENPAVGWEIGHT,
-+};
-+
- static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
- 	.name		= "smartreflex_iva",
- 	.class		= &omap44xx_smartreflex_hwmod_class,
-@@ -4052,6 +4076,7 @@ static struct omap_hwmod omap44xx_smartreflex_iva_hwmod = {
- 	},
- 	.slaves		= omap44xx_smartreflex_iva_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_iva_slaves),
-+	.dev_attr	= &omap44xx_sr_iva_dev_attr,
- };
- 
- /* smartreflex_mpu */
-@@ -4084,6 +4109,17 @@ static struct omap_hwmod_ocp_if *omap44xx_smartreflex_mpu_slaves[] = {
- 	&omap44xx_l4_cfg__smartreflex_mpu,
- };
- 
-+#warning omap44xx_sr_mpu_dev_attr values are likely wrong
-+static struct omap_sr_dev_attr omap44xx_sr_mpu_dev_attr = {
-+	.pdev_inst_id = 2,
-+	.sensor_voltdm_name = "mpu",
-+	.errweight = OMAP3430_SR_ERRWEIGHT,
-+	.errmaxlimit = OMAP3430_SR_ERRMAXLIMIT,
-+	.accumdata = OMAP3430_SR_ACCUMDATA,
-+	.senn_avgweight = OMAP3430_SR1_SENNAVGWEIGHT,
-+	.senp_avgweight = OMAP3430_SR1_SENPAVGWEIGHT,
-+};
-+
- static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
- 	.name		= "smartreflex_mpu",
- 	.class		= &omap44xx_smartreflex_hwmod_class,
-@@ -4100,6 +4136,7 @@ static struct omap_hwmod omap44xx_smartreflex_mpu_hwmod = {
- 	},
- 	.slaves		= omap44xx_smartreflex_mpu_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_smartreflex_mpu_slaves),
-+	.dev_attr	= &omap44xx_sr_mpu_dev_attr,
- };
- 
- /*
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index d7e8d90..deed861 100644
+index 6cf9e96..e4930be 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -176,6 +176,17 @@ struct omap_sr_pmic_data {
- 	void (*sr_pmic_init) (void);
+@@ -232,7 +232,7 @@ struct omap_sr_nvalue_table {
  };
  
-+/* XXX Kerneldoc documentation needed */
-+struct omap_sr_dev_attr {
-+	char *sensor_voltdm_name; /* XXX should be const */
-+	u32 errweight;
-+	u32 errmaxlimit;
-+	u32 accumdata;
-+	u32 senn_avgweight;
-+	u32 senp_avgweight;
-+	u8 pdev_inst_id;
-+};
-+
- #ifdef CONFIG_OMAP_SMARTREFLEX
- /*
-  * The smart reflex driver supports CLASS1 CLASS2 and CLASS3 SR.
+ /**
+- * struct omap_sr_data - Smartreflex platform data.
++ * struct smartreflex_platform_data - Smartreflex platform data.
+  *
+  * @ip_type:		Smartreflex IP type.
+  * @err_weight: XXX
+@@ -250,7 +250,7 @@ struct omap_sr_nvalue_table {
+  * @voltdm:		Pointer to the voltage domain associated with the SR
+  * @sr: struct omap_sr * associated with this SR device (allocated in *_probe())
+  */
+-struct omap_sr_data {
++struct smartreflex_platform_data {
+ 	int				ip_type;
+ 	u32				err_weight;
+ 	u32				err_maxlimit;
+diff --git a/arch/arm/mach-omap2/sr_device.c b/arch/arm/mach-omap2/sr_device.c
+index 77442bb..f464d6a2 100644
+--- a/arch/arm/mach-omap2/sr_device.c
++++ b/arch/arm/mach-omap2/sr_device.c
+@@ -33,13 +33,13 @@ static bool sr_enable_on_init;
+ 
+ /* Read EFUSE values from control registers for OMAP3430 */
+ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+-				struct omap_sr_data *sr_data)
++				  struct smartreflex_platform_data *pdata)
+ {
+ 	struct omap_sr_nvalue_table *nvalue_table;
+ 	int i, count = 0;
+ 
+-	sr_data->nvalue_count = 0;
+-	sr_data->nvalue_table = NULL;
++	pdata->nvalue_count = 0;
++	pdata->nvalue_table = NULL;
+ 
+ 	while (volt_data[count].volt_nominal)
+ 		count++;
+@@ -72,21 +72,21 @@ static void __init sr_set_nvalues(struct omap_volt_data *volt_data,
+ 		nvalue_table[i].nvalue = v;
+ 	}
+ 
+-	sr_data->nvalue_table = nvalue_table;
+-	sr_data->nvalue_count = count;
++	pdata->nvalue_table = nvalue_table;
++	pdata->nvalue_count = count;
+ }
+ 
+ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ {
+-	struct omap_sr_data *sr_data;
++	struct smartreflex_platform_data *pdata;
+ 	struct platform_device *pdev;
+ 	struct omap_volt_data *volt_data;
+ 	struct omap_sr_dev_attr *da;
+ 	char *name = "smartreflex";
+ 
+-	sr_data = kzalloc(sizeof(struct omap_sr_data), GFP_KERNEL);
+-	if (!sr_data) {
+-		pr_err("%s: Unable to allocate memory for %s sr_data.Error!\n",
++	pdata = kzalloc(sizeof(struct smartreflex_platform_data), GFP_KERNEL);
++	if (!pdata) {
++		pr_err("%s: Unable to allocate memory for %s pdata.Error!\n",
+ 			__func__, oh->name);
+ 		return -ENOMEM;
+ 	}
+@@ -97,26 +97,26 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 		goto exit;
+ 	}
+ 
+-	sr_data->ip_type = oh->class->rev;
+-	sr_data->senn_mod = 0x1;
+-	sr_data->senp_mod = 0x1;
++	pdata->ip_type = oh->class->rev;
++	pdata->senn_mod = 0x1;
++	pdata->senp_mod = 0x1;
+ 
+ 	da = (struct omap_sr_dev_attr *)oh->dev_attr;
+ 
+-	sr_data->err_weight = da->errweight;
+-	sr_data->err_maxlimit = da->errmaxlimit;
+-	sr_data->accum_data = da->accumdata;
+-	sr_data->senn_avgweight = da->senn_avgweight;
+-	sr_data->senp_avgweight = da->senp_avgweight;
++	pdata->err_weight = da->errweight;
++	pdata->err_maxlimit = da->errmaxlimit;
++	pdata->accum_data = da->accumdata;
++	pdata->senn_avgweight = da->senn_avgweight;
++	pdata->senp_avgweight = da->senp_avgweight;
+ 
+-	sr_data->voltdm = voltdm_lookup(da->sensor_voltdm_name);
+-	if (IS_ERR(sr_data->voltdm)) {
++	pdata->voltdm = voltdm_lookup(da->sensor_voltdm_name);
++	if (IS_ERR(pdata->voltdm)) {
+ 		pr_err("%s: Unable to get voltage domain pointer for VDD %s\n",
+ 			__func__, da->sensor_voltdm_name);
+ 		goto exit;
+ 	}
+ 
+-	omap_voltage_get_volttable(sr_data->voltdm, &volt_data);
++	omap_voltage_get_volttable(pdata->voltdm, &volt_data);
+ 	if (!volt_data) {
+ 		pr_warning("%s: No Voltage table registerd fo VDD %s."
+ 			"Something really wrong\n\n", __func__,
+@@ -124,17 +124,17 @@ static int sr_dev_init(struct omap_hwmod *oh, void *user)
+ 		goto exit;
+ 	}
+ 
+-	sr_set_nvalues(volt_data, sr_data);
++	sr_set_nvalues(volt_data, pdata);
+ 
+-	sr_data->enable_on_init = sr_enable_on_init;
++	pdata->enable_on_init = sr_enable_on_init;
+ 
+-	pdev = omap_device_build(name, da->pdev_inst_id, oh, sr_data,
+-			       sizeof(*sr_data), NULL, 0, 0);
++	pdev = omap_device_build(name, da->pdev_inst_id, oh, pdata,
++			       sizeof(*pdata), NULL, 0, 0);
+ 	if (IS_ERR(pdev))
+ 		pr_warning("%s: Could not build omap_device for %s: %s.\n\n",
+ 			__func__, name, oh->name);
+ exit:
+-	kfree(sr_data);
++	kfree(pdata);
+ 	return 0;
+ }
+ 
 -- 
 1.7.5.4
 
