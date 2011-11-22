@@ -1,50 +1,65 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC/PATCH 00/26] PM: Create the AVS class of drivers
-Date: Tue, 22 Nov 2011 18:40:07 +0100
-Message-ID: <4ECBDE77.6000703@ti.com>
-References: <1321974370-25800-1-git-send-email-j-pihet@ti.com> <20111122164302.GI6624@sirena.org.uk>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
+Date: Tue, 22 Nov 2011 09:42:58 -0800
+Message-ID: <CAPtuhTiVR6NQfgH6-JGd6EC68bdOb6JwDKqaiswS8YR3sNt-Vg@mail.gmail.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+ <1321926047-14211-6-git-send-email-mturquette@linaro.org> <201111221307.14942.arnd.bergmann@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34535 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751668Ab1KVRkZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 12:40:25 -0500
-In-Reply-To: <20111122164302.GI6624@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201111221307.14942.arnd.bergmann@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: Mike Turquette <mturquette@ti.com>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, eric.miao@linaro.org, richard.zhao@linaro.org, Greg Kroah-Hartman <gregkh@suse.de>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: jean.pihet@newoldbits.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, paul@pwsan.com, khilman@ti.com, balbi@ti.com, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
 
-Hi Mark,
-
-On 11/22/2011 5:43 PM, Mark Brown wrote:
-> On Tue, Nov 22, 2011 at 04:05:44PM +0100, jean.pihet@newoldbits.com wrote:
+On Tue, Nov 22, 2011 at 5:07 AM, Arnd Bergmann <arnd.bergmann@linaro.or=
+g> wrote:
+> On Tuesday 22 November 2011, Mike Turquette wrote:
+>> Introduces kobject support for the common struct clk, exports per-cl=
+k
+>> data via read-only callbacks and models the clk tree topology in sys=
+fs.
+>>
+>> Also adds support for generating the clk tree in clk_init and migrat=
+ing
+>> nodes when input sources are switches in clk_set_parent.
+>>
+>> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+>> ---
+>> =A0drivers/clk/Kconfig =A0 =A0 | =A0 10 +++
+>> =A0drivers/clk/Makefile =A0 =A0| =A0 =A01 +
+>> =A0drivers/clk/clk-sysfs.c | =A0199 ++++++++++++++++++++++++++++++++=
++++++++++++++++
+>> =A0drivers/clk/clk.c =A0 =A0 =A0 | =A0 =A05 +-
+>> =A0include/linux/clk.h =A0 =A0 | =A0 36 ++++++++-
+>> =A05 files changed, 248 insertions(+), 3 deletions(-)
+>> =A0create mode 100644 drivers/clk/clk-sysfs.c
 >
->> AVS is a power management technique which controls the operating
->> voltage of a device in order to optimize (i.e. reduce) its power
->> consumption. The voltage is adapted depending on static factors
->> (chip manufacturing process) and dynamic factors (temperature
->> depending performance).
->> AVS is also called SmartReflex on OMAP devices.
+> Since this introduces a new top-level hierarchy in sysfs, it certainl=
+y needs
+> to be reviewed by Greg K-H (on Cc now). Also, you have to add a prope=
+r
+> documentation for every new node and attribute in Documentation/ABI a=
+long
+> with the code.
+
+I don't intend to keep it in the top-level /sys/ directory.  I
+mentioned that in the coverletter, but not here.  I wasn't sure where
+to put it, and I knew reviewers would be happy to point the right
+place out to me.
+
+>> +static struct kobject *clk_kobj;
+>> +LIST_HEAD(kobj_list);
 >
-> This sounds a lot like what devfreq (which was recently merged) is
-> supposed to do.  Have you looked at the overlap there?
+> The list head should be static.
 
-devfreq is a fmwk for DVFS governors at device level, whereas AVS stands 
-for Adaptive Voltage Scaling. This technique does not involve any 
-frequency change, and does a fine voltage adjustment to adapt to silicon 
-process / aging / thermal variation based on a HW closed loop.
+Will put into V4.
 
-Both DVFS and AVS can be used independently.
+Thanks,
+Mike
 
-I think that AVS does belong to the voltage control infrastructure more 
-than the DVFS/freq one.
-
-But that just my .2 cents
-
-Regards,
-Benoit
-
-
+>
+> =A0 =A0 =A0 =A0Arnd
+>
