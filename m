@@ -1,98 +1,42 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: Inclusion of ARM perf tree in linux-next
-Date: Wed, 23 Nov 2011 01:36:46 +1100
-Message-ID: <20111123013646.8acd19e7f4c615a7bf8306a4@canb.auug.org.au>
-References: <20111122100435.GC20518@mudshark.cambridge.arm.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [PATCH v3 4/5] clk: basic gateable and fixed-rate clks
+Date: Tue, 22 Nov 2011 10:03:16 -0500
+Message-ID: <1321974200.2412.25.camel@deneb.redhat.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+	 <1321926047-14211-5-git-send-email-mturquette@linaro.org>
+	 <201111221311.00117.arnd.bergmann@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from calzone.tip.net.au ([203.10.76.15]:34032 "EHLO
-	calzone.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754684Ab1KVOhE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 09:37:04 -0500
-In-Reply-To: <20111122100435.GC20518@mudshark.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201111221311.00117.arnd.bergmann@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd.bergmann@linaro.org>
+Cc: Mike Turquette <mturquette@ti.com>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, linux@arm.linux.org.uk, tony@atomide.com, a.p.zijlstra@chello.nl, arnd@arndb.de
 
---Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2011-11-22 at 13:11 +0000, Arnd Bergmann wrote:
+> On Tuesday 22 November 2011, Mike Turquette wrote:
+> > +static void clk_hw_gate_set_bit(struct clk *clk)
+> > +{
+> > +       struct clk_hw_gate *gate = to_clk_hw_gate(clk);
+> > +       u32 reg;
+> > +
+> > +       reg = __raw_readl(gate->reg);
+> > +       reg |= BIT(gate->bit_idx);
+> > +       __raw_writel(reg, gate->reg);
+> > +}
+> 
+> You cannot rely on __raw_readl() to do the right thing, especially
+> in architecture independent code. The safe (but slightly inefficient)
+> solution would be readl/writel. For ARM-only code, it would be best
+> to use readl_relaxed()/writel_relaxed(), but most architectures do
+> not implement that. We can probably add a set of helpers in asm-generic/
+> to define them to the default functions, like "#define readl_relaxed(x)
+> readl(x)", which I think is a good idea anyway.
+> 
 
-Hi Will,
+readl/writel won't work for big endian CPU when the registers are on a
+bus that does the endian swabbing in hardware.
 
-On Tue, 22 Nov 2011 10:04:35 +0000 Will Deacon <will.deacon@arm.com> wrote:
->
-> I maintain the ARM perf backend and would be very grateful if you could
-> please include this branch in linux-next:
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git for-next/perf
->=20
-> This request has arisen specifically from some work with the OMAP guys
-> where it would be useful to spot any conflicts for 3.3, however I think i=
-t's
-> generally a good idea for me to give some of the perf changes an airing
-> before they get merged anyway.
-
-I have added that tree now with you as the contact.
-
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgment of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
-
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-	Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
-
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
-
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
-
-Legal Stuff:
-By participating in linux-next, your subsystem tree contributions are
-public and will be included in the linux-next trees.  You may be sent
-e-mail messages indicating errors or other issues when the
-patches/commits from your subsystem tree are merged and tested in
-linux-next.  These messages may also be cross-posted to the linux-next
-mailing list, the linux-kernel mailing list, etc.  The linux-next tree
-project and IBM (my employer) make no warranties regarding the linux-next
-project, the testing procedures, the results, the e-mails, etc.  If you
-don't agree to these ground rules, let me know and I'll remove your tree
-from participation in linux-next.
-
---Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJOy7N+AAoJEECxmPOUX5FEqcoP/0l9cxLAqJYBIAsWVjEe8PxT
-3vHH53OPjv6bz7RI2i6QTf3/Q7GlbZlej6G/4szKsdXnOO6dQv4/HP9X6R4IG5/7
-Us5VTYP+gMVKfUa0g7/7XQERtqNwbTcWzj3qMeIcQaOF/IifghkMPq65FlpZbFOw
-TuQco/aZaywQovq2Z1HJ3+YHlUsp4xUJHFjuFbxcOa4yhs366jM5n8QUuuhKXGTe
-MWMFBLN9kuQQELRJKw1AO4eZpnJXbIC8V3F90JP3CsIN8k67Tva+0TXk86j+JcR3
-sze2QiabPvOmtMGz/3HJgyquZL82zT1H4pL5a622Xbrl4Va3AZ7UghCfhy1Kg9mS
-iozd27OtNOc2DhgW2gAOZqtw3e3glvUoWkTpk1Ah4DGIePqSHPLQF6TpZ4btxJXD
-oDaZ7Fq9QNDsHUKg5hiGK96jsCRtWfNGPphEEsWnFVBmSxeOBXwRL4CWITsq08DB
-ZmuF2Zi3xxPSHl+ADx7of4rsKYnzyaxGm28HNLLTVOYqihZdaAR0K13zHeDJ1IJ+
-fk0HUoUBdoltunnGGdHzhpg5wsaDaJs/UgeLHCzdha3Q7YY4ClQ7KJJuywbFhYnl
-MQqw0SB8aZVB9Z9+mnhPcfBlCWHBC8evkm4L2LZyxeCuXbm88AKr5gPmm8A7HBXI
-qB1Zy+kqsLnZ3u/Li7mE
-=OXSP
------END PGP SIGNATURE-----
-
---Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U--
+--Mark
