@@ -1,69 +1,56 @@
 From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v3 0/5] common clk framework
-Date: Tue, 22 Nov 2011 11:12:26 -0800
-Message-ID: <20111122191226.GA4844@kroah.com>
+Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
+Date: Tue, 22 Nov 2011 11:13:47 -0800
+Message-ID: <20111122191347.GB4844@kroah.com>
 References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
- <20111122154259.GA18954@kroah.com>
- <20111122174544.GA19739@n2100.arm.linux.org.uk>
- <CAPtuhTgFPZA9U-8heNw1eNUnHLFv2w+LzXg5rdjSx3J53Xy+2g@mail.gmail.com>
+ <1321926047-14211-6-git-send-email-mturquette@linaro.org>
+ <20111122154900.GB18954@kroah.com>
+ <CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAPtuhTgFPZA9U-8heNw1eNUnHLFv2w+LzXg5rdjSx3J53Xy+2g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Mike Turquette <mturquette@linaro.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, paul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org
+Cc: linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, jeremy.kerr@canonical.com, Mike Turquette <mturquette@ti.com>, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 22, 2011 at 10:09:29AM -0800, Mike Turquette wrote:
-> On Tue, Nov 22, 2011 at 9:45 AM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Tue, Nov 22, 2011 at 07:42:59AM -0800, Greg KH wrote:
-> >> On Mon, Nov 21, 2011 at 05:40:42PM -0800, Mike Turquette wrote:
-> >> > =A0 .sysfs support. =A0Visualize your clk tree at /sys/clk! =A0W=
-here would be
-> >> > a better place to put the clk tree besides the root of /sys/?
-> >>
-> >> Um, in the "proper" place for it under /sys/devices like the rest =
-of the
-> >> device tree is?
+On Tue, Nov 22, 2011 at 09:57:41AM -0800, Mike Turquette wrote:
+> > Ah, comments like this warm my heart.
 > >
-> > I'd suggest that making the clock tree visible in sysfs (and theref=
-ore
-> > part of the kernel ABI) is not a good idea. =A0Some of the nodes in=
- there
-> > will be specific to the implementation. =A0Exposing the clock nodes=
- means
-> > that if you have to change the clock tree structure, you change the
-> > visible userspace ABI.
->=20
-> It is true that the ABI will change dynamically.
->=20
-> >
-> > So, I'd suggest that we need to see a justification for this, rathe=
-r
-> > than exposing this stuff via debugfs as has been done with existing
-> > implementations.
->=20
-> Userspace tools like powerdebug (and maybe someday powertop) hope to
-> use a reliable-looking interface to view clk data.  There are obvious
-> uses for this data in a debug tool, the most obvious of which is
-> "which clk isn't turning off when it should?".
->=20
-> I can migrate this stuff to debugfs, but it adds the burden of having
-> debugfs enabled for folks that want to view this data.  I would also
-> argue that sysfs is there to model various aspects of system topology
-> and a clk tree certainly fits the bill.
->=20
-> If others also agree that it should reside only in debugfs then I'll
-> move it there for V4.
+> > Come on, no abusing the kobject code please, if have problems with how
+> > the kernel core works, and it doesn't do things you want it to, then why
+> > not change it to work properly for you, or at the least, ASK ME!!!
+> 
+> Ok, I'm asking you now.  There are two ways to solve this problem:
+> 
+> 1) have kobject core create the lists linking the objects but defer
+> allocations and any interactions with sysfs until later in the boot
+> sequence, OR
+> 
+> 2) my code can create a list of clks (the same way that clkdev does)
+> and defer kobject/sysfs stuff until later, which walks the list made
+> during early-boot
+> 
+> #1 is most closely aligned with the code I have here, #2 presents
+> challenges that I haven't really though through.  I know that OMAP
+> uses the clk framework VERY early in it's boot sequence, but as long
+> as the per-clk data is properly initialized then it should be OK.
+> 
+> What do you think?
 
-If it's only for debug stuff, then yes, it belongs in debugfs.  All
-distros turn debugfs on these days, and for an embedded system, the cod=
-e
-is quite small so there should not be much overhead.
+#3 - use debugfs and don't try to create a sysfs interface for the clock
+structures :)
 
 thanks,
 
