@@ -1,140 +1,158 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 39/65] OMAPDSS: remove ovl/mgr check-code temporarily
-Date: Tue, 22 Nov 2011 11:21:38 +0200
-Message-ID: <1321953724-6350-40-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 37/65] OMAPDSS: APPLY: move ovl funcs to apply.c
+Date: Tue, 22 Nov 2011 11:21:36 +0200
+Message-ID: <1321953724-6350-38-git-send-email-tomi.valkeinen@ti.com>
 References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:35391 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757899Ab1KVJYB (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:34622 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757932Ab1KVJYC (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 04:24:01 -0500
+	Tue, 22 Nov 2011 04:24:02 -0500
 In-Reply-To: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-DSS currently tries to check that the given overlay and overlay manager
-settings are acceptable, but the code does not work quite properly.
-Things may change between the check and the actual use of the settings.
-
-Furthermore, the following patches will rewrite how settings are
-configured and managed, and trying to keep the (broken) settings
-checking working during the rewrite would be very difficult.
-
-This patch removes the checking code, and a working version of checking
-will be added back after the settings rewrite has been done.
+apply.c will handle the management of dispc in the future patches. This
+patch moves overlay related functions to apply.c so that they will have
+access to the private data and functions of apply.c.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/apply.c   |   53 +--------------------
- drivers/video/omap2/dss/dss.h     |    2 -
- drivers/video/omap2/dss/manager.c |   17 -------
- drivers/video/omap2/dss/overlay.c |   90 -------------------------------------
- 4 files changed, 3 insertions(+), 159 deletions(-)
+ drivers/video/omap2/dss/apply.c   |   84 ++++++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/dss.h     |    8 +++
+ drivers/video/omap2/dss/overlay.c |   96 ++----------------------------------
+ 3 files changed, 98 insertions(+), 90 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index 543a10b..b935264 100644
+index 46d6a5c..b120f95 100644
 --- a/drivers/video/omap2/dss/apply.c
 +++ b/drivers/video/omap2/dss/apply.c
-@@ -503,10 +503,9 @@ end:
- 	spin_unlock(&data_lock);
+@@ -662,3 +662,87 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
+ 	mgr->enabled = false;
  }
  
--static int omap_dss_mgr_apply_ovl(struct omap_overlay *ovl)
-+static void omap_dss_mgr_apply_ovl(struct omap_overlay *ovl)
- {
- 	struct ovl_priv_data *op;
--	struct omap_dss_device *dssdev;
++int dss_ovl_set_info(struct omap_overlay *ovl,
++		struct omap_overlay_info *info)
++{
++	int r;
++	struct omap_overlay_info old_info;
++
++	old_info = ovl->info;
++	ovl->info = *info;
++
++	if (ovl->manager) {
++		r = dss_check_overlay(ovl, ovl->manager->device);
++		if (r) {
++			ovl->info = old_info;
++			return r;
++		}
++	}
++
++	ovl->info_dirty = true;
++
++	return 0;
++}
++
++void dss_ovl_get_info(struct omap_overlay *ovl,
++		struct omap_overlay_info *info)
++{
++	*info = ovl->info;
++}
++
++int dss_ovl_set_manager(struct omap_overlay *ovl,
++		struct omap_overlay_manager *mgr)
++{
++	if (!mgr)
++		return -EINVAL;
++
++	if (ovl->manager) {
++		DSSERR("overlay '%s' already has a manager '%s'\n",
++				ovl->name, ovl->manager->name);
++		return -EINVAL;
++	}
++
++	if (ovl->info.enabled) {
++		DSSERR("overlay has to be disabled to change the manager\n");
++		return -EINVAL;
++	}
++
++	ovl->manager = mgr;
++	list_add_tail(&ovl->list, &mgr->overlays);
++	ovl->manager_changed = true;
++
++	/* XXX: When there is an overlay on a DSI manual update display, and
++	 * the overlay is first disabled, then moved to tv, and enabled, we
++	 * seem to get SYNC_LOST_DIGIT error.
++	 *
++	 * Waiting doesn't seem to help, but updating the manual update display
++	 * after disabling the overlay seems to fix this. This hints that the
++	 * overlay is perhaps somehow tied to the LCD output until the output
++	 * is updated.
++	 *
++	 * Userspace workaround for this is to update the LCD after disabling
++	 * the overlay, but before moving the overlay to TV.
++	 */
++
++	return 0;
++}
++
++int dss_ovl_unset_manager(struct omap_overlay *ovl)
++{
++	if (!ovl->manager) {
++		DSSERR("failed to detach overlay: manager not set\n");
++		return -EINVAL;
++	}
++
++	if (ovl->info.enabled) {
++		DSSERR("overlay has to be disabled to unset the manager\n");
++		return -EINVAL;
++	}
++
++	ovl->manager = NULL;
++	list_del(&ovl->list);
++	ovl->manager_changed = true;
++
++	return 0;
++}
++
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 5a6f1db..ee155a1 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -172,6 +172,14 @@ int omap_dss_mgr_apply(struct omap_overlay_manager *mgr);
+ void dss_mgr_enable(struct omap_overlay_manager *mgr);
+ void dss_mgr_disable(struct omap_overlay_manager *mgr);
  
- 	op = get_ovl_priv(ovl);
- 
-@@ -520,21 +519,11 @@ static int omap_dss_mgr_apply_ovl(struct omap_overlay *ovl)
- 			op->enabled = false;
- 			op->dirty = true;
- 		}
--		return 0;
-+		return;
- 	}
- 
- 	if (!ovl->info_dirty)
--		return 0;
--
--	dssdev = ovl->manager->device;
--
--	if (dss_check_overlay(ovl, dssdev)) {
--		if (op->enabled) {
--			op->enabled = false;
--			op->dirty = true;
--		}
--		return -EINVAL;
--	}
-+		return;
- 
- 	ovl->info_dirty = false;
- 	op->dirty = true;
-@@ -543,8 +532,6 @@ static int omap_dss_mgr_apply_ovl(struct omap_overlay *ovl)
- 	op->channel = ovl->manager->id;
- 
- 	op->enabled = true;
--
--	return 0;
- }
- 
- static void omap_dss_mgr_apply_mgr(struct omap_overlay_manager *mgr)
-@@ -665,18 +652,7 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
- int dss_mgr_set_info(struct omap_overlay_manager *mgr,
- 		struct omap_overlay_manager_info *info)
- {
--	int r;
--	struct omap_overlay_manager_info old_info;
--
--	old_info = mgr->info;
- 	mgr->info = *info;
--
--	r = dss_check_manager(mgr);
--	if (r) {
--		mgr->info = old_info;
--		return r;
--	}
--
- 	mgr->info_dirty = true;
- 
++int dss_ovl_set_info(struct omap_overlay *ovl,
++		struct omap_overlay_info *info);
++void dss_ovl_get_info(struct omap_overlay *ovl,
++		struct omap_overlay_info *info);
++int dss_ovl_set_manager(struct omap_overlay *ovl,
++		struct omap_overlay_manager *mgr);
++int dss_ovl_unset_manager(struct omap_overlay *ovl);
++
+ /* display */
+ int dss_suspend_all_devices(void);
+ int dss_resume_all_devices(void);
+diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
+index 3c94065..00c01a3 100644
+--- a/drivers/video/omap2/dss/overlay.c
++++ b/drivers/video/omap2/dss/overlay.c
+@@ -520,90 +520,6 @@ int dss_check_overlay(struct omap_overlay *ovl, struct omap_dss_device *dssdev)
  	return 0;
-@@ -692,7 +668,6 @@ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
- 		struct omap_dss_device *dssdev)
- {
- 	int r;
--	struct omap_overlay *ovl;
+ }
  
- 	if (dssdev->manager) {
- 		DSSERR("display '%s' already has a manager '%s'\n",
-@@ -706,15 +681,6 @@ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
- 		return -EINVAL;
- 	}
- 
--	list_for_each_entry(ovl, &mgr->overlays, list) {
--		if (!ovl->info.enabled)
--			continue;
--
--		r = dss_check_overlay(ovl, dssdev);
--		if (r)
--			return r;
--	}
--
- 	dssdev->manager = mgr;
- 	mgr->device = dssdev;
- 	mgr->device_changed = true;
-@@ -748,20 +714,7 @@ int dss_mgr_unset_device(struct omap_overlay_manager *mgr)
- int dss_ovl_set_info(struct omap_overlay *ovl,
- 		struct omap_overlay_info *info)
- {
+-static int dss_ovl_set_overlay_info(struct omap_overlay *ovl,
+-		struct omap_overlay_info *info)
+-{
 -	int r;
 -	struct omap_overlay_info old_info;
 -
 -	old_info = ovl->info;
- 	ovl->info = *info;
+-	ovl->info = *info;
 -
 -	if (ovl->manager) {
 -		r = dss_check_overlay(ovl, ovl->manager->device);
@@ -144,148 +162,69 @@ index 543a10b..b935264 100644
 -		}
 -	}
 -
- 	ovl->info_dirty = true;
- 
- 	return 0;
-diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index afe9713..0ef0e08 100644
---- a/drivers/video/omap2/dss/dss.h
-+++ b/drivers/video/omap2/dss/dss.h
-@@ -206,12 +206,10 @@ void default_get_overlay_fifo_thresholds(enum omap_plane plane,
- /* manager */
- int dss_init_overlay_managers(struct platform_device *pdev);
- void dss_uninit_overlay_managers(struct platform_device *pdev);
--int dss_check_manager(struct omap_overlay_manager *mgr);
- 
- /* overlay */
- void dss_init_overlays(struct platform_device *pdev);
- void dss_uninit_overlays(struct platform_device *pdev);
--int dss_check_overlay(struct omap_overlay *ovl, struct omap_dss_device *dssdev);
- void dss_overlay_setup_dispc_manager(struct omap_overlay_manager *mgr);
- void dss_recheck_connections(struct omap_dss_device *dssdev, bool force);
- 
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index ab0b61b..d7fd494 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -485,23 +485,6 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- 	return omap_dispc_wait_for_irq_interruptible_timeout(irq, timeout);
- }
- 
--int dss_check_manager(struct omap_overlay_manager *mgr)
--{
--	if (dss_has_feature(FEAT_ALPHA_FIXED_ZORDER)) {
--		/*
--		 * OMAP3 supports only graphics source transparency color key
--		 * and alpha blending simultaneously. See TRM 15.4.2.4.2.2
--		 * Alpha Mode
--		 */
--		if (mgr->info.partial_alpha_enabled && mgr->info.trans_enabled
--			&& mgr->info.trans_key_type !=
--				OMAP_DSS_COLOR_KEY_GFX_DST)
--			return -EINVAL;
--	}
+-	ovl->info_dirty = true;
 -
 -	return 0;
 -}
 -
- int dss_init_overlay_managers(struct platform_device *pdev)
- {
- 	int i, r;
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index 00c01a3..4dc6b92 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -430,96 +430,6 @@ static struct kobj_type overlay_ktype = {
- 	.default_attrs = overlay_sysfs_attrs,
- };
- 
--/* Check if overlay parameters are compatible with display */
--int dss_check_overlay(struct omap_overlay *ovl, struct omap_dss_device *dssdev)
+-static void dss_ovl_get_overlay_info(struct omap_overlay *ovl,
+-		struct omap_overlay_info *info)
 -{
--	struct omap_overlay_info *info;
--	u16 outw, outh;
--	u16 dw, dh;
--	int i;
+-	*info = ovl->info;
+-}
 -
--	if (!dssdev)
--		return 0;
+-static int omap_dss_set_manager(struct omap_overlay *ovl,
+-		struct omap_overlay_manager *mgr)
+-{
+-	if (!mgr)
+-		return -EINVAL;
 -
--	if (!ovl->info.enabled)
--		return 0;
--
--	info = &ovl->info;
--
--	if (info->paddr == 0) {
--		DSSDBG("check_overlay failed: paddr 0\n");
+-	if (ovl->manager) {
+-		DSSERR("overlay '%s' already has a manager '%s'\n",
+-				ovl->name, ovl->manager->name);
 -		return -EINVAL;
 -	}
 -
--	dssdev->driver->get_resolution(dssdev, &dw, &dh);
--
--	DSSDBG("check_overlay %d: (%d,%d %dx%d -> %dx%d) disp (%dx%d)\n",
--			ovl->id,
--			info->pos_x, info->pos_y,
--			info->width, info->height,
--			info->out_width, info->out_height,
--			dw, dh);
--
--	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0) {
--		outw = info->width;
--		outh = info->height;
--	} else {
--		if (info->out_width == 0)
--			outw = info->width;
--		else
--			outw = info->out_width;
--
--		if (info->out_height == 0)
--			outh = info->height;
--		else
--			outh = info->out_height;
--	}
--
--	if (dw < info->pos_x + outw) {
--		DSSDBG("check_overlay failed 1: %d < %d + %d\n",
--				dw, info->pos_x, outw);
+-	if (ovl->info.enabled) {
+-		DSSERR("overlay has to be disabled to change the manager\n");
 -		return -EINVAL;
 -	}
 -
--	if (dh < info->pos_y + outh) {
--		DSSDBG("check_overlay failed 2: %d < %d + %d\n",
--				dh, info->pos_y, outh);
+-	ovl->manager = mgr;
+-	list_add_tail(&ovl->list, &mgr->overlays);
+-	ovl->manager_changed = true;
+-
+-	/* XXX: When there is an overlay on a DSI manual update display, and
+-	 * the overlay is first disabled, then moved to tv, and enabled, we
+-	 * seem to get SYNC_LOST_DIGIT error.
+-	 *
+-	 * Waiting doesn't seem to help, but updating the manual update display
+-	 * after disabling the overlay seems to fix this. This hints that the
+-	 * overlay is perhaps somehow tied to the LCD output until the output
+-	 * is updated.
+-	 *
+-	 * Userspace workaround for this is to update the LCD after disabling
+-	 * the overlay, but before moving the overlay to TV.
+-	 */
+-
+-	return 0;
+-}
+-
+-static int omap_dss_unset_manager(struct omap_overlay *ovl)
+-{
+-	if (!ovl->manager) {
+-		DSSERR("failed to detach overlay: manager not set\n");
 -		return -EINVAL;
 -	}
 -
--	if ((ovl->supported_modes & info->color_mode) == 0) {
--		DSSERR("overlay doesn't support mode %d\n", info->color_mode);
+-	if (ovl->info.enabled) {
+-		DSSERR("overlay has to be disabled to unset the manager\n");
 -		return -EINVAL;
 -	}
 -
--	if (ovl->caps & OMAP_DSS_OVL_CAP_ZORDER) {
--		if (info->zorder < 0 || info->zorder > 3) {
--			DSSERR("zorder out of range: %d\n",
--				info->zorder);
--			return -EINVAL;
--		}
--		/*
--		 * Check that zorder doesn't match with zorder of any other
--		 * overlay which is enabled and is also connected to the same
--		 * manager
--		 */
--		for (i = 0; i < omap_dss_get_num_overlays(); i++) {
--			struct omap_overlay *tmp_ovl = omap_dss_get_overlay(i);
--
--			if (tmp_ovl->id != ovl->id &&
--					tmp_ovl->manager == ovl->manager &&
--					tmp_ovl->info.enabled == true &&
--					tmp_ovl->info.zorder == info->zorder) {
--				DSSERR("%s and %s have same zorder: %d\n",
--					ovl->name, tmp_ovl->name, info->zorder);
--				return -EINVAL;
--			}
--		}
--	}
+-	ovl->manager = NULL;
+-	list_del(&ovl->list);
+-	ovl->manager_changed = true;
 -
 -	return 0;
 -}
@@ -293,6 +232,32 @@ index 00c01a3..4dc6b92 100644
  int omap_dss_get_num_overlays(void)
  {
  	return num_overlays;
+@@ -663,10 +579,10 @@ void dss_init_overlays(struct platform_device *pdev)
+ 			break;
+ 		}
+ 
+-		ovl->set_manager = &omap_dss_set_manager;
+-		ovl->unset_manager = &omap_dss_unset_manager;
+-		ovl->set_overlay_info = &dss_ovl_set_overlay_info;
+-		ovl->get_overlay_info = &dss_ovl_get_overlay_info;
++		ovl->set_manager = &dss_ovl_set_manager;
++		ovl->unset_manager = &dss_ovl_unset_manager;
++		ovl->set_overlay_info = &dss_ovl_set_info;
++		ovl->get_overlay_info = &dss_ovl_get_info;
+ 		ovl->wait_for_go = &dss_mgr_wait_for_go_ovl;
+ 
+ 		ovl->caps = dss_feat_get_overlay_caps(ovl->id);
+@@ -731,8 +647,8 @@ void dss_recheck_connections(struct omap_dss_device *dssdev, bool force)
+ 			ovl = omap_dss_get_overlay(i);
+ 			if (!ovl->manager || force) {
+ 				if (ovl->manager)
+-					omap_dss_unset_manager(ovl);
+-				omap_dss_set_manager(ovl, mgr);
++					ovl->unset_manager(ovl);
++				ovl->set_manager(ovl, mgr);
+ 			}
+ 		}
+ 
 -- 
 1.7.4.1
 
