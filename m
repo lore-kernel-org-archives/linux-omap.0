@@ -1,70 +1,72 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
-Date: Tue, 22 Nov 2011 13:05:43 +0100
-Message-ID: <CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
-References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
-	<1321274409-24643-2-git-send-email-rnayak@ti.com>
-	<20111114172312.GI31337@atomide.com>
-	<4EC1EB9D.1000503@ti.com>
-	<CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
-	<CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
-	<CACRpkdbBQoOU8hyew6tXth3Ohrg5_rN7M+tbVsYFcOjgq73aCw@mail.gmail.com>
-	<CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 08/65] OMAPDSS: remove partial update from panel-taal
+Date: Tue, 22 Nov 2011 14:32:10 +0200
+Message-ID: <1321965130.1887.46.camel@deskari>
+References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1321953724-6350-9-git-send-email-tomi.valkeinen@ti.com>
+	 <4ECB8D39.4000005@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Hw62SVb8fVt252pLSmQF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:37275 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab1KVMFo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 07:05:44 -0500
-In-Reply-To: <CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:42876 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750851Ab1KVMcP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Nov 2011 07:32:15 -0500
+In-Reply-To: <4ECB8D39.4000005@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thomas Abraham <thomas.abraham@linaro.org>
-Cc: Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linus.walleij@stericsson.com, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
-On Tue, Nov 22, 2011 at 12:09 PM, Thomas Abraham
-<thomas.abraham@linaro.org> wrote:
-> On 17 November 2011 19:27, Linus Walleij <linus.walleij@linaro.org> wrote:
->>
->> Maybe I'm mistaken about the device tree ambitions, but
->> I was sort of hoping that it would not contain too much
->> custom magic numbers that need to be cross-referenced
->> elsewhere ... or rather - the more understandable the device
->> tree is, the more we win.
->
-> Device tree is expected to describe the hardware. So to
-> cross-reference the hardware manual to understand device tree should
-> be fine I guess. For instance, GPIO numbers in dts would be written as
-> a numeric number and not a enum or other format. And by looking up the
-> manual, we understand the actual details of the GPIO pin.
->
-> If dt-compiler had a option to support #define like in C, the numbers
-> could have been made more easier to understand. Like, 3 to mean
-> GPIO_PULL_UP in Exynos dts file.
 
-OK I think I get it now, so DT bindings shall really NOT be read
-by any of the pinctrl core, it is *supposed* to be all driver-specific.
-Then it makes perfect sense to have it as it is.
+--=-Hw62SVb8fVt252pLSmQF
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-So for example in the pinctrl-coh901xxx.c example driver I have
-locally defined registers presets like:
+On Tue, 2011-11-22 at 17:23 +0530, Archit Taneja wrote:
+> > -     r =3D taal_set_update_window(td, x, y, w, h);
+> > +     /* XXX no need to send this every frame, but dsi break if not
+> done */
+> > +     r =3D taal_set_update_window(td, 0, 0,
+> > +                     td->panel_config->timings.x_res,
+> > +                     td->panel_config->timings.y_res);
+>=20
+> How about sending a null short packet, and a BTA after that. This
+> will=20
+> keep automatic TE mode in place, and we'll need to send 1 short
+> packet=20
+> instead of 2 long packets every frame.
 
-#define U300_FLOATING_INPUT { \
-        .bias_mode = PIN_CONFIG_BIAS_HIGH_IMPEDANCE, \
-        .output = false, \
-}
+To be honest, I didn't spend any time with this. True, sending a null
+packet and BTA instead of the 2 long packets is possible. But probably
+even better would be to track the TE status, and send a BTA only when
+needed.
 
-#define U300_PULL_UP_INPUT { \
-        .bias_mode = PIN_CONFIG_BIAS_PULL_UP, \
-        .output = false, \
-}
+ Tomi
 
-Then this type of stuff shall keep its custom format in the device
-tree, and the driver for coh901xxx reads that out.
 
-Thanks for helping me understand this crucial assumption of how
-it works...
+--=-Hw62SVb8fVt252pLSmQF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-Yours,
-Linus Walleij
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJOy5ZKAAoJEPo9qoy8lh71euYP/2oabFOKxDkjqxTbCCBVSB6t
+Q7loyosJLTtoK0JI4M8A5YRHmglCo6BGeUSvXFLdC9b62qJ1Z/e+GXXLXW2NEawo
+5y98M6QmcIkwtLS/wLy8oeTFnIdXZJOGfKA0VoDR2vQ8mRQVPybottsLW0NgVW1y
+gP+62CPo+cCMAfjbtn+dIpOA6fDJPy2BdodnyJg+o4thtuYRCKZcxQJwTJghWHfV
+bsbWSHKgebS7U2LvqTEhWASTQN0rKm+tBqYErDEMtEV3WRrInM8IWYn6aWj+0yvB
+2eXw9ol0PORYa6q9Afv/d8jRDlMYjSqHl6yzcqJnCLDx4/WRpFIYUHY0nxsODN7c
+oPYACrAvmS51GJr+O0h2Sqv6FqQOq9l2VgTB2Q6j/TCVVF1ZKJ2wEU6aeraYF62s
+eDDLGLWD972hVYNHc3aZt76+xoIOK2HcByvJvVDibBmb32cqn6N/BGhvRFrvKc1B
+yYH19irbpnxNfbBABSHySwJ6S2xy6YOPTWorN3lQ/xPldJyTC/BON6AVws5pCeyi
+DQhKokRvSb1/mkkAcmqLdUwzMooSCbBR1iFP0s9fkKmDD4TXOxAS/DsAQrLbJNGt
+3M3OHLvr1/6wpwwBt6qeEOorpMms8S6/oOrfvCZrVtk3jQI+8Tsg4Njxn3lHbVqD
+s5+zp1uDM7e9UYlug6nD
+=cTqZ
+-----END PGP SIGNATURE-----
+
+--=-Hw62SVb8fVt252pLSmQF--
+
