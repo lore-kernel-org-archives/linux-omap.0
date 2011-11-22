@@ -1,72 +1,52 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 08/65] OMAPDSS: remove partial update from panel-taal
-Date: Tue, 22 Nov 2011 14:32:10 +0200
-Message-ID: <1321965130.1887.46.camel@deskari>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1321953724-6350-9-git-send-email-tomi.valkeinen@ti.com>
-	 <4ECB8D39.4000005@ti.com>
+From: Arnd Bergmann <arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
+Date: Tue, 22 Nov 2011 13:07:14 +0000
+Message-ID: <201111221307.14942.arnd.bergmann@linaro.org>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+	<1321926047-14211-6-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Hw62SVb8fVt252pLSmQF"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:42876 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750851Ab1KVMcP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 07:32:15 -0500
-In-Reply-To: <4ECB8D39.4000005@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1321926047-14211-6-git-send-email-mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Mike Turquette <mturquette-l0cyMroinI0@public.gmane.org>
+Cc: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, aul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
+On Tuesday 22 November 2011, Mike Turquette wrote:
+> Introduces kobject support for the common struct clk, exports per-clk
+> data via read-only callbacks and models the clk tree topology in sysfs.
+> 
+> Also adds support for generating the clk tree in clk_init and migrating
+> nodes when input sources are switches in clk_set_parent.
+> 
+> Signed-off-by: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/clk/Kconfig     |   10 +++
+>  drivers/clk/Makefile    |    1 +
+>  drivers/clk/clk-sysfs.c |  199 +++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/clk/clk.c       |    5 +-
+>  include/linux/clk.h     |   36 ++++++++-
+>  5 files changed, 248 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/clk/clk-sysfs.c
 
---=-Hw62SVb8fVt252pLSmQF
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Since this introduces a new top-level hierarchy in sysfs, it certainly needs
+to be reviewed by Greg K-H (on Cc now). Also, you have to add a proper
+documentation for every new node and attribute in Documentation/ABI along
+with the code.
 
-On Tue, 2011-11-22 at 17:23 +0530, Archit Taneja wrote:
-> > -     r =3D taal_set_update_window(td, x, y, w, h);
-> > +     /* XXX no need to send this every frame, but dsi break if not
-> done */
-> > +     r =3D taal_set_update_window(td, 0, 0,
-> > +                     td->panel_config->timings.x_res,
-> > +                     td->panel_config->timings.y_res);
->=20
-> How about sending a null short packet, and a BTA after that. This
-> will=20
-> keep automatic TE mode in place, and we'll need to send 1 short
-> packet=20
-> instead of 2 long packets every frame.
+> +static struct kobject *clk_kobj;
+> +LIST_HEAD(kobj_list);
 
-To be honest, I didn't spend any time with this. True, sending a null
-packet and BTA instead of the 2 long packets is possible. But probably
-even better would be to track the TE status, and send a BTA only when
-needed.
+The list head should be static.
 
- Tomi
-
-
---=-Hw62SVb8fVt252pLSmQF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJOy5ZKAAoJEPo9qoy8lh71euYP/2oabFOKxDkjqxTbCCBVSB6t
-Q7loyosJLTtoK0JI4M8A5YRHmglCo6BGeUSvXFLdC9b62qJ1Z/e+GXXLXW2NEawo
-5y98M6QmcIkwtLS/wLy8oeTFnIdXZJOGfKA0VoDR2vQ8mRQVPybottsLW0NgVW1y
-gP+62CPo+cCMAfjbtn+dIpOA6fDJPy2BdodnyJg+o4thtuYRCKZcxQJwTJghWHfV
-bsbWSHKgebS7U2LvqTEhWASTQN0rKm+tBqYErDEMtEV3WRrInM8IWYn6aWj+0yvB
-2eXw9ol0PORYa6q9Afv/d8jRDlMYjSqHl6yzcqJnCLDx4/WRpFIYUHY0nxsODN7c
-oPYACrAvmS51GJr+O0h2Sqv6FqQOq9l2VgTB2Q6j/TCVVF1ZKJ2wEU6aeraYF62s
-eDDLGLWD972hVYNHc3aZt76+xoIOK2HcByvJvVDibBmb32cqn6N/BGhvRFrvKc1B
-yYH19irbpnxNfbBABSHySwJ6S2xy6YOPTWorN3lQ/xPldJyTC/BON6AVws5pCeyi
-DQhKokRvSb1/mkkAcmqLdUwzMooSCbBR1iFP0s9fkKmDD4TXOxAS/DsAQrLbJNGt
-3M3OHLvr1/6wpwwBt6qeEOorpMms8S6/oOrfvCZrVtk3jQI+8Tsg4Njxn3lHbVqD
-s5+zp1uDM7e9UYlug6nD
-=cTqZ
------END PGP SIGNATURE-----
-
---=-Hw62SVb8fVt252pLSmQF--
-
+	Arnd
