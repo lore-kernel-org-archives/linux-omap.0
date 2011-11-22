@@ -1,54 +1,92 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 16/65] OMAPDSS: remove unneeded dss_ovl_wait_for_go()
-Date: Tue, 22 Nov 2011 11:21:15 +0200
-Message-ID: <1321953724-6350-17-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 17/65] OMAPDSS: add ovl/mgr_manual_update() helpers
+Date: Tue, 22 Nov 2011 11:21:16 +0200
+Message-ID: <1321953724-6350-18-git-send-email-tomi.valkeinen@ti.com>
 References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:58852 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757504Ab1KVJXL (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37661 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756169Ab1KVJXN (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 04:23:11 -0500
+	Tue, 22 Nov 2011 04:23:13 -0500
 In-Reply-To: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-There's an unnecessary wrapper function, dss_ovl_wait_for_go(), which
-does nothing else than call dss_mgr_wait_for_go_ovl(). The
-dss_ovl_wait_for_go() function can be removed.
+Add helper functions ovl_manual_update() and mgr_manual_update() which
+return whether the overlay or manager is used with a manual update
+display.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/overlay.c |    7 +------
- 1 files changed, 1 insertions(+), 6 deletions(-)
+ drivers/video/omap2/dss/manager.c |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/overlay.c b/drivers/video/omap2/dss/overlay.c
-index d15b826..0ab14fa 100644
---- a/drivers/video/omap2/dss/overlay.c
-+++ b/drivers/video/omap2/dss/overlay.c
-@@ -548,11 +548,6 @@ static void dss_ovl_get_overlay_info(struct omap_overlay *ovl,
- 	*info = ovl->info;
- }
+diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
+index fc19f01..e8838d3 100644
+--- a/drivers/video/omap2/dss/manager.c
++++ b/drivers/video/omap2/dss/manager.c
+@@ -538,7 +538,15 @@ static struct {
+ 	bool irq_enabled;
+ } dss_cache;
  
--static int dss_ovl_wait_for_go(struct omap_overlay *ovl)
--{
--	return dss_mgr_wait_for_go_ovl(ovl);
--}
++static bool ovl_manual_update(struct omap_overlay *ovl)
++{
++	return ovl->manager->device->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
++}
+ 
++static bool mgr_manual_update(struct omap_overlay_manager *mgr)
++{
++	return mgr->device->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
++}
+ 
+ static int omap_dss_set_device(struct omap_overlay_manager *mgr,
+ 		struct omap_dss_device *dssdev)
+@@ -627,7 +635,7 @@ static int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
+ 	if (!dssdev || dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+ 		return 0;
+ 
+-	if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE)
++	if (mgr_manual_update(mgr))
+ 		return 0;
+ 
+ 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
+@@ -696,7 +704,7 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
+ 	if (!dssdev || dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+ 		return 0;
+ 
+-	if (dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE)
++	if (ovl_manual_update(ovl))
+ 		return 0;
+ 
+ 	if (dssdev->type == OMAP_DISPLAY_TYPE_VENC
+@@ -1047,8 +1055,6 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+ 
+ 	/* Configure managers */
+ 	list_for_each_entry(mgr, &manager_list, list) {
+-		struct omap_dss_device *dssdev;
 -
- static int omap_dss_set_manager(struct omap_overlay *ovl,
- 		struct omap_overlay_manager *mgr)
- {
-@@ -689,7 +684,7 @@ void dss_init_overlays(struct platform_device *pdev)
- 		ovl->unset_manager = &omap_dss_unset_manager;
- 		ovl->set_overlay_info = &dss_ovl_set_overlay_info;
- 		ovl->get_overlay_info = &dss_ovl_get_overlay_info;
--		ovl->wait_for_go = &dss_ovl_wait_for_go;
-+		ovl->wait_for_go = &dss_mgr_wait_for_go_ovl;
+ 		mc = &dss_cache.manager_cache[mgr->id];
  
- 		ovl->caps = dss_feat_get_overlay_caps(ovl->id);
- 		ovl->supported_modes =
+ 		if (mgr->device_changed) {
+@@ -1062,14 +1068,11 @@ static int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+ 		if (!mgr->device)
+ 			continue;
+ 
+-		dssdev = mgr->device;
+-
+ 		mgr->info_dirty = false;
+ 		mc->dirty = true;
+ 		mc->info = mgr->info;
+ 
+-		mc->manual_update =
+-			dssdev->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
++		mc->manual_update = mgr_manual_update(mgr);
+ 	}
+ 
+ 	/* Configure overlay fifos */
 -- 
 1.7.4.1
 
