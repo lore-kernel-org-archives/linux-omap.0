@@ -1,56 +1,52 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3] ARM: OMAP2+: hwmod: Add a new state to handle hwmods left enabled at init
-Date: Mon, 21 Nov 2011 10:38:09 -0800
-Message-ID: <87vcqdqq26.fsf@ti.com>
-References: <1321877570-4333-1-git-send-email-rnayak@ti.com>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: [PATCH 4/4] mcx: initial support for HTKW mcx board
+Date: Tue, 22 Nov 2011 04:21:07 +0400
+Message-ID: <4ECAEAF3.4080708@emcraft.com>
+References: <1320797568-11169-1-git-send-email-yanok@emcraft.com> <1320797568-11169-5-git-send-email-yanok@emcraft.com> <20111111001203.GD31337@atomide.com> <4EC17C64.7010409@emcraft.com> <20111119003630.GA31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:38175 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755843Ab1KUSiO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 21 Nov 2011 13:38:14 -0500
-Received: by qabg14 with SMTP id g14so617525qab.18
-        for <linux-omap@vger.kernel.org>; Mon, 21 Nov 2011 10:38:13 -0800 (PST)
-In-Reply-To: <1321877570-4333-1-git-send-email-rnayak@ti.com> (Rajendra
-	Nayak's message of "Mon, 21 Nov 2011 17:42:50 +0530")
+Received: from ocean.emcraft.com ([213.221.7.182]:47778 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752579Ab1KVAVA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Nov 2011 19:21:00 -0500
+In-Reply-To: <20111119003630.GA31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Hi Tony,
 
-> An hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
-> enabled state by the hwmod framework post the initial setup.
-> Once a real user of the device (a driver) tries to enable it
-> at a later point, the hwmod framework throws a WARN() about
-> the device being already in enabled state.
->
-> Fix this by introducing a new state '_HWMOD_STATE_ENABLED_AT_INIT'
-> to identify such devices/hwmods. When the device/hwmod
-> is requested to be enabled (the first time) by its driver/user,
-> nothing except the mux-enable and a state change to '_HWMOD_STATE_ENABLED'
-> is needed. The mux data is board specific and is unavailable during
-> initial enable() of the device, done by the framework as part of
-> setup().
->
-> A good example of a such a device is an UART used as debug console.
-> The UART module needs to be kept enabled through the boot, until the
-> UART driver takes control of it, for debug prints to appear on
-> the console.
->
-> Acked-by: Kevin Hilman <khilman@ti.com>
-> Acked-by: Benoit Cousson <b-cousson@ti.com>
+On 19.11.2011 04:36, Tony Lindgren wrote:
+>> Well, it already boots with DT actually. Did you mean booting with DT
+>> and board-generic? I have to admit I don't know how to proceed here:
+> 
+> Good to hear you're already playing with it. Yes, let's work on making
+> all the boards work with DT and board-generic..
 
-Looks like we need a
+Hm, do you think it's absolutely necessary to make everybody work with
+board-generic? It will require a lot of additional bindings to get rid
+of all machine-specific code. I've just thought that on PowerPC we don't
+have such strict rules: if some boards are really similar they share
+common machine file but if we need something specific for the new board
+we can create it's own machine file.
 
-Tested-by: Govindraj Raja <govindraj.raja@ti.com>
+>> board-generic initialize twl4030 which we don't have on our board...
+>> Could you give me some pointer how I'm supposed to handle this?
+> 
+> .. we should only initialize twl4030/twl6030 if the DT compatible flag
+> for it is set. But we're still missing the DT bindings for those :(
+> 
+> For now, maybe try to fix the twl4030 probe so it won't do anything
+> unless the I2C device is found?
 
-here as well.   Thanks Govindraj for testing.
+That turned to be not such a big problem. Device is not present so we
+have tons of error messages but somehow it works.
 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+The bigger problem is that we have different regulator chip attached.
+How am I supposed to register supplies/consumers data with it? Does
+anybody working on DT bindings for the regulator framework?
 
-
-Kevin
+Regards, Ilya.
