@@ -1,69 +1,33 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: [PATCH 2/2] OMAPDSS: HDMI: Indirect trigger to IP specific version
-Date: Tue, 22 Nov 2011 20:54:06 +0530
-Message-ID: <1321975446-12820-1-git-send-email-jaswinder.singh@linaro.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:40156 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab1KVPYR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 10:24:17 -0500
-Received: by ghrr1 with SMTP id r1so264500ghr.19
-        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2011 07:24:16 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v3 0/5] common clk framework
+Date: Tue, 22 Nov 2011 07:42:59 -0800
+Message-ID: <20111122154259.GA18954@kroah.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: mythripk@ti.com, tomi.valkeinen@ti.com, Jassi Brar <jaswinder.singh@linaro.org>
 
-Signed-off-by: Jassi Brar <jaswinder.singh@linaro.org>
----
- drivers/video/omap2/dss/hdmi.c            |    6 ++++++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    2 +-
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    2 +-
- 3 files changed, 8 insertions(+), 2 deletions(-)
+On Mon, Nov 21, 2011 at 05:40:42PM -0800, Mike Turquette wrote:
+>   .sysfs support.  Visualize your clk tree at /sys/clk!  Where would be
+> a better place to put the clk tree besides the root of /sys/?
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index d3eae98..9822951 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -687,6 +687,12 @@ static int hdmi_audio_hw_params(struct snd_pcm_substream *substream,
- 	return 0;
- }
- 
-+static int hdmi_audio_trigger(struct snd_pcm_substream *substream,
-+		int cmd, struct snd_soc_dai *dai)
-+{
-+	return hdmi_4xxx_audio_trigger(&hdmi.ip_data, substream, cmd, dai);
-+}
-+
- static int hdmi_audio_startup(struct snd_pcm_substream *substream,
- 				  struct snd_soc_dai *dai)
- {
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index e1a6ce5..4b71093 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -1204,7 +1204,7 @@ int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
- 	return 0;
- }
- 
--int hdmi_audio_trigger(struct hdmi_ip_data *ip_data,
-+int hdmi_4xxx_audio_trigger(struct hdmi_ip_data *ip_data,
- 				struct snd_pcm_substream *substream, int cmd,
- 				struct snd_soc_dai *dai)
- {
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index 2040956..a975f17 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -576,7 +576,7 @@ struct hdmi_core_audio_config {
- 
- #if defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI) || \
- 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
--int hdmi_audio_trigger(struct hdmi_ip_data *ip_data,
-+int hdmi_4xxx_audio_trigger(struct hdmi_ip_data *ip_data,
- 				struct snd_pcm_substream *substream, int cmd,
- 				struct snd_soc_dai *dai);
- int hdmi_config_audio_acr(struct hdmi_ip_data *ip_data,
--- 
-1.7.4.1
+Um, in the "proper" place for it under /sys/devices like the rest of the
+device tree is?
 
+> When a consensus on this is reached I'll submit the proper changes to
+> Documentation/ABI/testing/.
+
+I would like to see this documentation now, as it explains what you are
+trying to do with the userspace api.
+
+More comments on your sysfs patch...
+
+thanks,
+
+greg k-h
