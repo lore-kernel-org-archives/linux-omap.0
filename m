@@ -1,69 +1,51 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH V2] omap_dss: add FocalTech ETM070003DH6 display support
-Date: Tue, 22 Nov 2011 12:04:36 +0200
-Message-ID: <1321956276.1887.40.camel@deskari>
-References: <1321525575.1919.78.camel@deskari>
-	 <1321812939-22620-1-git-send-email-yanok@emcraft.com>
+From: Andrew Pushkin <andrei.pushkin@promwad.com>
+Subject: USB video capture shuts up - 2
+Date: Tue, 22 Nov 2011 12:58:43 +0300
+Message-ID: <CANc=jjpCPj070PPO1UpNgvFvVcJ6d-nHqyczvTM9krZMnFGpTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-DGuoeqaFo/czg2Bx9g2W"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:44101 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752590Ab1KVKEl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 05:04:41 -0500
-Received: by mail-bw0-f54.google.com with SMTP id zs8so5235bkb.41
-        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2011 02:04:40 -0800 (PST)
-In-Reply-To: <1321812939-22620-1-git-send-email-yanok@emcraft.com>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:56079 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753016Ab1KVKEo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 05:04:44 -0500
+Received: by qadc14 with SMTP id c14so1088295qad.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2011 02:04:44 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: simon@santesteban.eu, gadiyar@ti.com, =?UTF-8?B?0JjQstCw0L0g0JrRg9GC0LXQvdGM?= <ivan.kuten@promwad.com>
 
+Hello. I need to use USB Web camera with TI AM3505 and TI AM3517 . I
+use kernel 2.6.37 from arago. I test it, its work but sometimes I have
+problems, that other users see in other TI CPU:
+http://thread.gmane.org/gmane.linux.ports.arm.omap/35912/focus=36095
+Sometimes camera do not work after 10-15 min of working. This is dmesg
+(when this bug is reproduced) (I do not disconnect web camera but
+linux think so(?)):
+[   53.696228] ehci-omap ehci-omap.0: remove, state 1
+[   53.696258] usb usb1: USB disconnect, address 1
+[   53.696350] usb 1-1: USB disconnect, address 2
+[   53.696350] usb 1-1.4: USB disconnect, address 3
+[   53.773498] ehci-omap ehci-omap.0: force halt; handshake fa064814
+0000c000 00000000 -> -110
+[   54.113677] ehci-omap ehci-omap.0: USB bus 1 deregistered
+[   54.524505] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[   54.524658] ehci-omap.0 supply hsusb0 not found, using dummy regulator
+[   55.532257] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+[   55.532318] ehci-omap ehci-omap.0: new USB bus registered, assigned
+bus number 1
+[   55.540313] ehci-omap ehci-omap.0: irq 77, io mem 0x48064800
+[   55.555725] ehci-omap ehci-omap.0: USB 2.0 started, EHCI 1.00
+[   55.555877] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[   55.555877] usb usb1: New USB device strings: Mfr=3, Product=2,
+SerialNumber=1
+[   55.555908] usb usb1: Product: OMAP-EHCI Host Controller
+[   55.555908] usb usb1: Manufacturer: Linux 2.6.37-svn1014 ehci_hcd
+[   55.555938] usb usb1: SerialNumber: ehci-omap.0
+And camera and other USB devices do not work until reboot.
+I test it with various web cameras, with and without USB hub with
+external power. This bug is exists.
 
---=-DGuoeqaFo/czg2Bx9g2W
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, 2011-11-20 at 19:15 +0100, Ilya Yanok wrote:
-> Add data for the FocalTech ETM070003DH6 display to the generic_dpi_panel
-> display driver.
->=20
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
-> ---
-> Changes from V1:
->  - acb, acbi, power_on_delay and power_off_delay fields removed.
->=20
->  drivers/video/omap2/displays/panel-generic-dpi.c |   20 ++++++++++++++++=
-++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
-
-Thanks, applied to DSS tree.
-
- Tomi
-
-
---=-DGuoeqaFo/czg2Bx9g2W
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJOy3O0AAoJEPo9qoy8lh71NZoQAJVaN/i+XgEzucBkH44CLzCb
-jJwHr5InAYUZMPCoiBSe8G832p4HTaPjm6+RFDeLjx2DCBQt8iitVD5vc8rvtiMS
-E6lsmuLn2bPZmvlmrBUysN3Ef84w7uQIo3WlaWmndL3riOXSLvkzAPJoZE4xMD9K
-d/Tmp21Hrz+fBd9+7tCMqwtIOUMx6jUUJSEE9lV3OINm+0CUsY/1uOk9S7cy0uGs
-yh0S0tQahBzt0mkMkLXpvO6l5cYbPmkaGXdyLwPN2z6b4obLrGDuSj3oexpVS+9I
-iXBNcUDZdX7+iMrYq5Zp1LIanpjmzjGXuptgLJdBN7OHiLc2gAeDUCWBSz+j4HQD
-kElGHd+9Uh8fejRgeFxj/tPXQW4jUQkX0+PmDtuhnROCCqvt8UdPSC7rh9Ts3XsU
-MkTwVRt0MQvba/3XyqijswrQP9I7SGDPAjpkDpM498/3o/crLaEFM2BwlE14RiyU
-iA2WnFYy34am6OSxRYpGGSqgrQca8sP7OzDazTIdcARdtbnQuxO6c68ftsCj/N3y
-zPxxm+6k3LSqiSoFk/4qtsRqOXA7jXtCSNxAMMdbx2LcQMIOtng3zDD1fpfM1fRn
-s5OJylhSnvEfATdDD+hv+F0Bwwfugn4nHt3oUCR89XGdx1PB4MW2ThgY7bFdaYbb
-5mBRhwIIBKMBIe7Q/o4n
-=AaAc
------END PGP SIGNATURE-----
-
---=-DGuoeqaFo/czg2Bx9g2W--
-
+-- 
+Andrew Pushkin
