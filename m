@@ -1,119 +1,170 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
-Date: Tue, 22 Nov 2011 09:54:09 -0800
-Message-ID: <20111122175409.GE31337@atomide.com>
-References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
- <1321274409-24643-2-git-send-email-rnayak@ti.com>
- <20111114172312.GI31337@atomide.com>
- <4EC1EB9D.1000503@ti.com>
- <CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
- <CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
- <CACRpkdbBQoOU8hyew6tXth3Ohrg5_rN7M+tbVsYFcOjgq73aCw@mail.gmail.com>
- <CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
- <CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
+From: Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
+Date: Tue, 22 Nov 2011 09:57:41 -0800
+Message-ID: <CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+ <1321926047-14211-6-git-send-email-mturquette@linaro.org> <20111122154900.GB18954@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Thomas Abraham <thomas.abraham@linaro.org>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linus.walleij@stericsson.com, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111122154900.GB18954@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Mike Turquette <mturquette@ti.com>, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, paul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [111122 03:30]:
-> On Tue, Nov 22, 2011 at 12:09 PM, Thomas Abraham
-> <thomas.abraham@linaro.org> wrote:
-> > On 17 November 2011 19:27, Linus Walleij <linus.walleij@linaro.org> wrote:
-> >>
-> >> Maybe I'm mistaken about the device tree ambitions, but
-> >> I was sort of hoping that it would not contain too much
-> >> custom magic numbers that need to be cross-referenced
-> >> elsewhere ... or rather - the more understandable the device
-> >> tree is, the more we win.
-> >
-> > Device tree is expected to describe the hardware. So to
-> > cross-reference the hardware manual to understand device tree should
-> > be fine I guess. For instance, GPIO numbers in dts would be written as
-> > a numeric number and not a enum or other format. And by looking up the
-> > manual, we understand the actual details of the GPIO pin.
-> >
-> > If dt-compiler had a option to support #define like in C, the numbers
-> > could have been made more easier to understand. Like, 3 to mean
-> > GPIO_PULL_UP in Exynos dts file.
-> 
-> OK I think I get it now, so DT bindings shall really NOT be read
-> by any of the pinctrl core, it is *supposed* to be all driver-specific.
-> Then it makes perfect sense to have it as it is.
+On Tue, Nov 22, 2011 at 7:49 AM, Greg KH <greg@kroah.com> wrote:
+> On Mon, Nov 21, 2011 at 05:40:47PM -0800, Mike Turquette wrote:
+>> Introduces kobject support for the common struct clk, exports per-cl=
+k
+>> data via read-only callbacks and models the clk tree topology in sys=
+fs.
+>>
+>> Also adds support for generating the clk tree in clk_init and migrat=
+ing
+>> nodes when input sources are switches in clk_set_parent.
+>>
+>> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+>
+> Thanks Arnd for pointing me at this.
+>
+>> +#define MAX_STRING_LENGTH =A0 =A032
+>
+> Why?
 
-Yes the driver nodes should describe in DT which pins to use:
+Copy paste from other implementations.  What do you recommend?
 
-        serial@12340000 {
-                compatible = "8250";
-                reg = <0x12340000 0x40>;
-                reg-shift = <2>;
-                interrupts = < 10 >;
-		pins = "uart1_rx", "uart1_tx";
-        };
+>
+>> +static struct kobject *clk_kobj;
+>> +LIST_HEAD(kobj_list);
+>
+> Um, no, please NEVER use raw kobjects, you should be using struct dev=
+ice
+> instead. =A0Please change the code to do that.
 
-Note that we should use the actual signal names, not package specific
-pad names. This way they have a high likelyhood to work for new packages
-too by just mapping the signals to the new package.
+Today the clk tree doesn't create a struct device for each clk, which
+I assume would be necessary to do what you're talking about.  Is that
+right?
 
-> So for example in the pinctrl-coh901xxx.c example driver I have
-> locally defined registers presets like:
-> 
-> #define U300_FLOATING_INPUT { \
->         .bias_mode = PIN_CONFIG_BIAS_HIGH_IMPEDANCE, \
->         .output = false, \
-> }
-> 
-> #define U300_PULL_UP_INPUT { \
->         .bias_mode = PIN_CONFIG_BIAS_PULL_UP, \
->         .output = false, \
-> }
+Maybe that will be necessary with the device tree stuff anyways... any
+feedback from Sascha or Grant on that?
 
-I think things like above should also be set in the node for the
-driver because it is board specific. For example, if you have an
-external pull on the board for some line, then the internal pull
-needs to be disabled.
+>
+>> +static ssize_t clk_show(struct kobject *kobj, struct attribute *att=
+r,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 char *buf)
+>> +{
+>> + =A0 =A0 struct clk *clk;
+>> + =A0 =A0 struct clk_attribute *clk_attr;
+>> + =A0 =A0 ssize_t ret =3D -EINVAL;
+>> +
+>> + =A0 =A0 clk =3D container_of(kobj, struct clk, kobj);
+>> + =A0 =A0 clk_attr =3D container_of(attr, struct clk_attribute, attr=
+);
+>> +
+>> + =A0 =A0 if (!clk || !clk_attr)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 goto out;
+>> +
+>> + =A0 =A0 /* we don't do any locking for debug operations */
+>> +
+>> + =A0 =A0 /* refcount++ */
+>> + =A0 =A0 kobject_get(&clk->kobj);
+>> +
+>> + =A0 =A0 if (clk_attr->show)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D clk_attr->show(clk, buf);
+>> + =A0 =A0 else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EIO;
+>> +
+>> + =A0 =A0 /* refcount-- */
+>> + =A0 =A0 kobject_put(&clk->kobj);
+>
+> Why in the world would you be incrementing and decrementing the
+> reference count of the kobject in the show function? =A0What are you
+> trying to protect here that is not already protected by the core?
 
-I don't know how we should describe the driver set values though,
-maybe something like:
+Will remove in v4.
 
-        serial@12340000 {
-                compatible = "8250";
-                reg = <0x12340000 0x40>;
-                reg-shift = <2>;
-                interrupts = < 10 >;
-		pins = "uart1_rx", "uart1_tx";
-		pin-values = < 0x7 0x7 >;
-	};
+>
+>
+>> +static void clk_release(struct kobject *kobj)
+>> +{
+>> + =A0 =A0 struct clk *clk;
+>> +
+>> + =A0 =A0 clk =3D container_of(kobj, struct clk, kobj);
+>> +
+>> + =A0 =A0 complete(&clk->kobj_unregister);
+>> +}
+>
+> Look Ma, a memory leak!
 
-Note that with device tree things get simpler for muxing as we can
-get rid of the hardcoded grouping of pins in mux drivers. Instead of
-hardcoded pingroups, the groups can be created dynamically based on
-what the driver DT entries have.
+Oops.  Will fix in V4.
 
-The reason why we want to avoid hardcoded pin groups is because trying
-to map all the pad combinations in the pinmux driver is not a scalable
-way to go. And it's not even possible at least on omaps because of the
-huge number of combinations with alternative pins and multiple packages.
+>
+>> +static struct kobj_type clk_ktype =3D {
+>> + =A0 =A0 .sysfs_ops =A0 =A0 =A0=3D &clk_ops,
+>> + =A0 =A0 .default_attrs =A0=3D clk_default_attrs,
+>> + =A0 =A0 .release =A0 =A0 =A0 =A0=3D clk_release,
+>> +};
+>> +
+>> +int clk_kobj_add(struct clk *clk)
+>> +{
+>> + =A0 =A0 if (IS_ERR(clk))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>> +
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* Some kobject trickery!
+>> + =A0 =A0 =A0*
+>> + =A0 =A0 =A0* We want to (ab)use the kobject infrastructure to trac=
+k our
+>> + =A0 =A0 =A0* tree topology for us, specifically the root clocks (w=
+hich are
+>> + =A0 =A0 =A0* otherwise not remembered in a global list).
+>> + =A0 =A0 =A0* Unfortunately we might not be able to allocate memory=
+ yet
+>> + =A0 =A0 =A0* when this path is hit. =A0This pretty much rules out =
+anything
+>> + =A0 =A0 =A0* that looks or smells like kobject_add, since there ar=
+e
+>> + =A0 =A0 =A0* allocations for kobject->name and a dependency on sys=
+fs being
+>> + =A0 =A0 =A0* initialized.
+>> + =A0 =A0 =A0*
+>> + =A0 =A0 =A0* To get around this we initialize the kobjects and (ab=
+)use
+>> + =A0 =A0 =A0* struct kobject's list_head member, "entry". =A0Later =
+on we walk
+>> + =A0 =A0 =A0* this list in clk_sysfs_tree_create() to make proper
+>> + =A0 =A0 =A0* kobject_add calls once it is safe to do so.
+>> + =A0 =A0 =A0*
+>> + =A0 =A0 =A0* FIXME - this is starting to smell alot like clkdev (i=
+=2Ee.
+>> + =A0 =A0 =A0* tracking the clocks in a list)
+>
+> Ah, comments like this warm my heart.
+>
+> Come on, no abusing the kobject code please, if have problems with ho=
+w
+> the kernel core works, and it doesn't do things you want it to, then =
+why
+> not change it to work properly for you, or at the least, ASK ME!!!
 
-> Then this type of stuff shall keep its custom format in the device
-> tree, and the driver for coh901xxx reads that out.
-> 
-> Thanks for helping me understand this crucial assumption of how
-> it works...
+Ok, I'm asking you now.  There are two ways to solve this problem:
 
-FYI I'm playing with a DT based pinmux-simple.c driver that should
-be pretty generic and work for all kinds of hardware hopefully.
+1) have kobject core create the lists linking the objects but defer
+allocations and any interactions with sysfs until later in the boot
+sequence, OR
 
-It will be few days before I can post anything though, there are
-some pinctrl fwk issues to deal with first. Like the hardcoded
-pinmux_maps that assumes that dev entries are static. This means
-that multiple instances of pinmux drivers won't work..
+2) my code can create a list of clks (the same way that clkdev does)
+and defer kobject/sysfs stuff until later, which walks the list made
+during early-boot
 
-Cheers,
+#1 is most closely aligned with the code I have here, #2 presents
+challenges that I haven't really though through.  I know that OMAP
+uses the clk framework VERY early in it's boot sequence, but as long
+as the per-clk data is properly initialized then it should be OK.
 
-Tony
+What do you think?
+
+Regards,
+Mike
