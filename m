@@ -1,87 +1,70 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 08/65] OMAPDSS: remove partial update from panel-taal
-Date: Tue, 22 Nov 2011 17:23:29 +0530
-Message-ID: <4ECB8D39.4000005@ti.com>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com> <1321953724-6350-9-git-send-email-tomi.valkeinen@ti.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
+Date: Tue, 22 Nov 2011 13:05:43 +0100
+Message-ID: <CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
+References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
+	<1321274409-24643-2-git-send-email-rnayak@ti.com>
+	<20111114172312.GI31337@atomide.com>
+	<4EC1EB9D.1000503@ti.com>
+	<CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
+	<CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
+	<CACRpkdbBQoOU8hyew6tXth3Ohrg5_rN7M+tbVsYFcOjgq73aCw@mail.gmail.com>
+	<CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43775 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758584Ab1KVLx6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 06:53:58 -0500
-In-Reply-To: <1321953724-6350-9-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:37275 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab1KVMFo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 07:05:44 -0500
+In-Reply-To: <CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+To: Thomas Abraham <thomas.abraham@linaro.org>
+Cc: Rajendra Nayak <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linus.walleij@stericsson.com, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
 
-On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
-> Partial update for manual update displays has never worked quite well:
-> * The HW has limitations on the update area, and the x and width need to
->    be even.
-> * Showing a part of a scaled overlay causes artifacts.
-> * Makes the management of dispc very complex
+On Tue, Nov 22, 2011 at 12:09 PM, Thomas Abraham
+<thomas.abraham@linaro.org> wrote:
+> On 17 November 2011 19:27, Linus Walleij <linus.walleij@linaro.org> wrote:
+>>
+>> Maybe I'm mistaken about the device tree ambitions, but
+>> I was sort of hoping that it would not contain too much
+>> custom magic numbers that need to be cross-referenced
+>> elsewhere ... or rather - the more understandable the device
+>> tree is, the more we win.
 >
-> Considering the above points and the fact that partial update is not
-> used anywhere, this and the following patches remove the partial update
-> support. This will greatly simplify the following re-write of the apply
-> mechanism to get proper locking and additional features like fifo-merge.
+> Device tree is expected to describe the hardware. So to
+> cross-reference the hardware manual to understand device tree should
+> be fine I guess. For instance, GPIO numbers in dts would be written as
+> a numeric number and not a enum or other format. And by looking up the
+> manual, we understand the actual details of the GPIO pin.
 >
-> This patch removes the partial update from the panel-taal.c.
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/displays/panel-taal.c |   16 ++++------------
->   1 files changed, 4 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-> index 0aa6c5d..dd64bd1 100644
-> --- a/drivers/video/omap2/displays/panel-taal.c
-> +++ b/drivers/video/omap2/displays/panel-taal.c
-> @@ -198,12 +198,6 @@ struct taal_data {
->   	bool te_enabled;
->
->   	atomic_t do_update;
-> -	struct {
-> -		u16 x;
-> -		u16 y;
-> -		u16 w;
-> -		u16 h;
-> -	} update_region;
->   	int channel;
->
->   	struct delayed_work te_timeout_work;
-> @@ -1440,16 +1434,14 @@ static int taal_update(struct omap_dss_device *dssdev,
->   		goto err;
->   	}
->
-> -	r = taal_set_update_window(td, x, y, w, h);
-> +	/* XXX no need to send this every frame, but dsi break if not done */
-> +	r = taal_set_update_window(td, 0, 0,
-> +			td->panel_config->timings.x_res,
-> +			td->panel_config->timings.y_res);
+> If dt-compiler had a option to support #define like in C, the numbers
+> could have been made more easier to understand. Like, 3 to mean
+> GPIO_PULL_UP in Exynos dts file.
 
-How about sending a null short packet, and a BTA after that. This will 
-keep automatic TE mode in place, and we'll need to send 1 short packet 
-instead of 2 long packets every frame.
+OK I think I get it now, so DT bindings shall really NOT be read
+by any of the pinctrl core, it is *supposed* to be all driver-specific.
+Then it makes perfect sense to have it as it is.
 
-We should of course do this if we aren't planning to get partial update 
-back in the near future.
+So for example in the pinctrl-coh901xxx.c example driver I have
+locally defined registers presets like:
 
-Archit
+#define U300_FLOATING_INPUT { \
+        .bias_mode = PIN_CONFIG_BIAS_HIGH_IMPEDANCE, \
+        .output = false, \
+}
 
->   	if (r)
->   		goto err;
->
->   	if (td->te_enabled&&  panel_data->use_ext_te) {
-> -		td->update_region.x = x;
-> -		td->update_region.y = y;
-> -		td->update_region.w = w;
-> -		td->update_region.h = h;
-> -		barrier();
->   		schedule_delayed_work(&td->te_timeout_work,
->   				msecs_to_jiffies(250));
->   		atomic_set(&td->do_update, 1);
+#define U300_PULL_UP_INPUT { \
+        .bias_mode = PIN_CONFIG_BIAS_PULL_UP, \
+        .output = false, \
+}
 
+Then this type of stuff shall keep its custom format in the device
+tree, and the driver for coh901xxx reads that out.
+
+Thanks for helping me understand this crucial assumption of how
+it works...
+
+Yours,
+Linus Walleij
