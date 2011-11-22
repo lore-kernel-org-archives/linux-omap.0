@@ -1,53 +1,141 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 0/4] OMAP serial device tree support
-Date: Tue, 22 Nov 2011 19:14:12 +0530
-Message-ID: <1321969456-24266-1-git-send-email-rnayak@ti.com>
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2 4/4] ARM: omap: pass minimal SoC/board data for UART from dt
+Date: Tue, 22 Nov 2011 19:14:16 +0530
+Message-ID: <1321969456-24266-5-git-send-email-rnayak@ti.com>
+References: <1321969456-24266-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48688 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754244Ab1KVNpC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 08:45:02 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <1321969456-24266-1-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: khilman-l0cyMroinI0@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, govindraj.raja-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Cc: tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com, Rajendra Nayak <rnayak@ti.com>
 
-v2 is based on the latest omap-serial runtime patches, which
-can be found here[1]
+Pass minimal data needed for console boot, from dt, for
+OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
+static initialization from generic board file.
 
-The series passes minimal data that allows serial console
-boot, with UART's initialised from device tree.
-However some of low power support for UART and remote
-wakeup needs more work.
-Boot tested on OMAP4 panda and OMAP4 sdp boards.
+Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+---
+ arch/arm/boot/dts/omap3.dtsi        |   31 +++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi        |   28 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-generic.c |    1 -
+ 3 files changed, 59 insertions(+), 1 deletions(-)
 
-Patches can be found here..
-git://gitorious.org/omap-pm/linux.git for-dt/serial
-
-Changes in v2:
--1- Got rid of binding to define which uart is console
--2- Added checks to default clock speed to 48Mhz
--3- Added compatible for each OMAP family
--4- Used of_alias_get_id to populate port.line
-
-regards,
-Rajendra
-
-[1] git://gitorious.org/runtime_3-0/runtime_3-0.git 3.2-rc2_uart_runtime
-
-Rajendra Nayak (4):
-  omap-serial: Get rid of all pdev->id usage
-  omap-serial: Use default clock speed (48Mhz) if not specified
-  omap-serial: Add minimal device tree support
-  ARM: omap: pass minimal SoC/board data for UART from dt
-
- .../devicetree/bindings/serial/omap_serial.txt     |   10 +++
- arch/arm/boot/dts/omap3.dtsi                       |   31 ++++++++
- arch/arm/boot/dts/omap4.dtsi                       |   28 +++++++
- arch/arm/mach-omap2/board-generic.c                |    1 -
- drivers/tty/serial/omap-serial.c                   |   80 +++++++++++++++----
- 5 files changed, 132 insertions(+), 18 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/serial/omap_serial.txt
-
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index d202bb5..216c331 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -13,6 +13,13 @@
+ / {
+ 	compatible = "ti,omap3430", "ti,omap3";
+ 
++	aliases {
++		serial0 = &uart1;
++		serial1 = &uart2;
++		serial2 = &uart3;
++		serial3 = &uart4;
++	};
++
+ 	cpus {
+ 		cpu@0 {
+ 			compatible = "arm,cortex-a8";
+@@ -59,5 +66,29 @@
+ 			interrupt-controller;
+ 			#interrupt-cells = <1>;
+ 		};
++
++		uart1: serial@0x4806a000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart1";
++			clock-frequency = <48000000>;
++		};
++
++		uart2: serial@0x4806c000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart2";
++			clock-frequency = <48000000>;
++		};
++
++		uart3: serial@0x49020000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart3";
++			clock-frequency = <48000000>;
++		};
++
++		uart4: serial@0x49042000 {
++			compatible = "ti,omap3-uart";
++			ti,hwmods = "uart4";
++			clock-frequency = <48000000>;
++		};
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 4c61c82..e8fe75f 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -21,6 +21,10 @@
+ 	interrupt-parent = <&gic>;
+ 
+ 	aliases {
++		serial0 = &uart1;
++		serial1 = &uart2;
++		serial2 = &uart3;
++		serial3 = &uart4;
+ 	};
+ 
+ 	cpus {
+@@ -99,5 +103,29 @@
+ 			reg = <0x48241000 0x1000>,
+ 			      <0x48240100 0x0100>;
+ 		};
++
++		uart1: serial@0x4806a000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart1";
++			clock-frequency = <48000000>;
++		};
++
++		uart2: serial@0x4806c000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart2";
++			clock-frequency = <48000000>;
++		};
++
++		uart3: serial@0x48020000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart3";
++			clock-frequency = <48000000>;
++		};
++
++		uart4: serial@0x4806e000 {
++			compatible = "ti,omap4-uart";
++			ti,hwmods = "uart4";
++			clock-frequency = <48000000>;
++		};
+ 	};
+ };
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index fb55fa3..bb72809 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -70,7 +70,6 @@ static void __init omap_generic_init(void)
+ 	if (node)
+ 		irq_domain_add_simple(node, 0);
+ 
+-	omap_serial_init();
+ 	omap_sdrc_init(NULL, NULL);
+ 
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+-- 
+1.7.1
