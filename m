@@ -1,69 +1,98 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 3/5] OMAP4: devices: Register OMAP4 DMIC platform device
-Date: Tue, 22 Nov 2011 16:01:58 +0200
-Message-ID: <1321970520-8909-4-git-send-email-peter.ujfalusi@ti.com>
-References: <1321970520-8909-1-git-send-email-peter.ujfalusi@ti.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: Inclusion of ARM perf tree in linux-next
+Date: Wed, 23 Nov 2011 01:36:46 +1100
+Message-ID: <20111123013646.8acd19e7f4c615a7bf8306a4@canb.auug.org.au>
+References: <20111122100435.GC20518@mudshark.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:33624 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755697Ab1KVOC1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 09:02:27 -0500
-Received: by mail-ey0-f175.google.com with SMTP id 9so210452eyd.20
-        for <linux-omap@vger.kernel.org>; Tue, 22 Nov 2011 06:02:23 -0800 (PST)
-In-Reply-To: <1321970520-8909-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from calzone.tip.net.au ([203.10.76.15]:34032 "EHLO
+	calzone.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754684Ab1KVOhE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 09:37:04 -0500
+In-Reply-To: <20111122100435.GC20518@mudshark.cambridge.arm.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, paul@pwsan.com, linux@arm.linux.org.uk, tony@atomide.com, a.p.zijlstra@chello.nl, arnd@arndb.de
 
-Add platform device registration for OMAP4 DMIC.
+--Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/devices.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+Hi Will,
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c15cfad..35d5dff 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -336,6 +336,27 @@ static void omap_init_mcpdm(void)
- static inline void omap_init_mcpdm(void) {}
- #endif
- 
-+#if defined(CONFIG_SND_OMAP_SOC_DMIC) || \
-+		defined(CONFIG_SND_OMAP_SOC_DMIC_MODULE)
-+
-+static void omap_init_dmic(void)
-+{
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+
-+	oh = omap_hwmod_lookup("dmic");
-+	if (!oh) {
-+		printk(KERN_ERR "Could not look up mcpdm hw_mod\n");
-+		return;
-+	}
-+
-+	pdev = omap_device_build("omap-dmic", -1, oh, NULL, 0, NULL, 0, 0);
-+	WARN(IS_ERR(pdev), "Can't build omap_device for omap-dmic.\n");
-+}
-+#else
-+static inline void omap_init_dmic(void) {}
-+#endif
-+
- #if defined(CONFIG_SPI_OMAP24XX) || defined(CONFIG_SPI_OMAP24XX_MODULE)
- 
- #include <plat/mcspi.h>
-@@ -681,6 +702,7 @@ static int __init omap2_init_devices(void)
- 	 */
- 	omap_init_audio();
- 	omap_init_mcpdm();
-+	omap_init_dmic();
- 	omap_init_camera();
- 	omap_init_mbox();
- 	omap_init_mcspi();
--- 
-1.7.8.rc3
+On Tue, 22 Nov 2011 10:04:35 +0000 Will Deacon <will.deacon@arm.com> wrote:
+>
+> I maintain the ARM perf backend and would be very grateful if you could
+> please include this branch in linux-next:
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git for-next/perf
+>=20
+> This request has arisen specifically from some work with the OMAP guys
+> where it would be useful to spot any conflicts for 3.3, however I think i=
+t's
+> generally a good idea for me to give some of the perf changes an airing
+> before they get merged anyway.
 
+I have added that tree now with you as the contact.
+
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
+
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+	Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+Legal Stuff:
+By participating in linux-next, your subsystem tree contributions are
+public and will be included in the linux-next trees.  You may be sent
+e-mail messages indicating errors or other issues when the
+patches/commits from your subsystem tree are merged and tested in
+linux-next.  These messages may also be cross-posted to the linux-next
+mailing list, the linux-kernel mailing list, etc.  The linux-next tree
+project and IBM (my employer) make no warranties regarding the linux-next
+project, the testing procedures, the results, the e-mails, etc.  If you
+don't agree to these ground rules, let me know and I'll remove your tree
+from participation in linux-next.
+
+--Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJOy7N+AAoJEECxmPOUX5FEqcoP/0l9cxLAqJYBIAsWVjEe8PxT
+3vHH53OPjv6bz7RI2i6QTf3/Q7GlbZlej6G/4szKsdXnOO6dQv4/HP9X6R4IG5/7
+Us5VTYP+gMVKfUa0g7/7XQERtqNwbTcWzj3qMeIcQaOF/IifghkMPq65FlpZbFOw
+TuQco/aZaywQovq2Z1HJ3+YHlUsp4xUJHFjuFbxcOa4yhs366jM5n8QUuuhKXGTe
+MWMFBLN9kuQQELRJKw1AO4eZpnJXbIC8V3F90JP3CsIN8k67Tva+0TXk86j+JcR3
+sze2QiabPvOmtMGz/3HJgyquZL82zT1H4pL5a622Xbrl4Va3AZ7UghCfhy1Kg9mS
+iozd27OtNOc2DhgW2gAOZqtw3e3glvUoWkTpk1Ah4DGIePqSHPLQF6TpZ4btxJXD
+oDaZ7Fq9QNDsHUKg5hiGK96jsCRtWfNGPphEEsWnFVBmSxeOBXwRL4CWITsq08DB
+ZmuF2Zi3xxPSHl+ADx7of4rsKYnzyaxGm28HNLLTVOYqihZdaAR0K13zHeDJ1IJ+
+fk0HUoUBdoltunnGGdHzhpg5wsaDaJs/UgeLHCzdha3Q7YY4ClQ7KJJuywbFhYnl
+MQqw0SB8aZVB9Z9+mnhPcfBlCWHBC8evkm4L2LZyxeCuXbm88AKr5gPmm8A7HBXI
+qB1Zy+kqsLnZ3u/Li7mE
+=OXSP
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__23_Nov_2011_01_36_46_+1100_gUb/y_o9JFQuQs4U--
