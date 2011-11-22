@@ -1,14 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 40/65] OMAPDSS: APPLY: add mutex
-Date: Tue, 22 Nov 2011 11:21:39 +0200
-Message-ID: <1321953724-6350-41-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 41/65] OMAPDSS: APPLY: add missing uses of spinlock
+Date: Tue, 22 Nov 2011 11:21:40 +0200
+Message-ID: <1321953724-6350-42-git-send-email-tomi.valkeinen@ti.com>
 References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:59519 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757980Ab1KVJYH (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41640 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758060Ab1KVJYG (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 04:24:07 -0500
+	Tue, 22 Nov 2011 04:24:06 -0500
 In-Reply-To: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -30,192 +30,96 @@ changes. For example, when an overlay is enabled and fifo-merge feature
 is used, we need to do the enable in multiple steps, waiting in between,
 and the change affects multiple overlays and managers.
 
-This patch adds the mutex which is used in the blocking functions to
-have exclusive access to overlays and overlay managers.
+apply.c already contains a spinlock, which has been used to protect
+(badly) the dss_data. This patch adds locks/unlocks of the spinlock to
+the missing places, and the lock should now properly protect dss_data.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/apply.c |   71 ++++++++++++++++++++++++++++++++++-----
- 1 files changed, 62 insertions(+), 9 deletions(-)
+ drivers/video/omap2/dss/apply.c |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index b935264..fb6d3c2 100644
+index fb6d3c2..9ad2a36 100644
 --- a/drivers/video/omap2/dss/apply.c
 +++ b/drivers/video/omap2/dss/apply.c
-@@ -97,6 +97,8 @@ static struct {
- 
- /* protects dss_data */
- static spinlock_t data_lock;
-+/* lock for blocking functions */
-+static DEFINE_MUTEX(apply_lock);
- 
- static struct ovl_priv_data *get_ovl_priv(struct omap_overlay *ovl)
- {
-@@ -639,14 +641,22 @@ int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
- 
- void dss_mgr_enable(struct omap_overlay_manager *mgr)
- {
-+	mutex_lock(&apply_lock);
+@@ -405,6 +405,9 @@ void dss_start_update(struct omap_overlay_manager *mgr)
+ 	struct mgr_priv_data *mp = get_mgr_priv(mgr);
+ 	struct ovl_priv_data *op;
+ 	struct omap_overlay *ovl;
++	unsigned long flags;
 +
++	spin_lock_irqsave(&data_lock, flags);
+ 
+ 	mp->do_manual_update = true;
+ 	dss_write_regs();
+@@ -418,6 +421,8 @@ void dss_start_update(struct omap_overlay_manager *mgr)
+ 	mp->shadow_dirty = false;
+ 
  	dispc_mgr_enable(mgr->id, true);
- 	mgr->enabled = true;
 +
-+	mutex_unlock(&apply_lock);
++	spin_unlock_irqrestore(&data_lock, flags);
  }
  
- void dss_mgr_disable(struct omap_overlay_manager *mgr)
- {
-+	mutex_lock(&apply_lock);
-+
- 	dispc_mgr_enable(mgr->id, false);
- 	mgr->enabled = false;
-+
-+	mutex_unlock(&apply_lock);
- }
- 
+ static void dss_apply_irq_handler(void *data, u32 mask);
+@@ -662,16 +667,28 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
  int dss_mgr_set_info(struct omap_overlay_manager *mgr,
-@@ -669,44 +679,65 @@ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
+ 		struct omap_overlay_manager_info *info)
  {
- 	int r;
- 
-+	mutex_lock(&apply_lock);
++	unsigned long flags;
 +
- 	if (dssdev->manager) {
- 		DSSERR("display '%s' already has a manager '%s'\n",
- 			       dssdev->name, dssdev->manager->name);
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
++	spin_lock_irqsave(&data_lock, flags);
++
+ 	mgr->info = *info;
+ 	mgr->info_dirty = true;
  
- 	if ((mgr->supported_displays & dssdev->type) == 0) {
- 		DSSERR("display '%s' does not support manager '%s'\n",
- 			       dssdev->name, mgr->name);
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
- 
- 	dssdev->manager = mgr;
- 	mgr->device = dssdev;
- 	mgr->device_changed = true;
- 
-+	mutex_unlock(&apply_lock);
++	spin_unlock_irqrestore(&data_lock, flags);
 +
  	return 0;
-+err:
-+	mutex_unlock(&apply_lock);
-+	return r;
  }
  
- int dss_mgr_unset_device(struct omap_overlay_manager *mgr)
+ void dss_mgr_get_info(struct omap_overlay_manager *mgr,
+ 		struct omap_overlay_manager_info *info)
  {
-+	int r;
++	unsigned long flags;
 +
-+	mutex_lock(&apply_lock);
++	spin_lock_irqsave(&data_lock, flags);
 +
- 	if (!mgr->device) {
- 		DSSERR("failed to unset display, display not set.\n");
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
+ 	*info = mgr->info;
++
++	spin_unlock_irqrestore(&data_lock, flags);
+ }
  
- 	/*
- 	 * Don't allow currently enabled displays to have the overlay manager
- 	 * pulled out from underneath them
- 	 */
--	if (mgr->device->state != OMAP_DSS_DISPLAY_DISABLED)
--		return -EINVAL;
-+	if (mgr->device->state != OMAP_DSS_DISPLAY_DISABLED) {
-+		r = -EINVAL;
-+		goto err;
-+	}
+ int dss_mgr_set_device(struct omap_overlay_manager *mgr,
+@@ -745,16 +762,28 @@ err:
+ int dss_ovl_set_info(struct omap_overlay *ovl,
+ 		struct omap_overlay_info *info)
+ {
++	unsigned long flags;
++
++	spin_lock_irqsave(&data_lock, flags);
++
+ 	ovl->info = *info;
+ 	ovl->info_dirty = true;
  
- 	mgr->device->manager = NULL;
- 	mgr->device = NULL;
- 	mgr->device_changed = true;
- 
-+	mutex_unlock(&apply_lock);
++	spin_unlock_irqrestore(&data_lock, flags);
 +
  	return 0;
-+err:
-+	mutex_unlock(&apply_lock);
-+	return r;
  }
  
+ void dss_ovl_get_info(struct omap_overlay *ovl,
+ 		struct omap_overlay_info *info)
+ {
++	unsigned long flags;
++
++	spin_lock_irqsave(&data_lock, flags);
++
+ 	*info = ovl->info;
++
++	spin_unlock_irqrestore(&data_lock, flags);
+ }
  
-@@ -729,18 +760,24 @@ void dss_ovl_get_info(struct omap_overlay *ovl,
  int dss_ovl_set_manager(struct omap_overlay *ovl,
- 		struct omap_overlay_manager *mgr)
- {
-+	int r;
-+
- 	if (!mgr)
- 		return -EINVAL;
- 
-+	mutex_lock(&apply_lock);
-+
- 	if (ovl->manager) {
- 		DSSERR("overlay '%s' already has a manager '%s'\n",
- 				ovl->name, ovl->manager->name);
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
- 
- 	if (ovl->info.enabled) {
- 		DSSERR("overlay has to be disabled to change the manager\n");
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
- 
- 	ovl->manager = mgr;
-@@ -760,25 +797,41 @@ int dss_ovl_set_manager(struct omap_overlay *ovl,
- 	 * the overlay, but before moving the overlay to TV.
- 	 */
- 
-+	mutex_unlock(&apply_lock);
-+
- 	return 0;
-+err:
-+	mutex_unlock(&apply_lock);
-+	return r;
- }
- 
- int dss_ovl_unset_manager(struct omap_overlay *ovl)
- {
-+	int r;
-+
-+	mutex_lock(&apply_lock);
-+
- 	if (!ovl->manager) {
- 		DSSERR("failed to detach overlay: manager not set\n");
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
- 
- 	if (ovl->info.enabled) {
- 		DSSERR("overlay has to be disabled to unset the manager\n");
--		return -EINVAL;
-+		r = -EINVAL;
-+		goto err;
- 	}
- 
- 	ovl->manager = NULL;
- 	list_del(&ovl->list);
- 	ovl->manager_changed = true;
- 
-+	mutex_unlock(&apply_lock);
-+
- 	return 0;
-+err:
-+	mutex_unlock(&apply_lock);
-+	return r;
- }
- 
 -- 
 1.7.4.1
 
