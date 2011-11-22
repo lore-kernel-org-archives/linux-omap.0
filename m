@@ -1,62 +1,70 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
-Date: Tue, 22 Nov 2011 12:19:51 -0700
-Message-ID: <CACxGe6vK-vHvSbd9N2k3FZY4gGVS_DETx0BbfPgNghTkOncjpg@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH v3 0/5] common clk framework
+Date: Tue, 22 Nov 2011 11:12:26 -0800
+Message-ID: <20111122191226.GA4844@kroah.com>
 References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
-	<1321926047-14211-6-git-send-email-mturquette@linaro.org>
-	<CACxGe6sOd6MiyYaok6BsihJtp-NNsm3WQf+aUPGMRFRpSLw2mQ@mail.gmail.com>
-	<CAPtuhTheG-mvoGMaB2y9BSKF-abm2yigoN-SXaeCb+P5R6t_Dg@mail.gmail.com>
+ <20111122154259.GA18954@kroah.com>
+ <20111122174544.GA19739@n2100.arm.linux.org.uk>
+ <CAPtuhTgFPZA9U-8heNw1eNUnHLFv2w+LzXg5rdjSx3J53Xy+2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <CAPtuhTheG-mvoGMaB2y9BSKF-abm2yigoN-SXaeCb+P5R6t_Dg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, aul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPtuhTgFPZA9U-8heNw1eNUnHLFv2w+LzXg5rdjSx3J53Xy+2g@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@linaro.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, paul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 22, 2011 at 11:01 AM, Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wr=
-ote:
-> On Tue, Nov 22, 2011 at 8:37 AM, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>=
- wrote:
->>
->> On Nov 21, 2011 6:43 PM, "Mike Turquette" <mturquette-l0cyMroinI0@public.gmane.org> wrote:
->>>
->>> Introduces kobject support for the common struct clk, exports per-clk
->>> data via read-only callbacks and models the clk tree topology in sysfs.
->>>
->>> Also adds support for generating the clk tree in clk_init and migrating
->>> nodes when input sources are switches in clk_set_parent.
->>
->> I'm not convinced this is a good idea. What is the use case for exporting
->> the clock tree? If it is debug, then I suggest using debugfs to avoid abi
->> issues.
->
-> Each clk exports clk_rate, clk_flags, clk_enable_count &
-> clk_prepare_count as Read-Only. =A0I think this is very reasonable to
-> have in sysfs, which maps the topology of the system with key details.
->
-> Others have requested to have knobs made available for actually
-> performing clk_enable/clk_disable and even clk_set_rate from
-> userspace. =A0I hate this idea and won't implement it. =A0I encourage
-> anyone that needs this to do it in debugfs.
->
-> Does that work-split make sense to you, or do you still not like the
-> idea of having topology and read-only info in sysfs?
+On Tue, Nov 22, 2011 at 10:09:29AM -0800, Mike Turquette wrote:
+> On Tue, Nov 22, 2011 at 9:45 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Tue, Nov 22, 2011 at 07:42:59AM -0800, Greg KH wrote:
+> >> On Mon, Nov 21, 2011 at 05:40:42PM -0800, Mike Turquette wrote:
+> >> > =A0 .sysfs support. =A0Visualize your clk tree at /sys/clk! =A0W=
+here would be
+> >> > a better place to put the clk tree besides the root of /sys/?
+> >>
+> >> Um, in the "proper" place for it under /sys/devices like the rest =
+of the
+> >> device tree is?
+> >
+> > I'd suggest that making the clock tree visible in sysfs (and theref=
+ore
+> > part of the kernel ABI) is not a good idea. =A0Some of the nodes in=
+ there
+> > will be specific to the implementation. =A0Exposing the clock nodes=
+ means
+> > that if you have to change the clock tree structure, you change the
+> > visible userspace ABI.
+>=20
+> It is true that the ABI will change dynamically.
+>=20
+> >
+> > So, I'd suggest that we need to see a justification for this, rathe=
+r
+> > than exposing this stuff via debugfs as has been done with existing
+> > implementations.
+>=20
+> Userspace tools like powerdebug (and maybe someday powertop) hope to
+> use a reliable-looking interface to view clk data.  There are obvious
+> uses for this data in a debug tool, the most obvious of which is
+> "which clk isn't turning off when it should?".
+>=20
+> I can migrate this stuff to debugfs, but it adds the burden of having
+> debugfs enabled for folks that want to view this data.  I would also
+> argue that sysfs is there to model various aspects of system topology
+> and a clk tree certainly fits the bill.
+>=20
+> If others also agree that it should reside only in debugfs then I'll
+> move it there for V4.
 
-Unless there is a solid real-world use case for exporting this data to
-userspace, I do not think sysfs is a good idea.  As long as the usage
-(beyond debug) is theoretical I think the whole thing should be in
-debugfs.  It can always be moved at a later date If a real use case
-does become important.
+If it's only for debug stuff, then yes, it belongs in debugfs.  All
+distros turn debugfs on these days, and for an embedded system, the cod=
+e
+is quite small so there should not be much overhead.
 
-g.
+thanks,
+
+greg k-h
