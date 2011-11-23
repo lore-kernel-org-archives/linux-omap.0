@@ -1,106 +1,96 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 25/26] OMAP: PM: convert the SmartReflex code into the
- AVS driver framework
-Date: Wed, 23 Nov 2011 13:04:49 +0200
-Message-ID: <20111123110448.GP25068@legolas.emea.dhcp.ti.com>
-References: <1321974370-25800-1-git-send-email-j-pihet@ti.com>
- <1321974370-25800-26-git-send-email-j-pihet@ti.com>
- <20111123095120.GD25068@legolas.emea.dhcp.ti.com>
- <CAORVsuV2bRJrCnk2Kntr3YgZzoTcFyVcg6A6ZSUUOqkh9Jz0uA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 42/65] OMAPDSS: DSI: call mgr_enable/disable for cmd mode
+ displays
+Date: Wed, 23 Nov 2011 16:38:58 +0530
+Message-ID: <4ECCD44A.2070008@ti.com>
+References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>	 <1321953724-6350-43-git-send-email-tomi.valkeinen@ti.com>	 <4ECCC68C.7070106@ti.com> <1322044977.28917.57.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="K9fy5ol1Oes4Q/ix"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51319 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750742Ab1KWLEw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 06:04:52 -0500
-Received: by mail-yw0-f47.google.com with SMTP id 20so1411605ywb.34
-        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 03:04:51 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <CAORVsuV2bRJrCnk2Kntr3YgZzoTcFyVcg6A6ZSUUOqkh9Jz0uA@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34829 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751671Ab1KWLJ0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Nov 2011 06:09:26 -0500
+In-Reply-To: <1322044977.28917.57.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, paul@pwsan.com, khilman@ti.com, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
+On Wednesday 23 November 2011 04:12 PM, Tomi Valkeinen wrote:
+> On Wed, 2011-11-23 at 15:40 +0530, Archit Taneja wrote:
+>> On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
+>>> The current code uses dsi_video_mode_enable/disable functions to
+>>> enable/disable DISPC output for video mode displays. For command mode
+>>> displays we have no notion in the DISPC side of whether the panel is
+>>> enabled, except when a dss_start_update() call is made.
+>>>
+>>> However, to properly maintain the DISPC state in apply.c, we need to
+>>> know if a manager used for a manual update display is currently in use.
+>>>
+>>> This patch achieves that by changing dsi_video_mode_enable/disable to
+>>> dsi_enable/disable_video_output, which is called by both video and
+>>> command mode displays. For video mode displays it starts the actual
+>>> pixel stream, as it did before. For command mode displays it doesn't do
+>>> anything else than mark that the manager is currently in use.
+>>
+>> dsi_video_mode_enable() doesn't only enable the DISPC output, it also
+>> sends the long packet header to start video mode transfer.
+>>
+>> I think it would be better if we had 2 separate functions, one which
+>> starts/stops DSI video mode, and the other which enables/disables the
+>> DISPC video port.
+>>
+>> This way, a manual update panel would need to call only
+>> dsi_enable/disable_video_output(which just enables or disables the
+>> manager), whereas a video mode panel will need to call both.
+>>
+>> This is just a suggestion though. It's probably okay to have both in the
+>> same function too. We might have to separate them out later if we were
+>> planning to standardise mipi dsi across SoCs.
+>
+> If you think from the panel driver's point of view, it doesn't know
+> about DISPC. It just wants to enable the video stream (on video mode
+> displays).
+>
+> If we had two functions, could only the first be used? I.e. is it
+> possible to just enable the video mode transfer, without enabling DISPC?
+> If not, I'm not sure what would be the use for two separate functions.
+> And even if it can, I'm not sure what use it would be to enable only the
+> video mode output without the actual pixel data from DISPC.
+>
+> It is true that the function in thsi patch is not the best one. For
+> command mode display it's more about reserving the ovl manager for use
+> than actually enabling it. Then again, how I thought the function's
+> purpose was that it enables the DSI video output, but because for
+> command mode there's need to trigger the actual frame transfer later,
+> the function doesn't start the pixel feed for command mode displays. It
+> just "prepares" the output.
+>
+> But even if we had the functions separated, the function called by video
+> mode and command mode displays would be different, as for the former one
+> it enables the pixel stream, and for latter one it just reserves the
+> output.
+>
+> So, I'm fine with changing the function, but the reasoning for what
+> functions we have and what they do should come from the panel driver's
+> perspective, not because of OMAP DSS's HW details.
 
---K9fy5ol1Oes4Q/ix
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If you look from the panel driver's perspective, we shouldn't split this.
 
-On Wed, Nov 23, 2011 at 11:22:42AM +0100, Jean Pihet wrote:
-> Hi Felipe,
->=20
-> On Wed, Nov 23, 2011 at 10:51 AM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Tue, Nov 22, 2011 at 04:06:09PM +0100, jean.pihet@newoldbits.com wro=
-te:
-> >> +config POWER_AVS_OMAP_V1
-> >> + =A0 =A0 tristate "AVS support for the OMAP IP version 1"
-> >> + =A0 =A0 depends on ARCH_OMAP3 && PM
-> >> + =A0 =A0 help
-> >> + =A0 =A0 =A0 Say Y to enable AVS support on OMAP containing the versi=
-on 1 of
-> >> + =A0 =A0 =A0 the SmartReflex IP.
-> >> + =A0 =A0 =A0 V1 is the 65nm version used in OMAP3430.
-> >> +
-> >> + =A0 =A0 =A0 Please note, that by default SmartReflex is only
-> >> + =A0 =A0 =A0 initialized. To enable the automatic voltage
-> >> + =A0 =A0 =A0 compensation for vdd mpu =A0and vdd core from user space,
-> >> + =A0 =A0 =A0 user must write 1 to
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 /debug/voltage/vdd_<X>/smartreflex/autocomp,
-> >> + =A0 =A0 =A0 where X is mpu or core for OMAP3.
-> >> + =A0 =A0 =A0 Optionally autocompensation can be enabled in the kernel
-> >> + =A0 =A0 =A0 by default during system init via the enable_on_init flag
-> >> + =A0 =A0 =A0 which an be passed as platform data to the smartreflex d=
-river.
-> >> +
-> >> +config POWER_AVS_OMAP_V2
-> >> + =A0 =A0 tristate "AVS support for the OMAP IP version 2"
-> >> + =A0 =A0 depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
-> >> + =A0 =A0 help
-> >> + =A0 =A0 =A0 Say Y to enable AVS support on OMAP containing the versi=
-on 2 of
-> >> + =A0 =A0 =A0 the SmartReflex IP.
-> >> + =A0 =A0 =A0 V2 is the update for the 45nm version of the IP used in =
-OMAP3630
-> >> + =A0 =A0 =A0 and OMAP4430
-> >
-> > can't you read the revision register and decide this in runtime ?
-> Those Kconfig options are used to compile the v1 and/or v2 drivers.
-> The init of v1 or v2 is decided at runtime, cf. the sr_init functions
-> where the cpu revision is checked. Is this the correct check?
+I think it would be best to stuff the 'video mode enabling and manager 
+enabling' functionality in omapdss_dsi_display_enable() itself, the 
+panel driver shouldn't need to call a function separately to enable 
+video mode for the panel. This way we would be more along the lines of 
+the dpi driver, where dpi_display_enable() enables the manager in the end.
 
-if you already decide in runtime the correct initialization to call, why
-do you add ifdefs ? It's not like you're adding that huge amount of code
-for v1 and v2, right ?
+I guess we can leave this the way you are doing it currently, and move 
+this code into dsi_display_enable() code later on.
 
---=20
-balbi
+Archit
 
---K9fy5ol1Oes4Q/ix
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+>
+>   Tomi
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJOzNNQAAoJEIaOsuA1yqREl/IQAJaU3vSHiHyu7ISgfzk33hRq
-9TNt3dqnqte6gibOuzJLFxwAylPORD5mBb20h0nRsB3xxU/QY1Bhpann38QbiHGa
-wBBqwIdzDJo6RYgEvyoIUE9SNi1CIbh8GTZXLTtpkbjrgXiD4yaSuuHzfXlmomXk
-QUTXV+BtKtmYuXTniCrg1DduBBMrd9yt15TyYYygyfHgmHTx5+MZlh9nc2iBR6k/
-EhTpEMxLau/UVFBwwGERBptoSi6RIZiDzsBRz99/HoWnDA/cjdy45S8zXujGJJra
-akY0ht4uG9Y1IYSAHBHpJrlniIKIOSRofIurvZX6mLBTH9x3nHltV4YWlYyx8Xuv
-19kHWg61srdrmYkgNxvRMEAbf1OZ9mlJ4IdKESfE/1p0pguuZE7tzKTgVaCEQwTF
-NNYUFt4SKsRk/OerXXZhTzzRzYmdX4rNEg8Z+ezWER7kceOYMUqO2fT5V9buKFPH
-1AXkkmDxx7AVbXasGYC38sb5PFTlWbgLNGiXxuGNwlwAS4fUkUyhGrsGGzr2B/MI
-c4mYMNMBlS8NYgtV+wz9Sti6ordyZD25HMTg2iqWSyfTEivZt2KT7mpj8BlSbsF9
-WawkfBO8tFAaneIbYB6Tc1HiD8f/zOzL0EEsv1y+jEAYS+grMSix72cD+GWmyWiy
-HaX5oUXhkvUki8TqYWOx
-=H12p
------END PGP SIGNATURE-----
-
---K9fy5ol1Oes4Q/ix--
