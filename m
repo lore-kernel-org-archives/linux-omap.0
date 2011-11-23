@@ -1,25 +1,59 @@
-From: "Mr.Wen Lee" <wen_2002@yahoo.com>
-Subject: Business propossal..
-Date: Mon, 21 Nov 2011 07:10:48 -0500
-Message-ID: <20111121071048.7b9h96eqskk0g08k__39360.812950372$1322009197$gmane$org@webmail.pioneerwireless.in>
-Reply-To: mr.wenl88@yahoo.com.tw
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [216.151.174.29] ([216.151.174.29]:59134 "EHLO
-	pemail02.365techsupport.com" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1759514Ab1KWAqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Nov 2011 19:46:04 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] usb: musb: PM: fix context save/restore in suspend/resume path
+Date: Tue, 22 Nov 2011 17:18:24 -0800
+Message-ID: <1322011104-21817-1-git-send-email-khilman@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, "open list:MUSB MULTIPOINT H..." <linux-usb@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-I am Mr. Wen Lee director of operations of the Bank Of Taipei Taiwan.  
-I have an
-obscured business proposal for you.Contact me for details if interested
-(mr.wenl88@yahoo.com.tw).
+Currently the driver tries to save context in the suspend path, but
+will cause an abort if the device is already runtime suspended.  This
+happens, for example, if MUSB loaded/compiled-in, in host mode, but no
+USB devices are attached.  MUSB will be runtime suspended, but then
+attempting a system suspend will crash due to the context save
+being attempted while the device is disabled.
+
+On OMAP, as of v3.1, the driver's ->runtime_suspend() callback will be
+called late in the suspend path (by the PM domain layer) if the driver
+is not already runtime suspended, ensuring a full shutdown.
+
+Therefore, the context save is not needed in the ->suspend() method
+since it will be called in the ->runtime_suspend() method anyways
+(similarily for resume.)
+
+NOTE: this leaves the suspend/resume methods basically empty (with
+      some FIXMEs and comments, but I'll leave it to the maintainers
+      to decide whether to remove them.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/usb/musb/musb_core.c |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 20a2873..a057a5a 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2302,18 +2302,12 @@ static int musb_suspend(struct device *dev)
+ 		 */
+ 	}
+ 
+-	musb_save_context(musb);
+-
+ 	spin_unlock_irqrestore(&musb->lock, flags);
+ 	return 0;
+ }
+ 
+ static int musb_resume_noirq(struct device *dev)
+ {
+-	struct musb	*musb = dev_to_musb(dev);
+-
+-	musb_restore_context(musb);
+-
+ 	/* for static cmos like DaVinci, register values were preserved
+ 	 * unless for some reason the whole soc powered down or the USB
+ 	 * module got reset through the PSC (vs just being disabled).
+-- 
+1.7.6
