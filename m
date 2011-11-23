@@ -1,66 +1,90 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 09/65] OMAPDSS: pass ovl manager to dss_start_update
-Date: Wed, 23 Nov 2011 09:32:43 +0200
-Message-ID: <1322033563.3015.4.camel@deskari>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1321953724-6350-10-git-send-email-tomi.valkeinen@ti.com>
-	 <4ECC8A6D.5050000@ti.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Re: [PATCH 2/5] ASoC: OMAP4: omap-dmic: Initial support for OMAP DMIC
+Date: Wed, 23 Nov 2011 10:48:24 +0200
+Message-ID: <1619032.uInsqOQfdX@barack>
+References: <1321970520-8909-1-git-send-email-peter.ujfalusi@ti.com> <1321970520-8909-3-git-send-email-peter.ujfalusi@ti.com> <20111122160105.GC30583@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-STdWqOCvpm0sGvDx3WXr"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:56519 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752311Ab1KWHct (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 02:32:49 -0500
-In-Reply-To: <4ECC8A6D.5050000@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:46100 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750953Ab1KWIsz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Nov 2011 03:48:55 -0500
+Received: by bkbzs2 with SMTP id zs2so1284484bkb.34
+        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 00:48:53 -0800 (PST)
+In-Reply-To: <20111122160105.GC30583@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-
---=-STdWqOCvpm0sGvDx3WXr
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2011-11-23 at 11:23 +0530, Archit Taneja wrote:
-> On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
-> > dss_start_update() takes currently the dss device as a parameter. Chang=
-e
-> > the parameter to ovl manager, as that is what the dss_start_update()
-> > actually needs.
+On Tuesday 22 November 2011 16:01:05 Mark Brown wrote:
+> On Tue, Nov 22, 2011 at 04:01:57PM +0200, Peter Ujfalusi wrote:
+> > +	switch (params_rate(params)) {
+> > +	case 96000:
+> > +	case 192000:
+> > +		break;
 >=20
-> Minor comment: We could rename dss_start_update() to=20
-> dss_mgr_start_update() to stick to the new way of telling if this=20
-> function is meant for an overlay or a manager.
+> Why doesn't the driver need to tell the hardware what sample rate to =
+run
+> at?
 
-Good point, I'll make the change.
+Because the OMAP4 DMIC can only support on 96KHz...
+Will be fixed.
 
- Tomi
+>=20
+> > +	dmic_clk =3D clk_get(dmic->dev, "dmic_fck");
+> > +	if (IS_ERR(dmic_clk)) {
+> > +		dev_err(dmic->dev, "cant get dmic_fck\n");
+> > +		return -ENODEV;
+> > +	}
+>=20
+> Why aren't we getting and holding a reference to the clock over the
+> entire lifetime of the driver?
 
+We only need the reference for the dmic_fclk for reparenting which will=
+ happen=20
+only once in most cases (or not at all, if pad_clks_ck is going to be u=
+sed). I=20
+don't think we should hold the reference for the dmic_fclk.
+The clock handling is done via pm_runtime_get/put_sync().
 
---=-STdWqOCvpm0sGvDx3WXr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+> > +	/* disable clock while reparenting */
+> > +	pm_runtime_put_sync(dmic->dev);
+> > +	ret =3D clk_set_parent(dmic_clk, parent_clk);
+> > +	pm_runtime_get_sync(dmic->dev);
+>=20
+> Since we're only allowing reclocking while idle shouldn't the clock
+> already be disabled?  Seems like it ought to be good for power if
+> nothing else...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+We enable the clocks at dai_startup for the DMIC (and disable them on=20
+dai_shutdown). We can not reparent while the clocks are enabled.
+This is the reason for this part.
+=20
+> > +static int omap_dmic_set_clkdiv(struct snd_soc_dai *dai,
+> > +				int div_id, int div)
+> > +{
+>=20
+> DMIC clocking is usually fairly simple so it seems surprising that th=
+e
+> driver isn't able to figure this out for itself.
 
-iQIcBAABAgAGBQJOzKGbAAoJEPo9qoy8lh71DSsP/3dwZL/iktG7e7NMwMAVvqmZ
-XtJhLyoqo0Qmes2KxiTxTiCTaQogl8P89dQ+9jjAtlmQ82V+L8ZdYLYp0m7peXtN
-ZRXNy8ROlsgG4fDZgKzob0WvoICj2lIQ0vWEvQ95B2VOaTsqnqSKxqNS0vcSPq38
-DE3Bp51MluB6jXFBUzz19BuJSi1FQSOA/CS4rT/7ELldHrHvH+rN/j7oobaD0rTq
-pXjG3VvQCDZ8rKft04HHB8deuddE/soEWQJ2CBPBRfVgO3PWohOsXcFu6CZZGsNW
-ytRCGwFl4Rl8XL5byXElJ8WVxsErHTn+1CVawI5e32RvOdubEAqt7sMBDu5Hsx15
-IN6TelHQhGh+uu3AAqQFT37sHA6zsGFZBBZFrmxJpDn5PP7Ux7629v3MBQsslfXF
-TilHmy8oRuctlnFj+QaTgpHZ0SaxdrCFohgofo9BbGlWQkHGBRc4pVcyQQpaC6vX
-/QXbNvGMiuLAFXvBQ469MM+BQrUwwnznDQtEx0nxlhlEl8SdfV3qS0AQY9727r56
-KA7kMVVYx6a97sUfWrFfjtH4VwZKIXKqb0QsYyhpBli+tGtMeXzBd7kJQpI2w8dV
-upw8F6CKba9HIlqx7v2+rcHV9aNe7TbFrCpPgOwSv8tZbv9O4JX717tTzSz7vUV6
-4m7lHdmzgo5jUWxcO3zv
-=ZTN5
------END PGP SIGNATURE-----
+The clock towards the external digital mics are based on the DMIC_FCLK =
+rate.
+In case of DMIC_FCLK =3D 19.2MHz, 24.576MHz we can select between two d=
+ividers=20
+which will result different clocks for the external microphones.
+I would rather leave this decision to the machine driver which knows th=
+e=20
+external components, and can pick the best divider for them.
 
---=-STdWqOCvpm0sGvDx3WXr--
-
+--
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
