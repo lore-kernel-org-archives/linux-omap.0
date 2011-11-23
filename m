@@ -1,113 +1,64 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/6] OMAP: PM: register to the per-device PM QoS framework
-Date: Wed, 23 Nov 2011 11:42:50 -0800
-Message-ID: <87hb1ubp6t.fsf@ti.com>
+Subject: Re: [linux-pm] [PATCH 4/6] OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and CORE constraints
+Date: Wed, 23 Nov 2011 11:43:49 -0800
+Message-ID: <877h2qbp56.fsf@ti.com>
 References: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
-	<1319032263-22699-4-git-send-email-j-pihet@ti.com>
-	<87d3cq30ja.fsf@ti.com>
-	<CAORVsuURENRLO-FAhau-eS2VmfZrG=BOgih_SPHUSD3Nv3j96w@mail.gmail.com>
+	<1319032263-22699-5-git-send-email-j-pihet@ti.com>
+	<877h2y30a5.fsf@ti.com>
+	<CAORVsuV5bV-p0kxhh8g4T076Dg3Mj89X_=4E+BpCSTdLiUmNZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:46318 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753801Ab1KWTmz convert rfc822-to-8bit
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:50638 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754280Ab1KWTnx convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 14:42:55 -0500
-Received: by mail-gy0-f181.google.com with SMTP id r13so2289387ghr.26
-        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 11:42:54 -0800 (PST)
-In-Reply-To: <CAORVsuURENRLO-FAhau-eS2VmfZrG=BOgih_SPHUSD3Nv3j96w@mail.gmail.com>
-	(Jean Pihet's message of "Tue, 22 Nov 2011 20:52:51 +0100")
+	Wed, 23 Nov 2011 14:43:53 -0500
+Received: by iaeo4 with SMTP id o4so2384363iae.31
+        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 11:43:52 -0800 (PST)
+In-Reply-To: <CAORVsuV5bV-p0kxhh8g4T076Dg3Mj89X_=4E+BpCSTdLiUmNZA@mail.gmail.com>
+	(Jean Pihet's message of "Tue, 22 Nov 2011 20:54:14 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
+Cc: linux-omap@vger.kernel.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Jean Pihet <j-pihet@ti.com>
 
 Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-> On Thu, Nov 17, 2011 at 10:24 PM, Kevin Hilman <khilman@ti.com> wrote=
+> On Thu, Nov 17, 2011 at 10:29 PM, Kevin Hilman <khilman@ti.com> wrote=
 :
 >> jean.pihet@newoldbits.com writes:
 >>
 >>> From: Jean Pihet <j-pihet@ti.com>
 >>>
->>> Implement the devices wake-up latency constraints using the global
->>> device PM QoS notification handler which applies the constraints to=
- the
->>> underlying layer by calling the corresponding function at hwmod lev=
-el.
+>>> The MPU latency figures for cpuidle include the MPU itself and also
+>>> the peripherals needed for the MPU to execute instructions (e.g.
+>>> main memory, caches, IRQ controller, MMU etc). On OMAP3 those
+>>> peripherals belong to the MPU and CORE power domains and so the
+>>> cpuidle C-states are a combination of MPU and CORE states.
 >>>
->>> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using w=
-ake-up
->>> latency constraints on MPU, CORE and PER.
+>>> This patch implements the relation between the cpuidle and per-
+>>> device PM QoS frameworks in the OMAP3 specific idle callbacks.
 >>>
->>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> ...
->
->>> +/* Interface to the per-device PM QoS framework */
->>> +static int omap2_dev_pm_qos_handler(struct notifier_block *nb,
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsigned long new_value,
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 void *req)
->>> +{
->>> + =C2=A0 =C2=A0 struct omap_device *od;
->>> + =C2=A0 =C2=A0 struct omap_hwmod *oh;
->>> + =C2=A0 =C2=A0 struct platform_device *pdev;
->>> + =C2=A0 =C2=A0 struct dev_pm_qos_request *dev_pm_qos_req =3D req;
->>> +
->>> + =C2=A0 =C2=A0 pr_debug("OMAP PM CONSTRAINTS: req@0x%p, new_value=3D=
-%lu\n",
+>>> The chosen C-state shall satisfy the following conditions:
+>>> =C2=A0. the 'valid' field is enabled,
+>>> =C2=A0. it satisfies the enable_off_mode flag,
 >>
->> s/CONSTRAINTS/constraints/
->> another one below.
-> Ok
->
->>
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0req, new_value);
->>> +
->>> + =C2=A0 =C2=A0 /* Look for the platform device for the constraint =
-target device */
->>> + =C2=A0 =C2=A0 pdev =3D to_platform_device(dev_pm_qos_req->dev);
->>> +
->>> + =C2=A0 =C2=A0 /* Try to catch non platform devices */
->>
->> why?
-> The constraints targets are the power domains, which you find by
-> walking through the chain of structs dev, pdev, omap_device, hwmod an=
-d
-> finally pwrdm.
+>> Not directly related to this patch, but is there any reason to keep =
+the
+>> 'enable_off_mode' flag after this series?
+> enable_off_mode could be removed completely after this series unless
+> there is a need to prevent OFF mode for debug reasons.
 
-OK
+Great.
 
->>
->>> + =C2=A0 =C2=A0 if (pdev->name =3D=3D NULL) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("%s: Error: plat=
-form device for device %s not valid\n",
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0__func__, dev_name(dev_pm_qos_req->dev));
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EINVAL;
->>> + =C2=A0 =C2=A0 }
->>> +
->>> + =C2=A0 =C2=A0 /* Find the associated omap_device for dev */
->>> + =C2=A0 =C2=A0 od =3D container_of(pdev, struct omap_device, pdev)=
-;
->>
->> What about devices that are valid platform_devices, but not omap_dev=
-ices?
-> Do you mean that od should be tested for NULL value?
-
-=46irst, it should be using the to_omap_device() helper function from
-omap_device.h.
-
-Until v3.2, it was based on container_of() so checking for NULL will no=
-t
-help.  However, as of v3.2, because I decoupled platform_device and
-omap_device, checking for a NULL return from to_omap_device() will be a
-good enough check.
+=46or debug reasons, we can just as easily set constraints to prevent o=
+ff
+mode, so I would like to see it disappear.
 
 Kevin
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
