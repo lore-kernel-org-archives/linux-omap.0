@@ -1,81 +1,66 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [GIT PULL] OMAP DSS fixes for 3.2-rc
-Date: Wed, 23 Nov 2011 09:31:16 +0200
-Message-ID: <1322033476.3015.3.camel@deskari>
-References: <1321604174.1814.41.camel@deskari>  <4ECC9DAF.3000005@gmx.de>
+Subject: Re: [PATCH 09/65] OMAPDSS: pass ovl manager to dss_start_update
+Date: Wed, 23 Nov 2011 09:32:43 +0200
+Message-ID: <1322033563.3015.4.camel@deskari>
+References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1321953724-6350-10-git-send-email-tomi.valkeinen@ti.com>
+	 <4ECC8A6D.5050000@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-7Rk2Gjm34tA4g+NRAmLn"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-STdWqOCvpm0sGvDx3WXr"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:43012 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752311Ab1KWHbV (ORCPT
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:56519 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752311Ab1KWHct (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 02:31:21 -0500
-In-Reply-To: <4ECC9DAF.3000005@gmx.de>
+	Wed, 23 Nov 2011 02:32:49 -0500
+In-Reply-To: <4ECC8A6D.5050000@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-fbdev@vger.kernel.org, linux-omap mailing list <linux-omap@vger.kernel.org>
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
 
---=-7Rk2Gjm34tA4g+NRAmLn
+--=-STdWqOCvpm0sGvDx3WXr
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2011-11-23 at 07:15 +0000, Florian Tobias Schandinat wrote:
-> Hi Tomi,
+On Wed, 2011-11-23 at 11:23 +0530, Archit Taneja wrote:
+> On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
+> > dss_start_update() takes currently the dss device as a parameter. Chang=
+e
+> > the parameter to ovl manager, as that is what the dss_start_update()
+> > actually needs.
 >=20
-> On 11/18/2011 08:16 AM, Tomi Valkeinen wrote:
-> > Hi Florian,
-> >=20
-> > Here are a few OMAP display subsystem fixes for 3.2-rc.
-> >=20
-> > One for the old omapfb, which was missing include module.h, and two for
-> > the omapdss fixing issues related to HDMI.
->=20
-> Pulled, but...
+> Minor comment: We could rename dss_start_update() to=20
+> dss_mgr_start_update() to stick to the new way of telling if this=20
+> function is meant for an overlay or a manager.
 
-Thanks!
-
-> > The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055dbf=
-8e37:
-> >=20
-> >   Linux 3.2-rc2 (2011-11-15 15:02:59 -0200)
->=20
-> ...could you please try to base on something that is already in my tree, =
-perhaps
-> just add patches on top of the last pull request you sent me. If you need
-> something more recent, that is okay, but don't force me to needlessly upd=
-ate my
-> tree.
-
-Ah, of course. I didn't think of that. I'll base the patches on top of
-your tree from now on.
+Good point, I'll make the change.
 
  Tomi
 
 
---=-7Rk2Gjm34tA4g+NRAmLn
+--=-STdWqOCvpm0sGvDx3WXr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJOzKFEAAoJEPo9qoy8lh71PpMQAIqDnGXv9i/P3VGcb1CHDxrC
-aOemktqygJ0PhCQxAGF93vs8j49h6nzXgeSYQCKQTFCAthWPM+OBBZAH97BDU8Eb
-umCV1zr3wIhjRmpU2Y65FrJuJZAVGl56KL8LX14tJQea9KZlXjmK/Pb8Z3CTdOIs
-ad4xQg4SHs/MxHg6hucGaL1S9V1GU+J2XWeTkDCGPbbt8vyNhs7slU6yEbyXIKvq
-Nafs/YWvDpAJ9fZCFreipGpN9kdUo4T0MY3pF+eGM0QQUig56tomFJy8VZnRvXJS
-zrm9wZuxcRWpKfaM9REXXGFYU7R/j5JMi+HU0vW9KzR1CAlBzuS3VpkOt0R7FEk1
-Jjlac1rF5+Hs4FMdDIVToPZmv3zyJC2v7+5ikqS+PumqwSvMwDfMKzVVmPumU4F9
-sqrfuRqCa5ytKN6uel5jYodAgQa1Id3sqrpv4E1CQWMj2b1AuSTgbxddwEuIXr0S
-isTYv44+KJ0F3gIDfNd2ynXmZdFqgEuV3waLYJXUX8zaN2mQbiHOqwClCzLL7YG8
-5z9kWVRtuRoV3byql620FHp3iB5fv1FW/RJnALOdI7c/VtE19CqQ3ZlKdW9yk4Au
-RzRxXTC1NhWLK0FUgVVIKSXWz4XRANU3uxDc+9dnSQMWniTo5ldxUnLFcjU2ydoc
-lrugf28jlNUKNxwsA+sc
-=woKA
+iQIcBAABAgAGBQJOzKGbAAoJEPo9qoy8lh71DSsP/3dwZL/iktG7e7NMwMAVvqmZ
+XtJhLyoqo0Qmes2KxiTxTiCTaQogl8P89dQ+9jjAtlmQ82V+L8ZdYLYp0m7peXtN
+ZRXNy8ROlsgG4fDZgKzob0WvoICj2lIQ0vWEvQ95B2VOaTsqnqSKxqNS0vcSPq38
+DE3Bp51MluB6jXFBUzz19BuJSi1FQSOA/CS4rT/7ELldHrHvH+rN/j7oobaD0rTq
+pXjG3VvQCDZ8rKft04HHB8deuddE/soEWQJ2CBPBRfVgO3PWohOsXcFu6CZZGsNW
+ytRCGwFl4Rl8XL5byXElJ8WVxsErHTn+1CVawI5e32RvOdubEAqt7sMBDu5Hsx15
+IN6TelHQhGh+uu3AAqQFT37sHA6zsGFZBBZFrmxJpDn5PP7Ux7629v3MBQsslfXF
+TilHmy8oRuctlnFj+QaTgpHZ0SaxdrCFohgofo9BbGlWQkHGBRc4pVcyQQpaC6vX
+/QXbNvGMiuLAFXvBQ469MM+BQrUwwnznDQtEx0nxlhlEl8SdfV3qS0AQY9727r56
+KA7kMVVYx6a97sUfWrFfjtH4VwZKIXKqb0QsYyhpBli+tGtMeXzBd7kJQpI2w8dV
+upw8F6CKba9HIlqx7v2+rcHV9aNe7TbFrCpPgOwSv8tZbv9O4JX717tTzSz7vUV6
+4m7lHdmzgo5jUWxcO3zv
+=ZTN5
 -----END PGP SIGNATURE-----
 
---=-7Rk2Gjm34tA4g+NRAmLn--
+--=-STdWqOCvpm0sGvDx3WXr--
 
