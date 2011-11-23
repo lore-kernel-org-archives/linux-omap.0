@@ -1,72 +1,102 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 42/65] OMAPDSS: DSI: call mgr_enable/disable for cmd
- mode displays
-Date: Wed, 23 Nov 2011 13:27:32 +0200
-Message-ID: <1322047652.28917.64.camel@deskari>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1321953724-6350-43-git-send-email-tomi.valkeinen@ti.com>
-	 <4ECCC68C.7070106@ti.com> <1322044977.28917.57.camel@deskari>
-	 <4ECCD44A.2070008@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 25/26] OMAP: PM: convert the SmartReflex code into the AVS
+ driver framework
+Date: Wed, 23 Nov 2011 12:30:54 +0100
+Message-ID: <CAORVsuUio6viQxBFJES0wm7sP3O44se0CsiXue95XEKiR5_F4w@mail.gmail.com>
+References: <1321974370-25800-1-git-send-email-j-pihet@ti.com>
+	<1321974370-25800-26-git-send-email-j-pihet@ti.com>
+	<20111123095120.GD25068@legolas.emea.dhcp.ti.com>
+	<CAORVsuV2bRJrCnk2Kntr3YgZzoTcFyVcg6A6ZSUUOqkh9Jz0uA@mail.gmail.com>
+	<20111123110448.GP25068@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-NDIi1yov3qex39kokdAd"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:54462 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752177Ab1KWL1m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 06:27:42 -0500
-In-Reply-To: <4ECCD44A.2070008@ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:58394 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594Ab1KWLa4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Nov 2011 06:30:56 -0500
+Received: by vcbfk14 with SMTP id fk14so169372vcb.19
+        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 03:30:55 -0800 (PST)
+In-Reply-To: <20111123110448.GP25068@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+To: balbi@ti.com
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, paul@pwsan.com, khilman@ti.com, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
 
+=46elipe,
 
---=-NDIi1yov3qex39kokdAd
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Wed, Nov 23, 2011 at 12:04 PM, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, Nov 23, 2011 at 11:22:42AM +0100, Jean Pihet wrote:
+>> Hi Felipe,
+>>
+>> On Wed, Nov 23, 2011 at 10:51 AM, Felipe Balbi <balbi@ti.com> wrote:
+>> > On Tue, Nov 22, 2011 at 04:06:09PM +0100, jean.pihet@newoldbits.co=
+m wrote:
+>> >> +config POWER_AVS_OMAP_V1
+>> >> + =A0 =A0 tristate "AVS support for the OMAP IP version 1"
+>> >> + =A0 =A0 depends on ARCH_OMAP3 && PM
+>> >> + =A0 =A0 help
+>> >> + =A0 =A0 =A0 Say Y to enable AVS support on OMAP containing the =
+version 1 of
+>> >> + =A0 =A0 =A0 the SmartReflex IP.
+>> >> + =A0 =A0 =A0 V1 is the 65nm version used in OMAP3430.
+>> >> +
+>> >> + =A0 =A0 =A0 Please note, that by default SmartReflex is only
+>> >> + =A0 =A0 =A0 initialized. To enable the automatic voltage
+>> >> + =A0 =A0 =A0 compensation for vdd mpu =A0and vdd core from user =
+space,
+>> >> + =A0 =A0 =A0 user must write 1 to
+>> >> + =A0 =A0 =A0 =A0 =A0 =A0 /debug/voltage/vdd_<X>/smartreflex/auto=
+comp,
+>> >> + =A0 =A0 =A0 where X is mpu or core for OMAP3.
+>> >> + =A0 =A0 =A0 Optionally autocompensation can be enabled in the k=
+ernel
+>> >> + =A0 =A0 =A0 by default during system init via the enable_on_ini=
+t flag
+>> >> + =A0 =A0 =A0 which an be passed as platform data to the smartref=
+lex driver.
+>> >> +
+>> >> +config POWER_AVS_OMAP_V2
+>> >> + =A0 =A0 tristate "AVS support for the OMAP IP version 2"
+>> >> + =A0 =A0 depends on (ARCH_OMAP3 || ARCH_OMAP4) && PM
+>> >> + =A0 =A0 help
+>> >> + =A0 =A0 =A0 Say Y to enable AVS support on OMAP containing the =
+version 2 of
+>> >> + =A0 =A0 =A0 the SmartReflex IP.
+>> >> + =A0 =A0 =A0 V2 is the update for the 45nm version of the IP use=
+d in OMAP3630
+>> >> + =A0 =A0 =A0 and OMAP4430
+>> >
+>> > can't you read the revision register and decide this in runtime ?
+>> Those Kconfig options are used to compile the v1 and/or v2 drivers.
+>> The init of v1 or v2 is decided at runtime, cf. the sr_init function=
+s
+>> where the cpu revision is checked. Is this the correct check?
+>
+> if you already decide in runtime the correct initialization to call, =
+why
+> do you add ifdefs ?
+There is no #ifdef with CONFIG_POWER_AVS_OMAP_V[12], those options are
+used to compile or not the respective modules, cf.
+driver/power/avs/Makefile.
 
-On Wed, 2011-11-23 at 16:38 +0530, Archit Taneja wrote:
->=20
-> I think it would be best to stuff the 'video mode enabling and
-> manager=20
-> enabling' functionality in omapdss_dsi_display_enable() itself, the=20
-> panel driver shouldn't need to call a function separately to enable=20
-> video mode for the panel. This way we would be more along the lines
-> of=20
-> the dpi driver, where dpi_display_enable() enables the manager in the
-> end.=20
+> It's not like you're adding that huge amount of code
+> for v1 and v2, right ?
+That is correct, so both modules could be always compiled and init'ed
+at runtime depending on the chip revision.
 
-But we need to configure the panel between enabling the DSI interface
-and enabling the video output, so we can't combine those two functions.
+I am OK to change the code, please let me know what you think.
 
-For DPI things are simpler, as enabling the interface and the video
-output are more or less the same thing.
+>
+> --
+> balbi
+>
 
- Tomi
-
-
---=-NDIi1yov3qex39kokdAd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJOzNikAAoJEPo9qoy8lh7163QP/3C6YxsFWkZNB3e5HhmC4+po
-qYNNBnOzeoF/zWv1vZ8W8tgw5pt9s0BPbosjKsB0j8bqtO+1YzI9FfUstpMM74xX
-gNVY8EA1t+/cjUeGL/QHqRckXMOdogkLsYxZCmAqwLxt5B6xQffGuhUU8jdq0LSG
-jCBJ5RYzD8CPigVdvGiexi4khSzuHhWaP33q69WRi5B6Z2E6QghB94M1GvRjlzTr
-0XzgZvxSsMVgjadqRky6k0LMXrguuw0acv6QAkx/pyW8B/x/HoddgKNvJJyVe00e
-qQ6EDZk7i2YolCCxodic2RnJJRu00cKGSDym3oqIqlKZZDqZXv097XtdT3TXoCjJ
-LvTeUMRq/X6OmObsIusQKeCzHADVvxfWUM6upmHoz2fJ0g41GDiO2LhViaJhdKCb
-bOYvuUlXYPpnPH0yJni/RZWKNdNrjoxIhsN+Af30qlC/+JonypQYAeSKK9rrlmAt
-ARtXtcbvkjEUkM0ajk0wcH6x47Uk3xprkYx0H0JWfdzEudb0wuawJMw4d4tvAAdb
-oOV3bhyeM5N9kdJBST7ijlOYMg1ay8xWe6673xx8AOdcTVx6s4d/IDOO9UXQPCKP
-y0uebV///XXgplmLEvMl6KyN1FXs7R7aKaeb2kK1g992M0rBYdblpr1O2wK9f06n
-N2hMaULbpbRlLbRuZ2uO
-=iPz9
------END PGP SIGNATURE-----
-
---=-NDIi1yov3qex39kokdAd--
-
+Thanks,
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
