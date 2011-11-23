@@ -1,53 +1,115 @@
-From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
-Date: Wed, 23 Nov 2011 11:19:19 -0800
-Message-ID: <20111123191919.GH31337@atomide.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
-	<1321926047-14211-6-git-send-email-mturquette@linaro.org>
-	<20111122154900.GB18954@kroah.com>
-	<CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com>
-	<20111122191347.GB4844@kroah.com>
-	<20111123165903.GF31337@atomide.com>
-	<20111123180651.GB19739@n2100.arm.linux.org.uk>
-	<20111123185518.GG31337@atomide.com>
-	<20111123190954.GA4365@opensource.wolfsonmicro.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 3/6] OMAP: PM: register to the per-device PM QoS framework
+Date: Wed, 23 Nov 2011 11:42:50 -0800
+Message-ID: <87hb1ubp6t.fsf@ti.com>
+References: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
+	<1319032263-22699-4-git-send-email-j-pihet@ti.com>
+	<87d3cq30ja.fsf@ti.com>
+	<CAORVsuURENRLO-FAhau-eS2VmfZrG=BOgih_SPHUSD3Nv3j96w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20111123190954.GA4365-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:46318 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753801Ab1KWTmz convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Nov 2011 14:42:55 -0500
+Received: by mail-gy0-f181.google.com with SMTP id r13so2289387ghr.26
+        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 11:42:54 -0800 (PST)
+In-Reply-To: <CAORVsuURENRLO-FAhau-eS2VmfZrG=BOgih_SPHUSD3Nv3j96w@mail.gmail.com>
+	(Jean Pihet's message of "Tue, 22 Nov 2011 20:52:51 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, Jean Pihet <j-pihet@ti.com>
 
-* Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> [111123 10:34]:
-> On Wed, Nov 23, 2011 at 10:55:19AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> [111123 09:31]:
-> 
-> > > Keep the clk API as a fundamental thing which should be initialized early
-> > > so we don't have to invent new clk APIs to get around its unavailability.
-> 
-> > What else are you aware of that is really needed early for clocks other
-> > than clockevent?
-> 
-> If nothing else we'd have to resolve all the device probe ordering
-> issues (Grant's patches seem a bit stalled) and convert all the systems
-> using the API to handle deferring probes until their clocks appear.
-> Using an early initcall of some kind would help with that but it does
-> seem like a lot of trouble and I'd expect it'll end up getting forced in
-> on most systems anyway.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Yes the ordering depends on the system. In any case, initcalls are
-not super early compared to setup_timer.
+> On Thu, Nov 17, 2011 at 10:24 PM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>> jean.pihet@newoldbits.com writes:
+>>
+>>> From: Jean Pihet <j-pihet@ti.com>
+>>>
+>>> Implement the devices wake-up latency constraints using the global
+>>> device PM QoS notification handler which applies the constraints to=
+ the
+>>> underlying layer by calling the corresponding function at hwmod lev=
+el.
+>>>
+>>> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using w=
+ake-up
+>>> latency constraints on MPU, CORE and PER.
+>>>
+>>> Signed-off-by: Jean Pihet <j-pihet@ti.com>
+> ...
+>
+>>> +/* Interface to the per-device PM QoS framework */
+>>> +static int omap2_dev_pm_qos_handler(struct notifier_block *nb,
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsigned long new_value,
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 void *req)
+>>> +{
+>>> + =C2=A0 =C2=A0 struct omap_device *od;
+>>> + =C2=A0 =C2=A0 struct omap_hwmod *oh;
+>>> + =C2=A0 =C2=A0 struct platform_device *pdev;
+>>> + =C2=A0 =C2=A0 struct dev_pm_qos_request *dev_pm_qos_req =3D req;
+>>> +
+>>> + =C2=A0 =C2=A0 pr_debug("OMAP PM CONSTRAINTS: req@0x%p, new_value=3D=
+%lu\n",
+>>
+>> s/CONSTRAINTS/constraints/
+>> another one below.
+> Ok
+>
+>>
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0req, new_value);
+>>> +
+>>> + =C2=A0 =C2=A0 /* Look for the platform device for the constraint =
+target device */
+>>> + =C2=A0 =C2=A0 pdev =3D to_platform_device(dev_pm_qos_req->dev);
+>>> +
+>>> + =C2=A0 =C2=A0 /* Try to catch non platform devices */
+>>
+>> why?
+> The constraints targets are the power domains, which you find by
+> walking through the chain of structs dev, pdev, omap_device, hwmod an=
+d
+> finally pwrdm.
 
-Tony
+OK
+
+>>
+>>> + =C2=A0 =C2=A0 if (pdev->name =3D=3D NULL) {
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pr_err("%s: Error: plat=
+form device for device %s not valid\n",
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0__func__, dev_name(dev_pm_qos_req->dev));
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EINVAL;
+>>> + =C2=A0 =C2=A0 }
+>>> +
+>>> + =C2=A0 =C2=A0 /* Find the associated omap_device for dev */
+>>> + =C2=A0 =C2=A0 od =3D container_of(pdev, struct omap_device, pdev)=
+;
+>>
+>> What about devices that are valid platform_devices, but not omap_dev=
+ices?
+> Do you mean that od should be tested for NULL value?
+
+=46irst, it should be using the to_omap_device() helper function from
+omap_device.h.
+
+Until v3.2, it was based on container_of() so checking for NULL will no=
+t
+help.  However, as of v3.2, because I decoupled platform_device and
+omap_device, checking for a NULL return from to_omap_device() will be a
+good enough check.
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
