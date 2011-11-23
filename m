@@ -1,414 +1,640 @@
 From: Saravana Kannan <skannan@codeaurora.org>
-Subject: Re: [PATCH v3 2/5] Documentation: common clk API
-Date: Tue, 22 Nov 2011 18:03:01 -0800
-Message-ID: <4ECC5455.6040806@codeaurora.org>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-3-git-send-email-mturquette@linaro.org>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Tue, 22 Nov 2011 19:12:07 -0800
+Message-ID: <4ECC6487.1060300@codeaurora.org>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1321926047-14211-3-git-send-email-mturquette@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: linux@arm.linux.org.uk, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, aul@pwsan.com, jeremy.kerr@canonical.com, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, Magnus Damm <magnus.damm@gmail.com>, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, Saravana Kannan <skannan@codeaurora.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:22975 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752706Ab1KWDMJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Nov 2011 22:12:09 -0500
+In-Reply-To: <1321926047-14211-4-git-send-email-mturquette@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux@arm.linux.org.uk, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, aul@pwsan.com, jeremy.kerr@canonical.com, Mike Turquette <mturquette@linaro.org>, Stephen Boyd <sboyd@codeaurora.org>, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, Saravana Kannan <skannan@codeaurora.org>
 
 On 11/21/2011 05:40 PM, Mike Turquette wrote:
-> Provide documentation for the common clk structures and APIs.  This code
-> can be found in drivers/clk/ and include/linux/clk.h.
->
-> Signed-off-by: Mike Turquette<mturquette@linaro.org>
-> ---
->   Documentation/clk.txt |  312 +++++++++++++++++++++++++++++++++++++++++++++++++
->   1 files changed, 312 insertions(+), 0 deletions(-)
->   create mode 100644 Documentation/clk.txt
->
-> diff --git a/Documentation/clk.txt b/Documentation/clk.txt
+> diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
 > new file mode 100644
-> index 0000000..ef4333d
+> index 0000000..12c9994
 > --- /dev/null
-> +++ b/Documentation/clk.txt
-> @@ -0,0 +1,312 @@
-> +		The Common Clk Framework
-> +		Mike Turquette<mturquette@ti.com>
+> +++ b/drivers/clk/clk.c
+> @@ -0,0 +1,538 @@
+> +/*
+> + * Copyright (C) 2010-2011 Canonical Ltd<jeremy.kerr@canonical.com>
+> + * Copyright (C) 2011 Linaro Ltd<mturquette@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * Standard functionality for the common clock API.  See Documentation/clk.txt
+> + */
 > +
-> +	Part 1 - common data structures and API
+> +#include<linux/clk.h>
+> +#include<linux/module.h>
+> +#include<linux/mutex.h>
+> +#include<linux/slab.h>
+> +#include<linux/spinlock.h>
+> +#include<linux/err.h>
 > +
-> +The common clk framework is a combination of a common definition of
-> +struct clk which can be used across most platforms as well as a set of
-> +driver-facing APIs which operate on those clks.  Platforms can enable it
-> +by selecting CONFIG_GENERIC_CLK.
+> +static DEFINE_SPINLOCK(enable_lock);
+> +static DEFINE_MUTEX(prepare_lock);
 > +
-> +Below is the common struct clk definition from include/linux.clk.h.  It
-
-Typo
-
-> +is modified slightly for brevity:
-> +
-> +struct clk {
-> +	const char              *name;
-> +	const struct clk_hw_ops *ops;
-
-No strong opinion, but can we call this clk_ops for brevity?
-
-> +	struct clk              *parent;
-> +	unsigned long           rate;
-> +	unsigned long           flags;
-> +	unsigned int            enable_count;
-> +	unsigned int            prepare_count;
-> +	struct hlist_head       children;
-> +	struct hlist_node       child_node;
-> +};
-> +
-> +The .name, .parent and .children members make up the core of the clk
-> +tree topology which can be visualized by enabling
-> +CONFIG_COMMON_CLK_SYSFS.  The ops member points to an instance of struct
-> +clk_hw_ops:
-> +
-> +	struct clk_hw_ops {
-> +		int             (*prepare)(struct clk *clk);
-> +		void            (*unprepare)(struct clk *clk);
-> +		int             (*enable)(struct clk *clk);
-> +		void            (*disable)(struct clk *clk);
-> +		unsigned long   (*recalc_rate)(struct clk *clk);
-> +		long            (*round_rate)(struct clk *clk, unsigned long,
-> +				unsigned long *);
-> +		int             (*set_parent)(struct clk *clk, struct clk *);
-> +		struct clk *    (*get_parent)(struct clk *clk);
-> +		int             (*set_rate)(struct clk *clk, unsigned long);
-> +	};
-> +
-> +These callbacks correspond to the clk API that has existed in
-> +include/linux/clk.h for a while.  Below is a quick summary of the
-> +operations in that header, as implemented in drivers/clk/clk.c.  These
-> +comprise the driver-facing API:
-> +
-> +clk_prepare - does everything needed to get a clock ready to generate a
-> +proper signal which may include ungating the clk and actually generating
-> +that signal.  clk_prepare MUST be called before clk_enable.  This call
-> +holds the global prepare_mutex, which also prevents clk rates and
-> +topology from changing while held.  This API is meant to be the "slow"
-> +part of a clk enable sequence, if applicable.  This function must not be
-> +called in an interrupt context.
-
-in an atomic context?
-
-> +
-> +clk_unprepare - the opposite of clk_prepare: does everything needed to
-> +make a clk no longer ready to generate a proper signal, which may
-> +include gating an active clk.  clk_disable must be called before
-> +clk_unprepare.  All of the same rules for clk_prepare apply.
-> +
-> +clk_enable - ungate a clock and immediately start generating a valid clk
-> +signal.  This is the "fast" part of a clk enable sequence, and maybe the
-> +only functional part of that sequence.  Regardless clk_prepare must be
-> +called BEFORE clk_enable.  The enable_spinlock is held across this call,
-> +which means that clk_enable must not sleep.
-> +
-> +clk_disable - the opposite of clk_enable: gates a clock immediately.
-> +clk_disable must be called before calling clk_unprepare.  All of the
-> +same rules for clk_enable apply.
-> +
-> +clk_get_rate - Returns the cached rate for the clk.  Does NOT query the
-> +hardware state.  No lock is held.
-
-I wrote the stuff below and then realized that this ops is not really 
-present in the code. Looks like stale doc. Can you please remove this? 
-But I think the comments below do hold true for the actual 
-clk_set_rate()/get_rate() implementation. I will try to repeat this as 
-part of the actual code review.
-
-I will be looking into the other patches in order, so, forgive me if I'm 
-asking a question that has an obvious answer in the remaining patches.
-
-I think a lock needs to be taken for this call too. What prevents a 
-clock set rate from getting called and modifying the cached rate 
-variable while it's bring read. I don't think we should have a common 
-code assume that read/write of longs are atomic.
-
-> +
-> +clk_get_parent - Returns the cached parent for the clk.  Does NOT query
-> +the hardware state.  No lock is held.
-
-Same question as above. Can we assume a read of a pointer variable is 
-atomic? I'm not sure. I think this needs locking too.
-
-> +
-> +clk_set_rate - Attempts to change the clk rate to the one specified.
-> +Depending on a variety of common flags it may fail to maintain system
-> +stability or result in a variety of other clk rates changing.
-
-I'm not sure if this is intentional or if it's a mistake in phrasing it. 
-IMHO, the rates of other clocks that are actually made available to 
-device drivers should not be changed. This call might trigger rate 
-changes inside the tree to accommodate the request from various 
-children, but should not affect the rate of the leaf nodes.
-
-Can you please clarify the intention and/or the wording?
-
-> Holds the
-> +same prepare_mutex held by clk_prepare/clk_unprepare and clk_set_parent.
-> +
-> +clk_set_parent - Switches the input source for a clk.  This only applies
-> +to mux clks with multiple parents.  Holds the same prepare_mutex held by
-> +clk_prepare/clk_unprepare and clk_set_rate.
-> +
-> +	Part 2 - hardware clk implementations
-> +
-> +The strength of the common struct clk comes from its .ops pointer and
-> +the ability for platform and driver code to wrap the struct clk instance
-> +with hardware-specific data which the operations in the .ops pointer
-> +have knowledge of.  To illustrate consider the simple gateable clk
-> +implementation in drivers/clk/clk-basic.c:
-> +
-> +struct clk_hw_gate {
-> +	struct clk      clk;
-> +	struct clk      *fixed_parent;
-> +	void __iomem    *reg;
-> +	u8              bit_idx;
-> +};
-
-This is exactly how we do it in the MSM code for various clock types. 
-So, this is awesome. Will make my life easier. I can't wait to get the 
-MSM clock code upstream without pissing off Linus.
-
-> +
-> +struct clk_hw_gate contains the clk as well as hardware-specific
-> +knowledge about which register and bit controls this clk's gating.  The
-> +fixed-parent member is also there as a way to initialize the topology.
-> +
-> +Let's walk through enabling this clk from driver code:
-> +
-> +	struct clk *clk;
-> +	clk = clk_get(NULL, "my_gateable_clk");
-> +
-> +	clk_prepare(clk);
-> +	clk_enable(clk);
-> +
-> +Note that clk_prepare MUST be called before clk_enable even if
-> +clk_prepare does nothing (which in this case is true).
-> +
-> +The call graph for clk_enable is very simple:
-> +
-> +clk_enable(clk);
-> +	clk->enable(clk);
-> +			clk_hw_gate_enable_set(clk);
-> +				clk_hw_gate_set_bit(clk);
-> +
-> +And the definition of clk_hw_gate_set_bit:
-> +
-> +static void clk_hw_gate_set_bit(struct clk *clk)
+> +void __clk_unprepare(struct clk *clk)
 > +{
-> +	struct clk_hw_gate *gate = to_clk_hw_gate(clk);
-> +	u32 reg;
+> +	if (!clk)
+> +		return;
 > +
-> +	reg = __raw_readl(gate->reg);
-> +	reg |= BIT(gate->bit_idx);
-> +	__raw_writel(reg, gate->reg);
+> +	if (WARN_ON(clk->prepare_count == 0))
+> +		return;
+> +
+> +	if (--clk->prepare_count>  0)
+
+Space before ">"?
+
+> +		return;
+> +
+> +	WARN_ON(clk->enable_count>  0);
+
+The spacing comment applies to all such instances the follow too.
+
+> +
+> +	if (clk->ops->unprepare)
+> +		clk->ops->unprepare(clk);
+> +
+> +	__clk_unprepare(clk->parent);
 > +}
 > +
-> +Note that in the final call to clk_hw_gate_set_bit there is use of
-> +to_clk_hw_gate, which is defined as:
-> +
-> +#define to_clk_hw_gate(ck) container_of(ck, struct clk_hw_gate, clk)
-> +
-> +This simple abstration is what allows the common clk framework to scale
-> +across many platforms.  The struct clk definition remains the same while
-> +the hardware operations in the .ops pointer know the details of the clk
-> +hardware.  A little pointer arithmetic to get to the data is all that
-> +the ops need.
-
-Glad you went with this approach and killed clk_hw after our discussion.
-
-> +
-> +	Part 3 - Supporting your own clk hardware
-> +
-> +To construct a clk hardware structure for your platform you simply need
-> +to define the following:
-> +
-> +struct clk_hw_your_clk {
-> +	struct clk;
-> +	unsigned long some_data;
-> +	struct your_struct *some_more_data;
-> +};
-> +
-> +To take advantage of your data you'll need to support valid operations
-> +for your clk:
-> +
-> +struct clk_hw_ops clk_hw_ops_your_clk {
-> +	.enable		=&clk_hw_your_clk_enable;
-> +	.disable	=&clk_hw_your_clk_disable;
-> +};
-> +
-> +Implement the above functions using container_of:
-> +
-> +int clk_hw_your_clk_enable(struct clk *clk)
+> +/**
+> + * clk_unprepare - perform the slow part of a clk gate
+> + * @clk: the clk being gated
+> + *
+> + * clk_unprepare may sleep, which differentiates it from clk_disable.  In a
+> + * simple case, clk_unprepare can be used instead of clk_disable to gate a clk
+> + * if the operation may sleep.  One example is a clk which is accessed over
+> + * I2c.  In the complex case a clk gate operation may require a fast and a slow
+> + * part.  It is this reason that clk_unprepare and clk_disable are not mutually
+> + * exclusive.  In fact clk_disable must be called before clk_unprepare.
+> + */
+> +void clk_unprepare(struct clk *clk)
 > +{
-> +	struct clk_hw_your_clk *yclk;
+> +	mutex_lock(&prepare_lock);
+> +	__clk_unprepare(clk);
+> +	mutex_unlock(&prepare_lock);
+> +}
+> +EXPORT_SYMBOL_GPL(clk_unprepare);
 > +
-> +	yclk = container_of(clk, struct clk_hw_your_clk, clk);
-> +
-> +	magic(yclk);
-> +};
-> +
-> +If you are statically allocating all of your clk_hw_your_clk instances
-> +then you will still need to initialize some stuff in struct clk with the
-> +clk_init function from include/linux/clk.h:
-> +
-> +clk_init(&yclk->clk);
-> +
-> +If you are dynamically creating clks or using device tree then you might
-> +want a hardware-specific register function:
-> +
-> +int clk_hw_your_clk_register(const char *name, unsigned long flags,
-> +		unsigned long some_data,
-> +		struct your_struct *some_more_data)
+> +int __clk_prepare(struct clk *clk)
 > +{
-> +	struct clk_hw_your_clk *yclk;
+> +	int ret = 0;
 > +
-> +	yclk = kmalloc(sizeof(struct clk_hw_your_clk), GFP_KERNEL);
+> +	if (!clk)
+> +		return 0;
 > +
-> +	yclk->some_data = some_data;
-> +	yclk->some_more_data = some_more_data;
+> +	if (clk->prepare_count == 0) {
+> +		ret = __clk_prepare(clk->parent);
+> +		if (ret)
+> +			return ret;
 > +
-> +	yclk->clk.name = name;
-> +	yclk->clk.flags = flags;
+> +		if (clk->ops->prepare) {
+> +			ret = clk->ops->prepare(clk);
+> +			if (ret) {
+> +				__clk_unprepare(clk->parent);
+> +				return ret;
+> +			}
+> +		}
+> +	}
 > +
-> +	clk_init(&yclk->clk);
+> +	clk->prepare_count++;
 > +
 > +	return 0;
 > +}
 > +
-> +	Part 4 - clk_set_rate
+> +/**
+> + * clk_prepare - perform the slow part of a clk ungate
+> + * @clk: the clk being ungated
+> + *
+> + * clk_prepare may sleep, which differentiates it from clk_enable.  In a simple
+> + * case, clk_prepare can be used instead of clk_enable to ungate a clk if the
+> + * operation may sleep.  One example is a clk which is accessed over I2c.  In
+> + * the complex case a clk ungate operation may require a fast and a slow part.
+> + * It is this reason that clk_prepare and clk_enable are not mutually
+> + * exclusive.  In fact clk_prepare must be called before clk_enable.
+> + * Returns 0 on success, -EERROR otherwise.
+> + */
+> +int clk_prepare(struct clk *clk)
+> +{
+> +	int ret;
 > +
-> +clk_set_rate deserves a special mention because it is more complex than
-> +the other operations.  There are three key concepts to the common
-> +clk_set_rate implementation:
+> +	mutex_lock(&prepare_lock);
+> +	ret = __clk_prepare(clk);
+> +	mutex_unlock(&prepare_lock);
 > +
-> +1) recursively traversing up the clk tree and changing clk rates, one
-> +parent at a time, if each clk allows it
-> +2) failing to change rate if the clk is enabled and must only change
-> +rates while disabled
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_prepare);
+> +
+> +void __clk_disable(struct clk *clk)
+> +{
+> +	if (!clk)
+> +		return;
+> +
+> +	if (WARN_ON(clk->enable_count == 0))
+> +		return;
+> +
+> +	if (--clk->enable_count>  0)
+> +		return;
+> +
+> +	if (clk->ops->disable)
+> +		clk->ops->disable(clk);
+> +
+> +	if (clk->parent)
+> +		__clk_disable(clk->parent);
+> +}
+> +
+> +/**
+> + * clk_disable - perform the fast part of a clk gate
+> + * @clk: the clk being gated
+> + *
+> + * clk_disable must not sleep, which differentiates it from clk_unprepare.  In
+> + * a simple case, clk_disable can be used instead of clk_unprepare to gate a
+> + * clk if the operation is fast and will never sleep.  One example is a
+> + * SoC-internal clk which is controlled via simple register writes.  In the
+> + * complex case a clk gate operation may require a fast and a slow part.  It is
+> + * this reason that clk_unprepare and clk_disable are not mutually exclusive.
+> + * In fact clk_disable must be called before clk_unprepare.
+> + */
+> +void clk_disable(struct clk *clk)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&enable_lock, flags);
+> +	__clk_disable(clk);
+> +	spin_unlock_irqrestore(&enable_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(clk_disable);
+> +
+> +int __clk_enable(struct clk *clk)
+> +{
+> +	int ret = 0;
+> +
+> +	if (!clk)
+> +		return 0;
+> +
+> +	if (WARN_ON(clk->prepare_count == 0))
+> +		return -ESHUTDOWN;
+EPERM? EBADFD?
 
-Is this really true? Based on a quick glance at the other patches, it 
-doesn't look it disallows set rate if the clock is enabled. Which is 
-correct, because clock rates can be change while they are enabled (I'm 
-referring to leaf clocks) as long as the hardware supports doing it 
-correctly. So, this needs rewording? I'm guessing you are trying to say 
-that you can't change the parent rate if it has multiple enabled child 
-clocks running off of it and one of them wants to cause a parent rate 
-change? I'm not sure if even that should be enforced in the common code 
--- doesn't look like you do either.
+> +
+> +	if (clk->enable_count == 0) {
+> +		if (clk->parent)
+> +			ret = __clk_enable(clk->parent);
+> +
+> +		if (ret)
+> +			return ret;
+> +
+> +		if (clk->ops->enable) {
+> +			ret = clk->ops->enable(clk);
+> +			if (ret) {
+> +				__clk_disable(clk->parent);
+> +				return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	clk->enable_count++;
+> +	return 0;
+> +}
+> +
+> +/**
+> + * clk_enable - perform the slow part of a clk ungate
+> + * @clk: the clk being ungated
+> + *
+> + * clk_enable must not sleep, which differentiates it from clk_prepare.  In a
+> + * simple case, clk_enable can be used instead of clk_prepare to ungate a clk
+> + * if the operation will never sleep.  One example is a SoC-internal clk which
+> + * is controlled via simple register writes.  In the complex case a clk ungate
+> + * operation may require a fast and a slow part.  It is this reason that
+> + * clk_enable and clk_prepare are not mutually exclusive.  In fact clk_prepare
+> + * must be called before clk_enable.  Returns 0 on success, -EERROR
+> + * otherwise.
+> + */
+> +int clk_enable(struct clk *clk)
+> +{
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	spin_lock_irqsave(&enable_lock, flags);
+> +	ret = __clk_enable(clk);
+> +	spin_unlock_irqrestore(&enable_lock, flags);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_enable);
+> +
+> +/**
+> + * clk_get_rate - return the rate of clk
+> + * @clk: the clk whose rate is being returned
+> + *
+> + * Simply returns the cached rate of the clk.  Does not query the hardware.  If
+> + * clk is NULL then returns 0.
+> + */
+> +unsigned long clk_get_rate(struct clk *clk)
+> +{
+> +	if (!clk)
+> +		return 0;
+> +
+> +	return clk->rate;
 
-> +2) using clk rate change notifiers to allow devices to handle dynamic
-Must be 3)
-> +rate changes for clks which do support changing rates while enabled
+I think you need to grab the prepare_mutex here too. Otherwise another 
+call to clk_set_rate() could be changing clk->rate while it's being read 
+here. It shouldn't be a problem in ARM where I think 32bit reads are 
+atomic. But I'm not sure you can say the same for all archs.
 
-Again, I guess this applies to the other clock. Not the one for which 
-clk_set_rate() is being called.
+> +}
+> +EXPORT_SYMBOL_GPL(clk_get_rate);
+> +
+> +/**
+> + * clk_round_rate - round the given rate for a clk
+> + * @clk: the clk for which we are rounding a rate
+> + * @rate: the rate which is to be rounded
+> + *
+> + * Takes in a rate as input and rounds it to a rate that the clk can actually
+> + * use which is then returned.  If clk doesn't support round_rate operation
+> + * then the rate passed in is returned.
+> + */
+> +long clk_round_rate(struct clk *clk, unsigned long rate)
+> +{
+> +	if (clk&&  clk->ops->round_rate)
+> +		return clk->ops->round_rate(clk, rate, NULL);
+> +
+> +	return rate;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_round_rate);
+> +
+> +/**
+> + * clk_recalc_rates
+> + * @clk: first clk in the subtree
+> + *
+> + * Walks the subtree of clks starting with clk and recalculates rates as it
+> + * goes.  Note that if a clk does not implement the recalc_rate operation then
+> + * propagation of that subtree stops and all of that clks children will not
+> + * have their rates updated.  Caller must hold prepare_lock.
+
+May be call this functions __clk_recalc_rates() to match the naming 
+convention of the other fns that don't grab locks?
+
+> + */
+> +static void clk_recalc_rates(struct clk *clk)
+> +{
+> +	unsigned long old_rate;
+> +	struct hlist_node *tmp;
+> +	struct clk *child;
+> +
+> +	old_rate = clk->rate;
+> +
+> +	if (clk->ops->recalc_rate)
+> +		clk->rate = clk->ops->recalc_rate(clk);
+
+Any reason you can't just do "else return" instead of the check below? 
+That would be more straight-forward and also remove the need for old_rate.
 
 > +
-> +For the simple, non-recursive case the call graph looks like:
+> +	if (old_rate == clk->rate)
+> +		return;
 > +
-> +clk_set_rate(clk, rate);
-> +	__clk_set_rate(clk, rate);
-> +		clk->round_rate(clk, rate *parent_rate);
-> +		clk->set_rate(clk, rate);
+> +	/* FIXME add post-rate change notification here */
 > +
-> +You might be wondering what that third paramater in .round_rate is.  If
-> +a clk supports the CLK_PARENT_SET_RATE flag then that enables it's
-> +hardware-specific .round_rate function to provide a new rate that the
-> +parent should transition to.  For example, imagine a rate-adjustable clk
-> +A that is the parent of clk B, which has a fixed divider of 2.
+> +	hlist_for_each_entry(child, tmp,&clk->children, child_node)
+> +		clk_recalc_rates(child);
+> +}
 > +
-> +	clk A	(rate = 10MHz) (possible rates = 5MHz, 10MHz, 20MHz)
-> +	  |
-> +	  |
-> +	  |
-> +	clk B	(rate = 5MHz) (fixed divider of 2)
+> +/**
+> + * DOC: Using the CLK_PARENT_SET_RATE flag
+> + *
+> + * __clk_set_rate changes the child's rate before the parent's to more
+> + * easily handle failure conditions.
+> + *
+> + * This means clk might run out of spec for a short time if its rate is
+> + * increased before the parent's rate is updated.
+> + *
+> + * To prevent this consider setting the CLK_GATE_SET_RATE flag on any
+> + * clk where you also set the CLK_PARENT_SET_RATE flag
+> + */
+> +struct clk *__clk_set_rate(struct clk *clk, unsigned long rate)
+> +{
+> +	struct clk *fail_clk = NULL;
+> +	int ret;
+> +	unsigned long old_rate = clk->rate;
+> +	unsigned long new_rate;
+> +	unsigned long parent_old_rate;
+> +	unsigned long parent_new_rate = 0;
+> +	struct clk *child;
+> +	struct hlist_node *tmp;
 > +
-> +In the above scenario clk B will always have half the rate of clk A.  If
-> +clk B is to generate a 10MHz clk then clk A must generate 20MHz in turn.
-> +The driver writer could hack in knowledge of clk A, but in reality clk B
-> +drives the devices operation and the driver shouldn't know the details
-> +of the clk tree topology.  In this case it would be nice for clk B to
-> +propagate it's request up to clk A.
-> +
-> +Here the call graph for our above example:
-> +
-> +clk_set_rate(clk, rate);
-> +	__clk_set_rate(clk, rate);
-> +		clk->round_rate(clk, rate *parent_rate);
-> +		clk->set_rate(clk, rate);
-> +		__clk_set_rate(clk->parent, parent_rate);
-> +			clk->round_rate(clk, rate *parent_rate);
-> +			clk->set_rate(clk, rate);
-> +
-> +Note that the burden of figuring out whether to recurse upwards falls on
-> +the hardware-specific .round_rate function.  The common clk framework
-> +does not have the context to make such complicated decisions in a
-> +generic way for all platforms.
-> +
-> +Another caveat is that child clks might run at weird intermediate
-> +frequencies during a complex upwards propagation, as illustrated below:
-> +
-> +	clk A  (pll 100MHz - 300MHz)	(currently locked at 200MHz)
-> +	  |
-> +	  |
-> +	  |
-> +	clk B  (divide by 1 or 2)	(currently divide by 2, 100MHz)
-> +	  |
-> +	  |
-> +	  |
-> +	clk C  (divide by 1 or 2)	(currently divide by 1, 100MHz)
-> +
-> +The call graph below, with some bracketed annotations, describes how
-> +this might work with some clever .round_rate callbacks when trying to
-> +set clk C to run at 26MHz:
-> +
-> +clk_set_rate(C, 26MHz);
-> +	__clk_set_rate(C, 26MHz);
-> +		clk->round_rate(C, 26MHz, *parent_rate);
-> +		[ round_rate returns 50MHz ]
-> +		[&parent_rate is 52MHz ]
-> +		clk->set_rate(C, 50Mhz);
-> +		[ clk C is set to 50MHz, which sets divider to 2 ]
-> +		__clk_set_rate(clk->parent, parent_rate);
-> +			clk->round_rate(B, 52MHz, *parent_rate);
-> +			[ round_rate returns 100MHz ]
-> +			[&parent_rate is 104MHz ]
-> +			clk->set_rate(B, 100MHz);
-> +			[ clk B stays at 100MHz, divider stays at 2 ]
-> +			__clk_set_rate(clk->parent, parent_rate);
-> +				[ round_rate returns 104MHz ]
-> +				[&parent_rate is ignored ]
-> +				clk->set_rate(A, 104MHz);
-> +				[ clk A is set to 104MHz]
-> +
+> +	/* bail early if we can't change rate while clk is enabled */
+> +	if ((clk->flags&  CLK_GATE_SET_RATE)&&  clk->enable_count)
+> +		return clk;
 
-I will come back to this topic later on. I like the idea of propagating 
-the needs to the parent, but not sure if the current implementation will 
-work for all types of clock trees/set rates even though the HW might 
-actually allow it to be done right.
+Spacing fix near & and &&.
 
-> +The end result is that clk C runs at 26MHz.  Each .set_rate callback
-> +actually sets the intermediate rate, which nicely reflects reality.
-> +Once clk rate change notifiers are supported then it is expected that
-> +PRECHANGE notifiers will "stack" in situations with recursive
-> +clk_set_rate calls.
 > +
-> +Thus a driver X which subcribes to rate-change notifers for clk C would
-> +have received 2 PRECHANGE notifiers in the above example.  The first
-> +would have notified the driver that clk C was changing from 100MHz to
-> +50MHz.  The second PRECHANGE notifier would have told driver X that clk
-> +C had changed from 50MHz to 26MHz.  There would not be a PRECHANGE
-> +notifier corresponding to __clk_set_rate(B, 50MHz) since B is already
-> +running at that rate and the notification would be unnecessary.
+> +	/* find the new rate and see if parent rate should change too */
+> +	WARN_ON(!clk->ops->round_rate);
+
+It looks like you don't consider absence of round_rate as an error 
+(going by clk_round_rate()), so why warn on this? See below for 
+additional comments.
+
+> +	new_rate = clk->ops->round_rate(clk, rate,&parent_new_rate);
+
+Should we split the "figuring out the parent rate" and "round rate"?
+If any clock driver doesn't care for propagation (too simple clock tree 
+or very versatile clock tree), and doesn't want to implement 
+ops->round_rate, this code is still forcing them to implement 
+ops->round_rate(). But then clk_round_rate() thinks it's okay if that 
+ops->round_rate() is not implemented. This is a bit inconsistent.
+
+May be we should just add ops->propagate_parent() that is optional and 
+takes in the result of ops->round_rate()? If a clock needs propagation, 
+it will implement and return the new parent rate.
+
 > +
-> +clk_set_rate is written in such a way that POSTCHANGE notifiers and
-> +ABORTCHANGE notifiers will only be sent once.  Each will start
-> +propagation from the highest point in the tree which was affected by the
-> +operation.
+> +	/* FIXME propagate pre-rate change notification here */
+> +	/* XXX note that pre-rate change notifications will stack */
+> +
+> +	/* change the rate of this clk */
+> +	ret = clk->ops->set_rate(clk, new_rate);
+> +	if (ret)
+> +		return clk;
+> +
+> +	/*
+> +	 * change the rate of the parent clk if necessary
+> +	 *
+> +	 * hitting the nested 'if' path implies we have hit a .set_rate
+> +	 * failure somewhere upstream while propagating __clk_set_rate
+> +	 * up the clk tree.  roll back the clk rates one by one and
+> +	 * return the pointer to the clk that failed.  clk_set_rate will
+> +	 * use the pointer to propagate a rate-change abort notifier
+> +	 * from the "highest" point.
+> +	 */
+> +	if ((clk->flags&  CLK_PARENT_SET_RATE)&&  parent_new_rate) {
+> +		parent_old_rate = clk->parent->rate;
+> +		fail_clk = __clk_set_rate(clk->parent, parent_new_rate);
+> +
+> +		/* roll back changes if parent rate change failed */
+> +		if (fail_clk) {
+> +			pr_warn("%s: failed to set parent %s rate to %lu\n",
+> +					__func__, fail_clk->name,
+> +					parent_new_rate);
+> +			clk->ops->set_rate(clk, old_rate);
+> +		}
+> +		return fail_clk;
+> +	}
+> +
+> +	/*
+> +	 * set clk's rate&  recalculate the rates of clk's children
+> +	 *
+> +	 * hitting this path implies we have successfully finished
+> +	 * propagating recursive calls to __clk_set_rate up the clk tree
+> +	 * (if necessary) and it is safe to propagate clk_recalc_rates and
+> +	 * post-rate change notifiers down the clk tree from this point.
+> +	 */
+> +	clk->rate = new_rate;
+> +	/* FIXME propagate post-rate change notifier for only this clk */
+> +	hlist_for_each_entry(child, tmp,&clk->children, child_node)
+> +		clk_recalc_rates(child);
+> +
+> +	return fail_clk;
+> +}
+> +
+> +/**
+> + * clk_set_rate - specify a new rate for clk
+> + * @clk: the clk whose rate is being changed
+> + * @rate: the new rate for clk
+> + *
+> + * In the simplest case clk_set_rate will only change the rate of clk.
+> + *
+> + * If clk has the CLK_GATE_SET_RATE flag set and it is enabled this call
+> + * will fail; only when the clk is disabled will it be able to change
+> + * its rate.
+> + *
+> + * Setting the CLK_PARENT_SET_RATE flag allows clk_set_rate to
+> + * recursively propagate up to clk's parent; whether or not this happens
+> + * depends on the outcome of clk's .round_rate implementation.  If
+> + * *parent_rate is 0 after calling .round_rate then upstream parent
+> + * propagation is ignored.  If *parent_rate comes back with a new rate
+> + * for clk's parent then we propagate up to clk's parent and set it's
+> + * rate.  Upward propagation will continue until either a clk does not
+> + * support the CLK_PARENT_SET_RATE flag or .round_rate stops requesting
+> + * changes to clk's parent_rate.  If there is a failure during upstream
+> + * propagation then clk_set_rate will unwind and restore each clk's rate
+> + * that had been successfully changed.  Afterwards a rate change abort
+> + * notification will be propagated downstream, starting from the clk
+> + * that failed.
+> + *
+> + * At the end of all of the rate setting, clk_set_rate internally calls
+> + * clk_recalc_rates and propagates the rate changes downstream, starting
+> + * from the highest clk whose rate was changed.  This has the added
+> + * benefit of propagating post-rate change notifiers.
+> + *
+> + * Note that while post-rate change and rate change abort notifications
+> + * are guaranteed to be sent to a clk only once per call to
+> + * clk_set_rate, pre-change notifications will be sent for every clk
+> + * whose rate is changed.  Stacking pre-change notifications is noisy
+> + * for the drivers subscribed to them, but this allows drivers to react
+> + * to intermediate clk rate changes up until the point where the final
+> + * rate is achieved at the end of upstream propagation.
+> + *
+> + * Returns 0 on success, -EERROR otherwise.
+> + */
+> +int clk_set_rate(struct clk *clk, unsigned long rate)
+> +{
+> +	struct clk *fail_clk;
+> +	int ret = 0;
+> +
+> +	if (!clk->ops->set_rate)
+> +		return -ENOSYS;
+> +
+> +	/* bail early if nothing to do */
+> +	if (rate == clk->rate)
+> +		return rate;
+
+This check needs to be after the lock is taken.
+
+> +
+> +	/* prevent racing with updates to the clock topology */
+> +	mutex_lock(&prepare_lock);
+> +	fail_clk = __clk_set_rate(clk, rate);
+> +	if (fail_clk) {
+> +		pr_warn("%s: failed to set %s rate to %lu\n",
+> +				__func__, fail_clk->name, rate);
+
+Going by the current implementation, the "fail_clk" is not necessarily 
+the same as "clk". But the "rate" you are printing is always the rate 
+for "clk".
+
+if (fail_clk == clk)
+  print blah
+else
+  print blah bloo
+
+?
+
+> +		/* FIXME propagate rate change abort notification here */
+> +		ret = -EIO;
+> +	}
+> +	mutex_unlock(&prepare_lock);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_set_rate);
+> +
+> +/**
+> + * clk_get_parent - return the parent of a clk
+> + * @clk: the clk whose parent gets returned
+> + *
+> + * Simply returns clk->parent.  It is up to the caller to hold the
+> + * prepare_lock, if desired.  Returns NULL if clk is NULL.
+> + */
+> +struct clk *clk_get_parent(struct clk *clk)
+> +{
+> +	if (!clk)
+> +		return NULL;
+> +
+> +	return clk->parent;
+
+Same comment as get_rate(). I think this needs locking too to avoid 
+maligned reads.
+
+> +}
+> +EXPORT_SYMBOL_GPL(clk_get_parent);
+> +
+> +void __clk_reparent(struct clk *clk, struct clk *new_parent)
+> +{
+> +	hlist_del(&clk->child_node);
+> +	hlist_add_head(&clk->child_node,&new_parent->children);
+
+Check new_parent != NULL before trying to add the clock to its children 
+list?
+
+> +
+> +	clk->parent = new_parent;
+> +
+> +	/* FIXME update sysfs clock topology */
+> +}
+> +
+> +/**
+> + * clk_set_parent - switch the parent of a mux clk
+> + * @clk: the mux clk whose input we are switching
+> + * @parent: the new input to clk
+> + *
+> + * Re-parent clk to use parent as it's new input source.  If clk has the
+> + * CLK_GATE_SET_PARENT flag set then clk must be gated for this
+> + * operation to succeed.  After successfully changing clk's parent
+> + * clk_set_parent will update the clk topology, sysfs topology and
+> + * propagate rate recalculation via clk_recalc_rates.  Returns 0 on
+> + * success, -EERROR otherwise.
+> + */
+> +int clk_set_parent(struct clk *clk, struct clk *parent)
+> +{
+> +	int ret = 0;
+> +
+> +	if (!clk || !clk->ops)
+
+I would like NULL clocks to be treated as real/proper clocks. So, can we 
+split this into two "if"s please? And return 0 for (!clk)?
+
+> +		return -EINVAL;
+> +
+> +	if (!clk->ops->set_parent)
+> +		return -ENOSYS;
+> +
+> +	if (clk->parent == parent)
+> +		return 0;
+
+This check should be done after taking the lock.
+
+> +
+> +	/* prevent racing with updates to the clock topology */
+> +	mutex_lock(&prepare_lock);
+> +
+> +	/* FIXME add pre-rate change notification here */
+> +
+> +	/* only re-parent if the clock is not in use */
+> +	if ((clk->flags&  CLK_GATE_SET_PARENT)&&  clk->prepare_count)
+> +		ret = -EBUSY;
+> +	else
+> +		ret = clk->ops->set_parent(clk, parent);
+> +
+> +	if (ret<  0)
+> +		/* FIXME add rate change abort notification here */
+> +		goto out;
+> +
+> +	/* update tree topology */
+> +	__clk_reparent(clk, parent);
+> +
+> +	/*
+> +	 * If successful recalculate the rates of the clock, including
+> +	 * children.
+> +	 */
+> +	clk_recalc_rates(clk);
+> +
+> +out:
+> +	mutex_unlock(&prepare_lock);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_set_parent);
+> +
+> +/**
+> + * clk_init - initialize the data structures in a struct clk
+> + * @dev: device initializing this clk, placeholder for now
+> + * @clk: clk being initialized
+> + *
+> + * Initializes the lists in struct clk, queries the hardware for the
+> + * parent and rate and sets them both.  Adds the clk to the sysfs tree
+> + * topology.
+> + *
+> + * Caller must populate clk->name and clk->flags before calling
+> + * clk_init.  A key assumption in the call to .get_parent is that clks
+> + * are being initialized in-order.
+> + */
+> +void clk_init(struct device *dev, struct clk *clk)
+> +{
+> +	if (!clk)
+> +		return;
+> +
+> +	INIT_HLIST_HEAD(&clk->children);
+> +	INIT_HLIST_NODE(&clk->child_node);
+> +
+> +	mutex_lock(&prepare_lock);
+> +
+> +	if (clk->ops->get_parent) {
+> +		clk->parent = clk->ops->get_parent(clk);
+> +		if (clk->parent)
+> +			hlist_add_head(&clk->child_node,
+> +					&clk->parent->children);
+> +	} else
+> +		clk->parent = NULL;
+> +
+> +	if (clk->ops->recalc_rate)
+> +		clk->rate = clk->ops->recalc_rate(clk);
+> +	else
+> +		clk->rate = 0;
+> +
+> +	mutex_unlock(&prepare_lock);
+> +
+> +	return;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_init);
+
+Didn't review closely past this.
 
 Thanks,
 Saravana
