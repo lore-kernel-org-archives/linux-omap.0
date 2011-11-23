@@ -1,39 +1,106 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/7] Introducing a generic AMP framework
-Date: Wed, 23 Nov 2011 16:10:14 +0000
-Message-ID: <20111123161012.GA31423@sirena.org.uk>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
- <4ECC67B9.4050306@codeaurora.org>
- <CAK=WgbYyrbZLmDOx8yKWwjhn2MYN8669FDRvsYZSyLj1equcTw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [RFC/PATCH 6/6] cbus: retu: implement irq_domain support
+Date: Wed, 23 Nov 2011 18:59:00 +0200
+Message-ID: <20111123165857.GA1839@legolas.emea.dhcp.ti.com>
+References: <1322056848-1188-1-git-send-email-balbi@ti.com>
+ <1322056848-1188-7-git-send-email-balbi@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:39834 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754652Ab1KWQ7D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Nov 2011 11:59:03 -0500
+Received: by mail-yw0-f53.google.com with SMTP id 19so429217ywm.40
+        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 08:59:02 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <CAK=WgbYyrbZLmDOx8yKWwjhn2MYN8669FDRvsYZSyLj1equcTw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Saravana Kannan <skannan@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1322056848-1188-7-git-send-email-balbi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Wed, Nov 23, 2011 at 12:27:31PM +0200, Ohad Ben-Cohen wrote:
-> On Wed, Nov 23, 2011 at 5:25 AM, Saravana Kannan <skannan@codeaurora.org> wrote:
 
-> > Sorry for the rant, this naming just rubs me the wrong way. I definitely
-> > appreciate the idea behind these patches.
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I don't share the same naming concerns you have (if any, then
-> confusion with the bluetooth AMP patches and prefixes is more of a
-> concern to me), but I don't care deeply about names.
+Hi,
 
-I guess one very real potential for confusion here is the big/little
-stuff that ARM are pushing for next generation SoCs where a Linux image
-does actually run on muliple asymmetric cores.
+On Wed, Nov 23, 2011 at 04:00:48PM +0200, Felipe Balbi wrote:
+> Then, when moving to devicetree, we can list
+> IRQs as 1, 2, 3. It's the only way to have a
+> sane devicetree actually.
+>=20
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/cbus/retu.c |   42 +++++++++++++++++++++++++++---------------
+>  1 files changed, 27 insertions(+), 15 deletions(-)
+>=20
+> diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
+> index 25fa405..f25e0a3 100644
+> --- a/drivers/cbus/retu.c
+> +++ b/drivers/cbus/retu.c
+> @@ -25,7 +25,7 @@
+> =20
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+> -
+> +#include <linux/irqdomain.h>
+>  #include <linux/slab.h>
+>  #include <linux/kernel.h>
+>  #include <linux/errno.h>
+> @@ -46,6 +46,7 @@ struct retu {
+>  	struct mutex		mutex;
+>  	struct device		*dev;
+> =20
+> +	struct irq_domain	irq_domain;
+>  	struct irq_chip		irq_chip;
+> =20
+>  	int			irq_base;
+> @@ -199,11 +200,9 @@ static irqreturn_t retu_irq_handler(int irq, void *_=
+retu)
+> =20
+>  	while (idr) {
+>  		unsigned long	pending =3D __ffs(idr);
+> -		unsigned int	irq;
+> =20
+>  		idr &=3D ~BIT(pending);
+> -		irq =3D pending + retu->irq_base;
+> -		handle_nested_irq(irq);
+> +		handle_nested_irq(pending);
 
-> Feel free to offer a different name, though really 'amp' here only
-> describes the general model and motivation and is rarely used
-> throughout the code; we mostly either use 'remoteproc' or 'rpmsg',
-> which respectively refer to the two frameworks that are being added
-> (the former responsible for controlling the state of the remote
-> processors, and the latter for communicating with them).
+This is particular, I'm not sure if it's correct. Not sure if we should
+use hw IRQ number of linux IRQ number. A boot test should be enough to
+verify though.
 
-How about using remoteproc then?
+--=20
+balbi
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJOzSZRAAoJEIaOsuA1yqREg3wP/jmFibzLIAhNw2p2uIWD8Hsa
+HwT/qPmMpgGWAOvB1JichUEoNsFxe8vQMH4EapzBVia8/9/9ZhtIfYoEjDeBb35g
+/tYT7ACoVEBoHZPuSlTrwxysaIp2Vh+aU5SPXHiq4Or4pjabSTxTz+8kihQh1vJu
+6XWyeZt6PnCN2Dzg/364+VHNvBZjSJqew4JTywqsUsGxuT2+yoJ6RhoeAOG8wGSX
+NQW8caamNzUbxaM0UhysTNuQNPQtCYJQJAYKR9TdgHNyNuzEzKl1znr+BcOBOb08
+vlGAvzgxeXM7ZqovwwFZvLTODB+bm7USbQM5ZS+ge2IfCemRfFciZzds3DTx5jRL
+uU+VmQwgHeSbcGHRrwuFM1RJI9qDYByBXBdXsxKPH63rIpgcGeomh+fGnf+6jT7p
+sPTH9kj4im700lr5VwKaQAYmh48c2CGhg5bWz2AtLlX74d17FcOXFyX6BfwqLFRS
+0hNNHL1Kl9GLDJVRAUN/WrCYLQA7G32Ld/6EoMHzdOMzqjs29yrP27MOjjFgQRNb
+6swdrIBCI61cXKjoHxx41EIKrtbKye0UuXKMzgoa90zK16uiLU33F9m+5ftR8Dn8
+m+EQMFI6zcxGukI30h1Ju15brAMh2629SowOxR19+K1wyibKZwBs7ivrbZya+rsp
+VLqTNDPtseQv/5VwCA5n
+=uHdp
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
