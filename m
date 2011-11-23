@@ -1,220 +1,74 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 1/7] amp/remoteproc: add framework for controlling remote
- processors
-Date: Tue, 22 Nov 2011 19:27:52 -0800
-Message-ID: <4ECC6838.1010009@codeaurora.org>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com> <1319536106-25802-2-git-send-email-ohad@wizery.com>
+From: Saravana Kannan <skannan@codeaurora.org>
+Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
+Date: Tue, 22 Nov 2011 19:48:52 -0800
+Message-ID: <4ECC6D24.9030509@codeaurora.org>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-6-git-send-email-mturquette@linaro.org> <20111122154900.GB18954@kroah.com> <CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com> <20111122191347.GB4844@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1319536106-25802-2-git-send-email-ohad@wizery.com>
+In-Reply-To: <20111122191347.GB4844@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Greg KH <greg@kroah.com>, Saravana Kannan <skannan@codeaurora.org>
+To: Greg KH <greg@kroah.com>
+Cc: Mike Turquette <mturquette@linaro.org>, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, jeremy.kerr@canonical.com, Mike Turquette <mturquette@ti.com>, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
 List-Id: linux-omap@vger.kernel.org
 
-On 10/25/11 02:48, Ohad Ben-Cohen wrote:
-> +static int rproc_load_segments(struct rproc *rproc, const u8 *elf_data)
-> +{
-> +	struct device *dev = rproc->dev;
-> +	struct elf32_hdr *ehdr;
-> +	struct elf32_phdr *phdr;
-> +	int i, ret = 0;
-> +
-> +	ehdr = (struct elf32_hdr *)elf_data;
-> +	phdr = (struct elf32_phdr *)(elf_data + ehdr->e_phoff);
-> +
-> +	/* go through the available ELF segments */
-> +	for (i = 0; i < ehdr->e_phnum; i++, phdr++) {
-> +		u32 da = phdr->p_paddr;
-> +		u32 memsz = phdr->p_memsz;
-> +		u32 filesz = phdr->p_filesz;
-> +		void *ptr;
-> +
-> +		if (phdr->p_type != PT_LOAD)
-> +			continue;
-> +
-> +		dev_dbg(dev, "phdr: type %d da 0x%x memsz 0x%x filesz 0x%x\n",
-> +					phdr->p_type, da, memsz, filesz);
-> +
-> +		if (filesz > memsz) {
-> +			dev_err(dev, "bad phdr filesz 0x%x memsz 0x%x\n",
-> +							filesz, memsz);
-> +			ret = -EINVAL;
-> +			break;
-> +		}
-> +
-> +		/* grab the kernel address for this device address */
-> +		ptr = rproc_da_to_va(rproc, da, memsz);
-> +		if (!ptr) {
-> +			dev_err(dev, "bad phdr da 0x%x mem 0x%x\n", da, memsz);
-> +			ret = -EINVAL;
-> +			break;
-> +		}
-> +
-> +		/* put the segment where the remote processor expects it */
-> +		if (phdr->p_filesz)
-> +			memcpy(ptr, elf_data + phdr->p_offset, filesz);
+On 11/22/2011 11:13 AM, Greg KH wrote:
+> On Tue, Nov 22, 2011 at 09:57:41AM -0800, Mike Turquette wrote:
+>>> Ah, comments like this warm my heart.
+>>>
+>>> Come on, no abusing the kobject code please, if have problems with how
+>>> the kernel core works, and it doesn't do things you want it to, then why
+>>> not change it to work properly for you, or at the least, ASK ME!!!
+>>
+>> Ok, I'm asking you now.  There are two ways to solve this problem:
+>>
+>> 1) have kobject core create the lists linking the objects but defer
+>> allocations and any interactions with sysfs until later in the boot
+>> sequence, OR
+>>
+>> 2) my code can create a list of clks (the same way that clkdev does)
+>> and defer kobject/sysfs stuff until later, which walks the list made
+>> during early-boot
+>>
+>> #1 is most closely aligned with the code I have here, #2 presents
+>> challenges that I haven't really though through.  I know that OMAP
+>> uses the clk framework VERY early in it's boot sequence, but as long
+>> as the per-clk data is properly initialized then it should be OK.
+>>
+>> What do you think?
+>
+> #3 - use debugfs and don't try to create a sysfs interface for the clock
+> structures :)
 
-How big are the images you're loading? I had to split the memcpy up into
-megabyte chunks because I was running out of virtual memory to map in
-two huge chunks (one for the firmware and one for the image's resting
-place). This may work for now, but I think it will fail for limited
-virtual memory environments. Unless CMA solves this problem?
+I would prefer debugfs too, but for my own selfish reasons. In our 
+current implementation, we have debugfs files: turn on/off a clock, to 
+measure a clock (yeah, we have a "measuring" hw block inside the SoC), 
+list the supported rates of a clock, etc. We use these files to test the 
+clock driver. These certainly would not be acceptable candidates for sysfs.
 
-Also, this code assumes the firmware is actually as big as the elf
-header says it is. It should be checking to make sure the elf_data is
-actually big enough to copy from.
+If the common clock framework uses sysfs for the tree, then the mach-msm 
+will have to have its own implementation of debugfs. That's not so nice 
+for two reasons:
+1. I think these files would be useful for other arch/machs too, but it 
+would be odd for the common clock code to expose sysfs and debugfs files 
+for each clock.
+2. Since it won't be in the common code, each arch/mach will be 
+repeating the debugfs code to expose their own enable/disable files.
 
-> +
-> +		/*
-> +		 * Zero out remaining memory for this segment.
-> +		 *
-> +		 * This isn't strictly required since dma_alloc_coherent already
-> +		 * did this for us. albeit harmless, we may consider removing
-> +		 * this.
-> +		 */
-> +		if (memsz > filesz)
-> +			memset(ptr + filesz, 0, memsz - filesz);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-[...]
-> +int rproc_register(struct rproc *rproc)
-> +{
-> +	struct device *dev = rproc->dev;
-> +	int ret = 0;
-> +
-> +	/* expose to rproc_get_by_name users */
-> +	klist_add_tail(&rproc->node, &rprocs);
-> +
-> +	dev_info(rproc->dev, "%s is available\n", rproc->name);
-> +
-> +	/* create debugfs entries */
-> +	rproc_create_debug_dir(rproc);
-> +
-> +	/* rproc_unregister() calls must wait until async loader completes */
-> +	init_completion(&rproc->firmware_loading_complete);
-> +
-> +	/*
-> +	 * We must retrieve early virtio configuration info from
-> +	 * the firmware (e.g. whether to register a virtio rpmsg device,
-> +	 * what virtio features does it support, ...).
-> +	 *
-> +	 * We're initiating an asynchronous firmware loading, so we can
-> +	 * be built-in kernel code, without hanging the boot process.
-> +	 */
-> +	ret = request_firmware_nowait(THIS_MODULE, FW_ACTION_HOTPLUG,
-> +					rproc->firmware, dev, GFP_KERNEL,
-> +					rproc, rproc_fw_config_virtio);
+To me, the ideal choice would be for each clocks to have a directory 
+under /debug/clk/ without following the clock topology. Then, inside 
+each clock specific directory, there will be an enable, rate, parent 
+(symlink to parent clock dir under /debug/clk/) files.
 
-This is a bit odd. If I understand correctly, you load the firmware at
-least twice. Once to see if the firmware has any virtio devices in the
-resource table, and again when the image is actually loaded into RAM. Is
-there any way to avoid loading it twice? I ask because we have something
-like a 20Mb image that needs to be loaded and I'd like to avoid loading
-it twice just to read a section out of it the first time.
+The clock specific drivers will be able to get the handle to the clk 
+specific debugfs directory and add their own extra files. Or could be 
+made to pass a list of file/ops/perms as part of the 
+clock_init/registration.
 
-> +	if (ret < 0) {
-> +		dev_err(dev, "request_firmware_nowait failed: %d\n", ret);
-> +		complete_all(&rproc->firmware_loading_complete);
-> +		klist_remove(&rproc->node);
-> +	}
-> +
-> +	return ret;
-> +}
-[...]
-> +struct rproc *rproc_alloc(struct device *dev, const char *name,
-> +				const struct rproc_ops *ops,
-> +				const char *firmware, int len)
-> +{
-> +	struct rproc *rproc;
-> +
-> +	if (!dev || !name || !ops)
-> +		return NULL;
-> +
-> +	rproc = kzalloc(sizeof(struct rproc) + len, GFP_KERNEL);
-> +	if (!rproc) {
-> +		dev_err(dev, "%s: kzalloc failed\n", __func__);
-> +		return NULL;
-> +	}
-> +
-> +	rproc->dev = dev;
+Thanks,
+Saravana
 
-What do you do if dev goes away? Does request_firmware() work? What do
-you think about making remoteproc into a bus? I imagine this function
-would allocate a struct device and then rproc_register() would actually
-hook it into the device layer. Then we could use the device we allocate
-here for the firmware requests and we also have a nice namespace for all
-remote processors in the system. Plus all the management code for
-refcounting would come for free with the device layer (modulo the
-rproc_boot() count).
-
-> +	rproc->name = name;
-> +	rproc->ops = ops;
-> +	rproc->firmware = firmware;
-> +	rproc->priv = &rproc[1];
-> +
-> +	atomic_set(&rproc->power, 0);
-> +
-> +	kref_init(&rproc->refcount);
-> +
-> +	mutex_init(&rproc->lock);
-> +
-> +	INIT_LIST_HEAD(&rproc->carveouts);
-> +	INIT_LIST_HEAD(&rproc->mappings);
-> +	INIT_LIST_HEAD(&rproc->traces);
-> +
-> +	rproc->state = RPROC_OFFLINE;
-> +
-> +	return rproc;
-> +}
-> +EXPORT_SYMBOL(rproc_alloc);
-> +
-[...]
-> +/**
-> + * enum fw_resource_type - types of resource entries
-> + *
-> + * @RSC_CARVEOUT:   request for allocation of a physically contiguous
-> + *		    memory region.
-> + * @RSC_DEVMEM:     request to iommu_map a memory-based peripheral.
-> + * @RSC_TRACE:	    announces the availability of a trace buffer into which
-> + *		    the remote processor will be writing logs. In this case,
-> + *		    'da' indicates the device address where logs are written to,
-> + *		    and 'len' is the size of the trace buffer.
-> + * @RSC_VRING:	    request for allocation of a virtio vring (address should
-> + *		    be indicated in 'da', and 'len' should contain the number
-> + *		    of buffers supported by the vring).
-> + * @RSC_VIRTIO_DEV: this entry declares about support for a virtio device,
-
-What is RSC_VIRTIO_CFG?
-
-> +enum fw_resource_type {
-> +	RSC_CARVEOUT	= 0,
-> +	RSC_DEVMEM	= 1,
-> +	RSC_TRACE	= 2,
-> +	RSC_VRING	= 3,
-> +	RSC_VIRTIO_DEV	= 4,
-> +	RSC_VIRTIO_CFG	= 5,
-> +};
-
-For MSM I see two main pain points:
-
- * CMA is new and untested on MSM. I imagine in MSM's situation we would
-carve out the memory chunks early on for each processor and then only
-remove that memory if the processor is booted? I hope that just works
-somehow.
-
- * rproc is tied to virtio fairly closely. We probably won't be using
-virtio anytime soon on MSM, unless we can do smd over virtio or
-something. I'm not particularly knowledgeable about that though. Would
-something like that be possible?
-
-We would also have to keep using the rproc_get_by_name() approach until
-we can actually start tying rproc devices to other devices in the kernel.
 
 -- 
 Sent by an employee of the Qualcomm Innovation Center, Inc.
