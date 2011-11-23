@@ -1,234 +1,104 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 42/65] OMAPDSS: DSI: call mgr_enable/disable for cmd mode
- displays
-Date: Wed, 23 Nov 2011 15:40:20 +0530
-Message-ID: <4ECCC68C.7070106@ti.com>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com> <1321953724-6350-43-git-send-email-tomi.valkeinen@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 41/65] OMAPDSS: APPLY: add missing uses of spinlock
+Date: Wed, 23 Nov 2011 12:12:23 +0200
+Message-ID: <1322043143.28917.33.camel@deskari>
+References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1321953724-6350-42-git-send-email-tomi.valkeinen@ti.com>
+	 <4ECCC332.4050608@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Gp0/w26QbZtIc+V2JnvU"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53679 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750884Ab1KWKKt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 05:10:49 -0500
-In-Reply-To: <1321953724-6350-43-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:54248 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751533Ab1KWKMd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Nov 2011 05:12:33 -0500
+In-Reply-To: <4ECCC332.4050608@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Archit Taneja <a0393947@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
-On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
-> The current code uses dsi_video_mode_enable/disable functions to
-> enable/disable DISPC output for video mode displays. For command mode
-> displays we have no notion in the DISPC side of whether the panel is
-> enabled, except when a dss_start_update() call is made.
->
-> However, to properly maintain the DISPC state in apply.c, we need to
-> know if a manager used for a manual update display is currently in use.
->
-> This patch achieves that by changing dsi_video_mode_enable/disable to
-> dsi_enable/disable_video_output, which is called by both video and
-> command mode displays. For video mode displays it starts the actual
-> pixel stream, as it did before. For command mode displays it doesn't do
-> anything else than mark that the manager is currently in use.
 
-dsi_video_mode_enable() doesn't only enable the DISPC output, it also 
-sends the long packet header to start video mode transfer.
+--=-Gp0/w26QbZtIc+V2JnvU
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I think it would be better if we had 2 separate functions, one which 
-starts/stops DSI video mode, and the other which enables/disables the 
-DISPC video port.
+On Wed, 2011-11-23 at 15:26 +0530, Archit Taneja wrote:
+> On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
 
-This way, a manual update panel would need to call only 
-dsi_enable/disable_video_output(which just enables or disables the 
-manager), whereas a video mode panel will need to call both.
+> >   int dss_mgr_set_device(struct omap_overlay_manager *mgr,
+> > @@ -745,16 +762,28 @@ err:
+> >   int dss_ovl_set_info(struct omap_overlay *ovl,
+> >   		struct omap_overlay_info *info)
+> >   {
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&data_lock, flags);
+> > +
+> >   	ovl->info =3D *info;
+> >   	ovl->info_dirty =3D true;
+> >
+> > +	spin_unlock_irqrestore(&data_lock, flags);
+> > +
+> >   	return 0;
+> >   }
+> >
+> >   void dss_ovl_get_info(struct omap_overlay *ovl,
+> >   		struct omap_overlay_info *info)
+> >   {
+> > +	unsigned long flags;
+> > +
+> > +	spin_lock_irqsave(&data_lock, flags);
+> > +
+> >   	*info =3D ovl->info;
+> > +
+> > +	spin_unlock_irqrestore(&data_lock, flags);
+> >   }
+>=20
+> The get/set info functions for overlays and managers only modify the=20
+> omap_overlay_info or manager_info structs, these aren't really a part of=
+=20
+> 'dss_data', they only become a part of dss_data only when we call=20
+> mgr->apply().
+>=20
+> So, are we protecting these functions so that 2 users of the same=20
+> overlay don't see incorrect info values?
 
-This is just a suggestion though. It's probably okay to have both in the 
-same function too. We might have to separate them out later if we were 
-planning to standardise mipi dsi across SoCs.
+True, at this point the data_lock is a bit vague, and is protecting also
+the info fields in omap_overlay and omap_overlay_manager.
 
-Archit
+A lock is needed, though, as otherwise the info struct may be only
+partial. E.g. somebody calls set_info, which is half way copying the
+values, and somebody else calls apply or get_info.
 
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> ---
->   drivers/video/omap2/displays/panel-taal.c |    6 ++
->   drivers/video/omap2/dss/apply.c           |    6 ++-
->   drivers/video/omap2/dss/dsi.c             |   73 +++++++++++++++-------------
->   include/video/omapdss.h                   |    4 +-
->   4 files changed, 51 insertions(+), 38 deletions(-)
->
-> diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
-> index dd64bd1..00c5c61 100644
-> --- a/drivers/video/omap2/displays/panel-taal.c
-> +++ b/drivers/video/omap2/displays/panel-taal.c
-> @@ -1182,6 +1182,10 @@ static int taal_power_on(struct omap_dss_device *dssdev)
->   	if (r)
->   		goto err;
->
-> +	r = dsi_enable_video_output(dssdev, td->channel);
-> +	if (r)
-> +		goto err;
-> +
->   	td->enabled = 1;
->
->   	if (!td->intro_printed) {
-> @@ -1211,6 +1215,8 @@ static void taal_power_off(struct omap_dss_device *dssdev)
->   	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
->   	int r;
->
-> +	dsi_disable_video_output(dssdev, td->channel);
-> +
->   	r = taal_dcs_write_0(td, MIPI_DCS_SET_DISPLAY_OFF);
->   	if (!r)
->   		r = taal_sleep_in(td);
-> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-> index 9ad2a36..66f4c56 100644
-> --- a/drivers/video/omap2/dss/apply.c
-> +++ b/drivers/video/omap2/dss/apply.c
-> @@ -648,7 +648,8 @@ void dss_mgr_enable(struct omap_overlay_manager *mgr)
->   {
->   	mutex_lock(&apply_lock);
->
-> -	dispc_mgr_enable(mgr->id, true);
-> +	if (!mgr_manual_update(mgr))
-> +		dispc_mgr_enable(mgr->id, true);
->   	mgr->enabled = true;
->
->   	mutex_unlock(&apply_lock);
-> @@ -658,7 +659,8 @@ void dss_mgr_disable(struct omap_overlay_manager *mgr)
->   {
->   	mutex_lock(&apply_lock);
->
-> -	dispc_mgr_enable(mgr->id, false);
-> +	if (!mgr_manual_update(mgr))
-> +		dispc_mgr_enable(mgr->id, false);
->   	mgr->enabled = false;
->
->   	mutex_unlock(&apply_lock);
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index 08d3de90..a35f3fb 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -3939,65 +3939,70 @@ static void dsi_proto_timings(struct omap_dss_device *dssdev)
->   	}
->   }
->
-> -int dsi_video_mode_enable(struct omap_dss_device *dssdev, int channel)
-> +int dsi_enable_video_output(struct omap_dss_device *dssdev, int channel)
->   {
->   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
->   	int bpp = dsi_get_pixel_size(dssdev->panel.dsi_pix_fmt);
->   	u8 data_type;
->   	u16 word_count;
->
-> -	switch (dssdev->panel.dsi_pix_fmt) {
-> -	case OMAP_DSS_DSI_FMT_RGB888:
-> -		data_type = MIPI_DSI_PACKED_PIXEL_STREAM_24;
-> -		break;
-> -	case OMAP_DSS_DSI_FMT_RGB666:
-> -		data_type = MIPI_DSI_PIXEL_STREAM_3BYTE_18;
-> -		break;
-> -	case OMAP_DSS_DSI_FMT_RGB666_PACKED:
-> -		data_type = MIPI_DSI_PACKED_PIXEL_STREAM_18;
-> -		break;
-> -	case OMAP_DSS_DSI_FMT_RGB565:
-> -		data_type = MIPI_DSI_PACKED_PIXEL_STREAM_16;
-> -		break;
-> -	default:
-> -		BUG();
-> -	};
-> +	if (dssdev->panel.dsi_mode == OMAP_DSS_DSI_VIDEO_MODE) {
-> +		switch (dssdev->panel.dsi_pix_fmt) {
-> +		case OMAP_DSS_DSI_FMT_RGB888:
-> +			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_24;
-> +			break;
-> +		case OMAP_DSS_DSI_FMT_RGB666:
-> +			data_type = MIPI_DSI_PIXEL_STREAM_3BYTE_18;
-> +			break;
-> +		case OMAP_DSS_DSI_FMT_RGB666_PACKED:
-> +			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_18;
-> +			break;
-> +		case OMAP_DSS_DSI_FMT_RGB565:
-> +			data_type = MIPI_DSI_PACKED_PIXEL_STREAM_16;
-> +			break;
-> +		default:
-> +			BUG();
-> +		};
->
-> -	dsi_if_enable(dsidev, false);
-> -	dsi_vc_enable(dsidev, channel, false);
-> +		dsi_if_enable(dsidev, false);
-> +		dsi_vc_enable(dsidev, channel, false);
->
-> -	/* MODE, 1 = video mode */
-> -	REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 1, 4, 4);
-> +		/* MODE, 1 = video mode */
-> +		REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 1, 4, 4);
->
-> -	word_count = DIV_ROUND_UP(dssdev->panel.timings.x_res * bpp, 8);
-> +		word_count = DIV_ROUND_UP(dssdev->panel.timings.x_res * bpp, 8);
->
-> -	dsi_vc_write_long_header(dsidev, channel, data_type, word_count, 0);
-> +		dsi_vc_write_long_header(dsidev, channel, data_type,
-> +				word_count, 0);
->
-> -	dsi_vc_enable(dsidev, channel, true);
-> -	dsi_if_enable(dsidev, true);
-> +		dsi_vc_enable(dsidev, channel, true);
-> +		dsi_if_enable(dsidev, true);
-> +	}
->
->   	dss_mgr_enable(dssdev->manager);
->
->   	return 0;
->   }
-> -EXPORT_SYMBOL(dsi_video_mode_enable);
-> +EXPORT_SYMBOL(dsi_enable_video_output);
->
-> -void dsi_video_mode_disable(struct omap_dss_device *dssdev, int channel)
-> +void dsi_disable_video_output(struct omap_dss_device *dssdev, int channel)
->   {
->   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
->
-> -	dsi_if_enable(dsidev, false);
-> -	dsi_vc_enable(dsidev, channel, false);
-> +	if (dssdev->panel.dsi_mode == OMAP_DSS_DSI_VIDEO_MODE) {
-> +		dsi_if_enable(dsidev, false);
-> +		dsi_vc_enable(dsidev, channel, false);
->
-> -	/* MODE, 0 = command mode */
-> -	REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 0, 4, 4);
-> +		/* MODE, 0 = command mode */
-> +		REG_FLD_MOD(dsidev, DSI_VC_CTRL(channel), 0, 4, 4);
->
-> -	dsi_vc_enable(dsidev, channel, true);
-> -	dsi_if_enable(dsidev, true);
-> +		dsi_vc_enable(dsidev, channel, true);
-> +		dsi_if_enable(dsidev, true);
-> +	}
->
->   	dss_mgr_disable(dssdev->manager);
->   }
-> -EXPORT_SYMBOL(dsi_video_mode_disable);
-> +EXPORT_SYMBOL(dsi_disable_video_output);
->
->   static void dsi_update_screen_dispc(struct omap_dss_device *dssdev,
->   		u16 w, u16 h)
-> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-> index eaeca89..25ef771 100644
-> --- a/include/video/omapdss.h
-> +++ b/include/video/omapdss.h
-> @@ -294,8 +294,8 @@ int dsi_vc_set_max_rx_packet_size(struct omap_dss_device *dssdev, int channel,
->   		u16 len);
->   int dsi_vc_send_null(struct omap_dss_device *dssdev, int channel);
->   int dsi_vc_send_bta_sync(struct omap_dss_device *dssdev, int channel);
-> -int dsi_video_mode_enable(struct omap_dss_device *dssdev, int channel);
-> -void dsi_video_mode_disable(struct omap_dss_device *dssdev, int channel);
-> +int dsi_enable_video_output(struct omap_dss_device *dssdev, int channel);
-> +void dsi_disable_video_output(struct omap_dss_device *dssdev, int channel);
->
->   /* Board specific data */
->   struct omap_dss_board_info {
+In the next patches the infos will be moved into the dss_data, and then
+using dss_lock spin lock makes more sense.
+
+ Tomi
+
+
+--=-Gp0/w26QbZtIc+V2JnvU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJOzMcHAAoJEPo9qoy8lh71B3YP/A56TyVkP3QSmaCIg9wzQqCg
+Z1/p1APU4PddFlL/M00dTSC+lH41Qpjsa4g4E+aTRCjST3ObwC14DoZw8t5+X2Bv
+t2GMJGPpTUCXhsG/V3Ia+1G2IJeY0CZsvOeCbIlvRmUGD6euLvpVeEX+TjDrtTN5
+cPDl4XV8b0y8KN5VmwtREz6QZ3x+ncMiRomRCQqrNbkAu+e+FmTce9TLb8moiiH0
++RbMWq+u7EP8DHGyv0sVxyWIb9Tk9Nj9PiBO1sA7bP2w2xKWu6nCphriZGOlo61s
+KFJcNyb5TeZb1iJdcemNC+jN9b2so5wmGg4YQw8ugEUHJuI4ca0S9Lu/2vJQbUMK
+x5PRGxGo/CTI798RF3BBxeLcmVBIgGsheSm9Hz1/brZFth9KMl3WK5ju4RbUisUt
+y2K3rqlu+B4N/Wwroz7FC7+AIfkYxN6+zz0saruZaloGViBSAuxc7PctxDq2fkt4
+RDSy3F6UBti/VmHaKEjhmgJcQs7LA+oFiQEmJD7/EsYQH0QO/8fk58kPx5PIwlxm
+ktiXu5hTaJj7Z9gWGye5CM/Pkc9Z1y8IDPM6YbqO0K5HD0juY1EZ/3x+0+gQ+m2M
+h9Kj+XI9BfnruWZ/YaLPwzo28YVM2EMzBDbc+1sjYmaTVGj5dNPXS0t9T4KXUwdK
+8KClTUVEb/qWO0Zb++ap
+=VsZe
+-----END PGP SIGNATURE-----
+
+--=-Gp0/w26QbZtIc+V2JnvU--
 
