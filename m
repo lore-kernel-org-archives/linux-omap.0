@@ -1,77 +1,53 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
-Date: Wed, 23 Nov 2011 12:43:43 -0800
-Message-ID: <CAJOA=zNQb5448Xh6weiow5pcO6C=DwNxOknXW18C5RYvH_s75g@mail.gmail.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
- <1321926047-14211-6-git-send-email-mturquette@linaro.org> <20111122154900.GB18954@kroah.com>
- <CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com>
- <20111122191347.GB4844@kroah.com> <4ECC6D24.9030509@codeaurora.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap fixes for v3.2-rc2
+Date: Wed, 23 Nov 2011 21:15:40 +0000
+Message-ID: <201111232115.41035.arnd@arndb.de>
+References: <20111119194408.GD31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:37020 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751616Ab1KWUoF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 15:44:05 -0500
-In-Reply-To: <4ECC6D24.9030509@codeaurora.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:61778 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753283Ab1KWVPn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Nov 2011 16:15:43 -0500
+In-Reply-To: <20111119194408.GD31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Saravana Kannan <skannan@codeaurora.org>
-Cc: Greg KH <greg@kroah.com>, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, jeremy.kerr@canonical.com, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Olof Johansson <olof@lixom.net>
 
-On Tue, Nov 22, 2011 at 7:48 PM, Saravana Kannan <skannan@codeaurora.or=
-g> wrote:
-> On 11/22/2011 11:13 AM, Greg KH wrote:
->>
->> On Tue, Nov 22, 2011 at 09:57:41AM -0800, Mike Turquette wrote:
->>>>
->>>> Ah, comments like this warm my heart.
->>>>
->>>> Come on, no abusing the kobject code please, if have problems with=
- how
->>>> the kernel core works, and it doesn't do things you want it to, th=
-en why
->>>> not change it to work properly for you, or at the least, ASK ME!!!
->>>
->>> Ok, I'm asking you now. =A0There are two ways to solve this problem=
-:
->>>
->>> 1) have kobject core create the lists linking the objects but defer
->>> allocations and any interactions with sysfs until later in the boot
->>> sequence, OR
->>>
->>> 2) my code can create a list of clks (the same way that clkdev does=
-)
->>> and defer kobject/sysfs stuff until later, which walks the list mad=
-e
->>> during early-boot
->>>
->>> #1 is most closely aligned with the code I have here, #2 presents
->>> challenges that I haven't really though through. =A0I know that OMA=
-P
->>> uses the clk framework VERY early in it's boot sequence, but as lon=
-g
->>> as the per-clk data is properly initialized then it should be OK.
->>>
->>> What do you think?
->>
->> #3 - use debugfs and don't try to create a sysfs interface for the c=
-lock
->> structures :)
->
-> I would prefer debugfs too, but for my own selfish reasons. In our cu=
-rrent
+On Saturday 19 November 2011, Tony Lindgren wrote:
+> Please pull omap fixes from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+> 
+> Most of this pull request are fixes needed by Tomi for the
+> display driver clocking.
+> 
 
-I'll cook up debugfs code for the fwk and drop sysfs.  Maybe not part
-of V4 (per Arnd's suggestion to focus on upstreamable bits), or maybe
-I will if I have time.
+Hi Tony,
 
-Regards,
-Mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sorry for the delay on my side, I've only today looked at this series.
+The patches all look ok, as far as I can tell, but please rebase
+the series to make it easier to see what is going on:
+
+* At least one of the sub-branches is based on a random commit on
+  Linus' tree. Please always base patches on an -rc for consistency!
+
+* Out of the 20 patches, not one is marked for 'stable' backports.
+  I really want to make sure this time that all long-standing bugs
+  get fixed in stable releases, so please go through the list and
+  add 'Cc: stable@kernel.org' to the ones you want to have backported.
+  If all patches are actually addressing regressions, just tell me
+  in the introductory mail next time.
+
+* Since a lot of patches address the dss, it would be nice to have
+  a separate pull request for those. It's not really important, but
+  I feel that it's easier to review stuff that is less mixed and
+  splitting them out should be easy if you rebase the series anyway.
+
+Thanks for your patience,
+
+	Arnd
