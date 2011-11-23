@@ -1,97 +1,192 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 09/65] OMAPDSS: pass ovl manager to dss_start_update
-Date: Wed, 23 Nov 2011 11:23:49 +0530
-Message-ID: <4ECC8A6D.5050000@ti.com>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com> <1321953724-6350-10-git-send-email-tomi.valkeinen@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC PATCH] arm:omap: cleanup & split omap2/3/4_check_revision
+ function
+Date: Wed, 23 Nov 2011 06:31:35 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A803D9D5@DBDE01.ent.ti.com>
+References: <1320676991-32152-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42099 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751984Ab1KWFyR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Nov 2011 00:54:17 -0500
-In-Reply-To: <1321953724-6350-10-git-send-email-tomi.valkeinen@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43840 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752789Ab1KWGbm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Nov 2011 01:31:42 -0500
+In-Reply-To: <1320676991-32152-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>
 
-On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
-> dss_start_update() takes currently the dss device as a parameter. Change
-> the parameter to ovl manager, as that is what the dss_start_update()
-> actually needs.
-
-Minor comment: We could rename dss_start_update() to 
-dss_mgr_start_update() to stick to the new way of telling if this 
-function is meant for an overlay or a manager.
-
-Archit
-
->
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Monday, November 07, 2011 8:13 PM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; Hiremath, Vaibhav
+> Subject: [RFC PATCH] arm:omap: cleanup & split omap2/3/4_check_revision
+> function
+> 
+> This patch doesn't change functionality or behavior of the code
+> execution; it barely cleans up the code and splits into SoC
+> specific implementation for ID and feature detection; makes
+> easier to add new SoC (especially for AM devices where we do not have
+> feature register).
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 > ---
->   drivers/video/omap2/dss/dsi.c     |    2 +-
->   drivers/video/omap2/dss/dss.h     |    2 +-
->   drivers/video/omap2/dss/manager.c |    7 ++-----
->   3 files changed, 4 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index 9ef04ff..e5a2dcc 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -4063,7 +4063,7 @@ static void dsi_update_screen_dispc(struct omap_dss_device *dssdev,
->   		msecs_to_jiffies(250));
->   	BUG_ON(r == 0);
->
-> -	dss_start_update(dssdev);
-> +	dss_start_update(dssdev->manager);
->
->   	if (dsi->te_enabled) {
->   		/* disable LP_RX_TO, so that we can receive TE.  Time to wait
-> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-> index 7f6a612..0937bd8 100644
-> --- a/drivers/video/omap2/dss/dss.h
-> +++ b/drivers/video/omap2/dss/dss.h
-> @@ -182,7 +182,7 @@ void default_get_overlay_fifo_thresholds(enum omap_plane plane,
->   int dss_init_overlay_managers(struct platform_device *pdev);
->   void dss_uninit_overlay_managers(struct platform_device *pdev);
->   int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl);
-> -void dss_start_update(struct omap_dss_device *dssdev);
-> +void dss_start_update(struct omap_overlay_manager *mgr);
->
->   /* overlay */
->   void dss_init_overlays(struct platform_device *pdev);
-> diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-> index c616f85..bc28bfa 100644
-> --- a/drivers/video/omap2/dss/manager.c
-> +++ b/drivers/video/omap2/dss/manager.c
-> @@ -896,17 +896,14 @@ static int configure_dispc(void)
->   	return r;
->   }
->
-> -void dss_start_update(struct omap_dss_device *dssdev)
-> +void dss_start_update(struct omap_overlay_manager *mgr)
->   {
->   	struct manager_cache_data *mc;
->   	struct overlay_cache_data *oc;
->   	const int num_ovls = dss_feat_get_num_ovls();
->   	const int num_mgrs = dss_feat_get_num_mgrs();
-> -	struct omap_overlay_manager *mgr;
->   	int i;
->
-> -	mgr = dssdev->manager;
-> -
->   	mc =&dss_cache.manager_cache[mgr->id];
->
->   	mc->do_manual_update = true;
-> @@ -929,7 +926,7 @@ void dss_start_update(struct omap_dss_device *dssdev)
->   		mc->shadow_dirty = false;
->   	}
->
-> -	dssdev->manager->enable(dssdev->manager);
-> +	mgr->enable(mgr);
->   }
->
->   static void dss_apply_irq_handler(void *data, u32 mask)
+>  arch/arm/mach-omap2/id.c              |   48 +++++++++++++---------------
+> ----
+>  arch/arm/mach-omap2/io.c              |    6 +++-
+>  arch/arm/plat-omap/include/plat/cpu.h |    4 ++-
+>  3 files changed, 28 insertions(+), 30 deletions(-)
+> 
+If there are not review comments, can this be merged?
+
+Thanks,
+Vaibhav
+
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 7f47092..f1784ee 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -226,9 +226,9 @@ static void __init omap4_check_features(void)
+>  	}
+>  }
+> 
+> -static void __init ti816x_check_features(void)
+> +static void __init omap3_add_def_features(void)
+>  {
+> -	omap_features = OMAP3_HAS_NEON;
+> +	omap_features = OMAP3_HAS_NEON | OMAP3_HAS_L2CACHE;
+>  }
+> 
+>  static void __init omap3_check_revision(const char **cpu_rev)
+> @@ -456,37 +456,29 @@ static void __init omap3_cpuinfo(const char
+> *cpu_rev)
+>  	printk(")\n");
+>  }
+> 
+> -/*
+> - * Try to detect the exact revision of the omap we're running on
+> - */
+> -void __init omap2_check_revision(void)
+> +void __init omap2xxx_check_revision(void)
+> +{
+> +	omap24xx_check_revision();
+> +}
+> +
+> +void __init omap3xxx_check_revision(bool has_feature_reg)
+>  {
+>  	const char *cpu_rev;
+> 
+> -	/*
+> -	 * At this point we have an idea about the processor revision set
+> -	 * earlier with omap2_set_globals_tap().
+> -	 */
+> -	if (cpu_is_omap24xx()) {
+> -		omap24xx_check_revision();
+> -	} else if (cpu_is_omap34xx()) {
+> -		omap3_check_revision(&cpu_rev);
+> +	omap3_check_revision(&cpu_rev);
+> 
+> -		/* TI816X doesn't have feature register */
+> -		if (!cpu_is_ti816x())
+> -			omap3_check_features();
+> -		else
+> -			ti816x_check_features();
+> +	if (has_feature_reg)
+> +		omap3_check_features();
+> +	else
+> +		omap3_add_def_features();
+> 
+> -		omap3_cpuinfo(cpu_rev);
+> -		return;
+> -	} else if (cpu_is_omap44xx()) {
+> -		omap4_check_revision();
+> -		omap4_check_features();
+> -		return;
+> -	} else {
+> -		pr_err("OMAP revision unknown, please fix!\n");
+> -	}
+> +	omap3_cpuinfo(cpu_rev);
+> +}
+> +
+> +void __init omap4xxx_check_revision(void)
+> +{
+> +	omap4_check_revision();
+> +	omap4_check_features();
+>  }
+> 
+>  /*
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 25d20ce..da9bc4a 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -321,7 +321,6 @@ void __iomem *omap_irq_base;
+> 
+>  static void __init omap_common_init_early(void)
+>  {
+> -	omap2_check_revision();
+>  	omap_ioremap_init();
+>  	omap_init_consistent_dma_size();
+>  }
+> @@ -363,6 +362,7 @@ static void __init omap_hwmod_init_postsetup(void)
+>  void __init omap2420_init_early(void)
+>  {
+>  	omap2_set_globals_242x();
+> +	omap2xxx_check_revision();
+>  	omap_common_init_early();
+>  	omap2xxx_voltagedomains_init();
+>  	omap242x_powerdomains_init();
+> @@ -375,6 +375,7 @@ void __init omap2420_init_early(void)
+>  void __init omap2430_init_early(void)
+>  {
+>  	omap2_set_globals_243x();
+> +	omap2xxx_check_revision();
+>  	omap_common_init_early();
+>  	omap2xxx_voltagedomains_init();
+>  	omap243x_powerdomains_init();
+> @@ -393,6 +394,7 @@ void __init omap2430_init_early(void)
+>  void __init omap3_init_early(void)
+>  {
+>  	omap2_set_globals_3xxx();
+> +	omap3xxx_check_revision(true);
+>  	omap_common_init_early();
+>  	omap3xxx_voltagedomains_init();
+>  	omap3xxx_powerdomains_init();
+> @@ -425,6 +427,7 @@ void __init am35xx_init_early(void)
+>  void __init ti816x_init_early(void)
+>  {
+>  	omap2_set_globals_ti816x();
+> +	omap3xxx_check_revision(false);
+>  	omap_common_init_early();
+>  	omap3xxx_voltagedomains_init();
+>  	omap3xxx_powerdomains_init();
+> @@ -439,6 +442,7 @@ void __init ti816x_init_early(void)
+>  void __init omap4430_init_early(void)
+>  {
+>  	omap2_set_globals_443x();
+> +	omap4xxx_check_revision();
+>  	omap_common_init_early();
+>  	omap44xx_voltagedomains_init();
+>  	omap44xx_powerdomains_init();
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-
+> omap/include/plat/cpu.h
+> index aa52d1e..51a0262 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -420,7 +420,9 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  #define OMAP446X_CLASS		0x44600044
+>  #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
+> 
+> -void omap2_check_revision(void);
+> +void omap2xxx_check_revision(void);
+> +void omap3xxx_check_revision(bool has_feature_reg);
+> +void omap4xxx_check_revision(void);
+> 
+>  /*
+>   * Runtime detection of OMAP3 features
+> --
+> 1.7.0.4
 
