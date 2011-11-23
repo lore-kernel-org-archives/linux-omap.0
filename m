@@ -1,84 +1,91 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 35/65] OMAPDSS: APPLY: move spinlock outside the struct
-Date: Wed, 23 Nov 2011 12:47:33 +0200
-Message-ID: <1322045253.28917.62.camel@deskari>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1321953724-6350-36-git-send-email-tomi.valkeinen@ti.com>
-	 <4ECCCB07.10702@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Re: [PATCH 2/5] ASoC: OMAP4: omap-dmic: Initial support for OMAP
+ DMIC
+Date: Wed, 23 Nov 2011 10:58:07 +0000
+Message-ID: <20111123105806.GA21073@opensource.wolfsonmicro.com>
+References: <1321970520-8909-1-git-send-email-peter.ujfalusi@ti.com>
+ <1321970520-8909-3-git-send-email-peter.ujfalusi@ti.com>
+ <20111122160105.GC30583@opensource.wolfsonmicro.com>
+ <1619032.uInsqOQfdX@barack>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-z3TsCBz0/9tcTWE5Rsmk"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:50068 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750919Ab1KWKrh (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41717 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752085Ab1KWK6K (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 05:47:37 -0500
-In-Reply-To: <4ECCCB07.10702@ti.com>
+	Wed, 23 Nov 2011 05:58:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1619032.uInsqOQfdX@barack>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergey Kibrik <sergiikibrik@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
+On Wed, Nov 23, 2011 at 10:48:24AM +0200, P=E9ter Ujfalusi wrote:
+> On Tuesday 22 November 2011 16:01:05 Mark Brown wrote:
 
---=-z3TsCBz0/9tcTWE5Rsmk
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> > > +	dmic_clk =3D clk_get(dmic->dev, "dmic_fck");
+> > > +	if (IS_ERR(dmic_clk)) {
+> > > +		dev_err(dmic->dev, "cant get dmic_fck\n");
+> > > +		return -ENODEV;
+> > > +	}
 
-On Wed, 2011-11-23 at 12:29 +0200, Sergey Kibrik wrote:
-> On 11/22/2011 11:21 AM, Tomi Valkeinen wrote:
-> > dss_cache struct contains a spinlock used to protect the struct. A more
-> > logical place for the spinlock is outside the struct that it is
-> > protecting. So move it there.
->=20
-> a small question: isn't it clearer to keep lock inside struct, so it woul=
-d be easier to read code? Say, if we meet
->=20
-> > spin_lock_irqsave(&dss_cache.lock, flags);
->=20
-> in code we already aware of what struct being actually protected, and in =
-case of external lock it's not that obvious
+> > Why aren't we getting and holding a reference to the clock over the
+> > entire lifetime of the driver?
 
-But if you meet code like:
+> We only need the reference for the dmic_fclk for reparenting which wi=
+ll happen=20
+> only once in most cases (or not at all, if pad_clks_ck is going to be=
+ used). I=20
+> don't think we should hold the reference for the dmic_fclk.
+> The clock handling is done via pm_runtime_get/put_sync().
 
-op =3D get_ovl_priv(ovl);
+This just seems like it's making the code needlessly complex - there's
+no harm in holding the reference if you don't enable/disable the clock
+and it makes this function much simpler.
 
-You don't see that the data is inside the struct protected with the
-spinlock. So you still need to understand what it protects, and what the
-above function returns.
+> > > +	/* disable clock while reparenting */
+> > > +	pm_runtime_put_sync(dmic->dev);
+> > > +	ret =3D clk_set_parent(dmic_clk, parent_clk);
+> > > +	pm_runtime_get_sync(dmic->dev);
 
-But I see your point. I'm not sure which way is better. I thought it
-like this: the lock protects a struct, but if the lock is inside the
-struct, the lock would protect also itself. Which it doesn't.
+> > Since we're only allowing reclocking while idle shouldn't the clock
+> > already be disabled?  Seems like it ought to be good for power if
+> > nothing else...
 
-That said, I'm fine with both ways. It doesn't matter much. I didn't
-really look for any established patterns for this in the kernel code,
-but if everybody else have their locks inside the structs they protect,
-then obviously we should also.
+> We enable the clocks at dai_startup for the DMIC (and disable them on=
+=20
+> dai_shutdown). We can not reparent while the clocks are enabled.
+> This is the reason for this part.
 
- Tomi
+That sounds like the enable is happening too early, then.
 
+> > > +static int omap_dmic_set_clkdiv(struct snd_soc_dai *dai,
+> > > +				int div_id, int div)
+> > > +{
 
---=-z3TsCBz0/9tcTWE5Rsmk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+> > DMIC clocking is usually fairly simple so it seems surprising that =
+the
+> > driver isn't able to figure this out for itself.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> The clock towards the external digital mics are based on the DMIC_FCL=
+K rate.
+> In case of DMIC_FCLK =3D 19.2MHz, 24.576MHz we can select between two=
+ dividers=20
+> which will result different clocks for the external microphones.
+> I would rather leave this decision to the machine driver which knows =
+the=20
+> external components, and can pick the best divider for them.
 
-iQIcBAABAgAGBQJOzM9FAAoJEPo9qoy8lh71vCcP/25gGWJv9U7woKwOQNQpnkIL
-1lhSMKRGlzYlMoZtc9fipnINDQy9Uikx/MzQpGs97LArlnsIKiM98E9adcTwxBQt
-mxY6AGbEcgbJwsqRFlvAmy5GMEhqFairzSHNYrOZzrYxc4GRErtqcyzo8kUYUIgL
-S1hCjz4yfkvxrTcdRYtt2WwBFrSEmZH8XXFqdjm+iaS7Jypk61H0QiI66iNE/J5r
-leu/+dtGb41EPckPk6/HF0Ofa8dhUnMJNwBmQo8cgzONZyNIyOjh9nOOT+wro5W6
-u3Kb07FzelMwgWDANuSrjfro6ZxuonyAqMVSee0XBiV/vqJcaFUoZy4kQTRmPmit
-wAUXfsPURmqpCjnFJ68NRN/s6PgWugUIflU4qETcn/jh4x4wLzK9/Lg5MUzRgHsS
-i22lFmCkta5Z/KNqB8cq0XYV8oBhm/ez+9EcUoXisC88yyh5tchYU27bgZFyCcLD
-b0PP2BLS2Ve5qKmDQwmhTmtddrEAeRM3VzI8so7u1Nq1wL3WrBcUE7loSYXK0PXb
-XPu4wGffBmAfhvKa+Edr1vKze+o1SAE7HBoMEEHowIK4eIk7eT3loPO4I8t40UBe
-YTXpx/UdOCBMvjzO+A0Seyz+tqxijPAz+xCy5GI1j78Krl5IKdg8XVAO3R/YPFCw
-CLOF9nhFPwqPwxwEwL5f
-=jCpz
------END PGP SIGNATURE-----
-
---=-z3TsCBz0/9tcTWE5Rsmk--
-
+If that's what you're doing then it seems like the machine drivers
+should be use set_sysclk() (or perhaps even the clk API) to set up the
+rate they're looking for from the visible clock rather than fiddling
+about with magic divider values.  That way they can say exactly what
+they want directly in terms of the result they're looking for.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
