@@ -1,67 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
-Date: Wed, 23 Nov 2011 08:59:04 -0800
-Message-ID: <20111123165903.GF31337@atomide.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
- <1321926047-14211-6-git-send-email-mturquette@linaro.org>
- <20111122154900.GB18954@kroah.com>
- <CAPtuhThPQtWwihE8aGru55k87oV7QOr=O836TTJ+=30d6dtVhA@mail.gmail.com>
- <20111122191347.GB4844@kroah.com>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: HSI framework for linux-next
+Date: Wed, 23 Nov 2011 18:26:50 +0100
+Message-ID: <20111123172650.GA1637@earth.universe>
+References: <1319794066.28874.22.camel@groo>
+ <20111109085140.908f89d0e2b8160cc959d67c@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20111122191347.GB4844@kroah.com>
+In-Reply-To: <20111109085140.908f89d0e2b8160cc959d67c@canb.auug.org.au>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Mike Turquette <mturquette@linaro.org>, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, jeremy.kerr@canonical.com, Mike Turquette <mturquette@ti.com>, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, tglx@linutronix.de, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Carlos Chinea <carlos.chinea@nokia.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mike,
 
-* Greg KH <greg@kroah.com> [111122 10:51]:
-> On Tue, Nov 22, 2011 at 09:57:41AM -0800, Mike Turquette wrote:
-> > > Ah, comments like this warm my heart.
-> > >
-> > > Come on, no abusing the kobject code please, if have problems with how
-> > > the kernel core works, and it doesn't do things you want it to, then why
-> > > not change it to work properly for you, or at the least, ASK ME!!!
-> > 
-> > Ok, I'm asking you now.  There are two ways to solve this problem:
-> > 
-> > 1) have kobject core create the lists linking the objects but defer
-> > allocations and any interactions with sysfs until later in the boot
-> > sequence, OR
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Please just make it all a loadable module using regular devices. That
-makes the development a lot easier and as a side effect also guarantees
-we're using standard interfaces.
+On Wed, Nov 09, 2011 at 08:51:40AM +1100, Stephen Rothwell wrote:
+> Hi Carlos,
+>=20
+> On Fri, 28 Oct 2011 12:27:46 +0300 Carlos Chinea <carlos.chinea@nokia.com=
+> wrote:
+> > ...
+>=20
+> Right, so -rc1 has been released so I can consider this.  Just a couple o=
+f things:
+>=20
+> 	Linus (and the rest of us) is being a bit nmore paranoid about
+> where to fetch trees from.  Public git hosters (like gitorious) can be
+> problematic since it is hard for us to verify the owners of trees
+> reliably.  You either need to apply for a kernel.org account, or you will
+> need to add a signed tag to your tree before asking Linus to pull from
+> it.  And that atg will have to be singned with a GPG key that can be
+> verified by Linus ...
+>=20
+> 	I am not sure how to translate that gitorious URI above into a
+> simple, publically fetchable URI (git://gitorious.org...).
 
-Sure most platforms using it want it compiled in at least for now,
-but in the long run it should be possible to load it when we get to
-initramfs. For the early usage of clocks..
+It has been two weeks. Did I miss any status updates?
 
-> > 2) my code can create a list of clks (the same way that clkdev does)
-> > and defer kobject/sysfs stuff until later, which walks the list made
-> > during early-boot
+Here's the git fetchable URI: git://gitorious.org/kernel-hsi/kernel-hsi.git
+The existing tag is not signed though.
 
-..let's plan on getting rid of the early usage of clocks instead so
-you don't have the issue of deferring stuff.
+-- Sebastian
 
-> > #1 is most closely aligned with the code I have here, #2 presents
-> > challenges that I haven't really though through.  I know that OMAP
-> > uses the clk framework VERY early in it's boot sequence, but as long
-> > as the per-clk data is properly initialized then it should be OK.
-> > 
-> > What do you think?
+--M9NhX3UHpAaciwkO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-We initialize clocksource/clockevent clocks early, but we can do that
-without clock fwk initially, then let a clockevent driver take over
-later on. That should solve your issues #1 and #2.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-> #3 - use debugfs and don't try to create a sysfs interface for the clock
-> structures :)
+iQIcBAEBCAAGBQJOzSzaAAoJENju1/PIO/qaY0MQAKiu224IuEZOOthosK4C9yiH
+roveCT1XnFSQc9csLVuH3T3Z+mzqAQUO24EmureQGSkeiHlG5YEyWFhsIPzdaDme
+vKGRuOttsyaQI39FnuCnbFjh+2PNmFXSXnhnZ8KfW9hFFVf/ByLYcidsHvsioIEc
+X6fZ7j85U2O7Od+jDK8t/uYuvk3BW0z8JEYAIP/KiV51TjYQ695WQ4LUTM6BHf7j
+OMhuUTNtpUyHYZC1qAvJzxQB9M1RDUqrxzjqT+XQeEXPOu8UdFYcCq5kZNdJx2P+
+1irrurBqovMBonYP9viTyat1yqQkIU6tUTmp2OLQG2NjKzWrDt3ms931GndI2bEM
+WEkwhLRMT3ZtLaPsVbtjS1Rh1TPnsdr9l16yQse2M7HJxgBAsLNf0/5Uy0cpO/Bi
+hlIcIb/kTSdHmHcBUVJrAh6c2hwH/tgDlZwhQc+aURoPV0o2VDKUr88zSSETsvUa
+FwMtMZK8evCEhN6Ga5vBYA7K/X7APvzkvX97wDrunqSAlYGsZmIDb1BNDiSa5zxo
+eKR8g9Ajpsk4EPfmUSS6I5OAnZP+bapahIO9Y5StoOaC5AmX1r6mo07IxaEykIns
+H28K8/90UiVvIXDL5zcBpN3GCSZiQUTMxFuKQXauGbZ2sdPpZjEMYeQdt29+bnwQ
+yPMllaeV9XQpvl90wRa7
+=VpEa
+-----END PGP SIGNATURE-----
 
-Sounds like the debugfs is the way to go :)
-
-Tony
+--M9NhX3UHpAaciwkO--
