@@ -1,67 +1,74 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH v3 5/5] clk: export tree topology and clk data via sysfs
-Date: Tue, 22 Nov 2011 12:19:51 -0800
-Message-ID: <CAJOA=zOp3o=bdryFbz6LVQF5fxPvhVWKme_GD3fyQr7=-n2E_g@mail.gmail.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
- <CAPtuhTheG-mvoGMaB2y9BSKF-abm2yigoN-SXaeCb+P5R6t_Dg@mail.gmail.com>
- <CACxGe6vK-vHvSbd9N2k3FZY4gGVS_DETx0BbfPgNghTkOncjpg@mail.gmail.com> <9315670.oOZAWsuHPb@wuerfel>
+From: Stephen Warren <swarren@nvidia.com>
+Subject: RE: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
+Date: Tue, 22 Nov 2011 16:28:35 -0800
+Message-ID: <74CDBE0F657A3D45AFBB94109FB122FF174F08C5B3@HQMAIL01.nvidia.com>
+References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
+ <1321274409-24643-2-git-send-email-rnayak@ti.com>
+ <20111114172312.GI31337@atomide.com> <4EC1EB9D.1000503@ti.com>
+ <CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
+ <CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
+ <CACRpkdbBQoOU8hyew6tXth3Ohrg5_rN7M+tbVsYFcOjgq73aCw@mail.gmail.com>
+ <CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
+ <CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
+ <20111122175409.GE31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9315670.oOZAWsuHPb@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linaro-dev@lists.linaro.org, jeremy.kerr@canonical.com, Mike Turquette <mturquette@linaro.org>, linus.walleij@stericsson.com, sboyd@quicinc.com, broonie@opensource.wolfsonmicro.com, magnus.damm@gmail.com, linux-kernel@vger.kernel.org, eric.miao@linaro.org, Grant Likely <grant.likely@secretlab.ca>, aul@pwsan.com, patches@linaro.org, linux@arm.linux.org.uk, tglx@linutronix.de, linux-omap@vger.kernel.org, skannan@quicinc.com, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20111122175409.GE31337@atomide.com>
+Content-Language: en-US
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linus.walleij@stericsson.com" <linus.walleij@stericsson.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Nov 22, 2011 at 12:02 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 22 November 2011 12:19:51 Grant Likely wrote:
->> On Tue, Nov 22, 2011 at 11:01 AM, Mike Turquette <mturquette@linaro.=
-org> wrote:
->>
->> > Others have requested to have knobs made available for actually
->> > performing clk_enable/clk_disable and even clk_set_rate from
->> > userspace. =A0I hate this idea and won't implement it. =A0I encour=
-age
->> > anyone that needs this to do it in debugfs.
->> >
->> > Does that work-split make sense to you, or do you still not like t=
-he
->> > idea of having topology and read-only info in sysfs?
->>
->> Unless there is a solid real-world use case for exporting this data =
-to
->> userspace, I do not think sysfs is a good idea. =A0As long as the us=
-age
->> (beyond debug) is theoretical I think the whole thing should be in
->> debugfs. =A0It can always be moved at a later date If a real use cas=
-e
->> does become important.
->
-> I would recomment not to spend any time on implementing a debugfs int=
-erface
-> for this right now. As far as I can tell, nothing relies on exporting
-> the structure to user space, so Mike's time is better spent on gettin=
-g the
-> other four patches merged.
+Tony Lindgren wrote at Tuesday, November 22, 2011 10:54 AM:
+> * Linus Walleij <linus.walleij@linaro.org> [111122 03:30]:
+> > On Tue, Nov 22, 2011 at 12:09 PM, Thomas Abraham
+> > <thomas.abraham@linaro.org> wrote:
+> > > On 17 November 2011 19:27, Linus Walleij <linus.walleij@linaro.org> wrote:
+> > >>
+> > >> Maybe I'm mistaken about the device tree ambitions, but
+> > >> I was sort of hoping that it would not contain too much
+> > >> custom magic numbers that need to be cross-referenced
+> > >> elsewhere ... or rather - the more understandable the device
+> > >> tree is, the more we win.
+> > >
+> > > Device tree is expected to describe the hardware. So to
+> > > cross-reference the hardware manual to understand device tree should
+> > > be fine I guess. For instance, GPIO numbers in dts would be written as
+> > > a numeric number and not a enum or other format. And by looking up the
+> > > manual, we understand the actual details of the GPIO pin.
+> > >
+> > > If dt-compiler had a option to support #define like in C, the numbers
+> > > could have been made more easier to understand. Like, 3 to mean
+> > > GPIO_PULL_UP in Exynos dts file.
+> >
+> > OK I think I get it now, so DT bindings shall really NOT be read
+> > by any of the pinctrl core, it is *supposed* to be all driver-specific.
+> > Then it makes perfect sense to have it as it is.
+> 
+> Yes the driver nodes should describe in DT which pins to use:
+> 
+>         serial@12340000 {
+>                 compatible = "8250";
+>                 reg = <0x12340000 0x40>;
+>                 reg-shift = <2>;
+>                 interrupts = < 10 >;
+> 		pins = "uart1_rx", "uart1_tx";
+>         };
 
-Seems to be some consensus on this.  Will drop userspace-visible clk
-tree from V4 patchset.
+Sorry to jump in late here, but I wasn't aware of this thread.
 
-Regards,
-Mike
+I don't necessarily agree with that. Describing the HW doesn't necessarily
+mean that each device needs to describe what pinmux pins it uses; one
+could quite easily have the pinmux describe what settings the various
+pins should have and which drivers will use those pins. That would map
+very well to the pinctrl subsystem's mapping table, and at least Tegra's
+existing pinmux tables, which are both just a big array of settings which
+end up getting provided to drivers.
 
->
-> Note that the static topology information about clocks will already b=
-e
-> visible in /proc/devicetree when that is enabled and the clocks are
-> described in the .dts file.
->
-> =A0 =A0 =A0 =A0Arnd
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
+I'll try and track down the rest of this thread and catch up though...
+
+-- 
+nvpublic
