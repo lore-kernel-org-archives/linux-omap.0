@@ -1,104 +1,112 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 41/65] OMAPDSS: APPLY: add missing uses of spinlock
-Date: Wed, 23 Nov 2011 12:12:23 +0200
-Message-ID: <1322043143.28917.33.camel@deskari>
+Subject: Re: [PATCH 40/65] OMAPDSS: APPLY: add mutex
+Date: Wed, 23 Nov 2011 12:17:00 +0200
+Message-ID: <1322043420.28917.39.camel@deskari>
 References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1321953724-6350-42-git-send-email-tomi.valkeinen@ti.com>
-	 <4ECCC332.4050608@ti.com>
+	 <1321953724-6350-41-git-send-email-tomi.valkeinen@ti.com>
+	 <4ECCC158.80902@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Gp0/w26QbZtIc+V2JnvU"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-p9YWrJoAHLqXlN4AIukh"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:54248 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751533Ab1KWKMd (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:52315 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750711Ab1KWKRK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 05:12:33 -0500
-In-Reply-To: <4ECCC332.4050608@ti.com>
+	Wed, 23 Nov 2011 05:17:10 -0500
+In-Reply-To: <4ECCC158.80902@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Archit Taneja <a0393947@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
 
---=-Gp0/w26QbZtIc+V2JnvU
+--=-p9YWrJoAHLqXlN4AIukh
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2011-11-23 at 15:26 +0530, Archit Taneja wrote:
+On Wed, 2011-11-23 at 15:18 +0530, Archit Taneja wrote:
+> Hi,
+>=20
 > On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
-
-> >   int dss_mgr_set_device(struct omap_overlay_manager *mgr,
-> > @@ -745,16 +762,28 @@ err:
-> >   int dss_ovl_set_info(struct omap_overlay *ovl,
-> >   		struct omap_overlay_info *info)
-> >   {
-> > +	unsigned long flags;
-> > +
-> > +	spin_lock_irqsave(&data_lock, flags);
-> > +
-> >   	ovl->info =3D *info;
-> >   	ovl->info_dirty =3D true;
-> >
-> > +	spin_unlock_irqrestore(&data_lock, flags);
-> > +
-> >   	return 0;
-> >   }
-> >
-> >   void dss_ovl_get_info(struct omap_overlay *ovl,
-> >   		struct omap_overlay_info *info)
-> >   {
-> > +	unsigned long flags;
-> > +
-> > +	spin_lock_irqsave(&data_lock, flags);
-> > +
-> >   	*info =3D ovl->info;
-> > +
-> > +	spin_unlock_irqrestore(&data_lock, flags);
-> >   }
+> > The functions in apply.c, called mostly via function pointers in overla=
+y
+> > and overlay_manager structs, will be divided into two groups. The other
+> > group will not sleep and can be called from interrupts, and the other
+> > group may sleep.
 >=20
-> The get/set info functions for overlays and managers only modify the=20
-> omap_overlay_info or manager_info structs, these aren't really a part of=
+> Small sentence issue above, both groups are called the 'other group'.
+
+Thanks, fixed.
+
+> >
+> > The idea is that the non-sleeping functions may only change certain
+> > settings in overlays and managers, and those settings may only affect
+> > the particular overlay/manager. For example, set the base address of th=
+e
+> > overlay.
+> >
+> > The blocking functions, however, will handle more complex configuration
+> > changes. For example, when an overlay is enabled and fifo-merge feature
+> > is used, we need to do the enable in multiple steps, waiting in between=
+,
+> > and the change affects multiple overlays and managers.
+> >
+> > This patch adds the mutex which is used in the blocking functions to
+> > have exclusive access to overlays and overlay managers.
+>=20
+> Previously, when we changed the links between 'overlay->managers' and=20
+> 'manager->devices', it wasn't protected by a lock. Why is it needed now?
+
+Previously many places were missing a lock =3D).
+
+> As an example, suppose we are changing a manager's device to some other=
 =20
-> 'dss_data', they only become a part of dss_data only when we call=20
-> mgr->apply().
->=20
-> So, are we protecting these functions so that 2 users of the same=20
-> overlay don't see incorrect info values?
+> display. Is this lock preventing someone else to get the older=20
+> 'mgr->device' rather than the new one?
 
-True, at this point the data_lock is a bit vague, and is protecting also
-the info fields in omap_overlay and omap_overlay_manager.
+Hmm. We need some lock there, that's for sure, as set/unset manager are
+changing the manager's list of overlays. However, it is also protected
+by the spinlock, so in that sense mutex is not necessary.
 
-A lock is needed, though, as otherwise the info struct may be only
-partial. E.g. somebody calls set_info, which is half way copying the
-values, and somebody else calls apply or get_info.
+I have to say I'm not sure if mutex is needed at this point. However,
+consider the end result when fifo-merge is used:
 
-In the next patches the infos will be moved into the dss_data, and then
-using dss_lock spin lock makes more sense.
+dss_ovl_enable() will take the mutex, then it does the configuration in
+multiple steps, doing multiple spin_lock & spin_unlocks, waiting in
+between.
+
+If we had only a spinlock in set/unset_manager, the manager could be
+changed while dss_ovl_enable is doing the process of enabling the
+overlay.
+
+So I may have added mutexes or spinlocks a bit early in the series to
+some places, but I don't see any harm in that. It'd be rather difficult
+to try to find the exact spots where a lock becomes a requirement.
 
  Tomi
 
 
---=-Gp0/w26QbZtIc+V2JnvU
+--=-p9YWrJoAHLqXlN4AIukh
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJOzMcHAAoJEPo9qoy8lh71B3YP/A56TyVkP3QSmaCIg9wzQqCg
-Z1/p1APU4PddFlL/M00dTSC+lH41Qpjsa4g4E+aTRCjST3ObwC14DoZw8t5+X2Bv
-t2GMJGPpTUCXhsG/V3Ia+1G2IJeY0CZsvOeCbIlvRmUGD6euLvpVeEX+TjDrtTN5
-cPDl4XV8b0y8KN5VmwtREz6QZ3x+ncMiRomRCQqrNbkAu+e+FmTce9TLb8moiiH0
-+RbMWq+u7EP8DHGyv0sVxyWIb9Tk9Nj9PiBO1sA7bP2w2xKWu6nCphriZGOlo61s
-KFJcNyb5TeZb1iJdcemNC+jN9b2so5wmGg4YQw8ugEUHJuI4ca0S9Lu/2vJQbUMK
-x5PRGxGo/CTI798RF3BBxeLcmVBIgGsheSm9Hz1/brZFth9KMl3WK5ju4RbUisUt
-y2K3rqlu+B4N/Wwroz7FC7+AIfkYxN6+zz0saruZaloGViBSAuxc7PctxDq2fkt4
-RDSy3F6UBti/VmHaKEjhmgJcQs7LA+oFiQEmJD7/EsYQH0QO/8fk58kPx5PIwlxm
-ktiXu5hTaJj7Z9gWGye5CM/Pkc9Z1y8IDPM6YbqO0K5HD0juY1EZ/3x+0+gQ+m2M
-h9Kj+XI9BfnruWZ/YaLPwzo28YVM2EMzBDbc+1sjYmaTVGj5dNPXS0t9T4KXUwdK
-8KClTUVEb/qWO0Zb++ap
-=VsZe
+iQIcBAABAgAGBQJOzMgcAAoJEPo9qoy8lh71R+0P/3rytH7j0Tk7O/Z/g+nUpEBA
+ANTqBb65H2czgBRaF+2QOL72UwVhJkmB0ZM5YD9f6DyHCswvh3crHXx35WYsbggs
+sscskPvjAgwMeFc2qF6IDP5wJJt2rKN/5g56qQ+3vR8B4DbbAcFj4Oqee1WqbQqa
+2jb9hLwoJ5nvYlz5LnZQyD4ks3sKMhj4pfgM+S9daExfLr3rkdPjJ8ohOLkza6U7
+T3v0q+xlFJzugkzyiOhu/orsW5GxFDblYkQI3VUdFkrKKiXAlkPFC6y5R4h9l4OE
++bu110mx98FRjQPKBclhy2pV6wIlTsONn0JUeXqzmmqVU/ejYCvLu5TAHlNYKC1M
+1W/uQZU1sv6W/wGX900jzI2KMZbf+SwebsA5L0rqjcctEWtOZ4gTdxM/LvpJwchg
+QpAHmcI49mwZ4qH9TYUzKMRMpQtavTb8zGM4cow6y892qeBmUSDkaeTb/PJLSzD3
+P2FOFBQqppDrRyEfilCXULQK3bcAH6Fhm9uZa4DUxbcgTtGRyfRYChXC+hKSPPTy
+X91aUxiJnvomKPpaP2cd4hdmEUw2vQ5VS0/flytztbYl9ZwOH75XOiQYgSmlvGUT
+Tpdp+b4UfP5b5VNxVBNZojSivLPwMR9ePvfyxm6scdagL+KWCrDrf6kqmpm9gmEJ
+3ZV9N84Dh8zhBNMjmRPt
+=4SW+
 -----END PGP SIGNATURE-----
 
---=-Gp0/w26QbZtIc+V2JnvU--
+--=-p9YWrJoAHLqXlN4AIukh--
 
