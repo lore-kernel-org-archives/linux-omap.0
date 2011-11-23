@@ -1,90 +1,80 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 5/6] cbus: tahvo: move irq_chip to our context structure
-Date: Wed, 23 Nov 2011 16:00:47 +0200
-Message-ID: <1322056848-1188-6-git-send-email-balbi@ti.com>
-References: <1322056848-1188-1-git-send-email-balbi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Re: Re: [PATCH 2/5] ASoC: OMAP4: omap-dmic: Initial support for
+ OMAP DMIC
+Date: Wed, 23 Nov 2011 14:30:50 +0000
+Message-ID: <20111123143049.GC20272@opensource.wolfsonmicro.com>
+References: <1321970520-8909-1-git-send-email-peter.ujfalusi@ti.com>
+ <1619032.uInsqOQfdX@barack>
+ <20111123105806.GA21073@opensource.wolfsonmicro.com>
+ <3755917.L7uBQxiu6F@barack>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:50456 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755929Ab1KWOBC (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54079 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756060Ab1KWOaz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 09:01:02 -0500
-Received: by ghbg2 with SMTP id g2so1873772ghb.21
-        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 06:01:00 -0800 (PST)
-In-Reply-To: <1322056848-1188-1-git-send-email-balbi@ti.com>
+	Wed, 23 Nov 2011 09:30:55 -0500
+Content-Disposition: inline
+In-Reply-To: <3755917.L7uBQxiu6F@barack>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-in theory, we could have many tahvo devices connected
-to different CBUS buses. Let's allow that to happen.
+On Wed, Nov 23, 2011 at 04:00:23PM +0200, P=E9ter Ujfalusi wrote:
+> On Wednesday 23 November 2011 10:58:07 Mark Brown wrote:
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/cbus/tahvo.c |   21 ++++++++++++---------
- 1 files changed, 12 insertions(+), 9 deletions(-)
+> > > We enable the clocks at dai_startup for the DMIC (and disable the=
+m on
+> > > dai_shutdown). We can not reparent while the clocks are enabled.
+> > > This is the reason for this part.
 
-diff --git a/drivers/cbus/tahvo.c b/drivers/cbus/tahvo.c
-index 7f7c712..819111a 100644
---- a/drivers/cbus/tahvo.c
-+++ b/drivers/cbus/tahvo.c
-@@ -44,6 +44,8 @@ struct tahvo {
- 	struct mutex	mutex;
- 	struct device	*dev;
- 
-+	struct irq_chip	irq_chip;
-+
- 	int		irq_base;
- 	int		irq_end;
- 	int		irq;
-@@ -199,14 +201,6 @@ static void tahvo_irq_unmask(struct irq_data *data)
- 	tahvo->mask_pending = true;
- }
- 
--static struct irq_chip tahvo_irq_chip = {
--	.name			= "tahvo",
--	.irq_bus_lock		= tahvo_irq_bus_lock,
--	.irq_bus_sync_unlock	= tahvo_irq_bus_sync_unlock,
--	.irq_mask		= tahvo_irq_mask,
--	.irq_unmask		= tahvo_irq_unmask,
--};
--
- static inline void tahvo_irq_setup(int irq)
- {
- #ifdef CONFIG_ARM
-@@ -224,7 +218,7 @@ static void tahvo_irq_init(struct tahvo *tahvo)
- 
- 	for (irq = base; irq < end; irq++) {
- 		irq_set_chip_data(irq, tahvo);
--		irq_set_chip(irq, &tahvo_irq_chip);
-+		irq_set_chip(irq, &tahvo->irq_chip);
- 		irq_set_nested_thread(irq, 1);
- 		tahvo_irq_setup(irq);
- 	}
-@@ -297,6 +291,7 @@ static int tahvo_allocate_children(struct device *parent, int irq_base)
- 
- static int __devinit tahvo_probe(struct platform_device *pdev)
- {
-+	struct irq_chip		*chip;
- 	struct tahvo		*tahvo;
- 	int			rev;
- 	int			ret;
-@@ -321,6 +316,14 @@ static int __devinit tahvo_probe(struct platform_device *pdev)
- 		goto err1;
- 	}
- 
-+	chip = &tahvo->irq_chip;
-+
-+	chip->name	= "tahvo",
-+	chip->irq_bus_lock = tahvo_irq_bus_lock,
-+	chip->irq_bus_sync_unlock = tahvo_irq_bus_sync_unlock,
-+	chip->irq_mask	= tahvo_irq_mask,
-+	chip->irq_unmask = tahvo_irq_unmask,
-+
- 	tahvo->irq_base	= ret;
- 	tahvo->irq_end	= ret + MAX_TAHVO_IRQ_HANDLERS;
- 	tahvo->dev	= &pdev->dev;
--- 
-1.7.8.rc3
+> > That sounds like the enable is happening too early, then.
 
+> This only enables the clock for the DMIC block, the clock for the ext=
+ernal=20
+> DMIC will start at trigger time (and stop as well).
+> In order to access to DMIC registers we need clocks, and the clocks a=
+re=20
+> enabled for the duration we have capture stream open.
+> I would think this is acceptable.
+
+Meh, I guess.  It's hard to love code-wise.
+
+> > If that's what you're doing then it seems like the machine drivers
+> > should be use set_sysclk() (or perhaps even the clk API) to set up =
+the
+> > rate they're looking for from the visible clock rather than fiddlin=
+g
+> > about with magic divider values.  That way they can say exactly wha=
+t
+> > they want directly in terms of the result they're looking for.
+
+> In OMAP4 DMIC the divider can not be chosen freely.
+> The clock provided to the external microphones will depend on the sel=
+ected=20
+> DMIC_FCLK, and the divider.
+> If I ask the machine driver to ask for specific speed for the externa=
+l mic,=20
+> the writer of the machine driver anyways have to look up the table fr=
+om the=20
+> TRM for the possible frequencies. So instead of providing magic divid=
+er it has=20
+> to provide magic speed.
+
+Sure, but on the other hand it means that someone reading the machine
+driver can tell what's going on without going back to the magic table
+either.  Having the rates in the code makes the code more legible and
+means that people can at least refer to the DMIC driver for a list of
+supported rates rather than having to find the TRM.
+
+I'd also guess that it's much more likely that people will remember
+clock rates they can set than divider tables but perhaps that's just me=
+=2E
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
