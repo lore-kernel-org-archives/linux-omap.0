@@ -1,90 +1,129 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [PATCH 2/5] ASoC: OMAP4: omap-dmic: Initial support for OMAP DMIC
-Date: Wed, 23 Nov 2011 10:48:24 +0200
-Message-ID: <1619032.uInsqOQfdX@barack>
-References: <1321970520-8909-1-git-send-email-peter.ujfalusi@ti.com> <1321970520-8909-3-git-send-email-peter.ujfalusi@ti.com> <20111122160105.GC30583@opensource.wolfsonmicro.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 35/65] OMAPDSS: APPLY: move spinlock outside the struct
+Date: Wed, 23 Nov 2011 14:55:16 +0530
+Message-ID: <4ECCBBFC.10002@ti.com>
+References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com> <1321953724-6350-36-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:46100 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953Ab1KWIsz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Nov 2011 03:48:55 -0500
-Received: by bkbzs2 with SMTP id zs2so1284484bkb.34
-        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 00:48:53 -0800 (PST)
-In-Reply-To: <20111122160105.GC30583@opensource.wolfsonmicro.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58730 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753743Ab1KWJZq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Nov 2011 04:25:46 -0500
+In-Reply-To: <1321953724-6350-36-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
-On Tuesday 22 November 2011 16:01:05 Mark Brown wrote:
-> On Tue, Nov 22, 2011 at 04:01:57PM +0200, Peter Ujfalusi wrote:
-> > +	switch (params_rate(params)) {
-> > +	case 96000:
-> > +	case 192000:
-> > +		break;
->=20
-> Why doesn't the driver need to tell the hardware what sample rate to =
-run
-> at?
+On Tuesday 22 November 2011 02:51 PM, Tomi Valkeinen wrote:
+> dss_cache struct contains a spinlock used to protect the struct. A more
+> logical place for the spinlock is outside the struct that it is
+> protecting. So move it there.
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   drivers/video/omap2/dss/apply.c |   22 ++++++++++++----------
+>   1 files changed, 12 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+> index 23c723a..17639c0 100644
+> --- a/drivers/video/omap2/dss/apply.c
+> +++ b/drivers/video/omap2/dss/apply.c
+> @@ -89,13 +89,15 @@ struct mgr_priv_data {
+>   };
+>
+>   static struct {
+> -	spinlock_t lock;
+>   	struct ovl_priv_data ovl_priv_data_array[MAX_DSS_OVERLAYS];
+>   	struct mgr_priv_data mgr_priv_data_array[MAX_DSS_MANAGERS];
+>
+>   	bool irq_enabled;
+>   } dss_cache;
+>
+> +/* protects dss_cache */
+> +static spinlock_t data_lock;
 
-Because the OMAP4 DMIC can only support on 96KHz...
-Will be fixed.
+Minor comment: The name 'data_lock' doesn't tell much that its 
+protecting the dss_cache struct. Probably 'cache_lock' or 
+'priv_data_lock' or something like that may be more informative.
 
->=20
-> > +	dmic_clk =3D clk_get(dmic->dev, "dmic_fck");
-> > +	if (IS_ERR(dmic_clk)) {
-> > +		dev_err(dmic->dev, "cant get dmic_fck\n");
-> > +		return -ENODEV;
-> > +	}
->=20
-> Why aren't we getting and holding a reference to the clock over the
-> entire lifetime of the driver?
+Archit
 
-We only need the reference for the dmic_fclk for reparenting which will=
- happen=20
-only once in most cases (or not at all, if pad_clks_ck is going to be u=
-sed). I=20
-don't think we should hold the reference for the dmic_fclk.
-The clock handling is done via pm_runtime_get/put_sync().
+> +
+>   static struct ovl_priv_data *get_ovl_priv(struct omap_overlay *ovl)
+>   {
+>   	return&dss_cache.ovl_priv_data_array[ovl->id];
+> @@ -108,7 +110,7 @@ static struct mgr_priv_data *get_mgr_priv(struct omap_overlay_manager *mgr)
+>
+>   void dss_apply_init(void)
+>   {
+> -	spin_lock_init(&dss_cache.lock);
+> +	spin_lock_init(&data_lock);
+>   }
+>
+>   static bool ovl_manual_update(struct omap_overlay *ovl)
+> @@ -149,10 +151,10 @@ int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
+>   		unsigned long flags;
+>   		bool shadow_dirty, dirty;
+>
+> -		spin_lock_irqsave(&dss_cache.lock, flags);
+> +		spin_lock_irqsave(&data_lock, flags);
+>   		dirty = mp->dirty;
+>   		shadow_dirty = mp->shadow_dirty;
+> -		spin_unlock_irqrestore(&dss_cache.lock, flags);
+> +		spin_unlock_irqrestore(&data_lock, flags);
+>
+>   		if (!dirty&&  !shadow_dirty) {
+>   			r = 0;
+> @@ -212,10 +214,10 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
+>   		unsigned long flags;
+>   		bool shadow_dirty, dirty;
+>
+> -		spin_lock_irqsave(&dss_cache.lock, flags);
+> +		spin_lock_irqsave(&data_lock, flags);
+>   		dirty = op->dirty;
+>   		shadow_dirty = op->shadow_dirty;
+> -		spin_unlock_irqrestore(&dss_cache.lock, flags);
+> +		spin_unlock_irqrestore(&data_lock, flags);
+>
+>   		if (!dirty&&  !shadow_dirty) {
+>   			r = 0;
+> @@ -464,7 +466,7 @@ static void dss_apply_irq_handler(void *data, u32 mask)
+>   	for (i = 0; i<  num_mgrs; i++)
+>   		mgr_busy[i] = dispc_mgr_go_busy(i);
+>
+> -	spin_lock(&dss_cache.lock);
+> +	spin_lock(&data_lock);
+>
+>   	for (i = 0; i<  num_ovls; ++i) {
+>   		ovl = omap_dss_get_overlay(i);
+> @@ -498,7 +500,7 @@ static void dss_apply_irq_handler(void *data, u32 mask)
+>   	dss_unregister_vsync_isr();
+>
+>   end:
+> -	spin_unlock(&dss_cache.lock);
+> +	spin_unlock(&data_lock);
+>   }
+>
+>   static int omap_dss_mgr_apply_ovl(struct omap_overlay *ovl)
+> @@ -620,7 +622,7 @@ int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+>   	if (r)
+>   		return r;
+>
+> -	spin_lock_irqsave(&dss_cache.lock, flags);
+> +	spin_lock_irqsave(&data_lock, flags);
+>
+>   	/* Configure overlays */
+>   	list_for_each_entry(ovl,&mgr->overlays, list)
+> @@ -641,7 +643,7 @@ int omap_dss_mgr_apply(struct omap_overlay_manager *mgr)
+>   		dss_write_regs();
+>   	}
+>
+> -	spin_unlock_irqrestore(&dss_cache.lock, flags);
+> +	spin_unlock_irqrestore(&data_lock, flags);
+>
+>   	dispc_runtime_put();
+>
 
-> > +	/* disable clock while reparenting */
-> > +	pm_runtime_put_sync(dmic->dev);
-> > +	ret =3D clk_set_parent(dmic_clk, parent_clk);
-> > +	pm_runtime_get_sync(dmic->dev);
->=20
-> Since we're only allowing reclocking while idle shouldn't the clock
-> already be disabled?  Seems like it ought to be good for power if
-> nothing else...
-
-We enable the clocks at dai_startup for the DMIC (and disable them on=20
-dai_shutdown). We can not reparent while the clocks are enabled.
-This is the reason for this part.
-=20
-> > +static int omap_dmic_set_clkdiv(struct snd_soc_dai *dai,
-> > +				int div_id, int div)
-> > +{
->=20
-> DMIC clocking is usually fairly simple so it seems surprising that th=
-e
-> driver isn't able to figure this out for itself.
-
-The clock towards the external digital mics are based on the DMIC_FCLK =
-rate.
-In case of DMIC_FCLK =3D 19.2MHz, 24.576MHz we can select between two d=
-ividers=20
-which will result different clocks for the external microphones.
-I would rather leave this decision to the machine driver which knows th=
-e=20
-external components, and can pick the best divider for them.
-
---
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
