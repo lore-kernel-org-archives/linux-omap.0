@@ -1,81 +1,77 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] DSS fixes for v3.2-rc2
-Date: Thu, 24 Nov 2011 16:06:54 +0000
-Message-ID: <201111241606.54879.arnd@arndb.de>
-References: <20111123235542.GL31337@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 2/5] ASoC: OMAP4: omap-dmic: Initial support for OMAP
+ DMIC
+Date: Thu, 24 Nov 2011 17:10:19 +0000
+Message-ID: <20111124171019.GQ8470@opensource.wolfsonmicro.com>
+References: <1322142889-12017-1-git-send-email-peter.ujfalusi@ti.com>
+ <1322142889-12017-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58964 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130Ab1KXQG5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Nov 2011 11:06:57 -0500
-In-Reply-To: <20111123235542.GL31337@atomide.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:48735 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756845Ab1KXRKW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Nov 2011 12:10:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1322142889-12017-3-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-On Wednesday 23 November 2011, Tony Lindgren wrote:
-> Hi Arnd,
-> 
-> This one has been separated out from the rest of the fixes.
+On Thu, Nov 24, 2011 at 03:54:46PM +0200, Peter Ujfalusi wrote:
 
-Pulled into the fixes branch now. I'll send out the branch
-after testing it on tomorrow's linux-next.
+> +	/*
+> +	 * 192KHz rate is only supported with 19.2MHz/3.84MHz clock
+> +	 * configuration. Fix the dmic clock divider for 192KHz
+> +	 */
+> +	if (params_rate(params) == 192000) {
+> +		if (dmic->fclk_freq == 19200000 && dmic->clk_div == 0x1) {
+> +			dmic->clk_div = 0x6;
+> +		} else {
+> +			dev_err(dmic->dev,
+> +				"invalid clock configuration for 192KHz\n");
+> +			return -EINVAL;
+> +		}
+> +	}
 
-> If some of these need to go to stable, then Tomi should
-> do the rebasing and send them to stable@vger.kernel.org
-> as they don't apply cleanly on v3.1.
+That's a bit wierd, magic numbers there and it'll mean we're trashing
+the user's configuration.  Why not just return an error if the clock
+setup is broken, or alternatively aren't there other invalid
+configurations we should be trapping and fixing up (looking at the
+divider setting code it seems unlikely that if the user doesn't
+configure things we're not going to have a valid divider setup)?
 
-Ok. I've taken Tomi on Cc as a reminder for him, although I guess
-you already discussed it with him.
+> +static int omap_dmic_set_dai_sysclk(struct snd_soc_dai *dai, int clk_id,
+> +				    unsigned int freq, int dir)
+> +{
+> +	struct omap_dmic *dmic = snd_soc_dai_get_drvdata(dai);
+> +
+> +	if (dir == SND_SOC_CLOCK_IN)
+> +		return omap_dmic_select_fclk(dmic, clk_id, freq);
+> +	else if (dir == SND_SOC_CLOCK_OUT)
+> +		return omap_dmic_select_divider(dmic, freq);
 
-Kiitoksia paljon,
+Might be better to specify using clk_id in case the next revision of the
+IP has more clocks or something.
 
-	Arnd
+> +	dmic = kzalloc(sizeof(struct omap_dmic), GFP_KERNEL);
+> +	if (!dmic)
+> +		return -ENOMEM;
 
-> 
-> The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055dbf8e37:
->   Linus Torvalds (1):
->         Linux 3.2-rc2
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-dss
-> 
-> Archit Taneja (1):
->       ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
-> 
-> Tomi Valkeinen (9):
->       ARM: OMAP2xxx: HWMOD: Fix DSS reset
->       ARM: OMAP2xxx: HWMOD: fix DSS clock data
->       ARM: OMAP3: HWMOD: Fix DSS reset
->       ARM: OMAP3: HWMOD: fix DSS clock data
->       ARM: OMAP4: HWMOD: remove extra clocks
->       ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
->       ARM: OMAP4: HWMOD: fix DSS clock data
->       ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
->       ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
-> 
-> Tony Lindgren (1):
->       Merge branch 'hwmod_dss_fixes_3.2rc' of git://git.pwsan.com/linux-2.6 into fixes-dss
-> 
->  arch/arm/mach-omap2/Makefile                       |    5 +-
->  arch/arm/mach-omap2/display.c                      |  159 ++++++++++++++++++++
->  arch/arm/mach-omap2/display.h                      |   29 ++++
->  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
->  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
->  .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
->  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
->  arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
->  arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
->  arch/arm/plat-omap/include/plat/common.h           |    3 +
->  include/video/omapdss.h                            |    7 -
->  12 files changed, 276 insertions(+), 35 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/display.h
-> 
+devm_ would save you having to clean stuff up later.
 
+> +static int __init snd_omap_dmic_init(void)
+> +{
+> +	return platform_driver_register(&asoc_dmic_driver);
+> +}
+> +module_init(snd_omap_dmic_init);
+> +
+> +static void __exit snd_omap_dmic_exit(void)
+> +{
+> +	platform_driver_unregister(&asoc_dmic_driver);
+> +}
+> +module_exit(snd_omap_dmic_exit);
+
+module_platform_driver.
