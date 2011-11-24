@@ -1,78 +1,58 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb: PM: fix context save/restore in
- suspend/resume path
-Date: Thu, 24 Nov 2011 11:27:52 +0200
-Message-ID: <20111124092751.GG3352@legolas.emea.dhcp.ti.com>
-References: <1322011104-21817-1-git-send-email-khilman@ti.com>
-Reply-To: balbi@ti.com
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
+Date: Thu, 24 Nov 2011 11:04:39 +0100
+Message-ID: <CACRpkdaStA_+SiqwnA-=jCi4XusHqcwgVzUUWyDg7byTPq1_JA@mail.gmail.com>
+References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
+	<1321274409-24643-2-git-send-email-rnayak@ti.com>
+	<20111114172312.GI31337@atomide.com>
+	<4EC1EB9D.1000503@ti.com>
+	<CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
+	<CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
+	<CACRpkdbBQoOU8hyew6tXth3Ohrg5_rN7M+tbVsYFcOjgq73aCw@mail.gmail.com>
+	<CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
+	<CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
+	<20111122175409.GE31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qxfKREH7IwbezJ+T"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1322011104-21817-1-git-send-email-khilman@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, "open list:MUSB MULTIPOINT H..." <linux-usb@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20111122175409.GE31337@atomide.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Thomas Abraham <thomas.abraham@linaro.org>, Rajendra Nayak <rnayak@ti.com>, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, linus.walleij@stericsson.com, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, devicetree-discuss@lists.ozlabs.org
 List-Id: linux-omap@vger.kernel.org
 
+On Tue, Nov 22, 2011 at 6:54 PM, Tony Lindgren <tony@atomide.com> wrote:
 
---qxfKREH7IwbezJ+T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> Note that with device tree things get simpler for muxing as we can
+> get rid of the hardcoded grouping of pins in mux drivers. Instead of
+> hardcoded pingroups, the groups can be created dynamically based on
+> what the driver DT entries have.
 
-Hi,
+Yes, I know too little about DT to figure out how these should
+come in.
 
-On Tue, Nov 22, 2011 at 05:18:24PM -0800, Kevin Hilman wrote:
-> Currently the driver tries to save context in the suspend path, but
-> will cause an abort if the device is already runtime suspended.  This
-> happens, for example, if MUSB loaded/compiled-in, in host mode, but no
-> USB devices are attached.  MUSB will be runtime suspended, but then
-> attempting a system suspend will crash due to the context save
-> being attempted while the device is disabled.
->=20
-> On OMAP, as of v3.1, the driver's ->runtime_suspend() callback will be
-> called late in the suspend path (by the PM domain layer) if the driver
-> is not already runtime suspended, ensuring a full shutdown.
->=20
-> Therefore, the context save is not needed in the ->suspend() method
-> since it will be called in the ->runtime_suspend() method anyways
-> (similarily for resume.)
->=20
-> NOTE: this leaves the suspend/resume methods basically empty (with
->       some FIXMEs and comments, but I'll leave it to the maintainers
->       to decide whether to remove them.
->=20
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> The reason why we want to avoid hardcoded pin groups is because trying
+> to map all the pad combinations in the pinmux driver is not a scalable
+> way to go. And it's not even possible at least on omaps because of the
+> huge number of combinations with alternative pins and multiple packages.
 
-applied, thanks.
+Yes, that's a solid case!
 
-I've added Cc: stable@vger.kernel.org so that this goes to v3.1 too.
+> FYI I'm playing with a DT based pinmux-simple.c driver that should
+> be pretty generic and work for all kinds of hardware hopefully.
 
---=20
-balbi
+I love it.
 
---qxfKREH7IwbezJ+T
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> It will be few days before I can post anything though, there are
+> some pinctrl fwk issues to deal with first. Like the hardcoded
+> pinmux_maps that assumes that dev entries are static. This means
+> that multiple instances of pinmux drivers won't work..
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+I'm not following, but I guess I will understand when I see the
+patches. The idea behind the current map concept is that you
+get either a string or struct device * to identify the pin controller
+and mapped device, that's as far as I thought it out, sorry for
+any inherent limitations, they're not intentional...
 
-iQIcBAEBAgAGBQJOzg4XAAoJEIaOsuA1yqREAw4P/0P5mQ6NwX7prw4VexJkGnYi
-KYYl5bNikmumRbZeE5FbZHhNNyCcXRCDGNv54VAWjaG0CJF49W+thnccKKtHiqxc
-3VnQRdKAOLD5Q/amR5DYDY2ghOIv/opmVxCeuAetcpkYXXjY9Yk/wom79tgXjAeA
-J1ZMctpLVQJghJ9fp01hT6FDtBwI/rTPq140u/OQjiFhlUIk2u4u2w6MIcUwamlY
-FuVfeHRPVmdzIJzPCC27ZtsFA7lUHLmQUzOe9YOV1Ik6sQlNtmsar5+dSaj6cfXw
-vDN/yHPfuC4xzgDaonQ9jvlAJ6oJQ7Bl/zv0zi8fTp9wBQHotEhP59KMKVTGM0fI
-3DQ8Z4xzVRKAtLk9xq6e3h0FPaoR21pPoolFCv+OjjyLPwz1CVl9hlzfW2sdGzm+
-BCoT5K/ve2mHyc1l+vqkyVgitMMvKXi/hsThV4g4hJgBm6MmzohPvls8PbQ41VI6
-0gy6heeKZvXfe3E54sfZNZaqrAdFyXyF1wy+Pu8BPIyNRkWKhm2e3WpPZQBKndel
-t2MKRP03+0teR/wLH6bsN3Q6tMCoQb0hYpchUHqU3887w/JINq1H1CDaXDLar+xJ
-VvKUMG6CUvRxGRuB4DP01rdpTAJTuO0JEaPXuf/D7kya+yMQFcINk1RRZMSX+w7L
-K87/S4SJ72K+P/B8sYby
-=2PQr
------END PGP SIGNATURE-----
-
---qxfKREH7IwbezJ+T--
+Thanks,
+Linus Walleij
