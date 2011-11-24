@@ -1,108 +1,47 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: Changing IOMMU-API for generic DMA-mapping supported by the
- hardware
-Date: Thu, 24 Nov 2011 13:52:33 +0100
-Message-ID: <023b01ccaaa7$ef16c910$cd445b30$%szyprowski@samsung.com>
-References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
- <1318850846-16066-3-git-send-email-ohad@wizery.com>
- <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
- <1320938930.22195.17.camel@i7.infradead.org> <20111110170918.GE13213@amd.com>
- <1320953319.535.11.camel@i7.infradead.org> <20111111131728.GG13213@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 00/13] OMAPDSS: DSI fixes
+Date: Thu, 24 Nov 2011 15:29:28 +0200
+Message-ID: <1322141381-5395-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:11650 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753710Ab1KXMxl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Nov 2011 07:53:41 -0500
-In-reply-to: <20111111131728.GG13213@amd.com>
-Content-language: pl
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47258 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753878Ab1KXN3y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Nov 2011 08:29:54 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Joerg Roedel' <Joerg.Roedel@amd.com>, 'David Woodhouse' <dwmw2@infradead.org>
-Cc: 'Ohad Ben-Cohen' <ohad@wizery.com>, 'KyongHo Cho' <pullip.cho@samsung.com>, 'Kai Huang' <mail.kai.huang@gmail.com>, kvm@vger.kernel.org, 'Arnd Bergmann' <arnd@arndb.de>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>, 'David Brown' <davidb@codeaurora.org>, linux-omap@vger.kernel.org, 'Stepan Moskovchenko' <stepanm@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hello,
+First a few patches to flush posted writes, and then DSI patches related to the
+DSI lane handling. I'm not sure if the lane handling is still as clean as it
+could be, but at least it feels cleaner than currently.
 
-On Friday, November 11, 2011 2:17 PM Joerg Roedel wrote:
+Tested entering ULPS on display disable on blaze tablet, and it seems to work.
+However, I have no way to ensure that ULPS was actually entered, as I would
+need a scope for that.
 
-> Okay, seperate thread for this one.
+ Tomi
 
-If possible, I would like to be CCed: in the next mails in this topic. 
+Tomi Valkeinen (13):
+  OMAPDSS: DSI: flush posted write when entering ULPS
+  OMAPDSS: DSI: flush posted write in send_bta
+  OMAPDSS: DISPC: Flush posted writes when enabling outputs
+  OMAPDSS: DSI: count with number of lanes
+  OMAPDSS: DSI: Parse lane config
+  OMAPDSS: DSI: Use new lane config in dsi_set_lane_config
+  OMAPDSS: DSI: use lane config in dsi_get_lane_mask
+  OMAPDSS: DSI: use lane config in dsi_cio_wait_tx_clk_esc_reset
+  OMAPDSS: DSI: use lane config in dsi_cio_enable_lane_override
+  OMAPDSS: DSI: remove dsi_get_num_lanes_used
+  OMAPDSS: DSI: fix lane handling when entering ULPS
+  OMAPDSS: DSI: improve wait_for_bit_change
+  OMAPDSS: DSI: disable DDR_CLK_ALWAYS_ON when entering ULPS
 
-For a last few months I've been working on DMA-mapping changes on ARM
-architecture in order to add support for IOMMU-aware DMA mapper. The
-last version of my patches are available here:
-http://lists.linaro.org/pipermail/linaro-mm-sig/2011-October/000745.html
+ drivers/video/omap2/dss/dispc.c |   10 +-
+ drivers/video/omap2/dss/dsi.c   |  429 +++++++++++++++++++++------------------
+ 2 files changed, 242 insertions(+), 197 deletions(-)
 
-The next version will be posted soon.
- 
-> On Thu, Nov 10, 2011 at 07:28:39PM +0000, David Woodhouse wrote:
-> > > The plan is to have a single DMA-API implementation for all IOMMU
-> > > drivers (X86 and ARM) which just uses the IOMMU-API. But to make this
-> > > performing reasonalbly well a few changes to the IOMMU-API are required.
-> > > I already have some ideas which we can discuss if you want.
-> >
-> > Yeah, that sounds useful.
-> 
-> As I said some changes to the IOMMU-API are required in my opinion.
-> These changes should also allow it to move over old-style IOMMUs like
-> Calgary or GART later.
-> 
-> The basic idea is that IOMMU drivers should be required to put every
-> device they are responsible for into a default domain. The DMA mapping
-> code can query this default domain for each device.
-
-Good idea.
- 
-> Also the default domain has capabilities that can be queried. Those
-> capabilities include the size and offset of the address space they can
-> re-map. For GART and Calgary this will be the aperture, for VT-d and AMD
-> IOMMU the whole 64bit address space. Another capability is whether
-> addresses outside of that area are 1-1 mapped or no accessible to the
-> device.
->
-> The generic DMA-mapping code will use that information to initialize its
-> allocator and uses iommu_map/iommu_unmap to create and destroy mappings
-> as requested by the DMA-API (but the DMA-mapping code does not need to
-> create a domain of its own).
-> 
-> The good thing about these default domains is that IOMMU drivers can
-> implement their own optimizations on it. The AMD IOMMU driver for
-> example already makes a distinction between dma-mapping domains and
-> other protection-domains. The optimization for dma-mapping domains is
-> that the leaf-pages of the page-table are keept in an array so that it
-> is very easy to find the PTE for an address. Those optimizations are
-> still possible with the default-domain concept.
-> 
-> In short, the benefits of the default-domain concept are:
-> 
-> 	1) It allows existing optimizations for the DMA-mapping code
-> 	   paths to persist
-> 	2) It also fits old-style IOMMUs like GART, Calgary and others
-> 
-> An open problem is how to report reserved ranges of an address-space.
-> These ranges might exist from a BIOS requirement for 1-1 mapping of
-> certain address ranges (in AMD jargon: Unity mapped ranges, something
-> similar exists on VT-d afaik) or hardware requirements like the reserved
-> address range used for MSI interrupts.
-
-In my DMA-mapping IOMMU integration I've used a dma_iommu_mapping structure,
-which contains a pointer to iommu domain, a bitmap and a lock. Maybe we 
-should consider extending iommu domain with allocation bitmap (or other 
-structure that hold information about used/unused iova ranges)? From the
-DMA-mapping (as a IOMMU client) perspective we only need 2 more callbacks
-in IOMMU API: alloc_iova_range() and free_iova_range(). 
-
-Each IOMMU implementation can provide these calls based on internal bitmap
-allocator which will also cover the issue with reserved ranges. What do you
-think about such solution?
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.4.1
 
