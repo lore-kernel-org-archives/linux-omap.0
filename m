@@ -1,105 +1,52 @@
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 09/11] video: Remove redundant spi driver bus initialization
-Date: Thu, 24 Nov 2011 16:29:19 +0100
-Message-ID: <1322148561-25138-9-git-send-email-lars@metafoo.de>
-References: <1322148561-25138-1-git-send-email-lars@metafoo.de>
+From: 'Joerg Roedel' <Joerg.Roedel@amd.com>
+Subject: Re: Changing IOMMU-API for generic DMA-mapping supported by the
+ hardware
+Date: Thu, 24 Nov 2011 16:27:47 +0100
+Message-ID: <20111124152747.GG11876@amd.com>
+References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+ <1318850846-16066-3-git-send-email-ohad@wizery.com>
+ <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
+ <1320938930.22195.17.camel@i7.infradead.org>
+ <20111110170918.GE13213@amd.com>
+ <1320953319.535.11.camel@i7.infradead.org>
+ <20111111131728.GG13213@amd.com>
+ <023b01ccaaa7$ef16c910$cd445b30$%szyprowski@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1322148561-25138-1-git-send-email-lars@metafoo.de>
+Content-Disposition: inline
+In-Reply-To: <023b01ccaaa7$ef16c910$cd445b30$%szyprowski@samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Lars-Peter Clausen <lars@metafoo.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'David Woodhouse' <dwmw2@infradead.org>, 'Ohad Ben-Cohen' <ohad@wizery.com>, 'KyongHo Cho' <pullip.cho@samsung.com>, 'Kai Huang' <mail.kai.huang@gmail.com>, kvm@vger.kernel.org, 'Arnd Bergmann' <arnd@arndb.de>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>, 'David Brown' <davidb@codeaurora.org>, linux-omap@vger.kernel.org, 'Stepan Moskovchenko' <stepanm@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-In ancient times it was necessary to manually initialize the bus field of an
-spi_driver to spi_bus_type. These days this is done in spi_driver_register(),
-so we can drop the manual assignment.
+On Thu, Nov 24, 2011 at 01:52:33PM +0100, Marek Szyprowski wrote:
+> In my DMA-mapping IOMMU integration I've used a dma_iommu_mapping structure,
+> which contains a pointer to iommu domain, a bitmap and a lock. Maybe we 
+> should consider extending iommu domain with allocation bitmap (or other 
+> structure that hold information about used/unused iova ranges)? From the
+> DMA-mapping (as a IOMMU client) perspective we only need 2 more callbacks
+> in IOMMU API: alloc_iova_range() and free_iova_range(). 
+> 
+> Each IOMMU implementation can provide these calls based on internal bitmap
+> allocator which will also cover the issue with reserved ranges. What do you
+> think about such solution?
 
-The patch was generated using the following coccinelle semantic patch:
-// <smpl>
-@@
-identifier _driver;
-@@
-struct spi_driver _driver = {
-	.driver = {
--		.bus = &spi_bus_type,
-	},
-};
-// </smpl>
+Hmm, the main point of a generic DMA-mapping implementation is that a
+common address-allocator will be used. Today every IOMMU driver that
+implements the DMA-API has its own allocator, this is something to unify
+between for all drivers.
 
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-fbdev@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
----
- drivers/video/omap/lcd_mipid.c                     |    1 -
- drivers/video/omap2/displays/panel-acx565akm.c     |    1 -
- drivers/video/omap2/displays/panel-n8x0.c          |    1 -
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |    1 -
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |    1 -
- 5 files changed, 0 insertions(+), 5 deletions(-)
+The allocator information can be stored in the default iommu_domain. We
+need a user-private pointer there, but that is easy to add.
 
-diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
-index eb381db..8d546dd 100644
---- a/drivers/video/omap/lcd_mipid.c
-+++ b/drivers/video/omap/lcd_mipid.c
-@@ -603,7 +603,6 @@ static int mipid_spi_remove(struct spi_device *spi)
- static struct spi_driver mipid_spi_driver = {
- 	.driver = {
- 		.name	= MIPID_MODULE_NAME,
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= mipid_spi_probe,
-diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
-index dbd59b8..51a87e1 100644
---- a/drivers/video/omap2/displays/panel-acx565akm.c
-+++ b/drivers/video/omap2/displays/panel-acx565akm.c
-@@ -803,7 +803,6 @@ static int acx565akm_spi_remove(struct spi_device *spi)
- static struct spi_driver acx565akm_spi_driver = {
- 	.driver = {
- 		.name	= "acx565akm",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= acx565akm_spi_probe,
-diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
-index 150e8ba..dc9408d 100644
---- a/drivers/video/omap2/displays/panel-n8x0.c
-+++ b/drivers/video/omap2/displays/panel-n8x0.c
-@@ -708,7 +708,6 @@ static int mipid_spi_remove(struct spi_device *spi)
- static struct spi_driver mipid_spi_driver = {
- 	.driver = {
- 		.name	= "lcd_mipid",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= mipid_spi_probe,
-diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-index 2ba9d0c..8365e77 100644
---- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-+++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-@@ -303,7 +303,6 @@ static struct spi_driver nec_8048_spi_driver = {
- 	.resume		= nec_8048_spi_resume,
- 	.driver		= {
- 		.name	= "nec_8048_spi",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- };
-diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-index 2462b9e..e6649aa 100644
---- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-@@ -512,7 +512,6 @@ static int __devexit tpo_td043_spi_remove(struct spi_device *spi)
- static struct spi_driver tpo_td043_spi_driver = {
- 	.driver = {
- 		.name	= "tpo_td043mtea1_panel_spi",
--		.bus	= &spi_bus_type,
- 		.owner	= THIS_MODULE,
- 	},
- 	.probe	= tpo_td043_spi_probe,
+
+	Joerg
+
 -- 
-1.7.7.1
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
