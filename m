@@ -1,39 +1,105 @@
-From: "Chernooky, Vitaly" <vitaly.chernooky@ti.com>
-Subject: clock44xx_data.c autogeneration scripts
-Date: Thu, 24 Nov 2011 16:16:10 +0200
-Message-ID: <CAM2XobxkOrUZkch5An21G5VKzAoDRGpth3hxjmO8LzK6z9aZ6Q@mail.gmail.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 09/11] video: Remove redundant spi driver bus initialization
+Date: Thu, 24 Nov 2011 16:29:19 +0100
+Message-ID: <1322148561-25138-9-git-send-email-lars@metafoo.de>
+References: <1322148561-25138-1-git-send-email-lars@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:54820 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752767Ab1KXOQM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Nov 2011 09:16:12 -0500
-Received: by mail-qy0-f174.google.com with SMTP id 20so1749405qyd.33
-        for <linux-omap@vger.kernel.org>; Thu, 24 Nov 2011 06:16:10 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1322148561-25138-1-git-send-email-lars@metafoo.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Lars-Peter Clausen <lars@metafoo.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org
 
-1. Please replace=A0RATE_IN_4430 =3D> RATE_IN_44XX
-2. Please replace CK_443X =3D> CK_44XX
-3. Please add initialization of field speculate in struct clk:
-        .speculate      =3D &omap2_clksel_speculate,
-4. Set ops field to &clkops_omap4_dflt_wait instead of
-&clkops_omap2_dflt in appropriate places
-5. Instead of line:
-=2Emax_multiplier =3D 2047,
-want:
-=2Emax_multiplier =3D OMAP4430_MAX_DPLL_MULT,
-6. Instead of line:
-=2Emax_divider    =3D 128,
-expect:
-=2Emax_divider    =3D OMAP4430_MAX_DPLL_DIV,
-7.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In ancient times it was necessary to manually initialize the bus field of an
+spi_driver to spi_bus_type. These days this is done in spi_driver_register(),
+so we can drop the manual assignment.
+
+The patch was generated using the following coccinelle semantic patch:
+// <smpl>
+@@
+identifier _driver;
+@@
+struct spi_driver _driver = {
+	.driver = {
+-		.bus = &spi_bus_type,
+	},
+};
+// </smpl>
+
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/video/omap/lcd_mipid.c                     |    1 -
+ drivers/video/omap2/displays/panel-acx565akm.c     |    1 -
+ drivers/video/omap2/displays/panel-n8x0.c          |    1 -
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      |    1 -
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |    1 -
+ 5 files changed, 0 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
+index eb381db..8d546dd 100644
+--- a/drivers/video/omap/lcd_mipid.c
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -603,7 +603,6 @@ static int mipid_spi_remove(struct spi_device *spi)
+ static struct spi_driver mipid_spi_driver = {
+ 	.driver = {
+ 		.name	= MIPID_MODULE_NAME,
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= mipid_spi_probe,
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/video/omap2/displays/panel-acx565akm.c
+index dbd59b8..51a87e1 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -803,7 +803,6 @@ static int acx565akm_spi_remove(struct spi_device *spi)
+ static struct spi_driver acx565akm_spi_driver = {
+ 	.driver = {
+ 		.name	= "acx565akm",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= acx565akm_spi_probe,
+diff --git a/drivers/video/omap2/displays/panel-n8x0.c b/drivers/video/omap2/displays/panel-n8x0.c
+index 150e8ba..dc9408d 100644
+--- a/drivers/video/omap2/displays/panel-n8x0.c
++++ b/drivers/video/omap2/displays/panel-n8x0.c
+@@ -708,7 +708,6 @@ static int mipid_spi_remove(struct spi_device *spi)
+ static struct spi_driver mipid_spi_driver = {
+ 	.driver = {
+ 		.name	= "lcd_mipid",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= mipid_spi_probe,
+diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+index 2ba9d0c..8365e77 100644
+--- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
++++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+@@ -303,7 +303,6 @@ static struct spi_driver nec_8048_spi_driver = {
+ 	.resume		= nec_8048_spi_resume,
+ 	.driver		= {
+ 		.name	= "nec_8048_spi",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ };
+diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+index 2462b9e..e6649aa 100644
+--- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+@@ -512,7 +512,6 @@ static int __devexit tpo_td043_spi_remove(struct spi_device *spi)
+ static struct spi_driver tpo_td043_spi_driver = {
+ 	.driver = {
+ 		.name	= "tpo_td043mtea1_panel_spi",
+-		.bus	= &spi_bus_type,
+ 		.owner	= THIS_MODULE,
+ 	},
+ 	.probe	= tpo_td043_spi_probe,
+-- 
+1.7.7.1
