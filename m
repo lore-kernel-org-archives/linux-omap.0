@@ -1,102 +1,162 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 08/13] OMAPDSS: DSI: use lane config in dsi_cio_wait_tx_clk_esc_reset
-Date: Thu, 24 Nov 2011 15:29:36 +0200
-Message-ID: <1322141381-5395-9-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 09/13] OMAPDSS: DSI: use lane config in dsi_cio_enable_lane_override
+Date: Thu, 24 Nov 2011 15:29:37 +0200
+Message-ID: <1322141381-5395-10-git-send-email-tomi.valkeinen@ti.com>
 References: <1322141381-5395-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:33343 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756083Ab1KXNaM (ORCPT
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:39392 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756059Ab1KXNaO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 24 Nov 2011 08:30:12 -0500
+	Thu, 24 Nov 2011 08:30:14 -0500
 In-Reply-To: <1322141381-5395-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use the new lane config in dsi_cio_wait_tx_clk_esc_reset(). This also
-extends the function to support 5 lanes on OMAP4, instead of 3 lanes.
+Use the new lane config in dsi_cio_enable_lane_override(). The function
+parameters are also slightly changed.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap2/dss/dsi.c |   47 +++++++++++++++-------------------------
- 1 files changed, 18 insertions(+), 29 deletions(-)
+ drivers/video/omap2/dss/dsi.c |   85 +++++++++++++----------------------------
+ 1 files changed, 27 insertions(+), 58 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-index 1a209a2..52cf97f 100644
+index 52cf97f..dee9525 100644
 --- a/drivers/video/omap2/dss/dsi.c
 +++ b/drivers/video/omap2/dss/dsi.c
-@@ -2365,51 +2365,40 @@ static void dsi_cio_disable_lane_override(struct platform_device *dsidev)
- static int dsi_cio_wait_tx_clk_esc_reset(struct omap_dss_device *dssdev)
+@@ -238,19 +238,6 @@ enum dsi_vc_source {
+ 	DSI_VC_SOURCE_VP,
+ };
+ 
+-enum dsi_lane {
+-	DSI_CLK_P	= 1 << 0,
+-	DSI_CLK_N	= 1 << 1,
+-	DSI_DATA1_P	= 1 << 2,
+-	DSI_DATA1_N	= 1 << 3,
+-	DSI_DATA2_P	= 1 << 4,
+-	DSI_DATA2_N	= 1 << 5,
+-	DSI_DATA3_P	= 1 << 6,
+-	DSI_DATA3_N	= 1 << 7,
+-	DSI_DATA4_P	= 1 << 8,
+-	DSI_DATA4_N	= 1 << 9,
+-};
+-
+ struct dsi_update_region {
+ 	u16 x, y, w, h;
+ 	struct omap_dss_device *device;
+@@ -2290,49 +2277,28 @@ static void dsi_cio_timings(struct platform_device *dsidev)
+ 	dsi_write_reg(dsidev, DSI_DSIPHY_CFG2, r);
+ }
+ 
++/* lane masks have lane 0 at lsb. mask_p for positive lines, n for negative */
+ static void dsi_cio_enable_lane_override(struct omap_dss_device *dssdev,
+-		enum dsi_lane lanes)
++		unsigned mask_p, unsigned mask_n)
  {
  	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
--	int t;
--	int bits[3];
--	bool in_use[3];
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+-	int clk_lane   = dssdev->phy.dsi.clk_lane;
+-	int data1_lane = dssdev->phy.dsi.data1_lane;
+-	int data2_lane = dssdev->phy.dsi.data2_lane;
+-	int data3_lane = dssdev->phy.dsi.data3_lane;
+-	int data4_lane = dssdev->phy.dsi.data4_lane;
+-	int clk_pol    = dssdev->phy.dsi.clk_pol;
+-	int data1_pol  = dssdev->phy.dsi.data1_pol;
+-	int data2_pol  = dssdev->phy.dsi.data2_pol;
+-	int data3_pol  = dssdev->phy.dsi.data3_pol;
+-	int data4_pol  = dssdev->phy.dsi.data4_pol;
 -
--	if (dss_has_feature(FEAT_DSI_REVERSE_TXCLKESC)) {
--		bits[0] = 28;
--		bits[1] = 27;
--		bits[2] = 26;
--	} else {
--		bits[0] = 24;
--		bits[1] = 25;
--		bits[2] = 26;
--	}
+-	u32 l = 0;
++	int i;
++	u32 l;
+ 	u8 lptxscp_start = dsi->num_lanes_supported == 3 ? 22 : 26;
+ 
+-	if (lanes & DSI_CLK_P)
+-		l |= 1 << ((clk_lane - 1) * 2 + (clk_pol ? 0 : 1));
+-	if (lanes & DSI_CLK_N)
+-		l |= 1 << ((clk_lane - 1) * 2 + (clk_pol ? 1 : 0));
 -
--	in_use[0] = false;
--	in_use[1] = false;
--	in_use[2] = false;
-+	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
-+	int t, i;
-+	bool in_use[DSI_MAX_NR_LANES];
-+	static const u8 offsets_old[] = { 28, 27, 26 };
-+	static const u8 offsets_new[] = { 24, 25, 26, 27, 28 };
-+	const u8 *offsets;
+-	if (lanes & DSI_DATA1_P)
+-		l |= 1 << ((data1_lane - 1) * 2 + (data1_pol ? 0 : 1));
+-	if (lanes & DSI_DATA1_N)
+-		l |= 1 << ((data1_lane - 1) * 2 + (data1_pol ? 1 : 0));
+-
+-	if (lanes & DSI_DATA2_P)
+-		l |= 1 << ((data2_lane - 1) * 2 + (data2_pol ? 0 : 1));
+-	if (lanes & DSI_DATA2_N)
+-		l |= 1 << ((data2_lane - 1) * 2 + (data2_pol ? 1 : 0));
+-
+-	if (lanes & DSI_DATA3_P)
+-		l |= 1 << ((data3_lane - 1) * 2 + (data3_pol ? 0 : 1));
+-	if (lanes & DSI_DATA3_N)
+-		l |= 1 << ((data3_lane - 1) * 2 + (data3_pol ? 1 : 0));
+-
+-	if (lanes & DSI_DATA4_P)
+-		l |= 1 << ((data4_lane - 1) * 2 + (data4_pol ? 0 : 1));
+-	if (lanes & DSI_DATA4_N)
+-		l |= 1 << ((data4_lane - 1) * 2 + (data4_pol ? 1 : 0));
++	l = 0;
 +
-+	if (dss_has_feature(FEAT_DSI_REVERSE_TXCLKESC))
-+		offsets = offsets_old;
-+	else
-+		offsets = offsets_new;
++	for (i = 0; i < dsi->num_lanes_supported; ++i) {
++		unsigned p = dsi->lanes[i].polarity;
++
++		if (mask_p & (1 << i))
++			l |= 1 << (i * 2 + (p ? 0 : 1));
++
++		if (mask_n & (1 << i))
++			l |= 1 << (i * 2 + (p ? 1 : 0));
++	}
++
+ 	/*
+ 	 * Bits in REGLPTXSCPDAT4TO0DXDY:
+ 	 * 17: DY0 18: DX0
+@@ -2432,7 +2398,6 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+ 	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+ 	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+ 	int r;
+-	int num_lanes_used = dsi_get_num_lanes_used(dssdev);
+ 	u32 l;
  
--	if (dssdev->phy.dsi.clk_lane != 0)
--		in_use[dssdev->phy.dsi.clk_lane - 1] = true;
--	if (dssdev->phy.dsi.data1_lane != 0)
--		in_use[dssdev->phy.dsi.data1_lane - 1] = true;
--	if (dssdev->phy.dsi.data2_lane != 0)
--		in_use[dssdev->phy.dsi.data2_lane - 1] = true;
-+	for (i = 0; i < dsi->num_lanes_supported; ++i)
-+		in_use[i] = dsi->lanes[i].function != DSI_LANE_UNUSED;
+ 	DSSDBGF();
+@@ -2467,7 +2432,8 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+ 	dsi_write_reg(dsidev, DSI_TIMING1, l);
  
- 	t = 100000;
- 	while (true) {
- 		u32 l;
--		int i;
- 		int ok;
+ 	if (dsi->ulps_enabled) {
+-		u32 lane_mask = DSI_CLK_P | DSI_DATA1_P | DSI_DATA2_P;
++		unsigned mask_p;
++		int i;
  
- 		l = dsi_read_reg(dsidev, DSI_DSIPHY_CFG5);
+ 		DSSDBG("manual ulps exit\n");
  
- 		ok = 0;
--		for (i = 0; i < 3; ++i) {
--			if (!in_use[i] || (l & (1 << bits[i])))
+@@ -2476,16 +2442,19 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+ 		 * ULPS exit sequence, as after reset the DSS HW thinks
+ 		 * that we are not in ULPS mode, and refuses to send the
+ 		 * sequence. So we need to send the ULPS exit sequence
+-		 * manually.
++		 * manually by setting positive lines high and negative lines
++		 * low for 1ms.
+ 		 */
+ 
+-		if (num_lanes_used > 3)
+-			lane_mask |= DSI_DATA3_P;
++		mask_p = 0;
+ 
+-		if (num_lanes_used > 4)
+-			lane_mask |= DSI_DATA4_P;
 +		for (i = 0; i < dsi->num_lanes_supported; ++i) {
-+			if (!in_use[i] || (l & (1 << offsets[i])))
- 				ok++;
- 		}
++			if (dsi->lanes[i].function == DSI_LANE_UNUSED)
++				continue;
++			mask_p |= 1 << i;
++		}
  
--		if (ok == 3)
-+		if (ok == dsi->num_lanes_supported)
- 			break;
+-		dsi_cio_enable_lane_override(dssdev, lane_mask);
++		dsi_cio_enable_lane_override(dssdev, mask_p, 0);
+ 	}
  
- 		if (--t == 0) {
--			for (i = 0; i < 3; ++i) {
--				if (!in_use[i] || (l & (1 << bits[i])))
-+			for (i = 0; i < dsi->num_lanes_supported; ++i) {
-+				if (!in_use[i] || (l & (1 << offsets[i])))
- 					continue;
- 
- 				DSSERR("CIO TXCLKESC%d domain not coming " \
+ 	r = dsi_cio_power(dsidev, DSI_COMPLEXIO_POWER_ON);
 -- 
 1.7.4.1
 
