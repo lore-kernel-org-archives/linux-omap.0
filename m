@@ -1,104 +1,115 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
-Date: Thu, 24 Nov 2011 05:07:37 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A803F09A@DBDE01.ent.ti.com>
-References: <1321274409-24643-1-git-send-email-rnayak@ti.com>
- <1321274409-24643-2-git-send-email-rnayak@ti.com>
- <20111114172312.GI31337@atomide.com> <4EC1EB9D.1000503@ti.com>
- <CACRpkdYuw+AfVtgfsbpkd=uvfWd8yE-n25EC0FDffhiGUS2MBw@mail.gmail.com>
- <CAJuYYwSgzkDed5-R=PaBR_F6ssj_EhxLDfCREXUA=UaynkgZyg@mail.gmail.com>
- <CACRpkdbBQoOU8hyew6tXth3Ohrg5_rN7M+tbVsYFcOjgq73aCw@mail.gmail.com>
- <CAJuYYwT_useS-8cH+qfDu5t7wh73yUuJAVXMjP5CXBS2VM3bag@mail.gmail.com>
- <CACRpkdax0GK=mNNao7FPc6JG0RwVywSEzGJPC_u73iJ_eOTgqQ@mail.gmail.com>
- <20111122175409.GE31337@atomide.com>
- <DD2280C9-D4E2-41FF-BDE7-9119237B62C0@dominion.thruhere.net>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v8 24/24] gpio/omap: handle set_dataout reg capable IP on restore
+Date: Thu, 24 Nov 2011 11:01:01 +0530
+Message-ID: <CAC83ZvLCBFVBrZTeebK-53b-UjKXYo5F-yqC7zcDQn+3uHcwkQ@mail.gmail.com>
+References: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
+	<1317803593-12259-25-git-send-email-tarun.kanti@ti.com>
+	<87aa8bde2d.fsf@ti.com>
+	<CAC83Zv+gac_Wd8+V+o6USxv73ia5i8JLjLDHj8VQiRiqZ7DOtQ@mail.gmail.com>
+	<CAC83ZvL9w=7RhAuT=5ahbDX+d6miQMif1ngOenEiqP4UN2+mzg@mail.gmail.com>
+	<87zkfmaa3c.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51025 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725Ab1KXFIG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Nov 2011 00:08:06 -0500
-In-Reply-To: <DD2280C9-D4E2-41FF-BDE7-9119237B62C0@dominion.thruhere.net>
-Content-Language: en-US
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60290 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750735Ab1KXFbD convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 24 Nov 2011 00:31:03 -0500
+Received: by mail-qw0-f48.google.com with SMTP id y1so977861qad.0
+        for <linux-omap@vger.kernel.org>; Wed, 23 Nov 2011 21:31:01 -0800 (PST)
+In-Reply-To: <87zkfmaa3c.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@dominion.thruhere.net>, Tony Lindgren <tony@atomide.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, Thomas Abraham <thomas.abraham@linaro.org>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linaro-dev@lists.linaro.org" <linaro-dev@lists.linaro.org>, "linus.walleij@stericsson.com" <linus.walleij@stericsson.com>, linux-samsung-soc <linux-samsung-soc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Nishanth Menon <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Koen Kooi
-> Sent: Wednesday, November 23, 2011 8:51 PM
-> To: Tony Lindgren
-> Cc: Linus Walleij; Thomas Abraham; Nayak, Rajendra; linux-
-> omap@vger.kernel.org; linaro-dev@lists.linaro.org;
-> linus.walleij@stericsson.com; linux-samsung-soc; devicetree-
-> discuss@lists.ozlabs.org
-> Subject: Re: [RFC 1/3] pinctrl: add a driver for the OMAP pinmux
-> 
-> 
-> Op 22 nov. 2011, om 18:54 heeft Tony Lindgren het volgende geschreven:
-> 
-> > * Linus Walleij <linus.walleij@linaro.org> [111122 03:30]:
-> >> On Tue, Nov 22, 2011 at 12:09 PM, Thomas Abraham
-> >> <thomas.abraham@linaro.org> wrote:
-> >>> On 17 November 2011 19:27, Linus Walleij <linus.walleij@linaro.org>
-> wrote:
-> >>>>
-> >>>> Maybe I'm mistaken about the device tree ambitions, but
-> >>>> I was sort of hoping that it would not contain too much
-> >>>> custom magic numbers that need to be cross-referenced
-> >>>> elsewhere ... or rather - the more understandable the device
-> >>>> tree is, the more we win.
-> >>>
-> >>> Device tree is expected to describe the hardware. So to
-> >>> cross-reference the hardware manual to understand device tree should
-> >>> be fine I guess. For instance, GPIO numbers in dts would be written as
-> >>> a numeric number and not a enum or other format. And by looking up the
-> >>> manual, we understand the actual details of the GPIO pin.
-> >>>
-> >>> If dt-compiler had a option to support #define like in C, the numbers
-> >>> could have been made more easier to understand. Like, 3 to mean
-> >>> GPIO_PULL_UP in Exynos dts file.
-> >>
-> >> OK I think I get it now, so DT bindings shall really NOT be read
-> >> by any of the pinctrl core, it is *supposed* to be all driver-specific.
-> >> Then it makes perfect sense to have it as it is.
-> >
-> > Yes the driver nodes should describe in DT which pins to use:
-> >
-> >        serial@12340000 {
-> >                compatible = "8250";
-> >                reg = <0x12340000 0x40>;
-> >                reg-shift = <2>;
-> >                interrupts = < 10 >;
-> > 		pins = "uart1_rx", "uart1_tx";
-> >        };
-> >
-> > Note that we should use the actual signal names, not package specific
-> > pad names. This way they have a high likelyhood to work for new packages
-> > too by just mapping the signals to the new package.
-> 
-> How would this handle the situation where you can mux a signal to multiple
-> pins? IIRC omap3 and am335x can do funny stuff with the display pins like
-> being able to map the blue bits to different pinblocks.
-> 
-That's quite not true, in case of omap3 pins are labeled as R0-R7, B0-B7 and
-G0-G7; what changes is pixel format.
-
-AM335x LCDC is completely different IP altogether and spec doesn't map
-Colors to pins. It barely maps bit0 from memory to pinX.
-Now you call it as a standard or legacy or may be due to SGX software,
-the pixel format we use is BGR (as in memory). 
-It is completely depends on how you interface the pins to LCD (considering)
-Software support/requirement.
-
-Thanks,
-Vaibhav
-
-
-> regards,
-> 
-> Koen
+On Thu, Nov 24, 2011 at 1:24 AM, Kevin Hilman <khilman@ti.com> wrote:
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+>
+>> On Mon, Nov 7, 2011 at 5:35 PM, DebBarma, Tarun Kanti
+>> <tarun.kanti@ti.com> wrote:
+>>> On Fri, Nov 4, 2011 at 10:23 PM, Kevin Hilman <khilman@ti.com> wrot=
+e:
+>>>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>>>>
+>>>>> From: Nishanth Menon <nm@ti.com>
+>>>>>
+>>>>> GPIO IP revisions such as those used in OMAP4 have a set_dataout
+>>>>> while the previous revisions used a single dataout register.
+>>>>> Depending on what is available restore the dataout settings
+>>>>> to the right register.
+>>>>>
+>>>>> Signed-off-by: Nishanth Menon <nm@ti.com>
+>>>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>>>> Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>>>> ---
+>>>>> =A0drivers/gpio/gpio-omap.c | =A0 =A09 +++++++--
+>>>>> =A01 files changed, 7 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>>>> index 4009446..3df7a98 100644
+>>>>> --- a/drivers/gpio/gpio-omap.c
+>>>>> +++ b/drivers/gpio/gpio-omap.c
+>>>>> @@ -1073,7 +1073,7 @@ static int __devinit omap_gpio_probe(struct=
+ platform_device *pdev)
+>>>>> =A0 =A0 =A0 bank->get_context_loss_count =3D pdata->get_context_l=
+oss_count;
+>>>>> =A0 =A0 =A0 bank->regs =3D pdata->regs;
+>>>>>
+>>>>> - =A0 =A0 if (bank->regs->set_dataout && bank->regs->clr_dataout)
+>>>>> + =A0 =A0 if (bank->regs->set_dataout)
+>>>>
+>>>> This change isn't right.
+>>>>
+>>>> The _set_gpio_dataout_reg function depends on the existence of
+>>>> ->clr_dataout too.
+>>> Ok, I will add the clr_dataout condtion as well.
+>>
+>>>
+>>>>
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->set_dataout =3D _set_gpio_datao=
+ut_reg;
+>>>>> =A0 =A0 =A0 else
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->set_dataout =3D _set_gpio_datao=
+ut_mask;
+>>>>> @@ -1351,7 +1351,12 @@ static void omap_gpio_restore_context(stru=
+ct gpio_bank *bank)
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank-=
+>base + bank->regs->risingdetect);
+>>>>> =A0 =A0 =A0 __raw_writel(bank->context.fallingdetect,
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank-=
+>base + bank->regs->fallingdetect);
+>>>>> - =A0 =A0 __raw_writel(bank->context.dataout, bank->base + bank->=
+regs->dataout);
+>>>>> + =A0 =A0 if (bank->regs->set_dataout)
+>>>>
+>>>> Why the check again? =A0The check has already been done in probe.
+>>>>
+>>>> Just use bank->set_dataout() here.
+>>> Sure, i will make the change.
+>>
+>> When I look at the signature of set_dataout(), it does not seem
+>> straight forward to be used here. It expects (struct gpio_bank *bank=
+,
+>> int gpio, int enable) to be passed to it.
+>
+> IOW, it expects to only set 1 bit, where the context restore needs to
+> set the value for the whole register.
+>
+> OK, then keep the original version, but make sure the if statement
+> matches is checking for ->set_dataout and ->clr_dataout like the othe=
+r one.
+Right. I have done that.
+--
+Tarun
+>
+> Kevin
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
