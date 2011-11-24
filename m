@@ -1,254 +1,108 @@
-From: Robert Marklund <robert.marklund@stericsson.com>
-Subject: [PATCH 2/2 v5] net/smsc911x: Add regulator support
-Date: Thu, 24 Nov 2011 12:03:07 +0100
-Message-ID: <1322132587-2049-1-git-send-email-robert.marklund@stericsson.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: Changing IOMMU-API for generic DMA-mapping supported by the
+ hardware
+Date: Thu, 24 Nov 2011 13:52:33 +0100
+Message-ID: <023b01ccaaa7$ef16c910$cd445b30$%szyprowski@samsung.com>
+References: <1318850846-16066-1-git-send-email-ohad@wizery.com>
+ <1318850846-16066-3-git-send-email-ohad@wizery.com>
+ <CANqQZNH1YRSgYRVxceicQ3szD=t7zeJjhJKEQ30PeKsxtj5V+A@mail.gmail.com>
+ <1320938930.22195.17.camel@i7.infradead.org> <20111110170918.GE13213@amd.com>
+ <1320953319.535.11.camel@i7.infradead.org> <20111111131728.GG13213@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-sh-owner@vger.kernel.org>
-Sender: linux-sh-owner@vger.kernel.org
-To: netdev@vger.kernel.org, Steve Glendinning <steve.glendinning@smsc.com>
-Cc: Mathieu Poirier <mathieu.poirier@linaro.org>, Robert Marklund <robert.marklund@stericsson.com>, Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Mike Frysinger <vapier@gentoo.org>, uclinux-dist-devel@blackfin.uclinux.org, Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:11650 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab1KXMxl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Nov 2011 07:53:41 -0500
+In-reply-to: <20111111131728.GG13213@amd.com>
+Content-language: pl
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Joerg Roedel' <Joerg.Roedel@amd.com>, 'David Woodhouse' <dwmw2@infradead.org>
+Cc: 'Ohad Ben-Cohen' <ohad@wizery.com>, 'KyongHo Cho' <pullip.cho@samsung.com>, 'Kai Huang' <mail.kai.huang@gmail.com>, kvm@vger.kernel.org, 'Arnd Bergmann' <arnd@arndb.de>, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>, 'David Brown' <davidb@codeaurora.org>, linux-omap@vger.kernel.org, 'Stepan Moskovchenko' <stepanm@codeaurora.org>, linux-arm-kernel@lists.infradead.org
 
-Add some basic regulator support for the power pins, as needed
-by the ST-Ericsson Snowball platform that powers up the SMSC911
-chip using an external regulator.
+Hello,
 
-Platforms that use regulators and the smsc911x and have no defined
-regulator for the smsc911x and claim complete regulator
-constraints with no dummy regulators will need to provide it, for
-example using a fixed voltage regulator. It appears that this may
-affect (apart from Ux500 Snowball) possibly these archs/machines
-that from some grep:s appear to define both CONFIG_SMSC911X and
-CONFIG_REGULATOR:
+On Friday, November 11, 2011 2:17 PM Joerg Roedel wrote:
 
-- ARM Freescale mx3 and OMAP 2 plus, Raumfeld machines
-- Blackfin
-- Super-H
+> Okay, seperate thread for this one.
 
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: linux-sh@vger.kernel.org
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
-Cc: Mike Frysinger <vapier@gentoo.org>
-Cc: uclinux-dist-devel@blackfin.uclinux.org
-Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Signed-off-by: Robert Marklund <robert.marklund@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
----
-ChangeLog v4->v5:
-- Split the enable_disable method on Mikes request.
-ChangeLog v3->v4:
-- Remove dual prints and old comment on Mike's request.
-- Split the request_free fucntion on Mike and Sascha request.
-ChangeLog v2->v3:
-- Use bulk regulators on Mark's request.
-- Add Cc-fileds to some possibly affected platforms.
-ChangeLog v1->v2:
-- Don't check for NULL regulators and error out properly if the
-  regulators can't be found. All platforms using the smsc911x
-  and the regulator framework simultaneously need to provide some
-  kind of regulator for it.
----
- drivers/net/ethernet/smsc/smsc911x.c |  111 ++++++++++++++++++++++++++++++----
- 1 files changed, 100 insertions(+), 11 deletions(-)
+If possible, I would like to be CCed: in the next mails in this topic. 
 
-diff --git a/drivers/net/ethernet/smsc/smsc911x.c b/drivers/net/ethernet/smsc/smsc911x.c
-index 8843071..06d0df6 100644
---- a/drivers/net/ethernet/smsc/smsc911x.c
-+++ b/drivers/net/ethernet/smsc/smsc911x.c
-@@ -44,6 +44,7 @@
- #include <linux/module.h>
- #include <linux/netdevice.h>
- #include <linux/platform_device.h>
-+#include <linux/regulator/consumer.h>
- #include <linux/sched.h>
- #include <linux/timer.h>
- #include <linux/bug.h>
-@@ -88,6 +89,8 @@ struct smsc911x_ops {
- 				unsigned int *buf, unsigned int wordcount);
- };
+For a last few months I've been working on DMA-mapping changes on ARM
+architecture in order to add support for IOMMU-aware DMA mapper. The
+last version of my patches are available here:
+http://lists.linaro.org/pipermail/linaro-mm-sig/2011-October/000745.html
+
+The next version will be posted soon.
  
-+#define SMSC911X_NUM_SUPPLIES 2
-+
- struct smsc911x_data {
- 	void __iomem *ioaddr;
+> On Thu, Nov 10, 2011 at 07:28:39PM +0000, David Woodhouse wrote:
+> > > The plan is to have a single DMA-API implementation for all IOMMU
+> > > drivers (X86 and ARM) which just uses the IOMMU-API. But to make this
+> > > performing reasonalbly well a few changes to the IOMMU-API are required.
+> > > I already have some ideas which we can discuss if you want.
+> >
+> > Yeah, that sounds useful.
+> 
+> As I said some changes to the IOMMU-API are required in my opinion.
+> These changes should also allow it to move over old-style IOMMUs like
+> Calgary or GART later.
+> 
+> The basic idea is that IOMMU drivers should be required to put every
+> device they are responsible for into a default domain. The DMA mapping
+> code can query this default domain for each device.
+
+Good idea.
  
-@@ -138,6 +141,9 @@ struct smsc911x_data {
- 
- 	/* register access functions */
- 	const struct smsc911x_ops *ops;
-+
-+	/* regulators */
-+	struct regulator_bulk_data supplies[SMSC911X_NUM_SUPPLIES];
- };
- 
- /* Easy access to information */
-@@ -362,6 +368,76 @@ out:
- 	spin_unlock_irqrestore(&pdata->dev_lock, flags);
- }
- 
-+/*
-+ * enable resources, currently just regulators.
-+ */
-+static int smsc911x_enable_resources(struct platform_device *pdev)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+	int ret = 0;
-+
-+	ret = regulator_bulk_enable(ARRAY_SIZE(pdata->supplies),
-+			pdata->supplies);
-+	if (ret)
-+		netdev_err(ndev, "failed to enable regulators %d\n",
-+				ret);
-+	return ret;
-+}
-+
-+/*
-+ * disable resources, currently just regulators.
-+ */
-+static int smsc911x_disable_resources(struct platform_device *pdev)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+	int ret = 0;
-+
-+	ret = regulator_bulk_disable(ARRAY_SIZE(pdata->supplies),
-+			pdata->supplies);
-+	return ret;
-+}
-+
-+/*
-+ * Request resources, currently just regulators.
-+ *
-+ * The SMSC911x has two power pins: vddvario and vdd33a, in designs where
-+ * these are not always-on we need to request regulators to be turned on
-+ * before we can try to access the device registers.
-+ */
-+static int smsc911x_request_resources(struct platform_device *pdev)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+	int ret = 0;
-+
-+	/* Request regulators */
-+	pdata->supplies[0].supply = "vdd33a";
-+	pdata->supplies[1].supply = "vddvario";
-+	ret = regulator_bulk_get(&pdev->dev,
-+			ARRAY_SIZE(pdata->supplies),
-+			pdata->supplies);
-+	if (ret)
-+		netdev_err(ndev, "couldn't get regulators %d\n",
-+				ret);
-+	return ret;
-+}
-+
-+/*
-+ * Free resources, currently just regulators.
-+ *
-+ */
-+static void smsc911x_free_resources(struct platform_device *pdev)
-+{
-+	struct net_device *ndev = platform_get_drvdata(pdev);
-+	struct smsc911x_data *pdata = netdev_priv(ndev);
-+
-+	/* Free regulators */
-+	regulator_bulk_free(ARRAY_SIZE(pdata->supplies),
-+			pdata->supplies);
-+}
-+
- /* waits for MAC not busy, with timeout.  Only called by smsc911x_mac_read
-  * and smsc911x_mac_write, so assumes mac_lock is held */
- static int smsc911x_mac_complete(struct smsc911x_data *pdata)
-@@ -2092,6 +2168,9 @@ static int __devexit smsc911x_drv_remove(struct platform_device *pdev)
- 
- 	iounmap(pdata->ioaddr);
- 
-+	(void)smsc911x_disable_resources(pdev);
-+	smsc911x_free_resources(pdev);
-+
- 	free_netdev(dev);
- 
- 	return 0;
-@@ -2218,10 +2297,20 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 	pdata->dev = dev;
- 	pdata->msg_enable = ((1 << debug) - 1);
- 
-+	platform_set_drvdata(pdev, dev);
-+
-+	retval = smsc911x_request_resources(pdev);
-+	if (retval)
-+		goto out_return_resources;
-+
-+	retval = smsc911x_enable_resources(pdev);
-+	if (retval)
-+		goto out_disable_resources;
-+
- 	if (pdata->ioaddr == NULL) {
- 		SMSC_WARN(pdata, probe, "Error smsc911x base address invalid");
- 		retval = -ENOMEM;
--		goto out_free_netdev_2;
-+		goto out_disable_resources;
- 	}
- 
- 	retval = smsc911x_probe_config_dt(&pdata->config, np);
-@@ -2233,7 +2322,7 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 
- 	if (retval) {
- 		SMSC_WARN(pdata, probe, "Error smsc911x config not found");
--		goto out_unmap_io_3;
-+		goto out_disable_resources;
- 	}
- 
- 	/* assume standard, non-shifted, access to HW registers */
-@@ -2244,7 +2333,7 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 
- 	retval = smsc911x_init(dev);
- 	if (retval < 0)
--		goto out_unmap_io_3;
-+		goto out_disable_resources;
- 
- 	/* configure irq polarity and type before connecting isr */
- 	if (pdata->config.irq_polarity == SMSC911X_IRQ_POLARITY_ACTIVE_HIGH)
-@@ -2264,15 +2353,13 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 	if (retval) {
- 		SMSC_WARN(pdata, probe,
- 			  "Unable to claim requested irq: %d", dev->irq);
--		goto out_unmap_io_3;
-+		goto out_free_irq;
- 	}
- 
--	platform_set_drvdata(pdev, dev);
--
- 	retval = register_netdev(dev);
- 	if (retval) {
- 		SMSC_WARN(pdata, probe, "Error %i registering device", retval);
--		goto out_unset_drvdata_4;
-+		goto out_free_irq;
- 	} else {
- 		SMSC_TRACE(pdata, probe,
- 			   "Network interface: \"%s\"", dev->name);
-@@ -2321,12 +2408,14 @@ static int __devinit smsc911x_drv_probe(struct platform_device *pdev)
- 
- out_unregister_netdev_5:
- 	unregister_netdev(dev);
--out_unset_drvdata_4:
--	platform_set_drvdata(pdev, NULL);
-+out_free_irq:
- 	free_irq(dev->irq, dev);
--out_unmap_io_3:
-+out_disable_resources:
-+	(void)smsc911x_disable_resources(pdev);
-+out_return_resources:
-+	smsc911x_free_resources(pdev);
-+	platform_set_drvdata(pdev, NULL);
- 	iounmap(pdata->ioaddr);
--out_free_netdev_2:
- 	free_netdev(dev);
- out_release_io_1:
- 	release_mem_region(res->start, resource_size(res));
+> Also the default domain has capabilities that can be queried. Those
+> capabilities include the size and offset of the address space they can
+> re-map. For GART and Calgary this will be the aperture, for VT-d and AMD
+> IOMMU the whole 64bit address space. Another capability is whether
+> addresses outside of that area are 1-1 mapped or no accessible to the
+> device.
+>
+> The generic DMA-mapping code will use that information to initialize its
+> allocator and uses iommu_map/iommu_unmap to create and destroy mappings
+> as requested by the DMA-API (but the DMA-mapping code does not need to
+> create a domain of its own).
+> 
+> The good thing about these default domains is that IOMMU drivers can
+> implement their own optimizations on it. The AMD IOMMU driver for
+> example already makes a distinction between dma-mapping domains and
+> other protection-domains. The optimization for dma-mapping domains is
+> that the leaf-pages of the page-table are keept in an array so that it
+> is very easy to find the PTE for an address. Those optimizations are
+> still possible with the default-domain concept.
+> 
+> In short, the benefits of the default-domain concept are:
+> 
+> 	1) It allows existing optimizations for the DMA-mapping code
+> 	   paths to persist
+> 	2) It also fits old-style IOMMUs like GART, Calgary and others
+> 
+> An open problem is how to report reserved ranges of an address-space.
+> These ranges might exist from a BIOS requirement for 1-1 mapping of
+> certain address ranges (in AMD jargon: Unity mapped ranges, something
+> similar exists on VT-d afaik) or hardware requirements like the reserved
+> address range used for MSI interrupts.
+
+In my DMA-mapping IOMMU integration I've used a dma_iommu_mapping structure,
+which contains a pointer to iommu domain, a bitmap and a lock. Maybe we 
+should consider extending iommu domain with allocation bitmap (or other 
+structure that hold information about used/unused iova ranges)? From the
+DMA-mapping (as a IOMMU client) perspective we only need 2 more callbacks
+in IOMMU API: alloc_iova_range() and free_iova_range(). 
+
+Each IOMMU implementation can provide these calls based on internal bitmap
+allocator which will also cover the issue with reserved ranges. What do you
+think about such solution?
+
+Best regards
 -- 
-1.7.1
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
