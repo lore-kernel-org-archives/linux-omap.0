@@ -1,69 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] DSS fixes for v3.2-rc2
-Date: Wed, 23 Nov 2011 15:55:42 -0800
-Message-ID: <20111123235542.GL31337@atomide.com>
+Subject: Re: [GIT PULL] omap fixes for v3.2-rc2
+Date: Wed, 23 Nov 2011 16:42:02 -0800
+Message-ID: <20111124004202.GM31337@atomide.com>
+References: <20111119194408.GD31337@atomide.com>
+ <201111232115.41035.arnd@arndb.de>
+ <20111123220358.GI31337@atomide.com>
+ <21329850.CZjvquqxJn@wuerfel>
+ <20111123231127.GJ31337@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61252 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40027 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463Ab1KWXzp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Nov 2011 18:55:45 -0500
+	with ESMTP id S1754356Ab1KXAmI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Nov 2011 19:42:08 -0500
 Content-Disposition: inline
+In-Reply-To: <20111123231127.GJ31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Arnd,
+* Tony Lindgren <tony@atomide.com> [111123 14:36]:
+> * Arnd Bergmann <arnd@arndb.de> [111123 13:47]:
+> > On Wednesday 23 November 2011 14:03:58 Tony Lindgren wrote:
+> > > 
+> > > The earlier patches are based on the earlier fixes (while waiting
+> > > for them to get merged). So that's certainly not a random commit.
+> > > Or at least was not at that time  I can rebase those too anyways
+> > > now that the earlier fixes are merged.
+> > 
+> > No need to do that unless you are rebasing them anyway. IMHO
+> > it's fine if you have all your bug fixes in one branch based
+> > on the previous bug fixes you sent, but it's of course also
+> > fine to start a fresh branch for each pull request.
+> > 
+> > In general, I would recommend not rebasing when you have the
+> > choice, because that means your patches are not as well tested.
+> 
+> Well I can keep only four of them because of the pull on a random
+> commit. Looks like four of them apply to v3.1, will send them
+> off to stable@vger.kernel.org and send you two new pull requests.
 
-This one has been separated out from the rest of the fixes.
-
-If some of these need to go to stable, then Tomi should
-do the rebasing and send them to stable@vger.kernel.org
-as they don't apply cleanly on v3.1.
-
-Regards,
+FYI, forgot to mention that I verified that merging in the two pull
+requests produces the same end result as the original pull request.
 
 Tony
-
-
-The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055dbf8e37:
-  Linus Torvalds (1):
-        Linux 3.2-rc2
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-dss
-
-Archit Taneja (1):
-      ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in bootloader
-
-Tomi Valkeinen (9):
-      ARM: OMAP2xxx: HWMOD: Fix DSS reset
-      ARM: OMAP2xxx: HWMOD: fix DSS clock data
-      ARM: OMAP3: HWMOD: Fix DSS reset
-      ARM: OMAP3: HWMOD: fix DSS clock data
-      ARM: OMAP4: HWMOD: remove extra clocks
-      ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_core
-      ARM: OMAP4: HWMOD: fix DSS clock data
-      ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
-      ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
-
-Tony Lindgren (1):
-      Merge branch 'hwmod_dss_fixes_3.2rc' of git://git.pwsan.com/linux-2.6 into fixes-dss
-
- arch/arm/mach-omap2/Makefile                       |    5 +-
- arch/arm/mach-omap2/display.c                      |  159 ++++++++++++++++++++
- arch/arm/mach-omap2/display.h                      |   29 ++++
- arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
- arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
- arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
- arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
- arch/arm/plat-omap/include/plat/common.h           |    3 +
- include/video/omapdss.h                            |    7 -
- 12 files changed, 276 insertions(+), 35 deletions(-)
- create mode 100644 arch/arm/mach-omap2/display.h
