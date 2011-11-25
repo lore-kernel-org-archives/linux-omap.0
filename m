@@ -1,61 +1,113 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv6 5/6] omap3: voltage: fix channel configuration
-Date: Fri, 25 Nov 2011 18:29:21 +0200
-Message-ID: <1322238562-19943-6-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv6 4/6] regulator: twl: fix twl4030 support for smps regulators
+Date: Fri, 25 Nov 2011 18:29:20 +0200
+Message-ID: <1322238562-19943-5-git-send-email-t-kristo@ti.com>
 References: <1322238562-19943-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53147 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49725 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754457Ab1KYQ3y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Nov 2011 11:29:54 -0500
+	id S1754457Ab1KYQ3w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Nov 2011 11:29:52 -0500
 In-Reply-To: <1322238562-19943-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, gg@slimlogic.co.uk, rnayak@ti.com, b-cousson@ti.com
 
-OMAP3 uses the default settings for VDD1 channel, otherwise the settings will
-overlap with VDD2 and attempting to modify VDD1 voltage will actually change
-VDD2 voltage.
+SMPS regulator voltage control differs from the one of the LDO ones.
+Current TWL code was using LDO regulator ops for controlling the SMPS
+regulators, which fails. This was fixed fixed by adding separate
+regulator type which uses correct logic and calculations for the
+voltage levels.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/vc.c          |    5 ++++-
- arch/arm/mach-omap2/vc3xxx_data.c |    1 +
- 2 files changed, 5 insertions(+), 1 deletions(-)
+ drivers/regulator/twl-regulator.c |   49 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 47 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
-index 031d116..d42dd5f 100644
---- a/arch/arm/mach-omap2/vc.c
-+++ b/arch/arm/mach-omap2/vc.c
-@@ -334,9 +334,12 @@ void __init omap_vc_init_channel(struct voltagedomain *voltdm)
- 		voltdm->rmw(vc->smps_cmdra_mask,
- 			    vc->cmd_reg_addr << __ffs(vc->smps_cmdra_mask),
- 			    vc->smps_cmdra_reg);
--		vc->cfg_channel |= vc_cfg_bits->rac | vc_cfg_bits->racen;
-+		vc->cfg_channel |= vc_cfg_bits->rac;
- 	}
- 
-+	if (vc->cmd_reg_addr == vc->volt_reg_addr)
-+		vc->cfg_channel |= vc_cfg_bits->racen;
-+
- 	/* Set up the on, inactive, retention and off voltage */
- 	on_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->on_volt);
- 	onlp_vsel = voltdm->pmic->uv_to_vsel(voltdm->pmic->onlp_volt);
-diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
-index cfe348e..0136ad5 100644
---- a/arch/arm/mach-omap2/vc3xxx_data.c
-+++ b/arch/arm/mach-omap2/vc3xxx_data.c
-@@ -46,6 +46,7 @@ static struct omap_vc_common omap3_vc_common = {
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index ee8747f..97fe2f2 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -71,6 +71,7 @@ struct twlreg_info {
+ #define VREG_TYPE		1
+ #define VREG_REMAP		2
+ #define VREG_DEDICATED		3	/* LDO control */
++#define VREG_VOLTAGE_SMPS_4030	9
+ /* TWL6030 register offsets */
+ #define VREG_TRANS		1
+ #define VREG_STATE		2
+@@ -514,6 +515,35 @@ static struct regulator_ops twl4030ldo_ops = {
+ 	.get_status	= twl4030reg_get_status,
  };
  
- struct omap_vc_channel omap3_vc_mpu = {
-+	.flags = OMAP_VC_CHANNEL_DEFAULT,
- 	.common = &omap3_vc_common,
- 	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
- 	.smps_volra_reg	 = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
++static int
++twl4030smps_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV,
++			unsigned *selector)
++{
++	struct twlreg_info *info = rdev_get_drvdata(rdev);
++	int vsel = DIV_ROUND_UP(min_uV - 600000, 12500);
++
++	pr_info("attempting to write: %02x\n", vsel);
++	twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE_SMPS_4030,
++		vsel);
++	return 0;
++}
++
++static int twl4030smps_get_voltage(struct regulator_dev *rdev)
++{
++	struct twlreg_info *info = rdev_get_drvdata(rdev);
++	int vsel = twlreg_read(info, TWL_MODULE_PM_RECEIVER,
++		VREG_VOLTAGE_SMPS_4030);
++
++	pr_info("vsel = %02x\n", vsel);
++
++	return vsel * 12500 + 600000;
++}
++
++static struct regulator_ops twl4030smps_ops = {
++	.set_voltage	= twl4030smps_set_voltage,
++	.get_voltage	= twl4030smps_get_voltage,
++};
++
+ static int twl6030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -856,6 +886,21 @@ static struct regulator_ops twlsmps_ops = {
+ 		}, \
+ 	}
+ 
++#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf) \
++	{ \
++	.base = offset, \
++	.id = num, \
++	.delay = turnon_delay, \
++	.remap = remap_conf, \
++	.desc = { \
++		.name = #label, \
++		.id = TWL4030_REG_##label, \
++		.ops = &twl4030smps_ops, \
++		.type = REGULATOR_VOLTAGE, \
++		.owner = THIS_MODULE, \
++		}, \
++	}
++
+ #define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+@@ -947,8 +992,8 @@ static struct twlreg_info twl_regs[] = {
+ 	TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08),
+ 	TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VDD1, 0x55, 15, 1000, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VDD2, 0x63, 16, 1000, 0x08),
++	TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08),
++	TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB1V5, 0x71, 1500, 17, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB1V8, 0x74, 1800, 18, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB3V1, 0x77, 3100, 19, 150, 0x08),
 -- 
 1.7.4.1
 
