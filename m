@@ -1,101 +1,61 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 09/15] TEMP: OMAP3: beagle rev-c4: enable OPP6
-Date: Fri, 25 Nov 2011 17:49:42 +0200
-Message-ID: <1322236188-19456-10-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv4 08/15] omap4: use pmic params for calculating pmic setup times
+Date: Fri, 25 Nov 2011 17:49:41 +0200
+Message-ID: <1322236188-19456-9-git-send-email-t-kristo@ti.com>
 References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41908 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41907 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754040Ab1KYPuM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Nov 2011 10:50:12 -0500
+	id S1754040Ab1KYPuL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Nov 2011 10:50:11 -0500
 Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id pAPFoCHj003213
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id pAPFoAHC003210
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 09:50:12 -0600
+	for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 09:50:10 -0600
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pAPFoC3L003840
-	for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 09:50:12 -0600 (CST)
-Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pAPFoCKl017889
-	for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 09:50:12 -0600 (CST)
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pAPFoATl003827
+	for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 09:50:10 -0600 (CST)
+Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pAPFoAsj017865
+	for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 09:50:10 -0600 (CST)
 In-Reply-To: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, nm@ti.com
 
-Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
+As voltdm->pmic now contains startup and shutdown times for PMIC, use
+these for calculating the fields in the PMICSETUPTIME register.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   29 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c      |    4 ++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/vc.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 3ae16b4..a7c3d60 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -489,6 +489,35 @@ static void __init beagle_opp_init(void)
- 		return;
- 	}
+diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+index 351319c..1562aa9 100644
+--- a/arch/arm/mach-omap2/vc.c
++++ b/arch/arm/mach-omap2/vc.c
+@@ -407,6 +407,17 @@ static void omap4_set_timings(struct voltagedomain *voltdm, bool off_mode)
+ 		OMAP4_DOWNTIME_MASK);
  
-+	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
-+		struct device *mpu_dev, *iva_dev;
+ 	__raw_writel(val, OMAP4_SCRM_CLKSETUPTIME);
 +
-+		mpu_dev = omap2_get_mpuss_device();
-+		iva_dev = omap2_get_iva_device();
++	tstart = voltdm->pmic->startup_time;
++	tshut = voltdm->pmic->shutdown_time;
 +
-+		if (!mpu_dev || !iva_dev) {
-+			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-+				__func__, mpu_dev, iva_dev);
-+			return;
-+		}
-+		/* Enable MPU 720MHz opp */
-+		r = opp_enable(mpu_dev, 720000000);
-+
-+		/* Enable IVA 520MHz opp */
-+		r |= opp_enable(iva_dev, 520000000);
-+
-+		if (r) {
-+			pr_err("%s: failed to enable higher opp %d\n",
-+				__func__, r);
-+			/*
-+			 * Cleanup - disable the higher freqs - we dont care
-+			 * about the results
-+			 */
-+			opp_disable(mpu_dev, 720000000);
-+			opp_disable(iva_dev, 520000000);
-+		}
++	if (tstart && tshut) {
++		val = omap4_usec_to_val_scrm(tstart, OMAP4_WAKEUPTIME_SHIFT,
++			OMAP4_WAKEUPTIME_MASK);
++		val |= omap4_usec_to_val_scrm(tshut, OMAP4_SLEEPTIME_SHIFT,
++			OMAP4_SLEEPTIME_MASK);
++		__raw_writel(val, OMAP4_SCRM_PMICSETUPTIME);
 +	}
-+
- 	/* Custom OPP enabled for all xM versions */
- 	if (cpu_is_omap3630()) {
- 		struct device *mpu_dev, *iva_dev;
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index 1d44df5..2e5bf6b 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -150,6 +150,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* MPU OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
+ }
  
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -175,6 +177,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* DSP OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
- };
- 
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ /* OMAP4 specific voltage init functions */
 -- 
 1.7.4.1
 
