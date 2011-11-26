@@ -1,45 +1,30 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH v3 1/5] clk: Kconfig: add entry for HAVE_CLK_PREPARE
-Date: Sat, 26 Nov 2011 08:51:30 +0800
-Message-ID: <20111126005128.GA19025@S2100-06.ap.freescale.net>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
- <1321926047-14211-2-git-send-email-mturquette@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1321926047-14211-2-git-send-email-mturquette@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
+From: ming.lei@canonical.com
+Subject: [PATCH v6 0/3] OMAP4: support PMU
+Date: Sat, 26 Nov 2011 10:53:46 +0800
+Message-ID: <1322276029-3701-1-git-send-email-ming.lei@canonical.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:44459 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752914Ab1KZCyP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Nov 2011 21:54:15 -0500
+Received: by iage36 with SMTP id e36so5397164iag.19
+        for <linux-omap@vger.kernel.org>; Fri, 25 Nov 2011 18:54:14 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux@arm.linux.org.uk, will.deacon@arm.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com, paul@pwsan.com
 
-On Mon, Nov 21, 2011 at 05:40:43PM -0800, Mike Turquette wrote:
-> The common clk framework provides clk_prepare and clk_unprepare
-> implementations.  Create an entry for HAVE_CLK_PREPARE so that
-> GENERIC_CLK can select it.
-> 
-> Signed-off-by: Mike Turquette <mturquette@linaro.org>
-> ---
+Hi,
 
-Acked-by: Shawn Guo <shawn.guo@linaro.org>
+These 3 patches are against -next tree and Benoit's debugss 
+hwmod patch, so pmu irq on OMAP4 can be routed OK to CPU
+with these patches, and perf can work well on OMAP4 now.
 
-Regards,
-Shawn
 
->  drivers/clk/Kconfig |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
-> index 3530927..7a9899bd 100644
-> --- a/drivers/clk/Kconfig
-> +++ b/drivers/clk/Kconfig
-> @@ -5,3 +5,6 @@ config CLKDEV_LOOKUP
->  
->  config HAVE_MACH_CLKDEV
->  	bool
-> +
-> +config HAVE_CLK_PREPARE
-> +	bool
-> -- 
-> 1.7.4.1
+[1], http://marc.info/?l=linux-arm-kernel&m=132162120904916&w=2
+
+
+thanks,
+--
+Ming Lei
+
