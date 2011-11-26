@@ -1,40 +1,45 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv6 1/6] regulator: core: add support for external
- get/set_voltage
-Date: Fri, 25 Nov 2011 18:48:32 +0000
-Message-ID: <20111125184832.GK5315@opensource.wolfsonmicro.com>
-References: <1322238562-19943-1-git-send-email-t-kristo@ti.com>
- <1322238562-19943-2-git-send-email-t-kristo@ti.com>
- <20111125165214.GG5315@opensource.wolfsonmicro.com>
- <1322241632.13828.10.camel@sokoban>
- <20111125172945.GJ5315@opensource.wolfsonmicro.com>
- <1322243943.13828.13.camel@sokoban>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH v3 1/5] clk: Kconfig: add entry for HAVE_CLK_PREPARE
+Date: Sat, 26 Nov 2011 08:51:30 +0800
+Message-ID: <20111126005128.GA19025@S2100-06.ap.freescale.net>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+ <1321926047-14211-2-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:57711 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751445Ab1KYSsf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Nov 2011 13:48:35 -0500
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1322243943.13828.13.camel@sokoban>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1321926047-14211-2-git-send-email-mturquette@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, lrg@ti.com, gg@slimlogic.co.uk, rnayak@ti.com, b-cousson@ti.com
 
-On Fri, Nov 25, 2011 at 07:59:03PM +0200, Tero Kristo wrote:
-> On Fri, 2011-11-25 at 17:29 +0000, Mark Brown wrote:
+On Mon, Nov 21, 2011 at 05:40:43PM -0800, Mike Turquette wrote:
+> The common clk framework provides clk_prepare and clk_unprepare
+> implementations.  Create an entry for HAVE_CLK_PREPARE so that
+> GENERIC_CLK can select it.
+> 
+> Signed-off-by: Mike Turquette <mturquette@linaro.org>
+> ---
 
-> > No, that's clearly going to break multi-board kernel images.  If this
-> > is something board specific platform/device tree data sounds like the
-> > way forwards.
+Acked-by: Shawn Guo <shawn.guo@linaro.org>
 
-> Okay, so I will update this patch with proper locking and you should be
-> okay with that approach? Usually in the omap case we just want to switch
-> to using the external controller during init time and leave it be like
-> that, there is no really use-case as such for runtime switching of
-> controller, except maybe for some experimental / debug usage.
+Regards,
+Shawn
 
-No - as I said "platform/device tree data sounds like the way forwards."
+>  drivers/clk/Kconfig |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/clk/Kconfig b/drivers/clk/Kconfig
+> index 3530927..7a9899bd 100644
+> --- a/drivers/clk/Kconfig
+> +++ b/drivers/clk/Kconfig
+> @@ -5,3 +5,6 @@ config CLKDEV_LOOKUP
+>  
+>  config HAVE_MACH_CLKDEV
+>  	bool
+> +
+> +config HAVE_CLK_PREPARE
+> +	bool
+> -- 
+> 1.7.4.1
