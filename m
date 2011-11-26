@@ -1,325 +1,210 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 3/3] drivers/misc: introduce face detection module
- driver(fdif)
-Date: Sat, 26 Nov 2011 11:12:47 +0000
-Message-ID: <20111126111247.43cb5d35@lxorguk.ukuu.org.uk>
-References: <1322281904-14526-1-git-send-email-tom.leiming@gmail.com>
-	<1322281904-14526-4-git-send-email-tom.leiming@gmail.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Sat, 26 Nov 2011 21:22:33 +0800
+Message-ID: <20111126132232.GC19025@S2100-06.ap.freescale.net>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+ <1321926047-14211-4-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:48599 "EHLO
-	earthlight.etchedpixels.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754174Ab1KZLLr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Nov 2011 06:11:47 -0500
-In-Reply-To: <1322281904-14526-4-git-send-email-tom.leiming@gmail.com>
+Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:30450 "EHLO
+	TX2EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754621Ab1KZNKT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Nov 2011 08:10:19 -0500
+Content-Disposition: inline
+In-Reply-To: <1321926047-14211-4-git-send-email-mturquette@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tom.leiming@gmail.com
-Cc: tony@atomide.com, greg@kroah.com, arnd@arndb.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ming Lei <ming.lei@canonical.com>
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 
-On Sat, 26 Nov 2011 12:31:44 +0800
-tom.leiming@gmail.com wrote:
+On Mon, Nov 21, 2011 at 05:40:45PM -0800, Mike Turquette wrote:
+[...]
+> +/**
+> + * DOC: Using the CLK_PARENT_SET_RATE flag
+> + *
+> + * __clk_set_rate changes the child's rate before the parent's to more
+> + * easily handle failure conditions.
+> + *
+> + * This means clk might run out of spec for a short time if its rate is
+> + * increased before the parent's rate is updated.
+> + *
+> + * To prevent this consider setting the CLK_GATE_SET_RATE flag on any
+> + * clk where you also set the CLK_PARENT_SET_RATE flag
 
-> From: Ming Lei <ming.lei@canonical.com>
-> 
-> One face detection IP[1] is integared inside OMAP4 SoC, so
-> introduce this driver to make face detection function work
-> on OMAP4 SoC.
-> 
-> This driver is platform independent, so in theory can
-> be used to drive same IP module on other platforms.
-> 
-> [1], ch9 of OMAP4 TRM
-> 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Eh, this is how flag CLK_GATE_SET_RATE is born?  Does that mean to make
+the call succeed all the clocks on the propagating path need to be gated
+before clk_set_rate gets called?
 
-If you are submitting it then it ought to have your sign off too. This
-looks hardly ready for submission however.
-
-> +config FDIF
-> +	tristate "Face Detection module"
-> +	help
-> +	  The FDIF is a face detection module, which can be integrated into
-> +	  SoCs to detect the location of human beings' face in one image. At
-> +	  least now, TI OMAP4 has the module inside.
-
-So we have a completelt device specific API for what is becoming a more
-general feature and on some hardware is tied to camera and the like. This
-seems wrong
-
-IMHO this should be part of video4linux because that'll make the
-integrated stuff work sanely and for your cases it still provided the
-right kind of mmap and format interfaces you need.
-
-Detailed review below but basically this isn't ready to merge and it
-shouldn't be merged from an interface point of view. Please work out how
-to integrate the face detection into video4linux2 with the V4L folks.
-
-> +#define FDIF_DEV	MKDEV(FDIF_MAJOR, 0)
-> +#define FDIF_MAX_MINORS	8
-
-No custom majors please.
-
-
-> +static irqreturn_t handle_detection(int irq, void *__fdif);
-
-Minor thing but you could just order the users right ...
-
-> +/*only support one fdif device now*/
-> +static struct fdif	*g_fdif;
-
-So why 8 minors ?
-
-
-> +	fdif->irq = platform_get_irq(pdev, 0);
-> +	if (fdif->irq < 0) {
-
-0 would also be a fail here surely - you can't support polling
-
-> +	dev_info(dev, "fdif version=%8x hwinfo=%08x\n",
-> +			fdif_readl(fdif->base, FDIF_REVISION),
-> +			fdif_readl(fdif->base, FDIF_HWINFO));
-
-Should be debug for productioncode
-
-> +	device_destroy(fdif_class, MKDEV(FDIF_MAJOR, 0));
-
-
-> +/*softreset fdif*/
-> +static int softreset_fdif(struct fdif *fdif)
-> +{
-> +	unsigned long conf;
-> +	int to = 0;
-> +
-> +	conf = fdif_readl(fdif->base, FDIF_SYSCONFIG);
-> +	conf |= SOFTRESET;
-> +	fdif_writel(fdif->base, FDIF_SYSCONFIG, conf);
-> +
-> +	while ((conf & SOFTRESET) && to++ < 2000) {
-> +		conf = fdif_readl(fdif->base, FDIF_SYSCONFIG);
-> +		udelay(2);
-> +	}
-> +
-> +	if (to == 2000)
-> +		printk(KERN_ERR "%s: reset failed\n", __func__);
-
-dev_err
-
-There are several that want fixing
-
-
-> +static irqreturn_t handle_detection(int irq, void *__fdif)
-> +{
-> +	unsigned long irqsts;
-> +	struct fdif *fdif = __fdif;
-> +
-> +	dump_fdif_regs(fdif, __func__);
-> +
-> +	/*clear irq status*/
-> +	irqsts = fdif_readl(fdif->base, FDIF_IRQSTATUS_j);
-> +	fdif_writel(fdif->base, FDIF_IRQSTATUS_j, irqsts);
-> +
-> +	if (irqsts & FINISH_IRQ) {
-> +		read_faces(fdif);
-
-Pity the rest of the code uses a mutex for locking and the IRQ code
-doesn't bother with locking at all. That doesn't look safe to me.
-
-> +	} else if (irqsts & ERR_IRQ) {
-> +		dev_err(&fdif->pdev->dev, "err irq!");
-
-Not exactly user informative.
-
-> +		softreset_fdif(fdif);
-> +	} else {
-
-This is only true if the IRQ is shared. Also the core IRQ code handles
-spurious IRQ jams, and thirdly you shouldn't return HANDLED if you didn't
-handle it.
-
-> +/*
-> + * file operations
 > + */
-> +static int fdif_open(struct inode *inode, struct file *file)
+> +struct clk *__clk_set_rate(struct clk *clk, unsigned long rate)
 > +{
-> +	struct fdif *fdif = g_fdif;
-> +	int ret = 0;
+> +	struct clk *fail_clk = NULL;
+> +	int ret;
+> +	unsigned long old_rate = clk->rate;
+> +	unsigned long new_rate;
+> +	unsigned long parent_old_rate;
+> +	unsigned long parent_new_rate = 0;
+> +	struct clk *child;
+> +	struct hlist_node *tmp;
 > +
-> +	if (iminor(inode) || !fdif) {
-> +		printk("fdif: device is not correct!\n");
-> +		return -ENODEV;
-> +	}
-
-So if its misconfigured or not found it would be a good idea to allow
-users to spew stuff in the logs. Just return the error code.
-
-The !fdif case here is meaningless. Either it matters in which case your
-open isn't properly locked versus a remove, or it doesn't, in which case
-your test is bogus.
-
-> +static int fdif_release(struct inode *inode, struct file *file)
-> +{
-> +	struct fdif *fdif = file->private_data;
+> +	/* bail early if we can't change rate while clk is enabled */
+> +	if ((clk->flags & CLK_GATE_SET_RATE) && clk->enable_count)
+> +		return clk;
 > +
-> +	if (!fdif)
-> +		return -ENODEV;
-
-What if I unplugged the device while it was in use... ? What is your
-locking model for all this.
-
-> +static ssize_t fdif_read(struct file *file, char __user *buf, size_t nbytes,
-> +			   loff_t *ppos)
-> +{
-> +	struct fdif *fdif = file->private_data;
-> +	ssize_t ret = 0;
-> +	unsigned len;
-> +	loff_t pos = *ppos;
-> +	int size;
+> +	/* find the new rate and see if parent rate should change too */
+> +	WARN_ON(!clk->ops->round_rate);
 > +
-> +	/*not support unaligned read*/
-> +	if ((long)pos % sizeof(struct fdif_result))
-> +		return -EFAULT;
+> +	new_rate = clk->ops->round_rate(clk, rate, &parent_new_rate);
+> +
+> +	/* FIXME propagate pre-rate change notification here */
+> +	/* XXX note that pre-rate change notifications will stack */
+> +
+> +	/* change the rate of this clk */
+> +	ret = clk->ops->set_rate(clk, new_rate);
 
-Wrong error code - EFAULT is a bad address in userspace really, and it'll
-confuse folks if they get other stuff.
+Yes, right here, the clock gets set to some unexpected rate, since the
+parent clock has not been set to the target rate yet at this point.
 
-> +	if (fdif->read_idx < 0) {
-> +		ret = -EFAULT;
-> +		goto err;
-
-Ditto
-
-> +		if (copy_to_user(buf, &fdif->faces[fdif->read_idx], len)) {
-> +			ret = -EFAULT;
-> +			goto err;
+> +	if (ret)
+> +		return clk;
+> +
+> +	/*
+> +	 * change the rate of the parent clk if necessary
+> +	 *
+> +	 * hitting the nested 'if' path implies we have hit a .set_rate
+> +	 * failure somewhere upstream while propagating __clk_set_rate
+> +	 * up the clk tree.  roll back the clk rates one by one and
+> +	 * return the pointer to the clk that failed.  clk_set_rate will
+> +	 * use the pointer to propagate a rate-change abort notifier
+> +	 * from the "highest" point.
+> +	 */
+> +	if ((clk->flags & CLK_PARENT_SET_RATE) && parent_new_rate) {
+> +		parent_old_rate = clk->parent->rate;
+> +		fail_clk = __clk_set_rate(clk->parent, parent_new_rate);
+> +
+> +		/* roll back changes if parent rate change failed */
+> +		if (fail_clk) {
+> +			pr_warn("%s: failed to set parent %s rate to %lu\n",
+> +					__func__, fail_clk->name,
+> +					parent_new_rate);
+> +			clk->ops->set_rate(clk, old_rate);
 > +		}
-
-If you copy multiple objects and at least one is consumed you should be
-returning the bytes succesfully copied, and EFAULT only if none were.
-
-
-> +static long fdif_ioctl(struct file *file, unsigned int cmd,
-> +			unsigned long arg)
-> +{
-> +	struct fdif *fdif = file->private_data;
-> +	int ret = 0;
-> +	int val;
-> +
-> +	if (!(file->f_mode & FMODE_WRITE))
-> +		return -EPERM;
-
-This could do with explanation as it seems a slightly odd permissions
-arrangement.
-
-> +	case FDIF_STOP:
-> +		stop_detect(fdif);
-
-If I call this twice in a row you unmapped existing unmapped memory. No
-consideration appears to have been made of the most basic misbehaviour by
-user space applications. This is a general problem and some of these look
-exploitable.
-
-> +	case FDIF_SET_MIN_FACE_SIZE:
-> +		ret = get_user(val, (int __user *)arg) ? -EFAULT : 0;
-> +		if (!ret)
-> +			fdif->s.min_face_size = val;
-
-No range checks needed ?
-
-> +		break;
-> +	case FDIF_SET_STARTXY:
-> +		ret = get_user(val, (int __user *)arg) ? -EFAULT : 0;
-> +		if (!ret) {
-> +			fdif->s.startx = val & 0xffff;
-> +			fdif->s.starty = (val >> 16) & 0xffff;
-> +		}
-
-Limits you to 16bit co-ordinates - hardly future proof
-
-> +static int fdif_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	struct fdif *fdif = file->private_data;
-> +	unsigned long off;
-> +	unsigned long start;
-> +	u32 len;
-> +
-> +	if (!fdif)
-> +		return -ENODEV;
-
-Same commentd as everywhere else
-
-
-> +static unsigned int fdif_poll(struct file *file,
-> +				struct poll_table_struct *wait)
-> +{
-> +	struct fdif *fdif = file->private_data;
-> +	unsigned int mask = 0;
-> +
-> +	poll_wait(file, &fdif->wait, wait);
-> +	if (file->f_mode & FMODE_WRITE && fdif->face_cnt != -1)
-
-What locks fdif->face_cnt here ?
-
-
-> +static int __init fdif_init(void)
-> +{
-> +	int retval;
-> +
-> +	fdif_class = class_create(THIS_MODULE, "fdif");
-
-Please don't create new classes
-
-> +	if (IS_ERR(fdif_class)) {
-> +		printk(KERN_ERR "Unable to creat fdif class\n");
-
-And use pr_err
-
-> +	retval = platform_driver_register(&fdif_driver);
-> +	if (retval) {
-> +		printk(KERN_ERR "Unable to register fdif driver\n");
-
-Ditto
-
-> +		goto err_driver_register;
+> +		return fail_clk;
 > +	}
 > +
-> +	if ((retval = register_chrdev(FDIF_MAJOR, "fdif",
-> +				&fdif_file_operations))) {
-> +		printk(KERN_ERR "Unable to get fdif device major %d\n",
-> +		       FDIF_MAJOR);
+> +	/*
+> +	 * set clk's rate & recalculate the rates of clk's children
+> +	 *
+> +	 * hitting this path implies we have successfully finished
+> +	 * propagating recursive calls to __clk_set_rate up the clk tree
+> +	 * (if necessary) and it is safe to propagate clk_recalc_rates and
+> +	 * post-rate change notifiers down the clk tree from this point.
+> +	 */
+> +	clk->rate = new_rate;
+> +	/* FIXME propagate post-rate change notifier for only this clk */
+> +	hlist_for_each_entry(child, tmp, &clk->children, child_node)
+> +		clk_recalc_rates(child);
+> +
+> +	return fail_clk;
+> +}
 
-And please don't make up major numbers. They are allocated via lanana and
-you don't need one you can use a generic one - although if you slot this
-within V4L2 that problem also goes away
+[...]
 
+> diff --git a/include/linux/clk.h b/include/linux/clk.h
+> index 7213b52..3b0eb3f 100644
+> --- a/include/linux/clk.h
+> +++ b/include/linux/clk.h
+> @@ -3,6 +3,8 @@
+>   *
+>   *  Copyright (C) 2004 ARM Limited.
+>   *  Written by Deep Blue Solutions Limited.
+> + *  Copyright (c) 2010-2011 Jeremy Kerr <jeremy.kerr@canonical.com>
+> + *  Copyright (C) 2011 Linaro Ltd <mturquette@linaro.org>
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -13,17 +15,134 @@
+>  
+>  #include <linux/kernel.h>
+>  
+> +#include <linux/kernel.h>
 
-> +struct fdif_setting {
-> +	void			*pict_addr;
-> +	void			*work_mem_addr;
-> +	int 			min_face_size;
-> +	int			face_dir;
-> +	int			startx, starty;
-> +	int			sizex, sizey;
-> +	int			lhit;
+Eh, why adding a duplication?
+
+> +#include <linux/errno.h>
+> +
+>  struct device;
+>  
+> +struct clk;
+
+Do you really need this?
+
+[...]
+
+> +struct clk_hw_ops {
+> +	int		(*prepare)(struct clk *clk);
+> +	void		(*unprepare)(struct clk *clk);
+> +	int		(*enable)(struct clk *clk);
+> +	void		(*disable)(struct clk *clk);
+> +	unsigned long	(*recalc_rate)(struct clk *clk);
+> +	long		(*round_rate)(struct clk *clk, unsigned long,
+
+The return type seems interesting.  If we intend to return a rate, it
+should be 'unsigned long' rather than 'long'.  I'm just curious about
+the possible reason behind that.
+
+> +					unsigned long *);
+> +	int		(*set_parent)(struct clk *clk, struct clk *);
+> +	struct clk *	(*get_parent)(struct clk *clk);
+> +	int		(*set_rate)(struct clk *clk, unsigned long);
+
+Nit: would it be reasonable to put set_rate after round_rate to group
+*_rate functions together?
+
 > +};
+> +
+> +/**
+> + * clk_init - initialize the data structures in a struct clk
+> + * @dev: device initializing this clk, placeholder for now
+> + * @clk: clk being initialized
+> + *
+> + * Initializes the lists in struct clk, queries the hardware for the
+> + * parent and rate and sets them both.  Adds the clk to the sysfs tree
+> + * topology.
+> + *
+> + * Caller must populate .name, .flags and .ops before calling clk_init.
+> + */
+> +void clk_init(struct device *dev, struct clk *clk);
+> +
+> +#endif /* !CONFIG_GENERIC_CLK */
+>  
+>  /**
+>   * clk_get - lookup and obtain a reference to a clock producer.
+> @@ -107,9 +226,16 @@ static inline void clk_unprepare(struct clk *clk)
+>  }
+>  #endif
+>  
+> +int __clk_enable(struct clk *clk);
+> +void __clk_disable(struct clk *clk);
+> +int __clk_prepare(struct clk *clk);
+> +void __clk_unprepare(struct clk *clk);
+> +void __clk_reparent(struct clk *clk, struct clk *new_parent);
+> +
+Do we really need to export all these common clk internal functions?
 
-Changes size between 32 and 64bits. Please make all ioctl sizing stable
-and 32/64bit safe.
+Regards,
+Shawn
 
-> +struct fdif_result {
-> +	unsigned short centerx;
-> +	unsigned short centery;
-> +	unsigned short angle;
-> +	unsigned short size;
-> +	unsigned short confidence;
-> +};
-
-So we have x and y as int above, and unsigned short here ??
-
-> +#define FDIF_MAJOR		261
-
-NAK
+>  /**
+>   * clk_get_rate - obtain the current clock rate (in Hz) for a clock source.
+>   *		  This is only valid once the clock source has been enabled.
+> + *		  Returns zero if the clock rate is unknown.
+>   * @clk: clock source
+>   */
+>  unsigned long clk_get_rate(struct clk *clk);
+> -- 
+> 1.7.4.1
+> 
+> 
 
