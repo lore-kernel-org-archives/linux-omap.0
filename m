@@ -1,88 +1,64 @@
-From: Shawn Guo <shawn.guo@freescale.com>
-Subject: Re: [PATCH v3 4/5] clk: basic gateable and fixed-rate clks
-Date: Sat, 26 Nov 2011 21:48:08 +0800
-Message-ID: <20111126134807.GD19025@S2100-06.ap.freescale.net>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
- <1321926047-14211-5-git-send-email-mturquette@linaro.org>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 3/3] drivers/misc: introduce face detection module
+ driver(fdif)
+Date: Sat, 26 Nov 2011 07:04:18 -0800
+Message-ID: <20111126150418.GA11680@kroah.com>
+References: <1322281904-14526-1-git-send-email-tom.leiming@gmail.com>
+ <1322281904-14526-4-git-send-email-tom.leiming@gmail.com>
+ <20111126111247.43cb5d35@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:51786 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752620Ab1KZPTZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 26 Nov 2011 10:19:25 -0500
+Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 359FE20BFF
+	for <linux-omap@vger.kernel.org>; Sat, 26 Nov 2011 10:19:24 -0500 (EST)
 Content-Disposition: inline
-In-Reply-To: <1321926047-14211-5-git-send-email-mturquette@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
+In-Reply-To: <20111126111247.43cb5d35@lxorguk.ukuu.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>, tom.leiming@gmail.com, tony@atomide.com, arnd@arndb.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ming Lei <ming.lei@canonical.com>
 
-On Mon, Nov 21, 2011 at 05:40:46PM -0800, Mike Turquette wrote:
-> Many platforms support simple gateable clks and fixed-rate clks that
-> should not be re-implemented by every platform.
+On Sat, Nov 26, 2011 at 11:12:47AM +0000, Alan Cox wrote:
+> On Sat, 26 Nov 2011 12:31:44 +0800
+> tom.leiming@gmail.com wrote:
 > 
-> This patch introduces a gateable clk with a common programming model of
-> gate control via a write of 1 bit to a register.  Both set-to-enable and
-> clear-to-enable are supported.
+> > From: Ming Lei <ming.lei@canonical.com>
+> > 
+> > One face detection IP[1] is integared inside OMAP4 SoC, so
+> > introduce this driver to make face detection function work
+> > on OMAP4 SoC.
+> > 
+> > This driver is platform independent, so in theory can
+> > be used to drive same IP module on other platforms.
+> > 
+> > [1], ch9 of OMAP4 TRM
+> > 
+> > Signed-off-by: Ming Lei <ming.lei@canonical.com>
 > 
-> Also introduced is a fixed-rate clk which has no reprogrammable aspects.
+> If you are submitting it then it ought to have your sign off too. This
+> looks hardly ready for submission however.
 > 
-> The purpose of both types of clks is documented in drivers/clk/basic.c.
+> > +config FDIF
+> > +	tristate "Face Detection module"
+> > +	help
+> > +	  The FDIF is a face detection module, which can be integrated into
+> > +	  SoCs to detect the location of human beings' face in one image. At
+> > +	  least now, TI OMAP4 has the module inside.
 > 
-What I have seen is drivers/clk/clk-basic.c.
-
-> TODO: add support for a simple divider, simple mux and a dummy clk for
-> stubbing out platform support.
+> So we have a completelt device specific API for what is becoming a more
+> general feature and on some hardware is tied to camera and the like. This
+> seems wrong
 > 
-> Based on original patch by Jeremy Kerr contribution by Jamie Iles.
-> 
-> Signed-off-by: Mike Turquette <mturquette@linaro.org>
-> ---
->  drivers/clk/Kconfig     |    7 ++
->  drivers/clk/Makefile    |    5 +-
->  drivers/clk/clk-basic.c |  208 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/clk.h     |   35 ++++++++
->  4 files changed, 253 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/clk/clk-basic.c
+> IMHO this should be part of video4linux because that'll make the
+> integrated stuff work sanely and for your cases it still provided the
+> right kind of mmap and format interfaces you need.
 
-[...]
+I agree, as-is, this isn't ok, sorry, please work with the v4l
+developers on this.
 
-> +int clk_register_gate(struct device *dev, const char *name, unsigned long flags,
-> +		struct clk *fixed_parent, void __iomem *reg, u8 bit_idx,
-> +		int set_to_enable)
-> +{
-> +	struct clk_hw_gate *gclk;
-> +	struct clk *clk;
-> +
-> +	gclk = kmalloc(sizeof(struct clk_hw_gate), GFP_KERNEL);
-> +
-> +	if (!gclk) {
-> +		pr_err("%s: could not allocate gated clk\n", __func__);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	clk = &gclk->clk;
-> +
-> +	/* struct clk_hw_gate assignments */
-> +	gclk->fixed_parent = fixed_parent;
-> +	gclk->reg = reg;
-> +	gclk->bit_idx = bit_idx;
-> +
-> +	/* struct clk assignments */
-> +	clk->name = name;
-> +	clk->flags = flags;
-> +
-> +	if (set_to_enable)
-> +		clk->ops = &clk_hw_gate_set_enable_ops;
-> +	else
-> +		clk->ops = &clk_hw_gate_set_disable_ops;
-> +
-> +	clk_init(NULL, clk);
-> +
-> +	return 0;
-
-The device tree support needs to get this 'struct clk *', so we may
-want to have all these registering functions return the 'clk'.
-
-> +}
-
--- 
-Regards,
-Shawn
+greg k-h
