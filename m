@@ -1,51 +1,139 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 5/5] ARM: OMAP1: recalibrate loops per jiffy after dpll1 reprogram
-Date: Sun, 27 Nov 2011 04:32:31 +0100
-Message-ID: <1322364751-29980-6-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <1322364751-29980-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56369 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753030Ab1K0DmI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 26 Nov 2011 22:42:08 -0500
-In-Reply-To: <1322364751-29980-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Turquette, Mike" <mturquette@ti.com>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Sat, 26 Nov 2011 22:00:38 -0800
+Message-ID: <CAJOA=zPOeaM7-TFv2zcpLOXRAvEKF49yP+nyvjNaeMf9czMcFg@mail.gmail.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+ <1321926047-14211-4-git-send-email-mturquette@linaro.org> <20111126132232.GC19025@S2100-06.ap.freescale.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111126132232.GC19025@S2100-06.ap.freescale.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shawn Guo <shawn.guo@freescale.com>
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, paul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Colin Cross <ccross@google.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Andrew Morton <akpm@linux-foundation.org>, Sameer Nanda <snanda@chromium.org>
 
-Otherwise timing is not accurate, resulting in devices which depend
-on it, like omap-keypad, broken.
+On Sat, Nov 26, 2011 at 5:22 AM, Shawn Guo <shawn.guo@freescale.com> wr=
+ote:
+> On Mon, Nov 21, 2011 at 05:40:45PM -0800, Mike Turquette wrote:
+>> + * To prevent this consider setting the CLK_GATE_SET_RATE flag on a=
+ny
+>> + * clk where you also set the CLK_PARENT_SET_RATE flag
+>
+> Eh, this is how flag CLK_GATE_SET_RATE is born? =A0Does that mean to =
+make
+> the call succeed all the clocks on the propagating path need to be ga=
+ted
+> before clk_set_rate gets called?
 
-Created against linux-3.2-rc2.
-Depends on patch "init: allow for recalibration of loops per jiffy".
-Tested on top of linux-omap/fixes on Amstrad Delta.
+Setting that flag on any clk implies nothing about the parents of that
+clk.  Obviously if a clk's child is enabled then clk is enabled and
+won't have it's rate change if the flag is set, which is the whole
+point of the flag.  Again, you don't have to set the flag.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Sameer Nanda <snanda@chromium.org>
----
- arch/arm/mach-omap1/clock_data.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+>> + =A0 =A0 /* change the rate of this clk */
+>> + =A0 =A0 ret =3D clk->ops->set_rate(clk, new_rate);
+>
+> Yes, right here, the clock gets set to some unexpected rate, since th=
+e
+> parent clock has not been set to the target rate yet at this point.
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 201b1f2..7fa6b8b 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -16,6 +16,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/clk.h>
-+#include <linux/delay.h>
- #include <linux/io.h>
- 
- #include <asm/mach-types.h>  /* for machine_is_* */
-@@ -942,4 +943,5 @@ void __init omap1_clk_late_init(void)
- 	}
- 	propagate_rate(&ck_dpll1);
- 	omap1_show_rates();
-+	recalibrate_delay();
- }
--- 
-1.7.3.4
+Sequence is irrelevant for the case where both parent and child change
+dividers, since the output of the child clk will be "weird" at some
+point.
 
+>> diff --git a/include/linux/clk.h b/include/linux/clk.h
+>> index 7213b52..3b0eb3f 100644
+>> --- a/include/linux/clk.h
+>> +++ b/include/linux/clk.h
+>> @@ -3,6 +3,8 @@
+>> =A0 *
+>> =A0 * =A0Copyright (C) 2004 ARM Limited.
+>> =A0 * =A0Written by Deep Blue Solutions Limited.
+>> + * =A0Copyright (c) 2010-2011 Jeremy Kerr <jeremy.kerr@canonical.co=
+m>
+>> + * =A0Copyright (C) 2011 Linaro Ltd <mturquette@linaro.org>
+>> =A0 *
+>> =A0 * This program is free software; you can redistribute it and/or =
+modify
+>> =A0 * it under the terms of the GNU General Public License version 2=
+ as
+>> @@ -13,17 +15,134 @@
+>>
+>> =A0#include <linux/kernel.h>
+>>
+>> +#include <linux/kernel.h>
+>
+> Eh, why adding a duplication?
+
+Will fix in v4.
+
+>
+>> +#include <linux/errno.h>
+>> +
+>> =A0struct device;
+>>
+>> +struct clk;
+>
+> Do you really need this?
+
+Strange.  This line existed pre-common clk patches.  I'll look into
+why it is getting "added" back in.  This declaration is necessary for
+the old-style clk frameworks which each defined their own struct clk.
+I assume it is still needed but I'll look at the git history to figure
+it out.
+
+>> +struct clk_hw_ops {
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*prepare)(struct clk *clk);
+>> + =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0(*unprepare)(struct clk *clk);
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*enable)(struct clk *clk);
+>> + =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0(*disable)(struct clk *clk);
+>> + =A0 =A0 unsigned long =A0 (*recalc_rate)(struct clk *clk);
+>> + =A0 =A0 long =A0 =A0 =A0 =A0 =A0 =A0(*round_rate)(struct clk *clk,=
+ unsigned long,
+>
+> The return type seems interesting. =A0If we intend to return a rate, =
+it
+> should be 'unsigned long' rather than 'long'. =A0I'm just curious abo=
+ut
+> the possible reason behind that.
+
+Yeah these are mostly from the original patch set.  I'll go over these
+with a fine-tooth comb for v4.  To some extent I think they model the
+return types of the clk API in clk.h.
+
+>
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 unsigned long *);
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*set_parent)(struct clk *clk,=
+ struct clk *);
+>> + =A0 =A0 struct clk * =A0 =A0(*get_parent)(struct clk *clk);
+>> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 (*set_rate)(struct clk *clk, u=
+nsigned long);
+>
+> Nit: would it be reasonable to put set_rate after round_rate to group
+> *_rate functions together?
+
+Will fix in v4.
+
+>> +int __clk_enable(struct clk *clk);
+>> +void __clk_disable(struct clk *clk);
+>> +int __clk_prepare(struct clk *clk);
+>> +void __clk_unprepare(struct clk *clk);
+>> +void __clk_reparent(struct clk *clk, struct clk *new_parent);
+>> +
+> Do we really need to export all these common clk internal functions?
+
+I think we do.  Saravana also felt this was necessary.
+
+I know that for OMAP we need __clk_prepare, __clk_unprepare and
+__clk_reparent just to handle our PLLs.  I don't think we need
+__clk_enable or __clk_disable since we can call the proper APIs for
+those with the prepare_mutex held.
+
+If no one needs __clk_enable and __clk_disable then I am happy to
+remove those declarations.
+
+Thanks for reviewing,
+Mike
