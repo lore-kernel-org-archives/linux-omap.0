@@ -1,53 +1,42 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
-Date: Sat, 26 Nov 2011 19:07:37 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1111261906010.6289@utopia.booyaka.com>
-References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com> <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com>
- <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com> <4EC6566C.70202@ti.com> <alpine.DEB.2.00.1111261854340.6289@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 0/5] ARM: OMAP1: Fix dpll1 reprogramming related issues
+Date: Sun, 27 Nov 2011 04:32:26 +0100
+Message-ID: <1322364751-29980-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1897424294-1322359657=:6289"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49435 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753603Ab1K0CHi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Nov 2011 21:07:38 -0500
-In-Reply-To: <alpine.DEB.2.00.1111261854340.6289@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-kernel@vger.kernel.org, Sameer Nanda <snanda@chromium.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Ming Lei <ming.lei@canonical.com>, linux@arm.linux.org.uk, will.deacon@arm.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+After dpll1 reprogramming has been moved from setup_arch() to
+kernel_init(), I've been observing several issues, resulting in
+undesired system behaviour on my Amstrad Delta. This series fixes
+those issues.
 
---155748971-1897424294-1322359657=:6289
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Janusz Krzysztofik (5):
+  ARM: OMAP1: Fix dpll1 default rate reprogramming method
+  ARM: OMAP1: Fix ckctl value used for dpll1 defualt rate
+  ARM: OMAP1: Fix dpll1 reprogramming not actually allowed
+  init/calibrate.c: allow for recalibration of loops per jiffy
+  ARM: OMAP1: recalibrate loops per jiffy after dpll1 reprogram
 
-On Sat, 26 Nov 2011, Paul Walmsley wrote:
+ arch/arm/mach-omap1/clock.c      |   10 +---------
+ arch/arm/mach-omap1/clock_data.c |    9 +++++++--
+ arch/arm/plat-omap/sram.c        |    3 +++
+ include/linux/delay.h            |    4 +++-
+ init/calibrate.c                 |    6 ++++--
+ 5 files changed, 18 insertions(+), 14 deletions(-)
 
-> Hi Beno=EEt,
->=20
-> a question about this patch.
-
-=2E..
-
-> > +=09=09.name=09=09=3D "mipi_stm",
-> > +=09=09.pa_start=09=3D 0x54161000,
-> > +=09=09.pa_end=09=09=3D 0x54161fff,
-> > +=09=09.flags=09=09=3D ADDR_TYPE_RT
-
-> ... none of the address spaces above have the ADDR_TYPE_RT flag set.
-> Without this flag set, the hwmod code won't know where to access the OCP=
-=20
-> registers.
-
-Ugh, it's above; I just missed it.  Sorry about that.
-
-So just out of curiosity, do those SYSCONFIG registers in the STM address=
-=20
-space apply to the entire DEBUGSS, or just the STM IP block?
-
-
-- Paul
---155748971-1897424294-1322359657=:6289--
+-- 
+1.7.3.4
