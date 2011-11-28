@@ -1,56 +1,155 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH 3/3] omap: board-sdp4430: declare support for
- MMC_PM_KEEP_POWER
-Date: Mon, 28 Nov 2011 11:08:44 +0200
-Message-ID: <1322471324.6502.32.camel@cumari>
-References: <1321970539-7104-1-git-send-email-eliad@wizery.com>
-	 <1321970539-7104-3-git-send-email-eliad@wizery.com>
-	 <CAKd1q9pv5hMSpazYiZpmoowV52GvE7gFK5zUJSGpKhNkDZGuVg@mail.gmail.com>
-	 <CAB3XZEenx7L07BYmrHGt0h9ZAY-LOpWXL+in0vs7XOoeBf_LUw@mail.gmail.com>
+From: Carlos Chinea <carlos.chinea@nokia.com>
+Subject: Re: [PATCH 06/13] OMAPDSS: DSI: Use new lane config in
+ dsi_set_lane_config
+Date: Mon, 28 Nov 2011 11:08:59 +0200
+Message-ID: <1322471339.17335.73.camel@groo>
+References: <1322141381-5395-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1322141381-5395-7-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CAB3XZEenx7L07BYmrHGt0h9ZAY-LOpWXL+in0vs7XOoeBf_LUw@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>, Russell King <linux@arm.linux.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:45198 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753109Ab1K1JJY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Nov 2011 04:09:24 -0500
+In-Reply-To: <1322141381-5395-7-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
-On Mon, 2011-11-28 at 10:26 +0200, Eliad Peller wrote: 
-> On Mon, Nov 28, 2011 at 9:50 AM, Coelho, Luciano <coelho@ti.com> wrote:
-> > On Tue, Nov 22, 2011 at 4:02 PM, Eliad Peller <eliad@wizery.com> wrote:
-> >> Declare support for keeping the power of the wlan chip
-> >> while suspended. this is needed for Wakeup-On-Wireless.
-> >>
-> >> Signed-off-by: Eliad Peller <eliad@wizery.com>
-> >> ---
-> >>  arch/arm/mach-omap2/board-4430sdp.c |    1 +
-> >>  1 files changed, 1 insertions(+), 0 deletions(-)
-> >
-> > What about all the other board files that also have this structure?
-> > For example board-omap4panda.c? I think they should all be changed and
-> > the change should also be communicated more broadly for those board
-> > files which (unfortunately) are not upstream (or which are upstream
-> > but without the wl12xx-specific definitions on it, such as Beagle).
-> >
-> i preferred adding this capability only for boards i can test.
-> unfortunately, i don't a panda/beagle setup.
-> anyway, i don't think we have to add it all at once.
-> let's just do it one board at a time... i'll add support for zoom as
-> well. any volunteers for panda/beagle? ;)
+Hi Tomi,
 
-Hmmm, okay, there is logic in that for the pragmatic, but this seems to
-be so clearly what is needed to solve the same problem with other boards
-that it could deserve changing all the board files.  In practice, your
-changes may affect all the other boards too, regardless of whether you
-set the new flag or not.  In any case, not my call here.
+Just a question/suggestion, bellow:
 
-I may do it for panda later on, if I get the time to test it.  For
-beagle, it doesn't really apply, because the wl12xx support is
-out-of-tree, unfortunately. :(
+On Thu, 2011-11-24 at 15:29 +0200, ext Tomi Valkeinen wrote:
+> Use the new lane config in dsi_set_lane_config().
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/omap2/dss/dsi.c |   84 +++++++++++++++++++---------------------
+>  1 files changed, 40 insertions(+), 44 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+> index aea110c..ba8d6b3 100644
+> --- a/drivers/video/omap2/dss/dsi.c
+> +++ b/drivers/video/omap2/dss/dsi.c
+> @@ -2154,59 +2154,53 @@ static int dsi_parse_lane_config(struct omap_dss_device *dssdev)
+>  	return 0;
+>  }
+>  
+> -static void dsi_set_lane_config(struct omap_dss_device *dssdev)
+> +static int dsi_set_lane_config(struct omap_dss_device *dssdev)
+>  {
+>  	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
+> +	struct dsi_data *dsi = dsi_get_dsidrv_data(dsidev);
+> +	static const u8 offsets[] = { 0, 4, 8, 12, 16 };
+> +	static const enum dsi_lane_function functions[] = {
+> +		DSI_LANE_CLK,
+> +		DSI_LANE_DATA1,
+> +		DSI_LANE_DATA2,
+> +		DSI_LANE_DATA3,
+> +		DSI_LANE_DATA4,
+> +	};
 
--- 
-Cheers,
-Luca.
+Patch 05 of the series has a function (dsi_parse_lane_config) with
+exactly the same static local declaration. Wouldn't be better to have an
+static global declaration instead to save some space ? or are the values
+from those functions going to differ in the near future ? 
+
+Br,
+Carlos
+>  	u32 r;
+> -	int num_lanes_used = dsi_get_num_lanes_used(dssdev);
+> -
+> -	int clk_lane   = dssdev->phy.dsi.clk_lane;
+> -	int data1_lane = dssdev->phy.dsi.data1_lane;
+> -	int data2_lane = dssdev->phy.dsi.data2_lane;
+> -	int clk_pol    = dssdev->phy.dsi.clk_pol;
+> -	int data1_pol  = dssdev->phy.dsi.data1_pol;
+> -	int data2_pol  = dssdev->phy.dsi.data2_pol;
+> +	int i;
+>  
+>  	r = dsi_read_reg(dsidev, DSI_COMPLEXIO_CFG1);
+> -	r = FLD_MOD(r, clk_lane, 2, 0);
+> -	r = FLD_MOD(r, clk_pol, 3, 3);
+> -	r = FLD_MOD(r, data1_lane, 6, 4);
+> -	r = FLD_MOD(r, data1_pol, 7, 7);
+> -	r = FLD_MOD(r, data2_lane, 10, 8);
+> -	r = FLD_MOD(r, data2_pol, 11, 11);
+> -	if (num_lanes_used > 3) {
+> -		int data3_lane  = dssdev->phy.dsi.data3_lane;
+> -		int data3_pol  = dssdev->phy.dsi.data3_pol;
+> -
+> -		r = FLD_MOD(r, data3_lane, 14, 12);
+> -		r = FLD_MOD(r, data3_pol, 15, 15);
+> +
+> +	for (i = 0; i < dsi->num_lanes_used; ++i) {
+> +		unsigned offset = offsets[i];
+> +		unsigned polarity, lane_number;
+> +		unsigned t;
+> +
+> +		for (t = 0; t < dsi->num_lanes_supported; ++t)
+> +			if (dsi->lanes[t].function == functions[i])
+> +				break;
+> +
+> +		if (t == dsi->num_lanes_supported)
+> +			return -EINVAL;
+> +
+> +		lane_number = t;
+> +		polarity = dsi->lanes[t].polarity;
+> +
+> +		r = FLD_MOD(r, lane_number + 1, offset + 2, offset);
+> +		r = FLD_MOD(r, polarity, offset + 3, offset + 3);
+>  	}
+> -	if (num_lanes_used > 4) {
+> -		int data4_lane  = dssdev->phy.dsi.data4_lane;
+> -		int data4_pol  = dssdev->phy.dsi.data4_pol;
+>  
+> -		r = FLD_MOD(r, data4_lane, 18, 16);
+> -		r = FLD_MOD(r, data4_pol, 19, 19);
+> +	/* clear the unused lanes */
+> +	for (; i < dsi->num_lanes_supported; ++i) {
+> +		unsigned offset = offsets[i];
+> +
+> +		r = FLD_MOD(r, 0, offset + 2, offset);
+> +		r = FLD_MOD(r, 0, offset + 3, offset + 3);
+>  	}
+> -	dsi_write_reg(dsidev, DSI_COMPLEXIO_CFG1, r);
+>  
+> -	/* The configuration of the DSI complex I/O (number of data lanes,
+> -	   position, differential order) should not be changed while
+> -	   DSS.DSI_CLK_CRTRL[20] LP_CLK_ENABLE bit is set to 1. In order for
+> -	   the hardware to take into account a new configuration of the complex
+> -	   I/O (done in DSS.DSI_COMPLEXIO_CFG1 register), it is recommended to
+> -	   follow this sequence: First set the DSS.DSI_CTRL[0] IF_EN bit to 1,
+> -	   then reset the DSS.DSI_CTRL[0] IF_EN to 0, then set
+> -	   DSS.DSI_CLK_CTRL[20] LP_CLK_ENABLE to 1 and finally set again the
+> -	   DSS.DSI_CTRL[0] IF_EN bit to 1. If the sequence is not followed, the
+> -	   DSI complex I/O configuration is unknown. */
+> +	dsi_write_reg(dsidev, DSI_COMPLEXIO_CFG1, r);
+>  
+> -	/*
+> -	REG_FLD_MOD(dsidev, DSI_CTRL, 1, 0, 0);
+> -	REG_FLD_MOD(dsidev, DSI_CTRL, 0, 0, 0);
+> -	REG_FLD_MOD(dsidev, DSI_CLK_CTRL, 1, 20, 20);
+> -	REG_FLD_MOD(dsidev, DSI_CTRL, 1, 0, 0);
+> -	*/
+> +	return 0;
+>  }
+>  
+>  static inline unsigned ns2ddr(struct platform_device *dsidev, unsigned ns)
+> @@ -2473,7 +2467,9 @@ static int dsi_cio_init(struct omap_dss_device *dssdev)
+>  		goto err_scp_clk_dom;
+>  	}
+>  
+> -	dsi_set_lane_config(dssdev);
+> +	r = dsi_set_lane_config(dssdev);
+> +	if (r)
+> +		goto err_scp_clk_dom;
+>  
+>  	/* set TX STOP MODE timer to maximum for this operation */
+>  	l = dsi_read_reg(dsidev, DSI_TIMING1);
+
 
