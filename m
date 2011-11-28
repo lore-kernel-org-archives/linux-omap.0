@@ -1,66 +1,36 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: Re: RX51: tsc2005 platform data
-Date: Mon, 28 Nov 2011 23:30:09 +0100
-Message-ID: <20111128223009.GA26183@earth.universe>
-References: <20111105234942.GA5937@earth.universe>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 4/5] init/calibrate.c: allow for recalibration of loops per jiffy
+Date: Mon, 28 Nov 2011 23:30:45 +0100
+Message-ID: <201111282330.46015.jkrzyszt@tis.icnet.pl>
+References: <1322364751-29980-1-git-send-email-jkrzyszt@tis.icnet.pl> <1322364751-29980-5-git-send-email-jkrzyszt@tis.icnet.pl> <20111128153900.GA16481@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comu.ring0.de ([46.4.151.82]:35901 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750876Ab1K1WaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Nov 2011 17:30:12 -0500
-Content-Disposition: inline
-In-Reply-To: <20111105234942.GA5937@earth.universe>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111128153900.GA16481@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, Sameer Nanda <snanda@chromium.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
+On Monday 28 of November 2011 at 16:39:00, Russell King - ARM Linux wrote:
+> On Sun, Nov 27, 2011 at 04:32:30AM +0100, Janusz Krzysztofik wrote:
+> > This is required on ARM OMAP1 platform, after DPLL reprogramming has
+> > been fixed by moving it from setup_arch() to kernel_init().
+> > 
+> > Created against linux-3.2-rc2.
+> 
+> Why do you need this?  If you know what the original CPU clock rate and
+> bogomips were, and the new CPU clock rate, then you simply scale the
+> bogomips from the original accordingly.  That's what cpufreq does.
 
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
+Please ignore this patch. I'm going to post a replacement for patch 5/5 
+which, thanks to Russell's help, will no longer require any changes in 
+init/calibrate.c.
 
-On Sun, Nov 06, 2011 at 12:49:42AM +0100, Sebastian Reichel wrote:
-> Hi,
->=20
-> Please add tsc2005 to board-rx51-peripherals.c. The code should
-> have gone through the input queue according to [0], but only
-> the touchscreen driver is part of the mainline linux kernel
-> since 2.6.39-rc1.
->=20
-> I attached the patch adding tsc2005 support to the rx51 board
-> file, updated to apply cleanly against the mainline 3.1 kernel.
->=20
-> [0] http://comments.gmane.org/gmane.linux.ports.arm.omap/34198
+Russell,
+Thanks for pointing me into the right direction.
 
-ping! Can this finally go into 3.3?
-
--- Sebastian
-
---CE+1k2dSO48ffgeK
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJO1AtxAAoJENju1/PIO/qaZJQP/jp9XRWYg5/D4QtEgCabK8Nu
-chkU6kfIvARHaxTKwCL1zkq77JWzV35nulG3iFiD1qRnI3ehTIv32C2dfRGp4258
-2Uqml2BgQtTSC36BQ09oF8t3AqMH65jNE9aP5I8JVW31nRJlBbzoOwTw6ssNlJFC
-2HoAz3d3dYrYLZlQfV5atmO1ZFtAk8FILakZjFWlzDRXKPnUBDo5HzlqpKexsNFW
-AFedwsPXjIsLXcPBriZilvuPXGcKTBgNXQJUTO7eygoPk8zYyfVUhfXwM9M5ye9x
-97w+ymo38UeB7hb6M6D5uEjTQfpcNas+mixC1Xln2uod6M5eZg8B8gX0TVo2yICr
-jdotb6V9HNRYmCclPLMfApUjZyGbcuYeCGmKmlKQDqUU1fjo4o3ViZ4eQfJ6Y+2k
-/Q2SBdxQ27UrSHSWyQiKMd51CU3sOFfnJ4aKz/aUrqhulkZ3DKNa4bef2ThbpKkw
-HvDak6JydSrljtwjy80cRqrqDXDsi5wmmKMqpgo4gNdMKV5613VqaIYQ2HaO6HLR
-ou10qClrHVMLEfAy37dOnFPrWYi2Kg7VlepW7pAkMcyj3xnsAIogWXUuM2CFgSnt
-RXLm772/yomf/OXWo2YxMWy3uf9EDJ6S/cD4OAPrHhfWc1wDREh8DhSHIVizN1vE
-XpI27asrKnCH+b3ToKgT
-=aB2c
------END PGP SIGNATURE-----
-
---CE+1k2dSO48ffgeK--
+Janusz
