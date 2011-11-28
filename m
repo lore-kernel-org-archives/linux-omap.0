@@ -1,47 +1,112 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH v4] OMAP: I2C: Fix the interrupt clearing in OMAP4
-Date: Mon, 28 Nov 2011 20:10:12 +0530
-Message-ID: <1322491212-8657-1-git-send-email-shubhrajyoti@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv7 1/7] regulator: twl: fix twl4030 support for smps regulators
+Date: Mon, 28 Nov 2011 16:53:19 +0200
+Message-ID: <1322492005-27741-2-git-send-email-t-kristo@ti.com>
+References: <1322492005-27741-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54568 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39808 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752072Ab1K1Okb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Nov 2011 09:40:31 -0500
+	id S1751814Ab1K1OyR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Nov 2011 09:54:17 -0500
+In-Reply-To: <1322492005-27741-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>, Vikram Pandita <vikram.pandita@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, khilman@ti.com, b-cousson@ti.com, rnayak@ti.com, gg@slimlogic.co.uk
 
-On OMAP4 we were writing 1 to  IRQENABLE_CLR which cleared only
-the arbitration lost interrupt however for other ips (not OMAP_I2C_IP_VERSION_2)
-we clear all the interrupts at idle. The patch intends to fix the same by writing 0 to the
-IE register.
+SMPS regulator voltage control differs from the one of the LDO ones.
+Current TWL code was using LDO regulator ops for controlling the SMPS
+regulators, which fails. This was fixed fixed by adding separate
+regulator type which uses correct logic and calculations for the
+voltage levels.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/regulator/twl-regulator.c |   46 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 44 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index a43d002..abadc13 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -297,10 +297,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 	pdata = dev->dev->platform_data;
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index ee8747f..11cc308 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -71,6 +71,7 @@ struct twlreg_info {
+ #define VREG_TYPE		1
+ #define VREG_REMAP		2
+ #define VREG_DEDICATED		3	/* LDO control */
++#define VREG_VOLTAGE_SMPS_4030	9
+ /* TWL6030 register offsets */
+ #define VREG_TRANS		1
+ #define VREG_STATE		2
+@@ -514,6 +515,32 @@ static struct regulator_ops twl4030ldo_ops = {
+ 	.get_status	= twl4030reg_get_status,
+ };
  
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
++static int
++twl4030smps_set_voltage(struct regulator_dev *rdev, int min_uV, int max_uV,
++			unsigned *selector)
++{
++	struct twlreg_info *info = rdev_get_drvdata(rdev);
++	int vsel = DIV_ROUND_UP(min_uV - 600000, 12500);
 +
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
++	twlreg_write(info, TWL_MODULE_PM_RECEIVER, VREG_VOLTAGE_SMPS_4030,
++		vsel);
++	return 0;
++}
++
++static int twl4030smps_get_voltage(struct regulator_dev *rdev)
++{
++	struct twlreg_info *info = rdev_get_drvdata(rdev);
++	int vsel = twlreg_read(info, TWL_MODULE_PM_RECEIVER,
++		VREG_VOLTAGE_SMPS_4030);
++
++	return vsel * 12500 + 600000;
++}
++
++static struct regulator_ops twl4030smps_ops = {
++	.set_voltage	= twl4030smps_set_voltage,
++	.get_voltage	= twl4030smps_get_voltage,
++};
++
+ static int twl6030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -856,6 +883,21 @@ static struct regulator_ops twlsmps_ops = {
+ 		}, \
+ 	}
  
- 	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
++#define TWL4030_ADJUSTABLE_SMPS(label, offset, num, turnon_delay, remap_conf) \
++	{ \
++	.base = offset, \
++	.id = num, \
++	.delay = turnon_delay, \
++	.remap = remap_conf, \
++	.desc = { \
++		.name = #label, \
++		.id = TWL4030_REG_##label, \
++		.ops = &twl4030smps_ops, \
++		.type = REGULATOR_VOLTAGE, \
++		.owner = THIS_MODULE, \
++		}, \
++	}
++
+ #define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+@@ -947,8 +989,8 @@ static struct twlreg_info twl_regs[] = {
+ 	TWL4030_ADJUSTABLE_LDO(VINTANA2, 0x43, 12, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VINTDIG, 0x47, 1500, 13, 100, 0x08),
+ 	TWL4030_ADJUSTABLE_LDO(VIO, 0x4b, 14, 1000, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VDD1, 0x55, 15, 1000, 0x08),
+-	TWL4030_ADJUSTABLE_LDO(VDD2, 0x63, 16, 1000, 0x08),
++	TWL4030_ADJUSTABLE_SMPS(VDD1, 0x55, 15, 1000, 0x08),
++	TWL4030_ADJUSTABLE_SMPS(VDD2, 0x63, 16, 1000, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB1V5, 0x71, 1500, 17, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB1V8, 0x74, 1800, 18, 100, 0x08),
+ 	TWL4030_FIXED_LDO(VUSB3V1, 0x77, 3100, 19, 150, 0x08),
 -- 
-1.7.1
+1.7.4.1
 
