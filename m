@@ -1,51 +1,64 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v2 0/4] OMAP serial device tree support
-Date: Mon, 28 Nov 2011 07:44:15 -0600
-Message-ID: <4ED3902F.7080801@gmail.com>
-References: <1321969456-24266-1-git-send-email-rnayak@ti.com> <20111127033642.GA28378@kroah.com> <4ED32500.5060908@ti.com> <20111128063149.GB15189@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v4 0/5] Support for OMAP4 Digital Microphone interface
+Date: Mon, 28 Nov 2011 15:45:38 +0200
+Message-ID: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:52829 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876Ab1K1NoT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Nov 2011 08:44:19 -0500
-In-Reply-To: <20111128063149.GB15189@kroah.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:36506 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751143Ab1K1NqD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Nov 2011 08:46:03 -0500
+Received: by mail-fx0-f43.google.com with SMTP id n18so1069737fag.2
+        for <linux-omap@vger.kernel.org>; Mon, 28 Nov 2011 05:46:01 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-On 11/28/2011 12:31 AM, Greg KH wrote:
-> On Mon, Nov 28, 2011 at 11:36:56AM +0530, Rajendra Nayak wrote:
->> On Sunday 27 November 2011 09:06 AM, Greg KH wrote:
->>> On Tue, Nov 22, 2011 at 07:14:12PM +0530, Rajendra Nayak wrote:
->>>> v2 is based on the latest omap-serial runtime patches, which
->>>> can be found here[1]
->>>>
->>>> The series passes minimal data that allows serial console
->>>> boot, with UART's initialised from device tree.
->>>> However some of low power support for UART and remote
->>>> wakeup needs more work.
->>>> Boot tested on OMAP4 panda and OMAP4 sdp boards.
->>>>
->>>> Patches can be found here..
->>>> git://gitorious.org/omap-pm/linux.git for-dt/serial
->>>
->>> What tree are these going to go through, some device tree one, or do you
->>> want me to take the serial driver patches?
->>
->> Hi Greg,
->>
->> These patches have a dependency on the omap-serial runtime series.
->> So once that makes it in, through the serial driver tree, and once we
->> have the necessary Acks from the Device Tree maintainers on the relevant
->> patches from this series, these could go through the serial driver tree
->> as well.
-> 
-> Then all of these should probably go through the device tree tree.
+Hello,
 
-Generally, DT related driver changes go in thru the respective driver trees.
+The following series will add support for OMAP4 DMIC interface, and enable them
+on sdp4430/Blaze boards.
 
-Rob
+Changes since v3:
+- dmic clk divider selection moved to hw_params phase to allow fixed rate
+  configuration from machine driver init.
+
+Changes since v2:
+- Use module_platform_driver
+- convert to use devm_
+- Add clk_id for the output clock
+- Extend the comment to explain why the driven can change the divider for 192KHz
+  sampling rate.
+
+Changes since v1:
+- 192KHz rate support fixed (need to use different divider)
+- Hold reference for dmic_fclk over the lifetime of the driver
+- Removed the clkdiv callback, and replaced with frequency based configuration
+  for the external components (dmic frequency)
+
+Regards,
+Peter
+---
+Peter Ujfalusi (5):
+  OMAP4: hwmod: Add names for DMIC memory address space
+  ASoC: OMAP4: omap-dmic: Initial support for OMAP DMIC
+  OMAP4: devices: Register OMAP4 DMIC platform device
+  OMAP4: board-4430sdp: Register platform device for digimic codec
+  ASoC: sdp4430: Add support for digital microphones
+
+ arch/arm/mach-omap2/board-4430sdp.c        |    6 +
+ arch/arm/mach-omap2/devices.c              |   22 ++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +
+ sound/soc/omap/Kconfig                     |    5 +
+ sound/soc/omap/Makefile                    |    2 +
+ sound/soc/omap/omap-dmic.c                 |  549 ++++++++++++++++++++++++++++
+ sound/soc/omap/omap-dmic.h                 |   69 ++++
+ sound/soc/omap/sdp4430.c                   |   85 ++++-
+ 8 files changed, 729 insertions(+), 11 deletions(-)
+ create mode 100644 sound/soc/omap/omap-dmic.c
+ create mode 100644 sound/soc/omap/omap-dmic.h
+
+-- 
+1.7.8.rc3
+
