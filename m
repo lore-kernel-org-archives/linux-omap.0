@@ -1,86 +1,66 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 2a/5] Remove unsafe clock values from omap1_defconfig
-Date: Mon, 28 Nov 2011 23:00:44 +0100
-Message-ID: <1322517644-5066-1-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <20111128174508.GO31337@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111128174508.GO31337@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: RX51: tsc2005 platform data
+Date: Mon, 28 Nov 2011 23:30:09 +0100
+Message-ID: <20111128223009.GA26183@earth.universe>
+References: <20111105234942.GA5937@earth.universe>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="CE+1k2dSO48ffgeK"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comu.ring0.de ([46.4.151.82]:35901 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876Ab1K1WaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Nov 2011 17:30:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20111105234942.GA5937@earth.universe>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-DPLL1 reprogramming to a different rate is actually blocked inside
-omap1_select_table_rate(), resulting in the defalut rate of 60 MHz
-always used instead of the one selected in .config. OTOH, in
-omap1_defconfig we currently rely on Kconfig options for the supported
-MHz rates in case of boards which boot with dpll1 not set correctly by
-their boot loaders.
-
-This means that before we allow for reprogramming of dpll1 rate, we
-should remove all unsafe clock selections from omap1_defconfig,
-otherwise it will stop booting on boards with imperfect boot loaders,
-as it would always try to change to 216MHz.
-
-Keep only one safe clock rate per each supported xtal frequency, i.e.
-60MHZ dpll1 for 12MHz xtal and 182MHz dpll1 for 13MHz xtal.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-On Monday 28 of November 2011 at 18:45:09, Tony Lindgren wrote:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111126 19:06]:
-> > According to comments in omap1_select_table_rate(), reprogramming dpll1
-> > is tricky, and should always be done from SRAM.
-> > 
-> > While being at it, move OMAP730 special case handling inside
-> > omap_sram_reprogram_clock().
-> > 
-> > Created on top of omap-fixes, not yet in mainline as of 3.2-rc3.
-> > Tested on Amstrad Delta.
-> 
-> Thanks for looking into these issues. For most of this we should plan on
-> getting them done for the next merge window because we currently rely
-> on Kconfig options for the supported MHz rates. This means that with
-> this change omap1_defconfig will stop booting on most systems as it
-> would try to change to 216MHz. To fix that issue we should allow the
-> boards to set the supported rates before applying this patch.
-
-Hi Tony,
-I'm not sure which of the patches you meant not ready for 3.2-rc. From
-your comment I would conclude that only patch 3/5, which would really
-break omap1_defconfig booting on some boards, is questionable, while you
-posted this comment against patch 1/5, which I don't see how it could
-break booting, including omap1_defconfig.
-
-Anyway, I hope that the additional patch below is addressing all your
-concerns.
-
-Thanks,
-Janusz
-
-P.S. A replacement for patches 4 and 5, addressing Russell's comment,
-in progress.
+To: linux-omap@vger.kernel.org
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
 
- arch/arm/configs/omap1_defconfig |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
-index a7e7775..945a34f 100644
---- a/arch/arm/configs/omap1_defconfig
-+++ b/arch/arm/configs/omap1_defconfig
-@@ -48,12 +48,7 @@ CONFIG_MACH_SX1=y
- CONFIG_MACH_NOKIA770=y
- CONFIG_MACH_AMS_DELTA=y
- CONFIG_MACH_OMAP_GENERIC=y
--CONFIG_OMAP_ARM_216MHZ=y
--CONFIG_OMAP_ARM_195MHZ=y
--CONFIG_OMAP_ARM_192MHZ=y
- CONFIG_OMAP_ARM_182MHZ=y
--CONFIG_OMAP_ARM_168MHZ=y
--# CONFIG_OMAP_ARM_60MHZ is not set
- # CONFIG_ARM_THUMB is not set
- CONFIG_PCCARD=y
- CONFIG_OMAP_CF=y
--- 
-1.7.3.4
+On Sun, Nov 06, 2011 at 12:49:42AM +0100, Sebastian Reichel wrote:
+> Hi,
+>=20
+> Please add tsc2005 to board-rx51-peripherals.c. The code should
+> have gone through the input queue according to [0], but only
+> the touchscreen driver is part of the mainline linux kernel
+> since 2.6.39-rc1.
+>=20
+> I attached the patch adding tsc2005 support to the rx51 board
+> file, updated to apply cleanly against the mainline 3.1 kernel.
+>=20
+> [0] http://comments.gmane.org/gmane.linux.ports.arm.omap/34198
+
+ping! Can this finally go into 3.3?
+
+-- Sebastian
+
+--CE+1k2dSO48ffgeK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJO1AtxAAoJENju1/PIO/qaZJQP/jp9XRWYg5/D4QtEgCabK8Nu
+chkU6kfIvARHaxTKwCL1zkq77JWzV35nulG3iFiD1qRnI3ehTIv32C2dfRGp4258
+2Uqml2BgQtTSC36BQ09oF8t3AqMH65jNE9aP5I8JVW31nRJlBbzoOwTw6ssNlJFC
+2HoAz3d3dYrYLZlQfV5atmO1ZFtAk8FILakZjFWlzDRXKPnUBDo5HzlqpKexsNFW
+AFedwsPXjIsLXcPBriZilvuPXGcKTBgNXQJUTO7eygoPk8zYyfVUhfXwM9M5ye9x
+97w+ymo38UeB7hb6M6D5uEjTQfpcNas+mixC1Xln2uod6M5eZg8B8gX0TVo2yICr
+jdotb6V9HNRYmCclPLMfApUjZyGbcuYeCGmKmlKQDqUU1fjo4o3ViZ4eQfJ6Y+2k
+/Q2SBdxQ27UrSHSWyQiKMd51CU3sOFfnJ4aKz/aUrqhulkZ3DKNa4bef2ThbpKkw
+HvDak6JydSrljtwjy80cRqrqDXDsi5wmmKMqpgo4gNdMKV5613VqaIYQ2HaO6HLR
+ou10qClrHVMLEfAy37dOnFPrWYi2Kg7VlepW7pAkMcyj3xnsAIogWXUuM2CFgSnt
+RXLm772/yomf/OXWo2YxMWy3uf9EDJ6S/cD4OAPrHhfWc1wDREh8DhSHIVizN1vE
+XpI27asrKnCH+b3ToKgT
+=aB2c
+-----END PGP SIGNATURE-----
+
+--CE+1k2dSO48ffgeK--
