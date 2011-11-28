@@ -1,38 +1,49 @@
-From: "Coelho, Luciano" <coelho@ti.com>
-Subject: Re: [PATCH 3/3] omap: board-sdp4430: declare support for MMC_PM_KEEP_POWER
-Date: Mon, 28 Nov 2011 09:50:18 +0200
-Message-ID: <CAKd1q9pv5hMSpazYiZpmoowV52GvE7gFK5zUJSGpKhNkDZGuVg@mail.gmail.com>
-References: <1321970539-7104-1-git-send-email-eliad@wizery.com>
-	<1321970539-7104-3-git-send-email-eliad@wizery.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv6 1/6] regulator: core: add support for external
+ get/set_voltage
+Date: Mon, 28 Nov 2011 10:15:41 +0200
+Message-ID: <1322468141.4489.5.camel@sokoban>
+References: <1322238562-19943-1-git-send-email-t-kristo@ti.com>
+	 <1322238562-19943-2-git-send-email-t-kristo@ti.com>
+	 <20111125165214.GG5315@opensource.wolfsonmicro.com>
+	 <1322241632.13828.10.camel@sokoban>
+	 <20111125172945.GJ5315@opensource.wolfsonmicro.com>
+	 <1322243943.13828.13.camel@sokoban>
+	 <20111125184832.GK5315@opensource.wolfsonmicro.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1321970539-7104-3-git-send-email-eliad@wizery.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>, Russell King <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43405 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291Ab1K1IPt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Nov 2011 03:15:49 -0500
+In-Reply-To: <20111125184832.GK5315@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, lrg@ti.com, gg@slimlogic.co.uk, rnayak@ti.com, b-cousson@ti.com
 
-Hi Eliad,
+On Fri, 2011-11-25 at 18:48 +0000, Mark Brown wrote:
+> On Fri, Nov 25, 2011 at 07:59:03PM +0200, Tero Kristo wrote:
+> > On Fri, 2011-11-25 at 17:29 +0000, Mark Brown wrote:
+> 
+> > > No, that's clearly going to break multi-board kernel images.  If this
+> > > is something board specific platform/device tree data sounds like the
+> > > way forwards.
+> 
+> > Okay, so I will update this patch with proper locking and you should be
+> > okay with that approach? Usually in the omap case we just want to switch
+> > to using the external controller during init time and leave it be like
+> > that, there is no really use-case as such for runtime switching of
+> > controller, except maybe for some experimental / debug usage.
+> 
+> No - as I said "platform/device tree data sounds like the way forwards."
 
-On Tue, Nov 22, 2011 at 4:02 PM, Eliad Peller <eliad@wizery.com> wrote:
-> Declare support for keeping the power of the wlan chip
-> while suspended. this is needed for Wakeup-On-Wireless.
->
-> Signed-off-by: Eliad Peller <eliad@wizery.com>
-> ---
-> =C2=A0arch/arm/mach-omap2/board-4430sdp.c | =C2=A0 =C2=A01 +
-> =C2=A01 files changed, 1 insertions(+), 0 deletions(-)
+Ok thanks, I'll take a look at this and try to forge the code into a
+platform data type solution.
 
-What about all the other board files that also have this structure?
-=46or example board-omap4panda.c? I think they should all be changed an=
-d
-the change should also be communicated more broadly for those board
-files which (unfortunately) are not upstream (or which are upstream
-but without the wl12xx-specific definitions on it, such as Beagle).
+-Tero
 
 
---=20
-Cheers,
-Luca.
