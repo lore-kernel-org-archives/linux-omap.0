@@ -1,138 +1,51 @@
 From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v2 4/4] ARM: omap: pass minimal SoC/board data for UART
- from dt
-Date: Mon, 28 Nov 2011 07:40:49 -0600
-Message-ID: <4ED38F61.50604@gmail.com>
-References: <1321969456-24266-1-git-send-email-rnayak@ti.com> <1321969456-24266-5-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH v2 0/4] OMAP serial device tree support
+Date: Mon, 28 Nov 2011 07:44:15 -0600
+Message-ID: <4ED3902F.7080801@gmail.com>
+References: <1321969456-24266-1-git-send-email-rnayak@ti.com> <20111127033642.GA28378@kroah.com> <4ED32500.5060908@ti.com> <20111128063149.GB15189@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1321969456-24266-5-git-send-email-rnayak@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:52829 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750876Ab1K1NoT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Nov 2011 08:44:19 -0500
+In-Reply-To: <20111128063149.GB15189@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On 11/22/2011 07:44 AM, Rajendra Nayak wrote:
-> Pass minimal data needed for console boot, from dt, for
-> OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
-> static initialization from generic board file.
+On 11/28/2011 12:31 AM, Greg KH wrote:
+> On Mon, Nov 28, 2011 at 11:36:56AM +0530, Rajendra Nayak wrote:
+>> On Sunday 27 November 2011 09:06 AM, Greg KH wrote:
+>>> On Tue, Nov 22, 2011 at 07:14:12PM +0530, Rajendra Nayak wrote:
+>>>> v2 is based on the latest omap-serial runtime patches, which
+>>>> can be found here[1]
+>>>>
+>>>> The series passes minimal data that allows serial console
+>>>> boot, with UART's initialised from device tree.
+>>>> However some of low power support for UART and remote
+>>>> wakeup needs more work.
+>>>> Boot tested on OMAP4 panda and OMAP4 sdp boards.
+>>>>
+>>>> Patches can be found here..
+>>>> git://gitorious.org/omap-pm/linux.git for-dt/serial
+>>>
+>>> What tree are these going to go through, some device tree one, or do you
+>>> want me to take the serial driver patches?
+>>
+>> Hi Greg,
+>>
+>> These patches have a dependency on the omap-serial runtime series.
+>> So once that makes it in, through the serial driver tree, and once we
+>> have the necessary Acks from the Device Tree maintainers on the relevant
+>> patches from this series, these could go through the serial driver tree
+>> as well.
 > 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Then all of these should probably go through the device tree tree.
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+Generally, DT related driver changes go in thru the respective driver trees.
 
 Rob
-> ---
->  arch/arm/boot/dts/omap3.dtsi        |   31 +++++++++++++++++++++++++++++++
->  arch/arm/boot/dts/omap4.dtsi        |   28 ++++++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-generic.c |    1 -
->  3 files changed, 59 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index d202bb5..216c331 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -13,6 +13,13 @@
->  / {
->  	compatible = "ti,omap3430", "ti,omap3";
->  
-> +	aliases {
-> +		serial0 = &uart1;
-> +		serial1 = &uart2;
-> +		serial2 = &uart3;
-> +		serial3 = &uart4;
-> +	};
-> +
->  	cpus {
->  		cpu@0 {
->  			compatible = "arm,cortex-a8";
-> @@ -59,5 +66,29 @@
->  			interrupt-controller;
->  			#interrupt-cells = <1>;
->  		};
-> +
-> +		uart1: serial@0x4806a000 {
-> +			compatible = "ti,omap3-uart";
-> +			ti,hwmods = "uart1";
-> +			clock-frequency = <48000000>;
-> +		};
-> +
-> +		uart2: serial@0x4806c000 {
-> +			compatible = "ti,omap3-uart";
-> +			ti,hwmods = "uart2";
-> +			clock-frequency = <48000000>;
-> +		};
-> +
-> +		uart3: serial@0x49020000 {
-> +			compatible = "ti,omap3-uart";
-> +			ti,hwmods = "uart3";
-> +			clock-frequency = <48000000>;
-> +		};
-> +
-> +		uart4: serial@0x49042000 {
-> +			compatible = "ti,omap3-uart";
-> +			ti,hwmods = "uart4";
-> +			clock-frequency = <48000000>;
-> +		};
->  	};
->  };
-> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-> index 4c61c82..e8fe75f 100644
-> --- a/arch/arm/boot/dts/omap4.dtsi
-> +++ b/arch/arm/boot/dts/omap4.dtsi
-> @@ -21,6 +21,10 @@
->  	interrupt-parent = <&gic>;
->  
->  	aliases {
-> +		serial0 = &uart1;
-> +		serial1 = &uart2;
-> +		serial2 = &uart3;
-> +		serial3 = &uart4;
->  	};
->  
->  	cpus {
-> @@ -99,5 +103,29 @@
->  			reg = <0x48241000 0x1000>,
->  			      <0x48240100 0x0100>;
->  		};
-> +
-> +		uart1: serial@0x4806a000 {
-> +			compatible = "ti,omap4-uart";
-> +			ti,hwmods = "uart1";
-> +			clock-frequency = <48000000>;
-> +		};
-> +
-> +		uart2: serial@0x4806c000 {
-> +			compatible = "ti,omap4-uart";
-> +			ti,hwmods = "uart2";
-> +			clock-frequency = <48000000>;
-> +		};
-> +
-> +		uart3: serial@0x48020000 {
-> +			compatible = "ti,omap4-uart";
-> +			ti,hwmods = "uart3";
-> +			clock-frequency = <48000000>;
-> +		};
-> +
-> +		uart4: serial@0x4806e000 {
-> +			compatible = "ti,omap4-uart";
-> +			ti,hwmods = "uart4";
-> +			clock-frequency = <48000000>;
-> +		};
->  	};
->  };
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index fb55fa3..bb72809 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -70,7 +70,6 @@ static void __init omap_generic_init(void)
->  	if (node)
->  		irq_domain_add_simple(node, 0);
->  
-> -	omap_serial_init();
->  	omap_sdrc_init(NULL, NULL);
->  
->  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-
