@@ -1,53 +1,42 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 4/5] OMAP4: board-4430sdp: Register platform device for digimic codec
-Date: Mon, 28 Nov 2011 15:45:42 +0200
-Message-ID: <1322487943-14280-5-git-send-email-peter.ujfalusi@ti.com>
-References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45089 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751494Ab1K1NqM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Nov 2011 08:46:12 -0500
-Received: by mail-fx0-f45.google.com with SMTP id s1so222001fab.4
-        for <linux-omap@vger.kernel.org>; Mon, 28 Nov 2011 05:46:11 -0800 (PST)
-In-Reply-To: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3] OMAP: I2C: Fix the interrupt clearing in OMAP4
+Date: Mon, 28 Nov 2011 19:23:44 +0530
+Message-ID: <1322488424-7518-1-git-send-email-shubhrajyoti@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-OMAP4 SDP/Blaze boards have onboard digital microphones.
-Register the platform device for the dmic-codec to be
-able to use the microphones.
+On OMAP4 we were writing 1 to  IRQENABLE_CLR which clears only
+the arbitration lost interrupt however for other than OMAP4 we clear all the 
+interrupts at idle. The patch intends to fix the same by writing 0 to the 
+IE register.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 5156468..503bf28 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -372,11 +372,17 @@ static struct platform_device sdp4430_vbat = {
- 	},
- };
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b6fcd08..0a139e7 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -306,10 +306,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+ 	pdata = pdev->dev.platform_data;
  
-+static struct platform_device sdp4430_dmic_codec = {
-+	.name	= "dmic-codec",
-+	.id	= -1,
-+};
+ 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+-	if (dev->rev >= OMAP_I2C_REV_ON_4430)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
 +
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
- 	&sdp4430_vbat,
-+	&sdp4430_dmic_codec,
- };
++	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
  
- static struct omap_musb_board_data musb_board_data = {
+ 	if (dev->rev < OMAP_I2C_REV_2) {
+ 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
 -- 
-1.7.8.rc3
-
+1.7.1
