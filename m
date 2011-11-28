@@ -1,53 +1,45 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH 2/3] omap_hsmmc: add pm_caps field
-Date: Mon, 28 Nov 2011 12:39:59 +0200
-Message-ID: <4ED364FF.8000007@compulab.co.il>
-References: <1321970539-7104-1-git-send-email-eliad@wizery.com>	<1321970539-7104-2-git-send-email-eliad@wizery.com>	<4ED35131.6020206@compulab.co.il>	<CAB3XZEeFSXBQZCR17bRdaG3UbhpE6JJHD_aEiq8Y2Kc3=eGRSQ@mail.gmail.com>	<4ED35BFE.9060202@compulab.co.il> <CAB3XZEeOAznyX8Z4vpb34GqD2mpr_0_Bje=-5KVkUs3q18ao_Q@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 2/5] ASoC: OMAP4: omap-dmic: Initial
+ support for OMAP DMIC
+Date: Mon, 28 Nov 2011 11:44:05 +0000
+Message-ID: <20111128114404.GE2934@opensource.wolfsonmicro.com>
+References: <1322223636-31623-1-git-send-email-peter.ujfalusi@ti.com>
+	<1322223636-31623-3-git-send-email-peter.ujfalusi@ti.com>
+	<20111127195040.GC25598@opensource.wolfsonmicro.com>
+	<2729071.3pgFW4tmaY@barack>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:57080
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751801Ab1K1KkM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Nov 2011 05:40:12 -0500
-In-Reply-To: <CAB3XZEeOAznyX8Z4vpb34GqD2mpr_0_Bje=-5KVkUs3q18ao_Q@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <2729071.3pgFW4tmaY@barack>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: =?iso-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Benoit Cousson <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>, Russell King <linux@arm.linux.org.uk>
 
-On 11/28/11 12:07, Eliad Peller wrote:
-> On Mon, Nov 28, 2011 at 12:01 PM, Igor Grinberg <grinberg@compulab.co.il> wrote:
->> On 11/28/11 11:23, Eliad Peller wrote:
->>> hi Igor,
->>>
->>> On Mon, Nov 28, 2011 at 11:15 AM, Igor Grinberg <grinberg@compulab.co.il> wrote:
->>>> On 11/22/11 16:02, Eliad Peller wrote:
->>>>> Add pm_caps field to omap2_hsmmc_info and omap_mmc_slot_data
->>>>> structs, so we will be able to indicate mmc pm capabilities
->>>>> in the board file.
->>>>
->>>> Shouldn't this be user space runtime controllable?
->>>> Instead of being a static per board decision?
->>>>
->>> we only declare here support for the pm capabilities.
->>> the actual configuration of these capabilities is done at a later
->>> stage, and can be controlled (implicitly) by userspace (e.g. by
->>> enabling Wakeup-On-Wireless for the wl12xx chip).
->>
->> This is good to hear, because patch 1/3 makes it look like
->> the bus power does get immediately affected depending
->> on that capability, isn't it?
->>
-> no.
-> it checks pm_flags (configured pm features) rather than pm_caps
-> (supported pm features).
+On Mon, Nov 28, 2011 at 09:49:19AM +0200, P=E9ter Ujfalusi wrote:
+> On Sunday 27 November 2011 19:50:41 Mark Brown wrote:
 
-I see. Thanks for the explanation.
+> > So what happens if the user starts recording at 192kHz then goes back to
+> > 96kHz?  This all feels a bit clunky and fragile.
 
+> I expect another HW param calls. The stream is stopped, and I reconfigure=
+ the =
 
--- 
-Regards,
-Igor.
+> divider for 96KHz (I will not change the divider here, since the stream i=
+s =
+
+> 96KHz). I don't see any issue here.
+
+Only if the user is using the same machine driver as you.  If the user
+wants a fixed clock rate for the DMIC and sets it on init rather than
+resetting it every time hw_params() is called then this will break.
