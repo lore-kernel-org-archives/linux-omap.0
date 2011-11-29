@@ -1,68 +1,49 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 5/5 v2] ARM: OMAP1: recalculate loops per jiffy after dpll1 reprogram
-Date: Tue, 29 Nov 2011 01:25:32 +0100
-Message-ID: <1322526332-14088-1-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <1322364751-29980-6-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1322364751-29980-6-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
+Date: Mon, 28 Nov 2011 16:56:30 -0800
+Message-ID: <1322528190-9274-1-git-send-email-khilman@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:53508 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752891Ab1K2A4a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 28 Nov 2011 19:56:30 -0500
+Received: by mail-yx0-f180.google.com with SMTP id l7so7538604yen.39
+        for <linux-omap@vger.kernel.org>; Mon, 28 Nov 2011 16:56:26 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Otherwise timing is inaccurate, resulting in devices which depend on 
-delay(), like omap-keypad, broken.
+The MUSB driver does not currently implment suspend/resume callbacks,
+seemingly because it does not support cutting power when devices are
+connected in host mode.
 
-Created and tested on top of linux-omap/fixes on Amstrad Delta.
+Without a proper suspend/resume implementation, the OMAP PM domain
+layer which automatically gates non runtime-suspended devices will
+cause problems in suspend by the drivers ->runtime_suspend() callback
+which will try to cut power.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Fix this by disabling PM domain auto suspending for MUSB until the
+driver can be fixed to properly implement suspend/resume.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
-Hi,
-This version no longer depends on changes to init/calibrate.c, using the
-method kindly advised by Russell instead.  Then, patch 4/5 can be
-dropped.
+ arch/arm/mach-omap2/usb-musb.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-However, the result of cpufreq_scale() differs from that of
-(re)calibrate_delay() by ca. 6%, i.e., 70.40 vs. 74.54. Please advise if
-this approximation is acceptable.
-
-Thanks, 
-Janusz
-
-
- arch/arm/mach-omap1/clock_data.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 201b1f2..e616042 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -16,6 +16,8 @@
- 
- #include <linux/kernel.h>
- #include <linux/clk.h>
-+#include <linux/cpufreq.h>
-+#include <linux/delay.h>
- #include <linux/io.h>
- 
- #include <asm/mach-types.h>  /* for machine_is_* */
-@@ -928,7 +930,9 @@ int __init omap1_clk_init(void)
- 
- void __init omap1_clk_late_init(void)
- {
--	if (ck_dpll1.rate >= OMAP1_DPLL1_SANE_VALUE)
-+	unsigned long rate = ck_dpll1.rate;
-+
-+	if (rate >= OMAP1_DPLL1_SANE_VALUE)
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index 2679750..e19eb0a 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -110,6 +110,7 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+ 						name, oh_name);
  		return;
- 
- 	/* Find the highest supported frequency and enable it */
-@@ -942,4 +946,5 @@ void __init omap1_clk_late_init(void)
  	}
- 	propagate_rate(&ck_dpll1);
- 	omap1_show_rates();
-+	loops_per_jiffy = cpufreq_scale(loops_per_jiffy, rate, ck_dpll1.rate);
- }
++	omap_device_disable_idle_on_suspend(pdev);
+ 
+ 	dev = &pdev->dev;
+ 	get_device(dev);
 -- 
-1.7.3.4
+1.7.6
+
