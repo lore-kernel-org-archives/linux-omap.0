@@ -1,66 +1,88 @@
-From: kanagesh radhakrishnan <rkanagesh@gmail.com>
-Subject: High Speed devices on OTG port in Host mode with OMAP4460 ES 1.0
-Date: Tue, 29 Nov 2011 17:11:52 +0530
-Message-ID: <CADgYr3Ah-mceFxS7Gqfw=ENCGQAHeMxbqydANTk4qL+ya7i3mA@mail.gmail.com>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Re: [PATCH v2 1/2] OMAP2+: DMA: Workaround for invalid source position
+Date: Tue, 29 Nov 2011 15:01:57 +0200
+Message-ID: <1857964.6c1BL8cmCX@barack>
+References: <1320658387-21067-1-git-send-email-peter.ujfalusi@ti.com> <4EBBC79E.30701@bitmer.com> <4EBBCB4C.9030202@bitmer.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48342 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411Ab1K2Llx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Nov 2011 06:41:53 -0500
-Received: by ywa9 with SMTP id 9so3979288ywa.19
-        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 03:41:52 -0800 (PST)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38171 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753479Ab1K2NBu convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Nov 2011 08:01:50 -0500
+Received: by ggnp4 with SMTP id p4so7855851ggn.31
+        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 05:01:47 -0800 (PST)
+In-Reply-To: <4EBBCB4C.9030202@bitmer.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello All,
+On Thursday 10 November 2011 15:02:04 Jarkko Nikula wrote:
+> On 11/10/2011 02:46 PM, Jarkko Nikula wrote:
+> > On 11/07/2011 11:33 AM, Peter Ujfalusi wrote:
+> >> If the DMA source position has been asked before the
+> >> first actual data transfer has been done, the CSAC
+> >> register does not contain valid information.
+> >> We can identify this situation by checking the CDAC
+> >> register:
+> >> CDAC !=3D 0 indicates that the DMA transfer on the channel has
+> >> been started already.
+> >> When CDAC =3D=3D 0 we can not trust the CSAC value since it has
+> >> not been updated, and can contain random number.
+> >> Return the start address in case the DMA has not jet started.
+> >>=20
+> >> Note: The CDAC register has been initialized to 0 at dma_start
+> >> time.
+> >>=20
+> >> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
+> >> ---
+> >> arch/arm/plat-omap/dma.c | 12 ++++++++++++
+> >> 1 files changed, 12 insertions(+), 0 deletions(-)
+> >>=20
+> >> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> >> index c22217c..a9983b6 100644
+> >> --- a/arch/arm/plat-omap/dma.c
+> >> +++ b/arch/arm/plat-omap/dma.c
+> >> @@ -1034,6 +1034,18 @@ dma_addr_t omap_get_dma_src_pos(int lch)
+> >> if (IS_DMA_ERRATA(DMA_ERRATA_3_3)&& offset =3D=3D 0)
+> >> offset =3D p->dma_read(CSAC, lch);
+> >>=20
+> >> + if (!cpu_is_omap15xx()) {
+> >> + /*
+> >> + * CDAC =3D=3D 0 indicates that the DMA transfer on the channel h=
+as
+> >> + * not been started (no data has been transferred so far).
+> >> + * Return the programmed source start address in this case.
+> >> + */
+> >> + if (likely(p->dma_read(CDAC, lch)))
+> >> + offset =3D p->dma_read(CSAC, lch);
+> >> + else
+> >> + offset =3D p->dma_read(CSSA, lch);
+> >> + }
+> >> +
+> >=20
+> > I think this is enough:
+> >=20
+> > if (unlikely(p->dma_read(CDAC, lch) =3D=3D 0))
+> > offset =3D p->dma_read(CSSA, lch);
+> >=20
+> > I suppose offset is ok for normal case as it is already read (twise=
+)
+> > above.
+> Or actually my proposal could have a race if CDAC changes between CSA=
+C
+> read and CDAC read. In that case it's better to re-read CSAC as your
+> patch does after CDAC test and give to both:
+>=20
+> Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-I am working with a custom hardware platform based on OMAP4460
-(ES1.0).=A0 The Linux kernel that I have used with the platform is
-L27.G.3 release from git.omapzoom.org
+Tony, have you taken this patch? I failed to find it in the l-o tree...
 
-Hardware Setup:
-
-* The OTG port of the OMAP4460 is interfaced to a High Speed USB Hub.
-* It is also interfaced to a Mini-AB connector (with a mux in hardware
-that enables selection between the two).
-* The objective is to use the OTG port of the OMAP4460 in Host mode
-and get the High speed hub working.
-
-Issue:
-
-* I am unable to get the High Speed USB Hub to detect and work with
-the OTG Port in Host mode.
-* This is also the case when I connect an external, Self powered High
-Speed USB hub using the Mini-AB connector.
-
-Tests Run:
-
-When I connect an external Self powered Full Speed Hub to the OTG port
-(through the Mini-AB connector) the OMAP4460 is able to detect the hub
-and enumerate it.=A0 On connecting USB flash drives to the USB Hub,
-Linux detects insertion, enumerates the USB flash drives and mounts
-them.
-
-I have also connected the external, Self powered High Speed hub to the
-OTG port of the OMAP4430 Pandaboard, with the OTG port configured in
-Host mode.=A0 This works fine, OMAP4430 detects, enumerates and mounts
-the USB Flash drives connected to the High speed Hub.=A0 The kernel use=
-d
-on the OMAP4430 Pandaboard is the same (L27.G.3 from git.omapzoom.org)
-
-Has the OTG port on the OMAP4460 been tested in host mode with a High
-Speed device?
-How do I force the OTG port when configured in host mode to work in
-=46ull speed mode?
-
-Thank you for your time.
-
-Warm regards,
-Kanagesh
+--
+P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
