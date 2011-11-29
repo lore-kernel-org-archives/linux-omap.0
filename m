@@ -1,82 +1,32 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCHv7 6/7] regulator: twl: add support for external
- controller
-Date: Tue, 29 Nov 2011 13:48:31 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D12143035E5F@DBDE01.ent.ti.com>
-References: <47CEF8C4B26E8C44B22B028A650E0EA9046299@DBDE01.ent.ti.com>
-	 <B5906170F1614E41A8A28DE3B8D1214303442E@DBDE01.ent.ti.com>
- <1322565589.32510.12.camel@sokoban>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] DSS fixes for v3.2-rc2
+Date: Tue, 29 Nov 2011 14:51:18 +0000
+Message-ID: <201111291451.19081.arnd@arndb.de>
+References: <20111123235542.GL31337@atomide.com> <201111241606.54879.arnd@arndb.de> <1322554347.1869.6.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51367 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755254Ab1K2Nsl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Nov 2011 08:48:41 -0500
-In-Reply-To: <1322565589.32510.12.camel@sokoban>
-Content-Language: en-US
+Received: from moutng.kundenserver.de ([212.227.126.186]:56061 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755343Ab1K2OvY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Nov 2011 09:51:24 -0500
+In-Reply-To: <1322554347.1869.6.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-T24gVHVlLCBOb3YgMjksIDIwMTEgYXQgMTY6NDk6NDksIEtyaXN0bywgVGVybyB3cm90ZToNClsu
-Li5dDQo+ID4gDQo+ID4gT3RoZXIgVEkgUE1JQ3MgbGlrZSBUUFM2NTkxMCBhbHNvIGhhdmUgdHdv
-IEkyQyBpbnRlcmZhY2VzLiBTaW5jZSANCj4gPiB0aGUgZGF0YXNoZWV0cyByZWZlcnMgdG8gdGhl
-c2UgYXMgQ29udHJvbCAoQ1RMKSBhbmQgU21hcnRSZWZsZXggKFNSKSBpbnRlcmZhY2VzLCANCj4g
-PiBpbnN0ZWFkIG9mIHRoZSBPTUFQIHNwZWNpZmljIFRXTF9WUF9TTVBTX01PREUsIGhvdyBhYm91
-dCByZW5hbWluZyB0aGUgZmxhZyB0byANCj4gPiBUV0xfU1JfU01QU19NT0RFPw0KPiANCj4gSSB3
-YXMgYWN0dWFsbHkgdGhpbmtpbmcgYWJvdXQgbmFtaW5nIGl0IHNvbWV0aGluZyBsaWtlIFNSIG1v
-ZGUsIGhvd2V2ZXINCj4gSSB0aGluayBJIHdpbGwgZHJvcCB0aGUgZmxhZyBhd2F5IGFzIHVubmVj
-ZXNzYXJ5IG9uY2UgSSBhZGQgdGhlIGZ1bmN0aW9uDQo+IHBvaW50ZXJzIGZvciB0aGUgdm9sdGFn
-ZV9nZXQgLyB2b2x0YWdlX3NjYWxlIGluIHRvIHRoZSBwbGF0Zm9ybSBkYXRhLg0KPiANCg0KU291
-bmRzIG9rLg0KDQo+ID4gDQo+ID4gQUZBSUsgdGhlIHNlY29uZCBJMkMgaW50ZXJmYWNlIGluIGFs
-bCB0aGVzZSBQTUlDcyBpcyBtZWFudCBvbmx5DQo+ID4gZm9yIHRoZSBTTVBTIG91dHB1dHMuIE1v
-cmVvdmVyLCB3aGljaCBvZiB0aGUgdHdvIGludGVyZmFjZXMgdG8gdXNlDQo+ID4gd291bGQgYmUg
-a25vd24gZHVyaW5nIHRoZSBpbml0IHBoYXNlLg0KPiANCj4gVGhhdHMgbXkgdW5kZXJzdGFuZGlu
-ZyBhbHNvLg0KPiANCj4gPiANCj4gPiBJcyB0aGVyZSBhIHNjZW5hcmlvIHdoZXJlIHNvbWVvbmUg
-d291bGQgd2FudCB0byBjaGFuZ2UgdGhpcyBhdCBydW50aW1lPyANCj4gDQo+IE9ubHkgdGVzdGlu
-ZyBwdXJwb3NlcyBjb21lIHRvIG15IG1pbmQsIGl0IGlzIGVhc2llciB0byB0cnkgb3V0IHNvbWUN
-Cj4gaW50ZXJlc3Rpbmcgc3R1ZmYgaWYgeW91IGNhbiBjaGFuZ2UgaXQgcnVudGltZSwgb3RoZXIg
-dGhhbiB0aGF0LCBub3QNCj4gcmVhbGx5LiBUaGlzIHNldCBpcyBhbHNvIHNldHRpbmcgdGhlIHVz
-ZWQgbW9kZSBkdXJpbmcgaW5pdCB0aW1lIGFsc28sDQo+IGFuZCB0aGVyZSBpcyBubyBydW50aW1l
-IGNvbmZpZ3VyYXRpb24gcG9zc2liaWxpdHkuDQo+IA0KDQpTbyB0aGVyZSdzIG5vdCBtdWNoIHZh
-bHVlIGlzIHRyeWluZyB0byBpbXBsZW1lbnQgcnVudGltZSBzd2l0Y2ggYmV0d2VlbiANCnRoZSBp
-bnRlcmZhY2VzIGluIHRoZSBkcml2ZXIuDQoNCj4gPiANCj4gPiBBdCBsZWFzdCBmb3IgVFBTNjU5
-MTAsIGl0IGlzIHBvc3NpYmxlIHRvIHVzZSB0aGUgU1ItSTJDIGludGVyZmFjZSANCj4gPiBqdXN0
-IGxpa2UgdGhlIENUTCBpbnRlcmZhY2UuIEluIG90aGVyIHdvcmRzLCBldmVuIFNvQ3Mgd2hpY2gg
-ZG8gbm90IA0KPiA+IGhhdmUgVlAvVkMgY2FuIGNob29zZSB0byBjaGFuZ2UgdGhlIFNNUFMgdm9s
-dGFnZSB1c2luZyB0aGUgU1ItSTJDIA0KPiA+IGludGVyZmFjZS4gVGhlIG9ubHkgY2F0Y2ggaXMg
-dGhhdCBvbmx5IHRoZSBTTVBTIHJlZ2lzdGVycyBjYW4gYmUgDQo+ID4gYWNjZXNzZWQgZnJvbSB0
-aGlzIGludGVyZmFjZS4NCj4gDQo+IFllYSwgdGhlIFNSLUkyQyBzaG91bGQgYmUgcG9zc2libGUg
-dG8gdXNlIHdpdGggbm9uIFZQL1ZDIHNldHVwLCBpZg0KPiBzb21lb25lIHJlYWxseSB3YW50ZWQg
-dG8gZG8gdGhpcy4gSWYgYW55Ym9keSB3b3VsZCBhY3R1YWxseSB3YW50IHRvIGRvDQo+IGl0IGlz
-IGFub3RoZXIgcXVlc3Rpb24sIGFzIHlvdSBjYW4gY29udHJvbCBldmVyeXRoaW5nIGZyb20gdGhl
-IG5vcm1hbA0KPiBJMkMgY29udHJvbCBpbnRlcmZhY2UuIElmIHlvdSBkb24ndCBoYXZlIGRlZGlj
-YXRlZCBWUCBoYXJkd2FyZSwgdGhlIHVzZQ0KPiBmb3IgdGhlIHNlY29uZGFyeSBJMkMgY2hhbm5l
-bCBpcyBub3QgdGhhdCBvYnZpb3VzLg0KPiANCg0KV2VsbCBtdWx0aS1wcm9jZXNzb3Igc2NlbmFy
-aW8gaXMgc29tZXRoaW5nIHRoYXQgY29tZSB0byBtaW5kLiBJZiB0aGVyZSdzIA0KYSBkaWZmZXJl
-bnQgY29yZSB3aGljaCBjYW4gYWxzbyB0YWxrIHRvIHRoZSBQTUlDLCBpdCBjb3VsZCB1c2Ugb25l
-IGFuZCB0aGUNCmhvc3QgcHJvY2Vzc29yIGNhbiB1c2UgYW5vdGhlci4gVGhlcmUgYXJlIG9idmlv
-dXMgaXNzdWVzIGxpa2UgcmFjZSBjb25kaXRpb25zDQpldGMgd2hpY2ggaGF2ZSB0byBiZSB0YWtl
-biBpbnRvIGFjY291bnQgYnV0IGl0J3MgdmVyeSBtdWNoIHBvc3NpYmxlLiANCg0KPiA+DQo+ID4g
-SWYgdGhpcyBpcyB0aGUgY2FzZSB3aXRoIFRXTCBzZXJpZXMgYWxzbywgd2UgY291bGQgaGF2ZSBu
-b24gVlAvVkMgDQo+ID4gc3BlY2lmaWMgc21wc19nZXQvc2V0X3ZvbHRhZ2UgQVBJcyBmb3IgdGhl
-IFNSLUkyQyBpbnRlcmZhY2Ugd2hpY2ggDQo+ID4gU29DcyB3aXRoIFZQL1ZDIG92ZXJyaWRlIGF0
-IGluaXQgdGltZS4gTm90ZSB0aGF0IHRoZSBkcml2ZXIgd2lsbCBoYXZlDQo+ID4gdHdvIHNtcHNf
-Z2V0L3NldF92b2x0YWdlIGltcGxlbWVudGF0aW9ucywgb25lIGNvcnJlc3BvbmRpbmcgdG8gQ1RM
-LUkyQw0KPiA+IGFuZCB0aGUgb3RoZXIgY29ycmVzcG9uZGluZyB0byBTUi1JMkMuIER1cmluZyB0
-aGUgaW5pdCBwaGFzZSwgd2hpY2ggc2V0DQo+ID4gb2YgQVBJcyB0byB1c2UgaXMgaW5kaWNhdGVk
-IHZpYSBhIGZsYWcgbGlrZSBUV0xfU1JfU01QU19NT0RFLg0KPiA+IA0KPiA+IFdpdGggc3VjaCBh
-IGNoYW5nZSwgdGhlIHZvbHRhZ2UgY2hhbmdlIGR1cmluZyBEVkZTIHdvdWxkIGFsc28gYm9pbCBk
-b3duDQo+ID4gdG8gbm9ybWFsIHJlZ3VsYXRvciBjYWxscyBmb3IgY2hhbmdpbmcgdGhlIHZvbHRh
-Z2UuIFNvQ3Mgd2hpY2ggZG8gbm90DQo+ID4gaGF2ZSB0aGUgVlAvVkMgZnVuY3Rpb25hbGl0eSBj
-YW4gdXNlIHRoZSBkZWZhdWx0IGltcGxlbWVudGF0aW9ucyANCj4gPiB2aWEgdGhlIFNSLUkyQyBv
-ciBDVEwtSTJDIChkZWNpZGVkIGF0IGluaXQgdGltZSkgYW5kIFNvQ3Mgd2l0aCBWUC9WQyANCj4g
-PiB1c2UgdGhlaXIgc3BlY2lmaWMgaW1wbGVtZW50YXRpb25zLg0KPiANCj4gWWVhLCBmb3IgbmV4
-dCB2ZXJzaW9uIEkgYW0gcGxhbm5pbmcgdG8gYWRkIHZvbHRhZ2VfZ2V0IC8gdm9sdGFnZV9zZXQg
-YW5kDQo+IHRoZSB2b2x0YWdlZG9tYWluIHBvaW50ZXIgYXMgcGxhdGZvcm0gZGF0YSBmb3IgdGhl
-IHJlZ3VsYXRvciwgdGhlc2UgY2FuDQo+IGJlIGRlZmluZWQgaWYgdGhlIHVzZXIgd2FudHMgdG8g
-dXNlIHRoZW0sIG90aGVyd2lzZSB0d2wtcmVndWxhdG9yIHdpbGwNCj4gdXNlIHRoZSBkZWZhdWx0
-IGltcGxlbWVudGF0aW9uLg0KPiANCg0KT2suDQoNClJlZ2FyZHMsDQpWYWliaGF2DQo=
+On Tuesday 29 November 2011, Tomi Valkeinen wrote:
+> I don't think we need these in 3.1 stable. The omapdss driver in 3.1
+> contains hacks to circumvent the HWMOD issues the patches below fix.
+> These hacks were removed for 3.2.
+> 
+> Well, the "ARM: OMAP2PLUS: DSS: Ensure DSS works correctly..." patch
+> could be used for 3.1 also, but I fear it depends on HWMOD and DSS
+> patches missing from 3.1. I'll check it out.
+
+Ok, thanks for taking a look,
+
+	Arnd
