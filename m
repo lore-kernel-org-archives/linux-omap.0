@@ -1,90 +1,82 @@
-From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: Re: [PATCH v2 1/2] OMAP2+: DMA: Workaround for invalid source position
-Date: Tue, 29 Nov 2011 15:01:57 +0200
-Message-ID: <1857964.6c1BL8cmCX@barack>
-References: <1320658387-21067-1-git-send-email-peter.ujfalusi@ti.com> <4EBBC79E.30701@bitmer.com> <4EBBCB4C.9030202@bitmer.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCHv7 6/7] regulator: twl: add support for external
+ controller
+Date: Tue, 29 Nov 2011 13:48:31 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D12143035E5F@DBDE01.ent.ti.com>
+References: <47CEF8C4B26E8C44B22B028A650E0EA9046299@DBDE01.ent.ti.com>
+	 <B5906170F1614E41A8A28DE3B8D1214303442E@DBDE01.ent.ti.com>
+ <1322565589.32510.12.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:38171 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753479Ab1K2NBu convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Nov 2011 08:01:50 -0500
-Received: by ggnp4 with SMTP id p4so7855851ggn.31
-        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 05:01:47 -0800 (PST)
-In-Reply-To: <4EBBCB4C.9030202@bitmer.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51367 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755254Ab1K2Nsl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Nov 2011 08:48:41 -0500
+In-Reply-To: <1322565589.32510.12.camel@sokoban>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Kristo, Tero" <t-kristo@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
 
-On Thursday 10 November 2011 15:02:04 Jarkko Nikula wrote:
-> On 11/10/2011 02:46 PM, Jarkko Nikula wrote:
-> > On 11/07/2011 11:33 AM, Peter Ujfalusi wrote:
-> >> If the DMA source position has been asked before the
-> >> first actual data transfer has been done, the CSAC
-> >> register does not contain valid information.
-> >> We can identify this situation by checking the CDAC
-> >> register:
-> >> CDAC !=3D 0 indicates that the DMA transfer on the channel has
-> >> been started already.
-> >> When CDAC =3D=3D 0 we can not trust the CSAC value since it has
-> >> not been updated, and can contain random number.
-> >> Return the start address in case the DMA has not jet started.
-> >>=20
-> >> Note: The CDAC register has been initialized to 0 at dma_start
-> >> time.
-> >>=20
-> >> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
-> >> ---
-> >> arch/arm/plat-omap/dma.c | 12 ++++++++++++
-> >> 1 files changed, 12 insertions(+), 0 deletions(-)
-> >>=20
-> >> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> >> index c22217c..a9983b6 100644
-> >> --- a/arch/arm/plat-omap/dma.c
-> >> +++ b/arch/arm/plat-omap/dma.c
-> >> @@ -1034,6 +1034,18 @@ dma_addr_t omap_get_dma_src_pos(int lch)
-> >> if (IS_DMA_ERRATA(DMA_ERRATA_3_3)&& offset =3D=3D 0)
-> >> offset =3D p->dma_read(CSAC, lch);
-> >>=20
-> >> + if (!cpu_is_omap15xx()) {
-> >> + /*
-> >> + * CDAC =3D=3D 0 indicates that the DMA transfer on the channel h=
-as
-> >> + * not been started (no data has been transferred so far).
-> >> + * Return the programmed source start address in this case.
-> >> + */
-> >> + if (likely(p->dma_read(CDAC, lch)))
-> >> + offset =3D p->dma_read(CSAC, lch);
-> >> + else
-> >> + offset =3D p->dma_read(CSSA, lch);
-> >> + }
-> >> +
-> >=20
-> > I think this is enough:
-> >=20
-> > if (unlikely(p->dma_read(CDAC, lch) =3D=3D 0))
-> > offset =3D p->dma_read(CSSA, lch);
-> >=20
-> > I suppose offset is ok for normal case as it is already read (twise=
-)
-> > above.
-> Or actually my proposal could have a race if CDAC changes between CSA=
-C
-> read and CDAC read. In that case it's better to re-read CSAC as your
-> patch does after CDAC test and give to both:
->=20
-> Reviewed-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
-
-Tony, have you taken this patch? I failed to find it in the l-o tree...
-
---
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gVHVlLCBOb3YgMjksIDIwMTEgYXQgMTY6NDk6NDksIEtyaXN0bywgVGVybyB3cm90ZToNClsu
+Li5dDQo+ID4gDQo+ID4gT3RoZXIgVEkgUE1JQ3MgbGlrZSBUUFM2NTkxMCBhbHNvIGhhdmUgdHdv
+IEkyQyBpbnRlcmZhY2VzLiBTaW5jZSANCj4gPiB0aGUgZGF0YXNoZWV0cyByZWZlcnMgdG8gdGhl
+c2UgYXMgQ29udHJvbCAoQ1RMKSBhbmQgU21hcnRSZWZsZXggKFNSKSBpbnRlcmZhY2VzLCANCj4g
+PiBpbnN0ZWFkIG9mIHRoZSBPTUFQIHNwZWNpZmljIFRXTF9WUF9TTVBTX01PREUsIGhvdyBhYm91
+dCByZW5hbWluZyB0aGUgZmxhZyB0byANCj4gPiBUV0xfU1JfU01QU19NT0RFPw0KPiANCj4gSSB3
+YXMgYWN0dWFsbHkgdGhpbmtpbmcgYWJvdXQgbmFtaW5nIGl0IHNvbWV0aGluZyBsaWtlIFNSIG1v
+ZGUsIGhvd2V2ZXINCj4gSSB0aGluayBJIHdpbGwgZHJvcCB0aGUgZmxhZyBhd2F5IGFzIHVubmVj
+ZXNzYXJ5IG9uY2UgSSBhZGQgdGhlIGZ1bmN0aW9uDQo+IHBvaW50ZXJzIGZvciB0aGUgdm9sdGFn
+ZV9nZXQgLyB2b2x0YWdlX3NjYWxlIGluIHRvIHRoZSBwbGF0Zm9ybSBkYXRhLg0KPiANCg0KU291
+bmRzIG9rLg0KDQo+ID4gDQo+ID4gQUZBSUsgdGhlIHNlY29uZCBJMkMgaW50ZXJmYWNlIGluIGFs
+bCB0aGVzZSBQTUlDcyBpcyBtZWFudCBvbmx5DQo+ID4gZm9yIHRoZSBTTVBTIG91dHB1dHMuIE1v
+cmVvdmVyLCB3aGljaCBvZiB0aGUgdHdvIGludGVyZmFjZXMgdG8gdXNlDQo+ID4gd291bGQgYmUg
+a25vd24gZHVyaW5nIHRoZSBpbml0IHBoYXNlLg0KPiANCj4gVGhhdHMgbXkgdW5kZXJzdGFuZGlu
+ZyBhbHNvLg0KPiANCj4gPiANCj4gPiBJcyB0aGVyZSBhIHNjZW5hcmlvIHdoZXJlIHNvbWVvbmUg
+d291bGQgd2FudCB0byBjaGFuZ2UgdGhpcyBhdCBydW50aW1lPyANCj4gDQo+IE9ubHkgdGVzdGlu
+ZyBwdXJwb3NlcyBjb21lIHRvIG15IG1pbmQsIGl0IGlzIGVhc2llciB0byB0cnkgb3V0IHNvbWUN
+Cj4gaW50ZXJlc3Rpbmcgc3R1ZmYgaWYgeW91IGNhbiBjaGFuZ2UgaXQgcnVudGltZSwgb3RoZXIg
+dGhhbiB0aGF0LCBub3QNCj4gcmVhbGx5LiBUaGlzIHNldCBpcyBhbHNvIHNldHRpbmcgdGhlIHVz
+ZWQgbW9kZSBkdXJpbmcgaW5pdCB0aW1lIGFsc28sDQo+IGFuZCB0aGVyZSBpcyBubyBydW50aW1l
+IGNvbmZpZ3VyYXRpb24gcG9zc2liaWxpdHkuDQo+IA0KDQpTbyB0aGVyZSdzIG5vdCBtdWNoIHZh
+bHVlIGlzIHRyeWluZyB0byBpbXBsZW1lbnQgcnVudGltZSBzd2l0Y2ggYmV0d2VlbiANCnRoZSBp
+bnRlcmZhY2VzIGluIHRoZSBkcml2ZXIuDQoNCj4gPiANCj4gPiBBdCBsZWFzdCBmb3IgVFBTNjU5
+MTAsIGl0IGlzIHBvc3NpYmxlIHRvIHVzZSB0aGUgU1ItSTJDIGludGVyZmFjZSANCj4gPiBqdXN0
+IGxpa2UgdGhlIENUTCBpbnRlcmZhY2UuIEluIG90aGVyIHdvcmRzLCBldmVuIFNvQ3Mgd2hpY2gg
+ZG8gbm90IA0KPiA+IGhhdmUgVlAvVkMgY2FuIGNob29zZSB0byBjaGFuZ2UgdGhlIFNNUFMgdm9s
+dGFnZSB1c2luZyB0aGUgU1ItSTJDIA0KPiA+IGludGVyZmFjZS4gVGhlIG9ubHkgY2F0Y2ggaXMg
+dGhhdCBvbmx5IHRoZSBTTVBTIHJlZ2lzdGVycyBjYW4gYmUgDQo+ID4gYWNjZXNzZWQgZnJvbSB0
+aGlzIGludGVyZmFjZS4NCj4gDQo+IFllYSwgdGhlIFNSLUkyQyBzaG91bGQgYmUgcG9zc2libGUg
+dG8gdXNlIHdpdGggbm9uIFZQL1ZDIHNldHVwLCBpZg0KPiBzb21lb25lIHJlYWxseSB3YW50ZWQg
+dG8gZG8gdGhpcy4gSWYgYW55Ym9keSB3b3VsZCBhY3R1YWxseSB3YW50IHRvIGRvDQo+IGl0IGlz
+IGFub3RoZXIgcXVlc3Rpb24sIGFzIHlvdSBjYW4gY29udHJvbCBldmVyeXRoaW5nIGZyb20gdGhl
+IG5vcm1hbA0KPiBJMkMgY29udHJvbCBpbnRlcmZhY2UuIElmIHlvdSBkb24ndCBoYXZlIGRlZGlj
+YXRlZCBWUCBoYXJkd2FyZSwgdGhlIHVzZQ0KPiBmb3IgdGhlIHNlY29uZGFyeSBJMkMgY2hhbm5l
+bCBpcyBub3QgdGhhdCBvYnZpb3VzLg0KPiANCg0KV2VsbCBtdWx0aS1wcm9jZXNzb3Igc2NlbmFy
+aW8gaXMgc29tZXRoaW5nIHRoYXQgY29tZSB0byBtaW5kLiBJZiB0aGVyZSdzIA0KYSBkaWZmZXJl
+bnQgY29yZSB3aGljaCBjYW4gYWxzbyB0YWxrIHRvIHRoZSBQTUlDLCBpdCBjb3VsZCB1c2Ugb25l
+IGFuZCB0aGUNCmhvc3QgcHJvY2Vzc29yIGNhbiB1c2UgYW5vdGhlci4gVGhlcmUgYXJlIG9idmlv
+dXMgaXNzdWVzIGxpa2UgcmFjZSBjb25kaXRpb25zDQpldGMgd2hpY2ggaGF2ZSB0byBiZSB0YWtl
+biBpbnRvIGFjY291bnQgYnV0IGl0J3MgdmVyeSBtdWNoIHBvc3NpYmxlLiANCg0KPiA+DQo+ID4g
+SWYgdGhpcyBpcyB0aGUgY2FzZSB3aXRoIFRXTCBzZXJpZXMgYWxzbywgd2UgY291bGQgaGF2ZSBu
+b24gVlAvVkMgDQo+ID4gc3BlY2lmaWMgc21wc19nZXQvc2V0X3ZvbHRhZ2UgQVBJcyBmb3IgdGhl
+IFNSLUkyQyBpbnRlcmZhY2Ugd2hpY2ggDQo+ID4gU29DcyB3aXRoIFZQL1ZDIG92ZXJyaWRlIGF0
+IGluaXQgdGltZS4gTm90ZSB0aGF0IHRoZSBkcml2ZXIgd2lsbCBoYXZlDQo+ID4gdHdvIHNtcHNf
+Z2V0L3NldF92b2x0YWdlIGltcGxlbWVudGF0aW9ucywgb25lIGNvcnJlc3BvbmRpbmcgdG8gQ1RM
+LUkyQw0KPiA+IGFuZCB0aGUgb3RoZXIgY29ycmVzcG9uZGluZyB0byBTUi1JMkMuIER1cmluZyB0
+aGUgaW5pdCBwaGFzZSwgd2hpY2ggc2V0DQo+ID4gb2YgQVBJcyB0byB1c2UgaXMgaW5kaWNhdGVk
+IHZpYSBhIGZsYWcgbGlrZSBUV0xfU1JfU01QU19NT0RFLg0KPiA+IA0KPiA+IFdpdGggc3VjaCBh
+IGNoYW5nZSwgdGhlIHZvbHRhZ2UgY2hhbmdlIGR1cmluZyBEVkZTIHdvdWxkIGFsc28gYm9pbCBk
+b3duDQo+ID4gdG8gbm9ybWFsIHJlZ3VsYXRvciBjYWxscyBmb3IgY2hhbmdpbmcgdGhlIHZvbHRh
+Z2UuIFNvQ3Mgd2hpY2ggZG8gbm90DQo+ID4gaGF2ZSB0aGUgVlAvVkMgZnVuY3Rpb25hbGl0eSBj
+YW4gdXNlIHRoZSBkZWZhdWx0IGltcGxlbWVudGF0aW9ucyANCj4gPiB2aWEgdGhlIFNSLUkyQyBv
+ciBDVEwtSTJDIChkZWNpZGVkIGF0IGluaXQgdGltZSkgYW5kIFNvQ3Mgd2l0aCBWUC9WQyANCj4g
+PiB1c2UgdGhlaXIgc3BlY2lmaWMgaW1wbGVtZW50YXRpb25zLg0KPiANCj4gWWVhLCBmb3IgbmV4
+dCB2ZXJzaW9uIEkgYW0gcGxhbm5pbmcgdG8gYWRkIHZvbHRhZ2VfZ2V0IC8gdm9sdGFnZV9zZXQg
+YW5kDQo+IHRoZSB2b2x0YWdlZG9tYWluIHBvaW50ZXIgYXMgcGxhdGZvcm0gZGF0YSBmb3IgdGhl
+IHJlZ3VsYXRvciwgdGhlc2UgY2FuDQo+IGJlIGRlZmluZWQgaWYgdGhlIHVzZXIgd2FudHMgdG8g
+dXNlIHRoZW0sIG90aGVyd2lzZSB0d2wtcmVndWxhdG9yIHdpbGwNCj4gdXNlIHRoZSBkZWZhdWx0
+IGltcGxlbWVudGF0aW9uLg0KPiANCg0KT2suDQoNClJlZ2FyZHMsDQpWYWliaGF2DQo=
