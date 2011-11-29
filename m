@@ -1,36 +1,68 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 4/5] init/calibrate.c: allow for recalibration of loops per jiffy
-Date: Mon, 28 Nov 2011 23:30:45 +0100
-Message-ID: <201111282330.46015.jkrzyszt@tis.icnet.pl>
-References: <1322364751-29980-1-git-send-email-jkrzyszt@tis.icnet.pl> <1322364751-29980-5-git-send-email-jkrzyszt@tis.icnet.pl> <20111128153900.GA16481@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 5/5 v2] ARM: OMAP1: recalculate loops per jiffy after dpll1 reprogram
+Date: Tue, 29 Nov 2011 01:25:32 +0100
+Message-ID: <1322526332-14088-1-git-send-email-jkrzyszt@tis.icnet.pl>
+References: <1322364751-29980-6-git-send-email-jkrzyszt@tis.icnet.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111128153900.GA16481@n2100.arm.linux.org.uk>
+In-Reply-To: <1322364751-29980-6-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, Sameer Nanda <snanda@chromium.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 28 of November 2011 at 16:39:00, Russell King - ARM Linux wrote:
-> On Sun, Nov 27, 2011 at 04:32:30AM +0100, Janusz Krzysztofik wrote:
-> > This is required on ARM OMAP1 platform, after DPLL reprogramming has
-> > been fixed by moving it from setup_arch() to kernel_init().
-> > 
-> > Created against linux-3.2-rc2.
-> 
-> Why do you need this?  If you know what the original CPU clock rate and
-> bogomips were, and the new CPU clock rate, then you simply scale the
-> bogomips from the original accordingly.  That's what cpufreq does.
+Otherwise timing is inaccurate, resulting in devices which depend on 
+delay(), like omap-keypad, broken.
 
+Created and tested on top of linux-omap/fixes on Amstrad Delta.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
+---
 Hi,
-Please ignore this patch. I'm going to post a replacement for patch 5/5 
-which, thanks to Russell's help, will no longer require any changes in 
-init/calibrate.c.
+This version no longer depends on changes to init/calibrate.c, using the
+method kindly advised by Russell instead.  Then, patch 4/5 can be
+dropped.
 
-Russell,
-Thanks for pointing me into the right direction.
+However, the result of cpufreq_scale() differs from that of
+(re)calibrate_delay() by ca. 6%, i.e., 70.40 vs. 74.54. Please advise if
+this approximation is acceptable.
 
+Thanks, 
 Janusz
+
+
+ arch/arm/mach-omap1/clock_data.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
+index 201b1f2..e616042 100644
+--- a/arch/arm/mach-omap1/clock_data.c
++++ b/arch/arm/mach-omap1/clock_data.c
+@@ -16,6 +16,8 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/clk.h>
++#include <linux/cpufreq.h>
++#include <linux/delay.h>
+ #include <linux/io.h>
+ 
+ #include <asm/mach-types.h>  /* for machine_is_* */
+@@ -928,7 +930,9 @@ int __init omap1_clk_init(void)
+ 
+ void __init omap1_clk_late_init(void)
+ {
+-	if (ck_dpll1.rate >= OMAP1_DPLL1_SANE_VALUE)
++	unsigned long rate = ck_dpll1.rate;
++
++	if (rate >= OMAP1_DPLL1_SANE_VALUE)
+ 		return;
+ 
+ 	/* Find the highest supported frequency and enable it */
+@@ -942,4 +946,5 @@ void __init omap1_clk_late_init(void)
+ 	}
+ 	propagate_rate(&ck_dpll1);
+ 	omap1_show_rates();
++	loops_per_jiffy = cpufreq_scale(loops_per_jiffy, rate, ck_dpll1.rate);
+ }
+-- 
+1.7.3.4
