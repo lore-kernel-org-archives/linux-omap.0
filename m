@@ -1,70 +1,50 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCHv4 06/15] omap3+: vp: use new vp_params for calculating
- vddmin and vddmax
-Date: Tue, 29 Nov 2011 12:34:51 -0600
-Message-ID: <CAOMWX4ftGiE3oh0tr5dG-oQLDi7oBXSjGL-LmjjO3YaaCAXRnQ@mail.gmail.com>
-References: <1322236188-19456-1-git-send-email-t-kristo@ti.com> <1322236188-19456-7-git-send-email-t-kristo@ti.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 2/2 v5] net/smsc911x: Add regulator support
+Date: Tue, 29 Nov 2011 18:37:29 -0500 (EST)
+Message-ID: <20111129.183729.968318782117791817.davem@davemloft.net>
+References: <1322132587-2049-1-git-send-email-robert.marklund@stericsson.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:45160 "HELO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756086Ab1K2SfO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Nov 2011 13:35:14 -0500
-Received: by mail-bw0-f50.google.com with SMTP id zx1so364553bkb.23
-        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 10:35:12 -0800 (PST)
-In-Reply-To: <1322236188-19456-7-git-send-email-t-kristo@ti.com>
+Received: from shards.monkeyblade.net ([198.137.202.13]:44551 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755941Ab1K2Xjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Nov 2011 18:39:44 -0500
+In-Reply-To: <1322132587-2049-1-git-send-email-robert.marklund@stericsson.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com
+To: robert.marklund@stericsson.com
+Cc: netdev@vger.kernel.org, steve.glendinning@smsc.com, mathieu.poirier@linaro.org, lethal@linux-sh.org, linux-sh@vger.kernel.org, s.hauer@pengutronix.de, tony@atomide.com, linux-omap@vger.kernel.org, vapier@gentoo.org, uclinux-dist-devel@blackfin.uclinux.org, linus.walleij@linaro.org
 
-On Fri, Nov 25, 2011 at 09:49, Tero Kristo <t-kristo@ti.com> wrote:
-> Now we select the vddmin and vddmax values based on both pmic and
-> voltage processor data, this allows usage of different power ICs.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
+From: Robert Marklund <robert.marklund@stericsson.com>
+Date: Thu, 24 Nov 2011 12:03:07 +0100
 
-Regards,
-Nishanth Menon
+> Add some basic regulator support for the power pins, as needed
+> by the ST-Ericsson Snowball platform that powers up the SMSC911
+> chip using an external regulator.
+> 
+> Platforms that use regulators and the smsc911x and have no defined
+> regulator for the smsc911x and claim complete regulator
+> constraints with no dummy regulators will need to provide it, for
+> example using a fixed voltage regulator. It appears that this may
+> affect (apart from Ux500 Snowball) possibly these archs/machines
+> that from some grep:s appear to define both CONFIG_SMSC911X and
+> CONFIG_REGULATOR:
+> 
+> - ARM Freescale mx3 and OMAP 2 plus, Raumfeld machines
+> - Blackfin
+> - Super-H
+> 
+> Cc: Paul Mundt <lethal@linux-sh.org>
+> Cc: linux-sh@vger.kernel.org
+> Cc: Sascha Hauer <s.hauer@pengutronix.de>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: linux-omap@vger.kernel.org
+> Cc: Mike Frysinger <vapier@gentoo.org>
+> Cc: uclinux-dist-devel@blackfin.uclinux.org
+> Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Signed-off-by: Robert Marklund <robert.marklund@stericsson.com>
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 
-
-> ---
-> =A0arch/arm/mach-omap2/vp.c | =A0 =A06 ++++--
-> =A01 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-> index 16cb6d4..ffb68d8 100644
-> --- a/arch/arm/mach-omap2/vp.c
-> +++ b/arch/arm/mach-omap2/vp.c
-> @@ -53,8 +53,10 @@ void __init omap_vp_init(struct voltagedomain *vol=
-tdm)
-> =A0 =A0 =A0 =A0sys_clk_rate =3D voltdm->sys_clk.rate / 1000;
->
-> =A0 =A0 =A0 =A0timeout =3D (sys_clk_rate * voltdm->pmic->vp_timeout_u=
-s) / 1000;
-> - =A0 =A0 =A0 vddmin =3D voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vd=
-dmin);
-> - =A0 =A0 =A0 vddmax =3D voltdm->pmic->uv_to_vsel(voltdm->pmic->vp_vd=
-dmax);
-> + =A0 =A0 =A0 vddmin =3D max(voltdm->vp_param->vddmin, voltdm->pmic->=
-vp_vddmin);
-> + =A0 =A0 =A0 vddmax =3D min(voltdm->vp_param->vddmax, voltdm->pmic->=
-vp_vddmax);
-> + =A0 =A0 =A0 vddmin =3D voltdm->pmic->uv_to_vsel(vddmin);
-> + =A0 =A0 =A0 vddmax =3D voltdm->pmic->uv_to_vsel(vddmax);
->
-> =A0 =A0 =A0 =A0waittime =3D ((voltdm->pmic->step_size / voltdm->pmic-=
->slew_rate) *
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sys_clk_rate) / 1000;
-> --
-> 1.7.4.1
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
