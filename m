@@ -1,74 +1,132 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCHv7 6/7] regulator: twl: add support for external
- controller
-Date: Tue, 29 Nov 2011 07:10:17 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D1214303442E@DBDE01.ent.ti.com>
-References: <47CEF8C4B26E8C44B22B028A650E0EA9046299@DBDE01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [GIT PULL] DSS fixes for v3.2-rc2
+Date: Tue, 29 Nov 2011 10:12:27 +0200
+Message-ID: <1322554347.1869.6.camel@deskari>
+References: <20111123235542.GL31337@atomide.com>
+	 <201111241606.54879.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-NxjAoynoc00xD5Tyd/K6"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33475 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751146Ab1K2HKb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Nov 2011 02:10:31 -0500
-In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA9046299@DBDE01.ent.ti.com>
-Content-Language: en-US
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:57984 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752055Ab1K2IMh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Nov 2011 03:12:37 -0500
+Received: by mail-lpp01m010-f46.google.com with SMTP id l5so1275548lah.33
+        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 00:12:35 -0800 (PST)
+In-Reply-To: <201111241606.54879.arnd@arndb.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Girdwood, Liam" <lrg@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "gg@slimlogic.co.uk" <gg@slimlogic.co.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kristo, Tero
-> Sent: Monday, November 28, 2011 8:23 PM
-> To: linux-omap@vger.kernel.org
-> Cc: sameo@linux.intel.com; broonie@opensource.wolfsonmicro.com;
-> Girdwood, Liam; Hilman, Kevin; Cousson, Benoit; Nayak, Rajendra;
-> gg@slimlogic.co.uk
-> Subject: [PATCHv7 6/7] regulator: twl: add support for external
-> controller
-> 
-> TWL regulator now has two alternative control paths: the default
-> I2C path or an optional voltage processor path for OMAP chips.
-> If the voltage processor path should be used, this can be
-> indicated within the platform data by adding flag TWL_VP_SMPS_MODE
-> to regulator_init_data->driver_data.
->
 
-Other TI PMICs like TPS65910 also have two I2C interfaces. Since 
-the datasheets refers to these as Control (CTL) and SmartReflex (SR) interfaces, 
-instead of the OMAP specific TWL_VP_SMPS_MODE, how about renaming the flag to 
-TWL_SR_SMPS_MODE?
+--=-NxjAoynoc00xD5Tyd/K6
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-AFAIK the second I2C interface in all these PMICs is meant only
-for the SMPS outputs. Moreover, which of the two interfaces to use
-would be known during the init phase.
+On Thu, 2011-11-24 at 16:06 +0000, Arnd Bergmann wrote:
+> On Wednesday 23 November 2011, Tony Lindgren wrote:
+> > Hi Arnd,
+> >=20
+> > This one has been separated out from the rest of the fixes.
+>=20
+> Pulled into the fixes branch now. I'll send out the branch
+> after testing it on tomorrow's linux-next.
+>=20
+> > If some of these need to go to stable, then Tomi should
+> > do the rebasing and send them to stable@vger.kernel.org
+> > as they don't apply cleanly on v3.1.
+>=20
+> Ok. I've taken Tomi on Cc as a reminder for him, although I guess
+> you already discussed it with him.
 
-Is there a scenario where someone would want to change this at runtime? 
+I don't think we need these in 3.1 stable. The omapdss driver in 3.1
+contains hacks to circumvent the HWMOD issues the patches below fix.
+These hacks were removed for 3.2.
 
-At least for TPS65910, it is possible to use the SR-I2C interface 
-just like the CTL interface. In other words, even SoCs which do not 
-have VP/VC can choose to change the SMPS voltage using the SR-I2C 
-interface. The only catch is that only the SMPS registers can be 
-accessed from this interface.
+Well, the "ARM: OMAP2PLUS: DSS: Ensure DSS works correctly..." patch
+could be used for 3.1 also, but I fear it depends on HWMOD and DSS
+patches missing from 3.1. I'll check it out.
 
-If this is the case with TWL series also, we could have non VP/VC 
-specific smps_get/set_voltage APIs for the SR-I2C interface which 
-SoCs with VP/VC override at init time. Note that the driver will have
-two smps_get/set_voltage implementations, one corresponding to CTL-I2C
-and the other corresponding to SR-I2C. During the init phase, which set
-of APIs to use is indicated via a flag like TWL_SR_SMPS_MODE.
+ Tomi
 
-With such a change, the voltage change during DVFS would also boil down
-to normal regulator calls for changing the voltage. SoCs which do not
-have the VP/VC functionality can use the default implementations 
-via the SR-I2C or CTL-I2C (decided at init time) and SoCs with VP/VC 
-use their specific implementations.
+>=20
+> Kiitoksia paljon,
+>=20
+> 	Arnd
+>=20
+> >=20
+> > The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055dbf=
+8e37:
+> >   Linus Torvalds (1):
+> >         Linux 3.2-rc2
+> >=20
+> > are available in the git repository at:
+> >=20
+> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes=
+-dss
+> >=20
+> > Archit Taneja (1):
+> >       ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is ena=
+bled in bootloader
+> >=20
+> > Tomi Valkeinen (9):
+> >       ARM: OMAP2xxx: HWMOD: Fix DSS reset
+> >       ARM: OMAP2xxx: HWMOD: fix DSS clock data
+> >       ARM: OMAP3: HWMOD: Fix DSS reset
+> >       ARM: OMAP3: HWMOD: fix DSS clock data
+> >       ARM: OMAP4: HWMOD: remove extra clocks
+> >       ARM: OMAP4: HWMOD: Add HWMOD_CONTROL_OPT_CLKS_IN_RESET for dss_co=
+re
+> >       ARM: OMAP4: HWMOD: fix DSS clock data
+> >       ARM: OMAP2/3: HWMOD: Add SYSS_HAS_RESET_STATUS for dss
+> >       ARM: OMAP: HWMOD: Unify DSS resets for OMAPs
+> >=20
+> > Tony Lindgren (1):
+> >       Merge branch 'hwmod_dss_fixes_3.2rc' of git://git.pwsan.com/linux=
+-2.6 into fixes-dss
+> >=20
+> >  arch/arm/mach-omap2/Makefile                       |    5 +-
+> >  arch/arm/mach-omap2/display.c                      |  159 ++++++++++++=
+++++++++
+> >  arch/arm/mach-omap2/display.h                      |   29 ++++
+> >  arch/arm/mach-omap2/omap_hwmod_2420_data.c         |   17 ++-
+> >  arch/arm/mach-omap2/omap_hwmod_2430_data.c         |   17 ++-
+> >  .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    5 +-
+> >  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   37 ++++-
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |   24 ++--
+> >  arch/arm/mach-omap2/omap_hwmod_common_data.c       |    4 +
+> >  arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 +
+> >  arch/arm/plat-omap/include/plat/common.h           |    3 +
+> >  include/video/omapdss.h                            |    7 -
+> >  12 files changed, 276 insertions(+), 35 deletions(-)
+> >  create mode 100644 arch/arm/mach-omap2/display.h
+> >=20
+>=20
 
-Regards,
-Vaibhav
 
-P.S. - Somehow this patch series didn't appear in my mailbox. Reply from Gmane
-seems to have gotten lost. So I replying to a forwared version. Hope this appears ok.
+--=-NxjAoynoc00xD5Tyd/K6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO1JPrAAoJEPo9qoy8lh71+9oP/RNKQHAUBPhm7DIvhfHpM3r0
+tGoBak3BZFxpt6ttr5AwXgKykBIMI1ufXnjUbtSXgZPKj512DTHggMFiY4x4ydRI
+mQzCIv4ag163JXsh/g4vo/jXBF1KWgapE/RlofFwRLk3Mo0snodlzUCSWwnB+HHD
+r/lGpzQZzWzL+bqV4OaByvOSIoDxZinKV83bLindSXpW/7PK4m0v6+GN0rQowTMq
+dO3RXI32h1Mbr4PH712JpiexBJC/rk/mvxmabQSVlFhZQaY8tnjMueglYg7kJ8Qb
++RKWH6TZU9/0g8DqcVJUTNJNVhi3pDERgLCStRI7JkFk/bUtktphGmBEkUVIIhkE
+jyQ+rEZ0oY140Ci5+ImdlYvaD3Dy8kHvYmO3IGLvMT55iaUNKqX3Qsvb/RIRuFTJ
+hmAeOYlK+XJop4MSmHhXJ98hMe5qoFpQE5GUw4EIn//iaN/cqtDNq/OOXXMxg8GJ
+t65+RFqNdfwgv23wk8ozKq+YnTzNRJuajz/nWBzDvksbwtj6sewVNK/k1YfLn6JN
+g8AOxwdUUo53gm+iKv82LadLOIfH3LEOyyEZMGBanBW12KzQHuQlLSxht27SFyKc
+ky3nizNj9c9H69f5DBmWacMvM4McBNmMaSSReKmFv5JWCUCaHBbQNv+wtxeoSE8E
+qEKjqwoYgEfmP+543x5B
+=t2Rp
+-----END PGP SIGNATURE-----
+
+--=-NxjAoynoc00xD5Tyd/K6--
+
