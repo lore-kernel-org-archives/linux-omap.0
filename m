@@ -1,57 +1,71 @@
-From: Vishwanath Sripathy <vishwanath.bs@ti.com>
-Subject: RE: [PATCHv2 0/7]ARM: OMAP3PLUS PM: Add IO DaisyChain support via
- hwmod mux
-Date: Wed, 30 Nov 2011 14:57:52 +0530
-Message-ID: <3968ef2671e202d1cefdf4a7c5d32ec6@mail.gmail.com>
-References: <1318009671-12813-1-git-send-email-vishwanath.bs@ti.com><87pqh3qvkt.fsf@ti.com><1e686270c099fa4a270b6b01e6ac585c@mail.gmail.com><a480ee86d60a9db484d3baa0faf2477f@mail.gmail.com>
- <87k46izb8b.fsf@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv4 04/15] omap4: add pmic startup / shutdown times
+Date: Wed, 30 Nov 2011 11:45:41 +0200
+Message-ID: <1322646341.21753.1.camel@sokoban>
+References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
+	 <1322236188-19456-5-git-send-email-t-kristo@ti.com>
+	 <CAOMWX4dfTTd6DHX=RhtymyvMEdfoWWQbATqYqbf2svNYHsQGhw@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:37049 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753450Ab1K3J1y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Nov 2011 04:27:54 -0500
-Received: by mail-iy0-f169.google.com with SMTP id q3so658749iaq.14
-        for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 01:27:53 -0800 (PST)
-In-Reply-To: <87k46izb8b.fsf@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54956 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757189Ab1K3Jpo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Nov 2011 04:45:44 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id pAU9jiTS012583
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 03:45:44 -0600
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pAU9ji3A009492
+	for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 03:45:44 -0600 (CST)
+Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pAU9jigo001531
+	for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 03:45:44 -0600 (CST)
+In-Reply-To: <CAOMWX4dfTTd6DHX=RhtymyvMEdfoWWQbATqYqbf2svNYHsQGhw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com
 
----
-> >> > Can you refresh this against Tony's 'fixes' branch and re-test.
-> >> >
-> >> > I tested this on OMAP3430/n900 and noticed that it no longer
-> hit
-> >> off
-> >> > mode from idle.
-> >> >
-> >> > IOW, If I enable UART timeouts and then enable off mode, I
-> don't
-> >> > actually ever hit off during idle.  However, if I do a
-> >> > suspend/resume I
-> >> > see it hits off mode, then subsequent attempts to hit off
-> during
-> >> > idle work.
-> >> >
-> >> > Can you investigate this?
-> >> OK. Let me check that.
-> > I rebased these patches against latest Tony's fixes branch and
-> tested it
-> > on OMAP3430 SDP. I see that Core enters off mode in idle path
-> after
-> > setting UART timeout w/o having to suspend the system.
->
-> OK, sounds good.
->
-> Do you have a branch that I can test as well?
-Sure. It's available at
-git://gitorious.org/omap-pm/linux.git for_3.3/io_daisy_chain
+On Tue, 2011-11-29 at 12:30 -0600, Menon, Nishanth wrote:
+> On Fri, Nov 25, 2011 at 09:49, Tero Kristo <t-kristo@ti.com> wrote:
+> > Both startup and shutdown take 500us at maximum, value taken from
+> > TWL6030 data manual.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/omap_twl.c |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
+> > index 62ed050..bd99328 100644
+> > --- a/arch/arm/mach-omap2/omap_twl.c
+> > +++ b/arch/arm/mach-omap2/omap_twl.c
+> > @@ -207,6 +207,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
+> >  static struct omap_voltdm_pmic omap4_core_pmic = {
+> >        .slew_rate              = 4000,
+> >        .step_size              = 12660,
+> > +       .startup_time           = 500,
+> 549?
 
-Regards
-Vishwa
->
-> Kevin
+Where do you get 549? You looking at a different version of the DM? Or
+are you adding something to the value?
+
+-Tero
+
+> > +       .shutdown_time          = 500,
+> >        .vp_erroroffset         = OMAP4_VP_CONFIG_ERROROFFSET,
+> >        .vp_vstepmin            = OMAP4_VP_VSTEPMIN_VSTEPMIN,
+> >        .vp_vstepmax            = OMAP4_VP_VSTEPMAX_VSTEPMAX,
+> > --
+> > 1.7.4.1
+> >
+> 
+> 
+> Regards,
+> Nishanth Menon
+
+
