@@ -1,78 +1,73 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 04/15] omap4: add pmic startup / shutdown times
-Date: Wed, 30 Nov 2011 15:08:10 +0200
-Message-ID: <1322658490.21753.28.camel@sokoban>
-References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
-	 <1322236188-19456-5-git-send-email-t-kristo@ti.com>
-	 <CAOMWX4dfTTd6DHX=RhtymyvMEdfoWWQbATqYqbf2svNYHsQGhw@mail.gmail.com>
-	 <1322646341.21753.1.camel@sokoban>
-	 <CAOMWX4cbVfytPbaZp_F1mVH=Qn4gtcFJ0EKBthhhaP94Xa3R8g@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH v8 00/24] gpio/omap: driver cleanup and fixes
+Date: Wed, 30 Nov 2011 20:09:18 +0530
+Message-ID: <CANrkHUYb1kM03yfp4ak=5biAMJGuXpkRMhg0TU2H6_0GAiZTTQ@mail.gmail.com>
+References: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
+	<87obwsg9ua.fsf@ti.com>
+	<CAC83ZvKd3iBrQS5wESnAok8W_a4z-3jZYz17wy376sZJw6sCWg@mail.gmail.com>
+	<CAC83Zv++T96AZRHbEiS_UaGp=Dmu+zQ8se97oaBLhg_+eW-smA@mail.gmail.com>
+	<87y5uz6juz.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42444 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751142Ab1K3NIN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Nov 2011 08:08:13 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pAUD8D5m027131
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 07:08:13 -0600
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id pAUD8C7H020116
-	for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 07:08:12 -0600 (CST)
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pAUD8CMS022438
-	for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 07:08:12 -0600 (CST)
-In-Reply-To: <CAOMWX4cbVfytPbaZp_F1mVH=Qn4gtcFJ0EKBthhhaP94Xa3R8g@mail.gmail.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:35616 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752433Ab1K3OjV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Nov 2011 09:39:21 -0500
+Received: by faap14 with SMTP id p14so510452faa.3
+        for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 06:39:19 -0800 (PST)
+In-Reply-To: <87y5uz6juz.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On Wed, 2011-11-30 at 06:20 -0600, Menon, Nishanth wrote:
-> On Wed, Nov 30, 2011 at 03:45, Tero Kristo <t-kristo@ti.com> wrote:
-> >
-> > On Tue, 2011-11-29 at 12:30 -0600, Menon, Nishanth wrote:
-> > > On Fri, Nov 25, 2011 at 09:49, Tero Kristo <t-kristo@ti.com> wrote:
-> > > > Both startup and shutdown take 500us at maximum, value taken from
-> > > > TWL6030 data manual.
-> Might be good to add reference version as well for traceability.
+On Tue, Nov 29, 2011 at 8:45 PM, Kevin Hilman <khilman@ti.com> wrote:
+> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+>
+>> On Fri, Nov 4, 2011 at 2:57 PM, DebBarma, Tarun Kanti
+>> <tarun.kanti@ti.com> wrote:
+>>> On Fri, Nov 4, 2011 at 3:14 AM, Kevin Hilman <khilman@ti.com> wrote=
+:
+>>>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>>>>
+>>>>> This series is continuation of cleanup of OMAP GPIO driver and fi=
+xes.
+>>>>
+>>>> Using this series on 3630/Zoom3, UART wakeups no longer work from
+>>>> suspend. =A0That suggests that GPIO wakeups from retention/off are=
+ not
+>>>> working.
+>>>>
+>>>> Please test GPIO wakeups from retention/off. =A0One way is to use =
+Zoom3
+>>>> UART wakeup from suspend using by enabling UART wakeups and suspen=
+ding:
+>>>>
+>>>> =A0 # echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/=
+power/wakeup
+>>>> =A0 # echo mem > /sys/power/state
+>>> Ok, I will test and make necessary fix.
+>> I have done retention test of the latest series on Zoom3. When I try
+>> running off mode
+>> test it says support is not present because of an errata.
+>
+> Specifically, CORE off is not supported on that rev of 36xx due to an
+> errata. =A0Can you try on a newer 36xx?
+>
+>> Here is the overall log:
+>
+> The rest of the dump seems to point to an MMC driver problem. =A0Plea=
+se
+> take this with the MMC driver folks.
+Hi Tarun,
 
-Good point.
-
-> 
-> > > >
-> > > > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > > > ---
-> > > >  arch/arm/mach-omap2/omap_twl.c |    2 ++
-> > > >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > > >
-> > > > diff --git a/arch/arm/mach-omap2/omap_twl.c b/arch/arm/mach-omap2/omap_twl.c
-> > > > index 62ed050..bd99328 100644
-> > > > --- a/arch/arm/mach-omap2/omap_twl.c
-> > > > +++ b/arch/arm/mach-omap2/omap_twl.c
-> > > > @@ -207,6 +207,8 @@ static struct omap_voltdm_pmic omap4_iva_pmic = {
-> > > >  static struct omap_voltdm_pmic omap4_core_pmic = {
-> > > >        .slew_rate              = 4000,
-> > > >        .step_size              = 12660,
-> > > > +       .startup_time           = 500,
-> > > 549?
-> >
-> > Where do you get 549? You looking at a different version of the DM? Or
-> > are you adding something to the value?
-> >
-> woohoo.. welcome to TWL6030 doc hell ;)
-> Data Sheet: 0.05: T on =500Usec
-> *but* TRM 0.1 says T on = 500uSec for SMPS  not freq locked, and upto
-> 3ms with SMPS frequency locked).
-> *then* Functional spec rev 0.12 says "Enable VCORE[1,2,3] = 549uSec.
-
-Oh yea, thats great. Well, lets see what the design team says what we
-should actually use. :)
-
--Tero
-
-
+Can you try with this patch queued in mmc-next for MMC warning
+http://article.gmane.org/gmane.linux.kernel.mmc/10961
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
