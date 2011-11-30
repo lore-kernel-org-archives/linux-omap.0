@@ -1,46 +1,83 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
-Date: Tue, 29 Nov 2011 16:39:26 -0800
-Message-ID: <87obvuzbnl.fsf@ti.com>
-References: <1322528190-9274-1-git-send-email-khilman@ti.com>
+Subject: Re: [PATCHv2 0/7]ARM: OMAP3PLUS PM: Add IO DaisyChain support via hwmod mux
+Date: Tue, 29 Nov 2011 16:48:36 -0800
+Message-ID: <87k46izb8b.fsf@ti.com>
+References: <1318009671-12813-1-git-send-email-vishwanath.bs@ti.com>
+	<87pqh3qvkt.fsf@ti.com>
+	<1e686270c099fa4a270b6b01e6ac585c@mail.gmail.com>
+	<a480ee86d60a9db484d3baa0faf2477f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:50373 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757054Ab1K3Aja (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33682 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752957Ab1K3Asp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Nov 2011 19:39:30 -0500
-Received: by mail-iy0-f180.google.com with SMTP id z35so15285267iag.11
-        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 16:39:29 -0800 (PST)
-In-Reply-To: <1322528190-9274-1-git-send-email-khilman@ti.com> (Kevin Hilman's
-	message of "Mon, 28 Nov 2011 16:56:30 -0800")
+	Tue, 29 Nov 2011 19:48:45 -0500
+Received: by iafi7 with SMTP id i7so14729514iaf.24
+        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 16:48:39 -0800 (PST)
+In-Reply-To: <a480ee86d60a9db484d3baa0faf2477f@mail.gmail.com> (Vishwanath
+	Sripathy's message of "Tue, 29 Nov 2011 20:29:38 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-omap@vger.kernel.org, p-basak2@ti.com
+To: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Kevin Hilman <khilman@ti.com> writes:
+Vishwanath Sripathy <vishwanath.bs@ti.com> writes:
 
-> The MUSB driver does not currently implment suspend/resume callbacks,
-> seemingly because it does not support cutting power when devices are
-> connected in host mode.
+> Hi Kevin,
 >
-> Without a proper suspend/resume implementation, the OMAP PM domain
-> layer which automatically gates non runtime-suspended devices will
-> cause problems in suspend by the drivers ->runtime_suspend() callback
-> which will try to cut power.
->
-> Fix this by disabling PM domain auto suspending for MUSB until the
-> driver can be fixed to properly implement suspend/resume.
->
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+>> -----Original Message-----
+>> From: Vishwanath Sripathy [mailto:vishwanath.bs@ti.com]
+>> Sent: Tuesday, November 29, 2011 4:53 PM
+>> To: Kevin Hilman
+>> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+>> Subject: RE: [PATCHv2 0/7]ARM: OMAP3PLUS PM: Add IO DaisyChain
+>> support via hwmod mux
+>>
+>> > -----Original Message-----
+>> > From: Kevin Hilman [mailto:khilman@ti.com]
+>> > Sent: Tuesday, November 08, 2011 6:28 AM
+>> > To: Vishwanath BS
+>> > Cc: linux-omap@vger.kernel.org; linux-arm-
+>> kernel@lists.infradead.org
+>> > Subject: Re: [PATCHv2 0/7]ARM: OMAP3PLUS PM: Add IO DaisyChain
+>> > support via hwmod mux
+>> >
+>> > Hi Vishwa,
+>> >
+>> > Vishwanath BS <vishwanath.bs@ti.com> writes:
+>> >
+>> > > The folowing patch series provides IO Daisychain feature via
+>> omap
+>> > hwmod mux
+>> > > framework.
+>> >
+>> > The series looks OK at first glance, but needs a refresh against
+>> > current
+>> > mainline.
+>> OK.
+>> >
+>> > Can you refresh this against Tony's 'fixes' branch and re-test.
+>> >
+>> > I tested this on OMAP3430/n900 and noticed that it no longer hit
+>> off
+>> > mode from idle.
+>> >
+>> > IOW, If I enable UART timeouts and then enable off mode, I don't
+>> > actually ever hit off during idle.  However, if I do a
+>> > suspend/resume I
+>> > see it hits off mode, then subsequent attempts to hit off during
+>> > idle work.
+>> >
+>> > Can you investigate this?
+>> OK. Let me check that.
+> I rebased these patches against latest Tony's fixes branch and tested it
+> on OMAP3430 SDP. I see that Core enters off mode in idle path after
+> setting UART timeout w/o having to suspend the system.
 
-I guess it's obvious, but should be stated (I'll update the changelog):
+OK, sounds good.
 
-Also note that this prevents the CORE powerdomain from hitting retention
-(or off), and thus prevents full-chip retention/off whenever USB devices
-are attatched, so this should not be considered as a real fix, but a
-workaround that at least prevents driver failure.
+Do you have a branch that I can test as well?
 
 Kevin
