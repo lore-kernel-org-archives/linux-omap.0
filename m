@@ -1,50 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 2/2 v5] net/smsc911x: Add regulator support
-Date: Tue, 29 Nov 2011 18:37:29 -0500 (EST)
-Message-ID: <20111129.183729.968318782117791817.davem@davemloft.net>
-References: <1322132587-2049-1-git-send-email-robert.marklund@stericsson.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
+Date: Tue, 29 Nov 2011 16:39:26 -0800
+Message-ID: <87obvuzbnl.fsf@ti.com>
+References: <1322528190-9274-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:44551 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755941Ab1K2Xjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Nov 2011 18:39:44 -0500
-In-Reply-To: <1322132587-2049-1-git-send-email-robert.marklund@stericsson.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:50373 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757054Ab1K3Aja (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Nov 2011 19:39:30 -0500
+Received: by mail-iy0-f180.google.com with SMTP id z35so15285267iag.11
+        for <linux-omap@vger.kernel.org>; Tue, 29 Nov 2011 16:39:29 -0800 (PST)
+In-Reply-To: <1322528190-9274-1-git-send-email-khilman@ti.com> (Kevin Hilman's
+	message of "Mon, 28 Nov 2011 16:56:30 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: robert.marklund@stericsson.com
-Cc: netdev@vger.kernel.org, steve.glendinning@smsc.com, mathieu.poirier@linaro.org, lethal@linux-sh.org, linux-sh@vger.kernel.org, s.hauer@pengutronix.de, tony@atomide.com, linux-omap@vger.kernel.org, vapier@gentoo.org, uclinux-dist-devel@blackfin.uclinux.org, linus.walleij@linaro.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, p-basak2@ti.com
 
-From: Robert Marklund <robert.marklund@stericsson.com>
-Date: Thu, 24 Nov 2011 12:03:07 +0100
+Kevin Hilman <khilman@ti.com> writes:
 
-> Add some basic regulator support for the power pins, as needed
-> by the ST-Ericsson Snowball platform that powers up the SMSC911
-> chip using an external regulator.
-> 
-> Platforms that use regulators and the smsc911x and have no defined
-> regulator for the smsc911x and claim complete regulator
-> constraints with no dummy regulators will need to provide it, for
-> example using a fixed voltage regulator. It appears that this may
-> affect (apart from Ux500 Snowball) possibly these archs/machines
-> that from some grep:s appear to define both CONFIG_SMSC911X and
-> CONFIG_REGULATOR:
-> 
-> - ARM Freescale mx3 and OMAP 2 plus, Raumfeld machines
-> - Blackfin
-> - Super-H
-> 
-> Cc: Paul Mundt <lethal@linux-sh.org>
-> Cc: linux-sh@vger.kernel.org
-> Cc: Sascha Hauer <s.hauer@pengutronix.de>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: linux-omap@vger.kernel.org
-> Cc: Mike Frysinger <vapier@gentoo.org>
-> Cc: uclinux-dist-devel@blackfin.uclinux.org
-> Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Signed-off-by: Robert Marklund <robert.marklund@stericsson.com>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> The MUSB driver does not currently implment suspend/resume callbacks,
+> seemingly because it does not support cutting power when devices are
+> connected in host mode.
+>
+> Without a proper suspend/resume implementation, the OMAP PM domain
+> layer which automatically gates non runtime-suspended devices will
+> cause problems in suspend by the drivers ->runtime_suspend() callback
+> which will try to cut power.
+>
+> Fix this by disabling PM domain auto suspending for MUSB until the
+> driver can be fixed to properly implement suspend/resume.
+>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
 
-Applied, thanks.
+I guess it's obvious, but should be stated (I'll update the changelog):
+
+Also note that this prevents the CORE powerdomain from hitting retention
+(or off), and thus prevents full-chip retention/off whenever USB devices
+are attatched, so this should not be considered as a real fix, but a
+workaround that at least prevents driver failure.
+
+Kevin
