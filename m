@@ -1,73 +1,81 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH v8 00/24] gpio/omap: driver cleanup and fixes
-Date: Wed, 30 Nov 2011 20:09:18 +0530
-Message-ID: <CANrkHUYb1kM03yfp4ak=5biAMJGuXpkRMhg0TU2H6_0GAiZTTQ@mail.gmail.com>
-References: <1317803593-12259-1-git-send-email-tarun.kanti@ti.com>
-	<87obwsg9ua.fsf@ti.com>
-	<CAC83ZvKd3iBrQS5wESnAok8W_a4z-3jZYz17wy376sZJw6sCWg@mail.gmail.com>
-	<CAC83Zv++T96AZRHbEiS_UaGp=Dmu+zQ8se97oaBLhg_+eW-smA@mail.gmail.com>
-	<87y5uz6juz.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v5 4/7] arm: omap4: hwmod: introduce emu hwmod
+Date: Wed, 30 Nov 2011 17:20:04 +0100
+Message-ID: <4ED657B4.9020806@ti.com>
+References: <1319467559-5518-1-git-send-email-ming.lei@canonical.com> <1319467559-5518-5-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1111080750130.10451@utopia.booyaka.com> <CACVXFVMSJUT2Ac+bWetrLpbyOs6PqY+npNHsbvHipEVZ0gWdgQ@mail.gmail.com> <alpine.DEB.2.00.1111100152430.4195@utopia.booyaka.com> <4EC6566C.70202@ti.com> <alpine.DEB.2.00.1111261854340.6289@utopia.booyaka.com> <alpine.DEB.2.00.1111261906010.6289@utopia.booyaka.com> <4ED50600.8070607@ti.com> <alpine.DEB.2.00.1111291053250.6289@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:35616 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752433Ab1K3OjV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Nov 2011 09:39:21 -0500
-Received: by faap14 with SMTP id p14so510452faa.3
-        for <linux-omap@vger.kernel.org>; Wed, 30 Nov 2011 06:39:19 -0800 (PST)
-In-Reply-To: <87y5uz6juz.fsf@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38409 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757124Ab1K3QUY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Nov 2011 11:20:24 -0500
+In-Reply-To: <alpine.DEB.2.00.1111291053250.6289@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Ming Lei <ming.lei@canonical.com>, linux@arm.linux.org.uk, will.deacon@arm.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-On Tue, Nov 29, 2011 at 8:45 PM, Kevin Hilman <khilman@ti.com> wrote:
-> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
->
->> On Fri, Nov 4, 2011 at 2:57 PM, DebBarma, Tarun Kanti
->> <tarun.kanti@ti.com> wrote:
->>> On Fri, Nov 4, 2011 at 3:14 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>>>
->>>>> This series is continuation of cleanup of OMAP GPIO driver and fi=
-xes.
->>>>
->>>> Using this series on 3630/Zoom3, UART wakeups no longer work from
->>>> suspend. =A0That suggests that GPIO wakeups from retention/off are=
- not
->>>> working.
->>>>
->>>> Please test GPIO wakeups from retention/off. =A0One way is to use =
-Zoom3
->>>> UART wakeup from suspend using by enabling UART wakeups and suspen=
-ding:
->>>>
->>>> =A0 # echo enabled > /sys/devices/platform/serial8250.0/tty/ttyS0/=
-power/wakeup
->>>> =A0 # echo mem > /sys/power/state
->>> Ok, I will test and make necessary fix.
->> I have done retention test of the latest series on Zoom3. When I try
->> running off mode
->> test it says support is not present because of an errata.
->
-> Specifically, CORE off is not supported on that rev of 36xx due to an
-> errata. =A0Can you try on a newer 36xx?
->
->> Here is the overall log:
->
-> The rest of the dump seems to point to an MMC driver problem. =A0Plea=
-se
-> take this with the MMC driver folks.
-Hi Tarun,
+Hi Paul,
 
-Can you try with this patch queued in mmc-next for MMC warning
-http://article.gmane.org/gmane.linux.kernel.mmc/10961
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 11/29/2011 7:11 PM, Paul Walmsley wrote:
+> On Tue, 29 Nov 2011, Cousson, Benoit wrote:
+>
+>> On 11/27/2011 3:07 AM, Paul Walmsley wrote:
+>>
+>>> So just out of curiosity, do those SYSCONFIG registers in the STM address
+>>> space apply to the entire DEBUGSS, or just the STM IP block?
+>>
+>> The STM IP is the only one to have the TI generic wrapper to be compliant with
+>> TI standards.
+>> But in term of PRCM, there is only one IP, the DEBUGSS.
+>> There are probably a bunch of internal clock management inside it that are not
+>> exposed to PRCM.
+>>
+>> The confusing part is that in theory all these entries can be accessed by the
+>> same OCP port, and should potentially have this flags.
+>> The point is that for the moment, we are mainly using that flag to get the
+>> SYSCONFIG.
+>> We already discussed that, but I think we should modify this flag to highlight
+>> the SYSCONFIG / SYSSTATUS availability.
+>> Maybe with something like ADDR_SYSCONFIG?
+>>
+>> Any thought?
+>
+> Well, the ADDR_TYPE_RT flag in this hwmod would indicate the address space
+> of the DEBUGSS's OCP header registers, not the MIPI STM's OCP header
+> registers.
+>
+> So if the MIPI STM's OCP header registers also control the entire DEBUGSS
+> power management, then the current layout makes sense.  Otherwise, the
+> MIPI STM should be created as a separate hwmod.
+
+There is no OCP TA registers in this case, so finding the SYSCONFIG is 
+the only important thing to do to set them properly at boot time.
+
+> It appears to me that the DEBUGSS has no OCP header registers of its own.
+
+Yes, indeed.
+
+> Upon reflection, rather than creating a macro hwmod for the DEBUGSS, it
+> seems to make more sense to add hwmods for its two internal interconnects,
+> then to create another hwmod for the MIPI STM device.
+
+Mmm, I'm not sure it makes sense to do that. There is only one PRCM 
+control entry for all these IPs inside the debugss "module". The diagram 
+28.9 seems to indicate that the STM is accessed through L3_INSTR using 
+some internals L4_CFG_EMU and L3_INSTR_EMU buses.
+
+So for the hwmod / driver point of view having only one node for the 
+debugss IPs connected to L3_INSTR is accurate enough. This is as well 
+how the memory mapping is represented in the 28-42 table (28.11$).
+
+Moreover, having two different nodes controlled by a single PRCM entry 
+will raise some dependency issue with STM and DEBUGSS.
+
+Splitting them will add some extra complexity that is not necessary in 
+our case.
+
+Regards,
+Benoit
