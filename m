@@ -1,66 +1,89 @@
 From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [PATCH v2 02/11] mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
-Date: Thu, 1 Dec 2011 11:35:20 -0600
-Message-ID: <CAKnK67R_sTToETijbBsyKXfdfvKv68vaF-_Ur5uYy=yKJ4hiEA@mail.gmail.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-3-git-send-email-saaguirre@ti.com> <201112011824.54207.laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board support
+Date: Thu, 1 Dec 2011 11:41:29 -0600
+Message-ID: <CAKnK67RiuuFDutRT-BWGOhCy8aQtfk=RGRdqdt6kGg63qeYyew@mail.gmail.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <20111201161407.GK29805@valkosipuli.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <201112011824.54207.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20111201161407.GK29805@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 List-Id: linux-omap@vger.kernel.org
 
-Hi Laurent,
+Hi Sakari,
 
-Thanks for the review.
-
-On Thu, Dec 1, 2011 at 11:24 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
+On Thu, Dec 1, 2011 at 10:14 AM, Sakari Ailus <sakari.ailus@iki.fi> wro=
+te:
 > Hi Sergio,
 >
-> On Thursday 01 December 2011 01:14:51 Sergio Aguirre wrote:
->> The define should be the result of 1 << Bit number.
->>
->> Bit number for GPOCTL.GPO3 field is 2, which results
->> in 0x4 value.
->>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->> =A0include/linux/mfd/twl6040.h | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040=
-=2Eh
->> index 2463c261..2a7ff16 100644
->> --- a/include/linux/mfd/twl6040.h
->> +++ b/include/linux/mfd/twl6040.h
->> @@ -142,7 +142,7 @@
->>
->> =A0#define TWL6040_GPO1 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x01
->> =A0#define TWL6040_GPO2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x02
->> -#define TWL6040_GPO3 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x03
->> +#define TWL6040_GPO3 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x04
+> Thanks for the patchset!!
+
+And thanks for your attention :)
+
 >
-> What about defining the fields as (1 << x) instead then ?
+> On Wed, Nov 30, 2011 at 06:14:49PM -0600, Sergio Aguirre wrote:
+>> Hi everyone,
+>>
+>> This is the second version of the OMAP4 ISS driver,
+>> now ported to the Media Controller framework AND supporting
+>> videobuf2 framework.
+>>
+>> This patchset should apply cleanly on top of v3.2-rc3 kernel tag.
+>>
+>> This driver attempts to provide an fully open source solution to
+>> control the OMAP4 Imaging SubSystem (a.k.a. ISS).
+>>
+>> Starts with just CSI2-A interface support, and pretends to be
+>> ready for expansion to add support to the many ISS block modules
+>> as possible.
+>>
+>> Please see newly added documentation for more details:
+>>
+>> Documentation/video4linux/omap4_camera.txt
+>
+> I propose s/omap4_camera/omap4iss/, according to the path name in the
+> drivers/media/video directory.
 
-I thought about that, but I guess I just wanted to keep it
-consistent with the rest of the file.
+Makes sense. Will fix.
 
-Maybe I can create a separate patch for changing all these bitwise
-flags to use BIT() macros instead.
+>
+>> Any comments/complaints are welcome. :)
+>>
+>> Changes since v1:
+>> - Simplification of auxclk handling in board files. (Pointed out by:=
+ Roger Quadros)
+>> - Cleanup of Camera support enablement for 4430sdp & panda. (Pointed=
+ out by: Roger Quadros)
+>> - Use of HWMOD declaration for assisted platform_device creation. (P=
+ointed out by: Felipe Balbi)
+>> - Videobuf2 migration (Removal of custom iss_queue buffer handling d=
+river)
+>
+> I'm happy to see it's using videobuf2!
+
+Yeah, I'll definitely need it for multi-planar buffer handling for
+NV12 buffer capturing.
+
+Resizer can color convert from YUV422->YUV420 NV12 now, and expects 2 p=
+ointers
+(1 for Y, and 1 for UV 2x2 sampled) to be programmed in HW.
+
+>
+> I have no other comments quite yet. :-)
+
+Ok, let me know if you find something eye-popping ugly in there. I'll
+be happy to fix it. :)
 
 Thanks and Regards,
 Sergio
 
 >
->>
->> =A0/* ACCCTL (0x2D) fields */
+> Cheers,
 >
 > --
-> Regards,
->
-> Laurent Pinchart
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi =A0 =A0 jabber/XMPP/Gmail: sailus@retiisi=
+=2Eorg.uk
