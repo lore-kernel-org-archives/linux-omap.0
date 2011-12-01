@@ -1,42 +1,45 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH 1/3] omap_hsmmc: consider MMC_PM_KEEP_POWER on suspend/resume
-Date: Thu, 01 Dec 2011 13:16:05 -0500
-Message-ID: <87r50okviy.fsf@laptop.org>
-References: <1321970539-7104-1-git-send-email-eliad@wizery.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2a/5 v2] ARM: OMAP1: select clock rate by CPU type
+Date: Thu, 1 Dec 2011 10:22:54 -0800
+Message-ID: <20111201182254.GU31337@atomide.com>
+References: <20111128174508.GO31337@atomide.com>
+ <1322686675-26855-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <20111130222837.GR31337@atomide.com>
+ <201112011110.11476.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:57774 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755583Ab1LASQE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Dec 2011 13:16:04 -0500
-In-Reply-To: <1321970539-7104-1-git-send-email-eliad@wizery.com> (Eliad
-	Peller's message of "Tue, 22 Nov 2011 16:02:17 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201112011110.11476.jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eliad Peller <eliad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-Hi,
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111201 01:35]:
+> On Wednesday 30 of November 2011 at 23:28:38, Tony Lindgren wrote:
+> > 
+> > We should also now be able to remove all the CONFIG_OMAP_ARM_XXXMHZ options
+> > too, right?
+> 
+> Right, but then, perhaps the initial version of patch 2a/5, which 
+> already started removing them, from omap1_defconfig for now, then going 
+> into the right direction while unblocking another regression fix (3/5), 
+> _is_ a good candidate for an rc fix?
 
-On Tue, Nov 22 2011, Eliad Peller wrote:
-> When an mmc card has the MMC_PM_KEEP_POWER flag, it shouldn't
-> be powered off on suspend (and thus doesn't have to be powered-on
-> on resume)
->
-> While on it, change the suspend flow a bit, to make it a bit
-> easier to follow.
->
-> Signed-off-by: Eliad Peller <eliad@wizery.com>
+But we did not allow dpll1 reprogramming earlier either, so we should
+not need to make all these changes during the -rc cycle. I'm suspecting
+that we've had this same behaviour for a really long time, and we just
+have not seen it as omap1_defconfig had OMAP_CLOCKS_SET_BY_BOOTLOADER
+option set.
 
-Tony, feel free to merge this patchset (if you're happy with the rest of
-it) through your tree, with my:
+So I'm baffled how your board would be booting at a different rate
+compared to v3.1, it seems that the logic has not changed there. Or
+else we have some simple bug somewhere.
 
-Acked-by: Chris Ball <cjb@laptop.org>
+Care to try to verify at what point your system started booting at
+60MHz rate?
 
-for this patch.  Thanks,
+Regards,
 
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Tony
