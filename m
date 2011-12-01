@@ -1,100 +1,96 @@
 From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
-Date: Wed, 30 Nov 2011 18:14:54 -0600
-Message-ID: <1322698500-29924-6-git-send-email-saaguirre@ti.com>
+Subject: [PATCH v2 03/11] v4l: Introduce sensor operation for getting interface configuration
+Date: Wed, 30 Nov 2011 18:14:52 -0600
+Message-ID: <1322698500-29924-4-git-send-email-saaguirre@ti.com>
 References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37096 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752462Ab1LAAPR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:15:17 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:45618 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753223Ab1LAAPR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Nov 2011 19:15:17 -0500
 In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi, Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi, Stanimir Varbanov <svarbanov@mm-sol.com>
 
-NOTE: This isn't the whole list of features that the
-ISS supports, but the only ones supported at the moment.
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Introduce g_interface_parms sensor operation for getting sensor
+interface parameters. These parameters are needed from the host side
+to determine it's own configuration.
+
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
 ---
- arch/arm/mach-omap2/devices.c              |   32 ++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap44xx.h |    9 +++++++
- 2 files changed, 41 insertions(+), 0 deletions(-)
+ include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 42 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c15cfad..b48aeea 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -32,6 +32,7 @@
- #include <plat/omap_hwmod.h>
- #include <plat/omap_device.h>
- #include <plat/omap4-keypad.h>
-+#include <plat/omap4-iss.h>
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f0f3358..0d322ed 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -362,6 +362,42 @@ struct v4l2_subdev_vbi_ops {
+ 	int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
+ };
  
- #include "mux.h"
- #include "control.h"
-@@ -217,6 +218,37 @@ int omap3_init_camera(struct isp_platform_data *pdata)
- 	return platform_device_register(&omap3isp_device);
- }
++/* Which interface the sensor use to provide it's image data */
++enum v4l2_subdev_sensor_iface {
++	V4L2_SUBDEV_SENSOR_PARALLEL,
++	V4L2_SUBDEV_SENSOR_SERIAL,
++};
++
++/* Each interface could use the following modes */
++/* Image sensor provides horizontal and vertical sync signals */
++#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC	0
++/* BT.656 interface. Embedded sync */
++#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU	1
++/* MIPI CSI1 */
++#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1	2
++/* MIPI CSI2 */
++#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2	3
++
++struct v4l2_subdev_sensor_serial_parms {
++	unsigned char lanes;		/* number of lanes used */
++	unsigned char channel;		/* virtual channel */
++	unsigned int phy_rate;		/* output rate at CSI phy in bps */
++	unsigned int pix_clk;		/* pixel clock in Hz */
++};
++
++struct v4l2_subdev_sensor_parallel_parms {
++	unsigned int pix_clk;		/* pixel clock in Hz */
++};
++
++struct v4l2_subdev_sensor_interface_parms {
++	enum v4l2_subdev_sensor_iface if_type;
++	unsigned int if_mode;
++	union {
++		struct v4l2_subdev_sensor_serial_parms serial;
++		struct v4l2_subdev_sensor_parallel_parms parallel;
++	} parms;
++};
++
+ /**
+  * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+  * @g_skip_top_lines: number of lines at the top of the image to be skipped.
+@@ -371,10 +407,16 @@ struct v4l2_subdev_vbi_ops {
+  * @g_skip_frames: number of frames to skip at stream start. This is needed for
+  *		   buggy sensors that generate faulty frames when they are
+  *		   turned on.
++ * @g_interface_parms: get sensor interface parameters. The sensor subdev should
++ *		       fill this structure with current interface params. These
++ *		       interface parameters are needed on host side to configure
++ *		       it's own hardware receivers.
+  */
+ struct v4l2_subdev_sensor_ops {
+ 	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+ 	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
++	int (*g_interface_parms)(struct v4l2_subdev *sd,
++			struct v4l2_subdev_sensor_interface_parms *parms);
+ };
  
-+int omap4_init_camera(struct iss_platform_data *pdata, struct omap_board_data *bdata)
-+{
-+	struct platform_device *pdev;
-+	struct omap_hwmod *oh;
-+	struct iss_platform_data *omap4iss_pdata;
-+	char *oh_name = "iss";
-+	char *name = "omap4iss";
-+	unsigned int id = -1;
-+
-+	oh = omap_hwmod_lookup(oh_name);
-+	if (!oh) {
-+		pr_err("Could not look up %s\n", oh_name);
-+		return -ENODEV;
-+	}
-+
-+	omap4iss_pdata = pdata;
-+
-+	pdev = omap_device_build(name, id, oh, omap4iss_pdata,
-+			sizeof(struct iss_platform_data), NULL, 0, 0);
-+
-+	if (IS_ERR(pdev)) {
-+		WARN(1, "Can't build omap_device for %s:%s.\n",
-+						name, oh->name);
-+		return PTR_ERR(pdev);
-+	}
-+
-+	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
-+
-+	return 0;
-+}
-+
- static inline void omap_init_camera(void)
- {
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
-index ea2b8a6..31432aa 100644
---- a/arch/arm/plat-omap/include/plat/omap44xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-@@ -49,6 +49,15 @@
- #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
- #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
- 
-+#define OMAP44XX_ISS_BASE			0x52000000
-+#define OMAP44XX_ISS_TOP_BASE			(OMAP44XX_ISS_BASE + 0x0)
-+#define OMAP44XX_ISS_CSI2_A_REGS1_BASE		(OMAP44XX_ISS_BASE + 0x1000)
-+#define OMAP44XX_ISS_CAMERARX_CORE1_BASE	(OMAP44XX_ISS_BASE + 0x1170)
-+
-+#define OMAP44XX_ISS_TOP_END			(OMAP44XX_ISS_TOP_BASE + 256 - 1)
-+#define OMAP44XX_ISS_CSI2_A_REGS1_END		(OMAP44XX_ISS_CSI2_A_REGS1_BASE + 368 - 1)
-+#define OMAP44XX_ISS_CAMERARX_CORE1_END		(OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 - 1)
-+
- #define OMAP4_MMU1_BASE			0x55082000
- #define OMAP4_MMU2_BASE			0x4A066000
- 
+ /*
 -- 
 1.7.7.4
 
