@@ -1,40 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Thu, 1 Dec 2011 08:45:47 +0000
-Message-ID: <20111201084547.GD19739@n2100.arm.linux.org.uk>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1111291619110.6289@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Setting OMAP DSS fck
+Date: Thu, 1 Dec 2011 09:58:43 +0100
+Message-ID: <4ED741C3.9010904@ti.com>
+References: <1322727382.16429.4.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1111291619110.6289@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:47720 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751110Ab1LAI6r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Dec 2011 03:58:47 -0500
+In-Reply-To: <1322727382.16429.4.camel@deskari>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap mailing list <linux-omap@vger.kernel.org>, "Turquette, Mike" <mturquette@ti.com>
 
-On Wed, Nov 30, 2011 at 06:20:50PM -0700, Paul Walmsley wrote:
-> 1. When a clock user calls clk_enable() on a clock, the clock framework 
-> should prevent other users of the clock from changing the clock's rate.  
-> This should persist until the clock user calls clk_disable() (but see also 
-> #2 below).  This will ensure that clock users can rely on the rate 
-> returned by clk_get_rate(), as long as it's called between clk_enable() 
-> and clk_disable().  And since the clock's rate is guaranteed to remain the 
-> same during this time, code that cannot tolerate clock rate changes 
-> without special handling (such as driver code for external I/O devices) 
-> will work safely without further modification.
+Hi Tomi,
 
-So, if you have a PLL whose parent clock is not used by anything else.
-You want to program it to a certain rate.
+On 12/1/2011 9:16 AM, Tomi Valkeinen wrote:
+> Hi,
+>
+> Why is it that the rate of DSS functional clock (dss_dss_clk on OMAP4)
+> cannot be set, but we need to get the parent of the fck, and set the
+> rate of that? The same is on OMAP3.
 
-You call clk_disable() on the PLL clock.  This walks up the tree and
-disables the parent.  You then try to set the rate using clk_set_rate().
-clk_set_rate() in this circumstance can't wait for the PLL to lock
-because it can't - there's no reference clock for it.
+This is a limitation of the clock fmwk, you cannot change the rate if 
+you do not have a .set_rate function in your clock node. It is not 
+propagated automatically to the parent.
 
-You then call clk_enable().  The PLL now takes its time to lock.  You
-can't sleep in clk_enable() because it might be called from atomic
-contexts, so you have to spin waiting for this.
+In your case, here is the parent:
 
-Overloading clk_disable/clk_enable in this way is a bad solution to
-this problem.
+static struct clk dpll_per_m5x2_ck = {
+	.name		= "dpll_per_m5x2_ck",
+	.parent		= &dpll_per_x2_ck,
+	.clksel		= dpll_per_m2x2_div,
+	.clksel_reg	= OMAP4430_CM_DIV_M5_DPLL_PER,
+	.clksel_mask	= OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK,
+	.ops		= &clkops_omap4_dpllmx_ops,
+	.recalc		= &omap2_clksel_recalc,
+	.round_rate	= &omap2_clksel_round_rate,
+	.set_rate	= &omap2_clksel_set_rate,
+};
+
+And here is the child you are trying to set the rate to.
+
+static struct clk dss_dss_clk = {
+	.name		= "dss_dss_clk",
+	.ops		= &clkops_omap2_dflt,
+	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
+	.enable_bit	= OMAP4430_OPTFCLKEN_DSSCLK_SHIFT,
+	.clkdm_name	= "l3_dss_clkdm",
+	.parent		= &dpll_per_m5x2_ck,
+	.recalc		= &followparent_recalc,
+};
+
+Propagating a set_rate to a parent is not a simple task because the fmwk 
+do not have a clue about the siblings you might potentially have. And 
+changing the parent will have an impact on every potential children.
+
+In this case, it seems that there is only one child, so it might be 
+possible.
+
+I know this kind of issue was discussed during the new common clock fmwk 
+discussion.
+
+I'm Cc'ing Mike who will know the status of such feature.
+
+>  From driver's perspective I think this only makes things more complex,
+> as the driver is not interested in the parent, only about the dss fck.
+
+Fully agree. It should transparent for the driver.
+
+Regards,
+Benoit
