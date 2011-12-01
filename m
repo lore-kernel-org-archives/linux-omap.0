@@ -1,78 +1,42 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [PATCH v2 01/11] TWL6030: Add mapping for auxiliary regs
-Date: Thu, 1 Dec 2011 11:47:15 -0600
-Message-ID: <CAKnK67QKwBCGoQdBALqBjqxx4fNXz_6o3kz7O7y4xffew1c-QA@mail.gmail.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-2-git-send-email-saaguirre@ti.com> <CANrkHUZb=ZtMcPyFXkktE0LztBzLcB7vmWPPgriTo7O0yeOPzw@mail.gmail.com>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH 1/3] omap_hsmmc: consider MMC_PM_KEEP_POWER on suspend/resume
+Date: Thu, 01 Dec 2011 13:16:05 -0500
+Message-ID: <87r50okviy.fsf@laptop.org>
+References: <1321970539-7104-1-git-send-email-eliad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:52338 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755280Ab1LARrh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Dec 2011 12:47:37 -0500
-In-Reply-To: <CANrkHUZb=ZtMcPyFXkktE0LztBzLcB7vmWPPgriTo7O0yeOPzw@mail.gmail.com>
+Received: from void.printf.net ([89.145.121.20]:57774 "EHLO void.printf.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755583Ab1LASQE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Dec 2011 13:16:04 -0500
+In-Reply-To: <1321970539-7104-1-git-send-email-eliad@wizery.com> (Eliad
+	Peller's message of "Tue, 22 Nov 2011 16:02:17 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+To: Eliad Peller <eliad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
 
-Hi Balaji,
+Hi,
 
-Thanks for the review.
-
-On Thu, Dec 1, 2011 at 9:58 AM, T Krishnamoorthy, Balaji
-<balajitk@ti.com> wrote:
-> On Thu, Dec 1, 2011 at 5:44 AM, Sergio Aguirre <saaguirre@ti.com> wro=
-te:
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->> =A0drivers/mfd/twl-core.c | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
->> index bfbd660..e26b564 100644
->> --- a/drivers/mfd/twl-core.c
->> +++ b/drivers/mfd/twl-core.c
->> @@ -323,7 +323,7 @@ static struct twl_mapping twl6030_map[] =3D {
->> =A0 =A0 =A0 =A0{ SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
->> =A0 =A0 =A0 =A0{ SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
->>
->> - =A0 =A0 =A0 { SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
->> + =A0 =A0 =A0 { SUB_CHIP_ID1, TWL6030_BASEADD_AUX },
+On Tue, Nov 22 2011, Eliad Peller wrote:
+> When an mmc card has the MMC_PM_KEEP_POWER flag, it shouldn't
+> be powered off on suspend (and thus doesn't have to be powered-on
+> on resume)
 >
-> Instead you can use TWL6030_MODULE_ID1, with base address as
-> zero for all registers in auxiliaries register map.
-
-Ok.
-
-I'm actually thinking about this, and in the process on reviewing the
-need to access those registers.
-
-I should probably be using the regulator framework to control VAUX3 ins=
-tead...
-
-Thanks for your inputs.
-
-Regards,
-Sergio
-
+> While on it, change the suspend flow a bit, to make it a bit
+> easier to follow.
 >
->> =A0 =A0 =A0 =A0{ SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
->> =A0 =A0 =A0 =A0{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
->> =A0 =A0 =A0 =A0{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
->> --
->> 1.7.7.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Eliad Peller <eliad@wizery.com>
+
+Tony, feel free to merge this patchset (if you're happy with the rest of
+it) through your tree, with my:
+
+Acked-by: Chris Ball <cjb@laptop.org>
+
+for this patch.  Thanks,
+
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
