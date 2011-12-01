@@ -1,64 +1,48 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board
- support
-Date: Thu, 1 Dec 2011 18:14:07 +0200
-Message-ID: <20111201161407.GK29805@valkosipuli.localdomain>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+From: "Turquette, Mike" <mturquette@ti.com>
+Subject: Re: Setting OMAP DSS fck
+Date: Thu, 1 Dec 2011 09:00:27 -0800
+Message-ID: <CAJOA=zNfi-_rek82RTtoZ=XLH6o6e9k-gfvQYYmsPHbQGz3ANw@mail.gmail.com>
+References: <1322727382.16429.4.camel@deskari> <4ED741C3.9010904@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:59470 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755293Ab1LAQOM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Dec 2011 11:14:12 -0500
-Content-Disposition: inline
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:51455 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755356Ab1LARA7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Dec 2011 12:00:59 -0500
+Received: by mail-iy0-f174.google.com with SMTP id e36so3393610iag.5
+        for <linux-omap@vger.kernel.org>; Thu, 01 Dec 2011 09:00:48 -0800 (PST)
+In-Reply-To: <4ED741C3.9010904@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-Hi Sergio,
+On Thu, Dec 1, 2011 at 12:58 AM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> On 12/1/2011 9:16 AM, Tomi Valkeinen wrote:
+>> =A0From driver's perspective I think this only makes things more com=
+plex,
+>> as the driver is not interested in the parent, only about the dss fc=
+k.
+>
+> Fully agree. It should transparent for the driver.
 
-Thanks for the patchset!!
+The new common clk patches do try to take care of this.  A child clk
+may be marked with CLK_PARENT_RATE_CHANGE flag which tells
+clk_set_rate to (potentially) propagate up to the parent and change
+it's rate.
 
-On Wed, Nov 30, 2011 at 06:14:49PM -0600, Sergio Aguirre wrote:
-> Hi everyone,
-> 
-> This is the second version of the OMAP4 ISS driver,
-> now ported to the Media Controller framework AND supporting
-> videobuf2 framework.
-> 
-> This patchset should apply cleanly on top of v3.2-rc3 kernel tag.
-> 
-> This driver attempts to provide an fully open source solution to
-> control the OMAP4 Imaging SubSystem (a.k.a. ISS).
-> 
-> Starts with just CSI2-A interface support, and pretends to be
-> ready for expansion to add support to the many ISS block modules
-> as possible.
-> 
-> Please see newly added documentation for more details:
-> 
-> Documentation/video4linux/omap4_camera.txt
+This won't help you currently Tomi, but you can take comfort knowing
+that someday your driver won't have to know details about dss_fck's
+parent ;-)
 
-I propose s/omap4_camera/omap4iss/, according to the path name in the
-drivers/media/video directory.
-
-> Any comments/complaints are welcome. :)
-> 
-> Changes since v1:
-> - Simplification of auxclk handling in board files. (Pointed out by: Roger Quadros)
-> - Cleanup of Camera support enablement for 4430sdp & panda. (Pointed out by: Roger Quadros)
-> - Use of HWMOD declaration for assisted platform_device creation. (Pointed out by: Felipe Balbi)
-> - Videobuf2 migration (Removal of custom iss_queue buffer handling driver)
-
-I'm happy to see it's using videobuf2!
-
-I have no other comments quite yet. :-)
-
-Cheers,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+Mike
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
