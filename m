@@ -1,77 +1,82 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Setting OMAP DSS fck
-Date: Thu, 1 Dec 2011 09:58:43 +0100
-Message-ID: <4ED741C3.9010904@ti.com>
-References: <1322727382.16429.4.camel@deskari>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 2a/5] Remove unsafe clock values from omap1_defconfig
+Date: Thu, 1 Dec 2011 10:54:09 +0100
+Message-ID: <201112011054.09878.jkrzyszt@tis.icnet.pl>
+References: <20111128174508.GO31337@atomide.com> <201112010310.43890.jkrzyszt@tis.icnet.pl> <20111201022750.GY13928@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47720 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751110Ab1LAI6r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Dec 2011 03:58:47 -0500
-In-Reply-To: <1322727382.16429.4.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111201022750.GY13928@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap mailing list <linux-omap@vger.kernel.org>, "Turquette, Mike" <mturquette@ti.com>
 
-Hi Tomi,
+I've unintentionally answered off-line, sorry, re-adding all Cc:'s.
 
-On 12/1/2011 9:16 AM, Tomi Valkeinen wrote:
-> Hi,
->
-> Why is it that the rate of DSS functional clock (dss_dss_clk on OMAP4)
-> cannot be set, but we need to get the parent of the fck, and set the
-> rate of that? The same is on OMAP3.
+On Thursday 01 of December 2011 at 03:27:51, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111130 17:40]:
+> > On Wednesday 30 of November 2011 at 23:32:42, Tony Lindgren wrote:
+> > >  
+> > > Can you please split your series into two: Fix(es) for the -rc cycle,
+> > > then patches that can be left for the next merge window.
+> > 
+> > From my point of view, all 5 are important fixes. Please decide 
+> > yourself, having the following information provided:
+> > 
+> > 1/5: inspired by in-line comments about running from sram requirement
+> > 	(works without this one for me),
+> > 
+> > 2/5: without this one, system clock runs way too fast if dpll1 is 
+> > 	reprogrammed to default rate,
+> > 
+> > 3/5: without this one, all boards with bootloaders not setting rate 
+> > 	correctly, like Amstrad Delta, will run at default rate, despite 
+> > 	any .config selections, no matter if omap1_defconfig or custom,
+> > 
+> > 2a/5: required by 3/5,
+> > 
+> > 5/5: without this one, BogoMIPS is not updated after dpll1 reprogramme, 
+> > 	breaking omap_keypad at least.
+> > 
+> > and please let me know which I should resend as fixes and which not.
+> 
+> How about 2 and 5 as fixes during the -rc, then the rest for the
+> merge window? That is assuming that those are enough for you to have
+> things mostly working.
 
-This is a limitation of the clock fmwk, you cannot change the rate if 
-you do not have a .set_rate function in your clock node. It is not 
-propagated automatically to the parent.
+If you still ask me for my opinion: with patch 3/5 omitted, then not 
+being able to run at any other frequency than 60 MHz instead of usual 
+150 since the board support was introduced first, isn't this a 
+regression? Having a choice of upgrading to 3.2 and running my 
+application on not very powerfull board at 60 MHz, or keep running 3.1 
+at 150, guess what I chose? If I were a distro kernel package 
+maintainer, guess what I would chose?
 
-In your case, here is the parent:
+> It seems that we've had the issue of not actually changing the rate
+> for a while, right?
 
-static struct clk dpll_per_m5x2_ck = {
-	.name		= "dpll_per_m5x2_ck",
-	.parent		= &dpll_per_x2_ck,
-	.clksel		= dpll_per_m2x2_div,
-	.clksel_reg	= OMAP4430_CM_DIV_M5_DPLL_PER,
-	.clksel_mask	= OMAP4430_HSDIVIDER_CLKOUT2_DIV_MASK,
-	.ops		= &clkops_omap4_dpllmx_ops,
-	.recalc		= &omap2_clksel_recalc,
-	.round_rate	= &omap2_clksel_round_rate,
-	.set_rate	= &omap2_clksel_set_rate,
-};
+This was not an issue before dpll1 reprogramming has been moved out from 
+omap1_clk_init(), as an rc fix to another bug introduced in 3.2. Perhaps 
+we should rather think of reverting a few commits which caused all these 
+problems if fixing them all during rc cycle seems not possible? I 
+haven't bisected them yet, rather concentrated on providing fixes, but I 
+can still try to do it, starting back from the original issue 
+(http://www.spinics.net/lists/linux-omap/msg60052.html), if so decided.
 
-And here is the child you are trying to set the rate to.
+> If that's the case, I'd rather not start messing
+> with that during the -rc cycle.
+> 
+> Regards,
+> 
+> Tony
 
-static struct clk dss_dss_clk = {
-	.name		= "dss_dss_clk",
-	.ops		= &clkops_omap2_dflt,
-	.enable_reg	= OMAP4430_CM_DSS_DSS_CLKCTRL,
-	.enable_bit	= OMAP4430_OPTFCLKEN_DSSCLK_SHIFT,
-	.clkdm_name	= "l3_dss_clkdm",
-	.parent		= &dpll_per_m5x2_ck,
-	.recalc		= &followparent_recalc,
-};
+I don't feel like a person who makes the final decision.
 
-Propagating a set_rate to a parent is not a simple task because the fmwk 
-do not have a clue about the siblings you might potentially have. And 
-changing the parent will have an impact on every potential children.
+Anyway, did you mean resending those 2/5 and 5/5 without any changes, 
+only renumbered as 1/2 and 2/2?
 
-In this case, it seems that there is only one child, so it might be 
-possible.
-
-I know this kind of issue was discussed during the new common clock fmwk 
-discussion.
-
-I'm Cc'ing Mike who will know the status of such feature.
-
->  From driver's perspective I think this only makes things more complex,
-> as the driver is not interested in the parent, only about the dss fck.
-
-Fully agree. It should transparent for the driver.
-
-Regards,
-Benoit
+Thanks,
+Janusz
