@@ -1,57 +1,57 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 2/2 v2] ARM: OMAP1: recalculate loops per jiffy after dpll1 reprogram
-Date: Thu,  1 Dec 2011 21:13:02 +0100
-Message-ID: <1322770382-30718-3-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <201112012023.04635.jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] ARM: OMAP1: Remove unsafe clock values from omap1_defconfig
+Date: Thu,  1 Dec 2011 21:30:39 +0100
+Message-ID: <1322771439-31031-1-git-send-email-jkrzyszt@tis.icnet.pl>
+References: <20111201194609.GX31337@atomide.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201112012023.04635.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <20111201194609.GX31337@atomide.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
 
-Otherwise timing is inaccurate, resulting in devices which depend on it,
-like omap-keypad, broken.
+DPLL1 reprogramming to a different rate is actually blocked inside
+omap1_select_table_rate(), resulting in the defalut rate of 60 MHz
+always used instead of the one selected in .config. OTOH, in
+omap1_defconfig we currently rely on Kconfig options for the supported
+MHz rates in case of boards which boot with dpll1 not set correctly by
+their boot loaders.
 
-Created and tested on top of linux-omap/fixes on Amstrad Delta.
+This means that before we allow for reprogramming of dpll1 rate, we
+should remove all unsafe clock selections from omap1_defconfig,
+otherwise it will stop booting on boards with imperfect boot loaders,
+as it would always try to change to 216MHz.
+
+Keep only one safe clock rate per each supported xtal frequency, i.e.
+60MHZ dpll1 for 12MHz xtal and 182MHz dpll1 for 13MHz xtal.
+
+BTW, this change goes into the direction of removing all OMAP1 clock
+rate options, planned for next merge window.
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
-v2 changes:
-* was 5/5 v2, rebased on 1/2.
+Resending with commit summary tagged correctly and commit message
+updated with info about next merge window planned direction.
 
- arch/arm/mach-omap1/clock_data.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ arch/arm/configs/omap1_defconfig |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index b001299..0ef1e7d 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -16,6 +16,8 @@
- 
- #include <linux/kernel.h>
- #include <linux/clk.h>
-+#include <linux/cpufreq.h>
-+#include <linux/delay.h>
- #include <linux/io.h>
- 
- #include <asm/mach-types.h>  /* for machine_is_* */
-@@ -927,7 +929,9 @@ int __init omap1_clk_init(void)
- 
- void __init omap1_clk_late_init(void)
- {
--	if (ck_dpll1.rate >= OMAP1_DPLL1_SANE_VALUE)
-+	unsigned long rate = ck_dpll1.rate;
-+
-+	if (rate >= OMAP1_DPLL1_SANE_VALUE)
- 		return;
- 
- 	/* Find the highest supported frequency and enable it */
-@@ -939,4 +943,5 @@ void __init omap1_clk_late_init(void)
- 	}
- 	propagate_rate(&ck_dpll1);
- 	omap1_show_rates();
-+	loops_per_jiffy = cpufreq_scale(loops_per_jiffy, rate, ck_dpll1.rate);
- }
+diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
+index a7e7775..945a34f 100644
+--- a/arch/arm/configs/omap1_defconfig
++++ b/arch/arm/configs/omap1_defconfig
+@@ -48,12 +48,7 @@ CONFIG_MACH_SX1=y
+ CONFIG_MACH_NOKIA770=y
+ CONFIG_MACH_AMS_DELTA=y
+ CONFIG_MACH_OMAP_GENERIC=y
+-CONFIG_OMAP_ARM_216MHZ=y
+-CONFIG_OMAP_ARM_195MHZ=y
+-CONFIG_OMAP_ARM_192MHZ=y
+ CONFIG_OMAP_ARM_182MHZ=y
+-CONFIG_OMAP_ARM_168MHZ=y
+-# CONFIG_OMAP_ARM_60MHZ is not set
+ # CONFIG_ARM_THUMB is not set
+ CONFIG_PCCARD=y
+ CONFIG_OMAP_CF=y
 -- 
 1.7.3.4
