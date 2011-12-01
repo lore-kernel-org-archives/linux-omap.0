@@ -1,56 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
 Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Thu, 1 Dec 2011 11:30:16 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112011124221.6289@utopia.booyaka.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1111291619110.6289@utopia.booyaka.com> <CAJOA=zM4vcyTt_RBEVm6JxmzW-Dna0gpuWda7ytq_mqFSuXw9g@mail.gmail.com>
- <alpine.DEB.2.00.1111302308280.6289@utopia.booyaka.com> <20111201144205.GA2103@sirena.org.uk>
+Date: Thu, 1 Dec 2011 18:32:11 +0000
+Message-ID: <20111201183211.GC18120@opensource.wolfsonmicro.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
+	<1321926047-14211-4-git-send-email-mturquette@linaro.org>
+	<alpine.DEB.2.00.1111291619110.6289@utopia.booyaka.com>
+	<CAJOA=zM4vcyTt_RBEVm6JxmzW-Dna0gpuWda7ytq_mqFSuXw9g@mail.gmail.com>
+	<alpine.DEB.2.00.1111302308280.6289@utopia.booyaka.com>
+	<20111201144205.GA2103@sirena.org.uk>
+	<alpine.DEB.2.00.1112011124221.6289@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111201144205.GA2103@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Turquette, Mike" <mturquette@ti.com>, linux@arm.linux.org.uk, linus.walleij@stericsson.com, patches@linaro.org, shawn.guo@freescale.com, magnus.damm@gmail.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, richard.zhao@linaro.org, grant.likely@secretlab.ca, dsaxena@linaro.org, eric.miao@linaro.org, sboyd@quicinc.com, skannan@quicinc.com, linaro-dev@lists.linaro.org, jeremy.kerr@canonical.com, linux-omap@vger.kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1112011124221.6289-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+On Thu, Dec 01, 2011 at 11:30:16AM -0700, Paul Walmsley wrote:
 
-On Thu, 1 Dec 2011, Mark Brown wrote:
+> So for example, if you had a driver that did:
 
-> On Wed, Nov 30, 2011 at 11:39:59PM -0700, Paul Walmsley wrote:
-> 
-> > Clock rate/parent-change notifiers are requirements for DVFS use-cases, 
-> > and they must be paired with something like the 
-> > clk_{allow,block}_rate_change() functions to work efficiently.  I intend 
-> > to comment on this later; it's not a simple problem.  It might be worth 
-> > noting that Tero and I implemented a simplified version of this for the 
-> > N900.
-> 
-> I'm thinking that if we're going to have clk_{allow,block}_rate_change()
-> we may as well make that the main interface to enable rate changes - if
-> a device wants to change the clock rate it allows rate changes using
-> that interface rather than by disabling the clocks.  I've got devices
-> which can do glitch free updates of active clocks so having to disable
-> would be a real restriction, and cpufreq would have issues with actually
-> disabling the clock too I expect.
+> c = clk_get(dev, clk_name);
+> clk_enable(c);
+> clk_set_rate(c, clk_rate);
 
-The intention behind the clk_{allow,block}_rate_change() proposal was to 
-allow the current user of the clock to change its rate without having to 
-call clk_{allow,block}_rate_change(), if that driver was the sole user of 
-the clock.
+> and c was currently not enabled by any other driver on the system, and 
+> nothing else had called clk_block_rate_change(c), then the rate change 
+> would be allowed to proceed.  (modulo any notifier activity, etc.)  
 
-So for example, if you had a driver that did:
+> So clk_{allow,block}_rate_change() was simply intended to allow or 
+> restrict other users of the same clock, not the current user.
 
-c = clk_get(dev, clk_name);
-clk_enable(c);
-clk_set_rate(c, clk_rate);
-
-and c was currently not enabled by any other driver on the system, and 
-nothing else had called clk_block_rate_change(c), then the rate change 
-would be allowed to proceed.  (modulo any notifier activity, etc.)  
-
-So clk_{allow,block}_rate_change() was simply intended to allow or 
-restrict other users of the same clock, not the current user.
-
-
-- Paul
+Ah, sorry!  I'd totally misunderstood what you were proposing.
