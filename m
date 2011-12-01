@@ -1,57 +1,94 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] ARM: OMAP1: Remove unsafe clock values from omap1_defconfig
-Date: Thu,  1 Dec 2011 21:30:39 +0100
-Message-ID: <1322771439-31031-1-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <20111201194609.GX31337@atomide.com>
+Subject: [PATCH v2] ARM: OMAP1: Update dpll1 default rate reprogramming method
+Date: Thu,  1 Dec 2011 22:16:26 +0100
+Message-ID: <1322774186-31366-1-git-send-email-jkrzyszt@tis.icnet.pl>
+References: <1322770382-30718-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111201194609.GX31337@atomide.com>
+In-Reply-To: <1322770382-30718-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
 
-DPLL1 reprogramming to a different rate is actually blocked inside
-omap1_select_table_rate(), resulting in the defalut rate of 60 MHz
-always used instead of the one selected in .config. OTOH, in
-omap1_defconfig we currently rely on Kconfig options for the supported
-MHz rates in case of boards which boot with dpll1 not set correctly by
-their boot loaders.
+According to comments in omap1_select_table_rate(), reprogramming dpll1
+is tricky, and should always be done from SRAM.
 
-This means that before we allow for reprogramming of dpll1 rate, we
-should remove all unsafe clock selections from omap1_defconfig,
-otherwise it will stop booting on boards with imperfect boot loaders,
-as it would always try to change to 216MHz.
+While being at it, move OMAP730 special case handling inside
+omap_sram_reprogram_clock().
 
-Keep only one safe clock rate per each supported xtal frequency, i.e.
-60MHZ dpll1 for 12MHz xtal and 182MHz dpll1 for 13MHz xtal.
-
-BTW, this change goes into the direction of removing all OMAP1 clock
-rate options, planned for next merge window.
+Created on top of version 2 of the series "ARM: OMAP1: Fix dpll1
+reprogramming related issues", which it depends on.
+Tested on Amstrad Delta.
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
-Resending with commit summary tagged correctly and commit message
-updated with info about next merge window planned direction.
+v2 changes:
+* was 1/5, now separated with the intention of being deferred until next
+  merge window, and refreshed on top of that series,
+* Fix replaced with Update in the summary.
 
- arch/arm/configs/omap1_defconfig |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
-index a7e7775..945a34f 100644
---- a/arch/arm/configs/omap1_defconfig
-+++ b/arch/arm/configs/omap1_defconfig
-@@ -48,12 +48,7 @@ CONFIG_MACH_SX1=y
- CONFIG_MACH_NOKIA770=y
- CONFIG_MACH_AMS_DELTA=y
- CONFIG_MACH_OMAP_GENERIC=y
--CONFIG_OMAP_ARM_216MHZ=y
--CONFIG_OMAP_ARM_195MHZ=y
--CONFIG_OMAP_ARM_192MHZ=y
- CONFIG_OMAP_ARM_182MHZ=y
--CONFIG_OMAP_ARM_168MHZ=y
--# CONFIG_OMAP_ARM_60MHZ is not set
- # CONFIG_ARM_THUMB is not set
- CONFIG_PCCARD=y
- CONFIG_OMAP_CF=y
+ arch/arm/mach-omap1/clock.c      |    6 +-----
+ arch/arm/mach-omap1/clock_data.c |    7 +++++--
+ arch/arm/plat-omap/sram.c        |    3 +++
+ 3 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index 84ef704..3899176 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -215,12 +215,8 @@ int omap1_select_table_rate(struct clk *clk, unsigned long rate)
+ 	/*
+ 	 * In most cases we should not need to reprogram DPLL.
+ 	 * Reprogramming the DPLL is tricky, it must be done from SRAM.
+-	 * (on 730, bit 13 must always be 1)
+ 	 */
+-	if (cpu_is_omap7xx())
+-		omap_sram_reprogram_clock(ptr->dpllctl_val, ptr->ckctl_val | 0x2000);
+-	else
+-		omap_sram_reprogram_clock(ptr->dpllctl_val, ptr->ckctl_val);
++	omap_sram_reprogram_clock(ptr->dpllctl_val, ptr->ckctl_val);
+ 
+ 	/* XXX Do we need to recalculate the tree below DPLL1 at this point? */
+ 	ck_dpll1_p->rate = ptr->pll_rate;
+diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
+index 0ef1e7d..e616042 100644
+--- a/arch/arm/mach-omap1/clock_data.c
++++ b/arch/arm/mach-omap1/clock_data.c
+@@ -25,6 +25,7 @@
+ #include <plat/clock.h>
+ #include <plat/cpu.h>
+ #include <plat/clkdev_omap.h>
++#include <plat/sram.h>	/* for omap_sram_reprogram_clock() */
+ #include <plat/usb.h>   /* for OTG_BASE */
+ 
+ #include "clock.h"
+@@ -937,8 +938,10 @@ void __init omap1_clk_late_init(void)
+ 	/* Find the highest supported frequency and enable it */
+ 	if (omap1_select_table_rate(&virtual_ck_mpu, ~0)) {
+ 		pr_err("System frequencies not set, using default. Check your config.\n");
+-		omap_writew(0x2290, DPLL_CTL);
+-		omap_writew(cpu_is_omap7xx() ? 0x2005 : 0x0005, ARM_CKCTL);
++		/*
++		 * Reprogramming the DPLL is tricky, it must be done from SRAM.
++		 */
++		omap_sram_reprogram_clock(0x2290, 0x0005);
+ 		ck_dpll1.rate = OMAP1_DPLL1_SANE_VALUE;
+ 	}
+ 	propagate_rate(&ck_dpll1);
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 8b28664..312bee8 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -224,6 +224,9 @@ static void (*_omap_sram_reprogram_clock)(u32 dpllctl, u32 ckctl);
+ void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl)
+ {
+ 	BUG_ON(!_omap_sram_reprogram_clock);
++	/* On 730, bit 13 must always be 1 */
++	if (cpu_is_omap7xx())
++		ckctl |= 0x2000;
+ 	_omap_sram_reprogram_clock(dpllctl, ckctl);
+ }
+ 
 -- 
 1.7.3.4
