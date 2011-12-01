@@ -1,77 +1,117 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2a/5] Remove unsafe clock values from omap1_defconfig
-Date: Thu, 1 Dec 2011 09:17:58 -0800
-Message-ID: <20111201171758.GT31337@atomide.com>
-References: <20111128174508.GO31337@atomide.com>
- <201112010310.43890.jkrzyszt@tis.icnet.pl>
- <20111201022750.GY13928@atomide.com>
- <201112011054.09878.jkrzyszt@tis.icnet.pl>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
+Date: Thu, 1 Dec 2011 18:24:48 +0100
+Message-ID: <201112011824.49591.laurent.pinchart@ideasonboard.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <1322698500-29924-6-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201112011054.09878.jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1322698500-29924-6-git-send-email-saaguirre@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111201 01:20]:
+Hi Sergio,
+
+On Thursday 01 December 2011 01:14:54 Sergio Aguirre wrote:
+> NOTE: This isn't the whole list of features that the
+> ISS supports, but the only ones supported at the moment.
 > 
-> If you still ask me for my opinion: with patch 3/5 omitted, then not 
-> being able to run at any other frequency than 60 MHz instead of usual 
-> 150 since the board support was introduced first, isn't this a 
-> regression?
-
-Yes, assuming that the behaviour for your board has changed by something
-after v3.1, such as commit e9b7086b80c4d9e354f4edc9e280ae85a60df408.
-
-> Having a choice of upgrading to 3.2 and running my 
-> application on not very powerfull board at 60 MHz, or keep running 3.1 
-> at 150, guess what I chose? If I were a distro kernel package 
-> maintainer, guess what I would chose?
-
-Right, that's certainly not intentional :)
-
-> > It seems that we've had the issue of not actually changing the rate
-> > for a while, right?
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  arch/arm/mach-omap2/devices.c              |   32
+> ++++++++++++++++++++++++++++ arch/arm/plat-omap/include/plat/omap44xx.h | 
+>   9 +++++++
+>  2 files changed, 41 insertions(+), 0 deletions(-)
 > 
-> This was not an issue before dpll1 reprogramming has been moved out from 
-> omap1_clk_init(), as an rc fix to another bug introduced in 3.2. Perhaps 
-> we should rather think of reverting a few commits which caused all these 
-> problems if fixing them all during rc cycle seems not possible? I 
-> haven't bisected them yet, rather concentrated on providing fixes, but I 
-> can still try to do it, starting back from the original issue 
-> (http://www.spinics.net/lists/linux-omap/msg60052.html), if so decided.
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index c15cfad..b48aeea 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -32,6 +32,7 @@
+>  #include <plat/omap_hwmod.h>
+>  #include <plat/omap_device.h>
+>  #include <plat/omap4-keypad.h>
+> +#include <plat/omap4-iss.h>
 
-We can't revert that because the SRAM init has been moved to later for
-map_io. But if that patch changed the behaviour on your board, then that's
-the problem we should fix.
+I try to keep headers sorted alphabetically when possible, but that might just 
+be me.
 
-If you're now stuck at 60MHz rate, care to see if the following patch
-makes the kernel behave the same way as before for you? Sorry for dragging
-this on, but I'd like to find out what exactly changed the behaviour for
-your board.
- 
-> Anyway, did you mean resending those 2/5 and 5/5 without any changes, 
-> only renumbered as 1/2 and 2/2?
+> 
+>  #include "mux.h"
+>  #include "control.h"
+> @@ -217,6 +218,37 @@ int omap3_init_camera(struct isp_platform_data *pdata)
+>  	return platform_device_register(&omap3isp_device);
+>  }
+> 
+> +int omap4_init_camera(struct iss_platform_data *pdata, struct
+> omap_board_data *bdata)
+> +{
+> +	struct platform_device *pdev;
+> +	struct omap_hwmod *oh;
+> +	struct iss_platform_data *omap4iss_pdata;
+> +	char *oh_name = "iss";
+> +	char *name = "omap4iss";
 
-Well the numbers will not show up in git, so no changes needed there :)
+Would const char or static const char help the compiler putting the strings to 
+a read-only section ?
 
-But let's figure out first what changed the behaviour for your board.
+> +	unsigned int id = -1;
+> +
+> +	oh = omap_hwmod_lookup(oh_name);
+> +	if (!oh) {
+> +		pr_err("Could not look up %s\n", oh_name);
+> +		return -ENODEV;
+> +	}
+> +
+> +	omap4iss_pdata = pdata;
+> +
+> +	pdev = omap_device_build(name, id, oh, omap4iss_pdata,
+> +			sizeof(struct iss_platform_data), NULL, 0, 0);
 
+This is the only location where id is used, maybe you could pass -1 directly 
+to the function ?
+
+> +
+> +	if (IS_ERR(pdev)) {
+> +		WARN(1, "Can't build omap_device for %s:%s.\n",
+> +						name, oh->name);
+> +		return PTR_ERR(pdev);
+> +	}
+> +
+> +	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
+> +
+> +	return 0;
+> +}
+> +
+>  static inline void omap_init_camera(void)
+>  {
+>  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h
+> b/arch/arm/plat-omap/include/plat/omap44xx.h index ea2b8a6..31432aa 100644
+> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
+> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+> @@ -49,6 +49,15 @@
+>  #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
+>  #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
+> 
+> +#define OMAP44XX_ISS_BASE			0x52000000
+> +#define OMAP44XX_ISS_TOP_BASE			(OMAP44XX_ISS_BASE + 0x0)
+> +#define OMAP44XX_ISS_CSI2_A_REGS1_BASE		(OMAP44XX_ISS_BASE + 0x1000)
+> +#define OMAP44XX_ISS_CAMERARX_CORE1_BASE	(OMAP44XX_ISS_BASE + 0x1170)
+> +
+> +#define OMAP44XX_ISS_TOP_END			(OMAP44XX_ISS_TOP_BASE + 256 - 1)
+> +#define OMAP44XX_ISS_CSI2_A_REGS1_END		(OMAP44XX_ISS_CSI2_A_REGS1_BASE +
+> 368 - 1) +#define
+> OMAP44XX_ISS_CAMERARX_CORE1_END		(OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 -
+> 1) +
+>  #define OMAP4_MMU1_BASE			0x55082000
+>  #define OMAP4_MMU2_BASE			0x4A066000
+
+-- 
 Regards,
 
-Tony
-
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -927,7 +927,7 @@ int __init omap1_clk_init(void)
- 
- void __init omap1_clk_late_init(void)
- {
--	if (ck_dpll1.rate >= OMAP1_DPLL1_SANE_VALUE)
-+	if (ck_dpll1.rate > OMAP1_DPLL1_SANE_VALUE)
- 		return;
- 
- 	/* Find the highest supported frequency and enable it */
+Laurent Pinchart
