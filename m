@@ -1,46 +1,67 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Thu, 1 Dec 2011 18:32:11 +0000
-Message-ID: <20111201183211.GC18120@opensource.wolfsonmicro.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org>
-	<1321926047-14211-4-git-send-email-mturquette@linaro.org>
-	<alpine.DEB.2.00.1111291619110.6289@utopia.booyaka.com>
-	<CAJOA=zM4vcyTt_RBEVm6JxmzW-Dna0gpuWda7ytq_mqFSuXw9g@mail.gmail.com>
-	<alpine.DEB.2.00.1111302308280.6289@utopia.booyaka.com>
-	<20111201144205.GA2103@sirena.org.uk>
-	<alpine.DEB.2.00.1112011124221.6289@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 2a/5] Remove unsafe clock values from omap1_defconfig
+Date: Thu, 1 Dec 2011 19:38:32 +0100
+Message-ID: <201112011938.36706.jkrzyszt@tis.icnet.pl>
+References: <20111128174508.GO31337@atomide.com> <201112011054.09878.jkrzyszt@tis.icnet.pl> <20111201171758.GT31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1112011124221.6289-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111201171758.GT31337@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 01, 2011 at 11:30:16AM -0700, Paul Walmsley wrote:
+On Thursday 01 of December 2011 at 18:17:58, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111201 01:20]:
+[snip]
+> > Perhaps 
+> > we should rather think of reverting a few commits which caused all these 
+> > problems if fixing them all during rc cycle seems not possible? I 
+> > haven't bisected them yet, rather concentrated on providing fixes, but I 
+> > can still try to do it, starting back from the original issue 
+> > (http://www.spinics.net/lists/linux-omap/msg60052.html), if so decided.
+> 
+> We can't revert that because the SRAM init has been moved to later for
+> map_io. 
 
-> So for example, if you had a driver that did:
+Yes, I know that. What I don't know yet is what else should be reverted 
+to fix the original issue other than applying  
+e9b7086b80c4d9e354f4edc9e280ae85a60df408, which seems to introduce (or 
+maybe 'exhibit' is a better word here) more bugs than it fixes.
 
-> c = clk_get(dev, clk_name);
-> clk_enable(c);
-> clk_set_rate(c, clk_rate);
+> But if that patch changed the behaviour on your board, then that's
+> the problem we should fix.
+> 
+> If you're now stuck at 60MHz rate, care to see if the following patch
+> makes the kernel behave the same way as before for you?
+[snip]
+> 
+> --- a/arch/arm/mach-omap1/clock_data.c
+> +++ b/arch/arm/mach-omap1/clock_data.c
+> @@ -927,7 +927,7 @@ int __init omap1_clk_init(void)
+>  
+>  void __init omap1_clk_late_init(void)
+>  {
+> -	if (ck_dpll1.rate >= OMAP1_DPLL1_SANE_VALUE)
+> +	if (ck_dpll1.rate > OMAP1_DPLL1_SANE_VALUE)
+>  		return;
+>  
+>  	/* Find the highest supported frequency and enable it */
 
-> and c was currently not enabled by any other driver on the system, and 
-> nothing else had called clk_block_rate_change(c), then the rate change 
-> would be allowed to proceed.  (modulo any notifier activity, etc.)  
+This change really makes sense to me, however, knowing the initial 
+(bootloader selected) clock rate my board boots at, which is 
+unfortunately raw 12 MHz, I would be surprised if that helped.
 
-> So clk_{allow,block}_rate_change() was simply intended to allow or 
-> restrict other users of the same clock, not the current user.
+Before e9b7086b80c4d9e354f4edc9e280ae85a60df408, 
+omap1_select_table_rate() was returning the rate selected with .config 
+because it was called early, with ck_dpll1_p->rate uninitialized. Now it 
+is not, and returns nothing, resulting in 60 MHz default. Then, the only 
+way I can see to correct the problem is something like patch 3/5, which 
+you are justifiably affraid of of always switching to 216 MHz with 
+omap1_defconfig.
 
-Ah, sorry!  I'd totally misunderstood what you were proposing.
+Thanks,
+Janusz
