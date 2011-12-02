@@ -1,47 +1,79 @@
-From: Dave Jones <davej@redhat.com>
-Subject: Re: [GIT PULL] cpufreq: OMAP: move to drivers/cpufreq and updates
- for v3.3
-Date: Fri, 2 Dec 2011 14:45:22 -0500
-Message-ID: <20111202194522.GA8652@redhat.com>
-References: <871ut5w2js.fsf@ti.com>
- <87ty5ij2aa.fsf@ti.com>
- <20111202175256.GA27874@redhat.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Fri, 2 Dec 2011 20:23:06 +0000
+Message-ID: <20111202202306.GF19739@n2100.arm.linux.org.uk>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1111291619110.6289@utopia.booyaka.com> <20111201084547.GD19739@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1112012352000.6289@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <cpufreq-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20111202175256.GA27874@redhat.com>
-Sender: cpufreq-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: cpufreq@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <alpine.DEB.2.00.1112012352000.6289@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Dec 02, 2011 at 12:52:57PM -0500, Dave Jones wrote:
- > On Fri, Dec 02, 2011 at 09:45:17AM -0800, Kevin Hilman wrote:
- >  > Dave,
- >  > 
- >  > Kevin Hilman <khilman@ti.com> writes:
- >  > 
- >  > > Hi Dave,
- >  > >
- >  > > Here's the updated pull request after a rebase onto v3.2-rc1 and some
- >  > > fixes to address other changes that went into v3.2.
- >  > >
- >  > > This is targetted for v3.3, so I'd like to get it into your tree and
- >  > > into linux-next.
- >  > 
- >  > Are there any problems with this series or pull request?  
- > 
- > Somehow I missed this. I'll get to it this afternoon and push it out.
+On Fri, Dec 02, 2011 at 10:13:10AM -0700, Paul Walmsley wrote:
+> Hi Russell,
+> 
+> On Thu, 1 Dec 2011, Russell King - ARM Linux wrote:
+> 
+> > On Wed, Nov 30, 2011 at 06:20:50PM -0700, Paul Walmsley wrote:
+> > > 1. When a clock user calls clk_enable() on a clock, the clock framework 
+> > > should prevent other users of the clock from changing the clock's rate.  
+> > > This should persist until the clock user calls clk_disable() (but see also 
+> > > #2 below).  This will ensure that clock users can rely on the rate 
+> > > returned by clk_get_rate(), as long as it's called between clk_enable() 
+> > > and clk_disable().  And since the clock's rate is guaranteed to remain the 
+> > > same during this time, code that cannot tolerate clock rate changes 
+> > > without special handling (such as driver code for external I/O devices) 
+> > > will work safely without further modification.
+> > 
+> > So, if you have a PLL whose parent clock is not used by anything else.
+> > You want to program it to a certain rate.
+> > 
+> > You call clk_disable() on the PLL clock.
+> 
+> The approach described wouldn't require the PLL to be disabled before 
+> changing its rate.  If there are no other users of the PLL, or if the 
+> other users of the PLL have indicated that it's safe for others to change 
+> the PLL's rate, the clock framework would allow the PLL rate change, even 
+> if the PLL is enabled.  (modulo any notifier activity, and assuming that 
+> the underlying PLL hardware allows its frequency to be reprogrammed while 
+> the PLL is enabled)
+> 
+> > This walks up the tree and disables the parent.  You then try to set the 
+> > rate using clk_set_rate(). clk_set_rate() in this circumstance can't 
+> > wait for the PLL to lock because it can't - there's no reference clock 
+> > for it.
+> 
+> As an aside, this seems like a good time to mention that the behavior of 
+> clk_set_rate() on a disabled clock needs to be clarified.
 
-applied and pushed.
+It's more complicated than that.  Clocks have more states than just
+enabled and disabled.
 
-So things have seemed kinda quiet lately, which is making me wonder if
-I've somehow lost other mail too.  (There have been a number of small disasters
-with my @redhat mail this last month).
+There is:
+- unprepared
+- prepared and disabled
+- prepared and enabled
 
-If anyone has anything else pending that hasn't been applied yet, please resend,
-and I'll get on top of it asap.
+Implementations can chose at which point to enable their PLLs and wait
+for them to lock - but if they want to sleep while waiting, they must
+do this in the prepare method, not the enable method (remember, enable
+is to be callable from atomic contexts.)
 
-	Dave
+So, it's entirely possible that a prepared clock will have the PLLs up
+and running, which means that clk_set_rate() can also wait for the PLL
+to stablize (which would be a good idea.)
 
+Now... we can say that PLLs should be locked when the prepare method
+returns, or whenever clk_set_rate() returns.  The problem with that is
+there's a race condition between clk_enable() and clk_set_rate() - if
+we allow clk_set_rate() to sleep waiting for the PLL to lock, a
+concurrent clk_enable() can't be prevented from returning because
+that would involve holding a spinlock...
+
+I think this is just one of those unsolvable issues - if you have
+concurrent users of a PLL there's not much you can do - race free - to
+prevent the PLL changing beneath some user.
