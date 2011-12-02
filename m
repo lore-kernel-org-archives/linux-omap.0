@@ -1,69 +1,49 @@
-From: "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
-Subject: RE: arm, am1808: using mmc1 controller and dma
-Date: Fri, 2 Dec 2011 09:00:08 +0000
-Message-ID: <B6A220404B6BFC4BBD2AB91C54D39DF4029429@DBDE01.ent.ti.com>
-References: <4ED87FBA.40409@denx.de>
- <B6A220404B6BFC4BBD2AB91C54D39DF40293DB@DBDE01.ent.ti.com>
- <4ED89294.6010804@denx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4ED89294.6010804@denx.de>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: "hs@denx.de" <hs@denx.de>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Wolfgang Denk <wd@denx.de>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vipin Bhandari <vipin.bhandari@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD) driver
+Date: Fri,  2 Dec 2011 17:12:51 +0800
+Message-ID: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:52426 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509Ab1LBJNa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 04:13:30 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 
 Hi,
 
-On Fri, Dec 02, 2011 at 14:25:48, Heiko Schocher wrote:
-> Hello Rajashekhara, Sudhakar,
-> 
-> Rajashekhara, Sudhakar wrote:
-> > Hi,
-> > 
-> > On Fri, Dec 02, 2011 at 13:05:22, Heiko Schocher wrote:
-> >> Hello,
-> >>
-> >> trying Linux 3.2.0-rc3 on an am1808 based board using MMCSD1 controller,
-> >> and facing problems with using DMA. Deactivating use_dma=0 in the
-> >> davinci_mmc controller and mmc works in pio mode without problems.
-> >> So there are no hardware problems, pinmux is ok, psc are all on.
-> >>
-> > 
-> > Please refer to the discussion at [1] where similar issue was discussed. Go through the
+These v1 patches(against -next tree) introduce v4l2 based face
+detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
+The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
+and Greg-Kh.
 
-[...]
+For verification purpose, I write one user space utility[2] to
+test the module and driver, follows its basic functions:
 
-> 
-> Yuhu! that works for me! But I had to fix it a little, because "edma_info"
-> is now named "info". Here my diff:
-> 
+	- detect faces in input grayscal picture(PGM raw, 320 by 240)
+	- detect faces in input y8 format video stream
+	- plot a rectangle to mark the detected faces, and save it as 
+	another same format picture or video stream
 
-Yup, this patch was on an older version.
+Looks the performance of the module is not bad, see some detection
+results on the link[3][4].
 
-> diff --git a/arch/arm/mach-davinci/dma.c b/arch/arm/mach-davinci/dma.c
-> index da90103..e10a251 100644
-> --- a/arch/arm/mach-davinci/dma.c
-> +++ b/arch/arm/mach-davinci/dma.c
-> @@ -1513,7 +1513,7 @@ static int __init edma_probe(struct platform_device *pdev)
->                  * started by the codec engine will not cause audio defects.
->                  */
->                 for (i = 0; i < edma_cc[j]->num_channels; i++)
-> -                       map_dmach_queue(j, i, EVENTQ_1);
-> +                       map_dmach_queue(j, i, info[j]->default_queue);
-> 
->                 queue_tc_mapping = info[j]->queue_tc_mapping;
->                 queue_priority_mapping = info[j]->queue_priority_mapping;
-> 
-> > [1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg17926.html 
-> 
-> Do you prepare a patch, or should I send it?
-> 
+Face detection can be used to implement some interesting applications
+(camera, face unlock, baby monitor, ...).
 
-You can go ahead and submit the patch but Juha was the person who found out this issue.
+TODO:
+	- implement FD setting interfaces with v4l2 controls or
+	ext controls
 
-Thanks,
-Sudhakar
+thanks,
+--
+Ming Lei
+
+[1], Ch9 of OMAP4 Technical Reference Manual
+[2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
+[3], http://kernel.ubuntu.com/~ming/dev/fdif/output
+[4], All pictures are taken from http://www.google.com/imghp
+and converted to pnm from jpeg format, only for test purpose.
+
