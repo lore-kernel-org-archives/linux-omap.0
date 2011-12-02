@@ -1,60 +1,37 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 02/11] mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
-Date: Fri, 2 Dec 2011 02:08:47 +0100
-Message-ID: <201112020208.47919.laurent.pinchart@ideasonboard.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <201112011824.54207.laurent.pinchart@ideasonboard.com> <CAKnK67R_sTToETijbBsyKXfdfvKv68vaF-_Ur5uYy=yKJ4hiEA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2 v2] ARM: OMAP1: Fix dpll1 reprogramming related
+ issues
+Date: Thu, 1 Dec 2011 18:09:37 -0800
+Message-ID: <20111202020936.GY31337@atomide.com>
+References: <201112012023.04635.jkrzyszt@tis.icnet.pl>
+ <1322770382-30718-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33625 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754382Ab1LBBIm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Dec 2011 20:08:42 -0500
-In-Reply-To: <CAKnK67R_sTToETijbBsyKXfdfvKv68vaF-_Ur5uYy=yKJ4hiEA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1322770382-30718-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, sakari.ailus@iki.fi
 
-Hi Sergio,
-
-On Thursday 01 December 2011 18:35:20 Aguirre, Sergio wrote:
-> On Thu, Dec 1, 2011 at 11:24 AM, Laurent Pinchart wrote:
-> > On Thursday 01 December 2011 01:14:51 Sergio Aguirre wrote:
-> >> The define should be the result of 1 << Bit number.
-> >> 
-> >> Bit number for GPOCTL.GPO3 field is 2, which results
-> >> in 0x4 value.
-> >> 
-> >> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> >> ---
-> >>  include/linux/mfd/twl6040.h |    2 +-
-> >>  1 files changed, 1 insertions(+), 1 deletions(-)
-> >> 
-> >> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
-> >> index 2463c261..2a7ff16 100644
-> >> --- a/include/linux/mfd/twl6040.h
-> >> +++ b/include/linux/mfd/twl6040.h
-> >> @@ -142,7 +142,7 @@
-> >> 
-> >>  #define TWL6040_GPO1                 0x01
-> >>  #define TWL6040_GPO2                 0x02
-> >> -#define TWL6040_GPO3                 0x03
-> >> +#define TWL6040_GPO3                 0x04
-> > 
-> > What about defining the fields as (1 << x) instead then ?
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111201 11:38]:
+> After dpll1 reprogramming has been moved from setup_arch() to
+> kernel_init(), I've been observing several issues, resulting in
+> undesired system behaviour on my Amstrad Delta. This series fixes
+> those most important (2/5 and 5/5 v2 previously), with a "stuck at 60MHz
+> rate" issue going to be fixed with Tony's proposed solution instead of
+> my previous 3/5.
 > 
-> I thought about that, but I guess I just wanted to keep it consistent with
-> the rest of the file.
+> Janusz Krzysztofik (2):
+>   ARM: OMAP1: Fix ckctl value used for dpll1 defualt rate
+>   ARM: OMAP1: recalculate loops per jiffy after dpll1 reprogram
+> 
+>  arch/arm/mach-omap1/clock_data.c |    9 +++++++--
+>  1 files changed, 7 insertions(+), 2 deletions(-)
 
-I've seen that as well. I'm fine with keeping the above defines if you prefer.
+Thanks, got these three patches now applied into fixes on top of -rc4.
 
-> Maybe I can create a separate patch for changing all these bitwise flags to
-> use BIT() macros instead.
+Can you please try it out to make sure it's all working for you now?
 
--- 
-Regards,
-
-Laurent Pinchart
+Tony
