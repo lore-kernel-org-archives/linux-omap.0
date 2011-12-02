@@ -1,44 +1,70 @@
 From: Ming Lei <ming.lei@canonical.com>
-Subject: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD) driver
-Date: Fri,  2 Dec 2011 23:02:45 +0800
-Message-ID: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+Subject: [RFC PATCH v1 2/7] omap4: build fdif omap device from hwmod
+Date: Fri,  2 Dec 2011 23:02:47 +0800
+Message-ID: <1322838172-11149-3-git-send-email-ming.lei@canonical.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, Ming Lei <ming.lei@canonical.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ arch/arm/mach-omap2/devices.c |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
 
-These v1 patches(against -next tree) introduce v4l2 based face
-detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
-The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
-and Greg-Kh.
-
-For verification purpose, I write one user space utility[2] to
-test the module and driver, follows its basic functions:
-
-	- detect faces in input grayscal picture(PGM raw, 320 by 240)
-	- detect faces in input y8 format video stream
-	- plot a rectangle to mark the detected faces, and save it as 
-	another same type grayscal picture
-
-Looks the performance of the module is not bad, see some detection
-results on the link[3][4].
-
-Face detection can be used to implement some interesting applications
-(camera, face unlock, baby monitor, ...).
-
-TODO:
-	- implement FD setting interfaces with v4l2 controls or
-	ext controls
-
-thanks,
---
-Ming Lei
-
-[1], Ch9 of OMAP4 Technical Reference Manual
-[2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
-[3], http://kernel.ubuntu.com/~ming/dev/fdif/output
-[4], All pictures are taken from http://www.google.com/imghp
-and converted to pnm from jpeg format, only for test purpose.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 1166bdc..a392af5 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -728,6 +728,38 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
+ 
+ #endif
+ 
++static struct platform_device* __init omap4_init_fdif(void)
++{
++	int id = -1;
++	struct platform_device *pd;
++	struct omap_hwmod *oh;
++	const char *dev_name = "fdif";
++
++	oh = omap_hwmod_lookup("fdif");
++	if (!oh) {
++		pr_err("Could not look up fdif hwmod\n");
++		return NULL;
++	}
++
++	pd = omap_device_build(dev_name, id, oh, NULL, 0, NULL, 0, 0);
++	WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
++				dev_name);
++	return pd;
++}
++
++static void __init omap_init_fdif(void)
++{
++	if (cpu_is_omap44xx()) {
++		struct platform_device *pd;
++
++		pd = omap4_init_fdif();
++		if (!pd)
++			return;
++
++		pm_runtime_enable(&pd->dev);
++	}
++}
++
+ /*-------------------------------------------------------------------------*/
+ 
+ #if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
+@@ -808,6 +840,7 @@ static int __init omap2_init_devices(void)
+ 	omap_init_sham();
+ 	omap_init_aes();
+ 	omap_init_vout();
++	omap_init_fdif();
+ 
+ 	return 0;
+ }
+-- 
+1.7.5.4
