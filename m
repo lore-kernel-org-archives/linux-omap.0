@@ -1,135 +1,123 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [PATCH v2 03/11] v4l: Introduce sensor operation for getting
- interface configuration
-Date: Fri, 2 Dec 2011 10:04:42 -0600
-Message-ID: <CAKnK67REjC110pywXA+Uy_6N7UEibsci=EDbsUw3CqrQWp+ZKA@mail.gmail.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-4-git-send-email-saaguirre@ti.com> <4ED8D374.1030206@mm-sol.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <4ED8D374.1030206@mm-sol.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Stanimir Varbanov <svarbanov@mm-sol.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] arm: omap: rx51: enable tsc2005 touchscreen
+Date: Fri,  2 Dec 2011 18:29:13 +0200
+Message-ID: <1322843353-16155-1-git-send-email-aaro.koskinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.1.47]:31826 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757007Ab1LBQ2H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Dec 2011 11:28:07 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: sre@debian.org
 
-Hi Stan,
+Enable TSC2005 touchscreen driver on the RX-51 board by providing the
+needed platform data.
 
-On Fri, Dec 2, 2011 at 7:32 AM, Stanimir Varbanov <svarbanov@mm-sol.com=
-> wrote:
-> Hi, Sergio
->
-> This change in interface is not used from the omap4iss driver.
->
-> You could drop it from the patch set, if so.
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
 
-Oops, yes... I used to depend on this for my soc_camera implementation =
-before...
+	Tony, this patch has been forgotten, any chance to get it
+	into 3.3?
 
-You're absolutely right, i'll remove it in the next iteration.
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   46 ++++++++++++++++++++++++-
+ 1 files changed, 44 insertions(+), 2 deletions(-)
 
-Merci!
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index ba1aa07..229754c 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -15,6 +15,7 @@
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/spi/spi.h>
+ #include <linux/wl12xx.h>
++#include <linux/spi/tsc2005.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl.h>
+ #include <linux/clk.h>
+@@ -58,6 +59,9 @@
+ 
+ #define RX51_USB_TRANSCEIVER_RST_GPIO	67
+ 
++#define RX51_TSC2005_RESET_GPIO         104
++#define RX51_TSC2005_IRQ_GPIO           100
++
+ /* list all spi devices here */
+ enum {
+ 	RX51_SPI_WL1251,
+@@ -66,6 +70,7 @@ enum {
+ };
+ 
+ static struct wl12xx_platform_data wl1251_pdata;
++static struct tsc2005_platform_data tsc2005_pdata;
+ 
+ #if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
+ static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
+@@ -167,10 +172,10 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+ 		.modalias		= "tsc2005",
+ 		.bus_num		= 1,
+ 		.chip_select		= 0,
+-		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
++		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
+ 		.max_speed_hz		= 6000000,
+ 		.controller_data	= &tsc2005_mcspi_config,
+-		/* .platform_data = &tsc2005_config,*/
++		.platform_data		= &tsc2005_pdata,
+ 	},
+ };
+ 
+@@ -1086,6 +1091,42 @@ error:
+ 	 */
+ }
+ 
++static struct tsc2005_platform_data tsc2005_pdata = {
++	.ts_pressure_max	= 2048,
++	.ts_pressure_fudge	= 2,
++	.ts_x_max		= 4096,
++	.ts_x_fudge		= 4,
++	.ts_y_max		= 4096,
++	.ts_y_fudge		= 7,
++	.ts_x_plate_ohm		= 280,
++	.esd_timeout_ms		= 8000,
++};
++
++static void rx51_tsc2005_set_reset(bool enable)
++{
++	gpio_set_value(RX51_TSC2005_RESET_GPIO, enable);
++}
++
++static void __init rx51_init_tsc2005(void)
++{
++	int r;
++
++	r = gpio_request_one(RX51_TSC2005_IRQ_GPIO, GPIOF_IN, "tsc2005 IRQ");
++	if (r < 0) {
++		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 IRQ");
++		rx51_peripherals_spi_board_info[RX51_SPI_TSC2005].irq = 0;
++	}
++
++	r = gpio_request_one(RX51_TSC2005_RESET_GPIO, GPIOF_OUT_INIT_HIGH,
++		"tsc2005 reset");
++	if (r >= 0) {
++		tsc2005_pdata.set_reset = rx51_tsc2005_set_reset;
++	} else {
++		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 reset");
++		tsc2005_pdata.esd_timeout_ms = 0;
++	}
++}
++
+ void __init rx51_peripherals_init(void)
+ {
+ 	rx51_i2c_init();
+@@ -1094,6 +1135,7 @@ void __init rx51_peripherals_init(void)
+ 	board_smc91x_init();
+ 	rx51_add_gpio_keys();
+ 	rx51_init_wl1251();
++	rx51_init_tsc2005();
+ 	rx51_init_si4713();
+ 	spi_register_board_info(rx51_peripherals_spi_board_info,
+ 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+-- 
+1.7.2.5
 
->
-> On 12/01/2011 02:14 AM, Sergio Aguirre wrote:
->> From: Stanimir Varbanov <svarbanov@mm-sol.com>
->>
->> Introduce g_interface_parms sensor operation for getting sensor
->> interface parameters. These parameters are needed from the host side
->> to determine it's own configuration.
->>
->> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
->> ---
->> =A0include/media/v4l2-subdev.h | =A0 42 ++++++++++++++++++++++++++++=
-++++++++++++++
->> =A01 files changed, 42 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev=
-=2Eh
->> index f0f3358..0d322ed 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -362,6 +362,42 @@ struct v4l2_subdev_vbi_ops {
->> =A0 =A0 =A0 int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_=
-sliced_vbi_format *fmt);
->> =A0};
->>
->> +/* Which interface the sensor use to provide it's image data */
->> +enum v4l2_subdev_sensor_iface {
->> + =A0 =A0 V4L2_SUBDEV_SENSOR_PARALLEL,
->> + =A0 =A0 V4L2_SUBDEV_SENSOR_SERIAL,
->> +};
->> +
->> +/* Each interface could use the following modes */
->> +/* Image sensor provides horizontal and vertical sync signals */
->> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC =A0 =A0 =A0 =A00
->> +/* BT.656 interface. Embedded sync */
->> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU 1
->> +/* MIPI CSI1 */
->> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1 =A02
->> +/* MIPI CSI2 */
->> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2 =A03
->> +
->> +struct v4l2_subdev_sensor_serial_parms {
->> + =A0 =A0 unsigned char lanes; =A0 =A0 =A0 =A0 =A0 =A0/* number of l=
-anes used */
->> + =A0 =A0 unsigned char channel; =A0 =A0 =A0 =A0 =A0/* virtual chann=
-el */
->> + =A0 =A0 unsigned int phy_rate; =A0 =A0 =A0 =A0 =A0/* output rate a=
-t CSI phy in bps */
->> + =A0 =A0 unsigned int pix_clk; =A0 =A0 =A0 =A0 =A0 /* pixel clock i=
-n Hz */
->> +};
->> +
->> +struct v4l2_subdev_sensor_parallel_parms {
->> + =A0 =A0 unsigned int pix_clk; =A0 =A0 =A0 =A0 =A0 /* pixel clock i=
-n Hz */
->> +};
->> +
->> +struct v4l2_subdev_sensor_interface_parms {
->> + =A0 =A0 enum v4l2_subdev_sensor_iface if_type;
->> + =A0 =A0 unsigned int if_mode;
->> + =A0 =A0 union {
->> + =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_sensor_serial_parms ser=
-ial;
->> + =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_sensor_parallel_parms p=
-arallel;
->> + =A0 =A0 } parms;
->> +};
->> +
->> =A0/**
->> =A0 * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
->> =A0 * @g_skip_top_lines: number of lines at the top of the image to =
-be skipped.
->> @@ -371,10 +407,16 @@ struct v4l2_subdev_vbi_ops {
->> =A0 * @g_skip_frames: number of frames to skip at stream start. This=
- is needed for
->> =A0 * =A0 =A0 =A0 =A0 =A0 =A0 =A0buggy sensors that generate faulty =
-frames when they are
->> =A0 * =A0 =A0 =A0 =A0 =A0 =A0 =A0turned on.
->> + * @g_interface_parms: get sensor interface parameters. The sensor =
-subdev should
->> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fill this structure with curr=
-ent interface params. These
->> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0interface parameters are need=
-ed on host side to configure
->> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0it's own hardware receivers.
->> =A0 */
->> =A0struct v4l2_subdev_sensor_ops {
->> =A0 =A0 =A0 int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lin=
-es);
->> =A0 =A0 =A0 int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames=
-);
->> + =A0 =A0 int (*g_interface_parms)(struct v4l2_subdev *sd,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_subdev_sensor_=
-interface_parms *parms);
->> =A0};
->>
->> =A0/*
->
->
-> --
-> best regards,
-> Stan
