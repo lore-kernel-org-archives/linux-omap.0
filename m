@@ -1,101 +1,47 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] arm: omap: rm-680: fix the panic during boot
-Date: Fri,  2 Dec 2011 20:30:50 +0200
-Message-ID: <1322850650-13171-1-git-send-email-aaro.koskinen@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:19326 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694Ab1LBS3d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Dec 2011 13:29:33 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Dave Jones <davej@redhat.com>
+Subject: Re: [GIT PULL] cpufreq: OMAP: move to drivers/cpufreq and updates
+ for v3.3
+Date: Fri, 2 Dec 2011 14:45:22 -0500
+Message-ID: <20111202194522.GA8652@redhat.com>
+References: <871ut5w2js.fsf@ti.com>
+ <87ty5ij2aa.fsf@ti.com>
+ <20111202175256.GA27874@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111202175256.GA27874@redhat.com>
+Sender: cpufreq-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: cpufreq@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-Booting the Linux kernel on Nokia RM-680 board has been broken since
-2.6.39 due to the following:
+On Fri, Dec 02, 2011 at 12:52:57PM -0500, Dave Jones wrote:
+ > On Fri, Dec 02, 2011 at 09:45:17AM -0800, Kevin Hilman wrote:
+ >  > Dave,
+ >  > 
+ >  > Kevin Hilman <khilman@ti.com> writes:
+ >  > 
+ >  > > Hi Dave,
+ >  > >
+ >  > > Here's the updated pull request after a rebase onto v3.2-rc1 and some
+ >  > > fixes to address other changes that went into v3.2.
+ >  > >
+ >  > > This is targetted for v3.3, so I'd like to get it into your tree and
+ >  > > into linux-next.
+ >  > 
+ >  > Are there any problems with this series or pull request?  
+ > 
+ > Somehow I missed this. I'll get to it this afternoon and push it out.
 
-[    0.217193] omap_hwmod: timer12: enabling
-[    0.221435] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa304010
-[    0.229431] Internal error: : 1028 [#1] SMP
-[    0.233825] Modules linked in:
-[    0.237060] CPU: 0    Not tainted  (3.2.0-rc4-dirty #46)
-[    0.242645] PC is at _update_sysc_cache+0x2c/0x7c
-[    0.247589] LR is at _enable+0x1b0/0x2d8
-[    0.251708] pc : [<c0026108>]    lr : [<c0026df4>]    psr: 40000013
-[    0.251708] sp : ef831f40  ip : ef82f380  fp : c06ac0c0
-[    0.263702] r10: 00000000  r9 : c05dfb2c  r8 : ef830000
-[    0.269165] r7 : c0027494  r6 : 00000000  r5 : 00000000  r4 : c06608b0
-[    0.276000] r3 : fa304000  r2 : 00000010  r1 : c0661e28  r0 : c06608b0
-[    0.282806] Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-[    0.290405] Control: 10c5387d  Table: 80004019  DAC: 00000017
-[    0.296417] Process swapper (pid: 1, stack limit = 0xef8302f8)
-[    0.302520] Stack: (0xef831f40 to 0xef832000)
-[    0.307098] 1f40: c06608b0 c0026df4 c06ad094 c0035120 00000001 c06608b0 00000000 c0027530
-[    0.315612] 1f60: c0027604 ef830000 c05dfb2c c06608b0 c0642ac0 c0025bf0 c0621234 c062120c
-[    0.324127] 1f80: c0621738 00000013 ef830000 c05dfb6c c0621234 c0008688 c062c880 c009eadc
-[    0.332641] 1fa0: 0000005f 00000000 c0621738 35390013 00000000 00000000 00000000 0000019a
-[    0.341156] 1fc0: c0681cf4 c0621234 c062120c c0621738 00000013 00000000 00000000 00000000
-[    0.349670] 1fe0: 00000000 c05d5298 00000000 c05d5200 c0014fa8 c0014fa8 ffff0000 ffff0000
-[    0.358184] [<c0026108>] (_update_sysc_cache+0x2c/0x7c) from [<c0026df4>] (_enable+0x1b0/0x2d8)
-[    0.367248] [<c0026df4>] (_enable+0x1b0/0x2d8) from [<c0027530>] (_setup+0x9c/0x170)
-[    0.375335] [<c0027530>] (_setup+0x9c/0x170) from [<c0025bf0>] (omap_hwmod_for_each+0x38/0x58)
-[    0.384307] [<c0025bf0>] (omap_hwmod_for_each+0x38/0x58) from [<c05dfb6c>] (omap_hwmod_setup_all+0x40/0xa0)
-[    0.394409] [<c05dfb6c>] (omap_hwmod_setup_all+0x40/0xa0) from [<c0008688>] (do_one_initcall+0x34/0x180)
-[    0.404296] [<c0008688>] (do_one_initcall+0x34/0x180) from [<c05d5298>] (kernel_init+0x98/0x144)
-[    0.413452] [<c05d5298>] (kernel_init+0x98/0x144) from [<c0014fa8>] (kernel_thread_exit+0x0/0x8)
-[    0.422576] Code: e3130c01 1590304c 0590304c 119320b2 (07932002)
-[    0.429046] ---[ end trace 1b75b31a2719ed1c ]---
-[    0.433959] Kernel panic - not syncing: Attempted to kill init!
+applied and pushed.
 
-Timer 12 is not necessarily available on non-GP devices (see e.g.
-http://marc.info/?l=linux-omap&m=129433066521102&w=2), so it should be
-registered only on GP OMAPs. With this change it's again possible to
-boot RM-680 into the shell. Tested with 3.2-rc4.
+So things have seemed kinda quiet lately, which is making me wonder if
+I've somehow lost other mail too.  (There have been a number of small disasters
+with my @redhat mail this last month).
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
+If anyone has anything else pending that hasn't been applied yet, please resend,
+and I'll get on top of it asap.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 7f8915a..2faaf03 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3198,7 +3198,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_timer9_hwmod,
- 	&omap3xxx_timer10_hwmod,
- 	&omap3xxx_timer11_hwmod,
--	&omap3xxx_timer12_hwmod,
- 
- 	&omap3xxx_wd_timer2_hwmod,
- 	&omap3xxx_uart1_hwmod,
-@@ -3245,6 +3244,12 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	NULL,
- };
- 
-+/* GP-only hwmods */
-+static __initdata struct omap_hwmod *omap3xxx_gp_hwmods[] = {
-+	&omap3xxx_timer12_hwmod,
-+	NULL
-+};
-+
- /* 3430ES1-only hwmods */
- static __initdata struct omap_hwmod *omap3430es1_hwmods[] = {
- 	&omap3xxx_iva_hwmod,
-@@ -3300,6 +3305,13 @@ int __init omap3xxx_hwmod_init(void)
- 	if (r < 0)
- 		return r;
- 
-+	/* Register GP-only hwmods. */
-+	if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
-+		r = omap_hwmod_register(omap3xxx_gp_hwmods);
-+		if (r < 0)
-+			return r;
-+	}
-+
- 	rev = omap_rev();
- 
- 	/*
--- 
-1.7.2.5
+	Dave
 
