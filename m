@@ -1,63 +1,52 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4] OMAP: I2C: Fix the interrupt clearing in OMAP4
-Date: Fri, 02 Dec 2011 14:42:58 -0800
-Message-ID: <8739d2mw7h.fsf@ti.com>
-References: <1322491212-8657-1-git-send-email-shubhrajyoti@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
+Date: Fri, 02 Dec 2011 14:45:38 -0800
+Message-ID: <87wraelhil.fsf@ti.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+	<1322698500-29924-6-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1322491212-8657-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Mon, 28 Nov 2011 20:10:12 +0530")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1322698500-29924-6-git-send-email-saaguirre@ti.com> (Sergio
+	Aguirre's message of "Wed, 30 Nov 2011 18:14:54 -0600")
+Sender: linux-media-owner@vger.kernel.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
 List-Id: linux-omap@vger.kernel.org
 
-Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Sergio Aguirre <saaguirre@ti.com> writes:
 
-> On OMAP4 we were writing 1 to  IRQENABLE_CLR which cleared only
-> the arbitration lost interrupt however for other ips (not OMAP_I2C_IP_VERSION_2)
-> we clear all the interrupts at idle. The patch intends to fix the same by writing 0 to the
-> IE register.
+> NOTE: This isn't the whole list of features that the
+> ISS supports, but the only ones supported at the moment.
+>
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 
-Please also explain why you're using a different register to clear interrupts.
+[...]
 
-IMO, you don't need to explain how it works on other IPs.   
+> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
+> index ea2b8a6..31432aa 100644
+> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
+> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
+> @@ -49,6 +49,15 @@
+>  #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
+>  #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
+>  
+> +#define OMAP44XX_ISS_BASE			0x52000000
+> +#define OMAP44XX_ISS_TOP_BASE			(OMAP44XX_ISS_BASE + 0x0)
+> +#define OMAP44XX_ISS_CSI2_A_REGS1_BASE		(OMAP44XX_ISS_BASE + 0x1000)
+> +#define OMAP44XX_ISS_CAMERARX_CORE1_BASE	(OMAP44XX_ISS_BASE + 0x1170)
+> +
+> +#define OMAP44XX_ISS_TOP_END			(OMAP44XX_ISS_TOP_BASE + 256 - 1)
+> +#define OMAP44XX_ISS_CSI2_A_REGS1_END		(OMAP44XX_ISS_CSI2_A_REGS1_BASE + 368 - 1)
+> +#define OMAP44XX_ISS_CAMERARX_CORE1_END		(OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 - 1)
+> +
+>  #define OMAP4_MMU1_BASE			0x55082000
+>  #define OMAP4_MMU2_BASE			0x4A066000
 
-The changelog should just explain what's broken in the handling of the
-v2 interrupts (only arbitration lost interrupt is cleared) and how
-you're fixing it (writing zero to IE REG, which clears all interrupts.)
+Who are the users of thes address ranges?
 
-> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-
-Has Vikram really signed off on this?  This is a different
-implementation from his original version.  Unless he is on the delivery
-path, there should not be a signed-off from him.  Instead, as I've
-suggested already, I'd like to see a comment in the changelog mentioning
-that this patch is based on an original patch from Vikram, and then
-ideally a reply from Vikram on the list with his Acked-by or Reviewed-by.
+IMO, we shouldn't ned to add anymore based address definitions.  These
+should be done in the hwmod data, and drivers get base addresses using
+the standard ways of getting resources (DT or platform_get_resource())
 
 Kevin
-
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index a43d002..abadc13 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -297,10 +297,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  	pdata = dev->dev->platform_data;
->  
->  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-> -	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
-> -		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
-> -	else
-> -		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-> +
-> +	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
->  
->  	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
->  		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
