@@ -1,64 +1,192 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 03/11] arm:omap:am33xx: Add power domain data
-Date: Fri, 02 Dec 2011 13:25:08 -0800
-Message-ID: <874nxiis3v.fsf@ti.com>
-References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
-	<1321809555-13833-4-git-send-email-hvaibhav@ti.com>
-	<878vmxump8.fsf@ti.com>
-	<DF0F476B391FA8409C78302C7BA518B6039FFA@DBDE01.ent.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCHv7 2/3] OMAP: I2C: Remove the reset in the init path
+Date: Fri, 2 Dec 2011 15:37:58 -0600
+Message-ID: <4ED94536.2080307@ti.com>
+References: <1322817674-25384-1-git-send-email-shubhrajyoti@ti.com> <1322817674-25384-3-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:32820 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751584Ab1LBVZL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 16:25:11 -0500
-Received: by mail-gy0-f182.google.com with SMTP id g20so4967695ghb.27
-        for <linux-omap@vger.kernel.org>; Fri, 02 Dec 2011 13:25:10 -0800 (PST)
-In-Reply-To: <DF0F476B391FA8409C78302C7BA518B6039FFA@DBDE01.ent.ti.com>
-	(Sekhar Nori's message of "Fri, 2 Dec 2011 18:14:48 +0000")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34137 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755539Ab1LBViO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Dec 2011 16:38:14 -0500
+In-Reply-To: <1322817674-25384-3-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nori, Sekhar" <nsekhar@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, "Mohammed, Afzal" <afzal@ti.com>, "Patil, Rachna" <rachna@ti.com>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, ben-linux@fluff.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Richard Woodruff <r-woodruff2@ti.com>
 
-"Nori, Sekhar" <nsekhar@ti.com> writes:
+Hi Shubhrajyoti,
 
-> On Thu, Dec 01, 2011 at 06:34:19, Hilman, Kevin wrote:
->> Vaibhav Hiremath <hvaibhav@ti.com> writes:
->> 
->> > From: Afzal Mohammed <afzal@ti.com>
->> >
->> > This patch adds AM33XX power domain data,
->> > corresponding API's to access PRM module and
->> > PRM register offsets & bit fields.
->> >
->> > Signed-off-by: Rachna Patil <rachna@ti.com>
->> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
->> 
->> First some general comments:
->> 
->> At first glance, it seems like there could be much more reuse with OMAP4
->> code here.  From what I see, AM33x has only one partition compared to
->> several on OMAP4, but that doesn't mean you couldn't reuse the OMAP4
->> functions and just use a single partition.
->> 
->> IOW, it seems to me that all the pwrdm_ops could be shared with OMAP4.
->> 
->> From what I read (after an admittedly quick glance), the main thing you
->> need is a way to override the PRM offsets due to the fact that some
->> crazy person decided to make each instance different.
+On 12/2/2011 3:21, Shubhrajyoti D wrote:
+> -  The reset in the driver at init is not needed anymore as the
+>     hwmod framework takes care of reseting it.
+> -  Reset is removed from omap_i2c_init, which was called
+>     not only during probe, but also after time out and error handling.
+>     device_reset were added in those places to effect the reset.
+> -  Earlier the hwmod SYSC settings were over-written in the driver.
+>     Removing the same and letting the hwmod take care of the settings.
+> -  Clean up the SYSS_RESETDONE_MASK macro as it is no longer needed.
+> -  Clean up the SYSCONFIG SYSC bit defination macros.
+> -  Fix the typos in wakeup.
 >
-> If its any consolation, this has been fed back to the chip designers
-> and is expected to be corrected for the next AM335x derivative.
+> Signed-off-by: Shubhrajyoti D<shubhrajyoti@ti.com>
+> ---
+>   drivers/i2c/busses/i2c-omap.c |   82 +++++++++++------------------------------
+>   1 files changed, 22 insertions(+), 60 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index fa23faa..beff9f3 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -155,19 +155,6 @@ enum {
+>   #define OMAP_I2C_SYSTEST_SDA_O		(1<<  0)	/* SDA line drive out */
+>   #endif
+>
+> -/* OCP_SYSSTATUS bit definitions */
+> -#define SYSS_RESETDONE_MASK		(1<<  0)
+> -
+> -/* OCP_SYSCONFIG bit definitions */
+> -#define SYSC_CLOCKACTIVITY_MASK		(0x3<<  8)
+> -#define SYSC_SIDLEMODE_MASK		(0x3<<  3)
+> -#define SYSC_ENAWAKEUP_MASK		(1<<  2)
+> -#define SYSC_SOFTRESET_MASK		(1<<  1)
+> -#define SYSC_AUTOIDLE_MASK		(1<<  0)
+> -
+> -#define SYSC_IDLEMODE_SMART		0x2
+> -#define SYSC_CLOCKACTIVITY_FCLK		0x2
+> -
+>   /* Errata definitions */
+>   #define I2C_OMAP_ERRATA_I207		(1<<  0)
+>   #define I2C_OMAP3_1P153			(1<<  1)
+> @@ -182,6 +169,7 @@ struct omap_i2c_dev {
+>   	u32			latency;	/* maximum mpu wkup latency */
+>   	void			(*set_mpu_wkup_lat)(struct device *dev,
+>   						    long latency);
+> +	int			(*device_reset)(struct device *dev);
+>   	u32			speed;		/* Speed of bus in Khz */
+>   	u16			cmd_err;
+>   	u8			*buf;
+> @@ -317,60 +305,23 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>   	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+>   	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+>   	unsigned long fclk_rate = 12000000;
+> -	unsigned long timeout;
+>   	unsigned long internal_clk = 0;
+>   	struct clk *fclk;
+>   	struct omap_i2c_bus_platform_data *pdata;
+>
+>   	pdata = dev->dev->platform_data;
+>
+> -	if (dev->rev>= OMAP_I2C_OMAP1_REV_2) {
+> -		/* Disable I2C controller before soft reset */
+> -		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> -			omap_i2c_read_reg(dev, OMAP_I2C_CON_REG)&
+> -				~(OMAP_I2C_CON_EN));
+> -
+> -		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
+> -		/* For some reason we need to set the EN bit before the
+> -		 * reset done bit gets set. */
+> -		timeout = jiffies + OMAP_I2C_TIMEOUT;
+> -		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> -		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG)&
+> -			 SYSS_RESETDONE_MASK)) {
+> -			if (time_after(jiffies, timeout)) {
+> -				dev_warn(dev->dev, "timeout waiting "
+> -						"for controller reset\n");
+> -				return -ETIMEDOUT;
+> -			}
+> -			msleep(1);
+> -		}
+> -
+> -		/* SYSC register is cleared by the reset; rewrite it */
+> -		if (dev->rev == OMAP_I2C_REV_ON_2430) {
+> -
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> -					   SYSC_AUTOIDLE_MASK);
+> -
+> -		} else if (dev->rev>= OMAP_I2C_REV_ON_3430) {
+> -			dev->syscstate = SYSC_AUTOIDLE_MASK;
+> -			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+> -			dev->syscstate |= (SYSC_IDLEMODE_SMART<<
+> -			      __ffs(SYSC_SIDLEMODE_MASK));
+> -			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK<<
+> -			      __ffs(SYSC_CLOCKACTIVITY_MASK));
 
-Great, Thanks!   
+The issue I see with this change is that you are removing the above code 
+to set the CLKACTIVITY field. Today, AFAIK, hwmod does not set this. 
+Ideally it should. However, from discussing this with Richard W, this 
+can cause timeouts to occur for i2c transactions. So before removing 
+this we need to make sure that this is handled by hwmod or else where.
 
-Assuming mainline kernel support is a priority for the other SoCs in
-this family, keeping SW compatibility with other existing SoCs in the
-OMAP family should be a high priority.  This is especially true when
-large portions of the IP are reused from existing SoCs, as is clearly
-the case in AM33x.
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> -							dev->syscstate);
+> -			/*
+> -			 * Enabling all wakup sources to stop I2C freezing on
+> -			 * WFI instruction.
+> -			 * REVISIT: Some wkup sources might not be needed.
+> -			 */
+> -			dev->westate = OMAP_I2C_WE_ALL;
+> -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> -							dev->westate);
+> -		}
+> +	if (dev->rev>= OMAP_I2C_REV_ON_3430) {
+> +		/*
+> +		 * Enabling all wakeup sources to stop I2C freezing on
+> +		 * WFI instruction.
+> +		 * REVISIT: Some wakeup sources might not be needed.
+> +		 */
+> +		dev->westate = OMAP_I2C_WE_ALL;
+> +		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> +						dev->westate);
+>   	}
+> +
+>   	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>
+>   	if (pdata->flags&  OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
+> @@ -594,6 +545,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>   		return r;
+>   	if (r == 0) {
+>   		dev_err(dev->dev, "controller timed out\n");
+> +		if (dev->device_reset) {
+> +			r = dev->device_reset(dev->dev);
+> +			if (r<  0)
+> +				dev_err(dev->dev, "reset failed\n");
+> +		}
+>   		omap_i2c_init(dev);
 
-Kevin
+Why put the reset here? The function omap_i2c_init is going to perform a 
+soft reset. So why not replace the reset in that function?
+
+Furthermore does this work for omap1 devices? I think that you would 
+need to remove the existing soft-reset from omap_i2c_init() into an omap1.
+
+>   		return -ETIMEDOUT;
+>   	}
+> @@ -604,6 +560,11 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>   	/* We have an error */
+>   	if (dev->cmd_err&  (OMAP_I2C_STAT_AL | OMAP_I2C_STAT_ROVR |
+>   			    OMAP_I2C_STAT_XUDF)) {
+> +		if (dev->device_reset) {
+> +			r = dev->device_reset(dev->dev);
+> +			if (r<  0)
+> +				dev_err(dev->dev, "reset failed\n");
+> +		}
+>   		omap_i2c_init(dev);
+
+Same as above.
+
+>   		return -EIO;
+>   	}
+> @@ -1004,6 +965,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>   	if (pdata != NULL) {
+>   		speed = pdata->clkrate;
+>   		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> +		dev->device_reset = pdata->device_reset;
+>   	} else {
+>   		speed = 100;	/* Default speed */
+>   		dev->set_mpu_wkup_lat = NULL;
+
+Cheers
+Jon
