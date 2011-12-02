@@ -1,79 +1,88 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC PATCH 03/11] arm:omap:am33xx: Add power domain data
-Date: Fri, 02 Dec 2011 11:07:35 +0530
-Message-ID: <4ED8641F.7060008@ti.com>
-References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com> <1321809555-13833-4-git-send-email-hvaibhav@ti.com> <878vmxump8.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8047604@DBDE01.ent.ti.com>
+From: <hvaibhav@ti.com>
+Subject: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
+Date: Fri, 2 Dec 2011 12:13:21 +0530
+Message-ID: <1322808204-12878-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:42064 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750703Ab1LBFhm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 00:37:42 -0500
-Received: by mail-yx0-f175.google.com with SMTP id r11so2476094yen.6
-        for <linux-omap@vger.kernel.org>; Thu, 01 Dec 2011 21:37:42 -0800 (PST)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8047604@DBDE01.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54274 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab1LBGnm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 01:43:42 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "Patil, Rachna" <rachna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org, paul@pwsan.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-[..]
->> First some general comments:
->>
->> At first glance, it seems like there could be much more reuse with OMAP4
->> code here.  From what I see, AM33x has only one partition compared to
->> several on OMAP4, but that doesn't mean you couldn't reuse the OMAP4
->> functions and just use a single partition.
-> Kevin,
->
-> Indeed it looks close to OMAP4, but it becomes difficult and ugly once you
-> Start getting into implementation details, for example,
->
->   - All PRM offsets don't match, you will end up with
-> cpu_is_xxx check and handle this. Applicable to all power domains.
->
-> 	OMAP4430_PRM_MPU_INST           0x0300
-> 	Vs
-> 	AM33XX_PRM_MPU_MOD              0x0E00
->
-> 	OMAP4430_PRM_WKUP_INST          0x1700
-> 	Vs
-> 	AM33XX_PRM_WKUP_MOD             0x0D00
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-The above prcm offsets being different on am33xx doesn't really
-seem to be the issue since its already part of the powerdomain
-struct. See how omap2 and omap3 have different offsets and still end
-up using common code. You won't need any cpu_is_* checks for those.
+This patch set adds support for AM335x device having
+Cortex-A8 MPU.
 
-The real problem however seems to be with the completely different
-PWSTCTRL and PWSTST offsets. They seem to be so messed up that they are
-not even consistent across all powerdomains in the same SoC.
-The only solution I could think of to handle these was if we had
-a provision to specify the offsets on a per powerdomain level by
-adding them to the powerdomain struct. It could be populated only
-on SoC's which have these weirdly different offsets and for the rest
-it could just get initialized with fixed values for all powerdomains
-at init.
+Official website - http://www.ti.com/product/am3359
 
-Kevin/Paul/Benoit any thoughts?
+AM335X is treated as another OMAP3 variant, where,
+along with existing cpu class OMAP34XX, new cpu class AM33XX is created
+and the respective type is AM335X, which is newly added device in
+the family.
+This means, cpu_is_omap34xx(), cpu_is_am33xx() and
+cpu_is_am335x() checks return success for AM335X.
 
->
->   - Also there are some differences in logic states of domains as well.
->
-> Another important point is, we have considered AM33xx as OMAP3
-> family of device (ARCH_OMAP3).
-> So you may end up with number of cpu_is_xxx checks in code.
->
->>
->> IOW, it seems to me that all the pwrdm_ops could be shared with OMAP4.
->>
->>  From what I read (after an admittedly quick glance), the main thing you
->> need is a way to override the PRM offsets due to the fact that some
->> crazy person decided to make each instance different.
->>
-> This was one of the major reason why I had chosen and implemented separately
-> for AM33xx.
->
->
+Also, I have validated OMAP3 boot test with this patch-series on
+OMAP3EVM.
+
+Changes from V4:
+	- Patches have been reviewed by Kevin Hilman.
+	- As per Kevin Hilman's comments updated comment in debug-macro.S,
+	  for AM33XX.
+
+Changes from V3:
+	- Common platform patch has already been accepted and available
+	  under linux-omap/soc and linux-omap/master branch.
+  	- Clean-up where cpu_is_xxxx instances are being used and patches
+	  has been submitted to the list.
+  	- These patches have been created on top of cleanup patches -
+	    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg58276.html
+	    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg58277.html
+	- Based on Tony's request, rebased patches against linux-omap/fixes
+	  (+ common platform patch).
+
+Changes from V2(RFC):
+	- Rebased against Paul's OMAP_CHIP* cleanup patches
+	    git://git.pwsan.com/linux-2.6_omap_chip_remove_cleanup_3.2
+
+Changes from V1(RFC):
+	- Created separate cpu/SoC class for AM33XX family of devices,
+	  due to all known facts. This is been mentioned in main-chain
+	    https://patchwork.kernel.org/patch/1056312/
+	- BUG Fix in debug-macro.S, which was leading to build failure.
+	    https://patchwork.kernel.org/patch/1056302/
+
+Afzal Mohammed (3):
+  arm:omap:am33xx: Update common OMAP machine specific sources
+  arm:omap:am33xx: Add AM335XEVM machine support
+  arm:omap:am33xx: Add low level debugging support
+
+ arch/arm/mach-omap2/Kconfig                    |    5 ++++
+ arch/arm/mach-omap2/Makefile                   |    1 +
+ arch/arm/mach-omap2/board-am3517evm.c          |   21 ++++++++++++++++
+ arch/arm/mach-omap2/clock3xxx_data.c           |    3 ++
+ arch/arm/mach-omap2/common.c                   |   21 ++++++++++++++++
+ arch/arm/mach-omap2/id.c                       |    6 ++++
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   17 ++++++++++++-
+ arch/arm/mach-omap2/io.c                       |   31 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/serial.c                   |    4 +-
+ arch/arm/mach-omap2/timer.c                    |    2 +
+ arch/arm/plat-omap/include/plat/am33xx.h       |   25 +++++++++++++++++++
+ arch/arm/plat-omap/include/plat/common.h       |    4 +++
+ arch/arm/plat-omap/include/plat/hardware.h     |    1 +
+ arch/arm/plat-omap/include/plat/io.h           |   20 +++++++++++++++
+ arch/arm/plat-omap/include/plat/omap34xx.h     |    2 +
+ arch/arm/plat-omap/include/plat/serial.h       |    4 +++
+ arch/arm/plat-omap/include/plat/uncompress.h   |    6 ++++
+ arch/arm/plat-omap/io.c                        |    5 ++++
+ 18 files changed, 175 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/am33xx.h
+
