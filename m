@@ -1,58 +1,107 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/5] ASoC: omap-dmic: Add device tree bindings
-Date: Fri, 2 Dec 2011 14:31:13 +0100
-Message-ID: <4ED8D321.7030904@ti.com>
-References: <1322819580-7424-1-git-send-email-peter.ujfalusi@ti.com> <1322819580-7424-2-git-send-email-peter.ujfalusi@ti.com> <20111202122558.GM8245@opensource.wolfsonmicro.com> <4ED8C57B.2000503@ti.com> <20111202130242.GO8245@opensource.wolfsonmicro.com>
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
+Subject: Re: [PATCH v2 03/11] v4l: Introduce sensor operation for getting
+ interface configuration
+Date: Fri, 02 Dec 2011 15:32:36 +0200
+Message-ID: <4ED8D374.1030206@mm-sol.com>
+References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <1322698500-29924-4-git-send-email-saaguirre@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52360 "EHLO bear.ext.ti.com"
+Received: from ns.mm-sol.com ([213.240.235.226]:58262 "EHLO extserv.mm-sol.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756487Ab1LBNbd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Dec 2011 08:31:33 -0500
-In-Reply-To: <20111202130242.GO8245@opensource.wolfsonmicro.com>
+	id S1755618Ab1LBNir (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Dec 2011 08:38:47 -0500
+In-Reply-To: <1322698500-29924-4-git-send-email-saaguirre@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
 
-On 12/2/2011 2:02 PM, Mark Brown wrote:
-> On Fri, Dec 02, 2011 at 02:32:59PM +0200, Peter Ujfalusi wrote:
->
->> As of now we receive all these information via OMAP hwmod.
->> All the properties (addresses, irq, etc) of the HW IP will be coming
->> from DT as soon as I can remove the ti,hwmod property.
->
-> Oh, right.  We should really be churning the device tree like this - the
-> idea is that the device tree should be stable and independant of kernel
-> versions.  It would be better if we were able to go straight to the one
-> without hwmod, especially if Benoit is able to get the underlying
-> changes done soon (which sounded like it might be the case).
+Hi, Sergio
 
-I wish it were that easy... but there are too many bindings that are not 
-yet there in DT core.
+This change in interface is not used from the omap4iss driver.
 
-Even if the reg-names and interrupts-names are accepted, which is still 
-not obvious due to a little bit of resistance, we still do not have dma 
-request bindings, nor clock bindings, nor pin mux.
-All these information are provided today by hwmod, so it will still be 
-there for a couple of more merge windows.
+You could drop it from the patch set, if so.
 
-The important point for me, it to avoid having to change the driver 
-whenever these bindings will be there. This will be OK today for reg and 
-interrupts since they both go through Linux resources.
+On 12/01/2011 02:14 AM, Sergio Aguirre wrote:
+> From: Stanimir Varbanov <svarbanov@mm-sol.com>
+> 
+> Introduce g_interface_parms sensor operation for getting sensor
+> interface parameters. These parameters are needed from the host side
+> to determine it's own configuration.
+> 
+> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> ---
+>  include/media/v4l2-subdev.h |   42 ++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 42 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index f0f3358..0d322ed 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -362,6 +362,42 @@ struct v4l2_subdev_vbi_ops {
+>  	int (*s_sliced_fmt)(struct v4l2_subdev *sd, struct v4l2_sliced_vbi_format *fmt);
+>  };
+>  
+> +/* Which interface the sensor use to provide it's image data */
+> +enum v4l2_subdev_sensor_iface {
+> +	V4L2_SUBDEV_SENSOR_PARALLEL,
+> +	V4L2_SUBDEV_SENSOR_SERIAL,
+> +};
+> +
+> +/* Each interface could use the following modes */
+> +/* Image sensor provides horizontal and vertical sync signals */
+> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_SYNC	0
+> +/* BT.656 interface. Embedded sync */
+> +#define V4L2_SUBDEV_SENSOR_MODE_PARALLEL_ITU	1
+> +/* MIPI CSI1 */
+> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI1	2
+> +/* MIPI CSI2 */
+> +#define V4L2_SUBDEV_SENSOR_MODE_SERIAL_CSI2	3
+> +
+> +struct v4l2_subdev_sensor_serial_parms {
+> +	unsigned char lanes;		/* number of lanes used */
+> +	unsigned char channel;		/* virtual channel */
+> +	unsigned int phy_rate;		/* output rate at CSI phy in bps */
+> +	unsigned int pix_clk;		/* pixel clock in Hz */
+> +};
+> +
+> +struct v4l2_subdev_sensor_parallel_parms {
+> +	unsigned int pix_clk;		/* pixel clock in Hz */
+> +};
+> +
+> +struct v4l2_subdev_sensor_interface_parms {
+> +	enum v4l2_subdev_sensor_iface if_type;
+> +	unsigned int if_mode;
+> +	union {
+> +		struct v4l2_subdev_sensor_serial_parms serial;
+> +		struct v4l2_subdev_sensor_parallel_parms parallel;
+> +	} parms;
+> +};
+> +
+>  /**
+>   * struct v4l2_subdev_sensor_ops - v4l2-subdev sensor operations
+>   * @g_skip_top_lines: number of lines at the top of the image to be skipped.
+> @@ -371,10 +407,16 @@ struct v4l2_subdev_vbi_ops {
+>   * @g_skip_frames: number of frames to skip at stream start. This is needed for
+>   *		   buggy sensors that generate faulty frames when they are
+>   *		   turned on.
+> + * @g_interface_parms: get sensor interface parameters. The sensor subdev should
+> + *		       fill this structure with current interface params. These
+> + *		       interface parameters are needed on host side to configure
+> + *		       it's own hardware receivers.
+>   */
+>  struct v4l2_subdev_sensor_ops {
+>  	int (*g_skip_top_lines)(struct v4l2_subdev *sd, u32 *lines);
+>  	int (*g_skip_frames)(struct v4l2_subdev *sd, u32 *frames);
+> +	int (*g_interface_parms)(struct v4l2_subdev *sd,
+> +			struct v4l2_subdev_sensor_interface_parms *parms);
+>  };
+>  
+>  /*
 
-> Could we define and implement the "real" version now (it should be reasonable to
-> code blind except possibly for the DMA channel as it's such a direct
-> mapping) with hwmod left in there as something that's legacy for old
-> kernels?
 
-I think DT churn is unavoidable due to the ongoing effort to add clock, 
-regulator, dma, pin mux into DT core.
-I don't think we should wait to have all that ready to start migrating 
-to DT.
-
-Regards,
-Benoit
-
+-- 
+best regards,
+Stan
