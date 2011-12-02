@@ -1,76 +1,78 @@
-From: Heiko Schocher <hs@denx.de>
-Subject: Re: arm, am1808: using mmc1 controller and dma
-Date: Fri, 02 Dec 2011 10:19:57 +0100
-Message-ID: <4ED8983D.5020400@denx.de>
-References: <4ED87FBA.40409@denx.de>
- <B6A220404B6BFC4BBD2AB91C54D39DF40293DB@DBDE01.ent.ti.com>
- <4ED89294.6010804@denx.de>
- <B6A220404B6BFC4BBD2AB91C54D39DF4029429@DBDE01.ent.ti.com>
-Reply-To: hs@denx.de
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCHv7 1/3] OMAP: I2C: Reset support
+Date: Fri, 2 Dec 2011 14:51:12 +0530
+Message-ID: <1322817674-25384-2-git-send-email-shubhrajyoti@ti.com>
+References: <1322817674-25384-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-reply-to: <B6A220404B6BFC4BBD2AB91C54D39DF4029429@DBDE01.ent.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: juha.kuikka@gmail.com
-Cc: "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Wolfgang Denk <wd@denx.de>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vipin Bhandari <vipin.bhandari@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:44564 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753223Ab1LBJVk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Dec 2011 04:21:40 -0500
+In-Reply-To: <1322817674-25384-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, ben-linux@fluff.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Hello Juha,
+Under some error conditions the i2c driver may do a reset.
+Adding a reset field and support in the device-specific code.
 
-Rajashekhara, Sudhakar wrote:
-> Hi,
-> 
-> On Fri, Dec 02, 2011 at 14:25:48, Heiko Schocher wrote:
->> Hello Rajashekhara, Sudhakar,
->>
->> Rajashekhara, Sudhakar wrote:
->>> Hi,
->>>
->>> On Fri, Dec 02, 2011 at 13:05:22, Heiko Schocher wrote:
->>>> Hello,
->>>>
->>>> trying Linux 3.2.0-rc3 on an am1808 based board using MMCSD1 controller,
->>>> and facing problems with using DMA. Deactivating use_dma=0 in the
->>>> davinci_mmc controller and mmc works in pio mode without problems.
->>>> So there are no hardware problems, pinmux is ok, psc are all on.
->>>>
->>> Please refer to the discussion at [1] where similar issue was discussed. Go through the
-> 
-> [...]
-> 
->> Yuhu! that works for me! But I had to fix it a little, because "edma_info"
->> is now named "info". Here my diff:
->>
-> 
-> Yup, this patch was on an older version.
-> 
->> diff --git a/arch/arm/mach-davinci/dma.c b/arch/arm/mach-davinci/dma.c
->> index da90103..e10a251 100644
->> --- a/arch/arm/mach-davinci/dma.c
->> +++ b/arch/arm/mach-davinci/dma.c
->> @@ -1513,7 +1513,7 @@ static int __init edma_probe(struct platform_device *pdev)
->>                  * started by the codec engine will not cause audio defects.
->>                  */
->>                 for (i = 0; i < edma_cc[j]->num_channels; i++)
->> -                       map_dmach_queue(j, i, EVENTQ_1);
->> +                       map_dmach_queue(j, i, info[j]->default_queue);
->>
->>                 queue_tc_mapping = info[j]->queue_tc_mapping;
->>                 queue_priority_mapping = info[j]->queue_priority_mapping;
->>
->>> [1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg17926.html 
->> Do you prepare a patch, or should I send it?
->>
-> 
-> You can go ahead and submit the patch but Juha was the person who found out this issue.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
+ include/linux/i2c-omap.h |    1 +
+ 2 files changed, 19 insertions(+), 0 deletions(-)
 
-Juha, can you post this patch, or is it ok for you, if I post it
-with your "Reported-by" and "Signed-off-by"?
-
-bye,
-Heiko
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index db071bc..883229c 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -74,6 +74,22 @@ static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+ static struct platform_device omap_i2c_devices[] = {
+ 	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+ };
++/**
++ * omap2_i2c_reset - reset the omap i2c module.
++ * @dev: struct device*
++ */
++
++static int omap2_i2c_reset(struct device *dev)
++{
++	int r = 0;
++	struct platform_device *pdev = to_platform_device(dev);
++	struct omap_device *odev = to_omap_device(pdev);
++	struct omap_hwmod *oh;
++
++	oh = odev->hwmods[0];
++	r = omap_hwmod_reset(oh);
++	return r;
++}
+ 
+ #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+ 
+@@ -179,6 +195,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
+ 	 */
+ 	if (cpu_is_omap34xx())
+ 		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
++
++	pdata->device_reset = omap2_i2c_reset;
+ 	pdev = omap_device_build(name, bus_id, oh, pdata,
+ 			sizeof(struct omap_i2c_bus_platform_data),
+ 			NULL, 0, 0);
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+index 92a0dc7..fd38249 100644
+--- a/include/linux/i2c-omap.h
++++ b/include/linux/i2c-omap.h
+@@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
+ 	u32		rev;
+ 	u32		flags;
+ 	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
++	int		(*device_reset) (struct device *dev);
+ };
+ 
+ #endif
 -- 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+1.7.1
+
