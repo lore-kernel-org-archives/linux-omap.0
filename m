@@ -1,55 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [RFC PATCH 03/11] arm:omap:am33xx: Add power domain data
-Date: Fri, 02 Dec 2011 14:49:51 +0530
-Message-ID: <4ED89837.6070901@ti.com>
-References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com> <1321809555-13833-4-git-send-email-hvaibhav@ti.com>
+From: Heiko Schocher <hs@denx.de>
+Subject: Re: arm, am1808: using mmc1 controller and dma
+Date: Fri, 02 Dec 2011 10:19:57 +0100
+Message-ID: <4ED8983D.5020400@denx.de>
+References: <4ED87FBA.40409@denx.de>
+ <B6A220404B6BFC4BBD2AB91C54D39DF40293DB@DBDE01.ent.ti.com>
+ <4ED89294.6010804@denx.de>
+ <B6A220404B6BFC4BBD2AB91C54D39DF4029429@DBDE01.ent.ti.com>
+Reply-To: hs@denx.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:56552 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752529Ab1LBJUA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 04:20:00 -0500
-Received: by yenm1 with SMTP id m1so74343yen.19
-        for <linux-omap@vger.kernel.org>; Fri, 02 Dec 2011 01:19:59 -0800 (PST)
-In-Reply-To: <1321809555-13833-4-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-reply-to: <B6A220404B6BFC4BBD2AB91C54D39DF4029429@DBDE01.ent.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: juha.kuikka@gmail.com
+Cc: "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, Wolfgang Denk <wd@denx.de>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, Chris Ball <cjb@laptop.org>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Vipin Bhandari <vipin.bhandari@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, Afzal Mohammed <afzal@ti.com>, Rachna Patil <rachna@ti.com>, linux-arm-kernel@lists.infradead.org
 
-[..]
-> diff --git a/arch/arm/mach-omap2/prm-regbits-33xx.h b/arch/arm/mach-omap2/prm-regbits-33xx.h
-> new file mode 100644
-> index 0000000..5299287
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/prm-regbits-33xx.h
-> @@ -0,0 +1,357 @@
-> +/*
-> + * AM33XX Power Management register bits
-> + *
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
-> + * kind, whether express or implied; without even the implied warranty
-> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +
-> +#ifndef __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_33XX_H
-> +#define __ARCH_ARM_MACH_OMAP2_PRM_REGBITS_33XX_H
-> +
-> +#include "prm.h"
-> +
-> +/* Used by PRM_LDO_SRAM_CORE_SETUP, PRM_LDO_SRAM_MPU_SETUP */
-> +#define AM33XX_ABBOFF_ACT_EXPORT_SHIFT			1
-> +#define AM33XX_ABBOFF_ACT_EXPORT_MASK			BITFIELD(1, 1)
+Hello Juha,
 
-This seems like an output from an old autogen script. The BITFIELD macro
-does not exist anymore.
+Rajashekhara, Sudhakar wrote:
+> Hi,
+> 
+> On Fri, Dec 02, 2011 at 14:25:48, Heiko Schocher wrote:
+>> Hello Rajashekhara, Sudhakar,
+>>
+>> Rajashekhara, Sudhakar wrote:
+>>> Hi,
+>>>
+>>> On Fri, Dec 02, 2011 at 13:05:22, Heiko Schocher wrote:
+>>>> Hello,
+>>>>
+>>>> trying Linux 3.2.0-rc3 on an am1808 based board using MMCSD1 controller,
+>>>> and facing problems with using DMA. Deactivating use_dma=0 in the
+>>>> davinci_mmc controller and mmc works in pio mode without problems.
+>>>> So there are no hardware problems, pinmux is ok, psc are all on.
+>>>>
+>>> Please refer to the discussion at [1] where similar issue was discussed. Go through the
+> 
+> [...]
+> 
+>> Yuhu! that works for me! But I had to fix it a little, because "edma_info"
+>> is now named "info". Here my diff:
+>>
+> 
+> Yup, this patch was on an older version.
+> 
+>> diff --git a/arch/arm/mach-davinci/dma.c b/arch/arm/mach-davinci/dma.c
+>> index da90103..e10a251 100644
+>> --- a/arch/arm/mach-davinci/dma.c
+>> +++ b/arch/arm/mach-davinci/dma.c
+>> @@ -1513,7 +1513,7 @@ static int __init edma_probe(struct platform_device *pdev)
+>>                  * started by the codec engine will not cause audio defects.
+>>                  */
+>>                 for (i = 0; i < edma_cc[j]->num_channels; i++)
+>> -                       map_dmach_queue(j, i, EVENTQ_1);
+>> +                       map_dmach_queue(j, i, info[j]->default_queue);
+>>
+>>                 queue_tc_mapping = info[j]->queue_tc_mapping;
+>>                 queue_priority_mapping = info[j]->queue_priority_mapping;
+>>
+>>> [1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg17926.html 
+>> Do you prepare a patch, or should I send it?
+>>
+> 
+> You can go ahead and submit the patch but Juha was the person who found out this issue.
+
+Juha, can you post this patch, or is it ok for you, if I post it
+with your "Reported-by" and "Signed-off-by"?
+
+bye,
+Heiko
+-- 
+DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
