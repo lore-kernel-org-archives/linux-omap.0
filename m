@@ -1,44 +1,64 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] mdt nand: omap2+ use platform options
-Date: Fri, 2 Dec 2011 12:20:52 +0200
-Message-ID: <CANOLnOOE3a0BP0TcLnRAmq5YAiHLZTpkbriDh9WtkkBT7TotFA@mail.gmail.com>
-References: <CAN8TOE9=ux=suwcQMwJY1XUhp_mnD_DL613ffF1-HTL1OVB2PQ@mail.gmail.com>
-	<1322557213-23565-1-git-send-email-j.weitzel@phytec.de>
-	<1322728943.2332.13.camel@koala>
+From: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD)
+ driver
+Date: Fri, 02 Dec 2011 11:28:56 +0100
+Message-ID: <4ED8A868.4020005@gmail.com>
+References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59069 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366Ab1LBKUx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 05:20:53 -0500
-Received: by eaak14 with SMTP id k14so2983939eaa.19
-        for <linux-omap@vger.kernel.org>; Fri, 02 Dec 2011 02:20:52 -0800 (PST)
-In-Reply-To: <1322728943.2332.13.camel@koala>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com
-Cc: Jan Weitzel <j.weitzel@phytec.de>, linux-mtd@lists.infradead.org, dedekind@infradead.org, tglx@linutronix.de, computersforpeace@gmail.com, linux-omap@vger.kernel.org
 
-On Thu, Dec 1, 2011 at 10:42 AM, Artem Bityutskiy <dedekind1@gmail.com>=
- wrote:
-> On Tue, 2011-11-29 at 10:00 +0100, Jan Weitzel wrote:
->> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
->
-> Pushed to l2-mtd-2.6.git, thank you!
+Hi Ming,
 
-This breaks build here, did you really test it, Jan?
+On 12/02/2011 10:12 AM, Ming Lei wrote:
+> Hi,
+> 
+> These v1 patches(against -next tree) introduce v4l2 based face
+> detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
+> The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
+> and Greg-Kh.
+> 
+> For verification purpose, I write one user space utility[2] to
+> test the module and driver, follows its basic functions:
+> 
+> 	- detect faces in input grayscal picture(PGM raw, 320 by 240)
+> 	- detect faces in input y8 format video stream
+> 	- plot a rectangle to mark the detected faces, and save it as 
+> 	another same format picture or video stream
+> 
+> Looks the performance of the module is not bad, see some detection
+> results on the link[3][4].
+> 
+> Face detection can be used to implement some interesting applications
+> (camera, face unlock, baby monitor, ...).
+> 
+> TODO:
+> 	- implement FD setting interfaces with v4l2 controls or
+> 	ext controls
+> 
+> thanks,
+> --
+> Ming Lei
+> 
+> [1], Ch9 of OMAP4 Technical Reference Manual
+> [2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
+> [3], http://kernel.ubuntu.com/~ming/dev/fdif/output
+> [4], All pictures are taken from http://www.google.com/imghp
+> and converted to pnm from jpeg format, only for test purpose.
+> 
 
-drivers/mtd/nand/omap2.c: In function 'omap_nand_probe':
-drivers/mtd/nand/omap2.c:1078: error: 'struct omap_nand_platform_data'
-has no member named 'options'
+Could you please resend this series to Linux Media mailing list
+(linux-media@vger.kernel.org) ? It touches V4L core code and I'm
+sure other v4l2 developers will have some comments on it.
+I'll try to review it on the weekend.
 
+-- 
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Sylwester
