@@ -1,123 +1,122 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] arm: omap: rx51: enable tsc2005 touchscreen
-Date: Fri,  2 Dec 2011 18:29:13 +0200
-Message-ID: <1322843353-16155-1-git-send-email-aaro.koskinen@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:31826 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757007Ab1LBQ2H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Dec 2011 11:28:07 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [RFC PATCH v1 2/7] omap4: build fdif omap device from hwmod
+Date: Fri, 2 Dec 2011 10:28:42 -0600
+Message-ID: <CAKnK67T9S6Z=f9qmn9ov7YNyTKjdDbOZHJDRO-7_fqkJGZzXbA@mail.gmail.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com> <1322838172-11149-3-git-send-email-ming.lei@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1322838172-11149-3-git-send-email-ming.lei@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: sre@debian.org
 
-Enable TSC2005 touchscreen driver on the RX-51 board by providing the
-needed platform data.
+Hi Ming,
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
+Thanks for the patches.
 
-	Tony, this patch has been forgotten, any chance to get it
-	into 3.3?
+On Fri, Dec 2, 2011 at 9:02 AM, Ming Lei <ming.lei@canonical.com> wrote=
+:
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+> =A0arch/arm/mach-omap2/devices.c | =A0 33 +++++++++++++++++++++++++++=
+++++++
+> =A01 files changed, 33 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devi=
+ces.c
+> index 1166bdc..a392af5 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -728,6 +728,38 @@ void __init omap242x_init_mmc(struct omap_mmc_pl=
+atform_data **mmc_data)
+>
+> =A0#endif
+>
+> +static struct platform_device* __init omap4_init_fdif(void)
+> +{
+> + =A0 =A0 =A0 int id =3D -1;
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |   46 ++++++++++++++++++++++++-
- 1 files changed, 44 insertions(+), 2 deletions(-)
+You could remove this , as it is being used only once, and never change=
+d.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index ba1aa07..229754c 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -15,6 +15,7 @@
- #include <linux/input/matrix_keypad.h>
- #include <linux/spi/spi.h>
- #include <linux/wl12xx.h>
-+#include <linux/spi/tsc2005.h>
- #include <linux/i2c.h>
- #include <linux/i2c/twl.h>
- #include <linux/clk.h>
-@@ -58,6 +59,9 @@
- 
- #define RX51_USB_TRANSCEIVER_RST_GPIO	67
- 
-+#define RX51_TSC2005_RESET_GPIO         104
-+#define RX51_TSC2005_IRQ_GPIO           100
-+
- /* list all spi devices here */
- enum {
- 	RX51_SPI_WL1251,
-@@ -66,6 +70,7 @@ enum {
- };
- 
- static struct wl12xx_platform_data wl1251_pdata;
-+static struct tsc2005_platform_data tsc2005_pdata;
- 
- #if defined(CONFIG_SENSORS_TSL2563) || defined(CONFIG_SENSORS_TSL2563_MODULE)
- static struct tsl2563_platform_data rx51_tsl2563_platform_data = {
-@@ -167,10 +172,10 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 		.modalias		= "tsc2005",
- 		.bus_num		= 1,
- 		.chip_select		= 0,
--		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
-+		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
- 		.max_speed_hz		= 6000000,
- 		.controller_data	= &tsc2005_mcspi_config,
--		/* .platform_data = &tsc2005_config,*/
-+		.platform_data		= &tsc2005_pdata,
- 	},
- };
- 
-@@ -1086,6 +1091,42 @@ error:
- 	 */
- }
- 
-+static struct tsc2005_platform_data tsc2005_pdata = {
-+	.ts_pressure_max	= 2048,
-+	.ts_pressure_fudge	= 2,
-+	.ts_x_max		= 4096,
-+	.ts_x_fudge		= 4,
-+	.ts_y_max		= 4096,
-+	.ts_y_fudge		= 7,
-+	.ts_x_plate_ohm		= 280,
-+	.esd_timeout_ms		= 8000,
-+};
-+
-+static void rx51_tsc2005_set_reset(bool enable)
-+{
-+	gpio_set_value(RX51_TSC2005_RESET_GPIO, enable);
-+}
-+
-+static void __init rx51_init_tsc2005(void)
-+{
-+	int r;
-+
-+	r = gpio_request_one(RX51_TSC2005_IRQ_GPIO, GPIOF_IN, "tsc2005 IRQ");
-+	if (r < 0) {
-+		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 IRQ");
-+		rx51_peripherals_spi_board_info[RX51_SPI_TSC2005].irq = 0;
-+	}
-+
-+	r = gpio_request_one(RX51_TSC2005_RESET_GPIO, GPIOF_OUT_INIT_HIGH,
-+		"tsc2005 reset");
-+	if (r >= 0) {
-+		tsc2005_pdata.set_reset = rx51_tsc2005_set_reset;
-+	} else {
-+		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 reset");
-+		tsc2005_pdata.esd_timeout_ms = 0;
-+	}
-+}
-+
- void __init rx51_peripherals_init(void)
- {
- 	rx51_i2c_init();
-@@ -1094,6 +1135,7 @@ void __init rx51_peripherals_init(void)
- 	board_smc91x_init();
- 	rx51_add_gpio_keys();
- 	rx51_init_wl1251();
-+	rx51_init_tsc2005();
- 	rx51_init_si4713();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
--- 
-1.7.2.5
+> + =A0 =A0 =A0 struct platform_device *pd;
+> + =A0 =A0 =A0 struct omap_hwmod *oh;
+> + =A0 =A0 =A0 const char *dev_name =3D "fdif";
+> +
+> + =A0 =A0 =A0 oh =3D omap_hwmod_lookup("fdif");
+> + =A0 =A0 =A0 if (!oh) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Could not look up fdif hwmod\n"=
+);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 pd =3D omap_device_build(dev_name, id, oh, NULL, 0, NUL=
+L, 0, 0);
 
+Just do:
+
+pd =3D omap_device_build(dev_name, -1, oh, NULL, 0, NULL, 0, 0);
+
+> + =A0 =A0 =A0 WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_nam=
+e);
+> + =A0 =A0 =A0 return pd;
+> +}
+> +
+> +static void __init omap_init_fdif(void)
+> +{
+> + =A0 =A0 =A0 if (cpu_is_omap44xx()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct platform_device *pd;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pd =3D omap4_init_fdif();
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!pd)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_enable(&pd->dev);
+> + =A0 =A0 =A0 }
+> +}
+
+IMHO, you could reduce 1 level of indentation here, like this:
+
+static void __init omap_init_fdif(void)
+{
+	struct platform_device *pd;
+
+	if (!cpu_is_omap44xx())
+		return;
+
+	pd =3D omap4_init_fdif();
+	if (!pd)
+		return;
+
+	pm_runtime_enable(&pd->dev);
+}
+
+Regards,
+Sergio
+
+> +
+> =A0/*----------------------------------------------------------------=
+---------*/
+>
+> =A0#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_O=
+MAP_MODULE)
+> @@ -808,6 +840,7 @@ static int __init omap2_init_devices(void)
+> =A0 =A0 =A0 =A0omap_init_sham();
+> =A0 =A0 =A0 =A0omap_init_aes();
+> =A0 =A0 =A0 =A0omap_init_vout();
+> + =A0 =A0 =A0 omap_init_fdif();
+>
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+> --
+> 1.7.5.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
