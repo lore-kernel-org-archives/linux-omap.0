@@ -1,57 +1,77 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH-V4 0/3] Introducing TI's New SoC/board AM335XEVM
-Date: Fri, 2 Dec 2011 04:36:02 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A902847B@DBDE01.ent.ti.com>
-References: <1320946837-32507-1-git-send-email-hvaibhav@ti.com>
-	<878vmxxjrv.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A80474FD@DBDE01.ent.ti.com>
- <878vmws4z8.fsf@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: hwmod: Look for hwmod/module level context
+ lost count if supported
+Date: Fri, 02 Dec 2011 10:16:45 +0530
+Message-ID: <4ED85835.7080108@ti.com>
+References: <1320317665-6381-1-git-send-email-rnayak@ti.com> <1320317665-6381-4-git-send-email-rnayak@ti.com> <4ED52007.8010804@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58290 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753333Ab1LBEgY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Dec 2011 23:36:24 -0500
-In-Reply-To: <878vmws4z8.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:57237 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756533Ab1LBEqw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Dec 2011 23:46:52 -0500
+Received: by mail-yw0-f42.google.com with SMTP id 2so2608058ywt.15
+        for <linux-omap@vger.kernel.org>; Thu, 01 Dec 2011 20:46:51 -0800 (PST)
+In-Reply-To: <4ED52007.8010804@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Russell King <rmk@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Kevin,
+On Tuesday 29 November 2011 11:40 PM, Cousson, Benoit wrote:
+> Hi Rajendra,
+>
+> Sorry for the delay, I kind of forgot your series :-(
+>
+> On 11/3/2011 11:54 AM, Nayak, Rajendra wrote:
+>> Now that OMAP4 has hwmod/module level context lost counters, make
+>> omap_hwmod_get_context_loss_count() return them on platforms where they
+>> exist, else fall back on the pwrdm level counters for older platforms.
+>>
+>> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+>> ---
+>> arch/arm/mach-omap2/omap_hwmod.c | 11 ++++++++---
+>> 1 files changed, 8 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
+>> b/arch/arm/mach-omap2/omap_hwmod.c
+>> index ac17748..9d140c4 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+>> @@ -2658,9 +2658,14 @@ u32 omap_hwmod_get_context_loss_count(struct
+>> omap_hwmod *oh)
+>> struct powerdomain *pwrdm;
+>> int ret = 0;
+>>
+>> - pwrdm = omap_hwmod_get_pwrdm(oh);
+>> - if (pwrdm)
+>> - ret = pwrdm_get_context_loss_count(pwrdm);
+>> + if (oh->prcm.omap4.context_offs) {
+>
+> I don't think it is safe to use that, since this is an union.
+> You do know what OMAP2 & 3 will put in that location.
+> It might be zero, but who knows?
 
-On Thu, Dec 01, 2011 at 20:40:03, Hilman, Kevin wrote:
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-:
-> > We can detect the board using on-board EEPROM, so same mach-id
-> > should work for both EVM and Beagle. 
-> 
-> > And also going forward with device tree approach we may
-> > not need different id's, right?
-> 
-> Right, which is why I'm wondering why are there sevral new AM33x
-> mach-types when only one of them is being used:
-> 
-> 3684    TI AM335X IA EVM        am335xiaevm     Afzal Mohammed
-> 3589    TI AM335X EVM           am335xevm       Vaibhav Bedia
-> 3808    Beaglebone Board        beaglebone      Steven Kipisz
-> 
-> Russell has been trying to cleanup athe mach-types, so if these others
-> are not going to be used, I suggest they be deleted.
+Thats true, I need to figure out a better way to identify
+when a module level context count is supported and when its
+at the pwrdm level. Will repost with a fix.
 
-"3684-TI AM335X IA EVM" is required as IA EVM uses a different UART,
-because of which early prints can't be captured, problem mentioned
-in http://marc.info/?l=linux-omap&m=131286938723617&w=2
+Thanks for the review.
 
-
-Note: Paul advised to post to linux-arm-kernel@lists.infradead.org,
-but it never made to LAKML, even though I sent couple of times and got
-a reply "Is being held until the list moderator can review it for
-approval. The reason it is being held: Message has a suspicious header"
-
-Regards
-Afzal
+>
+>> + /* Support for per-hwmod context register */
+>> + ret = oh->prcm.omap4.context_lost_counter;
+>> + } else {
+>> + pwrdm = omap_hwmod_get_pwrdm(oh);
+>> + if (pwrdm)
+>> + ret = pwrdm_get_context_loss_count(pwrdm);
+>> + }
+>>
+>> return ret;
+>> }
+>
+> Regards,
+> Benoit
 
