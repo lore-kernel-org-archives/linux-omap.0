@@ -1,75 +1,82 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 03/11] arm:omap:am33xx: Add power domain data
-Date: Fri, 02 Dec 2011 09:39:49 -0800
-Message-ID: <87zkfaj2je.fsf@ti.com>
-References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
-	<1321809555-13833-4-git-send-email-hvaibhav@ti.com>
-	<878vmxump8.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A8047604@DBDE01.ent.ti.com>
-	<4ED8641F.7060008@ti.com>
+Subject: Re: [GIT PULL] cpufreq: OMAP: move to drivers/cpufreq and updates for v3.3
+Date: Fri, 02 Dec 2011 09:45:17 -0800
+Message-ID: <87ty5ij2aa.fsf@ti.com>
+References: <871ut5w2js.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:32966 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757189Ab1LBRjw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 12:39:52 -0500
-Received: by mail-gy0-f174.google.com with SMTP id r1so4247541ghr.33
-        for <linux-omap@vger.kernel.org>; Fri, 02 Dec 2011 09:39:51 -0800 (PST)
-In-Reply-To: <4ED8641F.7060008@ti.com> (Rajendra Nayak's message of "Fri, 02
-	Dec 2011 11:07:35 +0530")
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:52691 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757200Ab1LBRpU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 12:45:20 -0500
+In-Reply-To: <871ut5w2js.fsf@ti.com> (Kevin Hilman's message of "Fri, 18 Nov
+	2011 13:20:23 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "Patil, Rachna" <rachna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Dave Jones <davej@redhat.com>
+Cc: cpufreq@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Rajendra Nayak <rnayak@ti.com> writes:
+Dave,
 
-> [..]
->>> First some general comments:
->>>
->>> At first glance, it seems like there could be much more reuse with OMAP4
->>> code here.  From what I see, AM33x has only one partition compared to
->>> several on OMAP4, but that doesn't mean you couldn't reuse the OMAP4
->>> functions and just use a single partition.
->> Kevin,
->>
->> Indeed it looks close to OMAP4, but it becomes difficult and ugly once you
->> Start getting into implementation details, for example,
->>
->>   - All PRM offsets don't match, you will end up with
->> cpu_is_xxx check and handle this. Applicable to all power domains.
->>
->> 	OMAP4430_PRM_MPU_INST           0x0300
->> 	Vs
->> 	AM33XX_PRM_MPU_MOD              0x0E00
->>
->> 	OMAP4430_PRM_WKUP_INST          0x1700
->> 	Vs
->> 	AM33XX_PRM_WKUP_MOD             0x0D00
->
-> The above prcm offsets being different on am33xx doesn't really
-> seem to be the issue since its already part of the powerdomain
-> struct. See how omap2 and omap3 have different offsets and still end
-> up using common code. You won't need any cpu_is_* checks for those.
->
-> The real problem however seems to be with the completely different
-> PWSTCTRL and PWSTST offsets. They seem to be so messed up that they are
-> not even consistent across all powerdomains in the same SoC.
-> The only solution I could think of to handle these was if we had
-> a provision to specify the offsets on a per powerdomain level by
-> adding them to the powerdomain struct. It could be populated only
-> on SoC's which have these weirdly different offsets and for the rest
-> it could just get initialized with fixed values for all powerdomains
-> at init.
->
-> Kevin/Paul/Benoit any thoughts?
->
+Kevin Hilman <khilman@ti.com> writes:
 
-Something tells me that AM33x is not the last device we're going to see
-where there clearly wansn't a unified design around PRCM integration.
+> Hi Dave,
+>
+> Here's the updated pull request after a rebase onto v3.2-rc1 and some
+> fixes to address other changes that went into v3.2.
+>
+> This is targetted for v3.3, so I'd like to get it into your tree and
+> into linux-next.
 
-So I suspect adding this to the powerdomain struct is the best way to
-go, but Paul/Benoit should make the final call.
+Are there any problems with this series or pull request?  
 
 Kevin
+
+> Also, let me know if you want a MAINTAINERS entry for this file, as I'm
+> happy to maintain it.
+>
+> Kevin
+>
+>
+> The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
+>
+>   Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
+>
+> are available in the git repository at:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.3/omap-cpufreq
+>
+> Colin Cross (1):
+>       cpufreq: OMAP: notify even with bad boot frequency
+>
+> Kevin Hilman (1):
+>       cpufreq: OMAP: fixup for omap_device changes, include <linux/module.h>
+>
+> Nishanth Menon (6):
+>       cpufreq: OMAP: move clk name decision to init
+>       cpufreq: OMAP: deny initialization if no mpudev
+>       cpufreq: OMAP: dont support !freq_table
+>       cpufreq: OMAP: only supports OPP library
+>       cpufreq: OMAP: put clk if cpu_init failed
+>       cpufreq: OMAP: fix freq_table leak
+>
+> Russell King (1):
+>       cpufreq: OMAP: Add SMP support for OMAP4+
+>
+> Santosh Shilimkar (1):
+>       cpufreq: OMAP: cleanup for multi-SoC support, move into drivers/cpufreq
+>
+> Todd Poynor (1):
+>       cpufreq: OMAP: Enable all CPUs in shared policy mask
+>
+>  arch/arm/plat-omap/Makefile    |    1 -
+>  arch/arm/plat-omap/cpu-omap.c  |  171 -------------------------
+>  drivers/cpufreq/Makefile       |    1 +
+>  drivers/cpufreq/omap-cpufreq.c |  274 ++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 275 insertions(+), 172 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/cpu-omap.c
+>  create mode 100644 drivers/cpufreq/omap-cpufreq.c
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
