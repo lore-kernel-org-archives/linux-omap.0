@@ -1,104 +1,63 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC][PATCH 1/1] OMAP: voltage: add a hook for normal regulator calls
-Date: Fri, 02 Dec 2011 14:27:57 -0800
-Message-ID: <87iplymwwi.fsf@ti.com>
-References: <1321547303-21807-1-git-send-email-vaibhav.bedia@ti.com>
-	<B5906170F1614E41A8A28DE3B8D12143032D30@DBDE01.ent.ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v4] OMAP: I2C: Fix the interrupt clearing in OMAP4
+Date: Fri, 02 Dec 2011 14:42:58 -0800
+Message-ID: <8739d2mw7h.fsf@ti.com>
+References: <1322491212-8657-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:60267 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755248Ab1LBW2A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 17:28:00 -0500
-Received: by mail-iy0-f175.google.com with SMTP id k25so5158714iah.20
-        for <linux-omap@vger.kernel.org>; Fri, 02 Dec 2011 14:28:00 -0800 (PST)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143032D30@DBDE01.ent.ti.com>
-	(Vaibhav Bedia's message of "Fri, 25 Nov 2011 06:29:37 +0000")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1322491212-8657-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+	(Shubhrajyoti D.'s message of "Mon, 28 Nov 2011 20:10:12 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kattekola, Ravikumar" <rk@ti.com>
 
-"Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
+Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-> Hi,
->
-> On Thu, Nov 17, 2011 at 21:58:23, Bedia, Vaibhav wrote:
->> TI processors in TI81x and AM33x family work with PMICs like
->> TPS65910/1 which are not part of the TWL series. These processors
->> also do not have a voltage controller/processor module.
->> 
->> In order to invoke the normal regulator calls from the voltage
->> layer the following changes are done to struct voltagedomain
->> 	- Add a flag use_regulator for the SoC voltagedomain
->> 	  code to indicate its intention of using a PMIC which
->> 	  is not controlled by VC/VP
->> 	- Add a regulator_init callback which the platform code
->> 	  can utilise for any custom init sequence before making
->> 	  use of the regulator. Platform code is also expected
->> 	  to set the voltdm->scale function in the init callback
->> 
->> Signed-off-by: Ravikumar Kattekola <rk@ti.com>
->> Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
->> ---
->>  arch/arm/mach-omap2/voltage.c |    5 +++++
->>  arch/arm/mach-omap2/voltage.h |    4 ++++
->>  2 files changed, 9 insertions(+), 0 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
->> index 1f8fdf7..ca4ef9e 100644
->> --- a/arch/arm/mach-omap2/voltage.c
->> +++ b/arch/arm/mach-omap2/voltage.c
->> @@ -280,6 +280,11 @@ int __init omap_voltage_late_init(void)
->>  			voltdm->scale = omap_vp_forceupdate_scale;
->>  			omap_vp_init(voltdm);
->>  		}
->> +
->> +		if (voltdm->use_regulator) {
->> +			if(voltdm->regulator_init)
->> +				voltdm->regulator_init(voltdm);
->> +		}
->>  	}
->>  
->>  	return 0;
->> diff --git a/arch/arm/mach-omap2/voltage.h b/arch/arm/mach-omap2/voltage.h
->> index 16a1b09..21c810f 100644
->> --- a/arch/arm/mach-omap2/voltage.h
->> +++ b/arch/arm/mach-omap2/voltage.h
->> @@ -88,6 +88,10 @@ struct voltagedomain {
->>  
->>  	u32 nominal_volt;
->>  	struct omap_volt_data *volt_data;
->> +
->> +	bool use_regulator;
->> +	struct regulator *regulator;
->> +	int (*regulator_init) (struct voltagedomain *voltdm);
->>  };
->>  
->
-> Any comments on this approach? 
+> On OMAP4 we were writing 1 to  IRQENABLE_CLR which cleared only
+> the arbitration lost interrupt however for other ips (not OMAP_I2C_IP_VERSION_2)
+> we clear all the interrupts at idle. The patch intends to fix the same by writing 0 to the
+> IE register.
 
-Sorry, I didn't see this patch before, and I don't see it in the
-linux-omap archives either.  Not sure what happened there...
+Please also explain why you're using a different register to clear interrupts.
 
-> This enables us to make use of generic regulators calls from the
-> voltage layer. 
+IMO, you don't need to explain how it works on other IPs.   
 
->From this patch, I don't see how the regulator API is being used from
-the voltage layer, so I don't fully understand what you're trying to
-achieve.
+The changelog should just explain what's broken in the handling of the
+v2 interrupts (only arbitration lost interrupt is cleared) and how
+you're fixing it (writing zero to IE REG, which clears all interrupts.)
 
-IOW, why should the voltagedomain code be calling the regulator API?
+> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 
-The voltage domain code was designed with the opposite goal: namely,
-that a regulator driver would be calling the voltage domain layer, not
-vice versa.
-
-> Since TI81xx and AM33xx do not have VC/VP we need something like this
-> for implementing DVFS.
-
-This patch (and changelog) does not make that very clear, since it only
-adds an init-time hook.
+Has Vikram really signed off on this?  This is a different
+implementation from his original version.  Unless he is on the delivery
+path, there should not be a signed-off from him.  Instead, as I've
+suggested already, I'd like to see a comment in the changelog mentioning
+that this patch is based on an original patch from Vikram, and then
+ideally a reply from Vikram on the list with his Acked-by or Reviewed-by.
 
 Kevin
+
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index a43d002..abadc13 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -297,10 +297,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+>  	pdata = dev->dev->platform_data;
+>  
+>  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+> -	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
+> -		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+> -	else
+> -		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+> +
+> +	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+>  
+>  	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
+>  		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
