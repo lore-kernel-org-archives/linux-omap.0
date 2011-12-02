@@ -1,77 +1,79 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: hwmod: Look for hwmod/module level context
- lost count if supported
-Date: Fri, 02 Dec 2011 10:16:45 +0530
-Message-ID: <4ED85835.7080108@ti.com>
-References: <1320317665-6381-1-git-send-email-rnayak@ti.com> <1320317665-6381-4-git-send-email-rnayak@ti.com> <4ED52007.8010804@ti.com>
+Subject: Re: [RFC PATCH 03/11] arm:omap:am33xx: Add power domain data
+Date: Fri, 02 Dec 2011 11:07:35 +0530
+Message-ID: <4ED8641F.7060008@ti.com>
+References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com> <1321809555-13833-4-git-send-email-hvaibhav@ti.com> <878vmxump8.fsf@ti.com> <79CD15C6BA57404B839C016229A409A8047604@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:57237 "EHLO
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:42064 "EHLO
 	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756533Ab1LBEqw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Dec 2011 23:46:52 -0500
-Received: by mail-yw0-f42.google.com with SMTP id 2so2608058ywt.15
-        for <linux-omap@vger.kernel.org>; Thu, 01 Dec 2011 20:46:51 -0800 (PST)
-In-Reply-To: <4ED52007.8010804@ti.com>
+	by vger.kernel.org with ESMTP id S1750703Ab1LBFhm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 00:37:42 -0500
+Received: by mail-yx0-f175.google.com with SMTP id r11so2476094yen.6
+        for <linux-omap@vger.kernel.org>; Thu, 01 Dec 2011 21:37:42 -0800 (PST)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8047604@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Mohammed, Afzal" <afzal@ti.com>, "Patil, Rachna" <rachna@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 29 November 2011 11:40 PM, Cousson, Benoit wrote:
-> Hi Rajendra,
->
-> Sorry for the delay, I kind of forgot your series :-(
->
-> On 11/3/2011 11:54 AM, Nayak, Rajendra wrote:
->> Now that OMAP4 has hwmod/module level context lost counters, make
->> omap_hwmod_get_context_loss_count() return them on platforms where they
->> exist, else fall back on the pwrdm level counters for older platforms.
+[..]
+>> First some general comments:
 >>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> ---
->> arch/arm/mach-omap2/omap_hwmod.c | 11 ++++++++---
->> 1 files changed, 8 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod.c
->> b/arch/arm/mach-omap2/omap_hwmod.c
->> index ac17748..9d140c4 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->> @@ -2658,9 +2658,14 @@ u32 omap_hwmod_get_context_loss_count(struct
->> omap_hwmod *oh)
->> struct powerdomain *pwrdm;
->> int ret = 0;
->>
->> - pwrdm = omap_hwmod_get_pwrdm(oh);
->> - if (pwrdm)
->> - ret = pwrdm_get_context_loss_count(pwrdm);
->> + if (oh->prcm.omap4.context_offs) {
+>> At first glance, it seems like there could be much more reuse with OMAP4
+>> code here.  From what I see, AM33x has only one partition compared to
+>> several on OMAP4, but that doesn't mean you couldn't reuse the OMAP4
+>> functions and just use a single partition.
+> Kevin,
 >
-> I don't think it is safe to use that, since this is an union.
-> You do know what OMAP2 & 3 will put in that location.
-> It might be zero, but who knows?
+> Indeed it looks close to OMAP4, but it becomes difficult and ugly once you
+> Start getting into implementation details, for example,
+>
+>   - All PRM offsets don't match, you will end up with
+> cpu_is_xxx check and handle this. Applicable to all power domains.
+>
+> 	OMAP4430_PRM_MPU_INST           0x0300
+> 	Vs
+> 	AM33XX_PRM_MPU_MOD              0x0E00
+>
+> 	OMAP4430_PRM_WKUP_INST          0x1700
+> 	Vs
+> 	AM33XX_PRM_WKUP_MOD             0x0D00
 
-Thats true, I need to figure out a better way to identify
-when a module level context count is supported and when its
-at the pwrdm level. Will repost with a fix.
+The above prcm offsets being different on am33xx doesn't really
+seem to be the issue since its already part of the powerdomain
+struct. See how omap2 and omap3 have different offsets and still end
+up using common code. You won't need any cpu_is_* checks for those.
 
-Thanks for the review.
+The real problem however seems to be with the completely different
+PWSTCTRL and PWSTST offsets. They seem to be so messed up that they are
+not even consistent across all powerdomains in the same SoC.
+The only solution I could think of to handle these was if we had
+a provision to specify the offsets on a per powerdomain level by
+adding them to the powerdomain struct. It could be populated only
+on SoC's which have these weirdly different offsets and for the rest
+it could just get initialized with fixed values for all powerdomains
+at init.
+
+Kevin/Paul/Benoit any thoughts?
 
 >
->> + /* Support for per-hwmod context register */
->> + ret = oh->prcm.omap4.context_lost_counter;
->> + } else {
->> + pwrdm = omap_hwmod_get_pwrdm(oh);
->> + if (pwrdm)
->> + ret = pwrdm_get_context_loss_count(pwrdm);
->> + }
+>   - Also there are some differences in logic states of domains as well.
+>
+> Another important point is, we have considered AM33xx as OMAP3
+> family of device (ARCH_OMAP3).
+> So you may end up with number of cpu_is_xxx checks in code.
+>
 >>
->> return ret;
->> }
+>> IOW, it seems to me that all the pwrdm_ops could be shared with OMAP4.
+>>
+>>  From what I read (after an admittedly quick glance), the main thing you
+>> need is a way to override the PRM offsets due to the fact that some
+>> crazy person decided to make each instance different.
+>>
+> This was one of the major reason why I had chosen and implemented separately
+> for AM33xx.
 >
-> Regards,
-> Benoit
-
+>
