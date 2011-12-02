@@ -1,257 +1,72 @@
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [RFC PATCH v1 4/7] media: videobuf2: introduce VIDEOBUF2_PAGE memops
-Date: Fri, 2 Dec 2011 10:35:00 -0600
-Message-ID: <CAKnK67SDyFCbLjpwzY9JQiBHJTgpF9uXOq+GUBW7oWv_5gZzbA@mail.gmail.com>
-References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com> <1322817178-8931-5-git-send-email-ming.lei@canonical.com>
+From: Vishwanath Sripathy <vishwanath.bs@ti.com>
+Subject: RE: [PATCHv2 0/7]ARM: OMAP3PLUS PM: Add IO DaisyChain support via
+ hwmod mux
+Date: Fri, 2 Dec 2011 22:28:54 +0530
+Message-ID: <f1252b7ed1e3731c8b0c18e385dcdc2b@mail.gmail.com>
+References: <1318009671-12813-1-git-send-email-vishwanath.bs@ti.com><87pqh3qvkt.fsf@ti.com><1e686270c099fa4a270b6b01e6ac585c@mail.gmail.com><a480ee86d60a9db484d3baa0faf2477f@mail.gmail.com>
+ <87k46izb8b.fsf@ti.com> <3968ef2671e202d1cefdf4a7c5d32ec6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1322817178-8931-5-git-send-email-ming.lei@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:41341 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755807Ab1LBQ6o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 11:58:44 -0500
+Received: by ggnr5 with SMTP id r5so3863217ggn.5
+        for <linux-omap@vger.kernel.org>; Fri, 02 Dec 2011 08:58:43 -0800 (PST)
+In-Reply-To: <3968ef2671e202d1cefdf4a7c5d32ec6@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Ming,
+Kevin,
 
-On Fri, Dec 2, 2011 at 3:12 AM, Ming Lei <ming.lei@canonical.com> wrote=
-:
-> DMA contig memory resource is very limited and precious, also
-> accessing to it from CPU is very slow on some platform.
+> -----Original Message-----
+> From: Vishwanath Sripathy [mailto:vishwanath.bs@ti.com]
+> Sent: Wednesday, November 30, 2011 2:58 PM
+> To: Kevin Hilman
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: RE: [PATCHv2 0/7]ARM: OMAP3PLUS PM: Add IO DaisyChain
+> support via hwmod mux
 >
-> For some cases(such as the comming face detection driver), DMA Stream=
-ing
-> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
-> physical memory but letting video device driver to handle DMA buffer =
-mapping
-> and unmapping things.
->
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
 > ---
-> =A0drivers/media/video/Kconfig =A0 =A0 =A0 =A0 =A0| =A0 =A04 +
-> =A0drivers/media/video/Makefile =A0 =A0 =A0 =A0 | =A0 =A01 +
-> =A0drivers/media/video/videobuf2-page.c | =A0115 ++++++++++++++++++++=
-++++++++++++++
-> =A0include/media/videobuf2-page.h =A0 =A0 =A0 | =A0 20 ++++++
-> =A04 files changed, 140 insertions(+), 0 deletions(-)
-> =A0create mode 100644 drivers/media/video/videobuf2-page.c
-> =A0create mode 100644 include/media/videobuf2-page.h
->
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfi=
-g
-> index 4e8a0c4..5684a00 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -60,6 +60,10 @@ config VIDEOBUF2_VMALLOC
-> =A0 =A0 =A0 =A0select VIDEOBUF2_MEMOPS
-> =A0 =A0 =A0 =A0tristate
->
-> +config VIDEOBUF2_PAGE
-> + =A0 =A0 =A0 select VIDEOBUF2_CORE
-> + =A0 =A0 =A0 select VIDEOBUF2_MEMOPS
-> + =A0 =A0 =A0 tristate
->
-> =A0config VIDEOBUF2_DMA_SG
-> =A0 =A0 =A0 =A0#depends on HAS_DMA
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makef=
-ile
-> index ddeaa6c..bc797f2 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -125,6 +125,7 @@ obj-$(CONFIG_VIDEO_BTCX) =A0+=3D btcx-risc.o
-> =A0obj-$(CONFIG_VIDEOBUF2_CORE) =A0 =A0 =A0 =A0 =A0 +=3D videobuf2-co=
-re.o
-> =A0obj-$(CONFIG_VIDEOBUF2_MEMOPS) =A0 =A0 =A0 =A0 +=3D videobuf2-memo=
-ps.o
-> =A0obj-$(CONFIG_VIDEOBUF2_VMALLOC) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0+=3D=
- videobuf2-vmalloc.o
-> +obj-$(CONFIG_VIDEOBUF2_PAGE) =A0 =A0 =A0 =A0 =A0 +=3D videobuf2-page=
-=2Eo
-> =A0obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) =A0 =A0 +=3D videobuf2-dma-cont=
-ig.o
-> =A0obj-$(CONFIG_VIDEOBUF2_DMA_SG) =A0 =A0 =A0 =A0 +=3D videobuf2-dma-=
-sg.o
->
-> diff --git a/drivers/media/video/videobuf2-page.c b/drivers/media/vid=
-eo/videobuf2-page.c
-> new file mode 100644
-> index 0000000..b3f003a
-> --- /dev/null
-> +++ b/drivers/media/video/videobuf2-page.c
-> @@ -0,0 +1,115 @@
-> +/*
-> + * videobuf2-page.c - page memory allocator for videobuf2
-> + *
-> + * Copyright (C) 2011 Canonical Ltd.
-> + *
-> + * Author: Ming Lei <ming.lei@canonical.com>
-> + *
-> + * This program is free software; you can redistribute it and/or mod=
-ify
-> + * it under the terms of the GNU General Public License as published=
- by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/mm.h>
-> +#include <linux/slab.h>
-> +
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-memops.h>
-> +
-> +struct vb2_page_buf {
-> + =A0 =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0*vaddr;
-> + =A0 =A0 =A0 unsigned long =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 size;
-> + =A0 =A0 =A0 atomic_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-refcount;
-> + =A0 =A0 =A0 struct vb2_vmarea_handler =A0 =A0 =A0 handler;
-> +};
-> +
-> +static void vb2_page_put(void *buf_priv);
-> +
-> +static void *vb2_page_alloc(void *alloc_ctx, unsigned long size)
-> +{
-> + =A0 =A0 =A0 struct vb2_page_buf *buf;
-> +
-> + =A0 =A0 =A0 buf =3D kzalloc(sizeof *buf, GFP_KERNEL);
-> + =A0 =A0 =A0 if (!buf)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> +
-> + =A0 =A0 =A0 buf->size =3D size;
-> + =A0 =A0 =A0 buf->vaddr =3D (void *)__get_free_pages(GFP_KERNEL,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 get_order(buf->size));
-> + =A0 =A0 =A0 buf->handler.refcount =3D &buf->refcount;
-> + =A0 =A0 =A0 buf->handler.put =3D vb2_page_put;
-> + =A0 =A0 =A0 buf->handler.arg =3D buf;
-> +
-> + =A0 =A0 =A0 if (!buf->vaddr) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "page of size %ld faile=
-d\n", buf->size);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(buf);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 atomic_inc(&buf->refcount);
-> + =A0 =A0 =A0 printk(KERN_DEBUG "Allocated page buffer of size %ld at=
- vaddr=3D%p\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 buf->size, buf->vaddr);
-> +
-> + =A0 =A0 =A0 return buf;
-> +}
-> +
-> +static void vb2_page_put(void *buf_priv)
-> +{
-> + =A0 =A0 =A0 struct vb2_page_buf *buf =3D buf_priv;
-> +
-> + =A0 =A0 =A0 if (atomic_dec_and_test(&buf->refcount)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_DEBUG "%s: Freeing page mem=
- at vaddr=3D%p\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, buf->vaddr);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 free_pages((unsigned long)buf->vaddr, g=
-et_order(buf->size));
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(buf);
-> + =A0 =A0 =A0 }
-> +}
-> +
-> +static void *vb2_page_vaddr(void *buf_priv)
-> +{
-> + =A0 =A0 =A0 struct vb2_page_buf *buf =3D buf_priv;
-> +
-> + =A0 =A0 =A0 BUG_ON(!buf);
-> +
-> + =A0 =A0 =A0 if (!buf->vaddr) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Address of an unalloca=
-ted plane requested\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 return buf->vaddr;
-> +}
-> +
-> +static unsigned int vb2_page_num_users(void *buf_priv)
-> +{
-> + =A0 =A0 =A0 struct vb2_page_buf *buf =3D buf_priv;
-> + =A0 =A0 =A0 return atomic_read(&buf->refcount);
-> +}
-> +
-> +static int vb2_page_mmap(void *buf_priv, struct vm_area_struct *vma)
-> +{
-> + =A0 =A0 =A0 struct vb2_page_buf *buf =3D buf_priv;
-> +
-> + =A0 =A0 =A0 if (!buf) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "No memory to map\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 vma->vm_page_prot =3D vm_get_page_prot(vma->vm_flags);
-> + =A0 =A0 =A0 return vb2_mmap_pfn_range(vma, virt_to_phys(buf->vaddr)=
-,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 buf->size, &vb2_common_=
-vm_ops,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &buf->handler);
-> +}
-> +
-> +const struct vb2_mem_ops vb2_page_memops =3D {
-> + =A0 =A0 =A0 .alloc =A0 =A0 =A0 =A0 =A0=3D vb2_page_alloc,
-> + =A0 =A0 =A0 .put =A0 =A0 =A0 =A0 =A0 =A0=3D vb2_page_put,
-> + =A0 =A0 =A0 .vaddr =A0 =A0 =A0 =A0 =A0=3D vb2_page_vaddr,
-> + =A0 =A0 =A0 .mmap =A0 =A0 =A0 =A0 =A0 =3D vb2_page_mmap,
-> + =A0 =A0 =A0 .num_users =A0 =A0 =A0=3D vb2_page_num_users,
-> +};
-> +EXPORT_SYMBOL_GPL(vb2_page_memops);
-> +
-> +MODULE_DESCRIPTION("page memory handling routines for videobuf2");
-> +MODULE_AUTHOR("Ming Lei");
-> +MODULE_LICENSE("GPL");
-> diff --git a/include/media/videobuf2-page.h b/include/media/videobuf2=
--page.h
-> new file mode 100644
-> index 0000000..29b3e20
-> --- /dev/null
-> +++ b/include/media/videobuf2-page.h
-> @@ -0,0 +1,20 @@
-> +/*
-> + * videobuf2-vmalloc.h - vmalloc memory allocator for videobuf2
-> + *
-> + * Copyright (C) 2010 Samsung Electronics
-> + *
-> + * Author: Pawel Osciak <pawel@osciak.com>
-> + *
-> + * This program is free software; you can redistribute it and/or mod=
-ify
-> + * it under the terms of the GNU General Public License as published=
- by
-> + * the Free Software Foundation.
-> + */
-> +
-> +#ifndef _MEDIA_VIDEOBUF2_VMALLOC_H
-> +#define _MEDIA_VIDEOBUF2_VMALLOC_H
+> > >> > Can you refresh this against Tony's 'fixes' branch and re-
+> test.
+> > >> >
+> > >> > I tested this on OMAP3430/n900 and noticed that it no longer
+> > hit
+> > >> off
+> > >> > mode from idle.
+> > >> >
+> > >> > IOW, If I enable UART timeouts and then enable off mode, I
+> > don't
+> > >> > actually ever hit off during idle.  However, if I do a
+> > >> > suspend/resume I
+> > >> > see it hits off mode, then subsequent attempts to hit off
+> > during
+> > >> > idle work.
+> > >> >
+> > >> > Can you investigate this?
+> > >> OK. Let me check that.
+> > > I rebased these patches against latest Tony's fixes branch and
+> > tested it
+> > > on OMAP3430 SDP. I see that Core enters off mode in idle path
+> > after
+> > > setting UART timeout w/o having to suspend the system.
+> >
+> > OK, sounds good.
+> >
+> > Do you have a branch that I can test as well?
+> Sure. It's available at
+> git://gitorious.org/omap-pm/linux.git for_3.3/io_daisy_chain
+Did you get any chance to test it at your side?
+Should I post the rebased patches?
 
-Copy-paste much? :)
-
-=46ix header and match above define with something that matches the act=
-ual file:
-
-#ifndef _MEDIA_VIDEOBUF2_PAGE_H
-#define _MEDIA_VIDEOBUF2_PAGE_H
-
-Regards,
-Sergio
-
-> +
-> +#include <media/videobuf2-core.h>
-> +
-> +extern const struct vb2_mem_ops vb2_page_memops;
-> +
-> +#endif
-> --
-> 1.7.5.4
+Regards
+Vishwa
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Regards
+> Vishwa
+> >
+> > Kevin
