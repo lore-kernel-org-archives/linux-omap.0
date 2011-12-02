@@ -1,91 +1,85 @@
-From: Heiko Schocher <hs-ynQEQJNshbs@public.gmane.org>
-Subject: arm, am1808: using mmc1 controller and dma
-Date: Fri, 02 Dec 2011 08:35:22 +0100
-Message-ID: <4ED87FBA.40409@denx.de>
-Reply-To: hs-ynQEQJNshbs@public.gmane.org
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: Setting OMAP DSS fck
+Date: Fri, 02 Dec 2011 09:39:01 +0200
+Message-ID: <1322811541.1867.29.camel@deskari>
+References: <1322727382.16429.4.camel@deskari>
+	 <alpine.DEB.2.00.1112011121220.6289@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <http://linux.davincidsp.com/mailman/options/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://linux.davincidsp.com/pipermail/davinci-linux-open-source>
-List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
-List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
-List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
-	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
-Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-To: davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
-Cc: Chris Ball <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, Wolfgang Denk <wd-ynQEQJNshbs@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Lavinen <jarkko.lavinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-+dY6nC0CJ0LXAuyl5ecU"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:45143 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751745Ab1LBHjH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Dec 2011 02:39:07 -0500
+Received: by lagv3 with SMTP id v3so1118928lag.7
+        for <linux-omap@vger.kernel.org>; Thu, 01 Dec 2011 23:39:04 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1112011121220.6289@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-Hello,
 
-trying Linux 3.2.0-rc3 on an am1808 based board using MMCSD1 controller,
-and facing problems with using DMA. Deactivating use_dma=0 in the
-davinci_mmc controller and mmc works in pio mode without problems.
-So there are no hardware problems, pinmux is ok, psc are all on.
+--=-+dY6nC0CJ0LXAuyl5ecU
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Tried this on the AM1808 evalboard TMDXEXP1808L, and Linux 3.1
-works with DMA without problems. Difference: On the AM1808 Evalboard
-TMDXEXP1808L MMCSD0 controller is used on my am1808 based board
-MMCSD1!
+On Thu, 2011-12-01 at 11:23 -0700, Paul Walmsley wrote:
+> On Thu, 1 Dec 2011, Tomi Valkeinen wrote:
+>=20
+> > Why is it that the rate of DSS functional clock (dss_dss_clk on OMAP4)
+> > cannot be set, but we need to get the parent of the fck, and set the
+> > rate of that? The same is on OMAP3.
+> >=20
+> > From driver's perspective I think this only makes things more complex,
+> > as the driver is not interested in the parent, only about the dss fck.
+>=20
+> Yeah, I agree.  We've talked about implementing rate changes that=20
+> percolate up to some higher point in the clock tree, but have never gotte=
+n=20
+> around to it due to other, higher priorities.  And now the common clock=
+=20
+> discussion has reduced the desire to do much OMAP-specific implementation=
+=20
+> of this stuff.
+>=20
+> Another (related) problem is that the driver probably needs to know the=
+=20
+> ranges of the possible values that can be set.
 
-Debugging in code and found, that on the am1808 evalboard I get
-on startup (first DMA access):
+That's true. The DSS driver has knowledge of the possible divider ranges
+that the parent clock can use. Not very neat.
 
-CMD13, arg 0x00000000, R1/R5/R6/R7 response
+And note that the DSS driver needs to know about the possible dividers,
+not the clock freq range. We need to get quite exact pixel clocks,
+derived via some dividers, and we iterate through the dividers trying to
+find a divider set that produces a pixel clock that is close to the
+required one.
 
-a status back in mmc_davinci_irq():
+ Tomi
 
-TRNDNE (0x1000) Transfer done
-RSPDNE (0x0004) Response succesfully has received
-DATDNE (0x0001) The data has been fully transmitted
 
-On the am1808 based board with using MMCSD1 I get:
+--=-+dY6nC0CJ0LXAuyl5ecU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-CMD13, arg 0x00000000, R1/R5/R6/R7 response
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-TRNDNE (0x1000) Transfer done
-DRRDY  (0x0400) MMCDRR is ready New data arrived and can be read by cpu or dma
-RSPDNE (0x0004) Response succesfully has received
+iQIcBAABAgAGBQJO2ICVAAoJEPo9qoy8lh71s1UQALI8HZxC+9acYTBHzwhGgwyY
+UZmib3ojdZCMhhDmaRspJe1ydcjdxYbylqF9wyk4wdMZbhHP3DQm1fUHHbrOxasi
+43dNPdX0wChB+Q2zCdTBVCE8pXq5XRziytlEYdETQWYGbPHKXFUOl81gHl8zgMgs
+5wWLS9m/Bd4t7+Fx4aBG8vYIaZ4pwMcYV2qL/6EhMa4wehrsv+aj/8FKEoJFg/Fu
+zK4L/gGQ6miKg6jeeOlhkva3hGmTpoCOPeSerGkV7QkxNMxfIH7pzyYNYGebtm7w
+rzSWPYYM9/CZYfn7mvFx86Sl81Hsro36Jh+G4iMy7uMSyFN/3HkWE9Zy2XHcY5ri
+WFA0kRjhEkjFxsi7Q4imL7H19o2CssAQxmXOzkV5Ej0/GD2JHRRkq2I9Qk4vWi9J
+S5Q2m6THX9a1ydyfM7uhYIYzY5LpKDC5jrTqpVj+bZTDWX1ShiAbR6vW/pHGtVDN
+Dc6DDVSwtzyMK+bjXo1WnGtLqyIADMeSST7f+hjen+o7w9+JqZL5KB/YzGdGKYKb
+VrES5IKU+9l6Dz75G3KzSardteQPqKMT9YPKehTYt4CPoBN7FMUMm7pMsWJbKFC9
+MFKEw/i6Dzvl+QVyUEShZMzAsaUznMJOtWTEchn3cp0Ff4e0nHMU/r6NtRa6ZrHP
+NLhkWrmPi810hFY9XqAX
+=YcwH
+-----END PGP SIGNATURE-----
 
-after that command, I see  no more mmc accesses ... some ideas?
+--=-+dY6nC0CJ0LXAuyl5ecU--
 
-Looking in the sprufu5.pdf (AM18x ARM Microprocessor Enhanced Direct
-Memory Access (EDMA3) Controller" chapter "2.6 Event, Channel, and
-PaRAM Mapping":
-
-"Most of the DMA channels are tied to a specific hardware peripheral
-event, thus allowing transfers to be triggered by events from device
-peripherals or external hardware."
-
-The mapping is defined in the device specific manual
-http://www.ti.com/lit/ds/sprs653b/sprs653b.pdf
-chapter "5.9.1 EDMA3 Channel Synchronization Events"
-
-and there I found:
-
-EDMA0 Controller Event 16 MMCSD0 Receive
-EDMA0 Controller Event 17 MMCSD0 Transmit
-
-EDMA1 Controller Event 28 MMCSD1 Receive
-EDMA1 Controller Event 29 MMCSD1 Transmit
-
-The Linux 3.1 Code is using
-EDMA1 Controller Event 28 MMCSD1 Receive
-EDMA1 Controller Event 29 MMCSD1 Transmit
-
-as events for the MMCSD1 controller ... so, this should be ok ...
-I see no more differences between MMCSD0 and MMCSD1 ... maybe I
-miss something?
-
-Have somebody running an am1808 based board with using MMCSD
-controller 1?
-
-bye,
-Heiko
--- 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
