@@ -1,109 +1,82 @@
-From: Thomas Abraham <thomas.abraham@linaro.org>
-Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract regulator_init_data
-Date: Sun, 4 Dec 2011 18:51:23 +0530
-Message-ID: <CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
-	<1321615040-13257-2-git-send-email-rnayak@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] mdt nand: omap2+ use platform options
+Date: Sun, 04 Dec 2011 16:29:57 +0200
+Message-ID: <1323009003.9400.64.camel@sauron.fi.intel.com>
+References: <CAN8TOE9=ux=suwcQMwJY1XUhp_mnD_DL613ffF1-HTL1OVB2PQ@mail.gmail.com>
+	 <1322557213-23565-1-git-send-email-j.weitzel@phytec.de>
+	 <1322728943.2332.13.camel@koala>
+	 <CANOLnOOE3a0BP0TcLnRAmq5YAiHLZTpkbriDh9WtkkBT7TotFA@mail.gmail.com>
+	 <CAN8TOE-YkQvm76ZXxh-CBF05y6BoHY+FM95-TtJdAiP0knhZtg@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-739owEoSIB4eRj37Ri+Y"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:35248 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753614Ab1LDNVZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Dec 2011 08:21:25 -0500
-In-Reply-To: <1321615040-13257-2-git-send-email-rnayak@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:49188 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753749Ab1LDO24 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Dec 2011 09:28:56 -0500
+Received: by iakc1 with SMTP id c1so595348iak.19
+        for <linux-omap@vger.kernel.org>; Sun, 04 Dec 2011 06:28:56 -0800 (PST)
+In-Reply-To: <CAN8TOE-YkQvm76ZXxh-CBF05y6BoHY+FM95-TtJdAiP0knhZtg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, robherring2@gmail.com, linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Brian Norris <computersforpeace@gmail.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Jan Weitzel <j.weitzel@phytec.de>, linux-mtd@lists.infradead.org, tglx@linutronix.de, linux-omap@vger.kernel.org
 
-On 18 November 2011 16:47, Rajendra Nayak <rnayak@ti.com> wrote:
-> The helper routine is meant to be used by the regulator drivers
-> to extract the regulator_init_data structure from the data
-> that is passed from device tree.
-> 'consumer_supplies' which is part of regulator_init_data is not extra=
-cted
-> as the regulator consumer mappings are passed through DT differently,
-> implemented in subsequent patches.
-> Similarly the regulator<-->parent/supply mapping is handled in
-> subsequent patches.
->
-> Also add documentation for regulator bindings to be used to pass
-> regulator_init_data struct information from device tree.
->
-> Some of the regulator properties which are linux and board specific,
-> are left out since its not clear if they can
-> be in someway embedded into the kernel or passed in from DT.
-> They will be revisited later.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
-> =A0.../devicetree/bindings/regulator/regulator.txt =A0 =A0| =A0 54 ++=
-+++++++++++
-> =A0drivers/regulator/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 | =A0 =A01 +
-> =A0drivers/regulator/of_regulator.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- | =A0 81 ++++++++++++++++++++
-> =A0include/linux/regulator/of_regulator.h =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- 20 +++++
-> =A04 files changed, 156 insertions(+), 0 deletions(-)
-> =A0create mode 100644 Documentation/devicetree/bindings/regulator/reg=
-ulator.txt
-> =A0create mode 100644 drivers/regulator/of_regulator.c
-> =A0create mode 100644 include/linux/regulator/of_regulator.h
->
-> diff --git a/Documentation/devicetree/bindings/regulator/regulator.tx=
-t b/Documentation/devicetree/bindings/regulator/regulator.txt
-> new file mode 100644
-> index 0000000..82bef20
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/regulator/regulator.txt
-> @@ -0,0 +1,54 @@
-> +Voltage/Current Regulators
-> +
-> +Optional properties:
-> +- regulator-name: A string used as a descriptive name for regulator =
-outputs
-> +- regulator-min-microvolt: smallest voltage consumers may set
-> +- regulator-max-microvolt: largest voltage consumers may set
-> +- regulator-microvolt-offset: Offset applied to voltages to compensa=
-te for voltage drops
-> +- regulator-min-microamp: smallest current consumers may set
-> +- regulator-max-microamp: largest current consumers may set
-> +- regulator-always-on: boolean, regulator should never be disabled
-> +- regulator-boot-on: bootloader/firmware enabled regulator
-> +- <name>-supply: phandle to the parent supply/regulator node
 
-=46or regulators that are not turned on by bootloader, and which requir=
-e
-'apply_uV' constraint, is there any alternative for turning on the
-regulator when using dt?
+--=-739owEoSIB4eRj37Ri+Y
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Or, how about adding a additional check as below.
+On Fri, 2011-12-02 at 09:28 -0800, Brian Norris wrote:
+> On Fri, Dec 2, 2011 at 2:20 AM, Grazvydas Ignotas <notasas@gmail.com> wro=
+te:
+> > On Thu, Dec 1, 2011 at 10:42 AM, Artem Bityutskiy <dedekind1@gmail.com>=
+ wrote:
+> >> On Tue, 2011-11-29 at 10:00 +0100, Jan Weitzel wrote:
+> >>> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+> >>
+> >> Pushed to l2-mtd-2.6.git, thank you!
+> >
+> > This breaks build here, did you really test it, Jan?
+> >
+> > drivers/mtd/nand/omap2.c: In function 'omap_nand_probe':
+> > drivers/mtd/nand/omap2.c:1078: error: 'struct omap_nand_platform_data'
+> > has no member named 'options'
+>=20
+> This is exactly what I was asking already. I don't see 'options' in
+> 'struct omap_nand_platform_data' in
+> 'arch/arm/plat-omap/include/plat/nand.h', even in linux-next.
 
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index 5baa196..25a6781 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -816,8 +816,9 @@ static int machine_constraints_voltage(struct
-regulator_dev *rdev,
- 	int ret;
+Yes, sorry, I've payed not enough attention to the patch.
 
- 	/* do we need to apply the constraint voltage */
--	if (rdev->constraints->apply_uV &&
--	    rdev->constraints->min_uV =3D=3D rdev->constraints->max_uV) {
-+	if ((rdev->constraints->apply_uV &&
-+	    rdev->constraints->min_uV =3D=3D rdev->constraints->max_uV) ||
-+		(!rdev->constraints->boot_on && rdev->constraints->always_on)) {
- 		ret =3D _regulator_do_set_voltage(rdev,
- 						rdev->constraints->min_uV,
- 						rdev->constraints->max_uV);
+--=20
+Best Regards,
+Artem Bityutskiy
 
-Thanks,
-Thomas.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-739owEoSIB4eRj37Ri+Y
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO24PlAAoJECmIfjd9wqK0PVIQALjDCOYPZcjGaI9EuFURD1De
+AenL4IgO+DLx/ddHW71kY8Q1TZgmgi6iruNpEfSslmJpO8j4hziqvlDPCzUyBtdD
+H3vAjCypNaZ3dhQDMQr4ycb3kcQMV0iD5P6BidNCYVMnl7xEgkGT6ISbdwfwqtqR
+jBbzzwfLsOKiBFf5VJxRhkXFFitOg8Hy+sOLvI2Z/eKe9e+MJSZhuoVHdpLSFvku
+YhkCjHjL6f+CcSo6fLuMTdxCFD5PxT6wydlS/9nMmMnZHsTBRQjn4lIyKu2GLcUL
+9tX+eUtnCKeEtnzN4/w6NxuKdCvybHKMZVKaFeNALBPKyQaVTcsc1j+Y9yJwzeLL
+QJGrdQQy+ElpFLigdw0rpiQkNBcwB49FJkccZlQcOU7pEtsWMzzWE9Aq7Iz2ERPR
+IrAFqdS+tCJxd+AV3CDJvpqWPINsc/gxb2fbvc7nxg2xHZfF0R/+mu3Es8GtqjJ2
+uPv2X8Bch/mk2Bd8u83LnBFczibOjfdRL+zVZ0kq6/Zv2yz3EOkzRtGe+N+nosfU
+qU9z7L+xedC7x3X1YymZa8kC1u0woEykQ4EOfY6iR6+2KaT9hCgDOPl9nQEuxqMH
+2PwtLeOwlGSOicw1OUru1toYQ0TfBTbt5jDFOaoz/rAEWpneS5/tb8f4TlKNy9eE
+Cw1L4JUQhTtQcqk2GPVj
+=eWTW
+-----END PGP SIGNATURE-----
+
+--=-739owEoSIB4eRj37Ri+Y--
+
