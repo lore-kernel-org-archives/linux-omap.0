@@ -1,177 +1,74 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH] MFD: TWL: add power off functionality
-Date: Sun, 4 Dec 2011 21:58:59 +1100
-Message-ID: <20111204215859.695b31aa@notabene.brown>
-References: <1321177790-5886-1-git-send-email-grinberg@compulab.co.il>
-	<4ED205F9.3070908@compulab.co.il>
-	<20111203123516.5ebb057b@notabene.brown>
-	<4EDB43DC.2050000@compulab.co.il>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
+Date: Sun, 4 Dec 2011 19:18:37 +0800
+Message-ID: <CACVXFVO5Bu8vTfLN_WFsEkHW6JhQFmWPmEyNnrvTsDhoF-WVeA@mail.gmail.com>
+References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
+	<1322817178-8931-6-git-send-email-ming.lei@canonical.com>
+	<42689146.OPtqLboC2m@wuerfel>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/W5PWILTS=WLrGgDoJNJrcbh"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47069 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab1LDK7U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 4 Dec 2011 05:59:20 -0500
-In-Reply-To: <4EDB43DC.2050000@compulab.co.il>
+Received: from youngberry.canonical.com ([91.189.89.112]:53978 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361Ab1LDLSj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Dec 2011 06:18:39 -0500
+In-Reply-To: <42689146.OPtqLboC2m@wuerfel>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org
 
---Sig_/W5PWILTS=WLrGgDoJNJrcbh
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Sun, 04 Dec 2011 11:56:44 +0200 Igor Grinberg <grinberg@compulab.co.il>
-wrote:
+On Fri, Dec 2, 2011 at 8:33 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 02 December 2011 17:12:56 Ming Lei wrote:
+>> +/**
+>> + * struct v4l2_fd_result - VIDIOC_G_FD_RESULT argument
+>> + * @buf_index: entry, index of v4l2_buffer for face detection
+>> + * @face_cnt: =A0return, how many faces detected from the @buf_inde=
+x
+>> + * @fd: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return, result of faces' det=
+ection
+>> + */
+>> +struct v4l2_fd_result {
+>> + =A0 =A0 =A0 __u32 =A0 buf_index;
+>> + =A0 =A0 =A0 __u32 =A0 face_cnt;
+>> + =A0 =A0 =A0 __u32 =A0 reserved[6];
+>> + =A0 =A0 =A0 struct v4l2_fd_detection *fd;
+>> +};
+>
+>
+> This data structure is not 32/64 bit safe: running a 64 bit kernel wi=
+th 32 bit
+> user space will see an incompatible layout.
 
-> Hi Neil,
->=20
-> On 12/03/11 03:35, NeilBrown wrote:
-> > On Sun, 27 Nov 2011 11:42:17 +0200 Igor Grinberg <grinberg@compulab.co.=
-il>
-> > wrote:
-> >=20
-> >> ping!
-> >=20
-> > pong ...
-> >=20
-> >=20
-> > Hi,
-> >  I've been trying this patch out on my GTA04 with 3.2-rc4 and it doesn't
-> >  work :-(
->=20
-> Probably, v3.2-rc4 is not the best to try things out...
-> This patch is based on v3.1, can you try v3.1, so at least we can
-> check the that the patch itself has no problems?
-> Also, CC'ing linux-omap.
+I agree that this is not 32/64 bit safe, but I understand lib32 can han=
+dle
+this correctly, otherwise many 32bit applications can't run on current
+64bit kernel
+since many kernel structures used by user space contained pointer,
+such as struct v4l2_buffer, struct v4l2_ext_controls in v4l2 ABI.
 
-I think I'll be able to give 3.1 a try - I'll let you know.
+> One way to solve this is to remove the pointer and just start the arr=
+ay
+> directly after the __u32 members. Alternatively, you can use a __u64
+> to pass the pointer in an integer representation.
 
+So I think this need not to be solved.
 
->=20
-> >=20
-> >  As soon as it tries to touch the i2c controller to send the power-down
-> >  message I get:
-> >=20
-> > [   96.130920] Unhandled fault: external abort on non-linefetch (0x1028=
-) at 0xfa070008
-> > [   96.138885] Internal error: : 1028 [#1] PREEMPT
-> > [   96.143585] Modules linked in: bluetooth ipv6 g_ether hso rfkill
-> > [   96.149841] CPU: 0    Not tainted  (3.2.0-rc4+ #145)
-> > [   96.155029] PC is at omap_i2c_wait_for_bb+0xc4/0x100
-> > [   96.160186] LR is at omap_i2c_wait_for_bb+0xac/0x100
-> > [   96.165344] pc : [<c02e84d4>]    lr : [<c02e84bc>]    psr: 60000013
-> > [   96.165344] sp : d4a1ddc0  ip : d4a1dd20  fp : 00000002
-> > [   96.177246] r10: 00000002  r9 : c0d1f2c8  r8 : dbda9c00
-> > [   96.182678] r7 : c05d2a88  r6 : dbda9c00  r5 : ffff9aa8  r4 : c0d1f4=
-58
-> > [   96.189453] r3 : 00000008  r2 : 00000002  r1 : fa070000  r0 : 000000=
-01
-> > [   96.196228] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Seg=
-ment user
-> > [   96.203643] Control: 10c5387d  Table: 8bdc8019  DAC: 00000015
-> > [   96.209625] Process poweroff (pid: 722, stack limit =3D 0xd4a1c2f0)
-> >=20
-> > The call trace is=20
-> > [   96.373413] [<c02e84d4>] (omap_i2c_wait_for_bb+0xc4/0x100) from [<c0=
-2e8aa8>] (omap_i2c_xfer+0x34/0x4fc)
-> > [   96.383178] [<c02e8aa8>] (omap_i2c_xfer+0x34/0x4fc) from [<c02e6978>=
-] (i2c_transfer+0xac/0x130)
-> > [   96.392211] [<c02e6978>] (i2c_transfer+0xac/0x130) from [<c0259d20>]=
- (twl_i2c_read+0xd8/0x12c)
-> > [   96.401153] [<c0259d20>] (twl_i2c_read+0xd8/0x12c) from [<c025ba0c>]=
- (twl4030_power_off+0x34/0x124)
-> > [   96.410583] [<c025ba0c>] (twl4030_power_off+0x34/0x124) from [<c000f=
-130>] (machine_power_off+0x1c/0x28)
-> > [   96.420349] [<c000f130>] (machine_power_off+0x1c/0x28) from [<c004ad=
-94>] (sys_reboot+0x124/0x1e0)
-> > [   96.429565] [<c004ad94>] (sys_reboot+0x124/0x1e0) from [<c000e780>] =
-(ret_fast_syscall+0x0/0x3c)
->=20
-> Have you modified the patch?
-> Because, there is no twl_i2c_read() call in twl4030_power_off() function.=
-..
-> Are there any other changes we need to be aware of?
+>
+> A nicer interface from the data structure perspective would be to
+> get rid of the array altogether and always return exactly one face.
 
-Yes I did, but with the unaltered patch I still got the crash in
-omap_i2c_wait_for_bb.  I was just seeing if reading would work when writing
-didn't.
+I choose to return array to user space since v4l2 ioctl has provided
+this kind of support, see video_usercopy().
 
-
->=20
-> >=20
-> >=20
-> > It has accessed this same address 0xfa070008 multiple times during norm=
-ally
-> > running, but here at shutdown it gets an external abort.
-> > Presumably something is being turned of earlier in the shutdown sequenc=
-e so
-> > that i2c is no longer available, but I have no idea what.
->=20
-> What distro are you using?
-
-Debian
-
-> Does it do any kernel related sub systems power games?
-
-I don't think so, no.
-
-
->=20
-> >=20
-> > Do you have any idea what might be being disabled/turned-off/unmapped/
-> > cleared/whatever that could cause this?
->=20
-> No idea currently, I need to examine the changes between v3.1 and v3.2-rc=
-4.
->=20
-> >=20
-> > I see:
-> > [   96.029968] twl 1-0048: shutdown
-> > [   96.038604] i2c i2c-1: shutdown
-> >=20
-> > amongst the messages, but as far as I can tell there is no actual shutd=
-own
-> > method for these to call so they don't do anything.
-> >=20
-> > Ideas?
->=20
-> I haven't seen those messages in my v3.1.
-> I will try to look at this, but it will take time
-> as I'm on something else right now.
->=20
-
-These messages are generated by having CONFIG_DEBUG_DRIVER defined.
-It's just showing that device_shutdown() had tried to shut these things dow=
-n.
-
-
-Thanks,
-NeilBrown
-
---Sig_/W5PWILTS=WLrGgDoJNJrcbh
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBTttSeTnsnt1WYoG5AQKY5g/+J5OX1pc9ZKFy4B23WSU5mB01Lvjh8DJE
-jY3/aqX3k5wtGGu3X9IYfAS4wYW1TqOu8ZGhyexLvm1eX5kiEkzEA4pFN4n5vL4o
-tqY9YphUg6DDoAD9c3zdqzAKtPyf4DB0yHB2IDGykN1Qp0D9DsNjUTJM1dY7CaHU
-SSJd9tObKHHDDj1RvqeCDkHH12UCG6e+6KOlTQmionhltbn9TySr3qCh/NzHB6T4
-Fca0ZYdp1/IO4Vre1bpYc2vLYjTEDIZu3MbnBwlM56R/3WxnnGiCy0ShzUqkWXsF
-48GyJeAqsXxWka5IGZVnZJf3nlrOEm26p417alcoO+jmAfblLVF/3vuClK1hyN+c
-LfFnoUdXrfazQ71BHsThI+PPaH8GysCmqWFul7sy8XJKUvqTeNJkA4EwcSoM3Llw
-PuhkbG/j8+uQfNbRO/E3PL+o/kp0Y4BihGWUNw6SFzoZOB40v7GwZUsCIbIzAqlt
-J0yjgZkkhtwq8UfAt9vCTMvJiEtjnBaCtbQHDT3vL1bGjwbXe/0MGJ1dHimvf3SX
-NK3tRTG3aNnbT0Q8JmDCT0qqo9YEhJdiP37lR7npAzr8/yKgerjMtmPK8kVZXcGZ
-pRt51UEnvaJVsQbjIs/cHJMGt+/szW1ut6fe3vkyFa4UOkYGJAMsFJu1tSUTLn0d
-GgbY+rUM/eg=
-=xk7y
------END PGP SIGNATURE-----
-
---Sig_/W5PWILTS=WLrGgDoJNJrcbh--
+thanks,
+--
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
