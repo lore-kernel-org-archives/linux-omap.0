@@ -1,96 +1,100 @@
-From: Thomas Abraham <thomas.abraham@linaro.org>
-Subject: Re: [PATCH v5 3/4] regulator: pass additional of_node to regulator_register()
-Date: Sun, 4 Dec 2011 15:23:07 +0530
-Message-ID: <CAJuYYwRa=AGZ+Chuj+v49EHE+bOuoCWxhmDUO35BoZK2g97FQg@mail.gmail.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
-	<1321615040-13257-4-git-send-email-rnayak@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] MFD: TWL: add power off functionality
+Date: Sun, 04 Dec 2011 11:56:44 +0200
+Message-ID: <4EDB43DC.2050000@compulab.co.il>
+References: <1321177790-5886-1-git-send-email-grinberg@compulab.co.il>	<4ED205F9.3070908@compulab.co.il> <20111203123516.5ebb057b@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45910 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751979Ab1LDJxI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Dec 2011 04:53:08 -0500
-In-Reply-To: <1321615040-13257-4-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111203123516.5ebb057b@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, robherring2@gmail.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linux-kernel@vger.kernel.org, shawn.guo@freescale.com, linaro-dev@lists.linaro.org, olof@lixom.net, Michael Hennerich <michael.hennerich@analog.com>, Ian Lartey <ian@opensource.wolfsonmicro.com>, Dimitris Papastamos <dp@opensource.wolfsonmicro.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>, Wolfram Sang <w.sang@pengutronix.de>, Zeng Zhaoming <b32542@freescale.com>, Dan Carpenter <error27@gmail.com>
 
-Hi Rajendra,
+Hi Neil,
 
-On 18 November 2011 16:47, Rajendra Nayak <rnayak@ti.com> wrote:
-> With device tree support for regulators, its needed that the
-> regulator_dev->dev device has the right of_node attached.
-> To be able to do this add an additional parameter to the
-> regulator_register() api, wherein the dt-adapted driver can
-> then pass this additional info onto the regulator core.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Michael Hennerich <michael.hennerich@analog.com>
-> Cc: Ian Lartey <ian@opensource.wolfsonmicro.com>
-> Cc: Dimitris Papastamos <dp@opensource.wolfsonmicro.com>
-> Cc: Jaroslav Kysela <perex@perex.cz>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: Wolfram Sang <w.sang@pengutronix.de>
-> Cc: Zeng Zhaoming <b32542@freescale.com>
-> Cc: Dan Carpenter <error27@gmail.com>
-> ---
-> =A0drivers/regulator/88pm8607.c =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/aat2870-regulator.c =A0| =A0 =A02 +-
-> =A0drivers/regulator/ab3100.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/ab8500.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/ad5398.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/bq24022.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/core.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A03 ++=
--
-> =A0drivers/regulator/da903x.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/db8500-prcmu.c =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/dummy.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/fixed.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/isl6271a-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/lp3971.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/lp3972.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/max1586.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/max8649.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/max8660.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/max8925-regulator.c =A0| =A0 =A02 +-
-> =A0drivers/regulator/max8952.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/max8997.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/max8998.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/mc13783-regulator.c =A0| =A0 =A02 +-
-> =A0drivers/regulator/mc13892-regulator.c =A0| =A0 =A02 +-
-> =A0drivers/regulator/pcap-regulator.c =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/pcf50633-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/tps6105x-regulator.c | =A0 =A03 ++-
-> =A0drivers/regulator/tps65023-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/tps6507x-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/tps6524x-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/tps6586x-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/tps65910-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/tps65912-regulator.c | =A0 =A02 +-
-> =A0drivers/regulator/twl-regulator.c =A0 =A0 =A0| =A0 =A02 +-
-> =A0drivers/regulator/wm831x-dcdc.c =A0 =A0 =A0 =A0| =A0 =A08 ++++----
-> =A0drivers/regulator/wm831x-isink.c =A0 =A0 =A0 | =A0 =A02 +-
-> =A0drivers/regulator/wm831x-ldo.c =A0 =A0 =A0 =A0 | =A0 =A06 +++---
-> =A0drivers/regulator/wm8350-regulator.c =A0 | =A0 =A02 +-
-> =A0drivers/regulator/wm8400-regulator.c =A0 | =A0 =A02 +-
-> =A0drivers/regulator/wm8994-regulator.c =A0 | =A0 =A02 +-
-> =A0include/linux/regulator/driver.h =A0 =A0 =A0 | =A0 =A02 +-
-> =A0sound/soc/codecs/sgtl5000.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A02 +-
-> =A041 files changed, 48 insertions(+), 46 deletions(-)
+On 12/03/11 03:35, NeilBrown wrote:
+> On Sun, 27 Nov 2011 11:42:17 +0200 Igor Grinberg <grinberg@compulab.co.il>
+> wrote:
+> 
+>> ping!
+> 
+> pong ...
+> 
+> 
+> Hi,
+>  I've been trying this patch out on my GTA04 with 3.2-rc4 and it doesn't
+>  work :-(
 
-Documentation/power/regulator/regulator.txt would also require an
-update the reflect the change in api.
+Probably, v3.2-rc4 is not the best to try things out...
+This patch is based on v3.1, can you try v3.1, so at least we can
+check the that the patch itself has no problems?
+Also, CC'ing linux-omap.
 
-Thanks,
-Thomas.
+> 
+>  As soon as it tries to touch the i2c controller to send the power-down
+>  message I get:
+> 
+> [   96.130920] Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa070008
+> [   96.138885] Internal error: : 1028 [#1] PREEMPT
+> [   96.143585] Modules linked in: bluetooth ipv6 g_ether hso rfkill
+> [   96.149841] CPU: 0    Not tainted  (3.2.0-rc4+ #145)
+> [   96.155029] PC is at omap_i2c_wait_for_bb+0xc4/0x100
+> [   96.160186] LR is at omap_i2c_wait_for_bb+0xac/0x100
+> [   96.165344] pc : [<c02e84d4>]    lr : [<c02e84bc>]    psr: 60000013
+> [   96.165344] sp : d4a1ddc0  ip : d4a1dd20  fp : 00000002
+> [   96.177246] r10: 00000002  r9 : c0d1f2c8  r8 : dbda9c00
+> [   96.182678] r7 : c05d2a88  r6 : dbda9c00  r5 : ffff9aa8  r4 : c0d1f458
+> [   96.189453] r3 : 00000008  r2 : 00000002  r1 : fa070000  r0 : 00000001
+> [   96.196228] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> [   96.203643] Control: 10c5387d  Table: 8bdc8019  DAC: 00000015
+> [   96.209625] Process poweroff (pid: 722, stack limit = 0xd4a1c2f0)
+> 
+> The call trace is 
+> [   96.373413] [<c02e84d4>] (omap_i2c_wait_for_bb+0xc4/0x100) from [<c02e8aa8>] (omap_i2c_xfer+0x34/0x4fc)
+> [   96.383178] [<c02e8aa8>] (omap_i2c_xfer+0x34/0x4fc) from [<c02e6978>] (i2c_transfer+0xac/0x130)
+> [   96.392211] [<c02e6978>] (i2c_transfer+0xac/0x130) from [<c0259d20>] (twl_i2c_read+0xd8/0x12c)
+> [   96.401153] [<c0259d20>] (twl_i2c_read+0xd8/0x12c) from [<c025ba0c>] (twl4030_power_off+0x34/0x124)
+> [   96.410583] [<c025ba0c>] (twl4030_power_off+0x34/0x124) from [<c000f130>] (machine_power_off+0x1c/0x28)
+> [   96.420349] [<c000f130>] (machine_power_off+0x1c/0x28) from [<c004ad94>] (sys_reboot+0x124/0x1e0)
+> [   96.429565] [<c004ad94>] (sys_reboot+0x124/0x1e0) from [<c000e780>] (ret_fast_syscall+0x0/0x3c)
 
-[...]
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Have you modified the patch?
+Because, there is no twl_i2c_read() call in twl4030_power_off() function...
+Are there any other changes we need to be aware of?
+
+> 
+> 
+> It has accessed this same address 0xfa070008 multiple times during normally
+> running, but here at shutdown it gets an external abort.
+> Presumably something is being turned of earlier in the shutdown sequence so
+> that i2c is no longer available, but I have no idea what.
+
+What distro are you using?
+Does it do any kernel related sub systems power games?
+
+> 
+> Do you have any idea what might be being disabled/turned-off/unmapped/
+> cleared/whatever that could cause this?
+
+No idea currently, I need to examine the changes between v3.1 and v3.2-rc4.
+
+> 
+> I see:
+> [   96.029968] twl 1-0048: shutdown
+> [   96.038604] i2c i2c-1: shutdown
+> 
+> amongst the messages, but as far as I can tell there is no actual shutdown
+> method for these to call so they don't do anything.
+> 
+> Ideas?
+
+I haven't seen those messages in my v3.1.
+I will try to look at this, but it will take time
+as I'm on something else right now.
+
+-- 
+Regards,
+Igor.
