@@ -1,65 +1,78 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv7 3/7] omap3: voltage: fix channel configuration
-Date: Mon, 05 Dec 2011 12:23:56 -0800
-Message-ID: <87r50iix7n.fsf@ti.com>
-References: <1322492005-27741-1-git-send-email-t-kristo@ti.com>
-	<1322492005-27741-4-git-send-email-t-kristo@ti.com>
-	<87pqg6jzq6.fsf@ti.com> <1323077736.7555.10.camel@sokoban>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Mon, 5 Dec 2011 14:15:56 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:44424 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932256Ab1LEUYA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 15:24:00 -0500
-Received: by mail-iy0-f180.google.com with SMTP id k25so1696829iah.39
-        for <linux-omap@vger.kernel.org>; Mon, 05 Dec 2011 12:23:59 -0800 (PST)
-In-Reply-To: <1323077736.7555.10.camel@sokoban> (Tero Kristo's message of
-	"Mon, 5 Dec 2011 11:35:36 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1321926047-14211-4-git-send-email-mturquette@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Turquette <mturquette@ti.com>
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, b-cousson@ti.com, rnayak@ti.com, gg@slimlogic.co.uk
 
-Tero Kristo <t-kristo@ti.com> writes:
+Hi
 
-> On Fri, 2011-12-02 at 15:55 -0800, Kevin Hilman wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
->> 
->> > OMAP3 uses the default settings for VDD1 channel, otherwise the settings will
->> > overlap with VDD2 and attempting to modify VDD1 voltage will actually change
->> > VDD2 voltage.
->> >
->> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> 
->> I've forgotten a bit how this was supposed to work (again), Can you
->> elaborate more on how this fails?
->
-> There is a diagram in the OMAP TRM for setting the bits in this
-> register, however the racen fix part appears to be needed only for
-> omap4. I can drop this part of the fix from the series if you want for
-> the next version, alternatively I can split this patch into two.
+a brief comment concerning clock rates:
 
-A separate patch, with a descriptive changelog would be preferred.
+On Mon, 21 Nov 2011, Mike Turquette wrote:
 
-> The idea for this part of the fix is anyway that the channel
-> configuration is more complex in omap4, we define volt_reg and cmd_reg
-> addresses for each omap4_X_pmic, however we only want to enable racen
-> bit only if cmd and volt register addresses are the same. 
+> +unsigned long clk_get_rate(struct clk *clk)
 
-This part still doesn't make sense to me.
+...
 
-If the volt register address (RA_VOL in OMAP4 terms) and command
-register address (RA_CMD) are the same, then RACEN shouldn't matter,
-since either way the commands go the same address.   
+> +long clk_round_rate(struct clk *clk, unsigned long rate)
 
-My understanding of RACEN is that it is only for the case where RA_VOL
-and RA_CMD are different, so you can select between them.
+...
 
-The current code assumes that if you pass in command register address
-you plan to use it.  If it isn't being used (RACEN == 0) then the PMIC
-setup should probably not pass in a separate command register address.
+> +int clk_set_rate(struct clk *clk, unsigned long rate)
 
-What am I missing (or mis-reading in the TRM) here?
+...
 
-Kevin
+> +struct clk {
+...
+> +	unsigned long		rate;
+...
+> +};
+
+The types associated with clock rates in the clock interface 
+(include/linux/clk.h) are inconsistent, and we should fix this. 
+clk_round_rate() is the problematic case, returning a signed long rather 
+than an unsigned long.  So clk_round_rate() won't work correctly with any 
+rates higher than 2 GiHz.
+
+We could fix the immediate problem by changing the prototype of 
+clk_round_rate() to pass the rounded rate back to the caller via a pointer 
+in one of the arguments, and return an error code (if any) via the return 
+value:
+
+int clk_round_rate(struct clk *clk, unsigned long rate, unsigned long 
+                   *rounded_rate);
+
+But I'd propose that we instead increase the size of struct clk.rate to be 
+s64:
+
+s64 clk_round_rate(struct clk *clk, s64 desired_rate);
+int clk_set_rate(struct clk *clk, s64 rate);
+s64 clk_get_rate(struct clk *clk);
+
+struct clk {
+...
+     s64 rate;
+...
+};
+
+That way the clock framework can accommodate current clock rates, as well 
+as any conceivable future clock rate.  (Some production CPUs are already 
+running at clock rates greater than 4 GiHZ[1].  RF devices with 4 GiHz+ 
+clock rates are also common, such as 802.11a devices running in the 5.8 
+GHz band, and drivers for those may eventually wish to use the clock 
+framework.)
+
+
+
+- Paul
+
+1. www.cpu-world.com, "Intel Xeon X5698 - AT80614007314AA" 
+   http://www.cpu-world.com/CPUs/Xeon/Intel-Xeon%20X5698%20-%20AT80614007314AA.html
