@@ -1,87 +1,46 @@
-From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Subject: Re: [RFC 0/5] OMAP groundwork for IOMMU-based DMA API
-Date: Mon, 5 Dec 2011 16:18:00 +0100
-Message-ID: <20111205151800.GD25178@amd.com>
-References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
- <20111115103926.GA5627@amd.com>
- <CAK=WgbY18K00DRcmP56+UJrmMu5h_O=GaO+i_GzbC5SzCvrnRA@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/5] ASoC: omap-dmic: Add device tree bindings
+Date: Mon, 5 Dec 2011 15:46:11 +0000
+Message-ID: <20111205154611.GV11150@opensource.wolfsonmicro.com>
+References: <1322819580-7424-1-git-send-email-peter.ujfalusi@ti.com>
+ <1322819580-7424-2-git-send-email-peter.ujfalusi@ti.com>
+ <20111203112206.GE6043@opensource.wolfsonmicro.com>
+ <4EDCCAE0.2000009@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40737 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932348Ab1LEPqO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 10:46:14 -0500
 Content-Disposition: inline
-In-Reply-To: <CAK=WgbY18K00DRcmP56+UJrmMu5h_O=GaO+i_GzbC5SzCvrnRA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+In-Reply-To: <4EDCCAE0.2000009@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Mon, Dec 05, 2011 at 04:21:21PM +0200, Ohad Ben-Cohen wrote:
-> Hi Joerg,
->=20
-> On Tue, Nov 15, 2011 at 12:39 PM, Roedel, Joerg <Joerg.Roedel@amd.com=
-> wrote:
-> > On Sun, Sep 25, 2011 at 06:58:52AM -0400, Ohad Ben-Cohen wrote:
-> >> Ohad Ben-Cohen (5):
-> >> =A0 ARM: dev_archdata: add private iommu extension
-> >> =A0 ARM: OMAP: omap_device: add a method to set iommu private arch=
-data
-> >> =A0 ARM: OMAP: iommu: declare a private iommu binding struct
-> >> =A0 ARM: OMAP3: bind omap3isp_device to its iommu device
-> >> =A0 iommu/omap: eliminate the public omap_find_iommu_device() meth=
-od
-> >
-> > It doesn't apply cleanly, can you please rebase the code, collect t=
-he
-> > Acked-by's and resend?
->=20
-> I have collected Tony's and Laurent's Acked-by's and amended them to
-> the commit logs.
->=20
-> I have also made sure it applies cleanly to a recent 3.2, and tested
-> it with OMAP4/remoteproc. I couldn't test it with omap3isp though,
-> because I'm gated by (what looks like a) 3.2 omap3isp regression (see
-> http://www.spinics.net/lists/linux-omap/msg60510.html). I did test it
-> of course with omap3isp and 3.1, so I don't expect any omap3isp/iommu
-> issues with these patches. Anyway, when the omap3isp issue will be
-> resolved I'll make sure there isn't any iommu regression.
->=20
-> Please pull, thanks a lot!
->=20
-> The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055d=
-bf8e37:
->=20
->   Linux 3.2-rc2 (2011-11-15 15:02:59 -0200)
->=20
-> are available in the git repository at:
->   git://git.kernel.org/pub/scm/linux/kernel/git/ohad/linux.git for-jo=
-erg
->=20
-> Ohad Ben-Cohen (3):
->       ARM: OMAP: iommu: declare a private iommu binding struct
->       ARM: OMAP3: bind omap3isp_device to its iommu device
->       iommu/omap: eliminate the public omap_find_iommu_device() metho=
-d
->=20
->  arch/arm/mach-omap2/devices.c           |    7 ++++
->  arch/arm/plat-omap/include/plat/iommu.h |   31 +++++++++++++++--
->  arch/arm/plat-omap/include/plat/iovmm.h |   12 +++---
->  drivers/iommu/omap-iommu.c              |   58 ++++++++++++++-------=
-----------
->  drivers/iommu/omap-iovmm.c              |   31 +++++++++++------
->  drivers/media/video/omap3isp/isp.c      |   30 +++-------------
->  drivers/media/video/omap3isp/isp.h      |    2 -
->  drivers/media/video/omap3isp/ispccdc.c  |   18 +++++-----
->  drivers/media/video/omap3isp/ispstat.c  |    8 ++--
->  drivers/media/video/omap3isp/ispvideo.c |    4 +-
->  10 files changed, 107 insertions(+), 94 deletions(-)
+On Mon, Dec 05, 2011 at 03:45:04PM +0200, Peter Ujfalusi wrote:
+> On 12/03/2011 01:22 PM, Mark Brown wrote:
 
-Pulled into arm/omap, thanks Ohad.
+> > Actually thinking about this some more I think what's concerning me is
+> > the documentation as much as anything else - if it was just an internal,
+> > unpublished interface of the OMAP core code which happened to use device
+> > tree I probably wouldn't have worried about it churning.
 
---=20
-AMD Operating System Research Center
+> Actually it is documented here:
+> Documentation/devicetree/bindings/arm/omap/omap.txt
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo, Andrew Bowd
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr.=
- 43632
+That's not exactly the point...
+
+> In order to move all OMAP drivers to DT - as Benoit already mentioned -
+> we need additional work in DT.
+> At this point of time if we add the DT representation we anyways need to
+> change it as the core will receive the features, and we still need to
+> fall back to hwmod to get the drivers working.
+> As soon as we can migrate away from the hwmod we will do, but having
+> this in place helps us to migrate other parts to DT.
+
+And what I'm saying is that my main concern is that you're publishing
+documenting a binding which isn't intended to be the the final binding
+and which there's no intention that anyone should use directly anyway.
