@@ -1,70 +1,62 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [RFC 0/5] OMAP groundwork for IOMMU-based DMA API
-Date: Mon, 5 Dec 2011 16:21:21 +0200
-Message-ID: <CAK=WgbY18K00DRcmP56+UJrmMu5h_O=GaO+i_GzbC5SzCvrnRA@mail.gmail.com>
-References: <1316948337-7924-1-git-send-email-ohad@wizery.com> <20111115103926.GA5627@amd.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/3] of: Add support for named irq and reg
+Date: Mon, 5 Dec 2011 15:23:53 +0100
+Message-ID: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111115103926.GA5627@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Roedel, Joerg" <Joerg.Roedel@amd.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:36284 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932176Ab1LEOYN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Dec 2011 09:24:13 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Hi Joerg,
+Hi Grant & Rob,
 
-On Tue, Nov 15, 2011 at 12:39 PM, Roedel, Joerg <Joerg.Roedel@amd.com> =
-wrote:
-> On Sun, Sep 25, 2011 at 06:58:52AM -0400, Ohad Ben-Cohen wrote:
->> Ohad Ben-Cohen (5):
->> =A0 ARM: dev_archdata: add private iommu extension
->> =A0 ARM: OMAP: omap_device: add a method to set iommu private archda=
-ta
->> =A0 ARM: OMAP: iommu: declare a private iommu binding struct
->> =A0 ARM: OMAP3: bind omap3isp_device to its iommu device
->> =A0 iommu/omap: eliminate the public omap_find_iommu_device() method
->
-> It doesn't apply cleanly, can you please rebase the code, collect the
-> Acked-by's and resend?
+Following the previous patch submission [1], here is an updated series
+that adds the support for both reg and irq names.
+A small improvement is done as well on the property with multiple strings
+helper function.
 
-I have collected Tony's and Laurent's Acked-by's and amended them to
-the commit logs.
+Please note that I've just realized that Russell's concern with the
+/proc/iomem readability might not even be valid in the DT case.
+I might be wrong, but it looks like devices created by of_device_alloc
+does not seems to call the insert_resource. It means that the /proc/iomem
+is mostly empty when the devices are created from device tree blob.
+I'm not sure it was done on purpose, but even if this is not the case,
+the fact is that this /proc/iomem entry does not seems to be used
+extensively.
+That does not mean it cannot be improved, but it should change the urgency
+to fix that with regards to that series.
 
-I have also made sure it applies cleanly to a recent 3.2, and tested
-it with OMAP4/remoteproc. I couldn't test it with omap3isp though,
-because I'm gated by (what looks like a) 3.2 omap3isp regression (see
-http://www.spinics.net/lists/linux-omap/msg60510.html). I did test it
-of course with omap3isp and 3.1, so I don't expect any omap3isp/iommu
-issues with these patches. Anyway, when the omap3isp issue will be
-resolved I'll make sure there isn't any iommu regression.
+This series is based on 3.2-rc4 and is available here:
+git://gitorious.org/omap-pm/linux.git for_3.3/resource-names
 
-Please pull, thanks a lot!
+Comments are welcome.
 
-The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055dbf=
-8e37:
+Auto comment: I'm not super happy with these new properties name because it
+is not really consistent. If you have any better idea, do not hesitate.
 
-  Linux 3.2-rc2 (2011-11-15 15:02:59 -0200)
+Thanks,
+Benoit
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/linux.git for-joer=
-g
 
-Ohad Ben-Cohen (3):
-      ARM: OMAP: iommu: declare a private iommu binding struct
-      ARM: OMAP3: bind omap3isp_device to its iommu device
-      iommu/omap: eliminate the public omap_find_iommu_device() method
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57881.html
 
- arch/arm/mach-omap2/devices.c           |    7 ++++
- arch/arm/plat-omap/include/plat/iommu.h |   31 +++++++++++++++--
- arch/arm/plat-omap/include/plat/iovmm.h |   12 +++---
- drivers/iommu/omap-iommu.c              |   58 ++++++++++++++---------=
---------
- drivers/iommu/omap-iovmm.c              |   31 +++++++++++------
- drivers/media/video/omap3isp/isp.c      |   30 +++-------------
- drivers/media/video/omap3isp/isp.h      |    2 -
- drivers/media/video/omap3isp/ispccdc.c  |   18 +++++-----
- drivers/media/video/omap3isp/ispstat.c  |    8 ++--
- drivers/media/video/omap3isp/ispvideo.c |    4 +-
- 10 files changed, 107 insertions(+), 94 deletions(-)
+
+Benoit Cousson (3):
+  of/base: Take NULL string into account for property with multiple strings
+  of/address: Add reg-names property to name an iomem resource
+  of/irq: Add interrupts-names property to name an irq resource
+
+ .../devicetree/bindings/interrupts-names.txt       |   50 ++++++++++++++++++++
+ Documentation/devicetree/bindings/reg-names.txt    |   48 +++++++++++++++++++
+ drivers/of/address.c                               |   16 ++++--
+ drivers/of/base.c                                  |    8 +--
+ drivers/of/irq.c                                   |   11 ++++-
+ 5 files changed, 122 insertions(+), 11 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/interrupts-names.txt
+ create mode 100644 Documentation/devicetree/bindings/reg-names.txt
