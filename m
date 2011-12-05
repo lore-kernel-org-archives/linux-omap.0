@@ -1,62 +1,66 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 0/3] of: Add support for named irq and reg
-Date: Mon, 5 Dec 2011 15:23:53 +0100
-Message-ID: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 1/3] of/base: Take NULL string into account for property with multiple strings
+Date: Mon, 5 Dec 2011 15:23:54 +0100
+Message-ID: <1323095036-3739-2-git-send-email-b-cousson@ti.com>
+References: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36284 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932176Ab1LEOYN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Dec 2011 09:24:13 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:60975 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176Ab1LEOYs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 09:24:48 -0500
+In-Reply-To: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org
 Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Hi Grant & Rob,
+The current implementation just ignore any NULL string inserted in a
+multiple strings property.
+In some cases we can have a property with a fix number of strings but
+not necessarily used, like for example in a list of valid pinmux modes.
 
-Following the previous patch submission [1], here is an updated series
-that adds the support for both reg and irq names.
-A small improvement is done as well on the property with multiple strings
-helper function.
+ prop = "uart_rx", "uart_tx", "", "", "safe_mode";
 
-Please note that I've just realized that Russell's concern with the
-/proc/iomem readability might not even be valid in the DT case.
-I might be wrong, but it looks like devices created by of_device_alloc
-does not seems to call the insert_resource. It means that the /proc/iomem
-is mostly empty when the devices are created from device tree blob.
-I'm not sure it was done on purpose, but even if this is not the case,
-the fact is that this /proc/iomem entry does not seems to be used
-extensively.
-That does not mean it cannot be improved, but it should change the urgency
-to fix that with regards to that series.
+Do no skip NULL string and take them into account in
+of_property_read_string_index and of_property_count_strings.
 
-This series is based on 3.2-rc4 and is available here:
-git://gitorious.org/omap-pm/linux.git for_3.3/resource-names
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+---
+ drivers/of/base.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-Comments are welcome.
+diff --git a/drivers/of/base.c b/drivers/of/base.c
+index 9b6588e..b707243 100644
+--- a/drivers/of/base.c
++++ b/drivers/of/base.c
+@@ -752,7 +752,7 @@ int of_property_read_string_index(struct device_node *np, const char *propname,
+ 
+ 	for (i = 0; total < prop->length; total += l, p += l) {
+ 		l = strlen(p) + 1;
+-		if ((*p != 0) && (i++ == index)) {
++		if (i++ == index) {
+ 			*output = p;
+ 			return 0;
+ 		}
+@@ -790,11 +790,9 @@ int of_property_count_strings(struct device_node *np, const char *propname)
+ 
+ 	p = prop->value;
+ 
+-	for (i = 0; total < prop->length; total += l, p += l) {
++	for (i = 0; total < prop->length; total += l, p += l, i++)
+ 		l = strlen(p) + 1;
+-		if (*p != 0)
+-			i++;
+-	}
++
+ 	return i;
+ }
+ EXPORT_SYMBOL_GPL(of_property_count_strings);
+-- 
+1.7.0.4
 
-Auto comment: I'm not super happy with these new properties name because it
-is not really consistent. If you have any better idea, do not hesitate.
-
-Thanks,
-Benoit
-
-
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg57881.html
-
-
-Benoit Cousson (3):
-  of/base: Take NULL string into account for property with multiple strings
-  of/address: Add reg-names property to name an iomem resource
-  of/irq: Add interrupts-names property to name an irq resource
-
- .../devicetree/bindings/interrupts-names.txt       |   50 ++++++++++++++++++++
- Documentation/devicetree/bindings/reg-names.txt    |   48 +++++++++++++++++++
- drivers/of/address.c                               |   16 ++++--
- drivers/of/base.c                                  |    8 +--
- drivers/of/irq.c                                   |   11 ++++-
- 5 files changed, 122 insertions(+), 11 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/interrupts-names.txt
- create mode 100644 Documentation/devicetree/bindings/reg-names.txt
