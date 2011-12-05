@@ -1,75 +1,87 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH] omap: fix iva and mailbox hwmods for OMAP 3
-Date: Mon,  5 Dec 2011 20:20:46 +0200
-Message-ID: <1323109246-1458-1-git-send-email-felipe.contreras@nokia.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC][PATCH 1/1] OMAP: voltage: add a hook for normal regulator calls
+Date: Mon, 05 Dec 2011 11:07:38 -0800
+Message-ID: <87sjkykfb9.fsf@ti.com>
+References: <1321547303-21807-1-git-send-email-vaibhav.bedia@ti.com>
+	<B5906170F1614E41A8A28DE3B8D12143032D30@DBDE01.ent.ti.com>
+	<87iplymwwi.fsf@ti.com>
+	<B5906170F1614E41A8A28DE3B8D121430391C2@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:26856 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140Ab1LESU4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Dec 2011 13:20:56 -0500
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:39363 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932069Ab1LETHn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 14:07:43 -0500
+Received: by mail-vx0-f176.google.com with SMTP id fl13so5886607vcb.35
+        for <linux-omap@vger.kernel.org>; Mon, 05 Dec 2011 11:07:42 -0800 (PST)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121430391C2@DBDE01.ent.ti.com>
+	(Vaibhav Bedia's message of "Mon, 5 Dec 2011 16:02:52 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Abhilash K V <abhilash.kv@ti.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kattekola, Ravikumar" <rk@ti.com>
 
-From: Felipe Contreras <felipe.contreras@gmail.com>
+"Bedia, Vaibhav" <vaibhav.bedia@ti.com> writes:
 
-Seems the commit 7e89098 was overly aggressive in adding iva and mailbox
-hwmods so now they are registered twice.
+> Hi Kevin,
+>
+> On Sat, Dec 03, 2011 at 03:57:57, Hilman, Kevin wrote:
+> [...]
+>> >
+>> > Any comments on this approach? 
+>> 
+>> Sorry, I didn't see this patch before, and I don't see it in the
+>> linux-omap archives either.  Not sure what happened there...
+>> 
+>> > This enables us to make use of generic regulators calls from the
+>> > voltage layer. 
+>> 
+>> From this patch, I don't see how the regulator API is being used from
+>> the voltage layer, so I don't fully understand what you're trying to
+>> achieve.
+>> 
+>> IOW, why should the voltagedomain code be calling the regulator API?
+>> 
+>> The voltage domain code was designed with the opposite goal: namely,
+>> that a regulator driver would be calling the voltage domain layer, not
+>> vice versa.
+>
+> Sorry, I should have posted more detail on how we are making use of the 
+> change proposed here and how it helps in getting cpufreq and DVFS working.
+>
+> We want to use the existing OMAP implementation of cpufreq (and DVFS) on 
+> the devices which do not have VC/VP.
+>
+> The current OMAP cpufreq code under drivers/ invokes clk_set_rate().
+>
+> We had a look at the future DVFS implementation for OMAP[1] and merged in 
+> the relevant patches (hope this is close to what's planned).
 
-------------[ cut here ]------------
-WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1959 omap_hwmod_register+0x104/0x12c()
-omap_hwmod: iva: _register returned -22
-Modules linked in:
-[<c0012aa4>] (unwind_backtrace+0x0/0xec) from [<c002f970>] (warn_slowpath_common+0x4c/0x64)
-[<c002f970>] (warn_slowpath_common+0x4c/0x64) from [<c002fa08>] (warn_slowpath_fmt+0x2c/0x3c)
-[<c002fa08>] (warn_slowpath_fmt+0x2c/0x3c) from [<c02fdb4c>] (omap_hwmod_register+0x104/0x12c)
-[<c02fdb4c>] (omap_hwmod_register+0x104/0x12c) from [<c02fbb44>] (omap3_init_early+0x1c/0x28)
-[<c02fbb44>] (omap3_init_early+0x1c/0x28) from [<c02f9580>] (setup_arch+0x6b8/0x7a4)
-[<c02f9580>] (setup_arch+0x6b8/0x7a4) from [<c02f754c>] (start_kernel+0x6c/0x264)
-[<c02f754c>] (start_kernel+0x6c/0x264) from [<80008040>] (0x80008040)
----[ end trace 1b75b31a2719ed1c ]---
-------------[ cut here ]------------
-WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1959 omap_hwmod_register+0x104/0x12c()
-omap_hwmod: mailbox: _register returned -22
-Modules linked in:
-[<c0012aa4>] (unwind_backtrace+0x0/0xec) from [<c002f970>] (warn_slowpath_common+0x4c/0x64)
-[<c002f970>] (warn_slowpath_common+0x4c/0x64) from [<c002fa08>] (warn_slowpath_fmt+0x2c/0x3c)
-[<c002fa08>] (warn_slowpath_fmt+0x2c/0x3c) from [<c02fdb4c>] (omap_hwmod_register+0x104/0x12c)
-[<c02fdb4c>] (omap_hwmod_register+0x104/0x12c) from [<c02fbb44>] (omap3_init_early+0x1c/0x28)
-[<c02fbb44>] (omap3_init_early+0x1c/0x28) from [<c02f9580>] (setup_arch+0x6b8/0x7a4)
-[<c02f9580>] (setup_arch+0x6b8/0x7a4) from [<c02f754c>] (start_kernel+0x6c/0x264)
-[<c02f754c>] (start_kernel+0x6c/0x264) from [<80008040>] (0x80008040)
----[ end trace 1b75b31a2719ed1d ]---
+Unfortunately, that implementation is not what's planned, and in fact
+was rejected some time ago.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+> After this change, cpufreq invokes omap_device_scale(). The DVFS code
+> makes use of the OPP layer and adds a request for voltage and frequency
+> change. However, the voltage change request expects the scaling to be done
+> in scaling functions defined in the voltage layer (vc->scale or vp->scale)
+>
+> On devices which do not have VC/VP, instead of just hacking the current
+> implementation to get the voltage scaling done, we thought of adding
+> a separate path.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 7f8915a..eef43e2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3247,18 +3247,14 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 
- /* 3430ES1-only hwmods */
- static __initdata struct omap_hwmod *omap3430es1_hwmods[] = {
--	&omap3xxx_iva_hwmod,
- 	&omap3430es1_dss_core_hwmod,
--	&omap3xxx_mailbox_hwmod,
- 	NULL
- };
- 
- /* 3430ES2+-only hwmods */
- static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
--	&omap3xxx_iva_hwmod,
- 	&omap3xxx_dss_core_hwmod,
- 	&omap3xxx_usbhsotg_hwmod,
--	&omap3xxx_mailbox_hwmod,
- 	NULL
- };
- 
--- 
-1.7.8.rc3.17.gf56ef1
+A much better path for SoCs without VC/VP is to simply modify the
+CPUfreq driver to use the regulator API to scale voltage before calling
+clk_set_rate() (if scaling up) and after scaling the frequency (if
+scaling down.)
 
+In fact, that is the direction we're going for DVFS, even for VC/VP
+platforms.  There will be a regulator driver which will call the
+voltagedomain/VC/VP calls to scale the voltage when needed, so from a
+DVFS perspective, you use the clock API to change frequency, and the
+regulator API to change voltages.
+
+This should be a much simpler approach for you, and much easier to
+understand.
+
+Kevin
