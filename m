@@ -1,100 +1,114 @@
-From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] mfd: add bq2415x charger driver
-Date: Tue, 06 Dec 2011 00:05:30 +0100
-Message-ID: <2013134.msetbOSBe8@pali-elitebook>
-References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
+From: "Turquette, Mike" <mturquette@ti.com>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Mon, 5 Dec 2011 15:40:03 -0800
+Message-ID: <CAJOA=zPv6wUEEmPafY4AEtHkuSAv9CpSwa-YLfq9gjFbHGyqoA@mail.gmail.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1666613.yWuPDPh5gQ"; micalg="pgp-sha1"; protocol="application/pgp-signature"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
+In-Reply-To: <1321926047-14211-4-git-send-email-mturquette@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, paul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, mturquette@ti.com, Mike Turquette <mturquette@linaro.org>, Colin Cross <ccross@google.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Mon, Nov 21, 2011 at 5:40 PM, Mike Turquette <mturquette@ti.com> wro=
+te:
+> +/**
+> + * clk_get_parent - return the parent of a clk
+> + * @clk: the clk whose parent gets returned
+> + *
+> + * Simply returns clk->parent. =A0It is up to the caller to hold the
+> + * prepare_lock, if desired. =A0Returns NULL if clk is NULL.
+> + */
+> +struct clk *clk_get_parent(struct clk *clk)
+> +{
+> + =A0 =A0 =A0 if (!clk)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
+> +
+> + =A0 =A0 =A0 return clk->parent;
+> +}
+> +EXPORT_SYMBOL_GPL(clk_get_parent);
 
---nextPart1666613.yWuPDPh5gQ
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+While auditing the uses/expectations of the current clk API users, I
+see that clk_get_parent is rarely used; it is in fact only called in
+11 files throughout the kernel.
 
-On Tuesday 06 December 2011 00:35:41 Felipe Contreras wrote:
-> From: Aliaksei Katovich <aliaksei.katovich@nokia.com>
->=20
-> Hi,
->=20
-> The Nokia N900 has a bunch of stuff regarding the battery: bq27x00 to=
- find
-> out the status, and isp1704 to detect what kind of charger is connect=
-ed to
-> the USB port. However, that doesn't charge the battery.
->=20
-> That's the job of bq24150. Up until now, this has been done by the cl=
-osed
-> and proprietary BME application from user-space, which sends i2c comm=
-ands
-> directly.
->=20
-> Several people have tried to decipher what it's actually doing, and t=
-here
-> are some simple user-space scripts that manage to achieve charging:
->=20
->   http://enivax.net/jk/n900/charge21.sh.txt
->=20
-> Aliaksei Katovich already sent a patch series, but they seem to be do=
-ing
-> something completely different (wrong?).
->=20
-> This simple driver does the work for me. It's doing basically the sam=
-e as
-> the user-space scripts, but a bit more aligned to the spec sheet[1], =
-and a
-> bit more understadable. It's a proof of concept, as it doesn't really=
+I decided to have a little audit and here is what I found:
 
-> change the voltage or amperage depending on the type of charger as it=
+arch/arm/mach-shmobile/board-ap4evb.c: fsi_ak4642_set_rate
+Used within clk_set_rate.  Can dereference clk->parent directly and
+ideally should propagate up the clk tree using the new recursive
+clk_set_rate.
 
-> should, but it at least it achieves charging.
->=20
-> I have never writen a driver, so don't hold on the comments :)
->=20
-> Some inspiration from the code of Aliaksei Katovich.
->=20
-> Cheers.
->=20
-> [1] http://www.ti.com/lit/ds/symlink/bq24150.pdf
->=20
+arch/arm/mach-tegra/usb_phy.c: tegra_usb_phy_open
+Used within a clk_get_rate.  pll_u should ideally have it's own
+clk->rate populated, reducing the need for tegra_usb_phy_open to know
+details of the clk tree.  The logic to pull pll_u's rate from it's
+parent belongs to pll_u's .recalc_rate callback.
 
-Hello,
+arch/arm/plat-s5p/clock.c: s5p_spdif_set_rate
+Another clk_get_parent call from within a .set_rate callback.  Again:
+use clk->parent directly and better yet, propagate the rate change up
+via the recursive clk_set_rate.
 
-I started writing other implementaion of bq2415x charger driver, which =
-should=20
-support also setting usb host mode. Code is still unfinished, but now i=
-s=20
-devided into 2 parts: one power_supply driver and one driver which cove=
-r all=20
-bq registers. See:
+arch/arm/plat-s5p/clock.c: s5p_spdif_get_rate
+Another clk_get_parent call from within a .recalc_rate callback.
+Again, clk->rate should be populated with parent's rate correctly,
+otherwise dereference clk->parent directly without use of
+clk_get_parent.
 
-http://atrey.karlin.mff.cuni.cz/~pali/bq2415x/
+arch/arm/plat-s5p/s5p-time.c: s5p_clockevent_init
+This problem would be solved by propagating rate_change requests up
+two-levels of parents via the new recursive clk_set_rate.  There is
+also a clk_set_parent call in here, which has nothing to do with the
+clk_get_parent call, but it makes me wonder if we should revisit the
+issue of switching parents as part of clk_set_rate:
+clk_set_rate(tin_event, pclk->rate / 2);
 
-Felipe Contreras, I think that my implementation is better - it will ex=
-port=20
-all bq registers (which is needed for hostmode boost) and will also reg=
-ister=20
-regulator interface.
+arch/arm/plat-samsung/pwm.c: pwm_is_tdiv
+Used in only two places: as part of pwm_calc_tin which could be
+replaced wholesale by a better .round_rate implementation and for a
+debug print (who cares).
 
---=20
-Pali Roh=E1r
-pali.rohar@gmail.com
---nextPart1666613.yWuPDPh5gQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
+arch/arm/plat-samsung/pwm.c: pwm_calc_tin
+Just a .round_rate implementation.  Can dereference clk->parent directl=
+y.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+arch/arm/plat-samsung/time.c: s3c2410_timer_setup
+Same as s5p_clockevent_init above.
 
-iEYEABECAAYFAk7dTjoACgkQi/DJPQPkQ1IqzACeOsGU9FpL0vFhrULNa6GQHSYD
-BucAnjp1DhC40w27+u7JCqb00cDmzVWj
-=lIXg
------END PGP SIGNATURE-----
+drivers/sh/clk/core.c: clk_round_parent
+An elaborate .round_rate that should have resulted from recursive
+propagation up to clk->parent.
 
---nextPart1666613.yWuPDPh5gQ--
+drivers/video/omap2/dss/dss.c:
+Every call to clk_get_parent in here is wrapped in clk_get_rate.  The
+functions that use this are effectively .set_rate, .get_rate and
+=2Erecalc_rate doppelgangers.  Also a debug print calls clk_get_parent
+but who cares.
+
+drivers/video/sh_mobile_hdmi.c:
+Used in a .set_rate and .round_rate implementation.  No reason not to
+deref clk->parent directly.
+
+The above explanations take a little liberty listing certain functions
+as .round_rate, .set_rate and .recalc_rate callbacks, but that is
+because a lot of the code mentioned could be neatly wrapped up that
+way.
+
+Do we really need clk_get_parent?  The primary problem with it is
+ambiguity in the API: should the caller hold a lock?  Is the rate
+guaranteed not the change after being called?  A top-level clk API
+function that can be called within other top-level clk API functions
+is inconsitent: most of the time this would incur nested locking.
+Also having a top-level API expose the tree structure encourages
+platform and driver developers to put clk tree details into their code
+as opposed to having clever .round_rate and .set_rate callbacks hide
+these details from them with the new recursive clk_set_rate.
+
+Thoughts?
+
+Thanks,
+Mike
