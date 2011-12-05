@@ -1,43 +1,73 @@
-From: Jan Weitzel <J.Weitzel@phytec.de>
-Subject: Re: [PATCH] mdt nand: omap2+ use platform options
-Date: Mon, 05 Dec 2011 09:11:17 +0100
-Message-ID: <1323072677.12068.5.camel@lws-weitzel>
-References: <CAN8TOE9=ux=suwcQMwJY1XUhp_mnD_DL613ffF1-HTL1OVB2PQ@mail.gmail.com>
-	 <1322557213-23565-1-git-send-email-j.weitzel@phytec.de>
-	 <1322728943.2332.13.camel@koala>
-	 <CANOLnOOE3a0BP0TcLnRAmq5YAiHLZTpkbriDh9WtkkBT7TotFA@mail.gmail.com>
-Reply-To: J.Weitzel@phytec.de
+From: Thomas Abraham <thomas.abraham@linaro.org>
+Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract regulator_init_data
+Date: Mon, 5 Dec 2011 14:40:50 +0530
+Message-ID: <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
+References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
+	<1321615040-13257-2-git-send-email-rnayak@ti.com>
+	<CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
+	<20111204155433.GA16287@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.phycard.co.uk ([217.6.246.34]:50482 "EHLO root.phytec.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752353Ab1LEILU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Dec 2011 03:11:20 -0500
-In-Reply-To: <CANOLnOOE3a0BP0TcLnRAmq5YAiHLZTpkbriDh9WtkkBT7TotFA@mail.gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:59497 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753998Ab1LEJKv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 04:10:51 -0500
+In-Reply-To: <20111204155433.GA16287@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: dedekind1@gmail.com, linux-mtd@lists.infradead.org, dedekind@infradead.org, tglx@linutronix.de, computersforpeace@gmail.com, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, grant.likely@secretlab.ca, robherring2@gmail.com, linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 
-Am Freitag, den 02.12.2011, 12:20 +0200 schrieb Grazvydas Ignotas:
-> On Thu, Dec 1, 2011 at 10:42 AM, Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> > On Tue, 2011-11-29 at 10:00 +0100, Jan Weitzel wrote:
-> >> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
-> >
-> > Pushed to l2-mtd-2.6.git, thank you!
-> 
-> This breaks build here, did you really test it, Jan?
-Sorry, I wasn't carefully enough. I missed 7a559c78 where you removed
-options from struct omap_nand_platform_data. Did you think getting we
-should reintroduce it? I am looking for a good way to get
-NAND_NO_SUBPAGE_WRITE from boardfile to driver.
-Jan
-> drivers/mtd/nand/omap2.c: In function 'omap_nand_probe':
-> drivers/mtd/nand/omap2.c:1078: error: 'struct omap_nand_platform_data'
-> has no member named 'options'
-> 
-> 
+Hi Mark,
 
+On 4 December 2011 21:24, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Sun, Dec 04, 2011 at 06:51:23PM +0530, Thomas Abraham wrote:
+>
+>> For regulators that are not turned on by bootloader, and which requi=
+re
+>> 'apply_uV' constraint, is there any alternative for turning on the
+>> regulator when using dt?
+>
+> If the regulator isn't software managed then always_on covers this - =
+the
+> regulator core will enable any always_on regulators that haven't been
+> enabled already.
 
+Thanks for the hint. I was trying to deal with a regulator that was
+not software managed but also required the voltage level to be set to
+certain level. That was possible with 'apply_uV' constraint in non-dt
+case. Anyway, I have modified the code to manage the regulator and
+this works fine in dt case as well without the 'apply_uV' constraint.
+
+>
+>> =A0 =A0 =A0 /* do we need to apply the constraint voltage */
+>> - =A0 =A0 if (rdev->constraints->apply_uV &&
+>> - =A0 =A0 =A0 =A0 rdev->constraints->min_uV =3D=3D rdev->constraints=
+->max_uV) {
+>> + =A0 =A0 if ((rdev->constraints->apply_uV &&
+>> + =A0 =A0 =A0 =A0 rdev->constraints->min_uV =3D=3D rdev->constraints=
+->max_uV) ||
+>> + =A0 =A0 =A0 =A0 =A0 =A0 (!rdev->constraints->boot_on && rdev->cons=
+traints->always_on)) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D _regulator_do_set_voltage(rdev,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 rdev->constraints->min_uV,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 rdev->constraints->max_uV);
+>
+> I'm not sure I understand the intended logic there. =A0Voltage constr=
+aints
+> and enable/disable constraints are orthogonal here.
+
+Ok. I guess the above change is incorrect then.
+
+Thanks,
+Thomas.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
