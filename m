@@ -1,113 +1,39 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [RFC PATCH v1 2/7] omap4: build fdif omap device from hwmod
-Date: Mon, 5 Dec 2011 12:27:11 +0800
-Message-ID: <CACVXFVNxX9tHZrdsRw6Wm14g59x44dR1Rm5jLeqxx4m6Jxe5-Q@mail.gmail.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
-	<1322838172-11149-3-git-send-email-ming.lei@canonical.com>
-	<CAKnK67T9S6Z=f9qmn9ov7YNyTKjdDbOZHJDRO-7_fqkJGZzXbA@mail.gmail.com>
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 3/4] regulator: pass additional of_node to
+	regulator_register()
+Date: Mon, 05 Dec 2011 12:49:55 +0530
+Message-ID: <4EDC709B.1050709@ti.com>
+References: <1321615040-13257-1-git-send-email-rnayak@ti.com>	<1321615040-13257-4-git-send-email-rnayak@ti.com>
+	<CAJuYYwRa=AGZ+Chuj+v49EHE+bOuoCWxhmDUO35BoZK2g97FQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKnK67T9S6Z=f9qmn9ov7YNyTKjdDbOZHJDRO-7_fqkJGZzXbA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <CAJuYYwRa=AGZ+Chuj+v49EHE+bOuoCWxhmDUO35BoZK2g97FQg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Thomas Abraham <thomas.abraham-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ian Lartey <ian-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, Dimitris Papastamos <dp-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Zeng Zhaoming <b32542-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-On Sat, Dec 3, 2011 at 12:28 AM, Aguirre, Sergio <saaguirre@ti.com> wro=
-te:
-> Hi Ming,
 >
-> Thanks for the patches.
+> Documentation/power/regulator/regulator.txt would also require an
+> update the reflect the change in api.
 
-Thanks for your review.
+Thanks Thomas, I just sent a patch to fix this up.
 
-> On Fri, Dec 2, 2011 at 9:02 AM, Ming Lei <ming.lei@canonical.com> wro=
-te:
->> Signed-off-by: Ming Lei <ming.lei@canonical.com>
->> ---
->> =A0arch/arm/mach-omap2/devices.c | =A0 33 ++++++++++++++++++++++++++=
-+++++++
->> =A01 files changed, 33 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/dev=
-ices.c
->> index 1166bdc..a392af5 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -728,6 +728,38 @@ void __init omap242x_init_mmc(struct omap_mmc_p=
-latform_data **mmc_data)
->>
->> =A0#endif
->>
->> +static struct platform_device* __init omap4_init_fdif(void)
->> +{
->> + =A0 =A0 =A0 int id =3D -1;
->
-> You could remove this , as it is being used only once, and never chan=
-ged.
-
-Yes.
+regards,
+Rajendra
 
 >
->> + =A0 =A0 =A0 struct platform_device *pd;
->> + =A0 =A0 =A0 struct omap_hwmod *oh;
->> + =A0 =A0 =A0 const char *dev_name =3D "fdif";
->> +
->> + =A0 =A0 =A0 oh =3D omap_hwmod_lookup("fdif");
->> + =A0 =A0 =A0 if (!oh) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_err("Could not look up fdif hwmod\n=
-");
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
->> + =A0 =A0 =A0 }
->> +
->> + =A0 =A0 =A0 pd =3D omap_device_build(dev_name, id, oh, NULL, 0, NU=
-LL, 0, 0);
+> Thanks,
+> Thomas.
 >
-> Just do:
->
-> pd =3D omap_device_build(dev_name, -1, oh, NULL, 0, NULL, 0, 0);
->
->> + =A0 =A0 =A0 WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_na=
-me);
->> + =A0 =A0 =A0 return pd;
->> +}
->> +
->> +static void __init omap_init_fdif(void)
->> +{
->> + =A0 =A0 =A0 if (cpu_is_omap44xx()) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct platform_device *pd;
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pd =3D omap4_init_fdif();
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!pd)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
->> +
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_enable(&pd->dev);
->> + =A0 =A0 =A0 }
->> +}
->
-> IMHO, you could reduce 1 level of indentation here, like this:
->
-> static void __init omap_init_fdif(void)
-> {
-> =A0 =A0 =A0 =A0struct platform_device *pd;
->
-> =A0 =A0 =A0 =A0if (!cpu_is_omap44xx())
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->
-> =A0 =A0 =A0 =A0pd =3D omap4_init_fdif();
-> =A0 =A0 =A0 =A0if (!pd)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->
-> =A0 =A0 =A0 =A0pm_runtime_enable(&pd->dev);
-> }
-
-OK, will take this.
-
-thanks,
---
-Ming Lei
+> [...]
