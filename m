@@ -1,50 +1,60 @@
-From: Thomas Abraham <thomas.abraham-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract
- regulator_init_data
-Date: Mon, 5 Dec 2011 16:39:35 +0530
-Message-ID: <CAJuYYwTu6iPBSy63Y65KtO1iR7PLKQkmFZn6uS4yv_o8ZWSftw@mail.gmail.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
- <1321615040-13257-2-git-send-email-rnayak@ti.com>
- <CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
- <20111204155433.GA16287@opensource.wolfsonmicro.com>
- <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
- <20111205103447.GC11150@opensource.wolfsonmicro.com>
- <CAJuYYwSRW-=XufvHS1miO2xNANwQMZqPbt=VyPEonywnAsvVUQ@mail.gmail.com>
- <20111205105733.GE11150@opensource.wolfsonmicro.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/5] ASoC: omap-dmic: Add device tree bindings
+Date: Mon, 05 Dec 2011 15:45:04 +0200
+Message-ID: <4EDCCAE0.2000009@ti.com>
+References: <1322819580-7424-1-git-send-email-peter.ujfalusi@ti.com> <1322819580-7424-2-git-send-email-peter.ujfalusi@ti.com> <20111203112206.GE6043@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20111205105733.GE11150-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:45099 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932135Ab1LENpB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 08:45:01 -0500
+Received: by mail-ey0-f175.google.com with SMTP id c1so501015eaa.20
+        for <linux-omap@vger.kernel.org>; Mon, 05 Dec 2011 05:45:00 -0800 (PST)
+In-Reply-To: <20111203112206.GE6043@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On 5 December 2011 16:27, Mark Brown
-<broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> wrote:
-> On Mon, Dec 05, 2011 at 04:14:40PM +0530, Thomas Abraham wrote:
->> On 5 December 2011 16:04, Mark Brown
->
->> > With the regulator device tree bindings if the regulator is configured
->> > to run a single voltage the bindings will set apply_uV unconditionally
->> > so there's no need for a separate constraint.
->
->> Sorry if I have missed this, but I could not find 'apply_uV' being set
->> as you described in the v5 of the regulator-dt patchset.
->
-> Yes, looks like Rajendra missed that - just fixed it.
->
+On 12/03/2011 01:22 PM, Mark Brown wrote:
+> On Fri, Dec 02, 2011 at 11:52:56AM +0200, Peter Ujfalusi wrote:
+>=20
+>> @@ -0,0 +1,13 @@
+>> +* Texas Instruments OMAP4 Digital Microphone Module
+>> +
+>> +Required properties:
+>> +  - compatible : "ti,omap4-dmic"
+>> +  - ti,hwmods  : List of hwmod names associated with DMIC, in most =
+case
+>> +		 it is "dmic".
+>=20
+> Actually thinking about this some more I think what's concerning me i=
+s
+> the documentation as much as anything else - if it was just an intern=
+al,
+> unpublished interface of the OMAP core code which happened to use dev=
+ice
+> tree I probably wouldn't have worried about it churning.
 
-Thanks Mark. Could you please push your change.
+Actually it is documented here:
+Documentation/devicetree/bindings/arm/omap/omap.txt
 
-Regards,
-Thomas.
+In order to move all OMAP drivers to DT - as Benoit already mentioned -
+we need additional work in DT.
+At this point of time if we add the DT representation we anyways need t=
+o
+change it as the core will receive the features, and we still need to
+fall back to hwmod to get the drivers working.
+As soon as we can migrate away from the hwmod we will do, but having
+this in place helps us to migrate other parts to DT.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
