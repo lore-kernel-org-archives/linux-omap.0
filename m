@@ -1,42 +1,36 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] mdt nand: omap2+ use platform options
-Date: Mon, 5 Dec 2011 12:32:05 +0200
-Message-ID: <CANOLnON=OCtOGr52ZpQKM=z-Ot3zAXeZ-M9eauxaoBkm=PFBLQ@mail.gmail.com>
-References: <CAN8TOE9=ux=suwcQMwJY1XUhp_mnD_DL613ffF1-HTL1OVB2PQ@mail.gmail.com>
-	<1322557213-23565-1-git-send-email-j.weitzel@phytec.de>
-	<1322728943.2332.13.camel@koala>
-	<CANOLnOOE3a0BP0TcLnRAmq5YAiHLZTpkbriDh9WtkkBT7TotFA@mail.gmail.com>
-	<1323072677.12068.5.camel@lws-weitzel>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract
+ regulator_init_data
+Date: Mon, 5 Dec 2011 10:34:47 +0000
+Message-ID: <20111205103447.GC11150@opensource.wolfsonmicro.com>
+References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
+ <1321615040-13257-2-git-send-email-rnayak@ti.com>
+ <CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
+ <20111204155433.GA16287@opensource.wolfsonmicro.com>
+ <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34350 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755553Ab1LEKcH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 05:32:07 -0500
-Received: by eeaq14 with SMTP id q14so1742192eea.19
-        for <linux-omap@vger.kernel.org>; Mon, 05 Dec 2011 02:32:06 -0800 (PST)
-In-Reply-To: <1323072677.12068.5.camel@lws-weitzel>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Abraham <thomas.abraham@linaro.org>
+Cc: Rajendra Nayak <rnayak@ti.com>, grant.likely@secretlab.ca, robherring2@gmail.com, linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: J.Weitzel@phytec.de
-Cc: dedekind1@gmail.com, linux-mtd@lists.infradead.org, dedekind@infradead.org, tglx@linutronix.de, computersforpeace@gmail.com, linux-omap@vger.kernel.org
 
-On Mon, Dec 5, 2011 at 10:11 AM, Jan Weitzel <J.Weitzel@phytec.de> wrot=
-e:
-> Sorry, I wasn't carefully enough. I missed 7a559c78 where you removed
-> options from struct omap_nand_platform_data. Did you think getting we
-> should reintroduce it? I am looking for a good way to get
-> NAND_NO_SUBPAGE_WRITE from boardfile to driver.
+On Mon, Dec 05, 2011 at 02:40:50PM +0530, Thomas Abraham wrote:
+> On 4 December 2011 21:24, Mark Brown
 
-You could just rename .devsize to .options and use that I guess.
+> > If the regulator isn't software managed then always_on covers this - the
+> > regulator core will enable any always_on regulators that haven't been
+> > enabled already.
 
+> Thanks for the hint. I was trying to deal with a regulator that was
+> not software managed but also required the voltage level to be set to
+> certain level. That was possible with 'apply_uV' constraint in non-dt
+> case. Anyway, I have modified the code to manage the regulator and
+> this works fine in dt case as well without the 'apply_uV' constraint.
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+With the regulator device tree bindings if the regulator is configured
+to run a single voltage the bindings will set apply_uV unconditionally
+so there's no need for a separate constraint.
