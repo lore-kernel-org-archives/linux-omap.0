@@ -1,114 +1,59 @@
-From: "Turquette, Mike" <mturquette@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Mon, 5 Dec 2011 15:40:03 -0800
-Message-ID: <CAJOA=zPv6wUEEmPafY4AEtHkuSAv9CpSwa-YLfq9gjFbHGyqoA@mail.gmail.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org>
+Date: Mon, 5 Dec 2011 23:48:49 +0000
+Message-ID: <20111205234849.GA14547@n2100.arm.linux.org.uk>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1321926047-14211-4-git-send-email-mturquette@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, paul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, mturquette@ti.com, Mike Turquette <mturquette@linaro.org>, Colin Cross <ccross@google.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Nov 21, 2011 at 5:40 PM, Mike Turquette <mturquette@ti.com> wro=
-te:
-> +/**
-> + * clk_get_parent - return the parent of a clk
-> + * @clk: the clk whose parent gets returned
-> + *
-> + * Simply returns clk->parent. =A0It is up to the caller to hold the
-> + * prepare_lock, if desired. =A0Returns NULL if clk is NULL.
-> + */
-> +struct clk *clk_get_parent(struct clk *clk)
-> +{
-> + =A0 =A0 =A0 if (!clk)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> +
-> + =A0 =A0 =A0 return clk->parent;
-> +}
-> +EXPORT_SYMBOL_GPL(clk_get_parent);
+On Mon, Dec 05, 2011 at 02:15:56PM -0700, Paul Walmsley wrote:
+> The types associated with clock rates in the clock interface 
+> (include/linux/clk.h) are inconsistent, and we should fix this. 
 
-While auditing the uses/expectations of the current clk API users, I
-see that clk_get_parent is rarely used; it is in fact only called in
-11 files throughout the kernel.
+Rubbish.  They're different with good reason.  Rates are primerily
+unsigned quantities - and should be treated as such.
 
-I decided to have a little audit and here is what I found:
+The exception is clk_round_rate() which returns the rate, but also
+_may_ return an error.  Therefore, its return type has to be signed.
 
-arch/arm/mach-shmobile/board-ap4evb.c: fsi_ak4642_set_rate
-Used within clk_set_rate.  Can dereference clk->parent directly and
-ideally should propagate up the clk tree using the new recursive
-clk_set_rate.
+> We could fix the immediate problem by changing the prototype of 
+> clk_round_rate() to pass the rounded rate back to the caller via a pointer 
+> in one of the arguments, and return an error code (if any) via the return 
+> value:
+> 
+> int clk_round_rate(struct clk *clk, unsigned long rate, unsigned long 
+>                    *rounded_rate);
 
-arch/arm/mach-tegra/usb_phy.c: tegra_usb_phy_open
-Used within a clk_get_rate.  pll_u should ideally have it's own
-clk->rate populated, reducing the need for tegra_usb_phy_open to know
-details of the clk tree.  The logic to pull pll_u's rate from it's
-parent belongs to pll_u's .recalc_rate callback.
+Yes that might have been a better solution.
 
-arch/arm/plat-s5p/clock.c: s5p_spdif_set_rate
-Another clk_get_parent call from within a .set_rate callback.  Again:
-use clk->parent directly and better yet, propagate the rate change up
-via the recursive clk_set_rate.
+> But I'd propose that we instead increase the size of struct clk.rate to be 
+> s64:
+> 
+> s64 clk_round_rate(struct clk *clk, s64 desired_rate);
+> int clk_set_rate(struct clk *clk, s64 rate);
+> s64 clk_get_rate(struct clk *clk);
+> 
+> struct clk {
+> ...
+>      s64 rate;
+> ...
+> };
+> 
+> That way the clock framework can accommodate current clock rates, as well 
+> as any conceivable future clock rate.  (Some production CPUs are already 
+> running at clock rates greater than 4 GiHZ[1].  RF devices with 4 GiHz+ 
+> clock rates are also common, such as 802.11a devices running in the 5.8 
+> GHz band, and drivers for those may eventually wish to use the clock 
+> framework.)
 
-arch/arm/plat-s5p/clock.c: s5p_spdif_get_rate
-Another clk_get_parent call from within a .recalc_rate callback.
-Again, clk->rate should be populated with parent's rate correctly,
-otherwise dereference clk->parent directly without use of
-clk_get_parent.
-
-arch/arm/plat-s5p/s5p-time.c: s5p_clockevent_init
-This problem would be solved by propagating rate_change requests up
-two-levels of parents via the new recursive clk_set_rate.  There is
-also a clk_set_parent call in here, which has nothing to do with the
-clk_get_parent call, but it makes me wonder if we should revisit the
-issue of switching parents as part of clk_set_rate:
-clk_set_rate(tin_event, pclk->rate / 2);
-
-arch/arm/plat-samsung/pwm.c: pwm_is_tdiv
-Used in only two places: as part of pwm_calc_tin which could be
-replaced wholesale by a better .round_rate implementation and for a
-debug print (who cares).
-
-arch/arm/plat-samsung/pwm.c: pwm_calc_tin
-Just a .round_rate implementation.  Can dereference clk->parent directl=
-y.
-
-arch/arm/plat-samsung/time.c: s3c2410_timer_setup
-Same as s5p_clockevent_init above.
-
-drivers/sh/clk/core.c: clk_round_parent
-An elaborate .round_rate that should have resulted from recursive
-propagation up to clk->parent.
-
-drivers/video/omap2/dss/dss.c:
-Every call to clk_get_parent in here is wrapped in clk_get_rate.  The
-functions that use this are effectively .set_rate, .get_rate and
-=2Erecalc_rate doppelgangers.  Also a debug print calls clk_get_parent
-but who cares.
-
-drivers/video/sh_mobile_hdmi.c:
-Used in a .set_rate and .round_rate implementation.  No reason not to
-deref clk->parent directly.
-
-The above explanations take a little liberty listing certain functions
-as .round_rate, .set_rate and .recalc_rate callbacks, but that is
-because a lot of the code mentioned could be neatly wrapped up that
-way.
-
-Do we really need clk_get_parent?  The primary problem with it is
-ambiguity in the API: should the caller hold a lock?  Is the rate
-guaranteed not the change after being called?  A top-level clk API
-function that can be called within other top-level clk API functions
-is inconsitent: most of the time this would incur nested locking.
-Also having a top-level API expose the tree structure encourages
-platform and driver developers to put clk tree details into their code
-as opposed to having clever .round_rate and .set_rate callbacks hide
-these details from them with the new recursive clk_set_rate.
-
-Thoughts?
-
-Thanks,
-Mike
+Yuck.  You are aware that 64-bit math on 32-bit CPUs sucks?  So burdening
+_everything_ with 64-bit rate quantities is absurd.  As for making then
+64-bit signed quantities, that's asking for horrid code from gcc for the
+majority of cases.
