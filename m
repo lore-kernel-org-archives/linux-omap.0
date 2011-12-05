@@ -1,37 +1,87 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
-Date: Mon, 5 Dec 2011 14:37:27 +0000
-Message-ID: <201112051437.27538.arnd@arndb.de>
-References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com> <42689146.OPtqLboC2m@wuerfel> <CACVXFVO5Bu8vTfLN_WFsEkHW6JhQFmWPmEyNnrvTsDhoF-WVeA@mail.gmail.com>
+From: "Roedel, Joerg" <Joerg.Roedel@amd.com>
+Subject: Re: [RFC 0/5] OMAP groundwork for IOMMU-based DMA API
+Date: Mon, 5 Dec 2011 16:18:00 +0100
+Message-ID: <20111205151800.GD25178@amd.com>
+References: <1316948337-7924-1-git-send-email-ohad@wizery.com>
+ <20111115103926.GA5627@amd.com>
+ <CAK=WgbY18K00DRcmP56+UJrmMu5h_O=GaO+i_GzbC5SzCvrnRA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:65159 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932215Ab1LEOhe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 09:37:34 -0500
-In-Reply-To: <CACVXFVO5Bu8vTfLN_WFsEkHW6JhQFmWPmEyNnrvTsDhoF-WVeA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbY18K00DRcmP56+UJrmMu5h_O=GaO+i_GzbC5SzCvrnRA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Cousson Benoit <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>
-Cc: linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org
 
-On Sunday 04 December 2011, Ming Lei wrote:
+On Mon, Dec 05, 2011 at 04:21:21PM +0200, Ohad Ben-Cohen wrote:
+> Hi Joerg,
+>=20
+> On Tue, Nov 15, 2011 at 12:39 PM, Roedel, Joerg <Joerg.Roedel@amd.com=
+> wrote:
+> > On Sun, Sep 25, 2011 at 06:58:52AM -0400, Ohad Ben-Cohen wrote:
+> >> Ohad Ben-Cohen (5):
+> >> =A0 ARM: dev_archdata: add private iommu extension
+> >> =A0 ARM: OMAP: omap_device: add a method to set iommu private arch=
+data
+> >> =A0 ARM: OMAP: iommu: declare a private iommu binding struct
+> >> =A0 ARM: OMAP3: bind omap3isp_device to its iommu device
+> >> =A0 iommu/omap: eliminate the public omap_find_iommu_device() meth=
+od
 > >
-> > This data structure is not 32/64 bit safe: running a 64 bit kernel with 32 bit
-> > user space will see an incompatible layout.
-> 
-> I agree that this is not 32/64 bit safe, but I understand lib32 can handle
-> this correctly, otherwise many 32bit applications can't run on current
-> 64bit kernel
-> since many kernel structures used by user space contained pointer,
-> such as struct v4l2_buffer, struct v4l2_ext_controls in v4l2 ABI.
+> > It doesn't apply cleanly, can you please rebase the code, collect t=
+he
+> > Acked-by's and resend?
+>=20
+> I have collected Tony's and Laurent's Acked-by's and amended them to
+> the commit logs.
+>=20
+> I have also made sure it applies cleanly to a recent 3.2, and tested
+> it with OMAP4/remoteproc. I couldn't test it with omap3isp though,
+> because I'm gated by (what looks like a) 3.2 omap3isp regression (see
+> http://www.spinics.net/lists/linux-omap/msg60510.html). I did test it
+> of course with omap3isp and 3.1, so I don't expect any omap3isp/iommu
+> issues with these patches. Anyway, when the omap3isp issue will be
+> resolved I'll make sure there isn't any iommu regression.
+>=20
+> Please pull, thanks a lot!
+>=20
+> The following changes since commit cfcfc9eca2bcbd26a8e206baeb005b055d=
+bf8e37:
+>=20
+>   Linux 3.2-rc2 (2011-11-15 15:02:59 -0200)
+>=20
+> are available in the git repository at:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/ohad/linux.git for-jo=
+erg
+>=20
+> Ohad Ben-Cohen (3):
+>       ARM: OMAP: iommu: declare a private iommu binding struct
+>       ARM: OMAP3: bind omap3isp_device to its iommu device
+>       iommu/omap: eliminate the public omap_find_iommu_device() metho=
+d
+>=20
+>  arch/arm/mach-omap2/devices.c           |    7 ++++
+>  arch/arm/plat-omap/include/plat/iommu.h |   31 +++++++++++++++--
+>  arch/arm/plat-omap/include/plat/iovmm.h |   12 +++---
+>  drivers/iommu/omap-iommu.c              |   58 ++++++++++++++-------=
+----------
+>  drivers/iommu/omap-iovmm.c              |   31 +++++++++++------
+>  drivers/media/video/omap3isp/isp.c      |   30 +++-------------
+>  drivers/media/video/omap3isp/isp.h      |    2 -
+>  drivers/media/video/omap3isp/ispccdc.c  |   18 +++++-----
+>  drivers/media/video/omap3isp/ispstat.c  |    8 ++--
+>  drivers/media/video/omap3isp/ispvideo.c |    4 +-
+>  10 files changed, 107 insertions(+), 94 deletions(-)
 
-The other ones you mentioned are handled in the kernel in
-drivers/media/video/v4l2-compat-ioctl32.c. For new ioctl commands,
-it's better to define the data structure in a compatible way
-so you do not need a wrapper like that.
+Pulled into arm/omap, thanks Ohad.
 
-	Arnd
+--=20
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo, Andrew Bowd
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr.=
+ 43632
