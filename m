@@ -1,73 +1,53 @@
-From: Thomas Abraham <thomas.abraham@linaro.org>
-Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract regulator_init_data
-Date: Mon, 5 Dec 2011 14:40:50 +0530
-Message-ID: <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
-	<1321615040-13257-2-git-send-email-rnayak@ti.com>
-	<CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
-	<20111204155433.GA16287@opensource.wolfsonmicro.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv7 3/7] omap3: voltage: fix channel configuration
+Date: Mon, 5 Dec 2011 11:35:36 +0200
+Message-ID: <1323077736.7555.10.camel@sokoban>
+References: <1322492005-27741-1-git-send-email-t-kristo@ti.com>
+	 <1322492005-27741-4-git-send-email-t-kristo@ti.com> <87pqg6jzq6.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:59497 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998Ab1LEJKv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 04:10:51 -0500
-In-Reply-To: <20111204155433.GA16287@opensource.wolfsonmicro.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:49679 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754721Ab1LEJgZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Dec 2011 04:36:25 -0500
+In-Reply-To: <87pqg6jzq6.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, grant.likely@secretlab.ca, robherring2@gmail.com, linaro-dev@lists.linaro.org, patches@linaro.org, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org, olof@lixom.net, linux-omap@vger.kernel.org, lrg@ti.com, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, sameo@linux.intel.com, broonie@opensource.wolfsonmicro.com, lrg@ti.com, b-cousson@ti.com, rnayak@ti.com, gg@slimlogic.co.uk
 
-Hi Mark,
+On Fri, 2011-12-02 at 15:55 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > OMAP3 uses the default settings for VDD1 channel, otherwise the settings will
+> > overlap with VDD2 and attempting to modify VDD1 voltage will actually change
+> > VDD2 voltage.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> 
+> I've forgotten a bit how this was supposed to work (again), Can you
+> elaborate more on how this fails?
 
-On 4 December 2011 21:24, Mark Brown
-<broonie@opensource.wolfsonmicro.com> wrote:
-> On Sun, Dec 04, 2011 at 06:51:23PM +0530, Thomas Abraham wrote:
->
->> For regulators that are not turned on by bootloader, and which requi=
-re
->> 'apply_uV' constraint, is there any alternative for turning on the
->> regulator when using dt?
->
-> If the regulator isn't software managed then always_on covers this - =
-the
-> regulator core will enable any always_on regulators that haven't been
-> enabled already.
+There is a diagram in the OMAP TRM for setting the bits in this
+register, however the racen fix part appears to be needed only for
+omap4. I can drop this part of the fix from the series if you want for
+the next version, alternatively I can split this patch into two.
 
-Thanks for the hint. I was trying to deal with a regulator that was
-not software managed but also required the voltage level to be set to
-certain level. That was possible with 'apply_uV' constraint in non-dt
-case. Anyway, I have modified the code to manage the regulator and
-this works fine in dt case as well without the 'apply_uV' constraint.
+The idea for this part of the fix is anyway that the channel
+configuration is more complex in omap4, we define volt_reg and cmd_reg
+addresses for each omap4_X_pmic, however we only want to enable racen
+bit only if cmd and volt register addresses are the same. Otherwise the
+voltage commands are not sent (or are sent to invalid address) which
+causes the voltage commands not to change voltages at all.
 
->
->> =A0 =A0 =A0 /* do we need to apply the constraint voltage */
->> - =A0 =A0 if (rdev->constraints->apply_uV &&
->> - =A0 =A0 =A0 =A0 rdev->constraints->min_uV =3D=3D rdev->constraints=
-->max_uV) {
->> + =A0 =A0 if ((rdev->constraints->apply_uV &&
->> + =A0 =A0 =A0 =A0 rdev->constraints->min_uV =3D=3D rdev->constraints=
-->max_uV) ||
->> + =A0 =A0 =A0 =A0 =A0 =A0 (!rdev->constraints->boot_on && rdev->cons=
-traints->always_on)) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D _regulator_do_set_voltage(rdev,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 rdev->constraints->min_uV,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 rdev->constraints->max_uV);
->
-> I'm not sure I understand the intended logic there. =A0Voltage constr=
-aints
-> and enable/disable constraints are orthogonal here.
+-Tero
 
-Ok. I guess the above change is incorrect then.
+> Setting the OMAP_VC_CHANNEL_DEFAULT flag makes sense to me, but the
+> other change doesn't.
+> 
+> Kevin
 
-Thanks,
-Thomas.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
