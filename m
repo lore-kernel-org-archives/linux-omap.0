@@ -1,39 +1,93 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 3/4] regulator: pass additional of_node to
-	regulator_register()
-Date: Mon, 05 Dec 2011 12:49:55 +0530
-Message-ID: <4EDC709B.1050709@ti.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>	<1321615040-13257-4-git-send-email-rnayak@ti.com>
-	<CAJuYYwRa=AGZ+Chuj+v49EHE+bOuoCWxhmDUO35BoZK2g97FQg@mail.gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] MFD: TWL: add power off functionality
+Date: Mon, 05 Dec 2011 09:31:15 +0200
+Message-ID: <4EDC7343.7080309@compulab.co.il>
+References: <1321177790-5886-1-git-send-email-grinberg@compulab.co.il>	<4ED205F9.3070908@compulab.co.il>	<20111203123516.5ebb057b@notabene.brown>	<4EDB43DC.2050000@compulab.co.il>	<20111204215859.695b31aa@notabene.brown> <20111205084342.43776420@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <CAJuYYwRa=AGZ+Chuj+v49EHE+bOuoCWxhmDUO35BoZK2g97FQg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Thomas Abraham <thomas.abraham-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Ian Lartey <ian-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, Dimitris Papastamos <dp-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Zeng Zhaoming <b32542-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Michael Hennerich <michael.hennerich-OyLXuOCK7orQT0dZR+AlfA@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111205084342.43776420@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
->
-> Documentation/power/regulator/regulator.txt would also require an
-> update the reflect the change in api.
+On 12/04/11 23:43, NeilBrown wrote:
+> On Sun, 4 Dec 2011 21:58:59 +1100 NeilBrown <neilb@suse.de> wrote:
+> 
+>> On Sun, 04 Dec 2011 11:56:44 +0200 Igor Grinberg <grinberg@compulab.co.il>
+>> wrote:
+>>
+>>> Hi Neil,
+>>>
+>>> On 12/03/11 03:35, NeilBrown wrote:
+>>>> On Sun, 27 Nov 2011 11:42:17 +0200 Igor Grinberg <grinberg@compulab.co.il>
+>>>> wrote:
+>>>>
+>>>>> ping!
+>>>>
+>>>> pong ...
+>>>>
+>>>>
+>>>> Hi,
+>>>>  I've been trying this patch out on my GTA04 with 3.2-rc4 and it doesn't
+>>>>  work :-(
+>>>
+>>> Probably, v3.2-rc4 is not the best to try things out...
+>>> This patch is based on v3.1, can you try v3.1, so at least we can
+>>> check the that the patch itself has no problems?
+>>> Also, CC'ing linux-omap.
+>>
+>> I think I'll be able to give 3.1 a try - I'll let you know.
+>>
+> 
+> Yes, works fine with 3.1
 
-Thanks Thomas, I just sent a patch to fix this up.
+Good to hear!
 
-regards,
-Rajendra
+> 
+> 
+> I've managed to find the problem.
+> 
+> commit af8db1508f2c9f3b6e633e2d2d906c6557c617f9
+> Author: Peter Chen <peter.chen@freescale.com>
+> Date:   Tue Nov 15 21:52:29 2011 +0100
+> 
+>     PM / driver core: disable device's runtime PM during shutdown
+>  
+> ....
+> 
+> @@ -1742,6 +1743,8 @@ void device_shutdown(void)
+>                  */
+>                 list_del_init(&dev->kobj.entry);
+>                 spin_unlock(&devices_kset->list_lock);
+> +               /* Disable all device's runtime power management */
+> +               pm_runtime_disable(dev);
+>  
+>                 if (dev->bus && dev->bus->shutdown) {
+>                         dev_dbg(dev, "shutdown\n");
+> 
+> 
+> 
+> Removing this call allows power-off to work.
+> 
+> It seems that omap_i2c.1 is normally in runtime suspend.
+> omap_i2c_xfer wakes it up, performs the xfer, then puts it back to sleep.
+> 
+> So this pm_runtime_disable is called while the device is asleep, so it stays
+> asleep.  omap_i2c_xfer cannot wake it up and so cannot xfer anything.
 
->
-> Thanks,
-> Thomas.
->
-> [...]
+Good job on that investigation.
+There were several discussions runtime pm related at the kernel summit,
+but I failed to see the impact of that on the issue...
+
+> 
+> I'll start a new thread including the people responsible for that patch.
+
+Hopefully, it will get us a solution.
+
+
+-- 
+Regards,
+Igor.
