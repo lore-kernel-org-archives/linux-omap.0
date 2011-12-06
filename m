@@ -1,43 +1,47 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] mfd: add bq2415x charger driver
-Date: Tue, 6 Dec 2011 11:46:03 +0000
-Message-ID: <20111206114602.GA17731@opensource.wolfsonmicro.com>
-References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
- <20111206113131.GE17194@sirena.org.uk>
- <CAMP44s0VSdVo6EhvgVUcwryK39iss0mvDbxKjaeH_S+Vp4DwBw@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
+Date: Tue, 6 Dec 2011 12:55:55 +0000
+Message-ID: <201112061255.56136.arnd@arndb.de>
+References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com> <201112051437.27538.arnd@arndb.de> <CACVXFVMB+HuQDb+Pxo0d8x46P82-c-OPxaL0c661Wztyx3NWJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMP44s0VSdVo6EhvgVUcwryK39iss0mvDbxKjaeH_S+Vp4DwBw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Pali Roh??r <pali.rohar@gmail.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61544 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437Ab1LFM4M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 07:56:12 -0500
+In-Reply-To: <CACVXFVMB+HuQDb+Pxo0d8x46P82-c-OPxaL0c661Wztyx3NWJA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org
 
-On Tue, Dec 06, 2011 at 01:43:06PM +0200, Felipe Contreras wrote:
+On Tuesday 06 December 2011, Ming Lei wrote:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 073eb4d..8aeaa1e 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2214,7 +2214,12 @@ struct v4l2_fd_result {
+>         __u32   buf_index;
+>         __u32   face_cnt;
+>         __u32   reserved[6];
+> -       struct v4l2_fd_detection *fd;
+> +
+> +       /*make 64/32 compatible*/
+> +       union {
+> +               struct v4l2_fd_detection *fd;
+> +               __u64   dummy;
+> +       };
+>  };
+> 
 
-> Yes, for this particular case the regulator API might be useful, but I
-> don't see how external code will use this. Will they have to search
-> for the name of this regulator, and then try to change the
-> current_limit?
+That's not compatible, at least not on any big-endian architecture.
+If you want to have an indirect pointer, you have to cast it to the
+__u64 member in user space and back in kernel space.
 
-No, they'd get hooked in via the regulator interface as consumers.  Like
-I say it depends on how autonomous the chip is, if it needs a lot of TLC
-then it's probably not a regulator thing.  If all you do the chip is
-turn in on and off and set limits then the upper layer should really be
-able to be independant of the chip.
+Using an array added to the end of the v4l2_fd_result structure
+rather than a pointer would really make this easier IMHO.
 
-> > its thing and run autonomously starting, stopping and fast charging by
-> > itself then a power supply driver seems like a good fit - just provide
-> > the upper limits as platform data or something and watch it go.
-
-> It would have to change its behavior depending on external events,
-> like charger plugged/unplugged, different types of chargers, and so
-> on. I'm thinking the rx51 board code could join some hooks from
-> isp1704 (which detects the events) into this driver.
-
-That stuff definitely sounds like power supply material - there's been
-several other people discussing extending the framework to make it
-easier for different power supply chain elements to coordinate with each
-other.  
+	Arnd
