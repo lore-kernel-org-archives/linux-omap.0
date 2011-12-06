@@ -1,73 +1,96 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] mfd: add bq2415x charger driver
-Date: Tue, 6 Dec 2011 02:12:47 +0200
-Message-ID: <CAMP44s1TrRkcy-xS+fXMyv0FAL1TnsPnnTa=gHSd2=P=iFkSUg@mail.gmail.com>
-References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
-	<2013134.msetbOSBe8@pali-elitebook>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Mon, 5 Dec 2011 18:37:17 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112051706300.6289@utopia.booyaka.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com> <20111205234849.GA14547@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2013134.msetbOSBe8@pali-elitebook>
+In-Reply-To: <20111205234849.GA14547@n2100.arm.linux.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Mon, 5 Dec 2011, Russell King - ARM Linux wrote:
 
-On Tue, Dec 6, 2011 at 1:05 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com> =
-wrote:
-> I started writing other implementaion of bq2415x charger driver, whic=
-h should
-> support also setting usb host mode. Code is still unfinished, but now=
- is
-> devided into 2 parts: one power_supply driver and one driver which co=
-ver all
-> bq registers. See:
+> On Mon, Dec 05, 2011 at 02:15:56PM -0700, Paul Walmsley wrote:
 >
-> http://atrey.karlin.mff.cuni.cz/~pali/bq2415x/
->
-> Felipe Contreras, I think that my implementation is better - it will =
-export
-> all bq registers (which is needed for hostmode boost) and will also r=
-egister
-> regulator interface.
+> > But I'd propose that we instead increase the size of struct clk.rate to be 
+> > s64:
+> > 
+> > s64 clk_round_rate(struct clk *clk, s64 desired_rate);
+> > int clk_set_rate(struct clk *clk, s64 rate);
+> > s64 clk_get_rate(struct clk *clk);
+> > 
+> > struct clk {
+> > ...
+> >      s64 rate;
+> > ...
+> > };
+> > 
+> > That way the clock framework can accommodate current clock rates, as well 
+> > as any conceivable future clock rate.  (Some production CPUs are already 
+> > running at clock rates greater than 4 GiHZ[1].  RF devices with 4 GiHz+ 
+> > clock rates are also common, such as 802.11a devices running in the 5.8 
+> > GHz band, and drivers for those may eventually wish to use the clock 
+> > framework.)
+> 
+> Yuck.  You are aware that 64-bit math on 32-bit CPUs sucks? So burdening 
+> _everything_ with 64-bit rate quantities is absurd.  As for making then 
+> 64-bit signed quantities, that's asking for horrid code from gcc for the 
+> majority of cases.
 
-I took a look at your driver, and there's definitely good stuff in it.
-However, I think there's a lot of unnecessary stuff, like the
-miscdevice stuff (which was frowned upon for bq27x00), and a lot of
-user-space interface. Moreover, it doesn't seem to do anything on its
-own (it needs interaction from user-space).
+64-bit divides would be the only real issue in the clock framework 
+context.  And those are easily avoided on clock hardware where the parent 
+rate can never exceed 32 bits.
 
-IMO the first step should be to have a minimal driver that just works,
-even if it doesn't achieve the absolute best charging performance.
-More features could be added later on.
+For example, here's a trivial implementation for rate recalculation for a 
+integer divider clock node (that can't be handled with a right shift):
 
-Also, I'm not familiar with the regulator interface, but it seems to
-be meant for real regulators, which have consumers, and based on those
-consumers's needs the real voltage changes. This battery charger on
-the other hand doesn't have anything like that. There will be no
-consumer, and some stuff like the weak battery voltage is not even
-related to a voltage supply, but rather a threshold that can be
-configured to change some behavior of the charger, but there's no
-point in changing it dynamically (or maybe at all).
+s64 div(struct clk *clk, u32 div) {
+	if (clk->flags & CLK_PARENT_RATE_MAX_U32)
+		return ((u32)(clk->parent->rate & 0xffffffff)) / div;
 
-I guess the important one is the charge voltage, which is linked to a
-real voltage, but what consumers would it have? I don't think there's
-any.
+	clk->rate = clk->parent->rate;
+	do_div(clk->rate, div);
+	return clk->rate;
+}
 
-=46inally, I don't think user-space interaction should be needed at all=
-=2E
-The driver should start charging immediately when there power supply
-available, and stop when there isn't any. Maybe at some point a
-user-space interface will be useful later on (I don't see why), but I
-don't think it should be *necessary*.
+gcc generates this for ARMv6:
 
-I'm not familiar with any of this stuff, so don't take my opinions too
-seriously :)
+00000010 <div>:
+  10:	e92d4038 	push	{r3, r4, r5, lr}
+  14:	e1a05000 	mov	r5, r0         
+  18:	e5d03010 	ldrb	r3, [r0, #16]  @ clk->flags
+  1c:	e1a04001 	mov	r4, r1
+  20:	e3130001 	tst	r3, #1         @ 32-bit parent rate?
+  24:	1a000007 	bne	48 <div+0x38>  @ do 32-bit divide 
 
-Cheers.
+/* 64-bit divide by 32-bit follows */
 
---=20
-=46elipe Contreras
+  28:	e5903000 	ldr	r3, [r0]
+  2c:	e1c300d8 	ldrd	r0, [r3, #8]
+  30:	ebfffffe 	bl	0 <__do_div64>
+  34:	e1a00002 	mov	r0, r2
+  38:	e1a01003 	mov	r1, r3
+  3c:	e5852008 	str	r2, [r5, #8]
+  40:	e585300c 	str	r3, [r5, #12]
+  44:	e8bd8038 	pop	{r3, r4, r5, pc}
+
+/* 32-bit divide follows */
+
+  48:	e5900000 	ldr	r0, [r0]
+  4c:	e5900008 	ldr	r0, [r0, #8]
+  50:	ebfffffe 	bl	0 <__aeabi_uidiv>
+  54:	e3a01000 	mov	r1, #0
+  58:	e8bd8038 	pop	{r3, r4, r5, pc}
+
+
+Not bad at all, and this isn't even optimized.  (The conditional could be 
+avoided completely with a little work during clock init.)  What little 
+overhead there is seems quite trivial if it means that the clock framework 
+will be useful for present and future devices.
+
+
+- Paul
