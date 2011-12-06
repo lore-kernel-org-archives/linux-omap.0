@@ -1,45 +1,139 @@
-From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract
- regulator_init_data
-Date: Tue, 06 Dec 2011 12:24:06 +0530
-Message-ID: <4EDDBC0E.7050806@ti.com>
-References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
- <1321615040-13257-2-git-send-email-rnayak@ti.com>
- <CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
- <20111204155433.GA16287@opensource.wolfsonmicro.com>
- <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
- <20111205103447.GC11150@opensource.wolfsonmicro.com>
- <CAJuYYwSRW-=XufvHS1miO2xNANwQMZqPbt=VyPEonywnAsvVUQ@mail.gmail.com>
- <20111205105733.GE11150@opensource.wolfsonmicro.com>
+From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH] mfd: add bq2415x charger driver
+Date: Tue, 06 Dec 2011 08:25:49 +0100
+Message-ID: <8650361.EbH1hYJT76@pali-elitebook>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com> <2013134.msetbOSBe8@pali-elitebook> <CAMP44s1TrRkcy-xS+fXMyv0FAL1TnsPnnTa=gHSd2=P=iFkSUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20111205105733.GE11150-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: multipart/signed; boundary="nextPart3511979.lS3orMS1Wy"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s1TrRkcy-xS+fXMyv0FAL1TnsPnnTa=gHSd2=P=iFkSUg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 05 December 2011 04:27 PM, Mark Brown wrote:
-> On Mon, Dec 05, 2011 at 04:14:40PM +0530, Thomas Abraham wrote:
->> On 5 December 2011 16:04, Mark Brown
->
->>> With the regulator device tree bindings if the regulator is configured
->>> to run a single voltage the bindings will set apply_uV unconditionally
->>> so there's no need for a separate constraint.
->
->> Sorry if I have missed this, but I could not find 'apply_uV' being set
->> as you described in the v5 of the regulator-dt patchset.
->
-> Yes, looks like Rajendra missed that - just fixed it.
 
-Thanks Mark, I certainly seem to have missed it.
+--nextPart3511979.lS3orMS1Wy
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
+
+Hi,
+
+On Tuesday 06 December 2011 02:12:47 you wrote:
+> Hi,
+>=20
+> On Tue, Dec 6, 2011 at 1:05 AM, Pali Roh=E1r <pali.rohar@gmail.com> w=
+rote:
+> > I started writing other implementaion of bq2415x charger driver, wh=
+ich
+> > should support also setting usb host mode. Code is still unfinished=
+,
+> > but now is devided into 2 parts: one power_supply driver and one dr=
+iver
+> > which cover all bq registers. See:
+> >=20
+> > http://atrey.karlin.mff.cuni.cz/~pali/bq2415x/
+> >=20
+> > Felipe Contreras, I think that my implementation is better - it wil=
+l
+> > export all bq registers (which is needed for hostmode boost) and wi=
+ll
+> > also register regulator interface.
+>=20
+> I took a look at your driver, and there's definitely good stuff in it=
+.
+> However, I think there's a lot of unnecessary stuff, like the
+> miscdevice stuff (which was frowned upon for bq27x00), and a lot of
+> user-space interface. Moreover, it doesn't seem to do anything on its=
+
+> own (it needs interaction from user-space).
+
+Ignore miscdevice, I will remove them from driver. I will add some debu=
+gfs=20
+interface for getting registers output (needed for debugging)
+
+>=20
+> IMO the first step should be to have a minimal driver that just works=
+,
+> even if it doesn't achieve the absolute best charging performance.
+> More features could be added later on.
+>=20
+> Also, I'm not familiar with the regulator interface, but it seems to
+> be meant for real regulators, which have consumers, and based on thos=
+e
+> consumers's needs the real voltage changes. This battery charger on
+> the other hand doesn't have anything like that. There will be no
+> consumer, and some stuff like the weak battery voltage is not even
+> related to a voltage supply, but rather a threshold that can be
+> configured to change some behavior of the charger, but there's no
+> point in changing it dynamically (or maybe at all).
+
+If regulator interface is not good, I can change it to some sysfs inter=
+face.=20
+But bq2415x chip driver is not only rx51 specified, so it should handle=
+ all=20
+chip capabilities.
+
+>=20
+> I guess the important one is the charge voltage, which is linked to a=
+
+> real voltage, but what consumers would it have? I don't think there's=
+
+> any.
+>=20
+> Finally, I don't think user-space interaction should be needed at all=
+.
+> The driver should start charging immediately when there power supply
+> available, and stop when there isn't any. Maybe at some point a
+> user-space interface will be useful later on (I don't see why), but I=
+
+> don't think it should be *necessary*.
+
+Userspace interfaction is needed. We need to tell driver to boost - for=
+ usb=20
+host mode. But of course, battery charging should be automatic without=20=
+
+userspace interfaction.=20
+
+>=20
+> I'm not familiar with any of this stuff, so don't take my opinions to=
+o
+> seriously :)
+
+Consider my code. We do not need two (or more) implementation of same d=
+river=20
+in kernel. And also we do not need only rx51 specified code.
+
+I separated bq2415x register access into one module (bq2415x.c - withou=
+t any=20
+logic, only cover chip options) and real battery charging should be don=
+e in=20
+power_supply interface (bq2415x_charger.c)
+
+My code has also prepaired boost support - for usb host mode, which mus=
+t be=20
+done in driver.
+
+If you do not agree with other parts, tell me about it - we can fix it.=
+
+
+>=20
+> Cheers.
+
+--=20
+Pali Roh=E1r
+pali.rohar@gmail.com
+--nextPart3511979.lS3orMS1Wy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEABECAAYFAk7dw30ACgkQi/DJPQPkQ1IIEQCgr1gdnnzbh3LututbIGmx9Rq7
+y90An1GHGxjZTWPGVt5BxRNeRqNzJgL3
+=pAfh
+-----END PGP SIGNATURE-----
+
+--nextPart3511979.lS3orMS1Wy--
