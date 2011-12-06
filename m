@@ -1,83 +1,64 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [RFC][PATCH 1/1] OMAP: voltage: add a hook for normal regulator
- calls
-Date: Tue, 6 Dec 2011 04:21:41 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D12143039515@DBDE01.ent.ti.com>
-References: <1321547303-21807-1-git-send-email-vaibhav.bedia@ti.com>
-	<B5906170F1614E41A8A28DE3B8D12143032D30@DBDE01.ent.ti.com>
-	<87iplymwwi.fsf@ti.com>
-	<B5906170F1614E41A8A28DE3B8D121430391C2@DBDE01.ent.ti.com>
- <87sjkykfb9.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
+Date: Mon, 5 Dec 2011 23:28:08 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112052322120.6289@utopia.booyaka.com>
+References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com> <20111205234849.GA14547@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1112051706300.6289@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56872 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932880Ab1LFEVv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Dec 2011 23:21:51 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id pB64LmUc015726
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 5 Dec 2011 22:21:50 -0600
-In-Reply-To: <87sjkykfb9.fsf@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1112051706300.6289@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kattekola, Ravikumar" <rk@ti.com>
 
-On Tue, Dec 06, 2011 at 00:37:38, Hilman, Kevin wrote:
-[...]
-> >
-> > We want to use the existing OMAP implementation of cpufreq (and DVFS) on 
-> > the devices which do not have VC/VP.
-> >
-> > The current OMAP cpufreq code under drivers/ invokes clk_set_rate().
-> >
-> > We had a look at the future DVFS implementation for OMAP[1] and merged in 
-> > the relevant patches (hope this is close to what's planned).
+On Mon, 5 Dec 2011, Paul Walmsley wrote:
+
+> For example, here's a trivial implementation for rate recalculation for a 
+> integer divider clock node (that can't be handled with a right shift):
 > 
-> Unfortunately, that implementation is not what's planned, and in fact
-> was rejected some time ago.
-
-That's really unfortunate :(
-
+> s64 div(struct clk *clk, u32 div) {
+> 	if (clk->flags & CLK_PARENT_RATE_MAX_U32)
+> 		return ((u32)(clk->parent->rate & 0xffffffff)) / div;
 > 
-> > After this change, cpufreq invokes omap_device_scale(). The DVFS code
-> > makes use of the OPP layer and adds a request for voltage and frequency
-> > change. However, the voltage change request expects the scaling to be done
-> > in scaling functions defined in the voltage layer (vc->scale or vp->scale)
-> >
-> > On devices which do not have VC/VP, instead of just hacking the current
-> > implementation to get the voltage scaling done, we thought of adding
-> > a separate path.
-> 
-> A much better path for SoCs without VC/VP is to simply modify the
-> CPUfreq driver to use the regulator API to scale voltage before calling
-> clk_set_rate() (if scaling up) and after scaling the frequency (if
-> scaling down.)
+> 	clk->rate = clk->parent->rate;
+> 	do_div(clk->rate, div);
+> 	return clk->rate;
+> }
 
-I assume this needs to be done using the OPP library?
+(removing some useless cruft from the above function, for clarity's sake)
 
-> 
-> In fact, that is the direction we're going for DVFS, even for VC/VP
-> platforms.  There will be a regulator driver which will call the
-> voltagedomain/VC/VP calls to scale the voltage when needed, so from a
-> DVFS perspective, you use the clock API to change frequency, and the
-> regulator API to change voltages.
+s64 div(struct clk *clk, u32 div) {
+	s64 r;
 
-Wouldn't this end up adding OMAP specific code into the various regulator
-drivers? If TPS65910 gets used on a variant that has VC/VP, won't this
-require making changes in the regulator drivers to being with?
+	if (clk->flags & CLK_PARENT_RATE_MAX_U32)
+		return ((u32)clk->parent->rate) / div;
 
-> 
-> This should be a much simpler approach for you, and much easier to
-> understand.
+	r = clk->parent->rate;
+	do_div(r, div);
+	return r;
+}
 
-Yes, making calls to the regulator and clock frameworks is much simpler
-and desirable.
+00000000 <div>:
+   0:	e92d4010 	push	{r4, lr}
+   4:	e1a04001 	mov	r4, r1
+   8:	e5d03010 	ldrb	r3, [r0, #16]
+   c:	e3130001 	tst	r3, #1
+  10:	1a000005 	bne	2c <div+0x2c>
 
-Regards,
-Vaibhav 
+  14:	e5903000 	ldr	r3, [r0]
+  18:	e1c300d8 	ldrd	r0, [r3, #8]
+  1c:	ebfffffe 	bl	0 <__do_div64>
+  20:	e1a00002 	mov	r0, r2
+  24:	e1a01003 	mov	r1, r3
+  28:	e8bd8010 	pop	{r4, pc}
 
+  2c:	e5900000 	ldr	r0, [r0]
+  30:	e5900008 	ldr	r0, [r0, #8]
+  34:	ebfffffe 	bl	0 <__aeabi_uidiv>
+  38:	e3a01000 	mov	r1, #0
+  3c:	e8bd8010 	pop	{r4, pc}
+
+
+- Paul
