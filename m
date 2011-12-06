@@ -1,65 +1,45 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
-Date: Tue, 6 Dec 2011 14:30:34 +0800
-Message-ID: <CACVXFVMB+HuQDb+Pxo0d8x46P82-c-OPxaL0c661Wztyx3NWJA@mail.gmail.com>
-References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
-	<42689146.OPtqLboC2m@wuerfel>
-	<CACVXFVO5Bu8vTfLN_WFsEkHW6JhQFmWPmEyNnrvTsDhoF-WVeA@mail.gmail.com>
-	<201112051437.27538.arnd@arndb.de>
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v5 1/4] regulator: helper routine to extract
+ regulator_init_data
+Date: Tue, 06 Dec 2011 12:24:06 +0530
+Message-ID: <4EDDBC0E.7050806@ti.com>
+References: <1321615040-13257-1-git-send-email-rnayak@ti.com>
+ <1321615040-13257-2-git-send-email-rnayak@ti.com>
+ <CAJuYYwRO+AS=WmQfNAe8L6Gi5Dm4VsCuVqk3X5Nb8uUYAdLnJQ@mail.gmail.com>
+ <20111204155433.GA16287@opensource.wolfsonmicro.com>
+ <CAJuYYwQ-9wCu-+q0S2YYeFYemq74ULdZ-EwPGLWKHA4+0VZcsA@mail.gmail.com>
+ <20111205103447.GC11150@opensource.wolfsonmicro.com>
+ <CAJuYYwSRW-=XufvHS1miO2xNANwQMZqPbt=VyPEonywnAsvVUQ@mail.gmail.com>
+ <20111205105733.GE11150@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42331 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932847Ab1LFGah (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 01:30:37 -0500
-In-Reply-To: <201112051437.27538.arnd@arndb.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <20111205105733.GE11150-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org
 
-Hi,
-
-On Mon, Dec 5, 2011 at 10:37 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Sunday 04 December 2011, Ming Lei wrote:
->> >
->> > This data structure is not 32/64 bit safe: running a 64 bit kernel with 32 bit
->> > user space will see an incompatible layout.
->>
->> I agree that this is not 32/64 bit safe, but I understand lib32 can handle
->> this correctly, otherwise many 32bit applications can't run on current
->> 64bit kernel
->> since many kernel structures used by user space contained pointer,
->> such as struct v4l2_buffer, struct v4l2_ext_controls in v4l2 ABI.
+On Monday 05 December 2011 04:27 PM, Mark Brown wrote:
+> On Mon, Dec 05, 2011 at 04:14:40PM +0530, Thomas Abraham wrote:
+>> On 5 December 2011 16:04, Mark Brown
 >
-> The other ones you mentioned are handled in the kernel in
-> drivers/media/video/v4l2-compat-ioctl32.c. For new ioctl commands,
-> it's better to define the data structure in a compatible way
-> so you do not need a wrapper like that.
+>>> With the regulator device tree bindings if the regulator is configured
+>>> to run a single voltage the bindings will set apply_uV unconditionally
+>>> so there's no need for a separate constraint.
+>
+>> Sorry if I have missed this, but I could not find 'apply_uV' being set
+>> as you described in the v5 of the regulator-dt patchset.
+>
+> Yes, looks like Rajendra missed that - just fixed it.
 
-OK, I opt to use __u64 to pass the user pointer, so how about the blow
-changes on this patch?
-
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 073eb4d..8aeaa1e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2214,7 +2214,12 @@ struct v4l2_fd_result {
- 	__u32	buf_index;
- 	__u32	face_cnt;
- 	__u32	reserved[6];
--	struct v4l2_fd_detection *fd;
-+
-+	/*make 64/32 compatible*/
-+	union {
-+		struct v4l2_fd_detection *fd;
-+		__u64	dummy;
-+	};
- };
-
- /**
-
-thanks,
---
-Ming Lei
+Thanks Mark, I certainly seem to have missed it.
