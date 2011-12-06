@@ -1,70 +1,103 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP2+: board-generic: Replace #if defined by #ifdef for consistency
-Date: Tue, 6 Dec 2011 17:49:09 +0100
-Message-ID: <1323190149-6492-4-git-send-email-b-cousson@ti.com>
-References: <y>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 2/3] arm/dts: OMAP: Remove bootargs node from board files
+Date: Tue, 06 Dec 2011 12:06:48 -0600
+Message-ID: <4EDE59B8.1070808@gmail.com>
+References: <y> <1323190149-6492-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59564 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846Ab1LFQuL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Dec 2011 11:50:11 -0500
-In-Reply-To: <y>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:57844 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582Ab1LFSG5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 13:06:57 -0500
+Received: by iakc1 with SMTP id c1so4020580iak.19
+        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 10:06:57 -0800 (PST)
+In-Reply-To: <1323190149-6492-3-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>
 
-The file contains a mix of #ifdef and #if defined().
-Replace the #if... by #ifdef.
+Benoit,
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-generic.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+On 12/06/2011 10:49 AM, Benoit Cousson wrote:
+> Since 3.2, the CONFIG_ARM_ATAG_DTB_COMPAT config allows
+> an old bootloader to still use ATAG to provide cmdline.
+> 
+> Remove chosen/bootargs from the DTS board files.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rob Herring <rob.herring@calxeda.com>
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index fb55fa3..09f44e0 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -92,7 +92,7 @@ static void __init omap3_init(void)
- }
- #endif
- 
--#if defined(CONFIG_SOC_OMAP2420)
-+#ifdef CONFIG_SOC_OMAP2420
- static const char *omap242x_boards_compat[] __initdata = {
- 	"ti,omap2420",
- 	NULL,
-@@ -110,7 +110,7 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
- MACHINE_END
- #endif
- 
--#if defined(CONFIG_SOC_OMAP2430)
-+#ifdef CONFIG_SOC_OMAP2430
- static const char *omap243x_boards_compat[] __initdata = {
- 	"ti,omap2430",
- 	NULL,
-@@ -128,7 +128,7 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
- MACHINE_END
- #endif
- 
--#if defined(CONFIG_ARCH_OMAP3)
-+#ifdef CONFIG_ARCH_OMAP3
- static const char *omap3_boards_compat[] __initdata = {
- 	"ti,omap3",
- 	NULL,
-@@ -146,7 +146,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- MACHINE_END
- #endif
- 
--#if defined(CONFIG_ARCH_OMAP4)
-+#ifdef CONFIG_ARCH_OMAP4
- static const char *omap4_boards_compat[] __initdata = {
- 	"ti,omap4",
- 	NULL,
--- 
-1.7.0.4
+Acked-by: Rob Herring <rob.herring@calxeda.com>
 
+Rob
+
+> ---
+>  arch/arm/boot/dts/omap3-beagle.dts |    9 ---------
+>  arch/arm/boot/dts/omap4-panda.dts  |    9 ---------
+>  arch/arm/boot/dts/omap4-sdp.dts    |    9 ---------
+>  3 files changed, 0 insertions(+), 27 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+> index 9486be6..9f72cd4 100644
+> --- a/arch/arm/boot/dts/omap3-beagle.dts
+> +++ b/arch/arm/boot/dts/omap3-beagle.dts
+> @@ -13,15 +13,6 @@
+>  	model = "TI OMAP3 BeagleBoard";
+>  	compatible = "ti,omap3-beagle", "ti,omap3";
+>  
+> -	/*
+> -	 * Since the initial device tree board file does not create any
+> -	 * devices (MMC, network...), the only way to boot is to provide a
+> -	 * ramdisk.
+> -	 */
+> -	chosen {
+> -		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug earlyprintk";
+> -	};
+> -
+>  	memory {
+>  		device_type = "memory";
+>  		reg = <0x80000000 0x20000000>; /* 512 MB */
+> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+> index c702657..9755ad5 100644
+> --- a/arch/arm/boot/dts/omap4-panda.dts
+> +++ b/arch/arm/boot/dts/omap4-panda.dts
+> @@ -13,15 +13,6 @@
+>  	model = "TI OMAP4 PandaBoard";
+>  	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
+>  
+> -	/*
+> -	 * Since the initial device tree board file does not create any
+> -	 * devices (MMC, network...), the only way to boot is to provide a
+> -	 * ramdisk.
+> -	 */
+> -	chosen {
+> -		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
+> -	};
+> -
+>  	memory {
+>  		device_type = "memory";
+>  		reg = <0x80000000 0x40000000>; /* 1 GB */
+> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+> index 066e28c..63c6b2b 100644
+> --- a/arch/arm/boot/dts/omap4-sdp.dts
+> +++ b/arch/arm/boot/dts/omap4-sdp.dts
+> @@ -13,15 +13,6 @@
+>  	model = "TI OMAP4 SDP board";
+>  	compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4";
+>  
+> -	/*
+> -	 * Since the initial device tree board file does not create any
+> -	 * devices (MMC, network...), the only way to boot is to provide a
+> -	 * ramdisk.
+> -	 */
+> -	chosen {
+> -		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
+> -	};
+> -
+>  	memory {
+>  		device_type = "memory";
+>  		reg = <0x80000000 0x40000000>; /* 1 GB */
