@@ -1,59 +1,73 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Mon, 5 Dec 2011 23:48:49 +0000
-Message-ID: <20111205234849.GA14547@n2100.arm.linux.org.uk>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] mfd: add bq2415x charger driver
+Date: Tue, 6 Dec 2011 02:12:47 +0200
+Message-ID: <CAMP44s1TrRkcy-xS+fXMyv0FAL1TnsPnnTa=gHSd2=P=iFkSUg@mail.gmail.com>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
+	<2013134.msetbOSBe8@pali-elitebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com>
+In-Reply-To: <2013134.msetbOSBe8@pali-elitebook>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 05, 2011 at 02:15:56PM -0700, Paul Walmsley wrote:
-> The types associated with clock rates in the clock interface 
-> (include/linux/clk.h) are inconsistent, and we should fix this. 
+Hi,
 
-Rubbish.  They're different with good reason.  Rates are primerily
-unsigned quantities - and should be treated as such.
+On Tue, Dec 6, 2011 at 1:05 AM, Pali Roh=C3=A1r <pali.rohar@gmail.com> =
+wrote:
+> I started writing other implementaion of bq2415x charger driver, whic=
+h should
+> support also setting usb host mode. Code is still unfinished, but now=
+ is
+> devided into 2 parts: one power_supply driver and one driver which co=
+ver all
+> bq registers. See:
+>
+> http://atrey.karlin.mff.cuni.cz/~pali/bq2415x/
+>
+> Felipe Contreras, I think that my implementation is better - it will =
+export
+> all bq registers (which is needed for hostmode boost) and will also r=
+egister
+> regulator interface.
 
-The exception is clk_round_rate() which returns the rate, but also
-_may_ return an error.  Therefore, its return type has to be signed.
+I took a look at your driver, and there's definitely good stuff in it.
+However, I think there's a lot of unnecessary stuff, like the
+miscdevice stuff (which was frowned upon for bq27x00), and a lot of
+user-space interface. Moreover, it doesn't seem to do anything on its
+own (it needs interaction from user-space).
 
-> We could fix the immediate problem by changing the prototype of 
-> clk_round_rate() to pass the rounded rate back to the caller via a pointer 
-> in one of the arguments, and return an error code (if any) via the return 
-> value:
-> 
-> int clk_round_rate(struct clk *clk, unsigned long rate, unsigned long 
->                    *rounded_rate);
+IMO the first step should be to have a minimal driver that just works,
+even if it doesn't achieve the absolute best charging performance.
+More features could be added later on.
 
-Yes that might have been a better solution.
+Also, I'm not familiar with the regulator interface, but it seems to
+be meant for real regulators, which have consumers, and based on those
+consumers's needs the real voltage changes. This battery charger on
+the other hand doesn't have anything like that. There will be no
+consumer, and some stuff like the weak battery voltage is not even
+related to a voltage supply, but rather a threshold that can be
+configured to change some behavior of the charger, but there's no
+point in changing it dynamically (or maybe at all).
 
-> But I'd propose that we instead increase the size of struct clk.rate to be 
-> s64:
-> 
-> s64 clk_round_rate(struct clk *clk, s64 desired_rate);
-> int clk_set_rate(struct clk *clk, s64 rate);
-> s64 clk_get_rate(struct clk *clk);
-> 
-> struct clk {
-> ...
->      s64 rate;
-> ...
-> };
-> 
-> That way the clock framework can accommodate current clock rates, as well 
-> as any conceivable future clock rate.  (Some production CPUs are already 
-> running at clock rates greater than 4 GiHZ[1].  RF devices with 4 GiHz+ 
-> clock rates are also common, such as 802.11a devices running in the 5.8 
-> GHz band, and drivers for those may eventually wish to use the clock 
-> framework.)
+I guess the important one is the charge voltage, which is linked to a
+real voltage, but what consumers would it have? I don't think there's
+any.
 
-Yuck.  You are aware that 64-bit math on 32-bit CPUs sucks?  So burdening
-_everything_ with 64-bit rate quantities is absurd.  As for making then
-64-bit signed quantities, that's asking for horrid code from gcc for the
-majority of cases.
+=46inally, I don't think user-space interaction should be needed at all=
+=2E
+The driver should start charging immediately when there power supply
+available, and stop when there isn't any. Maybe at some point a
+user-space interface will be useful later on (I don't see why), but I
+don't think it should be *necessary*.
+
+I'm not familiar with any of this stuff, so don't take my opinions too
+seriously :)
+
+Cheers.
+
+--=20
+=46elipe Contreras
