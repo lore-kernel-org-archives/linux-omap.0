@@ -1,64 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Mon, 5 Dec 2011 23:28:08 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112052322120.6289@utopia.booyaka.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com> <20111205234849.GA14547@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1112051706300.6289@utopia.booyaka.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
+Date: Tue, 6 Dec 2011 14:30:34 +0800
+Message-ID: <CACVXFVMB+HuQDb+Pxo0d8x46P82-c-OPxaL0c661Wztyx3NWJA@mail.gmail.com>
+References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
+	<42689146.OPtqLboC2m@wuerfel>
+	<CACVXFVO5Bu8vTfLN_WFsEkHW6JhQFmWPmEyNnrvTsDhoF-WVeA@mail.gmail.com>
+	<201112051437.27538.arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1112051706300.6289@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:42331 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932847Ab1LFGah (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 01:30:37 -0500
+In-Reply-To: <201112051437.27538.arnd@arndb.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org
 
-On Mon, 5 Dec 2011, Paul Walmsley wrote:
+Hi,
 
-> For example, here's a trivial implementation for rate recalculation for a 
-> integer divider clock node (that can't be handled with a right shift):
-> 
-> s64 div(struct clk *clk, u32 div) {
-> 	if (clk->flags & CLK_PARENT_RATE_MAX_U32)
-> 		return ((u32)(clk->parent->rate & 0xffffffff)) / div;
-> 
-> 	clk->rate = clk->parent->rate;
-> 	do_div(clk->rate, div);
-> 	return clk->rate;
-> }
+On Mon, Dec 5, 2011 at 10:37 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Sunday 04 December 2011, Ming Lei wrote:
+>> >
+>> > This data structure is not 32/64 bit safe: running a 64 bit kernel with 32 bit
+>> > user space will see an incompatible layout.
+>>
+>> I agree that this is not 32/64 bit safe, but I understand lib32 can handle
+>> this correctly, otherwise many 32bit applications can't run on current
+>> 64bit kernel
+>> since many kernel structures used by user space contained pointer,
+>> such as struct v4l2_buffer, struct v4l2_ext_controls in v4l2 ABI.
+>
+> The other ones you mentioned are handled in the kernel in
+> drivers/media/video/v4l2-compat-ioctl32.c. For new ioctl commands,
+> it's better to define the data structure in a compatible way
+> so you do not need a wrapper like that.
 
-(removing some useless cruft from the above function, for clarity's sake)
+OK, I opt to use __u64 to pass the user pointer, so how about the blow
+changes on this patch?
 
-s64 div(struct clk *clk, u32 div) {
-	s64 r;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 073eb4d..8aeaa1e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2214,7 +2214,12 @@ struct v4l2_fd_result {
+ 	__u32	buf_index;
+ 	__u32	face_cnt;
+ 	__u32	reserved[6];
+-	struct v4l2_fd_detection *fd;
++
++	/*make 64/32 compatible*/
++	union {
++		struct v4l2_fd_detection *fd;
++		__u64	dummy;
++	};
+ };
 
-	if (clk->flags & CLK_PARENT_RATE_MAX_U32)
-		return ((u32)clk->parent->rate) / div;
+ /**
 
-	r = clk->parent->rate;
-	do_div(r, div);
-	return r;
-}
-
-00000000 <div>:
-   0:	e92d4010 	push	{r4, lr}
-   4:	e1a04001 	mov	r4, r1
-   8:	e5d03010 	ldrb	r3, [r0, #16]
-   c:	e3130001 	tst	r3, #1
-  10:	1a000005 	bne	2c <div+0x2c>
-
-  14:	e5903000 	ldr	r3, [r0]
-  18:	e1c300d8 	ldrd	r0, [r3, #8]
-  1c:	ebfffffe 	bl	0 <__do_div64>
-  20:	e1a00002 	mov	r0, r2
-  24:	e1a01003 	mov	r1, r3
-  28:	e8bd8010 	pop	{r4, pc}
-
-  2c:	e5900000 	ldr	r0, [r0]
-  30:	e5900008 	ldr	r0, [r0, #8]
-  34:	ebfffffe 	bl	0 <__aeabi_uidiv>
-  38:	e3a01000 	mov	r1, #0
-  3c:	e8bd8010 	pop	{r4, pc}
-
-
-- Paul
+thanks,
+--
+Ming Lei
