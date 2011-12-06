@@ -1,269 +1,169 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver module
-Date: Tue, 6 Dec 2011 22:07:24 +0800
-Message-ID: <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
-	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>
-	<4EDD3DEE.6060506@gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] mfd: add bq2415x charger driver
+Date: Tue, 6 Dec 2011 16:11:33 +0200
+Message-ID: <CAMP44s1uQJZ8nhjMqUXPZLL+XvnWUAZ+qeKejeZdA0WwiS3e=Q@mail.gmail.com>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
+	<8650361.EbH1hYJT76@pali-elitebook>
+	<CAMP44s3hxKgP_epT48vwqwM-jme7ZsZx0U1xW4DTrn9aSpb6hg@mail.gmail.com>
+	<4644874.uYs2CCTrg9@pali-elitebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4EDD3DEE.6060506@gmail.com>
+In-Reply-To: <4644874.uYs2CCTrg9@pali-elitebook>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-
-Thanks for your review.
-
-On Tue, Dec 6, 2011 at 5:55 AM, Sylwester Nawrocki <snjw23@gmail.com> w=
-rote:
-> Hi Ming,
+On Tue, Dec 6, 2011 at 3:27 PM, Pali Roh=C3=A1r <pali.rohar@gmail.com> =
+wrote:
+> On Tuesday 06 December 2011 12:58:06 you wrote:
+>> Ok. A device with such debugfs would be nice, but I would start
+>> without one, just something that works.
 >
-> (I've pruned the Cc list, leaving just the mailing lists)
+> I think we do not need in mainline kernel driver which "only works" w=
+ithout
+> any debug or additional support.
+
+I think that's a good start, and that's what I will focus on.
+
+>> I don't know if the regulator interface makes sense, but I think not=
+=2E
+>> Anyway, I don't see how my code is specific to rx51, it should work
+>> with all bq2415x models.
 >
-> On 12/02/2011 04:02 PM, Ming Lei wrote:
->> This patch introduces one driver for face detection purpose.
+> voltage and current values could be different for other boards. So ea=
+ch board
+> (with bq2415x chip) should have defined default charge properties (in=
+ platform
+> data structure or something else...). your interface does not support=
+ such as
+> other changes.
+
+No, they wouldn't, that depends on many things, like the type of
+charger. As Sebastian pointed out, the current *sense* voltage, is
+board specific, but that's about it.
+
+>> Why do we need user-space for the boost mode?
+>
+> Because on n900 we *want* USB host mode. Without boost mode support (=
+in kernel
+> driver) again will need to rmmod driver (now we stopping BME) and sta=
+rt
+> handling it in userspace.
+
+But we can have boost mode *without* user-space. There's no reason why
+it can't be handled by the kernel.
+
+>> >> I'm not familiar with any of this stuff, so don't take my opinion=
+s too
+>> >> seriously :)
+>> >
+>> > Consider my code. We do not need two (or more) implementation of s=
+ame
+>> > driver in kernel. And also we do not need only rx51 specified code=
+=2E
 >>
->> The driver is responsible for all v4l2 stuff, buffer management
->> and other general things, and doesn't touch face detection hardware
->> directly. Several interfaces are exported to low level drivers
->> (such as the coming omap4 FD driver)which will communicate with
->> face detection hw module.
+>> Of course, that's why I am discussing this :)
 >>
->> So the driver will make driving face detection hw modules more
->> easy.
->
->
-> I would hold on for a moment on implementing generic face detection
-> module which is based on the V4L2 video device interface. We need to
-> first define an API that would be also usable at sub-device interface
-> level (http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html).
-
-If we can define a good/stable enough APIs between kernel and user spac=
-e,
-I think the patches can be merged first. For internal kernel APIs, we s=
-hould
-allow it to evolve as new hardware comes or new features are to be intr=
-oduced.
-
-I understand the API you mentioned here should belong to kernel interna=
-l
-API, correct me if it is wrong.
-
-> AFAICS OMAP4 FDIF processes only data stored in memory, thus it seems
-> reasonable to use the videodev interface for passing data to the kern=
-el
-> from user space.
->
-> But there might be face detection devices that accept data from other
-> H/W modules, e.g. transferred through SoC internal data buses between
-> image processing pipeline blocks. Thus any new interfaces need to be
-> designed with such devices in mind.
->
-> Also the face detection hardware block might now have an input DMA
-> engine in it, the data could be fed from memory through some other
-> subsystem (e.g. resize/colour converter). Then the driver for that
-> subsystem would implement a video node.
-
-I think the direct input image or frame data to FD should be from memor=
-y
-no matter the actual data is from external H/W modules or input DMA bec=
-ause
-=46D will take lot of time to detect faces in one image or frame and FD=
- can't
-have so much memory to cache several images or frames data.
-
-If you have seen this kind of FD hardware design, please let me know.
-
-> I'm for leaving the buffer handling details for individual drivers
-> and focusing on a standard interface for applications, i.e. new
-
-I think leaving buffer handling details in generic FD driver or
-individual drivers
-doesn't matter now, since it don't have effect on interfaces between ke=
-rnel
-and user space.
-
-> ioctl(s) and controls.
->
+>> > I separated bq2415x register access into one module (bq2415x.c - w=
+ithout
+>> > any logic, only cover chip options) and real battery charging shou=
+ld be
+>> > done in power_supply interface (bq2415x_charger.c)
 >>
->> TODO:
->> =A0 =A0 =A0 - implement FD setting interfaces with v4l2 controls or
->> =A0 =A0 =A0 ext controls
+>> I don't see the point of having two drivers.
+>
+> Because proper charging on n900 needs interact with isp1704 driver. B=
+ut this
+> is specified for n900, not for all boards. bq2415x module should be g=
+eneral
+> for all boards - so it should cover *only* bq2415x chip - nothing oth=
+er.
+
+Yes, and that be done with hooks. The bq2415x driver will have hooks,
+and the rx51 board configuration will connect isp1704 to bq2415x, and
+that's it. No need for yet another driver.
+
+>> > My code has also prepaired boost support - for usb host mode, whic=
+h must
+>> > be done in driver.
 >>
->> Signed-off-by: Ming Lei <ming.lei@canonical.com>
->> ---
->> =A0drivers/media/video/Kconfig =A0 =A0 =A0 | =A0 =A02 +
->> =A0drivers/media/video/Makefile =A0 =A0 =A0| =A0 =A01 +
->> =A0drivers/media/video/fdif/Kconfig =A0| =A0 =A07 +
->> =A0drivers/media/video/fdif/Makefile | =A0 =A01 +
->> =A0drivers/media/video/fdif/fdif.c =A0 | =A0645 ++++++++++++++++++++=
-+++++++++++++++++
->> =A0drivers/media/video/fdif/fdif.h =A0 | =A0114 +++++++
->> =A06 files changed, 770 insertions(+), 0 deletions(-)
->> =A0create mode 100644 drivers/media/video/fdif/Kconfig
->> =A0create mode 100644 drivers/media/video/fdif/Makefile
->> =A0create mode 100644 drivers/media/video/fdif/fdif.c
->> =A0create mode 100644 drivers/media/video/fdif/fdif.h
+>> Well, yeah, in my driver it can be added as well, however, I don't
+>> think it's _needed_ right now.
 >
-> [...]
->
->> diff --git a/drivers/media/video/fdif/fdif.h b/drivers/media/video/f=
-dif/fdif.h
->> new file mode 100644
->> index 0000000..ae37ab8
->> --- /dev/null
->> +++ b/drivers/media/video/fdif/fdif.h
->> @@ -0,0 +1,114 @@
->> +#ifndef _LINUX_FDIF_H
->> +#define _LINUX_FDIF_H
->> +
->> +#include <linux/types.h>
->> +#include <linux/magic.h>
->> +#include <linux/errno.h>
->> +#include <linux/kref.h>
->> +#include <linux/kernel.h>
->> +#include <linux/videodev2.h>
->> +#include <media/videobuf2-page.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-ioctl.h>
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-fh.h>
->> +#include <media/v4l2-event.h>
->> +#include <media/v4l2-common.h>
->> +
->> +#define MAX_FACE_COUNT =A0 =A0 =A0 =A0 =A0 =A0 =A0 40
->> +
->> +#define =A0 =A0 =A0FACE_SIZE_20_PIXELS =A0 =A0 0
->> +#define =A0 =A0 =A0FACE_SIZE_25_PIXELS =A0 =A0 1
->> +#define =A0 =A0 =A0FACE_SIZE_32_PIXELS =A0 =A0 2
->> +#define =A0 =A0 =A0FACE_SIZE_40_PIXELS =A0 =A0 3
->
-> This is still OMAP4 FDIF specific, we need to think about v4l2 contro=
-ls
-> for this. An ideal would be a menu control type that supports pixel s=
-ize
-> (width/height), but unfortunately something like this isn't available
-> in v4l2 yet.
+> Of course, but I (and maybe some other people) do not need uncomplete=
+d chip
+> driver.
 
-Yes, it is on TODO list, :-)
+Anything is better than what we have now, which is nothing. Look for
+example to how the bq27x00 battery driver evolved; it started very
+simple.
 
->> +
->> +#define FACE_DIR_UP =A0 =A0 =A0 =A0 =A00
->> +#define FACE_DIR_RIGHT =A0 =A0 =A0 =A0 =A0 =A0 =A0 1
->> +#define FACE_DIR_LIFT =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A02
->> +
->> +struct fdif_fmt {
->> + =A0 =A0 char =A0*name;
->> + =A0 =A0 u32 =A0 fourcc; =A0 =A0 =A0 =A0 =A0/* v4l2 format id */
->> + =A0 =A0 int =A0 depth;
->> + =A0 =A0 int =A0 width, height;
+>> First, I would like something that works by itself (without
+>> user-space), which I already have. Next, I would like it to plug int=
+o
+>> isp1704 to detect when a charger is connected, and select the correc=
+t
+>> limits accordingly. I guess this hooks should be connected on the
+>> board code. Once having that, I think the driver should be ready for
+>> merging, the rest of the features can come later.
 >
-> Could width/height be negative ? I don't think it's the case for pixe=
-l
-> resolution. The more proper data type would be u32.
+> Working without userspace is my primary goal. But also for debugging =
+(and
+> status apps/scripts) is needed direct register access. isp1704 intera=
+ction
+> should not be in bq2415x chip driver, but in some rx51 specified code=
+=2E
 
-Yes, they should be, will fix it in next version.
+Yes.
 
-> Please refer to struct v4l2_pix_format or struct v4l2_rect.
+> Charging should be done in power_supply interface.
 >
->> +};
->> +
->> +struct fdif_setting {
->> + =A0 =A0 struct fdif_fmt =A0 =A0 =A0 =A0 =A0 =A0*fmt;
->> + =A0 =A0 enum v4l2_field =A0 =A0 =A0 =A0 =A0 =A0field;
->> +
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 min_face_size;
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 face_dir;
->> +
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 startx, starty=
-;
->
-> s32
->
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sizex, sizey;
->
-> u32
->
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 lhit;
->> +
->> + =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 width, height;
->
-> u32
->
->> +};
->> +
->> +/* buffer for one video frame */
->> +struct fdif_buffer {
->> + =A0 =A0 /* common v4l buffer stuff -- must be first */
->> + =A0 =A0 struct vb2_buffer =A0 =A0 =A0 vb;
->> + =A0 =A0 struct list_head =A0 =A0 =A0 =A0list;
->> +};
->> +
->> +
->> +struct v4l2_fdif_result {
->> + =A0 =A0 struct list_head =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0list;
->> + =A0 =A0 unsigned int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0face_c=
-nt;
->> + =A0 =A0 struct v4l2_fd_detection =A0 =A0 =A0 =A0*faces;
->> +
->> + =A0 =A0 /*v4l2 buffer index*/
->> + =A0 =A0 __u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-index;
->> +};
->> +
->> +struct fdif_dmaqueue {
->> + =A0 =A0 struct list_head =A0 =A0 =A0 =A0complete;
->> + =A0 =A0 struct list_head =A0 =A0 =A0 =A0active;
->> + =A0 =A0 wait_queue_head_t =A0 =A0 =A0 wq;
->> +};
->> +
->> +
->> +struct fdif_dev {
->> + =A0 =A0 struct kref =A0 =A0 =A0 =A0 =A0 =A0 ref;
->> + =A0 =A0 struct device =A0 =A0 =A0 =A0 =A0 *dev;
->> +
->> + =A0 =A0 struct list_head =A0 =A0 =A0 =A0fdif_devlist;
->> + =A0 =A0 struct v4l2_device =A0 =A0 =A0v4l2_dev;
->> + =A0 =A0 struct vb2_queue =A0 =A0 =A0 =A0vbq;
->> + =A0 =A0 struct mutex =A0 =A0 =A0 =A0 =A0 =A0mutex;
->> + =A0 =A0 spinlock_t =A0 =A0 =A0 =A0 =A0 =A0 =A0lock;
->> +
->> + =A0 =A0 struct video_device =A0 =A0 =A0 =A0*vfd;
->> + =A0 =A0 struct fdif_dmaqueue =A0 =A0fdif_dq;
->> +
->> + =A0 =A0 /*setting*/
->> + =A0 =A0 struct fdif_setting =A0 =A0 s;
->
-> yy, please make it more descriptive. e.g.
+> See also api specification by Joerg Reisenweber (one of n900 usb host=
+mode
+> support) on http://maemo.cloud-7.de/bq24150-sysnode.spec.txt
+> Similar interface is needed for proper usb host mode.
 
-Sounds reasonable, :-)
+That is very interesting... Is there yet another module for this?
+Again, I don't understand why interaction with user-space is *needed*
+for host mode.
 
->
-> =A0 =A0 =A0 =A0struct fdif_config =A0 =A0 =A0config;
->
->> +
->> + =A0 =A0 struct fdif_ops *ops;
->> +
->> + =A0 =A0 unsigned long =A0 priv[0];
->> +};
->> +
-> [...]
->
-> --
->
-> Regards,
-> Sylwester
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Also your driver does not handle errors, when charging and watchdog s=
+hould be
+> stopped. Charging is *very* crytical parts and it really should detec=
+t errors.
 
-thanks,
---
-Ming Lei
+Indeed, that's why this is RFC only.
+
+> When in future I (or someone else) will want to add all missing featu=
+res into
+> bq2415x chip driver, it will be needed to rewrite it... (e.g. handlin=
+g errors
+> in boost mode)...
+
+Perhaps, but I don't think so. Anyway, again, see the evolution of
+bq27x00, or basically anything in the kernel. If something needs to be
+refactored for new features, so be it.
+
+But I think there is some consensus; the drivers should be in
+drivers/power, and have a power supply interface, rx51 board info
+should configure some sense voltage, and hook it up with
+isp1704_charger somehow. Once this is done and driver is merged, I
+don't expect that to change.
+
+> Why to very very quicky merge uncompleted (but working) driver to ups=
+tream? I
+> think we should finish bq2415x chip driver and if all will be impleme=
+nted,
+> then to merge it. What other developers think about that?
+
+This version of the driver is not the one I am proposing to merge. The
+one I'm proposed to merge should be a good basis for future work (or
+what you are doing right now).
+
+Cheers.
+
+--=20
+=46elipe Contreras
