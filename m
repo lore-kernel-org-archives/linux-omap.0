@@ -1,96 +1,84 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v3 3/5] clk: introduce the common clock framework
-Date: Mon, 5 Dec 2011 18:37:17 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112051706300.6289@utopia.booyaka.com>
-References: <1321926047-14211-1-git-send-email-mturquette@linaro.org> <1321926047-14211-4-git-send-email-mturquette@linaro.org> <alpine.DEB.2.00.1112051342430.6289@utopia.booyaka.com> <20111205234849.GA14547@n2100.arm.linux.org.uk>
+From: Sebastian Reichel <sre@debian.org>
+Subject: Re: [PATCH] mfd: add bq2415x charger driver
+Date: Tue, 6 Dec 2011 03:17:49 +0100
+Message-ID: <20111206021749.GA7202@earth.universe>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111205234849.GA14547@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Mike Turquette <mturquette@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, Mike Turquette <mturquette@linaro.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="5vNYLRcllDrimb99"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comu.ring0.de ([46.4.151.82]:48140 "EHLO smtp.ring0.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932811Ab1LFCSG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Dec 2011 21:18:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-On Mon, 5 Dec 2011, Russell King - ARM Linux wrote:
-
-> On Mon, Dec 05, 2011 at 02:15:56PM -0700, Paul Walmsley wrote:
->
-> > But I'd propose that we instead increase the size of struct clk.rate to be 
-> > s64:
-> > 
-> > s64 clk_round_rate(struct clk *clk, s64 desired_rate);
-> > int clk_set_rate(struct clk *clk, s64 rate);
-> > s64 clk_get_rate(struct clk *clk);
-> > 
-> > struct clk {
-> > ...
-> >      s64 rate;
-> > ...
-> > };
-> > 
-> > That way the clock framework can accommodate current clock rates, as well 
-> > as any conceivable future clock rate.  (Some production CPUs are already 
-> > running at clock rates greater than 4 GiHZ[1].  RF devices with 4 GiHz+ 
-> > clock rates are also common, such as 802.11a devices running in the 5.8 
-> > GHz band, and drivers for those may eventually wish to use the clock 
-> > framework.)
-> 
-> Yuck.  You are aware that 64-bit math on 32-bit CPUs sucks? So burdening 
-> _everything_ with 64-bit rate quantities is absurd.  As for making then 
-> 64-bit signed quantities, that's asking for horrid code from gcc for the 
-> majority of cases.
-
-64-bit divides would be the only real issue in the clock framework 
-context.  And those are easily avoided on clock hardware where the parent 
-rate can never exceed 32 bits.
-
-For example, here's a trivial implementation for rate recalculation for a 
-integer divider clock node (that can't be handled with a right shift):
-
-s64 div(struct clk *clk, u32 div) {
-	if (clk->flags & CLK_PARENT_RATE_MAX_U32)
-		return ((u32)(clk->parent->rate & 0xffffffff)) / div;
-
-	clk->rate = clk->parent->rate;
-	do_div(clk->rate, div);
-	return clk->rate;
-}
-
-gcc generates this for ARMv6:
-
-00000010 <div>:
-  10:	e92d4038 	push	{r3, r4, r5, lr}
-  14:	e1a05000 	mov	r5, r0         
-  18:	e5d03010 	ldrb	r3, [r0, #16]  @ clk->flags
-  1c:	e1a04001 	mov	r4, r1
-  20:	e3130001 	tst	r3, #1         @ 32-bit parent rate?
-  24:	1a000007 	bne	48 <div+0x38>  @ do 32-bit divide 
-
-/* 64-bit divide by 32-bit follows */
-
-  28:	e5903000 	ldr	r3, [r0]
-  2c:	e1c300d8 	ldrd	r0, [r3, #8]
-  30:	ebfffffe 	bl	0 <__do_div64>
-  34:	e1a00002 	mov	r0, r2
-  38:	e1a01003 	mov	r1, r3
-  3c:	e5852008 	str	r2, [r5, #8]
-  40:	e585300c 	str	r3, [r5, #12]
-  44:	e8bd8038 	pop	{r3, r4, r5, pc}
-
-/* 32-bit divide follows */
-
-  48:	e5900000 	ldr	r0, [r0]
-  4c:	e5900008 	ldr	r0, [r0, #8]
-  50:	ebfffffe 	bl	0 <__aeabi_uidiv>
-  54:	e3a01000 	mov	r1, #0
-  58:	e8bd8038 	pop	{r3, r4, r5, pc}
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
 
-Not bad at all, and this isn't even optimized.  (The conditional could be 
-avoided completely with a little work during clock init.)  What little 
-overhead there is seems quite trivial if it means that the clock framework 
-will be useful for present and future devices.
+--5vNYLRcllDrimb99
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
-- Paul
+Good to hear somebody is working on this :) I planned to do this
+myself, but didn't find any time for it. Here are some comments
+=66rom me:
+
+[...]
+
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+
+I would expect the driver in drivers/power. But maybe MFD is
+better, since the chip can also be used to power USB host?
+
+[...]
+
+> +#define BQ2415X_VOLTAGE_SCALE 20000
+
+If I remember correctly (I read the specs some time ago), this can
+be configured via external resistor. So this is board specific?
+
+[...]
+
+> +	bq2415x_i2c_write(cli, BQ2415X_CHG_CTL, 0x42);
+> +	bq2415x_set_voltage(cli, 0, 4200000);
+> +	bq2415x_set_current_limit(cli, 1800000, 1800000);
+
+So it always charges with 1.8A? Shouldn't this be dependent on the
+input source (e.g. 500mA from USB)? Also what's if no charger is
+connected at all?
+
+Apart from this I think those values should be exposed to sysfs
+via /sys/class/power_supply.
+
+-- Sebastian
+
+--5vNYLRcllDrimb99
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJO3XtNAAoJENju1/PIO/qaCQQP/jn5Zp92a7kaUss3zOEY3KOw
+aFz2YMwPW0OZtPS7QAKT0T2jGHn7SVbh478V6tA2y8g9lCkh3KMutBhd5FkC5dUk
+g2yKhnvK2R58ZjgqU5jn+4A5fDS3cf0g16Nvvj41MjQIpmA+meXZC8tYtM+7jxSg
+HzfvCJUYXjtfVaLDVvtCOxc/gGt2y2QTE+BUMRmHSh7olVbiaxP+pWoJsvQ9PaMP
+WBQM6CvEusr7AEcNkXHdKUXH7OpvOBaU5RWU/BIPpx5WITkfvSq5YBNKHGWvcpv0
+wrWemnVpQWfMGJsOOLWiITwoCHLMdMEvyPM09H3Z6RbHgKMHxRR9r5YSTAu63YEM
+CJPgVnbvBpdCP1/sJ626gKbTbt2EmzWGJ0vUqynYc/9wE5neDOsvDY/tyP8MMg1g
+l8eN9N9C89aWqoxxHbBa3uaauLJtMvyW7U45/yBk+kGY1SATu9/BwwMSFEBxiZZp
+c8Q8KMDy5s0EULVi5sHaaiHYGbQ4tCsSJo4DBi/Y0X80idDfnBvSpmB7qI+3BxXs
+jdXri1OswbO5rnAbFFSz9IT22JNSoln0VFwuaeTy6FNmlEE1ts+BUUtD/vi2pWWg
+ugZ+MdyN84A1msbLiLJGHsksJvILIogDJlryGpc3o+7mf+/1qe1T2g5fjC85Iuo5
+D0MF9Xyk+gejJhcpq0Ro
+=Wmry
+-----END PGP SIGNATURE-----
+
+--5vNYLRcllDrimb99--
