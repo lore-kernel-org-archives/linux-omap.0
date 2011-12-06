@@ -1,63 +1,95 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default for OMAP2+ systems
-Date: Tue, 6 Dec 2011 17:49:07 +0100
-Message-ID: <1323190149-6492-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/3] arm/dts: OMAP: Remove bootargs node from board files
+Date: Tue, 6 Dec 2011 17:49:08 +0100
+Message-ID: <1323190149-6492-3-git-send-email-b-cousson@ti.com>
 References: <y>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58611 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47781 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846Ab1LFQtq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Dec 2011 11:49:46 -0500
+	id S1750846Ab1LFQuI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Dec 2011 11:50:08 -0500
 In-Reply-To: <y>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>
 
-devicetree will become the mandatory boot method for OMAP2+.
-In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
-select USE_OF by default for every OMAP2+ systems.
-Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
-boot loader to keep working properly.
+Since 3.2, the CONFIG_ARM_ATAG_DTB_COMPAT config allows
+an old bootloader to still use ATAG to provide cmdline.
 
-Enable PROC_DEVICETREE as well.
+Remove chosen/bootargs from the DTS board files.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
 ---
- arch/arm/mach-omap2/Kconfig |    1 -
- arch/arm/plat-omap/Kconfig  |    4 ++++
- 2 files changed, 4 insertions(+), 1 deletions(-)
+ arch/arm/boot/dts/omap3-beagle.dts |    9 ---------
+ arch/arm/boot/dts/omap4-panda.dts  |    9 ---------
+ arch/arm/boot/dts/omap4-sdp.dts    |    9 ---------
+ 3 files changed, 0 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index e1293aa..056a812 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -109,7 +109,6 @@ comment "OMAP Board Type"
- config MACH_OMAP_GENERIC
- 	bool "Generic OMAP2+ board"
- 	depends on ARCH_OMAP2PLUS
--	select USE_OF
- 	default y
- 	help
- 	  Support for generic TI OMAP2+ boards using Flattened Device Tree.
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index aa59f42..74f41dc 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -24,6 +24,10 @@ config ARCH_OMAP2PLUS
- 	select CLKDEV_LOOKUP
- 	select GENERIC_IRQ_CHIP
- 	select OMAP_DM_TIMER
-+	select USE_OF
-+	select ARM_APPENDED_DTB
-+	select ARM_ATAG_DTB_COMPAT
-+	select PROC_DEVICETREE
- 	help
- 	  "Systems based on OMAP2, OMAP3 or OMAP4"
+diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
+index 9486be6..9f72cd4 100644
+--- a/arch/arm/boot/dts/omap3-beagle.dts
++++ b/arch/arm/boot/dts/omap3-beagle.dts
+@@ -13,15 +13,6 @@
+ 	model = "TI OMAP3 BeagleBoard";
+ 	compatible = "ti,omap3-beagle", "ti,omap3";
  
+-	/*
+-	 * Since the initial device tree board file does not create any
+-	 * devices (MMC, network...), the only way to boot is to provide a
+-	 * ramdisk.
+-	 */
+-	chosen {
+-		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug earlyprintk";
+-	};
+-
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x20000000>; /* 512 MB */
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index c702657..9755ad5 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -13,15 +13,6 @@
+ 	model = "TI OMAP4 PandaBoard";
+ 	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
+ 
+-	/*
+-	 * Since the initial device tree board file does not create any
+-	 * devices (MMC, network...), the only way to boot is to provide a
+-	 * ramdisk.
+-	 */
+-	chosen {
+-		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
+-	};
+-
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 066e28c..63c6b2b 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -13,15 +13,6 @@
+ 	model = "TI OMAP4 SDP board";
+ 	compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4";
+ 
+-	/*
+-	 * Since the initial device tree board file does not create any
+-	 * devices (MMC, network...), the only way to boot is to provide a
+-	 * ramdisk.
+-	 */
+-	chosen {
+-		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
+-	};
+-
+ 	memory {
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
 -- 
 1.7.0.4
 
