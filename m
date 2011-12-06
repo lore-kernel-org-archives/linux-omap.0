@@ -1,97 +1,236 @@
-From: Sebastian Reichel <sre@debian.org>
+From: Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 Subject: Re: [PATCH] mfd: add bq2415x charger driver
-Date: Tue, 6 Dec 2011 14:21:31 +0100
-Message-ID: <20111206132131.GA22855@earth.universe>
-References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
- <20111206021749.GA7202@earth.universe>
- <CAMP44s3JF9QM00x=aUq3tHGfeuTRnKMbT2WrMseZXZTJg1qUyQ@mail.gmail.com>
+Date: Tue, 06 Dec 2011 14:27:52 +0100
+Message-ID: <4644874.uYs2CCTrg9@pali-elitebook>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com> <8650361.EbH1hYJT76@pali-elitebook> <CAMP44s3hxKgP_epT48vwqwM-jme7ZsZx0U1xW4DTrn9aSpb6hg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Content-Type: multipart/signed; boundary="nextPart1842447.1iKXsySLby"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMP44s3JF9QM00x=aUq3tHGfeuTRnKMbT2WrMseZXZTJg1qUyQ@mail.gmail.com>
+In-Reply-To: <CAMP44s3hxKgP_epT48vwqwM-jme7ZsZx0U1xW4DTrn9aSpb6hg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>
 List-Id: linux-omap@vger.kernel.org
 
 
---y0ulUmNC+osPPQO6
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--nextPart1842447.1iKXsySLby
 Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-On Tue, Dec 06, 2011 at 04:49:37AM +0200, Felipe Contreras wrote:
-> Not really. There are 6 bits: 640, 320, 160, 80, 40, 20. So values
-> from 0 to 1260mV can be represented, at steps of 20mV. A value of 0
-> means 3.5V.
+Hello,
 
-I just checked it. You'r driver just writes 0x42 to the register,
-which makes use of the described platform specific resistor.
+On Tuesday 06 December 2011 12:58:06 you wrote:
+> On Tue, Dec 6, 2011 at 9:25 AM, Pali Roh=E1r <pali.rohar@gmail.com> w=
+rote:
+> > On Tuesday 06 December 2011 02:12:47 you wrote:
+> >> On Tue, Dec 6, 2011 at 1:05 AM, Pali Roh=E1r <pali.rohar@gmail.com=
+> wrote:
+> >> > I started writing other implementaion of bq2415x charger driver,=
 
-> bq2415x_i2c_write(cli, BQ2415X_CHG_CTL, 0x42);
+> >> > which
+> >> > should support also setting usb host mode. Code is still
+> >> > unfinished,
+> >> > but now is devided into 2 parts: one power_supply driver and one=
 
-I know that 42 is the "Answer to the Ultimate Question of Life, the
-Universe, and Everything" [0]. But in this case 0x42 is platform
-specific. Check page 30 in the specs, From Table 9 onwards.
+> >> > driver which cover all bq registers. See:
+> >> >=20
+> >> > http://atrey.karlin.mff.cuni.cz/~pali/bq2415x/
+> >> >=20
+> >> > Felipe Contreras, I think that my implementation is better - it
+> >> > will
+> >> > export all bq registers (which is needed for hostmode boost) and=
 
-> > [...]
-> >
-> >> + =A0 =A0 bq2415x_i2c_write(cli, BQ2415X_CHG_CTL, 0x42);
-> >> + =A0 =A0 bq2415x_set_voltage(cli, 0, 4200000);
-> >> + =A0 =A0 bq2415x_set_current_limit(cli, 1800000, 1800000);
-> >
-> > So it always charges with 1.8A? Shouldn't this be dependent on the
-> > input source (e.g. 500mA from USB)? Also what's if no charger is
-> > connected at all?
+> >> > will
+> >> > also register regulator interface.
+> >>=20
+> >> I took a look at your driver, and there's definitely good stuff in=
+ it.
+> >> However, I think there's a lot of unnecessary stuff, like the
+> >> miscdevice stuff (which was frowned upon for bq27x00), and a lot o=
+f
+> >> user-space interface. Moreover, it doesn't seem to do anything on =
+its
+> >> own (it needs interaction from user-space).
+> >=20
+> > Ignore miscdevice, I will remove them from driver. I will add some
+> > debugfs interface for getting registers output (needed for debuggin=
+g)
 >=20
-> No. I'm hard-coding those values, but I wrote the functions
-> (set_voltate, set_current_limit) so all values are supported.
+> Ok. A device with such debugfs would be nice, but I would start
+> without one, just something that works.
+
+I think we do not need in mainline kernel driver which "only works" wit=
+hout=20
+any debug or additional support.
+
 >=20
-> What is missing is the code to connect this driver to the charger
-> detector driver (isp1704), so those values are determined dynamically.
+> >> IMO the first step should be to have a minimal driver that just wo=
+rks,
+> >> even if it doesn't achieve the absolute best charging performance.=
 
-ok, I was talking about the current state ;)
+> >> More features could be added later on.
+> >>=20
+> >> Also, I'm not familiar with the regulator interface, but it seems =
+to
+> >> be meant for real regulators, which have consumers, and based on t=
+hose
+> >> consumers's needs the real voltage changes. This battery charger o=
+n
+> >> the other hand doesn't have anything like that. There will be no
+> >> consumer, and some stuff like the weak battery voltage is not even=
 
-> > Apart from this I think those values should be exposed to sysfs
-> > via /sys/class/power_supply.
+> >> related to a voltage supply, but rather a threshold that can be
+> >> configured to change some behavior of the charger, but there's no
+> >> point in changing it dynamically (or maybe at all).
+> >=20
+> > If regulator interface is not good, I can change it to some sysfs
+> > interface. But bq2415x chip driver is not only rx51 specified, so i=
+t
+> > should handle all chip capabilities.
 >=20
-> Perhaps. Although I don't see much of the power supply interface that
-> could be useful here, but if so, I guess this should be indeed in
-> 'drivers/power'.
+> I don't know if the regulator interface makes sense, but I think not.=
 
-So it may need some new entries. Normal mobile userspace wants to
-know at least charging status & speed. Also it's probably a good
-idea to make current_limit sysfs entry writeable, so that advanced
-users can overwrite a autodetected value (e.g. a dumb wallcharger
-may be detected as 100mA, but can provide 1A).
+> Anyway, I don't see how my code is specific to rx51, it should work
+> with all bq2415x models.
 
-[0] http://en.wikipedia.org/wiki/Phrases_from_The_Hitchhiker%27s_Guide_to_t=
-he_Galaxy
+voltage and current values could be different for other boards. So each=
+ board=20
+(with bq2415x chip) should have defined default charge properties (in p=
+latform=20
+data structure or something else...). your interface does not support s=
+uch as=20
+other changes.
 
--- Sebasitan
+>=20
+> >> I guess the important one is the charge voltage, which is linked t=
+o a
+> >> real voltage, but what consumers would it have? I don't think ther=
+e's
+> >> any.
+> >>=20
+> >> Finally, I don't think user-space interaction should be needed at =
+all.
+> >> The driver should start charging immediately when there power supp=
+ly
+> >> available, and stop when there isn't any. Maybe at some point a
+> >> user-space interface will be useful later on (I don't see why), bu=
+t I
+> >> don't think it should be *necessary*.
+> >=20
+> > Userspace interfaction is needed. We need to tell driver to boost -=
+ for
+> > usb host mode. But of course, battery charging should be automatic
+> > without userspace interfaction.
+>=20
+> Why do we need user-space for the boost mode?
 
---y0ulUmNC+osPPQO6
+Because on n900 we *want* USB host mode. Without boost mode support (in=
+ kernel=20
+driver) again will need to rmmod driver (now we stopping BME) and start=
+=20
+handling it in userspace.
+
+>=20
+> >> I'm not familiar with any of this stuff, so don't take my opinions=
+ too
+> >> seriously :)
+> >=20
+> > Consider my code. We do not need two (or more) implementation of sa=
+me
+> > driver in kernel. And also we do not need only rx51 specified code.=
+
+>=20
+> Of course, that's why I am discussing this :)
+>=20
+> > I separated bq2415x register access into one module (bq2415x.c - wi=
+thout
+> > any logic, only cover chip options) and real battery charging shoul=
+d be
+> > done in power_supply interface (bq2415x_charger.c)
+>=20
+> I don't see the point of having two drivers.
+
+Because proper charging on n900 needs interact with isp1704 driver. But=
+ this=20
+is specified for n900, not for all boards. bq2415x module should be gen=
+eral=20
+for all boards - so it should cover *only* bq2415x chip - nothing other=
+.
+
+In my opition bq2415x module should only export chip register access (t=
+o=20
+userspace via debugfs... and to kernel via some interface or symbols...=
+)
+
+>=20
+> > My code has also prepaired boost support - for usb host mode, which=
+ must
+> > be done in driver.
+>=20
+> Well, yeah, in my driver it can be added as well, however, I don't
+> think it's _needed_ right now.
+
+Of course, but I (and maybe some other people) do not need uncompleted =
+chip=20
+driver.
+
+>=20
+> First, I would like something that works by itself (without
+> user-space), which I already have. Next, I would like it to plug into=
+
+> isp1704 to detect when a charger is connected, and select the correct=
+
+> limits accordingly. I guess this hooks should be connected on the
+> board code. Once having that, I think the driver should be ready for
+> merging, the rest of the features can come later.
+
+Working without userspace is my primary goal. But also for debugging (a=
+nd=20
+status apps/scripts) is needed direct register access. isp1704 interact=
+ion=20
+should not be in bq2415x chip driver, but in some rx51 specified code.
+
+Charging should be done in power_supply interface.
+
+See also api specification by Joerg Reisenweber (one of n900 usb hostmo=
+de=20
+support) on http://maemo.cloud-7.de/bq24150-sysnode.spec.txt
+Similar interface is needed for proper usb host mode.
+
+Also your driver does not handle errors, when charging and watchdog sho=
+uld be=20
+stopped. Charging is *very* crytical parts and it really should detect =
+errors.
+
+When in future I (or someone else) will want to add all missing feature=
+s into=20
+bq2415x chip driver, it will be needed to rewrite it... (e.g. handling =
+errors=20
+in boost mode)...
+
+Why to very very quicky merge uncompleted (but working) driver to upstr=
+eam? I=20
+think we should finish bq2415x chip driver and if all will be implement=
+ed,=20
+then to merge it. What other developers think about that?
+
+>=20
+> Cheers.
+
+--=20
+Pali Roh=E1r
+pali.rohar@gmail.com
+--nextPart1842447.1iKXsySLby
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Content-Description: This is a digitally signed message part.
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCAAGBQJO3hbbAAoJENju1/PIO/qayfUP/3EgUS5gBXhmS5utKuNkYlUY
-76gjBnO7NGXRwL8NVL3+EUR6NUbj/S/r9xLRXp9B5iOK27efSFi+xBhkUIJt5It8
-Z2EhpxyZlcGnG2a9eRHMKN9hzeg2a8tvO8DLbe0rUF9L0Ts1AK1V+3m8BZ0SSD67
-R1p8ZnL5TVGFmOpysKYnBO5LBRl8TaB7UcApJJaIMajaMok1O4DfimhEd9dyJpPB
-kQjIQ6Y0dOiztgo2viOzNGj+HCQaM1zXoIopH6LHlxZrooyWXzHXTR3gQwiZmVd+
-STxj+cdKcPLhgh8RoobB5VWy/CgvQBviC2UZGT99dquyZcaiw5+AJKVyAYZeY9hU
-qyqp8BmBo7Ouranv3MvH2StChSou7iQJ9lXU+rHCJWa6mLEgeJOFAu0GVcAGTOVm
-0n+yxbOBGEmrHlyaBLMbpsKaQZAUOMFMEI0liM9h0e3wZQKeHRdwz0hVLpX+CoaP
-bbrcF6d9m4A7HYzX0B0nZP7Jp5jBKUsp6/uxN1clvXHOxnVG6MzVChZgevgSfL92
-sJ8ryhM86JgZzjFIE+5i7Zwm4ZCDhoHi7e0/Mg+whje5ntffXRIgFn2vfYQUDxhW
-SlhTRSNifIEZXS+zRvnUrnpQ+4nuxDBvk3+/lor9XZpqsOQi3DrbrtlHc2vSOX2S
-azhQORI9SwmZnb03kSee
-=VIHO
+iEYEABECAAYFAk7eGFgACgkQi/DJPQPkQ1Kc+QCfbb8Ii+jxkpUBDPxZIT46NVil
+LOgAn2TCKLLQMxpoTqlNlf/hVHvTqxRT
+=DHIY
 -----END PGP SIGNATURE-----
 
---y0ulUmNC+osPPQO6--
+--nextPart1842447.1iKXsySLby--
