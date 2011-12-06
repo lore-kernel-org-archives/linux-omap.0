@@ -1,103 +1,59 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 2/3] arm/dts: OMAP: Remove bootargs node from board files
-Date: Tue, 06 Dec 2011 12:06:48 -0600
-Message-ID: <4EDE59B8.1070808@gmail.com>
-References: <y> <1323190149-6492-3-git-send-email-b-cousson@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] I2C: OMAP: fix FIFO usage for OMAP4
+Date: Tue,  6 Dec 2011 10:25:58 -0800
+Message-ID: <1323195958-17982-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:57844 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582Ab1LFSG5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 13:06:57 -0500
-Received: by iakc1 with SMTP id c1so4020580iak.19
-        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 10:06:57 -0800 (PST)
-In-Reply-To: <1323190149-6492-3-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:55987 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751934Ab1LFSZp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 13:25:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>
+To: Ben Dooks <ben-linux@fluff.org>
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-Benoit,
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-On 12/06/2011 10:49 AM, Benoit Cousson wrote:
-> Since 3.2, the CONFIG_ARM_ATAG_DTB_COMPAT config allows
-> an old bootloader to still use ATAG to provide cmdline.
-> 
-> Remove chosen/bootargs from the DTS board files.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
+Currently the fifo depth is set to zero for OMAP4 which disables
+the FIFO usage. This patch enables the FIFO usage for I2C transactions
+on OMAP4 also.
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+Tested on omap4430 and 3430.
 
-Rob
+Tested-and-Reported-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Ben, can you queue this fix for v3.2-rc?
+Patch applies to v3.2-rc4.
 
-> ---
->  arch/arm/boot/dts/omap3-beagle.dts |    9 ---------
->  arch/arm/boot/dts/omap4-panda.dts  |    9 ---------
->  arch/arm/boot/dts/omap4-sdp.dts    |    9 ---------
->  3 files changed, 0 insertions(+), 27 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-> index 9486be6..9f72cd4 100644
-> --- a/arch/arm/boot/dts/omap3-beagle.dts
-> +++ b/arch/arm/boot/dts/omap3-beagle.dts
-> @@ -13,15 +13,6 @@
->  	model = "TI OMAP3 BeagleBoard";
->  	compatible = "ti,omap3-beagle", "ti,omap3";
->  
-> -	/*
-> -	 * Since the initial device tree board file does not create any
-> -	 * devices (MMC, network...), the only way to boot is to provide a
-> -	 * ramdisk.
-> -	 */
-> -	chosen {
-> -		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug earlyprintk";
-> -	};
-> -
->  	memory {
->  		device_type = "memory";
->  		reg = <0x80000000 0x20000000>; /* 512 MB */
-> diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-> index c702657..9755ad5 100644
-> --- a/arch/arm/boot/dts/omap4-panda.dts
-> +++ b/arch/arm/boot/dts/omap4-panda.dts
-> @@ -13,15 +13,6 @@
->  	model = "TI OMAP4 PandaBoard";
->  	compatible = "ti,omap4-panda", "ti,omap4430", "ti,omap4";
->  
-> -	/*
-> -	 * Since the initial device tree board file does not create any
-> -	 * devices (MMC, network...), the only way to boot is to provide a
-> -	 * ramdisk.
-> -	 */
-> -	chosen {
-> -		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
-> -	};
-> -
->  	memory {
->  		device_type = "memory";
->  		reg = <0x80000000 0x40000000>; /* 1 GB */
-> diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-> index 066e28c..63c6b2b 100644
-> --- a/arch/arm/boot/dts/omap4-sdp.dts
-> +++ b/arch/arm/boot/dts/omap4-sdp.dts
-> @@ -13,15 +13,6 @@
->  	model = "TI OMAP4 SDP board";
->  	compatible = "ti,omap4-sdp", "ti,omap4430", "ti,omap4";
->  
-> -	/*
-> -	 * Since the initial device tree board file does not create any
-> -	 * devices (MMC, network...), the only way to boot is to provide a
-> -	 * ramdisk.
-> -	 */
-> -	chosen {
-> -		bootargs = "root=/dev/ram0 rw console=ttyO2,115200n8 initrd=0x81600000,20M ramdisk_size=20480 no_console_suspend debug";
-> -	};
-> -
->  	memory {
->  		device_type = "memory";
->  		reg = <0x80000000 0x40000000>; /* 1 GB */
+ drivers/i2c/busses/i2c-omap.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index a43d002..fa23faa 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -1047,13 +1047,14 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		 * size. This is to ensure that we can handle the status on int
+ 		 * call back latencies.
+ 		 */
+-		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430) {
+-			dev->fifo_size = 0;
++
++		dev->fifo_size = (dev->fifo_size / 2);
++
++		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
+ 			dev->b_hw = 0; /* Disable hardware fixes */
+-		} else {
+-			dev->fifo_size = (dev->fifo_size / 2);
++		else
+ 			dev->b_hw = 1; /* Enable hardware fixes */
+-		}
++
+ 		/* calculate wakeup latency constraint for MPU */
+ 		if (dev->set_mpu_wkup_lat != NULL)
+ 			dev->latency = (1000000 * dev->fifo_size) /
+-- 
+1.7.6
+
