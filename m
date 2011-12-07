@@ -1,39 +1,42 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC PATCH 11/11] arm:omap:am33xx: Add am335x support in generic omap_hwmod
-Date: Tue, 06 Dec 2011 16:09:02 -0800
-Message-ID: <87d3c15jkx.fsf@ti.com>
-References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
-	<1321809555-13833-12-git-send-email-hvaibhav@ti.com>
+Subject: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime adaptation + cleanup
+Date: Tue, 06 Dec 2011 16:21:20 -0800
+Message-ID: <874nxd5j0f.fsf@ti.com>
+References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33398 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754753Ab1LGAJK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 19:09:10 -0500
-Received: by mail-gy0-f170.google.com with SMTP id g16so5364295ghb.15
-        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 16:09:09 -0800 (PST)
-In-Reply-To: <1321809555-13833-12-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Sun, 20 Nov 2011 22:49:15 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
+ (Govindraj R.'s message of "Fri, 11 Nov 2011 15:27:17 +0530")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Alan Cox <alan@linux.intel.com>, Greg KH <greg@kroah.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>, rnayak@ti.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
 
-+Rajendra,
+"Govindraj.R" <govindraj.raja@ti.com> writes:
 
-Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> Converting uart driver to adapt to pm runtime API's.
+> Code re-org + cleanup.
+> Moving some functionality from serial.c to omap-serial.c
 
-> AM335X is bit different than OMAP3/4 architecture when it comes to
-> PRCM module, for example, the way module is enabled/disabled.
-> Although it is closer to OMAP4 architecure but the register offset
-> and PRCM partitions won't match, so we need to seperate API's
-> for AM335X.
->
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Alan, can you confirm your Ack's are still valid on the drivers/tty
+parts of this series?  It has gone through quite a few changes since
+your original ack.
 
-Seems like this one can be addressed similarily to the way Rajendra
-proposed addressing the powerdomain issue so that OMAP4 code can be
-largely reused.
+Greg, are you ok with this series merging via the OMAP tree since it is
+changing arch/arm/mach-omap2/* code as well as the driver, and should go
+together.  If so, with your ack (on the drivers/tty/* parts), I'll
+handle this series through the OMAP tree.
 
-Kevin 
+Thanks,
+
+Kevin
