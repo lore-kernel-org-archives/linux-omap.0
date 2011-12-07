@@ -1,81 +1,80 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH] arm:omap: cleanup & split omap2/3/4_check_revision
- function
-Date: Wed, 7 Dec 2011 15:41:19 -0800
-Message-ID: <20111207234119.GQ31337@atomide.com>
-References: <1320676991-32152-1-git-send-email-hvaibhav@ti.com>
- <79CD15C6BA57404B839C016229A409A803D9D5@DBDE01.ent.ti.com>
+Subject: Re: [PATCH] omap: id: add chip id recognition for omap4430 es2.3
+Date: Wed, 7 Dec 2011 15:43:25 -0800
+Message-ID: <20111207234325.GR31337@atomide.com>
+References: <1320689874-9179-1-git-send-email-x0132446@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:37002 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38724 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751470Ab1LGXlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 18:41:22 -0500
+	with ESMTP id S1751470Ab1LGXn1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 18:43:27 -0500
 Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A803D9D5@DBDE01.ent.ti.com>
+In-Reply-To: <1320689874-9179-1-git-send-email-x0132446@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Anders <x0132446@ti.com>
+Cc: danders.dev@gmail.com, linux-omap@vger.kernel.org, nm@ti.com, aneesh@ti.com, jayabharath@ti.com
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [111122 21:56]:
-> > 
-> > This patch doesn't change functionality or behavior of the code
-> > execution; it barely cleans up the code and splits into SoC
-> > specific implementation for ID and feature detection; makes
-> > easier to add new SoC (especially for AM devices where we do not have
-> > feature register).
-...
- 
-> If there are not review comments, can this be merged?
+* David Anders <x0132446@ti.com> [111107 09:43]:
+> allow for the omap4430 es2.3 revision to be recognized in the
+> omap4_check_revision() function.
+> 
+> most aspects of all omap4430 es2.x versions are identical, however
+> a number of small variations such as default pullup or pulldown
+> resistor configurations vary between revisions.
+> 
+> detailed information on silicon errata for omap4430 revisions can
+> be found at http://focus.ti.com/pdfs/wtbu/swpz009D.pdf
 
-Sorry for the delay, the idea is good now that we don't need the
-revision check super early any longer. Few comments below.
- 
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -226,9 +226,9 @@ static void __init omap4_check_features(void)
-> >  	}
-> >  }
-> > 
-> > -static void __init ti816x_check_features(void)
-> > +static void __init omap3_add_def_features(void)
-> >  {
-> > -	omap_features = OMAP3_HAS_NEON;
-> > +	omap_features = OMAP3_HAS_NEON | OMAP3_HAS_L2CACHE;
-> >  }
-> > 
-> >  static void __init omap3_check_revision(const char **cpu_rev)
-
-Can you please split this patch a bit? First a patch that does not
-change the behaviour except adds the SoC specific revision checks.
-
-> > @@ -393,6 +394,7 @@ void __init omap2430_init_early(void)
-> >  void __init omap3_init_early(void)
-> >  {
-> >  	omap2_set_globals_3xxx();
-> > +	omap3xxx_check_revision(true);
-> >  	omap_common_init_early();
-> >  	omap3xxx_voltagedomains_init();
-> >  	omap3xxx_powerdomains_init();
-> > @@ -425,6 +427,7 @@ void __init am35xx_init_early(void)
-> >  void __init ti816x_init_early(void)
-> >  {
-> >  	omap2_set_globals_ti816x();
-> > +	omap3xxx_check_revision(false);
-> >  	omap_common_init_early();
-> >  	omap3xxx_voltagedomains_init();
-> >  	omap3xxx_powerdomains_init();
-
-Maybe just call ti816x_check_features separately?
-
-	omap3xxx_check_revision();
-	omap3xxx_check_features();
-and
-	omap3xxx_check_revision();
-	ti816x_check_features();	
-
-Regards,
+Thanks applying into soc branch.
 
 Tony
+ 
+> Signed-off-by: David Anders <x0132446@ti.com>
+> ---
+>  arch/arm/mach-omap2/id.c              |    6 ++++--
+>  arch/arm/plat-omap/include/plat/cpu.h |    1 +
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index d27daf9..6681238 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -386,8 +386,10 @@ static void __init omap4_check_revision(void)
+>  			omap_revision = OMAP4430_REV_ES2_1;
+>  			break;
+>  		case 4:
+> -		default:
+>  			omap_revision = OMAP4430_REV_ES2_2;
+> +		case 6:
+> +		default:
+> +			omap_revision = OMAP4430_REV_ES2_3;
+>  		}
+>  		break;
+>  	case 0xb94e:
+> @@ -400,7 +402,7 @@ static void __init omap4_check_revision(void)
+>  		break;
+>  	default:
+>  		/* Unknown default to latest silicon rev as default */
+> -		omap_revision = OMAP4430_REV_ES2_2;
+> +		omap_revision = OMAP4430_REV_ES2_3;
+>  	}
+>  
+>  	pr_info("OMAP%04x ES%d.%d\n", omap_rev() >> 16,
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+> index 649b370..a2fc6d3 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -416,6 +416,7 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  #define OMAP4430_REV_ES2_0	(OMAP443X_CLASS | (0x20 << 8))
+>  #define OMAP4430_REV_ES2_1	(OMAP443X_CLASS | (0x21 << 8))
+>  #define OMAP4430_REV_ES2_2	(OMAP443X_CLASS | (0x22 << 8))
+> +#define OMAP4430_REV_ES2_3	(OMAP443X_CLASS | (0x23 << 8))
+>  
+>  #define OMAP446X_CLASS		0x44600044
+>  #define OMAP4460_REV_ES1_0	(OMAP446X_CLASS | (0x10 << 8))
+> -- 
+> 1.7.0.4
+> 
