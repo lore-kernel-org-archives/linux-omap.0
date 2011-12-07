@@ -1,43 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC PATCH 00/11] arm:omap:am33xx: Add basic voltage, power,
- clock & HWMOD data
-Date: Wed, 7 Dec 2011 13:25:07 -0800
-Message-ID: <20111207212507.GM31337@atomide.com>
-References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
+From: Vladimir Zapolskiy <vz@mleia.com>
+Subject: Re: RFC: bq2415x_charger driver
+Date: Wed, 07 Dec 2011 23:25:12 +0200
+Message-ID: <4EDFD9B8.1050300@mleia.com>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com> <1677656.4d3iQHNZjX@pali-elitebook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58460 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756686Ab1LGVZK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 16:25:10 -0500
-Content-Disposition: inline
-In-Reply-To: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1677656.4d3iQHNZjX@pali-elitebook>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Joerg Reisenweber <joerg@openmoko.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
 
-* Vaibhav Hiremath <hvaibhav@ti.com> [111120 08:44]:
-> 
->  34 files changed, 7525 insertions(+), 15 deletions(-)
+Hi Pali,
 
-Clearly we can't merge this amount of static SoC specific
-hwmod/mux data after the all that's been discussed over
-this year.
+On 07.12.2011 23:03, Pali Roh=C3=A1r wrote:
+> Hello,
+>
+> I'm sending preview of my implementation of bq2415x charger driver. N=
+ow all
+> code is in one kernel module bq2415x_charger which has more interface=
+s
+> (power_supply, sysfs, regulator). It is still unfinished, missing mor=
+e bq2415x
+> configuration like sysfs entires for boost, voltages or platform hook=
+s (e.g.
+> rx51 isp1704). This driver will have similar sysfs interface as in Jo=
+erg
+> Reisenweber spec http://maemo.cloud-7.de/bq24150-sysnode.spec.txt . D=
+river
+> should be replacemnt for Nokia N900 proprietary charging program BME.=
+ I was
+> inspirated by driver bq27x00_battery and other bq2415x implementaton =
+by
+> Aliaksei Katovich and Felipe Contreras.
+>
+> Please comment implementation and write what should be added or modif=
+ied in
+> driver (it is still not complete).
+>
 
-We just have to have a better way of doing this.
+There are well defined policies regarding patch review in the Linux=20
+kernel mailing lists. I encourage you to take a look at=20
+http://felipec.wordpress.com/2009/10/25/git-send-email-tricks/
 
-For now, we already have the SoC specific init functions
-available, so I suggest taking a hard look how to dynamically
-allocate these data structures and populate them with the
-SoC specific init functions.
-
-Then later on we may be able to pass some of the data such
-as module base addresses from device tree. But I'm guessing
-that the SoC specific inits should already squeeze this down
-into something tolerable.
-
-Regards,
-
-Tony
+--=20
+With best wishes,
+Vladimir
