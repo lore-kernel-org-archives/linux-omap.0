@@ -1,38 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board
- support
-Date: Wed, 7 Dec 2011 13:50:08 -0800
-Message-ID: <20111207215008.GN31337@atomide.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
+Date: Thu, 8 Dec 2011 00:11:34 +0200
+Message-ID: <CAMP44s0OvrrWnYJzowkMUT7-jHKYS=LZUty=e1d9gM=OZT-0Ow@mail.gmail.com>
+References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33897 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758066Ab1LGVuL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 16:50:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:58285 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758062Ab1LGWLe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 17:11:34 -0500
+Received: by dadv6 with SMTP id v6so980169dad.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Dec 2011 14:11:34 -0800 (PST)
+In-Reply-To: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
 
-* Sergio Aguirre <saaguirre@ti.com> [111130 15:40]:
-> Hi everyone,
-> 
-> This is the second version of the OMAP4 ISS driver,
-> now ported to the Media Controller framework AND supporting
-> videobuf2 framework.
+On Sat, Nov 19, 2011 at 12:18 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+> Given that dm timer framework doesn't support request of clocks
+> by soft | hard irqs because some recent changes, tidspbridge needs
+> to request its clocks on init and enable/disable them on demand.
+>
+> This was first seen on 3.2-rc1.
+>
+> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-I suggest you do a device tree only binding for new drivers.
+This looks similar similar to this one:
+http://article.gmane.org/gmane.linux.ports.arm.omap/61816
 
->  arch/arm/mach-omap2/board-4430sdp-camera.c    |  221 ++++
->  arch/arm/mach-omap2/board-omap4panda-camera.c |  198 ++++
->  arch/arm/mach-omap2/devices.c                 |   40 +
+Are you sure this is what we want instead of that one?
 
-That leaves out most of the code above.
+Cheers.
 
-Regards,
-
-Tony
+-- 
+Felipe Contreras
