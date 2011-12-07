@@ -1,87 +1,36 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [regression] Re: [PATCH 3/7] mfd: twl4030-irq: drop the kthread
-Date: Wed, 7 Dec 2011 22:30:03 +1100
-Message-ID: <20111207223003.0a0ae278@notabene.brown>
-References: <1309427470-605-1-git-send-email-balbi@ti.com>
-	<1309427470-605-4-git-send-email-balbi@ti.com>
-	<CAMP44s3hFyAK+1W6eU30RNn3=cPDRGKXW+E+sDoWNrNhU0ZpPA@mail.gmail.com>
-	<20111207065106.GE32368@legolas.emea.dhcp.ti.com>
-	<CAMP44s0psqeMEh8vgYSfV=MAqSOJ6+EpWndXpc89qfGHMX_f=w@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
+Date: Wed, 07 Dec 2011 13:46:57 +0200
+Message-ID: <4EDF5231.6080309@bitmer.com>
+References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com> <CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/_xP0y7muJyQ6j+mb41pKaKB"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMP44s0psqeMEh8vgYSfV=MAqSOJ6+EpWndXpc89qfGHMX_f=w@mail.gmail.com>
+In-Reply-To: <CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/_xP0y7muJyQ6j+mb41pKaKB
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 12/05/2011 07:31 PM, Felipe Contreras wrote:
+> Should probably have CC'ed linux-omap.
+>
+> On Mon, Dec 5, 2011 at 7:23 PM, Felipe Contreras
+> <felipe.contreras@nokia.com>  wrote:
+>> From: Felipe Contreras<felipe.contreras@gmail.com>
+>>
+>> This reverts commit 10299e2e4e3ed3b16503d4e04edd48b33083f4e2.
+>>
+>> This seems to break USB networking stuff.
+>>
+I don't think revert is needed since CONFIG_CHARGER_ISP1704=y should 
+make it working. Although I don't know do we really need to drive the 
+ISP1704 into reset in board-rx51-peripherals.c? Would it be better to 
+leave gpio state as it was set by the bootloader and let the driver to 
+do reset sequence if needed?
 
-On Wed, 7 Dec 2011 13:04:03 +0200 Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
+http://marc.info/?l=linux-omap&m=130795363204884&w=2
 
-> On Wed, Dec 7, 2011 at 8:51 AM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Tue, Dec 06, 2011 at 05:28:58PM +0200, Felipe Contreras wrote:
-> >> On Thu, Jun 30, 2011 at 12:51 PM, Felipe Balbi <balbi@ti.com> wrote:
-> >> > ... and use threaded IRQ infrastructure. Later
-> >> > patches will come dropping both workqueues and
-> >> > setting the nested thread flag.
-> >>
-> >> There's something wrong. When I boot my Nokia N900 with this, as soon
-> >> as I press a key from the keyboard the whole device hangs. I don't see
-> >> anything on the console framebuffer, and with a jig I can't boot from
-> >> MMC, so there isn't much more I can provide at the moment.
-> >
-> > Funny, this booted fine on my beagle and MMC card uses a twl GPIO for
-> > card detection. Maybe it's something fairly obvious that I missed :-(
->=20
-> Did you try typing anything? That's where the problem happened on my side.
->=20
-> I'll try to flash a system to NAND, since I can't seem to just get the
-> MMC to work when the cover is open and the device is connected to the
-> jig to see if I can see something from serial console.
->=20
-> You don't have any idea about what to try?
->=20
-
- Try the patches I posted to linux-kernel on Nov 27:
-
-   Subject: [PATCH 0/4] fixes for twl4030-irq in mainline
-
-and following
-
-   http://lkml.org/lkml/2011/11/26/92
-
-I think I hit exactly the same bug and you and (eventually) fix it (that was
-a fun learning experience).
-
-NeilBrown
-
-
---Sig_/_xP0y7muJyQ6j+mb41pKaKB
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBTt9OQjnsnt1WYoG5AQL9KhAAsgaQwChMwYYv5jnspM8HPKt4f4zmS7Vz
-O9WrTwVRorQhxwoBvQNDKzqLTYhtMXETtXtUfe/x5GP5qe01HJLpCOhzoxHOiWK8
-V2v2DqZE+jOeYIfwz36UJoCbEl5ikHG51EaTNK3F+Kx96COKslh3gfe+t+eKdZQG
-aVS+oRh7nmDm+LZhL/kmWlpCWMV1mPmK4ibeYprEfzxbNRsjVQsgC7XYuiSwkyQJ
-rmjBxVI+OKrCn8qLhLcktQAPsWHLpPZ21DHHXVSRXXKeEjFQGa2fFJvUxOaL4FQ1
-lsvaTZ4vpFvEowOVAhV5sE31+4LucBPzP8kr1D/v4y+18V7IyYWj0M9vtdsjdPzY
-I5QEea75N8/s8vxgGkRJh4G0P5mncvg6tB2pkGt/AdoPBCpt7k5j6H2v+Yy7THTr
-unFKcuz8ZfKteJM4x+IkamsG4bnzzdhrq6mJ4SSVKO2NXAhVfGRu2LEi/fWCIMQw
-MQ7EFgeoLKgFI6zy5tP3PO11A4qaDFGj+F5tlyhbPIUWGXwiHGqp0RRQM/gd0V2g
-Jae1k4KJpJ2ygsrQRmcq/VfzNYbhRwRY8ksKrHI57yp/I7MLmRL+qRsIJT0DbJmK
-sorvoPLvO+rMz6BGBYULQqLM+07X5eUvu9fjDuUGLFP6936tTfIkh/+4Tcj7xeZJ
-7RR7JI06MPc=
-=BlEV
------END PGP SIGNATURE-----
-
---Sig_/_xP0y7muJyQ6j+mb41pKaKB--
+-- 
+Jarkko
