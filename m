@@ -1,49 +1,58 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 0/7] Introducing a generic AMP framework
-Date: Wed, 7 Dec 2011 20:53:05 +0200
-Message-ID: <CAK=Wgbb1WwvzR8KVZT7aQJA6WOMJwp9qdS5HCUd6tJxgJmwQUg@mail.gmail.com>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
- <4ECC67B9.4050306@codeaurora.org> <CAK=WgbYyrbZLmDOx8yKWwjhn2MYN8669FDRvsYZSyLj1equcTw@mail.gmail.com>
- <20111123161012.GA31423@sirena.org.uk> <4ECD5767.90307@codeaurora.org>
- <CAK=Wgba49eu_MGTWP_SND1=KDPp=MfuDyvxFGA_NND=ydqBmZA@mail.gmail.com> <4EDE9289.8040903@codeaurora.org>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
+Date: Wed, 07 Dec 2011 11:37:03 -0800
+Message-ID: <87k468w4v4.fsf@ti.com>
+References: <1322528190-9274-1-git-send-email-khilman@ti.com>
+	<20111207064954.GD32368@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4EDE9289.8040903@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saravana Kannan <skannan@codeaurora.org>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:40943 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756712Ab1LGThJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 14:37:09 -0500
+Received: by vbbfc21 with SMTP id fc21so1048236vbb.34
+        for <linux-omap@vger.kernel.org>; Wed, 07 Dec 2011 11:37:08 -0800 (PST)
+In-Reply-To: <20111207064954.GD32368@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Wed, 7 Dec 2011 08:49:56 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org
 
-On Wed, Dec 7, 2011 at 12:09 AM, Saravana Kannan <skannan@codeaurora.org> wrote:
-> Yes, I did realize it's not used in the code. I just wanted to prevent what
-> I considered a misuse of "AMP". Thanks for accommodating my request.
+Felipe Balbi <balbi@ti.com> writes:
 
-Sure thing, and thanks for the feedback.
+> Hi,
+>
+> On Mon, Nov 28, 2011 at 04:56:30PM -0800, Kevin Hilman wrote:
+>> The MUSB driver does not currently implment suspend/resume callbacks,
+>
+> this is not entirelly true, actually. Such methods are missing for
+> omap2430 glue layer, not for MUSB itself. And the fact is that it's only
+> missing because we failed to use UNIVERSAL_DEV_PM_OPS for declaring
+> dev_pm_ops structure.
 
-Dropping the 'amp' prefix also went well with my gut feeling that
-remoteproc and rpmsg should again be made as independent top-level
-subsystems, just like they were in the first patch set submission;
-they're not really coupled, and putting them together under the 'amp'
-folder just confused people and somewhat convoluted development.
+I guess that also means that nobody has tested MUSB host suspend/resume
+with devices attached.
 
-I suspect that once the basic functionality will be merged, the
-development of remoteproc and rpmsg will become completely orthogonal
-and it would then make sense to start queueing patches separately, so
-I've created two trees for them:
+> Can you see if this patch helps:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
-git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
+Sure.
 
-Though at this point splitting the patches into two separate trees
-will just make it harder for people to work with the code, so both
-trees currently have the entire patch-set (and some other wip stuff).
+That patch makes sense, and seems necessary, but doesn't fix the problem.
 
-I've also created a for-next branch which I'll send to Stephen, and
-then we could start doing linear development (there's a bunch of
-patches I'll post soon, including stuff that was reported-by Stephen
-earlier) - that will hopefully make it easier for people to use this
-code, but also to review patches.
+The root of the problem is that the PM domain code will call the
+driver's runtime PM methods late in the suspend if the device is not
+already runtime suspended.  
 
-Thanks,
-Ohad.
+In your patch, you make the driver's suspend/resume methods call the
+runtime methods, but, the PM core doesn't know that that the device is now
+runtime suspended, so the OMAP PM domain code will still call the
+driver's runtime PM methods to try and suspend the device.
+
+In the case of this glue layer, the runtime PM methods call some PHY
+code which is trying to use I2C.  When this happens late in the suspend
+process, I2C may already be suspended, so you get a bunch of I2C
+timeouts.
+
+Kevin
