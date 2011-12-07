@@ -1,39 +1,33 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [regression] Re: [PATCH 3/7] mfd: twl4030-irq: drop the kthread
-Date: Wed, 7 Dec 2011 20:32:46 +0200
-Message-ID: <CAMP44s1Smts_TgHhxbdQZS0eM=hwVR8+H2i9AcMEzL_W=Guo6A@mail.gmail.com>
-References: <1309427470-605-1-git-send-email-balbi@ti.com>
-	<1309427470-605-4-git-send-email-balbi@ti.com>
-	<CAMP44s3hFyAK+1W6eU30RNn3=cPDRGKXW+E+sDoWNrNhU0ZpPA@mail.gmail.com>
-	<20111207065106.GE32368@legolas.emea.dhcp.ti.com>
-	<CAMP44s0psqeMEh8vgYSfV=MAqSOJ6+EpWndXpc89qfGHMX_f=w@mail.gmail.com>
-	<20111207223003.0a0ae278@notabene.brown>
+Subject: Re: [PATCH 0/4] fixes for twl4030-irq in mainline
+Date: Wed, 7 Dec 2011 20:34:47 +0200
+Message-ID: <CAMP44s1Nhv-ggAh3-wPXVMaLkiNm9VUo4TnsaZm-yoSpttqaOQ@mail.gmail.com>
+References: <20111126201334.16080.85045.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111207223003.0a0ae278@notabene.brown>
+In-Reply-To: <20111126201334.16080.85045.stgit@notabene.brown>
 Sender: linux-kernel-owner@vger.kernel.org
 To: NeilBrown <neilb@suse.de>
-Cc: balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 7, 2011 at 1:30 PM, NeilBrown <neilb@suse.de> wrote:
-> =C2=A0Try the patches I posted to linux-kernel on Nov 27:
+On Sat, Nov 26, 2011 at 10:17 PM, NeilBrown <neilb@suse.de> wrote:
+> =C2=A0The recent tidying up of twl4030-irq seems to have left it brok=
+en.
+> At least it doesn't work for me on my gta04 (www.gta04.org). =C2=A0Th=
+e
+> first interrupt from the device freezes the whole system (by being
+> constantly delivered)
 >
-> =C2=A0 Subject: [PATCH 0/4] fixes for twl4030-irq in mainline
->
-> and following
->
-> =C2=A0 http://lkml.org/lkml/2011/11/26/92
->
-> I think I hit exactly the same bug and you and (eventually) fix it (t=
-hat was
-> a fun learning experience).
+> The following 4 patches make it work for me and addresses some other
+> less critical issues like a typo in a comment :-)
 
-Yeap, those patches fix the issue :)
+I also hit the same issue on the N900. These patches fix the problem fo=
+r me:
 
-Cheers.
+Tested-by: Felipe Contreras <felipe.contreras@gmail.com>
 
 --=20
 =46elipe Contreras
