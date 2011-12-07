@@ -1,91 +1,65 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
-Date: Wed, 7 Dec 2011 08:49:56 +0200
-Message-ID: <20111207064954.GD32368@legolas.emea.dhcp.ti.com>
-References: <1322528190-9274-1-git-send-email-khilman@ti.com>
+Subject: Re: [regression] Re: [PATCH 3/7] mfd: twl4030-irq: drop the kthread
+Date: Wed, 7 Dec 2011 08:51:07 +0200
+Message-ID: <20111207065106.GE32368@legolas.emea.dhcp.ti.com>
+References: <1309427470-605-1-git-send-email-balbi@ti.com>
+ <1309427470-605-4-git-send-email-balbi@ti.com>
+ <CAMP44s3hFyAK+1W6eU30RNn3=cPDRGKXW+E+sDoWNrNhU0ZpPA@mail.gmail.com>
 Reply-To: balbi@ti.com
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="RhUH2Ysw6aD5utA4"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:36515 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752165Ab1LGGt7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 01:49:59 -0500
-Received: by mail-lpp01m010-f49.google.com with SMTP id h2so86421laa.36
-        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 22:49:58 -0800 (PST)
+	protocol="application/pgp-signature"; boundary="AsxXAMtlQ5JHofzM"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1322528190-9274-1-git-send-email-khilman@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAMP44s3hFyAK+1W6eU30RNn3=cPDRGKXW+E+sDoWNrNhU0ZpPA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
 
---RhUH2Ysw6aD5utA4
+--AsxXAMtlQ5JHofzM
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+On Tue, Dec 06, 2011 at 05:28:58PM +0200, Felipe Contreras wrote:
+> On Thu, Jun 30, 2011 at 12:51 PM, Felipe Balbi <balbi@ti.com> wrote:
+> > ... and use threaded IRQ infrastructure. Later
+> > patches will come dropping both workqueues and
+> > setting the nested thread flag.
+>=20
+> There's something wrong. When I boot my Nokia N900 with this, as soon
+> as I press a key from the keyboard the whole device hangs. I don't see
+> anything on the console framebuffer, and with a jig I can't boot from
+> MMC, so there isn't much more I can provide at the moment.
 
-On Mon, Nov 28, 2011 at 04:56:30PM -0800, Kevin Hilman wrote:
-> The MUSB driver does not currently implment suspend/resume callbacks,
-
-this is not entirelly true, actually. Such methods are missing for
-omap2430 glue layer, not for MUSB itself. And the fact is that it's only
-missing because we failed to use UNIVERSAL_DEV_PM_OPS for declaring
-dev_pm_ops structure.
-
-Can you see if this patch helps:
-
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index fd5dd46..d89caec 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -525,10 +525,8 @@ static int omap2430_runtime_resume(struct device *dev)
- 	return 0;
- }
-=20
--static struct dev_pm_ops omap2430_pm_ops =3D {
--	.runtime_suspend =3D omap2430_runtime_suspend,
--	.runtime_resume =3D omap2430_runtime_resume,
--};
-+static UNIVERSAL_DEV_PM_OPS(omap2430_pm_ops, omap2430_runtime_suspend,
-+		omap2430_runtime_resume, NULL);
-=20
- #define DEV_PM_OPS	(&omap2430_pm_ops)
- #else
-
-You also have to remember that for host side PM to work, you depend on
-your class driver supporting autosuspend feature. If it doesn't, then
-its interface will never call usb_autopm_put_interface() and thus pm
-counter will never decrease. Be sure to use a device whose driver
-supports autosuspend feature.
+Funny, this booted fine on my beagle and MMC card uses a twl GPIO for
+card detection. Maybe it's something fairly obvious that I missed :-(
 
 --=20
 balbi
 
---RhUH2Ysw6aD5utA4
+--AsxXAMtlQ5JHofzM
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJO3wySAAoJEIaOsuA1yqREVJAP/RX/dMoElhvQ3YP0WhMQ7oeb
-JN+wfgxifOvy3uTA5ed0u+LJhwg6JpahTmjWYPA0NZRD1L8b4xhpSvbDE4QQi+Ph
-gZz/5h/BRUcwLbW5yrYBEJ5/roykbyH4IQCoSXoFCRywo9y4gWD/nuXGiiAEoSPX
-SKjvDoyg39+pOwrjSAQMMTZboFc/oDZ6/b9cxudqFzt+kk77D9JDt2Dej2lcroOQ
-8VFSgRZrNWVQ6To8VG8V6XiO+2MZVQQaQPDG9Yj/JgKeNIw/xulAsMRL+EKO9ZrD
-bcOz6FQFKYC9yAWYNbDL0PR4MSsGMDDaKXxE8+6HS10bJCdPdSodviBsGfKTiOKX
-FrAzRC0ub6FuHCUz12/jga44xyeAwQJEgETaB0QmsyVVIjOBGFqMrVIQu2cHAdu6
-npcDWnqUE5V25gOvHoUY6mj11jLbsk49WAiLpXyB9PSmDhfvDtxLe8/sLwiDw4Kn
-/hcCarfYOuKGCONY9+KgUJ3yVT8cfJr5H6HXDti0SABuJPggjqP5dESD7zxjoTjX
-G6sjz3QnnCFDPuv/OFMc8HTchI7vGSvZm2OgTVVobWwzO5YHubExr8oUflmppFcR
-Cv/GeeR7sfoxoKaxinKaS/gBTa9g0kBfuJ38xR8DgZ1lxgLw+NKWpaabjWhPKis2
-8fjrgAIgzxX/CISfT2AR
-=7aSA
+iQIcBAEBAgAGBQJO3wzaAAoJEIaOsuA1yqREeFUQALFNewYYn61FnaOk1lx9ZK+l
+xSjnCDxETUKPpxr6MT8CA+3d0JEwJpyr7vjSdpPAeQb2N/BsCQ2dC7t0jwRd+igK
+zz4AIrTzM3iZZklHBcR20ddFKovyWsCzTlLkWELIKOr3a8L4ODrSAV1N97NuRAgN
+vI/ZAVWgFKmOw1m6SAHvQAm82rJgcM0/KiwfWZeG2QT2yeGw4uuZTKTkqWCugk6n
+VfbDpTzx7ifn+V2okJw+7EFxfXkkYih/Tgq33yaFCsZHfuFtJjKJxYwG6vzII8gu
+23DtbBYYfLD09ob/5dkc7zAEKNKcTJ+RnhKL4pQl/sijfDH0kxI0L7VinsWPQ0US
+jIK9lRelYTkLH6sR0Kn1Fqxo05JTLXkgVSJPjKEOcUD6KUN2jdaD4I28Rs/9Sgv0
+C5rQwlxi0/O21zeNf0cTf8+uU+ZJMGhgtSAi0V7SXs27YCuFzdT3wz/ojCWHEdD+
+sl6A0UXuBOxsQnJpI7Hzv1LBOmp8jo/Rn5AugX/iN7DvIgpDDmR8dlTsnrNyG8eQ
+BNODMqzgNVN+QNi/C7SqW8XOcUIS6GzYPizHeHDOywzLydNvns7kduIVNDkaGYzZ
+s6zN9hBRbDgUw2jSv+GZcPFOCIE+DMg+0Sn+OVAg4Y/dHSAqRUmZ7HnZznOjuk3I
+1qAeCd1v99CdIfGItnTw
+=2oVS
 -----END PGP SIGNATURE-----
 
---RhUH2Ysw6aD5utA4--
+--AsxXAMtlQ5JHofzM--
