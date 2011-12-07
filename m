@@ -1,36 +1,53 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] omap: rx51: initialize isp1704 properly
-Date: Wed,  7 Dec 2011 21:56:56 +0200
-Message-ID: <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
-References: <20111207193141.GG31337@atomide.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111207193141.GG31337@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Heikki Krogerus <krohei@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/4] ARM: OMAP2+: Interrupt controllers adaptation to DT
+Date: Wed, 7 Dec 2011 21:50:45 +0100
+Message-ID: <1323291049-24964-1-git-send-email-b-cousson@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58678 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757860Ab1LGUvQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 15:51:16 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, rob.herring@calxeda.com
+Cc: devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-From: Heikki Krogerus <krohei@gmail.com>
+Hi Tony and Rob,
 
-Without this USB networking doesn't work as the link is never detected.
+Here is the series to take advantage of the new DT interrupt init mechanism.
+Thanks to Mark's CONFIG_MULTI_IRQ_HANDLER series, OMAP4 just has to
+use the default GIC binding and does not need some OMAP specific hacks
+anymore.
+OMAP2 and 3 are using a simple interrupt controller that can thus expose
+a simpler binding.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This series is based on rmk/devel-stable branch to get Mark's series +
+a couple of OMAP fixes.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index a1d0257..faac1fc 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -193,7 +193,7 @@ static struct platform_device rx51_charger_device = {
- static void __init rx51_charger_init(void)
- {
- 	WARN_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
--		GPIOF_OUT_INIT_LOW, "isp1704_reset"));
-+		GPIOF_OUT_INIT_HIGH, "isp1704_reset"));
- 
- 	platform_device_register(&rx51_charger_device);
- }
--- 
-1.7.8.rc1.14.g248db
+An extra fix is needed before for the board-generic.c file: 
+[PATCH] ARM: OMAP2+: board-generic: Add missing handle_irq
+
+The series with all the dependencies merged is available here for reference:
+git://gitorious.org/omap-pm/linux.git for_3.3/2_dt_irq
+
+Regards,
+Benoit
+
+
+Benoit Cousson (4):
+  arm/dts: OMAP4: Update DTS file with new GIC bindings
+  ARM: OMAP2/3: intc: Add DT support for TI interrupt controller
+  arm/dts: OMAP3: Add interrupt-controller bindings for INTC
+  ARM: OMAP2+: board-generic: Use of_irq_init API
+
+ .../devicetree/bindings/arm/omap/intc.txt          |   27 +++++++++++++++
+ arch/arm/boot/dts/omap3.dtsi                       |    6 ++-
+ arch/arm/boot/dts/omap4.dtsi                       |    3 +-
+ arch/arm/mach-omap2/board-generic.c                |   30 +++++++++--------
+ arch/arm/mach-omap2/common.h                       |   10 ++++++
+ arch/arm/mach-omap2/irq.c                          |   35 ++++++++++++++++++--
+ 6 files changed, 91 insertions(+), 20 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
+
