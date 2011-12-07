@@ -1,26 +1,39 @@
-From: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-Date: Tue, 06 Dec 2011 23:39:47 +0100
-Message-ID: <4EDE99B3.2010507@gmail.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>	<4EDD3DEE.6060506@gmail.com> <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com> <4EDE90A3.7050900@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC PATCH 11/11] arm:omap:am33xx: Add am335x support in generic omap_hwmod
+Date: Tue, 06 Dec 2011 16:09:02 -0800
+Message-ID: <87d3c15jkx.fsf@ti.com>
+References: <1321809555-13833-1-git-send-email-hvaibhav@ti.com>
+	<1321809555-13833-12-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4EDE90A3.7050900@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33398 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754753Ab1LGAJK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 19:09:10 -0500
+Received: by mail-gy0-f170.google.com with SMTP id g16so5364295ghb.15
+        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 16:09:09 -0800 (PST)
+In-Reply-To: <1321809555-13833-12-git-send-email-hvaibhav@ti.com> (Vaibhav
+	Hiremath's message of "Sun, 20 Nov 2011 22:49:15 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>, rnayak@ti.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
 
-On 12/06/2011 11:01 PM, Sylwester Nawrocki wrote:
-[...]
++Rajendra,
+
+Vaibhav Hiremath <hvaibhav@ti.com> writes:
+
+> AM335X is bit different than OMAP3/4 architecture when it comes to
+> PRCM module, for example, the way module is enabled/disabled.
+> Although it is closer to OMAP4 architecure but the register offset
+> and PRCM partitions won't match, so we need to seperate API's
+> for AM335X.
 >
-> It might be much better as the v4l2 events are associated with the frame
-> sequence. And if we use controls then you get control events for free,
-> and each event carries a frame sequence number int it
-> (http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-dqevent.html).
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Oops, just ignore that. The frame sequence number is only available for
-V4L2_EVENT_FRAME_SYNC events.
+Seems like this one can be addressed similarily to the way Rajendra
+proposed addressing the powerdomain issue so that OMAP4 code can be
+largely reused.
+
+Kevin 
