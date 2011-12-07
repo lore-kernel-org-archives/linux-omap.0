@@ -1,30 +1,79 @@
-From: Alan Cox <alan@linux.intel.com>
-Subject: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime adaptation + cleanup
-Date: Wed, 7 Dec 2011 00:46:32 +0000
-Message-ID: <20111207004632.15c2a5d4@bob.linux.org.uk>
-References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
-	<874nxd5j0f.fsf@ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v2] ARM: OMAP: dmtimer: fix missing content/correction in low-power mode support
+Date: Wed, 7 Dec 2011 11:27:14 +0530
+Message-ID: <1323237434-4919-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <874nxd5j0f.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60458 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054Ab1LGF52 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 00:57:28 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-On Tue, 06 Dec 2011 16:21:20 -0800
-Kevin Hilman <khilman@ti.com> wrote:
+Since omap_dm_timer_write_reg/__omap_dm_timer_write is now modified
+to use timer->func_base OCP_CFG should not use this wrapper anymore.
+Instead use __raw_writel() directly and use timer->io_base instead
+to write to OCP_CFG.
 
-> "Govindraj.R" <govindraj.raja@ti.com> writes:
-> 
-> > Converting uart driver to adapt to pm runtime API's.
-> > Code re-org + cleanup.
-> > Moving some functionality from serial.c to omap-serial.c
-> 
-> Alan, can you confirm your Ack's are still valid on the drivers/tty
-> parts of this series?  It has gone through quite a few changes since
-> your original ack.
+The timer->sys_stat is valid only if timer->revision is 1. In the
+context restore function make this correction.
 
-Yes
+Save the contexts and loss count when timer is stopped.
+Also, disable the clock. Else, clock usecount would become imbalanced.
+
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Tested-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+---
+Simplified checks around context loss count read.
+
+Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+Branch: master
+Commit: b835c0f
+
+ arch/arm/plat-omap/dmtimer.c |   19 ++++++++++++++++---
+ 1 files changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index af3b92b..0b77fe8 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -80,9 +80,9 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
+ 
+ static void omap_timer_restore_context(struct omap_dm_timer *timer)
+ {
+-	omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_OFFSET,
+-				timer->context.tiocp_cfg);
+-	if (timer->revision > 1)
++	__raw_writel(timer->context.tiocp_cfg,
++			timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
++	if (timer->revision == 1)
+ 		__raw_writel(timer->context.tistat, timer->sys_stat);
+ 
+ 	__raw_writel(timer->context.tisr, timer->irq_stat);
+@@ -357,6 +357,19 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
+ 
+ 	__omap_dm_timer_stop(timer, timer->posted, rate);
+ 
++	if (timer->loses_context && timer->get_context_loss_count)
++		timer->ctx_loss_count =
++			timer->get_context_loss_count(&timer->pdev->dev);
++
++	/*
++	 * Since the register values are computed and written within
++	 * __omap_dm_timer_stop, we need to use read to retrieve the
++	 * context.
++	 */
++	timer->context.tclr =
++			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
++	timer->context.tisr = __raw_readl(timer->irq_stat);
++	omap_dm_timer_disable(timer);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
+-- 
+1.7.0.4
+
