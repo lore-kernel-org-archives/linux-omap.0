@@ -1,38 +1,29 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Thu, 8 Dec 2011 00:11:34 +0200
-Message-ID: <CAMP44s0OvrrWnYJzowkMUT7-jHKYS=LZUty=e1d9gM=OZT-0Ow@mail.gmail.com>
-References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] arm: omap: rx51: enable tsc2005 touchscreen
+Date: Wed, 7 Dec 2011 15:00:27 -0800
+Message-ID: <20111207230027.GO31337@atomide.com>
+References: <1322843353-16155-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:58285 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758062Ab1LGWLe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 17:11:34 -0500
-Received: by dadv6 with SMTP id v6so980169dad.19
-        for <linux-omap@vger.kernel.org>; Wed, 07 Dec 2011 14:11:34 -0800 (PST)
-In-Reply-To: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55994 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755730Ab1LGXAa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 18:00:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1322843353-16155-1-git-send-email-aaro.koskinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sre@debian.org
 
-On Sat, Nov 19, 2011 at 12:18 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
-> Given that dm timer framework doesn't support request of clocks
-> by soft | hard irqs because some recent changes, tidspbridge needs
-> to request its clocks on init and enable/disable them on demand.
->
-> This was first seen on 3.2-rc1.
->
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+* Aaro Koskinen <aaro.koskinen@nokia.com> [111202 07:52]:
+> Enable TSC2005 touchscreen driver on the RX-51 board by providing the
+> needed platform data.
 
-This looks similar similar to this one:
-http://article.gmane.org/gmane.linux.ports.arm.omap/61816
+Thanks applying this into board branch with the ealier Reviewed-by
+from Sebastian Reichel.
 
-Are you sure this is what we want instead of that one?
+Regards,
 
-Cheers.
-
--- 
-Felipe Contreras
+Tony
