@@ -1,42 +1,48 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime adaptation + cleanup
-Date: Tue, 06 Dec 2011 16:21:20 -0800
-Message-ID: <874nxd5j0f.fsf@ti.com>
-References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
+Subject: Re: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
+Date: Tue, 06 Dec 2011 16:24:04 -0800
+Message-ID: <87y5up44bf.fsf@ti.com>
+References: <hvaibhav@ti.com>
+	<1322808204-12878-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
- (Govindraj R.'s message of "Fri, 11 Nov 2011 15:27:17 +0530")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Alan Cox <alan@linux.intel.com>, Greg KH <greg@kroah.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59182 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753606Ab1LGAYK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Dec 2011 19:24:10 -0500
+Received: by mail-gy0-f171.google.com with SMTP id r15so4216928ghr.16
+        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 16:24:09 -0800 (PST)
+In-Reply-To: <1322808204-12878-1-git-send-email-hvaibhav@ti.com>
+	(hvaibhav@ti.com's message of "Fri, 2 Dec 2011 12:13:21 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org, paul@pwsan.com
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+<hvaibhav@ti.com> writes:
 
-> Converting uart driver to adapt to pm runtime API's.
-> Code re-org + cleanup.
-> Moving some functionality from serial.c to omap-serial.c
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> This patch set adds support for AM335x device having
+> Cortex-A8 MPU.
+>
+> Official website - http://www.ti.com/product/am3359
+>
+> AM335X is treated as another OMAP3 variant, where,
+> along with existing cpu class OMAP34XX, new cpu class AM33XX is created
+> and the respective type is AM335X, which is newly added device in
+> the family.
+> This means, cpu_is_omap34xx(), cpu_is_am33xx() and
+> cpu_is_am335x() checks return success for AM335X.
+>
+> Also, I have validated OMAP3 boot test with this patch-series on
+> OMAP3EVM.
 
-Alan, can you confirm your Ack's are still valid on the drivers/tty
-parts of this series?  It has gone through quite a few changes since
-your original ack.
+Tony, this series looks good to me.
 
-Greg, are you ok with this series merging via the OMAP tree since it is
-changing arch/arm/mach-omap2/* code as well as the driver, and should go
-together.  If so, with your ack (on the drivers/tty/* parts), I'll
-handle this series through the OMAP tree.
+I've also tested it on a BeagleBone, so feel free to also add:
 
-Thanks,
+Tested-by: Kevin Hilman <khilman@ti.com>
 
 Kevin
