@@ -1,167 +1,49 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
-Date: Wed, 7 Dec 2011 20:42:46 +0200
-Message-ID: <CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
-References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>
-	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>
-	<CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
-	<4EDF5231.6080309@bitmer.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 0/7] Introducing a generic AMP framework
+Date: Wed, 7 Dec 2011 20:53:05 +0200
+Message-ID: <CAK=Wgbb1WwvzR8KVZT7aQJA6WOMJwp9qdS5HCUd6tJxgJmwQUg@mail.gmail.com>
+References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
+ <4ECC67B9.4050306@codeaurora.org> <CAK=WgbYyrbZLmDOx8yKWwjhn2MYN8669FDRvsYZSyLj1equcTw@mail.gmail.com>
+ <20111123161012.GA31423@sirena.org.uk> <4ECD5767.90307@codeaurora.org>
+ <CAK=Wgba49eu_MGTWP_SND1=KDPp=MfuDyvxFGA_NND=ydqBmZA@mail.gmail.com> <4EDE9289.8040903@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4EDF5231.6080309@bitmer.com>
+In-Reply-To: <4EDE9289.8040903@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: Saravana Kannan <skannan@codeaurora.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 7, 2011 at 1:46 PM, Jarkko Nikula <jarkko.nikula@bitmer.com=
-> wrote:
-> On 12/05/2011 07:31 PM, Felipe Contreras wrote:
->>
->> Should probably have CC'ed linux-omap.
->>
->> On Mon, Dec 5, 2011 at 7:23 PM, Felipe Contreras
->> <felipe.contreras@nokia.com> =C2=A0wrote:
->>>
->>> From: Felipe Contreras<felipe.contreras@gmail.com>
->>>
->>> This reverts commit 10299e2e4e3ed3b16503d4e04edd48b33083f4e2.
->>>
->>> This seems to break USB networking stuff.
->>>
-> I don't think revert is needed since CONFIG_CHARGER_ISP1704=3Dy shoul=
-d make it
-> working. Although I don't know do we really need to drive the ISP1704=
- into
-> reset in board-rx51-peripherals.c? Would it be better to leave gpio s=
-tate as
-> it was set by the bootloader and let the driver to do reset sequence =
-if
-> needed?
->
-> http://marc.info/?l=3Dlinux-omap&m=3D130795363204884&w=3D2
+On Wed, Dec 7, 2011 at 12:09 AM, Saravana Kannan <skannan@codeaurora.org> wrote:
+> Yes, I did realize it's not used in the code. I just wanted to prevent what
+> I considered a misuse of "AMP". Thanks for accommodating my request.
 
-Nope, that's actually worst:
+Sure thing, and thanks for the feedback.
 
-Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab001
-Internal error: : 1028 [#1]
-Modules linked in:
-CPU: 0    Tainted: G        W     (3.2.0-rc4-n900+ #5)
-PC is at musb_ulpi_write+0x18/0x70
-LR is at isp1704_charger_probe+0x7c/0x354
-pc : [<c0186188>]    lr : [<c022e720>]    psr: a0000013
-sp : ce81df08  ip : ce843f80  fp : 00000000
-r10: 00000000  r9 : 00000000  r8 : 00000000
-r7 : c0345984  r6 : c032d988  r5 : c032d9c4  r4 : fa0ab076
-r3 : fa0ab000  r2 : 000000aa  r1 : 00000016  r0 : 00000000
-=46lags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 10c5387d  Table: 80004019  DAC: 00000015
-Process swapper (pid: 1, stack limit =3D 0xce81c2e8)
-Stack: (0xce81df08 to 0xce81e000)
-df00:                   cea76840 c022e720 c032d990 c032d9c4 c0345984 c0=
-345984
-df20: 00000000 c0168d48 c0168d30 c0167ba4 00000000 c032d990 c032d9c4 c0=
-345984
-df40: 00000000 c0167cc0 c0345984 00000000 c0167c60 c016741c ce806ef8 ce=
-85fa70
-df60: c0345984 cea768c0 c0343e10 c0166d88 c02a1768 c02a1768 00000074 c0=
-345984
-df80: c030ef3c c000e874 00000000 00000000 00000000 c01682c4 c031b15c c0=
-30ef3c
-dfa0: c000e874 00000000 00000000 c0008560 0000005f 0000000d c031ae90 00=
-003539
-dfc0: 00000000 c031b15c c031ae90 c000e874 00000013 00000000 00000000 00=
-000000
-dfe0: 00000000 c02f9208 00000000 00000000 c02f9198 c000e874 00000000 00=
-000000
-[<c0186188>] (musb_ulpi_write+0x18/0x70) from [<c022e720>]
-(isp1704_charger_probe+0x7c/0x354)
-[<c022e720>] (isp1704_charger_probe+0x7c/0x354) from [<c0168d48>]
-(platform_drv_probe+0x18/0x1c)
-[<c0168d48>] (platform_drv_probe+0x18/0x1c) from [<c0167ba4>]
-(driver_probe_device+0xc8/0x184)
-[<c0167ba4>] (driver_probe_device+0xc8/0x184) from [<c0167cc0>]
-(__driver_attach+0x60/0x84)
-[<c0167cc0>] (__driver_attach+0x60/0x84) from [<c016741c>]
-(bus_for_each_dev+0x44/0x74)
-[<c016741c>] (bus_for_each_dev+0x44/0x74) from [<c0166d88>]
-(bus_add_driver+0x9c/0x20c)
-[<c0166d88>] (bus_add_driver+0x9c/0x20c) from [<c01682c4>]
-(driver_register+0xa4/0x130)
-[<c01682c4>] (driver_register+0xa4/0x130) from [<c0008560>]
-(do_one_initcall+0x94/0x164)
-[<c0008560>] (do_one_initcall+0x94/0x164) from [<c02f9208>]
-(kernel_init+0x70/0x118)
-[<c02f9208>] (kernel_init+0x70/0x118) from [<c000e874>]
-(kernel_thread_exit+0x0/0x8)
-Code: e6ef2072 e6ef1071 e2834076 e3a00000 (e5d3c001)
-------------[ cut here ]------------
-WARNING: at arch/arm/mach-omap2/omap_l3_smx.c:161 omap3_l3_app_irq+0xe8=
-/0x12c()
-In-band Error seen by MPU  at address 0
-Modules linked in:
-[<c0012aa4>] (unwind_backtrace+0x0/0xec) from [<c002f97c>]
-(warn_slowpath_common+0x4c/0x64)
-[<c002f97c>] (warn_slowpath_common+0x4c/0x64) from [<c002fa14>]
-(warn_slowpath_fmt+0x2c/0x3c)
-[<c002fa14>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0021d84>]
-(omap3_l3_app_irq+0xe8/0x12c)
-[<c0021d84>] (omap3_l3_app_irq+0xe8/0x12c) from [<c005a338>]
-(handle_irq_event_percpu+0x28/0x174)
-[<c005a338>] (handle_irq_event_percpu+0x28/0x174) from [<c005a4ac>]
-(handle_irq_event+0x28/0x38)
-[<c005a4ac>] (handle_irq_event+0x28/0x38) from [<c005c8c8>]
-(handle_level_irq+0xb8/0xe0)
-[<c005c8c8>] (handle_level_irq+0xb8/0xe0) from [<c0059fe8>]
-(generic_handle_irq+0x28/0x30)
-[<c0059fe8>] (generic_handle_irq+0x28/0x30) from [<c000e80c>]
-(handle_IRQ+0x60/0x84)
-[<c000e80c>] (handle_IRQ+0x60/0x84) from [<c000d4f4>] (__irq_svc+0x34/0=
-x80)
-[<c000d4f4>] (__irq_svc+0x34/0x80) from [<c002f8b0>] (oops_exit+0x0/0x1=
-8)
-[<c002f8b0>] (oops_exit+0x0/0x18) from [<0000000b>] (0xb)
----[ end trace 1b75b31a2719ed1e ]---
----[ end trace 1b75b31a2719ed1f ]---
-Kernel panic - not syncing: Attempted to kill init!
-[<c0012aa4>] (unwind_backtrace+0x0/0xec) from [<c022ee84>] (panic+0x54/=
-0x184)
-[<c022ee84>] (panic+0x54/0x184) from [<c00327a4>] (do_exit+0x98/0x5bc)
-[<c00327a4>] (do_exit+0x98/0x5bc) from [<c0011010>] (die+0x27c/0x2b8)
-[<c0011010>] (die+0x27c/0x2b8) from [<c0008444>] (do_DataAbort+0x80/0x9=
-4)
-[<c0008444>] (do_DataAbort+0x80/0x94) from [<c000d498>] (__dabt_svc+0x3=
-8/0x60)
-Exception stack(0xce81dec0 to 0xce81df08)
-dec0: 00000000 00000016 000000aa fa0ab000 fa0ab076 c032d9c4 c032d988 c0=
-345984
-dee0: 00000000 00000000 00000000 00000000 ce843f80 ce81df08 c022e720 c0=
-186188
-df00: a0000013 ffffffff
-[<c000d498>] (__dabt_svc+0x38/0x60) from [<c0186188>]
-(musb_ulpi_write+0x18/0x70)
-[<c0186188>] (musb_ulpi_write+0x18/0x70) from [<c022e720>]
-(isp1704_charger_probe+0x7c/0x354)
-[<c022e720>] (isp1704_charger_probe+0x7c/0x354) from [<c0168d48>]
-(platform_drv_probe+0x18/0x1c)
-[<c0168d48>] (platform_drv_probe+0x18/0x1c) from [<c0167ba4>]
-(driver_probe_device+0xc8/0x184)
-[<c0167ba4>] (driver_probe_device+0xc8/0x184) from [<c0167cc0>]
-(__driver_attach+0x60/0x84)
-[<c0167cc0>] (__driver_attach+0x60/0x84) from [<c016741c>]
-(bus_for_each_dev+0x44/0x74)
-[<c016741c>] (bus_for_each_dev+0x44/0x74) from [<c0166d88>]
-(bus_add_driver+0x9c/0x20c)
-[<c0166d88>] (bus_add_driver+0x9c/0x20c) from [<c01682c4>]
-(driver_register+0xa4/0x130)
-[<c01682c4>] (driver_register+0xa4/0x130) from [<c0008560>]
-(do_one_initcall+0x94/0x164)
-[<c0008560>] (do_one_initcall+0x94/0x164) from [<c02f9208>]
-(kernel_init+0x70/0x118)
-[<c02f9208>] (kernel_init+0x70/0x118) from [<c000e874>]
-(kernel_thread_exit+0x0/0x8)
+Dropping the 'amp' prefix also went well with my gut feeling that
+remoteproc and rpmsg should again be made as independent top-level
+subsystems, just like they were in the first patch set submission;
+they're not really coupled, and putting them together under the 'amp'
+folder just confused people and somewhat convoluted development.
 
---=20
-=46elipe Contreras
+I suspect that once the basic functionality will be merged, the
+development of remoteproc and rpmsg will become completely orthogonal
+and it would then make sense to start queueing patches separately, so
+I've created two trees for them:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
+git://git.kernel.org/pub/scm/linux/kernel/git/ohad/rpmsg.git
+
+Though at this point splitting the patches into two separate trees
+will just make it harder for people to work with the code, so both
+trees currently have the entire patch-set (and some other wip stuff).
+
+I've also created a for-next branch which I'll send to Stephen, and
+then we could start doing linear development (there's a bunch of
+patches I'll post soon, including stuff that was reported-by Stephen
+earlier) - that will hopefully make it easier for people to use this
+code, but also to review patches.
+
+Thanks,
+Ohad.
