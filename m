@@ -1,65 +1,43 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [regression] Re: [PATCH 3/7] mfd: twl4030-irq: drop the kthread
-Date: Wed, 7 Dec 2011 08:51:07 +0200
-Message-ID: <20111207065106.GE32368@legolas.emea.dhcp.ti.com>
-References: <1309427470-605-1-git-send-email-balbi@ti.com>
- <1309427470-605-4-git-send-email-balbi@ti.com>
- <CAMP44s3hFyAK+1W6eU30RNn3=cPDRGKXW+E+sDoWNrNhU0ZpPA@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 1/5] ASoC: omap-dmic: Add device tree bindings
+Date: Wed, 07 Dec 2011 10:45:25 +0200
+Message-ID: <4EDF27A5.7090909@ti.com>
+References: <1322819580-7424-1-git-send-email-peter.ujfalusi@ti.com> <1322819580-7424-2-git-send-email-peter.ujfalusi@ti.com> <20111203112206.GE6043@opensource.wolfsonmicro.com> <4EDCCAE0.2000009@ti.com> <20111205154611.GV11150@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="AsxXAMtlQ5JHofzM"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMP44s3hFyAK+1W6eU30RNn3=cPDRGKXW+E+sDoWNrNhU0ZpPA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:59355 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752721Ab1LGIpU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 03:45:20 -0500
+Received: by lagw12 with SMTP id w12so26025lag.30
+        for <linux-omap@vger.kernel.org>; Wed, 07 Dec 2011 00:45:17 -0800 (PST)
+In-Reply-To: <20111205154611.GV11150@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
+On 12/05/2011 05:46 PM, Mark Brown wrote:
+> And what I'm saying is that my main concern is that you're publishing
+> documenting a binding which isn't intended to be the the final bindin=
+g
+> and which there's no intention that anyone should use directly anyway=
+=2E
 
---AsxXAMtlQ5JHofzM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Dec 06, 2011 at 05:28:58PM +0200, Felipe Contreras wrote:
-> On Thu, Jun 30, 2011 at 12:51 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > ... and use threaded IRQ infrastructure. Later
-> > patches will come dropping both workqueues and
-> > setting the nested thread flag.
->=20
-> There's something wrong. When I boot my Nokia N900 with this, as soon
-> as I press a key from the keyboard the whole device hangs. I don't see
-> anything on the console framebuffer, and with a jig I can't boot from
-> MMC, so there isn't much more I can provide at the moment.
-
-Funny, this booted fine on my beagle and MMC card uses a twl GPIO for
-card detection. Maybe it's something fairly obvious that I missed :-(
+I felt it is the right thing to document the current situation.
+The documentation will be updated as we can move away from the
+"ti,hwmods" tag from DT.
+I can place comment in the documentation for omap-dmic, omap-mcpdm
+stating that the use of "ti,hwmods" is required at the moment, but it i=
+s
+temporally solution.
 
 --=20
-balbi
-
---AsxXAMtlQ5JHofzM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJO3wzaAAoJEIaOsuA1yqREeFUQALFNewYYn61FnaOk1lx9ZK+l
-xSjnCDxETUKPpxr6MT8CA+3d0JEwJpyr7vjSdpPAeQb2N/BsCQ2dC7t0jwRd+igK
-zz4AIrTzM3iZZklHBcR20ddFKovyWsCzTlLkWELIKOr3a8L4ODrSAV1N97NuRAgN
-vI/ZAVWgFKmOw1m6SAHvQAm82rJgcM0/KiwfWZeG2QT2yeGw4uuZTKTkqWCugk6n
-VfbDpTzx7ifn+V2okJw+7EFxfXkkYih/Tgq33yaFCsZHfuFtJjKJxYwG6vzII8gu
-23DtbBYYfLD09ob/5dkc7zAEKNKcTJ+RnhKL4pQl/sijfDH0kxI0L7VinsWPQ0US
-jIK9lRelYTkLH6sR0Kn1Fqxo05JTLXkgVSJPjKEOcUD6KUN2jdaD4I28Rs/9Sgv0
-C5rQwlxi0/O21zeNf0cTf8+uU+ZJMGhgtSAi0V7SXs27YCuFzdT3wz/ojCWHEdD+
-sl6A0UXuBOxsQnJpI7Hzv1LBOmp8jo/Rn5AugX/iN7DvIgpDDmR8dlTsnrNyG8eQ
-BNODMqzgNVN+QNi/C7SqW8XOcUIS6GzYPizHeHDOywzLydNvns7kduIVNDkaGYzZ
-s6zN9hBRbDgUw2jSv+GZcPFOCIE+DMg+0Sn+OVAg4Y/dHSAqRUmZ7HnZznOjuk3I
-1qAeCd1v99CdIfGItnTw
-=2oVS
------END PGP SIGNATURE-----
-
---AsxXAMtlQ5JHofzM--
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
