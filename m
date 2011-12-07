@@ -1,79 +1,91 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2] ARM: OMAP: dmtimer: fix missing content/correction in low-power mode support
-Date: Wed, 7 Dec 2011 11:27:14 +0530
-Message-ID: <1323237434-4919-1-git-send-email-tarun.kanti@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
+Date: Wed, 7 Dec 2011 08:49:56 +0200
+Message-ID: <20111207064954.GD32368@legolas.emea.dhcp.ti.com>
+References: <1322528190-9274-1-git-send-email-khilman@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RhUH2Ysw6aD5utA4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60458 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054Ab1LGF52 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 00:57:28 -0500
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:36515 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752165Ab1LGGt7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 01:49:59 -0500
+Received: by mail-lpp01m010-f49.google.com with SMTP id h2so86421laa.36
+        for <linux-omap@vger.kernel.org>; Tue, 06 Dec 2011 22:49:58 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1322528190-9274-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org
 
-Since omap_dm_timer_write_reg/__omap_dm_timer_write is now modified
-to use timer->func_base OCP_CFG should not use this wrapper anymore.
-Instead use __raw_writel() directly and use timer->io_base instead
-to write to OCP_CFG.
 
-The timer->sys_stat is valid only if timer->revision is 1. In the
-context restore function make this correction.
+--RhUH2Ysw6aD5utA4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Save the contexts and loss count when timer is stopped.
-Also, disable the clock. Else, clock usecount would become imbalanced.
+Hi,
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Tested-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
-Simplified checks around context loss count read.
+On Mon, Nov 28, 2011 at 04:56:30PM -0800, Kevin Hilman wrote:
+> The MUSB driver does not currently implment suspend/resume callbacks,
 
-Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-Branch: master
-Commit: b835c0f
+this is not entirelly true, actually. Such methods are missing for
+omap2430 glue layer, not for MUSB itself. And the fact is that it's only
+missing because we failed to use UNIVERSAL_DEV_PM_OPS for declaring
+dev_pm_ops structure.
 
- arch/arm/plat-omap/dmtimer.c |   19 ++++++++++++++++---
- 1 files changed, 16 insertions(+), 3 deletions(-)
+Can you see if this patch helps:
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index af3b92b..0b77fe8 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -80,9 +80,9 @@ static void omap_dm_timer_write_reg(struct omap_dm_timer *timer, u32 reg,
- 
- static void omap_timer_restore_context(struct omap_dm_timer *timer)
- {
--	omap_dm_timer_write_reg(timer, OMAP_TIMER_OCP_CFG_OFFSET,
--				timer->context.tiocp_cfg);
--	if (timer->revision > 1)
-+	__raw_writel(timer->context.tiocp_cfg,
-+			timer->io_base + OMAP_TIMER_OCP_CFG_OFFSET);
-+	if (timer->revision == 1)
- 		__raw_writel(timer->context.tistat, timer->sys_stat);
- 
- 	__raw_writel(timer->context.tisr, timer->irq_stat);
-@@ -357,6 +357,19 @@ int omap_dm_timer_stop(struct omap_dm_timer *timer)
- 
- 	__omap_dm_timer_stop(timer, timer->posted, rate);
- 
-+	if (timer->loses_context && timer->get_context_loss_count)
-+		timer->ctx_loss_count =
-+			timer->get_context_loss_count(&timer->pdev->dev);
-+
-+	/*
-+	 * Since the register values are computed and written within
-+	 * __omap_dm_timer_stop, we need to use read to retrieve the
-+	 * context.
-+	 */
-+	timer->context.tclr =
-+			omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
-+	timer->context.tisr = __raw_readl(timer->irq_stat);
-+	omap_dm_timer_disable(timer);
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index fd5dd46..d89caec 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -525,10 +525,8 @@ static int omap2430_runtime_resume(struct device *dev)
  	return 0;
  }
- EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
--- 
-1.7.0.4
+=20
+-static struct dev_pm_ops omap2430_pm_ops =3D {
+-	.runtime_suspend =3D omap2430_runtime_suspend,
+-	.runtime_resume =3D omap2430_runtime_resume,
+-};
++static UNIVERSAL_DEV_PM_OPS(omap2430_pm_ops, omap2430_runtime_suspend,
++		omap2430_runtime_resume, NULL);
+=20
+ #define DEV_PM_OPS	(&omap2430_pm_ops)
+ #else
 
+You also have to remember that for host side PM to work, you depend on
+your class driver supporting autosuspend feature. If it doesn't, then
+its interface will never call usb_autopm_put_interface() and thus pm
+counter will never decrease. Be sure to use a device whose driver
+supports autosuspend feature.
+
+--=20
+balbi
+
+--RhUH2Ysw6aD5utA4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJO3wySAAoJEIaOsuA1yqREVJAP/RX/dMoElhvQ3YP0WhMQ7oeb
+JN+wfgxifOvy3uTA5ed0u+LJhwg6JpahTmjWYPA0NZRD1L8b4xhpSvbDE4QQi+Ph
+gZz/5h/BRUcwLbW5yrYBEJ5/roykbyH4IQCoSXoFCRywo9y4gWD/nuXGiiAEoSPX
+SKjvDoyg39+pOwrjSAQMMTZboFc/oDZ6/b9cxudqFzt+kk77D9JDt2Dej2lcroOQ
+8VFSgRZrNWVQ6To8VG8V6XiO+2MZVQQaQPDG9Yj/JgKeNIw/xulAsMRL+EKO9ZrD
+bcOz6FQFKYC9yAWYNbDL0PR4MSsGMDDaKXxE8+6HS10bJCdPdSodviBsGfKTiOKX
+FrAzRC0ub6FuHCUz12/jga44xyeAwQJEgETaB0QmsyVVIjOBGFqMrVIQu2cHAdu6
+npcDWnqUE5V25gOvHoUY6mj11jLbsk49WAiLpXyB9PSmDhfvDtxLe8/sLwiDw4Kn
+/hcCarfYOuKGCONY9+KgUJ3yVT8cfJr5H6HXDti0SABuJPggjqP5dESD7zxjoTjX
+G6sjz3QnnCFDPuv/OFMc8HTchI7vGSvZm2OgTVVobWwzO5YHubExr8oUflmppFcR
+Cv/GeeR7sfoxoKaxinKaS/gBTa9g0kBfuJ38xR8DgZ1lxgLw+NKWpaabjWhPKis2
+8fjrgAIgzxX/CISfT2AR
+=7aSA
+-----END PGP SIGNATURE-----
+
+--RhUH2Ysw6aD5utA4--
