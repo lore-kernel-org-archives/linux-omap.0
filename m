@@ -1,117 +1,238 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC/PATCH 6/6] cbus: retu: implement irq_domain support
-Date: Wed, 7 Dec 2011 16:47:30 -0800
-Message-ID: <20111208004729.GY31337@atomide.com>
-References: <1322056848-1188-1-git-send-email-balbi@ti.com>
- <1322056848-1188-7-git-send-email-balbi@ti.com>
- <20111123165857.GA1839@legolas.emea.dhcp.ti.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
+Date: Thu, 8 Dec 2011 11:42:10 +0800
+Message-ID: <CACVXFVMR_n946HW1eYWEfcig_D6wFx5e3vEKmVHtERcmtsXX6g@mail.gmail.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+	<1322838172-11149-6-git-send-email-ming.lei@canonical.com>
+	<4EDD428B.9010800@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:41034 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756745Ab1LHArc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 19:47:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20111123165857.GA1839@legolas.emea.dhcp.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4EDD428B.9010800@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <balbi@ti.com> [111123 08:23]:
-> Hi,
-> 
-> On Wed, Nov 23, 2011 at 04:00:48PM +0200, Felipe Balbi wrote:
-> > Then, when moving to devicetree, we can list
-> > IRQs as 1, 2, 3. It's the only way to have a
-> > sane devicetree actually.
-> > 
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >  drivers/cbus/retu.c |   42 +++++++++++++++++++++++++++---------------
-> >  1 files changed, 27 insertions(+), 15 deletions(-)
-> > 
-> > diff --git a/drivers/cbus/retu.c b/drivers/cbus/retu.c
-> > index 25fa405..f25e0a3 100644
-> > --- a/drivers/cbus/retu.c
-> > +++ b/drivers/cbus/retu.c
-> > @@ -25,7 +25,7 @@
-> >  
-> >  #include <linux/module.h>
-> >  #include <linux/init.h>
-> > -
-> > +#include <linux/irqdomain.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/errno.h>
-> > @@ -46,6 +46,7 @@ struct retu {
-> >  	struct mutex		mutex;
-> >  	struct device		*dev;
-> >  
-> > +	struct irq_domain	irq_domain;
-> >  	struct irq_chip		irq_chip;
-> >  
-> >  	int			irq_base;
-> > @@ -199,11 +200,9 @@ static irqreturn_t retu_irq_handler(int irq, void *_retu)
-> >  
-> >  	while (idr) {
-> >  		unsigned long	pending = __ffs(idr);
-> > -		unsigned int	irq;
-> >  
-> >  		idr &= ~BIT(pending);
-> > -		irq = pending + retu->irq_base;
-> > -		handle_nested_irq(irq);
-> > +		handle_nested_irq(pending);
-> 
-> This is particular, I'm not sure if it's correct. Not sure if we should
-> use hw IRQ number of linux IRQ number. A boot test should be enough to
-> verify though.
+Hi,
 
-This one does not seem to work, so pushing only the first five. The watchdog
-seems to be kicked, so looks like they work.
+On Tue, Dec 6, 2011 at 6:15 AM, Sylwester Nawrocki <snjw23@gmail.com> w=
+rote:
+> On 12/02/2011 04:02 PM, Ming Lei wrote:
+>> This patch introduces two new IOCTLs and related data
+>> structure defination which will be used by the coming
+>> face detection video device.
+>>
+>> The two IOCTLs and related data structure are used by
+>> user space application to retrieve the results of face
+>> detection. They can be called after one v4l2_buffer
+>> has been ioctl(VIDIOC_DQBUF) and before it will be
+>> ioctl(VIDIOC_QBUF).
+>>
+>> The utility fdif[1] is useing the two IOCTLs to find
+>> faces deteced in raw images or video streams.
+>>
+>> [1],http://kernel.ubuntu.com/git?p=3Dming/fdif.git;a=3Dshortlog;h=3D=
+refs/heads/v4l2-fdif
+>>
+>> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+>> ---
+>> =A0drivers/media/video/v4l2-ioctl.c | =A0 38 ++++++++++++++++++++
+>> =A0include/linux/videodev2.h =A0 =A0 =A0 =A0| =A0 70 +++++++++++++++=
++++++++++++++++++++++++
+>> =A0include/media/v4l2-ioctl.h =A0 =A0 =A0 | =A0 =A06 +++
+>> =A03 files changed, 114 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/=
+v4l2-ioctl.c
+>> index e1da8fc..fc6266f 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>> @@ -2140,6 +2140,30 @@ static long __video_do_ioctl(struct file *fil=
+e,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dbgarg(cmd, "index=3D%d", b->index);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> =A0 =A0 =A0 }
+>> + =A0 =A0 case VIDIOC_G_FD_RESULT:
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_fd_result *fr =3D arg;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!ops->vidioc_g_fd_result)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ops->vidioc_g_fd_result(file, fh, =
+fr);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dbgarg(cmd, "index=3D%d", fr->buf_index);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 }
+>> + =A0 =A0 case VIDIOC_G_FD_COUNT:
+>> + =A0 =A0 {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_fd_count *fc =3D arg;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!ops->vidioc_g_fd_count)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D ops->vidioc_g_fd_count(file, fh, f=
+c);
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 dbgarg(cmd, "index=3D%d", fc->buf_index);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> + =A0 =A0 }
+>> =A0 =A0 =A0 default:
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!ops->vidioc_default)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> @@ -2234,6 +2258,20 @@ static int check_array_args(unsigned int cmd,=
+ void *parg, size_t *array_size,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> =A0 =A0 =A0 }
+>> +
+>> + =A0 =A0 case VIDIOC_G_FD_RESULT: {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 struct v4l2_fd_result *fr =3D parg;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 if (fr->face_cnt !=3D 0) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *user_ptr =3D (void __user=
+ *)fr->fd;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *kernel_ptr =3D (void *)&f=
+r->fd;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *array_size =3D sizeof(str=
+uct v4l2_fd_detection)
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 * =
+fr->face_cnt;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D 1;
+>> + =A0 =A0 =A0 =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 =A0 =A0 =A0 break;
+>> +
+>> + =A0 =A0 }
+>> =A0 =A0 =A0 }
+>>
+>> =A0 =A0 =A0 return ret;
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 4b752d5..073eb4d 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -2160,6 +2160,74 @@ struct v4l2_create_buffers {
+>> =A0 =A0 =A0 __u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reserved[8];
+>> =A0};
+>>
+>> +/**
+>> + * struct v4l2_obj_detection
+>> + * @buf_index: =A0 =A0 =A0 entry, index of v4l2_buffer for face det=
+ection
+>> + * @centerx: return, position in x direction of detected object
+>> + * @centery: return, position in y direction of detected object
+>> + * @angle: =A0 return, angle of detected object
+>> + * =A0 =A0 =A0 =A0 =A0 0 deg ~ 359 deg, vertical is 0 deg, clockwis=
+e
+>> + * @sizex: =A0 return, size in x direction of detected object
+>> + * @sizey: =A0 return, size in y direction of detected object
+>> + * @confidence: =A0 =A0 =A0return, confidence level of detection re=
+sult
+>> + * =A0 =A0 =A0 =A0 =A0 0: the heighest level, 9: the lowest level
+>
+> Hmm, not a good idea to align a public interface to the capabilities
+> of a single hardware implementation.
 
-Tony
+I think that the current omap interface is general enough, so why can't
+we use it as public interface?
 
-[    2.810638] tahvo tahvo: Betty v2.1 found
-[    2.819549] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-[    2.828430] pgd = c0004000
-[    2.831420] [00000000] *pgd=00000000
-[    2.835205] Internal error: Oops: 5 [#1] SMP
-[    2.839691] Modules linked in:
-[    2.842926] CPU: 0    Not tainted  (3.2.0-rc2-01686-gf3667721-dirty #231)
-[    2.850097] PC is at irq_domain_add+0x10/0x154
-[    2.854766] LR is at retu_probe+0x130/0x358
-[    2.859161] pc : [<c009dda4>]    lr : [<c0426294>]    psr: 60000013
-[    2.859191] sp : c7827eb8  ip : 00010000  fp : c0537458
-[    2.871215] r10: c066bf68  r9 : c0bf4418  r8 : 00000068
-[    2.876708] r7 : 00000001  r6 : c7a888ec  r5 : c7a888a0  r4 : 00000001
-[    2.883575] r3 : 00000000  r2 : c7825400  r1 : c06caf80  r0 : c7a888ec
-[    2.890441] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-[    2.898101] Control: 00c5387d  Table: 80004000  DAC: 00000017
-[    2.904144] Process swapper (pid: 1, stack limit = 0xc78262f8)
-[    2.910278] Stack: (0xc7827eb8 to 0xc7828000)
-[    2.914855] 7ea0:                                                       00000001 c7a888a0
-[    2.923461] 7ec0: c7a8890c 00000078 00000068 c0426294 00000000 00000000 c069d090 c066bf68
-[    2.932067] 7ee0: c066bf68 c069d090 c0291024 c068f8d0 c0bf25b0 c069d090 c06a7480 c02922ac
-[    2.940673] 7f00: c066bf68 c0290ef8 c066bf68 c066bf9c c069d090 c0291024 c068f8d0 00000000
-[    2.949279] 7f20: c7abb5e0 c02910b8 00000000 c7827f38 c069d090 c0290724 c781a658 c78641b0
-[    2.957885] 7f40: 00000000 c0537458 c061b0ac c069d090 c069d090 c0290034 c0537458 c0233bd0
-[    2.966491] 7f60: c061b50c c061b0ac c069d090 00000013 c7826000 c05f6958 00000000 c02916bc
-[    2.975097] 7f80: c061b50c c061b0ac c061b5f4 00000013 c7826000 c0008688 c0626880 c009e650
-[    2.983703] 7fa0: 0000005f 00000000 c061b5f4 35390013 00000000 00000000 00000000 0000019a
-[    2.992309] 7fc0: c067cf94 c061b50c c061b0ac c061b5f4 00000013 00000000 00000000 00000000
-[    3.000915] 7fe0: 00000000 c05d0298 00000000 c05d0200 c0014f88 c0014f88 ffffffff ffffff9f
-[    3.009521] [<c009dda4>] (irq_domain_add+0x10/0x154) from [<c0426294>] (retu_probe+0x130/0x358)
-[    3.018707] [<c0426294>] (retu_probe+0x130/0x358) from [<c02922ac>] (platform_drv_probe+0x18/0x1c)
-[    3.028167] [<c02922ac>] (platform_drv_probe+0x18/0x1c) from [<c0290ef8>] (driver_probe_device+0x98/0x1c4)
-[    3.038330] [<c0290ef8>] (driver_probe_device+0x98/0x1c4) from [<c02910b8>] (__driver_attach+0x94/0x98)
-[    3.048217] [<c02910b8>] (__driver_attach+0x94/0x98) from [<c0290724>] (bus_for_each_dev+0x60/0x8c)
-[    3.057739] [<c0290724>] (bus_for_each_dev+0x60/0x8c) from [<c0290034>] (bus_add_driver+0x198/0x260)
-[    3.067352] [<c0290034>] (bus_add_driver+0x198/0x260) from [<c02916bc>] (driver_register+0x6c/0x148)
-[    3.076965] [<c02916bc>] (driver_register+0x6c/0x148) from [<c0008688>] (do_one_initcall+0x34/0x180)
-[    3.086578] [<c0008688>] (do_one_initcall+0x34/0x180) from [<c05d0298>] (kernel_init+0x98/0x144)
-[    3.095855] [<c05d0298>] (kernel_init+0x98/0x144) from [<c0014f88>] (kernel_thread_exit+0x0/0x8)
-[    3.105102] Code: e92d41f0 e1a06000 e5903014 e5907010 (e5933000) 
-[    3.111816] ---[ end trace 539355b8447db297 ]---
-[    3.116729] Kernel panic - not syncing: Attempted to kill init!
+> min/max confidence could be queried with
+> relevant controls and here we could remove the line implying range.
+
+No, the confidence is used to describe the probability about
+the correctness of the current detection result. Anyway, no FD can
+make sure that it is 100% correct.  Other HW can normalize its
+confidence level to 0~9 so that application can handle it easily, IMO.
+
+>> + * @reserved: =A0 =A0 =A0 =A0future extensions
+>> + */
+>> +struct v4l2_obj_detection {
+>> + =A0 =A0 __u16 =A0 =A0 =A0 =A0 =A0 centerx;
+>> + =A0 =A0 __u16 =A0 =A0 =A0 =A0 =A0 centery;
+>> + =A0 =A0 __u16 =A0 =A0 =A0 =A0 =A0 angle;
+>> + =A0 =A0 __u16 =A0 =A0 =A0 =A0 =A0 sizex;
+>> + =A0 =A0 __u16 =A0 =A0 =A0 =A0 =A0 sizey;
+>
+> How about using struct v4l2_rect in place of centerx/centery, sizex/s=
+izey ?
+> After all it describes a rectangle. We could also use struct v4l2_frm=
+size_discrete
+> for size but there seems to be missing en equivalent for position, e.=
+g.
+
+Maybe user space would like to plot a circle or ellipse over the detect=
+ed
+objection, and I am sure that I have seen this kind of plot over detect=
+ed
+face before.
+
+> struct v4l2_position {
+> =A0 =A0 =A0 =A0__s32 x;
+> =A0 =A0 =A0 =A0__s32 y;
+> };
+>
+>> + =A0 =A0 __u16 =A0 =A0 =A0 =A0 =A0 confidence;
+>> + =A0 =A0 __u32 =A0 =A0 =A0 =A0 =A0 reserved[4];
+>> +};
+>> +
+>> +#define V4L2_FD_HAS_LEFT_EYE 0x1
+>> +#define V4L2_FD_HAS_RIGHT_EYE =A0 =A0 =A0 =A00x2
+>> +#define V4L2_FD_HAS_MOUTH =A0 =A00x4
+>> +#define V4L2_FD_HAS_FACE =A0 =A0 0x8
+>> +
+>> +/**
+>> + * struct v4l2_fd_detection - VIDIOC_G_FD_RESULT argument
+>> + * @flag: =A0 =A0return, describe which objects are detected
+>> + * @left_eye: =A0 =A0 =A0 =A0return, left_eye position if detected
+>> + * @right_eye: =A0 =A0 =A0 return, right_eye position if detected
+>> + * @mouth_eye: =A0 =A0 =A0 return, mouth_eye position if detected
+>
+> mouth_eye ? ;)
+
+Sorry, it should be mouth, :-)
+
+>
+>> + * @face: =A0 =A0return, face position if detected
+>> + */
+>> +struct v4l2_fd_detection {
+>> + =A0 =A0 __u32 =A0 flag;
+>> + =A0 =A0 struct v4l2_obj_detection =A0 =A0 =A0 left_eye;
+>> + =A0 =A0 struct v4l2_obj_detection =A0 =A0 =A0 right_eye;
+>> + =A0 =A0 struct v4l2_obj_detection =A0 =A0 =A0 mouth;
+>> + =A0 =A0 struct v4l2_obj_detection =A0 =A0 =A0 face;
+>
+> I would do this differently, i.e. put "flag" inside struct v4l2_obj_d=
+etection
+> and then struct v4l2_fd_detection would be simply an array of
+> struct v4l2_obj_detection, i.e.
+>
+> struct v4l2_fd_detection {
+> =A0 =A0 =A0 =A0unsigned int count;
+> =A0 =A0 =A0 =A0struct v4l2_obj_detection [V4L2_MAX_FD_OBJECT_NUM];
+> };
+>
+> This might be more flexible, e.g. if in the future some hardware supp=
+orts
+> detecting wrinkles, we could easily add that by just defining a new f=
+lag:
+> V4L2_FD_HAS_WRINKLES, etc.
+
+This is a bit flexible, but not explicit enough for describing
+interface, how about
+reserving these as below for future usage?
+
+	struct v4l2_fd_detection {
+		__u32   flag;
+		Struct v4l2_obj_detection       left_eye;
+		Struct v4l2_obj_detection       right_eye;
+		Struct v4l2_obj_detection       mouth;
+		Struct v4l2_obj_detection       face;
+		Struct v4l2_obj_detection       reserved[4];
+	};
+
+
+thanks,
+--
+Ming Lei
