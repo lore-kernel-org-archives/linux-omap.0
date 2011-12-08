@@ -1,50 +1,38 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Thu, 8 Dec 2011 14:16:10 -0600
-Message-ID: <CAB-zwWiH020HfovGF8CA-v9t8Pjc3kLbsXezN6ToLdyC4muHqA@mail.gmail.com>
-References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
-	<CAMP44s16cSBw23Py7qUW4Oj60gXKuvmtx-c=urisxecMQEE6Dw@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
+Date: Thu, 8 Dec 2011 22:23:58 +0200
+Message-ID: <CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
+References: <20111207193141.GG31337@atomide.com>
+	<1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
+	<20111208144044.GA25415@xps8300>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:52555 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750855Ab1LHUQM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 15:16:12 -0500
-Received: by mail-fx0-f49.google.com with SMTP id s1so780050fab.22
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 12:16:11 -0800 (PST)
-In-Reply-To: <CAMP44s16cSBw23Py7qUW4Oj60gXKuvmtx-c=urisxecMQEE6Dw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111208144044.GA25415@xps8300>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heikki Krogerus <krohei@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
 
-On Thu, Dec 8, 2011 at 2:11 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Sat, Nov 19, 2011 at 12:18 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
->> Given that dm timer framework doesn't support request of clocks
->> by soft | hard irqs because some recent changes, tidspbridge needs
->> to request its clocks on init and enable/disable them on demand.
->>
->> This was first seen on 3.2-rc1.
->>
->> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+On Thu, Dec 8, 2011 at 4:40 PM, Heikki Krogerus <krohei@gmail.com> wrote:
+> On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
+>> From: Heikki Krogerus <krohei@gmail.com>
 >
-> Tested-by: Felipe Contreras <felipe.contreras@gmail.com>
-> Reviewed-by: Felipe Contreras <felipe.contreras@gmail.com>
+> I would prefer that you change this so this is from you, like it
+> actually is. You can mention me in the commit message if you like.
 
-Thanks!
+Well, you came with the fix, I just typed it down, but as you wish :)
 
-> Something the commit message didn't mention is that this fixes a nasty
-> continuous loop that happens as soon as you load the module.
+>> Without this USB networking doesn't work as the link is never detected.
+>
+> What this changes is, it leaves the transceiver powered by default
+> instead of setting it into power off mode. So not only USB networking
+> is affected by this. If isp1704_charger is not enabled with RX51, USB
+> does not work at all. Please change the comment.
 
-Indeed.
+I've updated the patch.
 
-> Definitely 3.2-fix material IMO :)
+Cheers.
 
-I believe it was pushed to staging-next... I'm rooting so it can be
-pushed to staging-linus :)
-
-Regards,
-
-Omar
+-- 
+Felipe Contreras
