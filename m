@@ -1,60 +1,79 @@
-From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c_omap: correct OMAP_I2C_SYSC_REG offset
-Date: Thu, 8 Dec 2011 13:31:29 -0600
-Message-ID: <4EE11091.20404@ti.com>
-References: <1323355433-8508-1-git-send-email-a.aring@phytec.de> <87obvjj5l5.fsf@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
+Date: Thu, 8 Dec 2011 21:50:34 +0200
+Message-ID: <CAMP44s0DGZVD34u=5DaFPGHwVaQ5O2s+U0W2w8MnNMUbr6Jong@mail.gmail.com>
+References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
+	<CAMP44s0OvrrWnYJzowkMUT7-jHKYS=LZUty=e1d9gM=OZT-0Ow@mail.gmail.com>
+	<CAB-zwWiNkD=jinUgvdd6w8-2BCYTB+TiPBJij+LgY13gO=NQoQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87obvjj5l5.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43282 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829Ab1LHTug (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 14:50:36 -0500
+Received: by bkbzv3 with SMTP id zv3so2017763bkb.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 11:50:35 -0800 (PST)
+In-Reply-To: <CAB-zwWiNkD=jinUgvdd6w8-2BCYTB+TiPBJij+LgY13gO=NQoQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
 
-Hi Kevin,
-
-On 12/8/2011 12:12, Kevin Hilman wrote:
-> Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>  writes:
->
->> Correct OMAP_I2C_SYSC_REG offset in omap4 register map.
->> Offset 0x20 is reserved and OMAP_I2C_SYSC_REG has 0x10 as offset.
+On Thu, Dec 8, 2011 at 9:10 PM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
+> On Wed, Dec 7, 2011 at 4:11 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> On Sat, Nov 19, 2011 at 12:18 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
+>>> Given that dm timer framework doesn't support request of clocks
+>>> by soft | hard irqs because some recent changes, tidspbridge needs
+>>> to request its clocks on init and enable/disable them on demand.
+>>>
+>>> This was first seen on 3.2-rc1.
+>>>
+>>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 >>
->> Signed-off-by: Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
->
-> Thanks for the patch!
->
-> A different approach to fix this is being done by Shubhrajyoti[1] as
-> part of his reset series.
->
-> However, I think we should probably apply this patch for v3.2 and also
-> send to the stable kernel for v3.0&  v3.1.
->
-> Shubhrajyoti/Jon, any objections to me queuing this fix for v3.2 (and
-> stable.)  It would just mean rebasing your other fixes and cleanup
-> series on top of this.
-
-I have no issue with that and I am in favour of getting the fix in now.
-
-Cheers
-Jon
-
->
->> ---
->>   drivers/i2c/busses/i2c-omap.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
+>> This looks similar similar to this one:
+>> http://article.gmane.org/gmane.linux.ports.arm.omap/61816
 >>
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index a43d002..fc3bb37 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -235,7 +235,7 @@ static const u8 reg_map_ip_v2[] = {
->>   	[OMAP_I2C_BUF_REG] = 0x94,
->>   	[OMAP_I2C_CNT_REG] = 0x98,
->>   	[OMAP_I2C_DATA_REG] = 0x9c,
->> -	[OMAP_I2C_SYSC_REG] = 0x20,
->> +	[OMAP_I2C_SYSC_REG] = 0x10,
->>   	[OMAP_I2C_CON_REG] = 0xa4,
->>   	[OMAP_I2C_OA_REG] = 0xa8,
->>   	[OMAP_I2C_SA_REG] = 0xac,
+>> Are you sure this is what we want instead of that one?
+>
+> I believe your patch only takes care of gpt5 and gpt6, but not of the
+> other 2 that could be requested by the dsp, let's say gpt8 for avsync.
+
+I'm not really sure about that... Judging from the code, the only
+timers needed used to be initialized on bridge_brd_start based on the
+symbols of the baseimage. If you say that's not enough, then I guess
+that's fine (not really surprising that the old code missed that).
+
+> As for this patch, dm timer framework should support request on soft
+> or hard irq[1], but it can't because the underlying functions to use
+> clk_get->clk_get_sys which holds a mutex.
+>
+> I believe your error was seen because of patches not in mainline, but
+> the concept between the patches is similar indeed, however mine:
+
+Yes, it's basically the same, the only difference is that I'm
+initializing only the clocks that are supposed to be needed by the
+baseimage.
+
+> - Handles the other gpt that can be requested by the dsp.
+
+And I guess which clocks are going to be used is not discoverable somehow...
+
+> - Uses start/stop according to future plans of making enable/disable static.
+
+Yeah, but that's easy to change s/enable/start/ s/disable/stop/
+
+> - Might be temporal if *dm_timer_request* functions are fixed and
+> there is an overall feeling that we can revert to use
+> request+start/stop+free on request.
+
+At which point we would end up with something similar to my patch :)
+
+Anyway, I guess there's not much problem in requesting extra clocks
+that we would not use.
+
+Cheers.
+
+-- 
+Felipe Contreras
