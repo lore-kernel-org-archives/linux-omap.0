@@ -1,50 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv2] omap: id: add chip id recognition for omap4430 es2.3
-Date: Wed, 7 Dec 2011 16:29:28 -0800
-Message-ID: <20111208002928.GX31337@atomide.com>
-References: <1323302492-20211-1-git-send-email-x0132446@ti.com>
- <20111208002342.GW31337@atomide.com>
- <4EE00427.2000206@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: dmtimer: fix missing content/correction in
+ low-power mode support
+Date: Thu, 8 Dec 2011 02:36:31 +0200
+Message-ID: <CAMP44s0LGVOWrKu8nTbDWdGJFoUH8kcg_nFQwnxFWHFQDf_5_w@mail.gmail.com>
+References: <1320732026-6783-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26086 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756840Ab1LHA3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 19:29:30 -0500
-Content-Disposition: inline
-In-Reply-To: <4EE00427.2000206@ti.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:52380 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab1LHAgb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Dec 2011 19:36:31 -0500
+Received: by dadv6 with SMTP id v6so1091235dad.19
+        for <linux-omap@vger.kernel.org>; Wed, 07 Dec 2011 16:36:31 -0800 (PST)
+In-Reply-To: <1320732026-6783-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Anders <x0132446@ti.com>
-Cc: danders.dev@gmail.com, linux-omap@vger.kernel.org, nm@ti.com, aneesh@ti.com, jayabharath@ti.com
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-* David Anders <x0132446@ti.com> [111207 15:54]:
-> Tony,
-> 
-> 
-> On 12/07/2011 06:23 PM, Tony Lindgren wrote:
-> >* David Anders<x0132446@ti.com>  [111207 15:29]:
-> >>allow for the omap4430 es2.3 revision to be recognized in the
-> >>omap4_check_revision() function.
-> >>
-> >>most aspects of all omap4430 es2.x versions are identical, however
-> >>a number of small variations such as default pullup or pulldown
-> >>resistor configurations vary between revisions.
-> >>
-> >>detailed information on silicon errata for omap4430 revisions can
-> >>be found at http://focus.ti.com/pdfs/wtbu/swpz009D.pdf
-> >I have the earlier one already applied, this seems to be the
-> >exact same patch, right?
-> >
-> 
-> same core patch, with a break; added to the case 4.
+On Tue, Nov 8, 2011 at 8:00 AM, Tarun Kanti DebBarma <tarun.kanti@ti.com> wrote:
+> Since omap_dm_timer_write_reg/__omap_dm_timer_write is now modified
+> to use timer->func_base OCP_CFG should not use this wrapper anymore.
+> Instead use __raw_writel() directly and use timer->io_base instead
+> to write to OCP_CFG.
+>
+> The timer->sys_stat is valid only if timer->revision is 1. In the
+> context restore function make this correction.
+>
+> Save the contexts and loss count when timer is stopped.
+> Also, disable the clock. Else, clock usecount would become imbalanced.
+>
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Ah OK.
- 
-> if you would rather i can provide a one line fix patch
+It looks like this patch is doing 3 things, so I think this patch
+should be split into 3 logical patches.
 
-No need, have not pushed it out yet so I'll update it
-before pushing out.
-
-Tony
+-- 
+Felipe Contreras
