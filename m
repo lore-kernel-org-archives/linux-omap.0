@@ -1,45 +1,68 @@
 From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP3: hwmod data: disable multiblock reads on
- MMC1/2 on OMAP34xx/35xx <= ES2.1
-Date: Thu, 8 Dec 2011 15:07:13 -0800
-Message-ID: <CAGDS+nnASzgu4Xrvm2zqQ2H3uUtZWiKNC+Gb5saqZVLA=-7Scw@mail.gmail.com>
-References: <alpine.DEB.2.00.1110061453540.4611@utopia.booyaka.com>
- <CAGDS+nnm_+9975aX9h7U7EUf6UDWiiqO8+yfG_zW1sCxhgrzQw@mail.gmail.com>
- <alpine.DEB.2.00.1112081541170.6289@utopia.booyaka.com>
+Subject: [PATCH RFC] mfd: twl4030-madc: Enable ADC channels 3-6
+Date: Thu, 8 Dec 2011 15:13:59 -0800
+Message-ID: <CAGDS+n=QJNjCyfQ2zvPweC=aBDWt=n+y1ccgTAafqJCYt991yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1112081541170.6289@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Dave Hylands <dhylands@gmail.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:63847 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752369Ab1LHXOA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 18:14:00 -0500
+Received: by vcbfk14 with SMTP id fk14so1875732vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 15:14:00 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>
 
-On Thu, Dec 8, 2011 at 2:51 PM, Paul Walmsley <paul@pwsan.com> wrote:
+Currently the driver does not explicitly set the TWL4030_USB_SEL_MADC_MCPC
+bit to enable madc input channels 3 through 6.  This results in readings near
+zero for these channels since the inputs are grounded if this bit is not set.
 
-> Thanks for the reminder - I would have forgotten it otherwise.
->
->> Without it 35XXES2.1 systems have broken mmc. =A0Too late as a bug fix f=
-or
->> 3.2?
->
-> This never worked correctly in previous Linux releases, right?
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
 
-I seem to recall that it worked a few releases back -- perhaps before
-multiblock reads??
+diff --git a/drivers/mfd/twl4030-madc.c b/drivers/mfd/twl4030-madc.c
+index 834f824..56a8e9b 100644
+--- a/drivers/mfd/twl4030-madc.c
++++ b/drivers/mfd/twl4030-madc.c
+@@ -725,6 +725,23 @@ static int __devinit twl4030_madc_probe(struct
+platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_current_generator;
 
-It's been broken for a while though, so waiting for 3.3 isn't the end
-of the world.
++	/* Enable ADCIN3 through 6 */
++	ret = twl_i2c_read_u8(TWL4030_MODULE_USB,
++			      &regval, TWL4030_USB_CARKIT_ANA_CTRL);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to read reg CARKIT_ANA_CTRL 0x%X\n",
++			TWL4030_USB_CARKIT_ANA_CTRL);
++		goto err_i2c;
++	}
++	regval |= TWL4030_USB_SEL_MADC_MCPC;
++	ret = twl_i2c_write_u8(TWL4030_MODULE_USB,
++			       regval, TWL4030_USB_CARKIT_ANA_CTRL);
++	if (ret) {
++		dev_err(&pdev->dev, "unable to write reg CARKIT_ANA_CTRL 0x%X\n",
++			TWL4030_USB_CARKIT_ANA_CTRL);
++		goto err_i2c;
++	}
++
+ 	ret = twl_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE,
+ 			      &regval, TWL4030_BCI_BCICTL1);
+ 	if (ret) {
+diff --git a/include/linux/i2c/twl4030-madc.h b/include/linux/i2c/twl4030-madc.h
+index 530e11b..f017495 100644
+--- a/include/linux/i2c/twl4030-madc.h
++++ b/include/linux/i2c/twl4030-madc.h
+@@ -120,6 +120,9 @@ enum sample_type {
+ #define CURR_PSR_R1		44
+ #define CURR_PSR_R2		88
 
-I'll add the patch to my 3.2 builds to put some miles on it :-)
-
-Steve
++#define TWL4030_USB_CARKIT_ANA_CTRL	0xBB
++#define TWL4030_USB_SEL_MADC_MCPC	(1<<3)
++
+ #define TWL4030_BCI_BCICTL1	0x23
+ #define TWL4030_BCI_CGAIN	0x020
+ #define TWL4030_BCI_MESBAT	(1 << 1)
