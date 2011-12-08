@@ -1,53 +1,52 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: ASoC broken on 3.2-rc4?
-Date: Thu, 8 Dec 2011 12:26:22 -0800
-Message-ID: <CAGDS+n=B=Q-id-L0AfkBvB6yvUoNbBcOdJg=ec=Jued-8AmS2g@mail.gmail.com>
-References: <CAGDS+nmW+fgo20znqdQch9Uvu7Q9=p1D0AwPqx4vjakXZ6PiAQ@mail.gmail.com>
-	<CA+2YH7v+cAGHFGuL6yY80p8=Tob=J=MkMnt3UUNycPuJ8EWkeA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] OMAP: PM support for OMAP4 MPU sub-system
+Date: Thu, 8 Dec 2011 13:29:17 -0800
+Message-ID: <20111208212917.GD31337@atomide.com>
+References: <874nxaewbv.fsf@ti.com>
+ <20111208191956.GC31337@atomide.com>
+ <87liqmkfu0.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:40468 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750855Ab1LHU0W convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 15:26:22 -0500
-Received: by vbbfc26 with SMTP id fc26so1793970vbb.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 12:26:22 -0800 (PST)
-In-Reply-To: <CA+2YH7v+cAGHFGuL6yY80p8=Tob=J=MkMnt3UUNycPuJ8EWkeA@mail.gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38489 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751770Ab1LHV3U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 16:29:20 -0500
+Content-Disposition: inline
+In-Reply-To: <87liqmkfu0.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Dec 8, 2011 at 11:33 AM, Enrico <ebutera@users.berlios.de> wrot=
-e:
-> On Wed, Dec 7, 2011 at 9:58 PM, Steve Sakoman <sakoman@gmail.com> wro=
-te:
->> I just began working with 3.2-rc4 on Overo and Beagleboard xM.
->>
->> On both machines I see the driver init, but no alsa device created.
->> For example on Overo:
->>
->> Advanced Linux Sound Architecture Driver Version 1.0.24.
->> <snip>
->> overo SoC init
->> ALSA device list:
->> =A0No soundcards found.
->>
->> Has anyone else seen this? =A0Just want to make sure it isn't a know=
-n
->> issue before digging in and debugging.
->
-> Maybe patch at [1] is still not in mainline?
+* Kevin Hilman <khilman@ti.com> [111208 11:13]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > * Kevin Hilman <khilman@ti.com> [111208 10:14]:
+> >> Tony,
+> >> 
+> >> Please pull the OMAP4 MPUSS PM series below.  It is based on the
+> >> Russell's devel-stable branch due to dependencies
+> >> 
+> >> Kevin
+> >> 
+> >> The following changes since commit 3ee0fc5ca129cbae81c073756febcb1c552af446:
+> >> 
+> >>   Merge branch 'kexec/idmap' of git://git.kernel.org/pub/scm/linux/kernel/git/will/linux into devel-stable (2011-12-06 20:27:54 +0000)
+> >
+> > I don't think there's a dependency here to the kexec/idmap commit?
+> 
+> Nope.
+> 
+> > Great yeah this is badly needed. One minor thing, can you please rebase
+> > this on one commit earlier to commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a
+> > (ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM
+> > restart changes) as that's what we have as the base for other branches.
+> 
+> Done, pushed updated branch.
 
-The patch is there, but one also needs to make sure the
-CONFIG_MFD_TWL4030_AUDIO change is made in one's defconfig too :-)
+Thanks a lot, pulled into omap4 branch and pushed out.
 
-Thanks,
+Regards,
 
-Steve
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
