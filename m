@@ -1,77 +1,33 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
- controller
-Date: Thu, 8 Dec 2011 15:59:50 +0100
-Message-ID: <4EE0D0E6.3060202@ti.com>
-References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51867 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752394Ab1LHPAP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Dec 2011 10:00:15 -0500
-In-Reply-To: <4EDFD88B.8060008@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+Subject: [PATCH] i2c_omap: correct OMAP_I2C_SYSC_REG offset
+Date: Thu, 8 Dec 2011 15:43:53 +0100
+Message-ID: <1323355433-8508-1-git-send-email-a.aring@phytec.de>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/7/2011 10:20 PM, Rob Herring wrote:
-> On 12/07/2011 02:50 PM, Benoit Cousson wrote:
+Correct OMAP_I2C_SYSC_REG offset in omap4 register map.
+Offset 0x20 is reserved and OMAP_I2C_SYSC_REG has 0x10 as offset.
 
-[...]
+Signed-off-by: Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
->> +#ifdef CONFIG_OF
->> +int __init intc_of_init(struct device_node *node, struct device_node *parent)
->> +{
->> +	struct resource res;
->> +	u32 nr_irqs;
->> +
->> +	if (WARN_ON(!node))
->> +		return -ENODEV;
->> +
->> +	if (of_address_to_resource(node, 0,&res)) {
->> +		WARN(1, "unable to get intc registers\n");
->> +		return -EINVAL;
->> +	}
->> +
->> +	if (of_property_read_u32(node, "ti,intc-size",&nr_irqs)) {
->> +		WARN(1, "unable to get intc-size\n");
->> +		return -EINVAL;
->
-> There is no default value that makes sense?
-
-So far we have 96 or 128, so I can put 96 as a default and just keep the 
-warning without returning an error.
-
->> +	}
->> +
->> +	omap_init_irq(res.start, nr_irqs);
->> +	irq_domain_add_simple(node, 0);
->
-> Have you read the NO_IRQ thread...
-
-Yeah, I tried, but that's a long email thread with some unclear 
-conclusion...
-The point is that the few users of that API today are using 0 as a base 
-as well, so I thought it was still valid.
-
-> Is 0 ever a valid interrupt for a driver? If so, you must not use 0 for
-> the base. I would pick 16 to skip over legacy ISA irqs.
-
-I do not have any 0 interrupts right now, my concern is that I still 
-have some legacy non-DT drivers that expect the previous hwirq = irq 
-mapping.
-
-> irqdomains should always be enabled regardless of CONFIG_OF. So either
-> you can leave it as is if OF is always enabled for OMAP, or you should
-> move domain setup into omap_init_irq.
-
-OK, but it looks like I cannot really modify the current INTC to DT 
-without having fully adapted the OMAP drivers to use 
-irq_of_parse_and_map. Or did I miss something?
-
-Regards,
-Benoit
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index a43d002..fc3bb37 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -235,7 +235,7 @@ static const u8 reg_map_ip_v2[] = {
+ 	[OMAP_I2C_BUF_REG] = 0x94,
+ 	[OMAP_I2C_CNT_REG] = 0x98,
+ 	[OMAP_I2C_DATA_REG] = 0x9c,
+-	[OMAP_I2C_SYSC_REG] = 0x20,
++	[OMAP_I2C_SYSC_REG] = 0x10,
+ 	[OMAP_I2C_CON_REG] = 0xa4,
+ 	[OMAP_I2C_OA_REG] = 0xa8,
+ 	[OMAP_I2C_SA_REG] = 0xac,
+-- 
+1.7.0.4
