@@ -1,74 +1,35 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
-Date: Thu, 8 Dec 2011 13:45:47 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8050F6D@DBDE01.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1322808204-12878-1-git-send-email-hvaibhav@ti.com> <87y5up44bf.fsf@ti.com>
- <20111207211029.GL31337@atomide.com>
+From: Heikki Krogerus <krohei@gmail.com>
+Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
+Date: Thu, 8 Dec 2011 16:40:44 +0200
+Message-ID: <20111208144044.GA25415@xps8300>
+References: <20111207193141.GG31337@atomide.com>
+ <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58216 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751091Ab1LHNqI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 08:46:08 -0500
-In-Reply-To: <20111207211029.GL31337@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>
 
+Hi Felipe,
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, December 08, 2011 2:40 AM
-> To: Hilman, Kevin
-> Cc: Hiremath, Vaibhav; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; paul@pwsan.com
-> Subject: Re: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
-> 
-> * Kevin Hilman <khilman@ti.com> [111206 15:52]:
-> > <hvaibhav@ti.com> writes:
-> >
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > This patch set adds support for AM335x device having
-> > > Cortex-A8 MPU.
-> > >
-> > > Official website - http://www.ti.com/product/am3359
-> > >
-> > > AM335X is treated as another OMAP3 variant, where,
-> > > along with existing cpu class OMAP34XX, new cpu class AM33XX is
-> created
-> > > and the respective type is AM335X, which is newly added device in
-> > > the family.
-> > > This means, cpu_is_omap34xx(), cpu_is_am33xx() and
-> > > cpu_is_am335x() checks return success for AM335X.
-> > >
-> > > Also, I have validated OMAP3 boot test with this patch-series on
-> > > OMAP3EVM.
-> >
-> > Tony, this series looks good to me.
-> >
-> > I've also tested it on a BeagleBone, so feel free to also add:
-> >
-> > Tested-by: Kevin Hilman <khilman@ti.com>
-> 
-> Thanks looks good to me. We still need the machine_id update to
-> apply patches 2 and 3 in this series, so applying only the first
-> patch into soc branch for now.
-> 
+On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
+> From: Heikki Krogerus <krohei@gmail.com>
 
-Tony,
+I would prefer that you change this so this is from you, like it
+actually is. You can mention me in the commit message if you like.
 
-Should I ping Russell for this? The machine-id patch is already registered
-and present at
+> Without this USB networking doesn't work as the link is never detected.
 
-http://www.arm.linux.org.uk/developer/machines/download.php
+What this changes is, it leaves the transceiver powered by default
+instead of setting it into power off mode. So not only USB networking
+is affected by this. If isp1704_charger is not enabled with RX51, USB
+does not work at all. Please change the comment.
 
 Thanks,
-Vaibhav
 
-> Tony
+-- 
+heikki
