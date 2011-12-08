@@ -1,120 +1,61 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] ARM: OMAP3: hsmmc: fix MMC 2 setup for AM35x
-Date: Thu, 08 Dec 2011 21:25:20 +0200
-Message-ID: <4EE10F20.5080806@compulab.co.il>
-References: <1322559468-5883-1-git-send-email-grinberg@compulab.co.il>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/2] OMAP clock: implement clock rate/parent change
+ notifiers
+Date: Thu, 8 Dec 2011 12:26:12 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112081222240.6289@utopia.booyaka.com>
+References: <20090325160759.31866.49722.stgit@localhost.localdomain> <87tz5hwks8.fsf@deeprootsystems.com> <CAMP44s0qzSoDJbvzVOHNDbROPPWQH328LYKXSoLav+49vv-z_g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-194036678-1323372372=:6289"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:48608
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751280Ab1LHTZb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 14:25:31 -0500
-In-Reply-To: <1322559468-5883-1-git-send-email-grinberg@compulab.co.il>
+Received: from utopia.booyaka.com ([72.9.107.138]:33821 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280Ab1LHT0N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 14:26:13 -0500
+In-Reply-To: <CAMP44s0qzSoDJbvzVOHNDbROPPWQH328LYKXSoLav+49vv-z_g@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-ping
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Tony,
-I'd like this to go into 3.3, can it?
+--155748971-194036678-1323372372=:6289
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On 11/29/11 11:37, Igor Grinberg wrote:
-> AM35x MMC 2 controller has internal clock loopback setting which cannot
-> be utilized without this patch and thus SDIO devices connected to this
-> controller and depend on this setting will fail to initialize.
-> 
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> ---
->  arch/arm/mach-omap2/hsmmc.c |   42 ++++++++++++++++++++++++++++++------------
->  1 files changed, 30 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-> index ecde558..c80859e 100644
-> --- a/arch/arm/mach-omap2/hsmmc.c
-> +++ b/arch/arm/mach-omap2/hsmmc.c
-> @@ -171,6 +171,17 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
->  	}
->  }
->  
-> +static void hsmmc2_select_input_clk_src(struct omap_mmc_platform_data *mmc)
-> +{
-> +	u32 reg;
-> +
-> +	if (mmc->slots[0].internal_clock) {
-> +		reg = omap_ctrl_readl(control_devconf1_offset);
-> +		reg |= OMAP2_MMCSDIO2ADPCLKISEL;
-> +		omap_ctrl_writel(reg, control_devconf1_offset);
-> +	}
-> +}
-> +
->  static void hsmmc23_before_set_reg(struct device *dev, int slot,
->  				   int power_on, int vdd)
->  {
-> @@ -179,16 +190,19 @@ static void hsmmc23_before_set_reg(struct device *dev, int slot,
->  	if (mmc->slots[0].remux)
->  		mmc->slots[0].remux(dev, slot, power_on);
->  
-> -	if (power_on) {
-> -		/* Only MMC2 supports a CLKIN */
-> -		if (mmc->slots[0].internal_clock) {
-> -			u32 reg;
-> +	if (power_on)
-> +		hsmmc2_select_input_clk_src(mmc);
-> +}
->  
-> -			reg = omap_ctrl_readl(control_devconf1_offset);
-> -			reg |= OMAP2_MMCSDIO2ADPCLKISEL;
-> -			omap_ctrl_writel(reg, control_devconf1_offset);
-> -		}
-> -	}
-> +static int am35x_hsmmc2_set_power(struct device *dev, int slot,
-> +				  int power_on, int vdd)
-> +{
-> +	struct omap_mmc_platform_data *mmc = dev->platform_data;
-> +
-> +	if (power_on)
-> +		hsmmc2_select_input_clk_src(mmc);
-> +
-> +	return 0;
->  }
->  
->  static int nop_mmc_set_power(struct device *dev, int slot, int power_on,
-> @@ -346,9 +360,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
->  	else
->  		mmc->slots[0].ocr_mask = c->ocr_mask;
->  
-> -	if (cpu_is_omap3517() || cpu_is_omap3505())
-> -		mmc->slots[0].set_power = nop_mmc_set_power;
-> -	else
-> +	if (!cpu_is_omap3517() && !cpu_is_omap3505())
->  		mmc->slots[0].features |= HSMMC_HAS_PBIAS;
->  
->  	if (cpu_is_omap44xx() && (omap_rev() > OMAP4430_REV_ES1_0))
-> @@ -371,6 +383,9 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
->  			}
->  		}
->  
-> +		if (cpu_is_omap3517() || cpu_is_omap3505())
-> +			mmc->slots[0].set_power = nop_mmc_set_power;
-> +
->  		/* OMAP3630 HSMMC1 supports only 4-bit */
->  		if (cpu_is_omap3630() &&
->  				(c->caps & MMC_CAP_8_BIT_DATA)) {
-> @@ -380,6 +395,9 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
->  		}
->  		break;
->  	case 2:
-> +		if (cpu_is_omap3517() || cpu_is_omap3505())
-> +			mmc->slots[0].set_power = am35x_hsmmc2_set_power;
-> +
->  		if (c->ext_clock)
->  			c->transceiver = 1;
->  		if (c->transceiver && (c->caps & MMC_CAP_8_BIT_DATA)) {
+Hi Felipe,
 
--- 
-Regards,
-Igor.
+I'm really sorry about the long delay in responding,
+
+On Sun, 14 Aug 2011, Felipe Contreras wrote:
+
+> On Wed, Mar 25, 2009 at 7:54 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+> > Paul Walmsley <paul@pwsan.com> writes:
+> >> This series allows core code and driver code to register for
+> >> notification when a clock's rate or parent changes. =C2=A0This is curr=
+ently
+> >> used by driver code that must be notified whenever power management
+> >> code (e.g., CPUFreq) causes system rate changes that affect the driver=
+'s
+> >> clock.
+> >
+> > I will be re-basing the PM branch onto today's linux-omap HEAD which
+> > is v2.6.29 based. =C2=A0As I do this, I'll be dropping all the previous
+> > notifier patches and replacing them with this series.
+>=20
+> What happened to this series? I don't see it anywhere.
+
+Unforunately It got postponed for a long time for a variety of reasons. =20
+The good news is that it seems that others are starting to realize that=20
+something like this is needed, so hopefully it will finally go in as=20
+part of the common clock stuff.
+
+Just out of curiosity: you are interested in them from the DSPBridge=20
+perspective?  Or do you have another use-case in mind?
+
+regards
+
+- Paul
+--155748971-194036678-1323372372=:6289--
