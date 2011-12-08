@@ -1,127 +1,74 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC PATCH] arm:omap: cleanup & split omap2/3/4_check_revision
- function
-Date: Thu, 8 Dec 2011 13:40:04 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8050F45@DBDE01.ent.ti.com>
-References: <1320676991-32152-1-git-send-email-hvaibhav@ti.com>
- <79CD15C6BA57404B839C016229A409A803D9D5@DBDE01.ent.ti.com>
- <20111207234119.GQ31337@atomide.com>
+Subject: RE: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
+Date: Thu, 8 Dec 2011 13:45:47 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8050F6D@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1322808204-12878-1-git-send-email-hvaibhav@ti.com> <87y5up44bf.fsf@ti.com>
+ <20111207211029.GL31337@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45396 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58216 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796Ab1LHNkL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 08:40:11 -0500
-In-Reply-To: <20111207234119.GQ31337@atomide.com>
+	id S1751091Ab1LHNqI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 08:46:08 -0500
+In-Reply-To: <20111207211029.GL31337@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>
 
 
 > -----Original Message-----
 > From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Thursday, December 08, 2011 5:11 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [RFC PATCH] arm:omap: cleanup & split
-> omap2/3/4_check_revision function
+> Sent: Thursday, December 08, 2011 2:40 AM
+> To: Hilman, Kevin
+> Cc: Hiremath, Vaibhav; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; paul@pwsan.com
+> Subject: Re: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
 > 
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [111122 21:56]:
+> * Kevin Hilman <khilman@ti.com> [111206 15:52]:
+> > <hvaibhav@ti.com> writes:
+> >
+> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
 > > >
-> > > This patch doesn't change functionality or behavior of the code
-> > > execution; it barely cleans up the code and splits into SoC
-> > > specific implementation for ID and feature detection; makes
-> > > easier to add new SoC (especially for AM devices where we do not have
-> > > feature register).
-> ...
-> 
-> > If there are not review comments, can this be merged?
-> 
-> Sorry for the delay, the idea is good now that we don't need the
-> revision check super early any longer. Few comments below.
-> 
-
-Thanks for the comment, response in-lined below -
-
-> > > --- a/arch/arm/mach-omap2/id.c
-> > > +++ b/arch/arm/mach-omap2/id.c
-> > > @@ -226,9 +226,9 @@ static void __init omap4_check_features(void)
-> > >  	}
-> > >  }
+> > > This patch set adds support for AM335x device having
+> > > Cortex-A8 MPU.
 > > >
-> > > -static void __init ti816x_check_features(void)
-> > > +static void __init omap3_add_def_features(void)
-> > >  {
-> > > -	omap_features = OMAP3_HAS_NEON;
-> > > +	omap_features = OMAP3_HAS_NEON | OMAP3_HAS_L2CACHE;
-> > >  }
+> > > Official website - http://www.ti.com/product/am3359
 > > >
-> > >  static void __init omap3_check_revision(const char **cpu_rev)
+> > > AM335X is treated as another OMAP3 variant, where,
+> > > along with existing cpu class OMAP34XX, new cpu class AM33XX is
+> created
+> > > and the respective type is AM335X, which is newly added device in
+> > > the family.
+> > > This means, cpu_is_omap34xx(), cpu_is_am33xx() and
+> > > cpu_is_am335x() checks return success for AM335X.
+> > >
+> > > Also, I have validated OMAP3 boot test with this patch-series on
+> > > OMAP3EVM.
+> >
+> > Tony, this series looks good to me.
+> >
+> > I've also tested it on a BeagleBone, so feel free to also add:
+> >
+> > Tested-by: Kevin Hilman <khilman@ti.com>
 > 
-> Can you please split this patch a bit? First a patch that does not
-> change the behaviour except adds the SoC specific revision checks.
+> Thanks looks good to me. We still need the machine_id update to
+> apply patches 2 and 3 in this series, so applying only the first
+> patch into soc branch for now.
 > 
-> > > @@ -393,6 +394,7 @@ void __init omap2430_init_early(void)
-> > >  void __init omap3_init_early(void)
-> > >  {
-> > >  	omap2_set_globals_3xxx();
-> > > +	omap3xxx_check_revision(true);
-> > >  	omap_common_init_early();
-> > >  	omap3xxx_voltagedomains_init();
-> > >  	omap3xxx_powerdomains_init();
-> > > @@ -425,6 +427,7 @@ void __init am35xx_init_early(void)
-> > >  void __init ti816x_init_early(void)
-> > >  {
-> > >  	omap2_set_globals_ti816x();
-> > > +	omap3xxx_check_revision(false);
-> > >  	omap_common_init_early();
-> > >  	omap3xxx_voltagedomains_init();
-> > >  	omap3xxx_powerdomains_init();
-> 
-> Maybe just call ti816x_check_features separately?
-> 
-> 	omap3xxx_check_revision();
-> 	omap3xxx_check_features();
-> and
-> 	omap3xxx_check_revision();
-> 	ti816x_check_features();
-> 
-The reason why I did not do this is,
 
-In case of omap3_check_revision, 
+Tony,
 
-Void __init omap3xxx_check_revision()
-{
-	const char *cpu_rev;
+Should I ping Russell for this? The machine-id patch is already registered
+and present at
 
-	omap3_check_revision(&cpu_rev);
-	omap3_check_features();
-	omap3_cpuinfo(cpu_rev);
-}
-
-
-If I separate, omap3_check_revision() and omap3_check_features(), then I 
-have to maintain cpu_rev in the parent function. Also, I can not break the 
-sequence due to this dependency on cpu_rev. and I wanted to retain the void
-function calls in omap3_init_early().
-So I came up with this optimized and clean way of using "has_feature_reg" 
-Flag, and set to default features for AM family of devices.
-
-OR
-As you suggested, I have to maintain cpu_rev into function 
-omap3_init_early() and call the above 3 function in the sequence
-(alone for omap3).
-
-
-I am ok with any approach...
+http://www.arm.linux.org.uk/developer/machines/download.php
 
 Thanks,
 Vaibhav
 
-> Regards,
-> 
 > Tony
