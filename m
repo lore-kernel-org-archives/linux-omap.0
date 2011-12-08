@@ -1,48 +1,60 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] OMAP: PM support for OMAP4 MPU sub-system
-Date: Thu, 08 Dec 2011 11:45:27 -0800
-Message-ID: <87liqmkfu0.fsf@ti.com>
-References: <874nxaewbv.fsf@ti.com> <20111208191956.GC31337@atomide.com>
+From: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c_omap: correct OMAP_I2C_SYSC_REG offset
+Date: Thu, 8 Dec 2011 13:31:29 -0600
+Message-ID: <4EE11091.20404@ti.com>
+References: <1323355433-8508-1-git-send-email-a.aring@phytec.de> <87obvjj5l5.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:36144 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750794Ab1LHTpf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 14:45:35 -0500
-Received: by mail-iy0-f170.google.com with SMTP id z21so2089834iab.15
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 11:45:29 -0800 (PST)
-In-Reply-To: <20111208191956.GC31337@atomide.com> (Tony Lindgren's message of
-	"Thu, 8 Dec 2011 11:19:56 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87obvjj5l5.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, shubhrajyoti-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony Lindgren <tony@atomide.com> writes:
+Hi Kevin,
 
-> * Kevin Hilman <khilman@ti.com> [111208 10:14]:
->> Tony,
->> 
->> Please pull the OMAP4 MPUSS PM series below.  It is based on the
->> Russell's devel-stable branch due to dependencies
->> 
->> Kevin
->> 
->> The following changes since commit 3ee0fc5ca129cbae81c073756febcb1c552af446:
->> 
->>   Merge branch 'kexec/idmap' of git://git.kernel.org/pub/scm/linux/kernel/git/will/linux into devel-stable (2011-12-06 20:27:54 +0000)
+On 12/8/2011 12:12, Kevin Hilman wrote:
+> Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>  writes:
 >
-> I don't think there's a dependency here to the kexec/idmap commit?
+>> Correct OMAP_I2C_SYSC_REG offset in omap4 register map.
+>> Offset 0x20 is reserved and OMAP_I2C_SYSC_REG has 0x10 as offset.
+>>
+>> Signed-off-by: Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+>
+> Thanks for the patch!
+>
+> A different approach to fix this is being done by Shubhrajyoti[1] as
+> part of his reset series.
+>
+> However, I think we should probably apply this patch for v3.2 and also
+> send to the stable kernel for v3.0&  v3.1.
+>
+> Shubhrajyoti/Jon, any objections to me queuing this fix for v3.2 (and
+> stable.)  It would just mean rebasing your other fixes and cleanup
+> series on top of this.
 
-Nope.
+I have no issue with that and I am in favour of getting the fix in now.
 
-> Great yeah this is badly needed. One minor thing, can you please rebase
-> this on one commit earlier to commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a
-> (ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM
-> restart changes) as that's what we have as the base for other branches.
+Cheers
+Jon
 
-Done, pushed updated branch.
-
-Kevin
-
+>
+>> ---
+>>   drivers/i2c/busses/i2c-omap.c |    2 +-
+>>   1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+>> index a43d002..fc3bb37 100644
+>> --- a/drivers/i2c/busses/i2c-omap.c
+>> +++ b/drivers/i2c/busses/i2c-omap.c
+>> @@ -235,7 +235,7 @@ static const u8 reg_map_ip_v2[] = {
+>>   	[OMAP_I2C_BUF_REG] = 0x94,
+>>   	[OMAP_I2C_CNT_REG] = 0x98,
+>>   	[OMAP_I2C_DATA_REG] = 0x9c,
+>> -	[OMAP_I2C_SYSC_REG] = 0x20,
+>> +	[OMAP_I2C_SYSC_REG] = 0x10,
+>>   	[OMAP_I2C_CON_REG] = 0xa4,
+>>   	[OMAP_I2C_OA_REG] = 0xa8,
+>>   	[OMAP_I2C_SA_REG] = 0xac,
