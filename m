@@ -1,105 +1,97 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: In-band Error seen by IVA_SS at address 0
-Date: Thu, 8 Dec 2011 20:43:06 +0200
-Message-ID: <CAMP44s2nRzCXJdv3iHjSk0H_pkhb2DtXZ8cQJ61t6o0Ff=vc=Q@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [GIT PULL] OMAP: PM support for OMAP4 MPU sub-system
+Date: Thu, 08 Dec 2011 10:45:40 -0800
+Message-ID: <874nxaewbv.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40428 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345Ab1LHSnH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 13:43:07 -0500
-Received: by bkbzv3 with SMTP id zv3so1950443bkb.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 10:43:06 -0800 (PST)
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:47992 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751272Ab1LHSpn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 13:45:43 -0500
+Received: by iakk12 with SMTP id k12so3960565iak.35
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 10:45:42 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Omar Ramirez Luna <or.rmz1@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Hi,
+Tony,
 
-I get this while loading the bridgedriver:
+Please pull the OMAP4 MPUSS PM series below.  It is based on the
+Russell's devel-stable branch due to dependencies
 
-Jan =C2=A02 03:03:36 buildroot user.warn kernel: WARNING: at
-arch/arm/mach-omap2/omap_l3_smx.c:161 omap3_l3_app_irq+0xe8/0x12c()Jan
-=C2=A02 03:03:36 buildroot user.warn kernel: In-band Error seen by IVA_=
-SS
-at address 0Jan =C2=A02 03:03:36 buildroot user.warn kernel: Modules li=
-nked
-in: bridgedriver(C+) mailbox_mach mailbox ipv6 g_etherJan =C2=A02 03:03=
-:36
-buildroot user.warn kernel: [<c0012aa4>] (unwind_backtrace+0x0/0xec)
-from [<c002f988>] (warn_slowpath_common+0x4c/0x64)Jan =C2=A02 03:03:36
-buildroot user.warn kernel: [<c002f988>]
-(warn_slowpath_common+0x4c/0x64) from [<c002fa20>]
-(warn_slowpath_fmt+0x2c/0x3c)Jan =C2=A02 03:03:36 buildroot user.warn
-kernel: [<c002fa20>] (warn_slowpath_fmt+0x2c/0x3c) from [<c0021d84>]
-(omap3_l3_app_irq+0xe8/0x12c)Jan =C2=A02 03:03:36 buildroot user.warn
-kernel: [<c0021d84>] (omap3_l3_app_irq+0xe8/0x12c) from [<c005a344>]
-(handle_irq_event_percpu+0x28/0x174)Jan =C2=A02 03:03:36 buildroot
-user.warn kernel: [<c005a344>] (handle_irq_event_percpu+0x28/0x174)
-from [<c005a4b8>] (handle_irq_event+0x28/0x38)Jan =C2=A02 03:03:36
-buildroot user.warn kernel: [<c005a4b8>] (handle_irq_event+0x28/0x38)
-from [<c005c8d4>] (handle_level_irq+0xb8/0xe0)Jan =C2=A02 03:03:36
-buildroot user.warn kernel: [<c005c8d4>] (handle_level_irq+0xb8/0xe0)
-from [<c0059ff4>] (generic_handle_irq+0x28/0x30)Jan =C2=A02 03:03:36
-buildroot user.warn kernel: [<c0059ff4>]
-(generic_handle_irq+0x28/0x30) from [<c000e80c>]
-(handle_IRQ+0x60/0x84)Jan =C2=A02 03:03:36 buildroot user.warn kernel:
-[<c000e80c>] (handle_IRQ+0x60/0x84) from [<c000d4f4>]
-(__irq_svc+0x34/0x80)Jan =C2=A02 03:03:36 buildroot user.warn kernel:
-[<c000d4f4>] (__irq_svc+0x34/0x80) from [<c0015b44>]
-(v7_dma_inv_range+0x34/0x48)Jan =C2=A02 03:03:36 buildroot user.warn
-kernel: [<c0015b44>] (v7_dma_inv_range+0x34/0x48) from [<c0012c3c>]
-(dma_cache_maint_page+0x3c/0x48)Jan =C2=A02 03:03:36 buildroot user.war=
-n
-kernel: [<c0012c3c>] (dma_cache_maint_page+0x3c/0x48) from
-[<c0012c88>] (___dma_page_dev_to_cpu+0x24/0x68)Jan =C2=A02 03:03:36
-buildroot user.warn kernel: [<c0012c88>]
-(___dma_page_dev_to_cpu+0x24/0x68) from [<c0012e64>]
-(dma_unmap_sg+0x48/0x70)Jan =C2=A02 03:03:36 buildroot user.warn kernel=
-:
-[<c0012e64>] (dma_unmap_sg+0x48/0x70) from [<c01aae50>]
-(omap_hsmmc_post_req+0x3c/0x48)Jan =C2=A02 03:03:36 buildroot user.warn
-kernel: [<c01aae50>] (omap_hsmmc_post_req+0x3c/0x48) from [<c019d984>]
-(mmc_post_req+0x18/0x1c)Jan =C2=A02 03:03:36 buildroot user.warn kernel=
-:
-[<c019d984>] (mmc_post_req+0x18/0x1c) from [<c019fed0>]
-(mmc_start_req+0xd4/0xec)Jan =C2=A02 03:03:36 buildroot user.warn kerne=
-l:
-[<c019fed0>] (mmc_start_req+0xd4/0xec) from [<c01a8428>]
-(mmc_blk_issue_rw_rq+0x70/0x2f8)Jan =C2=A02 03:03:36 buildroot user.war=
-n
-kernel: [<c01a8428>] (mmc_blk_issue_rw_rq+0x70/0x2f8) from
-[<c01a8a90>] (mmc_blk_issue_rq+0x3e0/0x410)Jan =C2=A02 03:03:36 buildro=
-ot
-user.warn kernel: [<c01a8a90>] (mmc_blk_issue_rq+0x3e0/0x410) from
-[<c01a98d0>] (mmc_queue_thread+0x8c/0xf8)Jan =C2=A02 03:03:36 buildroot
-user.warn kernel: [<c01a98d0>] (mmc_queue_thread+0x8c/0xf8) from
-[<c0045308>] (kthread+0x84/0x8c)Jan =C2=A02 03:03:36 buildroot user.war=
-n
-kernel: [<c0045308>] (kthread+0x84/0x8c) from [<c000e874>]
-(kernel_thread_exit+0x0/0x8)Jan =C2=A02 03:03:36 buildroot user.warn
-kernel: ---[ end trace 1b75b31a2719ed1f ]---Jan =C2=A02 03:03:36 buildr=
-oot
-user.info kernel: proc_start: dsp in running stateJan =C2=A02 03:03:36
-buildroot user.info kernel: DSP Bridge driver loaded
+Kevin
 
-I have applied these patches to no avail:
-http://article.gmane.org/gmane.linux.ports.arm.omap/66933
-http://article.gmane.org/gmane.linux.ports.arm.omap/66542
+The following changes since commit 3ee0fc5ca129cbae81c073756febcb1c552af446:
 
-And when I remove the driver I get:
-Jan  2 03:13:08 buildroot user.err kernel: omap-dsp omap-dsp: ERR:
-clock id 2 already disabled
+  Merge branch 'kexec/idmap' of git://git.kernel.org/pub/scm/linux/kernel/git/will/linux into devel-stable (2011-12-06 20:27:54 +0000)
 
-Everything seems to work fine, but I find it strange. Any ideas?
+are available in the git repository at:
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.3/pm/omap4-mpuss
+
+Santosh Shilimkar (24):
+      ARM: OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
+      ARM: OMAP4: Export omap4_get_base*() rather than global address pointers
+      ARM: OMAP4: PM: Add SAR RAM support
+      ARM: OMAP4: PM: Keep static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3
+      ARM: OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
+      ARM: OMAP4: PM: Initialise all the clockdomains to supported states
+      ARM: OMAP: Add Secure HAL and monitor mode API infrastructure.
+      ARM: OMAP: PM: Add support to allocate the memory for secure RAM
+      ARM: OMAP4: PM: Add WakeupGen module as OMAP gic_arch_extn
+      ARM: OMAP4: PM: Add CPUX OFF mode support
+      ARM: OMAP4: Remove __INIT from omap_secondary_startup() to re-use it for hotplug.
+      ARM: OMAP4: PM: Program CPU1 to hit OFF when off-lined
+      ARM: OMAP4: PM: CPU1 wakeup workaround from Low power modes
+      ARM: OMAP4: PM: Use custom omap_do_wfi() for default idle.
+      ARM: OMAP4: suspend: Add MPUSS power domain RETENTION support
+      ARM: OMAP4: Remove un-used do_wfi() macro.
+      ARM: OMAP4: PM: Add WakeupGen and secure GIC low power support
+      ARM: OMAP4: PM: Add L2X0 cache lowpower support
+      ARM: OMAP4: PM: Add MPUSS power domain OSWR support
+      ARM: OMAP4: PM: Add power domain statistics support
+      ARM: OMAP4: Fix errata i688 with MPU interconnect barriers.
+      ARM: OMAP4: PM: Add CPUidle support
+      ARM: OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
+      ARM: OMAP3: CPUidle: Make use of CPU PM notifiers
+
+ arch/arm/mach-omap2/Kconfig                        |   21 +
+ arch/arm/mach-omap2/Makefile                       |   16 +-
+ arch/arm/mach-omap2/common.h                       |   64 +++-
+ arch/arm/mach-omap2/cpuidle34xx.c                  |   15 +
+ arch/arm/mach-omap2/cpuidle44xx.c                  |  245 ++++++++++++
+ arch/arm/mach-omap2/include/mach/barriers.h        |   31 ++
+ arch/arm/mach-omap2/include/mach/omap-secure.h     |   57 +++
+ arch/arm/mach-omap2/include/mach/omap-wakeupgen.h  |   39 ++
+ arch/arm/mach-omap2/io.c                           |    9 +
+ arch/arm/mach-omap2/omap-headsmp.S                 |    5 -
+ arch/arm/mach-omap2/omap-hotplug.c                 |   14 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  398 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap-secure.c                  |   81 ++++
+ arch/arm/mach-omap2/{omap44xx-smc.S => omap-smc.S} |   23 ++
+ arch/arm/mach-omap2/omap-smp.c                     |   45 +++
+ arch/arm/mach-omap2/omap-wakeupgen.c               |  389 +++++++++++++++++++
+ arch/arm/mach-omap2/omap4-common.c                 |   94 +++++-
+ arch/arm/mach-omap2/omap4-sar-layout.h             |   50 +++
+ arch/arm/mach-omap2/pm.h                           |    1 +
+ arch/arm/mach-omap2/pm44xx.c                       |  153 ++++++++-
+ arch/arm/mach-omap2/sleep44xx.S                    |  379 +++++++++++++++++++
+ arch/arm/plat-omap/common.c                        |    3 +
+ arch/arm/plat-omap/include/plat/omap-secure.h      |   13 +
+ arch/arm/plat-omap/include/plat/omap44xx.h         |    1 +
+ arch/arm/plat-omap/include/plat/sram.h             |    6 +-
+ arch/arm/plat-omap/sram.c                          |    8 +
+ 26 files changed, 2126 insertions(+), 34 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/barriers.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap-secure.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+ create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
+ create mode 100644 arch/arm/mach-omap2/omap-secure.c
+ rename arch/arm/mach-omap2/{omap44xx-smc.S => omap-smc.S} (70%)
+ create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
+ create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
+ create mode 100644 arch/arm/mach-omap2/sleep44xx.S
+ create mode 100644 arch/arm/plat-omap/include/plat/omap-secure.h
