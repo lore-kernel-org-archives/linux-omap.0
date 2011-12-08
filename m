@@ -1,57 +1,46 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Thu, 8 Dec 2011 13:10:04 -0600
-Message-ID: <CAB-zwWiNkD=jinUgvdd6w8-2BCYTB+TiPBJij+LgY13gO=NQoQ@mail.gmail.com>
-References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
-	<CAMP44s0OvrrWnYJzowkMUT7-jHKYS=LZUty=e1d9gM=OZT-0Ow@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] OMAP: PM support for OMAP4 MPU sub-system
+Date: Thu, 8 Dec 2011 11:19:56 -0800
+Message-ID: <20111208191956.GC31337@atomide.com>
+References: <874nxaewbv.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:51850 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750861Ab1LHTKJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 14:10:09 -0500
-Received: by faan2 with SMTP id n2so1132399faa.1
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 11:10:06 -0800 (PST)
-In-Reply-To: <CAMP44s0OvrrWnYJzowkMUT7-jHKYS=LZUty=e1d9gM=OZT-0Ow@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:19468 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164Ab1LHTT7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 14:19:59 -0500
+Content-Disposition: inline
+In-Reply-To: <874nxaewbv.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Wed, Dec 7, 2011 at 4:11 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Sat, Nov 19, 2011 at 12:18 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
->> Given that dm timer framework doesn't support request of clocks
->> by soft | hard irqs because some recent changes, tidspbridge needs
->> to request its clocks on init and enable/disable them on demand.
->>
->> This was first seen on 3.2-rc1.
->>
->> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->
-> This looks similar similar to this one:
-> http://article.gmane.org/gmane.linux.ports.arm.omap/61816
->
-> Are you sure this is what we want instead of that one?
+* Kevin Hilman <khilman@ti.com> [111208 10:14]:
+> Tony,
+> 
+> Please pull the OMAP4 MPUSS PM series below.  It is based on the
+> Russell's devel-stable branch due to dependencies
+> 
+> Kevin
+> 
+> The following changes since commit 3ee0fc5ca129cbae81c073756febcb1c552af446:
+> 
+>   Merge branch 'kexec/idmap' of git://git.kernel.org/pub/scm/linux/kernel/git/will/linux into devel-stable (2011-12-06 20:27:54 +0000)
 
-I believe your patch only takes care of gpt5 and gpt6, but not of the
-other 2 that could be requested by the dsp, let's say gpt8 for avsync.
+I don't think there's a dependency here to the kexec/idmap commit?
 
-As for this patch, dm timer framework should support request on soft
-or hard irq[1], but it can't because the underlying functions to use
-clk_get->clk_get_sys which holds a mutex.
+Great yeah this is badly needed. One minor thing, can you please rebase
+this on one commit earlier to commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a
+(ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM
+restart changes) as that's what we have as the base for other branches.
 
-I believe your error was seen because of patches not in mainline, but
-the concept between the patches is similar indeed, however mine:
-
-- Handles the other gpt that can be requested by the dsp.
-- Uses start/stop according to future plans of making enable/disable static.
-- Might be temporal if *dm_timer_request* functions are fixed and
-there is an overall feeling that we can revert to use
-request+start/stop+free on request.
+It sounds like we'll have to base board branch to something later in
+devel-stable for the machine_id, but from generating pull requests point
+of view it's best to have the same base for other branches unless
+there are new dependencies involved.
 
 Regards,
-Omar,
----
-[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg58665.html
+
+Tony
