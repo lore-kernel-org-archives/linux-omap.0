@@ -1,52 +1,149 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] OMAP: PM support for OMAP4 MPU sub-system
-Date: Thu, 8 Dec 2011 13:29:17 -0800
-Message-ID: <20111208212917.GD31337@atomide.com>
-References: <874nxaewbv.fsf@ti.com>
- <20111208191956.GC31337@atomide.com>
- <87liqmkfu0.fsf@ti.com>
+From: Andre Puschmann <andre.puschmann@tu-ilmenau.de>
+Subject: [PATCH] fix issue where hwmods are being called twice during init
+Date: Thu, 08 Dec 2011 22:36:13 +0100
+Message-ID: <jbrake$vnf$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------020707010802030402050803"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38489 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751770Ab1LHV3U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 16:29:20 -0500
-Content-Disposition: inline
-In-Reply-To: <87liqmkfu0.fsf@ti.com>
+Received: from lo.gmane.org ([80.91.229.12]:54669 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752285Ab1LHVkK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Dec 2011 16:40:10 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1RYlhI-0005cI-NP
+	for linux-omap@vger.kernel.org; Thu, 08 Dec 2011 22:40:08 +0100
+Received: from dslb-178-008-122-127.pools.arcor-ip.net ([178.8.122.127])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 22:40:08 +0100
+Received: from andre.puschmann by dslb-178-008-122-127.pools.arcor-ip.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 22:40:08 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@ti.com> [111208 11:13]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Kevin Hilman <khilman@ti.com> [111208 10:14]:
-> >> Tony,
-> >> 
-> >> Please pull the OMAP4 MPUSS PM series below.  It is based on the
-> >> Russell's devel-stable branch due to dependencies
-> >> 
-> >> Kevin
-> >> 
-> >> The following changes since commit 3ee0fc5ca129cbae81c073756febcb1c552af446:
-> >> 
-> >>   Merge branch 'kexec/idmap' of git://git.kernel.org/pub/scm/linux/kernel/git/will/linux into devel-stable (2011-12-06 20:27:54 +0000)
-> >
-> > I don't think there's a dependency here to the kexec/idmap commit?
-> 
-> Nope.
-> 
-> > Great yeah this is badly needed. One minor thing, can you please rebase
-> > this on one commit earlier to commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a
-> > (ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM
-> > restart changes) as that's what we have as the base for other branches.
-> 
-> Done, pushed updated branch.
+This is a multi-part message in MIME format.
+--------------020707010802030402050803
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Thanks a lot, pulled into omap4 branch and pushed out.
+Hi list,
 
-Regards,
+when compiling the current git HEAD for a Gumstix Overo based board I
+discovered an issue during init causing the error message which is
+attached. I believe this is because they are called twice during init
+(the omap34xx_hwmods struct already contains them).
 
-Tony
+The attached patch fixes this issue.
+
+BR
+Andre
+
+Signed-off-by: Andre Puschmann <andre.puschmann@tu-ilmenau.de>
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 7f8915a..eef43e2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3247,18 +3247,14 @@ static __initdata struct omap_hwmod
+*omap3xxx_hwmods[] = {
+
+ /* 3430ES1-only hwmods */
+ static __initdata struct omap_hwmod *omap3430es1_hwmods[] = {
+-	&omap3xxx_iva_hwmod,
+ 	&omap3430es1_dss_core_hwmod,
+-	&omap3xxx_mailbox_hwmod,
+ 	NULL
+ };
+
+ /* 3430ES2+-only hwmods */
+ static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
+-	&omap3xxx_iva_hwmod,
+ 	&omap3xxx_dss_core_hwmod,
+ 	&omap3xxx_usbhsotg_hwmod,
+-	&omap3xxx_mailbox_hwmod,
+ 	NULL
+ };
+
+
+
+Kernel output:
+
+------------[ cut here ]------------
+[    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1959
+omap_hwmod_r)
+[    0.000000] omap_hwmod: iva: _register returned -22
+[    0.000000] Modules linked in:
+[    0.000000] [<c001b478>] (unwind_backtrace+0x0/0xf0) from
+[<c0053a70>] (wa)
+[    0.000000] [<c0053a70>] (warn_slowpath_common+0x4c/0x64) from
+[<c0053b1c>)
+[    0.000000] [<c0053b1c>] (warn_slowpath_fmt+0x30/0x40) from
+[<c0681690>] ()
+[    0.000000] [<c0681690>] (omap_hwmod_register+0x11c/0x158) from
+[<c067e9e8)
+[    0.000000] [<c067e9e8>] (omap3_init_early+0x1c/0x28) from
+[<c067ad50>] (s)
+[    0.000000] [<c067ad50>] (setup_arch+0x814/0x934) from [<c0677560>]
+(start)
+[    0.000000] [<c0677560>] (start_kernel+0x80/0x304) from [<80008044>]
+(0x80)
+[    0.000000] ---[ end trace 1b75b31a2719ed1c ]---
+[    0.000000] ------------[ cut here ]------------
+[    0.000000] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1959
+omap_hwmod_r)
+[    0.000000] omap_hwmod: mailbox: _register returned -22
+[    0.000000] Modules linked in:
+[    0.000000] [<c001b478>] (unwind_backtrace+0x0/0xf0) from
+[<c0053a70>] (wa)
+[    0.000000] [<c0053a70>] (warn_slowpath_common+0x4c/0x64) from
+[<c0053b1c>)
+[    0.000000] [<c0053b1c>] (warn_slowpath_fmt+0x30/0x40) from
+[<c0681690>] ()
+[    0.000000] [<c0681690>] (omap_hwmod_register+0x11c/0x158) from
+[<c067e9e8)
+[    0.000000] [<c067e9e8>] (omap3_init_early+0x1c/0x28) from
+[<c067ad50>] (s)
+[    0.000000] [<c067ad50>] (setup_arch+0x814/0x934) from [<c0677560>]
+(start)
+[    0.000000] [<c0677560>] (start_kernel+0x80/0x304) from [<80008044>]
+(0x80)
+[    0.000000] ---[ end trace 1b75b31a2719ed1d ]---
+
+--------------020707010802030402050803
+Content-Type: text/x-patch;
+ name="remove_double_call_hwmods.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="remove_double_call_hwmods.patch"
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 7f8915a..eef43e2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3247,18 +3247,14 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 
+ /* 3430ES1-only hwmods */
+ static __initdata struct omap_hwmod *omap3430es1_hwmods[] = {
+-	&omap3xxx_iva_hwmod,
+ 	&omap3430es1_dss_core_hwmod,
+-	&omap3xxx_mailbox_hwmod,
+ 	NULL
+ };
+ 
+ /* 3430ES2+-only hwmods */
+ static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
+-	&omap3xxx_iva_hwmod,
+ 	&omap3xxx_dss_core_hwmod,
+ 	&omap3xxx_usbhsotg_hwmod,
+-	&omap3xxx_mailbox_hwmod,
+ 	NULL
+ };
+ 
+
+--------------020707010802030402050803--
+
