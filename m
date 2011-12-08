@@ -1,62 +1,83 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 0/7] Introducing a generic AMP framework
-Date: Thu, 8 Dec 2011 09:50:59 +0200
-Message-ID: <CAK=WgbbmZR5gPqD-0Dc2jWom9J_z+iV0+nAB-BAFedbTqXk0Mw@mail.gmail.com>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
- <874nywpfkd.fsf@rustcorp.com.au> <CAK=WgbaF=yvGXvJdENrMoi4wWxaQa3UpbtsRm3mcA3cFdDCitA@mail.gmail.com>
- <87obw31v31.fsf@rustcorp.com.au> <CAK=WgbYVscyeJ5Og5iPx-tjEApa2KgAR1bnZiZUUcv0HxBEtOw@mail.gmail.com>
+Subject: Re: [PATCH 4/7] amp/omap: add a remoteproc driver
+Date: Thu, 8 Dec 2011 09:57:43 +0200
+Message-ID: <CAK=WgbZvH3eiouryKDenC_x0LdDcHFuumhfoeY4ueiwT5r0cxA@mail.gmail.com>
+References: <1319536106-25802-1-git-send-email-ohad@wizery.com> <1319536106-25802-5-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:53497 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817Ab1LHHvU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 02:51:20 -0500
-In-Reply-To: <CAK=WgbYVscyeJ5Og5iPx-tjEApa2KgAR1bnZiZUUcv0HxBEtOw@mail.gmail.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:53766 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829Ab1LHH6I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 02:58:08 -0500
+In-Reply-To: <1319536106-25802-5-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+Cc: akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Russell King <linux@arm.linux.org.uk>, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>
 
-Hi Rusty,
+Hi Tony,
 
-On Wed, Nov 23, 2011 at 11:58 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> On Wed, Nov 23, 2011 at 3:33 AM, Rusty Russell <rusty@rustcorp.com.au> wrote:
->> That would imply that I'd done more than glance over them, and
->> unfortunately I haven't :(
+On Tue, Oct 25, 2011 at 11:48 AM, Ohad Ben-Cohen <ohad@wizery.com> wrot=
+e:
+> Add a remoteproc driver for OMAP4, so we can boot the dual-M3 "Ducati=
+"
+> and DSP subsystems.
 >
-> Np, thanks for glancing :)
+> Use the omap_device_* API to control the hardware state, and utilize
+> the OMAP mailbox to interrupt the remote processor when a new message
+> is pending (the mailbox payload is used to tell it which virtqueue wa=
+s
+> the message placed in).
+>
+> Conversely, when an inbound mailbox message arrives, tell the remotep=
+roc
+> core which virtqueue is triggered.
+>
+> Later we will also use the mailbox payload to signal omap-specific
+> events like remote crashes (which will be used to trigger remoteproc
+> recovery) and power management transitions. At that point we will als=
+o
+> extend the remoteproc core to support this.
+>
+> Based on (but now quite far from) work done by Fernando Guzman Lugo
+> <fernando.lugo@ti.com> and Hari Kanigeri <h-kanigeri2@ti.com>.
+>
+> Designed with Brian Swetland <swetland@google.com>.
+>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Brian Swetland <swetland@google.com>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Rusty Russell <rusty@rustcorp.com.au>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Greg KH <greg@kroah.com>
+> Cc: Stephen Boyd <sboyd@codeaurora.org>
+> ---
+> =A0arch/arm/plat-omap/include/plat/remoteproc.h | =A0 56 ++++++
+> =A0drivers/amp/remoteproc/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 2=
+1 +++
+> =A0drivers/amp/remoteproc/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
+4 +-
+> =A0drivers/amp/remoteproc/omap_remoteproc.c =A0 =A0 | =A0248 ++++++++=
+++++++++++++++++++
+> =A0drivers/amp/remoteproc/omap_remoteproc.h =A0 =A0 | =A0 69 +++++++
+> =A05 files changed, 397 insertions(+), 1 deletions(-)
+> =A0create mode 100644 arch/arm/plat-omap/include/plat/remoteproc.h
+> =A0create mode 100644 drivers/amp/remoteproc/omap_remoteproc.c
+> =A0create mode 100644 drivers/amp/remoteproc/omap_remoteproc.h
 
-I'd still like to ask for your Ack at least for the virtio_ids.h
-change (please see below, and for the full patch, see
-http://www.spinics.net/lists/linux-omap/msg59537.html):
-
-Anyone following our threads will know you approved it, but I'm still
-technically required to have your explicit ack as long as the patch
-isn't going through your tree.
-
-I can always add something like:
-
-Virtio_ids.h-change-acked-by: Rusty Russell <rusty@rustcorp.com.au>
-
-So it doesn't imply anything else but this specific change, or I can
-just put that hunk in a separate patch, and add then add your Acked-by
-(so it doesn't imply anything on the rest of the patch set).
-
-Does that sound reasonable to you ?
+I'm about to add this to linux-next (minus the 'amp' wording); can I
+please have your Acked-by for this (at least for the plat-omap change) =
+?
 
 Thanks,
 Ohad.
-
-diff --git a/include/linux/virtio_ids.h b/include/linux/virtio_ids.h
-index 85bb0bb..b37c521 100644
---- a/include/linux/virtio_ids.h
-+++ b/include/linux/virtio_ids.h
-@@ -34,6 +34,7 @@
- #define VIRTIO_ID_CONSOLE      3 /* virtio console */
- #define VIRTIO_ID_RNG          4 /* virtio ring */
- #define VIRTIO_ID_BALLOON      5 /* virtio balloon */
-+#define VIRTIO_ID_RPMSG                7 /* virtio remote processor messaging *
- #define VIRTIO_ID_9P           9 /* 9p virtio console */
-
- #endif /* _LINUX_VIRTIO_IDS_H */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
