@@ -1,77 +1,237 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 63/65] OMAPDSS: APPLY: add checking of ovls/mgrs
- settings
-Date: Thu, 08 Dec 2011 10:29:25 +0200
-Message-ID: <1323332965.1867.20.camel@deskari>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1321953724-6350-64-git-send-email-tomi.valkeinen@ti.com>
-	 <4EDF64AF.6040008@ti.com>
+From: Alex <alexg@meprolight.com>
+Subject: [PATCH] ARM: OMAP3LOGIC: Adding DSS support
+Date: Thu, 8 Dec 2011 14:05:48 +0200
+Message-ID: <1323345948-14533-1-git-send-email-alexg@meprolight.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Zh5JlGtqhq9lwGSgn8ja"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45593 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750753Ab1LHI3c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 03:29:32 -0500
-In-Reply-To: <4EDF64AF.6040008@ti.com>
+Received: from mail.meprolight.com ([194.90.149.17]:43528 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750763Ab1LHMRn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Dec 2011 07:17:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tim.nordell@logicpd.com, baruch@tkos.co.il, Alex <alexg@meprolight.com>
 
+This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
+TV-out are supported.
 
---=-Zh5JlGtqhq9lwGSgn8ja
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+---
+ arch/arm/mach-omap2/board-omap3logic.c |  151 ++++++++++++++++++++++++++++++++
+ 1 files changed, 151 insertions(+), 0 deletions(-)
 
-On Wed, 2011-12-07 at 18:35 +0530, Archit Taneja wrote:
-> Hi,
->=20
-> On Tuesday 22 November 2011 02:52 PM, Tomi Valkeinen wrote:
-> > Add checks for overlay and manager settings. The checks are a bit
-> > complex, as we need to observe the bigger picture instead of overlays
-> > and managers independently. Things like the used display and the zorder
-> > of other overlays affect the validity of the settings.
->=20
-> Minor comment:
->=20
-> dss_ovl_check, dss_mgr_check and dss_mgr_check_zorder don't really=20
-> qualify as functions which do actual applying of configurations, they=20
-> could be moved from apply.c to manager.c and overlay.c.
-
-I had the check functions in apply.c because they used apply.c's
-internal datastructures.
-
-However, looking the functions now, only dss_mgr_check_zorder() used the
-internal datas, and the function doesn't even use those variables for
-anything =3D).
-
-So you're right, they can be moved to manager.c and overlay.c, thanks.
-
- Tomi
-
-
---=-Zh5JlGtqhq9lwGSgn8ja
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJO4HVlAAoJEPo9qoy8lh71SvwQAKD7Z6uSLo7UvUciEpKdt185
-VeB4qhxljteT1PfQe6m6RD53gXq40lMgSyk9NEBhE4Y7XIyobXtnrC+WvpLUVXYH
-+3s9cjBX7f8Bs5qMwXFwvkbPsanZUcWWfljSc1ctqMUEGVZ2e8c/7egyEInK1EAm
-7XnPVcFh+ZTPXoh2hjVXUQfNuLyD6U8/yn9rknzPfOshc2pNK6aomum1/H8OHYtj
-GVo2fDaUT5aSMXYvv79HCckCD5mdZztd7QuvpShIqmWSkj0LfkI3dmEgRY6WhteZ
-FsgsuXbHsPcmupbEBaGHuvQgm9jFqeR05j+u6teebS921IqgT63maBNhVDJm6evI
-FZw+IS8+A4rl4wQlYqEM/EkHTABTWP2dHCrtef9XcMPReM3VcE4xTXLzLM472CnQ
-YXJfqCNkwBjoHf17wdullyZlCfAXSHe2VHEu+BqW0m+XWDb1tdAohJD3o1H5pAtt
-ID2ptSlFGm6011N7HRd2AuxdB0nmnzxMr5eM9TsWf0s30HBc909P02UVw41sglsB
-N6Z73t1Jot70r+TJmcanyPxnjYK3mfVKrmkfKkNcLBXJzzDZj/rDD2SOdFORHQwi
-tNHADFJQtVLNBXfUf1BBH7BNDKlB1rlrJHCIbNnKGL7s3tDokL2JeE/SIq92KhSe
-Q69DT2H2oJTIg9ZLlaiY
-=ueCc
------END PGP SIGNATURE-----
-
---=-Zh5JlGtqhq9lwGSgn8ja--
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 7c0f193..86175fa 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -7,6 +7,9 @@
+  * Copyright (C) 2010 Logic Product Development, Inc.
+  * Peter Barada <peter.barada@logicpd.com>
+  *
++ * Copyright (C) 2011 Meprolight, Ltd.
++ * Alex Gershgorin <alexg@meprolight.com>
++ *
+  * Modified from Beagle, EVM, and RX51
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -44,6 +47,10 @@
+ #include <plat/gpmc-smsc911x.h>
+ #include <plat/gpmc.h>
+ #include <plat/sdrc.h>
++#include <plat/vram.h>
++
++#include <video/omapdss.h>
++#include <video/omap-panel-generic-dpi.h>
+ 
+ #define OMAP3LOGIC_SMSC911X_CS			1
+ 
+@@ -58,6 +65,14 @@ static struct regulator_consumer_supply omap3logic_vmmc1_supply[] = {
+ 	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
+ };
+ 
++static struct regulator_consumer_supply omap3logic_vdds_supplies[] = {
++	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
++	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
++};
++
++static struct regulator_consumer_supply omap3logic_vdac_supply =
++	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
++
+ /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+ static struct regulator_init_data omap3logic_vmmc1 = {
+ 	.constraints = {
+@@ -74,6 +89,34 @@ static struct regulator_init_data omap3logic_vmmc1 = {
+ 	.consumer_supplies      = omap3logic_vmmc1_supply,
+ };
+ 
++static struct regulator_init_data omap3logic_vpll2 = {
++	.constraints = {
++		.name			= "VDDS_DSI",
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.apply_uV		= true,
++		.always_on		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE,
++	},
++	.num_consumer_supplies  = ARRAY_SIZE(omap3logic_vdds_supplies),
++	.consumer_supplies      = omap3logic_vdds_supplies,
++};
++
++static struct regulator_init_data omap3logic_vdac = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &omap3logic_vdac_supply,
++};
++
+ static struct twl4030_gpio_platform_data omap3logic_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -91,6 +134,8 @@ static struct twl4030_platform_data omap3logic_twldata = {
+ 	/* platform_data for children goes here */
+ 	.gpio		= &omap3logic_gpio_data,
+ 	.vmmc1		= &omap3logic_vmmc1,
++	.vpll2		= &omap3logic_vpll2,
++	.vdac		= &omap3logic_vdac,
+ };
+ 
+ static int __init omap3logic_i2c_init(void)
+@@ -182,6 +227,110 @@ static inline void __init board_smsc911x_init(void)
+ 	gpmc_smsc911x_init(&board_smsc911x_data);
+ }
+ 
++#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++
++#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO	154
++#define OMAP3_TORPEDO_LCD_ENABLE_GPIO		155
++#define OMAP3_TORPEDO_LCD_PWM_GPIO		56
++
++static struct gpio omap3logic_dss_gpios[] __initdata = {
++	{OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
++	{OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
++	{OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
++};
++
++static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
++	msleep(20);
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
++
++	return 0;
++}
++
++static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
++	msleep(20);
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
++}
++
++static struct panel_generic_dpi_data lcd_panel = {
++	.name			= "sharp_lq",
++	.platform_enable	= omap3logic_enable_lcd,
++	.platform_disable	= omap3logic_disable_lcd,
++};
++
++static struct omap_dss_device omap3logic_lcd_device = {
++	.name			= "lcd",
++	.driver_name		= "generic_dpi_panel",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.data			= &lcd_panel,
++	.phy.dpi.data_lines	= 16,
++};
++
++static struct omap_dss_device omap3logic_tv_device = {
++	.name			= "tv",
++	.driver_name		= "venc",
++	.type			= OMAP_DISPLAY_TYPE_VENC,
++	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
++};
++
++static struct omap_dss_device *omap3logic_dss_devices[] = {
++	&omap3logic_lcd_device,
++	&omap3logic_tv_device,
++};
++
++static struct omap_dss_board_info omap3logic_dss_data = {
++	.num_devices		= ARRAY_SIZE(omap3logic_dss_devices),
++	.devices		= omap3logic_dss_devices,
++	.default_device		= &omap3logic_lcd_device,
++};
++
++static void __init omap3logic_display_init(void)
++{
++	int r;
++
++	r = gpio_request_array(omap3logic_dss_gpios,
++			       ARRAY_SIZE(omap3logic_dss_gpios));
++	if (r) {
++		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
++		return;
++	}
++
++	gpio_export(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
++	gpio_export(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
++	gpio_export(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
++
++	r = omap_display_init(&omap3logic_dss_data);
++	if (r) {
++		pr_err("OMAP3LOGIC: failed to register DSS device\n");
++		gpio_free_array(omap3logic_dss_gpios,
++				ARRAY_SIZE(omap3logic_dss_gpios));
++	}
++}
++
++static void __init omap3logic_video_mem_init(void)
++{
++	/*
++	 * GFX 480x272x32bpp
++	 * VID1/2 480x272x32bpp double buffered
++	 */
++	omap_vram_set_sdram_vram(PAGE_ALIGN(480 * 272 * 4) +
++			2 * PAGE_ALIGN(480 * 272 * 4 * 2), 0);
++}
++
++#else
++static void __init omap3logic_display_init(void) { }
++static void __init omap3logic_video_mem_init(void){ }
++#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
++
++static void __init omap3logic_reserve(void)
++{
++	omap3logic_video_mem_init();
++	omap_reserve();
++}
++
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -197,6 +346,7 @@ static void __init omap3logic_init(void)
+ 	omap_sdrc_init(NULL, NULL);
+ 	board_mmc_init();
+ 	board_smsc911x_init();
++	omap3logic_display_init();
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+@@ -205,6 +355,7 @@ static void __init omap3logic_init(void)
+ 
+ MACHINE_START(OMAP3_TORPEDO, "Logic OMAP3 Torpedo board")
+ 	.atag_offset	= 0x100,
++	.reserve	= omap3logic_reserve,
+ 	.map_io		= omap3_map_io,
+ 	.init_early	= omap35xx_init_early,
+ 	.init_irq	= omap3_init_irq,
+-- 
+1.7.0.4
 
