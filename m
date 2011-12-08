@@ -1,40 +1,53 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH v2] omap: rx51: fix USB
-Date: Thu,  8 Dec 2011 22:23:00 +0200
-Message-ID: <1323375780-13190-1-git-send-email-felipe.contreras@nokia.com>
-References: <20111208144044.GA25415@xps8300>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111208144044.GA25415@xps8300>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <krohei@gmail.com>, Russell King <linux@arm.linux.org.uk>, Anton Vorontsov <cbouatmailru@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>, stable@kernel.org
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: ASoC broken on 3.2-rc4?
+Date: Thu, 8 Dec 2011 12:26:22 -0800
+Message-ID: <CAGDS+n=B=Q-id-L0AfkBvB6yvUoNbBcOdJg=ec=Jued-8AmS2g@mail.gmail.com>
+References: <CAGDS+nmW+fgo20znqdQch9Uvu7Q9=p1D0AwPqx4vjakXZ6PiAQ@mail.gmail.com>
+	<CA+2YH7v+cAGHFGuL6yY80p8=Tob=J=MkMnt3UUNycPuJ8EWkeA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:40468 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855Ab1LHU0W convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 15:26:22 -0500
+Received: by vbbfc26 with SMTP id fc26so1793970vbb.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 12:26:22 -0800 (PST)
+In-Reply-To: <CA+2YH7v+cAGHFGuL6yY80p8=Tob=J=MkMnt3UUNycPuJ8EWkeA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-From: Felipe Contreras <felipe.contreras@gmail.com>
+On Thu, Dec 8, 2011 at 11:33 AM, Enrico <ebutera@users.berlios.de> wrot=
+e:
+> On Wed, Dec 7, 2011 at 9:58 PM, Steve Sakoman <sakoman@gmail.com> wro=
+te:
+>> I just began working with 3.2-rc4 on Overo and Beagleboard xM.
+>>
+>> On both machines I see the driver init, but no alsa device created.
+>> For example on Overo:
+>>
+>> Advanced Linux Sound Architecture Driver Version 1.0.24.
+>> <snip>
+>> overo SoC init
+>> ALSA device list:
+>> =A0No soundcards found.
+>>
+>> Has anyone else seen this? =A0Just want to make sure it isn't a know=
+n
+>> issue before digging in and debugging.
+>
+> Maybe patch at [1] is still not in mainline?
 
-The transceiver should be powered on by default, otherwise USB doesn't
-work at all.
+The patch is there, but one also needs to make sure the
+CONFIG_MFD_TWL4030_AUDIO change is made in one's defconfig too :-)
 
-All kernels after v3.0 are affected.
+Thanks,
 
-Cc: stable@kernel.org
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index ba1aa07..c15c5c9 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -193,7 +193,7 @@ static struct platform_device rx51_charger_device = {
- static void __init rx51_charger_init(void)
- {
- 	WARN_ON(gpio_request_one(RX51_USB_TRANSCEIVER_RST_GPIO,
--		GPIOF_OUT_INIT_LOW, "isp1704_reset"));
-+		GPIOF_OUT_INIT_HIGH, "isp1704_reset"));
- 
- 	platform_device_register(&rx51_charger_device);
- }
--- 
-1.7.8.rc3.17.gf56ef1
+Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
