@@ -1,35 +1,77 @@
-From: Heikki Krogerus <krohei@gmail.com>
-Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
-Date: Thu, 8 Dec 2011 16:40:44 +0200
-Message-ID: <20111208144044.GA25415@xps8300>
-References: <20111207193141.GG31337@atomide.com>
- <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
+ controller
+Date: Thu, 8 Dec 2011 15:59:50 +0100
+Message-ID: <4EE0D0E6.3060202@ti.com>
+References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51867 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752394Ab1LHPAP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Dec 2011 10:00:15 -0500
+In-Reply-To: <4EDFD88B.8060008@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Felipe,
+On 12/7/2011 10:20 PM, Rob Herring wrote:
+> On 12/07/2011 02:50 PM, Benoit Cousson wrote:
 
-On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
-> From: Heikki Krogerus <krohei@gmail.com>
+[...]
 
-I would prefer that you change this so this is from you, like it
-actually is. You can mention me in the commit message if you like.
+>> +#ifdef CONFIG_OF
+>> +int __init intc_of_init(struct device_node *node, struct device_node *parent)
+>> +{
+>> +	struct resource res;
+>> +	u32 nr_irqs;
+>> +
+>> +	if (WARN_ON(!node))
+>> +		return -ENODEV;
+>> +
+>> +	if (of_address_to_resource(node, 0,&res)) {
+>> +		WARN(1, "unable to get intc registers\n");
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	if (of_property_read_u32(node, "ti,intc-size",&nr_irqs)) {
+>> +		WARN(1, "unable to get intc-size\n");
+>> +		return -EINVAL;
+>
+> There is no default value that makes sense?
 
-> Without this USB networking doesn't work as the link is never detected.
+So far we have 96 or 128, so I can put 96 as a default and just keep the 
+warning without returning an error.
 
-What this changes is, it leaves the transceiver powered by default
-instead of setting it into power off mode. So not only USB networking
-is affected by this. If isp1704_charger is not enabled with RX51, USB
-does not work at all. Please change the comment.
+>> +	}
+>> +
+>> +	omap_init_irq(res.start, nr_irqs);
+>> +	irq_domain_add_simple(node, 0);
+>
+> Have you read the NO_IRQ thread...
 
-Thanks,
+Yeah, I tried, but that's a long email thread with some unclear 
+conclusion...
+The point is that the few users of that API today are using 0 as a base 
+as well, so I thought it was still valid.
 
--- 
-heikki
+> Is 0 ever a valid interrupt for a driver? If so, you must not use 0 for
+> the base. I would pick 16 to skip over legacy ISA irqs.
+
+I do not have any 0 interrupts right now, my concern is that I still 
+have some legacy non-DT drivers that expect the previous hwirq = irq 
+mapping.
+
+> irqdomains should always be enabled regardless of CONFIG_OF. So either
+> you can leave it as is if OF is always enabled for OMAP, or you should
+> move domain setup into omap_init_irq.
+
+OK, but it looks like I cannot really modify the current INTC to DT 
+without having fully adapted the OMAP drivers to use 
+irq_of_parse_and_map. Or did I miss something?
+
+Regards,
+Benoit
