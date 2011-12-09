@@ -1,101 +1,140 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv8 5/5] omap3: twl: add external controllers for core voltage regulators
-Date: Fri, 9 Dec 2011 17:29:49 +0200
-Message-ID: <1323444589-19940-6-git-send-email-t-kristo@ti.com>
-References: <1323444589-19940-1-git-send-email-t-kristo@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
+ controller
+Date: Fri, 9 Dec 2011 17:06:37 +0100
+Message-ID: <4EE2320D.2030309@ti.com>
+References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com> <4EE0D0E6.3060202@ti.com> <4EE20B38.8050006@gmail.com> <4EE2209E.2040209@ti.com> <4EE227A4.2030209@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59059 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753996Ab1LIPaD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 10:30:03 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id pB9FU3IH019917
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 9 Dec 2011 09:30:03 -0600
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id pB9FU3na000670
-	for <linux-omap@vger.kernel.org>; Fri, 9 Dec 2011 09:30:03 -0600 (CST)
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pB9FU3LX018984
-	for <linux-omap@vger.kernel.org>; Fri, 9 Dec 2011 09:30:03 -0600 (CST)
-Received: from localhost.localdomain (h88-4.vpn.ti.com [172.24.88.4])	by
- dlelxv22.itg.ti.com (8.13.8/8.13.8) with ESMTP id pB9FTtvG006466	for
- <linux-omap@vger.kernel.org>; Fri, 9 Dec 2011 09:30:02 -0600
-In-Reply-To: <1323444589-19940-1-git-send-email-t-kristo@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33018 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750826Ab1LIQGt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Dec 2011 11:06:49 -0500
+In-Reply-To: <4EE227A4.2030209@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-VDD1 and VDD2 now use voltage processor for controlling the regulators.
-This is done by passing additional voltdm data during the regulator init.
+On 12/9/2011 4:22 PM, Rob Herring wrote:
+> On 12/09/2011 08:52 AM, Cousson, Benoit wrote:
+>> On 12/9/2011 2:20 PM, Rob Herring wrote:
+>>> On 12/08/2011 08:59 AM, Cousson, Benoit wrote:
+>>>> On 12/7/2011 10:20 PM, Rob Herring wrote:
+>>>>> On 12/07/2011 02:50 PM, Benoit Cousson wrote:
+>>>>
+>>>> [...]
+>>>>
+>>>>>> +#ifdef CONFIG_OF
+>>>>>> +int __init intc_of_init(struct device_node *node, struct device_node
+>>>>>> *parent)
+>>>>>> +{
+>>>>>> +    struct resource res;
+>>>>>> +    u32 nr_irqs;
+>>>>>> +
+>>>>>> +    if (WARN_ON(!node))
+>>>>>> +        return -ENODEV;
+>>>>>> +
+>>>>>> +    if (of_address_to_resource(node, 0,&res)) {
+>>>>>> +        WARN(1, "unable to get intc registers\n");
+>>>>>> +        return -EINVAL;
+>>>>>> +    }
+>>>>>> +
+>>>>>> +    if (of_property_read_u32(node, "ti,intc-size",&nr_irqs)) {
+>>>>>> +        WARN(1, "unable to get intc-size\n");
+>>>>>> +        return -EINVAL;
+>>>>>
+>>>>> There is no default value that makes sense?
+>>>>
+>>>> So far we have 96 or 128, so I can put 96 as a default and just keep the
+>>>> warning without returning an error.
+>>>>
+>>>>>> +    }
+>>>>>> +
+>>>>>> +    omap_init_irq(res.start, nr_irqs);
+>>>>>> +    irq_domain_add_simple(node, 0);
+>>>>>
+>>>>> Have you read the NO_IRQ thread...
+>>>>
+>>>> Yeah, I tried, but that's a long email thread with some unclear
+>>>> conclusion...
+>>>> The point is that the few users of that API today are using 0 as a base
+>>>> as well, so I thought it was still valid.
+>>>>
+>>>>> Is 0 ever a valid interrupt for a driver? If so, you must not use 0 for
+>>>>> the base. I would pick 16 to skip over legacy ISA irqs.
+>>>>
+>>>> I do not have any 0 interrupts right now, my concern is that I still
+>>>> have some legacy non-DT drivers that expect the previous hwirq = irq
+>>>> mapping.
+>>>
+>>> I guess it depends how easily you can shift all the irq defines. You
+>>> allow specifying the base so that you can set it to 0 for non-DT and -1
+>>> (dynamic allocation) for DT.
+>>
+>> The issue, is that the IRQs are not defined anymore but hard coded in
+>> the hwmod database. And the idea is that this is reflecting exactly the
+>> hwirq from the spec, so I do not want to add any artificial offset for
+>> the domain in the original data.
+>>
+>>>>> irqdomains should always be enabled regardless of CONFIG_OF. So either
+>>>>> you can leave it as is if OF is always enabled for OMAP, or you should
+>>>>> move domain setup into omap_init_irq.
+>>>>
+>>>> OK, but it looks like I cannot really modify the current INTC to DT
+>>>> without having fully adapted the OMAP drivers to use
+>>>> irq_of_parse_and_map. Or did I miss something?
+>>>>
+>>>
+>>> No, the drivers should not need to be modified as long as they get the
+>>> irq's from platform device resources. You just want to make sure the
+>>> INTC has no knowledge of it's irq base so it can change.
+>>
+>> OK, the driver will not have to change but the IRQ value will not be the
+>> same in the case of DT since it will use the irq_create_of_mapping.
+>>
+>> Currently, the driver IRQ resource is 7 for example for the twl, this is
+>> the hwirq (= irq). If I use a domain with a base of 16, the resource
+>> will still be 7 except if the resource is created from OF, then it will
+>> be 23.
+>>
+>> The only way I have today to maintain the legacy drivers to work without
+>> hacking the OMAP resource code is to keep the base_irq at 0.
+>>
+>
+> For non-DT case, that is fine. It should not be hard to support 0 for
+> legacy and !0 for DT.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/twl-common.c |   33 +++++++++++++++++++++++++++++++--
- 1 files changed, 31 insertions(+), 2 deletions(-)
+Mmm, I'm probably missing something here.
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 7cf5347..d2557d1 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -30,6 +30,19 @@
- #include <plat/usb.h>
- 
- #include "twl-common.h"
-+#include "voltage.h"
-+
-+static int twl_set_voltage(void *data, int min_uV)
-+{
-+	struct voltagedomain *voltdm = (struct voltagedomain *)data;
-+	return voltdm_scale(voltdm, min_uV);
-+}
-+
-+static int twl_get_voltage(void *data)
-+{
-+	struct voltagedomain *voltdm = (struct voltagedomain *)data;
-+	return voltdm_get_voltage(voltdm);
-+}
- 
- static struct i2c_board_info __initdata pmic_i2c_board_info = {
- 	.addr		= 0x48,
-@@ -147,6 +160,16 @@ static struct regulator_init_data omap3_vdd2 = {
- 	.consumer_supplies		= omap3_vdd2_supply,
- };
- 
-+static struct twl_regulator_driver_data omap3_vdd1_drvdata = {
-+	.get_voltage = twl_get_voltage,
-+	.set_voltage = twl_set_voltage,
-+};
-+
-+static struct twl_regulator_driver_data omap3_vdd2_drvdata = {
-+	.get_voltage = twl_get_voltage,
-+	.set_voltage = twl_set_voltage,
-+};
-+
- void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 				  u32 pdata_flags, u32 regulators_flags)
- {
-@@ -154,10 +177,16 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 		pmic_data->irq_base = TWL4030_IRQ_BASE;
- 	if (!pmic_data->irq_end)
- 		pmic_data->irq_end = TWL4030_IRQ_END;
--	if (!pmic_data->vdd1)
-+	if (!pmic_data->vdd1) {
-+		omap3_vdd1.driver_data = &omap3_vdd1_drvdata;
-+		omap3_vdd1_drvdata.data = voltdm_lookup("mpu_iva");
- 		pmic_data->vdd1 = &omap3_vdd1;
--	if (!pmic_data->vdd2)
-+	}
-+	if (!pmic_data->vdd2) {
-+		omap3_vdd2.driver_data = &omap3_vdd2_drvdata;
-+		omap3_vdd2_drvdata.data = voltdm_lookup("core");
- 		pmic_data->vdd2 = &omap3_vdd2;
-+	}
- 
- 	/* Common platform data configurations */
- 	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
--- 
-1.7.4.1
+My point is that even in the DT case I do have some devices that are 
+initialized without DT for the moment and thus cannot get access to the 
+interrupt-controller node and then cannot retrieve the domain information.
 
+How can I ensure the proper hwirq -> irq translation then for such devices?
+Only the one created by DT will have the correct irq number.
+
+Adding some hacks to add a +16 is clearly possible, but that will be a 
+dirty hacks in the OMAP core code that will have to be removed later. So 
+I'd rather keep the domain with a 0 offset to avoid all these temporary 
+hacks.
+
+>> Since I do not have any hwirq at 0 so far, is it a big deal to keep the
+>> base_irq at 0 for the moment?
+>> It will be easier to transition to DT that way without breaking the
+>> existing drivers.
+>
+> As long as it is trivial to change later. I'm afraid that if it is not
+> changed, then we won't know if it is trivial.
+
+As soon as every devices are initialized from DT, the irq_base will 
+become transparent, since both the IRQ handler and the IRQ resource will 
+use the irq_domain_to_irq to get the irq from the hwirq. At that time 
+adding 16 will then be straightforward.
+That's why I prefer that approach which is the one that generate the 
+minimal temporary effort.
+
+Regards,
+Benoit
