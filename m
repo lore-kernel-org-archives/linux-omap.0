@@ -1,81 +1,312 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH 2/3] arm: mach-omap2: sdram-nokia: add 200 MHz memory timings info
-Date: Fri,  9 Dec 2011 17:06:50 +0200
-Message-ID: <1323443211-3648-3-git-send-email-aaro.koskinen@nokia.com>
-References: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver module
+Date: Fri, 9 Dec 2011 23:10:46 +0800
+Message-ID: <CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>
+	<4EDD3DEE.6060506@gmail.com>
+	<CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
+	<4EDE90A3.7050900@gmail.com>
+	<CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>
+	<4EE14787.8090509@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:42328 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754294Ab1LIPFH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Dec 2011 10:05:07 -0500
-In-Reply-To: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:52890 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753996Ab1LIPKt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 10:10:49 -0500
+In-Reply-To: <4EE14787.8090509@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Igor Dmitriev <ext-dmitriev.igor@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-From: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
+On Fri, Dec 9, 2011 at 7:25 AM, Sylwester Nawrocki <snjw23@gmail.com> w=
+rote:
+> On 12/07/2011 02:40 PM, Ming Lei wrote:
+>>>> I understand the API you mentioned here should belong to kernel in=
+ternal
+>>>> API, correct me if it is wrong.
+>>>
+>>> Yes, I meant the in kernel design, i.e. generic face detection kern=
+el module
+>>> and an OMAP4 FDIF driver. It makes lots of sense to separate common=
+ code
+>>> in this way, maybe even when there would be only OMAP devices using=
+ it.
+>>
+>> Yes, that is the motivation of the generic FD module. I think we can=
+ focus on
+>> two use cases for the generic FD now:
+>>
+>> - one is to detect faces from user space image data
+>>
+>> - another one is to detect faces in image data generated from HW(SoC
+>> internal bus, resize hardware)
+>>
+>> For OMAP4 hardware, input data is always from physically continuous
+>> memory directly, so it is very easy to support the two cases. For th=
+e
+>> use case 2,
+>> if buffer copy is to be avoided, we can use the coming shared dma-bu=
+f[1]
+>> to pass the image buffer produced by other HW to FD hw directly.
+>
+> Some H/W uses direct data buses to exchange data between processing b=
+locks,
+> and there is no need for additional memory. We only need to manage th=
+e data
+> links, for which MC has been designed.
 
-Add memory timing info regarding the 200 MHz memory in sdram-nokia.
+=46or OMAP4 FD, it is not needed to include FD into MC framework since =
+a
+intermediate buffer is always required. If your HW doesn't belong to th=
+is
+case, what is the output of your HW FD in the link? Also sounds FD resu=
+lts
+may not be needed at all for use space application in the case.
 
-Signed-off-by: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/mach-omap2/sdram-nokia.c |   25 ++++++++++++++++++++++++-
- 1 files changed, 24 insertions(+), 1 deletions(-)
+>
+>>
+>> For other FD hardware, if it supports to detect faces in image data =
+from
+>> physically continuous memory, I think the patch is OK to support it.
+>>
+>> If the FD hw doesn't support to detect faces from physically continu=
+ous
+>> memory, I have some questions: how does user space app to parse the
+>> FD result if application can't get the input image data? If user spa=
+ce can
+>
+> Do we need the map of detected objects on a input image in all cases =
+?
 
-diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
-index 14caa22..b394a0e 100644
---- a/arch/arm/mach-omap2/sdram-nokia.c
-+++ b/arch/arm/mach-omap2/sdram-nokia.c
-@@ -1,7 +1,7 @@
- /*
-  * SDRC register values for Nokia boards
-  *
-- * Copyright (C) 2008, 2010 Nokia Corporation
-+ * Copyright (C) 2008, 2010-2011 Nokia Corporation
-  *
-  * Lauri Leukkunen <lauri.leukkunen@nokia.com>
-  *
-@@ -107,14 +107,37 @@ static const struct sdram_timings nokia_195dot2mhz_timings[] = {
- 	},
- };
- 
-+static const struct sdram_timings nokia_200mhz_timings[] = {
-+	{
-+		.casl = 3,
-+		.tDAL = 30000,
-+		.tDPL = 15000,
-+		.tRRD = 10000,
-+		.tRCD = 20000,
-+		.tRP = 15000,
-+		.tRAS = 40000,
-+		.tRC = 55000,
-+		.tRFC = 140000,
-+		.tXSR = 200000,
-+
-+		.tREF = 7800,
-+
-+		.tXP = 2,
-+		.tCKE = 4,
-+		.tWTR = 2
-+	},
-+};
-+
- static const struct {
- 	long rate;
- 	struct sdram_timings const *data;
- } nokia_timings[] = {
- 	{ 83000000, nokia_166mhz_timings },
- 	{ 97600000, nokia_97dot6mhz_timings },
-+	{ 100000000, nokia_200mhz_timings },
- 	{ 166000000, nokia_166mhz_timings },
- 	{ 195200000, nokia_195dot2mhz_timings },
-+	{ 200000000, nokia_200mhz_timings },
- };
- static struct omap_sdrc_params nokia_sdrc_params[ARRAY_SIZE(nokia_timings) + 1];
- 
--- 
-1.7.2.5
+=46or normal cases, I think we need, :-)
 
+> If an application needs only coordinates of detected object on a vide=
+o
+> signal to for example, focus on it, trigger some action, or just coun=
+t
+> detected faces, etc. Perhaps there are more practical similar use cas=
+es.
+
+Could you provide some practical use cases about these?
+
+>> get image data, how does it connect the image data with FD result? a=
+nd
+>
+> If hardware provides frame sequence numbers the FD result can be asso=
+ciated
+> with a frame, whether it's passing through H/W interconnect or is loc=
+ated
+> in memory.
+
+If FD result is associated with a frame, how can user space get the fra=
+me seq
+if no v4l2 buffer is involved? Without a frame sequence, it is a bit
+difficult to
+retrieve FD results from user space.
+
+>> what standard v4l2 ways(v4l2_buffer?) can the app use to describe th=
+e
+>> image data?
+>
+> We have USERPTR and MMAP memeory buffer for streaming IO, those use
+> v4l2_buffer 1). read()/write() is also used 2), mostly for compressed=
+ formats.
+> Except that there are works on shared buffers.
+
+If the input image data is from other HW(SoC bus, resizer HW, ...), is =
+the
+v4l2_buffer needed for the FD HW driver or application?
+
+>
+>>
+>>> I'm sure now the Samsung devices won't fit in video output node bas=
+ed driver
+>>> design. They read image data in different ways and also the FD resu=
+lt format
+>>> is totally different.
+>>
+>> I think user space will need the FD result, so it is very important =
+to define
+>> API to describe the FD result format to user space. And the input ab=
+out your
+>> FD HW result format is certainly helpful to define the API.
+>
+> I'll post exact attributes generated by our FD detection H/W soon.
+
+Good news, :-)
+
+>>
+>>>>
+>>>>> AFAICS OMAP4 FDIF processes only data stored in memory, thus it s=
+eems
+>>>>> reasonable to use the videodev interface for passing data to the =
+kernel
+>>>>> from user space.
+>>>>>
+>>>>> But there might be face detection devices that accept data from o=
+ther
+>>>>> H/W modules, e.g. transferred through SoC internal data buses bet=
+ween
+>>>>> image processing pipeline blocks. Thus any new interfaces need to=
+ be
+>>>>> designed with such devices in mind.
+>>>>>
+>>>>> Also the face detection hardware block might now have an input DM=
+A
+>>>>> engine in it, the data could be fed from memory through some othe=
+r
+>>>>> subsystem (e.g. resize/colour converter). Then the driver for tha=
+t
+>>>>> subsystem would implement a video node.
+>>>>
+>>>> I think the direct input image or frame data to FD should be from =
+memory
+>>>> no matter the actual data is from external H/W modules or input DM=
+A because
+>>>> FD will take lot of time to detect faces in one image or frame and=
+ FD can't
+>>>> have so much memory to cache several images or frames data.
+>>>
+>>> Sorry, I cannot provide much details at the moment, but there exist=
+s hardware
+>>> that reads data from internal SoC buses and even if it uses some so=
+rt of
+>>> cache memory it doesn't necessarily have to be available for the us=
+er.
+>>
+>> Without some hardware background, it is not easy to give a generic F=
+D module
+>> design.
+>
+> Yes, please give me some time so I can prepare the list of requiremen=
+ts.
+>
+>>
+>>> Still the FD result is associated with an image frame for such H/W,=
+ but not
+>>> necessarily with a memory buffer queued by a user application.
+>>
+>> For user space application, it doesn't make sense to handle FD resul=
+ts
+>> only without image data. =A0Even though there are other ways of inpu=
+t
+>> image data to FD, user space still need to know the image data, so i=
+t makes
+>> sense to associate FD result with a memory buffer.
+>>
+>>> How long it approximately takes to process single image for OMAP4 F=
+DIF ?
+>>
+>> See the link[2], and my test result is basically consistent with the=
+ data.
+>
+> Thanks. The processing time is rather low, looks like we could easily=
+ detect
+> objects in each frame with 30..50 fps.
+
+The detection time on image or frame data may be changed a lot, are
+you sure that your FD HW can handle the data flow correctly? I understa=
+nd
+you FD HW has to integrate at least two buffers for coping with the iss=
+ue, so it
+should introduce some extra HW cost.
+
+>>
+>>>>
+>>>> If you have seen this kind of FD hardware design, please let me kn=
+ow.
+>>>>
+>>>>> I'm for leaving the buffer handling details for individual driver=
+s
+>>>>> and focusing on a standard interface for applications, i.e. new
+>>>>
+>>>> I think leaving buffer handling details in generic FD driver or
+>>>> individual drivers
+>>>> doesn't matter now, since it don't have effect on interfaces betwe=
+en kernel
+>>>> and user space.
+>>>
+>>> I think you misunderstood me. I wasn't talking about core/driver mo=
+dule split,
+>>> I meant we should not be making the user interface video node centr=
+ic.
+>>>
+>>> I think for Samsung devices I'll need a capture video node for pass=
+ing
+>>
+>> Why is it a capture video node instead of OUTPUT v4l2 device? I thin=
+k the
+>
+> Let's forget about this capture device, I'm just in progress of learn=
+ing
+> our devices internals, that's quite huge IPs..
+>
+>> device name should be decided from the view of face detection functi=
+on:
+>> FD need input image data and produce detection result.
+>
+> No, we should be flexible about where the data comes from to a FD sub=
+system
+> and how it is then processed - if it is passed to some other processi=
+ng block
+> or it is transferred to memory with DMA and returned to the user. And=
+ we
+> should use Media Controller API to route the data according to applic=
+ation
+> requirements.
+> OMAP4 FDIF is pretty simple, we need to think more about integrating =
+=46D with
+> existing data pipelines.
+
+We are discussing about it, :-)
+
+>
+>>
+>>> the result to the user. So instead of associating FD result with a =
+buffer index
+>>
+>> See the explanation above.
+>
+> No, I still insist on using frame sequence number rather than buffer =
+index :-)
+
+As I mentioned above, how does user space get frame sequence number
+for retrieving FD results if no v4l2_buffer is involved for FD driver
+and application?
+
+>>
+>>> we could try to use the frame sequence number (struct v4l2_buffer.s=
+equence,
+>>> http://linuxtv.org/downloads/v4l-dvb-apis/buffer.html#v4l2-buffer).
+>>
+>> [1], http://marc.info/?t=3D132281644700005&r=3D1&w=3D2
+>> [2], http://e2e.ti.com/support/embedded/linux/f/354/t/128938.aspx#46=
+2740
+>
+> 1) http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-qbuf.html
+> 2) http://linuxtv.org/downloads/v4l-dvb-apis/func-write.html
+>
+>
+> --
+>
+> Thanks,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+
+thanks,
+--
+Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
