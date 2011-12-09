@@ -1,252 +1,110 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3LOGIC: Adding DSS support
-Date: Fri, 9 Dec 2011 13:08:01 -0800
-Message-ID: <20111209210801.GY31337@atomide.com>
-References: <1323345948-14533-1-git-send-email-alexg@meprolight.com>
+Subject: [GIT PULL] PM support for omap4 for v3.3 merge window
+Date: Fri, 9 Dec 2011 13:21:56 -0800
+Message-ID: <20111209212155.GZ31337@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:56491 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:65153 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750761Ab1LIVII (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 16:08:08 -0500
+	with ESMTP id S1751899Ab1LIVWA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 16:22:00 -0500
 Content-Disposition: inline
-In-Reply-To: <1323345948-14533-1-git-send-email-alexg@meprolight.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alex <alexg@meprolight.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tim.nordell@logicpd.com, baruch@tkos.co.il
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Tomi,
+Hi Arnd & Olof,
 
-* Alex <alexg@meprolight.com> [111208 03:46]:
-> This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
-> TV-out are supported.
+Please pull omap4 PM support from: 
 
-Want to take this one? Looks OK to me:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap4
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> ---
->  arch/arm/mach-omap2/board-omap3logic.c |  151 ++++++++++++++++++++++++++++++++
->  1 files changed, 151 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-> index 7c0f193..86175fa 100644
-> --- a/arch/arm/mach-omap2/board-omap3logic.c
-> +++ b/arch/arm/mach-omap2/board-omap3logic.c
-> @@ -7,6 +7,9 @@
->   * Copyright (C) 2010 Logic Product Development, Inc.
->   * Peter Barada <peter.barada@logicpd.com>
->   *
-> + * Copyright (C) 2011 Meprolight, Ltd.
-> + * Alex Gershgorin <alexg@meprolight.com>
-> + *
->   * Modified from Beagle, EVM, and RX51
->   *
->   * This program is free software; you can redistribute it and/or modify
-> @@ -44,6 +47,10 @@
->  #include <plat/gpmc-smsc911x.h>
->  #include <plat/gpmc.h>
->  #include <plat/sdrc.h>
-> +#include <plat/vram.h>
-> +
-> +#include <video/omapdss.h>
-> +#include <video/omap-panel-generic-dpi.h>
->  
->  #define OMAP3LOGIC_SMSC911X_CS			1
->  
-> @@ -58,6 +65,14 @@ static struct regulator_consumer_supply omap3logic_vmmc1_supply[] = {
->  	REGULATOR_SUPPLY("vmmc", "omap_hsmmc.0"),
->  };
->  
-> +static struct regulator_consumer_supply omap3logic_vdds_supplies[] = {
-> +	REGULATOR_SUPPLY("vdds_sdi", "omapdss"),
-> +	REGULATOR_SUPPLY("vdds_dsi", "omapdss"),
-> +};
-> +
-> +static struct regulator_consumer_supply omap3logic_vdac_supply =
-> +	REGULATOR_SUPPLY("vdda_dac", "omapdss_venc");
-> +
->  /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
->  static struct regulator_init_data omap3logic_vmmc1 = {
->  	.constraints = {
-> @@ -74,6 +89,34 @@ static struct regulator_init_data omap3logic_vmmc1 = {
->  	.consumer_supplies      = omap3logic_vmmc1_supply,
->  };
->  
-> +static struct regulator_init_data omap3logic_vpll2 = {
-> +	.constraints = {
-> +		.name			= "VDDS_DSI",
-> +		.min_uV			= 1800000,
-> +		.max_uV			= 1800000,
-> +		.apply_uV		= true,
-> +		.always_on		= true,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE,
-> +	},
-> +	.num_consumer_supplies  = ARRAY_SIZE(omap3logic_vdds_supplies),
-> +	.consumer_supplies      = omap3logic_vdds_supplies,
-> +};
-> +
-> +static struct regulator_init_data omap3logic_vdac = {
-> +	.constraints = {
-> +		.min_uV			= 1800000,
-> +		.max_uV			= 1800000,
-> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-> +					| REGULATOR_MODE_STANDBY,
-> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-> +					| REGULATOR_CHANGE_STATUS,
-> +	},
-> +	.num_consumer_supplies	= 1,
-> +	.consumer_supplies	= &omap3logic_vdac_supply,
-> +};
-> +
->  static struct twl4030_gpio_platform_data omap3logic_gpio_data = {
->  	.gpio_base	= OMAP_MAX_GPIO_LINES,
->  	.irq_base	= TWL4030_GPIO_IRQ_BASE,
-> @@ -91,6 +134,8 @@ static struct twl4030_platform_data omap3logic_twldata = {
->  	/* platform_data for children goes here */
->  	.gpio		= &omap3logic_gpio_data,
->  	.vmmc1		= &omap3logic_vmmc1,
-> +	.vpll2		= &omap3logic_vpll2,
-> +	.vdac		= &omap3logic_vdac,
->  };
->  
->  static int __init omap3logic_i2c_init(void)
-> @@ -182,6 +227,110 @@ static inline void __init board_smsc911x_init(void)
->  	gpmc_smsc911x_init(&board_smsc911x_data);
->  }
->  
-> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-> +
-> +#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO	154
-> +#define OMAP3_TORPEDO_LCD_ENABLE_GPIO		155
-> +#define OMAP3_TORPEDO_LCD_PWM_GPIO		56
-> +
-> +static struct gpio omap3logic_dss_gpios[] __initdata = {
-> +	{OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
-> +	{OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
-> +	{OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
-> +};
-> +
-> +static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
-> +	msleep(20);
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
-> +
-> +	return 0;
-> +}
-> +
-> +static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	msleep(20);
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +}
-> +
-> +static struct panel_generic_dpi_data lcd_panel = {
-> +	.name			= "sharp_lq",
-> +	.platform_enable	= omap3logic_enable_lcd,
-> +	.platform_disable	= omap3logic_disable_lcd,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_lcd_device = {
-> +	.name			= "lcd",
-> +	.driver_name		= "generic_dpi_panel",
-> +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> +	.data			= &lcd_panel,
-> +	.phy.dpi.data_lines	= 16,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_tv_device = {
-> +	.name			= "tv",
-> +	.driver_name		= "venc",
-> +	.type			= OMAP_DISPLAY_TYPE_VENC,
-> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> +};
-> +
-> +static struct omap_dss_device *omap3logic_dss_devices[] = {
-> +	&omap3logic_lcd_device,
-> +	&omap3logic_tv_device,
-> +};
-> +
-> +static struct omap_dss_board_info omap3logic_dss_data = {
-> +	.num_devices		= ARRAY_SIZE(omap3logic_dss_devices),
-> +	.devices		= omap3logic_dss_devices,
-> +	.default_device		= &omap3logic_lcd_device,
-> +};
-> +
-> +static void __init omap3logic_display_init(void)
-> +{
-> +	int r;
-> +
-> +	r = gpio_request_array(omap3logic_dss_gpios,
-> +			       ARRAY_SIZE(omap3logic_dss_gpios));
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
-> +		return;
-> +	}
-> +
-> +	gpio_export(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +	gpio_export(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_export(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-> +
-> +	r = omap_display_init(&omap3logic_dss_data);
-> +	if (r) {
-> +		pr_err("OMAP3LOGIC: failed to register DSS device\n");
-> +		gpio_free_array(omap3logic_dss_gpios,
-> +				ARRAY_SIZE(omap3logic_dss_gpios));
-> +	}
-> +}
-> +
-> +static void __init omap3logic_video_mem_init(void)
-> +{
-> +	/*
-> +	 * GFX 480x272x32bpp
-> +	 * VID1/2 480x272x32bpp double buffered
-> +	 */
-> +	omap_vram_set_sdram_vram(PAGE_ALIGN(480 * 272 * 4) +
-> +			2 * PAGE_ALIGN(480 * 272 * 4 * 2), 0);
-> +}
-> +
-> +#else
-> +static void __init omap3logic_display_init(void) { }
-> +static void __init omap3logic_video_mem_init(void){ }
-> +#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
-> +
-> +static void __init omap3logic_reserve(void)
-> +{
-> +	omap3logic_video_mem_init();
-> +	omap_reserve();
-> +}
-> +
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
-> @@ -197,6 +346,7 @@ static void __init omap3logic_init(void)
->  	omap_sdrc_init(NULL, NULL);
->  	board_mmc_init();
->  	board_smsc911x_init();
-> +	omap3logic_display_init();
->  
->  	/* Ensure SDRC pins are mux'd for self-refresh */
->  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-> @@ -205,6 +355,7 @@ static void __init omap3logic_init(void)
->  
->  MACHINE_START(OMAP3_TORPEDO, "Logic OMAP3 Torpedo board")
->  	.atag_offset	= 0x100,
-> +	.reserve	= omap3logic_reserve,
->  	.map_io		= omap3_map_io,
->  	.init_early	= omap35xx_init_early,
->  	.init_irq	= omap3_init_irq,
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note that because of the map_io and common.h changes this is based
+on commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a in Russell's
+devel-stable.
+
+FYI, other omap SoC related changes that I'll post later will have a
+build dependency to this series for the omap-secure.c changes.
+
+Regards,
+
+Tony
+
+
+The following changes since commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a:
+  Tony Lindgren (1):
+        ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM restart changes
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap4
+
+Santosh Shilimkar (24):
+      ARM: OMAP4: Use WARN_ON() instead of BUG_ON() with graceful exit
+      ARM: OMAP4: Export omap4_get_base*() rather than global address pointers
+      ARM: OMAP4: PM: Add SAR RAM support
+      ARM: OMAP4: PM: Keep static dep between MPUSS-EMIF and MPUSS-L3/L4 and DUCATI-L3
+      ARM: OMAP4: PM: Avoid omap4_pm_init() on OMAP4430 ES1.0
+      ARM: OMAP4: PM: Initialise all the clockdomains to supported states
+      ARM: OMAP: Add Secure HAL and monitor mode API infrastructure.
+      ARM: OMAP: PM: Add support to allocate the memory for secure RAM
+      ARM: OMAP4: PM: Add WakeupGen module as OMAP gic_arch_extn
+      ARM: OMAP4: PM: Add CPUX OFF mode support
+      ARM: OMAP4: Remove __INIT from omap_secondary_startup() to re-use it for hotplug.
+      ARM: OMAP4: PM: Program CPU1 to hit OFF when off-lined
+      ARM: OMAP4: PM: CPU1 wakeup workaround from Low power modes
+      ARM: OMAP4: PM: Use custom omap_do_wfi() for default idle.
+      ARM: OMAP4: suspend: Add MPUSS power domain RETENTION support
+      ARM: OMAP4: Remove un-used do_wfi() macro.
+      ARM: OMAP4: PM: Add WakeupGen and secure GIC low power support
+      ARM: OMAP4: PM: Add L2X0 cache lowpower support
+      ARM: OMAP4: PM: Add MPUSS power domain OSWR support
+      ARM: OMAP4: PM: Add power domain statistics support
+      ARM: OMAP4: Fix errata i688 with MPU interconnect barriers.
+      ARM: OMAP4: PM: Add CPUidle support
+      ARM: OMAP4: cpuidle: Switch to gptimer from twd in deeper C-states.
+      ARM: OMAP3: CPUidle: Make use of CPU PM notifiers
+
+Tony Lindgren (1):
+      Merge branch 'for_3.3/pm/omap4-mpuss' of git://git.kernel.org/.../khilman/linux-omap-pm into omap4
+
+ arch/arm/mach-omap2/Kconfig                        |   21 +
+ arch/arm/mach-omap2/Makefile                       |   16 +-
+ arch/arm/mach-omap2/common.h                       |   64 +++-
+ arch/arm/mach-omap2/cpuidle34xx.c                  |   15 +
+ arch/arm/mach-omap2/cpuidle44xx.c                  |  245 ++++++++++++
+ arch/arm/mach-omap2/include/mach/barriers.h        |   31 ++
+ arch/arm/mach-omap2/include/mach/omap-secure.h     |   57 +++
+ arch/arm/mach-omap2/include/mach/omap-wakeupgen.h  |   39 ++
+ arch/arm/mach-omap2/io.c                           |    9 +
+ arch/arm/mach-omap2/omap-headsmp.S                 |    5 -
+ arch/arm/mach-omap2/omap-hotplug.c                 |   14 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c          |  398 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap-secure.c                  |   81 ++++
+ arch/arm/mach-omap2/{omap44xx-smc.S => omap-smc.S} |   23 ++
+ arch/arm/mach-omap2/omap-smp.c                     |   45 +++
+ arch/arm/mach-omap2/omap-wakeupgen.c               |  389 +++++++++++++++++++
+ arch/arm/mach-omap2/omap4-common.c                 |   94 +++++-
+ arch/arm/mach-omap2/omap4-sar-layout.h             |   50 +++
+ arch/arm/mach-omap2/pm.h                           |    1 +
+ arch/arm/mach-omap2/pm44xx.c                       |  153 ++++++++-
+ arch/arm/mach-omap2/sleep44xx.S                    |  379 +++++++++++++++++++
+ arch/arm/plat-omap/common.c                        |    3 +
+ arch/arm/plat-omap/include/plat/omap-secure.h      |   13 +
+ arch/arm/plat-omap/include/plat/omap44xx.h         |    1 +
+ arch/arm/plat-omap/include/plat/sram.h             |    6 +-
+ arch/arm/plat-omap/sram.c                          |    8 +
+ 26 files changed, 2126 insertions(+), 34 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cpuidle44xx.c
+ create mode 100644 arch/arm/mach-omap2/include/mach/barriers.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap-secure.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/omap-wakeupgen.h
+ create mode 100644 arch/arm/mach-omap2/omap-mpuss-lowpower.c
+ create mode 100644 arch/arm/mach-omap2/omap-secure.c
+ rename arch/arm/mach-omap2/{omap44xx-smc.S => omap-smc.S} (70%)
+ create mode 100644 arch/arm/mach-omap2/omap-wakeupgen.c
+ create mode 100644 arch/arm/mach-omap2/omap4-sar-layout.h
+ create mode 100644 arch/arm/mach-omap2/sleep44xx.S
+ create mode 100644 arch/arm/plat-omap/include/plat/omap-secure.h
