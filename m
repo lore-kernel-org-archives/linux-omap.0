@@ -1,95 +1,102 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: [PATCH 2/3] arm: mach-omap2: sdram-nokia: add 200 MHz memory
- timings info
-Date: Fri, 9 Dec 2011 21:41:17 +0200 (EET)
-Message-ID: <alpine.DEB.2.00.1112092136370.7393@kernel.research.nokia.com>
-References: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com> <1323443211-3648-3-git-send-email-aaro.koskinen@nokia.com> <20111209180641.GS31337@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv4 12/15] vc: omap3: auto_ret / auto_off support
+Date: Fri, 09 Dec 2011 12:13:39 -0800
+Message-ID: <87iplpcxl8.fsf@ti.com>
+References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
+	<1322236188-19456-13-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:41848 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750954Ab1LITnD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Dec 2011 14:43:03 -0500
-In-Reply-To: <20111209180641.GS31337@atomide.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:35684 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751485Ab1LIUNm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 15:13:42 -0500
+Received: by mail-qy0-f181.google.com with SMTP id f13so3695599qcs.40
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 12:13:41 -0800 (PST)
+In-Reply-To: <1322236188-19456-13-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Fri, 25 Nov 2011 17:49:45 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Dmitriev <ext-dmitriev.igor@nokia.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com
 
-Hi,
+Tero Kristo <t-kristo@ti.com> writes:
 
-On Fri, 9 Dec 2011, Tony Lindgren wrote:
-> * Aaro Koskinen <aaro.koskinen@nokia.com> [111209 06:33]:
->> From: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
->>
->> Add memory timing info regarding the 200 MHz memory in sdram-nokia.
->>
->> Signed-off-by: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
->> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
->> ---
->>  arch/arm/mach-omap2/sdram-nokia.c |   25 ++++++++++++++++++++++++-
->>  1 files changed, 24 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
->> index 14caa22..b394a0e 100644
->> --- a/arch/arm/mach-omap2/sdram-nokia.c
->> +++ b/arch/arm/mach-omap2/sdram-nokia.c
->> @@ -1,7 +1,7 @@
->>  /*
->>   * SDRC register values for Nokia boards
->>   *
->> - * Copyright (C) 2008, 2010 Nokia Corporation
->> + * Copyright (C) 2008, 2010-2011 Nokia Corporation
->>   *
->>   * Lauri Leukkunen <lauri.leukkunen@nokia.com>
->>   *
->> @@ -107,14 +107,37 @@ static const struct sdram_timings nokia_195dot2mhz_timings[] = {
->>  	},
->>  };
->>
->> +static const struct sdram_timings nokia_200mhz_timings[] = {
->> +	{
->> +		.casl = 3,
->> +		.tDAL = 30000,
->> +		.tDPL = 15000,
->> +		.tRRD = 10000,
->> +		.tRCD = 20000,
->> +		.tRP = 15000,
->> +		.tRAS = 40000,
->> +		.tRC = 55000,
->> +		.tRFC = 140000,
->> +		.tXSR = 200000,
->> +
->> +		.tREF = 7800,
->> +
->> +		.tXP = 2,
->> +		.tCKE = 4,
->> +		.tWTR = 2
->> +	},
->> +};
->> +
->>  static const struct {
->>  	long rate;
->>  	struct sdram_timings const *data;
->>  } nokia_timings[] = {
->>  	{ 83000000, nokia_166mhz_timings },
->>  	{ 97600000, nokia_97dot6mhz_timings },
->> +	{ 100000000, nokia_200mhz_timings },
+> Voltage code will now enable / disable auto_ret / auto_off dynamically
+> according to the voltagedomain usecounts. This is accomplished via
+> the usage of the voltdm callback functions for sleep / wakeup.
 >
-> Is that a typo above? Should it say nokia_100mhz_timings?
+> Signed-off-by: Tero Kristo <t-kristo@ti.com>
 
-No, it's not a typo, same data is used. (Like 83/166 already in the table)
+[...]
 
->>  	{ 166000000, nokia_166mhz_timings },
->>  	{ 195200000, nokia_195dot2mhz_timings },
->> +	{ 200000000, nokia_200mhz_timings },
->>  };
->>  static struct omap_sdrc_params nokia_sdrc_params[ARRAY_SIZE(nokia_timings) + 1];
->
-> Regards,
->
-> Tony
+> -static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
+> +static void omap3_set_core_off_timings(struct voltagedomain *voltdm)
+>  {
+> +	u32 tstart, tshut;
 
-A.
+nit: insert blank line here
+
+> +	omap_pm_get_oscillator(&tstart, &tshut);
+> +	omap3_set_clksetup(tstart, voltdm);
+>  	omap3_set_off_timings(voltdm);
+>  }
+>  
+> +static void omap3_vc_channel_sleep(struct voltagedomain *voltdm)
+> +{
+> +	/* Set off timings if entering off */
+> +	if (voltdm->target_state == PWRDM_POWER_OFF)
+> +		omap3_set_off_timings(voltdm);
+> +	else
+> +		omap3_set_i2c_timings(voltdm, 0);
+
+Comment probably applies more to patch 2 since that's where it was
+introduced, but this is where I got confused, so mentioning it here:
+
+Calling this 'set_i2c_timings' is a bit confusing IMO because reading
+the code there is a choice between 'i2c' timings and 'off' timings.
+Maybe just calling these 'ret' and 'off' timings will be better for
+readability.
+
+> +}
+> +
+> +static void omap3_vc_channel_wakeup(struct voltagedomain *voltdm)
+> +{
+> +}
+
+nit: empty function not needed since code checks for non-NULL function
+pointer.
+
+> +static void omap3_vc_core_sleep(struct voltagedomain *voltdm)
+> +{
+> +	u8 mode;
+> +
+> +	switch (voltdm->target_state) {
+> +	case PWRDM_POWER_OFF:
+> +		mode = OMAP3430_AUTO_OFF_MASK;
+> +		break;
+> +	case PWRDM_POWER_RET:
+> +		mode = OMAP3430_AUTO_RET_MASK;
+> +		break;
+> +	default:
+> +		mode = OMAP3430_AUTO_SLEEP_MASK;
+> +		break;
+> +	}
+> +
+> +	if (mode & OMAP3430_AUTO_OFF_MASK)
+
+AND vs. == ?
+
+speaking of which, this function probably needs a comment mentioning
+that these bits are all mutually exclusive (with a TRM reference.)
+
+> +		omap3_set_core_off_timings(voltdm);
+> +	else
+> +		omap3_set_core_ret_timings(voltdm);
+> +
+> +	voltdm->rmw(OMAP3430_AUTO_OFF_MASK | OMAP3430_AUTO_RET_MASK |
+> +		    OMAP3430_AUTO_SLEEP_MASK, mode,
+> +		    OMAP3_PRM_VOLTCTRL_OFFSET);
+> +}
+
+Kevin
