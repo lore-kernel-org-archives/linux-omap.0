@@ -1,67 +1,72 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap1 changes for v3.3 merge window
-Date: Fri, 9 Dec 2011 13:37:27 -0800
-Message-ID: <20111209213727.GC31337@atomide.com>
-References: <20111209212804.GA31337@atomide.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: dmtimer: fix sleeping function called from
+ invalid context
+Date: Fri, 9 Dec 2011 16:10:40 -0600
+Message-ID: <CAB-zwWjHPzTT5QYZt9DvDcM9ny5VML3mDw3-rQRuBr-fcxYMvQ@mail.gmail.com>
+References: <1322194370-8073-1-git-send-email-omar.ramirez@ti.com>
+	<1322194370-8073-2-git-send-email-omar.ramirez@ti.com>
+	<20111209213447.GB31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29791 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab1LIVhc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 16:37:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20111209212804.GA31337@atomide.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:45154 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751181Ab1LIWKm convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Dec 2011 17:10:42 -0500
+Received: by mail-bw0-f42.google.com with SMTP id zx1so1894253bkb.1
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 14:10:41 -0800 (PST)
+In-Reply-To: <20111209213447.GB31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [111209 12:56]:
-> Hi And & Olof,
-> 
-> Please pull omap1 changes from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap1
-> 
-> These changes are necessary to always reprogram the core clock
-> based on the SoC type so we can boot at the fastest supported rate.
+On Fri, Dec 9, 2011 at 3:34 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> + =A0 =A0 ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_=
+KHZ);
+=2E..
+>> =A0EXPORT_SYMBOL_GPL(omap_dm_timer_request);
+>
+> This does not seem right.. It seems that you're hardcoding the source
+> clock to 32 KiHz clock while other sources are available too?
 
-Sorry forgot to mention that this has a dependency to the fixes that
-you pulled in yesterday.
- 
-> Regards,
-> 
-> Tony
-> 
-> 
-> The following changes since commit 6560ee07dc946e94f7cc2cd8e3b5a5f5ee7340c1:
->   Janusz Krzysztofik (1):
->         ARM: OMAP1: recalculate loops per jiffy after dpll1 reprogram
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap1
-> 
-> Janusz Krzysztofik (3):
->       ARM: OMAP1: Move dpll1 rates selection from config to runtime
->       ARM: OMAP1: Update dpll1 default rate reprogramming method
->       ARM: OMAP1: Always reprogram dpll1 rate at boot
-> 
-> Tony Lindgren (1):
->       ARM: OMAP1: Set the omap1623 sram size to 16K
-> 
->  arch/arm/configs/omap1_defconfig              |    1 -
->  arch/arm/mach-omap1/Kconfig                   |   64 -------------------------
->  arch/arm/mach-omap1/clock.c                   |   14 ++---
->  arch/arm/mach-omap1/clock.h                   |    3 +
->  arch/arm/mach-omap1/clock_data.c              |   19 ++++----
->  arch/arm/mach-omap1/opp.h                     |    1 +
->  arch/arm/mach-omap1/opp_data.c                |   63 +++++++++++-------------
->  arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
->  arch/arm/plat-omap/sram.c                     |    9 ++--
->  9 files changed, 55 insertions(+), 120 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Agree, but... (below)
+
+>> + =A0 =A0 ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_=
+KHZ);
+=2E..
+> And here too?
+
+Agree but that is the default behavior set by dm timer framework:
+
+@@ -134,22 +134,13 @@ static void omap_dm_timer_reset(struct
+omap_dm_timer *timer)
+ int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+ {
+=2E..
+-       ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ);
+=2E..
+
+All clocks requested are set to 32 KHz first, even with the current
+approach, there exists another API to set a new source.
+
+To be honest I don't know why the clocks are set to 32 KHz first,
+maybe the default call path for users should be:
+
+omap_dm_timer_request
+omap_dm_timer_set_source (new explicit call)
+omap_dm_timer_start
+
+And remove setting the source to 32 KHz by default in omap_dm_timer_req=
+uest.
+
+Regards,
+
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
