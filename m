@@ -1,104 +1,37 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Adding remoteproc/rpmsg to linux-next
-Date: Fri, 9 Dec 2011 16:55:27 +0200
-Message-ID: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Brian Swetland <swetland@google.com>, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rusty Russell <rusty@rustcorp.com.au>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Saravana Kannan <skannan@codeaurora.org>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH 1/3] arm: tools: mach-types: add nokia_rm696
+Date: Fri,  9 Dec 2011 17:06:49 +0200
+Message-ID: <1323443211-3648-2-git-send-email-aaro.koskinen@nokia.com>
+References: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.24]:42016 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752707Ab1LIPEx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Dec 2011 10:04:53 -0500
+In-Reply-To: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Stephen,
+Add the mach-type number for RM-696.
 
-Can you please add the following remoteproc tree to linux-next ?
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/tools/mach-types |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next
+diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
+index ccbe16f..63f20da 100644
+--- a/arch/arm/tools/mach-types
++++ b/arch/arm/tools/mach-types
+@@ -1123,6 +1123,7 @@ blissc			MACH_BLISSC		BLISSC			3491
+ thales_adc		MACH_THALES_ADC		THALES_ADC		3492
+ ubisys_p9d_evp		MACH_UBISYS_P9D_EVP	UBISYS_P9D_EVP		3493
+ atdgp318		MACH_ATDGP318		ATDGP318		3494
++nokia_rm696		MACH_NOKIA_RM696	NOKIA_RM696		3522
+ m28evk			MACH_M28EVK		M28EVK			3613
+ smdk4212		MACH_SMDK4212		SMDK4212		3638
+ smdk4412		MACH_SMDK4412		SMDK4412		3765
+-- 
+1.7.2.5
 
-This branch includes the basic remoteproc/rpmsg functionality as
-posted in the mailing lists, with a few minor changes that were
-requested (namely, changes against virtio-spec.txt were removed and
-"amp" is no longer used).
-
-The motivation for having this in linux-next is twofold:
-1. Getting prepared for a 3.3 merger (knock on wood)
-2. Starting a linear development scheme, in order to make it easier
-for people to collaborate (and to reduce the review load of
-incremental changes)
-
-I suspect that once this basic functionality will be merged upstream,
-the development of remoteproc and rpmsg will become completely
-orthogonal, and it would then make sense to start queueing patches
-separately. At that point I'll send you the details for the rpmsg.git
-tree.
-
-Last note: the "ARM: OMAP: add remoteproc devices for OMAP4" patch is
-omitted from this branch, since it depends on CMA (which isn't merged
-yet). As soon as CMA will be added (at least to linux-next) that patch
-will be queued up too.
-
-Thanks,
-Ohad.
-
-The following changes since commit 5611cc4572e889b62a7b4c72a413536bf6a9c416:
-
-  Linux 3.2-rc4 (2011-12-01 14:56:01 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next
-
-Ohad Ben-Cohen (6):
-      remoteproc: add framework for controlling remote processors
-      remoteproc: add debugfs entries
-      remoteproc: create rpmsg virtio device
-      remoteproc/omap: add a remoteproc driver for OMAP4
-      rpmsg: add virtio-based remote processor messaging bus
-      samples/rpmsg: add an rpmsg driver sample
-
- Documentation/ABI/testing/sysfs-bus-rpmsg    |   75 ++
- Documentation/remoteproc.txt                 |  324 ++++++
- Documentation/rpmsg.txt                      |  293 ++++++
- MAINTAINERS                                  |    7 +
- arch/arm/plat-omap/include/plat/remoteproc.h |   57 +
- drivers/Kconfig                              |    4 +
- drivers/Makefile                             |    2 +
- drivers/remoteproc/Kconfig                   |   24 +
- drivers/remoteproc/Makefile                  |    9 +
- drivers/remoteproc/omap_remoteproc.c         |  249 +++++
- drivers/remoteproc/omap_remoteproc.h         |   69 ++
- drivers/remoteproc/remoteproc_core.c         | 1410 ++++++++++++++++++++++++++
- drivers/remoteproc/remoteproc_debugfs.c      |  179 ++++
- drivers/remoteproc/remoteproc_internal.h     |   44 +
- drivers/remoteproc/remoteproc_rpmsg.c        |  295 ++++++
- drivers/rpmsg/Kconfig                        |    5 +
- drivers/rpmsg/Makefile                       |    1 +
- drivers/rpmsg/virtio_rpmsg_bus.c             | 1026 +++++++++++++++++++
- include/linux/mod_devicetable.h              |    9 +
- include/linux/remoteproc.h                   |  265 +++++
- include/linux/rpmsg.h                        |  326 ++++++
- include/linux/virtio_ids.h                   |    1 +
- samples/Kconfig                              |    8 +
- samples/Makefile                             |    2 +-
- samples/rpmsg/Makefile                       |    1 +
- samples/rpmsg/rpmsg_client_sample.c          |  100 ++
- 26 files changed, 4784 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-bus-rpmsg
- create mode 100644 Documentation/remoteproc.txt
- create mode 100644 Documentation/rpmsg.txt
- create mode 100644 arch/arm/plat-omap/include/plat/remoteproc.h
- create mode 100644 drivers/remoteproc/Kconfig
- create mode 100644 drivers/remoteproc/Makefile
- create mode 100644 drivers/remoteproc/omap_remoteproc.c
- create mode 100644 drivers/remoteproc/omap_remoteproc.h
- create mode 100644 drivers/remoteproc/remoteproc_core.c
- create mode 100644 drivers/remoteproc/remoteproc_debugfs.c
- create mode 100644 drivers/remoteproc/remoteproc_internal.h
- create mode 100644 drivers/remoteproc/remoteproc_rpmsg.c
- create mode 100644 drivers/rpmsg/Kconfig
- create mode 100644 drivers/rpmsg/Makefile
- create mode 100644 drivers/rpmsg/virtio_rpmsg_bus.c
- create mode 100644 include/linux/remoteproc.h
- create mode 100644 include/linux/rpmsg.h
- create mode 100644 samples/rpmsg/Makefile
- create mode 100644 samples/rpmsg/rpmsg_client_sample.c
