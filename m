@@ -1,102 +1,78 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 12/15] vc: omap3: auto_ret / auto_off support
-Date: Fri, 09 Dec 2011 12:13:39 -0800
-Message-ID: <87iplpcxl8.fsf@ti.com>
+Subject: Re: [PATCHv4 00/15] voltdm cleanup + auto-ret / auto-off support
+Date: Fri, 09 Dec 2011 12:23:55 -0800
+Message-ID: <87sjktbijo.fsf@ti.com>
 References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
-	<1322236188-19456-13-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:35684 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751485Ab1LIUNm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 15:13:42 -0500
-Received: by mail-qy0-f181.google.com with SMTP id f13so3695599qcs.40
-        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 12:13:41 -0800 (PST)
-In-Reply-To: <1322236188-19456-13-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Fri, 25 Nov 2011 17:49:45 +0200")
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45038 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752104Ab1LIUX7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 15:23:59 -0500
+Received: by mail-qy0-f173.google.com with SMTP id d15so3113938qcs.18
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 12:23:57 -0800 (PST)
+In-Reply-To: <1322236188-19456-1-git-send-email-t-kristo@ti.com> (Tero
+	Kristo's message of "Fri, 25 Nov 2011 17:49:33 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <t-kristo@ti.com>
 Cc: linux-omap@vger.kernel.org, nm@ti.com
 
+Hi Tero,
+
 Tero Kristo <t-kristo@ti.com> writes:
 
-> Voltage code will now enable / disable auto_ret / auto_off dynamically
-> according to the voltagedomain usecounts. This is accomplished via
-> the usage of the voltdm callback functions for sleep / wakeup.
+> Changes compared to previous version:
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> - merged most of the voltagedomain cleanup fixes to patch 2
+> - moved pmic latencies to omap_voltdm_pmic struct
+> - renamed omap_lp_params to omap2_oscillator as it only contains
+>   osc info now
+> - major changes to usecount support (patch 11+, needed for auto-ret)
+>   * added usecounts to voltagedomain / powerdomain
+>   * fixed usecount tracking so that the numbers are sane now
+>   * changed behavior of some usecounting sources that they do not
+>     update the counts (autoidle support)
+> - added auto-ret / auto-off support, based on fixed usecounting
+>   * smartreflex disabled / enabled
+>   * auto-ret / auto-off enabled based on target state
+> - some other minor tweaks I have probably forgotten to mention
 
-[...]
+This series is looking really good.  Thanks!
 
-> -static void __init omap3_vc_init_channel(struct voltagedomain *voltdm)
-> +static void omap3_set_core_off_timings(struct voltagedomain *voltdm)
->  {
-> +	u32 tstart, tshut;
+One thing I'd like to see is a bit more comments.  Particularily, the
+new functions in the VC core need kerneldoc comments and verbose
+descriptions.
 
-nit: insert blank line here
+The differences in timing setups between retention and off are not
+obvious when reading the code (and are easily forgotten).  They also
+equire a bit of TRM (re)reading to understand what's going on.  Some
+summary comments in the code, along with TRM references would be most
+helpful so when coming back to this code in a few months or more, we can
+easily remember what's going on (or at least where to look.)  Thanks.
 
-> +	omap_pm_get_oscillator(&tstart, &tshut);
-> +	omap3_set_clksetup(tstart, voltdm);
->  	omap3_set_off_timings(voltdm);
->  }
->  
-> +static void omap3_vc_channel_sleep(struct voltagedomain *voltdm)
-> +{
-> +	/* Set off timings if entering off */
-> +	if (voltdm->target_state == PWRDM_POWER_OFF)
-> +		omap3_set_off_timings(voltdm);
-> +	else
-> +		omap3_set_i2c_timings(voltdm, 0);
+> Tested on omap3 beagle:
+> - voltages for vdd1 and vdd2 change when entering idle
+> - both suspend and dynamic idle tested
+> - tested that voltages reach target levels for both ret / off
+>
+> Tested on omap4 blaze with custom kernel
+> - this requires a few additional patches missing from this set as
+>   omap4 PM support is still not merged
 
-Comment probably applies more to patch 2 since that's where it was
-introduced, but this is where I got confused, so mentioning it here:
+MPUSS support is now queued (in Tony's tree), but CORE PM is still
+missing.
 
-Calling this 'set_i2c_timings' is a bit confusing IMO because reading
-the code there is a choice between 'i2c' timings and 'off' timings.
-Maybe just calling these 'ret' and 'off' timings will be better for
-readability.
+> - will post missing patches once possible from upstream point of view
+> - voltages for vdd1 and vdd3 change when entering idle
+>
+> Applies on top of Kevin's for_3.2/voltage-cleanup branch.
 
-> +}
-> +
-> +static void omap3_vc_channel_wakeup(struct voltagedomain *voltdm)
-> +{
-> +}
+You can use mainline now as that branch is merged.
 
-nit: empty function not needed since code checks for non-NULL function
-pointer.
+Also, please Cc linux-arm-kernel on future versions of this series.
 
-> +static void omap3_vc_core_sleep(struct voltagedomain *voltdm)
-> +{
-> +	u8 mode;
-> +
-> +	switch (voltdm->target_state) {
-> +	case PWRDM_POWER_OFF:
-> +		mode = OMAP3430_AUTO_OFF_MASK;
-> +		break;
-> +	case PWRDM_POWER_RET:
-> +		mode = OMAP3430_AUTO_RET_MASK;
-> +		break;
-> +	default:
-> +		mode = OMAP3430_AUTO_SLEEP_MASK;
-> +		break;
-> +	}
-> +
-> +	if (mode & OMAP3430_AUTO_OFF_MASK)
-
-AND vs. == ?
-
-speaking of which, this function probably needs a comment mentioning
-that these bits are all mutually exclusive (with a TRM reference.)
-
-> +		omap3_set_core_off_timings(voltdm);
-> +	else
-> +		omap3_set_core_ret_timings(voltdm);
-> +
-> +	voltdm->rmw(OMAP3430_AUTO_OFF_MASK | OMAP3430_AUTO_RET_MASK |
-> +		    OMAP3430_AUTO_SLEEP_MASK, mode,
-> +		    OMAP3_PRM_VOLTCTRL_OFFSET);
-> +}
+Thanks,
 
 Kevin
