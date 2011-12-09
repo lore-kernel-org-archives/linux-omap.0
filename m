@@ -1,49 +1,90 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH 0/7] Introducing a generic AMP framework
-Date: Fri, 09 Dec 2011 16:08:02 +1030
-Message-ID: <87liqmfgp1.fsf@rustcorp.com.au>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com> <874nywpfkd.fsf@rustcorp.com.au> <CAK=WgbaF=yvGXvJdENrMoi4wWxaQa3UpbtsRm3mcA3cFdDCitA@mail.gmail.com> <87obw31v31.fsf@rustcorp.com.au> <CAK=WgbYVscyeJ5Og5iPx-tjEApa2KgAR1bnZiZUUcv0HxBEtOw@mail.gmail.com> <CAK=WgbbmZR5gPqD-0Dc2jWom9J_z+iV0+nAB-BAFedbTqXk0Mw@mail.gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
+ controller
+Date: Fri, 09 Dec 2011 07:20:56 -0600
+Message-ID: <4EE20B38.8050006@gmail.com>
+References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com> <4EE0D0E6.3060202@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbbmZR5gPqD-0Dc2jWom9J_z+iV0+nAB-BAFedbTqXk0Mw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58461 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394Ab1LINVJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 08:21:09 -0500
+Received: by ghbz2 with SMTP id z2so2489120ghb.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 05:21:08 -0800 (PST)
+In-Reply-To: <4EE0D0E6.3060202@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 8 Dec 2011 09:50:59 +0200, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Hi Rusty,
+On 12/08/2011 08:59 AM, Cousson, Benoit wrote:
+> On 12/7/2011 10:20 PM, Rob Herring wrote:
+>> On 12/07/2011 02:50 PM, Benoit Cousson wrote:
 > 
-> On Wed, Nov 23, 2011 at 11:58 AM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> > On Wed, Nov 23, 2011 at 3:33 AM, Rusty Russell <rusty@rustcorp.com.au> wrote:
-> >> That would imply that I'd done more than glance over them, and
-> >> unfortunately I haven't :(
-> >
-> > Np, thanks for glancing :)
+> [...]
 > 
-> I'd still like to ask for your Ack at least for the virtio_ids.h
-> change (please see below, and for the full patch, see
-> http://www.spinics.net/lists/linux-omap/msg59537.html):
+>>> +#ifdef CONFIG_OF
+>>> +int __init intc_of_init(struct device_node *node, struct device_node
+>>> *parent)
+>>> +{
+>>> +    struct resource res;
+>>> +    u32 nr_irqs;
+>>> +
+>>> +    if (WARN_ON(!node))
+>>> +        return -ENODEV;
+>>> +
+>>> +    if (of_address_to_resource(node, 0,&res)) {
+>>> +        WARN(1, "unable to get intc registers\n");
+>>> +        return -EINVAL;
+>>> +    }
+>>> +
+>>> +    if (of_property_read_u32(node, "ti,intc-size",&nr_irqs)) {
+>>> +        WARN(1, "unable to get intc-size\n");
+>>> +        return -EINVAL;
+>>
+>> There is no default value that makes sense?
 > 
-> Anyone following our threads will know you approved it, but I'm still
-> technically required to have your explicit ack as long as the patch
-> isn't going through your tree.
+> So far we have 96 or 128, so I can put 96 as a default and just keep the
+> warning without returning an error.
 > 
-> I can always add something like:
+>>> +    }
+>>> +
+>>> +    omap_init_irq(res.start, nr_irqs);
+>>> +    irq_domain_add_simple(node, 0);
+>>
+>> Have you read the NO_IRQ thread...
 > 
-> Virtio_ids.h-change-acked-by: Rusty Russell <rusty@rustcorp.com.au>
+> Yeah, I tried, but that's a long email thread with some unclear
+> conclusion...
+> The point is that the few users of that API today are using 0 as a base
+> as well, so I thought it was still valid.
 > 
-> So it doesn't imply anything else but this specific change, or I can
-> just put that hunk in a separate patch, and add then add your Acked-by
-> (so it doesn't imply anything on the rest of the patch set).
+>> Is 0 ever a valid interrupt for a driver? If so, you must not use 0 for
+>> the base. I would pick 16 to skip over legacy ISA irqs.
+> 
+> I do not have any 0 interrupts right now, my concern is that I still
+> have some legacy non-DT drivers that expect the previous hwirq = irq
+> mapping.
 
-It's usually done:
+I guess it depends how easily you can shift all the irq defines. You
+allow specifying the base so that you can set it to 0 for non-DT and -1
+(dynamic allocation) for DT.
 
-Acked-by: Rusty Russell <rusty@rustcorp.com.au> (virtio_ids.h)
+> 
+>> irqdomains should always be enabled regardless of CONFIG_OF. So either
+>> you can leave it as is if OF is always enabled for OMAP, or you should
+>> move domain setup into omap_init_irq.
+> 
+> OK, but it looks like I cannot really modify the current INTC to DT
+> without having fully adapted the OMAP drivers to use
+> irq_of_parse_and_map. Or did I miss something?
+> 
 
-And I've added it to the next version of the virtio-spec, so noone else
-grabs it.
+No, the drivers should not need to be modified as long as they get the
+irq's from platform device resources. You just want to make sure the
+INTC has no knowledge of it's irq base so it can change.
 
-Thanks!
-Rusty.
+Rob
