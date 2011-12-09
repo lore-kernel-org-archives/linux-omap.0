@@ -1,305 +1,234 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v2] ARM: OMAP1: Move dpll1 rates selection from config to runtime
-Date: Fri,  9 Dec 2011 02:51:16 +0100
-Message-ID: <1323395476-26548-1-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <201112090013.37529.jkrzyszt@tis.icnet.pl>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:45143 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751454Ab1LIBxV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Dec 2011 20:53:21 -0500
-In-Reply-To: <201112090013.37529.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+From: Axel Lin <axel.lin@gmail.com>
+Subject: [PATCH 2/3] video: omap: convert drivers/video/omap/* to use
+ module_platform_driver()
+Date: Fri, 09 Dec 2011 09:59:56 +0800
+Message-ID: <1323395996.3740.6.camel@phoenix>
+References: <1323395873.3740.4.camel@phoenix>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1323395873.3740.4.camel@phoenix>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Jonathan McDowell <noodles@earth.li>, Cory Maccarrone <darkstar6262@gmail.com>, Laurent Gonzalez <palmte.linux@free.fr>, Marek Vasut <marek.vasut@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-For still better multi-OMAP1 support, expand omap1_rate_table with flags
-for different SoC types and match them while selecting clock rates. The
-idea is stolen from current omap24xx clock rate selection algorithm.
+This patch converts the drivers in drivers/video/omap/* to use the
+module_platform_driver() macro which makes the code smaller and a bit
+simpler.
 
-Since clkdev platform flag definitions are reused here, those had to be
-expanded with one extra entry for OMAP1710 subtype, as this is the only
-SoC for which we allow selection of the highest, 216 MHz rate.
-
-Once done, remove no longer needed clock rate configure time options.
-
-Created against linux-omap/master tip as of Thu Dec 1,
-commit f83c2a8cbb59981722d1ab610c79adfd034a2667.
-Tested on Amstrad Delta.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Jonathan McDowell <noodles@earth.li>
+Cc: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: Laurent Gonzalez <palmte.linux@free.fr>
+Cc: Marek Vasut <marek.vasut@gmail.com>
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
 ---
-v2: limit OMAP1510 rate to 150 MHz, or some boards may not work.
+ drivers/video/omap/lcd_ams_delta.c |   13 +------------
+ drivers/video/omap/lcd_h3.c        |   14 +-------------
+ drivers/video/omap/lcd_htcherald.c |   14 +-------------
+ drivers/video/omap/lcd_inn1510.c   |   14 +-------------
+ drivers/video/omap/lcd_inn1610.c   |   14 +-------------
+ drivers/video/omap/lcd_osk.c       |   14 +-------------
+ drivers/video/omap/lcd_palmte.c    |   14 +-------------
+ drivers/video/omap/lcd_palmtt.c    |   13 +------------
+ drivers/video/omap/lcd_palmz71.c   |   13 +------------
+ 9 files changed, 9 insertions(+), 114 deletions(-)
 
-
- arch/arm/configs/omap1_defconfig              |    1 -
- arch/arm/mach-omap1/Kconfig                   |   64 -------------------------
- arch/arm/mach-omap1/clock.c                   |    6 ++
- arch/arm/mach-omap1/clock.h                   |    3 +
- arch/arm/mach-omap1/clock_data.c              |    6 ++-
- arch/arm/mach-omap1/opp.h                     |    1 +
- arch/arm/mach-omap1/opp_data.c                |   63 +++++++++++-------------
- arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
- 8 files changed, 45 insertions(+), 100 deletions(-)
-
-diff --git a/arch/arm/configs/omap1_defconfig b/arch/arm/configs/omap1_defconfig
-index 945a34f..dde2a1a 100644
---- a/arch/arm/configs/omap1_defconfig
-+++ b/arch/arm/configs/omap1_defconfig
-@@ -48,7 +48,6 @@ CONFIG_MACH_SX1=y
- CONFIG_MACH_NOKIA770=y
- CONFIG_MACH_AMS_DELTA=y
- CONFIG_MACH_OMAP_GENERIC=y
--CONFIG_OMAP_ARM_182MHZ=y
- # CONFIG_ARM_THUMB is not set
- CONFIG_PCCARD=y
- CONFIG_OMAP_CF=y
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index 73f287d..4f8d66f 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -168,70 +168,6 @@ config MACH_OMAP_GENERIC
-           custom OMAP boards. Say Y here if you have a custom
-           board.
- 
--comment "OMAP CPU Speed"
--	depends on ARCH_OMAP1
--
--config OMAP_ARM_216MHZ
--	bool "OMAP ARM 216 MHz CPU (1710 only)"
--        depends on ARCH_OMAP1 && ARCH_OMAP16XX
--        help
--          Enable 216 MHz clock for OMAP1710 CPU. If unsure, say N.
--
--config OMAP_ARM_195MHZ
--	bool "OMAP ARM 195 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP730 || ARCH_OMAP850)
--	help
--          Enable 195MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_192MHZ
--	bool "OMAP ARM 192 MHz CPU"
--	depends on ARCH_OMAP1 && ARCH_OMAP16XX
--	help
--          Enable 192MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_182MHZ
--	bool "OMAP ARM 182 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP730 || ARCH_OMAP850)
--	help
--          Enable 182MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_168MHZ
--	bool "OMAP ARM 168 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
--	help
--          Enable 168MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_150MHZ
--	bool "OMAP ARM 150 MHz CPU"
--	depends on ARCH_OMAP1 && ARCH_OMAP15XX
--	help
--	  Enable 150MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_120MHZ
--	bool "OMAP ARM 120 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
--	help
--          Enable 120MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_96MHZ
--	bool "OMAP ARM 96 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
--	help
--          Enable 96MHz clock for OMAP CPU. If unsure, say N.
--
--config OMAP_ARM_60MHZ
--	bool "OMAP ARM 60 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
--        default y
--	help
--          Enable 60MHz clock for OMAP CPU. If unsure, say Y.
--
--config OMAP_ARM_30MHZ
--	bool "OMAP ARM 30 MHz CPU"
--	depends on ARCH_OMAP1 && (ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850)
--	help
--          Enable 30MHz clock for OMAP CPU. If unsure, say N.
--
- endmenu
- 
- endif
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 84ef704..ff27dbd 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -197,6 +197,9 @@ int omap1_select_table_rate(struct clk *clk, unsigned long rate)
- 	ref_rate = ck_ref_p->rate;
- 
- 	for (ptr = omap1_rate_table; ptr->rate; ptr++) {
-+		if (!(ptr->flags & cpu_mask))
-+			continue;
-+
- 		if (ptr->xtal != ref_rate)
- 			continue;
- 
-@@ -290,6 +293,9 @@ long omap1_round_to_table_rate(struct clk *clk, unsigned long rate)
- 	highest_rate = -EINVAL;
- 
- 	for (ptr = omap1_rate_table; ptr->rate; ptr++) {
-+		if (!(ptr->flags & cpu_mask))
-+			continue;
-+
- 		if (ptr->xtal != ref_rate)
- 			continue;
- 
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 16b1423..3d04f4f 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -111,4 +111,7 @@ extern const struct clkops clkops_dummy;
- extern const struct clkops clkops_uart_16xx;
- extern const struct clkops clkops_generic;
- 
-+/* used for passing SoC type to omap1_{select,round_to}_table_rate() */
-+extern u32 cpu_mask;
-+
- #endif
-diff --git a/arch/arm/mach-omap1/clock_data.c b/arch/arm/mach-omap1/clock_data.c
-index 9ff90a7..ff2d524 100644
---- a/arch/arm/mach-omap1/clock_data.c
-+++ b/arch/arm/mach-omap1/clock_data.c
-@@ -778,12 +778,14 @@ static void __init omap1_show_rates(void)
- 		arm_ck.rate / 1000000, (arm_ck.rate / 100000) % 10);
- }
- 
-+u32 cpu_mask;
-+
- int __init omap1_clk_init(void)
- {
- 	struct omap_clk *c;
- 	const struct omap_clock_config *info;
- 	int crystal_type = 0; /* Default 12 MHz */
--	u32 reg, cpu_mask;
-+	u32 reg;
- 
- #ifdef CONFIG_DEBUG_LL
- 	/*
-@@ -808,6 +810,8 @@ int __init omap1_clk_init(void)
- 		clk_preinit(c->lk.clk);
- 
- 	cpu_mask = 0;
-+	if (cpu_is_omap1710())
-+		cpu_mask |= CK_1710;
- 	if (cpu_is_omap16xx())
- 		cpu_mask |= CK_16XX;
- 	if (cpu_is_omap1510())
-diff --git a/arch/arm/mach-omap1/opp.h b/arch/arm/mach-omap1/opp.h
-index 07074d7..79a6838 100644
---- a/arch/arm/mach-omap1/opp.h
-+++ b/arch/arm/mach-omap1/opp.h
-@@ -21,6 +21,7 @@ struct mpu_rate {
- 	unsigned long		pll_rate;
- 	__u16			ckctl_val;
- 	__u16			dpllctl_val;
-+	u32			flags;
+diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+index eb50a95..0fdd6f6 100644
+--- a/drivers/video/omap/lcd_ams_delta.c
++++ b/drivers/video/omap/lcd_ams_delta.c
+@@ -209,15 +209,4 @@ static struct platform_driver ams_delta_panel_driver = {
+ 	},
  };
  
- extern struct mpu_rate omap1_rate_table[];
-diff --git a/arch/arm/mach-omap1/opp_data.c b/arch/arm/mach-omap1/opp_data.c
-index 75a5465..9cd4ddb 100644
---- a/arch/arm/mach-omap1/opp_data.c
-+++ b/arch/arm/mach-omap1/opp_data.c
-@@ -10,6 +10,7 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <plat/clkdev_omap.h>
- #include "opp.h"
- 
- /*-------------------------------------------------------------------------
-@@ -20,40 +21,34 @@ struct mpu_rate omap1_rate_table[] = {
- 	 * NOTE: Comment order here is different from bits in CKCTL value:
- 	 * armdiv, dspdiv, dspmmu, tcdiv, perdiv, lcddiv
- 	 */
--#if defined(CONFIG_OMAP_ARM_216MHZ)
--	{ 216000000, 12000000, 216000000, 0x050d, 0x2910 }, /* 1/1/2/2/2/8 */
--#endif
--#if defined(CONFIG_OMAP_ARM_195MHZ)
--	{ 195000000, 13000000, 195000000, 0x050e, 0x2790 }, /* 1/1/2/2/4/8 */
--#endif
--#if defined(CONFIG_OMAP_ARM_192MHZ)
--	{ 192000000, 19200000, 192000000, 0x050f, 0x2510 }, /* 1/1/2/2/8/8 */
--	{ 192000000, 12000000, 192000000, 0x050f, 0x2810 }, /* 1/1/2/2/8/8 */
--	{  96000000, 12000000, 192000000, 0x055f, 0x2810 }, /* 2/2/2/2/8/8 */
--	{  48000000, 12000000, 192000000, 0x0baf, 0x2810 }, /* 4/4/4/8/8/8 */
--	{  24000000, 12000000, 192000000, 0x0fff, 0x2810 }, /* 8/8/8/8/8/8 */
--#endif
--#if defined(CONFIG_OMAP_ARM_182MHZ)
--	{ 182000000, 13000000, 182000000, 0x050e, 0x2710 }, /* 1/1/2/2/4/8 */
--#endif
--#if defined(CONFIG_OMAP_ARM_168MHZ)
--	{ 168000000, 12000000, 168000000, 0x010f, 0x2710 }, /* 1/1/1/2/8/8 */
--#endif
--#if defined(CONFIG_OMAP_ARM_150MHZ)
--	{ 150000000, 12000000, 150000000, 0x010a, 0x2cb0 }, /* 1/1/1/2/4/4 */
--#endif
--#if defined(CONFIG_OMAP_ARM_120MHZ)
--	{ 120000000, 12000000, 120000000, 0x010a, 0x2510 }, /* 1/1/1/2/4/4 */
--#endif
--#if defined(CONFIG_OMAP_ARM_96MHZ)
--	{  96000000, 12000000,  96000000, 0x0005, 0x2410 }, /* 1/1/1/1/2/2 */
--#endif
--#if defined(CONFIG_OMAP_ARM_60MHZ)
--	{  60000000, 12000000,  60000000, 0x0005, 0x2290 }, /* 1/1/1/1/2/2 */
--#endif
--#if defined(CONFIG_OMAP_ARM_30MHZ)
--	{  30000000, 12000000,  60000000, 0x0555, 0x2290 }, /* 2/2/2/2/2/2 */
--#endif
-+	{ 216000000, 12000000, 216000000, 0x050d, 0x2910, /* 1/1/2/2/2/8 */
-+			CK_1710 },
-+	{ 195000000, 13000000, 195000000, 0x050e, 0x2790, /* 1/1/2/2/4/8 */
-+			CK_7XX },
-+	{ 192000000, 19200000, 192000000, 0x050f, 0x2510, /* 1/1/2/2/8/8 */
-+			CK_16XX },
-+	{ 192000000, 12000000, 192000000, 0x050f, 0x2810, /* 1/1/2/2/8/8 */
-+			CK_16XX },
-+	{  96000000, 12000000, 192000000, 0x055f, 0x2810, /* 2/2/2/2/8/8 */
-+			CK_16XX },
-+	{  48000000, 12000000, 192000000, 0x0baf, 0x2810, /* 4/4/4/8/8/8 */
-+			CK_16XX },
-+	{  24000000, 12000000, 192000000, 0x0fff, 0x2810, /* 8/8/8/8/8/8 */
-+			CK_16XX },
-+	{ 182000000, 13000000, 182000000, 0x050e, 0x2710, /* 1/1/2/2/4/8 */
-+			CK_7XX },
-+	{ 168000000, 12000000, 168000000, 0x010f, 0x2710, /* 1/1/1/2/8/8 */
-+			CK_16XX|CK_7XX },
-+	{ 150000000, 12000000, 150000000, 0x010a, 0x2cb0, /* 1/1/1/2/4/4 */
-+			CK_1510 },
-+	{ 120000000, 12000000, 120000000, 0x010a, 0x2510, /* 1/1/1/2/4/4 */
-+			CK_16XX|CK_1510|CK_310|CK_7XX },
-+	{  96000000, 12000000,  96000000, 0x0005, 0x2410, /* 1/1/1/1/2/2 */
-+			CK_16XX|CK_1510|CK_310|CK_7XX },
-+	{  60000000, 12000000,  60000000, 0x0005, 0x2290, /* 1/1/1/1/2/2 */
-+			CK_16XX|CK_1510|CK_310|CK_7XX },
-+	{  30000000, 12000000,  60000000, 0x0555, 0x2290, /* 2/2/2/2/2/2 */
-+			CK_16XX|CK_1510|CK_310|CK_7XX },
- 	{ 0, 0, 0, 0, 0 },
+-static int __init ams_delta_panel_drv_init(void)
+-{
+-	return platform_driver_register(&ams_delta_panel_driver);
+-}
+-
+-static void __exit ams_delta_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&ams_delta_panel_driver);
+-}
+-
+-module_init(ams_delta_panel_drv_init);
+-module_exit(ams_delta_panel_drv_cleanup);
++module_platform_driver(ams_delta_panel_driver);
+diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+index baec34e..49bdeca 100644
+--- a/drivers/video/omap/lcd_h3.c
++++ b/drivers/video/omap/lcd_h3.c
+@@ -124,16 +124,4 @@ static struct platform_driver h3_panel_driver = {
+ 	},
  };
  
-diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-index 6d84c0c..7b9a934 100644
---- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-+++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-@@ -41,6 +41,7 @@ struct omap_clk {
- #define CK_TI816X	(1 << 12)
- #define CK_446X		(1 << 13)
- #define CK_AM33XX	(1 << 14)	/* AM33xx specific clocks */
-+#define CK_1710		(1 << 15)	/* 1710 extra for rate selection */
+-static int __init h3_panel_drv_init(void)
+-{
+-	return platform_driver_register(&h3_panel_driver);
+-}
+-
+-static void __exit h3_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&h3_panel_driver);
+-}
+-
+-module_init(h3_panel_drv_init);
+-module_exit(h3_panel_drv_cleanup);
+-
++module_platform_driver(h3_panel_driver);
+diff --git a/drivers/video/omap/lcd_htcherald.c b/drivers/video/omap/lcd_htcherald.c
+index b1a022f..20f4778 100644
+--- a/drivers/video/omap/lcd_htcherald.c
++++ b/drivers/video/omap/lcd_htcherald.c
+@@ -115,16 +115,4 @@ static struct platform_driver htcherald_panel_driver = {
+ 	},
+ };
  
+-static int __init htcherald_panel_drv_init(void)
+-{
+-	return platform_driver_register(&htcherald_panel_driver);
+-}
+-
+-static void __exit htcherald_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&htcherald_panel_driver);
+-}
+-
+-module_init(htcherald_panel_drv_init);
+-module_exit(htcherald_panel_drv_cleanup);
+-
++module_platform_driver(htcherald_panel_driver);
+diff --git a/drivers/video/omap/lcd_inn1510.c b/drivers/video/omap/lcd_inn1510.c
+index d129946..b38b1dd 100644
+--- a/drivers/video/omap/lcd_inn1510.c
++++ b/drivers/video/omap/lcd_inn1510.c
+@@ -109,16 +109,4 @@ static struct platform_driver innovator1510_panel_driver = {
+ 	},
+ };
  
- #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
+-static int __init innovator1510_panel_drv_init(void)
+-{
+-	return platform_driver_register(&innovator1510_panel_driver);
+-}
+-
+-static void __exit innovator1510_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&innovator1510_panel_driver);
+-}
+-
+-module_init(innovator1510_panel_drv_init);
+-module_exit(innovator1510_panel_drv_cleanup);
+-
++module_platform_driver(innovator1510_panel_driver);
+diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
+index a95756b..7e8bd8e 100644
+--- a/drivers/video/omap/lcd_inn1610.c
++++ b/drivers/video/omap/lcd_inn1610.c
+@@ -133,16 +133,4 @@ static struct platform_driver innovator1610_panel_driver = {
+ 	},
+ };
+ 
+-static int __init innovator1610_panel_drv_init(void)
+-{
+-	return platform_driver_register(&innovator1610_panel_driver);
+-}
+-
+-static void __exit innovator1610_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&innovator1610_panel_driver);
+-}
+-
+-module_init(innovator1610_panel_drv_init);
+-module_exit(innovator1610_panel_drv_cleanup);
+-
++module_platform_driver(innovator1610_panel_driver);
+diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
+index b985997..5914220 100644
+--- a/drivers/video/omap/lcd_osk.c
++++ b/drivers/video/omap/lcd_osk.c
+@@ -127,16 +127,4 @@ static struct platform_driver osk_panel_driver = {
+ 	},
+ };
+ 
+-static int __init osk_panel_drv_init(void)
+-{
+-	return platform_driver_register(&osk_panel_driver);
+-}
+-
+-static void __exit osk_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&osk_panel_driver);
+-}
+-
+-module_init(osk_panel_drv_init);
+-module_exit(osk_panel_drv_cleanup);
+-
++module_platform_driver(osk_panel_driver);
+diff --git a/drivers/video/omap/lcd_palmte.c b/drivers/video/omap/lcd_palmte.c
+index d79f436..88c31eb 100644
+--- a/drivers/video/omap/lcd_palmte.c
++++ b/drivers/video/omap/lcd_palmte.c
+@@ -108,16 +108,4 @@ static struct platform_driver palmte_panel_driver = {
+ 	},
+ };
+ 
+-static int __init palmte_panel_drv_init(void)
+-{
+-	return platform_driver_register(&palmte_panel_driver);
+-}
+-
+-static void __exit palmte_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&palmte_panel_driver);
+-}
+-
+-module_init(palmte_panel_drv_init);
+-module_exit(palmte_panel_drv_cleanup);
+-
++module_platform_driver(palmte_panel_driver);
+diff --git a/drivers/video/omap/lcd_palmtt.c b/drivers/video/omap/lcd_palmtt.c
+index c2e96a7..aaf3c8b 100644
+--- a/drivers/video/omap/lcd_palmtt.c
++++ b/drivers/video/omap/lcd_palmtt.c
+@@ -113,15 +113,4 @@ static struct platform_driver palmtt_panel_driver = {
+ 	},
+ };
+ 
+-static int __init palmtt_panel_drv_init(void)
+-{
+-	return platform_driver_register(&palmtt_panel_driver);
+-}
+-
+-static void __exit palmtt_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&palmtt_panel_driver);
+-}
+-
+-module_init(palmtt_panel_drv_init);
+-module_exit(palmtt_panel_drv_cleanup);
++module_platform_driver(palmtt_panel_driver);
+diff --git a/drivers/video/omap/lcd_palmz71.c b/drivers/video/omap/lcd_palmz71.c
+index 1ab4847..3b7d8aa 100644
+--- a/drivers/video/omap/lcd_palmz71.c
++++ b/drivers/video/omap/lcd_palmz71.c
+@@ -109,15 +109,4 @@ static struct platform_driver palmz71_panel_driver = {
+ 	},
+ };
+ 
+-static int __init palmz71_panel_drv_init(void)
+-{
+-	return platform_driver_register(&palmz71_panel_driver);
+-}
+-
+-static void __exit palmz71_panel_drv_cleanup(void)
+-{
+-	platform_driver_unregister(&palmz71_panel_driver);
+-}
+-
+-module_init(palmz71_panel_drv_init);
+-module_exit(palmz71_panel_drv_cleanup);
++module_platform_driver(palmz71_panel_driver);
 -- 
-1.7.3.4
-
+1.7.5.4
