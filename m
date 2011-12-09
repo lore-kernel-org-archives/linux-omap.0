@@ -1,99 +1,157 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCHv7 1/3] OMAP: I2C: Reset support
-Date: Fri, 09 Dec 2011 12:51:09 +0530
-Message-ID: <4EE1B6E5.6080401@ti.com>
-References: <1322817674-25384-1-git-send-email-shubhrajyoti@ti.com> <1322817674-25384-2-git-send-email-shubhrajyoti@ti.com> <alpine.DEB.2.00.1112081812530.6289@utopia.booyaka.com>
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: [PATCH 1/2] video: omap: Staticise non-exported symbols
+Date: Fri, 9 Dec 2011 09:23:46 +0100
+Message-ID: <201112090923.46643.marek.vasut@gmail.com>
+References: <1323394677.3740.2.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1112081812530.6289-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49995 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751477Ab1LIIXy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 03:23:54 -0500
+In-Reply-To: <1323394677.3740.2.camel@phoenix>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Jonathan McDowell <noodles@earth.li>, Imre Deak <imre.deak@nokia.com>, Cory Maccarrone <darkstar6262@gmail.com>, Laurent Gonzalez <palmte.linux@free.fr>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Friday 09 December 2011 06:45 AM, Paul Walmsley wrote:
-> Hi
->
-> some comments
->
-> On Fri, 2 Dec 2011, Shubhrajyoti D wrote:
->
->> Under some error conditions the i2c driver may do a reset.
->> Adding a reset field and support in the device-specific code.
->>
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
->> ---
->>  arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
->>  include/linux/i2c-omap.h |    1 +
->>  2 files changed, 19 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
->> index db071bc..883229c 100644
->> --- a/arch/arm/plat-omap/i2c.c
->> +++ b/arch/arm/plat-omap/i2c.c
->> @@ -74,6 +74,22 @@ static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
->>  static struct platform_device omap_i2c_devices[] = {
->>  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
->>  };
->> +/**
->> + * omap2_i2c_reset - reset the omap i2c module.
->> + * @dev: struct device*
->> + */
->> +
->> +static int omap2_i2c_reset(struct device *dev)
->> +{
->> +	int r = 0;
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct omap_device *odev = to_omap_device(pdev);
->> +	struct omap_hwmod *oh;
->> +
->> +	oh = odev->hwmods[0];
->> +	r = omap_hwmod_reset(oh);
->> +	return r;
->> +}
-> This function should go into arch/arm/plat-omap/omap_device.c, and it 
-agree
-> should be renamed to omap_device_reset(), since it's not I2C specific.  
-> Also it shouldn't assume that there's only one hwmod - it should iterate 
-> over all of the hwmods in the omap_device and call omap_hwmod_reset() on 
-> each.
-Yes agree will fix in the next version.
+> These symbols are not used outside it's driver so no need to
+> make the symbol global.
+> 
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> ---
+>  drivers/video/omap/lcd_ams_delta.c |    2 +-
+>  drivers/video/omap/lcd_h3.c        |    2 +-
+>  drivers/video/omap/lcd_htcherald.c |    2 +-
+>  drivers/video/omap/lcd_inn1510.c   |    2 +-
+>  drivers/video/omap/lcd_inn1610.c   |    2 +-
+>  drivers/video/omap/lcd_osk.c       |    2 +-
+>  drivers/video/omap/lcd_palmte.c    |    2 +-
+>  drivers/video/omap/lcd_palmtt.c    |    2 +-
+>  drivers/video/omap/lcd_palmz71.c   |    2 +-
+>  9 files changed, 9 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/video/omap/lcd_ams_delta.c
+> b/drivers/video/omap/lcd_ams_delta.c index 6978ae4..eb50a95 100644
+> --- a/drivers/video/omap/lcd_ams_delta.c
+> +++ b/drivers/video/omap/lcd_ams_delta.c
+> @@ -198,7 +198,7 @@ static int ams_delta_panel_resume(struct
+> platform_device *pdev) return 0;
+>  }
+> 
+> -struct platform_driver ams_delta_panel_driver = {
+> +static struct platform_driver ams_delta_panel_driver = {
+>  	.probe		= ams_delta_panel_probe,
+>  	.remove		= ams_delta_panel_remove,
+>  	.suspend	= ams_delta_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+> index 622ad83..baec34e 100644
+> --- a/drivers/video/omap/lcd_h3.c
+> +++ b/drivers/video/omap/lcd_h3.c
+> @@ -113,7 +113,7 @@ static int h3_panel_resume(struct platform_device
+> *pdev) return 0;
+>  }
+> 
+> -struct platform_driver h3_panel_driver = {
+> +static struct platform_driver h3_panel_driver = {
+>  	.probe		= h3_panel_probe,
+>  	.remove		= h3_panel_remove,
+>  	.suspend	= h3_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_htcherald.c
+> b/drivers/video/omap/lcd_htcherald.c index 4802419..b1a022f 100644
+> --- a/drivers/video/omap/lcd_htcherald.c
+> +++ b/drivers/video/omap/lcd_htcherald.c
+> @@ -104,7 +104,7 @@ static int htcherald_panel_resume(struct
+> platform_device *pdev) return 0;
+>  }
+> 
+> -struct platform_driver htcherald_panel_driver = {
+> +static struct platform_driver htcherald_panel_driver = {
+>  	.probe		= htcherald_panel_probe,
+>  	.remove		= htcherald_panel_remove,
+>  	.suspend	= htcherald_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_inn1510.c
+> b/drivers/video/omap/lcd_inn1510.c index 3271f16..d129946 100644
+> --- a/drivers/video/omap/lcd_inn1510.c
+> +++ b/drivers/video/omap/lcd_inn1510.c
+> @@ -98,7 +98,7 @@ static int innovator1510_panel_resume(struct
+> platform_device *pdev) return 0;
+>  }
+> 
+> -struct platform_driver innovator1510_panel_driver = {
+> +static struct platform_driver innovator1510_panel_driver = {
+>  	.probe		= innovator1510_panel_probe,
+>  	.remove		= innovator1510_panel_remove,
+>  	.suspend	= innovator1510_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_inn1610.c
+> b/drivers/video/omap/lcd_inn1610.c index 12cc52a..a95756b 100644
+> --- a/drivers/video/omap/lcd_inn1610.c
+> +++ b/drivers/video/omap/lcd_inn1610.c
+> @@ -122,7 +122,7 @@ static int innovator1610_panel_resume(struct
+> platform_device *pdev) return 0;
+>  }
+> 
+> -struct platform_driver innovator1610_panel_driver = {
+> +static struct platform_driver innovator1610_panel_driver = {
+>  	.probe		= innovator1610_panel_probe,
+>  	.remove		= innovator1610_panel_remove,
+>  	.suspend	= innovator1610_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
+> index 6f8d13c..b985997 100644
+> --- a/drivers/video/omap/lcd_osk.c
+> +++ b/drivers/video/omap/lcd_osk.c
+> @@ -116,7 +116,7 @@ static int osk_panel_resume(struct platform_device
+> *pdev) return 0;
+>  }
+> 
+> -struct platform_driver osk_panel_driver = {
+> +static struct platform_driver osk_panel_driver = {
+>  	.probe		= osk_panel_probe,
+>  	.remove		= osk_panel_remove,
+>  	.suspend	= osk_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_palmte.c
+> b/drivers/video/omap/lcd_palmte.c index 4cb3017..d79f436 100644
+> --- a/drivers/video/omap/lcd_palmte.c
+> +++ b/drivers/video/omap/lcd_palmte.c
+> @@ -97,7 +97,7 @@ static int palmte_panel_resume(struct platform_device
+> *pdev) return 0;
+>  }
+> 
+> -struct platform_driver palmte_panel_driver = {
+> +static struct platform_driver palmte_panel_driver = {
+>  	.probe		= palmte_panel_probe,
+>  	.remove		= palmte_panel_remove,
+>  	.suspend	= palmte_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_palmtt.c
+> b/drivers/video/omap/lcd_palmtt.c index b51b332..c2e96a7 100644
+> --- a/drivers/video/omap/lcd_palmtt.c
+> +++ b/drivers/video/omap/lcd_palmtt.c
+> @@ -102,7 +102,7 @@ static int palmtt_panel_resume(struct platform_device
+> *pdev) return 0;
+>  }
+> 
+> -struct platform_driver palmtt_panel_driver = {
+> +static struct platform_driver palmtt_panel_driver = {
+>  	.probe		= palmtt_panel_probe,
+>  	.remove		= palmtt_panel_remove,
+>  	.suspend	= palmtt_panel_suspend,
+> diff --git a/drivers/video/omap/lcd_palmz71.c
+> b/drivers/video/omap/lcd_palmz71.c index 2334e56..1ab4847 100644
+> --- a/drivers/video/omap/lcd_palmz71.c
+> +++ b/drivers/video/omap/lcd_palmz71.c
+> @@ -98,7 +98,7 @@ static int palmz71_panel_resume(struct platform_device
+> *pdev) return 0;
+>  }
+> 
+> -struct platform_driver palmz71_panel_driver = {
+> +static struct platform_driver palmz71_panel_driver = {
+>  	.probe		= palmz71_panel_probe,
+>  	.remove		= palmz71_panel_remove,
+>  	.suspend	= palmz71_panel_suspend,
 
->>  
->>  #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
->>  
->> @@ -179,6 +195,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
->>  	 */
->>  	if (cpu_is_omap34xx())
->>  		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
->> +
->> +	pdata->device_reset = omap2_i2c_reset;
-> omap_device_reset
->
->>  	pdev = omap_device_build(name, bus_id, oh, pdata,
->>  			sizeof(struct omap_i2c_bus_platform_data),
->>  			NULL, 0, 0);
->> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
->> index 92a0dc7..fd38249 100644
->> --- a/include/linux/i2c-omap.h
->> +++ b/include/linux/i2c-omap.h
->> @@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
->>  	u32		rev;
->>  	u32		flags;
->>  	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
->> +	int		(*device_reset) (struct device *dev);
->>  };
->>  
->>  #endif
->> -- 
->> 1.7.1
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> - Paul
+I can speak for palmtt and palmz71,
+
+Acked-by: Marek Vasut <marek.vasut@gmail.com>
