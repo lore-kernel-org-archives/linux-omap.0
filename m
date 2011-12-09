@@ -1,51 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2, 3: DSS2: Include linux/delay.h and common.h to
- fix build errors
-Date: Thu, 8 Dec 2011 16:49:51 -0800
-Message-ID: <20111209004951.GK31337@atomide.com>
-References: <1322654481.11191.1.camel@phoenix>
+Subject: Re: [PATCH 2/3] arm/dts: OMAP: Remove bootargs node from board
+ files
+Date: Thu, 8 Dec 2011 16:55:37 -0800
+Message-ID: <20111209005537.GL31337@atomide.com>
+References: <y>
+ <1323190149-6492-3-git-send-email-b-cousson@ti.com>
+ <4EDE59B8.1070808@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:26795 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22777 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751238Ab1LIAtx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 19:49:53 -0500
+	with ESMTP id S1753249Ab1LIAzm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 19:55:42 -0500
 Content-Disposition: inline
-In-Reply-To: <1322654481.11191.1.camel@phoenix>
+In-Reply-To: <4EDE59B8.1070808@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Axel Lin <axel.lin@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>
 
-* Axel Lin <axel.lin@gmail.com> [111130 03:26]:
-> Include linux/delay.h to fix below build error:
+* Rob Herring <robherring2@gmail.com> [111206 09:35]:
+> Benoit,
 > 
->   CC      arch/arm/mach-omap2/display.o
-> arch/arm/mach-omap2/display.c: In function 'dispc_disable_outputs':
-> arch/arm/mach-omap2/display.c:283: error: implicit declaration of function 'mdelay'
-> arch/arm/mach-omap2/display.c: In function 'omap_dss_reset':
-> arch/arm/mach-omap2/display.c:317: error: implicit declaration of function 'omap_test_timeout'
-> make[1]: *** [arch/arm/mach-omap2/display.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
+> On 12/06/2011 10:49 AM, Benoit Cousson wrote:
+> > Since 3.2, the CONFIG_ARM_ATAG_DTB_COMPAT config allows
+> > an old bootloader to still use ATAG to provide cmdline.
+> > 
+> > Remove chosen/bootargs from the DTS board files.
+> > 
+> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Grant Likely <grant.likely@secretlab.ca>
+> > Cc: Rob Herring <rob.herring@calxeda.com>
 > 
-> Include common.h to fix below build error:
-> 
->   CC      arch/arm/mach-omap2/display.o
-> arch/arm/mach-omap2/display.c: In function 'omap_dss_reset':
-> arch/arm/mach-omap2/display.c:318: error: implicit declaration of function 'omap_test_timeout'
-> make[1]: *** [arch/arm/mach-omap2/display.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
-> 
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> ---
-> I got the build error on linux-next 20111130.
-> This patch is against linux-next 20111130.
-> Axel
+> Acked-by: Rob Herring <rob.herring@calxeda.com>
 
-Thanks we already have commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a
-in Russell's devel-stable branch doing the same thing.
-
-Regards,
+Thanks applying patches 1 & 2 into omap dt branch.
+Still wondering if we should combine patch 3 into
+some other cleanup to avoid extra churn..
 
 Tony
