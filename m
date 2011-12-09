@@ -1,92 +1,78 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 07/10] arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
-Date: Fri, 9 Dec 2011 15:02:38 +0100
-Message-ID: <1323439361-1647-8-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 04/10] rtc: rtc-twl: Add DT support for RTC inside twl4030/twl6030
+Date: Fri, 9 Dec 2011 15:02:35 +0100
+Message-ID: <1323439361-1647-5-git-send-email-b-cousson@ti.com>
 References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45342 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753889Ab1LIODb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Dec 2011 09:03:31 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:54140 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753823Ab1LIOD5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 09:03:57 -0500
 In-Reply-To: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, rob.herring@calxeda.com
-Cc: devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Alessandro Zummo <a.zummo@towertech.it>
 
-Update pandaboard dts file with required clock frequencies
-for the i2c client devices existing on pandaboard.
-
-Add the twl6030 node in i2c1 controller.
-
-This is the minimal support needed to boot OMAP4 boards
-without any crash.
-The support for all the features included in this MFD will be
-added later.
-
-Add a generic i2c EEPROM entry.
+Add the DT support for the TI rtc-twl present in the twl4030
+and twl6030 devices.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 ---
- arch/arm/boot/dts/omap4-panda.dts |   45 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 45 insertions(+), 0 deletions(-)
+ Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
+ drivers/rtc/rtc-twl.c                             |   10 ++++++++--
+ 2 files changed, 20 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
 
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index 9755ad5..b66bcd6 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -18,3 +18,48 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
+diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+new file mode 100644
+index 0000000..596e0c9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+@@ -0,0 +1,12 @@
++* TI twl RTC
++
++The TWL family (twl4030/6030) contains a RTC.
++
++Required properties:
++- compatible : Should be twl4030-rtc
++
++Examples:
++
++rtc@0 {
++    compatible = "ti,twl4030-rtc";
++};
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index 20687d5..d43b4f6 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platform_device *pdev)
+ #define twl_rtc_resume  NULL
+ #endif
+ 
++static const struct of_device_id twl_rtc_of_match[] = {
++	{.compatible = "ti,twl4030-rtc", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
+ MODULE_ALIAS("platform:twl_rtc");
+ 
+ static struct platform_driver twl4030rtc_driver = {
+@@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc_driver = {
+ 	.suspend	= twl_rtc_suspend,
+ 	.resume		= twl_rtc_resume,
+ 	.driver		= {
+-		.owner	= THIS_MODULE,
+-		.name	= "twl_rtc",
++		.owner		= THIS_MODULE,
++		.name		= "twl_rtc",
++		.of_match_table = twl_rtc_of_match,
+ 	},
  };
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * Integrated Power Management Chip
-+	 * http://www.ti.com/lit/ds/symlink/twl6030.pdf
-+	 */
-+	twl@48 {
-+		compatible = "ti,twl6030";
-+		reg = <0x48>;
-+		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
-+		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupt-controller;
-+		#interrupt-cells = <1>;
-+		interrupt-parent = <&gic>;
-+
-+		/* twl is a MFD, so it will contain a bunch of sub-ips */
-+		rtc {
-+			compatible = "ti,twl4030-rtc";
-+			interrupts = <11>;
-+		};
-+	};
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <100000>;
-+
-+	/*
-+	 * Display monitor features are burnt in their EEPROM as EDID data.
-+	 * The EEPROM is connected as I2C slave device.
-+	 */
-+	eeprom@50 {
-+		compatible = "ti,eeprom";
-+		reg = <0x50>;
-+	};
-+};
-+
-+&i2c4 {
-+	clock-frequency = <400000>;
-+};
+ 
 -- 
 1.7.0.4
 
