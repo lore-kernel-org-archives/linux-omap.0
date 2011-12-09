@@ -1,78 +1,112 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 04/10] rtc: rtc-twl: Add DT support for RTC inside twl4030/twl6030
-Date: Fri, 9 Dec 2011 15:02:35 +0100
-Message-ID: <1323439361-1647-5-git-send-email-b-cousson@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: [PATCH] omap: beagle: Don't register madc twice
+Date: Fri, 9 Dec 2011 06:12:12 -0800
+Message-ID: <CAGDS+n=zapd+aEAGnK5sUn=Vdna8Fjvsd7K9jJZQuvSZ8BsFBA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54140 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753823Ab1LIOD5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 09:03:57 -0500
-In-Reply-To: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:45154 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab1LIOMN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 09:12:13 -0500
+Received: by vcbfk14 with SMTP id fk14so2276873vcb.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 06:12:12 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, rob.herring@calxeda.com
-Cc: devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Alessandro Zummo <a.zummo@towertech.it>
+To: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>
 
-Add the DT support for the TI rtc-twl present in the twl4030
-and twl6030 devices.
+Specifying TWL_COMMON_PDATA_MADC is adequate, don't also add
+platform device
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Otherwise:
+
+------------[ cut here ]------------
+WARNING: at fs/sysfs/dir.c:481 sysfs_add_one+0x6c/0x8c()
+sysfs: cannot create duplicate filename
+'/bus/platform/devices/twl4030_madc_hwmon'
+Modules linked in:
+[<c0012b48>] (unwind_backtrace+0x0/0x11c) from [<c0038450>]
+(warn_slowpath_common+0x4c/0x64)
+[<c0038450>] (warn_slowpath_common+0x4c/0x64) from [<c00384e8>]
+(warn_slowpath_fmt+0x2c/0x3c)
+[<c00384e8>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01043d4>]
+(sysfs_add_one+0x6c/0x8c)
+[<c01043d4>] (sysfs_add_one+0x6c/0x8c) from [<c0104b50>]
+(sysfs_do_create_link+0xec/0x1cc)
+[<c0104b50>] (sysfs_do_create_link+0xec/0x1cc) from [<c025577c>]
+(bus_add_device+0xd4/0x158)
+[<c025577c>] (bus_add_device+0xd4/0x158) from [<c0253e08>]
+(device_add+0x378/0x560)
+[<c0253e08>] (device_add+0x378/0x560) from [<c0257a40>]
+(platform_device_add+0x140/0x1a4)
+[<c0257a40>] (platform_device_add+0x140/0x1a4) from [<c0265624>]
+(add_numbered_child+0x144/0x1a4)
+[<c0265624>] (add_numbered_child+0x144/0x1a4) from [<c02657cc>]
+(add_children+0xc4/0x808)
+[<c02657cc>] (add_children+0xc4/0x808) from [<c040df88>] (twl_probe+0x390/0x418)
+[<c040df88>] (twl_probe+0x390/0x418) from [<c02dbb9c>]
+(i2c_device_probe+0xa0/0xd4)
+[<c02dbb9c>] (i2c_device_probe+0xa0/0xd4) from [<c02561dc>]
+(driver_probe_device+0x144/0x29c)
+[<c02561dc>] (driver_probe_device+0x144/0x29c) from [<c0254f9c>]
+(bus_for_each_drv+0x4c/0x84)
+[<c0254f9c>] (bus_for_each_drv+0x4c/0x84) from [<c0255f80>]
+(device_attach+0x74/0xa0)
+[<c0255f80>] (device_attach+0x74/0xa0) from [<c0255824>]
+(bus_probe_device+0x24/0x40)
+[<c0255824>] (bus_probe_device+0x24/0x40) from [<c0253e5c>]
+(device_add+0x3cc/0x560)
+[<c0253e5c>] (device_add+0x3cc/0x560) from [<c02dc5a8>]
+(i2c_new_device+0x10c/0x1b0)
+[<c02dc5a8>] (i2c_new_device+0x10c/0x1b0) from [<c02dca04>]
+(i2c_register_adapter+0x160/0x218)
+[<c02dca04>] (i2c_register_adapter+0x160/0x218) from [<c02dcbe4>]
+(i2c_add_numbered_adapter+0x9c/0xb8)
+[<c02dcbe4>] (i2c_add_numbered_adapter+0x9c/0xb8) from [<c04106fc>]
+(omap_i2c_probe+0x2b8/0x384)
+[<c04106fc>] (omap_i2c_probe+0x2b8/0x384) from [<c025741c>]
+(platform_drv_probe+0x14/0x18)
+[<c025741c>] (platform_drv_probe+0x14/0x18) from [<c02561dc>]
+(driver_probe_device+0x144/0x29c)
+[<c02561dc>] (driver_probe_device+0x144/0x29c) from [<c0256394>]
+(__driver_attach+0x60/0x84)
+[<c0256394>] (__driver_attach+0x60/0x84) from [<c025525c>]
+(bus_for_each_dev+0x4c/0x78)
+[<c025525c>] (bus_for_each_dev+0x4c/0x78) from [<c02559c4>]
+(bus_add_driver+0xc0/0x240)
+[<c02559c4>] (bus_add_driver+0xc0/0x240) from [<c02568c0>]
+(driver_register+0xa0/0x120)
+[<c02568c0>] (driver_register+0xa0/0x120) from [<c000863c>]
+(do_one_initcall+0x90/0x160)
+[<c000863c>] (do_one_initcall+0x90/0x160) from [<c05f47b4>]
+(kernel_init+0x78/0x11c)
+[<c05f47b4>] (kernel_init+0x78/0x11c) from [<c000e918>]
+(kernel_thread_exit+0x0/0x8)
+---[ end trace 1b75b31a2719ed1c ]---
+dummy 1-004a: can't add twl4030_madc_hwmon dev
+
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
 ---
- Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
- drivers/rtc/rtc-twl.c                             |   10 ++++++++--
- 2 files changed, 20 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
 
-diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-new file mode 100644
-index 0000000..596e0c9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-@@ -0,0 +1,12 @@
-+* TI twl RTC
-+
-+The TWL family (twl4030/6030) contains a RTC.
-+
-+Required properties:
-+- compatible : Should be twl4030-rtc
-+
-+Examples:
-+
-+rtc@0 {
-+    compatible = "ti,twl4030-rtc";
-+};
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 20687d5..d43b4f6 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platform_device *pdev)
- #define twl_rtc_resume  NULL
- #endif
- 
-+static const struct of_device_id twl_rtc_of_match[] = {
-+	{.compatible = "ti,twl4030-rtc", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
- MODULE_ALIAS("platform:twl_rtc");
- 
- static struct platform_driver twl4030rtc_driver = {
-@@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc_driver = {
- 	.suspend	= twl_rtc_suspend,
- 	.resume		= twl_rtc_resume,
- 	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= "twl_rtc",
-+		.owner		= THIS_MODULE,
-+		.name		= "twl_rtc",
-+		.of_match_table = twl_rtc_of_match,
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+b/arch/arm/mach-omap2/board-omap3beagle.c
+index d47470e..91c1a7c 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -634,15 +634,9 @@ static struct platform_device keys_gpio = {
  	},
  };
- 
--- 
-1.7.0.4
 
+-static struct platform_device madc_hwmon = {
+-	.name	= "twl4030_madc_hwmon",
+-	.id	= -1,
+-};
+-
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&keys_gpio,
+-	&madc_hwmon,
+ };
+
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
