@@ -1,26 +1,178 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH 0/7] Introducing a generic AMP framework
-Date: Fri, 9 Dec 2011 16:15:09 +0200
-Message-ID: <CAK=WgbbTk3L+qXPfcV1sxM0OkNu9oFX-A0G9afoH1dfMAcKvHw@mail.gmail.com>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
- <874nywpfkd.fsf@rustcorp.com.au> <CAK=WgbaF=yvGXvJdENrMoi4wWxaQa3UpbtsRm3mcA3cFdDCitA@mail.gmail.com>
- <87obw31v31.fsf@rustcorp.com.au> <CAK=WgbYVscyeJ5Og5iPx-tjEApa2KgAR1bnZiZUUcv0HxBEtOw@mail.gmail.com>
- <CAK=WgbbmZR5gPqD-0Dc2jWom9J_z+iV0+nAB-BAFedbTqXk0Mw@mail.gmail.com> <87liqmfgp1.fsf@rustcorp.com.au>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] omap: beagle: Don't register madc twice
+Date: Fri, 9 Dec 2011 06:20:10 -0800
+Message-ID: <CAGDS+nmKy4Xn_rEpzD+QRSWKgv80OXCOmbThJKHMd+eBy_H+Xw@mail.gmail.com>
+References: <CAGDS+n=zapd+aEAGnK5sUn=Vdna8Fjvsd7K9jJZQuvSZ8BsFBA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87liqmfgp1.fsf@rustcorp.com.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, akpm@linux-foundation.org, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:49487 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754260Ab1LIOUL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 09:20:11 -0500
+Received: by vcbfk14 with SMTP id fk14so2282900vcb.19
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 06:20:10 -0800 (PST)
+In-Reply-To: <CAGDS+n=zapd+aEAGnK5sUn=Vdna8Fjvsd7K9jJZQuvSZ8BsFBA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: lm-sensors@lm-sensors.org, linux-omap@vger.kernel.org
+Cc: Keerthy <j-keerthy@ti.com>, Kyle Manna <kyle@kylemanna.com>
 
-On Fri, Dec 9, 2011 at 7:38 AM, Rusty Russell <rusty@rustcorp.com.au> wrote:
-> It's usually done:
+On Fri, Dec 9, 2011 at 6:12 AM, Steve Sakoman <sakoman@gmail.com> wrote=
+:
+> Specifying TWL_COMMON_PDATA_MADC is adequate, don't also add
+> platform device
 >
-> Acked-by: Rusty Russell <rusty@rustcorp.com.au> (virtio_ids.h)
+> Otherwise:
 >
-> And I've added it to the next version of the virtio-spec, so noone else
-> grabs it.
+> ------------[ cut here ]------------
+> WARNING: at fs/sysfs/dir.c:481 sysfs_add_one+0x6c/0x8c()
+> sysfs: cannot create duplicate filename
+> '/bus/platform/devices/twl4030_madc_hwmon'
+> Modules linked in:
+> [<c0012b48>] (unwind_backtrace+0x0/0x11c) from [<c0038450>]
+> (warn_slowpath_common+0x4c/0x64)
+> [<c0038450>] (warn_slowpath_common+0x4c/0x64) from [<c00384e8>]
+> (warn_slowpath_fmt+0x2c/0x3c)
+> [<c00384e8>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01043d4>]
+> (sysfs_add_one+0x6c/0x8c)
+> [<c01043d4>] (sysfs_add_one+0x6c/0x8c) from [<c0104b50>]
+> (sysfs_do_create_link+0xec/0x1cc)
+> [<c0104b50>] (sysfs_do_create_link+0xec/0x1cc) from [<c025577c>]
+> (bus_add_device+0xd4/0x158)
+> [<c025577c>] (bus_add_device+0xd4/0x158) from [<c0253e08>]
+> (device_add+0x378/0x560)
+> [<c0253e08>] (device_add+0x378/0x560) from [<c0257a40>]
+> (platform_device_add+0x140/0x1a4)
+> [<c0257a40>] (platform_device_add+0x140/0x1a4) from [<c0265624>]
+> (add_numbered_child+0x144/0x1a4)
+> [<c0265624>] (add_numbered_child+0x144/0x1a4) from [<c02657cc>]
+> (add_children+0xc4/0x808)
+> [<c02657cc>] (add_children+0xc4/0x808) from [<c040df88>] (twl_probe+0=
+x390/0x418)
+> [<c040df88>] (twl_probe+0x390/0x418) from [<c02dbb9c>]
+> (i2c_device_probe+0xa0/0xd4)
+> [<c02dbb9c>] (i2c_device_probe+0xa0/0xd4) from [<c02561dc>]
+> (driver_probe_device+0x144/0x29c)
+> [<c02561dc>] (driver_probe_device+0x144/0x29c) from [<c0254f9c>]
+> (bus_for_each_drv+0x4c/0x84)
+> [<c0254f9c>] (bus_for_each_drv+0x4c/0x84) from [<c0255f80>]
+> (device_attach+0x74/0xa0)
+> [<c0255f80>] (device_attach+0x74/0xa0) from [<c0255824>]
+> (bus_probe_device+0x24/0x40)
+> [<c0255824>] (bus_probe_device+0x24/0x40) from [<c0253e5c>]
+> (device_add+0x3cc/0x560)
+> [<c0253e5c>] (device_add+0x3cc/0x560) from [<c02dc5a8>]
+> (i2c_new_device+0x10c/0x1b0)
+> [<c02dc5a8>] (i2c_new_device+0x10c/0x1b0) from [<c02dca04>]
+> (i2c_register_adapter+0x160/0x218)
+> [<c02dca04>] (i2c_register_adapter+0x160/0x218) from [<c02dcbe4>]
+> (i2c_add_numbered_adapter+0x9c/0xb8)
+> [<c02dcbe4>] (i2c_add_numbered_adapter+0x9c/0xb8) from [<c04106fc>]
+> (omap_i2c_probe+0x2b8/0x384)
+> [<c04106fc>] (omap_i2c_probe+0x2b8/0x384) from [<c025741c>]
+> (platform_drv_probe+0x14/0x18)
+> [<c025741c>] (platform_drv_probe+0x14/0x18) from [<c02561dc>]
+> (driver_probe_device+0x144/0x29c)
+> [<c02561dc>] (driver_probe_device+0x144/0x29c) from [<c0256394>]
+> (__driver_attach+0x60/0x84)
+> [<c0256394>] (__driver_attach+0x60/0x84) from [<c025525c>]
+> (bus_for_each_dev+0x4c/0x78)
+> [<c025525c>] (bus_for_each_dev+0x4c/0x78) from [<c02559c4>]
+> (bus_add_driver+0xc0/0x240)
+> [<c02559c4>] (bus_add_driver+0xc0/0x240) from [<c02568c0>]
+> (driver_register+0xa0/0x120)
+> [<c02568c0>] (driver_register+0xa0/0x120) from [<c000863c>]
+> (do_one_initcall+0x90/0x160)
+> [<c000863c>] (do_one_initcall+0x90/0x160) from [<c05f47b4>]
+> (kernel_init+0x78/0x11c)
+> [<c05f47b4>] (kernel_init+0x78/0x11c) from [<c000e918>]
+> (kernel_thread_exit+0x0/0x8)
+> ---[ end trace 1b75b31a2719ed1c ]---
+> dummy 1-004a: can't add twl4030_madc_hwmon dev
+>
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> ---
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+> b/arch/arm/mach-omap2/board-omap3beagle.c
+> index d47470e..91c1a7c 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -634,15 +634,9 @@ static struct platform_device keys_gpio =3D {
+> =A0 =A0 =A0 =A0},
+> =A0};
+>
+> -static struct platform_device madc_hwmon =3D {
+> - =A0 =A0 =A0 .name =A0 =3D "twl4030_madc_hwmon",
+> - =A0 =A0 =A0 .id =A0 =A0 =3D -1,
+> -};
+> -
+> =A0static struct platform_device *omap3_beagle_devices[] __initdata =3D=
+ {
+> =A0 =A0 =A0 =A0&leds_gpio,
+> =A0 =A0 =A0 =A0&keys_gpio,
+> - =A0 =A0 =A0 &madc_hwmon,
+> =A0};
+>
+> =A0static const struct usbhs_omap_board_data usbhs_bdata __initconst =
+=3D {
 
-Great, thanks a lot !
+Just realized that this issue occurs because I am carrying the patch
+below in my repository.
+
+Keerthy, did this patch get lost somehow, or have you decided not to us=
+e it?
+
+=46rom: Keerthy <j-keerthy@ti.com>
+Date: Tue, 3 May 2011 19:44:50 +0000 (+0530)
+Subject: Enabling Hwmon driver for twl4030-madc
+X-Git-Url: http://www.sakoman.com/cgi-bin/gitweb.cgi?p=3Dlinux-omap-2.6=
+=2Egit;a=3Dcommitdiff_plain;h=3Dcf09adceae8f3d9fc2f9e21bb90f20403a45ad0=
+f
+
+Enabling Hwmon driver for twl4030-madc
+
+Signed-off-by: Keerthy <j-keerthy@ti.com>
+---
+
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 50a6d2e..e718ae2 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -84,6 +84,13 @@
+ #define twl_has_madc()	false
+ #endif
+
++#if defined(CONFIG_SENSORS_TWL4030_MADC) ||\
++	 defined(CONFIG_SENSORS_TWL4030_MADC_MODULE)
++#define twl_has_madc_hwmon()  true
++#else
++#define twl_has_madc_hwmon()  false
++#endif
++
+ #ifdef CONFIG_TWL4030_POWER
+ #define twl_has_power()        true
+ #else
+@@ -680,6 +687,14 @@ add_children(struct twl4030_platform_data *pdata,
+unsigned long features)
+ 			return PTR_ERR(child);
+ 	}
+
++if (twl_has_madc_hwmon()) {
++		child =3D add_child(2, "twl4030_madc_hwmon",
++				NULL, 0,
++				true, pdata->irq_base + MADC_INTR_OFFSET, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++	}
++
+ 	if (twl_has_rtc()) {
+ 		/*
+ 		 * REVISIT platform_data here currently might expose the
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
