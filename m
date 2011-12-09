@@ -1,57 +1,248 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Fri, 9 Dec 2011 14:38:44 -0800
-Message-ID: <20111209223844.GB25063@kroah.com>
-References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
- <CAMP44s16cSBw23Py7qUW4Oj60gXKuvmtx-c=urisxecMQEE6Dw@mail.gmail.com>
- <CAB-zwWiH020HfovGF8CA-v9t8Pjc3kLbsXezN6ToLdyC4muHqA@mail.gmail.com>
- <20111209000733.GA9504@kroah.com>
- <CAB-zwWg0FkNEHHVS=Hy-US9=xkueg_skUX7VCLS=QVN3ubTsTw@mail.gmail.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: [PATCH 2/3] video: omap: convert drivers/video/omap/* to use
+ module_platform_driver()
+Date: Fri, 9 Dec 2011 14:00:06 -0800
+Message-ID: <20111209220006.GG16333@earth.li>
+References: <1323395873.3740.4.camel@phoenix>
+ <1323395996.3740.6.camel@phoenix>
+ <201112090924.29551.marek.vasut@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:51550 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751079Ab1LIWj6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 17:39:58 -0500
-Received: from compute5.internal (compute5.nyi.mail.srv.osa [10.202.2.45])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 0B95D21418
-	for <linux-omap@vger.kernel.org>; Fri,  9 Dec 2011 17:39:58 -0500 (EST)
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAB-zwWg0FkNEHHVS=Hy-US9=xkueg_skUX7VCLS=QVN3ubTsTw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201112090924.29551.marek.vasut@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marek Vasut <marek.vasut@gmail.com>
+Cc: Axel Lin <axel.lin@gmail.com>, linux-kernel@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>, Laurent Gonzalez <palmte.linux@free.fr>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Thu, Dec 08, 2011 at 07:44:28PM -0600, Ramirez Luna, Omar wrote:
-> On Thu, Dec 8, 2011 at 6:07 PM, Greg KH <greg@kroah.com> wrote:
-> >> > Definitely 3.2-fix material IMO :)
-> >>
-> >> I believe it was pushed to staging-next... I'm rooting so it can b=
-e
-> >> pushed to staging-linus :)
-> >
-> > As it wasn't originally stated that this was a problem that needed =
-to be
-> > fixed for 3.2, can it wait for 3.3-rc1? =A0Especially given that th=
-ere is
-> > still discussion about this?
->=20
-> No discussion from me either.
->=20
-> The original intention was to include this patch for 3.2 because of
-> the recent changes in dm timer framework, I apologize if "This was
-> first seen on 3.2-rc1." is too ambiguous. I hope this can make it for
-> 3.2 though.
+On Fri, Dec 09, 2011 at 09:24:29AM +0100, Marek Vasut wrote:
+> > This patch converts the drivers in drivers/video/omap/* to use the
+> > module_platform_driver() macro which makes the code smaller and a bit
+> > simpler.
+> > 
+> > Cc: Jonathan McDowell <noodles@earth.li>
+> > Cc: Cory Maccarrone <darkstar6262@gmail.com>
+> > Cc: Laurent Gonzalez <palmte.linux@free.fr>
+> > Cc: Marek Vasut <marek.vasut@gmail.com>
+> > Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> > ---
+> >  drivers/video/omap/lcd_ams_delta.c |   13 +------------
+> >  drivers/video/omap/lcd_h3.c        |   14 +-------------
+> >  drivers/video/omap/lcd_htcherald.c |   14 +-------------
+> >  drivers/video/omap/lcd_inn1510.c   |   14 +-------------
+> >  drivers/video/omap/lcd_inn1610.c   |   14 +-------------
+> >  drivers/video/omap/lcd_osk.c       |   14 +-------------
+> >  drivers/video/omap/lcd_palmte.c    |   14 +-------------
+> >  drivers/video/omap/lcd_palmtt.c    |   13 +------------
+> >  drivers/video/omap/lcd_palmz71.c   |   13 +------------
+> >  9 files changed, 9 insertions(+), 114 deletions(-)
+> > 
+> > diff --git a/drivers/video/omap/lcd_ams_delta.c
+> > b/drivers/video/omap/lcd_ams_delta.c index eb50a95..0fdd6f6 100644
+> > --- a/drivers/video/omap/lcd_ams_delta.c
+> > +++ b/drivers/video/omap/lcd_ams_delta.c
+> > @@ -209,15 +209,4 @@ static struct platform_driver ams_delta_panel_driver =
+> > { },
+> >  };
+> > 
+> > -static int __init ams_delta_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&ams_delta_panel_driver);
+> > -}
+> > -
+> > -static void __exit ams_delta_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&ams_delta_panel_driver);
+> > -}
+> > -
+> > -module_init(ams_delta_panel_drv_init);
+> > -module_exit(ams_delta_panel_drv_cleanup);
+> > +module_platform_driver(ams_delta_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+> > index baec34e..49bdeca 100644
+> > --- a/drivers/video/omap/lcd_h3.c
+> > +++ b/drivers/video/omap/lcd_h3.c
+> > @@ -124,16 +124,4 @@ static struct platform_driver h3_panel_driver = {
+> >  	},
+> >  };
+> > 
+> > -static int __init h3_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&h3_panel_driver);
+> > -}
+> > -
+> > -static void __exit h3_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&h3_panel_driver);
+> > -}
+> > -
+> > -module_init(h3_panel_drv_init);
+> > -module_exit(h3_panel_drv_cleanup);
+> > -
+> > +module_platform_driver(h3_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_htcherald.c
+> > b/drivers/video/omap/lcd_htcherald.c index b1a022f..20f4778 100644
+> > --- a/drivers/video/omap/lcd_htcherald.c
+> > +++ b/drivers/video/omap/lcd_htcherald.c
+> > @@ -115,16 +115,4 @@ static struct platform_driver htcherald_panel_driver =
+> > { },
+> >  };
+> > 
+> > -static int __init htcherald_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&htcherald_panel_driver);
+> > -}
+> > -
+> > -static void __exit htcherald_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&htcherald_panel_driver);
+> > -}
+> > -
+> > -module_init(htcherald_panel_drv_init);
+> > -module_exit(htcherald_panel_drv_cleanup);
+> > -
+> > +module_platform_driver(htcherald_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_inn1510.c
+> > b/drivers/video/omap/lcd_inn1510.c index d129946..b38b1dd 100644
+> > --- a/drivers/video/omap/lcd_inn1510.c
+> > +++ b/drivers/video/omap/lcd_inn1510.c
+> > @@ -109,16 +109,4 @@ static struct platform_driver
+> > innovator1510_panel_driver = { },
+> >  };
+> > 
+> > -static int __init innovator1510_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&innovator1510_panel_driver);
+> > -}
+> > -
+> > -static void __exit innovator1510_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&innovator1510_panel_driver);
+> > -}
+> > -
+> > -module_init(innovator1510_panel_drv_init);
+> > -module_exit(innovator1510_panel_drv_cleanup);
+> > -
+> > +module_platform_driver(innovator1510_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_inn1610.c
+> > b/drivers/video/omap/lcd_inn1610.c index a95756b..7e8bd8e 100644
+> > --- a/drivers/video/omap/lcd_inn1610.c
+> > +++ b/drivers/video/omap/lcd_inn1610.c
+> > @@ -133,16 +133,4 @@ static struct platform_driver
+> > innovator1610_panel_driver = { },
+> >  };
+> > 
+> > -static int __init innovator1610_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&innovator1610_panel_driver);
+> > -}
+> > -
+> > -static void __exit innovator1610_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&innovator1610_panel_driver);
+> > -}
+> > -
+> > -module_init(innovator1610_panel_drv_init);
+> > -module_exit(innovator1610_panel_drv_cleanup);
+> > -
+> > +module_platform_driver(innovator1610_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
+> > index b985997..5914220 100644
+> > --- a/drivers/video/omap/lcd_osk.c
+> > +++ b/drivers/video/omap/lcd_osk.c
+> > @@ -127,16 +127,4 @@ static struct platform_driver osk_panel_driver = {
+> >  	},
+> >  };
+> > 
+> > -static int __init osk_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&osk_panel_driver);
+> > -}
+> > -
+> > -static void __exit osk_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&osk_panel_driver);
+> > -}
+> > -
+> > -module_init(osk_panel_drv_init);
+> > -module_exit(osk_panel_drv_cleanup);
+> > -
+> > +module_platform_driver(osk_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_palmte.c
+> > b/drivers/video/omap/lcd_palmte.c index d79f436..88c31eb 100644
+> > --- a/drivers/video/omap/lcd_palmte.c
+> > +++ b/drivers/video/omap/lcd_palmte.c
+> > @@ -108,16 +108,4 @@ static struct platform_driver palmte_panel_driver = {
+> >  	},
+> >  };
+> > 
+> > -static int __init palmte_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&palmte_panel_driver);
+> > -}
+> > -
+> > -static void __exit palmte_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&palmte_panel_driver);
+> > -}
+> > -
+> > -module_init(palmte_panel_drv_init);
+> > -module_exit(palmte_panel_drv_cleanup);
+> > -
+> > +module_platform_driver(palmte_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_palmtt.c
+> > b/drivers/video/omap/lcd_palmtt.c index c2e96a7..aaf3c8b 100644
+> > --- a/drivers/video/omap/lcd_palmtt.c
+> > +++ b/drivers/video/omap/lcd_palmtt.c
+> > @@ -113,15 +113,4 @@ static struct platform_driver palmtt_panel_driver = {
+> >  	},
+> >  };
+> > 
+> > -static int __init palmtt_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&palmtt_panel_driver);
+> > -}
+> > -
+> > -static void __exit palmtt_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&palmtt_panel_driver);
+> > -}
+> > -
+> > -module_init(palmtt_panel_drv_init);
+> > -module_exit(palmtt_panel_drv_cleanup);
+> > +module_platform_driver(palmtt_panel_driver);
+> > diff --git a/drivers/video/omap/lcd_palmz71.c
+> > b/drivers/video/omap/lcd_palmz71.c index 1ab4847..3b7d8aa 100644
+> > --- a/drivers/video/omap/lcd_palmz71.c
+> > +++ b/drivers/video/omap/lcd_palmz71.c
+> > @@ -109,15 +109,4 @@ static struct platform_driver palmz71_panel_driver = {
+> >  	},
+> >  };
+> > 
+> > -static int __init palmz71_panel_drv_init(void)
+> > -{
+> > -	return platform_driver_register(&palmz71_panel_driver);
+> > -}
+> > -
+> > -static void __exit palmz71_panel_drv_cleanup(void)
+> > -{
+> > -	platform_driver_unregister(&palmz71_panel_driver);
+> > -}
+> > -
+> > -module_init(palmz71_panel_drv_init);
+> > -module_exit(palmz71_panel_drv_cleanup);
+> > +module_platform_driver(palmz71_panel_driver);
+> 
+> PalmTT and PalmZ71, please add my
+> Acked-by: Marek Vasut <marek.vasut@gmail.com>
 
-How about for 3.2.1?  I'll try to get this into 3.2, but I can't
-guarantee anything so late in the release cycle, sorry.
+For ams-delta,
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-By: Jonathan McDowell <noodles@earth.li>
+
+J.
+
+-- 
+                                            xmpp:noodles@earth.li
+Time is an illusion. Lunchtime doubly so.
