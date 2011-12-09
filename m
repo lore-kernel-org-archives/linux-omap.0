@@ -1,52 +1,50 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [GIT PULL] OMAP: minor PM cleanups for v3.3
-Date: Fri, 09 Dec 2011 09:47:04 -0800
-Message-ID: <87pqfxhc2v.fsf@ti.com>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] i2c_omap: correct OMAP_I2C_SYSC_REG offset
+Date: Fri, 09 Dec 2011 09:51:44 -0800
+Message-ID: <87iplphbv3.fsf@ti.com>
+References: <1323355433-8508-1-git-send-email-a.aring@phytec.de>
+	<87obvjj5l5.fsf@ti.com> <4EE11091.20404@ti.com>
+	<4EE1AEA8.6000008@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:49284 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751361Ab1LIRrJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 12:47:09 -0500
-Received: by mail-gx0-f169.google.com with SMTP id i2so3440768ggn.28
-        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 09:47:07 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4EE1AEA8.6000008-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Fri,
+	09 Dec 2011 12:16:00 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-Tony,
+Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-Please pull the following minor PM cleanups for v3.3.
+> On Friday 09 December 2011 01:01 AM, Jon Hunter wrote:
+>> Hi Kevin,
+>>
+>> On 12/8/2011 12:12, Kevin Hilman wrote:
+>>> Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>  writes:
+>>>
+>>>> Correct OMAP_I2C_SYSC_REG offset in omap4 register map.
+>>>> Offset 0x20 is reserved and OMAP_I2C_SYSC_REG has 0x10 as offset.
+>>>>
+>>>> Signed-off-by: Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
+>>>
+>>> Thanks for the patch!
+>>>
+>>> A different approach to fix this is being done by Shubhrajyoti[1] as
+>>> part of his reset series.
+>>>
+>>> However, I think we should probably apply this patch for v3.2 and also
+>>> send to the stable kernel for v3.0&  v3.1.
+>>>
+>>> Shubhrajyoti/Jon, any objections to me queuing this fix for v3.2 (and
+>>> stable.)  It would just mean rebasing your other fixes and cleanup
+>>> series on top of this.
+>>
+>> I have no issue with that and I am in favour of getting the fix in now.
+> I too have no issues.
+
+OK, I've added this to my for_3.2/fixes/i2c branch.
 
 Thanks,
 
 Kevin
-
-
-The following changes since commit 1ea6b8f48918282bdca0b32a34095504ee65bab5:
-
-  Linux 3.2-rc1 (2011-11-07 16:16:02 -0800)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.3/cleanup/pm
-
-Abhilash K V (1):
-      ARM: OMAP2+: voltage: add check for missing PMIC info in VP init
-
-Kevin Hilman (2):
-      ARM: OMAP2+: PM: only register TWL with voltage layer when device is present
-      ARM: OMAP: voltage: cleanup VC/VP error messages
-
-Ohad Ben-Cohen (1):
-      ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
-
- arch/arm/mach-omap2/pm.c                      |    6 ++----
- arch/arm/mach-omap2/twl-common.c              |   11 +++++++++++
- arch/arm/mach-omap2/twl-common.h              |    3 +++
- arch/arm/mach-omap2/vc.c                      |    5 ++---
- arch/arm/mach-omap2/vp.c                      |    6 ++++++
- arch/arm/plat-omap/include/plat/omap_device.h |    7 +++++++
- arch/arm/plat-omap/omap_device.c              |   13 +++----------
- 7 files changed, 34 insertions(+), 17 deletions(-)
