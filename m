@@ -1,41 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] omap_hsmmc: consider MMC_PM_KEEP_POWER on
- suspend/resume
-Date: Thu, 8 Dec 2011 16:28:37 -0800
-Message-ID: <20111209002837.GF31337@atomide.com>
-References: <1321970539-7104-1-git-send-email-eliad@wizery.com>
- <87r50okviy.fsf@laptop.org>
+Subject: Re: [PATCH] ARM: OMAP3: hsmmc: fix MMC 2 setup for AM35x
+Date: Thu, 8 Dec 2011 16:31:42 -0800
+Message-ID: <20111209003142.GG31337@atomide.com>
+References: <1322559468-5883-1-git-send-email-grinberg@compulab.co.il>
+ <4EE10F20.5080806@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20646 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750836Ab1LIAbo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 19:31:44 -0500
 Content-Disposition: inline
-In-Reply-To: <87r50okviy.fsf@laptop.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>
-Cc: Eliad Peller <eliad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
+In-Reply-To: <4EE10F20.5080806@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Chris Ball <cjb@laptop.org> [111201 09:40]:
-> Hi,
+* Igor Grinberg <grinberg@compulab.co.il> [111208 10:53]:
+> ping
 > 
-> On Tue, Nov 22 2011, Eliad Peller wrote:
-> > When an mmc card has the MMC_PM_KEEP_POWER flag, it shouldn't
-> > be powered off on suspend (and thus doesn't have to be powered-on
-> > on resume)
-> >
-> > While on it, change the suspend flow a bit, to make it a bit
-> > easier to follow.
-> >
-> > Signed-off-by: Eliad Peller <eliad@wizery.com>
+> Tony,
+> I'd like this to go into 3.3, can it?
 > 
-> Tony, feel free to merge this patchset (if you're happy with the rest of
-> it) through your tree, with my:
-> 
-> Acked-by: Chris Ball <cjb@laptop.org>
-> 
-> for this patch.  Thanks,
+> On 11/29/11 11:37, Igor Grinberg wrote:
+> > AM35x MMC 2 controller has internal clock loopback setting which cannot
+> > be utilized without this patch and thus SDIO devices connected to this
+> > controller and depend on this setting will fail to initialize.
 
-Thanks applying these into omap driver branch.
+Yes seems OK for now so applying into omap driver branch.
 
 Regards,
 
