@@ -1,84 +1,119 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 09/10] arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
-Date: Fri, 9 Dec 2011 15:02:40 +0100
-Message-ID: <1323439361-1647-10-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 10/10] ARM: OMAP2+: board-generic: Remove i2c static init
+Date: Fri, 9 Dec 2011 15:02:41 +0100
+Message-ID: <1323439361-1647-11-git-send-email-b-cousson@ti.com>
 References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45348 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753996Ab1LIODe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Dec 2011 09:03:34 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:54116 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753996Ab1LIODg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 09:03:36 -0500
 In-Reply-To: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, rob.herring@calxeda.com
 Cc: devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Add required clock frequencies for the i2c client devices existing
-on beagle board.
+This mainly reverts the commit that was adding the i2c static init.
 
-Add the twl4030 basic description with only the twl_rtc module.
-
-Add the EEPROM node.
-
-Based on original patch from Manju:
-http://www.spinics.net/lists/linux-omap/msg55831.html
+Since the i2c and twl nodes are now present, there is no need
+for the static initialization anymore.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap3-beagle.dts |   38 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 38 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-generic.c |   48 +---------------------------------
+ 1 files changed, 2 insertions(+), 46 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-beagle.dts b/arch/arm/boot/dts/omap3-beagle.dts
-index 9f72cd4..b648279 100644
---- a/arch/arm/boot/dts/omap3-beagle.dts
-+++ b/arch/arm/boot/dts/omap3-beagle.dts
-@@ -18,3 +18,41 @@
- 		reg = <0x80000000 0x20000000>; /* 512 MB */
- 	};
- };
-+
-+&i2c1 {
-+	clock-frequency = <2600000>;
-+
-+	/*
-+	 * Integrated Power Management Chip
-+	 */
-+	twl@48 {
-+		compatible = "ti,twl4030";
-+		reg = <0x48>;
-+		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
-+		interrupt-controller;
-+		#interrupt-cells = <1>;
-+		interrupt-parent = <&intc>;
-+
-+		twl_rtc {
-+			compatible = "ti,twl4030-rtc";
-+			interrupts = <11>;
-+		};
-+	};
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <100000>;
-+
-+	/*
-+	 * Display monitor features are burnt in the EEPROM
-+	 * as EDID data.
-+	 */
-+	eeprom@50 {
-+		compatible = "ti,eeprom";
-+		reg = <0x50>;
-+	};
-+};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 16c301e..63a2495 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -15,7 +15,6 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/irqdomain.h>
+-#include <linux/i2c/twl.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/hardware/gic.h>
+@@ -36,34 +35,6 @@ static void __init omap_init_irq(void)
+ 	of_irq_init(irq_match);
+ }
+ 
+-/*
+- * XXX: Still needed to boot until the i2c & twl driver is adapted to
+- * device-tree
+- */
+-#ifdef CONFIG_ARCH_OMAP4
+-static struct twl4030_platform_data sdp4430_twldata = {
+-	.irq_base	= TWL6030_IRQ_BASE,
+-	.irq_end	= TWL6030_IRQ_END,
+-};
+-
+-static void __init omap4_i2c_init(void)
+-{
+-	omap4_pmic_init("twl6030", &sdp4430_twldata);
+-}
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static struct twl4030_platform_data beagle_twldata = {
+-	.irq_base	= TWL4030_IRQ_BASE,
+-	.irq_end	= TWL4030_IRQ_END,
+-};
+-
+-static void __init omap3_i2c_init(void)
+-{
+-	omap3_pmic_init("twl4030", &beagle_twldata);
+-}
+-#endif
+-
+ static struct of_device_id omap_dt_match_table[] __initdata = {
+ 	{ .compatible = "simple-bus", },
+ 	{ .compatible = "ti,omap-infra", },
+@@ -78,21 +49,6 @@ static void __init omap_generic_init(void)
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
+ 
+-#ifdef CONFIG_ARCH_OMAP4
+-static void __init omap4_init(void)
+-{
+-	omap4_i2c_init();
+-	omap_generic_init();
+-}
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static void __init omap3_init(void)
+-{
+-	omap3_i2c_init();
+-	omap_generic_init();
+-}
+-#endif
+ 
+ #ifdef CONFIG_SOC_OMAP2420
+ static const char *omap242x_boards_compat[] __initdata = {
+@@ -145,7 +101,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+ 	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap_init_irq,
+ 	.handle_irq	= omap3_intc_handle_irq,
+-	.init_machine	= omap3_init,
++	.init_machine	= omap_generic_init,
+ 	.timer		= &omap3_timer,
+ 	.dt_compat	= omap3_boards_compat,
+ MACHINE_END
+@@ -164,7 +120,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.init_early	= omap4430_init_early,
+ 	.init_irq	= omap_init_irq,
+ 	.handle_irq	= gic_handle_irq,
+-	.init_machine	= omap4_init,
++	.init_machine	= omap_generic_init,
+ 	.timer		= &omap4_timer,
+ 	.dt_compat	= omap4_boards_compat,
+ MACHINE_END
 -- 
 1.7.0.4
 
