@@ -1,63 +1,99 @@
 From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] i2c_omap: correct OMAP_I2C_SYSC_REG offset
-Date: Fri, 09 Dec 2011 12:16:00 +0530
-Message-ID: <4EE1AEA8.6000008@ti.com>
-References: <1323355433-8508-1-git-send-email-a.aring@phytec.de> <87obvjj5l5.fsf@ti.com> <4EE11091.20404@ti.com>
+Subject: Re: [PATCHv7 1/3] OMAP: I2C: Reset support
+Date: Fri, 09 Dec 2011 12:51:09 +0530
+Message-ID: <4EE1B6E5.6080401@ti.com>
+References: <1322817674-25384-1-git-send-email-shubhrajyoti@ti.com> <1322817674-25384-2-git-send-email-shubhrajyoti@ti.com> <alpine.DEB.2.00.1112081812530.6289@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EE11091.20404-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1112081812530.6289-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Alexander Aring <a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 09 December 2011 01:01 AM, Jon Hunter wrote:
-> Hi Kevin,
+On Friday 09 December 2011 06:45 AM, Paul Walmsley wrote:
+> Hi
 >
-> On 12/8/2011 12:12, Kevin Hilman wrote:
->> Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>  writes:
->>
->>> Correct OMAP_I2C_SYSC_REG offset in omap4 register map.
->>> Offset 0x20 is reserved and OMAP_I2C_SYSC_REG has 0x10 as offset.
->>>
->>> Signed-off-by: Alexander Aring<a.aring-guT5V/WYfQezQB+pC5nmwQ@public.gmane.org>
->>
->> Thanks for the patch!
->>
->> A different approach to fix this is being done by Shubhrajyoti[1] as
->> part of his reset series.
->>
->> However, I think we should probably apply this patch for v3.2 and also
->> send to the stable kernel for v3.0&  v3.1.
->>
->> Shubhrajyoti/Jon, any objections to me queuing this fix for v3.2 (and
->> stable.)  It would just mean rebasing your other fixes and cleanup
->> series on top of this.
+> some comments
 >
-> I have no issue with that and I am in favour of getting the fix in now.
-I too have no issues.
+> On Fri, 2 Dec 2011, Shubhrajyoti D wrote:
 >
-> Cheers
-> Jon
->
+>> Under some error conditions the i2c driver may do a reset.
+>> Adding a reset field and support in the device-specific code.
 >>
->>> ---
->>>   drivers/i2c/busses/i2c-omap.c |    2 +-
->>>   1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/i2c/busses/i2c-omap.c
->>> b/drivers/i2c/busses/i2c-omap.c
->>> index a43d002..fc3bb37 100644
->>> --- a/drivers/i2c/busses/i2c-omap.c
->>> +++ b/drivers/i2c/busses/i2c-omap.c
->>> @@ -235,7 +235,7 @@ static const u8 reg_map_ip_v2[] = {
->>>       [OMAP_I2C_BUF_REG] = 0x94,
->>>       [OMAP_I2C_CNT_REG] = 0x98,
->>>       [OMAP_I2C_DATA_REG] = 0x9c,
->>> -    [OMAP_I2C_SYSC_REG] = 0x20,
->>> +    [OMAP_I2C_SYSC_REG] = 0x10,
->>>       [OMAP_I2C_CON_REG] = 0xa4,
->>>       [OMAP_I2C_OA_REG] = 0xa8,
->>>       [OMAP_I2C_SA_REG] = 0xac,
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
+>>  include/linux/i2c-omap.h |    1 +
+>>  2 files changed, 19 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+>> index db071bc..883229c 100644
+>> --- a/arch/arm/plat-omap/i2c.c
+>> +++ b/arch/arm/plat-omap/i2c.c
+>> @@ -74,6 +74,22 @@ static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+>>  static struct platform_device omap_i2c_devices[] = {
+>>  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+>>  };
+>> +/**
+>> + * omap2_i2c_reset - reset the omap i2c module.
+>> + * @dev: struct device*
+>> + */
+>> +
+>> +static int omap2_i2c_reset(struct device *dev)
+>> +{
+>> +	int r = 0;
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct omap_device *odev = to_omap_device(pdev);
+>> +	struct omap_hwmod *oh;
+>> +
+>> +	oh = odev->hwmods[0];
+>> +	r = omap_hwmod_reset(oh);
+>> +	return r;
+>> +}
+> This function should go into arch/arm/plat-omap/omap_device.c, and it 
+agree
+> should be renamed to omap_device_reset(), since it's not I2C specific.  
+> Also it shouldn't assume that there's only one hwmod - it should iterate 
+> over all of the hwmods in the omap_device and call omap_hwmod_reset() on 
+> each.
+Yes agree will fix in the next version.
+
+>>  
+>>  #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+>>  
+>> @@ -179,6 +195,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
+>>  	 */
+>>  	if (cpu_is_omap34xx())
+>>  		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+>> +
+>> +	pdata->device_reset = omap2_i2c_reset;
+> omap_device_reset
+>
+>>  	pdev = omap_device_build(name, bus_id, oh, pdata,
+>>  			sizeof(struct omap_i2c_bus_platform_data),
+>>  			NULL, 0, 0);
+>> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+>> index 92a0dc7..fd38249 100644
+>> --- a/include/linux/i2c-omap.h
+>> +++ b/include/linux/i2c-omap.h
+>> @@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
+>>  	u32		rev;
+>>  	u32		flags;
+>>  	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
+>> +	int		(*device_reset) (struct device *dev);
+>>  };
+>>  
+>>  #endif
+>> -- 
+>> 1.7.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> - Paul
