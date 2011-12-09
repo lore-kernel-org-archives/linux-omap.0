@@ -1,49 +1,54 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 01/15] OMAP3+: PM: VP: use uV for max and min voltage limits
-Date: Fri, 09 Dec 2011 10:07:39 -0800
-Message-ID: <87wra5fwk4.fsf@ti.com>
-References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
-	<1322236188-19456-2-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] arm: tools: mach-types: add nokia_rm696
+Date: Fri, 9 Dec 2011 10:07:55 -0800
+Message-ID: <20111209180755.GT31337@atomide.com>
+References: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com>
+ <1323443211-3648-2-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:39194 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751667Ab1LISHz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 13:07:55 -0500
-Received: by mail-yx0-f180.google.com with SMTP id r8so3274099yen.11
-        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 10:07:52 -0800 (PST)
-In-Reply-To: <1322236188-19456-2-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Fri, 25 Nov 2011 17:49:34 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60046 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667Ab1LISH5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 13:07:57 -0500
+Content-Disposition: inline
+In-Reply-To: <1323443211-3648-2-git-send-email-aaro.koskinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, Vishwanath BS <vishwanath.bs@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@nokia.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+Russell,
 
-> From: Nishanth Menon <nm@ti.com>
->
-> Every PMIC has it's own eccentricities, For example, one of the
-> PMIC has MSB set to 1 for a specific function - voltage enable!
-> using an hardcoded value specific for TWL when copied over to
-> such an implementation causes the system to crash as the MSB bit
-> was 0 and the voltage got disabled!.
->
-> Instead we use actual values and depend on the convertion routines
-> to abstract out the eccentricities of each PMIC.
->
-> With this, we can now move the voltages to a common location in
-> voltage.h as they are no longer dependent on PMICs and expect the
-> PMIC's conversion routines to set a cap if the voltage is out of
-> reach for the PMIC.
+* Aaro Koskinen <aaro.koskinen@nokia.com> [111209 06:33]:
+> Add the mach-type number for RM-696.
 
-Nice.
+Care to ack this one or apply into your devel-stable with the
+other pending mach-types updates?
 
-> Reported-by: Jon Hunter <jon-hunter@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+This allows board-rm680.c to support Nokia N9 with minimal changes.
 
-Also needs your sign-off, since you're on the delivery path now.
+Regards,
 
-Kevin
+Tony
+ 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> ---
+>  arch/arm/tools/mach-types |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
+> index ccbe16f..63f20da 100644
+> --- a/arch/arm/tools/mach-types
+> +++ b/arch/arm/tools/mach-types
+> @@ -1123,6 +1123,7 @@ blissc			MACH_BLISSC		BLISSC			3491
+>  thales_adc		MACH_THALES_ADC		THALES_ADC		3492
+>  ubisys_p9d_evp		MACH_UBISYS_P9D_EVP	UBISYS_P9D_EVP		3493
+>  atdgp318		MACH_ATDGP318		ATDGP318		3494
+> +nokia_rm696		MACH_NOKIA_RM696	NOKIA_RM696		3522
+>  m28evk			MACH_M28EVK		M28EVK			3613
+>  smdk4212		MACH_SMDK4212		SMDK4212		3638
+>  smdk4412		MACH_SMDK4412		SMDK4412		3765
+> -- 
+> 1.7.2.5
+> 
