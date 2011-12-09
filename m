@@ -1,69 +1,95 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv4 11/15] omap3+: voltage/pwrdm/clkdm/clock add recursive usecount tracking
-Date: Fri, 09 Dec 2011 11:37:42 -0800
-Message-ID: <8762hpedtl.fsf@ti.com>
-References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
-	<1322236188-19456-12-git-send-email-t-kristo@ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH 2/3] arm: mach-omap2: sdram-nokia: add 200 MHz memory
+ timings info
+Date: Fri, 9 Dec 2011 21:41:17 +0200 (EET)
+Message-ID: <alpine.DEB.2.00.1112092136370.7393@kernel.research.nokia.com>
+References: <1323443211-3648-1-git-send-email-aaro.koskinen@nokia.com> <1323443211-3648-3-git-send-email-aaro.koskinen@nokia.com> <20111209180641.GS31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:47296 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750761Ab1LIThp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 14:37:45 -0500
-Received: by mail-gx0-f181.google.com with SMTP id r1so4348987ggn.26
-        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 11:37:44 -0800 (PST)
-In-Reply-To: <1322236188-19456-12-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Fri, 25 Nov 2011 17:49:44 +0200")
+Received: from smtp.nokia.com ([147.243.128.26]:41848 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750954Ab1LITnD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Dec 2011 14:43:03 -0500
+In-Reply-To: <20111209180641.GS31337@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Dmitriev <ext-dmitriev.igor@nokia.com>
 
-+Paul
+Hi,
 
-Tero Kristo <t-kristo@ti.com> writes:
+On Fri, 9 Dec 2011, Tony Lindgren wrote:
+> * Aaro Koskinen <aaro.koskinen@nokia.com> [111209 06:33]:
+>> From: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
+>>
+>> Add memory timing info regarding the 200 MHz memory in sdram-nokia.
+>>
+>> Signed-off-by: Igor Dmitriev <ext-dmitriev.igor@nokia.com>
+>> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+>> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/sdram-nokia.c |   25 ++++++++++++++++++++++++-
+>>  1 files changed, 24 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/sdram-nokia.c b/arch/arm/mach-omap2/sdram-nokia.c
+>> index 14caa22..b394a0e 100644
+>> --- a/arch/arm/mach-omap2/sdram-nokia.c
+>> +++ b/arch/arm/mach-omap2/sdram-nokia.c
+>> @@ -1,7 +1,7 @@
+>>  /*
+>>   * SDRC register values for Nokia boards
+>>   *
+>> - * Copyright (C) 2008, 2010 Nokia Corporation
+>> + * Copyright (C) 2008, 2010-2011 Nokia Corporation
+>>   *
+>>   * Lauri Leukkunen <lauri.leukkunen@nokia.com>
+>>   *
+>> @@ -107,14 +107,37 @@ static const struct sdram_timings nokia_195dot2mhz_timings[] = {
+>>  	},
+>>  };
+>>
+>> +static const struct sdram_timings nokia_200mhz_timings[] = {
+>> +	{
+>> +		.casl = 3,
+>> +		.tDAL = 30000,
+>> +		.tDPL = 15000,
+>> +		.tRRD = 10000,
+>> +		.tRCD = 20000,
+>> +		.tRP = 15000,
+>> +		.tRAS = 40000,
+>> +		.tRC = 55000,
+>> +		.tRFC = 140000,
+>> +		.tXSR = 200000,
+>> +
+>> +		.tREF = 7800,
+>> +
+>> +		.tXP = 2,
+>> +		.tCKE = 4,
+>> +		.tWTR = 2
+>> +	},
+>> +};
+>> +
+>>  static const struct {
+>>  	long rate;
+>>  	struct sdram_timings const *data;
+>>  } nokia_timings[] = {
+>>  	{ 83000000, nokia_166mhz_timings },
+>>  	{ 97600000, nokia_97dot6mhz_timings },
+>> +	{ 100000000, nokia_200mhz_timings },
+>
+> Is that a typo above? Should it say nokia_100mhz_timings?
 
-> This patch fixes the usecount tracking for omap3+, previously the
-> usecount numbers were rather bogus and were not really useful for
-> any purpose. Now usecount numbers track the number of really active
-> clients on each domain. 
+No, it's not a typo, same data is used. (Like 83/166 already in the table)
 
-Excellent!  
+>>  	{ 166000000, nokia_166mhz_timings },
+>>  	{ 195200000, nokia_195dot2mhz_timings },
+>> +	{ 200000000, nokia_200mhz_timings },
+>>  };
+>>  static struct omap_sdrc_params nokia_sdrc_params[ARRAY_SIZE(nokia_timings) + 1];
+>
+> Regards,
+>
+> Tony
 
-This dramatically improves the usefulness of <debugfs>/pm_debug/count.
-Adding the voltage domains to that debugfs would help even more.
-
-Also, the changelog should be a bit more verbose about the new clk->autoidle
-field, it's usage, and how it affects usecounting.  
-
-Speaking of debugfs: not a requirement for this series, but another
-"nice to have" (which you can do while waiting for the slow maintainers
-to review :) would be for this debugfs to show the clkdomains under the
-powerdomains they are in, and the powerdomains under the voltage domains
-(instead of the current list of pwrdms followed by clkdms.)  Maybe using
-voltdm_for_each_pwrdm() + pwrdm_for_each_clkdm() might help there.
-
-> This patch also adds support for usecount tracking on powerdomain and
-> voltagedomain levels.
-
-The clock/clkdm/pwrdm changes should probably be split separate patch
-for review/merge by Paul.  Then the voltdm changes can included in this
-series.  Although, with Paul's ack on the clock/clkdm/powerdomain
-changes, I'll be happy to queue this as well.
-
-[...]
-
-> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-> index df4b968..f18dd5f 100644
-> --- a/arch/arm/plat-omap/include/plat/clock.h
-> +++ b/arch/arm/plat-omap/include/plat/clock.h
-> @@ -254,6 +254,7 @@ struct clk {
->  	void			(*init)(struct clk *);
->  	u8			enable_bit;
->  	s8			usecount;
-> +	u8			autoidle;
-
-should be bool, and assignments using true | false.
-
-Kevin
+A.
