@@ -1,234 +1,49 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH 2/3] video: omap: convert drivers/video/omap/* to use
- module_platform_driver()
-Date: Fri, 09 Dec 2011 09:59:56 +0800
-Message-ID: <1323395996.3740.6.camel@phoenix>
-References: <1323395873.3740.4.camel@phoenix>
+From: Omar Ramirez Luna <or.rmz1@gmail.com>
+Subject: Re: In-band Error seen by IVA_SS at address 0
+Date: Thu, 8 Dec 2011 20:01:51 -0600
+Message-ID: <CAPTm=KH9+BqnPoVqpP_bdj=G66-Z-KZ0XwD7QzQDud+X6OaMug@mail.gmail.com>
+References: <CAMP44s2nRzCXJdv3iHjSk0H_pkhb2DtXZ8cQJ61t6o0Ff=vc=Q@mail.gmail.com>
+	<CAMP44s0B1GLsiduFJZs5QpJuWoMz7P7pLGxofLgeZGzg6aDYmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1323395873.3740.4.camel@phoenix>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Jonathan McDowell <noodles@earth.li>, Cory Maccarrone <darkstar6262@gmail.com>, Laurent Gonzalez <palmte.linux@free.fr>, Marek Vasut <marek.vasut@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:47800 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754163Ab1LICBv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 21:01:51 -0500
+Received: by mail-gy0-f174.google.com with SMTP id z2so2116671ghb.19
+        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 18:01:51 -0800 (PST)
+In-Reply-To: <CAMP44s0B1GLsiduFJZs5QpJuWoMz7P7pLGxofLgeZGzg6aDYmw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch converts the drivers in drivers/video/omap/* to use the
-module_platform_driver() macro which makes the code smaller and a bit
-simpler.
+Hi,
 
-Cc: Jonathan McDowell <noodles@earth.li>
-Cc: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: Laurent Gonzalez <palmte.linux@free.fr>
-Cc: Marek Vasut <marek.vasut@gmail.com>
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
----
- drivers/video/omap/lcd_ams_delta.c |   13 +------------
- drivers/video/omap/lcd_h3.c        |   14 +-------------
- drivers/video/omap/lcd_htcherald.c |   14 +-------------
- drivers/video/omap/lcd_inn1510.c   |   14 +-------------
- drivers/video/omap/lcd_inn1610.c   |   14 +-------------
- drivers/video/omap/lcd_osk.c       |   14 +-------------
- drivers/video/omap/lcd_palmte.c    |   14 +-------------
- drivers/video/omap/lcd_palmtt.c    |   13 +------------
- drivers/video/omap/lcd_palmz71.c   |   13 +------------
- 9 files changed, 9 insertions(+), 114 deletions(-)
+On Thu, Dec 8, 2011 at 12:50 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Thu, Dec 8, 2011 at 8:43 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> I get this while loading the bridgedriver:
+>
+> Agh, Gmail garbled that.
+> http://pastie.org/pastes/2987239/text
 
-diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
-index eb50a95..0fdd6f6 100644
---- a/drivers/video/omap/lcd_ams_delta.c
-+++ b/drivers/video/omap/lcd_ams_delta.c
-@@ -209,15 +209,4 @@ static struct platform_driver ams_delta_panel_driver = {
- 	},
- };
- 
--static int __init ams_delta_panel_drv_init(void)
--{
--	return platform_driver_register(&ams_delta_panel_driver);
--}
--
--static void __exit ams_delta_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&ams_delta_panel_driver);
--}
--
--module_init(ams_delta_panel_drv_init);
--module_exit(ams_delta_panel_drv_cleanup);
-+module_platform_driver(ams_delta_panel_driver);
-diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
-index baec34e..49bdeca 100644
---- a/drivers/video/omap/lcd_h3.c
-+++ b/drivers/video/omap/lcd_h3.c
-@@ -124,16 +124,4 @@ static struct platform_driver h3_panel_driver = {
- 	},
- };
- 
--static int __init h3_panel_drv_init(void)
--{
--	return platform_driver_register(&h3_panel_driver);
--}
--
--static void __exit h3_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&h3_panel_driver);
--}
--
--module_init(h3_panel_drv_init);
--module_exit(h3_panel_drv_cleanup);
--
-+module_platform_driver(h3_panel_driver);
-diff --git a/drivers/video/omap/lcd_htcherald.c b/drivers/video/omap/lcd_htcherald.c
-index b1a022f..20f4778 100644
---- a/drivers/video/omap/lcd_htcherald.c
-+++ b/drivers/video/omap/lcd_htcherald.c
-@@ -115,16 +115,4 @@ static struct platform_driver htcherald_panel_driver = {
- 	},
- };
- 
--static int __init htcherald_panel_drv_init(void)
--{
--	return platform_driver_register(&htcherald_panel_driver);
--}
--
--static void __exit htcherald_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&htcherald_panel_driver);
--}
--
--module_init(htcherald_panel_drv_init);
--module_exit(htcherald_panel_drv_cleanup);
--
-+module_platform_driver(htcherald_panel_driver);
-diff --git a/drivers/video/omap/lcd_inn1510.c b/drivers/video/omap/lcd_inn1510.c
-index d129946..b38b1dd 100644
---- a/drivers/video/omap/lcd_inn1510.c
-+++ b/drivers/video/omap/lcd_inn1510.c
-@@ -109,16 +109,4 @@ static struct platform_driver innovator1510_panel_driver = {
- 	},
- };
- 
--static int __init innovator1510_panel_drv_init(void)
--{
--	return platform_driver_register(&innovator1510_panel_driver);
--}
--
--static void __exit innovator1510_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&innovator1510_panel_driver);
--}
--
--module_init(innovator1510_panel_drv_init);
--module_exit(innovator1510_panel_drv_cleanup);
--
-+module_platform_driver(innovator1510_panel_driver);
-diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
-index a95756b..7e8bd8e 100644
---- a/drivers/video/omap/lcd_inn1610.c
-+++ b/drivers/video/omap/lcd_inn1610.c
-@@ -133,16 +133,4 @@ static struct platform_driver innovator1610_panel_driver = {
- 	},
- };
- 
--static int __init innovator1610_panel_drv_init(void)
--{
--	return platform_driver_register(&innovator1610_panel_driver);
--}
--
--static void __exit innovator1610_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&innovator1610_panel_driver);
--}
--
--module_init(innovator1610_panel_drv_init);
--module_exit(innovator1610_panel_drv_cleanup);
--
-+module_platform_driver(innovator1610_panel_driver);
-diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
-index b985997..5914220 100644
---- a/drivers/video/omap/lcd_osk.c
-+++ b/drivers/video/omap/lcd_osk.c
-@@ -127,16 +127,4 @@ static struct platform_driver osk_panel_driver = {
- 	},
- };
- 
--static int __init osk_panel_drv_init(void)
--{
--	return platform_driver_register(&osk_panel_driver);
--}
--
--static void __exit osk_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&osk_panel_driver);
--}
--
--module_init(osk_panel_drv_init);
--module_exit(osk_panel_drv_cleanup);
--
-+module_platform_driver(osk_panel_driver);
-diff --git a/drivers/video/omap/lcd_palmte.c b/drivers/video/omap/lcd_palmte.c
-index d79f436..88c31eb 100644
---- a/drivers/video/omap/lcd_palmte.c
-+++ b/drivers/video/omap/lcd_palmte.c
-@@ -108,16 +108,4 @@ static struct platform_driver palmte_panel_driver = {
- 	},
- };
- 
--static int __init palmte_panel_drv_init(void)
--{
--	return platform_driver_register(&palmte_panel_driver);
--}
--
--static void __exit palmte_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&palmte_panel_driver);
--}
--
--module_init(palmte_panel_drv_init);
--module_exit(palmte_panel_drv_cleanup);
--
-+module_platform_driver(palmte_panel_driver);
-diff --git a/drivers/video/omap/lcd_palmtt.c b/drivers/video/omap/lcd_palmtt.c
-index c2e96a7..aaf3c8b 100644
---- a/drivers/video/omap/lcd_palmtt.c
-+++ b/drivers/video/omap/lcd_palmtt.c
-@@ -113,15 +113,4 @@ static struct platform_driver palmtt_panel_driver = {
- 	},
- };
- 
--static int __init palmtt_panel_drv_init(void)
--{
--	return platform_driver_register(&palmtt_panel_driver);
--}
--
--static void __exit palmtt_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&palmtt_panel_driver);
--}
--
--module_init(palmtt_panel_drv_init);
--module_exit(palmtt_panel_drv_cleanup);
-+module_platform_driver(palmtt_panel_driver);
-diff --git a/drivers/video/omap/lcd_palmz71.c b/drivers/video/omap/lcd_palmz71.c
-index 1ab4847..3b7d8aa 100644
---- a/drivers/video/omap/lcd_palmz71.c
-+++ b/drivers/video/omap/lcd_palmz71.c
-@@ -109,15 +109,4 @@ static struct platform_driver palmz71_panel_driver = {
- 	},
- };
- 
--static int __init palmz71_panel_drv_init(void)
--{
--	return platform_driver_register(&palmz71_panel_driver);
--}
--
--static void __exit palmz71_panel_drv_cleanup(void)
--{
--	platform_driver_unregister(&palmz71_panel_driver);
--}
--
--module_init(palmz71_panel_drv_init);
--module_exit(palmz71_panel_drv_cleanup);
-+module_platform_driver(palmz71_panel_driver);
--- 
-1.7.5.4
+Missed this email, when replying from irc, so, just for the record:
+
+This is caused because the dsp firmware tries wdt register when that
+clock is not powered on. It doesn't affect functionally but does look
+nasty, I'll post a fix for that hope you can review it.
+
+As for: ERR: clock id 2 already disabled
+
+Seems like the module was removed after the dsp went to hibernation,
+when the gpt6 was already disabled, no functional issue but it does
+look misleading, I'll see what can I do about it.
+
+Thanks for the report,
+
+Regards,
+
+Omar
