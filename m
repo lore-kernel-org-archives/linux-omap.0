@@ -1,52 +1,102 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Fri, 9 Dec 2011 03:13:38 +0200
-Message-ID: <CAMP44s10VzBSN0fQm1SkrraZqJgUf_gw8ym-xwOfAFJkXyNPLg@mail.gmail.com>
-References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
-	<CAMP44s16cSBw23Py7qUW4Oj60gXKuvmtx-c=urisxecMQEE6Dw@mail.gmail.com>
-	<CAB-zwWiH020HfovGF8CA-v9t8Pjc3kLbsXezN6ToLdyC4muHqA@mail.gmail.com>
-	<20111209000733.GA9504@kroah.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv7 1/3] OMAP: I2C: Reset support
+Date: Thu, 8 Dec 2011 18:15:05 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112081812530.6289@utopia.booyaka.com>
+References: <1322817674-25384-1-git-send-email-shubhrajyoti@ti.com> <1322817674-25384-2-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:49920 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab1LIBNi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 20:13:38 -0500
-Received: by dadv6 with SMTP id v6so2168780dad.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 17:13:38 -0800 (PST)
-In-Reply-To: <20111209000733.GA9504@kroah.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41500 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752893Ab1LIBPG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 20:15:06 -0500
+In-Reply-To: <1322817674-25384-2-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, ben-linux@fluff.org
 
-On Fri, Dec 9, 2011 at 2:07 AM, Greg KH <greg@kroah.com> wrote:
-> On Thu, Dec 08, 2011 at 02:16:10PM -0600, Ramirez Luna, Omar wrote:
->> On Thu, Dec 8, 2011 at 2:11 PM, Felipe Contreras
->> > Definitely 3.2-fix material IMO :)
->>
->> I believe it was pushed to staging-next... I'm rooting so it can be
->> pushed to staging-linus :)
->
-> As it wasn't originally stated that this was a problem that needed to=
- be
-> fixed for 3.2, can it wait for 3.3-rc1? =C2=A0Especially given that t=
-here is
-> still discussion about this?
+Hi
 
-Well, if you want the bridgedriver to hang the whole system in 3.2,
-which I don't think is the case. There's no more discussion, at least
-not from my side, and I don't think anybody has raised any more
-issues. There's really no reason not to merge this patch, as it really
-cannot get worst than the current situation, unless the patch makes
-the device explode, or something like that, which is not the case :)
+some comments
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, 2 Dec 2011, Shubhrajyoti D wrote:
+
+> Under some error conditions the i2c driver may do a reset.
+> Adding a reset field and support in the device-specific code.
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+>  arch/arm/plat-omap/i2c.c |   18 ++++++++++++++++++
+>  include/linux/i2c-omap.h |    1 +
+>  2 files changed, 19 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index db071bc..883229c 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -74,6 +74,22 @@ static struct omap_i2c_bus_platform_data i2c_pdata[OMAP_I2C_MAX_CONTROLLERS];
+>  static struct platform_device omap_i2c_devices[] = {
+>  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+>  };
+> +/**
+> + * omap2_i2c_reset - reset the omap i2c module.
+> + * @dev: struct device*
+> + */
+> +
+> +static int omap2_i2c_reset(struct device *dev)
+> +{
+> +	int r = 0;
+> +	struct platform_device *pdev = to_platform_device(dev);
+> +	struct omap_device *odev = to_omap_device(pdev);
+> +	struct omap_hwmod *oh;
+> +
+> +	oh = odev->hwmods[0];
+> +	r = omap_hwmod_reset(oh);
+> +	return r;
+> +}
+
+This function should go into arch/arm/plat-omap/omap_device.c, and it 
+should be renamed to omap_device_reset(), since it's not I2C specific.  
+Also it shouldn't assume that there's only one hwmod - it should iterate 
+over all of the hwmods in the omap_device and call omap_hwmod_reset() on 
+each.
+
+>  
+>  #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+>  
+> @@ -179,6 +195,8 @@ static inline int omap2_i2c_add_bus(int bus_id)
+>  	 */
+>  	if (cpu_is_omap34xx())
+>  		pdata->set_mpu_wkup_lat = omap_pm_set_max_mpu_wakeup_lat_compat;
+> +
+> +	pdata->device_reset = omap2_i2c_reset;
+
+omap_device_reset
+
+>  	pdev = omap_device_build(name, bus_id, oh, pdata,
+>  			sizeof(struct omap_i2c_bus_platform_data),
+>  			NULL, 0, 0);
+> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> index 92a0dc7..fd38249 100644
+> --- a/include/linux/i2c-omap.h
+> +++ b/include/linux/i2c-omap.h
+> @@ -35,6 +35,7 @@ struct omap_i2c_bus_platform_data {
+>  	u32		rev;
+>  	u32		flags;
+>  	void		(*set_mpu_wkup_lat)(struct device *dev, long set);
+> +	int		(*device_reset) (struct device *dev);
+>  };
+>  
+>  #endif
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
