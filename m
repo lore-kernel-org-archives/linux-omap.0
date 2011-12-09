@@ -1,31 +1,45 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: It looks like snd-soc-rx51 only works as built-in, not as a module
-Date: Sat, 10 Dec 2011 01:04:49 +0200
-Message-ID: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv10 04/14] omap: prm: add support for suspend prepare and finish callbacks
+Date: Fri, 09 Dec 2011 15:04:59 -0800
+Message-ID: <87aa71l52c.fsf@ti.com>
+References: <1323440857-385-1-git-send-email-t-kristo@ti.com>
+	<1323440857-385-5-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:40382 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab1LIXEu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 18:04:50 -0500
-Received: by dajs34 with SMTP id s34so117238daj.19
-        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 15:04:49 -0800 (PST)
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:47556 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752249Ab1LIXFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 18:05:08 -0500
+Received: by ggnv1 with SMTP id v1so7909950ggn.1
+        for <linux-omap@vger.kernel.org>; Fri, 09 Dec 2011 15:05:01 -0800 (PST)
+In-Reply-To: <1323440857-385-5-git-send-email-t-kristo@ti.com> (Tero Kristo's
+	message of "Fri, 9 Dec 2011 16:27:27 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com
 
-Hi,
+Tero Kristo <t-kristo@ti.com> writes:
 
-Pretty much $subject. Any ideas about why?
+> These are needed because runtime PM is disabled during suspend, and
+> it is bad if we get interrupts from the PRCM chain handler during it.
+> This patch masks all the PRCM interrupt events, but does not ack them,
+> if an interrupt is received during suspend. Once suspend->finish
+> is called, all the masked events will be re-enabled, which causes
+> immediate PRCM interrupt and handles the postponed event.
+>
+> The suspend prepare and complete  callbacks will be called from pm34xx.c /
+> pm44xx.c files in the following patches.
 
-# cat /proc/asound/cards
---- no soundcards ---
+You might just update this changelog to clarify why you're using the the
+driver-specific prepare & complete terminology whereas this code is
+using begin/finish hooks as part of platform_pm_ops.
 
-There's no error message or anything, and rx51_soc_init() exists properly.
+IOW, state that this will soon be becoming a real driver, so you're
+using the driver terminology.
 
-Cheers.
+Also note that subject uses prepare & finish instead of prepare & complete.
 
--- 
-Felipe Contreras
+Kevin
+
