@@ -1,58 +1,42 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
-Date: Thu, 8 Dec 2011 16:07:33 -0800
-Message-ID: <20111209000733.GA9504@kroah.com>
-References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
- <CAMP44s16cSBw23Py7qUW4Oj60gXKuvmtx-c=urisxecMQEE6Dw@mail.gmail.com>
- <CAB-zwWiH020HfovGF8CA-v9t8Pjc3kLbsXezN6ToLdyC4muHqA@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] omap_hsmmc: consider MMC_PM_KEEP_POWER on
+ suspend/resume
+Date: Thu, 8 Dec 2011 16:28:37 -0800
+Message-ID: <20111209002837.GF31337@atomide.com>
+References: <1321970539-7104-1-git-send-email-eliad@wizery.com>
+ <87r50okviy.fsf@laptop.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:38678 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751094Ab1LIAHl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 19:07:41 -0500
-Received: from compute6.internal (compute6.nyi.mail.srv.osa [10.202.2.46])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id A1FA22054F
-	for <linux-omap@vger.kernel.org>; Thu,  8 Dec 2011 19:07:40 -0500 (EST)
+Return-path: <linux-mmc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAB-zwWiH020HfovGF8CA-v9t8Pjc3kLbsXezN6ToLdyC4muHqA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <87r50okviy.fsf@laptop.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Chris Ball <cjb@laptop.org>
+Cc: Eliad Peller <eliad@wizery.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, Russell King <linux@arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Thu, Dec 08, 2011 at 02:16:10PM -0600, Ramirez Luna, Omar wrote:
-> On Thu, Dec 8, 2011 at 2:11 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
-> > On Sat, Nov 19, 2011 at 12:18 AM, Omar Ramirez Luna <omar.ramirez@ti.com> wrote:
-> >> Given that dm timer framework doesn't support request of clocks
-> >> by soft | hard irqs because some recent changes, tidspbridge needs
-> >> to request its clocks on init and enable/disable them on demand.
-> >>
-> >> This was first seen on 3.2-rc1.
-> >>
-> >> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+* Chris Ball <cjb@laptop.org> [111201 09:40]:
+> Hi,
+> 
+> On Tue, Nov 22 2011, Eliad Peller wrote:
+> > When an mmc card has the MMC_PM_KEEP_POWER flag, it shouldn't
+> > be powered off on suspend (and thus doesn't have to be powered-on
+> > on resume)
 > >
-> > Tested-by: Felipe Contreras <felipe.contreras@gmail.com>
-> > Reviewed-by: Felipe Contreras <felipe.contreras@gmail.com>
+> > While on it, change the suspend flow a bit, to make it a bit
+> > easier to follow.
+> >
+> > Signed-off-by: Eliad Peller <eliad@wizery.com>
 > 
-> Thanks!
+> Tony, feel free to merge this patchset (if you're happy with the rest of
+> it) through your tree, with my:
 > 
-> > Something the commit message didn't mention is that this fixes a nasty
-> > continuous loop that happens as soon as you load the module.
+> Acked-by: Chris Ball <cjb@laptop.org>
 > 
-> Indeed.
-> 
-> > Definitely 3.2-fix material IMO :)
-> 
-> I believe it was pushed to staging-next... I'm rooting so it can be
-> pushed to staging-linus :)
+> for this patch.  Thanks,
 
-As it wasn't originally stated that this was a problem that needed to be
-fixed for 3.2, can it wait for 3.3-rc1?  Especially given that there is
-still discussion about this?
+Thanks applying these into omap driver branch.
 
-thanks,
+Regards,
 
-greg k-h
+Tony
