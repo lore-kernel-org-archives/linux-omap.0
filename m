@@ -1,49 +1,44 @@
-From: Omar Ramirez Luna <or.rmz1@gmail.com>
-Subject: Re: In-band Error seen by IVA_SS at address 0
-Date: Thu, 8 Dec 2011 20:01:51 -0600
-Message-ID: <CAPTm=KH9+BqnPoVqpP_bdj=G66-Z-KZ0XwD7QzQDud+X6OaMug@mail.gmail.com>
-References: <CAMP44s2nRzCXJdv3iHjSk0H_pkhb2DtXZ8cQJ61t6o0Ff=vc=Q@mail.gmail.com>
-	<CAMP44s0B1GLsiduFJZs5QpJuWoMz7P7pLGxofLgeZGzg6aDYmw@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP1: Move dpll1 rates selection from config
+ to runtime
+Date: Thu, 8 Dec 2011 18:09:22 -0800
+Message-ID: <20111209020922.GN31337@atomide.com>
+References: <201112090013.37529.jkrzyszt@tis.icnet.pl>
+ <1323395476-26548-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:47800 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754163Ab1LICBv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 21:01:51 -0500
-Received: by mail-gy0-f174.google.com with SMTP id z2so2116671ghb.19
-        for <linux-omap@vger.kernel.org>; Thu, 08 Dec 2011 18:01:51 -0800 (PST)
-In-Reply-To: <CAMP44s0B1GLsiduFJZs5QpJuWoMz7P7pLGxofLgeZGzg6aDYmw@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56593 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab1LICJ0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Dec 2011 21:09:26 -0500
+Content-Disposition: inline
+In-Reply-To: <1323395476-26548-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111208 17:24]:
+> For still better multi-OMAP1 support, expand omap1_rate_table with flags
+> for different SoC types and match them while selecting clock rates. The
+> idea is stolen from current omap24xx clock rate selection algorithm.
+> 
+> Since clkdev platform flag definitions are reused here, those had to be
+> expanded with one extra entry for OMAP1710 subtype, as this is the only
+> SoC for which we allow selection of the highest, 216 MHz rate.
+> 
+> Once done, remove no longer needed clock rate configure time options.
+> 
+> Created against linux-omap/master tip as of Thu Dec 1,
+> commit f83c2a8cbb59981722d1ab610c79adfd034a2667.
+> Tested on Amstrad Delta.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+> v2: limit OMAP1510 rate to 150 MHz, or some boards may not work.
 
-On Thu, Dec 8, 2011 at 12:50 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Thu, Dec 8, 2011 at 8:43 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> I get this while loading the bridgedriver:
->
-> Agh, Gmail garbled that.
-> http://pastie.org/pastes/2987239/text
+Thanks pushing them all into omap1 branch, can you please check
+that I got all the patches? I've boot tested it here on h2/osk/770.
 
-Missed this email, when replying from irc, so, just for the record:
-
-This is caused because the dsp firmware tries wdt register when that
-clock is not powered on. It doesn't affect functionally but does look
-nasty, I'll post a fix for that hope you can review it.
-
-As for: ERR: clock id 2 already disabled
-
-Seems like the module was removed after the dsp went to hibernation,
-when the gpt6 was already disabled, no functional issue but it does
-look misleading, I'll see what can I do about it.
-
-Thanks for the report,
-
-Regards,
-
-Omar
+Tony
