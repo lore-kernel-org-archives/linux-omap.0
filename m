@@ -1,123 +1,77 @@
 From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH RESEND v5 3/3] ARM: OMAP: TI814X: Create board support and enable build for TI8148 EVM
-Date: Sat, 10 Dec 2011 07:15:08 +0530
-Message-ID: <1323481508-28015-1-git-send-email-hemantp@ti.com>
+Subject: [PATCH RESEND v5 0/3] Add support for TI814X processor series
+Date: Sat, 10 Dec 2011 07:28:22 +0530
+Message-ID: <1323482305-32155-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52377 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34652 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751728Ab1LJBpS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Dec 2011 20:45:18 -0500
+	id S1751166Ab1LJB6m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Dec 2011 20:58:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Hemant Pedanekar <hemantp@ti.com>
 
-This patch adds minimal support and build configuration for TI8148 EVM. Also
-adds support for low level debugging on UART1 console on the EVM.
+This patch set adds support for DM814x/AM387x device series having Cortex-A8
+MPU.
 
-Note that existing TI8168 EVM file (board-ti8168evm.c) is updated with machine
-info for TI8148 EVM.
+The technical documents are available from following link:
 
-Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
----
- arch/arm/mach-omap2/Kconfig                  |    5 +++++
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-ti8168evm.c        |   22 ++++++++++++++++------
- arch/arm/plat-omap/include/plat/uncompress.h |    3 +++
- 4 files changed, 25 insertions(+), 6 deletions(-)
+http://focus.ti.com/docs/prod/folders/print/tms320dm8148.html
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index a34d0f7..cb760ac 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -322,6 +322,11 @@ config MACH_TI8168EVM
- 	depends on SOC_OMAPTI81XX
- 	default y
- 
-+config MACH_TI8148EVM
-+	bool "TI8148 Evaluation Module"
-+	depends on SOC_OMAPTI81XX
-+	default y
-+
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
- 	default y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 9a6da52..b9e0990 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -236,6 +236,7 @@ obj-$(CONFIG_MACH_CRANEBOARD)		+= board-am3517crane.o
- 
- obj-$(CONFIG_MACH_SBC3530)		+= board-omap3stalker.o
- obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
-+obj-$(CONFIG_MACH_TI8148EVM)		+= board-ti8168evm.o
- 
- # Platform specific device init code
- 
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-index b236fcc..b3ca997 100644
---- a/arch/arm/mach-omap2/board-ti8168evm.c
-+++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -1,5 +1,5 @@
- /*
-- * Code for TI8168 EVM.
-+ * Code for TI8168/TI8148 EVM.
-  *
-  * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
-  *
-@@ -24,15 +24,15 @@
- #include <plat/board.h>
- #include "common.h"
- 
--static struct omap_board_config_kernel ti8168_evm_config[] __initdata = {
-+static struct omap_board_config_kernel ti81xx_evm_config[] __initdata = {
- };
- 
--static void __init ti8168_evm_init(void)
-+static void __init ti81xx_evm_init(void)
- {
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
--	omap_board_config = ti8168_evm_config;
--	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
-+	omap_board_config = ti81xx_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(ti81xx_evm_config);
- }
- 
- MACHINE_START(TI8168EVM, "ti8168evm")
-@@ -42,5 +42,15 @@ MACHINE_START(TI8168EVM, "ti8168evm")
- 	.init_early	= ti81xx_init_early,
- 	.init_irq	= ti81xx_init_irq,
- 	.timer		= &omap3_timer,
--	.init_machine	= ti8168_evm_init,
-+	.init_machine	= ti81xx_evm_init,
-+MACHINE_END
-+
-+MACHINE_START(TI8148EVM, "ti8148evm")
-+	/* Maintainer: Texas Instruments */
-+	.atag_offset	= 0x100,
-+	.map_io		= ti81xx_map_io,
-+	.init_early	= ti81xx_init_early,
-+	.init_irq	= ti81xx_init_irq,
-+	.timer		= &omap3_timer,
-+	.init_machine	= ti81xx_evm_init,
- MACHINE_END
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 7fbc361..6ee9049 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -179,6 +179,9 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		/* TI8168 base boards using UART3 */
- 		DEBUG_LL_TI81XX(3, ti8168evm);
- 
-+		/* TI8148 base boards using UART1 */
-+		DEBUG_LL_TI81XX(1, ti8148evm);
-+
- 	} while (0);
- }
- 
--- 
-1.7.0.4
+This series is referred in code as TI814X.
+
+Since these devices share similar architecture as TI816X devices, existing
+TI816X code is updated to accomodate TI814X support. The code shared across
+TI816X and TI814X devices is updated with TI81XX/ti81xx prefix as applicable,
+while maintaining cpu_is_ti816x() and cpu_is_ti814x() to distinguish specific
+execution differences.
+
+Changes since v4:
+1) Rebased on linux-omap/soc branch.
+2) Updated for map_io and common.h changes.
+
+Changes since v3:
+1) Avoid renaming board-ti8168evm.c, just add TI8148 EVM support in it.
+2) Drop changes in clock related data variables from u8 to u16 since the same
+   was incorporated as part of AM33xx addition.
+
+Changes since v2:
+1) Incorporate Tony's suggestion about moving ti8168_evm_map_io() to
+   arch/arm/mach-omap2/common.c to keep common across TI81XX.
+2) Keeping single board file (board-ti81xxevm.c) for TI816X and TI814X EVMs
+
+Changes since v1:
+1) Rebased and updated after Paul's CHIP_IS removal changes
+2) Removed call to omap2_init_common_devices() as per Kevin's comment
+
+Hemant Pedanekar (3):
+  ARM: OMAP: TI81XX: Prepare for addition of TI814X support
+  ARM: OMAP: TI814X: Add cpu type macros and detection support
+  ARM: OMAP: TI814X: Create board support and enable build for TI8148
+    EVM
+
+ arch/arm/mach-omap2/Kconfig                        |   11 +++++--
+ arch/arm/mach-omap2/Makefile                       |    1 +
+ arch/arm/mach-omap2/board-ti8168evm.c              |   33 +++++++++++--------
+ arch/arm/mach-omap2/clock3xxx_data.c               |    5 ++-
+ arch/arm/mach-omap2/common.c                       |   29 ++++++++++-------
+ arch/arm/mach-omap2/common.h                       |   13 ++++---
+ arch/arm/mach-omap2/control.h                      |    8 ++--
+ arch/arm/mach-omap2/id.c                           |   29 +++++++++++++++--
+ arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 +++---
+ arch/arm/mach-omap2/io.c                           |   14 ++++----
+ arch/arm/mach-omap2/irq.c                          |    2 +-
+ arch/arm/mach-omap2/serial.c                       |    6 ++--
+ arch/arm/plat-omap/include/plat/clkdev_omap.h      |    1 +
+ arch/arm/plat-omap/include/plat/clock.h            |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h              |   22 +++++++++++++
+ arch/arm/plat-omap/include/plat/hardware.h         |    2 +-
+ arch/arm/plat-omap/include/plat/serial.h           |   14 ++++----
+ .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 +++++-----
+ arch/arm/plat-omap/include/plat/uncompress.h       |   11 ++++--
+ 19 files changed, 150 insertions(+), 82 deletions(-)
+ rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
 
