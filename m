@@ -1,550 +1,155 @@
 From: Hemant Pedanekar <hemantp@ti.com>
-Subject: [PATCH RESEND v5 1/3] ARM: OMAP: TI81XX: Prepare for addition of TI814X support
-Date: Sat, 10 Dec 2011 07:14:57 +0530
-Message-ID: <1323481497-27852-1-git-send-email-hemantp@ti.com>
+Subject: [PATCH RESEND v5 2/3] ARM: OMAP: TI814X: Add cpu type macros and detection support
+Date: Sat, 10 Dec 2011 07:15:02 +0530
+Message-ID: <1323481502-27902-1-git-send-email-hemantp@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34220 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751592Ab1LJBpH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Dec 2011 20:45:07 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:59698 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728Ab1LJBpM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Dec 2011 20:45:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Hemant Pedanekar <hemantp@ti.com>
 
-This patch updates existing macros, functions used for TI816X, to enable
-addition of other SoCs belonging to TI81XX family (e.g., TI814X).
-
-The approach taken is to use TI81XX/ti81xx for code/data going to be common
-across all TI81XX devices.
-
-cpu_is_ti81xx() is introduced to handle code common across TI81XX devices.
-
-In addition, ti8168_evm_map_io() is now replaced with ti81xx_map_io() and moved
-in mach-omap2/common.c as same will be used for TI814X and is not board
-specific.
+This patch adds cpu type, macros for identification of TI814X device.
 
 Signed-off-by: Hemant Pedanekar <hemantp@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig                        |    6 ++--
- arch/arm/mach-omap2/board-ti8168evm.c              |   11 ++-----
- arch/arm/mach-omap2/clock3xxx_data.c               |    2 +-
- arch/arm/mach-omap2/common.c                       |   29 +++++++++++--------
- arch/arm/mach-omap2/common.h                       |   13 +++++----
- arch/arm/mach-omap2/control.h                      |    8 +++---
- arch/arm/mach-omap2/id.c                           |    8 +++---
- arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 ++++----
- arch/arm/mach-omap2/io.c                           |   14 +++++-----
- arch/arm/mach-omap2/irq.c                          |    2 +-
- arch/arm/mach-omap2/serial.c                       |    6 ++--
- arch/arm/plat-omap/include/plat/cpu.h              |   13 +++++++++
- arch/arm/plat-omap/include/plat/hardware.h         |    2 +-
- arch/arm/plat-omap/include/plat/serial.h           |   14 +++++-----
- .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 ++++++------
- arch/arm/plat-omap/include/plat/uncompress.h       |    8 +++---
- 16 files changed, 90 insertions(+), 76 deletions(-)
- rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
+ arch/arm/mach-omap2/clock3xxx_data.c          |    3 +++
+ arch/arm/mach-omap2/id.c                      |   21 +++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    1 +
+ arch/arm/plat-omap/include/plat/clock.h       |    1 +
+ arch/arm/plat-omap/include/plat/cpu.h         |    9 +++++++++
+ 5 files changed, 35 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index e1804bb..a34d0f7 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -76,8 +76,8 @@ config SOC_OMAP3430
- 	default y
- 	select ARCH_OMAP_OTG
- 
--config SOC_OMAPTI816X
--	bool "TI816X support"
-+config SOC_OMAPTI81XX
-+	bool "TI81XX support"
- 	depends on ARCH_OMAP3
- 	default y
- 
-@@ -319,7 +319,7 @@ config MACH_OMAP_3630SDP
- 
- config MACH_TI8168EVM
- 	bool "TI8168 Evaluation Module"
--	depends on SOC_OMAPTI816X
-+	depends on SOC_OMAPTI81XX
- 	default y
- 
- config MACH_OMAP_4430SDP
-diff --git a/arch/arm/mach-omap2/board-ti8168evm.c b/arch/arm/mach-omap2/board-ti8168evm.c
-index 8402b39..b236fcc 100644
---- a/arch/arm/mach-omap2/board-ti8168evm.c
-+++ b/arch/arm/mach-omap2/board-ti8168evm.c
-@@ -35,17 +35,12 @@ static void __init ti8168_evm_init(void)
- 	omap_board_config_size = ARRAY_SIZE(ti8168_evm_config);
- }
- 
--static void __init ti8168_evm_map_io(void)
--{
--	omapti816x_map_common_io();
--}
--
- MACHINE_START(TI8168EVM, "ti8168evm")
- 	/* Maintainer: Texas Instruments */
- 	.atag_offset	= 0x100,
--	.map_io		= ti8168_evm_map_io,
--	.init_early	= ti816x_init_early,
--	.init_irq	= ti816x_init_irq,
-+	.map_io		= ti81xx_map_io,
-+	.init_early	= ti81xx_init_early,
-+	.init_irq	= ti81xx_init_irq,
- 	.timer		= &omap3_timer,
- 	.init_machine	= ti8168_evm_init,
- MACHINE_END
 diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index 3d56d8a..be0fa34 100644
+index be0fa34..5a623a5 100644
 --- a/arch/arm/mach-omap2/clock3xxx_data.c
 +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -3602,7 +3602,7 @@ int __init omap3xxx_clk_init(void)
- 	 * Lock DPLL5 -- here only until other device init code can
- 	 * handle this
- 	 */
--	if (!cpu_is_ti816x() && (omap_rev() >= OMAP3430_REV_ES2_0))
-+	if (!cpu_is_ti81xx() && (omap_rev() >= OMAP3430_REV_ES2_0))
- 		omap3_clk_lock_dpll5();
- 
- 	/* Avoid sleeping during omap3_core_dpll_m2_set_rate() */
-diff --git a/arch/arm/mach-omap2/common.c b/arch/arm/mach-omap2/common.c
-index c900dcb..aaf4211 100644
---- a/arch/arm/mach-omap2/common.c
-+++ b/arch/arm/mach-omap2/common.c
-@@ -110,27 +110,32 @@ void __init omap3_map_io(void)
- 
- /*
-  * Adjust TAP register base such that omap3_check_revision accesses the correct
-- * TI816X register for checking device ID (it adds 0x204 to tap base while
-- * TI816X DEVICE ID register is at offset 0x600 from control base).
-+ * TI81XX register for checking device ID (it adds 0x204 to tap base while
-+ * TI81XX DEVICE ID register is at offset 0x600 from control base).
-  */
--#define TI816X_TAP_BASE		(TI816X_CTRL_BASE + \
--				TI816X_CONTROL_DEVICE_ID - 0x204)
-+#define TI81XX_TAP_BASE		(TI81XX_CTRL_BASE + \
-+				TI81XX_CONTROL_DEVICE_ID - 0x204)
- 
--static struct omap_globals ti816x_globals = {
-+static struct omap_globals ti81xx_globals = {
- 	.class  = OMAP343X_CLASS,
--	.tap    = OMAP2_L4_IO_ADDRESS(TI816X_TAP_BASE),
--	.ctrl   = OMAP2_L4_IO_ADDRESS(TI816X_CTRL_BASE),
--	.prm    = OMAP2_L4_IO_ADDRESS(TI816X_PRCM_BASE),
--	.cm     = OMAP2_L4_IO_ADDRESS(TI816X_PRCM_BASE),
-+	.tap    = OMAP2_L4_IO_ADDRESS(TI81XX_TAP_BASE),
-+	.ctrl   = OMAP2_L4_IO_ADDRESS(TI81XX_CTRL_BASE),
-+	.prm    = OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE),
-+	.cm     = OMAP2_L4_IO_ADDRESS(TI81XX_PRCM_BASE),
- };
- 
--void __init omap2_set_globals_ti816x(void)
-+void __init omap2_set_globals_ti81xx(void)
- {
--	__omap2_set_globals(&ti816x_globals);
-+	__omap2_set_globals(&ti81xx_globals);
-+}
-+
-+void __init ti81xx_map_io(void)
-+{
-+	omapti81xx_map_common_io();
- }
- 
- #define AM33XX_TAP_BASE		(AM33XX_CTRL_BASE + \
--				TI816X_CONTROL_DEVICE_ID - 0x204)
-+				TI81XX_CONTROL_DEVICE_ID - 0x204)
- 
- static struct omap_globals am33xx_globals = {
- 	.class  = AM335X_CLASS,
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index fb83572..90bd2ae 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -54,10 +54,10 @@ static inline void omap34xx_map_common_io(void)
- }
- #endif
- 
--#ifdef CONFIG_SOC_OMAPTI816X
--extern void omapti816x_map_common_io(void);
-+#ifdef CONFIG_SOC_OMAPTI81XX
-+extern void omapti81xx_map_common_io(void);
- #else
--static inline void omapti816x_map_common_io(void)
-+static inline void omapti81xx_map_common_io(void)
- {
- }
- #endif
-@@ -92,7 +92,7 @@ void omap35xx_init_early(void);
- void omap3630_init_early(void);
- void omap3_init_early(void);	/* Do not use this one */
- void am35xx_init_early(void);
--void ti816x_init_early(void);
-+void ti81xx_init_early(void);
- void omap4430_init_early(void);
- 
- /*
-@@ -116,7 +116,7 @@ void omap2_set_globals_242x(void);
- void omap2_set_globals_243x(void);
- void omap2_set_globals_3xxx(void);
- void omap2_set_globals_443x(void);
--void omap2_set_globals_ti816x(void);
-+void omap2_set_globals_ti81xx(void);
- void omap2_set_globals_am33xx(void);
- 
- /* These get called from omap2_set_globals_xxxx(), do not call these */
-@@ -130,6 +130,7 @@ void omap243x_map_io(void);
- void omap3_map_io(void);
- void am33xx_map_io(void);
- void omap4_map_io(void);
-+void ti81xx_map_io(void);
- 
- /**
-  * omap_test_timeout - busy-loop, testing a condition
-@@ -158,7 +159,7 @@ extern struct device *omap4_get_dsp_device(void);
- 
- void omap2_init_irq(void);
- void omap3_init_irq(void);
--void ti816x_init_irq(void);
-+void ti81xx_init_irq(void);
- extern int omap_irq_pending(void);
- void omap_intc_save_context(void);
- void omap_intc_restore_context(void);
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index d4ef75d..0ba68d3 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -52,8 +52,8 @@
- #define OMAP343X_CONTROL_PADCONFS_WKUP	0xa00
- #define OMAP343X_CONTROL_GENERAL_WKUP	0xa60
- 
--/* TI816X spefic control submodules */
--#define TI816X_CONTROL_DEVCONF		0x600
-+/* TI81XX spefic control submodules */
-+#define TI81XX_CONTROL_DEVCONF		0x600
- 
- /* Control register offsets - read/write with omap_ctrl_{read,write}{bwl}() */
- 
-@@ -244,8 +244,8 @@
- #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
- #define OMAP3_PADCONF_SAD2D_IDLEACK    0x254
- 
--/* TI816X CONTROL_DEVCONF register offsets */
--#define TI816X_CONTROL_DEVICE_ID	(TI816X_CONTROL_DEVCONF + 0x000)
-+/* TI81XX CONTROL_DEVCONF register offsets */
-+#define TI81XX_CONTROL_DEVICE_ID	(TI81XX_CONTROL_DEVCONF + 0x000)
- 
- /*
-  * REVISIT: This list of registers is not comprehensive - there are more
+@@ -3519,6 +3519,9 @@ int __init omap3xxx_clk_init(void)
+ 		cpu_clkflg = CK_TI816X;
+ 	} else if (cpu_is_am33xx()) {
+ 		cpu_mask = RATE_IN_AM33XX;
++	} else if (cpu_is_ti814x()) {
++		cpu_mask = RATE_IN_TI814X;
++		cpu_clkflg = CK_TI814X;
+ 	} else if (cpu_is_omap34xx()) {
+ 		if (omap_rev() == OMAP3430_REV_ES1_0) {
+ 			cpu_mask = RATE_IN_3430ES1;
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 439afe7..1dc68e6 100644
+index 1dc68e6..6c58266 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -226,7 +226,7 @@ static void __init omap4_check_features(void)
- 	}
- }
+@@ -343,6 +343,25 @@ static void __init omap3_check_revision(const char **cpu_rev)
+ 	case 0xb944:
+ 		omap_revision = AM335X_REV_ES1_0;
+ 		*cpu_rev = "1.0";
++	case 0xb8f2:
++		switch (rev) {
++		case 0:
++		/* FALLTHROUGH */
++		case 1:
++			omap_revision = TI8148_REV_ES1_0;
++			*cpu_rev = "1.0";
++			break;
++		case 2:
++			omap_revision = TI8148_REV_ES2_0;
++			*cpu_rev = "2.0";
++			break;
++		case 3:
++		/* FALLTHROUGH */
++		default:
++			omap_revision = TI8148_REV_ES2_1;
++			*cpu_rev = "2.1";
++			break;
++		}
+ 		break;
+ 	default:
+ 		/* Unknown default to latest silicon rev as default */
+@@ -449,6 +468,8 @@ static void __init omap3_cpuinfo(const char *cpu_rev)
+ 		cpu_name = "TI816X";
+ 	} else if (cpu_is_am335x()) {
+ 		cpu_name =  "AM335X";
++	} else if (cpu_is_ti814x()) {
++		cpu_name = "TI814X";
+ 	} else if (omap3_has_iva() && omap3_has_sgx()) {
+ 		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
+ 		cpu_name = "OMAP3430/3530";
+diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+index 387a963..3c50ec8 100644
+--- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
++++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+@@ -40,6 +40,7 @@ struct omap_clk {
+ #define CK_443X		(1 << 11)
+ #define CK_TI816X	(1 << 12)
+ #define CK_446X		(1 << 13)
++#define CK_TI814X	(1 << 14)
  
--static void __init ti816x_check_features(void)
-+static void __init ti81xx_check_features(void)
- {
- 	omap_features = OMAP3_HAS_NEON;
- }
-@@ -489,11 +489,11 @@ void __init omap2_check_revision(void)
- 	} else if (cpu_is_omap34xx()) {
- 		omap3_check_revision(&cpu_rev);
  
--		/* TI816X doesn't have feature register */
--		if (!cpu_is_ti816x())
-+		/* TI81XX doesn't have feature register */
-+		if (!cpu_is_ti81xx())
- 			omap3_check_features();
- 		else
--			ti816x_check_features();
-+			ti81xx_check_features();
+ #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index bb3e423..240a7b9 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -60,6 +60,7 @@ struct clkops {
+ #define RATE_IN_TI816X		(1 << 6)
+ #define RATE_IN_4460		(1 << 7)
+ #define RATE_IN_AM33XX		(1 << 8)
++#define RATE_IN_TI814X		(1 << 9)
  
- 		omap3_cpuinfo(cpu_rev);
- 		return;
-diff --git a/arch/arm/mach-omap2/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
-index 13f98e5..cdfc2a1 100644
---- a/arch/arm/mach-omap2/include/mach/debug-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
-@@ -66,11 +66,11 @@ omap_uart_lsr:	.word	0
- 		beq	34f			@ configure OMAP3UART4
- 		cmp	\rp, #OMAP4UART4	@ only on 44xx
- 		beq	44f			@ configure OMAP4UART4
--		cmp	\rp, #TI816XUART1	@ ti816x UART offsets different
-+		cmp	\rp, #TI81XXUART1	@ ti81Xx UART offsets different
- 		beq	81f			@ configure UART1
--		cmp	\rp, #TI816XUART2	@ ti816x UART offsets different
-+		cmp	\rp, #TI81XXUART2	@ ti81Xx UART offsets different
- 		beq	82f			@ configure UART2
--		cmp	\rp, #TI816XUART3	@ ti816x UART offsets different
-+		cmp	\rp, #TI81XXUART3	@ ti81Xx UART offsets different
- 		beq	83f			@ configure UART3
- 		cmp	\rp, #ZOOM_UART		@ only on zoom2/3
- 		beq	95f			@ configure ZOOM_UART
-@@ -94,11 +94,11 @@ omap_uart_lsr:	.word	0
- 		b	98f
- 44:		mov	\rp, #UART_OFFSET(OMAP4_UART4_BASE)
- 		b	98f
--81:		mov	\rp, #UART_OFFSET(TI816X_UART1_BASE)
-+81:		mov	\rp, #UART_OFFSET(TI81XX_UART1_BASE)
- 		b	98f
--82:		mov	\rp, #UART_OFFSET(TI816X_UART2_BASE)
-+82:		mov	\rp, #UART_OFFSET(TI81XX_UART2_BASE)
- 		b	98f
--83:		mov	\rp, #UART_OFFSET(TI816X_UART3_BASE)
-+83:		mov	\rp, #UART_OFFSET(TI81XX_UART3_BASE)
- 		b	98f
- 
- 95:		ldr	\rp, =ZOOM_UART_BASE
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 6adca69..3f174d5 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -176,8 +176,8 @@ static struct map_desc omap34xx_io_desc[] __initdata = {
- };
- #endif
- 
--#ifdef CONFIG_SOC_OMAPTI816X
--static struct map_desc omapti816x_io_desc[] __initdata = {
-+#ifdef CONFIG_SOC_OMAPTI81XX
-+static struct map_desc omapti81xx_io_desc[] __initdata = {
- 	{
- 		.virtual	= L4_34XX_VIRT,
- 		.pfn		= __phys_to_pfn(L4_34XX_PHYS),
-@@ -289,10 +289,10 @@ void __init omap34xx_map_common_io(void)
- }
- #endif
- 
--#ifdef CONFIG_SOC_OMAPTI816X
--void __init omapti816x_map_common_io(void)
-+#ifdef CONFIG_SOC_OMAPTI81XX
-+void __init omapti81xx_map_common_io(void)
- {
--	iotable_init(omapti816x_io_desc, ARRAY_SIZE(omapti816x_io_desc));
-+	iotable_init(omapti81xx_io_desc, ARRAY_SIZE(omapti81xx_io_desc));
- }
- #endif
- 
-@@ -451,9 +451,9 @@ void __init am35xx_init_early(void)
- 	omap3_init_early();
- }
- 
--void __init ti816x_init_early(void)
-+void __init ti81xx_init_early(void)
- {
--	omap2_set_globals_ti816x();
-+	omap2_set_globals_ti81xx();
- 	omap_common_init_early();
- 	omap3xxx_voltagedomains_init();
- 	omap3xxx_powerdomains_init();
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 42b1d65..1fef061 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -193,7 +193,7 @@ void __init omap3_init_irq(void)
- 	omap_init_irq(OMAP34XX_IC_BASE, 96);
- }
- 
--void __init ti816x_init_irq(void)
-+void __init ti81xx_init_irq(void)
- {
- 	omap_init_irq(OMAP34XX_IC_BASE, 128);
- }
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 9770c76..d0f009c 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -464,7 +464,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 		mod_timer(&uart->timer, jiffies + uart->timeout);
- 	omap_uart_smart_idle_enable(uart, 0);
- 
--	if (cpu_is_omap34xx() && !(cpu_is_ti816x() || cpu_is_am33xx())) {
-+	if (cpu_is_omap34xx() && !(cpu_is_ti81xx() || cpu_is_am33xx())) {
- 		u32 mod = (uart->num > 1) ? OMAP3430_PER_MOD : CORE_MOD;
- 		u32 wk_mask = 0;
- 		u32 padconf = 0;
-@@ -746,7 +746,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 	 */
- 	uart->regshift = p->regshift;
- 	uart->membase = p->membase;
--	if (cpu_is_omap44xx() || cpu_is_ti816x())
-+	if (cpu_is_omap44xx() || cpu_is_ti81xx())
- 		uart->errata |= UART_ERRATA_FIFO_FULL_ABORT;
- 	else if ((serial_read_reg(uart, UART_OMAP_MVER) & 0xFF)
- 			>= UART_OMAP_NO_EMPTY_FIFO_READ_IP_REV)
-@@ -828,7 +828,7 @@ void __init omap_serial_init_port(struct omap_board_data *bdata)
- 	}
- 
- 	/* Enable the MDR1 errata for OMAP3 */
--	if (cpu_is_omap34xx() && !(cpu_is_ti816x() || cpu_is_am33xx()))
-+	if (cpu_is_omap34xx() && !(cpu_is_ti81xx() || cpu_is_am33xx()))
- 		uart->errata |= UART_ERRATA_i202_MDR1_ACCESS;
- }
- 
+ #define RATE_IN_24XX		(RATE_IN_242X | RATE_IN_243X)
+ #define RATE_IN_34XX		(RATE_IN_3430ES1 | RATE_IN_3430ES2PLUS)
 diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 34fc913..5f7aa49 100644
+index 5f7aa49..6b51086 100644
 --- a/arch/arm/plat-omap/include/plat/cpu.h
 +++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -87,6 +87,14 @@ static inline int is_am ##class (void)			\
- 	return (GET_AM_CLASS == (id)) ? 1 : 0;		\
- }
+@@ -134,6 +134,7 @@ IS_OMAP_SUBCLASS(446x, 0x446)
+ IS_OMAP_SUBCLASS(447x, 0x447)
  
-+#define GET_TI_CLASS	((omap_rev() >> 24) & 0xff)
-+
-+#define IS_TI_CLASS(class, id)			\
-+static inline int is_ti ##class (void)		\
-+{							\
-+	return (GET_TI_CLASS == (id)) ? 1 : 0;	\
-+}
-+
- #define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
+ IS_TI_SUBCLASS(816x, 0x816)
++IS_TI_SUBCLASS(814x, 0x814)
+ IS_AM_SUBCLASS(335x, 0x335)
  
- #define IS_OMAP_SUBCLASS(subclass, id)			\
-@@ -115,6 +123,8 @@ IS_OMAP_CLASS(34xx, 0x34)
- IS_OMAP_CLASS(44xx, 0x44)
- IS_AM_CLASS(33xx, 0x33)
- 
-+IS_TI_CLASS(81xx, 0x81)
-+
- IS_OMAP_SUBCLASS(242x, 0x242)
- IS_OMAP_SUBCLASS(243x, 0x243)
- IS_OMAP_SUBCLASS(343x, 0x343)
-@@ -134,6 +144,7 @@ IS_AM_SUBCLASS(335x, 0x335)
- #define cpu_is_omap243x()		0
- #define cpu_is_omap34xx()		0
+ #define cpu_is_omap7xx()		0
+@@ -146,6 +147,7 @@ IS_AM_SUBCLASS(335x, 0x335)
  #define cpu_is_omap343x()		0
-+#define cpu_is_ti81xx()			0
+ #define cpu_is_ti81xx()			0
  #define cpu_is_ti816x()			0
++#define cpu_is_ti814x()			0
  #define cpu_is_am33xx()			0
  #define cpu_is_am335x()			0
-@@ -343,6 +354,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- # undef cpu_is_omap3530
- # undef cpu_is_omap3505
+ #define cpu_is_omap44xx()		0
+@@ -356,6 +358,7 @@ IS_OMAP_TYPE(3517, 0x3517)
  # undef cpu_is_omap3517
-+# undef cpu_is_ti81xx
+ # undef cpu_is_ti81xx
  # undef cpu_is_ti816x
++# undef cpu_is_ti814x
  # undef cpu_is_am33xx
  # undef cpu_is_am335x
-@@ -362,6 +374,7 @@ IS_OMAP_TYPE(3517, 0x3517)
- 						!omap3_has_sgx())
- # undef cpu_is_omap3630
+ # define cpu_is_omap3430()		is_omap3430()
+@@ -376,6 +379,7 @@ IS_OMAP_TYPE(3517, 0x3517)
  # define cpu_is_omap3630()		is_omap363x()
-+# define cpu_is_ti81xx()		is_ti81xx()
+ # define cpu_is_ti81xx()		is_ti81xx()
  # define cpu_is_ti816x()		is_ti816x()
++# define cpu_is_ti814x()		is_ti814x()
  # define cpu_is_am33xx()		is_am33xx()
  # define cpu_is_am335x()		is_am335x()
-diff --git a/arch/arm/plat-omap/include/plat/hardware.h b/arch/arm/plat-omap/include/plat/hardware.h
-index e6521e1..e897978 100644
---- a/arch/arm/plat-omap/include/plat/hardware.h
-+++ b/arch/arm/plat-omap/include/plat/hardware.h
-@@ -286,7 +286,7 @@
- #include <plat/omap24xx.h>
- #include <plat/omap34xx.h>
- #include <plat/omap44xx.h>
--#include <plat/ti816x.h>
-+#include <plat/ti81xx.h>
- #include <plat/am33xx.h>
+ #endif
+@@ -426,6 +430,11 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define TI8168_REV_ES1_0	TI816X_CLASS
+ #define TI8168_REV_ES1_1	(TI816X_CLASS | (0x1 << 8))
  
- #endif	/* __ASM_ARCH_OMAP_HARDWARE_H */
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index 1ab9fd6..6975ee3 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -51,10 +51,10 @@
- #define OMAP4_UART3_BASE	0x48020000
- #define OMAP4_UART4_BASE	0x4806e000
++#define TI814X_CLASS		0x81400034
++#define TI8148_REV_ES1_0	TI814X_CLASS
++#define TI8148_REV_ES2_0	(TI814X_CLASS | (0x1 << 8))
++#define TI8148_REV_ES2_1	(TI814X_CLASS | (0x2 << 8))
++
+ #define AM335X_CLASS		0x33500034
+ #define AM335X_REV_ES1_0	AM335X_CLASS
  
--/* TI816X serial ports */
--#define TI816X_UART1_BASE	0x48020000
--#define TI816X_UART2_BASE	0x48022000
--#define TI816X_UART3_BASE	0x48024000
-+/* TI81XX serial ports */
-+#define TI81XX_UART1_BASE	0x48020000
-+#define TI81XX_UART2_BASE	0x48022000
-+#define TI81XX_UART3_BASE	0x48024000
- 
- /* AM3505/3517 UART4 */
- #define AM35XX_UART4_BASE	0x4809E000	/* Only on AM3505/3517 */
-@@ -89,9 +89,9 @@
- #define OMAP4UART2		OMAP2UART2
- #define OMAP4UART3		43
- #define OMAP4UART4		44
--#define TI816XUART1		81
--#define TI816XUART2		82
--#define TI816XUART3		83
-+#define TI81XXUART1		81
-+#define TI81XXUART2		82
-+#define TI81XXUART3		83
- #define ZOOM_UART		95		/* Only on zoom2/3 */
- 
- /* This is only used by 8250.c for omap1510 */
-diff --git a/arch/arm/plat-omap/include/plat/ti816x.h b/arch/arm/plat-omap/include/plat/ti81xx.h
-similarity index 60%
-rename from arch/arm/plat-omap/include/plat/ti816x.h
-rename to arch/arm/plat-omap/include/plat/ti81xx.h
-index 50510f5..8f9843f 100644
---- a/arch/arm/plat-omap/include/plat/ti816x.h
-+++ b/arch/arm/plat-omap/include/plat/ti81xx.h
-@@ -1,5 +1,5 @@
- /*
-- * This file contains the address data for various TI816X modules.
-+ * This file contains the address data for various TI81XX modules.
-  *
-  * Copyright (C) 2010 Texas Instruments, Inc. - http://www.ti.com/
-  *
-@@ -13,15 +13,15 @@
-  * GNU General Public License for more details.
-  */
- 
--#ifndef __ASM_ARCH_TI816X_H
--#define __ASM_ARCH_TI816X_H
-+#ifndef __ASM_ARCH_TI81XX_H
-+#define __ASM_ARCH_TI81XX_H
- 
--#define L4_SLOW_TI816X_BASE	0x48000000
-+#define L4_SLOW_TI81XX_BASE	0x48000000
- 
--#define TI816X_SCM_BASE		0x48140000
--#define TI816X_CTRL_BASE	TI816X_SCM_BASE
--#define TI816X_PRCM_BASE	0x48180000
-+#define TI81XX_SCM_BASE		0x48140000
-+#define TI81XX_CTRL_BASE	TI81XX_SCM_BASE
-+#define TI81XX_PRCM_BASE	0x48180000
- 
--#define TI816X_ARM_INTC_BASE	0x48200000
-+#define TI81XX_ARM_INTC_BASE	0x48200000
- 
--#endif /* __ASM_ARCH_TI816X_H */
-+#endif /* __ASM_ARCH_TI81XX_H */
-diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
-index 2f472e9..7fbc361 100644
---- a/arch/arm/plat-omap/include/plat/uncompress.h
-+++ b/arch/arm/plat-omap/include/plat/uncompress.h
-@@ -99,9 +99,9 @@ static inline void flush(void)
- #define DEBUG_LL_ZOOM(mach)						\
- 	_DEBUG_LL_ENTRY(mach, ZOOM_UART_BASE, ZOOM_PORT_SHIFT, ZOOM_UART)
- 
--#define DEBUG_LL_TI816X(p, mach)					\
--	_DEBUG_LL_ENTRY(mach, TI816X_UART##p##_BASE, OMAP_PORT_SHIFT,	\
--		TI816XUART##p)
-+#define DEBUG_LL_TI81XX(p, mach)					\
-+	_DEBUG_LL_ENTRY(mach, TI81XX_UART##p##_BASE, OMAP_PORT_SHIFT,	\
-+		TI81XXUART##p)
- 
- static inline void __arch_decomp_setup(unsigned long arch_id)
- {
-@@ -177,7 +177,7 @@ static inline void __arch_decomp_setup(unsigned long arch_id)
- 		DEBUG_LL_ZOOM(omap_zoom3);
- 
- 		/* TI8168 base boards using UART3 */
--		DEBUG_LL_TI816X(3, ti8168evm);
-+		DEBUG_LL_TI81XX(3, ti8168evm);
- 
- 	} while (0);
- }
 -- 
 1.7.0.4
 
