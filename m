@@ -1,59 +1,59 @@
 From: Sebastian Reichel <sre@debian.org>
-Subject: Re: It looks like snd-soc-rx51 only works as built-in, not as a
- module
-Date: Sat, 10 Dec 2011 09:27:44 +0100
-Message-ID: <20111210082741.GA32605@earth.universe>
-References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
+Subject: Re: [PATCH v2] omap: rx51: fix USB
+Date: Sat, 10 Dec 2011 09:37:03 +0100
+Message-ID: <20111210083702.GB32605@earth.universe>
+References: <20111208144044.GA25415@xps8300>
+ <1323375780-13190-1-git-send-email-felipe.contreras@nokia.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="J2SCkAp4GZ/dPZZf"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comu.ring0.de ([46.4.151.82]:45337 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751428Ab1LJI2D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Dec 2011 03:28:03 -0500
+	protocol="application/pgp-signature"; boundary="/WwmFnJnmDyWGHa4"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1323375780-13190-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <krohei@gmail.com>, Russell King <linux@arm.linux.org.uk>, Anton Vorontsov <cbouatmailru@gmail.com>, Felipe Contreras <felipe.contreras@gmail.com>, stable@kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
 
---J2SCkAp4GZ/dPZZf
+--/WwmFnJnmDyWGHa4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Hi Felipe,
+On Thu, Dec 08, 2011 at 10:23:00PM +0200, Felipe Contreras wrote:
+> The transceiver should be powered on by default, otherwise USB doesn't
+> work at all.
+>=20
+> All kernels after v3.0 are affected.
 
-Using RX51 audio as module works on 3.1 mainline kernel after loading
-the following modules:
+I tested this patch successfully on 3.1 mainline kernel.
+You can add this if you want:
 
-$ modprobe snd-soc-rx51
-$ modprobe snd-soc-omap
+Reviewed-by: Sebastian Reichel <sre@debian.org>
 
 -- Sebastian
 
---J2SCkAp4GZ/dPZZf
+--/WwmFnJnmDyWGHa4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBCAAGBQJO4xf9AAoJENju1/PIO/qaxZkQAIaqC5SBXhd6QbF0sPFpFxHK
-M/6duQuef/ltDqrATcaZRGd+TcER0Vmvyo5m7gLXOYtyp97oEJflCd/2l2ajAV2+
-m4y807sUNf6w94T/4jG1uN084KmhJG9Qf+fcd38xcXsK/ASLA3i4yCbkFQyxY/NW
-letNnqh4oj2z54ozMFvM7/gj1ircWO7frU53xhPNLFF3mvYxGHPlvb6vVqfRILxb
-O3eO3aStUlO07J8sEzsnAv9BnnHvs7f4o+K5npyonzQ73qeNTefE9qpkCZn5rLWL
-1xoXQ7RD2WlPDdHTCW73ivcHywYKHoJH+Z0yVnUCQnw0eFjvRVuQ4b9zFR6Qobni
-2aYeoWJcMb3F488Vt4PFXFz+lsU1UZhgwB0FalkTsjvwdY1CdOhu4WQjnPrJoTCD
-It4hUe3HfcCLCMhblGG6Vq05c/0afoyH2yfy5FDZ0cfgGJN7k88YjoIxpvTXhBRl
-+WtnIFjpBQ2VplnW38CxQwJpdjg260OgVfGW/WhfhqOdqt7WNfCvjmk/iyGeeDjx
-afbStEFOC23iU7cJ9TJHkhLv6JzTuTCFTPnWkjmfK2/W8sMc4AviybYsH1ejdkYE
-jgSfDyWaCeP/aBnWbcL/LlL4JvFQvSOZz7pguXHuPNVsd5+KOhcFPWsUOq010aAu
-l9C0AlkqcMqpgaQX2N3u
-=iOx2
+iQIcBAEBCAAGBQJO4xouAAoJENju1/PIO/qacR4P/RlXiHDjB0FJTZjjFMK+4jB9
+4xn1WEAys/SjRC55jBqGTMf4X3v5KjzYzTbR+OfEQCfNlm6hgv9gPVaw8dbLkzfm
+CH/7kSPmjfli/lP6LZPZmZyXzBbm2V8zmmmjvVmcavTlmGMPE1JfGhN9LKNljpPo
++YI2UafVCD7ReEzRC8mzDKWK+hHihauitilCK9AHZ4lcWU572Oz8pgLZSR//5V6I
+MtDB+FK5uSPiu9F4hoBC0mujVoqw9vJMGQFsUfkocdibA5QFAZ737dbhaI+naSGm
+sr9PMGTK9ATzsj+coM8ZeH9oYfCuveCO6OUH6McZGS6GK8BSPW5fgC0be01/1WLT
+mIo8ssQEpy9xIAjdh11zIuciOPFMQlUt4i8sbzuYXx4hilRrhcKWLCGPJw0iB7S3
+gw4qtskmQIdm8SrznDaW3HF+kIWJ6mBQeerEvO7J7PdF4rtleeg9Og0ojYVMfDeu
+CdWeWrGHllrwsSMy9E2Fl/7w0BD5IFjPUw1SY2sOig5wuz/DFsuGoVmrLUAdORsQ
+Y4Yvw1EM3MWDUKwJ5WrN40HCA93soqzE01ySdHRTl82wQQIKvdwuUUZ4nCu1q3VH
+6+78dhQl3TGH2yzVZbusYVoYicH2H5NJg34+ibcDJ0gBZw0d9Qzk2L3N6V2U7R2u
+vQyTR3efqYn00zysL0yv
+=8wae
 -----END PGP SIGNATURE-----
 
---J2SCkAp4GZ/dPZZf--
+--/WwmFnJnmDyWGHa4--
