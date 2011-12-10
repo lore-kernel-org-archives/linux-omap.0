@@ -1,51 +1,39 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH] OMAP2+: hwmod: remove unused voltagedomain pointer from kerneldoc
-Date: Sat, 10 Dec 2011 10:28:16 +0100
-Message-ID: <CAORVsuVLF1pDCCo+kMdGwiCh2RUYgABvA9uxbH89meRtzLM3_g@mail.gmail.com>
-References: <1323454481-26782-1-git-send-email-j-pihet@ti.com>
-	<874nx9mle4.fsf@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v2] staging: tidspbridge: request dmtimer clocks on init
+Date: Sat, 10 Dec 2011 05:55:52 -0600
+Message-ID: <CAB-zwWh8oZyYks0-TA3sDWothbKvdh5bRiioe3v3CvPUXaqTfQ@mail.gmail.com>
+References: <1321654734-11882-1-git-send-email-omar.ramirez@ti.com>
+	<CAMP44s16cSBw23Py7qUW4Oj60gXKuvmtx-c=urisxecMQEE6Dw@mail.gmail.com>
+	<CAB-zwWiH020HfovGF8CA-v9t8Pjc3kLbsXezN6ToLdyC4muHqA@mail.gmail.com>
+	<20111209000733.GA9504@kroah.com>
+	<CAB-zwWg0FkNEHHVS=Hy-US9=xkueg_skUX7VCLS=QVN3ubTsTw@mail.gmail.com>
+	<20111209223844.GB25063@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:51987 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518Ab1LJJ2R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Dec 2011 04:28:17 -0500
-Received: by vbbfc26 with SMTP id fc26so2852956vbb.19
-        for <linux-omap@vger.kernel.org>; Sat, 10 Dec 2011 01:28:16 -0800 (PST)
-In-Reply-To: <874nx9mle4.fsf@ti.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:58909 "HELO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750696Ab1LJLzy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Dec 2011 06:55:54 -0500
+Received: by mail-ww0-f46.google.com with SMTP id dq10so6659003wgb.3
+        for <linux-omap@vger.kernel.org>; Sat, 10 Dec 2011 03:55:52 -0800 (PST)
+In-Reply-To: <20111209223844.GB25063@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: Greg KH <greg@kroah.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>
 
-On Fri, Dec 9, 2011 at 11:26 PM, Kevin Hilman <khilman@ti.com> wrote:
-> jean.pihet@newoldbits.com writes:
->
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> Commit fa17f20f (OMAP2+: hwmod: remove unused voltagedomain pointer)
->> did remove the voltdm field from the struct omap_hwmod.
->> Remove it from the kerneldoc as well.
->>
->> Signed-off-by: Jean Pihet <j-pihet@ti.com>
->> Cc: Kevin Hilman <khilman@ti.com>
->
-> Acked-by: Kevin Hilman <khilman@ti.com>
->
-> Jean, please re-post with linux-arm-kernel in Cc. =A0Paul can then pi=
-ck
-> it up and queue it.
-Ok re-send with your ack added.
+On Fri, Dec 9, 2011 at 4:38 PM, Greg KH <greg@kroah.com> wrote:
+> How about for 3.2.1? =A0I'll try to get this into 3.2, but I can't
+> guarantee anything so late in the release cycle, sorry.
+
+Sounds fair, fingers crossed for 3.2 ;)
 
 Thanks,
-Jean
 
->
-> Thanks,
->
-> Kevin
+Omar
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
