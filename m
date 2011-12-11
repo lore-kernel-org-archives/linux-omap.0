@@ -1,87 +1,127 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: Adding remoteproc/rpmsg to linux-next
-Date: Mon, 12 Dec 2011 10:33:01 +1100
-Message-ID: <20111212103301.5ff6a582dca82394ace40e8d@canb.auug.org.au>
-References: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Should I worry about "omap-mcbsp.2: alias fck already exists" or is
+ it expected?
+Date: Mon, 12 Dec 2011 10:35:53 +1100
+Message-ID: <20111212103553.044b17bb@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Brian Swetland <swetland@google.com>, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rusty Russell <rusty@rustcorp.com.au>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Saravana Kannan <skannan@codeaurora.org>
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/08aPZ2mb7sWWRpA3XvF7xxn"; protocol="application/pgp-signature"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cantor2.suse.de ([195.135.220.15]:39234 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752566Ab1LKXgG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Dec 2011 18:36:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org
 
---Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy
+--Sig_/08aPZ2mb7sWWRpA3XvF7xxn
 Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi Ohad,
 
-On Fri, 9 Dec 2011 16:55:27 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
->
-> Can you please add the following remoteproc tree to linux-next ?
->=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next
+In 3.2-rc5 (and some earlier kernels) I'm getting the boot-time warning:
 
-I have added that from today.
+[    0.186828]  omap-mcbsp.2: alias fck already exists
 
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgment of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
+and
 
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-	Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
+[    0.188476]  omap-mcbsp.3: alias fck already exists
 
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
+This happens because omap_alloc_device() contains:
 
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
 
-Legal Stuff:
-By participating in linux-next, your subsystem tree contributions are
-public and will be included in the linux-next trees.  You may be sent
-e-mail messages indicating errors or other issues when the
-patches/commits from your subsystem tree are merged and tested in
-linux-next.  These messages may also be cross-posted to the linux-next
-mailing list, the linux-kernel mailing list, etc.  The linux-next tree
-project and IBM (my employer) make no warranties regarding the linux-next
-project, the testing procedures, the results, the e-mails, etc.  If you
-don't agree to these ground rules, let me know and I'll remove your tree
-from participation in linux-next.
+	for (i =3D 0; i < oh_cnt; i++) {
+		hwmods[i]->od =3D od;
+		_add_hwmod_clocks_clkdev(od, hwmods[i]);
+	}
 
---Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy
-Content-Type: application/pgp-signature
+so if oh_cnt is ever > 1 (which is is for mcbsp.2 and .3 in
+omap_hwmod_3xxx_data.c as they both declare a '.devattr'), then
+_add_hwmod_clocks_clkdev will be called twice with the one 'od', and both
+calls will try to add an alias 'fsck' to that same device, and the second
+will always give a warning.
+
+Is this actually a bug, or should we silence the warning on second and
+subsequent calls to omap_alloc_device()?
+
+Like this?
+
+Thanks,
+NeilBrown
+
+omap: don't try to register the main clock twice.
+
+If omap_device_alloc is given 2 or more "struct omap_hwmod" it will try to
+register the 'main_clk' of each of them with the same alias - "fck" - again=
+st
+the same device.  This fails.
+So to avoid a warning, don't even try.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_dev=
+ice.c
+index e8d9869..11012bd 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -294,6 +294,7 @@ static void _add_clkdev(struct omap_device *od, const c=
+har *clk_alias,
+  * and main clock
+  * @od: struct omap_device *od
+  * @oh: struct omap_hwmod *oh
++ * @sub: this is a subordinate device, so don't try to register fck
+  *
+  * For the main clock and every optional clock present per hwmod per
+  * omap_device, this function adds an entry in the clkdev table of the
+@@ -309,11 +310,12 @@ static void _add_clkdev(struct omap_device *od, const=
+ char *clk_alias,
+  * No return value.
+  */
+ static void _add_hwmod_clocks_clkdev(struct omap_device *od,
+-				     struct omap_hwmod *oh)
++				     struct omap_hwmod *oh, int sub)
+ {
+ 	int i;
+=20
+-	_add_clkdev(od, "fck", oh->main_clk);
++	if (!sub)
++		_add_clkdev(od, "fck", oh->main_clk);
+=20
+ 	for (i =3D 0; i < oh->opt_clks_cnt; i++)
+ 		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
+@@ -576,7 +578,7 @@ static struct omap_device *omap_device_alloc(struct pla=
+tform_device *pdev,
+=20
+ 	for (i =3D 0; i < oh_cnt; i++) {
+ 		hwmods[i]->od =3D od;
+-		_add_hwmod_clocks_clkdev(od, hwmods[i]);
++		_add_hwmod_clocks_clkdev(od, hwmods[i], i);
+ 	}
+=20
+ 	return od;
+
+--Sig_/08aPZ2mb7sWWRpA3XvF7xxn
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIcBAEBCAAGBQJO5T2tAAoJEECxmPOUX5FE9GIP/3/lJz6b9JMVdItDYQhSF3K+
-7PkqKOzVKwj8MASWvlSqv4+7rJNUA9X5B8b6YJZYicF77hwXzz5gB3QYYVkpaZ+G
-C/JQ6ddZauZ5yV9/3GKzXkX633U9J211GONHWzkXK75m8B0EPm9iMp5esbBk/eDr
-jGH32RZR0OfPLm/9Efw7hu2zhSeVblQ4m/7Jahg+yt1tfJtM/nxDO7XR44pzHk1n
-O92U3c6MJdBhEctPov78hotCBmPHGY0X+A4zfB9S7Vbz1K1mKu5pV0MHZGiHyqeI
-xIXvc9YDNTeauqpBVKul/kUrjy9Qi5d+CGprXumZfdMuhlrs7e0oUpRwxM/FjNkU
-7CeewnQQ5rq+wvY4HiEZ+fEFqD5qfjR1Gc5NjifH2aoMaGx3/D1bXjH5mY/3D4XB
-hvQAm0kFCaRr9I00D+JdYWrgowO+9A3GFcAyf50uckOONA1bq4eGSfn15mF9BOD6
-DUW5aH5BwjXr2f7BIbymhLFmhSyHQTCfJBV6g6m6Nh535vfxpWRqstrIqC0s5vmm
-nP1RtPFqpSG2U+dNBjMLX96e7FvhhE86WfnVPyrkrx7CaBBuVEs8zRNTa7QRcncD
-1fmT1u1hv/nwlYs4f8VHLXaEBx27OKmYKVeOdE7FGNqPN2r9o7dsaIeD+Tscioht
-NEjcPgKdtsdCVaRnmGdj
-=tTm7
+iQIVAwUBTuU+WTnsnt1WYoG5AQLfnA//b37KjHL97SwQPOVvF5n07ac1ovu8SV5z
+wqu/EB9bALuDGU0iJqP2epttc3M0MCEY0vcXLyrK1C0pNy+RDpgXVLJxvi3O9aNq
+ACio32Ghz2m5RVJvrcv4tKlO52QC/HE8UR+0dOwuincn49Gazjpjt+vcZaU0MTAM
+itW6XXnvXgVQABnR8RTnFdG0046XnTe/Odz/ikMEekIxQzHlOH5VpmH4yn9SsFzy
+ohUGIZQG461o+0vd9UpMspRC1fBiPB0Lwei5+nXgoietfWFTC8AWj2eAPRZFI1YV
+avwn48gebd1850r8TlbYSMcgFr+T0Ss4ZX28X181NpvPKvAdh7Sk1OE/2KJ5s2FK
+I1i7bxpxSds/sXCqq8XhyCGjAsPmjtoC1wXYrabnYwf0VgQls7kDubSselvcFmxc
+I5MiXch0nJovRr58fVluPsN9L3iaKUm0LzExHT8C+yrw18u7unKEKs1pmpuoJxIA
+RNAgAx1hriEwgsg9BWMjDNj+fG/iVc5vSzz2t6GM8EU5KY1/TI9CGTx7J2x2PDDO
+s7uS5u6a49ghZV/Ot6ORSLiE62pE9+vn2kh0Am/ymEsvRLPOJRBtTzco0uDgWQpg
+YMEVsVR0lb+4aR6fCtVsO4OAJH43wcUuuJA5IPI+yaW0a85J1iN3cyMFbW9rv1u4
+ma/6N9KTgFs=
+=16Dl
 -----END PGP SIGNATURE-----
 
---Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy--
+--Sig_/08aPZ2mb7sWWRpA3XvF7xxn--
