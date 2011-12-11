@@ -1,94 +1,87 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 10/10] ARM: OMAP1: ams-delta: Drop custom I/O functions
-Date: Sun, 11 Dec 2011 21:12:08 +0100
-Message-ID: <1323634328-856-11-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:52094 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752179Ab1LKUrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Dec 2011 15:47:04 -0500
-In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: Adding remoteproc/rpmsg to linux-next
+Date: Mon, 12 Dec 2011 10:33:01 +1100
+Message-ID: <20111212103301.5ff6a582dca82394ace40e8d@canb.auug.org.au>
+References: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy"
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Brian Swetland <swetland@google.com>, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rusty Russell <rusty@rustcorp.com.au>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Saravana Kannan <skannan@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Those are no longer required after all drivers which used them have been
-converted to the GPIO interface.
+--Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Depends on patch 9/10 "input: serio: ams-delta: Toggle keyboard power
-over GPIO".
+Hi Ohad,
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
- arch/arm/mach-omap1/board-ams-delta.c             |   17 +++--------------
- arch/arm/plat-omap/include/plat/board-ams-delta.h |   10 ----------
- 2 files changed, 3 insertions(+), 24 deletions(-)
+On Fri, 9 Dec 2011 16:55:27 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>
+> Can you please add the following remoteproc tree to linux-next ?
+>=20
+> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 587118c..bed43b4 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -258,19 +258,6 @@ static struct gpio _latch_gpios[] __initconst = {
- 	},
- };
- 
--void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value)
--{
--	int bit;
--	u16 bitpos;
--
--	for (bit = 0; bit < ngpio; bit++) {
--		bitpos = 1 << bit;
--		if (mask & bitpos)
--			gpio_set_value(base + bit, (value & bitpos) != 0);
--	}
--}
--EXPORT_SYMBOL(ams_delta_latch_write);
--
- static struct resource ams_delta_nand_resources[] = {
- 	[0] = {
- 		.start	= OMAP1_MPUIO_BASE,
-@@ -441,7 +428,9 @@ static void __init ams_delta_init(void)
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
- 	platform_add_devices(_latch_devices, ARRAY_SIZE(_latch_devices));
--	BUG_ON(gpio_request_array(_latch_gpios, ARRAY_SIZE(_latch_gpios)));
-+	/* Initialize pins not used by any drivers */
-+	gpio_request_array(_latch_gpios, ARRAY_SIZE(_latch_gpios));
-+	gpio_free_array(_latch_gpios, ARRAY_SIZE(_latch_gpios));
- 
- 	omap1_usb_init(&ams_delta_usb_config);
- 	omap1_set_camera_info(&ams_delta_camera_platform_data);
-diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-index 004c827..b09b69d 100644
---- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
-+++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-@@ -28,9 +28,6 @@
- 
- #if defined (CONFIG_MACH_AMS_DELTA)
- 
--#define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
--#define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
--
- #define AMS_DELTA_GPIO_PIN_KEYBRD_DATA	0
- #define AMS_DELTA_GPIO_PIN_KEYBRD_CLK	1
- #define AMS_DELTA_GPIO_PIN_MODEM_IRQ	2
-@@ -58,13 +55,6 @@
- #define AMS_DELTA_LATCH2_GPIO_BASE	AMS_DELTA_GPIO_PIN_LCD_VBLEN
- #define AMS_DELTA_LATCH2_NGPIO		16
- 
--#ifndef __ASSEMBLY__
--void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value);
--#endif
--#define ams_delta_latch2_write(mask, value) \
--	ams_delta_latch_write(AMS_DELTA_LATCH2_GPIO_BASE, \
--			AMS_DELTA_LATCH2_NGPIO, (mask), (value))
--
- #endif /* CONFIG_MACH_AMS_DELTA */
- 
- #endif /* __ASM_ARCH_OMAP_AMS_DELTA_H */
--- 
-1.7.3.4
+I have added that from today.
 
+Thanks for adding your subsystem tree as a participant of linux-next.  As
+you may know, this is not a judgment of your code.  The purpose of
+linux-next is for integration testing and to lower the impact of
+conflicts between subsystems in the next merge window.=20
+
+You will need to ensure that the patches/commits in your tree/series have
+been:
+     * submitted under GPL v2 (or later) and include the Contributor's
+	Signed-off-by,
+     * posted to the relevant mailing list,
+     * reviewed by you (or another maintainer of your subsystem tree),
+     * successfully unit tested, and=20
+     * destined for the current or next Linux merge window.
+
+Basically, this should be just what you would send to Linus (or ask him
+to fetch).  It is allowed to be rebased if you deem it necessary.
+
+--=20
+Cheers,
+Stephen Rothwell=20
+sfr@canb.auug.org.au
+
+Legal Stuff:
+By participating in linux-next, your subsystem tree contributions are
+public and will be included in the linux-next trees.  You may be sent
+e-mail messages indicating errors or other issues when the
+patches/commits from your subsystem tree are merged and tested in
+linux-next.  These messages may also be cross-posted to the linux-next
+mailing list, the linux-kernel mailing list, etc.  The linux-next tree
+project and IBM (my employer) make no warranties regarding the linux-next
+project, the testing procedures, the results, the e-mails, etc.  If you
+don't agree to these ground rules, let me know and I'll remove your tree
+from participation in linux-next.
+
+--Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJO5T2tAAoJEECxmPOUX5FE9GIP/3/lJz6b9JMVdItDYQhSF3K+
+7PkqKOzVKwj8MASWvlSqv4+7rJNUA9X5B8b6YJZYicF77hwXzz5gB3QYYVkpaZ+G
+C/JQ6ddZauZ5yV9/3GKzXkX633U9J211GONHWzkXK75m8B0EPm9iMp5esbBk/eDr
+jGH32RZR0OfPLm/9Efw7hu2zhSeVblQ4m/7Jahg+yt1tfJtM/nxDO7XR44pzHk1n
+O92U3c6MJdBhEctPov78hotCBmPHGY0X+A4zfB9S7Vbz1K1mKu5pV0MHZGiHyqeI
+xIXvc9YDNTeauqpBVKul/kUrjy9Qi5d+CGprXumZfdMuhlrs7e0oUpRwxM/FjNkU
+7CeewnQQ5rq+wvY4HiEZ+fEFqD5qfjR1Gc5NjifH2aoMaGx3/D1bXjH5mY/3D4XB
+hvQAm0kFCaRr9I00D+JdYWrgowO+9A3GFcAyf50uckOONA1bq4eGSfn15mF9BOD6
+DUW5aH5BwjXr2f7BIbymhLFmhSyHQTCfJBV6g6m6Nh535vfxpWRqstrIqC0s5vmm
+nP1RtPFqpSG2U+dNBjMLX96e7FvhhE86WfnVPyrkrx7CaBBuVEs8zRNTa7QRcncD
+1fmT1u1hv/nwlYs4f8VHLXaEBx27OKmYKVeOdE7FGNqPN2r9o7dsaIeD+Tscioht
+NEjcPgKdtsdCVaRnmGdj
+=tTm7
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__12_Dec_2011_10_33_01_+1100_m7Z3psDrM8tjJZuy--
