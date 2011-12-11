@@ -1,9 +1,9 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: [PATCH 00/10] ARM: OMAP1: ams-delta: replace custom I/O with GPIO
 Date: Sun, 11 Dec 2011 21:11:58 +0100
-Message-ID: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
+Message-ID: <1323634328-856-1-git-send-email-jkrzyszt__41227.76508234$1323634393$gmane$org@tis.icnet.pl>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, David Woodhouse <dwmw2@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
@@ -49,4 +49,3 @@ Janusz Krzysztofik (10):
 
 -- 
 1.7.3.4
-
