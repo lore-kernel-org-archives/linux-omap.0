@@ -1,18 +1,14 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: [PATCH 07/10] ASoC: OMAP: ams-delta: Drive modem/codec pins over GPIO API
 Date: Sun, 11 Dec 2011 21:12:05 +0100
-Message-ID: <1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
+Message-ID: <1323634328-856-8-git-send-email-jkrzyszt__39573.7217310399$1323634645$gmane$org@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:48641 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752346Ab1LKURG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Dec 2011 15:17:06 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+List-Id: linux-omap@vger.kernel.org
 
 Don't use Amstrad Delta custom I/O functions any longer, replace them
 with GPIO. Old pin definitions, no longer used by the modem bits either,
@@ -105,4 +101,3 @@ index ccb8a6a..389c488 100644
  
 -- 
 1.7.3.4
-
