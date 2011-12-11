@@ -1,85 +1,52 @@
-From: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-Date: Sun, 11 Dec 2011 19:38:14 +0100
-Message-ID: <4EE4F896.3080406@gmail.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com> <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60990 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752091Ab1LKSiT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Dec 2011 13:38:19 -0500
-In-Reply-To: <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 00/10] ARM: OMAP1: ams-delta: replace custom I/O with GPIO
+Date: Sun, 11 Dec 2011 21:11:58 +0100
+Message-ID: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, David Woodhouse <dwmw2@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-input@vger.kernel.org, linux-mtd@lists.infradead.org, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-Hi Ming,
+The Amstrad Delta board has two extra output ports used for driving
+input lines of different on-board devices. Those ports are now
+controlled with custom functions, provided by the board arch code and
+used by several device drivers.
 
-On 12/02/2011 04:02 PM, Ming Lei wrote:
-> This patch introduces one driver for face detection purpose.
-> 
-> The driver is responsible for all v4l2 stuff, buffer management
-> and other general things, and doesn't touch face detection hardware
-> directly. Several interfaces are exported to low level drivers
-> (such as the coming omap4 FD driver)which will communicate with
-> face detection hw module.
-> 
-> So the driver will make driving face detection hw modules more
-> easy.
-> 
-> TODO:
-> 	- implement FD setting interfaces with v4l2 controls or
-> 	ext controls
-> 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
-...
-> +static int vidioc_g_fd_result(struct file *file, void *priv,
-> +					struct v4l2_fd_result *f)
-> +{
-> +	struct fdif_dev *dev = video_drvdata(file);
-> +	unsigned long flags;
-> +	struct v4l2_fdif_result *tmp;
-> +	struct v4l2_fdif_result *fr = NULL;
-> +	unsigned int cnt = 0;
-> +	int ret = -EINVAL;
-> +
-> +	spin_lock_irqsave(&dev->lock, flags);
-> +	list_for_each_entry(tmp, &dev->fdif_dq.complete, list)
-> +		if (tmp->index == f->buf_index) {
-> +			fr = tmp;
-> +			list_del(&tmp->list);
-> +			break;
-> +		}
-> +	spin_unlock_irqrestore(&dev->lock, flags);
-> +
-> +	if (fr) {
-> +		ret = 0;
-> +		cnt = min(f->face_cnt, fr->face_cnt);
-> +		if (cnt)
-> +			memcpy(f->fd, fr->faces,
-> +				sizeof(struct v4l2_fd_detection) * cnt);
-> +		f->face_cnt = cnt;
-> +		kfree(fr->faces);
-> +		kfree(fr);
+The idea behind the series is to replace those custom I/O functions
+with gpiolib API. This way, existing drivers can be made less platform
+dependent, and some of them perhaps even superseded with generic GPIO
+based drivers after the board platform device descriptions are
+converted. Moreover, should a new driver for the on-board Smart Card
+controller ever be created, it could be designed as a generic GPIO
+based driver, not a custom one.
 
-struct v4l2_fdif_result is allocated in HW driver at the time when FD result
-is read out and it is freed in generic module here. Not sure if it is a good
-practice to split memory management like this. Also IMHO it would be much
-better to pre-allocate memory for FD output data, according to maximum number
-of detected faces per frame. It could be more reliable than allocating memory
-in interrupt context per each frame.
+Janusz Krzysztofik (10):
+  GPIO: gpio-generic: Move initialization up to postcore
+  ARM: OMAP1: ams-delta: convert latches to basic_mmio_gpio
+  ARM: OMAP1: ams-delta: supersede custom led device by leds-gpio
+  LED: drop leds-ams-delta driver
+  MTD: NAND: ams-delta: use GPIO instead of custom I/O
+  ARM: OMAP1: ams-delta: Use GPIO API in modem setup
+  ASoC: OMAP: ams-delta: Drive modem/codec pins over GPIO API
+  omapfb: lcd_ams_delta: Drive control lines over GPIO
+  input: serio: ams-delta: toggle keyboard power over GPIO
+  ARM: OMAP1: ams-delta: drop custom I/O functions
 
+ arch/arm/mach-omap1/Kconfig                       |    2 +
+ arch/arm/mach-omap1/board-ams-delta.c             |  220 +++++++++++++++++----
+ arch/arm/plat-omap/include/plat/board-ams-delta.h |   50 ++---
+ drivers/gpio/gpio-generic.c                       |    2 +-
+ drivers/input/serio/ams_delta_serio.c             |   45 +++--
+ drivers/leds/Kconfig                              |    7 -
+ drivers/leds/Makefile                             |    1 -
+ drivers/leds/leds-ams-delta.c                     |  137 -------------
+ drivers/mtd/nand/ams-delta.c                      |   74 +++++--
+ drivers/video/omap/lcd_ams_delta.c                |   27 ++-
+ sound/soc/omap/ams-delta.c                        |   21 ++-
+ 11 files changed, 309 insertions(+), 277 deletions(-)
+ delete mode 100644 drivers/leds/leds-ams-delta.c
 
-> +	}
-> +	return ret;
-> +}
+-- 
+1.7.3.4
 
---
-Regards,
-Sylwester
