@@ -1,14 +1,18 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: [PATCH 05/10] MTD: NAND: ams-delta: Use GPIO instead of custom I/O
 Date: Sun, 11 Dec 2011 21:12:03 +0100
-Message-ID: <1323634328-856-6-git-send-email-jkrzyszt@tis.icnet.pl>
+Message-ID: <1323634328-856-6-git-send-email-jkrzyszt__47044.8777000003$1323634612$gmane$org@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:48542 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752312Ab1LKUQ1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Dec 2011 15:16:27 -0500
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-mtd@lists.infradead.org
-List-Id: linux-omap@vger.kernel.org
 
 Don't use Amstrad Delta custom I/O functions for controlling the device,
 use GPIO API instead.
@@ -253,3 +257,4 @@ index 9e6b498..5769bd2 100644
  
 -- 
 1.7.3.4
+
