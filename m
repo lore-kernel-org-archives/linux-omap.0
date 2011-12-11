@@ -1,14 +1,18 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: [PATCH 09/10] input: serio: ams-delta: Toggle keyboard power over GPIO
 Date: Sun, 11 Dec 2011 21:12:07 +0100
-Message-ID: <1323634328-856-10-git-send-email-jkrzyszt@tis.icnet.pl>
+Message-ID: <1323634328-856-10-git-send-email-jkrzyszt__23552.5954551578$1323634661$gmane$org@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:48697 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752346Ab1LKURU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Dec 2011 15:17:20 -0500
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-input@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
 Don't use Amstrad Delta custom I/O functions once GPIO interface is
 available for the underlying hardware.
@@ -149,3 +153,4 @@ index d4d08bd..1499c7d 100644
  module_exit(ams_delta_serio_exit);
 -- 
 1.7.3.4
+
