@@ -1,133 +1,271 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 08/10] omapfb: lcd_ams_delta: Drive control lines over GPIO
-Date: Sun, 11 Dec 2011 21:12:06 +0100
-Message-ID: <1323634328-856-9-git-send-email-jkrzyszt__47516.7209202938$1323634681$gmane$org@tis.icnet.pl>
+Subject: [PATCH 05/10] MTD: NAND: ams-delta: Use GPIO instead of custom I/O
+Date: Sun, 11 Dec 2011 21:12:03 +0100
+Message-ID: <1323634328-856-6-git-send-email-jkrzyszt__19907.9300895848$1323634684$gmane$org@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, David Woodhouse <dwmw2@infradead.org>
+Cc: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
 
-Don't use Amstrad Delta custom I/O functions any longer, use GPIO API
-instead.
+Don't use Amstrad Delta custom I/O functions for controlling the device,
+use GPIO API instead.
 
-Depends on patch 5/10 "MTD: NAND: ams-delta: Use GPIO instead of custom
-I/O".
+While being at it, add missing gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB).
+
+Depends on patch 2/10 "ARM: OMAP1: Convert Amstrad E3 latches to
+basic_mmio_gpio".
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- arch/arm/mach-omap1/board-ams-delta.c             |   10 -------
- arch/arm/plat-omap/include/plat/board-ams-delta.h |    2 -
- drivers/video/omap/lcd_ams_delta.c                |   27 +++++++++++++++-----
- 3 files changed, 20 insertions(+), 19 deletions(-)
+Hi,
+I considered dropping the Amstrad Delta NAND driver and moving to either
+gpio-nand or gen_nand, but finally decided to keep it for now.
+
+The problem with the gpio-nand is that it seems to match a different
+hardware interface model. Having no knowledge about the original
+hardware that driver was designed in mind, I'd rather not try to
+modify it, and creating another GPIO based NAND driver also seems not
+a really good idea.
+
+If I decided to use gen_nand instead, I would have to move virtually all
+of the old driver callback functions somewhere under arch, either to the
+board file or to a new one, and still use some hacks unless either
+nand_base.c or plat_nand.c is modified.
+
+I'm willing to take one of those two approaches in a follow up series if
+I get a positive feedback.
+
+Thanks,
+Janusz
+
+
+ arch/arm/mach-omap1/board-ams-delta.c             |   30 --------
+ arch/arm/plat-omap/include/plat/board-ams-delta.h |    6 --
+ drivers/mtd/nand/ams-delta.c                      |   74 ++++++++++++++------
+ 3 files changed, 52 insertions(+), 58 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 5705481..b7422e3 100644
+index bdf7399..7670374 100644
 --- a/arch/arm/mach-omap1/board-ams-delta.c
 +++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -232,16 +232,6 @@ static struct gpio _latch_gpios[] __initconst = {
- 		.label	= "dockit2",
+@@ -242,36 +242,6 @@ static struct gpio _latch_gpios[] __initconst = {
+ 		.label	= "lcd_ndisp",
  	},
  	{
--		.gpio	= AMS_DELTA_GPIO_PIN_LCD_VBLEN,
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
 -		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "lcd_vblen",
+-		.label	= "nand_nce",
 -	},
 -	{
--		.gpio	= AMS_DELTA_GPIO_PIN_LCD_NDISP,
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
 -		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "lcd_ndisp",
+-		.label	= "nand_nre",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "nand_nwp",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "nand_nwe",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "nand_ale",
+-	},
+-	{
+-		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
+-		.flags	= GPIOF_OUT_INIT_LOW,
+-		.label	= "nand_cle",
 -	},
 -	{
  		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
  		.flags	= GPIOF_OUT_INIT_LOW,
  		.label	= "keybrd_pwr",
 diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-index 73fdab9..1d0706e 100644
+index c096e14..b586078 100644
 --- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
 +++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-@@ -28,8 +28,6 @@
+@@ -30,12 +30,6 @@
  
- #if defined (CONFIG_MACH_AMS_DELTA)
- 
--#define AMS_DELTA_LATCH2_LCD_VBLEN	0x0001
--#define AMS_DELTA_LATCH2_LCD_NDISP	0x0002
+ #define AMS_DELTA_LATCH2_LCD_VBLEN	0x0001
+ #define AMS_DELTA_LATCH2_LCD_NDISP	0x0002
+-#define AMS_DELTA_LATCH2_NAND_NCE	0x0004
+-#define AMS_DELTA_LATCH2_NAND_NRE	0x0008
+-#define AMS_DELTA_LATCH2_NAND_NWP	0x0010
+-#define AMS_DELTA_LATCH2_NAND_NWE	0x0020
+-#define AMS_DELTA_LATCH2_NAND_ALE	0x0040
+-#define AMS_DELTA_LATCH2_NAND_CLE	0x0080
  #define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
  #define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
  #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
-diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
-index 6978ae4..73b211b 100644
---- a/drivers/video/omap/lcd_ams_delta.c
-+++ b/drivers/video/omap/lcd_ams_delta.c
-@@ -25,6 +25,7 @@
- #include <linux/io.h>
- #include <linux/delay.h>
- #include <linux/lcd.h>
-+#include <linux/gpio.h>
- 
- #include <plat/board-ams-delta.h>
+diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
+index 9e6b498..5769bd2 100644
+--- a/drivers/mtd/nand/ams-delta.c
++++ b/drivers/mtd/nand/ams-delta.c
+@@ -26,7 +26,7 @@
+ #include <asm/io.h>
  #include <mach/hardware.h>
-@@ -98,29 +99,41 @@ static struct lcd_ops ams_delta_lcd_ops = {
+ #include <asm/sizes.h>
+-#include <asm/gpio.h>
++#include <linux/gpio.h>
+ #include <plat/board-ams-delta.h>
  
- /* omapfb panel section */
+ /*
+@@ -34,8 +34,6 @@
+  */
+ static struct mtd_info *ams_delta_mtd = NULL;
  
-+static struct gpio _gpios[] __initconst_or_module = {
+-#define NAND_MASK (AMS_DELTA_LATCH2_NAND_NRE | AMS_DELTA_LATCH2_NAND_NWE | AMS_DELTA_LATCH2_NAND_CLE | AMS_DELTA_LATCH2_NAND_ALE | AMS_DELTA_LATCH2_NAND_NCE | AMS_DELTA_LATCH2_NAND_NWP)
+-
+ /*
+  * Define partitions for flash devices
+  */
+@@ -68,10 +66,9 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
+ 
+ 	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
+ 	writew(byte, this->IO_ADDR_W);
+-	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE, 0);
++	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 0);
+ 	ndelay(40);
+-	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE,
+-			       AMS_DELTA_LATCH2_NAND_NWE);
++	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 1);
+ }
+ 
+ static u_char ams_delta_read_byte(struct mtd_info *mtd)
+@@ -80,12 +77,11 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
+ 	struct nand_chip *this = mtd->priv;
+ 	void __iomem *io_base = this->priv;
+ 
+-	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE, 0);
++	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 0);
+ 	ndelay(40);
+ 	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
+ 	res = readw(this->IO_ADDR_R);
+-	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE,
+-			       AMS_DELTA_LATCH2_NAND_NRE);
++	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 1);
+ 
+ 	return res;
+ }
+@@ -132,15 +128,12 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
+ {
+ 
+ 	if (ctrl & NAND_CTRL_CHANGE) {
+-		unsigned long bits;
+-
+-		bits = (~ctrl & NAND_NCE) ? AMS_DELTA_LATCH2_NAND_NCE : 0;
+-		bits |= (ctrl & NAND_CLE) ? AMS_DELTA_LATCH2_NAND_CLE : 0;
+-		bits |= (ctrl & NAND_ALE) ? AMS_DELTA_LATCH2_NAND_ALE : 0;
+-
+-		ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_CLE |
+-				AMS_DELTA_LATCH2_NAND_ALE |
+-				AMS_DELTA_LATCH2_NAND_NCE, bits);
++		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
++				(ctrl & NAND_NCE) == 0);
++		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
++				(ctrl & NAND_CLE) != 0);
++		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
++				(ctrl & NAND_ALE) != 0);
+ 	}
+ 
+ 	if (cmd != NAND_CMD_NONE)
+@@ -152,6 +145,39 @@ static int ams_delta_nand_ready(struct mtd_info *mtd)
+ 	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
+ }
+ 
++static struct gpio _mandatory_gpio[] __initconst_or_module = {
 +	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_LCD_VBLEN,
-+		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "lcd_vblen",
++		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
++		.flags	= GPIOF_OUT_INIT_HIGH,
++		.label	= "nand_nce",
 +	},
 +	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_LCD_NDISP,
++		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
++		.flags	= GPIOF_OUT_INIT_HIGH,
++		.label	= "nand_nre",
++	},
++	{
++		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
++		.flags	= GPIOF_OUT_INIT_HIGH,
++		.label	= "nand_nwp",
++	},
++	{
++		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
++		.flags	= GPIOF_OUT_INIT_HIGH,
++		.label	= "nand_nwe",
++	},
++	{
++		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
 +		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "lcd_ndisp",
++		.label	= "nand_ale",
++	},
++	{
++		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
++		.flags	= GPIOF_OUT_INIT_LOW,
++		.label	= "nand_cle",
 +	},
 +};
 +
- static int ams_delta_panel_init(struct lcd_panel *panel,
- 		struct omapfb_device *fbdev)
- {
--	return 0;
-+	return gpio_request_array(_gpios, ARRAY_SIZE(_gpios));
- }
+ /*
+  * Main initialization routine
+  */
+@@ -223,10 +249,9 @@ static int __devinit ams_delta_init(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, io_base);
  
- static void ams_delta_panel_cleanup(struct lcd_panel *panel)
- {
-+	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
- }
+ 	/* Set chip enabled, but  */
+-	ams_delta_latch2_write(NAND_MASK, AMS_DELTA_LATCH2_NAND_NRE |
+-					  AMS_DELTA_LATCH2_NAND_NWE |
+-					  AMS_DELTA_LATCH2_NAND_NCE |
+-					  AMS_DELTA_LATCH2_NAND_NWP);
++	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
++	if (err)
++		goto out_gpio;
  
- static int ams_delta_panel_enable(struct lcd_panel *panel)
- {
--	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP,
--			AMS_DELTA_LATCH2_LCD_NDISP);
--	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN,
--			AMS_DELTA_LATCH2_LCD_VBLEN);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_NDISP, 1);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_VBLEN, 1);
- 	return 0;
- }
+ 	/* Scan to find existence of the device */
+ 	if (nand_scan(ams_delta_mtd, 1)) {
+@@ -241,7 +266,10 @@ static int __devinit ams_delta_init(struct platform_device *pdev)
+ 	goto out;
  
- static void ams_delta_panel_disable(struct lcd_panel *panel)
- {
--	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN, 0);
--	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP, 0);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_VBLEN, 0);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_LCD_NDISP, 0);
- }
+  out_mtd:
++	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
++out_gpio:
+ 	platform_set_drvdata(pdev, NULL);
++	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
+ 	iounmap(io_base);
+ out_release_io:
+ 	release_mem_region(res->start, resource_size(res));
+@@ -262,6 +290,8 @@ static int __devexit ams_delta_cleanup(struct platform_device *pdev)
+ 	/* Release resources, unregister device */
+ 	nand_release(ams_delta_mtd);
  
- static unsigned long ams_delta_panel_get_caps(struct lcd_panel *panel)
++	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
++	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
+ 	iounmap(io_base);
+ 	release_mem_region(res->start, resource_size(res));
+ 
 -- 
 1.7.3.4
+
+
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
