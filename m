@@ -1,18 +1,14 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: [PATCH 04/10] LED: Drop leds-ams-delta driver
 Date: Sun, 11 Dec 2011 21:12:02 +0100
-Message-ID: <1323634328-856-5-git-send-email-jkrzyszt@tis.icnet.pl>
+Message-ID: <1323634328-856-5-git-send-email-jkrzyszt__12067.8258398131$1323634564$gmane$org@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:48448 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752379Ab1LKUPp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Dec 2011 15:15:45 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Richard Purdie <rpurdie@rpsys.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+List-Id: linux-omap@vger.kernel.org
 
 This is no longer needed after the Amstrad Delta on-board LED devices
 have been converted to leds-gpio compatible.
@@ -204,4 +200,3 @@ index 8c00937..0000000
 -MODULE_ALIAS("platform:ams-delta-led");
 -- 
 1.7.3.4
-
