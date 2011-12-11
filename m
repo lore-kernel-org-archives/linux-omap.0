@@ -1,372 +1,40 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v8 REPOST 17/24] gpio/omap: fix debounce clock handling
-Date: Sat, 10 Dec 2011 22:21:09 +0530
-Message-ID: <CAC83ZvJ8x1NLyH8ZjzvG92A9ZZrv94gXnNbWPPWDpnUhzdz1eg@mail.gmail.com>
-References: <1318422697-22247-1-git-send-email-tarun.kanti@ti.com>
-	<87hb2jdeof.fsf@ti.com>
-	<CAC83ZvK48SQj=GTHcASQ5uFZBXffYZmxUN49qo35MFdJNZj97g@mail.gmail.com>
-	<CAC83ZvLc+gOXp6wD1iXb5juSHyOXbFPCE3cucgq5=R8AYVhXbg@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/5] ASoC: omap-dmic: Add device tree bindings
+Date: Sun, 11 Dec 2011 11:20:47 +0800
+Message-ID: <20111211032046.GH2800@opensource.wolfsonmicro.com>
+References: <1322819580-7424-1-git-send-email-peter.ujfalusi@ti.com>
+ <1322819580-7424-2-git-send-email-peter.ujfalusi@ti.com>
+ <20111203112206.GE6043@opensource.wolfsonmicro.com>
+ <4EDCCAE0.2000009@ti.com>
+ <20111205154611.GV11150@opensource.wolfsonmicro.com>
+ <4EDF27A5.7090909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:50724 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751110Ab1LJQvK convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Dec 2011 11:51:10 -0500
-Received: by mail-qy0-f179.google.com with SMTP id l42so2731307qco.10
-        for <linux-omap@vger.kernel.org>; Sat, 10 Dec 2011 08:51:09 -0800 (PST)
-In-Reply-To: <CAC83ZvLc+gOXp6wD1iXb5juSHyOXbFPCE3cucgq5=R8AYVhXbg@mail.gmail.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58132 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750785Ab1LKDVk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Dec 2011 22:21:40 -0500
+Content-Disposition: inline
+In-Reply-To: <4EDF27A5.7090909@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org
 
-On Mon, Dec 5, 2011 at 7:27 PM, DebBarma, Tarun Kanti
-<tarun.kanti@ti.com> wrote:
-> On Mon, Nov 7, 2011 at 7:19 PM, DebBarma, Tarun Kanti
-> <tarun.kanti@ti.com> wrote:
->> On Fri, Nov 4, 2011 at 10:10 PM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>>
->>>> Currently debounce clock state is not tracked in the system.
->>>
->>> ??
->>>
->>> bank->dbck_enable_mask ?
->> As I understand, this only tells which all GPIOs have debounce timeo=
-ut enabled.
->> But, during system operation as debounce clocks are enabled and disa=
-bled I need
->> additional flag to keep track of current state (enabled/disabled).
->> This is what I meant.
->>
->>>
->>>> The bank->dbck
->>>> is enabled/disabled in suspend/idle paths irrespective of whether =
-debounce
->>>> interval has been set or not.
->>>
->>> No. =A0It's conditional based on bank->dbck_enable_mask, which is b=
-ased on
->>> whether or not debounce has been enabled.
->> You are right. I need to rephrase my description.
->>
->>>
->>>> Ideally, it should be handled only for those
->>>> gpio banks where the debounce is enabled.
->>>
->>> AFAICT, it is. =A0Please explain more what is actually happening in=
- the
->>> patch, and why.
->> Yes, as I explained above, it is more about the tracking the debounc=
-e clock
->> enabled/disabled state for those GPIOs whose debounce timeouts are e=
-nabled.
->> I will modify the patch description.
->>
->>>
->>>> In _set_gpio_debounce, enable debounce clock before accessing
->>>> registers.
->>>
->>> This is a separate issue/bug and wants its own patch with descripti=
-ve
->>> changelog.
->> OK.
->>
->>>
->>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>>> ---
->>>> During further internal testing it was found that image was crashi=
-ng within
->>>> _set_gpio_debounce(). It is observed that we are trying to access =
-registers
->>>> without enabling debounce clock. This patch incorporates the chang=
-e whereby
->>>> the debounce clock is enabled before accessing registers and disab=
-led at the
->>>> end of the function.
->>>>
->>>> =A0drivers/gpio/gpio-omap.c | =A0 60 +++++++++++++++++++++++++++++=
-+++-------------
->>>> =A01 files changed, 42 insertions(+), 18 deletions(-)
->>>>
->>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>>> index fa6c9c5..85e9c2a 100644
->>>> --- a/drivers/gpio/gpio-omap.c
->>>> +++ b/drivers/gpio/gpio-omap.c
->>>> @@ -65,6 +65,7 @@ struct gpio_bank {
->>>> =A0 =A0 =A0 struct clk *dbck;
->>>> =A0 =A0 =A0 u32 mod_usage;
->>>> =A0 =A0 =A0 u32 dbck_enable_mask;
->>>> + =A0 =A0 bool dbck_enabled;
->>>> =A0 =A0 =A0 struct device *dev;
->>>> =A0 =A0 =A0 bool is_mpuio;
->>>> =A0 =A0 =A0 bool dbck_flag;
->>>> @@ -156,6 +157,22 @@ static inline void _gpio_rmw(void __iomem *ba=
-se, u32 reg, u32 mask, bool set)
->>>> =A0 =A0 =A0 __raw_writel(l, base + reg);
->>>> =A0}
->>>>
->>>> +static inline void _gpio_dbck_enable(struct gpio_bank *bank)
->>>> +{
->>>> + =A0 =A0 if (bank->dbck_enable_mask && !bank->dbck_enabled) {
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 clk_enable(bank->dbck);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->dbck_enabled =3D true;
->>>> + =A0 =A0 }
->>>> +}
->>>> +
->>>> +static inline void _gpio_dbck_disable(struct gpio_bank *bank)
->>>> +{
->>>> + =A0 =A0 if (bank->dbck_enable_mask && bank->dbck_enabled) {
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(bank->dbck);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->dbck_enabled =3D false;
->>>> + =A0 =A0 }
->>>> +}
->>>> +
->>>> =A0/**
->>>> =A0 * _set_gpio_debounce - low level gpio debounce time
->>>> =A0 * @bank: the gpio bank we're acting upon
->>>> @@ -184,22 +201,22 @@ static void _set_gpio_debounce(struct gpio_b=
-ank *bank, unsigned gpio,
->>>>
->>>> =A0 =A0 =A0 l =3D GPIO_BIT(bank, gpio);
->>>>
->>>> + =A0 =A0 clk_enable(bank->dbck);
->>>> =A0 =A0 =A0 reg =3D bank->base + bank->regs->debounce;
->>>> =A0 =A0 =A0 __raw_writel(debounce, reg);
->>>>
->>>> =A0 =A0 =A0 reg =3D bank->base + bank->regs->debounce_en;
->>>> =A0 =A0 =A0 val =3D __raw_readl(reg);
->>>>
->>>> - =A0 =A0 if (debounce) {
->>>> + =A0 =A0 if (debounce)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 val |=3D l;
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 clk_enable(bank->dbck);
->>>> - =A0 =A0 } else {
->>>> + =A0 =A0 else
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 val &=3D ~l;
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(bank->dbck);
->>>> - =A0 =A0 }
->>>> +
->>>> =A0 =A0 =A0 bank->dbck_enable_mask =3D val;
->>>>
->>>> =A0 =A0 =A0 __raw_writel(val, reg);
->>>> + =A0 =A0 clk_disable(bank->dbck);
->>>> =A0}
->>>>
->>>> =A0static inline void set_gpio_trigger(struct gpio_bank *bank, int=
- gpio,
->>>> @@ -485,8 +502,10 @@ static int omap_gpio_request(struct gpio_chip=
- *chip, unsigned offset)
->>>> =A0 =A0 =A0 =A0* If this is the first gpio_request for the bank,
->>>> =A0 =A0 =A0 =A0* enable the bank module.
->>>> =A0 =A0 =A0 =A0*/
->>>> - =A0 =A0 if (!bank->mod_usage)
->>>> + =A0 =A0 if (!bank->mod_usage) {
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_enable(bank);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(bank->dev);
->>>> + =A0 =A0 }
->>>>
->>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
->>>> =A0 =A0 =A0 /* Set trigger to none. You need to enable the desired=
- trigger with
->>>> @@ -549,8 +568,10 @@ static void omap_gpio_free(struct gpio_chip *=
-chip, unsigned offset)
->>>> =A0 =A0 =A0 =A0* If this is the last gpio to be freed in the bank,
->>>> =A0 =A0 =A0 =A0* disable the bank module.
->>>> =A0 =A0 =A0 =A0*/
->>>> - =A0 =A0 if (!bank->mod_usage)
->>>> + =A0 =A0 if (!bank->mod_usage) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(bank->dev);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_disable(bank);
->>>
->>> Why not add this to the ->runtime_suspend() callback?
->> Yes, I can move there and test.
->>
->>>
->>>> + =A0 =A0 }
->>>> =A0}
->>>>
->>>> =A0/*
->>>> @@ -829,8 +850,10 @@ static int gpio_debounce(struct gpio_chip *ch=
-ip, unsigned offset,
->>>>
->>>> =A0 =A0 =A0 if (!bank->dbck) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->dbck =3D clk_get(bank->dev, "dbc=
-lk");
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(bank->dbck))
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(bank->dbck)) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev, "Co=
-uld not get gpio dbck\n");
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>>> =A0 =A0 =A0 }
->>>>
->>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
->>>> @@ -1086,6 +1109,8 @@ static int omap_gpio_suspend(struct device *=
-dev)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->saved_wakeup =3D __raw_readl(wak=
-e_status);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, b=
-ank->suspend_wakeup, 1);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, fl=
-ags);
->>>> +
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_disable(bank);
->>>
->>> If this call was in the ->runtime_suspend() callback, you wouldn't =
-need
->>> it here.
->> Yes.
->>
->>>
->>>> =A0 =A0 =A0 }
->>>>
->>>> =A0 =A0 =A0 return 0;
->>>> @@ -1102,6 +1127,8 @@ static int omap_gpio_resume(struct device *d=
-ev)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!bank->regs->wkup_en)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->>>>
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_enable(bank);
->>>
->>> Similarily, this call should be in the ->runtime_resume() callback =
-and
->>> it wouldn't be needed here.
->> Right.
->>
->>>
->>> Using the runtime PM callbacks, all the _gpio_dbck_* calls below wo=
-uld
->>> not be needed.
->> Yes.
-> I removed the =A0_gpio_dbck_disable/enable calls are removed from
-> *_prepare_for_idle()
-> and *_resume_after_idle(). But I am not seeing runtime callbacks bein=
-g
-> called and
-> hence the =A0_gpio_dbck_* calls are not getting called.
->
-> I have also tried making explicit pm_runtime_put() and pm_runtime_get=
-_sync() in
-> *_prepare_for_idle() and *_resume_after_idle(). Still, I do not see
-> the runtime callbacks
-> getting called.
->
-> Is there anything that I could be missing?
-Sorry for the silly mistake.
-I used !off_mode check before calling pm_runtime_put_sync_suspend()
-in *_prepare_for_idle(). This resulted in use count mismatch with
-*_get_sync() call in *_resume_after_idle() which is called both for
-offmode and retention. I have removed the off_mode and made it unused.
+On Wed, Dec 07, 2011 at 10:45:25AM +0200, Peter Ujfalusi wrote:
 
+> I felt it is the right thing to document the current situation.
 
-void omap2_gpio_prepare_for_idle(int off_mode)
-{
- 	struct gpio_bank *bank;
+If we're going to document bindings like this it feels like we should
+have a split in the directories in the same way that we handle the
+different stability levels for sysfs documentation.
 
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
- 		if (!bank->mod_usage || !off_mode)
- 			continue;
+> The documentation will be updated as we can move away from the
+> "ti,hwmods" tag from DT.
+> I can place comment in the documentation for omap-dmic, omap-mcpdm
+> stating that the use of "ti,hwmods" is required at the moment, but it is
+> temporally solution.
 
-		pm_runtime_put_sync_suspend(bank->dev);
- 	}
- }
-
-void omap2_gpio_resume_after_idle(void)
- 	struct gpio_bank *bank;
-
- 	list_for_each_entry(bank, &omap_gpio_list, node) {
- 		if (!bank->mod_usage)
- 			continue;
-
-		pm_runtime_get_sync(bank->dev);
- 	}
- }
-
---
-Tarun
-
->>>
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, b=
-ank->saved_wakeup, 1);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, fl=
-ags);
->>>> @@ -1120,16 +1147,14 @@ void omap2_gpio_prepare_for_idle(int off_m=
-ode)
->>>>
->>>> =A0 =A0 =A0 list_for_each_entry(bank, &omap_gpio_list, node) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 l1 =3D 0, l2 =3D 0;
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 int j;
->>>>
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!bank->loses_context)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
->>>>
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 for (j =3D 0; j < hweight_long(bank->dbc=
-k_enable_mask); j++)
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_disable(bank->dbck);
->>>> -
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!off_mode)
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!off_mode) {
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_disable(bank)=
-;
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>>>
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* If going to OFF, remove triggering =
-for all
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* non-wakeup GPIOs. =A0Otherwise sp=
-urious IRQs will be
->>>> @@ -1151,15 +1176,16 @@ void omap2_gpio_prepare_for_idle(int off_m=
-ode)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 __raw_writel(l2, bank->base + bank->re=
-gs->risingdetect);
->>>>
->>>> =A0save_gpio_context:
->>>> -
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (bank->get_context_loss_count)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context_loss_cou=
-nt =3D
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->=
-get_context_loss_count(bank->dev);
->>>>
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_gpio_save_context(bank);
->>>>
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_runtime_suspended(bank->dev))
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 if (!pm_runtime_suspended(bank->dev)) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_put_sync(ba=
-nk->dev);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_disable(bank)=
-;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 }
->>>> =A0 =A0 =A0 }
->>>> =A0}
->>>>
->>>> @@ -1170,13 +1196,11 @@ void omap2_gpio_resume_after_idle(void)
->>>> =A0 =A0 =A0 list_for_each_entry(bank, &omap_gpio_list, node) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 context_lost_cnt_after;
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 l =3D 0, gen, gen0, gen1;
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 int j;
->>>>
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!bank->loses_context)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
->>>>
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 for (j =3D 0; j < hweight_long(bank->dbc=
-k_enable_mask); j++)
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 clk_enable(bank->dbck);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 _gpio_dbck_enable(bank);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pm_runtime_suspended(bank->dev))
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(ba=
-nk->dev);
->>>
->>> Kevin
->>>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+At the very least, yes.
