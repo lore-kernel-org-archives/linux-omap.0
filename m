@@ -1,13 +1,24 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: [PATCH 04/10] LED: Drop leds-ams-delta driver
 Date: Sun, 11 Dec 2011 21:12:02 +0100
-Message-ID: <1323634328-856-5-git-send-email-jkrzyszt__12067.8258398131$1323634564$gmane$org@tis.icnet.pl>
+Message-ID: <1323634328-856-5-git-send-email-jkrzyszt__15054.0353650742$1323634581$gmane$org@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>, Richard Purdie <rpurdie@rpsys.net>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
 
 This is no longer needed after the Amstrad Delta on-board LED devices
