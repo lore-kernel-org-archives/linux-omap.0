@@ -1,162 +1,94 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 09/10] input: serio: ams-delta: Toggle keyboard power over GPIO
-Date: Sun, 11 Dec 2011 21:12:07 +0100
-Message-ID: <1323634328-856-10-git-send-email-jkrzyszt__49379.7883777463$1323634694$gmane$org@tis.icnet.pl>
+Subject: [PATCH 10/10] ARM: OMAP1: ams-delta: Drop custom I/O functions
+Date: Sun, 11 Dec 2011 21:12:08 +0100
+Message-ID: <1323634328-856-11-git-send-email-jkrzyszt@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:52094 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752179Ab1LKUrE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Dec 2011 15:47:04 -0500
 In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Don't use Amstrad Delta custom I/O functions once GPIO interface is
-available for the underlying hardware.
+Those are no longer required after all drivers which used them have been
+converted to the GPIO interface.
 
-Depends on patch 8/10 "omapfb: lcd_ams_delta: Drive control lines over
-GPIO".
+Depends on patch 9/10 "input: serio: ams-delta: Toggle keyboard power
+over GPIO".
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- arch/arm/mach-omap1/board-ams-delta.c             |    5 --
- arch/arm/plat-omap/include/plat/board-ams-delta.h |    2 -
- drivers/input/serio/ams_delta_serio.c             |   45 +++++++++++---------
- 3 files changed, 25 insertions(+), 27 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c             |   17 +++--------------
+ arch/arm/plat-omap/include/plat/board-ams-delta.h |   10 ----------
+ 2 files changed, 3 insertions(+), 24 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index b7422e3..587118c 100644
+index 587118c..bed43b4 100644
 --- a/arch/arm/mach-omap1/board-ams-delta.c
 +++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -232,11 +232,6 @@ static struct gpio _latch_gpios[] __initconst = {
- 		.label	= "dockit2",
+@@ -258,19 +258,6 @@ static struct gpio _latch_gpios[] __initconst = {
  	},
- 	{
--		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "keybrd_pwr",
--	},
--	{
- 		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
- 		.flags	= GPIOF_OUT_INIT_LOW,
- 		.label	= "keybrd_dataout",
+ };
+ 
+-void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value)
+-{
+-	int bit;
+-	u16 bitpos;
+-
+-	for (bit = 0; bit < ngpio; bit++) {
+-		bitpos = 1 << bit;
+-		if (mask & bitpos)
+-			gpio_set_value(base + bit, (value & bitpos) != 0);
+-	}
+-}
+-EXPORT_SYMBOL(ams_delta_latch_write);
+-
+ static struct resource ams_delta_nand_resources[] = {
+ 	[0] = {
+ 		.start	= OMAP1_MPUIO_BASE,
+@@ -441,7 +428,9 @@ static void __init ams_delta_init(void)
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
+ 
+ 	platform_add_devices(_latch_devices, ARRAY_SIZE(_latch_devices));
+-	BUG_ON(gpio_request_array(_latch_gpios, ARRAY_SIZE(_latch_gpios)));
++	/* Initialize pins not used by any drivers */
++	gpio_request_array(_latch_gpios, ARRAY_SIZE(_latch_gpios));
++	gpio_free_array(_latch_gpios, ARRAY_SIZE(_latch_gpios));
+ 
+ 	omap1_usb_init(&ams_delta_usb_config);
+ 	omap1_set_camera_info(&ams_delta_camera_platform_data);
 diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-index 1d0706e..004c827 100644
+index 004c827..b09b69d 100644
 --- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
 +++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-@@ -28,8 +28,6 @@
+@@ -28,9 +28,6 @@
  
  #if defined (CONFIG_MACH_AMS_DELTA)
  
--#define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
--#define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
- #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
- #define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
- 
-diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-index d4d08bd..1499c7d 100644
---- a/drivers/input/serio/ams_delta_serio.c
-+++ b/drivers/input/serio/ams_delta_serio.c
-@@ -92,8 +92,7 @@ static irqreturn_t ams_delta_serio_interrupt(int irq, void *dev_id)
- static int ams_delta_serio_open(struct serio *serio)
- {
- 	/* enable keyboard */
--	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR,
--			AMD_DELTA_LATCH2_KEYBRD_PWR);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 1);
- 
- 	return 0;
- }
-@@ -101,9 +100,26 @@ static int ams_delta_serio_open(struct serio *serio)
- static void ams_delta_serio_close(struct serio *serio)
- {
- 	/* disable keyboard */
--	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR, 0);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 0);
- }
- 
-+static struct gpio _gpios[] __initconst_or_module = {
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATA,
-+		.flags	= GPIOF_DIR_IN,
-+		.label	= "serio-data",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_CLK,
-+		.flags	= GPIOF_DIR_IN,
-+		.label	= "serio-clock",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
-+		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "serio-power",
-+	},
-+};
- static int __init ams_delta_serio_init(void)
- {
- 	int err;
-@@ -123,19 +139,11 @@ static int __init ams_delta_serio_init(void)
- 	strlcpy(ams_delta_serio->phys, "GPIO/serio0",
- 			sizeof(ams_delta_serio->phys));
- 
--	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_DATA, "serio-data");
-+	err = gpio_request_array(_gpios, ARRAY_SIZE(_gpios));
- 	if (err) {
--		pr_err("ams_delta_serio: Couldn't request gpio pin for data\n");
-+		pr_err("ams_delta_serio: Couldn't request gpio pins\n");
- 		goto serio;
- 	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
+-#define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
+-#define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
 -
--	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_CLK, "serio-clock");
--	if (err) {
--		pr_err("ams_delta_serio: couldn't request gpio pin for clock\n");
--		goto gpio_data;
--	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
+ #define AMS_DELTA_GPIO_PIN_KEYBRD_DATA	0
+ #define AMS_DELTA_GPIO_PIN_KEYBRD_CLK	1
+ #define AMS_DELTA_GPIO_PIN_MODEM_IRQ	2
+@@ -58,13 +55,6 @@
+ #define AMS_DELTA_LATCH2_GPIO_BASE	AMS_DELTA_GPIO_PIN_LCD_VBLEN
+ #define AMS_DELTA_LATCH2_NGPIO		16
  
- 	err = request_irq(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK),
- 			ams_delta_serio_interrupt, IRQ_TYPE_EDGE_RISING,
-@@ -143,7 +151,7 @@ static int __init ams_delta_serio_init(void)
- 	if (err < 0) {
- 		pr_err("ams_delta_serio: couldn't request gpio interrupt %d\n",
- 				gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
--		goto gpio_clk;
-+		goto gpio;
- 	}
- 	/*
- 	 * Since GPIO register handling for keyboard clock pin is performed
-@@ -157,10 +165,8 @@ static int __init ams_delta_serio_init(void)
- 	dev_info(&ams_delta_serio->dev, "%s\n", ams_delta_serio->name);
+-#ifndef __ASSEMBLY__
+-void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value);
+-#endif
+-#define ams_delta_latch2_write(mask, value) \
+-	ams_delta_latch_write(AMS_DELTA_LATCH2_GPIO_BASE, \
+-			AMS_DELTA_LATCH2_NGPIO, (mask), (value))
+-
+ #endif /* CONFIG_MACH_AMS_DELTA */
  
- 	return 0;
--gpio_clk:
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
--gpio_data:
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-+gpio:
-+	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
- serio:
- 	kfree(ams_delta_serio);
- 	return err;
-@@ -171,7 +177,6 @@ static void __exit ams_delta_serio_exit(void)
- {
- 	serio_unregister_port(ams_delta_serio);
- 	free_irq(OMAP_GPIO_IRQ(AMS_DELTA_GPIO_PIN_KEYBRD_CLK), 0);
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-+	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
- }
- module_exit(ams_delta_serio_exit);
+ #endif /* __ASM_ARCH_OMAP_AMS_DELTA_H */
 -- 
 1.7.3.4
+
