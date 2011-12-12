@@ -1,90 +1,150 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: dmtimer: fix sleeping function called
- from invalid context
-Date: Mon, 12 Dec 2011 15:08:26 -0800
-Message-ID: <20111212230825.GJ32251@atomide.com>
-References: <1322194370-8073-1-git-send-email-omar.ramirez@ti.com>
- <1322194370-8073-2-git-send-email-omar.ramirez@ti.com>
- <20111209213447.GB31337@atomide.com>
- <CAB-zwWjHPzTT5QYZt9DvDcM9ny5VML3mDw3-rQRuBr-fcxYMvQ@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to postcore
+Date: Tue, 13 Dec 2011 00:05:34 +0100
+Message-ID: <201112130005.35386.jkrzyszt@tis.icnet.pl>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl> <1323634328-856-2-git-send-email-jkrzyszt@tis.icnet.pl> <20111212180456.GF31337@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22963 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752137Ab1LLXIb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 18:08:31 -0500
-Content-Disposition: inline
-In-Reply-To: <CAB-zwWjHPzTT5QYZt9DvDcM9ny5VML3mDw3-rQRuBr-fcxYMvQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111212180456.GF31337@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Ramirez Luna, Omar <omar.ramirez@ti.com> [111209 13:38]:
-> On Fri, Dec 9, 2011 at 3:34 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> >> + =C2=A0 =C2=A0 ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER=
-_SRC_32_KHZ);
-> ...
-> >> =C2=A0EXPORT_SYMBOL_GPL(omap_dm_timer_request);
-> >
-> > This does not seem right.. It seems that you're hardcoding the sour=
-ce
-> > clock to 32 KiHz clock while other sources are available too?
->=20
-> Agree, but... (below)
->=20
-> >> + =C2=A0 =C2=A0 ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER=
-_SRC_32_KHZ);
-> ...
-> > And here too?
->=20
-> Agree but that is the default behavior set by dm timer framework:
->=20
-> @@ -134,22 +134,13 @@ static void omap_dm_timer_reset(struct
-> omap_dm_timer *timer)
->  int omap_dm_timer_prepare(struct omap_dm_timer *timer)
+(adding Greg Kroah-Hartman and linux-serial@vger.kernel.org to Cc:)
+
+On Monday 12 of December 2011 at 19:04:56, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111211 11:41]:
+> > This will allow boards with custom memory mapped GPIO ports to set up
+> > and use those port pins while initializing devices from arch init.
+> 
+> Care to explain a bit more why you need to initialize those devices
+> early on?
+
+Let me try.
+
+>From patch 2/10 "ARM: OMAP1: ams-delta: Convert latches to 
+basic_mmio_gpio":
+
+> @@ -307,8 +487,8 @@ static void __init ams_delta_init(void)
+>  	omap_serial_init();
+>  	omap_register_i2c_bus(1, 100, NULL, 0);
+>  
+> -	/* Clear latch2 (NAND, LCD, modem enable) */
+> -	ams_delta_latch2_write(~0, 0);
+> +	platform_add_devices(_latch_devices, ARRAY_SIZE(_latch_devices));
+> +	BUG_ON(gpio_request_array(_latch_gpios, ARRAY_SIZE(_latch_gpios)));
+>  
+>  	omap1_usb_init(&ams_delta_usb_config);
+>  	omap1_set_camera_info(&ams_delta_camera_platform_data);
+
+Here I'm accessing the latches from ams_delta_init() (.init_machine 
+hook) with gpio_request_array() in order to:
+a) clear their contents,
+b) avoid accessing them, from ams_delta_latch_write(), never requested.
+
+I could imagine clearing their contents with something like
+
+	*(volatile __u8 *) AMS_DELTA_LATCH2_VIRT = 0;
+	*(volatile __u16 *) AMS_DELTA_LATCH2_VIRT = 0;
+
+instead, i.e., the way the old code used to, than accessing those GPIO 
+pins not requested, until they are finally requested by drivers updated 
+to use gpiolib with successive patche. Would this be acceptable?
+
+However,
+>From patch 6/10 "ARM: OMAP1: ams-delta: Use GPIO API in modem setup":
+
+> @@ -482,6 +472,12 @@ static void __init ams_delta_init(void)
+>  	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
+>  }
+>  
+> +static void _modem_pm(struct uart_port *port, unsigned int state, unsigned old)
+> +{
+> +	if (state != old)
+> +		gpio_set_value(AMS_DELTA_GPIO_PIN_MODEM_NRESET, state == 0);
+> +}
+> +
+>  static struct plat_serial8250_port ams_delta_modem_ports[] = {
+>  	{
+>  		.membase	= IOMEM(_MODEM_VIRT),
+> @@ -492,6 +488,7 @@ static struct plat_serial8250_port ams_delta_modem_ports[] = {
+>  		.iotype		= UPIO_MEM,
+>  		.regshift	= 1,
+>  		.uartclk	= BASE_BAUD * 16,
+> +		.pm		= _modem_pm,
+>  	},
+>  	{ },
+>  };
+> @@ -504,6 +501,24 @@ static struct platform_device ams_delta_modem_device = {
+>  	},
+>  };
+>  
+> +static struct gpio _modem_gpios[] __initconst = {
+> +	{
+> +		.gpio	= AMS_DELTA_GPIO_PIN_MODEM_IRQ,
+> +		.flags	= GPIOF_DIR_IN,
+> +		.label	= "modem_irq",
+> +	},
+> +	{
+> +		.gpio	= AMS_DELTA_GPIO_PIN_MODEM_NRESET,
+> +		.flags	= GPIOF_OUT_INIT_HIGH,
+> +		.label	= "modem_nreset",
+> +	},
+> +	{
+> +		.gpio	= AMS_DELTA_GPIO_PIN_MODEM_CODEC,
+> +		.flags	= GPIOF_OUT_INIT_HIGH,
+> +		.label	= "modem_codec",
+> +	},
+> +};
+> +
+>  static int __init ams_delta_modem_init(void)
 >  {
-> ...
-> -       ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER_SRC_32_KHZ=
-);
-> ...
->=20
-> All clocks requested are set to 32 KHz first, even with the current
-> approach, there exists another API to set a new source.
->=20
-> To be honest I don't know why the clocks are set to 32 KHz first,
-> maybe the default call path for users should be:
+>  	int err;
+> @@ -515,16 +530,11 @@ static int __init ams_delta_modem_init(void)
+>  	ams_delta_modem_ports[0].irq =
+>  			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+>  
+> -	err = gpio_request(AMS_DELTA_GPIO_PIN_MODEM_IRQ, "modem");
+> +	err = gpio_request_array(_modem_gpios, ARRAY_SIZE(_modem_gpios));
+>  	if (err) {
+> -		pr_err("Couldn't request gpio pin for modem\n");
+> +		pr_err("Couldn't request gpio pins for modem\n");
+>  		return err;
+>  	}
+> -	gpio_direction_input(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+> -
+> -	ams_delta_latch2_write(
+> -		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+> -		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
+>  
+>  	return platform_device_register(&ams_delta_modem_device);
+>  }
 
-You need a functional clock for the timer registers to work
-I believe.
+Before the change, only one GPIO pin, that IRQ, driven with omap_gpio 
+driver which is registered from postcore, was gpio_request()ed. Now, two 
+more, gpio-generic driven pins, are also requested _and_ initialized in 
+order to make the modem accessible. The ams_delta_modem_init() is 
+installed with arch_initcall().
 
-> omap_dm_timer_request
+I could imagine initializing those modem pins the old way I've suggested 
+above, but I can see no good solution to delegate calling of that 
+gpio_request*() to the 8250 driver. For me, the only hook passed to the 
+driver with platform_data that can be suitable is the .pm hook. However, 
+when I tried to remove powering up the modem (rising up 
+AMS_DELTA_GPIO_PIN_MODEM_NRESET) from the arch init and do this only 
+from that .pm hook, the device was not detected, so I wonder if and when 
+that hook is called, and if it is before probe, then perhaps powering 
+up the modem chip from there is too late for the device to get up before 
+being examined. But then, maybe if we initialize the pin the old way 
+from arch init, it would be enough for the device to be detected, while 
+consecutive open() response times may not be so critical. Perhaps Greg 
+or another serial guru can shed some more light on this.
 
-Yes this would make sense. The omap_timer_list should be protected
-by a mutex. There should not be a need for spinlock there as
-omap_dm_timer_request should be only called during init. If that's
-not the case, the the driver using it is broken.
+But this way or another, we are talking about dirty hacks here IMHO.
 
-> omap_dm_timer_set_source (new explicit call)
-> omap_dm_timer_start
-
-Once the timer has been requested, there should not be a need
-for locking as there should be only one timer user using the
-timer specific registers.
-=20
-> And remove setting the source to 32 KHz by default in omap_dm_timer_r=
-equest.
-
-That you may need to be able to do anything with the timer :)
-
-Regards,
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Janusz
