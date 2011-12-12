@@ -1,30 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: McSPI: Remove unused flag from struct
- omap2_mcspi_device_config
-Date: Mon, 12 Dec 2011 15:21:37 -0800
-Message-ID: <20111212232137.GL32251@atomide.com>
-References: <1323681317-8447-1-git-send-email-jarkko.nikula@bitmer.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to postcore
+Date: Tue, 13 Dec 2011 00:44:01 +0100
+Message-ID: <201112130044.02007.jkrzyszt@tis.icnet.pl>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl> <201112130005.35386.jkrzyszt@tis.icnet.pl> <20111212231519.GK32251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28776 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752712Ab1LLXVj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 18:21:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1323681317-8447-1-git-send-email-jarkko.nikula@bitmer.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111212231519.GK32251@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Jarkko Nikula <jarkko.nikula@bitmer.com> [111212 00:45]:
-> Flag single_channel in struct omap2_mcspi_device_config is not used
-> by drivers/spi/spi-omap2-mcspi.c so we may remove it from include/plat/mcspi.h
-> and affected board files.
+On Tuesday 13 of December 2011 at 00:15:20, Tony Lindgren wrote:
+> 
+> Might be worth checking if some board specific __initcall helps here
+> too?
 
-Thanks applying into cleanup branch.
+If I only knew how I could insert a board specific __initcall between 
+two points from where the generic-gpio first, then the 8250 driver, are 
+called.
 
-Regards,
+Any hints?
 
-Tony
+Thanks,
+Janusz
