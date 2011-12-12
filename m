@@ -1,28 +1,37 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 07/10] ASoC: OMAP: ams-delta: Drive modem/codec pins over
- GPIO API
-Date: Mon, 12 Dec 2011 12:29:50 +0800
-Message-ID: <20111212042949.GA2806@opensource.wolfsonmicro.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: [PATCH 00/10] ARM: OMAP1: ams-delta: replace custom I/O with
+ GPIO
+Date: Sun, 11 Dec 2011 21:00:22 -0800
+Message-ID: <20111212050022.GI16333@earth.li>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:55913 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752149Ab1LLE3z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Dec 2011 23:29:55 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, David Woodhouse <dwmw2@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Sun, Dec 11, 2011 at 09:12:05PM +0100, Janusz Krzysztofik wrote:
-> Don't use Amstrad Delta custom I/O functions any longer, replace them
-> with GPIO. Old pin definitions, no longer used by the modem bits either,
-> can be dropped.
+On Sun, Dec 11, 2011 at 09:11:58PM +0100, Janusz Krzysztofik wrote:
+> The Amstrad Delta board has two extra output ports used for driving
+> input lines of different on-board devices. Those ports are now
+> controlled with custom functions, provided by the board arch code and
+> used by several device drivers.
+> 
+> The idea behind the series is to replace those custom I/O functions
+> with gpiolib API. This way, existing drivers can be made less platform
+> dependent, and some of them perhaps even superseded with generic GPIO
+> based drivers after the board platform device descriptions are
+> converted. Moreover, should a new driver for the on-board Smart Card
+> controller ever be created, it could be designed as a generic GPIO
+> based driver, not a custom one.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Nice work; moving ams-delta over to gpiolib has been on my todo list for
+a while (albeit quite low down).
+
+J.
+
+-- 
+I just Fedexed my soul to hell. I'm *real* clever.
