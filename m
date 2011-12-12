@@ -1,71 +1,35 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 0/2] OMAP: PM: switch from omap_pm_ functions
-	to PM QoS
-Date: Mon, 12 Dec 2011 17:27:54 +0100
-Message-ID: <CAORVsuU3_+653sUMZUWrJ+QHgaWEDqZAy0kEv_o=5m8zfeS4dw@mail.gmail.com>
-References: <1319034531-22964-1-git-send-email-j-pihet@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 0/4] fixes for twl4030-irq in mainline
+Date: Mon, 12 Dec 2011 18:38:19 +0100
+Message-ID: <20111212173819.GT13952@sortiz-mobl>
+References: <20111126201334.16080.85045.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1319034531-22964-1-git-send-email-j-pihet@ti.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>
-Cc: Jean Pihet <j-pihet@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111126201334.16080.85045.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Kevin, Paul,
+Hi Neil,
 
-ping on this series
+On Sun, Nov 27, 2011 at 07:17:41AM +1100, NeilBrown wrote:
+> Hi,
+>   The recent tidying up of twl4030-irq seems to have left it broken.
+> At least it doesn't work for me on my gta04 (www.gta04.org).  The
+> first interrupt from the device freezes the whole system (by being
+> constantly delivered)
+> 
+> The following 4 patches make it work for me and addresses some other
+> less critical issues like a typo in a comment :-)
 
-Thanks,
-Jean
+Thanks, I applied all 4 of them.
 
-On Wed, Oct 19, 2011 at 4:28 PM,  <jean.pihet@newoldbits.com> wrote:
-> From: Jean Pihet <j-pihet@ti.com>
->
-> . Convert the OMAP I2C driver to the PM QoS API for MPU latency constrain=
-ts
-> . Remove the latency related functions from OMAP PM in favor of
-> =A0the generic per-device PM QoS API
->
->
-> Apply on top of the OMAP PM QoS patch set [1].
-> Based on the pm-qos branch of the linux-pm git tree (3.1.0-rc3), cf. [2].
->
-> Tested on OMAP3 Beagleboard (ES2.x) with constraints on MPU, CORE, PER in
-> RETention and OFF modes.
->
-> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/65971
-> [2] git://github.com/rjwysocki/linux-pm.git
->
->
-> Jean Pihet (2):
-> =A0OMAP: convert I2C driver to PM QoS for latency constraints
-> =A0OMAP: PM: remove the latency related functions from the API
->
-> =A0Documentation/arm/OMAP/omap_pm =A0 =A0 =A0 =A0 =A0 =A0| =A0 55 +++----=
----------
-> =A0arch/arm/plat-omap/i2c.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 20 -=
------
-> =A0arch/arm/plat-omap/include/plat/omap-pm.h | =A0 99 -------------------=
-----------
-> =A0arch/arm/plat-omap/omap-pm-noop.c =A0 =A0 =A0 =A0 | =A0 88 -----------=
---------------
-> =A0drivers/i2c/busses/i2c-omap.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 30 +++++--=
----
-> =A0include/linux/i2c-omap.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A01=
- -
-> =A06 files changed, 24 insertions(+), 269 deletions(-)
->
-> --
-> 1.7.4.1
->
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
