@@ -1,56 +1,59 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCHv7 5/7] mfd: twl-core: pass driver data from pdata to
- add_regulator for VDD1 and VDD2
-Date: Mon, 12 Dec 2011 19:04:23 +0100
-Message-ID: <20111212180423.GX13952@sortiz-mobl>
-References: <1322492005-27741-1-git-send-email-t-kristo@ti.com>
- <1322492005-27741-6-git-send-email-t-kristo@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to
+ postcore
+Date: Mon, 12 Dec 2011 10:04:56 -0800
+Message-ID: <20111212180456.GF31337@atomide.com>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <1323634328-856-2-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:64362 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751585Ab1LLR7S (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 12:59:18 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1322492005-27741-6-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1323634328-856-2-git-send-email-jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@ti.com, khilman@ti.com, b-cousson@ti.com, rnayak@ti.com, gg@slimlogic.co.uk
 
-Hi Tero,
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111211 11:41]:
+> This will allow boards with custom memory mapped GPIO ports to set up
+> and use those port pins while initializing devices from arch init.
+
+Care to explain a bit more why you need to initialize those devices
+early on?
+
+Usually moving things earlier and earlier is an endless loop 
+adding more and more nasty dependencies..
+
+I'd rather see things getting initialized later as regular
+device drivers so we have decent kernel error messages when
+something goes wrong without having to enable debug_ll.
+
+Regards,
+
+Tony
 
 
-On Mon, Nov 28, 2011 at 04:53:23PM +0200, Tero Kristo wrote:
-> This way, we can add custom flags for VDD1 and VDD2 regulators that
-> get passed all the way to regulator init. This is needed for SMPS
-> regulator support to select used controller mode for these regulators
-> (either voltage processor or default.)
+> Created against linux-3.2-rc5.
 > 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 > ---
->  drivers/mfd/twl-core.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
+>  drivers/gpio/gpio-generic.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-> index 01ecfee..af93fce 100644
-> --- a/drivers/mfd/twl-core.c
-> +++ b/drivers/mfd/twl-core.c
-> @@ -846,12 +846,14 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
->  			return PTR_ERR(child);
+> diff --git a/drivers/gpio/gpio-generic.c b/drivers/gpio/gpio-generic.c
+> index 4e24436..a6eaf38 100644
+> --- a/drivers/gpio/gpio-generic.c
+> +++ b/drivers/gpio/gpio-generic.c
+> @@ -528,7 +528,7 @@ static int __init bgpio_platform_init(void)
+>  {
+>  	return platform_driver_register(&bgpio_driver);
+>  }
+> -module_init(bgpio_platform_init);
+> +postcore_initcall(bgpio_platform_init);
 >  
->  		child = add_regulator(TWL4030_REG_VDD1, pdata->vdd1,
-> -					features);
-> +					features |
-> +					(u32)pdata->vdd1->driver_data);
-That looks hackish to me. Do you have any guarantee that your driver_data and
-your features bitmaps have zero intersections ?
-
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+>  static void __exit bgpio_platform_exit(void)
+>  {
+> -- 
+> 1.7.3.4
+> 
