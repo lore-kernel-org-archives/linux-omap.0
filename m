@@ -1,69 +1,70 @@
-From: Greg KH <gregkh@suse.de>
+From: Felipe Balbi <balbi@ti.com>
 Subject: Re: Interrupt issue in twl4030_keypad
-Date: Mon, 12 Dec 2011 13:30:55 -0800
-Message-ID: <20111212213055.GA27399@suse.de>
+Date: Mon, 12 Dec 2011 23:34:00 +0200
+Message-ID: <20111212213359.GB4349@legolas.emea.dhcp.ti.com>
 References: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
- <20111212192309.GA12889@suse.de>
- <CAMP44s3yrYnLtPGg=BZ3ck4NgS5-OfcF1w48SHhL0vztYDOBZQ@mail.gmail.com>
+ <20111212191241.GC3408@legolas.emea.dhcp.ti.com>
+ <CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:49024 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753415Ab1LLVeG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 16:34:06 -0500
 Content-Disposition: inline
-In-Reply-To: <CAMP44s3yrYnLtPGg=BZ3ck4NgS5-OfcF1w48SHhL0vztYDOBZQ@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, stable@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+In-Reply-To: <CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, stable@kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-input@vger.kernel.org
 
-On Mon, Dec 12, 2011 at 11:04:35PM +0200, Felipe Contreras wrote:
-> On Mon, Dec 12, 2011 at 9:23 PM, Greg KH <gregkh@suse.de> wrote:
-> > On Mon, Dec 12, 2011 at 08:30:49PM +0200, Felipe Contreras wrote:
-> >> The short version is this: either we revert this patch[1], or we apply
-> >> this patch series[2], as well as its essential fixes[3].
-> >>
-> >> The long version is this. There's a synchronization issue with the
-> >> current keypad driver and twl core; the irq is marked as handled even
-> >> though the thread that is supposed to handle it hasn't run yet, and
-> >> since it's clear-on-read, and it hasn't been read, it's detected
-> >> again, so they keypad driver receives two interrupt callbacks instead
-> >> of one, and in the second one reads nothing from the i2c register, so
-> >> a key release is assumed. This makes key-presses as simple as shift+a
-> >> impossible.
-> >>
-> >> In other words, it's totally unreliable. This might not be isolated to
-> >> the keypard driver, but other "nested" interrupts from twl core that
-> >> started using request_threaded_irq prematurely (before it was
-> >> supported by the twl core). But at least I haven't tried those.
-> >>
-> >> This patch was applied on 2.6.33, which means all versions before 3.2
-> >> are affected, including 3.1.
-> >>
-> >> What do you think about fixing this on stable kernels?
-> >
-> > I think you need to tell me exactly what git commit ids in Linus's tree
-> > that you want to see in the stable kernel releases, which you didn't do
-> > here :(
-> 
-> All right, I guess that rules out the revert option.
-> 
-> Once Linus merges the latest fixes I can send you the commit ids, and
-> they will work for 3.1, but I'm not sure for all the other versions
-> since 2.6.33. The surest thing would be to just revert the patch I
-> mentioned, which is a relatively small change compared to picking all
-> those commits.
 
-Then it also needs to be reverted in Linus's tree, is it?
+--s/l3CgOIzMHHjg/5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-And again, you never told me what commit id the offending patch is here,
-you just pointed at some random urls, and for the majority of today, I
-only had email access, no web access, so I have no idea what you are
-referring to.
+Hi,
 
-But, odds are, we should also just backport the needed patches from
-Linus's tree, please send the git commit ids of them to
-stable@vger.kernel.org when they hit his tree, and the backports if
-needed.
+On Mon, Dec 12, 2011 at 10:55:11PM +0200, Felipe Contreras wrote:
+> > Samuel assumed it was ok and, like I said above, it worked for my simpl=
+e GPIO
+> > usecase with beagleboard.
+>=20
+> Well, for 3.2 I think the situation is fine, but that's not what I'm
+> talking about. About your GPIO tests, are you sure you got the
+> interrupts through twl4030 irq handling?
 
-thanks,
+Card detect GPIO on beagleboard is a TWL GPIO. Checking that
+removing/adding the card actually triggers an IRQ, should be enough. No?
 
-greg k-h
+--=20
+balbi
+
+--s/l3CgOIzMHHjg/5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJO5nNHAAoJEIaOsuA1yqRE/5QP+wRDIwszgdbt0i4qbXfUV4gP
+wEOHSThAtqjGo+cMlhrqTNtcwq5sfl1xR5nmF9dTpCb/Pg2tKQ9aALkdJhAd4i9f
+pQ9q6wI/oaftoAlGrbLxWb19JI2XDAoma1VavHfZt+ZisNp5oS6UrVpJk/s59fU+
+VGMFXWsXkUFgeuCTABRjZVG83xPFszCqBHIfEb/oHj2zI9Ou5bS8eFyygmiR09Wh
+mjEUJCXGuP9HlJvoX0v6yKrEmpOaI/b6MJlYJuFBRkuBBDAYNrFutqjkNq0QmQEV
+uzVvtFadyF3tpBHIY8B2OQOY+kLvFe7gxSodQTglpfay9uKOsSoCsOEQ3JyHVcZp
+RI3zd4hPe4KhIDQn026bzi31ftzTvEZ5hf0YVzwUI1hJ9xDLDqMKcmOuSCIlUDcD
+Fj970jw1yvguIw8SUif+jEpEmcv/wUUZPNjkMGx/kKVUzzxuJbMHmqIusggxlK40
+XlvheLiG7E+vrtPLVFyMmvR3QZqNWjKurHQpO7nLkpizJKuseml+mxnrgkyTgLor
+WOp2gOobVV6DW4saQuy27GYXJGoBCoj5Qi8y3SsQsyazHh08RiwqhFh7YANaj/w6
+OVA9dZ/Q0lU6T95n2w7yqva5OBYB4+yaPypqUP0viob/wrFJwchox+CejM5X9fVk
+9wSi9pGuUZwyZtZGox2T
+=+Kds
+-----END PGP SIGNATURE-----
+
+--s/l3CgOIzMHHjg/5--
