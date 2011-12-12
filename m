@@ -1,15 +1,15 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv11 2/8] ARM: OMAP2+: hwmod: Add API to check IO PAD wakeup status
-Date: Mon, 12 Dec 2011 20:15:27 +0200
-Message-ID: <1323713733-13115-3-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv11 1/8] ARM: OMAP2+: hwmod: Add API to enable IO ring wakeup.
+Date: Mon, 12 Dec 2011 20:15:26 +0200
+Message-ID: <1323713733-13115-2-git-send-email-t-kristo@ti.com>
 References: <1323713733-13115-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41175 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48736 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753466Ab1LLSPx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 13:15:53 -0500
+	id S1753510Ab1LLSPw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 13:15:52 -0500
 In-Reply-To: <1323713733-13115-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,48 +18,49 @@ Cc: linux-arm-kernel@lists.infradead.org, "R, Govindraj" <govindraj.raja@ti.com>
 
 From: R, Govindraj <govindraj.raja@ti.com>
 
-Add API to determine IO-PAD wakeup event status for a given
-hwmod dynamic_mux pad.
+Add API to enable IO pad wakeup capability based on mux dynamic pad and
+wake_up enable flag available from hwmod_mux initialization.
+
+Use the wakeup_enable flag and enable wakeup capability
+for the given pads. Wakeup capability will be enabled/disabled
+during hwmod idle transition based on whether wakeup_flag is
+set or cleared.
+
+Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
 
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- arch/arm/mach-omap2/mux.c                    |   30 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/mux.h                    |   13 +++++++++++
- arch/arm/mach-omap2/omap_hwmod.c             |    7 ++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
- 4 files changed, 51 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 655e948..5f15ab8 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -351,6 +351,36 @@ err1:
- 	return NULL;
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 6b3088d..8d37d83 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2059,6 +2059,34 @@ static int __init omap_hwmod_setup_all(void)
+ core_initcall(omap_hwmod_setup_all);
  
-+/**
-+ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
-+ * @hmux:		Pads for a hwmod
+ /**
++ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
++ * @oh: struct omap_hwmod *
++ * @set: bool value indicating to set or clear wakeup status.
 + *
-+ * Gets the wakeup status of given pad from omap-hwmod.
-+ * Returns true if wakeup event is set for pad else false
-+ * if wakeup is not occured or pads are not avialable.
++ * Set or Clear wakeup flag for the io_pad.
 + */
-+bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
++static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
 +{
-+	int i;
-+	unsigned int val;
-+	u8 ret = false;
++	struct omap_device_pad *pad;
++	int ret = -EINVAL, j;
 +
-+	for (i = 0; i < hmux->nr_pads; i++) {
-+		struct omap_device_pad *pad = &hmux->pads[i];
-+
-+		if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+			val = omap_mux_read(pad->partition,
-+					pad->mux->reg_offset);
-+			if (val & OMAP_WAKEUP_EVENT) {
-+				ret = true;
-+				break;
++	if (oh->mux && oh->mux->enabled) {
++		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
++			pad = oh->mux->pads_dynamic[j];
++			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
++				if (set_wake)
++					pad->idle |= OMAP_WAKEUP_EN;
++				else
++					pad->idle &= ~OMAP_WAKEUP_EN;
++				ret = 0;
 +			}
 +		}
 +	}
@@ -67,62 +68,62 @@ index 655e948..5f15ab8 100644
 +	return ret;
 +}
 +
- /* Assumes the calling function takes care of locking */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
- {
-diff --git a/arch/arm/mach-omap2/mux.h b/arch/arm/mach-omap2/mux.h
-index 2132308..8b2150a 100644
---- a/arch/arm/mach-omap2/mux.h
-+++ b/arch/arm/mach-omap2/mux.h
-@@ -225,8 +225,21 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads);
-  */
- void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state);
- 
 +/**
-+ * omap_hwmod_mux_get_wake_status - omap hwmod check pad wakeup
-+ * @hmux:		Pads for a hwmod
-+ *
-+ * Called only from omap_hwmod.c, do not use.
-+ */
-+bool omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux);
- #else
- 
-+static inline bool
-+omap_hwmod_mux_get_wake_status(struct omap_hwmod_mux_info *hmux)
-+{
-+	return 0;
-+}
-+
- static inline int omap_mux_init_gpio(int gpio, int val)
+  * omap_hwmod_enable - enable an omap_hwmod
+  * @oh: struct omap_hwmod *
+  *
+@@ -2390,6 +2418,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
  {
- 	return 0;
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8d37d83..d7f4623 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2721,3 +2721,10 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh)
- 
- 	return 0;
+ 	return _del_initiator_dep(oh, init_oh);
  }
-+
-+int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh)
++/**
++ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
 +{
-+	if (oh && oh->mux)
-+		return omap_hwmod_mux_get_wake_status(oh->mux);
-+	return -EINVAL;
++	/* Enable pad wake-up capability */
++	return omap_hwmod_set_ioring_wakeup(oh, true);
 +}
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 8b372ed..1b81dfb 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -604,6 +604,7 @@ int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
++
++/**
++ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
++ * @oh: struct omap_hwmod *
++ *
++ * Traverse through dynamic pads, if pad is enabled then
++ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
++ * will be set during hwmod idle transistion.
++ * Return error if pads are not enabled or not available.
++ */
++int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
++{
++	/* Disable pad wakeup capability */
++	return omap_hwmod_set_ioring_wakeup(oh, false);
++}
  
- int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
+ /**
+  * omap_hwmod_enable_wakeup - allow device to wake up the system
+@@ -2416,6 +2473,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_enable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_enable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
  
-+int omap_hwmod_pad_get_wakeup_status(struct omap_hwmod *oh);
- /*
-  * Chip variant-specific hwmod init routines - XXX should be converted
-  * to use initcalls once the initial boot ordering is straightened out
+ 	return 0;
+@@ -2446,6 +2504,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
+ 	v = oh->_sysc_cache;
+ 	_disable_wakeup(oh, &v);
+ 	_write_sysconfig(v, oh);
++	omap_hwmod_disable_ioring_wakeup(oh);
+ 	spin_unlock_irqrestore(&oh->_lock, flags);
+ 
+ 	return 0;
 -- 
 1.7.4.1
 
