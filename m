@@ -1,115 +1,80 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH] ARM: OMAP2+: Fix: Don't wait for the idle status if modulemode is not supported
-Date: Mon, 12 Dec 2011 15:39:47 +0100
-Message-ID: <1323700787-5934-1-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv8 2/5] omap3: voltage: fix channel configuration
+Date: Mon, 12 Dec 2011 07:02:16 -0800
+Message-ID: <87d3btg7ev.fsf@ti.com>
+References: <1323444589-19940-1-git-send-email-t-kristo@ti.com>
+	<1323444589-19940-3-git-send-email-t-kristo@ti.com>
+	<8739ctjmyq.fsf@ti.com> <1323682464.31914.3.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34942 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752557Ab1LLOj5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 09:39:57 -0500
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51482 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750790Ab1LLPCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 10:02:19 -0500
+Received: by mail-iy0-f182.google.com with SMTP id l21so4736944iak.27
+        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 07:02:18 -0800 (PST)
+In-Reply-To: <1323682464.31914.3.camel@sokoban> (Tero Kristo's message of
+	"Mon, 12 Dec 2011 11:34:24 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org
 
-If the module does not have any modulemode, the _disable_module function
-will do nothing. There is then no point waiting for a idle status change.
+Tero Kristo <t-kristo@ti.com> writes:
 
-It will remove the following warnings.
+> On Fri, 2011-12-09 at 16:21 -0800, Kevin Hilman wrote:
+>> Tero Kristo <t-kristo@ti.com> writes:
+>> 
+>> > OMAP3 uses the default settings for VDD1 channel, otherwise the settings will
+>> > overlap with VDD2 and attempting to modify VDD1 voltage will actually change
+>> > VDD2 voltage.
+>> >
+>> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> > ---
+>> >  arch/arm/mach-omap2/vc3xxx_data.c |    1 +
+>> >  2 files changed, 5 insertions(+), 1 deletions(-)
+>> >
+>> > diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
+>> > index cfe348e..0136ad5 100644
+>> > --- a/arch/arm/mach-omap2/vc3xxx_data.c
+>> > +++ b/arch/arm/mach-omap2/vc3xxx_data.c
+>> > @@ -46,6 +46,7 @@ static struct omap_vc_common omap3_vc_common = {
+>> >  };
+>> >  
+>> >  struct omap_vc_channel omap3_vc_mpu = {
+>> > +	.flags = OMAP_VC_CHANNEL_DEFAULT,
+>> >  	.common = &omap3_vc_common,
+>> >  	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
+>> >  	.smps_volra_reg	 = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
+>> 
+>> Looking more at the flow diagram you mentioned in the OMAP3 TRM, I don't
+>> think this is right for OMAP3.
+>> 
+>> Setting the USE_DEFAULTS flags means that VDD1 will only ever be able to
+>> use [slave address | voltage reg | command reg] zero.  While this is
+>> quite likely in most scenarios, the HW doesn't limit this like it does
+>> on OMAP4.
+>> 
+>> On OMAP3, it's very possible to configure VDD1 to use 
+>> [slave address | voltage reg | command reg] one if you want (even though
+>> I'm not sure why you would.)
+>> 
+>> In any case, my point is that setting the USE_DEFAULTS flag forces an
+>> OMAP4 restriction onto OMAP3 which the hardware doesn't have.
+>> 
+>
+> Well, the voltage control does not work at all if this is not done. I am
+> not sure what is the root cause for this, as I don't have currently
+> oscilloscope available so that I could take a look at the bus traffic.
+> The voltage rail behavior is incorrect unless this change is in, this is
+> easily seen by measuring the voltage levels and trying to change the
+> voltages by sw.
 
-[    0.331848] omap_hwmod: dmm: _wait_target_disable failed
-[    0.339935] omap_hwmod: emif_fw: _wait_target_disable failed
-[    0.348358] omap_hwmod: l3_main_1: _wait_target_disable failed
-[    0.356964] omap_hwmod: l3_main_2: _wait_target_disable failed
-[    0.365600] omap_hwmod: l4_abe: _wait_target_disable failed
-[    0.373931] omap_hwmod: l4_cfg: _wait_target_disable failed
-[    0.382263] omap_hwmod: l4_per: _wait_target_disable failed
-[    0.391113] omap_hwmod: l4_wkup: _wait_target_disable failed
-[    0.399536] omap_hwmod: dma_system: _wait_target_disable failed
-[    0.408325] omap_hwmod: dss_core: _wait_target_disable failed
-[    0.416839] omap_hwmod: dss_dispc: _wait_target_disable failed
-[    0.425445] omap_hwmod: dss_dsi1: _wait_target_disable failed
-[    0.433990] omap_hwmod: dss_dsi2: _wait_target_disable failed
-[    0.442504] omap_hwmod: dss_hdmi: _wait_target_disable failed
-[    0.451019] omap_hwmod: dss_rfbi: _wait_target_disable failed
-[    0.459564] omap_hwmod: dss_venc: _wait_target_disable failed
-[    0.489471] omap_hwmod: mailbox: _wait_target_disable failed
-[    0.505920] omap_hwmod: spinlock: _wait_target_disable failed
+Yeah, I understand why it's broken now and the question is only whether
+to make the same "default channel" restriction exist for OMAP3 as exists
+for OMAP4.  For now, I'm OK with this restriction, so this patch is
+fine.
 
-Note: For such module, the state is managed automatically by HW according
-to clock domain transition. It is then not possible to wait for idle even
-later in the _idle function since the status will change at clock domain
-boundary.
-
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod.c |   29 ++++++++++++++++++++---------
- 1 files changed, 20 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 207a2ff..dc9acac 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -710,16 +710,16 @@ static void _enable_module(struct omap_hwmod *oh)
-  * @oh: struct omap_hwmod *
-  *
-  * Disable the PRCM module mode related to the hwmod @oh.
-- * No return value.
-+ * Return EINVAL if the modulemode is not supported and 0 in case of success.
-  */
--static void _disable_module(struct omap_hwmod *oh)
-+int _disable_module(struct omap_hwmod *oh)
- {
- 	/* The module mode does not exist prior OMAP4 */
- 	if (cpu_is_omap24xx() || cpu_is_omap34xx())
--		return;
-+		return -EINVAL;
- 
- 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
--		return;
-+		return -EINVAL;
- 
- 	pr_debug("omap_hwmod: %s: _disable_module\n", oh->name);
- 
-@@ -727,6 +727,8 @@ static void _disable_module(struct omap_hwmod *oh)
- 				    oh->clkdm->cm_inst,
- 				    oh->clkdm->clkdm_offs,
- 				    oh->prcm.omap4.clkctrl_offs);
-+
-+	return 0;
- }
- 
- /**
-@@ -1537,11 +1539,20 @@ static int _idle(struct omap_hwmod *oh)
- 	if (oh->class->sysc)
- 		_idle_sysc(oh);
- 	_del_initiator_dep(oh, mpu_oh);
--	_disable_module(oh);
--	ret = _wait_target_disable(oh);
--	if (ret)
--		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
--			oh->name);
-+	ret = _disable_module(oh);
-+
-+	/*
-+	 * If the module does not have any modulemode, the previous
-+	 * function will do nothing. There is then no point waiting
-+	 * for a idle status change.
-+	 */
-+	if (!ret) {
-+		ret = _wait_target_disable(oh);
-+		if (ret)
-+			pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
-+				oh->name);
-+	}
-+
- 	/*
- 	 * The module must be in idle mode before disabling any parents
- 	 * clocks. Otherwise, the parent clock might be disabled before
--- 
-1.7.0.4
-
+Kevin
