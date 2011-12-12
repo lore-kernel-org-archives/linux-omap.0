@@ -1,51 +1,45 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 3/3] OMAPDSS: Displays: Make PICODLP driver depend on DPI
-Date: Mon, 12 Dec 2011 11:47:43 +0530
-Message-ID: <1323670663-17793-4-git-send-email-archit@ti.com>
-References: <1323670663-17793-1-git-send-email-archit@ti.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
+Date: Mon, 12 Dec 2011 09:09:20 +0200
+Message-ID: <4EE5A8A0.2010206@bitmer.com>
+References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>	<CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>	<4EDF5231.6080309@bitmer.com> <CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40109 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752415Ab1LLGSf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 01:18:35 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBC6IZOt010712
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 00:18:35 -0600
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pBC6IZJZ015614
-	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 00:18:35 -0600 (CST)
-Received: from DFLE70.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC6IZ5t011656
-	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 00:18:35 -0600 (CST)
-In-Reply-To: <1323670663-17793-1-git-send-email-archit@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Make PICODLP driver on OMAP2_DSS_DPI since it is the display interface it uses.
+On 12/07/2011 08:42 PM, Felipe Contreras wrote:
+> On Wed, Dec 7, 2011 at 1:46 PM, Jarkko Nikula <jarkko.nikula@bitmer.com> wrote:
+>> On 12/05/2011 07:31 PM, Felipe Contreras wrote:
+>>> Should probably have CC'ed linux-omap.
+>>>
+>>> On Mon, Dec 5, 2011 at 7:23 PM, Felipe Contreras
+>>> <felipe.contreras@nokia.com>  wrote:
+>>>> From: Felipe Contreras<felipe.contreras@gmail.com>
+>>>>
+>>>> This reverts commit 10299e2e4e3ed3b16503d4e04edd48b33083f4e2.
+>>>>
+>>>> This seems to break USB networking stuff.
+>>>>
+>> I don't think revert is needed since CONFIG_CHARGER_ISP1704=y should make it
+>> working. Although I don't know do we really need to drive the ISP1704 into
+>> reset in board-rx51-peripherals.c? Would it be better to leave gpio state as
+>> it was set by the bootloader and let the driver to do reset sequence if
+>> needed?
+>>
+>> http://marc.info/?l=linux-omap&m=130795363204884&w=2
+> Nope, that's actually worst:
+>
+> Unhandled fault: external abort on non-linefetch (0x1028) at 0xfa0ab001
+> Internal error: : 1028 [#1]
+> Modules linked in:
+Indeed yes. I checked that in 3.0 it still works but not in 3.1 so some
+non isp1704_charger change has broke it as there hasn't been changes on it.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/displays/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 8d8e1fe..74d29b5 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -41,7 +41,7 @@ config PANEL_NEC_NL8048HL11_01B
- 
- config PANEL_PICODLP
- 	tristate "TI PICO DLP mini-projector"
--	depends on OMAP2_DSS && I2C
-+	depends on OMAP2_DSS_DPI && I2C
- 	help
- 		A mini-projector used in TI's SDP4430 and EVM boards
- 		For more info please visit http://www.dlp.com/projector/
 -- 
-1.7.4.1
-
+Jarkko
