@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 2/6] OMAP2+: omap_hwmod: manage the wake-up latency constraints
-Date: Mon, 12 Dec 2011 17:18:17 +0100
-Message-ID: <1323706701-6627-3-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 3/6] OMAP: PM: register to the per-device PM QoS framework
+Date: Mon, 12 Dec 2011 17:18:18 +0100
+Message-ID: <1323706701-6627-4-git-send-email-j-pihet@ti.com>
 References: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ee0-f46.google.com ([74.125.83.46]:33188 "EHLO
 	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751203Ab1LLQS6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 11:18:58 -0500
+	with ESMTP id S1751203Ab1LLQS7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 11:18:59 -0500
 Received: by mail-ee0-f46.google.com with SMTP id c4so1674351eek.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 08:18:57 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 08:18:59 -0800 (PST)
 In-Reply-To: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,80 +18,121 @@ Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Hwmod is queried from the OMAP_PM layer to manage the power domains
-wake-up latency constraints. Hwmod retrieves the correct power domain
-and if it exists it calls the corresponding power domain function.
+Implement the devices wake-up latency constraints using the global
+device PM QoS notification handler which applies the constraints to the
+underlying layer by calling the corresponding function at hwmod level.
 
 Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
 latency constraints on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c             |   27 +++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 2 files changed, 28 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/pm.c |   71 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 70 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 529142a..c3a4cc4 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -143,6 +143,7 @@
- #include "powerdomain.h"
- #include <plat/clock.h>
- #include <plat/omap_hwmod.h>
-+#include <plat/omap_device.h>
- #include <plat/prcm.h>
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 1881fe9..a40d4f3 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -11,15 +11,18 @@
  
- #include "cm2xxx_3xxx.h"
-@@ -2616,10 +2617,34 @@ ohsps_unlock:
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/notifier.h>
+ #include <linux/io.h>
+ #include <linux/err.h>
+ #include <linux/opp.h>
++#include <linux/pm_qos.h>
+ #include <linux/export.h>
+ 
+ #include <plat/omap-pm.h>
+ #include <plat/omap_device.h>
+-#include "common.h"
++#include <plat/omap_hwmod.h>
+ 
++#include "common.h"
+ #include "voltage.h"
+ #include "powerdomain.h"
+ #include "clockdomain.h"
+@@ -215,12 +218,78 @@ static void __init omap4_init_voltages(void)
+ 	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
  }
  
- /**
-+ * omap_hwmod_set_wkup_constraint- set/release a wake-up latency constraint
-+ *
-+ * @oh: struct omap_hwmod* to which the target device belongs to.
-+ * @cookie: identifier of the constraints list for @oh.
-+ * @min_latency: the minimum allowed wake-up latency for @oh.
-+ *
-+ * Returns 0 upon success, -EINVAL in case of invalid parameters, or
-+ * the return value from pwrdm_set_wkup_lat_constraint.
-+ */
-+int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh,
-+				       void *cookie, long min_latency)
++/* Interface to the per-device PM QoS framework */
++static int omap2_dev_pm_qos_handler(struct notifier_block *nb,
++				    unsigned long new_value,
++				    void *req)
 +{
-+	struct powerdomain *pwrdm = omap_hwmod_get_pwrdm(oh);
++	struct omap_device *od;
++	struct omap_hwmod *oh;
++	struct platform_device *pdev;
++	struct dev_pm_qos_request *dev_pm_qos_req = req;
 +
-+	if (!pwrdm) {
-+		pr_err("%s: Error: could not find powerdomain "
-+		       "for %s\n", __func__, oh->name);
++	pr_debug("OMAP PM constraints: req@0x%p, new_value=%lu\n",
++		 req, new_value);
++
++	/* Look for the platform device for the constraint target device */
++	pdev = to_platform_device(dev_pm_qos_req->dev);
++
++	/* Try to catch non platform devices */
++	if (pdev->name == NULL) {
++		pr_err("%s: Error: platform device for device %s not valid\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
 +		return -EINVAL;
 +	}
 +
-+	return pwrdm_set_wkup_lat_constraint(pwrdm, cookie, min_latency);
++	/* Find the associated omap_device for dev */
++	od = to_omap_device(pdev);
++	if (od == NULL) {
++		pr_err("%s: Error: no omap_device for device %s\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
++		return -EINVAL;
++	}
++
++	/* Check that the omap_device has an unique hwmod entry */
++	if (od->hwmods_cnt != 1) {
++		pr_err("%s: Error: No unique hwmod for device %s\n",
++		       __func__, dev_name(dev_pm_qos_req->dev));
++		return -EINVAL;
++	}
++
++	/* Find the primary omap_hwmod for dev */
++	oh = od->hwmods[0];
++
++	pr_debug("OMAP PM constraints: req@0x%p, dev=0x%p, new_value=%lu\n",
++		 req, dev_pm_qos_req->dev, new_value);
++
++	/* Apply the constraint */
++	return omap_hwmod_set_wkup_lat_constraint(oh, dev_pm_qos_req,
++						  new_value);
 +}
 +
-+/**
-  * omap_hwmod_get_context_loss_count - get lost context count
-  * @oh: struct omap_hwmod *
-  *
-- * Query the powerdomain of of @oh to get the context loss
-+ * Query the powerdomain of @oh to get the context loss
-  * count for this device.
-  *
-  * Returns the context loss count of the powerdomain assocated with @oh
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 8b372ed..222f792 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -600,6 +600,8 @@ int omap_hwmod_for_each_by_class(const char *classname,
- 				 void *user);
++static struct notifier_block omap2_dev_pm_qos_notifier = {
++	.notifier_call	= omap2_dev_pm_qos_handler,
++};
++
++static int __init omap2_dev_pm_qos_init(void)
++{
++	int ret;
++
++	ret = dev_pm_qos_add_global_notifier(&omap2_dev_pm_qos_notifier);
++	WARN(ret, KERN_ERR "Cannot add global notifier for dev PM QoS\n");
++
++	return ret;
++}
++
+ static int __init omap2_common_pm_init(void)
+ {
+ 	if (!of_have_populated_dt())
+ 		omap2_init_processor_devices();
+ 	omap_pm_if_init();
  
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state);
-+int omap_hwmod_set_wkup_lat_constraint(struct omap_hwmod *oh, void *cookie,
-+				       long min_latency);
- int omap_hwmod_get_context_loss_count(struct omap_hwmod *oh);
- 
- int omap_hwmod_no_setup_reset(struct omap_hwmod *oh);
++	/* Register to the per-device PM QoS framework */
++	omap2_dev_pm_qos_init();
++
+ 	return 0;
+ }
+ postcore_initcall(omap2_common_pm_init);
 -- 
 1.7.5.4
 
