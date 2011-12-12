@@ -1,54 +1,48 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv10 00/14] PRCM chain handler
-Date: Mon, 12 Dec 2011 11:56:57 +0200
-Message-ID: <1323683817.31914.22.camel@sokoban>
+Subject: Re: [PATCHv10 04/14] omap: prm: add support for suspend prepare
+ and finish callbacks
+Date: Mon, 12 Dec 2011 11:57:42 +0200
+Message-ID: <1323683862.31914.23.camel@sokoban>
 References: <1323440857-385-1-git-send-email-t-kristo@ti.com>
-	 <87mxb1l6e2.fsf@ti.com>
+	 <1323440857-385-5-git-send-email-t-kristo@ti.com>  <87aa71l52c.fsf@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46660 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46697 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105Ab1LLJ5B (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 04:57:01 -0500
-In-Reply-To: <87mxb1l6e2.fsf@ti.com>
+	id S1751386Ab1LLJ5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 04:57:46 -0500
+In-Reply-To: <87aa71l52c.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
 Cc: linux-omap@vger.kernel.org, paul@pwsan.com, b-cousson@ti.com
 
-On Fri, 2011-12-09 at 14:36 -0800, Kevin Hilman wrote:
+On Fri, 2011-12-09 at 15:04 -0800, Kevin Hilman wrote:
 > Tero Kristo <t-kristo@ti.com> writes:
 > 
-> > Once more a new version, it was decided that the PRM driver will be
-> > dropped for now, and we will have the chain handler support under
-> > mach-omap2 directory. This will most likely be addressed in future.
-> 
-> Just to clarify for others: We decided that since the PRM driver is
-> going to take some more time to sort out, we would at least get the
-> chained IRQ support in now so we can unblock drivers that need it for
-> wakeup support (like UART, USB host, etc.)
-> 
-> > Other than that, the code is pretty close to what was in version 9,
-> > just location has changed from /drivers/mfd to /arch/arm/mach-omap2.
+> > These are needed because runtime PM is disabled during suspend, and
+> > it is bad if we get interrupts from the PRCM chain handler during it.
+> > This patch masks all the PRCM interrupt events, but does not ack them,
+> > if an interrupt is received during suspend. Once suspend->finish
+> > is called, all the masked events will be re-enabled, which causes
+> > immediate PRCM interrupt and handles the postponed event.
 > >
-> > Tested with omap3 beagleboard, with dynamic idle and suspend, both
-> > retention and off. omap4 should not be an issue seeing the code is
-> > close to what was in version 9.
-> >
-> > TEMP patches can be ignored, they are provided only for testing
-> > purposes, and shall be replaced by uart runtime support.
+> > The suspend prepare and complete  callbacks will be called from pm34xx.c /
+> > pm44xx.c files in the following patches.
 > 
-> Can you repost a series without the TEMP patches, and Cc
-> linux-arm-kernel as well.
+> You might just update this changelog to clarify why you're using the the
+> driver-specific prepare & complete terminology whereas this code is
+> using begin/finish hooks as part of platform_pm_ops.
 > 
-> For testing purposes, you can make a branch available with the temp
-> patches included, and mention it in the changelog.
+> IOW, state that this will soon be becoming a real driver, so you're
+> using the driver terminology.
+> 
+> Also note that subject uses prepare & finish instead of prepare & complete.
 
-Okay, I'll repost once I have fixed this version hopefully.
+Yea this changelog is outdated, will fix.
 
 -Tero
-
 
