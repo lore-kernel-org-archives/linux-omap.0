@@ -1,41 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
-Date: Mon, 12 Dec 2011 11:44:45 -0800
-Message-ID: <20111212194445.GG32251@atomide.com>
-References: <20111207193141.GG31337@atomide.com>
- <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
- <20111208144044.GA25415@xps8300>
- <CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH v3 4/5] clk: basic gateable and fixed-rate clks
+Date: Mon, 12 Dec 2011 20:47:57 +0100
+Message-ID: <20111212194757.GB12131@lunn.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from londo.lunn.ch ([80.238.139.98]:53059 "EHLO londo.lunn.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753739Ab1LLUID (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 15:08:03 -0500
 Content-Disposition: inline
-In-Reply-To: <CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Heikki Krogerus <krohei@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mturquette@linaro.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, mturquette@ti.com
 
-* Felipe Contreras <felipe.contreras@gmail.com> [111208 11:52]:
-> On Thu, Dec 8, 2011 at 4:40 PM, Heikki Krogerus <krohei@gmail.com> wrote:
-> > On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
-> >> From: Heikki Krogerus <krohei@gmail.com>
-> >
-> > I would prefer that you change this so this is from you, like it
-> > actually is. You can mention me in the commit message if you like.
-> 
-> Well, you came with the fix, I just typed it down, but as you wish :)
-> 
-> >> Without this USB networking doesn't work as the link is never detected.
-> >
-> > What this changes is, it leaves the transceiver powered by default
-> > instead of setting it into power off mode. So not only USB networking
-> > is affected by this. If isp1704_charger is not enabled with RX51, USB
-> > does not work at all. Please change the comment.
-> 
-> I've updated the patch.
+Hi Mike
 
-Sorry what's the deal with this one? Is this the one to use or is there
-some other patch?
++int clk_register_gate(struct device *dev, const char *name, unsigned long flags,
++ 			      struct clk *fixed_parent, void __iomem *reg, u8 bit_idx,
++			      	     int set_to_enable)
++
 
-Tony
+How do you suggest handling gated clocks which are already running
+when calling the register function?
+
+On my kirkwood bases system, the bootloader has already turned on a
+number of clocks. It does not seem right to start messing with
+clk->enable_count and clk->prepare_count. Could clk_register_gate()
+have one more parameter, a bool indicating running?
+
+The kirkwood mach code keeps a bitmap of which platform_data init
+functions are called from the board file. In a late_initcall function
+it then enables and disables clocks as needed. What i was thinking is
+i can ask the hardware what clocks are already running before i
+register them and register them as running/not running. Then let the
+driver probe functions use the API to enable clocks which are really
+needed. In a late_initcall function, i would then call clk_disable(),
+clk_unprepare() on clocks which the boot loader started, thus turning
+them off if no driver has claimed them.
+
+Is this how you envisage it working?
+
+Thanks
+	Andrew
