@@ -1,44 +1,70 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: [PATCH] ARM: OMAP: mcbsp: Fix possible memory corruption
-Date: Mon, 12 Dec 2011 13:22:28 +0200
-Message-ID: <4EE5E3F4.6060701@bitmer.com>
-References: <1323678976-4119-1-git-send-email-jarkko.nikula@bitmer.com> <1323679106-4191-1-git-send-email-jarkko.nikula@bitmer.com> <4EE5D639.8080608@compulab.co.il>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 08/10] omapfb: lcd_ams_delta: Drive control lines over
+ GPIO
+Date: Mon, 12 Dec 2011 13:24:47 +0200
+Message-ID: <1323689087.3852.19.camel@deskari>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+	 <1323634328-856-9-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-HrrbFEKLHQnNz2ugs0wK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [213.157.87.50] ([213.157.87.50]:59848 "EHLO bitmer.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752052Ab1LLLXc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 06:23:32 -0500
-In-Reply-To: <4EE5D639.8080608@compulab.co.il>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:53503 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752169Ab1LLLYx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 06:24:53 -0500
+In-Reply-To: <1323634328-856-9-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, neilb@suse.de
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Hi
 
-On 12/12/2011 12:23 PM, Igor Grinberg wrote:
-> On 12/12/11 10:38, Jarkko Nikula wrote:
->> Commits 09d28d ("ARM: OMAP: mcbsp: Start generalize omap2_mcbsp_set_clks_src")
->> and 7bc0c4 ("ARM: OMAP: mcbsp: Start generalize signal muxing functions")
->> incorrectly set two struct omap_mcbsp_platform_data fields after
->> omap_device_build_ss and kfree calls.
->>
->> Fix this by moving these pdata assignments before those calls.
->>
->> Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
->> Reported-by: neilb@suse.de
-> Perhaps, should be:
-> Reported-by: NeilBrown <neilb@suse.de>
-> and
-> Cc: <stable@vger.kernel.org>	[3.1]
-> as for below.
->> ---
->> For 3.2, 3.1 is ok.
->> ---
-No need to cc stable since the issue is not in stable kernels.
+--=-HrrbFEKLHQnNz2ugs0wK
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Jarkko
+On Sun, 2011-12-11 at 21:12 +0100, Janusz Krzysztofik wrote:
+> Don't use Amstrad Delta custom I/O functions any longer, use GPIO API
+> instead.
+>=20
+> Depends on patch 5/10 "MTD: NAND: ams-delta: Use GPIO instead of custom
+> I/O".
+>=20
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+>  arch/arm/mach-omap1/board-ams-delta.c             |   10 -------
+>  arch/arm/plat-omap/include/plat/board-ams-delta.h |    2 -
+>  drivers/video/omap/lcd_ams_delta.c                |   27 +++++++++++++++=
+-----
+>  3 files changed, 20 insertions(+), 19 deletions(-)
+
+Acked-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+
+ Tomi
+
+
+--=-HrrbFEKLHQnNz2ugs0wK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO5eR/AAoJEPo9qoy8lh71y4AP/36ymwGQfo0/xUblq852gGHK
+tddm2t7IxPa246K8pshBAskSuCLlmL9lDmjj3r5NWnU4HxHxfLtoRRjfyCBS+RtV
+YvKaWwHIdbx5fpiIsMiWlmuqHdZGST3RGPSqR/k/niT+PSHnk25iCIdOvCi9TM9/
+b4/uKGvR0A6bC2Q1JmhWVaTt2jsYtsCbYSd/vd2EAqxd/QwU6MI/q92YxWG8k3Np
+fSGSvRC3Y6eCJIwav5SF1+dX4Wnr/d1etWWJ696etdG1AU6/hxp3zHcNQd0LBqyd
+THRvM05HsLmETf4dcQFy4CIS13F41gkjaR8OtqEpJ6wYrWd8ygmSdv6GdCpR4Z8/
+Y5zcBcPrwI9/2MgqdoRblqGfuaYPZ6V1kdMHrZlk4Jz3UUluiTBdEQy0bBneiSqp
+yGAxx6goIYcTc94NIp8hr5+DH7qmNcroMRkhgEbGaerF01+p0gwj+Xe5ER4rW8Az
+nQgfTpWk3mUohTWs92XYIlrpjvWv5AnuNTfEe7yzcetIUw3y4b4wbriTzZA/a/ir
+8UqKyFnduoTu2BAUOSsZrzok2/diRAvuvqQC0ByEf7yewg/uwFUyv5YhclHTUXOP
+MBZwDY7U2VXEbF+lLagrAud/dsDR7OA+rfi3izWBcvJ3RI0z0i9cBTEbrxEzIUvQ
+1rjc4B7YLHQ/HMw3JSfk
+=ca/Q
+-----END PGP SIGNATURE-----
+
+--=-HrrbFEKLHQnNz2ugs0wK--
+
