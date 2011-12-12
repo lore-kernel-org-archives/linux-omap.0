@@ -1,50 +1,41 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: Interrupt issue in twl4030_keypad
-Date: Mon, 12 Dec 2011 11:23:09 -0800
-Message-ID: <20111212192309.GA12889@suse.de>
-References: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
+Date: Mon, 12 Dec 2011 11:44:45 -0800
+Message-ID: <20111212194445.GG32251@atomide.com>
+References: <20111207193141.GG31337@atomide.com>
+ <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
+ <20111208144044.GA25415@xps8300>
+ <CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
+In-Reply-To: <CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, stable@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Cc: Heikki Krogerus <krohei@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 12, 2011 at 08:30:49PM +0200, Felipe Contreras wrote:
-> Hi,
+* Felipe Contreras <felipe.contreras@gmail.com> [111208 11:52]:
+> On Thu, Dec 8, 2011 at 4:40 PM, Heikki Krogerus <krohei@gmail.com> wrote:
+> > On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
+> >> From: Heikki Krogerus <krohei@gmail.com>
+> >
+> > I would prefer that you change this so this is from you, like it
+> > actually is. You can mention me in the commit message if you like.
 > 
-> The short version is this: either we revert this patch[1], or we apply
-> this patch series[2], as well as its essential fixes[3].
+> Well, you came with the fix, I just typed it down, but as you wish :)
 > 
-> The long version is this. There's a synchronization issue with the
-> current keypad driver and twl core; the irq is marked as handled even
-> though the thread that is supposed to handle it hasn't run yet, and
-> since it's clear-on-read, and it hasn't been read, it's detected
-> again, so they keypad driver receives two interrupt callbacks instead
-> of one, and in the second one reads nothing from the i2c register, so
-> a key release is assumed. This makes key-presses as simple as shift+a
-> impossible.
+> >> Without this USB networking doesn't work as the link is never detected.
+> >
+> > What this changes is, it leaves the transceiver powered by default
+> > instead of setting it into power off mode. So not only USB networking
+> > is affected by this. If isp1704_charger is not enabled with RX51, USB
+> > does not work at all. Please change the comment.
 > 
-> In other words, it's totally unreliable. This might not be isolated to
-> the keypard driver, but other "nested" interrupts from twl core that
-> started using request_threaded_irq prematurely (before it was
-> supported by the twl core). But at least I haven't tried those.
-> 
-> This patch was applied on 2.6.33, which means all versions before 3.2
-> are affected, including 3.1.
-> 
-> What do you think about fixing this on stable kernels?
+> I've updated the patch.
 
-I think you need to tell me exactly what git commit ids in Linus's tree
-that you want to see in the stable kernel releases, which you didn't do
-here :(
+Sorry what's the deal with this one? Is this the one to use or is there
+some other patch?
 
-Also, please use stable@vger.kernel.org, stable@kernel.org has been dead
-since August.
-
-thanks,
-
-greg k-h
+Tony
