@@ -1,38 +1,28 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] PM support for omap4 for v3.3 merge window
-Date: Sun, 11 Dec 2011 18:10:40 -0800
-Message-ID: <CAOesGMjCJpG7-t9dfnVkg7hh_1EqkK3FxxLvh7AU0xnp7Xz5vQ@mail.gmail.com>
-References: <20111209212155.GZ31337@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 07/10] ASoC: OMAP: ams-delta: Drive modem/codec pins over
+ GPIO API
+Date: Mon, 12 Dec 2011 12:29:50 +0800
+Message-ID: <20111212042949.GA2806@opensource.wolfsonmicro.com>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:55726 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752743Ab1LLCKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Dec 2011 21:10:40 -0500
-Received: by mail-yx0-f174.google.com with SMTP id m11so3353624yen.19
-        for <linux-omap@vger.kernel.org>; Sun, 11 Dec 2011 18:10:40 -0800 (PST)
-In-Reply-To: <20111209212155.GZ31337@atomide.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:55913 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752149Ab1LLE3z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Dec 2011 23:29:55 -0500
+Content-Disposition: inline
+In-Reply-To: <1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>
 
-On Fri, Dec 9, 2011 at 1:21 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi Arnd & Olof,
->
-> Please pull omap4 PM support from:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap4
->
-> Note that because of the map_io and common.h changes this is based
-> on commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a in Russell's
-> devel-stable.
->
-> FYI, other omap SoC related changes that I'll post later will have a
-> build dependency to this series for the omap-secure.c changes.
+On Sun, Dec 11, 2011 at 09:12:05PM +0100, Janusz Krzysztofik wrote:
+> Don't use Amstrad Delta custom I/O functions any longer, replace them
+> with GPIO. Old pin definitions, no longer used by the modem bits either,
+> can be dropped.
 
-Thanks, pulled into next/pm.
-
-
--Olof
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
