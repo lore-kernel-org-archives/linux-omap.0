@@ -1,59 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to
- postcore
-Date: Mon, 12 Dec 2011 10:04:56 -0800
-Message-ID: <20111212180456.GF31337@atomide.com>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <1323634328-856-2-git-send-email-jkrzyszt@tis.icnet.pl>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv11 0/8] OMAP3+: PRCM chain handler
+Date: Mon, 12 Dec 2011 20:15:25 +0200
+Message-ID: <1323713733-13115-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1323634328-856-2-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41171 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753466Ab1LLSPw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 13:15:52 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111211 11:41]:
-> This will allow boards with custom memory mapped GPIO ports to set up
-> and use those port pins while initializing devices from arch init.
+Hi,
 
-Care to explain a bit more why you need to initialize those devices
-early on?
+PRCM chain handler is adding a support to the omap3+ kernel that
+allows different drivers to use PRCM interrupt events for their
+own purposes, typically this means IO wakeups. This work was
+attempted to integrate as its own driver at some point of
+the evolution of this set, however this was now postponed as
+the lacking support is basically blocking a few drivers.
 
-Usually moving things earlier and earlier is an endless loop 
-adding more and more nasty dependencies..
+This is the version 11 of this set, now posted to linux-arm-kernel also
+as cc. Contains just a couple of minor changes compared to previous
+version proposed by Kevin Hilman.
 
-I'd rather see things getting initialized later as regular
-device drivers so we have decent kernel error messages when
-something goes wrong without having to enable debug_ll.
+Also, patch 8 is new (posted as a separate patch to l-o list earlier),
+for supporting different irqs for different pads on the same hwmod.
+This is needed at least by USB driver.
 
-Regards,
+This version tested on omap3 beagle board, dynamic idle + suspend,
+with and without off-mode. I have pushed two branches on a public
+git tree:
 
-Tony
+git://gitorious.org/~kristo/omap-pm/omap-pm-work.git
 
+branch: chain-prcm-v11
+branch2: chain-prcm-v11-debug
 
-> Created against linux-3.2-rc5.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> ---
->  drivers/gpio/gpio-generic.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpio-generic.c b/drivers/gpio/gpio-generic.c
-> index 4e24436..a6eaf38 100644
-> --- a/drivers/gpio/gpio-generic.c
-> +++ b/drivers/gpio/gpio-generic.c
-> @@ -528,7 +528,7 @@ static int __init bgpio_platform_init(void)
->  {
->  	return platform_driver_register(&bgpio_driver);
->  }
-> -module_init(bgpio_platform_init);
-> +postcore_initcall(bgpio_platform_init);
->  
->  static void __exit bgpio_platform_exit(void)
->  {
-> -- 
-> 1.7.3.4
-> 
+Debug branch contains a few debugging related patches I've used
+for testing purposes.
+
+-Tero
+
