@@ -1,70 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: Interrupt issue in twl4030_keypad
-Date: Mon, 12 Dec 2011 23:34:00 +0200
-Message-ID: <20111212213359.GB4349@legolas.emea.dhcp.ti.com>
-References: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
- <20111212191241.GC3408@legolas.emea.dhcp.ti.com>
- <CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH v3 4/5] clk: basic gateable and fixed-rate clks
+Date: Mon, 12 Dec 2011 22:38:26 +0100
+Message-ID: <20111212213826.GH13600@lunn.ch>
+References: <20111212194757.GB12131@lunn.ch>
+ <CAJOA=zP1CAsCqJERvXC6tTh_gs_boGYnO3MUC5=Vgiiw=0Vs_w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:49024 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753415Ab1LLVeG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 16:34:06 -0500
-Content-Disposition: inline
-In-Reply-To: <CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: balbi@ti.com, linux-omap@vger.kernel.org, stable@kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-input@vger.kernel.org
-
-
---s/l3CgOIzMHHjg/5
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAJOA=zP1CAsCqJERvXC6tTh_gs_boGYnO3MUC5=Vgiiw=0Vs_w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Turquette, Mike" <mturquette@ti.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+> I don't like this approach.  If the bool for a particular clk is
+> statically defined then it could be wrong (bootloader/kernel
+> mismatch).
+> 
+> I've been thinking of adding a clk->ops->init callback in clk_init,
+> which is defined for a platform to use however the author sees fit.
+> There have been a few cases where it would be nice to "init" a clk
+> only once, when it is registered.  That code could also handle
+> detecting if a clk is enabled or not.
+> 
+> On the other hand we already have a .get_parent callback which is only
+> good for figuring out which parent a mux clk is using... maybe a
+> .is_enabled or .get_enabled would be a good idea which also served the
+> purpose of dynamically determining whether a clk is disabled or
+> running.
+> 
+> In general though I think we should try to keep the solution in the
+> core code, not by having platform code pass in a bool.
 
-On Mon, Dec 12, 2011 at 10:55:11PM +0200, Felipe Contreras wrote:
-> > Samuel assumed it was ok and, like I said above, it worked for my simpl=
-e GPIO
-> > usecase with beagleboard.
->=20
-> Well, for 3.2 I think the situation is fine, but that's not what I'm
-> talking about. About your GPIO tests, are you sure you got the
-> interrupts through twl4030 irq handling?
+Hi Mike
 
-Card detect GPIO on beagleboard is a TWL GPIO. Checking that
-removing/adding the card actually triggers an IRQ, should be enough. No?
+How about simply reading the bit in the control register? You are
+already doing a read/modify/write when enabling/disabling the clock,
+so it seems reasonably safe to assume the read gives you the current
+state. For those platforms which this does not work, you could add
+another flag disabling this read to get the initial state.
 
---=20
-balbi
-
---s/l3CgOIzMHHjg/5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJO5nNHAAoJEIaOsuA1yqRE/5QP+wRDIwszgdbt0i4qbXfUV4gP
-wEOHSThAtqjGo+cMlhrqTNtcwq5sfl1xR5nmF9dTpCb/Pg2tKQ9aALkdJhAd4i9f
-pQ9q6wI/oaftoAlGrbLxWb19JI2XDAoma1VavHfZt+ZisNp5oS6UrVpJk/s59fU+
-VGMFXWsXkUFgeuCTABRjZVG83xPFszCqBHIfEb/oHj2zI9Ou5bS8eFyygmiR09Wh
-mjEUJCXGuP9HlJvoX0v6yKrEmpOaI/b6MJlYJuFBRkuBBDAYNrFutqjkNq0QmQEV
-uzVvtFadyF3tpBHIY8B2OQOY+kLvFe7gxSodQTglpfay9uKOsSoCsOEQ3JyHVcZp
-RI3zd4hPe4KhIDQn026bzi31ftzTvEZ5hf0YVzwUI1hJ9xDLDqMKcmOuSCIlUDcD
-Fj970jw1yvguIw8SUif+jEpEmcv/wUUZPNjkMGx/kKVUzzxuJbMHmqIusggxlK40
-XlvheLiG7E+vrtPLVFyMmvR3QZqNWjKurHQpO7nLkpizJKuseml+mxnrgkyTgLor
-WOp2gOobVV6DW4saQuy27GYXJGoBCoj5Qi8y3SsQsyazHh08RiwqhFh7YANaj/w6
-OVA9dZ/Q0lU6T95n2w7yqva5OBYB4+yaPypqUP0viob/wrFJwchox+CejM5X9fVk
-9wSi9pGuUZwyZtZGox2T
-=+Kds
------END PGP SIGNATURE-----
-
---s/l3CgOIzMHHjg/5--
+	Andrew
