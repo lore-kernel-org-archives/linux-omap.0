@@ -1,103 +1,63 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv4 00/15] voltdm cleanup + auto-ret / auto-off support
-Date: Mon, 12 Dec 2011 11:38:37 +0200
-Message-ID: <1323682717.31914.7.camel@sokoban>
+Subject: Re: [PATCHv4 01/15] OMAP3+: PM: VP: use uV for max and min voltage
+ limits
+Date: Mon, 12 Dec 2011 11:39:41 +0200
+Message-ID: <1323682781.31914.8.camel@sokoban>
 References: <1322236188-19456-1-git-send-email-t-kristo@ti.com>
-	 <87sjktbijo.fsf@ti.com>
+	 <1322236188-19456-2-git-send-email-t-kristo@ti.com> <87wra5fwk4.fsf@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43053 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:48943 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751209Ab1LLJil (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 04:38:41 -0500
+	id S1752265Ab1LLJjo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 04:39:44 -0500
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBC9ceIG008882
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBC9dixg032658
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:38:40 -0600
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:39:44 -0600
 Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC9ceIs015540
-	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:38:40 -0600 (CST)
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC9cePS011316
-	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:38:40 -0600 (CST)
-In-Reply-To: <87sjktbijo.fsf@ti.com>
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC9diCI015866
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:39:44 -0600 (CST)
+Received: from DFLE70.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC9diTl012687
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:39:44 -0600 (CST)
+In-Reply-To: <87wra5fwk4.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com
+Cc: linux-omap@vger.kernel.org, nm@ti.com, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Fri, 2011-12-09 at 12:23 -0800, Kevin Hilman wrote:
-> Hi Tero,
-> 
+On Fri, 2011-12-09 at 10:07 -0800, Kevin Hilman wrote:
 > Tero Kristo <t-kristo@ti.com> writes:
 > 
-> > Changes compared to previous version:
+> > From: Nishanth Menon <nm@ti.com>
 > >
-> > - merged most of the voltagedomain cleanup fixes to patch 2
-> > - moved pmic latencies to omap_voltdm_pmic struct
-> > - renamed omap_lp_params to omap2_oscillator as it only contains
-> >   osc info now
-> > - major changes to usecount support (patch 11+, needed for auto-ret)
-> >   * added usecounts to voltagedomain / powerdomain
-> >   * fixed usecount tracking so that the numbers are sane now
-> >   * changed behavior of some usecounting sources that they do not
-> >     update the counts (autoidle support)
-> > - added auto-ret / auto-off support, based on fixed usecounting
-> >   * smartreflex disabled / enabled
-> >   * auto-ret / auto-off enabled based on target state
-> > - some other minor tweaks I have probably forgotten to mention
-> 
-> This series is looking really good.  Thanks!
-> 
-> One thing I'd like to see is a bit more comments.  Particularily, the
-> new functions in the VC core need kerneldoc comments and verbose
-> descriptions.
-> 
-> The differences in timing setups between retention and off are not
-> obvious when reading the code (and are easily forgotten).  They also
-> equire a bit of TRM (re)reading to understand what's going on.  Some
-> summary comments in the code, along with TRM references would be most
-> helpful so when coming back to this code in a few months or more, we can
-> easily remember what's going on (or at least where to look.)  Thanks.
-> 
-
-Okay, I'll try to figure out more comments on next rev. This has never
-been too strong point in the code I write I guess. :)
-
-> > Tested on omap3 beagle:
-> > - voltages for vdd1 and vdd2 change when entering idle
-> > - both suspend and dynamic idle tested
-> > - tested that voltages reach target levels for both ret / off
+> > Every PMIC has it's own eccentricities, For example, one of the
+> > PMIC has MSB set to 1 for a specific function - voltage enable!
+> > using an hardcoded value specific for TWL when copied over to
+> > such an implementation causes the system to crash as the MSB bit
+> > was 0 and the voltage got disabled!.
 > >
-> > Tested on omap4 blaze with custom kernel
-> > - this requires a few additional patches missing from this set as
-> >   omap4 PM support is still not merged
-> 
-> MPUSS support is now queued (in Tony's tree), but CORE PM is still
-> missing.
-
-I can take a look at this part also, but CORE PM is needed for this set
-for testing purposes I believe, otherwise the auto-ret part does nothing
-and is rather impossible to test (not sure if mpu part scales without
-CORE PM, it might actually.)
-
-> 
-> > - will post missing patches once possible from upstream point of view
-> > - voltages for vdd1 and vdd3 change when entering idle
+> > Instead we use actual values and depend on the convertion routines
+> > to abstract out the eccentricities of each PMIC.
 > >
-> > Applies on top of Kevin's for_3.2/voltage-cleanup branch.
+> > With this, we can now move the voltages to a common location in
+> > voltage.h as they are no longer dependent on PMICs and expect the
+> > PMIC's conversion routines to set a cap if the voltage is out of
+> > reach for the PMIC.
 > 
-> You can use mainline now as that branch is merged.
-
-Ah okay, good to know.
-
+> Nice.
 > 
-> Also, please Cc linux-arm-kernel on future versions of this series.
+> > Reported-by: Jon Hunter <jon-hunter@ti.com>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> 
+> Also needs your sign-off, since you're on the delivery path now.
 
-Can do.
+Oh sorry about that, I'll add it.
 
 -Tero
 
