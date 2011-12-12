@@ -1,126 +1,59 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Should I worry about "omap-mcbsp.2: alias fck already exists"
- or is it expected?
-Date: Mon, 12 Dec 2011 11:34:13 +0100
-Message-ID: <4EE5D8A5.1010308@ti.com>
-References: <20111212103553.044b17bb@notabene.brown>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] video: omap: Staticise non-exported symbols
+Date: Mon, 12 Dec 2011 12:45:57 +0200
+Message-ID: <1323686757.3852.12.camel@deskari>
+References: <1323394677.3740.2.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-lv+1MUsSdgATwwRxylBy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50704 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131Ab1LLKeW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 05:34:22 -0500
-In-Reply-To: <20111212103553.044b17bb@notabene.brown>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:43911 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751105Ab1LLKqG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 05:46:06 -0500
+In-Reply-To: <1323394677.3740.2.camel@phoenix>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Jonathan McDowell <noodles@earth.li>, Imre Deak <imre.deak@nokia.com>, Cory Maccarrone <darkstar6262@gmail.com>, Laurent Gonzalez <palmte.linux@free.fr>, Marek Vasut <marek.vasut@gmail.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-+ Paul and Peter
 
-Hi Neil,
+--=-lv+1MUsSdgATwwRxylBy
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 12/12/2011 12:35 AM, NeilBrown wrote:
->
-> In 3.2-rc5 (and some earlier kernels) I'm getting the boot-time warning:
->
-> [    0.186828]  omap-mcbsp.2: alias fck already exists
->
-> and
->
-> [    0.188476]  omap-mcbsp.3: alias fck already exists
->
-> This happens because omap_alloc_device() contains:
->
->
-> 	for (i = 0; i<  oh_cnt; i++) {
-> 		hwmods[i]->od = od;
-> 		_add_hwmod_clocks_clkdev(od, hwmods[i]);
-> 	}
->
-> so if oh_cnt is ever>  1 (which is is for mcbsp.2 and .3 in
-> omap_hwmod_3xxx_data.c as they both declare a '.devattr'), then
-> _add_hwmod_clocks_clkdev will be called twice with the one 'od', and both
-> calls will try to add an alias 'fsck' to that same device, and the second
-> will always give a warning.
->
-> Is this actually a bug,
+On Fri, 2011-12-09 at 09:37 +0800, Axel Lin wrote:
+> These symbols are not used outside it's driver so no need to
+> make the symbol global.
+>=20
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
 
-It is indeed a bug. The point is that in theory most hwmod should have 
-an unique device to represent them. But in the case of the Mcbsp2 and 3, 
-due to the tightly coupled sidetone, and because each one has a 
-dedicated OCP port, it was decided to have 2 hwmods but only one 
-omap_device.
+Thanks, applied to DSS tree.
 
-I'm wondering now if another device should not be considered, but I'll 
-let Peter decide for the McBSP driver organization.
+ Tomi
 
-> or should we silence the warning on second and
-> subsequent calls to omap_alloc_device()?
 
-We can have only one "fck" alias per device, so preventing to register 
-any subsequent fck seems the good approach to me.
-The warning was added to detect a potential static version of the clkdev 
-and thus eliminate it, so we should keep it.
+--=-lv+1MUsSdgATwwRxylBy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-> Like this?
->
-> Thanks,
-> NeilBrown
->
-> omap: don't try to register the main clock twice.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-ARM: OMAP2+: Don't try to register the main clock twice
+iQIcBAABAgAGBQJO5dtlAAoJEPo9qoy8lh71HPgP+wdGvdbMK21qJ6LgZd7bh3gl
+8bZ7+pHvnWucicdI6RLhh7HNL5I3DiVduM3zvWwLwf1Ahw0bfJYAPHjRfFeo+yIm
+bvE5Q5/QhopR2erLYSyfGwW/YPRP+Ml0hXAVVk7e5dF9FTO59vTawPgSukFztQq7
+2bXnIZqybcTaxo4CV/1cUGyU6nwr51aHQwkdABUDdk3CRY19YRJBjZ2vU4qNijfW
+TMAVVv1L4FvHgY1hmqBNMqQ7iW2CruESfvMuNJddsZYx6Bg1YAZJNcTpFBhpD6sJ
+v5+S75RglX6x9nhpUr9OcP7/GAdh9pxNOgMDv+Hx/flbl8ZZ+cJbwWeNy5EoMQUN
+4rfxgiwtFR6Fqgk6CSNOtRc0DDL8pu4n5jjLH+fSUpdNHYxJdGqD5wN+WjkJ3Xkw
+SDfpz7pXhLVwJjUVb/4NI3gQ+PMk/s2c2mFm7RrV3E+HlFWJ0L/x2RVZ3kzqDTDy
+mM2HKK86nI3iZiYxwedBy9qrkr5+5ii2df+Hj74oGv+H1VWMXyyhOuzLZ26WKoM1
+RHg79ZIocnXLaaGXRsaGtvVw2Wl904wGnZ1xnyrU22F1XUXMb17RklnnFyjdim4A
+P3cgLTyw9t7iTedBzL8ZJXDUyt4xM29TmA2WeoVI+kpXovK57riR716PbBVxqp5+
+giAOlL4HesGKrSFZ2fju
+=Jb40
+-----END PGP SIGNATURE-----
 
-> If omap_device_alloc is given 2 or more "struct omap_hwmod" it will try to
-> register the 'main_clk' of each of them with the same alias - "fck" - against
-> the same device.  This fails.
-> So to avoid a warning, don't even try.
->
-> Signed-off-by: NeilBrown<neilb@suse.de>
+--=-lv+1MUsSdgATwwRxylBy--
 
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index e8d9869..11012bd 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -294,6 +294,7 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
->    * and main clock
->    * @od: struct omap_device *od
->    * @oh: struct omap_hwmod *oh
-> + * @sub: this is a subordinate device, so don't try to register fck
->    *
->    * For the main clock and every optional clock present per hwmod per
->    * omap_device, this function adds an entry in the clkdev table of the
-> @@ -309,11 +310,12 @@ static void _add_clkdev(struct omap_device *od, const char *clk_alias,
->    * No return value.
->    */
->   static void _add_hwmod_clocks_clkdev(struct omap_device *od,
-> -				     struct omap_hwmod *oh)
-> +				     struct omap_hwmod *oh, int sub)
->   {
->   	int i;
->
-> -	_add_clkdev(od, "fck", oh->main_clk);
-> +	if (!sub)
-> +		_add_clkdev(od, "fck", oh->main_clk);
->
->   	for (i = 0; i<  oh->opt_clks_cnt; i++)
->   		_add_clkdev(od, oh->opt_clks[i].role, oh->opt_clks[i].clk);
-> @@ -576,7 +578,7 @@ static struct omap_device *omap_device_alloc(struct platform_device *pdev,
->
->   	for (i = 0; i<  oh_cnt; i++) {
->   		hwmods[i]->od = od;
-> -		_add_hwmod_clocks_clkdev(od, hwmods[i]);
-> +		_add_hwmod_clocks_clkdev(od, hwmods[i], i);
->   	}
->
->   	return od;
-
-Thanks for the fix.
-
-Regards,
-Benoit
