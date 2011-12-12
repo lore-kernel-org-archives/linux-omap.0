@@ -1,205 +1,76 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH 6/6] OMAP3: powerdomain data: add wake-up latency figures
-Date: Mon, 12 Dec 2011 17:18:21 +0100
-Message-ID: <1323706701-6627-7-git-send-email-j-pihet@ti.com>
-References: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [linux-pm] [PATCH 4/6] OMAP3: cpuidle: next C-state decision
+ depends on the PM QoS MPU and CORE constraints
+Date: Mon, 12 Dec 2011 17:26:10 +0100
+Message-ID: <CAORVsuXDNUEYnP=7E8+Ny8J2ShkhBCS-GG+vET1MCcUjxVCBCg@mail.gmail.com>
+References: <1319032263-22699-1-git-send-email-j-pihet@ti.com>
+	<1319032263-22699-5-git-send-email-j-pihet@ti.com>
+	<877h2y30a5.fsf@ti.com>
+	<CAORVsuV5bV-p0kxhh8g4T076Dg3Mj89X_=4E+BpCSTdLiUmNZA@mail.gmail.com>
+	<877h2qbp56.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:33188 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220Ab1LLQTI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 11:19:08 -0500
-Received: by mail-ee0-f46.google.com with SMTP id c4so1674351eek.19
-        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 08:19:07 -0800 (PST)
-In-Reply-To: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:58195 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334Ab1LLQ0L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 11:26:11 -0500
+Received: by vcbfk14 with SMTP id fk14so3865129vcb.19
+        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 08:26:10 -0800 (PST)
+In-Reply-To: <877h2qbp56.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi Kevin,
 
-Figures are added to the power domains structs for RET and OFF modes.
+On Wed, Nov 23, 2011 at 8:43 PM, Kevin Hilman <khilman@ti.com> wrote:
+> Jean Pihet <jean.pihet@newoldbits.com> writes:
+>
+>> On Thu, Nov 17, 2011 at 10:29 PM, Kevin Hilman <khilman@ti.com> wrot=
+e:
+>>> jean.pihet@newoldbits.com writes:
+>>>
+>>>> From: Jean Pihet <j-pihet@ti.com>
+>>>>
+>>>> The MPU latency figures for cpuidle include the MPU itself and als=
+o
+>>>> the peripherals needed for the MPU to execute instructions (e.g.
+>>>> main memory, caches, IRQ controller, MMU etc). On OMAP3 those
+>>>> peripherals belong to the MPU and CORE power domains and so the
+>>>> cpuidle C-states are a combination of MPU and CORE states.
+>>>>
+>>>> This patch implements the relation between the cpuidle and per-
+>>>> device PM QoS frameworks in the OMAP3 specific idle callbacks.
+>>>>
+>>>> The chosen C-state shall satisfy the following conditions:
+>>>> =A0. the 'valid' field is enabled,
+>>>> =A0. it satisfies the enable_off_mode flag,
+>>>
+>>> Not directly related to this patch, but is there any reason to keep=
+ the
+>>> 'enable_off_mode' flag after this series?
+>> enable_off_mode could be removed completely after this series unless
+>> there is a need to prevent OFF mode for debug reasons.
+>
+> Great.
+>
+> For debug reasons, we can just as easily set constraints to prevent o=
+ff
+> mode, so I would like to see it disappear.
+I have a WIP patch that removes the enable_off_mode flag and will post
+it as soon as this series is in the upstream pipe.
 
-Note: the latency figures for MPU, PER, CORE, NEON have been obtained
-from actual measurements.
-The latency figures for the other power domains are preliminary and
-shall be added.
+Thanks,
+Jean
 
-Cf. http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-for a detailed explanation on where are the numbers coming from.
-
-Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
-on MPU, CORE and PER.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/powerdomains3xxx_data.c |   83 +++++++++++++++++++++++++++
- 1 files changed, 83 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/powerdomains3xxx_data.c b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-index 8ef26da..63a3afd 100644
---- a/arch/arm/mach-omap2/powerdomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains3xxx_data.c
-@@ -31,6 +31,19 @@
- 
- /*
-  * Powerdomains
-+ *
-+ * The wakeup_lat values are derived from HW and SW measurements on
-+ * the actual target. For more details cf.
-+ * http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement#Results_for_individual_power_domains
-+ *
-+ * Note: the latency figures for MPU, PER, CORE, NEON have been obtained
-+ * from actual measurements.
-+ * The latency figures for the other power domains are preliminary and
-+ * shall be added.
-+ *
-+ * Note: only the SW restore timing values are taken into account.
-+ * The HW impact of the sys_clkreq and sys_offmode signals is not taken
-+ * into account - TDB
-  */
- 
- static struct powerdomain iva2_pwrdm = {
-@@ -51,6 +64,13 @@ static struct powerdomain iva2_pwrdm = {
- 		[2] = PWRSTS_OFF_ON,
- 		[3] = PWRSTS_ON,
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1100,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 350,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "mpu_iva" },
- };
- 
-@@ -67,6 +87,13 @@ static struct powerdomain mpu_3xxx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_OFF_ON,
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1830,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 121,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "mpu_iva" },
- };
- 
-@@ -94,6 +121,13 @@ static struct powerdomain core_3xxx_pre_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 3082,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 153,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -116,6 +150,13 @@ static struct powerdomain core_3xxx_es3_1_pwrdm = {
- 		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
- 		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 3082,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 153,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -131,6 +172,13 @@ static struct powerdomain dss_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 70,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 20,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -152,6 +200,13 @@ static struct powerdomain sgx_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 1000,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -167,6 +222,13 @@ static struct powerdomain cam_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 850,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 35,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -182,6 +244,13 @@ static struct powerdomain per_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 671,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 31,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
-@@ -196,6 +265,13 @@ static struct powerdomain neon_pwrdm = {
- 	.prcm_offs	  = OMAP3430_NEON_MOD,
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.pwrsts_logic_ret = PWRSTS_RET,
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 0,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 0,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "mpu_iva" },
- };
- 
-@@ -218,6 +294,13 @@ static struct powerdomain usbhost_pwrdm = {
- 	.pwrsts_mem_on	  = {
- 		[0] = PWRSTS_ON,  /* MEMONSTATE */
- 	},
-+	.wakeup_lat = {
-+		[PWRDM_FUNC_PWRST_OFF] = 800,
-+		[PWRDM_FUNC_PWRST_OSWR] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_CSWR] = 150,
-+		[PWRDM_FUNC_PWRST_INACTIVE] = UNSUP_STATE,
-+		[PWRDM_FUNC_PWRST_ON] = 0,
-+	},
- 	.voltdm           = { .name = "core" },
- };
- 
--- 
-1.7.5.4
-
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
