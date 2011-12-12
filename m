@@ -1,37 +1,45 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: [PATCH 00/10] ARM: OMAP1: ams-delta: replace custom I/O with
- GPIO
-Date: Sun, 11 Dec 2011 21:00:22 -0800
-Message-ID: <20111212050022.GI16333@earth.li>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH 0/3] OMAPDSS: Miscellaneous Fixes
+Date: Mon, 12 Dec 2011 11:47:40 +0530
+Message-ID: <1323670663-17793-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, David Woodhouse <dwmw2@infradead.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36548 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752262Ab1LLGSY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 01:18:24 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBC6INwS012851
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 00:18:23 -0600
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC6INxw019063
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 00:18:23 -0600 (CST)
+Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC6INr2011483
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 00:18:23 -0600 (CST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com
+Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-On Sun, Dec 11, 2011 at 09:11:58PM +0100, Janusz Krzysztofik wrote:
-> The Amstrad Delta board has two extra output ports used for driving
-> input lines of different on-board devices. Those ports are now
-> controlled with custom functions, provided by the board arch code and
-> used by several device drivers.
-> 
-> The idea behind the series is to replace those custom I/O functions
-> with gpiolib API. This way, existing drivers can be made less platform
-> dependent, and some of them perhaps even superseded with generic GPIO
-> based drivers after the board platform device descriptions are
-> converted. Moreover, should a new driver for the on-board Smart Card
-> controller ever be created, it could be designed as a generic GPIO
-> based driver, not a custom one.
+These are some minor fixes for DSS2.
 
-Nice work; moving ams-delta over to gpiolib has been on my todo list for
-a while (albeit quite low down).
+Based on Tomi's master branch in:
 
-J.
+git://gitorious.org/linux-omap-dss2/linux.git
+
+Archit Taneja (3):
+  OMAPDSS: DSI: Fix HSDIV related PLL info in dsi_dump_clocks()
+  OMAPDSS: Panel NEC: Set omap_dss_device states correctly
+  OMAPDSS: Displays: Make PICODLP driver depend on DPI
+
+ drivers/video/omap2/displays/Kconfig               |    2 +-
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   61 +++++++++++++++++---
+ drivers/video/omap2/dss/dsi.c                      |   14 +++--
+ 3 files changed, 61 insertions(+), 16 deletions(-)
 
 -- 
-I just Fedexed my soul to hell. I'm *real* clever.
+1.7.4.1
+
