@@ -1,96 +1,69 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH v3 4/5] clk: basic gateable and fixed-rate clks
-Date: Mon, 12 Dec 2011 13:06:35 -0800
-Message-ID: <CAJOA=zP1CAsCqJERvXC6tTh_gs_boGYnO3MUC5=Vgiiw=0Vs_w@mail.gmail.com>
-References: <20111212194757.GB12131@lunn.ch>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: Interrupt issue in twl4030_keypad
+Date: Mon, 12 Dec 2011 13:30:55 -0800
+Message-ID: <20111212213055.GA27399@suse.de>
+References: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
+ <20111212192309.GA12889@suse.de>
+ <CAMP44s3yrYnLtPGg=BZ3ck4NgS5-OfcF1w48SHhL0vztYDOBZQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:37089 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753998Ab1LLVG5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 16:06:57 -0500
-In-Reply-To: <20111212194757.GB12131@lunn.ch>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMP44s3yrYnLtPGg=BZ3ck4NgS5-OfcF1w48SHhL0vztYDOBZQ@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, stable@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, aul@pwsan.com, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org
 
-On Mon, Dec 12, 2011 at 11:47 AM, Andrew Lunn <andrew@lunn.ch> wrote:
-> Hi Mike
->
-> +int clk_register_gate(struct device *dev, const char *name, unsigned=
- long flags,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct clk =
-*fixed_parent, void __iomem *reg, u8 bit_idx,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0int set_to_enable)
-> +
->
-> How do you suggest handling gated clocks which are already running
-> when calling the register function?
->
-> On my kirkwood bases system, the bootloader has already turned on a
-> number of clocks. It does not seem right to start messing with
-> clk->enable_count and clk->prepare_count. Could clk_register_gate()
-> have one more parameter, a bool indicating running?
+On Mon, Dec 12, 2011 at 11:04:35PM +0200, Felipe Contreras wrote:
+> On Mon, Dec 12, 2011 at 9:23 PM, Greg KH <gregkh@suse.de> wrote:
+> > On Mon, Dec 12, 2011 at 08:30:49PM +0200, Felipe Contreras wrote:
+> >> The short version is this: either we revert this patch[1], or we apply
+> >> this patch series[2], as well as its essential fixes[3].
+> >>
+> >> The long version is this. There's a synchronization issue with the
+> >> current keypad driver and twl core; the irq is marked as handled even
+> >> though the thread that is supposed to handle it hasn't run yet, and
+> >> since it's clear-on-read, and it hasn't been read, it's detected
+> >> again, so they keypad driver receives two interrupt callbacks instead
+> >> of one, and in the second one reads nothing from the i2c register, so
+> >> a key release is assumed. This makes key-presses as simple as shift+a
+> >> impossible.
+> >>
+> >> In other words, it's totally unreliable. This might not be isolated to
+> >> the keypard driver, but other "nested" interrupts from twl core that
+> >> started using request_threaded_irq prematurely (before it was
+> >> supported by the twl core). But at least I haven't tried those.
+> >>
+> >> This patch was applied on 2.6.33, which means all versions before 3.2
+> >> are affected, including 3.1.
+> >>
+> >> What do you think about fixing this on stable kernels?
+> >
+> > I think you need to tell me exactly what git commit ids in Linus's tree
+> > that you want to see in the stable kernel releases, which you didn't do
+> > here :(
+> 
+> All right, I guess that rules out the revert option.
+> 
+> Once Linus merges the latest fixes I can send you the commit ids, and
+> they will work for 3.1, but I'm not sure for all the other versions
+> since 2.6.33. The surest thing would be to just revert the patch I
+> mentioned, which is a relatively small change compared to picking all
+> those commits.
 
-I don't like this approach.  If the bool for a particular clk is
-statically defined then it could be wrong (bootloader/kernel
-mismatch).
+Then it also needs to be reverted in Linus's tree, is it?
 
-I've been thinking of adding a clk->ops->init callback in clk_init,
-which is defined for a platform to use however the author sees fit.
-There have been a few cases where it would be nice to "init" a clk
-only once, when it is registered.  That code could also handle
-detecting if a clk is enabled or not.
+And again, you never told me what commit id the offending patch is here,
+you just pointed at some random urls, and for the majority of today, I
+only had email access, no web access, so I have no idea what you are
+referring to.
 
-On the other hand we already have a .get_parent callback which is only
-good for figuring out which parent a mux clk is using... maybe a
-=2Eis_enabled or .get_enabled would be a good idea which also served th=
-e
-purpose of dynamically determining whether a clk is disabled or
-running.
+But, odds are, we should also just backport the needed patches from
+Linus's tree, please send the git commit ids of them to
+stable@vger.kernel.org when they hit his tree, and the backports if
+needed.
 
-In general though I think we should try to keep the solution in the
-core code, not by having platform code pass in a bool.
+thanks,
 
-> The kirkwood mach code keeps a bitmap of which platform_data init
-> functions are called from the board file. In a late_initcall function
-> it then enables and disables clocks as needed. What i was thinking is
-> i can ask the hardware what clocks are already running before i
-> register them and register them as running/not running. Then let the
-> driver probe functions use the API to enable clocks which are really
-> needed. In a late_initcall function, i would then call clk_disable(),
-> clk_unprepare() on clocks which the boot loader started, thus turning
-> them off if no driver has claimed them.
-
-The problem here is that you're solving the "disabled unused clks"
-issue in platform code.  I've started to lay out a little groundwork
-for that with a flag in struct clk:
-http://git.linaro.org/gitweb?p=3Dpeople/mturquette/linux.git;a=3Dblob;f=
-=3Dinclude/linux/clk.h;h=3D3b0eb3f1caf1d6346b62c785b74a648587bfcc7f;hb=3D=
-586c6e8922a889a2893ba4467bb3d13b471656a9#l35
-
-The idea behind CLK_IGNORE_UNUSED flag on line 35 is that the common
-clk framework can walk the tree (probably as part of a late_initcall,
-as you suggested) and disable any clks that aren't already enabled and
-don't have this flag set.  This involves zero platform-specific code,
-but I haven't gotten around to introducing the feature yet as I'm
-really trying to minimize footprint for the core code (and I'm not
-doing a good job of that since it keeps growing).
-
-Regards,
-Mike
-
-> Is this how you envisage it working?
->
-> Thanks
-> =A0 =A0 =A0 =A0Andrew
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
