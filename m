@@ -1,19 +1,19 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: Interrupt issue in twl4030_keypad
-Date: Mon, 12 Dec 2011 22:55:11 +0200
-Message-ID: <CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
+Date: Mon, 12 Dec 2011 23:04:35 +0200
+Message-ID: <CAMP44s3yrYnLtPGg=BZ3ck4NgS5-OfcF1w48SHhL0vztYDOBZQ@mail.gmail.com>
 References: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
-	<20111212191241.GC3408@legolas.emea.dhcp.ti.com>
+	<20111212192309.GA12889@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20111212191241.GC3408@legolas.emea.dhcp.ti.com>
+In-Reply-To: <20111212192309.GA12889@suse.de>
 Sender: linux-input-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, stable@kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-input@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: linux-omap@vger.kernel.org, stable@vger.kernel.org, linux-input@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Dec 12, 2011 at 9:12 PM, Felipe Balbi <balbi@ti.com> wrote:
+On Mon, Dec 12, 2011 at 9:23 PM, Greg KH <gregkh@suse.de> wrote:
 > On Mon, Dec 12, 2011 at 08:30:49PM +0200, Felipe Contreras wrote:
 >> The short version is this: either we revert this patch[1], or we apply
 >> this patch series[2], as well as its essential fixes[3].
@@ -37,42 +37,22 @@ On Mon, Dec 12, 2011 at 9:12 PM, Felipe Balbi <balbi@ti.com> wrote:
 >>
 >> What do you think about fixing this on stable kernels?
 >
-> I believe Samuel has already applied those to the MFD tree.
+> I think you need to tell me exactly what git commit ids in Linus's tree
+> that you want to see in the stable kernel releases, which you didn't do
+> here :(
 
-Yeap, I think Linus' tree is going to be fine (3.2), but I'm trying to
-find out what to do with previous kernels: as in, what should be done
-for stable trees.
+All right, I guess that rules out the revert option.
 
-> The funny part is that those patches were pending on linux-omap for over 2
-> months I have refreshed them over and over again and asked for help from
-> other people to test.
+Once Linus merges the latest fixes I can send you the commit ids, and
+they will work for 3.1, but I'm not sure for all the other versions
+since 2.6.33. The surest thing would be to just revert the patch I
+mentioned, which is a relatively small change compared to picking all
+those commits.
 
-You mean these patches? [1] There's nothing wrong with pushing them
-forward, but I'm actually talking about this one [2].
+> Also, please use stable@vger.kernel.org, stable@kernel.org has been dead
+> since August.
 
-> Everything went smooth on my simple beagle board with no keypad and I
-> couldn't see any issues, unfortunately.
-
-That's because you didn't get a single interrupt. You could have added
-a BUG() on handle_twl4030_pih() and you still wouldn't have noticed
-anything.
-
-> Still, 2 months is a whole lot of time to NAK a patch, but nobody said
-> anything so, of course,
-
-It's actually almost 2 years :)
-
-> Samuel assumed it was ok and, like I said above, it worked for my simple GPIO
-> usecase with beagleboard.
-
-Well, for 3.2 I think the situation is fine, but that's not what I'm
-talking about. About your GPIO tests, are you sure you got the
-interrupts through twl4030 irq handling?
-
-Cheers.
-
-[1] http://article.gmane.org/gmane.linux.ports.arm.omap/59958
-[2] http://article.gmane.org/gmane.linux.kernel/932255
+Ok.
 
 -- 
 Felipe Contreras
