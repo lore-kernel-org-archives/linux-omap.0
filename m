@@ -1,129 +1,136 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv11 1/8] ARM: OMAP2+: hwmod: Add API to enable IO ring wakeup.
-Date: Mon, 12 Dec 2011 20:15:26 +0200
-Message-ID: <1323713733-13115-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv11 4/8] ARM: OMAP: prcm: add suspend prepare / finish support
+Date: Mon, 12 Dec 2011 20:15:29 +0200
+Message-ID: <1323713733-13115-5-git-send-email-t-kristo@ti.com>
 References: <1323713733-13115-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48736 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45874 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753510Ab1LLSPw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 13:15:52 -0500
+	id S1753286Ab1LLSQA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 13:16:00 -0500
 In-Reply-To: <1323713733-13115-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, "R, Govindraj" <govindraj.raja@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-From: R, Govindraj <govindraj.raja@ti.com>
+PRCM chain handler needs to disable forwarding of interrupts during
+suspend, because runtime PM is disabled and most of the drivers
+are potentially not able to handle interrupts coming at this time.
 
-Add API to enable IO pad wakeup capability based on mux dynamic pad and
-wake_up enable flag available from hwmod_mux initialization.
+This patch masks all the PRCM interrupt events if a PRCM interrupt
+occurs during suspend, but does not ack them. Once suspend finish
+is called, all the masked events will be re-enabled, which causes
+immediate PRCM interrupt and handles the postponed event.
 
-Use the wakeup_enable flag and enable wakeup capability
-for the given pads. Wakeup capability will be enabled/disabled
-during hwmod idle transition based on whether wakeup_flag is
-set or cleared.
+The suspend prepare and complete  callbacks will be called from
+pm34xx.c / pm44xx.c files in the following patches.
 
-Map the enable/disable pad wakeup API's to hwmod_wakeup_enable/disable.
+The functions defined in this patch should eventually be moved to
+suspend->prepare and suspend->finish driver hooks, once the PRCM
+chain handler will be made as its own driver.
 
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |   59 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 59 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/prcm-common.h |    4 +++
+ arch/arm/mach-omap2/prcm.c        |   46 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 49 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 6b3088d..8d37d83 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -2059,6 +2059,34 @@ static int __init omap_hwmod_setup_all(void)
- core_initcall(omap_hwmod_setup_all);
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 3c54e3c..6cb0daf 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -425,6 +425,8 @@ struct omap_prcm_irq_setup {
+ 	u32 *priority_mask;
+ 	int base_irq;
+ 	int irq;
++	bool suspended;
++	bool suspend_save_flag;
+ };
  
- /**
-+ * omap_hwmod_set_ioring_wakeup - enable io pad wakeup flag.
-+ * @oh: struct omap_hwmod *
-+ * @set: bool value indicating to set or clear wakeup status.
-+ *
-+ * Set or Clear wakeup flag for the io_pad.
-+ */
-+static int omap_hwmod_set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
-+{
-+	struct omap_device_pad *pad;
-+	int ret = -EINVAL, j;
+ #define OMAP_PRCM_IRQ(_name, _offset, _priority) {	\
+@@ -437,6 +439,8 @@ extern void omap_prcm_irq_cleanup(void);
+ extern int omap_prcm_register_chain_handler(
+ 	struct omap_prcm_irq_setup *irq_setup);
+ extern int omap_prcm_event_to_irq(const char *event);
++extern void omap_prcm_irq_prepare(void);
++extern void omap_prcm_irq_complete(void);
+ # endif
+ 
+ #endif
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 948247f..e7c8f3f 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -221,12 +221,28 @@ static void omap_prcm_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 	unsigned int virtirq;
+ 	int nr_irqs = prcm_irq_setup->nr_regs * 32;
++	int i;
 +
-+	if (oh->mux && oh->mux->enabled) {
-+		for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
-+			pad = oh->mux->pads_dynamic[j];
-+			if (pad->flags & OMAP_DEVICE_PAD_WAKEUP) {
-+				if (set_wake)
-+					pad->idle |= OMAP_WAKEUP_EN;
-+				else
-+					pad->idle &= ~OMAP_WAKEUP_EN;
-+				ret = 0;
-+			}
++	/*
++	 * If we are suspended, mask all interrupts from PRCM level,
++	 * this does not ack them, and they will be pending until
++	 * we re-enable the interrupts, at which point the
++	 * omap_prcm_irq_handler will be executed again
++	 */
++	if (prcm_irq_setup->suspended) {
++		for (i = 0; i < prcm_irq_setup->nr_regs; i++) {
++			prcm_irq_setup->saved_mask[i] =
++				prcm_irq_read_reg(prcm_irq_setup->mask + i * 4);
++			prcm_irq_write_reg(0, prcm_irq_setup->mask + i * 4);
 +		}
++		prcm_irq_setup->suspend_save_flag = true;
 +	}
-+
-+	return ret;
-+}
-+
-+/**
-  * omap_hwmod_enable - enable an omap_hwmod
-  * @oh: struct omap_hwmod *
-  *
-@@ -2390,6 +2418,35 @@ int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
- {
- 	return _del_initiator_dep(oh, init_oh);
+ 
+ 	/*
+ 	 * Loop until all pending irqs are handled, since
+ 	 * generic_handle_irq() can cause new irqs to come
+ 	 */
+-	while (1) {
++	while (!prcm_irq_setup->suspended) {
+ 		omap_prm_pending_events(pending);
+ 
+ 		/* No bit set, then all IRQs are handled */
+@@ -307,6 +323,34 @@ void omap_prcm_irq_cleanup(void)
+ 	prcm_irq_setup->base_irq = 0;
  }
-+/**
-+ * omap_hwmod_enable_ioring_wakeup - Set wakeup flag for iopad.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Traverse through dynamic pads, if pad is enabled then
-+ * set wakeup enable bit flag for the mux pin. Wakeup pad bit
-+ * will be set during hwmod idle transistion.
-+ * Return error if pads are not enabled or not available.
-+ */
-+int omap_hwmod_enable_ioring_wakeup(struct omap_hwmod *oh)
+ 
++void omap_prcm_irq_prepare(void)
 +{
-+	/* Enable pad wake-up capability */
-+	return omap_hwmod_set_ioring_wakeup(oh, true);
++	prcm_irq_setup->suspended = true;
 +}
 +
-+/**
-+ * omap_hwmod_disable_ioring_wakeup - Clear wakeup flag for iopad.
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Traverse through dynamic pads, if pad is enabled then
-+ * clear wakeup enable bit flag for the mux pin. Wakeup pad bit
-+ * will be set during hwmod idle transistion.
-+ * Return error if pads are not enabled or not available.
-+ */
-+int omap_hwmod_disable_ioring_wakeup(struct omap_hwmod *oh)
++void omap_prcm_irq_complete(void)
 +{
-+	/* Disable pad wakeup capability */
-+	return omap_hwmod_set_ioring_wakeup(oh, false);
++	int i;
++
++	prcm_irq_setup->suspended = false;
++
++	/* If we have not saved the masks, do not attempt to restore */
++	if (!prcm_irq_setup->suspend_save_flag)
++		return;
++
++	prcm_irq_setup->suspend_save_flag = false;
++
++	/*
++	 * Re-enable all masked PRCM irq sources, this
++	 * causes the PRCM interrupt to fire immediately
++	 * if the events were masked previously in the chain
++	 * handler
++	 */
++	for (i = 0; i < prcm_irq_setup->nr_regs; i++)
++		prcm_irq_write_reg(prcm_irq_setup->saved_mask[i],
++			prcm_irq_setup->mask + i * 4);
 +}
- 
- /**
-  * omap_hwmod_enable_wakeup - allow device to wake up the system
-@@ -2416,6 +2473,7 @@ int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	_enable_wakeup(oh, &v);
- 	_write_sysconfig(v, oh);
-+	omap_hwmod_enable_ioring_wakeup(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
-@@ -2446,6 +2504,7 @@ int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
- 	v = oh->_sysc_cache;
- 	_disable_wakeup(oh, &v);
- 	_write_sysconfig(v, oh);
-+	omap_hwmod_disable_ioring_wakeup(oh);
- 	spin_unlock_irqrestore(&oh->_lock, flags);
- 
- 	return 0;
++
+ /*
+  * Initializes the prcm chain handler based on provided parameters
+  */
 -- 
 1.7.4.1
 
