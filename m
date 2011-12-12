@@ -1,70 +1,105 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 0/4] fixes for twl4030-irq in mainline
-Date: Tue, 13 Dec 2011 08:39:59 +1100
-Message-ID: <20111213083959.5f280d71@notabene.brown>
-References: <20111126201334.16080.85045.stgit@notabene.brown>
-	<20111212173819.GT13952@sortiz-mobl>
+From: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
+ module
+Date: Mon, 12 Dec 2011 22:57:35 +0100
+Message-ID: <4EE678CF.1020300@gmail.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>	<4EDD3DEE.6060506@gmail.com>	<CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>	<4EDE90A3.7050900@gmail.com>	<CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>	<4EE14787.8090509@gmail.com>	<CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>	<4EE4EBCF.8000202@gmail.com> <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/W70SlupZFAfyC8J+mUW=8Ug"; protocol="application/pgp-signature"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:55832 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753415Ab1LLVkR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 16:40:17 -0500
-In-Reply-To: <20111212173819.GT13952@sortiz-mobl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, Kyungmin Park <kyungmin.park@samsung.com>
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
---Sig_/W70SlupZFAfyC8J+mUW=8Ug
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Mon, 12 Dec 2011 18:38:19 +0100 Samuel Ortiz <sameo@linux.intel.com> wro=
-te:
+On 12/12/2011 10:49 AM, Ming Lei wrote:
+>>> If FD result is associated with a frame, how can user space get the frame
+>>> seq if no v4l2 buffer is involved? Without a frame sequence, it is a bit
+>>> difficult to retrieve FD results from user space.
+>>
+>> If you pass image data in memory buffers from user space, yes, it could be
+>> impossible.
+> 
+> It is easy to get the frame sequence from v4l2_buffer for the case too, :-)
 
-> Hi Neil,
->=20
-> On Sun, Nov 27, 2011 at 07:17:41AM +1100, NeilBrown wrote:
-> > Hi,
-> >   The recent tidying up of twl4030-irq seems to have left it broken.
-> > At least it doesn't work for me on my gta04 (www.gta04.org).  The
-> > first interrupt from the device freezes the whole system (by being
-> > constantly delivered)
-> >=20
-> > The following 4 patches make it work for me and addresses some other
-> > less critical issues like a typo in a comment :-)
->=20
-> Thanks, I applied all 4 of them.
+Oops, have mixed something up ;)
 
-Thanks.  I have a couple of other twl4030 patches, these ones related to
-battery charging.   Hopefully I'll be ready to post them later this week.
-Would they go through you too?
+>> Not really, still v4l2_buffer may be used by other (sub)driver within same
+>> video processing pipeline.
+> 
+> OK.
+> 
+> A related question: how can we make one application to support the two kinds 
+> of devices(input from user space data as OMAP4, input from SoC bus as Samsung)
+> at the same time? Maybe some capability info is to be exported to user space?
+> or other suggestions?
 
-NeilBrown
+Good question. To let applications know that a video device is not just
+an ordinary video output device I suppose we'll need a new object
+detection/recognition capability flag.
+V4L2_CAPS_OBJECT_DETECTION, V4L2_CAP_OBJECT_RECOGNITION or something similar.
 
---Sig_/W70SlupZFAfyC8J+mUW=8Ug
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+It's probably safe to assume the SoC will support either input method at time,
+not both simultaneously. Then it could be, for example, modelled with a video
+node and a subdev:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIVAwUBTuZ0rznsnt1WYoG5AQJ9tA/+N1dkGyBPR3Kj6Oh+aV07N+yLpCr1WVAx
-WBUgEm2sc7WFJfc9YnJY1YYm0xAtuyn7LPdZG1be3EmRoMKPrcWEOIe0Y4ijwqhF
-/dfeyZOVNL4NvJm6Jg+Dbt6gIoj9PYNj1L4DiBimxEMLvtbjZaVW51JDe32yAQ/+
-te4jODpM7XkczctRmQQTdFWetYqms6Tzx6hwWB1q0mA3F1aeQP6BchN57hcelaQC
-Wf9oTkZSaJJxsergr/PnZGKJMjQjMFe78RyBDWFoVZ0gcxqnC8vPKyTpGyiYacsE
-rhVoXhsXmpoVO2aJSFxnuwdhXtxirR56v1TpaMCF5TX4e4qsl2r1dot2R6x84Fs1
-hkNVhhc/aHOw0wp1b+Re4rJlwdzYUvzIJ5S6ktb5g6SkpWZLUHq+RNq/8DLAeaci
-Jr1ubN/fjSXw1oJrwVvTNNF9MhXsU8fHpyLzN4BP3rGIbA621kB7ygQzg2IV9rNS
-WSWUOlXppaxFrBBbu2UgwknIVUniRMad+YZCIzW5DcLrTqDdTAipiDS34/6+cp6h
-42I0Ay5KPJENZ+UwvDt4Kl6UmGyawF2PeTfIwGaAlJNAnsjXz2lD5wKXSRDY3Fxz
-MMBKOWhUskTuFU+WgvfF+u7hPxT1vtfH5WrwQlKQGmCa9WdttWyxiGA4etudBCHQ
-9kC0q8FisVU=
-=Culv
------END PGP SIGNATURE-----
+	     user image data                   video capture
+             for FD                            stream
+             +-------------+                  +-------------+
+             | /dev/video0 |                  | /dev/video0 |
+             |   OUTPUT    |                  |  CAPTURE    |
+             +------+------+                  +------+------+
+                    |                                |
+                    v                                ^
+..------+        +--+--+----------+-----+            |
+image   | link0  | pad | face     | pad |            |
+sensor  +-->-----+  0  | detector |  1  |            |
+sub-dev +-->-+   |     | sub-dev  |     |            |
+..------+    |   +-----+----------+-----+            |
+             |                                       |
+             |   +--+--+------------+-----+          |
+             |   | pad | image      | pad |          |
+             +---+  0  | processing |  1  +----------+
+          link1  |     | sub-dev    |     |
+                 +-----+------------+-----+
 
---Sig_/W70SlupZFAfyC8J+mUW=8Ug--
+User space can control state of link0. If the link is active (streaming) then
+access to /dev/video0 would be blocked by the driver, e.g. with EBUSY errno.
+This means that only one data source can be attached to an input pad (pad0).
+These are intrinsic properties of Media Controller/v4l2 subdev API.
+
+
+> And will your Samsung FD HW support to detect faces from memory? or just only
+> detect from SoC bus?
+
+I think we should be prepared for both configurations, as on a diagram above.
+
+[...]
+> OK, I will associate FD result with frame identifier, and not invent a
+> dedicated v4l2 event for query frame seq now until a specific requirement
+> for it is proposed.
+> 
+> I will convert/integrate recent discussions into patches of v2 for further
+
+Sure, sounds like a good idea.
+
+> review, and sub device support will be provided. But before starting to do it,
+> I am still not clear how to integrate FD into MC framework. I understand FD
+> sub device is only a media entity, so how can FD sub device find the media
+> device(struct media_device)?  or just needn't to care about it now?
+
+The media device driver will register all entities that belong to it and will
+create relevant links between entities' pads, which then can be activated by
+applications. How the entities are registered is another topic, that we don't
+need to be concerned about at the moment. If you're curious see
+drivers/media/video/omap3isp or driver/media/video/s5p-fimc for example media
+device drivers.
+
+-- 
+Regards,
+Sylwester
