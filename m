@@ -1,115 +1,82 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: [PATCH] ARM: OMAP: McSPI: Remove unused flag from struct omap2_mcspi_device_config
-Date: Mon, 12 Dec 2011 11:15:17 +0200
-Message-ID: <1323681317-8447-1-git-send-email-jarkko.nikula@bitmer.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv8 2/5] omap3: voltage: fix channel configuration
+Date: Mon, 12 Dec 2011 11:34:24 +0200
+Message-ID: <1323682464.31914.3.camel@sokoban>
+References: <1323444589-19940-1-git-send-email-t-kristo@ti.com>
+	 <1323444589-19940-3-git-send-email-t-kristo@ti.com> <8739ctjmyq.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [213.157.87.50] ([213.157.87.50]:57715 "EHLO bitmer.com"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748Ab1LLJRX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 04:17:23 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42865 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085Ab1LLJe1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Dec 2011 04:34:27 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBC9YRpo006410
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:34:27 -0600
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC9YQW4014398
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:34:26 -0600 (CST)
+Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBC9YQhF005820
+	for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 03:34:26 -0600 (CST)
+In-Reply-To: <8739ctjmyq.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Flag single_channel in struct omap2_mcspi_device_config is not used
-by drivers/spi/spi-omap2-mcspi.c so we may remove it from include/plat/mcspi.h
-and affected board files.
+On Fri, 2011-12-09 at 16:21 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > OMAP3 uses the default settings for VDD1 channel, otherwise the settings will
+> > overlap with VDD2 and attempting to modify VDD1 voltage will actually change
+> > VDD2 voltage.
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/vc3xxx_data.c |    1 +
+> >  2 files changed, 5 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
+> > index cfe348e..0136ad5 100644
+> > --- a/arch/arm/mach-omap2/vc3xxx_data.c
+> > +++ b/arch/arm/mach-omap2/vc3xxx_data.c
+> > @@ -46,6 +46,7 @@ static struct omap_vc_common omap3_vc_common = {
+> >  };
+> >  
+> >  struct omap_vc_channel omap3_vc_mpu = {
+> > +	.flags = OMAP_VC_CHANNEL_DEFAULT,
+> >  	.common = &omap3_vc_common,
+> >  	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
+> >  	.smps_volra_reg	 = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
+> 
+> Looking more at the flow diagram you mentioned in the OMAP3 TRM, I don't
+> think this is right for OMAP3.
+> 
+> Setting the USE_DEFAULTS flags means that VDD1 will only ever be able to
+> use [slave address | voltage reg | command reg] zero.  While this is
+> quite likely in most scenarios, the HW doesn't limit this like it does
+> on OMAP4.
+> 
+> On OMAP3, it's very possible to configure VDD1 to use 
+> [slave address | voltage reg | command reg] one if you want (even though
+> I'm not sure why you would.)
+> 
+> In any case, my point is that setting the USE_DEFAULTS flag forces an
+> OMAP4 restriction onto OMAP3 which the hardware doesn't have.
+> 
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
----
- arch/arm/mach-omap2/board-cm-t35.c           |    1 -
- arch/arm/mach-omap2/board-n8x0.c             |    1 -
- arch/arm/mach-omap2/board-rx51-peripherals.c |    3 ---
- arch/arm/mach-omap2/board-zoom-display.c     |    1 -
- arch/arm/mach-omap2/common-board-devices.c   |    1 -
- arch/arm/plat-omap/include/plat/mcspi.h      |    3 ---
- 6 files changed, 0 insertions(+), 10 deletions(-)
+Well, the voltage control does not work at all if this is not done. I am
+not sure what is the root cause for this, as I don't have currently
+oscilloscope available so that I could take a look at the bus traffic.
+The voltage rail behavior is incorrect unless this change is in, this is
+easily seen by measuring the voltage levels and trying to change the
+voltages by sw.
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index b38cd7b..4cc2f04 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -280,7 +280,6 @@ static struct omap_dss_board_info cm_t35_dss_data = {
- 
- static struct omap2_mcspi_device_config tdo24m_mcspi_config = {
- 	.turbo_mode	= 0,
--	.single_channel	= 1,	/* 0: slave, 1: master */
- };
- 
- static struct tdo24m_platform_data tdo24m_config = {
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index 05107d8..74065e6 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -140,7 +140,6 @@ static void __init n8x0_usb_init(void) {}
- 
- static struct omap2_mcspi_device_config p54spi_mcspi_config = {
- 	.turbo_mode	= 0,
--	.single_channel = 1,
- };
- 
- static struct spi_board_info n800_spi_board_info[] __initdata = {
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e9eff00..c01c175 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -138,17 +138,14 @@ static struct lp5523_platform_data rx51_lp5523_platform_data = {
- 
- static struct omap2_mcspi_device_config wl1251_mcspi_config = {
- 	.turbo_mode	= 0,
--	.single_channel	= 1,
- };
- 
- static struct omap2_mcspi_device_config mipid_mcspi_config = {
- 	.turbo_mode	= 0,
--	.single_channel	= 1,
- };
- 
- static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
- 	.turbo_mode	= 0,
--	.single_channel	= 1,
- };
- 
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
-diff --git a/arch/arm/mach-omap2/board-zoom-display.c b/arch/arm/mach-omap2/board-zoom-display.c
-index d4683ba..2818290 100644
---- a/arch/arm/mach-omap2/board-zoom-display.c
-+++ b/arch/arm/mach-omap2/board-zoom-display.c
-@@ -117,7 +117,6 @@ static struct omap_dss_board_info zoom_dss_data = {
- 
- static struct omap2_mcspi_device_config dss_lcd_mcspi_config = {
- 	.turbo_mode		= 1,
--	.single_channel	= 1,  /* 0: slave, 1: master */
- };
- 
- static struct spi_board_info nec_8048_spi_board_info[] __initdata = {
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index bcb0c58..2d1d775 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -33,7 +33,6 @@
- 	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
- static struct omap2_mcspi_device_config ads7846_mcspi_config = {
- 	.turbo_mode	= 0,
--	.single_channel	= 1,	/* 0: slave, 1: master */
- };
- 
- static struct ads7846_platform_data ads7846_config = {
-diff --git a/arch/arm/plat-omap/include/plat/mcspi.h b/arch/arm/plat-omap/include/plat/mcspi.h
-index 3d51b18..a357eb2 100644
---- a/arch/arm/plat-omap/include/plat/mcspi.h
-+++ b/arch/arm/plat-omap/include/plat/mcspi.h
-@@ -18,9 +18,6 @@ struct omap2_mcspi_dev_attr {
- 
- struct omap2_mcspi_device_config {
- 	unsigned turbo_mode:1;
--
--	/* Do we want one channel enabled at the same time? */
--	unsigned single_channel:1;
- };
- 
- #endif
--- 
-1.7.7.3
+-Tero
+
 
