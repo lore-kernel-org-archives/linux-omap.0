@@ -1,65 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: sys_clkout2
-Date: Tue, 13 Dec 2011 14:56:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112131447230.12046@utopia.booyaka.com>
-References: <4EE7C38D.8020501@mlbassoc.com>
+Subject: Re: [PATCHv11 2/8] ARM: OMAP2+: hwmod: Add API to check IO PAD wakeup
+ status
+Date: Tue, 13 Dec 2011 15:16:26 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112131505000.12046@utopia.booyaka.com>
+References: <1323713733-13115-1-git-send-email-t-kristo@ti.com> <1323713733-13115-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2042008456-1323814586=:12046"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34281 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56717 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab1LMV4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 16:56:54 -0500
-In-Reply-To: <4EE7C38D.8020501@mlbassoc.com>
+	with ESMTP id S1752436Ab1LMWQ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 17:16:27 -0500
+In-Reply-To: <1323713733-13115-3-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-omap@vger.kernel.org
+To: "R, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, 13 Dec 2011, Gary Thomas wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> What's the best way to enable sys_clkout2 (DM3730, latest kernel)?
-> I've managed to set it up properly and it runs in U-Boot, but the
-> kernel is disabling it.  It's a bit of a tangle trying to figure out
-> not only what piece of code is undoing my work, but how to get the
-> clock to keep running.
+--155748971-2042008456-1323814586=:12046
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-It's probably getting disabled by omap2_clk_disable_unused() in 
-mach-omap2/clock.c, which runs at the end of kernel init.
+Hi
 
-> I want the clkout_cntrl register set to 0x8a,
-> so any guidance on how to make this happen would be greatly appreciated.
+a question
 
-I presume you have some external device that relies on sys_clkout2 for its 
-clock input?  
+On Mon, 12 Dec 2011, Tero Kristo wrote:
 
-If the device has a Linux driver associated with it, the clean way to fix 
-it would be to add a clkdev line for it into mach-omap2/clock3xxx_data.c.  
-Something like
+So the patch description says:
 
-	CLK("devname",	"fck",	&sys_clkout2,	CK_3XXX),
+> From: R, Govindraj <govindraj.raja@ti.com>
+>=20
+> Add API to determine IO-PAD wakeup event status for a given
+> hwmod dynamic_mux pad.
 
-where "devname" is the name of your device.  Then add some code into that 
-driver to enable and disable the clock as needed.  Something like
+But the code does:
 
-...
+> +=09for (i =3D 0; i < hmux->nr_pads; i++) {
+> +=09=09struct omap_device_pad *pad =3D &hmux->pads[i];
 
-struct clk *c;
+which is going to check all of the pads, not just the dynamic ones.
 
-c = clk_get(dev_name(dev), "fck");
-WARN(IS_ERR(c), "cannot clk_get() device functional clock");
-clk_enable(c);
+So it seems to me that we need to decide whether this code should be=20
+testing all the pads, or just the dynamically remuxed ones.  The same=20
+thing should be decided for the code in patch 1.
 
-...
-
-and then clk_disable() it later in your driver when you don't need it.
-
-If you don't have a driver, you can hack a quick one up that just deals 
-with the clock, and add it to your board file.
-
-Or if you just want a dirty hack, you can probably get away with just 
-adding the ENABLE_ON_INIT flag to the sys_clkout2 .flags field in 
-mach-omap2/clock3xxx_data.c.
+Na=EFvely it seems to me that we want to test all of the pads in both=20
+patches 1 and 2, not just the dynamically remuxable ones.  Comments?
 
 
 - Paul
+--155748971-2042008456-1323814586=:12046--
