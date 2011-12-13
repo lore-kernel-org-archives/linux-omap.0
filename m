@@ -1,40 +1,51 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/4] fixes for twl4030-irq in mainline
-Date: Tue, 13 Dec 2011 16:12:02 +0200
-Message-ID: <CAMP44s1D+HXP_prHVwEztLCd1XJpnzukFeNKH_xEZrq06jEouA@mail.gmail.com>
-References: <20111126201334.16080.85045.stgit@notabene.brown>
-	<20111212173819.GT13952@sortiz-mobl>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime adaptation + cleanup
+Date: Tue, 13 Dec 2011 19:45:54 +0530
+Message-ID: <4EE75E1A.7080101@ti.com>
+References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com> <874nxd5j0f.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111212173819.GT13952@sortiz-mobl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: NeilBrown <neilb@suse.de>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <874nxd5j0f.fsf@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Alan Cox <alan@linux.intel.com>, Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Kevin,
 
-On Mon, Dec 12, 2011 at 7:38 PM, Samuel Ortiz <sameo@linux.intel.com> w=
-rote:
-> On Sun, Nov 27, 2011 at 07:17:41AM +1100, NeilBrown wrote:
->> =C2=A0 The recent tidying up of twl4030-irq seems to have left it br=
-oken.
->> At least it doesn't work for me on my gta04 (www.gta04.org). =C2=A0T=
-he
->> first interrupt from the device freezes the whole system (by being
->> constantly delivered)
->>
->> The following 4 patches make it work for me and addresses some other
->> less critical issues like a typo in a comment :-)
+On Wednesday 07 December 2011 05:51 AM, Kevin Hilman wrote:
+> "Govindraj.R"<govindraj.raja@ti.com>  writes:
 >
-> Thanks, I applied all 4 of them.
+>> Converting uart driver to adapt to pm runtime API's.
+>> Code re-org + cleanup.
+>> Moving some functionality from serial.c to omap-serial.c
+>
+> Alan, can you confirm your Ack's are still valid on the drivers/tty
+> parts of this series?  It has gone through quite a few changes since
+> your original ack.
+>
+> Greg, are you ok with this series merging via the OMAP tree since it is
+> changing arch/arm/mach-omap2/* code as well as the driver, and should go
+> together.  If so, with your ack (on the drivers/tty/* parts), I'll
+> handle this series through the OMAP tree.
 
-Did you apply them for 3.2 or 3.3? Without the first patch any system
-that has a twl4030 chip will immediately hang on the first interrupt,
-and many functions of twl4030 will just not work without the second
-one.
+I had a series to add DT support for omap-serial, which I did on top
+of the runtime series from Govindraj. Its already acked by Rob Herring
+for the DT parts. Would you be able to pick those up as well if its
+fine with Greg?
 
---=20
-=46elipe Contreras
+regards,
+Rajendra
+
+>
+> Thanks,
+>
+> Kevin
+>
+>
+>
+>
+>
+
