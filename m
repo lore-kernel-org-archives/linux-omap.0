@@ -1,185 +1,124 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3LOGIC: Adding DSS support
-Date: Tue, 13 Dec 2011 11:12:25 -0800
-Message-ID: <20111213191225.GT32251@atomide.com>
-References: <1323702885-23412-1-git-send-email-alexg@meprolight.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime adaptation + cleanup
+Date: Tue, 13 Dec 2011 11:26:40 -0800
+Message-ID: <87fwgow9vz.fsf@ti.com>
+References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
+	<CAAL8m4wGN5ykm3-+xrGPe-WJUDBdterxAyZ=C3kH862+n1DprQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:30637 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755579Ab1LMTMc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 14:12:32 -0500
-Content-Disposition: inline
-In-Reply-To: <1323702885-23412-1-git-send-email-alexg@meprolight.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:37399 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754160Ab1LMT0u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Dec 2011 14:26:50 -0500
+In-Reply-To: <CAAL8m4wGN5ykm3-+xrGPe-WJUDBdterxAyZ=C3kH862+n1DprQ@mail.gmail.com>
+	(Govindraj's message of "Tue, 13 Dec 2011 18:31:13 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alex <alexg@meprolight.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vreg.kernel.org, tim.nordell@logicpd.com, baruch@tkos.co.il
+To: Govindraj <govindraj.ti@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 
-* Alex <alexg@meprolight.com> [111212 06:49]:
-> This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
-> TV-out are supported.
-> 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+Govindraj <govindraj.ti@gmail.com> writes:
 
-This one should be OK to go via Tomi's DSS tree:
+[...]
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+> I have re-based this patch series against LO master
+> commit id: deee6d5359969a0ce4e2760cfd7b9f379bd5698a
+>
+> Same is available here [1]
+>
+> I have tested this patch series along with:
+>
+> 1.) Tero's V11 irq chaining series
+>      http://www.spinics.net/lists/linux-omap/msg61445.html
+>     (This patch series is used for uart wakeup handling using
+>       prcm_irq chaining)
+>
+> 2.) Rajendra's hwmod change
+>      http://www.spinics.net/lists/arm-kernel/msg148632.html
+>      (This patch handles init_no_idle flag setting
+>       without this patch there will be boot warning however
+>       all pm features will work after boot up.)
+>
+> 3.) Vishwa's io daisy chain changes.
+>      http://permalink.gmane.org/gmane.linux.ports.arm.omap/65500
+>      (tested with and without this patch series pm features works).
+>
+> Same combination of patches based on above commit id
+> used for testing is available here [2].
 
-> ---
->  arch/arm/mach-omap2/board-omap3logic.c |  106 ++++++++++++++++++++++++++++++++
->  1 files changed, 106 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-> index 7c0f193..e030c71 100644
-> --- a/arch/arm/mach-omap2/board-omap3logic.c
-> +++ b/arch/arm/mach-omap2/board-omap3logic.c
-> @@ -7,6 +7,9 @@
->   * Copyright (C) 2010 Logic Product Development, Inc.
->   * Peter Barada <peter.barada@logicpd.com>
->   *
-> + * Copyright (C) 2011 Meprolight, Ltd.
-> + * Alex Gershgorin <alexg@meprolight.com>
-> + *
->   * Modified from Beagle, EVM, and RX51
->   *
->   * This program is free software; you can redistribute it and/or modify
-> @@ -44,6 +47,10 @@
->  #include <plat/gpmc-smsc911x.h>
->  #include <plat/gpmc.h>
->  #include <plat/sdrc.h>
-> +#include <plat/vram.h>
-> +
-> +#include <video/omapdss.h>
-> +#include <video/omap-panel-generic-dpi.h>
->  
->  #define OMAP3LOGIC_SMSC911X_CS			1
->  
-> @@ -95,6 +102,13 @@ static struct twl4030_platform_data omap3logic_twldata = {
->  
->  static int __init omap3logic_i2c_init(void)
->  {
-> +	omap3_pmic_get_config(&omap3logic_twldata, TWL_COMMON_PDATA_USB,
-> +			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-> +
-> +	omap3logic_twldata.vdac->constraints.apply_uV = true;
-> +	omap3logic_twldata.vpll2->constraints.apply_uV = true;
-> +	omap3logic_twldata.vpll2->constraints.name = "VDSI";
-> +
->  	omap3_pmic_init("twl4030", &omap3logic_twldata);
->  	return 0;
->  }
-> @@ -182,6 +196,97 @@ static inline void __init board_smsc911x_init(void)
->  	gpmc_smsc911x_init(&board_smsc911x_data);
->  }
->  
-> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-> +
-> +#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO	154
-> +#define OMAP3_TORPEDO_LCD_ENABLE_GPIO		155
-> +#define OMAP3_TORPEDO_LCD_PWM_GPIO		56
-> +
-> +static struct gpio omap3logic_dss_gpios[] __initdata = {
-> +	{OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
-> +	{OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
-> +	{OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
-> +};
-> +
-> +static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
-> +
-> +	return 0;
-> +}
-> +
-> +static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +}
-> +
-> +static struct panel_generic_dpi_data lcd_panel = {
-> +	.name			= "sharp_lq",
-> +	.platform_enable	= omap3logic_enable_lcd,
-> +	.platform_disable	= omap3logic_disable_lcd,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_lcd_device = {
-> +	.name			= "lcd",
-> +	.driver_name		= "generic_dpi_panel",
-> +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> +	.data			= &lcd_panel,
-> +	.phy.dpi.data_lines	= 16,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_tv_device = {
-> +	.name			= "tv",
-> +	.driver_name		= "venc",
-> +	.type			= OMAP_DISPLAY_TYPE_VENC,
-> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> +};
-> +
-> +static struct omap_dss_device *omap3logic_dss_devices[] = {
-> +	&omap3logic_lcd_device,
-> +	&omap3logic_tv_device,
-> +};
-> +
-> +static struct omap_dss_board_info omap3logic_dss_data = {
-> +	.num_devices		= ARRAY_SIZE(omap3logic_dss_devices),
-> +	.devices		= omap3logic_dss_devices,
-> +	.default_device		= &omap3logic_lcd_device,
-> +};
-> +
-> +static void __init omap3logic_display_init(void)
-> +{
-> +	int r;
-> +
-> +	r = gpio_request_array(omap3logic_dss_gpios,
-> +			       ARRAY_SIZE(omap3logic_dss_gpios));
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
-> +		return;
-> +	}
-> +
-> +	gpio_export(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +	gpio_export(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_export(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-> +
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-> +
-> +	msleep(50);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 1);
-> +
-> +	r = omap_display_init(&omap3logic_dss_data);
-> +	if (r) {
-> +		pr_err("OMAP3LOGIC: failed to register DSS device\n");
-> +		gpio_free_array(omap3logic_dss_gpios,
-> +				ARRAY_SIZE(omap3logic_dss_gpios));
-> +	}
-> +}
-> +#else
-> +static void __init omap3logic_display_init(void) { }
-> +#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
-> +
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
-> @@ -197,6 +302,7 @@ static void __init omap3logic_init(void)
->  	omap_sdrc_init(NULL, NULL);
->  	board_mmc_init();
->  	board_smsc911x_init();
-> +	omap3logic_display_init();
->  
->  	/* Ensure SDRC pins are mux'd for self-refresh */
->  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please have a closer look at your branch.
+
+The second commit[1] commits the .rej file from a failed patch apply,
+so obviously doesn't do what was intended.
+
+Kevin
+
+[1]
+>From ae5d13382a5784f35f5bfe05413fbec4632e58f0 Mon Sep 17 00:00:00 2001
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Date: Tue, 13 Sep 2011 13:32:32 +0530
+Subject: [PATCH] OMAP2+: UART: cleanup 8250 console driver support
+
+We had been using traditional 8250 driver as uart console driver
+prior to omap-serial driver. Since we have omap-serial driver
+in mainline kernel for some time now it has been used as default
+uart console driver on omap2+ platforms. Remove 8250 support for
+omap-uarts.
+
+Serial_in and serial_out override for 8250 serial driver is also
+removed. Empty fifo read fix is already taken care with omap-serial
+driver with data ready bit check from LSR reg before reading RX fifo.
+Also waiting for THRE(transmit hold reg empty) is done with wait_for_xmitr
+in omap-serial driver.
+
+Serial_in/out overrides are not neceesary for omap-serial driver
+and things that are taken with omap-serial driver are removed here.
+
+Remove headers that were necessary to support 8250 support
+and remove all config bindings done to keep 8250 backward compatibility
+while adding omap-serial driver. Remove omap_uart_reset needed for
+8250 autoconf.
+
+Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/serial.c.rej |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/serial.c.rej
+
+diff --git a/arch/arm/mach-omap2/serial.c.rej b/arch/arm/mach-omap2/serial.c.rej
+new file mode 100644
+index 0000000..2325897
+--- /dev/null
++++ b/arch/arm/mach-omap2/serial.c.rej
+@@ -0,0 +1,26 @@
++--- arch/arm/mach-omap2/serial.c
+++++ arch/arm/mach-omap2/serial.c
++@@ -19,23 +19,17 @@
++  */
++ #include <linux/kernel.h>
++ #include <linux/init.h>
++-#include <linux/serial_reg.h>
++ #include <linux/clk.h>
++ #include <linux/io.h>
++ #include <linux/delay.h>
++ #include <linux/platform_device.h>
++ #include <linux/slab.h>
++-#include <linux/serial_8250.h>
++ #include <linux/pm_runtime.h>
++ #include <linux/console.h>
++ 
++-#ifdef CONFIG_SERIAL_OMAP
++ #include <plat/omap-serial.h>
++-#endif
++-
++ #include <plat/common.h>
++ #include <plat/board.h>
++-#include <plat/clock.h>
++ #include <plat/dma.h>
++ #include <plat/omap_hwmod.h>
++ #include <plat/omap_device.h>
+-- 
+1.7.6
+
