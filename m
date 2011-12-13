@@ -1,287 +1,172 @@
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-Subject: RE: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-Date: Tue, 13 Dec 2011 14:59:24 +0900
-Message-ID: <002f01ccb95c$5de23f60$19a6be20$%kim@samsung.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
- <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
- <4EDD3DEE.6060506@gmail.com>
- <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
- <4EDE90A3.7050900@gmail.com>
- <CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>
- <4EE14787.8090509@gmail.com>
- <CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>
- <4EE4EBCF.8000202@gmail.com>
- <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
- <000d01ccb8c6$bf235160$3d69f420$%kim@samsung.com>
- <CACVXFVNBagCuxF7g5ZpGRR9PoPsR4MkacmmNp=YiHXNGOpnWyw@mail.gmail.com>
+From: <mythripk@ti.com>
+Subject: [PATCH 1/2] OMAPDSS: HDMI: Move duplicate code from boardfile
+Date: Tue, 13 Dec 2011 11:26:57 +0530
+Message-ID: <1323755818-17901-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <CACVXFVNBagCuxF7g5ZpGRR9PoPsR4MkacmmNp=YiHXNGOpnWyw@mail.gmail.com>
-Content-language: ko
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Ming Lei' <ming.lei@canonical.com>
-Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53646 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653Ab1LMGEi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 01:04:38 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBD64ZrK002972
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 00:04:37 -0600
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBD64YbB013083
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 11:34:34 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-Hi Ming and Sylwester,
+From: Mythri P K <mythripk@ti.com>
 
-Thanks for the reply.
+Move duplicate HDMI mux_init code from omap4 and panda board file
+to display file.
 
-> -----Original Message-----
-> From: Ming Lei [mailto:ming.lei@canonical.com]
-> Sent: Tuesday, December 13, 2011 1:02 PM
-> To: HeungJun, Kim
-> Cc: Sylwester Nawrocki; linux-omap@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; linux-kernel@vger.kernel.org; linux-
-> media@vger.kernel.org
-> Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detectio=
-n driver
-> module
->=20
-> Hi,
->=20
-> On Mon, Dec 12, 2011 at 8:08 PM, HeungJun, Kim <riverful.kim@samsung.=
-com>
-wrote:
-> > Hi Ming,
-> >
-> > It's maybe late, but I want to suggest one thing about FD API.
-> >
-> > This OMAP FD block looks detection ability of just face.
-> > But, It's possible to occur another device which can detect
-> > specific "object" or "patterns". Moreover, this API can expand
-> > "object recognition" area. So, I think it's good to change the API =
-name
-> > like "v4l2_recog".
->=20
-> IMO, object detection is better,  at least now OMAP4 and samsung has
-> face detection IP module, and face recognition is often done on resul=
-ts
-> of face detection and more complicated interfaces will be involved.
-Actually, the detection point is different, I guess.
-The OMAP has the detection block separately, named FDIF. But, Samsung
-Exynos doing detection process with externel sensor - m5mols, in our ca=
-se.
-This sensor(m5mols) has ISP function, and these ISP can process detecti=
-on.
-The expert of FIMC is Sylwester. Probably, he can tell the differences
-between both in more details. :)
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c    |   16 +---------------
+ arch/arm/mach-omap2/board-omap4panda.c |   17 +----------------
+ arch/arm/mach-omap2/display.c          |   23 +++++++++++++++++++++++
+ include/video/omapdss.h                |    2 ++
+ 4 files changed, 27 insertions(+), 31 deletions(-)
 
->=20
-> >
-> > Actually, I'm preparing similar control class for mainline with m5m=
-ols
-> > camera sensor driver. The m5mols camera sensor has the function abo=
-ut
-> > "face detection". But, I has experienced about Robot Recognition, a=
-nd I
-> > remember the image processing chip which can detect spefic "pattern=
-".
-> > So, I hesitated naming the API(control or ioctl whatever) with "fac=
-e".
-> > It can be possible to provide just "object" or "pattern", not face.
-> > Even user library on windows, there is famous "OpenCV". And this is=
- also
-> > support not only "face", but also "object".
->=20
-> Yes, object is better than face, and we can use enum flag to describe=
- that
-> the objects detected are which kind of objects. In fact, I plan to re=
-name the
-> face detection generic driver as object detection generic driver and =
-let
-> hardware driver to handle the object detection details.
->=20
-> >
-> > The function of OMAP FDIF looks like m5mols ISP's one.
-> > please understand I don't have experience about OMAP AP. But, I can=
- tell
-> > you it's better to use the name "object recognition", not the "face
-> detection",
-> > for any other device or driver.
-> >
-> > In a few days, I'll share the CIDs I have thought for m5mols driver=
-=2E
-> > And, I hope to discuss about this with OMAP FDIF.
->=20
-> You have been doing it already, :-)
-Yeah, actually I did. :)
-But, until I see OMAP FDIF case, I did not recognize AP(like OMAP) can
-have detection capability. :) So, although I did not think about at tha=
-t time,
-I also think we should re-consider this case for now.
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 73b1e99..c3bd640 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -595,20 +595,6 @@ static void __init omap_sfh7741prox_init(void)
+ 			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
+ }
+ 
+-static void sdp4430_hdmi_mux_init(void)
+-{
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_cec",
+-			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+-	omap_mux_init_signal("hdmi_ddc_scl",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_ddc_sda",
+-			OMAP_PIN_INPUT_PULLUP);
+-}
+-
+ static struct gpio sdp4430_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+@@ -838,9 +824,9 @@ static void omap_4430sdp_display_init(void)
+ 		pr_err("%s: Could not get display_sel GPIO\n", __func__);
+ 
+ 	sdp4430_lcd_init();
+-	sdp4430_hdmi_mux_init();
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
++	omap_hdmi_init();
+ }
+ 
+ #ifdef CONFIG_OMAP_MUX
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index a5b576b..d95df2e 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -478,21 +478,6 @@ int __init omap4_panda_dvi_init(void)
+ 	return r;
+ }
+ 
+-
+-static void omap4_panda_hdmi_mux_init(void)
+-{
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_cec",
+-			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+-	omap_mux_init_signal("hdmi_ddc_scl",
+-			OMAP_PIN_INPUT_PULLUP);
+-	omap_mux_init_signal("hdmi_ddc_sda",
+-			OMAP_PIN_INPUT_PULLUP);
+-}
+-
+ static struct gpio panda_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+@@ -555,8 +540,8 @@ void omap4_panda_display_init(void)
+ 	if (r)
+ 		pr_err("error initializing panda DVI\n");
+ 
+-	omap4_panda_hdmi_mux_init();
+ 	omap_display_init(&omap4_panda_dss_data);
++	omap_hdmi_init();
+ }
+ 
+ static void __init omap4_panda_init(void)
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index dce9905..8436088 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -29,6 +29,7 @@
+ #include <plat/omap-pm.h>
+ #include <plat/common.h>
+ 
++#include "mux.h"
+ #include "control.h"
+ #include "display.h"
+ 
+@@ -96,6 +97,20 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
+ 	{ "dss_hdmi", "omapdss_hdmi", -1 },
+ };
+ 
++static void omap4_hdmi_mux_pads()
++{
++	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
++	omap_mux_init_signal("hdmi_hpd",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_cec",
++			OMAP_PIN_INPUT_PULLUP);
++	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
++	omap_mux_init_signal("hdmi_ddc_scl",
++			OMAP_PIN_INPUT_PULLUP);
++	omap_mux_init_signal("hdmi_ddc_sda",
++			OMAP_PIN_INPUT_PULLUP);
++}
++
+ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ {
+ 	u32 enable_mask, enable_shift;
+@@ -129,6 +144,14 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
+ 	return 0;
+ }
+ 
++int omap_hdmi_init(void)
++{
++	if (cpu_is_omap44xx())
++		omap4_hdmi_mux_pads();
++
++	return 0;
++}
++
+ static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
+ {
+ 	if (cpu_is_omap44xx())
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 378c7ed..0cb0469 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -309,6 +309,8 @@ struct omap_dss_board_info {
+ 
+ /* Init with the board info */
+ extern int omap_display_init(struct omap_dss_board_info *board_data);
++/* HDMI mux init*/
++extern int  omap_hdmi_init(void);
+ 
+ struct omap_display_platform_data {
+ 	struct omap_dss_board_info *board_data;
+-- 
+1.7.5.4
 
-As I look around your patch quickly, the functions is very similar with=
- ours.
-(even detection of left/right eye)
-So, the problem is there are two ways to proceed "recognition".
-- Does it handle at the level of IOCTLs? or CIDs?
-
-If the detection algorithm is proceeded at the level of HW block,
-it's right the platform driver provide APIs as IOCTLs(as you're FDIF pa=
-tches).
-On the other hand, if it is proceeded at the sensor(subdevice) level,
-I think it's more right to control using CIDs.
-
-We need the solution including those two cases.
-And the name - object detection? object recognition?
-
-So, do you have any good ideas?
-
-ps. There can be another not-matched HW block level issues.
-But, the problem which I can check is just above issue for now.
-
-
-Thanks,
-Heungjun Kim
-
-
->=20
-> thanks,
-> --
-> Ming Lei
->=20
-> >
-> > Thank you.
-> >
-> > Regards,
-> > Heungjun Kim
-> >
-> >
-> >> -----Original Message-----
-> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >> owner@vger.kernel.org] On Behalf Of Ming Lei
-> >> Sent: Monday, December 12, 2011 6:50 PM
-> >> To: Sylwester Nawrocki
-> >> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.o=
-rg;
-linux-
-> >> kernel@vger.kernel.org; linux-media@vger.kernel.org
-> >> Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detec=
-tion
-> driver
-> >> module
-> >>
-> >> Hi,
-> >>
-> >> On Mon, Dec 12, 2011 at 1:43 AM, Sylwester Nawrocki <snjw23@gmail.=
-com>
-> >>
-> >> >> For OMAP4 FD, it is not needed to include FD into MC framework =
-since a
-> >> >> intermediate buffer is always required. If your HW doesn't belo=
-ng to
-this
-> >> >> case, what is the output of your HW FD in the link? Also sounds=
- FD
-> results
-> >> >> may not be needed at all for use space application in the case.
-> >> >
-> >> > The result data is similar to OMAP4 one, plus a few other attrib=
-utes.
-> >> > User buffers may be filled by other than FD device driver.
-> >>
-> >> OK.
-> >>
-> >>
-> >> >> Could you provide some practical use cases about these?
-> >> >
-> >> > As above, and any device with a camera that controls something a=
-nd makes
-> >> > decision according to presence of human face in his view.
-> >>
-> >> Sounds a reasonable case, :-)
-> >>
-> >>
-> >> >> If FD result is associated with a frame, how can user space get=
- the
-frame
-> >> seq
-> >> >> if no v4l2 buffer is involved? Without a frame sequence, it is =
-a bit
-> >> >> difficult to retrieve FD results from user space.
-> >> >
-> >> > If you pass image data in memory buffers from user space, yes, i=
-t could
-be
-> >> > impossible.
-> >>
-> >> It is easy to get the frame sequence from v4l2_buffer for the case=
- too, :-)
-> >>
-> >> >
-> >> > Not really, still v4l2_buffer may be used by other (sub)driver w=
-ithin
-same
-> >> video
-> >> > processing pipeline.
-> >>
-> >> OK.
-> >>
-> >> A related question: how can we make one application to support the=
- two
-kinds
-> > of
-> >> devices(input from user space data as OMAP4, input from SoC bus as=
- Samsung)
-> >> at the same time? Maybe some capability info is to be exported to =
-user
-space?
-> >> or other suggestions?
-> >>
-> >> And will your Samsung FD HW support to detect faces from memory? o=
-r just
-> only
-> >> detect from SoC bus?
-> >>
-> >>
-> >> > It will be included in the FD result... or in a dedicated v4l2 e=
-vent data
-> >> structure.
-> >> > More important, at the end of the day, we'll be getting buffers =
-with
-image
-> >> data
-> >> > at some stage of a video pipeline, which would contain same fram=
-e
-> identifier
-> >> > (I think we can ignore v4l2_buffer.field for FD purpose).
-> >>
-> >> OK, I will associate FD result with frame identifier, and not inve=
-nt a
-> >> dedicated v4l2 event for query frame seq now until a specific requ=
-irement
-> >> for it is proposed.
-> >>
-> >> I will convert/integrate recent discussions into patches of v2 for=
- further
-> >> review, and sub device support will be provided. But before starti=
-ng to do
-> it,
-> >> I am still not clear how to integrate FD into MC framework. I unde=
-rstand FD
-> >> sub device is only a media entity, so how can FD sub device find t=
-he media
-> >> device(struct media_device)? =A0or just needn't to care about it n=
-ow?
-> >>
-> >>
-> >> thanks,
-> >> --
-> >> Ming Lei
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-me=
-dia" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
