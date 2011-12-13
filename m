@@ -1,84 +1,183 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: dmtimer: fix sleeping function called from
- invalid context
-Date: Mon, 12 Dec 2011 19:49:05 -0600
-Message-ID: <CAB-zwWg76+Si9BXsXQt6-ZL=VL7qJ5YPN5FSC-07y8J8GFX0ew@mail.gmail.com>
-References: <1322194370-8073-1-git-send-email-omar.ramirez@ti.com>
-	<1322194370-8073-2-git-send-email-omar.ramirez@ti.com>
-	<20111209213447.GB31337@atomide.com>
-	<CAB-zwWjHPzTT5QYZt9DvDcM9ny5VML3mDw3-rQRuBr-fcxYMvQ@mail.gmail.com>
-	<20111212230825.GJ32251@atomide.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: [RFC PATCH v1 1/7] omap4: introduce fdif(face detect module) hwmod
+Date: Tue, 13 Dec 2011 10:42:58 +0800
+Message-ID: <CACVXFVM4gNwK90oiCx7c-rascT9n4zd-oCQLZvMXMbXT=37obg@mail.gmail.com>
+References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
+	<1322817178-8931-2-git-send-email-ming.lei@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57691 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753685Ab1LMBtH convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Dec 2011 20:49:07 -0500
-Received: by mail-ww0-f54.google.com with SMTP id dt13so11092684wgb.11
-        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 17:49:06 -0800 (PST)
-In-Reply-To: <20111212230825.GJ32251@atomide.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:51563 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751106Ab1LMCnB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Dec 2011 21:43:01 -0500
+Received: from mail-yw0-f46.google.com ([209.85.213.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1RaIKZ-0003sm-Gf
+	for linux-omap@vger.kernel.org; Tue, 13 Dec 2011 02:42:59 +0000
+Received: by yhr47 with SMTP id 47so44227yhr.19
+        for <linux-omap@vger.kernel.org>; Mon, 12 Dec 2011 18:42:58 -0800 (PST)
+In-Reply-To: <1322817178-8931-2-git-send-email-ming.lei@canonical.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ming Lei <ming.lei@canonical.com>
 
-On Mon, Dec 12, 2011 at 5:08 PM, Tony Lindgren <tony@atomide.com> wrote=
+Hi guys,
+
+Gentle ping on this patch, :-)
+
+thanks,
+--
+Ming Lei
+
+On Fri, Dec 2, 2011 at 5:12 PM, Ming Lei <ming.lei@canonical.com> wrote=
 :
-=2E..
->> @@ -134,22 +134,13 @@ static void omap_dm_timer_reset(struct
->> omap_dm_timer *timer)
->> =A0int omap_dm_timer_prepare(struct omap_dm_timer *timer)
->> =A0{
->> ...
->> - =A0 =A0 =A0 ret =3D omap_dm_timer_set_source(timer, OMAP_TIMER_SRC=
-_32_KHZ);
->> ...
->>
->> All clocks requested are set to 32 KHz first, even with the current
->> approach, there exists another API to set a new source.
->>
->> To be honest I don't know why the clocks are set to 32 KHz first,
->> maybe the default call path for users should be:
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+> =A0arch/arm/mach-omap2/omap_hwmod_44xx_data.c | =A0 81 ++++++++++++++=
+++++++++++++++
+> =A01 files changed, 81 insertions(+), 0 deletions(-)
 >
-> You need a functional clock for the timer registers to work
-> I believe.
-
-Sounds logic :)
-
->> omap_dm_timer_request
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/ma=
+ch-omap2/omap_hwmod_44xx_data.c
+> index 6cf21ee..30db754 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
+> =A0static struct omap_hwmod omap44xx_dsp_hwmod;
+> =A0static struct omap_hwmod omap44xx_dss_hwmod;
+> =A0static struct omap_hwmod omap44xx_emif_fw_hwmod;
+> +static struct omap_hwmod omap44xx_fdif_hwmod;
+> =A0static struct omap_hwmod omap44xx_hsi_hwmod;
+> =A0static struct omap_hwmod omap44xx_ipu_hwmod;
+> =A0static struct omap_hwmod omap44xx_iss_hwmod;
+> @@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_sys=
+tem__l3_main_2 =3D {
+> =A0 =A0 =A0 =A0.user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_=
+SDMA,
+> =A0};
 >
-> Yes this would make sense. The omap_timer_list should be protected
-> by a mutex. There should not be a need for spinlock there as
-> omap_dm_timer_request should be only called during init. If that's
-> not the case, the the driver using it is broken.
-
-Ok, I made this patch thinking that 'request' could be called from any
-context, but if that is not the case mutex should be fine.
-
->> omap_dm_timer_set_source (new explicit call)
->> omap_dm_timer_start
+> +/* fdif -> l3_main_2 */
+> +static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
+> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap44xx_fdif_hwmod,
+> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap44xx_l3_main_2_hwmod=
+,
+> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l3_div_ck",
+> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
+DMA,
+> +};
+> +
+> =A0/* hsi -> l3_main_2 */
+> =A0static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
+> =A0 =A0 =A0 =A0.master =A0 =A0 =A0 =A0 =3D &omap44xx_hsi_hwmod,
+> @@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hw=
+mod =3D {
+> =A0 =A0 =A0 =A0.slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap44xx_wd_timer3_=
+slaves),
+> =A0};
 >
-> Once the timer has been requested, there should not be a need
-> for locking as there should be only one timer user using the
-> timer specific registers.
+> +/* 'fdif' class */
+> +static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
+> + =A0 =A0 =A0 .rev_offs =A0 =A0 =A0 =3D 0x0000,
+> + =A0 =A0 =A0 .sysc_offs =A0 =A0 =A0=3D 0x0010,
+> + =A0 =A0 =A0 .sysc_flags =A0 =A0 =3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_=
+RESET_STATUS |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0SYSC_HAS_SIDLEMO=
+DE | SYSC_HAS_SOFTRESET),
+> + =A0 =A0 =A0 .idlemodes =A0 =A0 =A0=3D (SIDLE_FORCE | SIDLE_NO | SID=
+LE_SMART |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MSTANDBY_FORCE |=
+ MSTANDBY_NO |
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MSTANDBY_SMART),
+> + =A0 =A0 =A0 .sysc_fields =A0 =A0=3D &omap_hwmod_sysc_type2,
+> +};
+> +
+> +static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
+> + =A0 =A0 =A0 .name =A0 =3D "fdif",
+> + =A0 =A0 =A0 .sysc =A0 =3D &omap44xx_fdif_sysc,
+> +};
+> +
+> +/*fdif*/
+> +static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
+> + =A0 =A0 =A0 {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_start =A0 =A0 =A0 =3D 0x4a10a000,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .pa_end =A0 =A0 =A0 =A0 =3D 0x4a10afff,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D ADDR_TYPE=
+_RT
+> + =A0 =A0 =A0 },
+> + =A0 =A0 =A0 { }
+> +};
+> +
+> +/* l4_cfg -> fdif */
+> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
+> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap44xx_l4_cfg_hwmod,
+> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap44xx_fdif_hwmod,
+> + =A0 =A0 =A0 .clk =A0 =A0 =A0 =A0 =A0 =A0=3D "l4_div_ck",
+> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap44xx_fdif_addrs,
+> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_S=
+DMA,
+> +};
+> +
+> +/* fdif slave ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
+> + =A0 =A0 =A0 &omap44xx_l4_cfg__fdif,
+> +};
+> +static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
+> + =A0 =A0 =A0 { .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
+> + =A0 =A0 =A0 { .irq =3D -1 }
+> +};
+> +
+> +/* fdif master ports */
+> +static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
+> + =A0 =A0 =A0 &omap44xx_fdif__l3_main_2,
+> +};
+> +
+> +static struct omap_hwmod omap44xx_fdif_hwmod =3D {
+> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "fdif",
+> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap44xx_fdif_hwmod_clas=
+s,
+> + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "iss_clkdm",
+> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap44xx_fdif_irqs,
+> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "fdif_fck",
+> + =A0 =A0 =A0 .prcm =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .omap4 =3D {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .clkctrl_offs =3D OMAP4=
+_CM_CAM_FDIF_CLKCTRL_OFFSET,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .context_offs =3D OMAP4=
+_RM_CAM_FDIF_CONTEXT_OFFSET,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .modulemode =A0 =3D MOD=
+ULEMODE_SWCTRL,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 },
+> + =A0 =A0 =A0 },
+> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap44xx_fdif_slaves,
+> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap44xx_fdif_slaves=
+),
+> + =A0 =A0 =A0 .masters =A0 =A0 =A0 =A0=3D omap44xx_fdif_masters,
+> + =A0 =A0 =A0 .masters_cnt =A0 =A0=3D ARRAY_SIZE(omap44xx_fdif_master=
+s),
+> +};
+> +
+> =A0static __initdata struct omap_hwmod *omap44xx_hwmods[] =3D {
 >
->> And remove setting the source to 32 KHz by default in omap_dm_timer_=
-request.
+> =A0 =A0 =A0 =A0/* dmm class */
+> @@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_h=
+wmods[] =3D {
+> =A0 =A0 =A0 =A0&omap44xx_wd_timer2_hwmod,
+> =A0 =A0 =A0 =A0&omap44xx_wd_timer3_hwmod,
 >
-> That you may need to be able to do anything with the timer :)
+> + =A0 =A0 =A0 /* fdif class */
+> + =A0 =A0 =A0 &omap44xx_fdif_hwmod,
+> +
+> =A0 =A0 =A0 =A0NULL,
+> =A0};
 
-Well the intention was for the user to call it explicitly so it didn't
-look as a hard coded setting, but I can keep it.
-
-IIUC, mutex should be held instead of spin lock, I can do the change
-instead of this patch and see how it goes.
-
-Thanks,
-
-Omar
+thanks,
+--
+Ming Lei
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
