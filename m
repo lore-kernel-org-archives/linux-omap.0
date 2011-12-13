@@ -1,115 +1,68 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Trying to boot Panda with DT
-Date: Tue, 13 Dec 2011 15:03:05 +0200
-Message-ID: <1323781385.1877.75.camel@deskari>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: Interrupt issue in twl4030_keypad
+Date: Tue, 13 Dec 2011 15:15:41 +0200
+Message-ID: <CANOLnON4bEx-g+WhfJ9qQTmeDOMNoFnbF6CnkO9r33W14PnuJQ@mail.gmail.com>
+References: <CAMP44s2xhZaoM4KVT0jC5RpdW7Ezp9YAHMG1pC+30Bbqjno7jg@mail.gmail.com>
+	<20111212191241.GC3408@legolas.emea.dhcp.ti.com>
+	<CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-whi9UQK6o+C1kREzisIW"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:58067 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751037Ab1LMNDL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Dec 2011 08:03:11 -0500
-Received: by lags15 with SMTP id s15so2720123lag.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 05:03:08 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s1X_KDbzu2CLO0fzM=7rozTQ4K10AtQkc0Ww8uDg8Z-mw@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: balbi@ti.com, linux-omap@vger.kernel.org, stable@kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-input@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap mailing list <linux-omap@vger.kernel.org>
+
+On Mon, Dec 12, 2011 at 10:55 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Mon, Dec 12, 2011 at 9:12 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> On Mon, Dec 12, 2011 at 08:30:49PM +0200, Felipe Contreras wrote:
+>>> The short version is this: either we revert this patch[1], or we ap=
+ply
+>>> this patch series[2], as well as its essential fixes[3].
+>>>
+>>> The long version is this. There's a synchronization issue with the
+>>> current keypad driver and twl core; the irq is marked as handled ev=
+en
+>>> though the thread that is supposed to handle it hasn't run yet, and
+>>> since it's clear-on-read, and it hasn't been read, it's detected
+>>> again, so they keypad driver receives two interrupt callbacks inste=
+ad
+>>> of one, and in the second one reads nothing from the i2c register, =
+so
+>>> a key release is assumed. This makes key-presses as simple as shift=
++a
+>>> impossible.
+>>>
+>>> In other words, it's totally unreliable. This might not be isolated=
+ to
+>>> the keypard driver, but other "nested" interrupts from twl core tha=
+t
+>>> started using request_threaded_irq prematurely (before it was
+>>> supported by the twl core). But at least I haven't tried those.
+>>>
+>>> This patch was applied on 2.6.33, which means all versions before 3=
+=2E2
+>>> are affected, including 3.1.
+>>>
+>>> What do you think about fixing this on stable kernels?
+>>
+>> I believe Samuel has already applied those to the MFD tree.
+>
+> Yeap, I think Linus' tree is going to be fine (3.2), but I'm trying t=
+o
+> find out what to do with previous kernels: as in, what should be done
+> for stable trees.
+
+I only see this in his -next branch, so 3.2 is still affected.
 
 
---=-whi9UQK6o+C1kREzisIW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-I'm trying to boot Pandaboard ES with DT, but failing. I've debugged the
-problem enough to see that the bootloader properly loads the DT blob,
-and passes it to the kernel, but the kernel sees only garbage at that
-address, and the devtree->magic check fails in setup_machine_fdt(). I
-presume something overwrites it.
-
-I'm using Pandaboard ES (so omap 4460), Benoit's
-"for_3.3/1_omap_dt_i2c_twl_test" branch, u-boot from Linaro
-(git://git.linaro.org/boot/u-boot-linaro-stable.git master). My u-boot
-boot-script is below.
-
-Should the setup work? What setup do you have? Any ideas what could be
-wrong?
-
- Tomi
-
-u-boot boot script:
--------------------
-
-set netmask 255.255.255.0
-set ipaddr 192.168.1.15
-set serverip 192.168.1.1
-
-set kaddr 0x82000000
-set dtbaddr 0x85000000
-
-set bootcmd 'tftpboot ${kaddr} uImage; tftpboot ${dtbaddr} omap4-panda.dtb;=
- fdt addr ${dtbaddr}; fdt resize; bootm ${kaddr} - ${dtbaddr}'
-
-set bootargs 'console=3DttyO2,115200n8 root=3D/dev/nfs nfsroot=3D192.168.1.=
-1:/tftpboot/rootfs,tcp,nolock,rsize=3D1024,wsize=3D1024 ip=3D192.168.1.15::=
-:::eth0: vram=3D36M rootdelay=3D1 no_console_suspend debug earlyprintk cons=
-ole loglevel=3D8'
-
-usb start
-
-boot
-
-
-boot log (with added debug prints)
-----------------------------------
-
-## Booting kernel from Legacy Image at 82000000 ...
-   Image Name:   Linux-3.2.0-rc1-00014-g4d66c8f-d
-   Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    3664960 Bytes =3D 3.5 MiB
-   Load Address: 80008000
-   Entry Point:  80008000
-   Verifying Checksum ... OK
-## Flattened Device Tree blob at 85000000
-   Booting using the fdt blob at 0x85000000
-   Loading Kernel Image ... OK
-OK
-   reserving fdt memory region: addr=3D9d000000 size=3D3000000
-   reserving fdt memory region: addr=3D85000000 size=3D1000
-   Loading Device Tree to bfef3000, end bfef6fff ... OK
-
-Starting kernel ...
-
-Uncompressing Linux... done, booting the kernel.
-DT phys bfef3000, virt ffef3000
-illegal DT magic
-Warning: Neither atags nor dtb found
-
-
---=-whi9UQK6o+C1kREzisIW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJO500JAAoJEPo9qoy8lh71sVUP/RW5apaiK7K2dvL2OHdoFQL0
-SIMvHKS9KejayTP30znHKSqebB7MRLLO8oAikfx5ZApP2MJ5qLti0mNnU7yqZYLN
-UNWogFQpInwc5XtqPXVyBNsKhC0BptKpeBfoZ1e8oedGKVyXJbfdTQgyg0ywfdrF
-j2eLiDcgwuNRHoHiQI5u7ht9y4DmwrkAqEcc/CG9AcbuNhhh6d+CP/l0E9ZWSKLX
-D1NWbguiOjj9p3MCu7f3/n+lg2nmBlzQAkmhsOVljNxOv4P4jOi8PO+tnxLTN7L0
-Le5Hjg7gkRAxHP6GKOPfMjF3pAvIY9IRy1N+p36KXLgrGYlt++UW3cdoTsAUfEUf
-wPqCkwhAfK8UU91Kg589YyFpJvwjam9IB9odsFEohX0A2+4aB06n2KuUXPXc8oEj
-zkwHSXiO60uyrFO3FJIiCzkBmAS+4sDe8vEOsJ1mF23yu6H6nN86K6ifRv2FzdNn
-QsFB4IcznX45v6OEtwHJ5oMTED6xERfP2cVQLZP41L96QDfs9QAIPGJ4Trk/SAf9
-C3/2zyIlLSyzviRl0uwzztqWyHGOSKsj56jFGYR1MHjkYGz613CAoJY8S9ubYDqI
-mMNRmY3giSR2FwqKq48VPcYVuJk20AoqwNC6txQL3W1Sl2kysH9PPhXBmwB89/fa
-fehFIP+v19l/nfh3E5cF
-=fxp+
------END PGP SIGNATURE-----
-
---=-whi9UQK6o+C1kREzisIW--
-
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
