@@ -1,55 +1,53 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: Trying to boot Panda with DT
-Date: Tue, 13 Dec 2011 14:27:33 +0100
-Message-ID: <4EE752C5.50804@ti.com>
-References: <1323781385.1877.75.camel@deskari> <4EE7512C.6010207@ti.com> <4EE75260.3070700@ti.com>
+From: <mythripk@ti.com>
+Subject: [PATCH 0/3] OMAPDSS: HDMI: HDMI Hot-plug detect support.
+Date: Tue, 13 Dec 2011 18:54:55 +0530
+Message-ID: <1323782698-24428-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48996 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39520 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751539Ab1LMN1g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Dec 2011 08:27:36 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBDDRZvA019972
+	id S1751539Ab1LMNch (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Dec 2011 08:32:37 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBDDWYTZ008536
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:27:36 -0600
-Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
-	by dlep34.itg.ti.com (8.13.7/8.13.8) with ESMTP id pBDDRZar006375
-	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:27:35 -0600 (CST)
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBDDRZS2000561
-	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:27:35 -0600 (CST)
-In-Reply-To: <4EE75260.3070700@ti.com>
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:32:36 -0600
+Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBDDWX31012425
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 19:02:33 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-On 12/13/2011 2:25 PM, Rajendra Nayak wrote:
-> On Tuesday 13 December 2011 06:50 PM, Cousson, Benoit wrote:
->>
->> I've just sent a patch to add the default DT config for OMAP. It will
->> add these config into the OMAP2plus Kconfig.
->>
->> + select USE_OF
->> + select ARM_APPENDED_DTB
->> + select ARM_ATAG_DTB_COMPAT
->> + select PROC_DEVICETREE
->>
->> In theory ARM_APPENDED_DTB and ARM_ATAG_DTB_COMPAT should not be needed
->> in your case but only for legacy u-boot.
->> It should not messed up the DT in case of DT aware uboot, but it worst
->> checking if this is the case.
->
-> I don't think thats a problem as I have those options enabled and am
-> able to boot with the DT aware uboot.
+From: Mythri P K <mythripk@ti.com>
 
-OK cool, I was not sure but that's much better...
-Let's assume that this is due to a broken u-boot then :-)
+HDMI even if enabled by default should be powered on only when the cable is
+connected. This is supported by the Hot-plug feature.
+Now when HDMI is enabled the following steps are followed:
+-Display enable for HDMI is based on Hot-plug-detect(HPD).
+-It registers to the GPIO irq handler and checks if cable is connected,
+	-If yes then it turns on HDMI
+-If an HPD interrupt is received the corresponding IRQ handler is called where
+it checks if it is a connect / disconnect based on which appropriate action
+is taken. 
 
-Thanks,
-Benoit
 
+Mythri P K (3):
+  OMAPDSS: HDMI: HPD support in boardfile
+  OMAPDSS: HDMI: HPD support added to HDMI driver
+  OMAPDSS: HDMI: Add option to enable HDMI in HPD mode
+
+ arch/arm/mach-omap2/board-4430sdp.c    |   35 ++++--------
+ arch/arm/mach-omap2/board-omap4panda.c |   35 ++++---------
+ arch/arm/mach-omap2/display.c          |   20 ++++++--
+ drivers/video/omap2/dss/dss.h          |    2 +
+ drivers/video/omap2/dss/hdmi.c         |   92 ++++++++++++++++++++++++++-----
+ drivers/video/omap2/dss/hdmi_panel.c   |   54 ++++++++++++++++++-
+ include/video/omapdss.h                |   10 +++-
+ 7 files changed, 176 insertions(+), 72 deletions(-)
+
+-- 
+1.7.5.4
 
