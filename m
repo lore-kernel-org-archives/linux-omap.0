@@ -1,41 +1,40 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
- for OMAP2+ systems
-Date: Tue, 13 Dec 2011 14:34:00 +0100
-Message-ID: <4EE75448.4010701@ti.com>
-References: <y>  <1323190149-6492-2-git-send-email-b-cousson@ti.com> <1323782836.1877.79.camel@deskari>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 0/4] fixes for twl4030-irq in mainline
+Date: Tue, 13 Dec 2011 16:12:02 +0200
+Message-ID: <CAMP44s1D+HXP_prHVwEztLCd1XJpnzukFeNKH_xEZrq06jEouA@mail.gmail.com>
+References: <20111126201334.16080.85045.stgit@notabene.brown>
+	<20111212173819.GT13952@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39634 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750764Ab1LMNeL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Dec 2011 08:34:11 -0500
-In-Reply-To: <1323782836.1877.79.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111212173819.GT13952@sortiz-mobl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: NeilBrown <neilb@suse.de>, Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, tony@atomide.com
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/13/2011 2:27 PM, Tomi Valkeinen wrote:
-> Hi,
+Hi,
+
+On Mon, Dec 12, 2011 at 7:38 PM, Samuel Ortiz <sameo@linux.intel.com> w=
+rote:
+> On Sun, Nov 27, 2011 at 07:17:41AM +1100, NeilBrown wrote:
+>> =C2=A0 The recent tidying up of twl4030-irq seems to have left it br=
+oken.
+>> At least it doesn't work for me on my gta04 (www.gta04.org). =C2=A0T=
+he
+>> first interrupt from the device freezes the whole system (by being
+>> constantly delivered)
+>>
+>> The following 4 patches make it work for me and addresses some other
+>> less critical issues like a typo in a comment :-)
 >
-> On Tue, 2011-12-06 at 17:49 +0100, Benoit Cousson wrote:
->> devicetree will become the mandatory boot method for OMAP2+.
->> In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
->> select USE_OF by default for every OMAP2+ systems.
->> Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
->> boot loader to keep working properly.
->
-> APPENDED_DTB sounds a bit dangerous to be enabled by default according
-> to the config help text.
+> Thanks, I applied all 4 of them.
 
-The help is indeed really scary :-)
+Did you apply them for 3.2 or 3.3? Without the first patch any system
+that has a twl4030 chip will immediately hang on the first interrupt,
+and many functions of twl4030 will just not work without the second
+one.
 
-Tony,
-Do we want to keep it by default? Or should we fix the kconfig help?
-
-Regards
-Benoit
-
+--=20
+=46elipe Contreras
