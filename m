@@ -1,209 +1,287 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver module
-Date: Tue, 13 Dec 2011 12:01:39 +0800
-Message-ID: <CACVXFVNBagCuxF7g5ZpGRR9PoPsR4MkacmmNp=YiHXNGOpnWyw@mail.gmail.com>
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: RE: [RFC PATCH v1 6/7] media: video: introduce face detection driver
+ module
+Date: Tue, 13 Dec 2011 14:59:24 +0900
+Message-ID: <002f01ccb95c$5de23f60$19a6be20$%kim@samsung.com>
 References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
-	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>
-	<4EDD3DEE.6060506@gmail.com>
-	<CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
-	<4EDE90A3.7050900@gmail.com>
-	<CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>
-	<4EE14787.8090509@gmail.com>
-	<CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>
-	<4EE4EBCF.8000202@gmail.com>
-	<CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
-	<000d01ccb8c6$bf235160$3d69f420$%kim@samsung.com>
+ <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
+ <4EDD3DEE.6060506@gmail.com>
+ <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
+ <4EDE90A3.7050900@gmail.com>
+ <CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>
+ <4EE14787.8090509@gmail.com>
+ <CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>
+ <4EE4EBCF.8000202@gmail.com>
+ <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
+ <000d01ccb8c6$bf235160$3d69f420$%kim@samsung.com>
+ <CACVXFVNBagCuxF7g5ZpGRR9PoPsR4MkacmmNp=YiHXNGOpnWyw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000d01ccb8c6$bf235160$3d69f420$%kim@samsung.com>
+In-reply-to: <CACVXFVNBagCuxF7g5ZpGRR9PoPsR4MkacmmNp=YiHXNGOpnWyw@mail.gmail.com>
+Content-language: ko
 Sender: linux-kernel-owner@vger.kernel.org
-To: "HeungJun, Kim" <riverful.kim@samsung.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: 'Ming Lei' <ming.lei@canonical.com>
+Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hi Ming and Sylwester,
 
-On Mon, Dec 12, 2011 at 8:08 PM, HeungJun, Kim <riverful.kim@samsung.co=
-m> wrote:
-> Hi Ming,
->
-> It's maybe late, but I want to suggest one thing about FD API.
->
-> This OMAP FD block looks detection ability of just face.
-> But, It's possible to occur another device which can detect
-> specific "object" or "patterns". Moreover, this API can expand
-> "object recognition" area. So, I think it's good to change the API na=
-me
-> like "v4l2_recog".
+Thanks for the reply.
 
-IMO, object detection is better,  at least now OMAP4 and samsung has
-face detection IP module, and face recognition is often done on results
-of face detection and more complicated interfaces will be involved.
+> -----Original Message-----
+> From: Ming Lei [mailto:ming.lei@canonical.com]
+> Sent: Tuesday, December 13, 2011 1:02 PM
+> To: HeungJun, Kim
+> Cc: Sylwester Nawrocki; linux-omap@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; linux-kernel@vger.kernel.org; linux-
+> media@vger.kernel.org
+> Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detectio=
+n driver
+> module
+>=20
+> Hi,
+>=20
+> On Mon, Dec 12, 2011 at 8:08 PM, HeungJun, Kim <riverful.kim@samsung.=
+com>
+wrote:
+> > Hi Ming,
+> >
+> > It's maybe late, but I want to suggest one thing about FD API.
+> >
+> > This OMAP FD block looks detection ability of just face.
+> > But, It's possible to occur another device which can detect
+> > specific "object" or "patterns". Moreover, this API can expand
+> > "object recognition" area. So, I think it's good to change the API =
+name
+> > like "v4l2_recog".
+>=20
+> IMO, object detection is better,  at least now OMAP4 and samsung has
+> face detection IP module, and face recognition is often done on resul=
+ts
+> of face detection and more complicated interfaces will be involved.
+Actually, the detection point is different, I guess.
+The OMAP has the detection block separately, named FDIF. But, Samsung
+Exynos doing detection process with externel sensor - m5mols, in our ca=
+se.
+This sensor(m5mols) has ISP function, and these ISP can process detecti=
+on.
+The expert of FIMC is Sylwester. Probably, he can tell the differences
+between both in more details. :)
 
->
-> Actually, I'm preparing similar control class for mainline with m5mol=
-s
-> camera sensor driver. The m5mols camera sensor has the function about
-> "face detection". But, I has experienced about Robot Recognition, and=
- I
-> remember the image processing chip which can detect spefic "pattern".
-> So, I hesitated naming the API(control or ioctl whatever) with "face"=
+>=20
+> >
+> > Actually, I'm preparing similar control class for mainline with m5m=
+ols
+> > camera sensor driver. The m5mols camera sensor has the function abo=
+ut
+> > "face detection". But, I has experienced about Robot Recognition, a=
+nd I
+> > remember the image processing chip which can detect spefic "pattern=
+".
+> > So, I hesitated naming the API(control or ioctl whatever) with "fac=
+e".
+> > It can be possible to provide just "object" or "pattern", not face.
+> > Even user library on windows, there is famous "OpenCV". And this is=
+ also
+> > support not only "face", but also "object".
+>=20
+> Yes, object is better than face, and we can use enum flag to describe=
+ that
+> the objects detected are which kind of objects. In fact, I plan to re=
+name the
+> face detection generic driver as object detection generic driver and =
+let
+> hardware driver to handle the object detection details.
+>=20
+> >
+> > The function of OMAP FDIF looks like m5mols ISP's one.
+> > please understand I don't have experience about OMAP AP. But, I can=
+ tell
+> > you it's better to use the name "object recognition", not the "face
+> detection",
+> > for any other device or driver.
+> >
+> > In a few days, I'll share the CIDs I have thought for m5mols driver=
 =2E
-> It can be possible to provide just "object" or "pattern", not face.
-> Even user library on windows, there is famous "OpenCV". And this is a=
-lso
-> support not only "face", but also "object".
+> > And, I hope to discuss about this with OMAP FDIF.
+>=20
+> You have been doing it already, :-)
+Yeah, actually I did. :)
+But, until I see OMAP FDIF case, I did not recognize AP(like OMAP) can
+have detection capability. :) So, although I did not think about at tha=
+t time,
+I also think we should re-consider this case for now.
 
-Yes, object is better than face, and we can use enum flag to describe t=
-hat
-the objects detected are which kind of objects. In fact, I plan to rena=
-me the
-face detection generic driver as object detection generic driver and le=
-t
-hardware driver to handle the object detection details.
+As I look around your patch quickly, the functions is very similar with=
+ ours.
+(even detection of left/right eye)
+So, the problem is there are two ways to proceed "recognition".
+- Does it handle at the level of IOCTLs? or CIDs?
 
->
-> The function of OMAP FDIF looks like m5mols ISP's one.
-> please understand I don't have experience about OMAP AP. But, I can t=
-ell
-> you it's better to use the name "object recognition", not the "face d=
-etection",
-> for any other device or driver.
->
-> In a few days, I'll share the CIDs I have thought for m5mols driver.
-> And, I hope to discuss about this with OMAP FDIF.
+If the detection algorithm is proceeded at the level of HW block,
+it's right the platform driver provide APIs as IOCTLs(as you're FDIF pa=
+tches).
+On the other hand, if it is proceeded at the sensor(subdevice) level,
+I think it's more right to control using CIDs.
 
-You have been doing it already, :-)
+We need the solution including those two cases.
+And the name - object detection? object recognition?
 
-thanks,
---
-Ming Lei
+So, do you have any good ideas?
 
->
-> Thank you.
->
-> Regards,
-> Heungjun Kim
->
->
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Ming Lei
->> Sent: Monday, December 12, 2011 6:50 PM
->> To: Sylwester Nawrocki
->> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org=
-; linux-
->> kernel@vger.kernel.org; linux-media@vger.kernel.org
->> Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detecti=
-on driver
->> module
->>
->> Hi,
->>
->> On Mon, Dec 12, 2011 at 1:43 AM, Sylwester Nawrocki <snjw23@gmail.co=
-m>
->>
->> >> For OMAP4 FD, it is not needed to include FD into MC framework si=
-nce a
->> >> intermediate buffer is always required. If your HW doesn't belong=
- to this
->> >> case, what is the output of your HW FD in the link? Also sounds F=
-D results
->> >> may not be needed at all for use space application in the case.
->> >
->> > The result data is similar to OMAP4 one, plus a few other attribut=
-es.
->> > User buffers may be filled by other than FD device driver.
->>
->> OK.
->>
->>
->> >> Could you provide some practical use cases about these?
->> >
->> > As above, and any device with a camera that controls something and=
- makes
->> > decision according to presence of human face in his view.
->>
->> Sounds a reasonable case, :-)
->>
->>
->> >> If FD result is associated with a frame, how can user space get t=
-he frame
->> seq
->> >> if no v4l2 buffer is involved? Without a frame sequence, it is a =
-bit
->> >> difficult to retrieve FD results from user space.
->> >
->> > If you pass image data in memory buffers from user space, yes, it =
-could be
->> > impossible.
->>
->> It is easy to get the frame sequence from v4l2_buffer for the case t=
-oo, :-)
->>
->> >
->> > Not really, still v4l2_buffer may be used by other (sub)driver wit=
-hin same
->> video
->> > processing pipeline.
->>
->> OK.
->>
->> A related question: how can we make one application to support the t=
-wo kinds
-> of
->> devices(input from user space data as OMAP4, input from SoC bus as S=
-amsung)
->> at the same time? Maybe some capability info is to be exported to us=
-er space?
->> or other suggestions?
->>
->> And will your Samsung FD HW support to detect faces from memory? or =
-just only
->> detect from SoC bus?
->>
->>
->> > It will be included in the FD result... or in a dedicated v4l2 eve=
-nt data
->> structure.
->> > More important, at the end of the day, we'll be getting buffers wi=
-th image
->> data
->> > at some stage of a video pipeline, which would contain same frame =
-identifier
->> > (I think we can ignore v4l2_buffer.field for FD purpose).
->>
->> OK, I will associate FD result with frame identifier, and not invent=
- a
->> dedicated v4l2 event for query frame seq now until a specific requir=
-ement
->> for it is proposed.
->>
->> I will convert/integrate recent discussions into patches of v2 for f=
-urther
->> review, and sub device support will be provided. But before starting=
- to do it,
->> I am still not clear how to integrate FD into MC framework. I unders=
-tand FD
->> sub device is only a media entity, so how can FD sub device find the=
- media
->> device(struct media_device)? =A0or just needn't to care about it now=
-?
->>
->>
->> thanks,
->> --
->> Ming Lei
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-medi=
-a" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+ps. There can be another not-matched HW block level issues.
+But, the problem which I can check is just above issue for now.
+
+
+Thanks,
+Heungjun Kim
+
+
+>=20
+> thanks,
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> Ming Lei
+>=20
+> >
+> > Thank you.
+> >
+> > Regards,
+> > Heungjun Kim
+> >
+> >
+> >> -----Original Message-----
+> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >> owner@vger.kernel.org] On Behalf Of Ming Lei
+> >> Sent: Monday, December 12, 2011 6:50 PM
+> >> To: Sylwester Nawrocki
+> >> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.o=
+rg;
+linux-
+> >> kernel@vger.kernel.org; linux-media@vger.kernel.org
+> >> Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detec=
+tion
+> driver
+> >> module
+> >>
+> >> Hi,
+> >>
+> >> On Mon, Dec 12, 2011 at 1:43 AM, Sylwester Nawrocki <snjw23@gmail.=
+com>
+> >>
+> >> >> For OMAP4 FD, it is not needed to include FD into MC framework =
+since a
+> >> >> intermediate buffer is always required. If your HW doesn't belo=
+ng to
+this
+> >> >> case, what is the output of your HW FD in the link? Also sounds=
+ FD
+> results
+> >> >> may not be needed at all for use space application in the case.
+> >> >
+> >> > The result data is similar to OMAP4 one, plus a few other attrib=
+utes.
+> >> > User buffers may be filled by other than FD device driver.
+> >>
+> >> OK.
+> >>
+> >>
+> >> >> Could you provide some practical use cases about these?
+> >> >
+> >> > As above, and any device with a camera that controls something a=
+nd makes
+> >> > decision according to presence of human face in his view.
+> >>
+> >> Sounds a reasonable case, :-)
+> >>
+> >>
+> >> >> If FD result is associated with a frame, how can user space get=
+ the
+frame
+> >> seq
+> >> >> if no v4l2 buffer is involved? Without a frame sequence, it is =
+a bit
+> >> >> difficult to retrieve FD results from user space.
+> >> >
+> >> > If you pass image data in memory buffers from user space, yes, i=
+t could
+be
+> >> > impossible.
+> >>
+> >> It is easy to get the frame sequence from v4l2_buffer for the case=
+ too, :-)
+> >>
+> >> >
+> >> > Not really, still v4l2_buffer may be used by other (sub)driver w=
+ithin
+same
+> >> video
+> >> > processing pipeline.
+> >>
+> >> OK.
+> >>
+> >> A related question: how can we make one application to support the=
+ two
+kinds
+> > of
+> >> devices(input from user space data as OMAP4, input from SoC bus as=
+ Samsung)
+> >> at the same time? Maybe some capability info is to be exported to =
+user
+space?
+> >> or other suggestions?
+> >>
+> >> And will your Samsung FD HW support to detect faces from memory? o=
+r just
+> only
+> >> detect from SoC bus?
+> >>
+> >>
+> >> > It will be included in the FD result... or in a dedicated v4l2 e=
+vent data
+> >> structure.
+> >> > More important, at the end of the day, we'll be getting buffers =
+with
+image
+> >> data
+> >> > at some stage of a video pipeline, which would contain same fram=
+e
+> identifier
+> >> > (I think we can ignore v4l2_buffer.field for FD purpose).
+> >>
+> >> OK, I will associate FD result with frame identifier, and not inve=
+nt a
+> >> dedicated v4l2 event for query frame seq now until a specific requ=
+irement
+> >> for it is proposed.
+> >>
+> >> I will convert/integrate recent discussions into patches of v2 for=
+ further
+> >> review, and sub device support will be provided. But before starti=
+ng to do
+> it,
+> >> I am still not clear how to integrate FD into MC framework. I unde=
+rstand FD
+> >> sub device is only a media entity, so how can FD sub device find t=
+he media
+> >> device(struct media_device)? =A0or just needn't to care about it n=
+ow?
+> >>
+> >>
+> >> thanks,
+> >> --
+> >> Ming Lei
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-me=
+dia" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
+ml
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
