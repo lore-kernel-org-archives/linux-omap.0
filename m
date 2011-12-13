@@ -1,68 +1,76 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
-Date: Wed, 14 Dec 2011 01:02:09 +0200
-Message-ID: <CAMP44s3Gmx1M40Dae-RR3+i=vv-d0Ls6h3YToRuUnMTFoqeSCQ@mail.gmail.com>
-References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>
-	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>
-	<CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
-	<4EDF5231.6080309@bitmer.com>
-	<CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
-	<4EE5A8A0.2010206@bitmer.com>
-	<CAMP44s1Zz7CqxRM6PeNT3GN9GbCLy+0smgk6_-9kSjghY33Xuw@mail.gmail.com>
-	<20111213225308.GB10066@legolas.emea.dhcp.ti.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: sys_clkout2
+Date: Tue, 13 Dec 2011 16:26:02 -0700
+Message-ID: <4EE7DF0A.50706@mlbassoc.com>
+References: <4EE7C38D.8020501@mlbassoc.com> <alpine.DEB.2.00.1112131447230.12046@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111213225308.GB10066@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:45616 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755529Ab1LMX0F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 18:26:05 -0500
+In-Reply-To: <alpine.DEB.2.00.1112131447230.12046@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, Dec 14, 2011 at 12:53 AM, Felipe Balbi <balbi@ti.com> wrote:
-> On Tue, Dec 13, 2011 at 11:19:52PM +0200, Felipe Contreras wrote:
->> On Mon, Dec 12, 2011 at 9:09 AM, Jarkko Nikula <jarkko.nikula@bitmer=
-=2Ecom> wrote:
->> > Indeed yes. I checked that in 3.0 it still works but not in 3.1 so=
- some
->> > non isp1704_charger change has broke it as there hasn't been chang=
-es on it.
->>
->> Actually it's broken in 3.0 as well, try this configuration:
->>
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_MUSB_HOST is not set
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_MUSB_PERIPHERAL is not set
->> =C2=A0 =C2=A0 =C2=A0 CONFIG_USB_MUSB_OTG=3Dy
->> =C2=A0 =C2=A0 =C2=A0 CONFIG_USB_GADGET_MUSB_HDRC=3Dy
->> =C2=A0 =C2=A0 =C2=A0 CONFIG_USB_MUSB_HDRC_HCD=3Dy
->>
->> =C2=A0 =C2=A0 =C2=A0 CONFIG_USB_GADGET_SELECTED=3Dy
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_GADGET_FUSB300 is not set
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_GADGET_OMAP is not set
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_GADGET_R8A66597 is not set
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_GADGET_PXA_U2O is not set
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_GADGET_M66592 is not set
->> =C2=A0 =C2=A0 =C2=A0 # CONFIG_USB_GADGET_DUMMY_HCD is not set
->>
->> I will try to find where the issues started to happen, but it's a bi=
-t
->> difficult because all this USB Kconfig stuff is completely messed up=
-=2E
->>
->> *Sigh*
+On 2011-12-13 14:56, Paul Walmsley wrote:
+> On Tue, 13 Dec 2011, Gary Thomas wrote:
 >
-> patches are welcome
+>> What's the best way to enable sys_clkout2 (DM3730, latest kernel)?
+>> I've managed to set it up properly and it runs in U-Boot, but the
+>> kernel is disabling it.  It's a bit of a tangle trying to figure out
+>> not only what piece of code is undoing my work, but how to get the
+>> clock to keep running.
+>
+> It's probably getting disabled by omap2_clk_disable_unused() in
+> mach-omap2/clock.c, which runs at the end of kernel init.
+>
+>> I want the clkout_cntrl register set to 0x8a,
+>> so any guidance on how to make this happen would be greatly appreciated.
+>
+> I presume you have some external device that relies on sys_clkout2 for its
+> clock input?
 
-The were not last times:
-http://mid.gmane.org/1288656853-4625-1-git-send-email-felipe.contreras@=
-gmail.com
-http://mid.gmane.org/1287482608-11320-1-git-send-email-felipe.contreras=
-@gmail.com
+Precisely.  Do I need to do anything special to control how the clock is
+configured, e.g. div & src settings?
 
-But I'll try again... Once I'm done with this endless bisect =3D/
+>
+> If the device has a Linux driver associated with it, the clean way to fix
+> it would be to add a clkdev line for it into mach-omap2/clock3xxx_data.c.
+> Something like
+>
+> 	CLK("devname",	"fck",	&sys_clkout2,	CK_3XXX),
+>
+> where "devname" is the name of your device.  Then add some code into that
+> driver to enable and disable the clock as needed.  Something like
+>
+> ...
+>
+> struct clk *c;
+>
+> c = clk_get(dev_name(dev), "fck");
+> WARN(IS_ERR(c), "cannot clk_get() device functional clock");
+> clk_enable(c);
+>
+> ...
+>
+> and then clk_disable() it later in your driver when you don't need it.
+>
+> If you don't have a driver, you can hack a quick one up that just deals
+> with the clock, and add it to your board file.
+>
+> Or if you just want a dirty hack, you can probably get away with just
+> adding the ENABLE_ON_INIT flag to the sys_clkout2 .flags field in
+> mach-omap2/clock3xxx_data.c.
 
-Cheers.
+Thanks, I'll give this a try when I have eyes on the hardware (Wednesday)
 
---=20
-=46elipe Contreras
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
