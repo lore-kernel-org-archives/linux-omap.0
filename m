@@ -1,50 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
-Date: Tue, 13 Dec 2011 13:55:01 -0800
-Message-ID: <20111213215501.GU32251@atomide.com>
-References: <20111207193141.GG31337@atomide.com>
- <1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
- <20111208144044.GA25415@xps8300>
- <CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
- <20111212194445.GG32251@atomide.com>
- <CAMP44s301iWcReReqScJw+N1pQ4=g8D8hZKOV3wEX-qN0_gRQQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: sys_clkout2
+Date: Tue, 13 Dec 2011 14:56:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112131447230.12046@utopia.booyaka.com>
+References: <4EE7C38D.8020501@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMP44s301iWcReReqScJw+N1pQ4=g8D8hZKOV3wEX-qN0_gRQQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Heikki Krogerus <krohei@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:34281 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436Ab1LMV4y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 16:56:54 -0500
+In-Reply-To: <4EE7C38D.8020501@mlbassoc.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-omap@vger.kernel.org
 
-* Felipe Contreras <felipe.contreras@gmail.com> [111213 11:33]:
-> On Mon, Dec 12, 2011 at 9:44 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Felipe Contreras <felipe.contreras@gmail.com> [111208 11:52]:
-> >> On Thu, Dec 8, 2011 at 4:40 PM, Heikki Krogerus <krohei@gmail.com> wrote:
-> >> > On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
-> >> >> From: Heikki Krogerus <krohei@gmail.com>
-> >> >
-> >> > I would prefer that you change this so this is from you, like it
-> >> > actually is. You can mention me in the commit message if you like.
-> >>
-> >> Well, you came with the fix, I just typed it down, but as you wish :)
-> >>
-> >> >> Without this USB networking doesn't work as the link is never detected.
-> >> >
-> >> > What this changes is, it leaves the transceiver powered by default
-> >> > instead of setting it into power off mode. So not only USB networking
-> >> > is affected by this. If isp1704_charger is not enabled with RX51, USB
-> >> > does not work at all. Please change the comment.
-> >>
-> >> I've updated the patch.
-> >
-> > Sorry what's the deal with this one? Is this the one to use or is there
-> > some other patch?
-> 
-> Yeap, there's v2 of this one:
-> 1323375780-13190-1-git-send-email-felipe.contreras@nokia.com
+On Tue, 13 Dec 2011, Gary Thomas wrote:
 
-OK, thanks applying into fixes.
+> What's the best way to enable sys_clkout2 (DM3730, latest kernel)?
+> I've managed to set it up properly and it runs in U-Boot, but the
+> kernel is disabling it.  It's a bit of a tangle trying to figure out
+> not only what piece of code is undoing my work, but how to get the
+> clock to keep running.
 
-Tony
+It's probably getting disabled by omap2_clk_disable_unused() in 
+mach-omap2/clock.c, which runs at the end of kernel init.
+
+> I want the clkout_cntrl register set to 0x8a,
+> so any guidance on how to make this happen would be greatly appreciated.
+
+I presume you have some external device that relies on sys_clkout2 for its 
+clock input?  
+
+If the device has a Linux driver associated with it, the clean way to fix 
+it would be to add a clkdev line for it into mach-omap2/clock3xxx_data.c.  
+Something like
+
+	CLK("devname",	"fck",	&sys_clkout2,	CK_3XXX),
+
+where "devname" is the name of your device.  Then add some code into that 
+driver to enable and disable the clock as needed.  Something like
+
+...
+
+struct clk *c;
+
+c = clk_get(dev_name(dev), "fck");
+WARN(IS_ERR(c), "cannot clk_get() device functional clock");
+clk_enable(c);
+
+...
+
+and then clk_disable() it later in your driver when you don't need it.
+
+If you don't have a driver, you can hack a quick one up that just deals 
+with the clock, and add it to your board file.
+
+Or if you just want a dirty hack, you can probably get away with just 
+adding the ENABLE_ON_INIT flag to the sys_clkout2 .flags field in 
+mach-omap2/clock3xxx_data.c.
+
+
+- Paul
