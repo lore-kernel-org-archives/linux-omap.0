@@ -1,76 +1,85 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv11 2/8] ARM: OMAP2+: hwmod: Add API to check IO PAD
- wakeup status
-Date: Tue, 13 Dec 2011 14:48:51 -0800
-Message-ID: <20111213224851.GX32251@atomide.com>
-References: <1323713733-13115-1-git-send-email-t-kristo@ti.com>
- <1323713733-13115-3-git-send-email-t-kristo@ti.com>
- <alpine.DEB.2.00.1112131505000.12046@utopia.booyaka.com>
- <20111213222804.GV32251@atomide.com>
- <alpine.DEB.2.00.1112131530100.12046@utopia.booyaka.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
+Date: Wed, 14 Dec 2011 00:53:09 +0200
+Message-ID: <20111213225308.GB10066@legolas.emea.dhcp.ti.com>
+References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>
+ <1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>
+ <CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
+ <4EDF5231.6080309@bitmer.com>
+ <CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
+ <4EE5A8A0.2010206@bitmer.com>
+ <CAMP44s1Zz7CqxRM6PeNT3GN9GbCLy+0smgk6_-9kSjghY33Xuw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:61612 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751593Ab1LMWsz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 17:48:55 -0500
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="H1spWtNR+x+ondvy"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1112131530100.12046@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <CAMP44s1Zz7CqxRM6PeNT3GN9GbCLy+0smgk6_-9kSjghY33Xuw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "R, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [111213 14:06]:
-> On Tue, 13 Dec 2011, Tony Lindgren wrote:
+
+--H1spWtNR+x+ondvy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Dec 13, 2011 at 11:19:52PM +0200, Felipe Contreras wrote:
+> On Mon, Dec 12, 2011 at 9:09 AM, Jarkko Nikula <jarkko.nikula@bitmer.com>=
+ wrote:
+> > Indeed yes. I checked that in 3.0 it still works but not in 3.1 so some
+> > non isp1704_charger change has broke it as there hasn't been changes on=
+ it.
 >=20
-> > * Paul Walmsley <paul@pwsan.com> [111213 13:44]:
-> > >=20
-> > > On Mon, 12 Dec 2011, Tero Kristo wrote:
-> > >=20
-> > > So the patch description says:
-> > >=20
-> > > > From: R, Govindraj <govindraj.raja@ti.com>
-> > > >=20
-> > > > Add API to determine IO-PAD wakeup event status for a given
-> > > > hwmod dynamic_mux pad.
-> > >=20
-> > > But the code does:
-> > >=20
-> > > > +	for (i =3D 0; i < hmux->nr_pads; i++) {
-> > > > +		struct omap_device_pad *pad =3D &hmux->pads[i];
-> > >=20
-> > > which is going to check all of the pads, not just the dynamic one=
-s.
-> > >=20
-> > > So it seems to me that we need to decide whether this code should=
- be=20
-> > > testing all the pads, or just the dynamically remuxed ones.  The =
-same=20
-> > > thing should be decided for the code in patch 1.
-> > >=20
-> > > Na=C3=AFvely it seems to me that we want to test all of the pads =
-in both=20
-> > > patches 1 and 2, not just the dynamically remuxable ones.  Commen=
-ts?
-> >=20
-> > You're right, it should be only the dynamic ones.
+> Actually it's broken in 3.0 as well, try this configuration:
 >=20
-> Hmm, looks to me like it should check all of them?  Can't a pad be ma=
-rked=20
-> with OMAP_DEVICE_PAD_WAKEUP, but not be marked with OMAP_DEVICE_PAD_R=
-EMUX? =20
-> In that case it would not end up on the dynamic list, right?
+> 	# CONFIG_USB_MUSB_HOST is not set
+> 	# CONFIG_USB_MUSB_PERIPHERAL is not set
+> 	CONFIG_USB_MUSB_OTG=3Dy
+> 	CONFIG_USB_GADGET_MUSB_HDRC=3Dy
+> 	CONFIG_USB_MUSB_HDRC_HCD=3Dy
+>=20
+> 	CONFIG_USB_GADGET_SELECTED=3Dy
+> 	# CONFIG_USB_GADGET_FUSB300 is not set
+> 	# CONFIG_USB_GADGET_OMAP is not set
+> 	# CONFIG_USB_GADGET_R8A66597 is not set
+> 	# CONFIG_USB_GADGET_PXA_U2O is not set
+> 	# CONFIG_USB_GADGET_M66592 is not set
+> 	# CONFIG_USB_GADGET_DUMMY_HCD is not set
+>=20
+> I will try to find where the issues started to happen, but it's a bit
+> difficult because all this USB Kconfig stuff is completely messed up.
+>=20
+> *Sigh*
 
-Hmm yes that's even more true :) Maybe the right approach would be to
-copy the OMAP_DEVICE_PAD_WAKEUP pins also to the dynamic list to
-avoid going through all of them.
+patches are welcome
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+balbi
+
+--H1spWtNR+x+ondvy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJO59dTAAoJEIaOsuA1yqRE6OYP/AtCVZRkl+YDL49ZiyLuDU/C
+IeIzsbkmRuBoL37/xx2FEW4IKd8ecl2ko3kjvNQOzQ0cQUCWLCD42AyKZSIi7xV8
+yaY/By+XF7//dStib6JkNwAQkFUkvf3HKvrgKGpAgbtnwaDAPfhmDjNXu0oRwmc+
+RSRrVekJWn9JDYVPu2j8Vu1tiZ8szMd2fcvfVqTwYtCMHPI9jYg8MmQ/jR4Kva3R
+S6P4h/n4FQQ6z6S7SNF/eK9APhNXMgG1RmddnmPXUUPda6TMWikVaH0hOxY4DzAU
+x+Fzdv5s06p97jQITzadHzeBCUXbrZDbDnJqx358eJLfpMStZHfvqvaztki44nMS
+ycjwNBVqX69UTCuiUTf2jOp4+2xAAheQBCVlaGVSrhQ+NzKviPDsTeO4zloDWgEP
+v8PB9ZNLdj3xOeQI6bq+cIw86qmniSiA8sZgZ2QpcO4NtvAhBfG/WjoalDbTK64m
+RZTokaSUpiebdlHczhtTu+F2kXIpv6DtZ0CqycPLDIJuCRNTdic1qsnIemLd7ttz
+HGoa/MQ8AVd/28UARN3LybZSrA/ahhBKG1szKvJrOVyuWaWiGwnX0OxiA76tGyJ6
+qEAdI70ZfxXMKS0f6dOpDWtgQXC35bGHOff+DXiLqqR5r0ohLyf6s4ybIdbrCI3o
+g+Afzh//GSec/fy8x2VP
+=uyu1
+-----END PGP SIGNATURE-----
+
+--H1spWtNR+x+ondvy--
