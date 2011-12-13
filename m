@@ -1,56 +1,43 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 63/65] OMAPDSS: APPLY: add checking of ovls/mgrs settings
-Date: Tue, 13 Dec 2011 15:32:29 +0530
-Message-ID: <4EE722B5.3070606@ti.com>
-References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>	 <1321953724-6350-64-git-send-email-tomi.valkeinen@ti.com>	 <4EDF64AF.6040008@ti.com> <1323332965.1867.20.camel@deskari>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v2 0/3] Device tree support for TWL regulators
+Date: Tue, 13 Dec 2011 15:49:32 +0530
+Message-ID: <1323771575-3550-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36885 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37725 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826Ab1LMKDH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 05:03:07 -0500
-In-Reply-To: <1323332965.1867.20.camel@deskari>
+	with ESMTP id S1751921Ab1LMKUX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 05:20:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
+To: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+This series adds DT support for TWL regulator driver and
+passes regulator data for two OMAP4 boards (OMAP4 panda and
+OMAP4 sdp) from device tree.
 
-On Thursday 08 December 2011 01:59 PM, Tomi Valkeinen wrote:
-> On Wed, 2011-12-07 at 18:35 +0530, Archit Taneja wrote:
->> Hi,
->>
->> On Tuesday 22 November 2011 02:52 PM, Tomi Valkeinen wrote:
->>> Add checks for overlay and manager settings. The checks are a bit
->>> complex, as we need to observe the bigger picture instead of overlays
->>> and managers independently. Things like the used display and the zorder
->>> of other overlays affect the validity of the settings.
->>
->> Minor comment:
->>
->> dss_ovl_check, dss_mgr_check and dss_mgr_check_zorder don't really
->> qualify as functions which do actual applying of configurations, they
->> could be moved from apply.c to manager.c and overlay.c.
->
-> I had the check functions in apply.c because they used apply.c's
-> internal datastructures.
->
-> However, looking the functions now, only dss_mgr_check_zorder() used the
-> internal datas, and the function doesn't even use those variables for
-> anything =).
+Patches are based on for-next of the regulator tree[1] with
+omap i2c/twl DT adaptation patches[2] from Benoit pulled in
+and are available here:
+git://gitorious.org/omap-pm/linux.git for-dt/regulator-twl
 
-Also, the function dss_mgr_check() takes 'struct 
-omap_overlay_manager_info *info' as a parameter but doesn't use it. We 
-might want to remove that too.
+regards,
+Rajendra
 
-Archit
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/broonie/regulator.git for-next
+[2] git://gitorious.org/omap-pm/linux.git for_3.3/3_omap_dt_i2c_twl
 
->
-> So you're right, they can be moved to manager.c and overlay.c, thanks.
->
->   Tomi
->
+Rajendra Nayak (3):
+  regulator: twl: adapt twl-regulator driver to dt
+  ARM: omap4-sdp: Pass regulator data from dt
+  omap4: panda: Pass regulator data from dt
+
+ .../bindings/regulator/twl-regulator.txt           |   57 +++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   24 ++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   36 ++++++
+ drivers/regulator/twl-regulator.c                  |  128 +++++++++++++-------
+ 4 files changed, 199 insertions(+), 46 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/regulator/twl-regulator.txt
 
