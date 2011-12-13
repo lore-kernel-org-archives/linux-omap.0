@@ -1,70 +1,91 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv8 5/5] OMAP: I2C: Remove the SYSC register definition
-Date: Tue, 13 Dec 2011 16:25:58 +0530
-Message-ID: <1323773758-6375-6-git-send-email-shubhrajyoti@ti.com>
-References: <1323773758-6375-1-git-send-email-shubhrajyoti@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 63/65] OMAPDSS: APPLY: add checking of ovls/mgrs
+ settings
+Date: Tue, 13 Dec 2011 13:16:21 +0200
+Message-ID: <1323774981.1877.53.camel@deskari>
+References: <1321953724-6350-1-git-send-email-tomi.valkeinen@ti.com>
+	 <1321953724-6350-64-git-send-email-tomi.valkeinen@ti.com>
+	 <4EDF64AF.6040008@ti.com> <1323332965.1867.20.camel@deskari>
+	 <4EE722B5.3070606@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1323773758-6375-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-gs34kQ0ZqG51mBvsQgem"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:42433 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751634Ab1LMLQ1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Dec 2011 06:16:27 -0500
+In-Reply-To: <4EE722B5.3070606@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, archit@ti.com
 
-The SYSC register should not accessed in the driver removing the
-define from the driver.
-Also clean up the syscstate from the omap_i2c_dev struct.
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
+--=-gs34kQ0ZqG51mBvsQgem
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 70136a2..9dcd99b 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -63,7 +63,6 @@ enum {
- 	OMAP_I2C_BUF_REG,
- 	OMAP_I2C_CNT_REG,
- 	OMAP_I2C_DATA_REG,
--	OMAP_I2C_SYSC_REG,
- 	OMAP_I2C_CON_REG,
- 	OMAP_I2C_OA_REG,
- 	OMAP_I2C_SA_REG,
-@@ -187,7 +186,6 @@ struct omap_i2c_dev {
- 	u16			scllstate;
- 	u16			sclhstate;
- 	u16			bufstate;
--	u16			syscstate;
- 	u16			westate;
- 	u16			errata;
- };
-@@ -202,7 +200,6 @@ static const u8 reg_map_ip_v1[] = {
- 	[OMAP_I2C_BUF_REG] = 0x05,
- 	[OMAP_I2C_CNT_REG] = 0x06,
- 	[OMAP_I2C_DATA_REG] = 0x07,
--	[OMAP_I2C_SYSC_REG] = 0x08,
- 	[OMAP_I2C_CON_REG] = 0x09,
- 	[OMAP_I2C_OA_REG] = 0x0a,
- 	[OMAP_I2C_SA_REG] = 0x0b,
-@@ -223,7 +220,6 @@ static const u8 reg_map_ip_v2[] = {
- 	[OMAP_I2C_BUF_REG] = 0x94,
- 	[OMAP_I2C_CNT_REG] = 0x98,
- 	[OMAP_I2C_DATA_REG] = 0x9c,
--	[OMAP_I2C_SYSC_REG] = 0x10,
- 	[OMAP_I2C_CON_REG] = 0xa4,
- 	[OMAP_I2C_OA_REG] = 0xa8,
- 	[OMAP_I2C_SA_REG] = 0xac,
-@@ -264,7 +260,6 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 	}
--- 
-1.7.1
+On Tue, 2011-12-13 at 15:32 +0530, Archit Taneja wrote:
+> Hi,
+>=20
+> On Thursday 08 December 2011 01:59 PM, Tomi Valkeinen wrote:
+> > On Wed, 2011-12-07 at 18:35 +0530, Archit Taneja wrote:
+> >> Hi,
+> >>
+> >> On Tuesday 22 November 2011 02:52 PM, Tomi Valkeinen wrote:
+> >>> Add checks for overlay and manager settings. The checks are a bit
+> >>> complex, as we need to observe the bigger picture instead of overlays
+> >>> and managers independently. Things like the used display and the zord=
+er
+> >>> of other overlays affect the validity of the settings.
+> >>
+> >> Minor comment:
+> >>
+> >> dss_ovl_check, dss_mgr_check and dss_mgr_check_zorder don't really
+> >> qualify as functions which do actual applying of configurations, they
+> >> could be moved from apply.c to manager.c and overlay.c.
+> >
+> > I had the check functions in apply.c because they used apply.c's
+> > internal datastructures.
+> >
+> > However, looking the functions now, only dss_mgr_check_zorder() used th=
+e
+> > internal datas, and the function doesn't even use those variables for
+> > anything =3D).
+>=20
+> Also, the function dss_mgr_check() takes 'struct=20
+> omap_overlay_manager_info *info' as a parameter but doesn't use it. We=
+=20
+> might want to remove that too.
+
+Right. And the dss_ovl/mgr_simple_check() functions could also be moved
+outside apply.c.
+
+ Tomi
+
+
+--=-gs34kQ0ZqG51mBvsQgem
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO5zQFAAoJEPo9qoy8lh713BQQAKZzmY+OOgoIZhpXNsFvhhs8
+hd0OL54L8qMBmoOMo00w/rUJJ2RXBvyBoEne9umr6qw2Zcirie/6wKWUiuzfEApu
+C0CWDWFKRdC+lH6LHbOlxfp96DTU3ACEQq24adgz27ERyiDY/virgyDlrbDmrd7z
+x56h/D1K7NNPAt6O7cTR/zcFiPxXD4vYvAJ2D3okFeq+0Yh/vQoYEQaYreXT7i85
+RKMWOc4K22XGnZVmvOWujG7Cp5a37PpUiIJoLjAUAVJOYs0fzqYXLoj/mC3k4D1V
+6AtDr9PQYw7XsfWyxZo6stngaSRgbNJ7iU/sxe+RNmlz/4z7V5LiG9EWu7X+W8M6
+pg3qo/W1cNOGH45WQ+bE/TdtbJK7s4IP1/IA9ae+3saz5U8GCk+5dxVqXY+Q4hNo
+mMlrDNJYB5VDwRc1tLCV6er5lKLf4wH0XvdsCcQjFCapJtmGnoWOKDfxJUCVp3Dj
+bNvcvhjd9BlOOdyhtMDq8ItjNakljLC4kobqj3M2IA/clnShRKg+S+oi9QSbg1pO
+oip/TP5T1x+PPmVpZCfev+1lYsjDZ3EjTh/lybTxD7z167unQAjmqNdH99DiAiAn
+MN6pHj/ciaIR/QSZKHD4dvRVvHm+ylQhedONi9IyopJ5G/sFW84XNqMTN3fEf7xk
+qQ3uOV16TAfTroLCt5x8
+=HOH8
+-----END PGP SIGNATURE-----
+
+--=-gs34kQ0ZqG51mBvsQgem--
+
