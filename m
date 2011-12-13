@@ -1,46 +1,74 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
-Date: Tue, 13 Dec 2011 23:19:52 +0200
-Message-ID: <CAMP44s1Zz7CqxRM6PeNT3GN9GbCLy+0smgk6_-9kSjghY33Xuw@mail.gmail.com>
-References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>
-	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>
-	<CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
-	<4EDF5231.6080309@bitmer.com>
-	<CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
-	<4EE5A8A0.2010206@bitmer.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv11 1/8] ARM: OMAP2+: hwmod: Add API to enable IO ring
+ wakeup.
+Date: Tue, 13 Dec 2011 14:33:43 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112131431310.12046@utopia.booyaka.com>
+References: <1323713733-13115-1-git-send-email-t-kristo@ti.com> <1323713733-13115-2-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1112131354380.12046@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4EE5A8A0.2010206@bitmer.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:34091 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752736Ab1LMVdo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 16:33:44 -0500
+In-Reply-To: <alpine.DEB.2.00.1112131354380.12046@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "R, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Mon, Dec 12, 2011 at 9:09 AM, Jarkko Nikula <jarkko.nikula@bitmer.com> wrote:
-> Indeed yes. I checked that in 3.0 it still works but not in 3.1 so some
-> non isp1704_charger change has broke it as there hasn't been changes on it.
+Hi Govindraj, Tero,
 
-Actually it's broken in 3.0 as well, try this configuration:
+another question about this patch:
 
-	# CONFIG_USB_MUSB_HOST is not set
-	# CONFIG_USB_MUSB_PERIPHERAL is not set
-	CONFIG_USB_MUSB_OTG=y
-	CONFIG_USB_GADGET_MUSB_HDRC=y
-	CONFIG_USB_MUSB_HDRC_HCD=y
+On Tue, 13 Dec 2011, Paul Walmsley wrote:
 
-	CONFIG_USB_GADGET_SELECTED=y
-	# CONFIG_USB_GADGET_FUSB300 is not set
-	# CONFIG_USB_GADGET_OMAP is not set
-	# CONFIG_USB_GADGET_R8A66597 is not set
-	# CONFIG_USB_GADGET_PXA_U2O is not set
-	# CONFIG_USB_GADGET_M66592 is not set
-	# CONFIG_USB_GADGET_DUMMY_HCD is not set
+> diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+> index 207a2ff..ec19841 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> @@ -381,6 +381,43 @@ static int _set_module_autoidle(struct omap_hwmod *oh, u8 autoidle,
+>  }
+>  
+>  /**
+> + * _set_ioring_wakeup - enable/disable IO pad wakeup flag for dynamic muxing
+> + * @oh: struct omap_hwmod *
+> + * @set_wake: bool value indicating to set (true) or clear (false) wakeup enable
+> + *
+> + * Set or clear the I/O pad wakeup flag in the dynamic mux entries for
+> + * the hwmod @oh.  This function does not change anything in the
+> + * hardware.  Rather, the @oh->mux->pads_dynamic array is changed, and
+> + * these settings are later written to the SCM PADCTRL registers when
+> + * the hwmod is enabled or idled.  No return value.
+> + *
+> + * XXX Shouldn't the dynamic pad changes affect hwmod shutdown as
+> + * well?
+> + * XXX Shouldn't this function update the hardware SCM PADCONF registers if
+> + * anything has changed?
+> + */
+> +static void _set_ioring_wakeup(struct omap_hwmod *oh, bool set_wake)
+> +{
+> +	struct omap_device_pad *pad;
+> +	int j;
+> +
+> +	if (!oh->mux || !oh->mux->enabled)
+> +		return;
+> +
+> +	for (j = 0; j < oh->mux->nr_pads_dynamic; j++) {
+> +		pad = oh->mux->pads_dynamic[j];
+> +
+> +		if (!(pad->flags & OMAP_DEVICE_PAD_WAKEUP))
+> +			continue;
+> +
+> +		if (set_wake)
+> +			pad->idle |= OMAP_WAKEUP_EN;
+> +		else
+> +			pad->idle &= ~OMAP_WAKEUP_EN;
+> +	}
+> +}
 
-I will try to find where the issues started to happen, but it's a bit
-difficult because all this USB Kconfig stuff is completely messed up.
+It appears that this loop only affects dynamic mux entries.  Should it 
+also affect static mux entries?
 
-*Sigh*
 
--- 
-Felipe Contreras
+- Paul
