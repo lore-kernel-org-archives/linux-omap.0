@@ -1,66 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv11 2/8] ARM: OMAP2+: hwmod: Add API to check IO PAD wakeup
- status
-Date: Tue, 13 Dec 2011 15:38:17 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112131530100.12046@utopia.booyaka.com>
-References: <1323713733-13115-1-git-send-email-t-kristo@ti.com> <1323713733-13115-3-git-send-email-t-kristo@ti.com> <alpine.DEB.2.00.1112131505000.12046@utopia.booyaka.com> <20111213222804.GV32251@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
+ for OMAP2+ systems
+Date: Tue, 13 Dec 2011 14:38:56 -0800
+Message-ID: <20111213223855.GW32251@atomide.com>
+References: <y>
+ <1323190149-6492-2-git-send-email-b-cousson@ti.com>
+ <1323782836.1877.79.camel@deskari>
+ <4EE75448.4010701@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1609260115-1323815897=:12046"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44663 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755363Ab1LMWiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 17:38:21 -0500
-In-Reply-To: <20111213222804.GV32251@atomide.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50583 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755979Ab1LMWjA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 17:39:00 -0500
+Content-Disposition: inline
+In-Reply-To: <4EE75448.4010701@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "R, Govindraj" <govindraj.raja@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Cousson, Benoit <b-cousson@ti.com> [111213 05:02]:
+> On 12/13/2011 2:27 PM, Tomi Valkeinen wrote:
+> >Hi,
+> >
+> >On Tue, 2011-12-06 at 17:49 +0100, Benoit Cousson wrote:
+> >>devicetree will become the mandatory boot method for OMAP2+.
+> >>In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
+> >>select USE_OF by default for every OMAP2+ systems.
+> >>Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
+> >>boot loader to keep working properly.
+> >
+> >APPENDED_DTB sounds a bit dangerous to be enabled by default according
+> >to the config help text.
+> 
+> The help is indeed really scary :-)
 
---155748971-1609260115-1323815897=:12046
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Heh, but it's also true.
+ 
+> Tony,
+> Do we want to keep it by default? Or should we fix the kconfig help?
 
-On Tue, 13 Dec 2011, Tony Lindgren wrote:
+Let's just leave out those two from omap2plus_defconfig then.
 
-> * Paul Walmsley <paul@pwsan.com> [111213 13:44]:
-> >=20
-> > On Mon, 12 Dec 2011, Tero Kristo wrote:
-> >=20
-> > So the patch description says:
-> >=20
-> > > From: R, Govindraj <govindraj.raja@ti.com>
-> > >=20
-> > > Add API to determine IO-PAD wakeup event status for a given
-> > > hwmod dynamic_mux pad.
-> >=20
-> > But the code does:
-> >=20
-> > > +=09for (i =3D 0; i < hmux->nr_pads; i++) {
-> > > +=09=09struct omap_device_pad *pad =3D &hmux->pads[i];
-> >=20
-> > which is going to check all of the pads, not just the dynamic ones.
-> >=20
-> > So it seems to me that we need to decide whether this code should be=20
-> > testing all the pads, or just the dynamically remuxed ones.  The same=
-=20
-> > thing should be decided for the code in patch 1.
-> >=20
-> > Na=C3=AFvely it seems to me that we want to test all of the pads in bot=
-h=20
-> > patches 1 and 2, not just the dynamically remuxable ones.  Comments?
->=20
-> You're right, it should be only the dynamic ones.
+Regards,
 
-Hmm, looks to me like it should check all of them?  Can't a pad be marked=
-=20
-with OMAP_DEVICE_PAD_WAKEUP, but not be marked with OMAP_DEVICE_PAD_REMUX? =
-=20
-In that case it would not end up on the dynamic list, right?
-
-
-- Paul
---155748971-1609260115-1323815897=:12046--
+Tony
