@@ -1,26 +1,35 @@
-From: Rajendra Nayak <rnayak@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
 Subject: Re: Trying to boot Panda with DT
-Date: Tue, 13 Dec 2011 18:49:58 +0530
-Message-ID: <4EE750FE.5040302@ti.com>
+Date: Tue, 13 Dec 2011 14:20:44 +0100
+Message-ID: <4EE7512C.6010207@ti.com>
 References: <1323781385.1877.75.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47564 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754644Ab1LMNUE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Dec 2011 08:20:04 -0500
-Received: by mail-yw0-f49.google.com with SMTP id p34so360448yhp.36
-        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 05:20:03 -0800 (PST)
+Received: from bear.ext.ti.com ([192.94.94.41]:48610 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751539Ab1LMNUr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Dec 2011 08:20:47 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBDDKltY019129
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:20:47 -0600
+Received: from dlep26.itg.ti.com (smtp-le.itg.ti.com [157.170.170.27])
+	by dlep33.itg.ti.com (8.13.7/8.13.8) with ESMTP id pBDDKk9Q007195
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:20:46 -0600 (CST)
+Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBDDKkEK022645
+	for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 07:20:46 -0600 (CST)
 In-Reply-To: <1323781385.1877.75.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-On Tuesday 13 December 2011 06:33 PM, Tomi Valkeinen wrote:
+Hi Tomi,
+
+On 12/13/2011 2:03 PM, Tomi Valkeinen wrote:
 > Hi,
 >
 > I'm trying to boot Pandaboard ES with DT, but failing. I've debugged the
@@ -32,15 +41,32 @@ On Tuesday 13 December 2011 06:33 PM, Tomi Valkeinen wrote:
 > I'm using Pandaboard ES (so omap 4460), Benoit's
 > "for_3.3/1_omap_dt_i2c_twl_test" branch, u-boot from Linaro
 > (git://git.linaro.org/boot/u-boot-linaro-stable.git master). My u-boot
-
-I used the u-boot from here and it worked fine for me, not sure if its
-any different.
-git://git.secretlab.ca/git/u-boot devicetree/linaro-stable
-
 > boot-script is below.
->
+
+I've just sent a patch to add the default DT config for OMAP. It will 
+add these config into the OMAP2plus Kconfig.
+
++	select USE_OF
++	select ARM_APPENDED_DTB
++	select ARM_ATAG_DTB_COMPAT
++	select PROC_DEVICETREE
+
+In theory ARM_APPENDED_DTB and ARM_ATAG_DTB_COMPAT should not be needed 
+in your case but only for legacy u-boot.
+It should not messed up the DT in case of DT aware uboot, but it worst 
+checking if this is the case.
+
 > Should the setup work? What setup do you have? Any ideas what could be
 > wrong?
+
+I'm still using a legacy u-boot with the appended option and it works 
+fine with the previous config.
+
+Rajendra should use the setting you are trying to use.
+
+Regards,
+Benoit
+
 >
 >   Tomi
 >
