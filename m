@@ -1,52 +1,36 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] omap: rx51: initialize isp1704 properly
-Date: Tue, 13 Dec 2011 22:05:01 +0200
-Message-ID: <CAMP44s301iWcReReqScJw+N1pQ4=g8D8hZKOV3wEX-qN0_gRQQ@mail.gmail.com>
-References: <20111207193141.GG31337@atomide.com>
-	<1323287816-2809-1-git-send-email-felipe.contreras@gmail.com>
-	<20111208144044.GA25415@xps8300>
-	<CAMP44s2noD4TXBALOc0JkcbVroYFnp3BaSozrQYdUbsv50xuoQ@mail.gmail.com>
-	<20111212194445.GG32251@atomide.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 0/4] fixes for twl4030-irq in mainline
+Date: Tue, 13 Dec 2011 21:24:59 +0100
+Message-ID: <20111213202459.GB2796@sortiz-mobl>
+References: <20111126201334.16080.85045.stgit@notabene.brown>
+ <20111212173819.GT13952@sortiz-mobl>
+ <20111213083959.5f280d71@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61970 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786Ab1LMUFC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 15:05:02 -0500
-In-Reply-To: <20111212194445.GG32251@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20111213083959.5f280d71@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Felipe Balbi <balbi@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Heikki Krogerus <krohei@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>
 
-On Mon, Dec 12, 2011 at 9:44 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Felipe Contreras <felipe.contreras@gmail.com> [111208 11:52]:
->> On Thu, Dec 8, 2011 at 4:40 PM, Heikki Krogerus <krohei@gmail.com> wrote:
->> > On Wed, Dec 07, 2011 at 09:56:56PM +0200, Felipe Contreras wrote:
->> >> From: Heikki Krogerus <krohei@gmail.com>
->> >
->> > I would prefer that you change this so this is from you, like it
->> > actually is. You can mention me in the commit message if you like.
->>
->> Well, you came with the fix, I just typed it down, but as you wish :)
->>
->> >> Without this USB networking doesn't work as the link is never detected.
->> >
->> > What this changes is, it leaves the transceiver powered by default
->> > instead of setting it into power off mode. So not only USB networking
->> > is affected by this. If isp1704_charger is not enabled with RX51, USB
->> > does not work at all. Please change the comment.
->>
->> I've updated the patch.
->
-> Sorry what's the deal with this one? Is this the one to use or is there
-> some other patch?
+Hi Neil,
 
-Yeap, there's v2 of this one:
-1323375780-13190-1-git-send-email-felipe.contreras@nokia.com
+On Tue, Dec 13, 2011 at 08:39:59AM +1100, NeilBrown wrote:
+> > > The following 4 patches make it work for me and addresses some other
+> > > less critical issues like a typo in a comment :-)
+> > 
+> > Thanks, I applied all 4 of them.
+> 
+> Thanks.  I have a couple of other twl4030 patches, these ones related to
+> battery charging.   Hopefully I'll be ready to post them later this week.
+> Would they go through you too?
+They most likely would, yes.
 
-Cheers.
+Cheers,
+Samuel.
 
 -- 
-Felipe Contreras
+Intel Open Source Technology Centre
+http://oss.intel.com/
