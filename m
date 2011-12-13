@@ -1,43 +1,40 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime adaptation + cleanup
-Date: Tue, 13 Dec 2011 15:32:07 -0800
-Message-ID: <87zkewt5e0.fsf@ti.com>
-References: <1321005446-21741-1-git-send-email-govindraj.raja@ti.com>
-	<CAAL8m4wGN5ykm3-+xrGPe-WJUDBdterxAyZ=C3kH862+n1DprQ@mail.gmail.com>
+Subject: Re: [PATCH 2/6] OMAP2+: omap_hwmod: manage the wake-up latency constraints
+Date: Tue, 13 Dec 2011 15:46:47 -0800
+Message-ID: <87hb14t4pk.fsf@ti.com>
+References: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
+	<1323706701-6627-3-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAL8m4wGN5ykm3-+xrGPe-WJUDBdterxAyZ=C3kH862+n1DprQ@mail.gmail.com>
-	(Govindraj's message of "Tue, 13 Dec 2011 18:31:13 +0530")
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:45867 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751909Ab1LMXqw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Dec 2011 18:46:52 -0500
+Received: by mail-yw0-f47.google.com with SMTP id o47so954472yho.34
+        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 15:46:51 -0800 (PST)
+In-Reply-To: <1323706701-6627-3-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Mon, 12 Dec 2011 17:18:17 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: jean.pihet@newoldbits.com
+Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
 
-Govindraj <govindraj.ti@gmail.com> writes:
+jean.pihet@newoldbits.com writes:
 
-[...]
+> From: Jean Pihet <j-pihet@ti.com>
+>
+> Hwmod is queried from the OMAP_PM layer to manage the power domains
 
-> I have re-based this patch series against LO master
-> commit id: deee6d5359969a0ce4e2760cfd7b9f379bd5698a
->
-> Same is available here [1]
->
-> I have tested this patch series along with:
->
-> 1.) Tero's V11 irq chaining series
->      http://www.spinics.net/lists/linux-omap/msg61445.html
->     (This patch series is used for uart wakeup handling using
->       prcm_irq chaining)
->
-> 2.) Rajendra's hwmod change
->      http://www.spinics.net/lists/arm-kernel/msg148632.html
->      (This patch handles init_no_idle flag setting
->       without this patch there will be boot warning however
->       all pm features will work after boot up.)
+nit: changelog needs a refresh as this isn't called from OMAP PM layer.
 
-Actually, without Rajendra's patch all features do not work.  I don't
-get UART console wakeups from idle (with runtime PM autosuspend enabled)
-on 3430/n900 or 3530/Overo without Rajendra's patch.
+> wake-up latency constraints. Hwmod retrieves the correct power domain
+> and if it exists it calls the corresponding power domain function.
+>
+> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
+> latency constraints on MPU, CORE and PER.
+>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
 Kevin
