@@ -1,49 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
- for OMAP2+ systems
-Date: Tue, 13 Dec 2011 14:38:56 -0800
-Message-ID: <20111213223855.GW32251@atomide.com>
-References: <y>
- <1323190149-6492-2-git-send-email-b-cousson@ti.com>
- <1323782836.1877.79.camel@deskari>
- <4EE75448.4010701@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] omap hsmmc platform code changes for v3.3 merge window
+Date: Tue, 13 Dec 2011 14:39:27 -0800
+Message-ID: <CAOesGMgeD9tuN8RgRCMg951Pyvo-NDt6Bsmptt4E8tBM38GM1w@mail.gmail.com>
+References: <20111212223234.GH32251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50583 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979Ab1LMWjA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 17:39:00 -0500
-Content-Disposition: inline
-In-Reply-To: <4EE75448.4010701@ti.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:61070 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755979Ab1LMWj2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 17:39:28 -0500
+Received: by yhr47 with SMTP id 47so833899yhr.19
+        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 14:39:28 -0800 (PST)
+In-Reply-To: <20111212223234.GH32251@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Cousson, Benoit <b-cousson@ti.com> [111213 05:02]:
-> On 12/13/2011 2:27 PM, Tomi Valkeinen wrote:
-> >Hi,
-> >
-> >On Tue, 2011-12-06 at 17:49 +0100, Benoit Cousson wrote:
-> >>devicetree will become the mandatory boot method for OMAP2+.
-> >>In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
-> >>select USE_OF by default for every OMAP2+ systems.
-> >>Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
-> >>boot loader to keep working properly.
-> >
-> >APPENDED_DTB sounds a bit dangerous to be enabled by default according
-> >to the config help text.
-> 
-> The help is indeed really scary :-)
+On Mon, Dec 12, 2011 at 2:32 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Arnd & Olof,
+>
+> Please pull omap hsmmc platform code changes from:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap hsmmc
+>
+> Ideally arch/arm/mach-omap2/hsmmc.c file will completely
+> disappear with device tree, but looks like we're still
+> some more patches away from that. Meanwhile, these are
+> needed for various board files.
 
-Heh, but it's also true.
- 
-> Tony,
-> Do we want to keep it by default? Or should we fix the kconfig help?
+Thanks, pulled into next/drivers.
 
-Let's just leave out those two from omap2plus_defconfig then.
 
-Regards,
-
-Tony
+-Olof
