@@ -1,79 +1,57 @@
-From: Ryan Mallon <rmallon@gmail.com>
-Subject: Re: [PATCH v4 5/6] clk: basic gateable and fixed-rate clks
-Date: Wed, 14 Dec 2011 16:15:01 +1100
-Message-ID: <4EE830D5.5070305@gmail.com>
-References: <1323834838-2206-1-git-send-email-mturquette@linaro.org> <1323834838-2206-6-git-send-email-mturquette@linaro.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/7] HACK: omap: convert 44xx data to common struct clk
+Date: Tue, 13 Dec 2011 22:29:44 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112132209590.12046@utopia.booyaka.com>
+References: <1323835918-2371-1-git-send-email-mturquette@ti.com> <1323835918-2371-4-git-send-email-mturquette@ti.com> <alpine.DEB.2.00.1112132125200.12046@utopia.booyaka.com> <CAJOA=zM8hP=1BxcpDu-XMvt0KefRPwhP3m-+yC7Uta+Aozz8Xw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1323834838-2206-6-git-send-email-mturquette@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, paul@pwsan.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, mturquette@ti.com, andrew@lunn.ch, Jamie Iles <jamie@jamieiles.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1273592925-1323840236=:12046"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:50530 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812Ab1LNF3p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 00:29:45 -0500
+In-Reply-To: <CAJOA=zM8hP=1BxcpDu-XMvt0KefRPwhP3m-+yC7Uta+Aozz8Xw@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1112132224230.12046@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Turquette, Mike" <mturquette@ti.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, tony@atomide.com, b-cousson@ti.com, rnayak@ti.com, jeremy.kerr@canonical.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, andrew@lunn.ch
 
-On 14/12/11 14:53, Mike Turquette wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> Many platforms support simple gateable clks and fixed-rate clks that
-> should not be re-implemented by every platform.
-> 
-> This patch introduces a gateable clk with a common programming model of
-> gate control via a write of 1 bit to a register.  Both set-to-enable and
-> clear-to-enable are supported.
-> 
-> Also introduced is a fixed-rate clk which has no reprogrammable aspects.
-> 
-> The purpose of both types of clks is documented in drivers/clk/basic.c.
-> 
-> TODO: add support for a simple divider, simple mux and a dummy clk for
-> stubbing out platform support.
-> 
-> Based on original patch by Jeremy Kerr and contribution by Jamie Iles.
-> 
-> Signed-off-by: Mike Turquette <mturquette@linaro.org>
-> Cc: Jeremy Kerr <jeremy.kerr@canonical.com>
-> Cc: Jamie Iles <jamie@jamieiles.com>
+--155748971-1273592925-1323840236=:12046
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1112132224231.12046@utopia.booyaka.com>
 
-<snip>
+On Tue, 13 Dec 2011, Turquette, Mike wrote:
 
-> +int clk_register_gate(struct device *dev, const char *name, unsigned long flags,
-> +		struct clk *fixed_parent, void __iomem *reg, u8 bit_idx,
-> +		int set_to_enable)
-> +{
-> +	struct clk_hw_gate *gclk;
-> +	struct clk *clk;
-> +
-> +	gclk = kmalloc(sizeof(struct clk_hw_gate), GFP_KERNEL);
-> +
-> +	if (!gclk) {
-> +		pr_err("%s: could not allocate gated clk\n", __func__);
-> +		return -ENOMEM;
-> +	}
-> +
-> +	clk = &gclk->clk;
-> +
-> +	/* struct clk_hw_gate assignments */
-> +	gclk->fixed_parent = fixed_parent;
-> +	gclk->reg = reg;
-> +	gclk->bit_idx = bit_idx;
-> +
-> +	/* struct clk assignments */
-> +	clk->name = name;
-> +	clk->flags = flags;
-> +
-> +	if (set_to_enable)
-> +		clk->ops = &clk_hw_gate_set_enable_ops;
-> +	else
-> +		clk->ops = &clk_hw_gate_set_disable_ops;
+> On Tue, Dec 13, 2011 at 8:27 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Tue, 13 Dec 2011, Mike Turquette wrote:
+> >
+> >> omap_clk_get_by_name must die.
+> >
+> > You do realize that it exists for a reason? =A0That hardware clock name=
+s
+> > don't have anything to do with the Linux device model?
+>=20
+> We have a tree structure of clks in the new common clk code, and a
+> list of clks in clkdev (which admittedly is meant to be a subset, but
+> in reality we register every OMAP clk with it), and then the omap clk
+> list which is only really used by omap_get_clk_by_name for hwmod and
+> some initialization stuff.  What I'd really like to do is get rid of
+> the OMAP clk code keeping track of it's clks in a separate list, which
+> seems quite wasteful.
+
+Clock lookups that only involve a hardware clock name, with no device,=20
+should be the province of the clock code itself, not clkdev.  The clkdev=20
+code may handle this today in the OMAP code, but this is simply due to=20
+legacy reasons.
+
+In general, on OMAP, we've got much faster ways now to implement=20
+clk_get().
 
 
-You could avoid having two sets of operations if you stored the
-set_to_enable value in struct clk_hw_gate. It might be useful to store
-additional information in struct clk_hw_gate if you also want to extend
-to supporting non-32bit registers (readb, etc), clocks with write only
-registers, or support clocks which require more than one bit to be set
-or cleared to enable them, etc. See the basic mmio gpio driver for a
-similar case.
-
-~Ryan
+- Paul
+--155748971-1273592925-1323840236=:12046--
