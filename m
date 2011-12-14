@@ -1,126 +1,63 @@
-From: Vladimir Zapolskiy <vladimir.zapolskiy@nokia.com>
-Subject: [PATCH v2] OMAP3: RX-51: complete tsc2005 controller support
-Date: Wed, 14 Dec 2011 15:02:55 +0200
-Message-ID: <1323867775-16031-1-git-send-email-vladimir.zapolskiy@nokia.com>
-References: <1323867676-15956-1-git-send-email-vladimir.zapolskiy@nokia.com>
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1323867676-15956-1-git-send-email-vladimir.zapolskiy@nokia.com>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Tony Lindgren <tony@atomide.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to postcore
+Date: Wed, 14 Dec 2011 14:10:53 +0100
+Message-ID: <201112141410.53522.jkrzyszt@tis.icnet.pl>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl> <201112130044.02007.jkrzyszt@tis.icnet.pl> <20111212235544.GM32251@atomide.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20111212235544.GM32251@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This change adds initialization of TSC2005 touchscreen controller found on Nokia
-RX-51 board.
+On Tuesday 13 of December 2011 at 00:55:44, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111212 15:13]:
+> > On Tuesday 13 of December 2011 at 00:15:20, Tony Lindgren wrote:
+> > > 
+> > > Might be worth checking if some board specific __initcall helps here
+> > > too?
+> > 
+> > If I only knew how I could insert a board specific __initcall between 
+> > two points from where the generic-gpio first, then the 8250 driver, are 
+> > called.
+> > 
+> > Any hints?
+> 
+> Hmm, can't you do all that in the order you want in
+> ams_delta_modem_init()?  Or make that into a late_initcall so
+> you have generic-gpio available?
+> 
+> It seems that the pieces of code you're talking about don't need
+> to be initialized early, just needs to be done in the right
+> order to get things working.
 
-The change is taken from MeeGo kernel adaptation for Nokia N900, it repeats the
-work of Aaro Koskinen and Mika Laitio, the original discussion is at
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26749.html
+Hi,
+I'm almost done with moving registration of all latch dependent devices 
+down to a late_initcall hook, however while working on this, I've found 
+still another arrangement, yet better in my opinion:
+1) generic-gpio driver registration moved from device_initcall up to 
+   subsys_initcall,
+2) latch dependent device registration left at arch_initcall, as it is 
+   now,
+3) a temporary hack, removed with the last patch in the series, that 
+   requests GPIO pins on behalf of device drivers before those are 
+   updated, placed between subsys_initcall and device_initcall, i.e., at 
+   fs_initcall or rootfs_initcall; both look ugly, but this is only for 
+   a while, in order to keep things working while in the transition,
+4) the modem init hook, once updated with extra GPIO setup that must be 
+   done on behalf of the 8250 driver, which is not prepared for 
+   accepting any extra init hooks passed with the device platform data, 
+   moved down to late_initcall, as suggested,
+5) once all drivers are updated, the hack is removed, and an 
+   initialization of unused pins added to that late_initcall modem hook, 
+   perhaps renamed in order to not suggest it is still modem only 
+   related.
 
-Signed-off-by: Vladimir Zapolskiy <vladimir.zapolskiy@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
----
-Changes from v1 to v2:
-* whitespace fix
+What do you think?
 
- arch/arm/mach-omap2/board-rx51-peripherals.c |   45 ++++++++++++++++++++++++-
- 1 files changed, 43 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index ba1aa07..f30484e 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -15,6 +15,7 @@
- #include <linux/input/matrix_keypad.h>
- #include <linux/spi/spi.h>
- #include <linux/wl12xx.h>
-+#include <linux/spi/tsc2005.h>
- #include <linux/i2c.h>
- #include <linux/i2c/twl.h>
- #include <linux/clk.h>
-@@ -56,6 +57,9 @@
- #define RX51_FMTX_IRQ			53
- #define RX51_LP5523_CHIP_EN_GPIO	41
- 
-+#define RX51_TSC2005_RESET_GPIO		104
-+#define RX51_TSC2005_IRQ_GPIO		100
-+
- #define RX51_USB_TRANSCEIVER_RST_GPIO	67
- 
- /* list all spi devices here */
-@@ -146,6 +150,17 @@ static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
- 	.single_channel	= 1,
- };
- 
-+static struct tsc2005_platform_data tsc2005_pdata = {
-+	.ts_pressure_max	= 2048,
-+	.ts_pressure_fudge	= 2,
-+	.ts_x_max		= 4096,
-+	.ts_x_fudge		= 4,
-+	.ts_y_max		= 4096,
-+	.ts_y_fudge		= 4,
-+	.ts_x_plate_ohm		= 320,
-+	.esd_timeout_ms		= 8000,
-+};
-+
- static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 	[RX51_SPI_WL1251] = {
- 		.modalias		= "wl1251",
-@@ -167,10 +182,10 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
- 		.modalias		= "tsc2005",
- 		.bus_num		= 1,
- 		.chip_select		= 0,
--		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
-+		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
- 		.max_speed_hz		= 6000000,
- 		.controller_data	= &tsc2005_mcspi_config,
--		/* .platform_data = &tsc2005_config,*/
-+		.platform_data		= &tsc2005_pdata,
- 	},
- };
- 
-@@ -1086,6 +1101,31 @@ error:
- 	 */
- }
- 
-+static void rx51_tsc2005_set_reset(bool enable)
-+{
-+	gpio_set_value(RX51_TSC2005_RESET_GPIO, enable);
-+}
-+
-+static void __init rx51_init_tsc2005(void)
-+{
-+	int r;
-+
-+	r = gpio_request(RX51_TSC2005_IRQ_GPIO, "tsc2005 IRQ");
-+	if (r >= 0)
-+		gpio_direction_input(RX51_TSC2005_IRQ_GPIO);
-+	else
-+		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 IRQ");
-+
-+	r = gpio_request(RX51_TSC2005_RESET_GPIO, "tsc2005 reset");
-+	if (r >= 0) {
-+		gpio_direction_output(RX51_TSC2005_RESET_GPIO, 1);
-+		tsc2005_pdata.set_reset = rx51_tsc2005_set_reset;
-+	} else {
-+		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 reset");
-+		tsc2005_pdata.esd_timeout_ms = 0;
-+	}
-+}
-+
- void __init rx51_peripherals_init(void)
- {
- 	rx51_i2c_init();
-@@ -1094,6 +1134,7 @@ void __init rx51_peripherals_init(void)
- 	board_smc91x_init();
- 	rx51_add_gpio_keys();
- 	rx51_init_wl1251();
-+	rx51_init_tsc2005();
- 	rx51_init_si4713();
- 	spi_register_board_info(rx51_peripherals_spi_board_info,
- 				ARRAY_SIZE(rx51_peripherals_spi_board_info));
--- 
-1.7.2.3
-
+Thanks,
+Janusz
