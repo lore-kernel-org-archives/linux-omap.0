@@ -1,45 +1,234 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
-Date: Tue, 13 Dec 2011 17:06:40 -0800
-Message-ID: <87hb14q7vj.fsf@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
-	<1323439361-1647-3-git-send-email-b-cousson@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Wed, 14 Dec 2011 02:25:34 +0100
+Message-ID: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58023 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753655Ab1LNBGn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Dec 2011 20:06:43 -0500
-Received: by mail-yx0-f172.google.com with SMTP id m7so263423yen.17
-        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 17:06:43 -0800 (PST)
-In-Reply-To: <1323439361-1647-3-git-send-email-b-cousson@ti.com> (Benoit
-	Cousson's message of "Fri, 9 Dec 2011 15:02:33 +0100")
+Received: from moutng.kundenserver.de ([212.227.17.10]:57142 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753988Ab1LNBZw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Dec 2011 20:25:52 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Martin Hostettler <martin@neutronstar.dyndns.org>
 
-Benoit Cousson <b-cousson@ti.com> writes:
+Adds board support for an MT9M032 based camera to omap3evm.
 
-> Add initial DT support to retrieve the frequency using a
-> DT attribute instead of the pdata pointer if of_node exist.
->
-> Add documentation for omap i2c controller binding.
->
-> Based on original patches from Manju and Grant.
->
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+---
+ arch/arm/mach-omap2/Makefile                |    3 +-
+ arch/arm/mach-omap2/board-omap3evm-camera.c |  155 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c        |    4 +
+ 3 files changed, 161 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
 
-This seems indepenent from the rest of the series, and I can queue up
-for merge via the I2C tree.
+Changes in V3
+ * Added missing copyright and attribution.
+ * switched to gpio_request_array for gpio init.
+ * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
 
-Benoit, please confirm that we shouldn't have any problems if this patch
-goes independently.
+Changes in V2:
+ * ported to current mainline
+ * Style fixes
+ * Fix error handling
 
-Grant/Rob, with your ack on the bindings, I can queue this up for the
-I2C maintainers along with some other OMAP I2C changes for v3.3.
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index b009f17..6045789 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -196,7 +196,8 @@ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
+ obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
+ obj-$(CONFIG_MACH_ENCORE)		+= board-omap3encore.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
+-obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
++obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
++					   board-omap3evm-camera.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
+new file mode 100644
+index 0000000..bffd5b8
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+@@ -0,0 +1,155 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Inc
++ * Copyright (C) 2010-2011 Lund Engineering
++ * Contact: Gil Lund <gwlund@lundeng.com>
++ * Authors:
++ *    Vaibhav Hiremath <hvaibhav@ti.com>
++ *    Martin Hostettler <martin@neutronstar.dyndns.org>
++ *
++ * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C Bus 2
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/i2c.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++
++#include <linux/gpio.h>
++#include <plat/mux.h>
++#include "mux.h"
++
++#include "../../../drivers/media/video/omap3isp/isp.h"
++#include "media/mt9m032.h"
++
++#include "devices.h"
++
++#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
++#define GPIO98_VID_DEC_RES	98
++#define nCAM_VD_SEL		157
++
++#define MT9M032_I2C_BUS_NUM	2
++
++
++enum omap3evmdc_mux {
++	MUX_TVP5146,
++	MUX_CAMERA_SENSOR,
++	MUX_EXP_CAMERA_SENSOR,
++};
++
++/**
++ * omap3evm_set_mux - Sets mux to enable signal routing to
++ *                           different peripherals present on new EVM board
++ * @mux_id: enum, mux id to enable
++ *
++ * Returns 0 for success or a negative error code
++ */
++static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
++{
++	/* Set GPIO6 = 1 */
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
++	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++
++	switch (mux_id) {
++	case MUX_TVP5146:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 1);
++		break;
++
++	case MUX_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
++		gpio_set_value(nCAM_VD_SEL, 0);
++		break;
++
++	case MUX_EXP_CAMERA_SENSOR:
++		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
++		break;
++
++	default:
++		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static struct mt9m032_platform_data mt9m032_platform_data = {
++	.ext_clock = 13500000,
++	.pll_pre_div = 6,
++	.pll_mul = 120,
++	.pll_out_div = 5,
++	.invert_pixclock = 1,
++};
++
++static struct i2c_board_info camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
++		.platform_data = &mt9m032_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
++	{
++		.board_info = &camera_i2c_devices[0],
++		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
++	},
++	{},
++};
++
++static struct isp_v4l2_subdevs_group camera_subdevs[] = {
++	{
++		.subdevs = camera_i2c_subdevs,
++		.interface = ISP_INTERFACE_PARALLEL,
++		.bus = {
++			.parallel = {
++				.data_lane_shift = 1,
++				.clk_pol = 0,
++				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
++			}
++		},
++	},
++	{},
++};
++
++static struct isp_platform_data isp_platform_data = {
++	.subdevs = camera_subdevs,
++};
++
++
++static struct gpio setup_gpios[] = {
++	{ nCAM_VD_SEL,           GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL" },
++	{ EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW,  "T2_GPIO2" },
++	{ EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW, "nCAM_VD_EN" },
++};
++
++
++int __init omap3_evm_camera_init(void)
++{
++	int ret = -EINVAL;
++
++	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
++	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
++	if (ret < 0) {
++		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
++		return ret;
++	}
++	omap3evm_set_mux(MUX_CAMERA_SENSOR);
++	ret = omap3_init_camera(&isp_platform_data);
++	if (ret < 0) {
++		gpio_free_array(setup_gpios, ARRAY_SIZE(setup_gpios));
++		return ret;
++	}
++	return 0;
++}
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index ec00b2e..1b50539 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -617,6 +617,8 @@ static struct gpio omap3_evm_ehci_gpios[] __initdata = {
+ 	{ OMAP3_EVM_EHCI_SELECT, GPIOF_OUT_INIT_LOW,   "select EHCI port" },
+ };
+ 
++int omap3_evm_camera_init(void);
++
+ static void __init omap3_evm_init(void)
+ {
+ 	omap3_evm_get_revision();
+@@ -672,6 +674,8 @@ static void __init omap3_evm_init(void)
+ 		pr_err("error setting wl12xx data\n");
+ 	platform_device_register(&omap3evm_wlan_regulator);
+ #endif
++
++	omap3_evm_camera_init();
+ }
+ 
+ MACHINE_START(OMAP3EVM, "OMAP3 EVM")
+-- 
+1.7.2.5
 
-Kevin
