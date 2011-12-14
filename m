@@ -1,15 +1,15 @@
 From: jean.pihet@newoldbits.com
-Subject: [PATCH 3/6] OMAP: PM: register to the per-device PM QoS framework
-Date: Wed, 14 Dec 2011 15:51:41 +0100
-Message-ID: <1323874304-5001-4-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 1/6] OMAP2+: powerdomain: control power domains next state
+Date: Wed, 14 Dec 2011 15:51:39 +0100
+Message-ID: <1323874304-5001-2-git-send-email-j-pihet@ti.com>
 References: <1323874304-5001-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ww0-f44.google.com ([74.125.82.44]:37363 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812Ab1LNOwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 09:52:12 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so1945272wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 06:52:12 -0800 (PST)
+	with ESMTP id S1753750Ab1LNOwJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 09:52:09 -0500
+Received: by wgbdr13 with SMTP id dr13so1945272wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 06:52:08 -0800 (PST)
 In-Reply-To: <1323874304-5001-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,122 +18,377 @@ Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com
 
 From: Jean Pihet <j-pihet@ti.com>
 
-Implement the devices wake-up latency constraints using the global
-device PM QoS notification handler which applies the constraints to the
-underlying layer by calling the corresponding function at hwmod level.
+When a PM QoS device latency constraint is requested or removed the
+PM QoS layer notifies the underlying layer with the updated aggregated
+constraint value. The constraint is stored in the powerdomain constraints
+list and then applied to the corresponding power domain.
+The power domains get the next power state programmed directly in the
+registers via pwrdm_wakeuplat_update_pwrst.
 
-Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
-latency constraints on MPU, CORE and PER.
+Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using
+wake-up latency constraints on MPU, CORE and PER.
 
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/pm.c |   71 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 70 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |  245 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomain.h |   36 +++++-
+ 2 files changed, 279 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 1881fe9..a40d4f3 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -11,15 +11,18 @@
- 
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 8a18d1b..677a182 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -17,8 +17,10 @@
  #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/notifier.h>
- #include <linux/io.h>
- #include <linux/err.h>
- #include <linux/opp.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
++#include <linux/slab.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
 +#include <linux/pm_qos.h>
- #include <linux/export.h>
+ #include <trace/events/power.h>
  
- #include <plat/omap-pm.h>
- #include <plat/omap_device.h>
--#include "common.h"
-+#include <plat/omap_hwmod.h>
+ #include "cm2xxx_3xxx.h"
+@@ -112,6 +114,12 @@ static int _pwrdm_register(struct powerdomain *pwrdm)
+ 	for (i = 0; i < pwrdm->banks; i++)
+ 		pwrdm->ret_mem_off_counter[i] = 0;
  
-+#include "common.h"
- #include "voltage.h"
- #include "powerdomain.h"
- #include "clockdomain.h"
-@@ -215,12 +218,78 @@ static void __init omap4_init_voltages(void)
- 	omap2_set_init_voltage("iva", "dpll_iva_m5x2_ck", "iva");
++	/* Initialize the per-device wake-up constraints framework data */
++	spin_lock_init(&pwrdm->wkup_lat_plist_lock);
++	plist_head_init(&pwrdm->wkup_lat_plist_head);
++	pwrdm->wkup_lat_next_state = PWRDM_POWER_OFF;
++
++	/* Initialize the pwrdm state */
+ 	pwrdm_wait_transition(pwrdm);
+ 	pwrdm->state = pwrdm_read_pwrst(pwrdm);
+ 	pwrdm->state_counter[pwrdm->state] = 1;
+@@ -199,6 +207,158 @@ static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
+ 	return 0;
  }
  
-+/* Interface to the per-device PM QoS framework */
-+static int omap2_dev_pm_qos_handler(struct notifier_block *nb,
-+				    unsigned long new_value,
-+				    void *req)
++/**
++ * _pwrdm_wakeuplat_update_list - Set/update/remove a powerdomain wakeup
++ *  latency constraint from the pwrdm's constraint list
++ * @pwrdm: struct powerdomain * which the constraint applies to
++ * @cookie: constraint identifier, used for tracking.
++ * @min_latency: minimum wakeup latency constraint (in microseconds) for
++ *  the given pwrdm. The value of PM_QOS_DEV_LAT_DEFAULT_VALUE removes
++ *  the constraint.
++ * @user: pointer to the current list entry
++ * @new_user: allocated list entry, used for insertion of new constraints
++ *  in the list
++ * @free_new_user: set to non-zero if the newly allocated list entry
++ *  is unused and needs to be freed
++ * @free_node: set to non-zero if the current list entry is not in use
++ *  anymore and needs to be freed
++ *
++ * Tracks the constraints by @cookie.
++ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
++ * constraint list.
++ * If the constraint identifier already exists in the list, the old value is
++ * overwritten.
++ * Constraint removal: Removes the identifier's entry from powerdomain's
++ * wakeup latency constraint list.
++ *
++ * Called with the pwrdm wakeup latency spinlock held.
++ *
++ * Returns 0 upon success, -EINVAL if the constraint is not existing.
++ */
++static inline int _pwrdm_update_wakeuplat_list(
++			struct powerdomain *pwrdm,
++			void *cookie,
++			long min_latency,
++			struct pwrdm_wkup_constraints_entry *user,
++			struct pwrdm_wkup_constraints_entry *new_user,
++			int *free_new_user,
++			int *free_node)
 +{
-+	struct omap_device *od;
-+	struct omap_hwmod *oh;
-+	struct platform_device *pdev;
-+	struct dev_pm_qos_request *dev_pm_qos_req = req;
++	struct pwrdm_wkup_constraints_entry *tmp_user;
 +
-+	pr_debug("OMAP PM constraints: req@0x%p, new_value=%lu\n",
-+		 req, new_value);
-+
-+	/* Look for the platform device for the constraint target device */
-+	pdev = to_platform_device(dev_pm_qos_req->dev);
-+
-+	/* Try to catch non platform devices */
-+	if (pdev->name == NULL) {
-+		pr_err("%s: Error: platform device for device %s not valid\n",
-+		       __func__, dev_name(dev_pm_qos_req->dev));
-+		return -EINVAL;
++	/* Check if there already is a constraint for cookie */
++	plist_for_each_entry(tmp_user, &pwrdm->wkup_lat_plist_head, node) {
++		if (tmp_user->cookie == cookie) {
++			user = tmp_user;
++			break;
++		}
 +	}
 +
-+	/* Find the associated omap_device for dev */
-+	od = to_omap_device(pdev);
-+	if (od == NULL) {
-+		pr_err("%s: Error: no omap_device for device %s\n",
-+		       __func__, dev_name(dev_pm_qos_req->dev));
-+		return -EINVAL;
++	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
++		/* If nothing to update, job done */
++		if (user && (user->node.prio == min_latency))
++			return 0;
++
++		if (!user) {
++			/* Add new entry to the list */
++			user = new_user;
++			user->cookie = cookie;
++			*free_new_user = 0;
++		} else {
++			/* Update existing entry */
++			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
++		}
++
++		plist_node_init(&user->node, min_latency);
++		plist_add(&user->node, &pwrdm->wkup_lat_plist_head);
++	} else {
++		if (user) {
++			/* Remove the constraint from the list */
++			plist_del(&user->node, &pwrdm->wkup_lat_plist_head);
++			*free_node = 1;
++		} else {
++			/* Constraint not existing or list empty, do nothing */
++			return -EINVAL;
++		}
++
 +	}
 +
-+	/* Check that the omap_device has an unique hwmod entry */
-+	if (od->hwmods_cnt != 1) {
-+		pr_err("%s: Error: No unique hwmod for device %s\n",
-+		       __func__, dev_name(dev_pm_qos_req->dev));
-+		return -EINVAL;
-+	}
-+
-+	/* Find the primary omap_hwmod for dev */
-+	oh = od->hwmods[0];
-+
-+	pr_debug("OMAP PM constraints: req@0x%p, dev=0x%p, new_value=%lu\n",
-+		 req, dev_pm_qos_req->dev, new_value);
-+
-+	/* Apply the constraint */
-+	return omap_hwmod_set_wkup_lat_constraint(oh, dev_pm_qos_req,
-+						  new_value);
++	return 0;
 +}
 +
-+static struct notifier_block omap2_dev_pm_qos_notifier = {
-+	.notifier_call	= omap2_dev_pm_qos_handler,
-+};
-+
-+static int __init omap2_dev_pm_qos_init(void)
++/**
++ * _pwrdm_wakeuplat_update_pwrst - Update power domain power state if needed
++ * @pwrdm: struct powerdomain * to which requesting device belongs to.
++ * @min_latency: the allowed wake-up latency for the given power domain. A
++ *  value of PM_QOS_DEV_LAT_DEFAULT_VALUE means 'no constraint' on the pwrdm.
++ *
++ * Finds the power domain next power state that fulfills the constraint.
++ * Programs a new target state if it is different from current power state.
++ * The power domains get the next power state programmed directly in the
++ * registers.
++ *
++ * Returns 0 in case of success, -EINVAL in case of invalid parameters,
++ * or the return value from omap_set_pwrdm_state.
++ */
++static int _pwrdm_wakeuplat_update_pwrst(struct powerdomain *pwrdm,
++					long min_latency)
 +{
-+	int ret;
++	int ret = 0, new_state;
 +
-+	ret = dev_pm_qos_add_global_notifier(&omap2_dev_pm_qos_notifier);
-+	WARN(ret, KERN_ERR "Cannot add global notifier for dev PM QoS\n");
++	if (!pwrdm) {
++		WARN(1, "powerdomain: %s: invalid parameter(s)", __func__);
++		return -EINVAL;
++	}
++
++	/*
++	 * Find the next supported power state with
++	 * wakeup latency < minimum constraint
++	 */
++	for (new_state = 0x0; new_state < PWRDM_MAX_PWRSTS; new_state++) {
++		if (min_latency == PM_QOS_DEV_LAT_DEFAULT_VALUE)
++			break;
++		if ((pwrdm->wakeup_lat[new_state] != UNSUP_STATE) &&
++		    (pwrdm->wakeup_lat[new_state] <= min_latency))
++			break;
++	}
++
++	switch (new_state) {
++	case PWRDM_FUNC_PWRST_OFF:
++		new_state = PWRDM_POWER_OFF;
++		break;
++	case PWRDM_FUNC_PWRST_OSWR:
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_OFF);
++		new_state = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_CSWR:
++		pwrdm_set_logic_retst(pwrdm, PWRDM_POWER_RET);
++		new_state = PWRDM_POWER_RET;
++		break;
++	case PWRDM_FUNC_PWRST_INACTIVE:
++		new_state = PWRDM_POWER_INACTIVE;
++		break;
++	case PWRDM_FUNC_PWRST_ON:
++		new_state = PWRDM_POWER_ON;
++		break;
++	default:
++		pr_warn("powerdomain: requested latency constraint not "
++			"supported %s set to ON state\n", pwrdm->name);
++		new_state = PWRDM_POWER_ON;
++		break;
++	}
++
++	pwrdm->wkup_lat_next_state = new_state;
++	if (pwrdm_read_next_pwrst(pwrdm) != new_state)
++		ret = omap_set_pwrdm_state(pwrdm, new_state);
++
++	pr_debug("powerdomain: %s pwrst: curr=%d, prev=%d next=%d "
++		 "min_latency=%ld, set_state=%d\n", pwrdm->name,
++		 pwrdm_read_pwrst(pwrdm), pwrdm_read_prev_pwrst(pwrdm),
++		 pwrdm_read_next_pwrst(pwrdm), min_latency, new_state);
 +
 +	return ret;
 +}
 +
- static int __init omap2_common_pm_init(void)
- {
- 	if (!of_have_populated_dt())
- 		omap2_init_processor_devices();
- 	omap_pm_if_init();
+ /* Public functions */
  
-+	/* Register to the per-device PM QoS framework */
-+	omap2_dev_pm_qos_init();
-+
- 	return 0;
+ /**
+@@ -998,6 +1158,91 @@ int pwrdm_post_transition(void)
  }
- postcore_initcall(omap2_common_pm_init);
+ 
+ /**
++ * pwrdm_set_wkup_lat_constraint - Set/update/remove a powerdomain wakeup
++ *  latency constraint and apply it
++ * @pwrdm: struct powerdomain * which the constraint applies to
++ * @cookie: constraint identifier, used for tracking.
++ * @min_latency: minimum wakeup latency constraint (in microseconds) for
++ *  the given pwrdm. The value of PM_QOS_DEV_LAT_DEFAULT_VALUE removes
++ *  the constraint.
++ *
++ * Tracks the constraints by @cookie.
++ * Constraint set/update: Adds a new entry to powerdomain's wake-up latency
++ * constraint list.
++ * If the constraint identifier already exists in the list, the old value is
++ * overwritten.
++ * Constraint removal: Removes the identifier's entry from powerdomain's
++ * wakeup latency constraint list.
++ *
++ * Applies the aggregated constraint value for the given pwrdm by calling
++ * _pwrdm_wakeuplat_update_pwrst.
++ *
++ * Returns 0 upon success, -ENOMEM in case of memory shortage, -EINVAL in
++ * case of invalid parameters, or the return value from
++ * _pwrdm_wakeuplat_update_pwrst.
++ *
++ * The caller must check the validity of the parameters.
++ *
++ * Note about the resources allocation and release:
++ *  The free_new_user and free_node variables are used to indicate
++ *  if the allocated resources can be freed, respectively for the
++ *  newly allocated list entry and the current list entry.
++ *  Cf. kerneldoc for the _pwrdm_update_wakeuplat_list function for
++ *  detailed information about those variables and the
++ *  allocation and release of the constraints list entries.
++ */
++int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
++				  long min_latency)
++{
++	struct pwrdm_wkup_constraints_entry *user = NULL, *new_user = NULL;
++	int ret = 0, free_new_user = 0, free_node = 0;
++	long value = PM_QOS_DEV_LAT_DEFAULT_VALUE;
++	unsigned long flags;
++
++	pr_debug("powerdomain: %s: pwrdm %s, cookie=0x%p, min_latency=%ld\n",
++		 __func__, pwrdm->name, cookie, min_latency);
++
++	if (min_latency != PM_QOS_DEV_LAT_DEFAULT_VALUE) {
++		new_user = kzalloc(sizeof(struct pwrdm_wkup_constraints_entry),
++				   GFP_KERNEL);
++		if (!new_user) {
++			pr_err("%s: FATAL ERROR: kzalloc failed\n", __func__);
++			return -ENOMEM;
++		}
++		free_new_user = 1;
++	}
++
++	spin_lock_irqsave(&pwrdm->wkup_lat_plist_lock, flags);
++
++	/* Manage the constraints list */
++	ret = _pwrdm_update_wakeuplat_list(pwrdm, cookie, min_latency,
++					   user, new_user,
++					   &free_new_user, &free_node);
++
++	/* Find the aggregated constraint value from the list */
++	if (!ret)
++		if (!plist_head_empty(&pwrdm->wkup_lat_plist_head))
++			value = plist_first(&pwrdm->wkup_lat_plist_head)->prio;
++
++	spin_unlock_irqrestore(&pwrdm->wkup_lat_plist_lock, flags);
++
++	if (free_node)
++		kfree(user);
++
++	if (free_new_user)
++		kfree(new_user);
++
++	/* Apply the constraint to the pwrdm */
++	if (!ret) {
++		pr_debug("powerdomain: %s: pwrdm %s, value=%ld\n",
++			 __func__, pwrdm->name, value);
++		ret = _pwrdm_wakeuplat_update_pwrst(pwrdm, value);
++	}
++
++	return ret;
++}
++
++/**
+  * pwrdm_get_context_loss_count - get powerdomain's context loss count
+  * @pwrdm: struct powerdomain * to wait for
+  *
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..b4a60cf 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -19,7 +19,9 @@
+ 
+ #include <linux/types.h>
+ #include <linux/list.h>
+-
++#include <linux/plist.h>
++#include <linux/mutex.h>
++#include <linux/spinlock.h>
+ #include <linux/atomic.h>
+ 
+ #include <plat/cpu.h>
+@@ -45,6 +47,16 @@
+ #define PWRSTS_RET_ON		(PWRSTS_RET | PWRSTS_ON)
+ #define PWRSTS_OFF_RET_ON	(PWRSTS_OFF_RET | PWRSTS_ON)
+ 
++/* Powerdomain functional power states */
++#define PWRDM_FUNC_PWRST_OFF		0x0
++#define PWRDM_FUNC_PWRST_OSWR		0x1
++#define PWRDM_FUNC_PWRST_CSWR		0x2
++#define PWRDM_FUNC_PWRST_INACTIVE	0x3
++#define PWRDM_FUNC_PWRST_ON		0x4
++
++#define PWRDM_MAX_FUNC_PWRSTS	5
++
++#define UNSUP_STATE		-1
+ 
+ /* Powerdomain flags */
+ #define PWRDM_HAS_HDWR_SAR	(1 << 0) /* hardware save-and-restore support */
+@@ -96,7 +108,13 @@ struct powerdomain;
+  * @state_counter:
+  * @timer:
+  * @state_timer:
+- *
++ * @wakeup_lat: wakeup latencies (in us) for possible powerdomain power states
++ * Note about the wakeup latencies ordering: the values must be sorted
++ *  in decremental order
++ * @wkup_lat_plist_head: pwrdm wake-up latency constraints list
++ * @wkup_lat_plist_lock: spinlock that protects the constraints lists
++ *  domains states
++ * @wkup_lat_next_state: next pwrdm state, calculated from the constraints list
+  * @prcm_partition possible values are defined in mach-omap2/prcm44xx.h.
+  */
+ struct powerdomain {
+@@ -125,6 +143,16 @@ struct powerdomain {
+ 	s64 timer;
+ 	s64 state_timer[PWRDM_MAX_PWRSTS];
+ #endif
++	const s32 wakeup_lat[PWRDM_MAX_FUNC_PWRSTS];
++	struct plist_head wkup_lat_plist_head;
++	spinlock_t wkup_lat_plist_lock;
++	int wkup_lat_next_state;
++};
++
++/* Linked list for the wake-up latency constraints */
++struct pwrdm_wkup_constraints_entry {
++	void			*cookie;
++	struct plist_node	node;
+ };
+ 
+ /**
+@@ -217,6 +245,10 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+ int pwrdm_pre_transition(void);
+ int pwrdm_post_transition(void);
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
++
++int pwrdm_set_wkup_lat_constraint(struct powerdomain *pwrdm, void *cookie,
++				  long min_latency);
++
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+ 
 -- 
 1.7.5.4
 
