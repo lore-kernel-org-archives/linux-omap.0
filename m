@@ -1,50 +1,73 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 4/4] ARM: omap: pass minimal SoC/board data for UART
- from dt
-Date: Wed, 14 Dec 2011 11:25:10 -0800
-Message-ID: <20111214192509.GH32251@atomide.com>
-References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
- <1323863746-18145-5-git-send-email-rnayak@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
+Date: Wed, 14 Dec 2011 21:31:01 +0200
+Message-ID: <CAMP44s2mcMJ17Yr8gDCdWVpc8Vk2vWYJifMf8a0NAroVawnB+Q@mail.gmail.com>
+References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>
+	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>
+	<CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
+	<4EDF5231.6080309@bitmer.com>
+	<CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
+	<4EE5A8A0.2010206@bitmer.com>
+	<CAMP44s1Zz7CqxRM6PeNT3GN9GbCLy+0smgk6_-9kSjghY33Xuw@mail.gmail.com>
+	<20111213225308.GB10066@legolas.emea.dhcp.ti.com>
+	<CAMP44s3Gmx1M40Dae-RR3+i=vv-d0Ls6h3YToRuUnMTFoqeSCQ@mail.gmail.com>
+	<20111214073000.GB11024@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22910 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757135Ab1LNTZO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 14:25:14 -0500
-Content-Disposition: inline
-In-Reply-To: <1323863746-18145-5-git-send-email-rnayak@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111214073000.GB11024@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com
 
-* Rajendra Nayak <rnayak@ti.com> [111214 03:24]:
-> Pass minimal data needed for console boot, from dt, for
-> OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
-> static initialization from generic board file.
-> 
-> Acked-by: Rob Herring <rob.herring@calxeda.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+On Wed, Dec 14, 2011 at 9:30 AM, Felipe Balbi <balbi@ti.com> wrote:
+> On Wed, Dec 14, 2011 at 01:02:09AM +0200, Felipe Contreras wrote:
+>> On Wed, Dec 14, 2011 at 12:53 AM, Felipe Balbi <balbi@ti.com> wrote:
+>> > patches are welcome
+>>
+>> The were not last times:
+>> http://mid.gmane.org/1288656853-4625-1-git-send-email-felipe.contreras@gmail.com
+>
+> At least [1] will not apply anymore. Most of that stuff has been cleaned
+> up after I introduced the UDC class/core driver. There are still lots of
+> things to fix up, but it won't happen overnight. Specially if people are
+> more willing to complain than to patch.
 
-This we can't merge because this breaks serial console for
-omap2 because you're not adding the omap2 specific dtsi
-entries for omap2..
+Yes, the situation is much better, but these patches still apply on
+usb core, or at least the same concept. Anyway, I have the new trivial
+patches, I'll send them soon.
 
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -69,7 +69,6 @@ static void __init omap_generic_init(void)
->  	if (node)
->  		irq_domain_add_simple(node, 0);
->  
-> -	omap_serial_init();
->  	omap_sdrc_init(NULL, NULL);
->  
->  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+> [2] Makes no sense whatsoever. I have been fighting a lot against these
+> ARCH dependencies. It's generally used to hide some moronic constructs
+> relying on <plat/*> or <mach/*> headers. Most of the time, it's just to
+> be able to access e.g. machine_is_*, cpu_is_* or omap_ctrl_read* and the
+> like. Also, the first step for having a single ARM zImage is to get rid
+> of those ARCH dependencies; we need to be able to compile modules on all
+> ARCHes (even x86 for that matter) because:
 
-..and you're removing the call for omap_serial_init.
+Read the patch carefully, it doesn't add any new dependencies, it just
+shuffles them around, I already explained that. And the rest of the
+stuff adds *defaults*, not dependencies, so you can still build in
+x86.
 
-Please just update this patch with the omap2 entries
-as well. Other than that looks good to me.
+> So, if those are the only patches you can provide, please refrain from
+> doing so as it will only take time reviewing. Instead, help really
+> cleaning up the problems, make sure drivers compile on other ARCHes,
+> make sure you don't include <plat/*> or <mach/*> on drivers, make sure
+> you help reviewing patches which are coming in.
 
-Tony
+Some of these changes have already been ack'ed, I just need to split
+them. The rest, I guess I have to push it upstairs to Linus so he can
+say if it does make sense to make builds more difficult for the users,
+and keep the size of the current defconfigs from decreasing.
+
+>> http://mid.gmane.org/1287482608-11320-1-git-send-email-felipe.contreras@gmail.com
+>
+> "No such article"
+
+It's there. Here's the direct link:
+http://article.gmane.org/gmane.linux.kernel/1050608
+
+-- 
+Felipe Contreras
