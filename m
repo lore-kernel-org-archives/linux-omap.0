@@ -1,558 +1,100 @@
-From: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH v4 4/6] clk: introduce rate change notifiers
-Date: Tue, 13 Dec 2011 19:53:56 -0800
-Message-ID: <1323834838-2206-5-git-send-email-mturquette@linaro.org>
+From: "Turquette, Mike" <mturquette@ti.com>
+Subject: Re: [PATCH v4 0/6] common clk framework
+Date: Tue, 13 Dec 2011 20:02:42 -0800
+Message-ID: <CAJOA=zOnbUZAyNab5z-upeOHJPiLBYwTpiHogY+teSLcKMoKxw@mail.gmail.com>
 References: <1323834838-2206-1-git-send-email-mturquette@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <1323834838-2206-1-git-send-email-mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org
-Cc: andrew-g2DYL2Zd6BY@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:53485 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753515Ab1LNEDE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Dec 2011 23:03:04 -0500
+In-Reply-To: <1323834838-2206-1-git-send-email-mturquette@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, paul@pwsan.com, broonie@opensource.wolfsonmicro.com, tglx@linutronix.de, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, mturquette@linaro.org, mturquette@ti.com, andrew@lunn.ch
 
-Many devices support dynamic clk frequency changes, but often need to
-handle these clk frequency changes with care.  Examples of these devices
-range from processors such as CPUs and GPUs to IO controllers such as
-DDR controllers or MMC/SD card controllers and fixed-function hardware
-such as video decoding logic.
+On Tue, Dec 13, 2011 at 7:53 PM, Mike Turquette <mturquette@linaro.org>=
+ wrote:
+> From: Mike Turquette <mturquette@ti.com>
+>
+> The common clk framework is an attempt to define a generic struct clk
+> which most platforms can use to build a clk tree and perform a set of
+> well-defined operations.
 
-To accomodate these needs this patch introduces clk rate change
-notifiers to the common clk framework.  Drivers may subscribe to a
-specific clk and recieve asynchronous notifications before a clk's rate
-changes, after a clk's rate has been changed and also if the rate change
-operation was aborted.
+=46orgot to mention: these patches are based on v3.2-rc5 and can be pul=
+led from:
+http://git.linaro.org/gitweb?p=3Dpeople/mturquette/linux.git;a=3Dshortl=
+og;h=3Drefs/heads/v3.2-rc5-clkv4
+git://git.linaro.org/people/mturquette/linux.git v3.2-rc5-clk-v4
 
-This patch is heavily based on Paul Walmsley's OMAP clk notifier
-patches, of which several version have been posted over time:
-http://article.gmane.org/gmane.linux.ports.arm.omap/18374
-http://article.gmane.org/gmane.linux.ports.arm.omap/15200
+Regards,
+Mike
 
-There are subtle differences in this implementation, such as use of SRCU
-notifers instead of blocking, and the use of a new .speculate_rate
-function pointer (similar .recalc_rate) for predicting rate changes down
-the sub-tree of clks.
-
-Signed-off-by: Mike Turquette <mturquette-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
----
- drivers/clk/clk.c   |  296 +++++++++++++++++++++++++++++++++++++++++++++++----
- include/linux/clk.h |   64 +++++++++++
- 2 files changed, 340 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
-index 8cadadd..f86cb98 100644
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -15,11 +15,13 @@
- #include <linux/spinlock.h>
- #include <linux/err.h>
- #include <linux/list.h>
-+#include <linux/slab.h>
- 
- static DEFINE_SPINLOCK(enable_lock);
- static DEFINE_MUTEX(prepare_lock);
- 
- static HLIST_HEAD(clk_root_list);
-+static LIST_HEAD(clk_notifier_list);
- 
- /***        clk API        ***/
- 
-@@ -248,31 +250,128 @@ long clk_round_rate(struct clk *clk, unsigned long rate)
- EXPORT_SYMBOL_GPL(clk_round_rate);
- 
- /**
-+ * __clk_notify - call clk notifier chain
-+ * @clk: struct clk * that is changing rate
-+ * @msg: clk notifier type (see include/linux/clk.h)
-+ * @old_rate: old clk rate
-+ * @new_rate: new clk rate
-+ *
-+ * Triggers a notifier call chain on the clk rate-change notification
-+ * for 'clk'.  Passes a pointer to the struct clk and the previous
-+ * and current rates to the notifier callback.  Intended to be called by
-+ * internal clock code only.  Returns NOTIFY_DONE from the last driver
-+ * called if all went well, or NOTIFY_STOP or NOTIFY_BAD immediately if
-+ * a driver returns that.
-+ */
-+static int __clk_notify(struct clk *clk, unsigned long msg,
-+		unsigned long old_rate, unsigned long new_rate)
-+{
-+	struct clk_notifier *cn;
-+	struct clk_notifier_data cnd;
-+	int ret = NOTIFY_DONE;
-+
-+	cnd.clk = clk;
-+	cnd.old_rate = old_rate;
-+	cnd.new_rate = new_rate;
-+
-+	list_for_each_entry(cn, &clk_notifier_list, node) {
-+		if (cn->clk == clk) {
-+			ret = srcu_notifier_call_chain(&cn->notifier_head, msg,
-+					&cnd);
-+			break;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-  * __clk_recalc_rates
-  * @clk: first clk in the subtree
-+ * @msg: notification type (see include/linux/clk.h)
-  *
-  * Walks the subtree of clks starting with clk and recalculates rates as it
-  * goes.  Note that if a clk does not implement the recalc_rate operation then
-  * propagation of that subtree stops and all of that clks children will not
-- * have their rates updated.  Caller must hold prepare_lock.
-+ * have their rates updated.
-+ *
-+ * clk_recalc_rates also propagates the POST_RATE_CHANGE notification,
-+ * if necessary.
-+ *
-+ * Caller must hold prepare_lock.
-+ */
-+static void __clk_recalc_rates(struct clk *clk, unsigned long msg)
-+{
-+	unsigned long old_rate;
-+	struct hlist_node *tmp;
-+	struct clk *child;
-+
-+	old_rate = clk->rate;
-+
-+	if (clk->ops->recalc_rate)
-+		clk->rate = clk->ops->recalc_rate(clk);
-+
-+	/* ignore return value for POST_RATE_CHANGE & ABORT_RATE_CHANGE */
-+	if (clk->notifier_count)
-+		__clk_notify(clk, msg, old_rate, clk->rate);
-+
-+	hlist_for_each_entry(child, tmp, &clk->children, child_node)
-+		__clk_recalc_rates(child, msg);
-+}
-+
-+/**
-+ * __clk_speculate_rates
-+ * @clk: first clk in the subtree
-+ * @parent_rate: the "future" rate of clk's parent
-+ *
-+ * Walks the subtree of clks starting with clk, speculating rates as it
-+ * goes and firing off PRE_RATE_CHANGE notifications as necessary.  Note
-+ * that if a clk does not implement the speculate_rate operation then
-+ * propagation of that subtree stops and all of that clks children will
-+ * not have their rates speculated.
-+ *
-+ * Unlike clk_recalc_rates, clk_speculate_rates exists only for sending
-+ * pre-rate change notifications and returns early if no clks in the
-+ * subtree have subscribed to the notifications.
-+ *
-+ * It is not required to have a .speculate_rate callback, but without it
-+ * a driver can never recieve a PRE_RATE_CHANGE notifier.  clks that
-+ * only have a .recalc_rate callback still allow drivers to listen for
-+ * POST_RATE_CHANGE notifications even in the absence of
-+ * .speculate_rate.
-+ *
-+ * Caller must hold prepare_lock.
-  */
--static void __clk_recalc_rates(struct clk *clk)
-+static int __clk_speculate_rates(struct clk *clk, unsigned long parent_rate)
- {
- 	struct hlist_node *tmp;
- 	struct clk *child;
-+	unsigned long new_rate;
-+	int ret = NOTIFY_DONE;
- 
--	if (!clk->ops->recalc_rate) {
--		pr_debug("%s: no .recalc_rate for clk %s\n",
-+	if (!clk->ops->speculate_rate) {
-+		pr_debug("%s: no .speculate_rate for clk %s\n",
- 				__func__, clk->name);
--		return;
-+		goto out;
- 	}
- 
--	clk->rate = clk->ops->recalc_rate(clk);
-+	new_rate = clk->ops->speculate_rate(clk, parent_rate);
- 
--	/* FIXME add post-rate change notification here */
-+	/* abort the rate change if a driver returns NOTIFY_BAD */
-+	if (clk->notifier_count)
-+		ret = __clk_notify(clk, PRE_RATE_CHANGE, clk->rate, new_rate);
- 
--	hlist_for_each_entry(child, tmp, &clk->children, child_node)
--		__clk_recalc_rates(child);
-+	if (ret == NOTIFY_BAD)
-+		goto out;
-+
-+	hlist_for_each_entry(child, tmp, &clk->children, child_node) {
-+		ret = __clk_speculate_rates(child, new_rate);
-+		if (ret == NOTIFY_BAD)
-+			break;
-+	}
-+
-+out:
-+	return ret;
- }
- 
- /**
-@@ -286,11 +385,16 @@ static void __clk_recalc_rates(struct clk *clk)
-  *
-  * To prevent this consider setting the CLK_GATE_SET_RATE flag on any
-  * clk where you also set the CLK_PARENT_SET_RATE flag
-+ *
-+ * PRE_RATE_CHANGE notifications are supposed to stack as a rate change
-+ * request propagates up the clk tree.  This reflects the different
-+ * rates that a downstream clk might experience if left enabled while
-+ * upstream parents change their rates.
-  */
- struct clk *__clk_set_rate(struct clk *clk, unsigned long rate)
- {
- 	struct clk *fail_clk = NULL;
--	int ret = 0;
-+	int ret = NOTIFY_DONE;
- 	unsigned long old_rate = clk->rate;
- 	unsigned long new_rate;
- 	unsigned long parent_old_rate;
-@@ -307,14 +411,25 @@ struct clk *__clk_set_rate(struct clk *clk, unsigned long rate)
- 
- 	new_rate = clk->ops->round_rate(clk, rate, &parent_new_rate);
- 
--	/* FIXME propagate pre-rate change notification here */
--	/* XXX note that pre-rate change notifications will stack */
-+	/* NOTE: pre-rate change notifications will stack */
-+	if (clk->notifier_count)
-+		ret = __clk_notify(clk, PRE_RATE_CHANGE, clk->rate, new_rate);
-+
-+	if (ret == NOTIFY_BAD)
-+		return clk;
-+
-+	/* speculate rate changes down the tree */
-+	hlist_for_each_entry(child, tmp, &clk->children, child_node) {
-+		ret = __clk_speculate_rates(child, new_rate);
-+		if (ret == NOTIFY_BAD)
-+			return clk;
-+	}
- 
- 	/* change the rate of this clk */
- 	if (clk->ops->set_rate)
- 		ret = clk->ops->set_rate(clk, new_rate);
- 
--	if (ret)
-+	if (ret == NOTIFY_BAD)
- 		return clk;
- 
- 	/*
-@@ -336,6 +451,19 @@ struct clk *__clk_set_rate(struct clk *clk, unsigned long rate)
- 			pr_warn("%s: failed to set parent %s rate to %lu\n",
- 					__func__, fail_clk->name,
- 					parent_new_rate);
-+
-+			/*
-+			 * Send PRE_RATE_CHANGE notifiers down the tree
-+			 * again, since we're rolling back the rate
-+			 * changes due to the abort.
-+			 *
-+			 * Ignore any NOTIFY_BAD's since this *is* the
-+			 * exception handler.
-+			 *
-+			 * NOTE: pre-rate change notifications will stack
-+			 */
-+			__clk_speculate_rates(clk, clk->parent->rate);
-+
- 			clk->ops->set_rate(clk, old_rate);
- 		}
- 		return fail_clk;
-@@ -350,8 +478,7 @@ struct clk *__clk_set_rate(struct clk *clk, unsigned long rate)
- 	 * and post-rate change notifiers down the clk tree from this
- 	 * point.
- 	 */
--	/* FIXME propagate post-rate change notifier starting with this clk */
--	__clk_recalc_rates(clk);
-+	__clk_recalc_rates(clk, POST_RATE_CHANGE);
- 
- 	return NULL;
- }
-@@ -412,9 +539,10 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
- 	if (fail_clk) {
- 		pr_warn("%s: failed to set %s rate\n", __func__,
- 				fail_clk->name);
--		/* FIXME propagate rate change abort notification here */
-+		__clk_recalc_rates(clk, ABORT_RATE_CHANGE);
- 		ret = -EIO;
- 	}
-+
- out:
- 	mutex_unlock(&prepare_lock);
- 
-@@ -485,7 +613,13 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
- 	if (clk->parent == parent)
- 		goto out;
- 
--	/* FIXME add pre-rate change notification here */
-+	/* propagate PRE_RATE_CHANGE notifications */
-+	if (clk->notifier_count)
-+		ret = __clk_speculate_rates(clk, parent->rate);
-+
-+	/* abort if a driver objects */
-+	if (ret == NOTIFY_STOP)
-+		goto out;
- 
- 	/* only re-parent if the clock is not in use */
- 	if ((clk->flags & CLK_GATE_SET_PARENT) && clk->prepare_count)
-@@ -493,10 +627,16 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
- 	else
- 		ret = clk->ops->set_parent(clk, parent);
- 
--	if (ret < 0)
--		/* FIXME add rate change abort notification here */
-+	/* propagate ABORT_RATE_CHANGE if .set_parent failed */
-+	if (ret) {
-+		__clk_recalc_rates(clk, ABORT_RATE_CHANGE);
- 		goto out;
-+	}
- 
-+	/*
-+	 * FIXME prepare_count, enable_count & notifier_count should
-+	 * migrate which switching parents
-+	 */
- 	/* update tree topology */
- 	__clk_reparent(clk, parent);
- 
-@@ -504,7 +644,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
- 	 * If successful recalculate the rates of the clock, including
- 	 * children.
- 	 */
--	__clk_recalc_rates(clk);
-+	__clk_recalc_rates(clk, POST_RATE_CHANGE);
- 
- out:
- 	mutex_unlock(&prepare_lock);
-@@ -562,3 +702,119 @@ void clk_init(struct device *dev, struct clk *clk)
- 	return;
- }
- EXPORT_SYMBOL_GPL(clk_init);
-+
-+/***        clk rate change notifiers        ***/
-+
-+/**
-+ * clk_notifier_register - add a clk rate change notifier
-+ * @clk: struct clk * to watch
-+ * @nb: struct notifier_block * with callback info
-+ *
-+ * Request notification when clk's rate changes.  This uses an SRCU
-+ * notifier because we want it to block and notifier unregistrations are
-+ * uncommon.  The callbacks associated with the notifier must not
-+ * re-enter into the clk framework by calling any top-level clk APIs;
-+ * this will cause a nested prepare_lock mutex.
-+ *
-+ * Pre-change notifier callbacks will be passed the current, pre-change
-+ * rate of the clk via struct clk_notifier_data.old_rate.  The new,
-+ * post-change rate of the clk is passed via struct
-+ * clk_notifier.new_rate.
-+ *
-+ * Post-change notifiers will pass the now-current, post-change rate of
-+ * the clk in both struct clk_notifier_data.old_rate and struct
-+ * clk_notifier_data.new_rate.
-+ *
-+ * Abort-change notifiers are effectively the opposite of pre-change
-+ * notifiers: the original pre-change clk rate is passed in via struct
-+ * clk_notifier_data.new_rate and the failed post-change rate is passed
-+ * in via struct clk_notifier_data.old_rate.
-+ *
-+ * clk_notifier_register() must be called from non-atomic context.
-+ * Returns -EINVAL if called with null arguments, -ENOMEM upon
-+ * allocation failure; otherwise, passes along the return value of
-+ * srcu_notifier_chain_register().
-+ */
-+int clk_notifier_register(struct clk *clk, struct notifier_block *nb)
-+{
-+	struct clk_notifier *cn;
-+	int ret = -ENOMEM;
-+
-+	if (!clk || !nb)
-+		return -EINVAL;
-+
-+	mutex_lock(&prepare_lock);
-+
-+	/* search the list of notifiers for this clk */
-+	list_for_each_entry(cn, &clk_notifier_list, node)
-+		if (cn->clk == clk)
-+			break;
-+
-+	/* if clk wasn't in the notifier list, allocate new clk_notifier */
-+	if (cn->clk != clk) {
-+		cn = kzalloc(sizeof(struct clk_notifier), GFP_KERNEL);
-+		if (!cn)
-+			goto out;
-+
-+		cn->clk = clk;
-+		srcu_init_notifier_head(&cn->notifier_head);
-+
-+		list_add(&cn->node, &clk_notifier_list);
-+	}
-+
-+	ret = srcu_notifier_chain_register(&cn->notifier_head, nb);
-+
-+	clk->notifier_count++;
-+
-+out:
-+	mutex_unlock(&prepare_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(clk_notifier_register);
-+
-+/**
-+ * clk_notifier_unregister - remove a clk rate change notifier
-+ * @clk: struct clk *
-+ * @nb: struct notifier_block * with callback info
-+ *
-+ * Request no further notification for changes to 'clk' and frees memory
-+ * allocated in clk_notifier_register.
-+ *
-+ * Returns -EINVAL if called with null arguments; otherwise, passes
-+ * along the return value of srcu_notifier_chain_unregister().
-+ */
-+int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb)
-+{
-+	struct clk_notifier *cn = NULL;
-+	int ret = -EINVAL;
-+
-+	if (!clk || !nb)
-+		return -EINVAL;
-+
-+	mutex_lock(&prepare_lock);
-+
-+	list_for_each_entry(cn, &clk_notifier_list, node)
-+		if (cn->clk == clk)
-+			break;
-+
-+	if (cn->clk == clk) {
-+		ret = srcu_notifier_chain_unregister(&cn->notifier_head, nb);
-+
-+		clk->notifier_count--;
-+
-+		/* XXX the notifier code should handle this better */
-+		if (!cn->notifier_head.head) {
-+			srcu_cleanup_notifier_head(&cn->notifier_head);
-+			kfree(cn);
-+		}
-+
-+	} else {
-+		ret = -ENOENT;
-+	}
-+
-+	mutex_unlock(&prepare_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(clk_notifier_unregister);
-diff --git a/include/linux/clk.h b/include/linux/clk.h
-index 9cb8d72..63a72f2 100644
---- a/include/linux/clk.h
-+++ b/include/linux/clk.h
-@@ -14,6 +14,7 @@
- #define __LINUX_CLK_H
- 
- #include <linux/kernel.h>
-+#include <linux/notifier.h>
- #include <linux/errno.h>
- 
- struct device;
-@@ -44,6 +45,7 @@ struct clk {
- 	unsigned int		prepare_count;
- 	struct hlist_head	children;
- 	struct hlist_node	child_node;
-+	unsigned int		notifier_count;
- };
- 
- /**
-@@ -120,6 +122,8 @@ struct clk_hw_ops {
- 	int		(*enable)(struct clk *clk);
- 	void		(*disable)(struct clk *clk);
- 	unsigned long	(*recalc_rate)(struct clk *clk);
-+	unsigned long	(*speculate_rate)(struct clk *clk,
-+					unsigned long parent_rate);
- 	long		(*round_rate)(struct clk *clk, unsigned long,
- 					unsigned long *);
- 	int		(*set_parent)(struct clk *clk, struct clk *);
-@@ -144,6 +148,66 @@ int __clk_prepare(struct clk *clk);
- void __clk_unprepare(struct clk *clk);
- void __clk_reparent(struct clk *clk, struct clk *new_parent);
- 
-+/**
-+ * DOC: clk notifier callback types
-+ *
-+ * PRE_RATE_CHANGE - called immediately before the clk rate is changed,
-+ *     to indicate that the rate change will proceed.  Drivers must
-+ *     immediately terminate any operations that will be affected by the
-+ *     rate change.  Callbacks may either return NOTIFY_DONE or
-+ *     NOTIFY_STOP.
-+ *
-+ * ABORT_RATE_CHANGE: called if the rate change failed for some reason
-+ *     after PRE_RATE_CHANGE.  In this case, all registered notifiers on
-+ *     the clk will be called with ABORT_RATE_CHANGE. Callbacks must
-+ *     always return NOTIFY_DONE.
-+ *
-+ * POST_RATE_CHANGE - called after the clk rate change has successfully
-+ *     completed.  Callbacks must always return NOTIFY_DONE.
-+ *
-+ */
-+#define PRE_RATE_CHANGE			BIT(0)
-+#define POST_RATE_CHANGE		BIT(1)
-+#define ABORT_RATE_CHANGE		BIT(2)
-+
-+/**
-+ * struct clk_notifier - associate a clk with a notifier
-+ * @clk: struct clk * to associate the notifier with
-+ * @notifier_head: a blocking_notifier_head for this clk
-+ * @node: linked list pointers
-+ *
-+ * A list of struct clk_notifier is maintained by the notifier code.
-+ * An entry is created whenever code registers the first notifier on a
-+ * particular @clk.  Future notifiers on that @clk are added to the
-+ * @notifier_head.
-+ */
-+struct clk_notifier {
-+	struct clk			*clk;
-+	struct srcu_notifier_head	notifier_head;
-+	struct list_head		node;
-+};
-+
-+/**
-+ * struct clk_notifier_data - rate data to pass to the notifier callback
-+ * @clk: struct clk * being changed
-+ * @old_rate: previous rate of this clk
-+ * @new_rate: new rate of this clk
-+ *
-+ * For a pre-notifier, old_rate is the clk's rate before this rate
-+ * change, and new_rate is what the rate will be in the future.  For a
-+ * post-notifier, old_rate and new_rate are both set to the clk's
-+ * current rate (this was done to optimize the implementation).
-+ */
-+struct clk_notifier_data {
-+	struct clk		*clk;
-+	unsigned long		old_rate;
-+	unsigned long		new_rate;
-+};
-+
-+int clk_notifier_register(struct clk *clk, struct notifier_block *nb);
-+
-+int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb);
-+
- #endif /* !CONFIG_GENERIC_CLK */
- 
- /**
--- 
-1.7.5.4
+> The previous patchset, v3, can be found at,
+> http://article.gmane.org/gmane.linux.kernel/1218622
+>
+> New stuff in v4:
+> =A0* clk rate change notifiers
+> =A0* clk debug info via debugfs (instead of sysfs)
+> =A0* lots of bug fixes
+>
+> Stuff that is known to be missing in v4:
+> =A0* basic mux and divider clk types
+> =A0* fix for migrating clk_prepare_count/clk_enable_count in
+> =A0 clk_set_parent
+> =A0* minor rework comments from v3
+> =A0* Documentation/clk.txt needs love
+>
+> All of the mising items above will be rolled into v5 ASAP. =A0I wante=
+d to
+> go ahead and push out the new notifier changes for review and gather
+> comments on those since those were a big gap in the v3 patchset.
+>
+> Paul W. also had some good comments about the greater clk API, and th=
+e
+> opportunity to fix some of that stuff while this patchset is still un=
+der
+> discussion. =A0I didn't address those here because they require more
+> thought, and more comments from reviewers.
+>
+> Finally, OMAP4 support for the common struct clk will be posted
+> immediately after this patch series to LAKML and LOML, along with som=
+e
+> hack patches that show how to use the recursive clk_set_rate for
+> propagating rate changes up the tree for CPUfreq and how to use the n=
+ew
+> clk rate change notifiers in a driver.
+>
+> Mike Turquette (6):
+> =A0clk: Kconfig: add entry for HAVE_CLK_PREPARE
+> =A0Documentation: common clk API
+> =A0clk: introduce the common clock framework
+> =A0clk: introduce rate change notifiers
+> =A0clk: basic gateable and fixed-rate clks
+> =A0clk: export the clk tree topology to debugfs
+>
+> =A0Documentation/clk.txt =A0 | =A0312 +++++++++++++++
+> =A0drivers/clk/Kconfig =A0 =A0 | =A0 23 ++
+> =A0drivers/clk/Makefile =A0 =A0| =A0 =A04 +-
+> =A0drivers/clk/clk-basic.c | =A0208 ++++++++++
+> =A0drivers/clk/clk.c =A0 =A0 =A0 | =A0992 +++++++++++++++++++++++++++=
+++++++++++++++++++++
+> =A0include/linux/clk.h =A0 =A0 | =A0230 +++++++++++-
+> =A06 files changed, 1765 insertions(+), 4 deletions(-)
+> =A0create mode 100644 Documentation/clk.txt
+> =A0create mode 100644 drivers/clk/clk-basic.c
+> =A0create mode 100644 drivers/clk/clk.c
+>
+> --
+> 1.7.5.4
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
