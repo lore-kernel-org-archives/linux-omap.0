@@ -1,174 +1,39 @@
-From: Alex Gershgorin <alexg@meprolight.com>
-Subject: RE: [PATCH v3] ARM: OMAP3LOGIC: Adding DSS support
-Date: Wed, 14 Dec 2011 17:08:23 +0200
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C89899260@MEP-EXCH.meprolight.com>
-References: <1323865510-6273-1-git-send-email-alexg@meprolight.com>,<4EE8B20F.5070907@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 1/1] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Wed, 14 Dec 2011 17:14:16 +0200
+Message-ID: <1323875656-17147-1-git-send-email-sakari.ailus@iki.fi>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:31421 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751511Ab1LNPHy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 10:07:54 -0500
-In-Reply-To: <4EE8B20F.5070907@compulab.co.il>
-Content-Language: en-US
+Received: from smtp.nokia.com ([147.243.128.24]:17670 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756193Ab1LNPOU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Dec 2011 10:14:20 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, "tim.nordell@logicpd.com" <tim.nordell@logicpd.com>, "baruch@tkos.co.il" <baruch@tkos.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com
 
-Hi,
+The register is used to configure the behaviour of the CSI-2 and CCP-2
+receivers. This register is available only in OMAP3630.
 
-On 12/14/11 14:25, Alex wrote:
-> This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
-> TV-out are supported.
->
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> ---
->  arch/arm/mach-omap2/board-omap3logic.c |   96 ++++++++++++++++++++++++++++++++
->  1 files changed, 96 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-> index 7c0f193..b44c485 100644
-> --- a/arch/arm/mach-omap2/board-omap3logic.c
-> +++ b/arch/arm/mach-omap2/board-omap3logic.c
-> @@ -7,6 +7,9 @@
->   * Copyright (C) 2010 Logic Product Development, Inc.
->   * Peter Barada <peter.barada@logicpd.com>
->   *
-> + * Copyright (C) 2011 Meprolight, Ltd.
-> + * Alex Gershgorin <alexg@meprolight.com>
-> + *
->   * Modified from Beagle, EVM, and RX51
->   *
->   * This program is free software; you can redistribute it and/or modify
-> @@ -45,6 +48,9 @@
->  #include <plat/gpmc.h>
->  #include <plat/sdrc.h>
->
-> +#include <video/omapdss.h>
-> +#include <video/omap-panel-generic-dpi.h>
-> +
->  #define OMAP3LOGIC_SMSC911X_CS                       1
->
->  #define OMAP3530_LV_SOM_MMC_GPIO_CD          110
-> @@ -95,6 +101,13 @@ static struct twl4030_platform_data omap3logic_twldata = {
->
->  static int __init omap3logic_i2c_init(void)
->  {
-> +     omap3_pmic_get_config(&omap3logic_twldata, TWL_COMMON_PDATA_USB,
-> +                     TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-> +
-> +     omap3logic_twldata.vdac->constraints.apply_uV = true;
-> +     omap3logic_twldata.vpll2->constraints.apply_uV = true;
-> +     omap3logic_twldata.vpll2->constraints.name = "VDSI";
-> +
->       omap3_pmic_init("twl4030", &omap3logic_twldata);
->       return 0;
->  }
-> @@ -182,6 +195,88 @@ static inline void __init board_smsc911x_init(void)
->       gpmc_smsc911x_init(&board_smsc911x_data);
->  }
->
-> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-> +
-> +#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO     154
-> +#define OMAP3_TORPEDO_LCD_ENABLE_GPIO                155
-> +#define OMAP3_TORPEDO_LCD_PWM_GPIO           56
-> +
-> +static struct gpio omap3logic_dss_gpios[] __initdata = {
-> +     {OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
-> +     {OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
-> +     {OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
-> +};
-> +
-> +static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +     gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
-> +     gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
-> +     gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 1);
-> +
-> +     return 0;
-> +}
-> +
-> +static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +     gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +     gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +     gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-> +}
-> +
-> +static struct panel_generic_dpi_data lcd_panel = {
-> +     .name                   = "sharp_lq",
-> +     .platform_enable        = omap3logic_enable_lcd,
-> +     .platform_disable       = omap3logic_disable_lcd,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_lcd_device = {
-> +     .name                   = "lcd",
-> +     .driver_name            = "generic_dpi_panel",
-> +     .type                   = OMAP_DISPLAY_TYPE_DPI,
-> +     .data                   = &lcd_panel,
-> +     .phy.dpi.data_lines     = 16,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_tv_device = {
-> +     .name                   = "tv",
-> +     .driver_name            = "venc",
-> +     .type                   = OMAP_DISPLAY_TYPE_VENC,
-> +     .phy.venc.type          = OMAP_DSS_VENC_TYPE_SVIDEO,
-> +};
-> +
-> +static struct omap_dss_device *omap3logic_dss_devices[] = {
-> +     &omap3logic_lcd_device,
-> +     &omap3logic_tv_device,
-> +};
-> +
-> +static struct omap_dss_board_info omap3logic_dss_data = {
-> +     .num_devices            = ARRAY_SIZE(omap3logic_dss_devices),
-> +     .devices                = omap3logic_dss_devices,
-> +     .default_device         = &omap3logic_lcd_device,
-> +};
-> +
-> +static void __init omap3logic_display_init(void)
-> +{
-> +     int r;
-> +
-> +     r = gpio_request_array(omap3logic_dss_gpios,
-> +                            ARRAY_SIZE(omap3logic_dss_gpios));
-> +     if (r) {
-> +             printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
+The original patch was submitted by Vimarsh Zutshi.
 
-You use pr_err() below, why not here?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/mach-omap2/control.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-You're absolutely right, thanks.
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index d4ef75d..6a26a0d 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -183,6 +183,7 @@
+ #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+ #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+ #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
+ 
+ /* OMAP44xx control efuse offsets */
+ #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
+-- 
+1.7.2.5
 
-> +             return;
-> +     }
-> +
-> +     r = omap_display_init(&omap3logic_dss_data);
-> +     if (r) {
-> +             pr_err("OMAP3LOGIC: failed to register DSS device\n");
-> +             gpio_free_array(omap3logic_dss_gpios,
-> +                             ARRAY_SIZE(omap3logic_dss_gpios));
-> +     }
-> +}
-> +#else
-> +static void __init omap3logic_display_init(void) { }
-> +#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
-> +
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
->       { .reg_offset = OMAP_MUX_TERMINATOR },
-> @@ -197,6 +292,7 @@ static void __init omap3logic_init(void)
->       omap_sdrc_init(NULL, NULL);
->       board_mmc_init();
->       board_smsc911x_init();
-> +     omap3logic_display_init();
->
->       /* Ensure SDRC pins are mux'd for self-refresh */
->       omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
-
-Regards,
-Alex
