@@ -1,100 +1,67 @@
-From: jean.pihet@newoldbits.com
-Subject: [PATCH v6 0/6] PM QoS: implement the OMAP low level constraints management code
-Date: Wed, 14 Dec 2011 15:51:38 +0100
-Message-ID: <1323874304-5001-1-git-send-email-j-pihet@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:36168 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812Ab1LNOwG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 09:52:06 -0500
-Received: by eekc4 with SMTP id c4so872305eek.19
-        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 06:52:05 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v5 0/6] PM QoS: implement the OMAP low level
+ constraints management code
+Date: Wed, 14 Dec 2011 15:55:29 +0100
+Message-ID: <CAORVsuUYGTqsnnpN=rm+1pk8fLwNEA70HueF_cxqt34GirafUA@mail.gmail.com>
+References: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
+	<87zkewrpu7.fsf@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <87zkewrpu7.fsf@ti.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, Jean Pihet <j-pihet@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
 
-From: Jean Pihet <j-pihet@ti.com>
+Hi Kevin,
 
-. Implement the devices wake-up latency constraints using the global
-  device PM QoS notification handler which applies the constraints to the
-  underlying layer
-. Implement the low level code which controls the power domains next power
-  states, through the hwmod and pwrdm layers
-. Add cpuidle and power domains wake-up latency figures for OMAP3, cf. 
-  comments in the code and [1] for the details on where the numbers
-  are magically coming from
-. Implement the relation between the cpuidle and per-device PM QoS frameworks
-  in the OMAP3 specific idle callbacks.
-  The chosen C-state shall satisfy the following conditions:
-   . the 'valid' field is enabled,
-   . it satisfies the enable_off_mode flag,
-   . the next state for MPU and CORE power domains is not lower than the
-     state programmed by the per-device PM QoS.
+On Wed, Dec 14, 2011 at 12:53 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Jean,
+>
+> jean.pihet@newoldbits.com writes:
+>
+>> From: Jean Pihet <j-pihet@ti.com>
+>>
+>> . Implement the devices wake-up latency constraints using the global
+>> =A0 device PM QoS notification handler which applies the constraints to =
+the
+>> =A0 underlying layer
+>> . Implement the low level code which controls the power domains next pow=
+er
+>> =A0 states, through the hwmod and pwrdm layers
+>> . Add cpuidle and power domains wake-up latency figures for OMAP3, cf.
+>> =A0 comments in the code and [1] for the details on where the numbers
+>> =A0 are magically coming from
+>> . Implement the relation between the cpuidle and per-device PM QoS frame=
+works
+>> =A0 in the OMAP3 specific idle callbacks.
+>> =A0 The chosen C-state shall satisfy the following conditions:
+>> =A0 =A0. the 'valid' field is enabled,
+>> =A0 =A0. it satisfies the enable_off_mode flag,
+>> =A0 =A0. the next state for MPU and CORE power domains is not lower than=
+ the
+>> =A0 =A0 =A0state programmed by the per-device PM QoS.
+>
+> I had a couple minor comments on this version, but after that, feel free
+> to add:
+>
+> Reviewed-by: Kevin Hilman <khilman@ti.com>
+Thanks for reviewing!
+I fixed (most of) the minor remarks and re-submitted.
 
+> after that, this series will go upstream through Paul.
+>
+> Kevin
 
-ToDo:
-1. support OMAP4 chipset when the low power modes will be supported
-2. validate the constraints framework on OMAP4 HW (done on OMAP3)
-3. Re-visit the OMAP power domains states initialization procedure. Currently
-   the power states that have been changed from the constraints API which were
-   applied before the initialization of the power domains are lost
-4. Further clean-up the OMAP PM layer, use the generic frameworks instead (OPP,
-   PM QoS...)
-
-
-Based on the pm-qos branch of the linux-omap git tree (3.2.0-rc4), cf. [2].
-
-Tested on OMAP3 Beagleboard (ES2.x) with constraints on MPU, CORE, PER in
-RETention and OFF modes.
-
-[1] http://www.omappedia.org/wiki/Power_Management_Device_Latencies_Measurement
-[2] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
-
-
-v6:
-. minor change in the commits description after Kevin's review
-. added Kevin's Reviewed-by
-
-v5:
-. rebased on latest linux-omap [2]
-. rework after Kevin's comments on the MLs
-
-v4:
-. split up the patches which remove the omap_pm_ code from the patch set.
-  Those patches are to be submitted later, on top of this patch set.
-. latency numbers: provide the measurements setup and conditions in the code
-  comments, added the link to the details on wiki [1].
-. improved kerneldoc
-. split big functions into smaller ones, in order to improve the readability
-
-v3: reworked the error return path and improved the kerneldoc
-
-v2: reworked the OMAP specific cpuidle code to demote the initial C-state to
-     a valid C-state which fulfills the per-device constraints
-
-v1: initial version
-
-
-Jean Pihet (6):
-  OMAP2+: powerdomain: control power domains next state
-  OMAP2+: omap_hwmod: manage the wake-up latency constraints
-  OMAP: PM: register to the per-device PM QoS framework
-  OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and
-    CORE constraints
-  OMAP3: update cpuidle latency and threshold figures
-  OMAP3: powerdomain data: add wake-up latency figures
-
- arch/arm/mach-omap2/cpuidle34xx.c            |  107 +++++++-----
- arch/arm/mach-omap2/omap_hwmod.c             |   27 +++-
- arch/arm/mach-omap2/pm.c                     |   71 ++++++++-
- arch/arm/mach-omap2/pm.h                     |   17 ++-
- arch/arm/mach-omap2/powerdomain.c            |  245 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.h            |   36 ++++-
- arch/arm/mach-omap2/powerdomains3xxx_data.c  |   83 +++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 +
- 8 files changed, 539 insertions(+), 49 deletions(-)
-
--- 
-1.7.5.4
-
+Regards,
+Jean
