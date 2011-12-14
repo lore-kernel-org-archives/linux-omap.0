@@ -1,87 +1,173 @@
-From: Richard Zhao <richard.zhao@linaro.org>
-Subject: Re: [PATCH v4 REPOST 5/5] imx6q: Remove unconditional dependency on
- l2x0 L2 cache support
-Date: Wed, 14 Dec 2011 22:05:04 +0800
-Message-ID: <20111214140500.GA1700@richard-laptop>
-References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
- <1323862781-3465-6-git-send-email-dave.martin@linaro.org>
- <20111214132622.GA1520@S2100-06.ap.freescale.net>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v3] ARM: OMAP3LOGIC: Adding DSS support
+Date: Wed, 14 Dec 2011 16:26:23 +0200
+Message-ID: <4EE8B20F.5070907@compulab.co.il>
+References: <1323865510-6273-1-git-send-email-alexg@meprolight.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111214132622.GA1520@S2100-06.ap.freescale.net>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@freescale.com>
-Cc: Dave Martin <dave.martin@linaro.org>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Anton Vorontsov <avorontsov@mvista.com>, Will Deacon <will.deacon@arm.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@google.com>, Paul Mundt <lethal@linux-sh.org>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:58445
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753694Ab1LNO0l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Dec 2011 09:26:41 -0500
+In-Reply-To: <1323865510-6273-1-git-send-email-alexg@meprolight.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alex <alexg@meprolight.com>
+Cc: Tony Lindgren <tony@atomide.com>, tim.nordell@logicpd.com, baruch@tkos.co.il, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Dec 14, 2011 at 09:26:24PM +0800, Shawn Guo wrote:
-> Hi Dave,
-> 
-> Sorry for that I did not look into previous post to point it out.
-> 
-> On Wed, Dec 14, 2011 at 11:39:41AM +0000, Dave Martin wrote:
-> > The i.MX6 Quad SoC will work without the l2x0 L2 cache controller
-> > support built into the kernel, so this patch removes the dependency
-> > on CACHE_L2X0 and selects MIGHT_HAVE_CACHE_L2X0 instead.
-> > 
-> > This makes the l2x0 support optional, so that it can be turned off
-> > when desired for debugging purposes etc.
-> > 
-> > Thanks to Shawn Guo for this suggestion. [1]
-> > 
-> > Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> > 
-> > [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074602.html
-> > ---
-> >  arch/arm/mach-imx/Kconfig |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-imx/Kconfig b/arch/arm/mach-imx/Kconfig
-> > index 29a3d61..1fb93f2 100644
-> > --- a/arch/arm/mach-imx/Kconfig
-> > +++ b/arch/arm/mach-imx/Kconfig
-> > @@ -609,13 +609,13 @@ comment "i.MX6 family:"
-> >  config SOC_IMX6Q
-> >  	bool "i.MX6 Quad support"
-> >  	select ARM_GIC
-> > -	select CACHE_L2X0
-> >  	select CPU_V7
-> >  	select HAVE_ARM_SCU
-> >  	select HAVE_IMX_GPC
-> >  	select HAVE_IMX_MMDC
-> >  	select HAVE_IMX_SRC
-> >  	select HAVE_SMP
-> > +	select MIGHT_HAVE_CACHE_L2X0
-> 
-> The option SOC_IMX6Q is only available when ARCH_IMX_V6_V7 is selected.
-> Since MIGHT_HAVE_CACHE_L2X0 has been selected by ARCH_IMX_V6_V7 in
-> patch #1, this line seems redundant here.
-Would it be better keep this one and remove patch #1 one? imx5 doesn't have
-l2x0.
+Hi Alex,
 
-Thanks
-Richard
+On 12/14/11 14:25, Alex wrote:
+> This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
+> TV-out are supported.
 > 
-> Regards,
-> Shawn
+> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+> ---
+>  arch/arm/mach-omap2/board-omap3logic.c |   96 ++++++++++++++++++++++++++++++++
+>  1 files changed, 96 insertions(+), 0 deletions(-)
 > 
-> >  	select USE_OF
-> >  
-> >  	help
-> > -- 
-> > 1.7.4.1
-> > 
-> > 
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> > 
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+> index 7c0f193..b44c485 100644
+> --- a/arch/arm/mach-omap2/board-omap3logic.c
+> +++ b/arch/arm/mach-omap2/board-omap3logic.c
+> @@ -7,6 +7,9 @@
+>   * Copyright (C) 2010 Logic Product Development, Inc.
+>   * Peter Barada <peter.barada@logicpd.com>
+>   *
+> + * Copyright (C) 2011 Meprolight, Ltd.
+> + * Alex Gershgorin <alexg@meprolight.com>
+> + *
+>   * Modified from Beagle, EVM, and RX51
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+> @@ -45,6 +48,9 @@
+>  #include <plat/gpmc.h>
+>  #include <plat/sdrc.h>
+>  
+> +#include <video/omapdss.h>
+> +#include <video/omap-panel-generic-dpi.h>
+> +
+>  #define OMAP3LOGIC_SMSC911X_CS			1
+>  
+>  #define OMAP3530_LV_SOM_MMC_GPIO_CD		110
+> @@ -95,6 +101,13 @@ static struct twl4030_platform_data omap3logic_twldata = {
+>  
+>  static int __init omap3logic_i2c_init(void)
+>  {
+> +	omap3_pmic_get_config(&omap3logic_twldata, TWL_COMMON_PDATA_USB,
+> +			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
+> +
+> +	omap3logic_twldata.vdac->constraints.apply_uV = true;
+> +	omap3logic_twldata.vpll2->constraints.apply_uV = true;
+> +	omap3logic_twldata.vpll2->constraints.name = "VDSI";
+> +
+>  	omap3_pmic_init("twl4030", &omap3logic_twldata);
+>  	return 0;
+>  }
+> @@ -182,6 +195,88 @@ static inline void __init board_smsc911x_init(void)
+>  	gpmc_smsc911x_init(&board_smsc911x_data);
+>  }
+>  
+> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+> +
+> +#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO	154
+> +#define OMAP3_TORPEDO_LCD_ENABLE_GPIO		155
+> +#define OMAP3_TORPEDO_LCD_PWM_GPIO		56
+> +
+> +static struct gpio omap3logic_dss_gpios[] __initdata = {
+> +	{OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
+> +	{OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
+> +	{OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
+> +};
+> +
+> +static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
+> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
+> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
+> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
+> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
+> +}
+> +
+> +static struct panel_generic_dpi_data lcd_panel = {
+> +	.name			= "sharp_lq",
+> +	.platform_enable	= omap3logic_enable_lcd,
+> +	.platform_disable	= omap3logic_disable_lcd,
+> +};
+> +
+> +static struct omap_dss_device omap3logic_lcd_device = {
+> +	.name			= "lcd",
+> +	.driver_name		= "generic_dpi_panel",
+> +	.type			= OMAP_DISPLAY_TYPE_DPI,
+> +	.data			= &lcd_panel,
+> +	.phy.dpi.data_lines	= 16,
+> +};
+> +
+> +static struct omap_dss_device omap3logic_tv_device = {
+> +	.name			= "tv",
+> +	.driver_name		= "venc",
+> +	.type			= OMAP_DISPLAY_TYPE_VENC,
+> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+> +};
+> +
+> +static struct omap_dss_device *omap3logic_dss_devices[] = {
+> +	&omap3logic_lcd_device,
+> +	&omap3logic_tv_device,
+> +};
+> +
+> +static struct omap_dss_board_info omap3logic_dss_data = {
+> +	.num_devices		= ARRAY_SIZE(omap3logic_dss_devices),
+> +	.devices		= omap3logic_dss_devices,
+> +	.default_device		= &omap3logic_lcd_device,
+> +};
+> +
+> +static void __init omap3logic_display_init(void)
+> +{
+> +	int r;
+> +
+> +	r = gpio_request_array(omap3logic_dss_gpios,
+> +			       ARRAY_SIZE(omap3logic_dss_gpios));
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
+
+You use pr_err() below, why not here?
+
+> +		return;
+> +	}
+> +
+> +	r = omap_display_init(&omap3logic_dss_data);
+> +	if (r) {
+> +		pr_err("OMAP3LOGIC: failed to register DSS device\n");
+> +		gpio_free_array(omap3logic_dss_gpios,
+> +				ARRAY_SIZE(omap3logic_dss_gpios));
+> +	}
+> +}
+> +#else
+> +static void __init omap3logic_display_init(void) { }
+> +#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
+> +
+>  #ifdef CONFIG_OMAP_MUX
+>  static struct omap_board_mux board_mux[] __initdata = {
+>  	{ .reg_offset = OMAP_MUX_TERMINATOR },
+> @@ -197,6 +292,7 @@ static void __init omap3logic_init(void)
+>  	omap_sdrc_init(NULL, NULL);
+>  	board_mmc_init();
+>  	board_smsc911x_init();
+> +	omap3logic_display_init();
+>  
+>  	/* Ensure SDRC pins are mux'd for self-refresh */
+>  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+
+-- 
+Regards,
+Igor.
