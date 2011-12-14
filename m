@@ -1,172 +1,145 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v3] ARM: OMAP3LOGIC: Adding DSS support
-Date: Wed, 14 Dec 2011 16:26:23 +0200
-Message-ID: <4EE8B20F.5070907@compulab.co.il>
-References: <1323865510-6273-1-git-send-email-alexg@meprolight.com>
+Subject: Re: [PATCH v2] OMAP3: RX-51: complete tsc2005 controller support
+Date: Wed, 14 Dec 2011 16:32:17 +0200
+Message-ID: <4EE8B371.6070108@compulab.co.il>
+References: <1323867676-15956-1-git-send-email-vladimir.zapolskiy@nokia.com> <1323867775-16031-1-git-send-email-vladimir.zapolskiy@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:58445
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:58476
 	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753694Ab1LNO0l (ORCPT
+	by vger.kernel.org with ESMTP id S1750978Ab1LNOc1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:26:41 -0500
-In-Reply-To: <1323865510-6273-1-git-send-email-alexg@meprolight.com>
+	Wed, 14 Dec 2011 09:32:27 -0500
+In-Reply-To: <1323867775-16031-1-git-send-email-vladimir.zapolskiy@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alex <alexg@meprolight.com>
-Cc: Tony Lindgren <tony@atomide.com>, tim.nordell@logicpd.com, baruch@tkos.co.il, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vladimir Zapolskiy <vladimir.zapolskiy@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Hi Alex,
+Hi Vladimir,
 
-On 12/14/11 14:25, Alex wrote:
-> This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
-> TV-out are supported.
+On 12/14/11 15:02, Vladimir Zapolskiy wrote:
+> This change adds initialization of TSC2005 touchscreen controller found on Nokia
+> RX-51 board.
 > 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+> The change is taken from MeeGo kernel adaptation for Nokia N900, it repeats the
+> work of Aaro Koskinen and Mika Laitio, the original discussion is at
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg26749.html
+> 
+> Signed-off-by: Vladimir Zapolskiy <vladimir.zapolskiy@nokia.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 > ---
->  arch/arm/mach-omap2/board-omap3logic.c |   96 ++++++++++++++++++++++++++++++++
->  1 files changed, 96 insertions(+), 0 deletions(-)
+> Changes from v1 to v2:
+> * whitespace fix
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
-> index 7c0f193..b44c485 100644
-> --- a/arch/arm/mach-omap2/board-omap3logic.c
-> +++ b/arch/arm/mach-omap2/board-omap3logic.c
-> @@ -7,6 +7,9 @@
->   * Copyright (C) 2010 Logic Product Development, Inc.
->   * Peter Barada <peter.barada@logicpd.com>
->   *
-> + * Copyright (C) 2011 Meprolight, Ltd.
-> + * Alex Gershgorin <alexg@meprolight.com>
-> + *
->   * Modified from Beagle, EVM, and RX51
->   *
->   * This program is free software; you can redistribute it and/or modify
-> @@ -45,6 +48,9 @@
->  #include <plat/gpmc.h>
->  #include <plat/sdrc.h>
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |   45 ++++++++++++++++++++++++-
+>  1 files changed, 43 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index ba1aa07..f30484e 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/input/matrix_keypad.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/wl12xx.h>
+> +#include <linux/spi/tsc2005.h>
+>  #include <linux/i2c.h>
+>  #include <linux/i2c/twl.h>
+>  #include <linux/clk.h>
+> @@ -56,6 +57,9 @@
+>  #define RX51_FMTX_IRQ			53
+>  #define RX51_LP5523_CHIP_EN_GPIO	41
 >  
-> +#include <video/omapdss.h>
-> +#include <video/omap-panel-generic-dpi.h>
+> +#define RX51_TSC2005_RESET_GPIO		104
+> +#define RX51_TSC2005_IRQ_GPIO		100
 > +
->  #define OMAP3LOGIC_SMSC911X_CS			1
+>  #define RX51_USB_TRANSCEIVER_RST_GPIO	67
 >  
->  #define OMAP3530_LV_SOM_MMC_GPIO_CD		110
-> @@ -95,6 +101,13 @@ static struct twl4030_platform_data omap3logic_twldata = {
+>  /* list all spi devices here */
+> @@ -146,6 +150,17 @@ static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
+>  	.single_channel	= 1,
+>  };
 >  
->  static int __init omap3logic_i2c_init(void)
->  {
-> +	omap3_pmic_get_config(&omap3logic_twldata, TWL_COMMON_PDATA_USB,
-> +			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
-> +
-> +	omap3logic_twldata.vdac->constraints.apply_uV = true;
-> +	omap3logic_twldata.vpll2->constraints.apply_uV = true;
-> +	omap3logic_twldata.vpll2->constraints.name = "VDSI";
-> +
->  	omap3_pmic_init("twl4030", &omap3logic_twldata);
->  	return 0;
->  }
-> @@ -182,6 +195,88 @@ static inline void __init board_smsc911x_init(void)
->  	gpmc_smsc911x_init(&board_smsc911x_data);
->  }
->  
-> +#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-> +
-> +#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO	154
-> +#define OMAP3_TORPEDO_LCD_ENABLE_GPIO		155
-> +#define OMAP3_TORPEDO_LCD_PWM_GPIO		56
-> +
-> +static struct gpio omap3logic_dss_gpios[] __initdata = {
-> +	{OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
-> +	{OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
-> +	{OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
+> +static struct tsc2005_platform_data tsc2005_pdata = {
+> +	.ts_pressure_max	= 2048,
+> +	.ts_pressure_fudge	= 2,
+> +	.ts_x_max		= 4096,
+> +	.ts_x_fudge		= 4,
+> +	.ts_y_max		= 4096,
+> +	.ts_y_fudge		= 4,
+> +	.ts_x_plate_ohm		= 320,
+> +	.esd_timeout_ms		= 8000,
 > +};
 > +
-> +static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
+>  static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+>  	[RX51_SPI_WL1251] = {
+>  		.modalias		= "wl1251",
+> @@ -167,10 +182,10 @@ static struct spi_board_info rx51_peripherals_spi_board_info[] __initdata = {
+>  		.modalias		= "tsc2005",
+>  		.bus_num		= 1,
+>  		.chip_select		= 0,
+> -		/* .irq = OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),*/
+> +		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
+>  		.max_speed_hz		= 6000000,
+>  		.controller_data	= &tsc2005_mcspi_config,
+> -		/* .platform_data = &tsc2005_config,*/
+> +		.platform_data		= &tsc2005_pdata,
+>  	},
+>  };
+>  
+> @@ -1086,6 +1101,31 @@ error:
+>  	 */
+>  }
+>  
+> +static void rx51_tsc2005_set_reset(bool enable)
 > +{
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 1);
-> +
-> +	return 0;
+> +	gpio_set_value(RX51_TSC2005_RESET_GPIO, enable);
 > +}
 > +
-> +static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
-> +{
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-> +}
-> +
-> +static struct panel_generic_dpi_data lcd_panel = {
-> +	.name			= "sharp_lq",
-> +	.platform_enable	= omap3logic_enable_lcd,
-> +	.platform_disable	= omap3logic_disable_lcd,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_lcd_device = {
-> +	.name			= "lcd",
-> +	.driver_name		= "generic_dpi_panel",
-> +	.type			= OMAP_DISPLAY_TYPE_DPI,
-> +	.data			= &lcd_panel,
-> +	.phy.dpi.data_lines	= 16,
-> +};
-> +
-> +static struct omap_dss_device omap3logic_tv_device = {
-> +	.name			= "tv",
-> +	.driver_name		= "venc",
-> +	.type			= OMAP_DISPLAY_TYPE_VENC,
-> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-> +};
-> +
-> +static struct omap_dss_device *omap3logic_dss_devices[] = {
-> +	&omap3logic_lcd_device,
-> +	&omap3logic_tv_device,
-> +};
-> +
-> +static struct omap_dss_board_info omap3logic_dss_data = {
-> +	.num_devices		= ARRAY_SIZE(omap3logic_dss_devices),
-> +	.devices		= omap3logic_dss_devices,
-> +	.default_device		= &omap3logic_lcd_device,
-> +};
-> +
-> +static void __init omap3logic_display_init(void)
+> +static void __init rx51_init_tsc2005(void)
 > +{
 > +	int r;
 > +
-> +	r = gpio_request_array(omap3logic_dss_gpios,
-> +			       ARRAY_SIZE(omap3logic_dss_gpios));
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
-
-You use pr_err() below, why not here?
-
-> +		return;
-> +	}
+> +	r = gpio_request(RX51_TSC2005_IRQ_GPIO, "tsc2005 IRQ");
+> +	if (r >= 0)
+> +		gpio_direction_input(RX51_TSC2005_IRQ_GPIO);
+> +	else
+> +		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 IRQ");
 > +
-> +	r = omap_display_init(&omap3logic_dss_data);
-> +	if (r) {
-> +		pr_err("OMAP3LOGIC: failed to register DSS device\n");
-> +		gpio_free_array(omap3logic_dss_gpios,
-> +				ARRAY_SIZE(omap3logic_dss_gpios));
+> +	r = gpio_request(RX51_TSC2005_RESET_GPIO, "tsc2005 reset");
+> +	if (r >= 0) {
+> +		gpio_direction_output(RX51_TSC2005_RESET_GPIO, 1);
+> +		tsc2005_pdata.set_reset = rx51_tsc2005_set_reset;
+> +	} else {
+> +		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 reset");
+> +		tsc2005_pdata.esd_timeout_ms = 0;
 > +	}
+
+I would suggest using gpio_request_array() here,
+or if those pins are independent from each other, for some reason,
+then gpio_request_one() would do.
+
+Also, don't you need to setup the mux for these GPIOs?
+Or is it done in some other place (like bootloader)?
+
 > +}
-> +#else
-> +static void __init omap3logic_display_init(void) { }
-> +#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
 > +
->  #ifdef CONFIG_OMAP_MUX
->  static struct omap_board_mux board_mux[] __initdata = {
->  	{ .reg_offset = OMAP_MUX_TERMINATOR },
-> @@ -197,6 +292,7 @@ static void __init omap3logic_init(void)
->  	omap_sdrc_init(NULL, NULL);
->  	board_mmc_init();
->  	board_smsc911x_init();
-> +	omap3logic_display_init();
->  
->  	/* Ensure SDRC pins are mux'd for self-refresh */
->  	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+>  void __init rx51_peripherals_init(void)
+>  {
+>  	rx51_i2c_init();
+> @@ -1094,6 +1134,7 @@ void __init rx51_peripherals_init(void)
+>  	board_smc91x_init();
+>  	rx51_add_gpio_keys();
+>  	rx51_init_wl1251();
+> +	rx51_init_tsc2005();
+>  	rx51_init_si4713();
+>  	spi_register_board_info(rx51_peripherals_spi_board_info,
+>  				ARRAY_SIZE(rx51_peripherals_spi_board_info));
 
 -- 
 Regards,
