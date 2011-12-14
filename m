@@ -1,57 +1,35 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 09/10] ASoC: omap-abe-twl6040: Add missing audio route information
-Date: Wed, 14 Dec 2011 11:47:02 +0200
-Message-ID: <1323856022-24053-10-git-send-email-peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 04/10] include: platform_data: Platform data header for
+ OMAP4 ASoC audio
+Date: Wed, 14 Dec 2011 17:57:47 +0800
+Message-ID: <20111214095745.GD3072@opensource.wolfsonmicro.com>
 References: <1323856022-24053-1-git-send-email-peter.ujfalusi@ti.com>
+ <1323856022-24053-5-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53538 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755668Ab1LNJtW (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:43065 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753673Ab1LNJ5w (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Dec 2011 04:49:22 -0500
-Received: by mail-lpp01m010-f47.google.com with SMTP id i14so303773lam.34
-        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 01:49:21 -0800 (PST)
-In-Reply-To: <1323856022-24053-1-git-send-email-peter.ujfalusi@ti.com>
+	Wed, 14 Dec 2011 04:57:52 -0500
+Content-Disposition: inline
+In-Reply-To: <1323856022-24053-5-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-AUXL/R: connected to FM transmitter on SDP4430
-Vibra: connected to vibrator drivers (only SDP4430)
+On Wed, Dec 14, 2011 at 11:46:57AM +0200, Peter Ujfalusi wrote:
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/omap-abe-twl6040.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+> +enum board_type {
+> +	OMAP_ABE_TWL6040_SDP4430,
+> +	OMAP_ABE_TWL6040_PANDA,
+> +	OMAP_ABE_TWL6040_PANDA_ES,
+> +};
 
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 25a75f3..05c6474 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -121,6 +121,7 @@ static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
- 	SND_SOC_DAPM_INPUT("FM Stereo In"),
- 	SND_SOC_DAPM_LINE("FM Stereo Out", NULL),
- 	SND_SOC_DAPM_LINE("Line In", NULL),
-+	SND_SOC_DAPM_SPK("Vibrators", NULL),
- };
- 
- static const struct snd_soc_dapm_route sdp4430_audio_map[] = {
-@@ -147,6 +148,14 @@ static const struct snd_soc_dapm_route sdp4430_audio_map[] = {
- 	/* Aux/FM Stereo In: AFML, AFMR */
- 	{"AFML", NULL, "FM Stereo In"},
- 	{"AFMR", NULL, "FM Stereo In"},
-+
-+	/* AUXL/R output to FM transmitter */
-+	{"FM Stereo Out", NULL, "AUXL"},
-+	{"FM Stereo Out", NULL, "AUXR"},
-+
-+	/* Vibra outputs */
-+	{"Vibrators", NULL, "VIBRAL"},
-+	{"Vibrators", NULL, "VIBRAR"},
- };
- 
- static const struct snd_soc_dapm_route panda_audio_map[] = {
--- 
-1.7.8
-
+It seems like it might better in the long run to make this feature based
+rather than enumerating the individual boards - that means that if
+boards mix and match the features or add features on the side of
+additional designs (eg, external amplifiers that need power control)
+it's easier to scale the options.
