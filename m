@@ -1,295 +1,74 @@
-From: martin@neutronstar.dyndns.org
-Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based
- camera board.
-Date: Wed, 14 Dec 2011 19:14:01 +0100
-Message-ID: <1323886442.815408.21905@localhost>
-References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org>
- <4EE86CF7.1010002@compulab.co.il>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v4 REPOST 3/5] omap4: Unconditionally require l2x0 L2
+ cache controller support
+Date: Wed, 14 Dec 2011 10:14:25 -0800
+Message-ID: <20111214181425.GB32251@atomide.com>
+References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
+ <1323862781-3465-4-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-sh-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4EE86CF7.1010002@compulab.co.il>
-Sender: linux-media-owner@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1323862781-3465-4-git-send-email-dave.martin@linaro.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, Anton Vorontsov <avorontsov@mvista.com>, Barry Song <baohua.song@csr.com>, Catalin Marinas <catalin.marinas@arm.com>, Colin Cross <ccross@google.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Mundt <lethal@linux-sh.org>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Will Deacon <will.deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 14, 2011 at 11:31:35AM +0200, Igor Grinberg wrote:
-> Hi Martin,
-> 
-> On 12/14/11 03:25, Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
-> > 
-> > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > ---
-> >  arch/arm/mach-omap2/Makefile                |    3 +-
-> >  arch/arm/mach-omap2/board-omap3evm-camera.c |  155 +++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/board-omap3evm.c        |    4 +
-> >  3 files changed, 161 insertions(+), 1 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > 
-> > Changes in V3
-> >  * Added missing copyright and attribution.
-> >  * switched to gpio_request_array for gpio init.
-> >  * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
-> > 
-> > Changes in V2:
-> >  * ported to current mainline
-> >  * Style fixes
-> >  * Fix error handling
-> > 
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index b009f17..6045789 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -196,7 +196,8 @@ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
-> >  obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
-> >  obj-$(CONFIG_MACH_ENCORE)		+= board-omap3encore.o
-> >  obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
-> > -obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
-> > +obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
-> > +					   board-omap3evm-camera.o
-> >  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
-> >  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
-> >  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > new file mode 100644
-> > index 0000000..bffd5b8
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > @@ -0,0 +1,155 @@
-> > +/*
-> > + * Copyright (C) 2011 Texas Instruments Inc
-> > + * Copyright (C) 2010-2011 Lund Engineering
-> > + * Contact: Gil Lund <gwlund@lundeng.com>
-> > + * Authors:
-> > + *    Vaibhav Hiremath <hvaibhav@ti.com>
-> > + *    Martin Hostettler <martin@neutronstar.dyndns.org>
-> > + *
-> > + * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C Bus 2
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#include <linux/i2c.h>
-> > +#include <linux/init.h>
-> > +#include <linux/platform_device.h>
-> > +
-> > +#include <linux/gpio.h>
-> > +#include <plat/mux.h>
-> > +#include "mux.h"
-> > +
-> > +#include "../../../drivers/media/video/omap3isp/isp.h"
-> 
-> Laurent,
-> In one of the previous reviews, you stated:
-> "I'll probably split it and move the part required by board files to 
-> include/media/omap3isp.h".
-> Is there any progress on that?
-> 
-> > +#include "media/mt9m032.h"
-> > +
-> > +#include "devices.h"
-> > +
-> > +#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
-> > +#define GPIO98_VID_DEC_RES	98
-> > +#define nCAM_VD_SEL		157
-> > +
-> > +#define MT9M032_I2C_BUS_NUM	2
-> > +
-> > +
-> > +enum omap3evmdc_mux {
-> > +	MUX_TVP5146,
-> > +	MUX_CAMERA_SENSOR,
-> > +	MUX_EXP_CAMERA_SENSOR,
-> > +};
-> > +
-> > +/**
-> > + * omap3evm_set_mux - Sets mux to enable signal routing to
-> > + *                           different peripherals present on new EVM board
-> > + * @mux_id: enum, mux id to enable
-> > + *
-> > + * Returns 0 for success or a negative error code
-> > + */
-> > +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
-> > +{
-> > +	/* Set GPIO6 = 1 */
-> > +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
-> > +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +
-> > +	switch (mux_id) {
-> > +	case MUX_TVP5146:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +		gpio_set_value(nCAM_VD_SEL, 1);
-> > +		break;
-> > +
-> > +	case MUX_CAMERA_SENSOR:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +		gpio_set_value(nCAM_VD_SEL, 0);
-> > +		break;
-> > +
-> > +	case MUX_EXP_CAMERA_SENSOR:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
-> > +		break;
-> > +
-> > +	default:
-> > +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> 
-> I don't really care about that, but I don't see any mux
-> being set in the above function so the name and comments
-> are misleading.
+* Dave Martin <dave.martin@linaro.org> [111214 03:08]:
+> If running in the Normal World on a TrustZone-enabled SoC, Linux
+> does not have complete control over the L2 cache controller
+> configuration.  The kernel cannot work reliably on such platforms
+> without the l2x0 cache support code built in.
 
-There's are video muxes on this board that's controlled by various
-gpios. It's not a mux in the omap chip if you've expected to see that.
+There are HS and GP omaps (High Security and General Purpose).
+GP omaps do have full control of the L2. Also HS omaps most likely
+provide control over enabling and disabling L2 depending how the
+secure code is implemented.
 
-As this is an evaluation board it has a bunch of video connectors that 
-the user can choose from for different input devices.
+BTW, the real problem is that because the secure code is implemented
+in various ways, we don't really have any handling for it in Linux.
 
+The SMI instruction numbers don't seem to be standardized at all,
+and can mean different things on different boards, even different
+board versions :(
 
+Sounds like devicetree is the only safe way to deal with the L2
+control options.
+
+Regards,
+
+Tony
+
+ 
+> This patch unconditionally enables l2x0 support for the OMAP4 SoCs.
 > 
-> > +
-> > +static struct mt9m032_platform_data mt9m032_platform_data = {
-> > +	.ext_clock = 13500000,
-> > +	.pll_pre_div = 6,
-> > +	.pll_mul = 120,
-> > +	.pll_out_div = 5,
-> > +	.invert_pixclock = 1,
-> > +};
-> > +
-> > +static struct i2c_board_info camera_i2c_devices[] = {
-> > +	{
-> > +		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
-> > +		.platform_data = &mt9m032_platform_data,
-> > +	},
-> > +};
-> > +
-> > +static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
-> > +	{
-> > +		.board_info = &camera_i2c_devices[0],
-> > +		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
-> > +	},
-> > +	{},
-> > +};
-> > +
-> > +static struct isp_v4l2_subdevs_group camera_subdevs[] = {
-> > +	{
-> > +		.subdevs = camera_i2c_subdevs,
-> > +		.interface = ISP_INTERFACE_PARALLEL,
-> > +		.bus = {
-> > +			.parallel = {
-> > +				.data_lane_shift = 1,
-> > +				.clk_pol = 0,
-> > +				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-> > +			}
-> > +		},
-> > +	},
-> > +	{},
-> > +};
-> > +
-> > +static struct isp_platform_data isp_platform_data = {
-> > +	.subdevs = camera_subdevs,
-> > +};
-> > +
-> > +
-> > +static struct gpio setup_gpios[] = {
-> > +	{ nCAM_VD_SEL,           GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL" },
-> > +	{ EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW,  "T2_GPIO2" },
-> > +	{ EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW, "nCAM_VD_EN" },
-> > +};
-> > +
-> > +
-> > +int __init omap3_evm_camera_init(void)
-> > +{
-> > +	int ret = -EINVAL;
+> Thanks to Rob Herring for this suggestion. [1]
 > 
-> No need to initialize the variable, as it is done three line below.
-
-Yes, i'll fix that.
-
+> Signed-off-by: Dave Martin <dave.martin@linaro.org>
 > 
-> > +
-> > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-> > +	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
-> > +	if (ret < 0) {
-> > +		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
-> > +		return ret;
-> > +	}
+> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074495.html
+> ---
+>  arch/arm/mach-omap2/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> It looks like both above calls (gpio_request and mux_init)
-> can be moved to omap3evm_set_mux() function (or a renamed version of it),
-> so all the GPIO stuff will be close to each other instead of requesting
-> in one place and playing with values in another...
-
-I'd like to keep the one time setup and the theoretically run time switchable
-parts seperate. It doesn't complicate the code and if a brave soul wants to
-connect different camera modules and switch between them it's a more reviewable
-patch from here.
-
-> 
-> > +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-> 
-> So the plan is to add support for the 3 types,
-> but hard code to only one?
-> Can't this be runtime detected somehow?
-
-The mux code came from out of tree drivers. I did want to keep enough
-information so someone extending this board code for other setups doesn't have a
-hard time. I can't think of an reliable way to runtime detect what video source
-a specific use case would want. Ideally someone who needs one of the other
-video sources should add a more generic solution here. 
-
-> 
-> > +	ret = omap3_init_camera(&isp_platform_data);
-> > +	if (ret < 0) {
-> > +		gpio_free_array(setup_gpios, ARRAY_SIZE(setup_gpios));
-> > +		return ret;
-> > +	}
-> > +	return 0;
-> > +}
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> > index ec00b2e..1b50539 100644
-> > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > @@ -617,6 +617,8 @@ static struct gpio omap3_evm_ehci_gpios[] __initdata = {
-> >  	{ OMAP3_EVM_EHCI_SELECT, GPIOF_OUT_INIT_LOW,   "select EHCI port" },
-> >  };
-> >  
-> > +int omap3_evm_camera_init(void);
-> > +
-> >  static void __init omap3_evm_init(void)
-> >  {
-> >  	omap3_evm_get_revision();
-> > @@ -672,6 +674,8 @@ static void __init omap3_evm_init(void)
-> >  		pr_err("error setting wl12xx data\n");
-> >  	platform_device_register(&omap3evm_wlan_regulator);
-> >  #endif
-> > +
-> > +	omap3_evm_camera_init();
-> >  }
-> >  
-> >  MACHINE_START(OMAP3EVM, "OMAP3 EVM")
-> 
-
- - Martin
-
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index bb1b670..94e568a 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -41,11 +41,11 @@ config ARCH_OMAP4
+>  	bool "TI OMAP4"
+>  	default y
+>  	depends on ARCH_OMAP2PLUS
+> +	select CACHE_L2X0
+>  	select CPU_V7
+>  	select ARM_GIC
+>  	select HAVE_SMP
+>  	select LOCAL_TIMERS if SMP
+> -	select MIGHT_HAVE_CACHE_L2X0
+>  	select PL310_ERRATA_588369
+>  	select PL310_ERRATA_727915
+>  	select ARM_ERRATA_720789
 > -- 
-> Regards,
-> Igor.
+> 1.7.4.1
+> 
