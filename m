@@ -1,107 +1,87 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] SoC changes for omap4470, ti814x, am33xx for v3.3
- merge window
-Date: Wed, 14 Dec 2011 11:48:43 -0800
-Message-ID: <20111214194843.GL32251@atomide.com>
-References: <20111214193547.GI32251@atomide.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to postcore
+Date: Wed, 14 Dec 2011 21:07:19 +0100
+Message-ID: <201112142107.20055.jkrzyszt@tis.icnet.pl>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl> <201112141410.53522.jkrzyszt@tis.icnet.pl> <20111214182149.GF32251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60974 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122Ab1LNTsr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 14:48:47 -0500
-Content-Disposition: inline
-In-Reply-To: <20111214193547.GI32251@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20111214182149.GF32251@atomide.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [111214 11:04]:
-> Hi Arnd & Olof,
-> 
-> Please pull support for new omap variants from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
+(adding Mark Brown and Liam Girdwood - regulator experts - to Cc:)
 
-Sorry the link above should be:
+On Wednesday 14 of December 2011 at 19:21:49, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111214 04:40]:
+> > On Tuesday 13 of December 2011 at 00:55:44, Tony Lindgren wrote:
+> > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111212 15:13]:
+> > > > On Tuesday 13 of December 2011 at 00:15:20, Tony Lindgren wrote:
+> > > > > 
+> > > > > Might be worth checking if some board specific __initcall helps here
+> > > > > too?
+> > > > 
+> > > > If I only knew how I could insert a board specific __initcall between 
+> > > > two points from where the generic-gpio first, then the 8250 driver, are 
+> > > > called.
+> > > > 
+> > > > Any hints?
+> > > 
+> > > Hmm, can't you do all that in the order you want in
+> > > ams_delta_modem_init()?  Or make that into a late_initcall so
+> > > you have generic-gpio available?
+> > > 
+> > > It seems that the pieces of code you're talking about don't need
+> > > to be initialized early, just needs to be done in the right
+> > > order to get things working.
+> > 
+> > Hi,
+> > I'm almost done with moving registration of all latch dependent devices 
+> > down to a late_initcall hook, however while working on this, I've found 
+> > still another arrangement, yet better in my opinion:
+> > 1) generic-gpio driver registration moved from device_initcall up to 
+> >    subsys_initcall,
+> > 2) latch dependent device registration left at arch_initcall, as it is 
+> >    now,
+> > 3) a temporary hack, removed with the last patch in the series, that 
+> >    requests GPIO pins on behalf of device drivers before those are 
+> >    updated, placed between subsys_initcall and device_initcall, i.e., at 
+> >    fs_initcall or rootfs_initcall; both look ugly, but this is only for 
+> >    a while, in order to keep things working while in the transition,
+> > 4) the modem init hook, once updated with extra GPIO setup that must be 
+> >    done on behalf of the 8250 driver, which is not prepared for 
+> >    accepting any extra init hooks passed with the device platform data, 
+> >    moved down to late_initcall, as suggested,
+> > 5) once all drivers are updated, the hack is removed, and an 
+> >    initialization of unused pins added to that late_initcall modem hook, 
+> >    perhaps renamed in order to not suggest it is still modem only 
+> >    related.
+> > 
+> > What do you think?
+> 
+> Sounds better for sure than what we currently have :)
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap soc
+Hmm, better doesn't necessarily mean good enough...
 
-As below in the pull request.
+I forgot about the sound device, which shares its latch based GPIO pins 
+with the modem, so should be registered after the modem.
 
-Regards,
+To make things still more complicated, one of those GPIO pins provides 
+power to both devices, so a still better solution I'd like to introduce 
+would be a GPIO controlled regulator device which feeds both the modem 
+and the sound card with power.
 
-Tony
+I've had a look at both generic regulator drivers, fixed.c and gpio-
+regulator.c, both controlling devices over GPIO pins, and found those 
+drivers registered at subsys_initcall level, calling gpio_request*() at 
+probe time. Then again, we would need that base_mmio_gpio driver already 
+registered before subsys_initcall.
 
- 
-> This adds minimal support for omap4470, am33xx and ti814x.
-> Note that these changes do not contain mux/clock/hwmod changes
-> so only minimal boot support is added.
-> 
-> Also, these do not have a dependency after all to the
-> previously pulled omap4 branch unlike what I mentioned earlier
-> 
-> The dependency is just Russell's devel-stable at commit
-> deee6d5359969a0ce4e2760cfd7b9f379bd5698a as most omap
-> patches have.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> The following changes since commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a:
->   Tony Lindgren (1):
->         ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM restart changes
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap soc
-> 
-> Afzal Mohammed (2):
->       ARM: OMAP: am33xx: Update common omap platform files
->       ARM: OMAP: am33xx: Update common OMAP machine specific sources
-> 
-> David Anders (1):
->       ARM: OMAP: id: add chip id recognition for omap4430 es2.3
-> 
-> Hemant Pedanekar (2):
->       ARM: OMAP: TI81XX: Prepare for addition of TI814X support
->       ARM: OMAP: TI814X: Add cpu type macros and detection support
-> 
-> Leonid Iziumtsev (1):
->       ARM: OMAP: ID: Chip detection for OMAP4470
-> 
->  arch/arm/mach-omap2/Kconfig                        |   11 +++-
->  arch/arm/mach-omap2/board-ti8168evm.c              |   11 +---
->  arch/arm/mach-omap2/clock.c                        |    2 +-
->  arch/arm/mach-omap2/clock.h                        |    2 +-
->  arch/arm/mach-omap2/clock3xxx_data.c               |    6 ++-
->  arch/arm/mach-omap2/common.c                       |   48 +++++++++++++----
->  arch/arm/mach-omap2/common.h                       |   23 ++++++--
->  arch/arm/mach-omap2/control.h                      |    8 ++--
->  arch/arm/mach-omap2/id.c                           |   52 ++++++++++++++++---
->  arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 ++--
->  arch/arm/mach-omap2/io.c                           |   38 +++++++++++---
->  arch/arm/mach-omap2/irq.c                          |    2 +-
->  arch/arm/mach-omap2/opp2xxx.h                      |    2 +-
->  arch/arm/mach-omap2/serial.c                       |    6 +-
->  arch/arm/plat-omap/Makefile                        |    1 -
->  .../plat-omap/include/plat/{ti816x.h => am33xx.h}  |   20 +++----
->  arch/arm/plat-omap/include/plat/clock.h            |    4 +-
->  arch/arm/plat-omap/include/plat/cpu.h              |   56 ++++++++++++++++++++
->  arch/arm/plat-omap/include/plat/hardware.h         |    3 +-
->  arch/arm/plat-omap/include/plat/io.h               |   12 ++++
->  arch/arm/plat-omap/include/plat/omap34xx.h         |    2 +
->  arch/arm/plat-omap/include/plat/serial.h           |   14 +++---
->  .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 +++---
->  arch/arm/plat-omap/include/plat/uncompress.h       |    8 ++--
->  24 files changed, 267 insertions(+), 94 deletions(-)
->  copy arch/arm/plat-omap/include/plat/{ti816x.h => am33xx.h} (53%)
->  rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Any suggestions?
+
+Thanks,
+Janusz
