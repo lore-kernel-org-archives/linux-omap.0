@@ -1,181 +1,79 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
-Date: Wed, 14 Dec 2011 14:18:16 +0100 (CET)
-Message-ID: <alpine.LFD.2.02.1112141007550.3020@ionos>
-References: <1323834838-2206-1-git-send-email-mturquette@linaro.org> <1323834838-2206-4-git-send-email-mturquette@linaro.org>
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH] ARM: OMAP: hsmmc: add max_freq field
+Date: Wed, 14 Dec 2011 14:22:07 +0100
+Message-ID: <1323868927-3738-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:32946 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753734Ab1LNNSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 08:18:22 -0500
-In-Reply-To: <1323834838-2206-4-git-send-email-mturquette@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Daniel Mack <zonque@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@linaro.org>
-Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.kerr@canonical.com, paul@pwsan.com, broonie@opensource.wolfsonmicro.com, linus.walleij@stericsson.com, amit.kucheria@linaro.org, dsaxena@linaro.org, patches@linaro.org, linaro-dev@lists.linaro.org, grant.likely@secretlab.ca, sboyd@quicinc.com, shawn.guo@freescale.com, skannan@quicinc.com, magnus.damm@gmail.com, arnd.bergmann@linaro.org, eric.miao@linaro.org, richard.zhao@linaro.org, mturquette@ti.com, andrew@lunn.ch
 
-On Tue, 13 Dec 2011, Mike Turquette wrote:
-> +void __clk_unprepare(struct clk *clk)
-> +{
-> +	if (!clk)
-> +		return;
-> +
-> +	if (WARN_ON(clk->prepare_count == 0))
-> +		return;
-> +
-> +	if (--clk->prepare_count > 0)
-> +		return;
-> +
-> +	WARN_ON(clk->enable_count > 0);
+External circuitry like level shifters may limit the maximum operation
+speed of the hsmmc controller. Add a field to struct omap2_hsmmc_info
+so boards can adjust the setting on demand.
 
-So this leaves the clock enable count set. I'm a bit wary about
-that. Shouldn't it either return (including bumping the prepare_count
-again) or call clk_disable() ?
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/hsmmc.c   |    1 +
+ arch/arm/mach-omap2/hsmmc.h   |    2 ++
+ drivers/mmc/host/omap_hsmmc.c |    8 ++++++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-> +/**
-> + * clk_get_parent - return the parent of a clk
-> + * @clk: the clk whose parent gets returned
-> + *
-> + * Simply returns clk->parent.  It is up to the caller to hold the
-> + * prepare_lock, if desired.  Returns NULL if clk is NULL.
-
-Holding the prepare lock in the caller will deadlock. So it's not a
-real good idea to document it as an option :)
-
-> + */
-> +struct clk *clk_get_parent(struct clk *clk)
-> +{
-> +	struct clk *parent;
-> +
-> +	if (!clk)
-> +		return NULL;
-> +
-> +	mutex_lock(&prepare_lock);
-
-> +/**
-> + * clk_init - initialize the data structures in a struct clk
-> + * @dev: device initializing this clk, placeholder for now
-> + * @clk: clk being initialized
-> + *
-> + * Initializes the lists in struct clk, queries the hardware for the
-> + * parent and rate and sets them both.  Adds the clk to the sysfs tree
-> + * topology.
-> + *
-> + * Caller must populate clk->name and clk->flags before calling
-
-I'm not too happy about this construct. That leaves struct clk and its
-members exposed to the world instead of making it a real opaque
-cookie. I know from my own painful experience, that this will lead to
-random fiddling in that data structure in drivers and arch code just
-because the core code has a shortcoming.
-
-Why can't we make struct clk a real cookie and confine the data
-structure to the core code ?
-
-That would change the init call to something like:
-
-struct clk *clk_init(struct device *dev, const struct clk_hw *hw,
-                     struct clk *parent)
-
-And have:
-struct clk_hw {
-       struct clk_hw_ops *ops;
-       const char 	 *name;
-       unsigned long	 flags;
-};       
-
-Implementers can do:
-struct my_clk_hw {
-       struct clk_hw	hw;
-       mydata;
-};
-
-And then change the clk ops callbacks to take struct clk_hw * as an
-argument.
-
-So the core code can allocate the clk data structure and you return a
-real opaque cookie. You do the same thing for the basic gated clock in
-one of the next patches, so doing it for struct clk itself is just
-consequent.
-
-> + * clk_init.  A key assumption in the call to .get_parent is that clks
-> + * are being initialized in-order.
-
-We should not require that, see below.
-
-> + */
-
-> +void clk_init(struct device *dev, struct clk *clk)
-> +{
-> +	if (!clk)
-> +		return;
-> +
-> +	INIT_HLIST_HEAD(&clk->children);
-> +	INIT_HLIST_NODE(&clk->child_node);
-> +
-> +	mutex_lock(&prepare_lock);
-> +
-> +	/*
-> +	 * .get_parent is mandatory for populating .parent for clks with
-> +	 * multiple possible parents.  For clks with a fixed parent
-> +	 * .get_parent is not mandatory and .parent can be statically
-> +	 * initialized
-> +	 */
-> +	if (clk->ops->get_parent)
-> +		clk->parent = clk->ops->get_parent(clk);
-> +
-> +	/* clks without a parent are considered root clks */
-
-I'd rather prefer that root clocks are explicitely marked with a flag
-instead of relying on clk->parent being NULL.
-
-> +	if (clk->parent)
-> +		hlist_add_head(&clk->child_node,
-> +				&clk->parent->children);
-> +	else
-> +		hlist_add_head(&clk->child_node, &clk_root_list);
-
-You could put clocks which have no parent and are not marked as root
-clock onto a separate list clk_orphaned or such. You might need this
-for handling clocks which are disconnected from any parent runtime as
-well.
-
-And to avoid the whole in-order initialization issue, you could change
-clk_init to:
-
-struct clk *clk_init(struct device *dev, const struct clk_hw *hw,
-                     unsigned long flags, const char *parent_name)
-
-Then you can lookup the requested parent by name. If that fails, you
-put the clock into the orphaned list. When a new clock is initialized,
-then you walk the orphaned list and check whether something is waiting
-for that clock.
-
-To handle multi-parent clocks you need to go one step further and add:
-
-struct clk_hw {
-       struct clk_hw_ops *ops;
-       const char 	 *name;
-       const char	 **possible_parents;
-};
-
-You also require a get_parent_idx() function in clk_hw_ops. So when
-clk_init() is called with parent_name = NULL and get_parent_idx() is
-implemented, then you call it and the clock returns you the index of
-the possible_parents array. If that parent clock is not yet
-registered, you store the requested name and do the lookup when new
-clocks are registered.
-
-That has also the advantage, that you can validate parent settings
-upfront and for setting the parent during runtime, you don't have to
-acquire a pointer to the parent clock. It's enough to call
-clk_set_named_parent().
-
-Thoughts ?
-
-	 tglx
-
-
-
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index f4a1020..4c7bc36 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -298,6 +298,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+ 	mmc->slots[0].caps = c->caps;
+ 	mmc->slots[0].internal_clock = !c->ext_clock;
+ 	mmc->dma_mask = 0xffffffff;
++	mmc->max_freq = c->max_freq;
+ 	if (cpu_is_omap44xx())
+ 		mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
+ 	else
+diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+index f757e78..65a8c12 100644
+--- a/arch/arm/mach-omap2/hsmmc.h
++++ b/arch/arm/mach-omap2/hsmmc.h
+@@ -25,6 +25,8 @@ struct omap2_hsmmc_info {
+ 	char	*name;		/* or NULL for default */
+ 	struct device *dev;	/* returned: pointer to mmc adapter */
+ 	int	ocr_mask;	/* temporary HACK */
++	int	max_freq;	/* maximum clock, if constrained by external
++				 * circuitry, or 0 for default */
+ 	/* Remux (pad configuration) when powering on/off */
+ 	void (*remux)(struct device *dev, int slot, int power_on);
+ 	/* init some special card */
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 101cd31..8215ef9 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	if (mmc_slot(host).vcc_aux_disable_is_sleep)
+ 		mmc_slot(host).no_off = 1;
+ 
+-	mmc->f_min	= OMAP_MMC_MIN_CLOCK;
+-	mmc->f_max	= OMAP_MMC_MAX_CLOCK;
++	mmc->f_min = OMAP_MMC_MIN_CLOCK;
++
++	if (pdata->max_freq > 0)
++		mmc->f_max = pdata->max_freq;
++	else
++		mmc->f_max = OMAP_MMC_MAX_CLOCK;
+ 
+ 	spin_lock_init(&host->irq_lock);
+ 
+-- 
+1.7.7.4
