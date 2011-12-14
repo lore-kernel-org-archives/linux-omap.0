@@ -1,57 +1,224 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH v3 0/4] OMAP serial device tree support
-Date: Wed, 14 Dec 2011 20:11:55 +0530
-Message-ID: <CAAL8m4yA_pdaL6_reEtcvGSZBHw5XdrcVLevTNL2GON09174=w@mail.gmail.com>
-References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: jean.pihet@newoldbits.com
+Subject: [PATCH 4/6] OMAP3: cpuidle: next C-state decision depends on the PM QoS MPU and CORE constraints
+Date: Wed, 14 Dec 2011 15:51:42 +0100
+Message-ID: <1323874304-5001-5-git-send-email-j-pihet@ti.com>
+References: <1323874304-5001-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42231 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754806Ab1LNOmR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 09:42:17 -0500
-In-Reply-To: <1323863746-18145-1-git-send-email-rnayak@ti.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59827 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755078Ab1LNOwP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 09:52:15 -0500
+Received: by faar15 with SMTP id r15so1239524faa.19
+        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 06:52:13 -0800 (PST)
+In-Reply-To: <1323874304-5001-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, tony@atomide.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com
+To: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
 
-Hi Rajendra,
+From: Jean Pihet <j-pihet@ti.com>
 
-On Wed, Dec 14, 2011 at 5:25 PM, Rajendra Nayak <rnayak@ti.com> wrote:
-> v3 is rebased on top of the latest serial runtime
-> patches[1] and boot tested with/without DT on OMAP4
-> SDP and OMAP4 Panda boards.
->
-> Patches can be found here..
-> git://gitorious.org/omap-pm/linux.git for-dt/serial
->
-> I also had to pull in a fix[2] for DT testing (already in linux-omap
-> master) which was missing as the serial runtime branch[1]
-> was based on an older master commit.
->
-> Changes in v3:
-> -1- Rebased on latest serial runtime patches
-> -2- Minor typr fixes
->
-> Changes in v2:
-> -1- Got rid of binding to define which uart is console
-> -2- Added checks to default clock speed to 48Mhz
-> -3- Added compatible for each OMAP family
-> -4- Used of_alias_get_id to populate port.line
->
-> [1] git://gitorious.org/runtime_3-0/runtime_3-0.git for_3_3/lo_rc4_uartruntime
-> [2] http://www.spinics.net/lists/arm-kernel/msg150751.html
->
+The MPU latency figures for cpuidle include the MPU itself and also
+the peripherals needed for the MPU to execute instructions (e.g.
+main memory, caches, IRQ controller, MMU etc). On OMAP3 those
+peripherals belong to the MPU and CORE power domains and so the
+cpuidle C-states are a combination of MPU and CORE states.
 
-I merged this patch series to a tmp_intg branch [1]
-having uart runtime changes and sanity tested on
-3430sdp/zoom3/panda seems fine.
+This patch implements the relation between the cpuidle and per-
+device PM QoS frameworks in the OMAP3 specific idle callbacks.
 
---
-Thanks,
-Govindraj.R
+The chosen C-state shall satisfy the following conditions:
+ . the 'valid' field is enabled,
+ . it satisfies the enable_off_mode flag,
+ . the next state for MPU and CORE power domains is not lower than the
+   next state calculated by the per-device PM QoS.
 
-[1]:
-git://gitorious.org/runtime_3-0/runtime_3-0.git
-for_3_3/tmp_rc4_uart_pm_intg
+Tested on OMAP3 Beagleboard in RET/OFF using wake-up latency constraints
+on MPU, CORE and PER.
+
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   57 ++++++++++++++++++++----------------
+ arch/arm/mach-omap2/pm.h          |   17 ++++++++++-
+ 2 files changed, 47 insertions(+), 27 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 1f71ebb..c67835f 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -40,7 +40,7 @@
+ #ifdef CONFIG_CPU_IDLE
+ 
+ /*
+- * The latencies/thresholds for various C states have
++ * The MPU latencies/thresholds for various C states have
+  * to be configured from the respective board files.
+  * These are some default values (which might not provide
+  * the best power savings) used on boards which do not
+@@ -75,14 +75,14 @@ struct omap3_idle_statedata omap3_idle_data[OMAP3_NUM_STATES];
+ struct powerdomain *mpu_pd, *core_pd, *per_pd, *cam_pd;
+ 
+ static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
+-				struct clockdomain *clkdm)
++			       struct clockdomain *clkdm)
+ {
+ 	clkdm_allow_idle(clkdm);
+ 	return 0;
+ }
+ 
+ static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
+-				struct clockdomain *clkdm)
++			      struct clockdomain *clkdm)
+ {
+ 	clkdm_deny_idle(clkdm);
+ 	return 0;
+@@ -96,10 +96,13 @@ static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
+  *
+  * Called from the CPUidle framework to program the device to the
+  * specified target state selected by the governor.
++ *
++ * Note: this function does not check for any pending activity or dependency
++ * between power domains states, so the caller shall check the parameters
++ * correctness.
+  */
+ static int omap3_enter_idle(struct cpuidle_device *dev,
+-				struct cpuidle_driver *drv,
+-				int index)
++			    struct cpuidle_driver *drv, int index)
+ {
+ 	struct omap3_idle_statedata *cx =
+ 			cpuidle_get_statedata(&dev->states_usage[index]);
+@@ -174,18 +177,23 @@ return_sleep_time:
+  * to the caller. Else, this function searches for a lower c-state which is
+  * still valid (as defined in omap3_power_states[]) and returns its index.
+  *
+- * A state is valid if the 'valid' field is enabled and
+- * if it satisfies the enable_off_mode condition.
++ * A state is valid if:
++ * . the 'valid' field is enabled,
++ * . it satisfies the enable_off_mode flag,
++ * . the next state for MPU and CORE power domains is not lower than the
++ *   state programmed by the per-device PM QoS.
+  */
+ static int next_valid_state(struct cpuidle_device *dev,
+-			struct cpuidle_driver *drv,
+-				int index)
++			    struct cpuidle_driver *drv, int index)
+ {
+ 	struct cpuidle_state_usage *curr_usage = &dev->states_usage[index];
+ 	struct cpuidle_state *curr = &drv->states[index];
+ 	struct omap3_idle_statedata *cx = cpuidle_get_statedata(curr_usage);
+ 	u32 mpu_deepest_state = PWRDM_POWER_RET;
+ 	u32 core_deepest_state = PWRDM_POWER_RET;
++	u32 mpu_pm_qos_next_state = mpu_pd->wkup_lat_next_state;
++	u32 core_pm_qos_next_state = core_pd->wkup_lat_next_state;
++
+ 	int next_index = -1;
+ 
+ 	if (enable_off_mode) {
+@@ -202,7 +210,9 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 	/* Check if current state is valid */
+ 	if ((cx->valid) &&
+ 	    (cx->mpu_state >= mpu_deepest_state) &&
+-	    (cx->core_state >= core_deepest_state)) {
++	    (cx->core_state >= core_deepest_state) &&
++	    (cx->mpu_state >= mpu_pm_qos_next_state) &&
++	    (cx->core_state >= core_pm_qos_next_state)) {
+ 		return index;
+ 	} else {
+ 		int idx = OMAP3_NUM_STATES - 1;
+@@ -227,7 +237,9 @@ static int next_valid_state(struct cpuidle_device *dev,
+ 			cx = cpuidle_get_statedata(&dev->states_usage[idx]);
+ 			if ((cx->valid) &&
+ 			    (cx->mpu_state >= mpu_deepest_state) &&
+-			    (cx->core_state >= core_deepest_state)) {
++			    (cx->core_state >= core_deepest_state) &&
++			    (cx->mpu_state >= mpu_pm_qos_next_state) &&
++			    (cx->core_state >= core_pm_qos_next_state)) {
+ 				next_index = idx;
+ 				break;
+ 			}
+@@ -248,12 +260,15 @@ static int next_valid_state(struct cpuidle_device *dev,
+  * @drv: cpuidle driver
+  * @index: array index of target state to be programmed
+  *
+- * This function checks for any pending activity and then programs
+- * the device to the specified or a safer state.
++ * Called from the CPUidle framework to program the device to the
++ * specified target state selected by the governor.
++ *
++ * This function checks for any pending activity or dependency between
++ * power domains states and then programs the device to the specified
++ * or a safer state.
+  */
+ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+-				struct cpuidle_driver *drv,
+-			       int index)
++			       struct cpuidle_driver *drv, int index)
+ {
+ 	int new_state_idx;
+ 	u32 core_next_state, per_next_state = 0, per_saved_state = 0, cam_state;
+@@ -275,19 +290,13 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 		goto select_state;
+ 	}
+ 
+-	/*
+-	 * FIXME: we currently manage device-specific idle states
+-	 *        for PER and CORE in combination with CPU-specific
+-	 *        idle states.  This is wrong, and device-specific
+-	 *        idle management needs to be separated out into
+-	 *        its own code.
+-	 */
++	new_state_idx = next_valid_state(dev, drv, index);
+ 
+ 	/*
+ 	 * Prevent PER off if CORE is not in retention or off as this
+ 	 * would disable PER wakeups completely.
+ 	 */
+-	cx = cpuidle_get_statedata(&dev->states_usage[index]);
++	cx = cpuidle_get_statedata(&dev->states_usage[new_state_idx]);
+ 	core_next_state = cx->core_state;
+ 	per_next_state = per_saved_state = pwrdm_read_next_pwrst(per_pd);
+ 	if ((per_next_state == PWRDM_POWER_OFF) &&
+@@ -298,8 +307,6 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+ 	if (per_next_state != per_saved_state)
+ 		pwrdm_set_next_pwrst(per_pd, per_next_state);
+ 
+-	new_state_idx = next_valid_state(dev, drv, index);
+-
+ select_state:
+ 	ret = omap3_enter_idle(dev, drv, new_state_idx);
+ 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index b737b11..ab32465 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -44,9 +44,22 @@ static inline int omap4_opp_init(void)
+  * omap3_pm_init_cpuidle
+  */
+ struct cpuidle_params {
+-	u32 exit_latency;	/* exit_latency = sleep + wake-up latencies */
++	/*
++	 * exit_latency = sleep + wake-up latencies of the MPU,
++	 * which include the MPU itself and the peripherals needed
++	 * for the MPU to execute instructions (e.g. main memory,
++	 * caches, IRQ controller, MMU etc). Some of those peripherals
++	 * can belong to other power domains than the MPU subsystem and so
++	 * the corresponding latencies must be included in this figure.
++	 */
++	u32 exit_latency;
++	/*
++	 * target_residency: required amount of time in the C state
++	 * to break even on energy cost
++	 */
+ 	u32 target_residency;
+-	u8 valid;		/* validates the C-state */
++	/* validates the C-state on the given board */
++	u8 valid;
+ };
+ 
+ #if defined(CONFIG_PM) && defined(CONFIG_CPU_IDLE)
+-- 
+1.7.5.4
+
