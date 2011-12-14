@@ -1,52 +1,45 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v5 0/6] PM QoS: implement the OMAP low level constraints management code
-Date: Tue, 13 Dec 2011 15:53:20 -0800
-Message-ID: <87zkewrpu7.fsf@ti.com>
-References: <1323706701-6627-1-git-send-email-j-pihet@ti.com>
+Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
+Date: Tue, 13 Dec 2011 17:06:40 -0800
+Message-ID: <87hb14q7vj.fsf@ti.com>
+References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
+	<1323439361-1647-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47442 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750938Ab1LMXxZ (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:58023 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753655Ab1LNBGn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Dec 2011 18:53:25 -0500
-Received: by mail-qw0-f49.google.com with SMTP id c14so240495qad.1
-        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 15:53:24 -0800 (PST)
-In-Reply-To: <1323706701-6627-1-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Mon, 12 Dec 2011 17:18:15 +0100")
+	Tue, 13 Dec 2011 20:06:43 -0500
+Received: by mail-yx0-f172.google.com with SMTP id m7so263423yen.17
+        for <linux-omap@vger.kernel.org>; Tue, 13 Dec 2011 17:06:43 -0800 (PST)
+In-Reply-To: <1323439361-1647-3-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Fri, 9 Dec 2011 15:02:33 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jean.pihet@newoldbits.com
-Cc: Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>, Paul Walmsley <paul@pwsan.com>, magnus.damm@gmail.com, Todd Poynor <toddpoynor@google.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Jean Pihet <j-pihet@ti.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 
-Hi Jean,
+Benoit Cousson <b-cousson@ti.com> writes:
 
-jean.pihet@newoldbits.com writes:
-
-> From: Jean Pihet <j-pihet@ti.com>
+> Add initial DT support to retrieve the frequency using a
+> DT attribute instead of the pdata pointer if of_node exist.
 >
-> . Implement the devices wake-up latency constraints using the global
->   device PM QoS notification handler which applies the constraints to the
->   underlying layer
-> . Implement the low level code which controls the power domains next power
->   states, through the hwmod and pwrdm layers
-> . Add cpuidle and power domains wake-up latency figures for OMAP3, cf. 
->   comments in the code and [1] for the details on where the numbers
->   are magically coming from
-> . Implement the relation between the cpuidle and per-device PM QoS frameworks
->   in the OMAP3 specific idle callbacks.
->   The chosen C-state shall satisfy the following conditions:
->    . the 'valid' field is enabled,
->    . it satisfies the enable_off_mode flag,
->    . the next state for MPU and CORE power domains is not lower than the
->      state programmed by the per-device PM QoS.
+> Add documentation for omap i2c controller binding.
+>
+> Based on original patches from Manju and Grant.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Ben Dooks <ben-linux@fluff.org>
 
-I had a couple minor comments on this version, but after that, feel free
-to add:
+This seems indepenent from the rest of the series, and I can queue up
+for merge via the I2C tree.
 
-Reviewed-by: Kevin Hilman <khilman@ti.com>
+Benoit, please confirm that we shouldn't have any problems if this patch
+goes independently.
 
-after that, this series will go upstream through Paul.
+Grant/Rob, with your ack on the bindings, I can queue this up for the
+I2C maintainers along with some other OMAP I2C changes for v3.3.
 
 Kevin
