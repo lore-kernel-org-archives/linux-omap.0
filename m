@@ -1,85 +1,162 @@
-From: Alex Gershgorin <alexg@meprolight.com>
-Subject: RE: [PATCH v2] ARM: OMAP3LOGIC: Adding DSS support
-Date: Wed, 14 Dec 2011 14:08:21 +0200
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C8966B269@MEP-EXCH.meprolight.com>
-References: <1323851947.1873.95.camel@deskari>
+From: Alex <alexg@meprolight.com>
+Subject: [PATCH v3] ARM: OMAP3LOGIC: Adding DSS support
+Date: Wed, 14 Dec 2011 14:25:10 +0200
+Message-ID: <1323865510-6273-1-git-send-email-alexg@meprolight.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:54370 "EHLO meprolight.com"
+Received: from ftp.meprolight.com ([194.90.149.17]:36422 "EHLO meprolight.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754615Ab1LNMHy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 07:07:54 -0500
-In-Reply-To: <1323851947.1873.95.camel@deskari>
-Content-Language: en-US
+	id S1755219Ab1LNMa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Dec 2011 07:30:26 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Tomi Valkeinen' <tomi.valkeinen@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tim.nordell@logicpd.com" <tim.nordell@logicpd.com>, "baruch@tkos.co.il" <baruch@tkos.co.il>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tim.nordell@logicpd.com, baruch@tkos.co.il, Alex <alexg@meprolight.com>
 
-Hi Tomi,
+This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
+TV-out are supported.
 
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+---
+ arch/arm/mach-omap2/board-omap3logic.c |   96 ++++++++++++++++++++++++++++++++
+ 1 files changed, 96 insertions(+), 0 deletions(-)
 
-On Tue, 2011-12-13 at 09:52 +0200, Alex wrote:
-> This patch adds DSS2 support to the LogicPD OMAP 35x Torpedo boardfile. LCD and
-> TV-out are supported.
-> 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-
-Overall looks fine. A few questions below about the GPIOs, though.
-
-<snip>
-
-> +static void __init omap3logic_display_init(void)
-> +{
-> +	int r;
-> +
-> +	r = gpio_request_array(omap3logic_dss_gpios,
-> +			       ARRAY_SIZE(omap3logic_dss_gpios));
-> +	if (r) {
-> +		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
-> +		return;
-> +	}
-> +
-> +	gpio_export(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +	gpio_export(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_export(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-
-Why do you want to export these GPIOs? They are handled here in the
-board file, and I don't think there's any reason the userspace would
-need to touch them.
-
-Ok I can remove it from the kernel, if someone wants to use them,
-It can be done from userspace.
-
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
-
-These are already set to 0 in gpio_request_array, as you've defined the
-flag "GPIOF_OUT_INIT_LOW".
-
-Thanks, I will correct it.
-
-> +
-> +	msleep(50);
-> +	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 1);
-
-What does this do, and why do you need msleep(50)? I understand
-LCD_ENABLE gpio enables the LCD panel, but what exactly do LCD_BACKLIGHT
-and LCD_PWM gpios do? Why don't you set/unset LCD_PWM in the panel
-enable/disable functions like the other gpios?
-
-
-LCD_BACKLIGHT supply's power to LED Driver and LCD_PWM used to 
-Control the backlight level. 
-I'll check your suggestion and if it suits, I'll update the patch accordingly.
-
+diff --git a/arch/arm/mach-omap2/board-omap3logic.c b/arch/arm/mach-omap2/board-omap3logic.c
+index 7c0f193..b44c485 100644
+--- a/arch/arm/mach-omap2/board-omap3logic.c
++++ b/arch/arm/mach-omap2/board-omap3logic.c
+@@ -7,6 +7,9 @@
+  * Copyright (C) 2010 Logic Product Development, Inc.
+  * Peter Barada <peter.barada@logicpd.com>
+  *
++ * Copyright (C) 2011 Meprolight, Ltd.
++ * Alex Gershgorin <alexg@meprolight.com>
++ *
+  * Modified from Beagle, EVM, and RX51
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -45,6 +48,9 @@
+ #include <plat/gpmc.h>
+ #include <plat/sdrc.h>
  
-
-Thanks,
-Alex
-
++#include <video/omapdss.h>
++#include <video/omap-panel-generic-dpi.h>
++
+ #define OMAP3LOGIC_SMSC911X_CS			1
  
+ #define OMAP3530_LV_SOM_MMC_GPIO_CD		110
+@@ -95,6 +101,13 @@ static struct twl4030_platform_data omap3logic_twldata = {
+ 
+ static int __init omap3logic_i2c_init(void)
+ {
++	omap3_pmic_get_config(&omap3logic_twldata, TWL_COMMON_PDATA_USB,
++			TWL_COMMON_REGULATOR_VDAC | TWL_COMMON_REGULATOR_VPLL2);
++
++	omap3logic_twldata.vdac->constraints.apply_uV = true;
++	omap3logic_twldata.vpll2->constraints.apply_uV = true;
++	omap3logic_twldata.vpll2->constraints.name = "VDSI";
++
+ 	omap3_pmic_init("twl4030", &omap3logic_twldata);
+ 	return 0;
+ }
+@@ -182,6 +195,88 @@ static inline void __init board_smsc911x_init(void)
+ 	gpmc_smsc911x_init(&board_smsc911x_data);
+ }
+ 
++#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
++
++#define OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO	154
++#define OMAP3_TORPEDO_LCD_ENABLE_GPIO		155
++#define OMAP3_TORPEDO_LCD_PWM_GPIO		56
++
++static struct gpio omap3logic_dss_gpios[] __initdata = {
++	{OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, GPIOF_OUT_INIT_LOW, "lcd_bl_pwr"},
++	{OMAP3_TORPEDO_LCD_PWM_GPIO, GPIOF_OUT_INIT_LOW, "lcd bl enable"},
++	{OMAP3_TORPEDO_LCD_ENABLE_GPIO, GPIOF_OUT_INIT_LOW, "lcd enable"},
++};
++
++static int omap3logic_enable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 1);
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 1);
++	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 1);
++
++	return 0;
++}
++
++static void omap3logic_disable_lcd(struct omap_dss_device *dssdev)
++{
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_ENABLE_GPIO, 0);
++	gpio_set_value_cansleep(OMAP3_TORPEDO_LCD_BACKLIGHT_GPIO, 0);
++	gpio_set_value(OMAP3_TORPEDO_LCD_PWM_GPIO, 0);
++}
++
++static struct panel_generic_dpi_data lcd_panel = {
++	.name			= "sharp_lq",
++	.platform_enable	= omap3logic_enable_lcd,
++	.platform_disable	= omap3logic_disable_lcd,
++};
++
++static struct omap_dss_device omap3logic_lcd_device = {
++	.name			= "lcd",
++	.driver_name		= "generic_dpi_panel",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.data			= &lcd_panel,
++	.phy.dpi.data_lines	= 16,
++};
++
++static struct omap_dss_device omap3logic_tv_device = {
++	.name			= "tv",
++	.driver_name		= "venc",
++	.type			= OMAP_DISPLAY_TYPE_VENC,
++	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
++};
++
++static struct omap_dss_device *omap3logic_dss_devices[] = {
++	&omap3logic_lcd_device,
++	&omap3logic_tv_device,
++};
++
++static struct omap_dss_board_info omap3logic_dss_data = {
++	.num_devices		= ARRAY_SIZE(omap3logic_dss_devices),
++	.devices		= omap3logic_dss_devices,
++	.default_device		= &omap3logic_lcd_device,
++};
++
++static void __init omap3logic_display_init(void)
++{
++	int r;
++
++	r = gpio_request_array(omap3logic_dss_gpios,
++			       ARRAY_SIZE(omap3logic_dss_gpios));
++	if (r) {
++		printk(KERN_ERR "failed to get lcd_panel_* gpios\n");
++		return;
++	}
++
++	r = omap_display_init(&omap3logic_dss_data);
++	if (r) {
++		pr_err("OMAP3LOGIC: failed to register DSS device\n");
++		gpio_free_array(omap3logic_dss_gpios,
++				ARRAY_SIZE(omap3logic_dss_gpios));
++	}
++}
++#else
++static void __init omap3logic_display_init(void) { }
++#endif /* defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE) */
++
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+@@ -197,6 +292,7 @@ static void __init omap3logic_init(void)
+ 	omap_sdrc_init(NULL, NULL);
+ 	board_mmc_init();
+ 	board_smsc911x_init();
++	omap3logic_display_init();
+ 
+ 	/* Ensure SDRC pins are mux'd for self-refresh */
+ 	omap_mux_init_signal("sdrc_cke0", OMAP_PIN_OUTPUT);
+-- 
+1.7.0.4
 
