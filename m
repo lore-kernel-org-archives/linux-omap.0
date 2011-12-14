@@ -1,113 +1,63 @@
 From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCHV2 REPOST 6/7] ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
-Date: Wed, 14 Dec 2011 21:31:16 +0530
-Message-ID: <1323878477-21122-7-git-send-email-vishwanath.bs@ti.com>
-References: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
+Subject: [PATCHV2 REPOST 0/7] ARM: OMAP3PLUS PM: Add IO DaisyChain support via hwmod mux
+Date: Wed, 14 Dec 2011 21:31:10 +0530
+Message-ID: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38127 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752045Ab1LNQKs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Dec 2011 11:10:48 -0500
-In-Reply-To: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49949 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757512Ab1LNQLD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 11:11:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-control it from cpuidle path for OMAP3.
+The following patch series provides IO Daisychain feature via omap hwmod mux framework.
+The patch series has been generated against Tero's V11 irq chaining series [1].
 
-Also as omap3_disable_io_chain is no longer being used, just remove the function.
+Testing Performed:
+OMAP3:
+Tested for Retention and OFF mode in suspend/cpuidle path on OMAP3430 SDP and ZOOM3.
+Also tested against latest UART Runtime + Chain Handler patches[2] for Ret/OFF in
+cpuidle/suspend path.
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Tested-by: Govindraj.R <govindraj.raja@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c       |   17 -----------------
- arch/arm/mach-omap2/prm2xxx_3xxx.c |    8 --------
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    7 -------
- 3 files changed, 0 insertions(+), 32 deletions(-)
+OMAP4:
+Boot tested on OMAP4430 SDP. Also tested for Suspend/resume with CSWR using custom OMAP4
+kernel as Core PM is not yet supported in mainline.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 258d871..175102c 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -302,13 +302,6 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_trigger_wuclk_ctrl();
--	}
- 
- 	/* Block console output in case it is on one of the OMAP UARTs */
- 	if (!is_suspending())
-@@ -406,16 +399,6 @@ void omap_sram_idle(void)
- 		console_unlock();
- 
- console_still_active:
--	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
--					     PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_disable_io_chain();
--	}
--
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
- 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 6db5935..688e74c 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -252,14 +252,6 @@ void omap3_trigger_wuclk_ctrl(void)
- 			     PM_WKEN);
- }
- 
--/* OMAP3 Daisychain disable sequence */
--void omap3_disable_io_chain(void)
--{
--	if (omap_rev() >= OMAP3430_REV_ES3_1)
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
--			PM_WKEN);
--}
--
- static int __init omap3xxx_prcm_init(void)
- {
- 	if (cpu_is_omap34xx())
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index e6f8206..6287dc4 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -295,12 +295,6 @@ static inline void omap3_trigger_wuclk_ctrl(void)
- 		"not suppose to be used on omap4\n");
- 	return 0;
- }
--static inline void omap3_disable_io_chain(void)
--{
--	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
--		"not suppose to be used on omap4\n");
--	return 0;
--}
- #else
- /* Power/reset management domain register get/set */
- extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
-@@ -315,7 +309,6 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
- extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
- extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- extern void omap3_trigger_wuclk_ctrl(void);
--extern void omap3_disable_io_chain(void);
- 
- /* OMAP3-specific VP functions */
- u32 omap3_prm_vp_check_txdone(u8 vp_id);
--- 
-1.7.0.4
+Thanks to Govind for testing the series with UART Runtime patches on various OMAP3 platforms.
+
+Patch series is available here[3].
+
+[1]: git://gitorious.org/~kristo/omap-pm/omap-pm-work.git chain-prcm-v11
+
+[2]: git://gitorious.org/runtime_3-0/runtime_3-0.git
+for_3_3/tmp_rc4_uart_pm_intg
+
+[3]: git://gitorious.org/omap-pm/linux.git for_3.3/io_daisy_chain_rebased
+
+Mohan V (1):
+  ARM: OMAP3 PM: correct enable/disable of daisy io chain
+
+Rajendra Nayak (1):
+  ARM: OMAP4 PM: Add IO Daisychain support
+
+Vishwanath BS (5):
+  ARM: OMAP3 PM: Move IO Daisychain function to omap3 prm file
+  ARM: OMAP3 PM: Enable IO Wake up
+  ARM: OMAP3PLUS PM: Add IO Daisychain support via hwmod mux
+  ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
+  ARM: OMAP3 PM: Enable IO Daisychain for supported chips
+
+ arch/arm/mach-omap2/omap_hwmod.c   |    9 +++++-
+ arch/arm/mach-omap2/pm.c           |   11 ++++++++
+ arch/arm/mach-omap2/pm.h           |    1 +
+ arch/arm/mach-omap2/pm34xx.c       |   47 ++---------------------------------
+ arch/arm/mach-omap2/prm2xxx_3xxx.c |   27 ++++++++++++++++++++
+ arch/arm/mach-omap2/prm2xxx_3xxx.h |    7 +++++
+ arch/arm/mach-omap2/prm44xx.c      |   30 +++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h      |    1 +
+ 8 files changed, 87 insertions(+), 46 deletions(-)
 
