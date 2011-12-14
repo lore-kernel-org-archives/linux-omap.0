@@ -1,15 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] SoC changes for omap4470, ti814x, am33xx for v3.3 merge
- window
-Date: Wed, 14 Dec 2011 11:35:47 -0800
-Message-ID: <20111214193547.GI32251@atomide.com>
+Subject: [GIT PULL] omap board changes for v3.3 merge window
+Date: Wed, 14 Dec 2011 11:39:44 -0800
+Message-ID: <20111214193944.GJ32251@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40433 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46212 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391Ab1LNTfx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 14:35:53 -0500
+	with ESMTP id S1755473Ab1LNTjt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 14:39:49 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,72 +17,56 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Hi Arnd & Olof,
 
-Please pull support for new omap variants from:
+Please pull omap board changes from:
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap board
 
-This adds minimal support for omap4470, am33xx and ti814x.
-Note that these changes do not contain mux/clock/hwmod changes
-so only minimal boot support is added.
+This contains minimal changes to support new omap
+variants and features using existing board-*.c files.
 
-Also, these do not have a dependency after all to the
-previously pulled omap4 branch unlike what I mentioned earlier
-
-The dependency is just Russell's devel-stable at commit
-deee6d5359969a0ce4e2760cfd7b9f379bd5698a as most omap
-patches have.
+These depend on the soc branch that I posted a pull
+request for just before this one.
 
 Regards,
 
 Tony
 
 
-The following changes since commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a:
-  Tony Lindgren (1):
-        ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM restart changes
+The following changes since commit 4390f5b2cb1f568c1d4b3e5bbf57158f6809627a:
+  Hemant Pedanekar (1):
+        ARM: OMAP: TI814X: Add cpu type macros and detection support
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap soc
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap board
 
-Afzal Mohammed (2):
-      ARM: OMAP: am33xx: Update common omap platform files
-      ARM: OMAP: am33xx: Update common OMAP machine specific sources
+Aaro Koskinen (1):
+      ARM: OMAP3: rx51: enable tsc2005 touchscreen
 
-David Anders (1):
-      ARM: OMAP: id: add chip id recognition for omap4430 es2.3
+Hemant Pedanekar (1):
+      ARM: OMAP: TI814X: Create board support and enable build for TI8148 EVM
 
-Hemant Pedanekar (2):
-      ARM: OMAP: TI81XX: Prepare for addition of TI814X support
-      ARM: OMAP: TI814X: Add cpu type macros and detection support
+Igor Dmitriev (1):
+      ARM: OMAP3: sdram-nokia: add 200 MHz memory timings info
 
-Leonid Iziumtsev (1):
-      ARM: OMAP: ID: Chip detection for OMAP4470
+Igor Grinberg (5):
+      ARM: OMAP3: cm-t35: Add regulator for ads7846 touchscreen
+      ARM: OMAP3: cm-t35: Use correct DSS regulator supply
+      ARM: OMAP3: cm-t35: enable audio
+      ARM: OMAP3: cm-t35: Add reset for USB hub
+      ARM: OMAP3: cm-t35: fix mux mode for DSS pins
 
- arch/arm/mach-omap2/Kconfig                        |   11 +++-
- arch/arm/mach-omap2/board-ti8168evm.c              |   11 +---
- arch/arm/mach-omap2/clock.c                        |    2 +-
- arch/arm/mach-omap2/clock.h                        |    2 +-
- arch/arm/mach-omap2/clock3xxx_data.c               |    6 ++-
- arch/arm/mach-omap2/common.c                       |   48 +++++++++++++----
- arch/arm/mach-omap2/common.h                       |   23 ++++++--
- arch/arm/mach-omap2/control.h                      |    8 ++--
- arch/arm/mach-omap2/id.c                           |   52 ++++++++++++++++---
- arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 ++--
- arch/arm/mach-omap2/io.c                           |   38 +++++++++++---
- arch/arm/mach-omap2/irq.c                          |    2 +-
- arch/arm/mach-omap2/opp2xxx.h                      |    2 +-
- arch/arm/mach-omap2/serial.c                       |    6 +-
- arch/arm/plat-omap/Makefile                        |    1 -
- .../plat-omap/include/plat/{ti816x.h => am33xx.h}  |   20 +++----
- arch/arm/plat-omap/include/plat/clock.h            |    4 +-
- arch/arm/plat-omap/include/plat/cpu.h              |   56 ++++++++++++++++++++
- arch/arm/plat-omap/include/plat/hardware.h         |    3 +-
- arch/arm/plat-omap/include/plat/io.h               |   12 ++++
- arch/arm/plat-omap/include/plat/omap34xx.h         |    2 +
- arch/arm/plat-omap/include/plat/serial.h           |   14 +++---
- .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 +++---
- arch/arm/plat-omap/include/plat/uncompress.h       |    8 ++--
- 24 files changed, 267 insertions(+), 94 deletions(-)
- copy arch/arm/plat-omap/include/plat/{ti816x.h => am33xx.h} (53%)
- rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
+Peter Ujfalusi (2):
+      ARM: OMAP4: devices: Register OMAP4 DMIC platform device
+      ARM: OMAP4: board-4430sdp: Register platform device for digimic codec
+
+ arch/arm/mach-omap2/Kconfig                  |    5 ++
+ arch/arm/mach-omap2/Makefile                 |    1 +
+ arch/arm/mach-omap2/board-4430sdp.c          |    6 ++
+ arch/arm/mach-omap2/board-cm-t35.c           |   82 ++++++++++++++++++--------
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   46 ++++++++++++++-
+ arch/arm/mach-omap2/board-ti8168evm.c        |   22 +++++--
+ arch/arm/mach-omap2/devices.c                |   22 +++++++
+ arch/arm/mach-omap2/sdram-nokia.c            |   25 ++++++++-
+ arch/arm/plat-omap/include/plat/uncompress.h |    3 +
+ 9 files changed, 179 insertions(+), 33 deletions(-)
