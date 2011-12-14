@@ -1,68 +1,96 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 01/10] GPIO: gpio-generic: Move initialization up to
- postcore
-Date: Wed, 14 Dec 2011 10:21:49 -0800
-Message-ID: <20111214182149.GF32251@atomide.com>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <201112130044.02007.jkrzyszt@tis.icnet.pl>
- <20111212235544.GM32251@atomide.com>
- <201112141410.53522.jkrzyszt@tis.icnet.pl>
+From: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based
+ camera board.
+Date: Wed, 14 Dec 2011 19:22:29 +0100
+Message-ID: <1323886950.295978.31313@localhost>
+References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org>
+ <4EE86CF7.1010002@compulab.co.il>
+ <201112141415.23885.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:65266 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757464Ab1LNSWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 13:22:44 -0500
 Content-Disposition: inline
-In-Reply-To: <201112141410.53522.jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, linux-serial@vger.kernel.org
+In-Reply-To: <201112141415.23885.laurent.pinchart@ideasonboard.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111214 04:40]:
-> On Tuesday 13 of December 2011 at 00:55:44, Tony Lindgren wrote:
-> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111212 15:13]:
-> > > On Tuesday 13 of December 2011 at 00:15:20, Tony Lindgren wrote:
-> > > > 
-> > > > Might be worth checking if some board specific __initcall helps here
-> > > > too?
-> > > 
-> > > If I only knew how I could insert a board specific __initcall between 
-> > > two points from where the generic-gpio first, then the 8250 driver, are 
-> > > called.
-> > > 
-> > > Any hints?
-> > 
-> > Hmm, can't you do all that in the order you want in
-> > ams_delta_modem_init()?  Or make that into a late_initcall so
-> > you have generic-gpio available?
-> > 
-> > It seems that the pieces of code you're talking about don't need
-> > to be initialized early, just needs to be done in the right
-> > order to get things working.
+On Wed, Dec 14, 2011 at 02:15:22PM +0100, Laurent Pinchart wrote:
+> Hi Igor,
 > 
-> Hi,
-> I'm almost done with moving registration of all latch dependent devices 
-> down to a late_initcall hook, however while working on this, I've found 
-> still another arrangement, yet better in my opinion:
-> 1) generic-gpio driver registration moved from device_initcall up to 
->    subsys_initcall,
-> 2) latch dependent device registration left at arch_initcall, as it is 
->    now,
-> 3) a temporary hack, removed with the last patch in the series, that 
->    requests GPIO pins on behalf of device drivers before those are 
->    updated, placed between subsys_initcall and device_initcall, i.e., at 
->    fs_initcall or rootfs_initcall; both look ugly, but this is only for 
->    a while, in order to keep things working while in the transition,
-> 4) the modem init hook, once updated with extra GPIO setup that must be 
->    done on behalf of the 8250 driver, which is not prepared for 
->    accepting any extra init hooks passed with the device platform data, 
->    moved down to late_initcall, as suggested,
-> 5) once all drivers are updated, the hack is removed, and an 
->    initialization of unused pins added to that late_initcall modem hook, 
->    perhaps renamed in order to not suggest it is still modem only 
->    related.
+> On Wednesday 14 December 2011 10:31:35 Igor Grinberg wrote:
+> > On 12/14/11 03:25, Martin Hostettler wrote:
+> > > Adds board support for an MT9M032 based camera to omap3evm.
+> > > 
+> > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
 > 
-> What do you think?
+> [snip]
+> 
+> > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
+> > > index 0000000..bffd5b8
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > @@ -0,0 +1,155 @@
+> 
+> [snip]
+> 
+> > > +#include <linux/i2c.h>
+> > > +#include <linux/init.h>
+> > > +#include <linux/platform_device.h>
+> > > +
+> > > +#include <linux/gpio.h>
+> > > +#include <plat/mux.h>
+> > > +#include "mux.h"
+> > > +
+> > > +#include "../../../drivers/media/video/omap3isp/isp.h"
+> > 
+> > Laurent,
+> > In one of the previous reviews, you stated:
+> > "I'll probably split it and move the part required by board files to
+> > include/media/omap3isp.h".
+> > Is there any progress on that?
+> 
+> Yes, it has been half-fixed in mainline. Half only because all the structures 
+> and macros that should be used by board code are now in <media/omap3isp.h>, 
+> but some boards need to access OMAP3 ISP internals from board code, which 
+> still requires drivers/media/video/omap3isp/isp.h. This will eventually be 
+> fixed, when the generic struct clk object will be available.
+> 
+> After a quick look at this patch it seems that <media/omap3isp.h> should be 
+> enough here.
 
-Sounds better for sure than what we currently have :)
+Almost. The code uses ISPCTRL_PAR_BRIDGE_DISABLE which is only available
+from drivers/media/video/omap3isp/ispreg.h.
 
-Tony
+So i'd say it's better to keep that include than to duplicate this constant
+in the code.
+
+What do you think?
+
+By the way, it seems drivers/media/video/omap3isp/ispvideo.c is missing a 
+#include <linux/module.h> at the moment. I had to patch that line in to get
+omap3isp to compile as module.
+
+> 
+> > > +#include "media/mt9m032.h"
+> 
+> And this should be <media/mt9m032.h>
+
+I'll change this.
+
+Regards,
+ - Martin Hostettler
+
+> 
+> > > +#include "devices.h"
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
