@@ -1,74 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v4 REPOST 3/5] omap4: Unconditionally require l2x0 L2
- cache controller support
-Date: Wed, 14 Dec 2011 10:14:25 -0800
-Message-ID: <20111214181425.GB32251@atomide.com>
+Subject: Re: [PATCH v4 REPOST 1/5] ARM: l2x0/pl310: Refactor Kconfig to be
+ more maintainable
+Date: Wed, 14 Dec 2011 10:15:00 -0800
+Message-ID: <20111214181500.GC32251@atomide.com>
 References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
- <1323862781-3465-4-git-send-email-dave.martin@linaro.org>
+ <1323862781-3465-2-git-send-email-dave.martin@linaro.org>
+ <20111214120314.GA9841@oksana.dev.rtsoft.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-sh-owner@vger.kernel.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1323862781-3465-4-git-send-email-dave.martin@linaro.org>
-Sender: linux-sh-owner@vger.kernel.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, Anton Vorontsov <avorontsov@mvista.com>, Barry Song <baohua.song@csr.com>, Catalin Marinas <catalin.marinas@arm.com>, Colin Cross <ccross@google.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Mundt <lethal@linux-sh.org>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Will Deacon <will.deacon@arm.com>
+In-Reply-To: <20111214120314.GA9841@oksana.dev.rtsoft.ru>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Dave Martin <dave.martin@linaro.org>, linux-arm-kernel@lists.infradead.org, patches@linaro.org, Barry Song <baohua.song@csr.com>, Catalin Marinas <catalin.marinas@arm.com>, Colin Cross <ccross@google.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Mundt <lethal@linux-sh.org>, Pawel Moll <pawel.moll@arm.com>, Rob Herring <rob.herring@calxeda.com>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Will Deacon <will.deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Dave Martin <dave.martin@linaro.org> [111214 03:08]:
-> If running in the Normal World on a TrustZone-enabled SoC, Linux
-> does not have complete control over the L2 cache controller
-> configuration.  The kernel cannot work reliably on such platforms
-> without the l2x0 cache support code built in.
-
-There are HS and GP omaps (High Security and General Purpose).
-GP omaps do have full control of the L2. Also HS omaps most likely
-provide control over enabling and disabling L2 depending how the
-secure code is implemented.
-
-BTW, the real problem is that because the secure code is implemented
-in various ways, we don't really have any handling for it in Linux.
-
-The SMI instruction numbers don't seem to be standardized at all,
-and can mean different things on different boards, even different
-board versions :(
-
-Sounds like devicetree is the only safe way to deal with the L2
-control options.
-
-Regards,
-
-Tony
-
- 
-> This patch unconditionally enables l2x0 support for the OMAP4 SoCs.
+* Anton Vorontsov <cbouatmailru@gmail.com> [111214 03:31]:
+> On Wed, Dec 14, 2011 at 11:39:37AM +0000, Dave Martin wrote:
+> > Making CACHE_L2X0 depend on (huge list of MACH_ and ARCH_ configs)
+> > is bothersome to maintain and likely to lead to merge conflicts.
+> > 
+> > This patch moves the knowledge of which platforms have a L2x0 or
+> > PL310 cache controller to the individual machines.  To enable this,
+> > a new MIGHT_HAVE_CACHE_L2X0 config option is introduced to allow
+> > machines to indicate that they may have such a cache controller
+> > independently of each other.
+> > 
+> > Boards/SoCs which cannot reliably operate without the L2 cache
+> > controller support will need to select CACHE_L2X0 directly from
+> > their own Kconfigs instead.  This applies to some TrustZone-enabled
+> > boards where Linux runs in the Normal World, for example.
+> > 
+> > Signed-off-by: Dave Martin <dave.martin@linaro.org>
 > 
-> Thanks to Rob Herring for this suggestion. [1]
+> For CNS3xxx bits:
 > 
-> Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> 
-> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074495.html
-> ---
->  arch/arm/mach-omap2/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index bb1b670..94e568a 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -41,11 +41,11 @@ config ARCH_OMAP4
->  	bool "TI OMAP4"
->  	default y
->  	depends on ARCH_OMAP2PLUS
-> +	select CACHE_L2X0
->  	select CPU_V7
->  	select ARM_GIC
->  	select HAVE_SMP
->  	select LOCAL_TIMERS if SMP
-> -	select MIGHT_HAVE_CACHE_L2X0
->  	select PL310_ERRATA_588369
->  	select PL310_ERRATA_727915
->  	select ARM_ERRATA_720789
-> -- 
-> 1.7.4.1
-> 
+> Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
+
+For omap:
+
+Acked-by: Tony Lindgren <tony@atomide.com>
