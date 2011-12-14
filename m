@@ -1,79 +1,58 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH] ARM: OMAP: hsmmc: add max_freq field
-Date: Wed, 14 Dec 2011 14:22:07 +0100
-Message-ID: <1323868927-3738-1-git-send-email-zonque@gmail.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH v4 REPOST 4/5] highbank: Unconditionally require l2x0
+ L2 cache controller support
+Date: Wed, 14 Dec 2011 07:37:32 -0600
+Message-ID: <4EE8A69C.40304@gmail.com>
+References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org> <1323862781-3465-5-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Daniel Mack <zonque@gmail.com>
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1323862781-3465-5-git-send-email-dave.martin@linaro.org>
+Sender: linux-sh-owner@vger.kernel.org
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, patches@linaro.org, Anton Vorontsov <avorontsov@mvista.com>, Barry Song <baohua.song@csr.com>, Catalin Marinas <catalin.marinas@arm.com>, Colin Cross <ccross@google.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Linus Walleij <linus.walleij@linaro.org>, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-tegra@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, Paul Mundt <lethal@linux-sh.org>, Pawel Moll <pawel.moll@arm.com>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, Tony Lindgren <tony@atomide.com>, Will Deacon <will.deacon@arm.com>
 List-Id: linux-omap@vger.kernel.org
 
-External circuitry like level shifters may limit the maximum operation
-speed of the hsmmc controller. Add a field to struct omap2_hsmmc_info
-so boards can adjust the setting on demand.
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/hsmmc.c   |    1 +
- arch/arm/mach-omap2/hsmmc.h   |    2 ++
- drivers/mmc/host/omap_hsmmc.c |    8 ++++++--
- 3 files changed, 9 insertions(+), 2 deletions(-)
+On 12/14/2011 05:39 AM, Dave Martin wrote:
+> If running in the Normal World on a TrustZone-enabled SoC, Linux
+> does not have complete control over the L2 cache controller
+> configuration.  The kernel cannot work reliably on such platforms
+> without the l2x0 cache support code built in.
+> 
+> This patch unconditionally enables l2x0 support for the Highbank
+> SoC.
+> 
+> Thanks to Rob Herring for this suggestion. [1]
+> 
+> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+> 
+> [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074495.html
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index f4a1020..4c7bc36 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -298,6 +298,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 	mmc->slots[0].caps = c->caps;
- 	mmc->slots[0].internal_clock = !c->ext_clock;
- 	mmc->dma_mask = 0xffffffff;
-+	mmc->max_freq = c->max_freq;
- 	if (cpu_is_omap44xx())
- 		mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
- 	else
-diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
-index f757e78..65a8c12 100644
---- a/arch/arm/mach-omap2/hsmmc.h
-+++ b/arch/arm/mach-omap2/hsmmc.h
-@@ -25,6 +25,8 @@ struct omap2_hsmmc_info {
- 	char	*name;		/* or NULL for default */
- 	struct device *dev;	/* returned: pointer to mmc adapter */
- 	int	ocr_mask;	/* temporary HACK */
-+	int	max_freq;	/* maximum clock, if constrained by external
-+				 * circuitry, or 0 for default */
- 	/* Remux (pad configuration) when powering on/off */
- 	void (*remux)(struct device *dev, int slot, int power_on);
- 	/* init some special card */
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 101cd31..8215ef9 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	if (mmc_slot(host).vcc_aux_disable_is_sleep)
- 		mmc_slot(host).no_off = 1;
- 
--	mmc->f_min	= OMAP_MMC_MIN_CLOCK;
--	mmc->f_max	= OMAP_MMC_MAX_CLOCK;
-+	mmc->f_min = OMAP_MMC_MIN_CLOCK;
-+
-+	if (pdata->max_freq > 0)
-+		mmc->f_max = pdata->max_freq;
-+	else
-+		mmc->f_max = OMAP_MMC_MAX_CLOCK;
- 
- 	spin_lock_init(&host->irq_lock);
- 
--- 
-1.7.7.4
+Doesn't this need to be above the SOB? Otherwise:
+
+Acked-by: Rob Herring <rob.herring@calxeda.com>
+
+> ---
+>  arch/arm/Kconfig |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+> index d33eb39..744296d 100644
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -340,12 +340,12 @@ config ARCH_HIGHBANK
+>  	select ARM_AMBA
+>  	select ARM_GIC
+>  	select ARM_TIMER_SP804
+> +	select CACHE_L2X0
+>  	select CLKDEV_LOOKUP
+>  	select CPU_V7
+>  	select GENERIC_CLOCKEVENTS
+>  	select HAVE_ARM_SCU
+>  	select HAVE_SMP
+> -	select MIGHT_HAVE_CACHE_L2X0
+>  	select USE_OF
+>  	help
+>  	  Support for the Calxeda Highbank SoC based boards.
