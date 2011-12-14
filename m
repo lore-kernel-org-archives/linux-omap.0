@@ -1,73 +1,89 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] Revert "ARM: RX-51: Enable isp1704 power on/off"
-Date: Wed, 14 Dec 2011 21:31:01 +0200
-Message-ID: <CAMP44s2mcMJ17Yr8gDCdWVpc8Vk2vWYJifMf8a0NAroVawnB+Q@mail.gmail.com>
-References: <1323105820-25946-1-git-send-email-felipe.contreras@nokia.com>
-	<1323105820-25946-3-git-send-email-felipe.contreras@nokia.com>
-	<CAMP44s3Szzm9iXxghXfNCBjKyUw-nRrG1aEeweKnRCidaxmxEA@mail.gmail.com>
-	<4EDF5231.6080309@bitmer.com>
-	<CAMP44s0a6hcORZn8wDxHUJKxs=wjAmkhRfiT9kEA_MoDYeAmfg@mail.gmail.com>
-	<4EE5A8A0.2010206@bitmer.com>
-	<CAMP44s1Zz7CqxRM6PeNT3GN9GbCLy+0smgk6_-9kSjghY33Xuw@mail.gmail.com>
-	<20111213225308.GB10066@legolas.emea.dhcp.ti.com>
-	<CAMP44s3Gmx1M40Dae-RR3+i=vv-d0Ls6h3YToRuUnMTFoqeSCQ@mail.gmail.com>
-	<20111214073000.GB11024@legolas.emea.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] SoC changes for omap4470, ti814x, am33xx for v3.3 merge
+ window
+Date: Wed, 14 Dec 2011 11:35:47 -0800
+Message-ID: <20111214193547.GI32251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111214073000.GB11024@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Heikki Krogerus <heikki.krogerus@nokia.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40433 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755391Ab1LNTfx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Dec 2011 14:35:53 -0500
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Wed, Dec 14, 2011 at 9:30 AM, Felipe Balbi <balbi@ti.com> wrote:
-> On Wed, Dec 14, 2011 at 01:02:09AM +0200, Felipe Contreras wrote:
->> On Wed, Dec 14, 2011 at 12:53 AM, Felipe Balbi <balbi@ti.com> wrote:
->> > patches are welcome
->>
->> The were not last times:
->> http://mid.gmane.org/1288656853-4625-1-git-send-email-felipe.contreras@gmail.com
->
-> At least [1] will not apply anymore. Most of that stuff has been cleaned
-> up after I introduced the UDC class/core driver. There are still lots of
-> things to fix up, but it won't happen overnight. Specially if people are
-> more willing to complain than to patch.
+Hi Arnd & Olof,
 
-Yes, the situation is much better, but these patches still apply on
-usb core, or at least the same concept. Anyway, I have the new trivial
-patches, I'll send them soon.
+Please pull support for new omap variants from:
 
-> [2] Makes no sense whatsoever. I have been fighting a lot against these
-> ARCH dependencies. It's generally used to hide some moronic constructs
-> relying on <plat/*> or <mach/*> headers. Most of the time, it's just to
-> be able to access e.g. machine_is_*, cpu_is_* or omap_ctrl_read* and the
-> like. Also, the first step for having a single ARM zImage is to get rid
-> of those ARCH dependencies; we need to be able to compile modules on all
-> ARCHes (even x86 for that matter) because:
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
 
-Read the patch carefully, it doesn't add any new dependencies, it just
-shuffles them around, I already explained that. And the rest of the
-stuff adds *defaults*, not dependencies, so you can still build in
-x86.
+This adds minimal support for omap4470, am33xx and ti814x.
+Note that these changes do not contain mux/clock/hwmod changes
+so only minimal boot support is added.
 
-> So, if those are the only patches you can provide, please refrain from
-> doing so as it will only take time reviewing. Instead, help really
-> cleaning up the problems, make sure drivers compile on other ARCHes,
-> make sure you don't include <plat/*> or <mach/*> on drivers, make sure
-> you help reviewing patches which are coming in.
+Also, these do not have a dependency after all to the
+previously pulled omap4 branch unlike what I mentioned earlier
 
-Some of these changes have already been ack'ed, I just need to split
-them. The rest, I guess I have to push it upstairs to Linus so he can
-say if it does make sense to make builds more difficult for the users,
-and keep the size of the current defconfigs from decreasing.
+The dependency is just Russell's devel-stable at commit
+deee6d5359969a0ce4e2760cfd7b9f379bd5698a as most omap
+patches have.
 
->> http://mid.gmane.org/1287482608-11320-1-git-send-email-felipe.contreras@gmail.com
->
-> "No such article"
+Regards,
 
-It's there. Here's the direct link:
-http://article.gmane.org/gmane.linux.kernel/1050608
+Tony
 
--- 
-Felipe Contreras
+
+The following changes since commit deee6d5359969a0ce4e2760cfd7b9f379bd5698a:
+  Tony Lindgren (1):
+        ARM: 7194/1: OMAP: Fix build after a merge between v3.2-rc4 and ARM restart changes
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap soc
+
+Afzal Mohammed (2):
+      ARM: OMAP: am33xx: Update common omap platform files
+      ARM: OMAP: am33xx: Update common OMAP machine specific sources
+
+David Anders (1):
+      ARM: OMAP: id: add chip id recognition for omap4430 es2.3
+
+Hemant Pedanekar (2):
+      ARM: OMAP: TI81XX: Prepare for addition of TI814X support
+      ARM: OMAP: TI814X: Add cpu type macros and detection support
+
+Leonid Iziumtsev (1):
+      ARM: OMAP: ID: Chip detection for OMAP4470
+
+ arch/arm/mach-omap2/Kconfig                        |   11 +++-
+ arch/arm/mach-omap2/board-ti8168evm.c              |   11 +---
+ arch/arm/mach-omap2/clock.c                        |    2 +-
+ arch/arm/mach-omap2/clock.h                        |    2 +-
+ arch/arm/mach-omap2/clock3xxx_data.c               |    6 ++-
+ arch/arm/mach-omap2/common.c                       |   48 +++++++++++++----
+ arch/arm/mach-omap2/common.h                       |   23 ++++++--
+ arch/arm/mach-omap2/control.h                      |    8 ++--
+ arch/arm/mach-omap2/id.c                           |   52 ++++++++++++++++---
+ arch/arm/mach-omap2/include/mach/debug-macro.S     |   12 ++--
+ arch/arm/mach-omap2/io.c                           |   38 +++++++++++---
+ arch/arm/mach-omap2/irq.c                          |    2 +-
+ arch/arm/mach-omap2/opp2xxx.h                      |    2 +-
+ arch/arm/mach-omap2/serial.c                       |    6 +-
+ arch/arm/plat-omap/Makefile                        |    1 -
+ .../plat-omap/include/plat/{ti816x.h => am33xx.h}  |   20 +++----
+ arch/arm/plat-omap/include/plat/clock.h            |    4 +-
+ arch/arm/plat-omap/include/plat/cpu.h              |   56 ++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/hardware.h         |    3 +-
+ arch/arm/plat-omap/include/plat/io.h               |   12 ++++
+ arch/arm/plat-omap/include/plat/omap34xx.h         |    2 +
+ arch/arm/plat-omap/include/plat/serial.h           |   14 +++---
+ .../plat-omap/include/plat/{ti816x.h => ti81xx.h}  |   18 +++---
+ arch/arm/plat-omap/include/plat/uncompress.h       |    8 ++--
+ 24 files changed, 267 insertions(+), 94 deletions(-)
+ copy arch/arm/plat-omap/include/plat/{ti816x.h => am33xx.h} (53%)
+ rename arch/arm/plat-omap/include/plat/{ti816x.h => ti81xx.h} (60%)
