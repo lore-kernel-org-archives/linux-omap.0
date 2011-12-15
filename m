@@ -1,48 +1,114 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
- for OMAP2+ systems
-Date: Thu, 15 Dec 2011 17:28:49 +0100
-Message-ID: <4EEA2041.6070304@ti.com>
-References: <y> <1323190149-6492-2-git-send-email-b-cousson@ti.com> <1323782836.1877.79.camel@deskari> <4EE75448.4010701@ti.com> <20111213223855.GW32251@atomide.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
+ controller
+Date: Thu, 15 Dec 2011 18:49:50 +0100
+Message-ID: <4EEA333E.9030502@ti.com>
+References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com> <4EE0D0E6.3060202@ti.com> <4EE20B38.8050006@gmail.com> <4EE2209E.2040209@ti.com> <4EE227A4.2030209@gmail.com> <4EE2320D.2030309@ti.com> <4EE2335C.7050902@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54405 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40546 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756221Ab1LOQ3A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Dec 2011 11:29:00 -0500
-In-Reply-To: <20111213223855.GW32251@atomide.com>
+	id S1751551Ab1LORuD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Dec 2011 12:50:03 -0500
+In-Reply-To: <4EE2335C.7050902@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/13/2011 11:38 PM, Tony Lindgren wrote:
-> * Cousson, Benoit<b-cousson@ti.com>  [111213 05:02]:
->> On 12/13/2011 2:27 PM, Tomi Valkeinen wrote:
->>> Hi,
->>>
->>> On Tue, 2011-12-06 at 17:49 +0100, Benoit Cousson wrote:
->>>> devicetree will become the mandatory boot method for OMAP2+.
->>>> In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
->>>> select USE_OF by default for every OMAP2+ systems.
->>>> Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
->>>> boot loader to keep working properly.
->>>
->>> APPENDED_DTB sounds a bit dangerous to be enabled by default according
->>> to the config help text.
+On 12/9/2011 5:12 PM, Rob Herring wrote:
+> On 12/09/2011 10:06 AM, Cousson, Benoit wrote:
+
+[...]
+
+>> My point is that even in the DT case I do have some devices that are
+>> initialized without DT for the moment and thus cannot get access to the
+>> interrupt-controller node and then cannot retrieve the domain information.
 >>
->> The help is indeed really scary :-)
->
-> Heh, but it's also true.
->
->> Tony,
->> Do we want to keep it by default? Or should we fix the kconfig help?
->
-> Let's just leave out those two from omap2plus_defconfig then.
+>> How can I ensure the proper hwirq ->  irq translation then for such devices?
+>> Only the one created by DT will have the correct irq number.
+> 
+> Okay, I missed that aspect of it. So I guess 0 base is fine for now.
+> 
+> Rob
 
-OK. I'll do that.
+Following that discussion, I made a patch (included below) last week to add domain support just before this one for DT migration.
+I'm now wondering if it makes sense to do it like that considering your recent patch: irq: convert generic-chip to use irq_domain.
 
+What do you think?
+
+Thanks,
 Benoit
 
+---
+>From 3083589f48604aab3d801179810c2af8339525ae Mon Sep 17 00:00:00 2001
+From: Benoit Cousson <b-cousson@ti.com>
+Date: Thu, 8 Dec 2011 22:16:51 +0100
+Subject: [PATCH] ARM: OMAP2/3: intc: Add irqdomain support
+
+Introduce the usage of the irqdomain to prepare the DT support.
+The irq_base is still hard coded to 0 to allow non-DT drivers
+to work with the previous assumption that was hwirq = irq.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+---
+ arch/arm/mach-omap2/irq.c |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 42b1d65..2f65dfd 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -17,6 +17,7 @@
+ #include <mach/hardware.h>
+ #include <asm/exception.h>
+ #include <asm/mach/irq.h>
++#include <linux/irqdomain.h>
+ 
+ 
+ /* selected INTC register offsets */
+@@ -57,6 +58,8 @@ static struct omap_irq_bank {
+ 	},
+ };
+ 
++static struct irq_domain domain;
++
+ /* Structure to save interrupt controller context */
+ struct omap3_intc_regs {
+ 	u32 sysconfig;
+@@ -158,6 +161,17 @@ static void __init omap_init_irq(u32 base, int nr_irqs)
+ 	if (WARN_ON(!omap_irq_base))
+ 		return;
+ 
++	/*
++	 * XXX: Use a 0 irq_base for the moment since the legacy devices
++	 * created statically are expected a hwirq = irq mapping.
++	 * A proper offset will be added later, when IRQ resource creation
++	 * will be handled by DT.
++	 */
++	domain.irq_base = 0;
++	domain.nr_irq = nr_irqs;
++	domain.ops = &irq_domain_simple_ops;
++	irq_domain_add(&domain);
++
+ 	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
+ 		struct omap_irq_bank *bank = irq_banks + i;
+ 
+@@ -225,8 +239,10 @@ out:
+ 		irqnr = readl_relaxed(base_addr + INTCPS_SIR_IRQ_OFFSET);
+ 		irqnr &= ACTIVEIRQ_MASK;
+ 
+-		if (irqnr)
++		if (irqnr) {
++			irqnr = irq_domain_to_irq(&domain, irqnr);
+ 			handle_IRQ(irqnr, regs);
++		}
+ 	} while (irqnr);
+ }
+ 
+-- 
+1.7.0.4
