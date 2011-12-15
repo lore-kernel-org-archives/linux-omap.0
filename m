@@ -1,57 +1,88 @@
 From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] am35xx-emac: move generic EMAC init to separate file
-Date: Thu, 15 Dec 2011 11:39:35 +0200
-Message-ID: <4EE9C057.6010204@compulab.co.il>
-References: <1321490199-24371-1-git-send-email-yanok@emcraft.com> <20111208001503.GV31337@atomide.com> <4EE93564.3010006@emcraft.com>
+Subject: Re: [PATCH V2 1/2] mcx: very basic support for HTKW mcx board
+Date: Thu, 15 Dec 2011 11:51:23 +0200
+Message-ID: <4EE9C31B.7080206@compulab.co.il>
+References: <1323910383-1184-1-git-send-email-yanok@emcraft.com> <1323910383-1184-2-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36064
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36129
 	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932276Ab1LOJjq (ORCPT
+	by vger.kernel.org with ESMTP id S932454Ab1LOJvk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:39:46 -0500
-In-Reply-To: <4EE93564.3010006@emcraft.com>
+	Thu, 15 Dec 2011 04:51:40 -0500
+In-Reply-To: <1323910383-1184-2-git-send-email-yanok@emcraft.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ilya Yanok <yanok@emcraft.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, sasha_d@emcraft.com, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Ilya
 
-On 12/15/11 01:46, Ilya Yanok wrote:
-> Hi Tony,
-> 
-> On 08.12.2011 04:15, Tony Lindgren wrote:
->>> AM35xx SoCs include DaVinci EMAC IP. Initialization code in
->>> board-am3517evm.c is pretty board independent and will work for any
->>> AM35xx based board so move this code to it's own file to be reused by
->>> other boards.
->>
->> Should this be just called emac-common.c? Or is it so am35xx specific
->> that it won't work with others?
-> 
-> Uh.. I'm not sure but I thought that EMAC is present only on am35xx SoCs...
-> 
->>> +	clk_add_alias(NULL, dev_name(&am35xx_emac_device.dev),
->>> +		      "emac_clk", &am35xx_emac_device.dev);
->>> +	clk_add_alias(NULL, dev_name(&am35xx_mdio_device.dev),
->>> +		      "phy_clk", &am35xx_emac_device.dev);
->>
->> Hmm after moving the code and should be a separate patch, don't
->> we already have these clock aliases in cloc3xxx_data.c?
-> 
-> No, we have
-> CLK("davinci_emac", "emac_clk"...) and
-> CLK("davinci_emac", "phy_clk"...)
-> while drivers want ("davinci_emac", NULL) and ("davinci_mdio", NULL).
-> 
-> Probably we have to fix the clock definitions instead of adding the aliases.
-> 
-> So, should I post this as a separate patch?
 
-If it comes to that question, Cc Paul...
+On 12/15/11 02:53, Ilya Yanok wrote:
+> Very basic support for HTKW mcx board. Able to boot via board-generic
+> and ramdisk/initramfs, however most of peripherals is unsupported.
+> Produces tons of twl4030 related errors as this board doesn't have
+> twl4030 installed.
+> 
+> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+> 
+> ---
+> Changes from V1:
+> 
+>  - device tree moved to the separate patch
+>  - iva node is disabled instead of using custom includes
+>  - removed bootargs entry
+> 
+>  arch/arm/boot/dts/mcx.dts |   27 +++++++++++++++++++++++++++
+>  1 files changed, 27 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/mcx.dts
+> 
+> diff --git a/arch/arm/boot/dts/mcx.dts b/arch/arm/boot/dts/mcx.dts
+> new file mode 100644
+> index 0000000..66b81bd
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/mcx.dts
+> @@ -0,0 +1,27 @@
+> +/*
+> + * Copyright (C) 2011 Ilya Yanok, EmCraft Systems
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +/include/ "omap3.dtsi"
+> +
+> +/ {
+> +	model = "HTKW mcx";
+> +	compatible = "htkw,mcx", "ti,omap3";
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x10000000>; /* 256 MB */
+> +	};
+> +
+> +	/* AM35xx doesn't have IVA */
+> +	soc {
+> +		iva {
+> +			status = "disabled";
+> +		};
+> +	};
+
+I don't get it...
+Why SoCs that do not have those IP blocks should poke
+their configuration inside the h/w description
+(e.g. disable/enable/workaround/hack)?
+This way, why don't we also disable the PCIe which this SoC does not have?
+Of course, I'm exaggerating, but this just does not scale...
+Soon you will have a bunch of boards disabling stuff,
+that they *do not have natively*...
+Why don't generic OMAP3 DT file disable the EMAC?
+If we will go this way, we will find ourself fixing it later
+and producing the renaming/moving "churn", won't we?
 
 -- 
 Regards,
