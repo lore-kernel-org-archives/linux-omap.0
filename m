@@ -1,112 +1,142 @@
-From: Vishwanath BS <vishwanath.bs@ti.com>
-Subject: [PATCHv3 3/7] ARM: OMAP4 PM: Add IO Daisychain support
-Date: Thu, 15 Dec 2011 20:47:19 +0530
-Message-ID: <1323962239-6030-1-git-send-email-vishwanath.bs@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
+Date: Thu, 15 Dec 2011 09:48:27 -0600
+Message-ID: <4EEA16CB.6040708@gmail.com>
+References: <1323439361-1647-1-git-send-email-b-cousson@ti.com> <1323439361-1647-3-git-send-email-b-cousson@ti.com> <4EE8D5A1.2080100@gmail.com> <4EEA0CC5.4090602@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59202 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736Ab1LOP0u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Dec 2011 10:26:50 -0500
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:35514 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646Ab1LOPsd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 10:48:33 -0500
+Received: by yenm11 with SMTP id m11so1550881yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 07:48:32 -0800 (PST)
+In-Reply-To: <4EEA0CC5.4090602@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 
-From: Rajendra Nayak <rnayak@ti.com>
+On 12/15/2011 09:05 AM, Cousson, Benoit wrote:
+> Hi Rob,
+> 
+> On 12/14/2011 5:58 PM, Rob Herring wrote:
+>> Benoit,
+>>
+>> On 12/09/2011 08:02 AM, Benoit Cousson wrote:
+>>> Add initial DT support to retrieve the frequency using a
+>>> DT attribute instead of the pdata pointer if of_node exist.
+>>>
+>>> Add documentation for omap i2c controller binding.
+>>>
+>>> Based on original patches from Manju and Grant.
+>>>
+>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>>> Cc: Ben Dooks<ben-linux@fluff.org>
+>>> ---
+>>>   Documentation/devicetree/bindings/i2c/omap-i2c.txt |   42 ++++++++
+>>>   drivers/i2c/busses/i2c-omap.c                      |  100
+>>> +++++++++++++-------
+>>>   2 files changed, 107 insertions(+), 35 deletions(-)
+>>>   create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+>>>
+>>> diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt
+>>> b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
+>>> new file mode 100644
+>>> index 0000000..d259a17
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
+>>> @@ -0,0 +1,42 @@
+>>> +I2C for OMAP platforms
+>>> +
+>>> +Required properties :
+>>> +- compatible : Must be "ti,omap3-i2c" or "ti,omap4-i2c"
+>>> +- ti,hwmods : Must be "i2c<n>", n being the instance number (1-based)
+>>> +- #address-cells =<1>;
+>>> +- #size-cells =<0>;
+>>> +
+>>> +Recommended properties :
+>>> +- clock-frequency : Desired I2C bus clock frequency in Hz. Otherwise
+>>> +  the default 100 kHz frequency will be used.
+>>> +
+>>> +Optional properties:
+>>> +- Child nodes conforming to i2c bus binding
+>>> +- ti,flags : u32: settings or errata relative to the i2c
+>>> +    0x1:   OMAP_I2C_FLAG_NO_FIFO
+>>> +    0x2:   OMAP_I2C_FLAG_SIMPLE_CLOCK
+>>> +    0x4:   OMAP_I2C_FLAG_16BIT_DATA_REG
+>>> +    0x8:   OMAP_I2C_FLAG_RESET_REGS_POSTIDLE
+>>> +    0x10:  OMAP_I2C_FLAG_APPLY_ERRATA_I207
+>>> +    0x20:  OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK
+>>> +    0x40:  OMAP_I2C_FLAG_FORCE_19200_INT_CLK
+>>> +  Valid for ti,omap3-i2c only:
+>>> +    0x80:  OMAP_I2C_FLAG_BUS_SHIFT_1: 8 bits registers
+>>> +    0x100: OMAP_I2C_FLAG_BUS_SHIFT_2: 16 bits registers
+>>
+>> It's generally preferred to split these out to separate properties since
+>> there is not yet define capability in dts.
+> 
+> Yeah, I was hoping that Stephen's DTC patches were accepted to avoid that.
+> 
+>> Can some of these be removed
+>> by having more specific compatible strings? That is the whole point in
+>> having compatible strings not be generic. omap4-i2c and omap3-i2c is
+>> still kind of generic.
+> 
+> Do you mean creating some attributes like that:
+> 
+> +    ti,16bits_shift;
+> +    ti,reset_postidle;
+> +    ti,errata_i207;
+> 
+> Or using some omap3-i2c or omap4-i2c to determine the proper version and
+> thus populate the right flags during probe.
+> 
 
-patch adds IO Daisychain support for OMAP4 as per section 3.9.4 in OMAP4430
-Public TRM.
+If that's specific enough, then yes. I meant that if say only the
+omap3578 (making up numbers here) has errata i207, then define a
+compatible string "ti,omap3578-i2c" that implies that and possibly other
+flags.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Tested-by: Govindraj.R <govindraj.raja@ti.com>
----
-Changes done in V3:
-1. Moved enablement of Global WUEN which is a onetime setting to pm_init
-   so that there is no check inside omap4_trigger_wuclk_ctrl
-2. Fixed an issue while reading WUCLK_STATUS inside omap4_trigger_wuclk_ctrl
+To put it another way, there are only N valid combinations of flags and
+N is probably fairly small as long as the flags are dictated by the i2c
+h/w rev or how it was integrated into a particular SOC. So you should
+have N compatible strings that reflect those valid combinations. The
+driver can still use the flags internally.
 
-Updated branch is available at:
-git://gitorious.org/omap-pm/linux.git for_3.3/io_daisy_chain_rebased
+For any flags that are in fact board level configuration, they should be
+broken out as individual properties. Most of these sound like they are
+properties of the h/w and not user configuration of the h/w.
 
- arch/arm/mach-omap2/pm44xx.c  |    8 ++++++++
- arch/arm/mach-omap2/prm44xx.c |   25 +++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h |    1 +
- 3 files changed, 34 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index 8edb015..a7cd8db
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -18,6 +18,8 @@
- 
- #include "common.h"
- #include "powerdomain.h"
-+#include "prm44xx.h"
-+#include "prm-regbits-44xx.h"
- 
- struct power_state {
- 	struct powerdomain *pwrdm;
-@@ -111,6 +113,12 @@ static int __init omap4_pm_init(void)
- 		goto err2;
- 	}
- 
-+	/* Enable GLOBAL_WUEN */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
-+			OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_INST,
-+			OMAP4_PRM_IO_PMCTRL_OFFSET);
-+
-+
- #ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
- #endif /* CONFIG_SUSPEND */
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
-index 67d8d74..da97851
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -142,3 +142,28 @@ static int __init omap4xxx_prcm_init(void)
- 		return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
- 	return 0;
- }
-+
-+/**
-+ * Maximum time(us) it takes to output the signal WUCLKOUT of the last pad of
-+ * the I/O ring after asserting WUCLKIN high
-+ */
-+#define MAX_IOPAD_LATCH_TIME 1000
-+
-+/* OMAP4 IO Daisychain trigger sequence */
-+void omap4_trigger_wuclk_ctrl(void)
-+{
-+	int i = 0;
-+
-+	/* Trigger WUCLKIN enable */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, OMAP4430_WUCLK_CTRL_MASK,
-+			OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET);
-+	omap_test_timeout(
-+		(((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+		OMAP4430_WUCLK_STATUS_MASK) >> OMAP4430_WUCLK_STATUS_SHIFT) == 1),
-+		MAX_IOPAD_LATCH_TIME, i);
-+
-+	/* Trigger WUCLKIN disable */
-+	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
-+			OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET);
-+	return;
-+}
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
-index 3d66ccd..a8678db 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -750,6 +750,7 @@
- extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
- extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
- extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
-+extern void omap4_trigger_wuclk_ctrl(void);
- 
- /* OMAP4-specific VP functions */
- u32 omap4_prm_vp_check_txdone(u8 vp_id);
--- 
-1.7.0.4
+> [...]
+> 
+>>> @@ -965,6 +956,31 @@ static const struct i2c_algorithm omap_i2c_algo = {
+>>>       .functionality    = omap_i2c_func,
+>>>   };
+>>>
+>>> +#ifdef CONFIG_OF
+>>> +static struct omap_i2c_bus_platform_data omap3_pdata = {
+>>> +    .rev = OMAP_I2C_IP_VERSION_1,
+>>> +};
+>>> +
+>>> +static struct omap_i2c_bus_platform_data omap4_pdata = {
+>>> +    .rev = OMAP_I2C_IP_VERSION_2,
+>>> +};
+>>
+>> This is redundant. The ip version can be determined from the compatible
+>> string.
+> 
+> I'm confused...
+> I'm using the compatible string below to chose the proper value.
+> This flag is then used later at runtime.
+> I'm using a pseudo pdata because that driver is still used in old
+> platform that does and will never not have DT support.
+> 
 
+After more thought, never mind. You'll probably need it for handling the
+flags as I proposed above.
+
+Rob
