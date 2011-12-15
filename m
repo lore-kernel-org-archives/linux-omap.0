@@ -1,86 +1,43 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Thu, 15 Dec 2011 13:02:17 +0100
-Message-ID: <201112151302.18508.laurent.pinchart@ideasonboard.com>
-References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org> <201112141415.23885.laurent.pinchart@ideasonboard.com> <1323886950.295978.31313@localhost>
+From: =?ISO-8859-1?Q?P=E9ter?= Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: Re: Re: Re: [PATCH 06/10] ASoC: omap-abe-twl6040: Convert to platform deriver
+Date: Thu, 15 Dec 2011 15:01:05 +0200
+Message-ID: <1342606.MORk9WEnkg@barack>
+References: <1323856022-24053-1-git-send-email-peter.ujfalusi@ti.com> <20111214112710.GI3072@opensource.wolfsonmicro.com> <5238231.U46jV2XvpL@barack>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1323886950.295978.31313@localhost>
-Sender: linux-media-owner@vger.kernel.org
-To: martin@neutronstar.dyndns.org
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:39491 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751089Ab1LONBK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Dec 2011 08:01:10 -0500
+Received: by mail-lpp01m010-f51.google.com with SMTP id o2so1205363lag.24
+        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 05:01:09 -0800 (PST)
+In-Reply-To: <5238231.U46jV2XvpL@barack>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-Hi Martin,
+On Thursday 15 December 2011 10:17:38 P=E9ter Ujfalusi wrote:
+> Hi Mark,
+>=20
+> On Wednesday 14 December 2011 19:27:11 Mark Brown wrote:
+> > This seems like we need a better system for doing this, we can't go
+> > changing the machine name every time there's a kernel space change =
+that
+> > affects a UCM file, that's going to get crazy.
 
-On Wednesday 14 December 2011 19:22:29 martin@neutronstar.dyndns.org wrote:
-> On Wed, Dec 14, 2011 at 02:15:22PM +0100, Laurent Pinchart wrote:
-> > On Wednesday 14 December 2011 10:31:35 Igor Grinberg wrote:
-> > > On 12/14/11 03:25, Martin Hostettler wrote:
-> > > > Adds board support for an MT9M032 based camera to omap3evm.
-> > > > 
-> > > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > 
-> > [snip]
-> > 
-> > > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> > > > index 0000000..bffd5b8
-> > > > --- /dev/null
-> > > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > > @@ -0,0 +1,155 @@
-> > 
-> > [snip]
-> > 
-> > > > +#include <linux/i2c.h>
-> > > > +#include <linux/init.h>
-> > > > +#include <linux/platform_device.h>
-> > > > +
-> > > > +#include <linux/gpio.h>
-> > > > +#include <plat/mux.h>
-> > > > +#include "mux.h"
-> > > > +
-> > > > +#include "../../../drivers/media/video/omap3isp/isp.h"
-> > > 
-> > > Laurent,
-> > > In one of the previous reviews, you stated:
-> > > "I'll probably split it and move the part required by board files to
-> > > include/media/omap3isp.h".
-> > > Is there any progress on that?
-> > 
-> > Yes, it has been half-fixed in mainline. Half only because all the
-> > structures and macros that should be used by board code are now in
-> > <media/omap3isp.h>, but some boards need to access OMAP3 ISP internals
-> > from board code, which still requires
-> > drivers/media/video/omap3isp/isp.h. This will eventually be fixed, when
-> > the generic struct clk object will be available.
-> > 
-> > After a quick look at this patch it seems that <media/omap3isp.h> should
-> > be enough here.
-> 
-> Almost. The code uses ISPCTRL_PAR_BRIDGE_DISABLE which is only available
-> from drivers/media/video/omap3isp/ispreg.h.
->
-> So i'd say it's better to keep that include than to duplicate this constant
-> in the code.
-> 
-> What do you think?
+We can handle the different features on the card with the same name wit=
+h UCM=20
+fine, so I will not change the name of the card.
+Will be fixed for v2.
 
-You should use ISP_BRIDGE_DISABLE instead. That one is defined in 
-<media/omap3isp.h>
- 
-> By the way, it seems drivers/media/video/omap3isp/ispvideo.c is missing a
-> #include <linux/module.h> at the moment. I had to patch that line in to get
-> omap3isp to compile as module.
-
-http://patchwork.linuxtv.org/patch/8510/
-
-The fix should get in v3.2.
-
--- 
-Regards,
-
-Laurent Pinchart
+--
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
