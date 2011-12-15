@@ -1,114 +1,96 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
- controller
-Date: Thu, 15 Dec 2011 18:49:50 +0100
-Message-ID: <4EEA333E.9030502@ti.com>
-References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com> <4EE0D0E6.3060202@ti.com> <4EE20B38.8050006@gmail.com> <4EE2209E.2040209@ti.com> <4EE227A4.2030209@gmail.com> <4EE2320D.2030309@ti.com> <4EE2335C.7050902@gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: Issue with isp1704 loaded too soon
+Date: Thu, 15 Dec 2011 19:51:47 +0200
+Message-ID: <CAMP44s08uBK1Vm0Bx_0NouaaNHU0D2kp9AiL+1LPrT1BZURj0A@mail.gmail.com>
+References: <CAMP44s2M8cFM5AhjMwbFJZpQtbYe13w9bswTRhap97nOCyZVfQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40546 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751551Ab1LORuD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Dec 2011 12:50:03 -0500
-In-Reply-To: <4EE2335C.7050902@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMP44s2M8cFM5AhjMwbFJZpQtbYe13w9bswTRhap97nOCyZVfQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/9/2011 5:12 PM, Rob Herring wrote:
-> On 12/09/2011 10:06 AM, Cousson, Benoit wrote:
-
-[...]
-
->> My point is that even in the DT case I do have some devices that are
->> initialized without DT for the moment and thus cannot get access to the
->> interrupt-controller node and then cannot retrieve the domain information.
+On Thu, Dec 15, 2011 at 1:15 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Tue, Dec 13, 2011 at 11:19 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> On Mon, Dec 12, 2011 at 9:09 AM, Jarkko Nikula <jarkko.nikula@bitmer=
+=2Ecom> wrote:
+>>> Indeed yes. I checked that in 3.0 it still works but not in 3.1 so =
+some
+>>> non isp1704_charger change has broke it as there hasn't been change=
+s on it.
 >>
->> How can I ensure the proper hwirq ->  irq translation then for such devices?
->> Only the one created by DT will have the correct irq number.
-> 
-> Okay, I missed that aspect of it. So I guess 0 base is fine for now.
-> 
-> Rob
+>> Actually it's broken in 3.0 as well, try this configuration:
+>>
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_MUSB_HOST is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_MUSB_PERIPHERAL is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_MUSB_OTG=3Dy
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_GADGET_MUSB_HDRC=3Dy
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_MUSB_HDRC_HCD=3Dy
+>>
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_GADGET_SELECTED=3Dy
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_FUSB300 is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_OMAP is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_R8A66597 is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_PXA_U2O is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_M66592 is not set
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_DUMMY_HCD is not set
+>>
+>> I will try to find where the issues started to happen, but it's a bi=
+t
+>> difficult because all this USB Kconfig stuff is completely messed up=
+=2E
+>>
+>> *Sigh*
+>
+> Ok, I made some progress.
+>
+> The issue appeared on 2.6.39, specifically, on commit 0df0914, which
+> is a merge from Linus. The issue doesn't appear in any of the two
+> parents of that merge.
+>
+> I manually merged various commits, and the first one that triggered
+> the problem is 18a2689, but the commit itself is not the problem but
+> something that was already merged to Linus' tree, specifically at
+> point 6899608.
+>
+> IOW, it's a mixture of two changes that appear together at point,
+> 0df0914, one of them is 18a2689, the other one I still don't know.
+>
+> Unless you can find what's wrong with this commit:
+> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dbl=
+obdiff;f=3Darch/arm/mach-omap2/usb-musb.c;h=3Da9d4d143086d73463b97c093c=
+c9f022de8e1d679;hp=3D9788b4941857f40d50d48fa6470ee14e179bc373;hb=3D18a2=
+689;hpb=3D273ff8c3bc04cf358c131f49ee7a11efa7ec73d7
+>
+> I guess the safest route is to continue with the manual merges to fin=
+d
+> the second relevant commit =3D/
 
-Following that discussion, I made a patch (included below) last week to add domain support just before this one for DT migration.
-I'm now wondering if it makes sense to do it like that considering your recent patch: irq: convert generic-chip to use irq_domain.
+=46ound it.
 
-What do you think?
+So, the first commit is this one:
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
+itdiff;h=3D18a2689
 
-Thanks,
-Benoit
+Which needs this one:
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
+itdiff;h=3D870ea2b
 
----
->From 3083589f48604aab3d801179810c2af8339525ae Mon Sep 17 00:00:00 2001
-From: Benoit Cousson <b-cousson@ti.com>
-Date: Thu, 8 Dec 2011 22:16:51 +0100
-Subject: [PATCH] ARM: OMAP2/3: intc: Add irqdomain support
+But it's only triggered with this other one:
+http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
+itdiff;h=3D7acc619
 
-Introduce the usage of the irqdomain to prepare the DT support.
-The irq_base is still hard coded to 0 to allow non-DT drivers
-to work with the previous assumption that was hwirq = irq.
+Seems to be some power management stuff, and it's only triggered with
+certain configurations.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
----
- arch/arm/mach-omap2/irq.c |   18 +++++++++++++++++-
- 1 files changed, 17 insertions(+), 1 deletions(-)
+And this concludes the most tedious git bisect in history =3D/
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 42b1d65..2f65dfd 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -17,6 +17,7 @@
- #include <mach/hardware.h>
- #include <asm/exception.h>
- #include <asm/mach/irq.h>
-+#include <linux/irqdomain.h>
- 
- 
- /* selected INTC register offsets */
-@@ -57,6 +58,8 @@ static struct omap_irq_bank {
- 	},
- };
- 
-+static struct irq_domain domain;
-+
- /* Structure to save interrupt controller context */
- struct omap3_intc_regs {
- 	u32 sysconfig;
-@@ -158,6 +161,17 @@ static void __init omap_init_irq(u32 base, int nr_irqs)
- 	if (WARN_ON(!omap_irq_base))
- 		return;
- 
-+	/*
-+	 * XXX: Use a 0 irq_base for the moment since the legacy devices
-+	 * created statically are expected a hwirq = irq mapping.
-+	 * A proper offset will be added later, when IRQ resource creation
-+	 * will be handled by DT.
-+	 */
-+	domain.irq_base = 0;
-+	domain.nr_irq = nr_irqs;
-+	domain.ops = &irq_domain_simple_ops;
-+	irq_domain_add(&domain);
-+
- 	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
- 		struct omap_irq_bank *bank = irq_banks + i;
- 
-@@ -225,8 +239,10 @@ out:
- 		irqnr = readl_relaxed(base_addr + INTCPS_SIR_IRQ_OFFSET);
- 		irqnr &= ACTIVEIRQ_MASK;
- 
--		if (irqnr)
-+		if (irqnr) {
-+			irqnr = irq_domain_to_irq(&domain, irqnr);
- 			handle_IRQ(irqnr, regs);
-+		}
- 	} while (irqnr);
- }
- 
--- 
-1.7.0.4
+Cheers.
+
+--=20
+=46elipe Contreras
