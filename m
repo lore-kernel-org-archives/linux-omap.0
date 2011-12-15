@@ -1,96 +1,35 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: Issue with isp1704 loaded too soon
-Date: Thu, 15 Dec 2011 19:51:47 +0200
-Message-ID: <CAMP44s08uBK1Vm0Bx_0NouaaNHU0D2kp9AiL+1LPrT1BZURj0A@mail.gmail.com>
-References: <CAMP44s2M8cFM5AhjMwbFJZpQtbYe13w9bswTRhap97nOCyZVfQ@mail.gmail.com>
+From: David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH v4 REPOST 2/5] ARM: SMP: Refactor Kconfig to be more
+ maintainable
+Date: Thu, 15 Dec 2011 10:14:50 -0800
+Message-ID: <20111215181450.GA22330@codeaurora.org>
+References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
+ <1323862781-3465-3-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMP44s2M8cFM5AhjMwbFJZpQtbYe13w9bswTRhap97nOCyZVfQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-main <linux-kernel@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1323862781-3465-3-git-send-email-dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Anton Vorontsov <avorontsov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Mundt <lethal-M7jkjyW5wf5g9hUCZPvPmw@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Linn <john.linn-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Dec 15, 2011 at 1:15 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Tue, Dec 13, 2011 at 11:19 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Mon, Dec 12, 2011 at 9:09 AM, Jarkko Nikula <jarkko.nikula@bitmer=
-=2Ecom> wrote:
->>> Indeed yes. I checked that in 3.0 it still works but not in 3.1 so =
-some
->>> non isp1704_charger change has broke it as there hasn't been change=
-s on it.
->>
->> Actually it's broken in 3.0 as well, try this configuration:
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_MUSB_HOST is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_MUSB_PERIPHERAL is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_MUSB_OTG=3Dy
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_GADGET_MUSB_HDRC=3Dy
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_MUSB_HDRC_HCD=3Dy
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0CONFIG_USB_GADGET_SELECTED=3Dy
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_FUSB300 is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_OMAP is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_R8A66597 is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_PXA_U2O is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_M66592 is not set
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0# CONFIG_USB_GADGET_DUMMY_HCD is not set
->>
->> I will try to find where the issues started to happen, but it's a bi=
-t
->> difficult because all this USB Kconfig stuff is completely messed up=
-=2E
->>
->> *Sigh*
->
-> Ok, I made some progress.
->
-> The issue appeared on 2.6.39, specifically, on commit 0df0914, which
-> is a merge from Linus. The issue doesn't appear in any of the two
-> parents of that merge.
->
-> I manually merged various commits, and the first one that triggered
-> the problem is 18a2689, but the commit itself is not the problem but
-> something that was already merged to Linus' tree, specifically at
-> point 6899608.
->
-> IOW, it's a mixture of two changes that appear together at point,
-> 0df0914, one of them is 18a2689, the other one I still don't know.
->
-> Unless you can find what's wrong with this commit:
-> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dbl=
-obdiff;f=3Darch/arm/mach-omap2/usb-musb.c;h=3Da9d4d143086d73463b97c093c=
-c9f022de8e1d679;hp=3D9788b4941857f40d50d48fa6470ee14e179bc373;hb=3D18a2=
-689;hpb=3D273ff8c3bc04cf358c131f49ee7a11efa7ec73d7
->
-> I guess the safest route is to continue with the manual merges to fin=
-d
-> the second relevant commit =3D/
+On Wed, Dec 14, 2011 at 11:39:38AM +0000, Dave Martin wrote:
+> Making SMP depend on (huge list of MACH_ and ARCH_ configs) is
+> bothersome to maintain and likely to lead to merge conflicts.
+> 
+> This patch moves the knowledge of which platforms are SMP-capable
+> to the individual machines.  To enable this, a new HAVE_SMP config
+> option is introduced to allow machines to indicate that they can
+> run in a SMP configuration.
 
-=46ound it.
+There still seem to be several people and lists from the
+get_maintainer.pl output that are missing.  Russell should be
+included, as well as the MSM maintainers and that list.
 
-So, the first commit is this one:
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
-itdiff;h=3D18a2689
+David
 
-Which needs this one:
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
-itdiff;h=3D870ea2b
-
-But it's only triggered with this other one:
-http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3Dcomm=
-itdiff;h=3D7acc619
-
-Seems to be some power management stuff, and it's only triggered with
-certain configurations.
-
-And this concludes the most tedious git bisect in history =3D/
-
-Cheers.
-
---=20
-=46elipe Contreras
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
