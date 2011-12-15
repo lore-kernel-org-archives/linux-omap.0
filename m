@@ -1,142 +1,61 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
-Date: Thu, 15 Dec 2011 09:48:27 -0600
-Message-ID: <4EEA16CB.6040708@gmail.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com> <1323439361-1647-3-git-send-email-b-cousson@ti.com> <4EE8D5A1.2080100@gmail.com> <4EEA0CC5.4090602@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:35514 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab1LOPsd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 10:48:33 -0500
-Received: by yenm11 with SMTP id m11so1550881yen.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 07:48:32 -0800 (PST)
-In-Reply-To: <4EEA0CC5.4090602@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH v5 0/5] Refactor common Kconfigs for easier maintenance
+Date: Thu, 15 Dec 2011 15:53:49 +0000
+Message-ID: <1323964434-6764-1-git-send-email-dave.martin@linaro.org>
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Anton Vorontsov <avorontsov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Haojian Zhuang <haojian.zhuang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, John Linn <john.linn-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Mundt <lethal-M7jkjyW5wf5g9hUCZPvPmw@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 
-On 12/15/2011 09:05 AM, Cousson, Benoit wrote:
-> Hi Rob,
-> 
-> On 12/14/2011 5:58 PM, Rob Herring wrote:
->> Benoit,
->>
->> On 12/09/2011 08:02 AM, Benoit Cousson wrote:
->>> Add initial DT support to retrieve the frequency using a
->>> DT attribute instead of the pdata pointer if of_node exist.
->>>
->>> Add documentation for omap i2c controller binding.
->>>
->>> Based on original patches from Manju and Grant.
->>>
->>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->>> Cc: Ben Dooks<ben-linux@fluff.org>
->>> ---
->>>   Documentation/devicetree/bindings/i2c/omap-i2c.txt |   42 ++++++++
->>>   drivers/i2c/busses/i2c-omap.c                      |  100
->>> +++++++++++++-------
->>>   2 files changed, 107 insertions(+), 35 deletions(-)
->>>   create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt
->>> b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
->>> new file mode 100644
->>> index 0000000..d259a17
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
->>> @@ -0,0 +1,42 @@
->>> +I2C for OMAP platforms
->>> +
->>> +Required properties :
->>> +- compatible : Must be "ti,omap3-i2c" or "ti,omap4-i2c"
->>> +- ti,hwmods : Must be "i2c<n>", n being the instance number (1-based)
->>> +- #address-cells =<1>;
->>> +- #size-cells =<0>;
->>> +
->>> +Recommended properties :
->>> +- clock-frequency : Desired I2C bus clock frequency in Hz. Otherwise
->>> +  the default 100 kHz frequency will be used.
->>> +
->>> +Optional properties:
->>> +- Child nodes conforming to i2c bus binding
->>> +- ti,flags : u32: settings or errata relative to the i2c
->>> +    0x1:   OMAP_I2C_FLAG_NO_FIFO
->>> +    0x2:   OMAP_I2C_FLAG_SIMPLE_CLOCK
->>> +    0x4:   OMAP_I2C_FLAG_16BIT_DATA_REG
->>> +    0x8:   OMAP_I2C_FLAG_RESET_REGS_POSTIDLE
->>> +    0x10:  OMAP_I2C_FLAG_APPLY_ERRATA_I207
->>> +    0x20:  OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK
->>> +    0x40:  OMAP_I2C_FLAG_FORCE_19200_INT_CLK
->>> +  Valid for ti,omap3-i2c only:
->>> +    0x80:  OMAP_I2C_FLAG_BUS_SHIFT_1: 8 bits registers
->>> +    0x100: OMAP_I2C_FLAG_BUS_SHIFT_2: 16 bits registers
->>
->> It's generally preferred to split these out to separate properties since
->> there is not yet define capability in dts.
-> 
-> Yeah, I was hoping that Stephen's DTC patches were accepted to avoid that.
-> 
->> Can some of these be removed
->> by having more specific compatible strings? That is the whole point in
->> having compatible strings not be generic. omap4-i2c and omap3-i2c is
->> still kind of generic.
-> 
-> Do you mean creating some attributes like that:
-> 
-> +    ti,16bits_shift;
-> +    ti,reset_postidle;
-> +    ti,errata_i207;
-> 
-> Or using some omap3-i2c or omap4-i2c to determine the proper version and
-> thus populate the right flags during probe.
-> 
+Common Kconfig options which depend on a long list of board- and
+SoC- specific Kconfigs can be cumbersome to maintain, leading to
+annoying merge conflicts (although rather trivial ones).
 
-If that's specific enough, then yes. I meant that if say only the
-omap3578 (making up numbers here) has errata i207, then define a
-compatible string "ti,omap3578-i2c" that implies that and possibly other
-flags.
+This series factors out the dependencies of CACHE_L2X0 and SMP so
+that the knowledge about when these can be enabled is moved to the
+relevant board/SoC Kconfig files instead.  New
+MIGHT_HAVE_CACHE_L2X0 and HAVE_SMP options are defined to mediate
+the dependencies.
 
-To put it another way, there are only N valid combinations of flags and
-N is probably fairly small as long as the flags are dictated by the i2c
-h/w rev or how it was integrated into a particular SOC. So you should
-have N compatible strings that reflect those valid combinations. The
-driver can still use the flags internally.
+This series has been substantially reworked compared with the
+previous post, and is now in two parts:
 
-For any flags that are in fact board level configuration, they should be
-broken out as individual properties. Most of these sound like they are
-properties of the h/w and not user configuration of the h/w.
+  * The first two patches simply refactor the way the Kconfig
+    options for CACHE_L2X0 and SMP are implemented, without
+    making any other changes.
+
+  * The final three patches apply functional changes suggested by
+    the contributors to this series, to make the config
+    dependencies more correct for some specific boards.
 
 
-> [...]
-> 
->>> @@ -965,6 +956,31 @@ static const struct i2c_algorithm omap_i2c_algo = {
->>>       .functionality    = omap_i2c_func,
->>>   };
->>>
->>> +#ifdef CONFIG_OF
->>> +static struct omap_i2c_bus_platform_data omap3_pdata = {
->>> +    .rev = OMAP_I2C_IP_VERSION_1,
->>> +};
->>> +
->>> +static struct omap_i2c_bus_platform_data omap4_pdata = {
->>> +    .rev = OMAP_I2C_IP_VERSION_2,
->>> +};
->>
->> This is redundant. The ip version can be determined from the compatible
->> string.
-> 
-> I'm confused...
-> I'm using the compatible string below to chose the proper value.
-> This flag is then used later at runtime.
-> I'm using a pseudo pdata because that driver is still used in old
-> platform that does and will never not have DT support.
-> 
+Thanks to Rob Herring, Shawn Guo and Russell King for their
+contributions to this series.  Thanks also to David Brown for
+pointing out the lack of a comprehensive CC list.
 
-After more thought, never mind. You'll probably need it for handling the
-flags as I proposed above.
 
-Rob
+I have briefly build-tested on some of the affected boards, but any
+further reviews or Tested-Bys would be much appreciated.
+
+
+Dave Martin (5):
+  ARM: l2x0/pl310: Refactor Kconfig to be more maintainable
+  ARM: SMP: Refactor Kconfig to be more maintainable
+  omap4: Unconditionally require l2x0 L2 cache controller support
+  highbank: Unconditionally require l2x0 L2 cache controller support
+  imx6q: Remove unconditional dependency on l2x0 L2 cache support
+
+ arch/arm/Kconfig               |   26 ++++++++++++++++++++++----
+ arch/arm/mach-exynos/Kconfig   |    2 ++
+ arch/arm/mach-imx/Kconfig      |    2 +-
+ arch/arm/mach-msm/Kconfig      |    1 +
+ arch/arm/mach-omap2/Kconfig    |    2 ++
+ arch/arm/mach-realview/Kconfig |    9 +++++++++
+ arch/arm/mach-vexpress/Kconfig |    2 ++
+ arch/arm/mm/Kconfig            |   23 ++++++++++++++++-------
+ arch/arm/plat-mxc/Kconfig      |    1 +
+ 9 files changed, 56 insertions(+), 12 deletions(-)
+
+-- 
+1.7.4.1
