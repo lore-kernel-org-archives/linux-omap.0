@@ -1,123 +1,149 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
- controller
-Date: Thu, 15 Dec 2011 14:52:02 -0600
-Message-ID: <4EEA5DF2.6000903@gmail.com>
-References: <1323291049-24964-1-git-send-email-b-cousson@ti.com> <1323291049-24964-3-git-send-email-b-cousson@ti.com> <4EDFD88B.8060008@gmail.com> <4EE0D0E6.3060202@ti.com> <4EE20B38.8050006@gmail.com> <4EE2209E.2040209@ti.com> <4EE227A4.2030209@gmail.com> <4EE2320D.2030309@ti.com> <4EE2335C.7050902@gmail.com> <4EEA333E.9030502@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 4/4] ARM: omap: pass minimal SoC/board data for UART
+ from dt
+Date: Thu, 15 Dec 2011 13:13:21 -0800
+Message-ID: <20111215211320.GU32251@atomide.com>
+References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
+ <1323863746-18145-5-git-send-email-rnayak@ti.com>
+ <20111214192509.GH32251@atomide.com>
+ <4EE99923.4030902@ti.com>
+ <4EE9C697.4010604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:56782 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756466Ab1LOUwF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 15:52:05 -0500
-Received: by yenm11 with SMTP id m11so1759756yen.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 12:52:05 -0800 (PST)
-In-Reply-To: <4EEA333E.9030502@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31499 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811Ab1LOVN0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:13:26 -0500
+Content-Disposition: inline
+In-Reply-To: <4EE9C697.4010604@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com
 
-On 12/15/2011 11:49 AM, Cousson, Benoit wrote:
-> On 12/9/2011 5:12 PM, Rob Herring wrote:
->> On 12/09/2011 10:06 AM, Cousson, Benoit wrote:
+* Cousson, Benoit <b-cousson@ti.com> [111215 01:34]:
+> Hi Tony,
 > 
-> [...]
+> On 12/15/2011 7:52 AM, Rajendra Nayak wrote:
+> >On Thursday 15 December 2011 12:55 AM, Tony Lindgren wrote:
+> >>* Rajendra Nayak<rnayak@ti.com> [111214 03:24]:
+> >>>Pass minimal data needed for console boot, from dt, for
+> >>>OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
+> >>>static initialization from generic board file.
+> >>>
+> >>>Acked-by: Rob Herring<rob.herring@calxeda.com>
+> >>>Signed-off-by: Rajendra Nayak<rnayak@ti.com>
+> >>
+> >>This we can't merge because this breaks serial console for
+> >>omap2 because you're not adding the omap2 specific dtsi
+> >>entries for omap2..
+> >
+> >But we never had omap2 working with DT, because we never added
+> >a .dtsi file for omap2 or a .dts file for any omap2 board variants.
+> >
+> >Until now the DT support on OMAP has been limited to OMAP3 and OMAP4
+> >with boards limited to omap3beagle/omap4Panda and omap4sdp.
+> >
+> >So when we do add base support for omap2, we could update those
+> >with the serial entries.
 > 
->>> My point is that even in the DT case I do have some devices that are
->>> initialized without DT for the moment and thus cannot get access to the
->>> interrupt-controller node and then cannot retrieve the domain information.
->>>
->>> How can I ensure the proper hwirq ->  irq translation then for such devices?
->>> Only the one created by DT will have the correct irq number.
->>
->> Okay, I missed that aspect of it. So I guess 0 base is fine for now.
->>
->> Rob
+> I'm quite confused as well... Have you tried the current 3.2 kernel
+> on an OMAP2 board?
 > 
-> Following that discussion, I made a patch (included below) last week to add domain support just before this one for DT migration.
-> I'm now wondering if it makes sense to do it like that considering your recent patch: irq: convert generic-chip to use irq_domain.
-> 
-> What do you think?
+> So far I've been taking care of keeping the OMAP2 support into the
+> board-generic.c file, but I've never added any omap2.dtsi or
+> omap2-board.dts file to support it.
 
-Using my patch should definitely simplify yours. You'll definitely need
-the fix I discussed with Shawn. Also, I do have to sort out that it
-breaks on x86 with Grant's suggested change, but that's not too complicated.
+Yeah adding it is trivial, so let's just add it :)
 
-Rob
+How about we just add the following patch before the last patch
+in this series?
 
-> 
-> Thanks,
-> Benoit
-> 
-> ---
-> From 3083589f48604aab3d801179810c2af8339525ae Mon Sep 17 00:00:00 2001
-> From: Benoit Cousson <b-cousson@ti.com>
-> Date: Thu, 8 Dec 2011 22:16:51 +0100
-> Subject: [PATCH] ARM: OMAP2/3: intc: Add irqdomain support
-> 
-> Introduce the usage of the irqdomain to prepare the DT support.
-> The irq_base is still hard coded to 0 to allow non-DT drivers
-> to work with the previous assumption that was hwirq = irq.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> ---
->  arch/arm/mach-omap2/irq.c |   18 +++++++++++++++++-
->  1 files changed, 17 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index 42b1d65..2f65dfd 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -17,6 +17,7 @@
->  #include <mach/hardware.h>
->  #include <asm/exception.h>
->  #include <asm/mach/irq.h>
-> +#include <linux/irqdomain.h>
->  
->  
->  /* selected INTC register offsets */
-> @@ -57,6 +58,8 @@ static struct omap_irq_bank {
->  	},
->  };
->  
-> +static struct irq_domain domain;
-> +
->  /* Structure to save interrupt controller context */
->  struct omap3_intc_regs {
->  	u32 sysconfig;
-> @@ -158,6 +161,17 @@ static void __init omap_init_irq(u32 base, int nr_irqs)
->  	if (WARN_ON(!omap_irq_base))
->  		return;
->  
-> +	/*
-> +	 * XXX: Use a 0 irq_base for the moment since the legacy devices
-> +	 * created statically are expected a hwirq = irq mapping.
-> +	 * A proper offset will be added later, when IRQ resource creation
-> +	 * will be handled by DT.
-> +	 */
-> +	domain.irq_base = 0;
-> +	domain.nr_irq = nr_irqs;
-> +	domain.ops = &irq_domain_simple_ops;
-> +	irq_domain_add(&domain);
-> +
->  	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
->  		struct omap_irq_bank *bank = irq_banks + i;
->  
-> @@ -225,8 +239,10 @@ out:
->  		irqnr = readl_relaxed(base_addr + INTCPS_SIR_IRQ_OFFSET);
->  		irqnr &= ACTIVEIRQ_MASK;
->  
-> -		if (irqnr)
-> +		if (irqnr) {
-> +			irqnr = irq_domain_to_irq(&domain, irqnr);
->  			handle_IRQ(irqnr, regs);
-> +		}
->  	} while (irqnr);
->  }
->  
+I don't have iva there as that's different between 2420 and 2430.
+But omap2.dtsi can be included later on into omap2420.dtsi and
+omap2430.dtsi.
 
+Regards,
+
+Tony
+
+
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 15 Dec 2011 12:48:43 -0800
+Subject: [PATCH] arm/dts: Add minimal device tree support for omap2420 and omap2430
+
+Add minimal device tree support for omap2420 and omap2430
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+--- /dev/null
++++ b/arch/arm/boot/dts/omap2.dtsi
+@@ -0,0 +1,67 @@
++/*
++ * Device Tree Source for OMAP2 SoC
++ *
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2.  This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ */
++
++/include/ "skeleton.dtsi"
++
++/ {
++	compatible = "ti,omap2430", "ti,omap2420", "ti,omap2";
++
++	aliases {
++		serial0 = &uart1;
++		serial1 = &uart2;
++		serial2 = &uart3;
++	};
++
++	cpus {
++		cpu@0 {
++			compatible = "arm,arm1136jf-s";
++		};
++	};
++
++	soc {
++		compatible = "ti,omap-infra";
++		mpu {
++			compatible = "ti,omap2-mpu";
++			ti,hwmods = "mpu";
++		};
++	};
++
++	ocp {
++		compatible = "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++		ti,hwmods = "l3_main";
++
++		intc: interrupt-controller@1 {
++			compatible = "ti,omap2-intc";
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		uart1: serial@0x4806a000 {
++			compatible = "ti,omap2-uart";
++			ti,hwmods = "uart1";
++			clock-frequency = <48000000>;
++		};
++
++		uart2: serial@0x4806c000 {
++			compatible = "ti,omap2-uart";
++			ti,hwmods = "uart2";
++			clock-frequency = <48000000>;
++		};
++
++		uart3: serial@0x4806e000 {
++			compatible = "ti,omap2-uart";
++			ti,hwmods = "uart3";
++			clock-frequency = <48000000>;
++		};
++	};
++};
