@@ -1,48 +1,35 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
-Date: Fri, 16 Dec 2011 01:05:08 +0200
-Message-ID: <1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
+From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3/3] usb: musb: remove a bit of indentation
+Date: Fri, 16 Dec 2011 01:05:10 +0200
+Message-ID: <1323990310-11905-4-git-send-email-felipe.contreras@gmail.com>
 References: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1323990310-11905-1-git-send-email-felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Properly call pm_runtime_put() afer pm_runttime_get() on errors.
+And use dev instead of musb->controller.
 
-Untested.
-
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Signed-off-by: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/musb/musb_gadget.c |    1 +
- drivers/usb/musb/omap2430.c    |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/usb/musb/omap2430.c |   27 +++++++++++++--------------
+ 1 files changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 922148f..95bfd2d 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1960,6 +1960,7 @@ static int musb_gadget_start(struct usb_gadget *g,
- err2:
- 	if (!is_otg_enabled(musb))
- 		musb_stop(musb);
-+	pm_runtime_put(musb->controller);
- err0:
- 	return retval;
- }
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index ba85f27..4edfb91 100644
+index a615538..31fc8a2 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -385,6 +385,7 @@ static void omap2430_musb_disable(struct musb *musb)
+@@ -344,20 +344,19 @@ static void omap2430_musb_enable(struct musb *musb)
  
- static int omap2430_musb_exit(struct musb *musb)
- {
-+	pm_runtime_put(musb->controller);
- 	del_timer_sync(&musb_idle_timer);
- 
- 	omap2430_low_level_exit(musb);
--- 
-1.7.8.rc1.14.g248db
+ 	case USB_EVENT_ID:
+ 		otg_init(musb->xceiv);
+-		if (data->interface_type == MUSB_INTERFACE_UTMI) {
+-			devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+-			/* start the session */
+-			devctl |= MUSB_DEVCTL_SESSION;
+-			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+-			while (musb_readb(musb->mregs, MUSB_DEVCTL) &
+-						MUSB_DEVCTL_BDEVICE) {
+-				cpu_relax();
