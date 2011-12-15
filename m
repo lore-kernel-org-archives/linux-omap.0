@@ -1,101 +1,142 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH V2 1/2] mcx: very basic support for HTKW mcx board
-Date: Thu, 15 Dec 2011 11:17:59 +0100
-Message-ID: <4EE9C957.30504@ti.com>
-References: <1323910383-1184-1-git-send-email-yanok@emcraft.com> <1323910383-1184-2-git-send-email-yanok@emcraft.com> <4EE9C31B.7080206@compulab.co.il>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera
+ board.
+Date: Thu, 15 Dec 2011 12:18:07 +0200
+Message-ID: <4EE9C95F.2090308@compulab.co.il>
+References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org> <4EE86CF7.1010002@compulab.co.il> <1323886442.815408.21905@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56801 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758742Ab1LOKSR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Dec 2011 05:18:17 -0500
-In-Reply-To: <4EE9C31B.7080206@compulab.co.il>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36313
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932500Ab1LOKSY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Dec 2011 05:18:24 -0500
+In-Reply-To: <1323886442.815408.21905@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Ilya Yanok <yanok@emcraft.com>, linux-omap@vger.kernel.org, sasha_d@emcraft.com, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>
+To: martin@neutronstar.dyndns.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>, linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Igor,
-
-On 12/15/2011 10:51 AM, Igor Grinberg wrote:
-> On 12/15/11 02:53, Ilya Yanok wrote:
->> Very basic support for HTKW mcx board. Able to boot via board-generic
->> and ramdisk/initramfs, however most of peripherals is unsupported.
->> Produces tons of twl4030 related errors as this board doesn't have
->> twl4030 installed.
+On 12/14/11 20:14, martin@neutronstar.dyndns.org wrote:
+> On Wed, Dec 14, 2011 at 11:31:35AM +0200, Igor Grinberg wrote:
+>> Hi Martin,
 >>
->> Signed-off-by: Ilya Yanok<yanok@emcraft.com>
+>> On 12/14/11 03:25, Martin Hostettler wrote:
+>>> Adds board support for an MT9M032 based camera to omap3evm.
+>>>
+>>> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+>>> ---
+>>>  arch/arm/mach-omap2/Makefile                |    3 +-
+>>>  arch/arm/mach-omap2/board-omap3evm-camera.c |  155 +++++++++++++++++++++++++++
+>>>  arch/arm/mach-omap2/board-omap3evm.c        |    4 +
+>>>  3 files changed, 161 insertions(+), 1 deletions(-)
+>>>  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+>>>
+>>> Changes in V3
+>>>  * Added missing copyright and attribution.
+>>>  * switched to gpio_request_array for gpio init.
+>>>  * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
+>>>
+>>> Changes in V2:
+>>>  * ported to current mainline
+>>>  * Style fixes
+>>>  * Fix error handling
+>>>
+
+[...]
+
+>>> +/**
+>>> + * omap3evm_set_mux - Sets mux to enable signal routing to
+>>> + *                           different peripherals present on new EVM board
+>>> + * @mux_id: enum, mux id to enable
+>>> + *
+>>> + * Returns 0 for success or a negative error code
+>>> + */
+>>> +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
+>>> +{
+>>> +	/* Set GPIO6 = 1 */
+>>> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
+>>> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+>>> +
+>>> +	switch (mux_id) {
+>>> +	case MUX_TVP5146:
+>>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+>>> +		gpio_set_value(nCAM_VD_SEL, 1);
+>>> +		break;
+>>> +
+>>> +	case MUX_CAMERA_SENSOR:
+>>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+>>> +		gpio_set_value(nCAM_VD_SEL, 0);
+>>> +		break;
+>>> +
+>>> +	case MUX_EXP_CAMERA_SENSOR:
+>>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
+>>> +		break;
+>>> +
+>>> +	default:
+>>> +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
 >>
->> ---
->> Changes from V1:
+>> I don't really care about that, but I don't see any mux
+>> being set in the above function so the name and comments
+>> are misleading.
+> 
+> There's are video muxes on this board that's controlled by various
+> gpios. It's not a mux in the omap chip if you've expected to see that.
+> 
+> As this is an evaluation board it has a bunch of video connectors that 
+> the user can choose from for different input devices.
+
+I see... Probably a comment explaining that would not hurt here.
+
+[...]
+
+>>> +
+>>> +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
+>>> +	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
+>>> +	if (ret < 0) {
+>>> +		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
+>>> +		return ret;
+>>> +	}
 >>
->>   - device tree moved to the separate patch
->>   - iva node is disabled instead of using custom includes
->>   - removed bootargs entry
+>> It looks like both above calls (gpio_request and mux_init)
+>> can be moved to omap3evm_set_mux() function (or a renamed version of it),
+>> so all the GPIO stuff will be close to each other instead of requesting
+>> in one place and playing with values in another...
+> 
+> I'd like to keep the one time setup and the theoretically run time switchable
+> parts seperate. It doesn't complicate the code and if a brave soul wants to
+> connect different camera modules and switch between them it's a more reviewable
+> patch from here.
+
+Ok
+
+> 
 >>
->>   arch/arm/boot/dts/mcx.dts |   27 +++++++++++++++++++++++++++
->>   1 files changed, 27 insertions(+), 0 deletions(-)
->>   create mode 100644 arch/arm/boot/dts/mcx.dts
+>>> +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
 >>
->> diff --git a/arch/arm/boot/dts/mcx.dts b/arch/arm/boot/dts/mcx.dts
->> new file mode 100644
->> index 0000000..66b81bd
->> --- /dev/null
->> +++ b/arch/arm/boot/dts/mcx.dts
->> @@ -0,0 +1,27 @@
->> +/*
->> + * Copyright (C) 2011 Ilya Yanok, EmCraft Systems
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +/dts-v1/;
->> +
->> +/include/ "omap3.dtsi"
->> +
->> +/ {
->> +	model = "HTKW mcx";
->> +	compatible = "htkw,mcx", "ti,omap3";
->> +
->> +	memory {
->> +		device_type = "memory";
->> +		reg =<0x80000000 0x10000000>; /* 256 MB */
->> +	};
->> +
->> +	/* AM35xx doesn't have IVA */
->> +	soc {
->> +		iva {
->> +			status = "disabled";
->> +		};
->> +	};
->
-> I don't get it...
-> Why SoCs that do not have those IP blocks should poke
-> their configuration inside the h/w description
-> (e.g. disable/enable/workaround/hack)?
+>> So the plan is to add support for the 3 types,
+>> but hard code to only one?
+>> Can't this be runtime detected somehow?
+> 
+> The mux code came from out of tree drivers. I did want to keep enough
+> information so someone extending this board code for other setups doesn't have a
+> hard time. I can't think of an reliable way to runtime detect what video source
+> a specific use case would want. Ideally someone who needs one of the other
+> video sources should add a more generic solution here. 
 
-This is indeed the proper way assuming the HW does contain this 
-information. I do not know for this OMAP variant, but this kind of 
-information is not necessarily well exposed inside the HW.
+I'm Ok with it, but usually, stuff that is never used stays out...
+I think the way it should be is to have a platform driver that uses
+a callback to switch between the "muxes" on the extension.
 
-> This way, why don't we also disable the PCIe which this SoC does not have?
-> Of course, I'm exaggerating, but this just does not scale...
-> Soon you will have a bunch of boards disabling stuff,
-> that they *do not have natively*...
-> Why don't generic OMAP3 DT file disable the EMAC?
-> If we will go this way, we will find ourself fixing it later
-> and producing the renaming/moving "churn", won't we?
+[...]
 
-You are indeed exaggerating :-)
-
-Assuming that device is an OMAP3 variant, it seems OK to me to define it 
-like that. am35xx = omap3 + (new IPs) - (IPs not supported)
-
-The good point with DT is that you can add or *remove* things from an 
-included file.
-
+-- 
 Regards,
-Benoit
+Igor.
