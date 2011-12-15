@@ -1,273 +1,183 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 8/9] ARM: OMAP3: pm: use prcm chain handler
-Date: Thu, 15 Dec 2011 14:36:23 -0700
-Message-ID: <20111215213622.26632.13432.stgit@dusk>
+Subject: [PATCH 6/9] ARM: OMAP2+: mux: add support for PAD wakeup interrupts
+Date: Thu, 15 Dec 2011 14:36:21 -0700
+Message-ID: <20111215213620.26632.7756.stgit@dusk>
 References: <20111215213358.26632.44165.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41027 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41017 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759529Ab1LOVhl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:37:41 -0500
+	with ESMTP id S1754146Ab1LOVhk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:37:40 -0500
 In-Reply-To: <20111215213358.26632.44165.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
 
 From: Tero Kristo <t-kristo@ti.com>
 
-PM interrupt handling is now done through the PRCM chain handler. The
-interrupt handling logic is also split in two parts, to serve IO and
-WKUP events separately. This allows us to handle IO chain events in a
-clean way.
+OMAP mux now parses active wakeup events from pad registers and calls
+corresponding hwmod ISRs once a wakeup is detected. This is
+accomplished by registering an interrupt handler for PRCM IO event,
+which is raised every time the HW detects wakeups.
 
-Core event code is also changed in accordance to this, as PRCM
-interrupt handling is done by independent handlers, and the core
-handler should not clear the IO events anymore.
+[paul@pwsan.com: This patch is a merge of Govindraj R's "ARM: OMAP2+:
+hwmod: Add API to check IO PAD wakeup status" patch, Tero Kristo's
+"ARM: OMAP2+: mux: add support for PAD wakeup interrupts" patch, and
+part of Tero's "ARM: OMAP: mux: add support for selecting mpu_irq for
+each wakeup pad" patch.]
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Govindraj.R <govindraj.raja@ti.com>
 Tested-by: Kevin Hilman <khilman@ti.com>
 Reviewed-by: Kevin Hilman <khilman@ti.com>
-[paul@pwsan.com: use pr_err(); combined with portions of earlier patches and
- the "do not enable PRCM MPU interrupts manually" patch]
+Acked-by: Tony Lindgren <tony@atomide.com>
+[paul@pwsan.com: reduced indentation level; renamed omap_hwmod function;
+ improved function documentation; modified to iterate only through dynamic
+ pads; modified to skip pads where idle mode doesn't enable wakeups; split
+ patches]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/pm34xx.c       |  115 ++++++++++++++----------------------
- arch/arm/mach-omap2/prm2xxx_3xxx.c |   26 ++++++++
- 2 files changed, 70 insertions(+), 71 deletions(-)
+ arch/arm/mach-omap2/mux.c                    |   83 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 
+ 2 files changed, 84 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index efa6649..ba1692e 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -194,7 +194,7 @@ static void omap3_save_secure_ram_context(void)
-  * that any peripheral wake-up events occurring while attempting to
-  * clear the PM_WKST_x are detected and cleared.
-  */
--static int prcm_clear_mod_irqs(s16 module, u8 regs)
-+static int prcm_clear_mod_irqs(s16 module, u8 regs, u32 ignore_bits)
- {
- 	u32 wkst, fclk, iclk, clken;
- 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
-@@ -206,6 +206,7 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index a474c81..e1cc75d 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -32,6 +32,8 @@
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/uaccess.h>
++#include <linux/irq.h>
++#include <linux/interrupt.h>
  
- 	wkst = omap2_prm_read_mod_reg(module, wkst_off);
- 	wkst &= omap2_prm_read_mod_reg(module, grpsel_off);
-+	wkst &= ~ignore_bits;
- 	if (wkst) {
- 		iclk = omap2_cm_read_mod_reg(module, iclk_off);
- 		fclk = omap2_cm_read_mod_reg(module, fclk_off);
-@@ -221,6 +222,7 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 			omap2_cm_set_mod_reg_bits(clken, module, fclk_off);
- 			omap2_prm_write_mod_reg(wkst, module, wkst_off);
- 			wkst = omap2_prm_read_mod_reg(module, wkst_off);
-+			wkst &= ~ignore_bits;
- 			c++;
- 		}
- 		omap2_cm_write_mod_reg(iclk, module, iclk_off);
-@@ -230,76 +232,35 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 	return c;
+ #include <asm/system.h>
+ 
+@@ -39,6 +41,7 @@
+ 
+ #include "control.h"
+ #include "mux.h"
++#include "prm.h"
+ 
+ #define OMAP_MUX_BASE_OFFSET		0x30	/* Offset from CTRL_BASE */
+ #define OMAP_MUX_BASE_SZ		0x5ca
+@@ -353,6 +356,78 @@ err1:
+ 	return NULL;
  }
  
--static int _prcm_int_handle_wakeup(void)
-+static irqreturn_t _prcm_int_handle_io(int irq, void *unused)
- {
- 	int c;
- 
--	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
--	c += prcm_clear_mod_irqs(CORE_MOD, 1);
--	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		c += prcm_clear_mod_irqs(CORE_MOD, 3);
--		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
--	}
-+	c = prcm_clear_mod_irqs(WKUP_MOD, 1,
-+		~(OMAP3430_ST_IO_MASK | OMAP3430_ST_IO_CHAIN_MASK));
- 
--	return c;
-+	return c ? IRQ_HANDLED : IRQ_NONE;
- }
- 
--/*
-- * PRCM Interrupt Handler
-- *
-- * The PRM_IRQSTATUS_MPU register indicates if there are any pending
-- * interrupts from the PRCM for the MPU. These bits must be cleared in
-- * order to clear the PRCM interrupt. The PRCM interrupt handler is
-- * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
-- * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
-- * register indicates that a wake-up event is pending for the MPU and
-- * this bit can only be cleared if the all the wake-up events latched
-- * in the various PM_WKST_x registers have been cleared. The interrupt
-- * handler is implemented using a do-while loop so that if a wake-up
-- * event occurred during the processing of the prcm interrupt handler
-- * (setting a bit in the corresponding PM_WKST_x register and thus
-- * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
-- * this would be handled.
-- */
--static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
-+static irqreturn_t _prcm_int_handle_wakeup(int irq, void *unused)
- {
--	u32 irqenable_mpu, irqstatus_mpu;
--	int c = 0;
--
--	irqenable_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQENABLE_MPU_OFFSET);
--	irqstatus_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--	irqstatus_mpu &= irqenable_mpu;
--
--	do {
--		if (irqstatus_mpu & (OMAP3430_WKUP_ST_MASK |
--				     OMAP3430_IO_ST_MASK)) {
--			c = _prcm_int_handle_wakeup();
--
--			/*
--			 * Is the MPU PRCM interrupt handler racing with the
--			 * IVA2 PRCM interrupt handler ?
--			 */
--			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
--			     "but no wakeup sources are marked\n");
--		} else {
--			/* XXX we need to expand our PRCM interrupt handler */
--			WARN(1, "prcm: WARNING: PRCM interrupt received, but "
--			     "no code to handle it (%08x)\n", irqstatus_mpu);
--		}
--
--		omap2_prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
--					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--
--		irqstatus_mpu = omap2_prm_read_mod_reg(OCP_MOD,
--					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--		irqstatus_mpu &= irqenable_mpu;
-+	int c;
- 
--	} while (irqstatus_mpu);
-+	/*
-+	 * Clear all except ST_IO and ST_IO_CHAIN for wkup module,
-+	 * these are handled in a separate handler to avoid acking
-+	 * IO events before parsing in mux code
-+	 */
-+	c = prcm_clear_mod_irqs(WKUP_MOD, 1,
-+		OMAP3430_ST_IO_MASK | OMAP3430_ST_IO_CHAIN_MASK);
-+	c += prcm_clear_mod_irqs(CORE_MOD, 1, 0);
-+	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1, 0);
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		c += prcm_clear_mod_irqs(CORE_MOD, 3, 0);
-+		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1, 0);
-+	}
- 
--	return IRQ_HANDLED;
-+	return c ? IRQ_HANDLED : IRQ_NONE;
- }
- 
- static void omap34xx_save_context(u32 *save)
-@@ -580,6 +541,7 @@ static int omap3_pm_begin(suspend_state_t state)
- 	disable_hlt();
- 	suspend_state = state;
- 	omap_uart_enable_irqs(0);
-+	omap_prcm_irq_prepare();
- 	return 0;
- }
- 
-@@ -591,10 +553,16 @@ static void omap3_pm_end(void)
- 	return;
- }
- 
-+static void omap3_pm_finish(void)
++/**
++ * omap_hwmod_mux_scan_wakeups - omap hwmod scan wakeup pads
++ * @hmux: Pads for a hwmod
++ * @mpu_irqs: MPU irq array for a hwmod
++ *
++ * Scans the wakeup status of pads for a single hwmod.  If an irq
++ * array is defined for this mux, the parser will call the registered
++ * ISRs for corresponding pads, otherwise the parser will stop at the
++ * first wakeup active pad and return.  Returns true if there is a
++ * pending and non-served wakeup event for the mux, otherwise false.
++ */
++static bool omap_hwmod_mux_scan_wakeups(struct omap_hwmod_mux_info *hmux,
++		struct omap_hwmod_irq_info *mpu_irqs)
 +{
-+	omap_prcm_irq_complete();
++	int i, irq;
++	unsigned int val;
++	u32 handled_irqs = 0;
++
++	for (i = 0; i < hmux->nr_pads_dynamic; i++) {
++		struct omap_device_pad *pad = hmux->pads_dynamic[i];
++
++		if (!(pad->flags & OMAP_DEVICE_PAD_WAKEUP) ||
++		    !(pad->idle & OMAP_WAKEUP_EN))
++			continue;
++
++		val = omap_mux_read(pad->partition, pad->mux->reg_offset);
++		if (!(val & OMAP_WAKEUP_EVENT))
++			continue;
++
++		if (!hmux->irqs)
++			return true;
++
++		irq = hmux->irqs[i];
++		/* make sure we only handle each irq once */
++		if (handled_irqs & 1 << irq)
++			continue;
++
++		handled_irqs |= 1 << irq;
++
++		generic_handle_irq(mpu_irqs[irq].irq);
++	}
++
++	return false;
 +}
 +
- static const struct platform_suspend_ops omap_pm_ops = {
- 	.begin		= omap3_pm_begin,
- 	.end		= omap3_pm_end,
- 	.enter		= omap3_pm_enter,
-+	.finish		= omap3_pm_finish,
- 	.valid		= suspend_valid_only_mem,
- };
- #endif /* CONFIG_SUSPEND */
-@@ -700,10 +668,6 @@ static void __init prcm_setup_regs(void)
- 			  OMAP3430_GRPSEL_GPT1_MASK |
- 			  OMAP3430_GRPSEL_GPT12_MASK,
- 			  WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
--	/* For some reason IO doesn't generate wakeup event even if
--	 * it is selected to mpu wakeup goup */
--	omap2_prm_write_mod_reg(OMAP3430_IO_EN_MASK | OMAP3430_WKUP_EN_MASK,
--			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
- 
- 	/* Enable PM_WKEN to support DSS LPR */
- 	omap2_prm_write_mod_reg(OMAP3430_PM_WKEN_DSS_EN_DSS_MASK,
-@@ -880,12 +844,21 @@ static int __init omap3_pm_init(void)
- 	 * supervised mode for powerdomains */
- 	prcm_setup_regs();
- 
--	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
--			  (irq_handler_t)prcm_interrupt_handler,
--			  IRQF_DISABLED, "prcm", NULL);
-+	ret = request_irq(omap_prcm_event_to_irq("wkup"),
-+		_prcm_int_handle_wakeup, IRQF_NO_SUSPEND, "pm_wkup", NULL);
-+
-+	if (ret) {
-+		pr_err("pm: Failed to request pm_wkup irq\n");
-+		goto err1;
-+	}
-+
-+	/* IO interrupt is shared with mux code */
-+	ret = request_irq(omap_prcm_event_to_irq("io"),
-+		_prcm_int_handle_io, IRQF_SHARED | IRQF_NO_SUSPEND, "pm_io",
-+		omap3_pm_init);
-+
- 	if (ret) {
--		printk(KERN_ERR "request_irq failed to register for 0x%x\n",
--		       INT_34XX_PRCM_MPU_IRQ);
-+		pr_err("pm: Failed to request pm_io irq\n");
- 		goto err1;
- 	}
- 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index 58d9ce70..3545c9a 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -27,6 +27,24 @@
- #include "prm-regbits-24xx.h"
- #include "prm-regbits-34xx.h"
- 
-+static const struct omap_prcm_irq omap3_prcm_irqs[] = {
-+	OMAP_PRCM_IRQ("wkup",	0,	0),
-+	OMAP_PRCM_IRQ("io",	9,	1),
-+};
-+
-+static struct omap_prcm_irq_setup omap3_prcm_irq_setup = {
-+	.ack			= OMAP3_PRM_IRQSTATUS_MPU_OFFSET,
-+	.mask			= OMAP3_PRM_IRQENABLE_MPU_OFFSET,
-+	.nr_regs		= 1,
-+	.irqs			= omap3_prcm_irqs,
-+	.nr_irqs		= ARRAY_SIZE(omap3_prcm_irqs),
-+	.irq			= INT_34XX_PRCM_MPU_IRQ,
-+	.read_pending_irqs	= &omap3xxx_prm_read_pending_irqs,
-+	.ocp_barrier		= &omap3xxx_prm_ocp_barrier,
-+	.save_and_clear_irqen	= &omap3xxx_prm_save_and_clear_irqen,
-+	.restore_irqen		= &omap3xxx_prm_restore_irqen,
-+};
-+
- u32 omap2_prm_read_mod_reg(s16 module, u16 idx)
- {
- 	return __raw_readl(prm_base + module + idx);
-@@ -281,3 +299,11 @@ void omap3xxx_prm_restore_irqen(u32 *saved_mask)
- 	omap2_prm_write_mod_reg(saved_mask[0], OCP_MOD,
- 				OMAP3_PRM_IRQENABLE_MPU_OFFSET);
- }
-+
-+static int __init omap3xxx_prcm_init(void)
++/**
++ * _omap_hwmod_mux_handle_irq - Process wakeup events for a single hwmod
++ *
++ * Checks a single hwmod for every wakeup capable pad to see if there is an
++ * active wakeup event. If this is the case, call the corresponding ISR.
++ */
++static int _omap_hwmod_mux_handle_irq(struct omap_hwmod *oh, void *data)
 +{
-+	if (cpu_is_omap34xx())
-+		return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
++	if (!oh->mux || !oh->mux->enabled)
++		return 0;
++	if (omap_hwmod_mux_scan_wakeups(oh->mux, oh->mpu_irqs))
++		generic_handle_irq(oh->mpu_irqs[0].irq);
 +	return 0;
 +}
-+subsys_initcall(omap3xxx_prcm_init);
++
++/**
++ * omap_hwmod_mux_handle_irq - Process pad wakeup irqs.
++ *
++ * Calls a function for each registered omap_hwmod to check
++ * pad wakeup statuses.
++ */
++static irqreturn_t omap_hwmod_mux_handle_irq(int irq, void *unused)
++{
++	omap_hwmod_for_each(_omap_hwmod_mux_handle_irq, NULL);
++	return IRQ_HANDLED;
++}
++
+ /* Assumes the calling function takes care of locking */
+ void omap_hwmod_mux(struct omap_hwmod_mux_info *hmux, u8 state)
+ {
+@@ -717,6 +792,7 @@ static void __init omap_mux_free_names(struct omap_mux *m)
+ static int __init omap_mux_late_init(void)
+ {
+ 	struct omap_mux_partition *partition;
++	int ret;
+ 
+ 	list_for_each_entry(partition, &mux_partitions, node) {
+ 		struct omap_mux_entry *e, *tmp;
+@@ -737,6 +813,13 @@ static int __init omap_mux_late_init(void)
+ 		}
+ 	}
+ 
++	ret = request_irq(omap_prcm_event_to_irq("io"),
++		omap_hwmod_mux_handle_irq, IRQF_SHARED | IRQF_NO_SUSPEND,
++			"hwmod_io", omap_mux_late_init);
++
++	if (ret)
++		pr_warning("mux: Failed to setup hwmod io irq %d\n", ret);
++
+ 	omap_mux_dbg_init();
+ 
+ 	return 0;
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 8b372ed..f705492 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -97,6 +97,7 @@ struct omap_hwmod_mux_info {
+ 	struct omap_device_pad		*pads;
+ 	int				nr_pads_dynamic;
+ 	struct omap_device_pad		**pads_dynamic;
++	int				*irqs;
+ 	bool				enabled;
+ };
+ 
 
 
