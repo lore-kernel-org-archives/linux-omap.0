@@ -1,21 +1,21 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/2] OMAP: convert I2C driver to PM QoS for latency constraints
-Date: Wed, 14 Dec 2011 16:17:27 -0800
-Message-ID: <87iplipu20.fsf@ti.com>
+Subject: Re: [PATCH 2/2] OMAP: PM: remove the latency related functions from the API
+Date: Wed, 14 Dec 2011 16:19:23 -0800
+Message-ID: <87boraptys.fsf@ti.com>
 References: <1319034531-22964-1-git-send-email-j-pihet@ti.com>
-	<1319034531-22964-2-git-send-email-j-pihet@ti.com>
+	<1319034531-22964-3-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:60683 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755784Ab1LOARc (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:42872 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753150Ab1LOAT0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Dec 2011 19:17:32 -0500
-Received: by mail-iy0-f175.google.com with SMTP id j38so2075258iad.6
-        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 16:17:31 -0800 (PST)
-In-Reply-To: <1319034531-22964-2-git-send-email-j-pihet@ti.com> (jean pihet's
-	message of "Wed, 19 Oct 2011 16:28:50 +0200")
+	Wed, 14 Dec 2011 19:19:26 -0500
+Received: by mail-iy0-f172.google.com with SMTP id k3so2361129iae.31
+        for <linux-omap@vger.kernel.org>; Wed, 14 Dec 2011 16:19:25 -0800 (PST)
+In-Reply-To: <1319034531-22964-3-git-send-email-j-pihet@ti.com> (jean pihet's
+	message of "Wed, 19 Oct 2011 16:28:51 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: jean.pihet@newoldbits.com
@@ -25,22 +25,19 @@ jean.pihet@newoldbits.com writes:
 
 > From: Jean Pihet <j-pihet@ti.com>
 >
-> Convert the driver from the outdated omap_pm_set_max_mpu_wakeup_lat
-> API to the new PM QoS API.
-> Since the constraint is on the MPU subsystem, use the PM_QOS_CPU_DMA_LATENCY
-> class of PM QoS. The resulting MPU constraints are used by cpuidle to
-> decide the next power state of the MPU subsystem.
+> Remove the following functions from the API:
+>  omap_pm_set_max_mpu_wakeup_lat
+>  omap_pm_set_max_dev_wakeup_lat
+>  omap_pm_set_max_sdma_lat
 >
-> The I2C device latency timing is derived from the FIFO size and the
-> clock speed and so is applicable to all OMAP SoCs.
+> The generic per-device PM QoS functions shall be used instead, cf.
+> include/linux/pm_qos.h.
 >
 > Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Nice.
-
 Acked-by: Kevin Hilman <khilman@ti.com>
 
-I'll queue this with the other I2C changes I've queued once the QoS
-series has been merged.
+Paul can pick this up once the QoS changes have merged and the I2C
+driver (and any other in-tree users) have been converted.
 
 Kevin
