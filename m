@@ -1,70 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/9] ARM: OMAP2+: mux: add wakeup-capable hwmod mux
- entries to dynamic list
-Date: Thu, 15 Dec 2011 13:41:09 -0800
-Message-ID: <20111215214109.GX32251@atomide.com>
-References: <20111215213358.26632.44165.stgit@dusk>
- <20111215213609.26632.43406.stgit@dusk>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: [PATCH] am35xx-emac: move generic EMAC init to separate file
+Date: Fri, 16 Dec 2011 01:42:26 +0400
+Message-ID: <4EEA69C2.4000503@emcraft.com>
+References: <1321490199-24371-1-git-send-email-yanok@emcraft.com> <20111208001503.GV31337@atomide.com> <4EE93564.3010006@emcraft.com> <4EE9C057.6010204@compulab.co.il> <20111215184342.GT32251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:35263 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756549Ab1LOVlL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:41:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20111215213609.26632.43406.stgit@dusk>
+Received: from ocean.emcraft.com ([213.221.7.182]:35837 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754146Ab1LOVl7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:41:59 -0500
+In-Reply-To: <20111215184342.GT32251@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Govindraj R <govindraj.raja@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com, Paul Walmsley <paul@pwsan.com>
 
-* Paul Walmsley <paul@pwsan.com> [111215 13:05]:
-> omap_hwmod_mux() currently only iterates through the dynamic pad list.
-> This list currently only consists of pads with the
-> OMAP_DEVICE_MUX_REMUX flag set.
-> 
-> Subsequent patches in this series will cause hwmod mux entries with
-> the OMAP_DEVICE_MUX_WAKEUP flag set to be changed dynamically, to
-> control hwmod I/O ring wakeup.  For this to work correctly, hwmod mux
-> entries with the OMAP_DEVICE_MUX_WAKEUP flag set must also be added to
-> the dynamic pad list.  So this patch modifies omap_hwmod_mux_init() to
-> do so.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> Cc: Govindraj R <govindraj.raja@ti.com>
+Hi Tony,
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+On 15.12.2011 22:43, Tony Lindgren wrote:
+>>>> Should this be just called emac-common.c? Or is it so am35xx specific
+>>>> that it won't work with others?
+>>>
+>>> Uh.. I'm not sure but I thought that EMAC is present only on am35xx SoCs...
+> 
+> OK, maybe just do a quick check on that so we don't end up
+> moving the platform init code around again in few months?
 
-> ---
->  arch/arm/mach-omap2/mux.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
+Well, according to TI site, EMAC can be also found on AM33x, AM387x and
+AM389x... I'm not sure if it's completely compatible but probably though.
+
+>>>>> +	clk_add_alias(NULL, dev_name(&am35xx_emac_device.dev),
+>>>>> +		      "emac_clk", &am35xx_emac_device.dev);
+>>>>> +	clk_add_alias(NULL, dev_name(&am35xx_mdio_device.dev),
+>>>>> +		      "phy_clk", &am35xx_emac_device.dev);
+>>>>
+>>>> Hmm after moving the code and should be a separate patch, don't
+>>>> we already have these clock aliases in cloc3xxx_data.c?
+>>>
+>>> No, we have
+>>> CLK("davinci_emac", "emac_clk"...) and
+>>> CLK("davinci_emac", "phy_clk"...)
+>>> while drivers want ("davinci_emac", NULL) and ("davinci_mdio", NULL).
+>>>
+>>> Probably we have to fix the clock definitions instead of adding the aliases.
+>>>
+>>> So, should I post this as a separate patch?
+>>
+>> If it comes to that question, Cc Paul...
 > 
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 655e948..a474c81 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -306,7 +306,8 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads)
->  		pad->idle = bpad->idle;
->  		pad->off = bpad->off;
->  
-> -		if (pad->flags & OMAP_DEVICE_PAD_REMUX)
-> +		if (pad->flags &
-> +		    (OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP))
->  			nr_pads_dynamic++;
->  
->  		pr_debug("%s: Initialized %s\n", __func__, pad->name);
-> @@ -331,7 +332,8 @@ omap_hwmod_mux_init(struct omap_device_pad *bpads, int nr_pads)
->  	for (i = 0; i < hmux->nr_pads; i++) {
->  		struct omap_device_pad *pad = &hmux->pads[i];
->  
-> -		if (pad->flags & OMAP_DEVICE_PAD_REMUX) {
-> +		if (pad->flags &
-> +		    (OMAP_DEVICE_PAD_REMUX | OMAP_DEVICE_PAD_WAKEUP)) {
->  			pr_debug("%s: pad %s tagged dynamic\n",
->  					__func__, pad->name);
->  			hmux->pads_dynamic[nr_pads_dynamic] = pad;
-> 
-> 
+> Yes please do that as a separate patch.
+
+Ok, let's wait for Paul's answer and then I'll prepare a separate patch.
+
+Regards, Ilya.
