@@ -1,57 +1,43 @@
 From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: [PATCH] am35xx-emac: move generic EMAC init to separate file
-Date: Fri, 16 Dec 2011 01:42:26 +0400
-Message-ID: <4EEA69C2.4000503@emcraft.com>
-References: <1321490199-24371-1-git-send-email-yanok@emcraft.com> <20111208001503.GV31337@atomide.com> <4EE93564.3010006@emcraft.com> <4EE9C057.6010204@compulab.co.il> <20111215184342.GT32251@atomide.com>
+Subject: Re: [PATCH V2 1/2] mcx: very basic support for HTKW mcx board
+Date: Fri, 16 Dec 2011 01:59:13 +0400
+Message-ID: <4EEA6DB1.8040206@emcraft.com>
+References: <1323910383-1184-1-git-send-email-yanok@emcraft.com> <1323910383-1184-2-git-send-email-yanok@emcraft.com> <4EE9C31B.7080206@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ocean.emcraft.com ([213.221.7.182]:35837 "EHLO
+Received: from ocean.emcraft.com ([213.221.7.182]:60046 "EHLO
 	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754146Ab1LOVl7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:41:59 -0500
-In-Reply-To: <20111215184342.GT32251@atomide.com>
+	with ESMTP id S1751890Ab1LOV6o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 16:58:44 -0500
+In-Reply-To: <4EE9C31B.7080206@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com, Paul Walmsley <paul@pwsan.com>
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, sasha_d@emcraft.com, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Hi Tony,
+Hi Igor,
 
-On 15.12.2011 22:43, Tony Lindgren wrote:
->>>> Should this be just called emac-common.c? Or is it so am35xx specific
->>>> that it won't work with others?
->>>
->>> Uh.. I'm not sure but I thought that EMAC is present only on am35xx SoCs...
+On 15.12.2011 13:51, Igor Grinberg wrote:
+>> +	/* AM35xx doesn't have IVA */
+>> +	soc {
+>> +		iva {
+>> +			status = "disabled";
+>> +		};
+>> +	};
 > 
-> OK, maybe just do a quick check on that so we don't end up
-> moving the platform init code around again in few months?
+> I don't get it...
+> Why SoCs that do not have those IP blocks should poke
+> their configuration inside the h/w description
+> (e.g. disable/enable/workaround/hack)?
+> This way, why don't we also disable the PCIe which this SoC does not have?
 
-Well, according to TI site, EMAC can be also found on AM33x, AM387x and
-AM389x... I'm not sure if it's completely compatible but probably though.
-
->>>>> +	clk_add_alias(NULL, dev_name(&am35xx_emac_device.dev),
->>>>> +		      "emac_clk", &am35xx_emac_device.dev);
->>>>> +	clk_add_alias(NULL, dev_name(&am35xx_mdio_device.dev),
->>>>> +		      "phy_clk", &am35xx_emac_device.dev);
->>>>
->>>> Hmm after moving the code and should be a separate patch, don't
->>>> we already have these clock aliases in cloc3xxx_data.c?
->>>
->>> No, we have
->>> CLK("davinci_emac", "emac_clk"...) and
->>> CLK("davinci_emac", "phy_clk"...)
->>> while drivers want ("davinci_emac", NULL) and ("davinci_mdio", NULL).
->>>
->>> Probably we have to fix the clock definitions instead of adding the aliases.
->>>
->>> So, should I post this as a separate patch?
->>
->> If it comes to that question, Cc Paul...
-> 
-> Yes please do that as a separate patch.
-
-Ok, let's wait for Paul's answer and then I'll prepare a separate patch.
+Well, I'm not really happy about this solution... But when we discussed
+it last time (http://thread.gmane.org/gmane.linux.ports.arm.omap/66601 )
+you and Benoit didn't come to agreement...
+I really like your solution with dts built from brick corresponding to
+IPs but I don't have much time to invest into patches that will likely
+be rejected...
 
 Regards, Ilya.
