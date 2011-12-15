@@ -1,136 +1,96 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
-Date: Thu, 15 Dec 2011 16:05:41 +0100
-Message-ID: <4EEA0CC5.4090602@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com> <1323439361-1647-3-git-send-email-b-cousson@ti.com> <4EE8D5A1.2080100@gmail.com>
+From: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 REPOST 5/5] imx6q: Remove unconditional dependency on
+ l2x0 L2 cache support
+Date: Thu, 15 Dec 2011 15:14:28 +0000
+Message-ID: <20111215151427.GB2081@linaro.org>
+References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
+ <1323862781-3465-6-git-send-email-dave.martin@linaro.org>
+ <20111214132622.GA1520@S2100-06.ap.freescale.net>
+ <20111214140500.GA1700@richard-laptop>
+ <20111214150119.GD2568@linaro.org>
+ <20111215010219.GP28768@b20223-02.ap.freescale.net>
+ <20111215014619.GB3259@S2101-09.ap.freescale.net>
+ <20111215015414.GQ28768@b20223-02.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42289 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab1LOPGM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 10:06:12 -0500
-In-Reply-To: <4EE8D5A1.2080100@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20111215015414.GQ28768-iWYTGMXpHj9ITqJhDdzsOjpauB2SiJktrE5yTffgRl4@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Richard Zhao <richard.zhao-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Cc: Shawn Guo <shawn.guo-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Richard Zhao <richard.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Anton Vorontsov <avorontsov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, John Linn <john.linn-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Paul Mundt <lethal-M7jkjyW5wf5g9hUCZPvPmw@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 
-Hi Rob,
+On Thu, Dec 15, 2011 at 09:54:15AM +0800, Richard Zhao wrote:
+> On Thu, Dec 15, 2011 at 09:46:20AM +0800, Shawn Guo wrote:
+> > On Thu, Dec 15, 2011 at 09:02:20AM +0800, Richard Zhao wrote:
+> > > On Wed, Dec 14, 2011 at 03:01:19PM +0000, Dave Martin wrote:
+> > > > On Wed, Dec 14, 2011 at 10:05:04PM +0800, Richard Zhao wrote:
+> > > > > On Wed, Dec 14, 2011 at 09:26:24PM +0800, Shawn Guo wrote:
+> > > > > > Hi Dave,
+> > > > > > 
+> > > > > > Sorry for that I did not look into previous post to point it out.
+> > > > > > 
+> > > > > > On Wed, Dec 14, 2011 at 11:39:41AM +0000, Dave Martin wrote:
+> > > > > > > The i.MX6 Quad SoC will work without the l2x0 L2 cache controller
+> > > > > > > support built into the kernel, so this patch removes the dependency
+> > > > > > > on CACHE_L2X0 and selects MIGHT_HAVE_CACHE_L2X0 instead.
+> > > > > > > 
+> > > > > > > This makes the l2x0 support optional, so that it can be turned off
+> > > > > > > when desired for debugging purposes etc.
+> > > > > > > 
+> > > > > > > Thanks to Shawn Guo for this suggestion. [1]
+> > > > > > > 
+> > > > > > > Signed-off-by: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > > > > > > 
+> > > > > > > [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074602.html
+> > > > > > > ---
+> > > > > > >  arch/arm/mach-imx/Kconfig |    2 +-
+> > > > > > >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > > > > > > 
+> > > > > > > diff --git a/arch/arm/mach-imx/Kconfig b/arch/arm/mach-imx/Kconfig
+> > > > > > > index 29a3d61..1fb93f2 100644
+> > > > > > > --- a/arch/arm/mach-imx/Kconfig
+> > > > > > > +++ b/arch/arm/mach-imx/Kconfig
+> > > > > > > @@ -609,13 +609,13 @@ comment "i.MX6 family:"
+> > > > > > >  config SOC_IMX6Q
+> > > > > > >  	bool "i.MX6 Quad support"
+> > > > > > >  	select ARM_GIC
+> > > > > > > -	select CACHE_L2X0
+> > > > > > >  	select CPU_V7
+> > > > > > >  	select HAVE_ARM_SCU
+> > > > > > >  	select HAVE_IMX_GPC
+> > > > > > >  	select HAVE_IMX_MMDC
+> > > > > > >  	select HAVE_IMX_SRC
+> > > > > > >  	select HAVE_SMP
+> > > > > > > +	select MIGHT_HAVE_CACHE_L2X0
+> > > > > > 
+> > > > > > The option SOC_IMX6Q is only available when ARCH_IMX_V6_V7 is selected.
+> > > > > > Since MIGHT_HAVE_CACHE_L2X0 has been selected by ARCH_IMX_V6_V7 in
+> > > > > > patch #1, this line seems redundant here.
+> > > > > Would it be better keep this one and remove patch #1 one? imx5 doesn't have
+> > > > > l2x0.
+> > > > 
+> > > > Do you mean to remove MIGHT_HAVE_CACHE_L2X0 from ARCH_IMX_V6_V7, and select
+> > > > it only from SOC_IMX6Q?
+> > > Yes, I think it's more precise. Shawn?
+> > > 
+> > No.
+> > 
+> > * imx5 hardware does have L2, and it's just not set up in the kernel
+> >   (I do not know why).
+> > * Currently, ARCH_IMX_V6_V7 only covers imx3 and imx6, and both are
+> >   calling l2x0 init function to set L2 up.
+> > * When we merge mach-mx5 into mach-imx to have ARCH_IMX_V6_V7 cover
+> >   imx3, imx5 and imx6, there is no reason for us to not set L2 up for
+> >   imx5 too.
+> > 
+> > So MIGHT_HAVE_CACHE_L2X0 really should be selected by ARCH_IMX_V6_V7.
+> mx5/cortex-a8 don't use L2X0. But that's ok. MIGHT_HAVE_CACHE_L2X0 is just a hint.
+> Please Shawn's suggestion.
 
-On 12/14/2011 5:58 PM, Rob Herring wrote:
-> Benoit,
->
-> On 12/09/2011 08:02 AM, Benoit Cousson wrote:
->> Add initial DT support to retrieve the frequency using a
->> DT attribute instead of the pdata pointer if of_node exist.
->>
->> Add documentation for omap i2c controller binding.
->>
->> Based on original patches from Manju and Grant.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Ben Dooks<ben-linux@fluff.org>
->> ---
->>   Documentation/devicetree/bindings/i2c/omap-i2c.txt |   42 ++++++++
->>   drivers/i2c/busses/i2c-omap.c                      |  100 +++++++++++++-------
->>   2 files changed, 107 insertions(+), 35 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
->>
->> diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
->> new file mode 100644
->> index 0000000..d259a17
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
->> @@ -0,0 +1,42 @@
->> +I2C for OMAP platforms
->> +
->> +Required properties :
->> +- compatible : Must be "ti,omap3-i2c" or "ti,omap4-i2c"
->> +- ti,hwmods : Must be "i2c<n>", n being the instance number (1-based)
->> +- #address-cells =<1>;
->> +- #size-cells =<0>;
->> +
->> +Recommended properties :
->> +- clock-frequency : Desired I2C bus clock frequency in Hz. Otherwise
->> +  the default 100 kHz frequency will be used.
->> +
->> +Optional properties:
->> +- Child nodes conforming to i2c bus binding
->> +- ti,flags : u32: settings or errata relative to the i2c
->> +    0x1:   OMAP_I2C_FLAG_NO_FIFO
->> +    0x2:   OMAP_I2C_FLAG_SIMPLE_CLOCK
->> +    0x4:   OMAP_I2C_FLAG_16BIT_DATA_REG
->> +    0x8:   OMAP_I2C_FLAG_RESET_REGS_POSTIDLE
->> +    0x10:  OMAP_I2C_FLAG_APPLY_ERRATA_I207
->> +    0x20:  OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK
->> +    0x40:  OMAP_I2C_FLAG_FORCE_19200_INT_CLK
->> +  Valid for ti,omap3-i2c only:
->> +    0x80:  OMAP_I2C_FLAG_BUS_SHIFT_1: 8 bits registers
->> +    0x100: OMAP_I2C_FLAG_BUS_SHIFT_2: 16 bits registers
->
-> It's generally preferred to split these out to separate properties since
-> there is not yet define capability in dts.
+OK, my local series has what I believe to be the correct change;
+I will repost based on that.
 
-Yeah, I was hoping that Stephen's DTC patches were accepted to avoid that.
-
-> Can some of these be removed
-> by having more specific compatible strings? That is the whole point in
-> having compatible strings not be generic. omap4-i2c and omap3-i2c is
-> still kind of generic.
-
-Do you mean creating some attributes like that:
-
-+    ti,16bits_shift;
-+    ti,reset_postidle;
-+    ti,errata_i207;
-
-Or using some omap3-i2c or omap4-i2c to determine the proper version and 
-thus populate the right flags during probe.
-
-[...]
-
->> @@ -965,6 +956,31 @@ static const struct i2c_algorithm omap_i2c_algo = {
->>   	.functionality	= omap_i2c_func,
->>   };
->>
->> +#ifdef CONFIG_OF
->> +static struct omap_i2c_bus_platform_data omap3_pdata = {
->> +	.rev = OMAP_I2C_IP_VERSION_1,
->> +};
->> +
->> +static struct omap_i2c_bus_platform_data omap4_pdata = {
->> +	.rev = OMAP_I2C_IP_VERSION_2,
->> +};
->
-> This is redundant. The ip version can be determined from the compatible
-> string.
-
-I'm confused...
-I'm using the compatible string below to chose the proper value.
-This flag is then used later at runtime.
-I'm using a pseudo pdata because that driver is still used in old 
-platform that does and will never not have DT support.
-
->> +static const struct of_device_id omap_i2c_of_match[] = {
->> +	{
->> +		.compatible = "ti,omap4-i2c",
->> +		.data =&omap4_pdata,
->> +	},
->> +	{
->> +		.compatible = "ti,omap3-i2c",
->> +		.data =&omap3_pdata,
->> +	},
->> +	{ },
->> +};
->> +MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
->> +#else
->> +#define omap_i2c_of_match NULL
->
-> Use of_match_ptr instead of the #else.
-
-OK, good point.
-
-Thanks,
-Benoit
+Cheers
+---Dave
