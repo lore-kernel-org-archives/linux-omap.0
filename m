@@ -1,96 +1,112 @@
-From: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v4 REPOST 5/5] imx6q: Remove unconditional dependency on
- l2x0 L2 cache support
-Date: Thu, 15 Dec 2011 15:14:28 +0000
-Message-ID: <20111215151427.GB2081@linaro.org>
-References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
- <1323862781-3465-6-git-send-email-dave.martin@linaro.org>
- <20111214132622.GA1520@S2100-06.ap.freescale.net>
- <20111214140500.GA1700@richard-laptop>
- <20111214150119.GD2568@linaro.org>
- <20111215010219.GP28768@b20223-02.ap.freescale.net>
- <20111215014619.GB3259@S2101-09.ap.freescale.net>
- <20111215015414.GQ28768@b20223-02.ap.freescale.net>
+From: Vishwanath BS <vishwanath.bs@ti.com>
+Subject: [PATCHv3 3/7] ARM: OMAP4 PM: Add IO Daisychain support
+Date: Thu, 15 Dec 2011 20:47:19 +0530
+Message-ID: <1323962239-6030-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20111215015414.GQ28768-iWYTGMXpHj9ITqJhDdzsOjpauB2SiJktrE5yTffgRl4@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Richard Zhao <richard.zhao-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: Shawn Guo <shawn.guo-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Richard Zhao <richard.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Anton Vorontsov <avorontsov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, John Linn <john.linn-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Paul Mundt <lethal-M7jkjyW5wf5g9hUCZPvPmw@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59202 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751736Ab1LOP0u (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Dec 2011 10:26:50 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Thu, Dec 15, 2011 at 09:54:15AM +0800, Richard Zhao wrote:
-> On Thu, Dec 15, 2011 at 09:46:20AM +0800, Shawn Guo wrote:
-> > On Thu, Dec 15, 2011 at 09:02:20AM +0800, Richard Zhao wrote:
-> > > On Wed, Dec 14, 2011 at 03:01:19PM +0000, Dave Martin wrote:
-> > > > On Wed, Dec 14, 2011 at 10:05:04PM +0800, Richard Zhao wrote:
-> > > > > On Wed, Dec 14, 2011 at 09:26:24PM +0800, Shawn Guo wrote:
-> > > > > > Hi Dave,
-> > > > > > 
-> > > > > > Sorry for that I did not look into previous post to point it out.
-> > > > > > 
-> > > > > > On Wed, Dec 14, 2011 at 11:39:41AM +0000, Dave Martin wrote:
-> > > > > > > The i.MX6 Quad SoC will work without the l2x0 L2 cache controller
-> > > > > > > support built into the kernel, so this patch removes the dependency
-> > > > > > > on CACHE_L2X0 and selects MIGHT_HAVE_CACHE_L2X0 instead.
-> > > > > > > 
-> > > > > > > This makes the l2x0 support optional, so that it can be turned off
-> > > > > > > when desired for debugging purposes etc.
-> > > > > > > 
-> > > > > > > Thanks to Shawn Guo for this suggestion. [1]
-> > > > > > > 
-> > > > > > > Signed-off-by: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > > > > > > 
-> > > > > > > [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074602.html
-> > > > > > > ---
-> > > > > > >  arch/arm/mach-imx/Kconfig |    2 +-
-> > > > > > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > > > > > 
-> > > > > > > diff --git a/arch/arm/mach-imx/Kconfig b/arch/arm/mach-imx/Kconfig
-> > > > > > > index 29a3d61..1fb93f2 100644
-> > > > > > > --- a/arch/arm/mach-imx/Kconfig
-> > > > > > > +++ b/arch/arm/mach-imx/Kconfig
-> > > > > > > @@ -609,13 +609,13 @@ comment "i.MX6 family:"
-> > > > > > >  config SOC_IMX6Q
-> > > > > > >  	bool "i.MX6 Quad support"
-> > > > > > >  	select ARM_GIC
-> > > > > > > -	select CACHE_L2X0
-> > > > > > >  	select CPU_V7
-> > > > > > >  	select HAVE_ARM_SCU
-> > > > > > >  	select HAVE_IMX_GPC
-> > > > > > >  	select HAVE_IMX_MMDC
-> > > > > > >  	select HAVE_IMX_SRC
-> > > > > > >  	select HAVE_SMP
-> > > > > > > +	select MIGHT_HAVE_CACHE_L2X0
-> > > > > > 
-> > > > > > The option SOC_IMX6Q is only available when ARCH_IMX_V6_V7 is selected.
-> > > > > > Since MIGHT_HAVE_CACHE_L2X0 has been selected by ARCH_IMX_V6_V7 in
-> > > > > > patch #1, this line seems redundant here.
-> > > > > Would it be better keep this one and remove patch #1 one? imx5 doesn't have
-> > > > > l2x0.
-> > > > 
-> > > > Do you mean to remove MIGHT_HAVE_CACHE_L2X0 from ARCH_IMX_V6_V7, and select
-> > > > it only from SOC_IMX6Q?
-> > > Yes, I think it's more precise. Shawn?
-> > > 
-> > No.
-> > 
-> > * imx5 hardware does have L2, and it's just not set up in the kernel
-> >   (I do not know why).
-> > * Currently, ARCH_IMX_V6_V7 only covers imx3 and imx6, and both are
-> >   calling l2x0 init function to set L2 up.
-> > * When we merge mach-mx5 into mach-imx to have ARCH_IMX_V6_V7 cover
-> >   imx3, imx5 and imx6, there is no reason for us to not set L2 up for
-> >   imx5 too.
-> > 
-> > So MIGHT_HAVE_CACHE_L2X0 really should be selected by ARCH_IMX_V6_V7.
-> mx5/cortex-a8 don't use L2X0. But that's ok. MIGHT_HAVE_CACHE_L2X0 is just a hint.
-> Please Shawn's suggestion.
+From: Rajendra Nayak <rnayak@ti.com>
 
-OK, my local series has what I believe to be the correct change;
-I will repost based on that.
+patch adds IO Daisychain support for OMAP4 as per section 3.9.4 in OMAP4430
+Public TRM.
 
-Cheers
----Dave
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Tested-by: Govindraj.R <govindraj.raja@ti.com>
+---
+Changes done in V3:
+1. Moved enablement of Global WUEN which is a onetime setting to pm_init
+   so that there is no check inside omap4_trigger_wuclk_ctrl
+2. Fixed an issue while reading WUCLK_STATUS inside omap4_trigger_wuclk_ctrl
+
+Updated branch is available at:
+git://gitorious.org/omap-pm/linux.git for_3.3/io_daisy_chain_rebased
+
+ arch/arm/mach-omap2/pm44xx.c  |    8 ++++++++
+ arch/arm/mach-omap2/prm44xx.c |   25 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h |    1 +
+ 3 files changed, 34 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
+index 8edb015..a7cd8db
+--- a/arch/arm/mach-omap2/pm44xx.c
++++ b/arch/arm/mach-omap2/pm44xx.c
+@@ -18,6 +18,8 @@
+ 
+ #include "common.h"
+ #include "powerdomain.h"
++#include "prm44xx.h"
++#include "prm-regbits-44xx.h"
+ 
+ struct power_state {
+ 	struct powerdomain *pwrdm;
+@@ -111,6 +113,12 @@ static int __init omap4_pm_init(void)
+ 		goto err2;
+ 	}
+ 
++	/* Enable GLOBAL_WUEN */
++	omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
++			OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_INST,
++			OMAP4_PRM_IO_PMCTRL_OFFSET);
++
++
+ #ifdef CONFIG_SUSPEND
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif /* CONFIG_SUSPEND */
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 67d8d74..da97851
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -142,3 +142,28 @@ static int __init omap4xxx_prcm_init(void)
+ 		return omap_prcm_register_chain_handler(&omap4_prcm_irq_setup);
+ 	return 0;
+ }
++
++/**
++ * Maximum time(us) it takes to output the signal WUCLKOUT of the last pad of
++ * the I/O ring after asserting WUCLKIN high
++ */
++#define MAX_IOPAD_LATCH_TIME 1000
++
++/* OMAP4 IO Daisychain trigger sequence */
++void omap4_trigger_wuclk_ctrl(void)
++{
++	int i = 0;
++
++	/* Trigger WUCLKIN enable */
++	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, OMAP4430_WUCLK_CTRL_MASK,
++			OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET);
++	omap_test_timeout(
++		(((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET) &
++		OMAP4430_WUCLK_STATUS_MASK) >> OMAP4430_WUCLK_STATUS_SHIFT) == 1),
++		MAX_IOPAD_LATCH_TIME, i);
++
++	/* Trigger WUCLKIN disable */
++	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
++			OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET);
++	return;
++}
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44xx.h
+index 3d66ccd..a8678db 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -750,6 +750,7 @@
+ extern u32 omap4_prm_read_inst_reg(s16 inst, u16 idx);
+ extern void omap4_prm_write_inst_reg(u32 val, s16 inst, u16 idx);
+ extern u32 omap4_prm_rmw_inst_reg_bits(u32 mask, u32 bits, s16 inst, s16 idx);
++extern void omap4_trigger_wuclk_ctrl(void);
+ 
+ /* OMAP4-specific VP functions */
+ u32 omap4_prm_vp_check_txdone(u8 vp_id);
+-- 
+1.7.0.4
+
