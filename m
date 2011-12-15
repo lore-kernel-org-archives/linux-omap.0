@@ -1,95 +1,63 @@
-From: Richard Zhao <richard.zhao@freescale.com>
-Subject: Re: [PATCH v4 REPOST 5/5] imx6q: Remove unconditional dependency on
- l2x0 L2 cache support
-Date: Thu, 15 Dec 2011 09:54:15 +0800
-Message-ID: <20111215015414.GQ28768@b20223-02.ap.freescale.net>
-References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
- <1323862781-3465-6-git-send-email-dave.martin@linaro.org>
- <20111214132622.GA1520@S2100-06.ap.freescale.net>
- <20111214140500.GA1700@richard-laptop>
- <20111214150119.GD2568@linaro.org>
- <20111215010219.GP28768@b20223-02.ap.freescale.net>
- <20111215014619.GB3259@S2101-09.ap.freescale.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111215014619.GB3259@S2101-09.ap.freescale.net>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@freescale.com>
-Cc: Dave Martin <dave.martin@linaro.org>, Richard Zhao <richard.zhao@linaro.org>, linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Anton Vorontsov <avorontsov@mvista.com>, Will Deacon <will.deacon@arm.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Colin Cross <ccross@google.com>, Paul Mundt <lethal@linux-sh.org>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH v4 0/4] OMAP: iommu: hwmod support and runtime PM
+Date: Wed, 14 Dec 2011 22:18:25 -0600
+Message-ID: <1323922709-6986-1-git-send-email-omar.ramirez@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:59357 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755957Ab1LOESm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Dec 2011 23:18:42 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Joerg Roedel <joerg.roedel@amd.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, MyungJoo Ham <myungjoo.ham@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, iommu@lists.linux-foundation.org, Linux PM <linux-pm@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-On Thu, Dec 15, 2011 at 09:46:20AM +0800, Shawn Guo wrote:
-> On Thu, Dec 15, 2011 at 09:02:20AM +0800, Richard Zhao wrote:
-> > On Wed, Dec 14, 2011 at 03:01:19PM +0000, Dave Martin wrote:
-> > > On Wed, Dec 14, 2011 at 10:05:04PM +0800, Richard Zhao wrote:
-> > > > On Wed, Dec 14, 2011 at 09:26:24PM +0800, Shawn Guo wrote:
-> > > > > Hi Dave,
-> > > > > 
-> > > > > Sorry for that I did not look into previous post to point it out.
-> > > > > 
-> > > > > On Wed, Dec 14, 2011 at 11:39:41AM +0000, Dave Martin wrote:
-> > > > > > The i.MX6 Quad SoC will work without the l2x0 L2 cache controller
-> > > > > > support built into the kernel, so this patch removes the dependency
-> > > > > > on CACHE_L2X0 and selects MIGHT_HAVE_CACHE_L2X0 instead.
-> > > > > > 
-> > > > > > This makes the l2x0 support optional, so that it can be turned off
-> > > > > > when desired for debugging purposes etc.
-> > > > > > 
-> > > > > > Thanks to Shawn Guo for this suggestion. [1]
-> > > > > > 
-> > > > > > Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> > > > > > 
-> > > > > > [1] http://lists.infradead.org/pipermail/linux-arm-kernel/2011-November/074602.html
-> > > > > > ---
-> > > > > >  arch/arm/mach-imx/Kconfig |    2 +-
-> > > > > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > > > > 
-> > > > > > diff --git a/arch/arm/mach-imx/Kconfig b/arch/arm/mach-imx/Kconfig
-> > > > > > index 29a3d61..1fb93f2 100644
-> > > > > > --- a/arch/arm/mach-imx/Kconfig
-> > > > > > +++ b/arch/arm/mach-imx/Kconfig
-> > > > > > @@ -609,13 +609,13 @@ comment "i.MX6 family:"
-> > > > > >  config SOC_IMX6Q
-> > > > > >  	bool "i.MX6 Quad support"
-> > > > > >  	select ARM_GIC
-> > > > > > -	select CACHE_L2X0
-> > > > > >  	select CPU_V7
-> > > > > >  	select HAVE_ARM_SCU
-> > > > > >  	select HAVE_IMX_GPC
-> > > > > >  	select HAVE_IMX_MMDC
-> > > > > >  	select HAVE_IMX_SRC
-> > > > > >  	select HAVE_SMP
-> > > > > > +	select MIGHT_HAVE_CACHE_L2X0
-> > > > > 
-> > > > > The option SOC_IMX6Q is only available when ARCH_IMX_V6_V7 is selected.
-> > > > > Since MIGHT_HAVE_CACHE_L2X0 has been selected by ARCH_IMX_V6_V7 in
-> > > > > patch #1, this line seems redundant here.
-> > > > Would it be better keep this one and remove patch #1 one? imx5 doesn't have
-> > > > l2x0.
-> > > 
-> > > Do you mean to remove MIGHT_HAVE_CACHE_L2X0 from ARCH_IMX_V6_V7, and select
-> > > it only from SOC_IMX6Q?
-> > Yes, I think it's more precise. Shawn?
-> > 
-> No.
-> 
-> * imx5 hardware does have L2, and it's just not set up in the kernel
->   (I do not know why).
-> * Currently, ARCH_IMX_V6_V7 only covers imx3 and imx6, and both are
->   calling l2x0 init function to set L2 up.
-> * When we merge mach-mx5 into mach-imx to have ARCH_IMX_V6_V7 cover
->   imx3, imx5 and imx6, there is no reason for us to not set L2 up for
->   imx5 too.
-> 
-> So MIGHT_HAVE_CACHE_L2X0 really should be selected by ARCH_IMX_V6_V7.
-mx5/cortex-a8 don't use L2X0. But that's ok. MIGHT_HAVE_CACHE_L2X0 is just a hint.
-Please Shawn's suggestion.
+Introduced hwmod support for OMAP3 (iva, isp) and OMAP4 (ipu, dsp),
+along with the corresponding runtime PM routines to deassert reset
+lines, enable/disable clocks and configure sysc registers.
 
-Thanks
-Richard
-> 
-> -- 
-> Regards,
-> Shawn
+v4:
+- Rebased to 3.2-rc5 LO.
+- Added missing clkdm field for OMAP4 hwmod data.
+- Moved pm runtime enable/disable to probe/remove functions as
+  suggested by MyungJoo Ham.
+- Removed HWMOD_INIT_NO_RESET as it is not needed and because of
+  Kevin Hilman's comments, the failure I was seeing without
+  HWMOD_INIT_NO_RESET might have been related to local changes as
+  it couldn't be reproduced anymore.
+- Removed iommu latency as it is the same as the default omap latency.
+- Tested on OMAP3 (zoom3 + tidspbridge) and OMAP4 (Panda + rpmsg).
+
+v3:
+- Rebased to 3.1-rc10 lo rebuilt, added structure terminators, and
+removed .omap_chip field.
+
+v2:
+- Added oh reset info to assert/deassert mmu reset lines.
+- Addressed previous comments on v1
+http://www.spinics.net/lists/arm-kernel/msg103271.html
+
+Due to compatibility an ifdef needs to be propagated (previously on
+iommu resource info) to hwmod data in OMAP3, so users of iommu and
+tidspbridge can avoid issues of two modules managing mmu data/irqs/resets;
+this until tidspbridge can be safely migrated to iommu framework.
+
+Omar Ramirez Luna (4):
+  OMAP3: hwmod data: add mmu data for iva and isp
+  OMAP4: hwmod data: add mmu hwmod for ipu and dsp
+  OMAP3/4: iommu: migrate to hwmod framework
+  OMAP3/4: iommu: adapt to runtime pm
+
+ arch/arm/mach-omap2/iommu2.c               |   36 -------
+ arch/arm/mach-omap2/omap-iommu.c           |  156 +++++-----------------------
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  135 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  154 +++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/iommu.h    |   17 +++-
+ arch/arm/plat-omap/include/plat/iommu2.h   |    2 -
+ drivers/iommu/omap-iommu.c                 |   47 +++-----
+ 7 files changed, 334 insertions(+), 213 deletions(-)
+
+-- 
+1.7.4.1
+
