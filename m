@@ -1,68 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
- space
-Date: Thu, 15 Dec 2011 23:28:14 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com>
-References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] arm/dts: Add support for OMAP3 Mistral EVM board
+Date: Fri, 16 Dec 2011 06:54:08 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A805E4F0@DBDE01.ent.ti.com>
+References: <1324015560-26735-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-594604338-1324016894=:12660"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49500 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751399Ab1LPG2Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 01:28:16 -0500
-In-Reply-To: <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45629 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751293Ab1LPGyX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 01:54:23 -0500
+In-Reply-To: <1324015560-26735-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Cousson, Benoit" <b-cousson@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-594604338-1324016894=:12660
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-Hi Beno=EEt
-
-On Mon, 28 Nov 2011, Peter Ujfalusi wrote:
-
-> To be able to get the memory resources by name from
-> the DMIC driver (for MPU and for DMA).
-
-Any comments on this one?  Looks like we'd need to add these names as=20
-hints in the script.
-
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Friday, December 16, 2011 11:36 AM
+> To: linux-omap@vger.kernel.org
+> Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org; devicetree-
+> discuss@lists.ozlabs.org; grant.likely@secretlab.ca; Cousson, Benoit;
+> Hiremath, Vaibhav
+> Subject: [PATCH] arm/dts: Add support for OMAP3 Mistral EVM board
+> 
+> Add OMAP3 Mistral EVM DTS file to use the omap3.dtsi SoC file,
+> along with memory node information.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 > ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
-map2/omap_hwmod_44xx_data.c
-> index 7695e5d..8b75c60 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -1028,6 +1028,7 @@ static struct omap_hwmod_dma_info omap44xx_dmic_sdm=
-a_reqs[] =3D {
-> =20
->  static struct omap_hwmod_addr_space omap44xx_dmic_addrs[] =3D {
->  =09{
-> +=09=09.name=09=09=3D "mpu",
->  =09=09.pa_start=09=3D 0x4012e000,
->  =09=09.pa_end=09=09=3D 0x4012e07f,
->  =09=09.flags=09=09=3D ADDR_TYPE_RT
-> @@ -1046,6 +1047,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__dm=
-ic =3D {
-> =20
->  static struct omap_hwmod_addr_space omap44xx_dmic_dma_addrs[] =3D {
->  =09{
-> +=09=09.name=09=09=3D "dma",
->  =09=09.pa_start=09=3D 0x4902e000,
->  =09=09.pa_end=09=09=3D 0x4902e07f,
->  =09=09.flags=09=09=3D ADDR_TYPE_RT
+> Boot tested it on DM37x Mistral EVM, kernel parses the info correctly.
+> 
+>  arch/arm/boot/dts/omap3-evm.dts |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap3-evm.dts
+> 
+> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-
+> evm.dts
+> new file mode 100644
+> index 0000000..59b2de0
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-evm.dts
+> @@ -0,0 +1,20 @@
+> +/*
+> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +/include/ "omap3.dtsi"
+> +
+> +/ {
+> +	model = "TI OMAP3 Mistral EVM";
+Just realized that, this is not in sync with current code. We always referred this EVM as "AM37x TI EVM".
+
+Reposting it again... (with correction).
+
+Thanks,
+Vaibhav
 
 
+> +	compatible = "ti,omap3-evm", "ti,omap3";
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x10000000>; /* 256 MB */
+> +	};
+> +};
+> --
+> 1.7.0.4
 
-- Paul
---155748971-594604338-1324016894=:12660--
