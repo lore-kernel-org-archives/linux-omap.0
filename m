@@ -1,42 +1,40 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 1/4] cpupower: Add cpupower-idle-info manpage
-Date: Fri, 16 Dec 2011 17:18:37 +0100
-Message-ID: <CAORVsuVrm+dWGgs-taatnUMZsYvYg_tdx1=7ekWp0qM+25DorQ@mail.gmail.com>
-References: <1324046154-64824-1-git-send-email-trenn@suse.de>
-	<1324046154-64824-2-git-send-email-trenn@suse.de>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [QUESTION] How to set static/dynamic dependency between clock domains
+Date: Sat, 17 Dec 2011 00:33:23 +0800
+Message-ID: <CACVXFVNtaaxB-MRXKBgAZFEkf72nsgcOSHOFsYjspoL0Fv6VWA@mail.gmail.com>
+References: <CACVXFVMe7T2WJiDwc9DFz9ifUPQG4pcYzFtx6O=gs7pFgrkNJg@mail.gmail.com>
+	<CACVXFVPOaw7OG7owJw0h7DAe3pRH6nROsy13UeAWPWgLedKY1g@mail.gmail.com>
+	<CAMQu2gwDth6OVTk3PkRCo05QF6WeQvMTJ-d5s33cT35GSVwT=w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <cpufreq-owner@vger.kernel.org>
-In-Reply-To: <1324046154-64824-2-git-send-email-trenn@suse.de>
-Sender: cpufreq-owner@vger.kernel.org
-To: Thomas Renninger <trenn@suse.de>
-Cc: linux@dominikbrodowski.net, cpufreq@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-acpi@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:34436 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759502Ab1LPQdY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 11:33:24 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dr13so6494733wgb.1
+        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 08:33:24 -0800 (PST)
+In-Reply-To: <CAMQu2gwDth6OVTk3PkRCo05QF6WeQvMTJ-d5s33cT35GSVwT=w@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi Thomas,
-
-On Fri, Dec 16, 2011 at 3:35 PM, Thomas Renninger <trenn@suse.de> wrote:
-> The last missing manpage for cpupower tools.
-Great!
-
-> More info about other architecture's sleep state specialities would be great.
-I wonder if it is the right place for some arch specific information
-about the sleep states.
-
-I propose to document this in a more generic doc file (e.g.
-Documentation/arm/OMAP/omap_pm) and link it from the manpage.
-
-What do you think?
-
+On Sat, Dec 17, 2011 at 12:09 AM, Shilimkar, Santosh
+<santosh.shilimkar@ti.com> wrote:
+> No. The table reflects the actual possible combination on hardware. You can't
+> add anything there arbitrary if that combination is not supported.
 >
-> Signed-off-by: Thomas Renninger <trenn@suse.de>
-> CC: linux-arm-kernel@lists.infradead.org
-> CC: jean.pihet@newoldbits.com
-> CC: linux-omap@vger.kernel.org
-> CC: linux-pm@lists.linux-foundation.org
-> CC: linux-acpi@vger.kernel.org
-> CC: cpufreq@vger.kernel.org
-> CC: linux@dominikbrodowski.net
+> But that makes me wonder how the patch worked. I will look at this in detail
+> next week.
 
-Regards,
-Jean
+Thanks, I use the below hwmod data patch[1] and omap device patch[2]
+to bring up fdif module, and Benoit has ACKed on patch [1].
+
+
+[1], http://marc.info/?l=linux-kernel&m=132387140703874&w=2
+[2], http://marc.info/?l=linux-kernel&m=132387155403929&w=2
+
+thanks,
+-- 
+Ming Lei
