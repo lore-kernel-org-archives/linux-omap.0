@@ -1,79 +1,47 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] arm/dts: Add support for OMAP3 Mistral EVM board
-Date: Fri, 16 Dec 2011 06:54:08 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A805E4F0@DBDE01.ent.ti.com>
-References: <1324015560-26735-1-git-send-email-hvaibhav@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH 0/4] OMAPDSS/ASoC: Repair broken HDMI audio in K3.2-rcX
+Date: Fri, 16 Dec 2011 01:03:09 -0600
+Message-ID: <1324018993-31466-1-git-send-email-ricardo.neri@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45629 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44900 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751293Ab1LPGyX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 01:54:23 -0500
-In-Reply-To: <1324015560-26735-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
+	id S1755974Ab1LPHDo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Dec 2011 02:03:44 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBG73hHG005381
+	for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 01:03:43 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Cousson, Benoit" <b-cousson@ti.com>
+To: tomi.valkeinen@ti.com, mythripk@ti.com
+Cc: linux-omap@vger.kernel.org, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, Ricardo Neri <ricardo.neri@ti.com>
 
+It has been detected that HDMI audio is broken in K3.2-rcX due to
+the most recent updates in the DSS. This set of patches aims to repair such
+break. It also improves the implementation of the ASoC codec to better follow
+the DSS design by clearly separating functions that need acess to IP-
+specific data.
 
-> -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Friday, December 16, 2011 11:36 AM
-> To: linux-omap@vger.kernel.org
-> Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org; devicetree-
-> discuss@lists.ozlabs.org; grant.likely@secretlab.ca; Cousson, Benoit;
-> Hiremath, Vaibhav
-> Subject: [PATCH] arm/dts: Add support for OMAP3 Mistral EVM board
-> 
-> Add OMAP3 Mistral EVM DTS file to use the omap3.dtsi SoC file,
-> along with memory node information.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
-> Boot tested it on DM37x Mistral EVM, kernel parses the info correctly.
-> 
->  arch/arm/boot/dts/omap3-evm.dts |   20 ++++++++++++++++++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/boot/dts/omap3-evm.dts
-> 
-> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-
-> evm.dts
-> new file mode 100644
-> index 0000000..59b2de0
-> --- /dev/null
-> +++ b/arch/arm/boot/dts/omap3-evm.dts
-> @@ -0,0 +1,20 @@
-> +/*
-> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +/dts-v1/;
-> +
-> +/include/ "omap3.dtsi"
-> +
-> +/ {
-> +	model = "TI OMAP3 Mistral EVM";
-Just realized that, this is not in sync with current code. We always referred this EVM as "AM37x TI EVM".
+This set of patches is based on
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v3.2-rc5
 
-Reposting it again... (with correction).
+and is available at
+git://gitorious.org/omap-audio/linux-audio.git ricardon/topic/fix-hdmi-audio-3.2
 
-Thanks,
-Vaibhav
+Validation was performed on HDMI TV. Penguins were present on the display
+and audio playback was performed with aplay at 32, 44.1 and 48kHz with S16_LE
+and S24_LE sample formats. Validation was performed on SDP4430 ES2.2.
 
+Ricardo Neri (4):
+  ASoC: OMAP: HDMI: Introduce driver data for audio codec
+  ASoC: OMAP: HDMI: Correct signature of ASoC functions
+  OMAPDSS: HDMI: Create function to enable HDMI audio
+  ASoC: OMAP: HDMI: Move HDMI codec trigger function to generic HDMI
+    driver
 
-> +	compatible = "ti,omap3-evm", "ti,omap3";
-> +
-> +	memory {
-> +		device_type = "memory";
-> +		reg = <0x80000000 0x10000000>; /* 256 MB */
-> +	};
-> +};
-> --
-> 1.7.0.4
+ drivers/video/omap2/dss/dss_features.c    |    4 ++
+ drivers/video/omap2/dss/hdmi.c            |   46 +++++++++++++++++++++++++++-
+ drivers/video/omap2/dss/ti_hdmi.h         |   10 +++++-
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   37 ++++-------------------
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    3 --
+ 5 files changed, 64 insertions(+), 36 deletions(-)
 
