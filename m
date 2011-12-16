@@ -1,50 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] OMAP4: mcbsp: Enable FIFO usage
-Date: Fri, 16 Dec 2011 09:36:00 -0800
-Message-ID: <20111216173600.GB32251@atomide.com>
-References: <1323941547-7714-1-git-send-email-peter.ujfalusi@ti.com>
- <1323941547-7714-2-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4] ARM: OMAP2+: hwmod: Add a new flag to handle hwmods
+ left enabled at init
+Date: Fri, 16 Dec 2011 10:16:26 -0800
+Message-ID: <20111216181626.GC32251@atomide.com>
+References: <alpine.DEB.2.00.1112160544470.12660@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55963 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760251Ab1LPRgI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 12:36:08 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28619 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760178Ab1LPSQb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 13:16:31 -0500
 Content-Disposition: inline
-In-Reply-To: <1323941547-7714-2-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1112160544470.12660@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, rnayak@ti.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [111215 01:01]:
-> All McBSP instances on OMAP4 has 128 word long FIFO
+* Paul Walmsley <paul@pwsan.com> [111216 04:18]:
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-
-Please merge via ASoC tree:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-> ---
->  arch/arm/mach-omap2/mcbsp.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
+> From: Rajendra Nayak <rnayak@ti.com>
 > 
-> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-> index 292eee3..857860b 100644
-> --- a/arch/arm/mach-omap2/mcbsp.c
-> +++ b/arch/arm/mach-omap2/mcbsp.c
-> @@ -153,6 +153,9 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
->  		else
->  			/* The FIFO has 128 locations */
->  			pdata->buffer_size = 0x80;
-> +	} else if (oh->class->rev == MCBSP_CONFIG_TYPE4) {
-> +		/* The FIFO has 128 locations for all instances */
-> +		pdata->buffer_size = 0x80;
->  	}
->  
->  	if (oh->class->rev >= MCBSP_CONFIG_TYPE3)
-> -- 
-> 1.7.8
+> An hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
+> enabled state by the hwmod framework post the initial setup.
+> Once a real user of the device (a driver) tries to enable it
+> at a later point, the hwmod framework throws a WARN() about
+> the device being already in enabled state.
 > 
+> Fix this by introducing a new internal flag '_HWMOD_SKIP_ENABLE' to
+> identify such devices/hwmods. When the device/hwmod is requested to be
+> enabled (the first time) by its driver/user, nothing except the
+> mux-enable is needed. The mux data is board specific and is
+> unavailable during initial enable() of the device, done by the
+> framework as part of setup().
+> 
+> A good example of a such a device is an UART used as debug console.
+> The UART module needs to be kept enabled through the boot, until the
+> UART driver takes control of it, for debug prints to appear on
+> the console.
+> 
+> Acked-by: Kevin Hilman <khilman@ti.com>
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> [paul@pwsan.com: use a flag rather than a state; updated commit message;
+>  edited some documentation]
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+Thanks I'll apply this into uart branch so I can pull Kevin's
+changes on top of it.
+
+Regards,
+
+Tony
