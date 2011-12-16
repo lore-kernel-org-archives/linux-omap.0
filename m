@@ -1,55 +1,124 @@
-From: deepthi <deepthi_kiran@mindtree.com>
-Subject: Re: ZOOM2 doesn't boot on upstream kernel
-Date: Fri, 16 Dec 2011 07:33:37 +0000 (UTC)
-Message-ID: <loom.20111216T082358-46@post.gmane.org>
-References: <AANLkTilypMkwLYcpFCI5ZwSKOGHIAwDI7Bp9IdN9UAv_@mail.gmail.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030DED31F3@dbde02.ent.ti.com> <AANLkTikkCeusIKA2KyRcVWbxVXKmLA8-_RfC2A4u3ySM@mail.gmail.com> <A24693684029E5489D1D202277BE894456224D59@dlee02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] ARM: OMAP AM3517/3505: fix crash on boot due to incorrect
+ voltagedomain data
+Date: Fri, 16 Dec 2011 01:02:25 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112160100520.12660@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54825 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751136Ab1LPHfI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 02:35:08 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1RbSJu-0002pd-GC
-	for linux-omap@vger.kernel.org; Fri, 16 Dec 2011 08:35:06 +0100
-Received: from 112.121.55.9 ([112.121.55.9])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 08:35:06 +0100
-Received: from deepthi_kiran by 112.121.55.9 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 08:35:06 +0100
+Received: from utopia.booyaka.com ([72.9.107.138]:45287 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756346Ab1LPIC0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 03:02:26 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Igor Grinberg <grinberg@compulab.co.il>, Kevin Hilman <khilman@ti.com>
 
 
-Hi,
+AM3517/3505 chips don't have voltage controller and voltage processor
+IP blocks.  Trying to use OMAP34xx/36xx voltage domain data on these
+chips causes a crash during boot:
 
-We are trying to boot 35 kernel on zoom2,I tried with android_zoom3 config and
-choosing MACH as zoom2 and also with omap_zoom2_defconfig, kernel is not booting
-at all,it is struck after 
-Starting kernel ...
+  omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
+  Unable to handle kernel NULL pointer dereference at virtual address 00000025
+  pgd = c0004000
+  [00000025] *pgd=00000000
+  Internal error: Oops: 5 [#1] SMP
+  Modules linked in:
+  CPU: 0    Tainted: G        W     (3.2.0-rc5-00006-g402ecf4 #304)
+  PC is at omap_vp_init+0x5c/0x14c
+  LR is at omap_vp_init+0x54/0x14c
 
-Uncompressing Linux...
- done, booting the kernel.
+Fix this by using very minimal voltage domain definitions for AM3517/3505.
 
-I have taken the omap4 panda release kernel for gingerbread.
-Image name it is showing as Linux-2.6.35.7-00371-gcfb80c7-di
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+Boot-tested on a CompuLab CM-T3517 and an OMAP37xx BeagleBoard.  Intended 
+for 3.2-rc.
 
-Please let me know Which kernel we have to take for zoom2 35.
-I have tried with following bootargs
-setenv bootargs console=ttyS3,115200n8 mem=256M  root=/dev/mmcblk0p2 rootdelay=1
-init=/init omap_vout.video1_numbuffers=6 omap_vout.vid1_static_vrfb_alloc=y
-omapfb.vram=0:4M
-I even tried with ttyO3 also.
-What should be the exact console should it be ttyO0?
-Please help me out to come out from this issue
+ arch/arm/mach-omap2/voltagedomains3xxx_data.c |   40 +++++++++++++++++++++----
+ 1 files changed, 34 insertions(+), 6 deletions(-)
 
-
-
-
+diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+index 071101d..636b688 100644
+--- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
++++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
+@@ -31,6 +31,14 @@
+  * VDD data
+  */
+ 
++/* OMAP3-common voltagedomain data */
++
++static struct voltagedomain omap3_voltdm_wkup = {
++	.name = "wakeup",
++};
++
++/* 34xx/36xx voltagedomain data */
++
+ static const struct omap_vfsm_instance omap3_vdd1_vfsm = {
+ 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
+ 	.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK,
+@@ -63,10 +71,6 @@ static struct voltagedomain omap3_voltdm_core = {
+ 	.vp = &omap3_vp_core,
+ };
+ 
+-static struct voltagedomain omap3_voltdm_wkup = {
+-	.name = "wakeup",
+-};
+-
+ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
+ 	&omap3_voltdm_mpu,
+ 	&omap3_voltdm_core,
+@@ -74,11 +78,30 @@ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
+ 	NULL,
+ };
+ 
++/* AM35xx voltagedomain data */
++
++static struct voltagedomain am35xx_voltdm_mpu = {
++	.name = "mpu_iva",
++};
++
++static struct voltagedomain am35xx_voltdm_core = {
++	.name = "core",
++};
++
++static struct voltagedomain *voltagedomains_am35xx[] __initdata = {
++	&am35xx_voltdm_mpu,
++	&am35xx_voltdm_core,
++	&omap3_voltdm_wkup,
++	NULL,
++};
++
++
+ static const char *sys_clk_name __initdata = "sys_ck";
+ 
+ void __init omap3xxx_voltagedomains_init(void)
+ {
+ 	struct voltagedomain *voltdm;
++	struct voltagedomain **voltdms;
+ 	int i;
+ 
+ 	/*
+@@ -93,8 +116,13 @@ void __init omap3xxx_voltagedomains_init(void)
+ 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
+ 	}
+ 
+-	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
++	if (cpu_is_omap3517() || cpu_is_omap3505())
++		voltdms = voltagedomains_am35xx;
++	else
++		voltdms = voltagedomains_omap3;
++
++	for (i = 0; voltdm = voltdms[i], voltdm; i++)
+ 		voltdm->sys_clk.name = sys_clk_name;
+ 
+-	voltdm_init(voltagedomains_omap3);
++	voltdm_init(voltdms);
+ };
+-- 
+1.7.7.3
 
