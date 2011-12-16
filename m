@@ -1,78 +1,44 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH v3 0/4] OMAP serial device tree support
-Date: Fri, 16 Dec 2011 14:09:47 -0800
-Message-ID: <20111216220947.GR32251@atomide.com>
+Date: Fri, 16 Dec 2011 14:17:31 -0800
+Message-ID: <20111216221731.GS32251@atomide.com>
 References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
- <4EE8A90A.10206@gmail.com>
- <20111216215731.GQ32251@atomide.com>
- <4EEBBFDD.1010509@gmail.com>
+ <87d3brnpsi.fsf@ti.com>
+ <20111214171843.5f638874@bob.linux.org.uk>
+ <20111214182710.GC8039@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4EEBBFDD.1010509@gmail.com>
+In-Reply-To: <20111214182710.GC8039@kroah.com>
 Sender: linux-serial-owner@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@linux.intel.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com
 List-Id: linux-omap@vger.kernel.org
 
-* Rob Herring <robherring2@gmail.com> [111216 13:30]:
-> Tony,
-> 
-> On 12/16/2011 03:57 PM, Tony Lindgren wrote:
-> > Rob,
+* Greg KH <greg@kroah.com> [111214 10:27]:
+> On Wed, Dec 14, 2011 at 05:18:43PM +0000, Alan Cox wrote:
+> > On Wed, 14 Dec 2011 07:20:13 -0800
+> > Kevin Hilman <khilman@ti.com> wrote:
 > > 
-> > * Rob Herring <robherring2@gmail.com> [111214 05:16]:
-> >> On 12/14/2011 05:55 AM, Rajendra Nayak wrote:
-> >>> v3 is rebased on top of the latest serial runtime
-> >>> patches[1] and boot tested with/without DT on OMAP4
-> >>> SDP and OMAP4 Panda boards.
-> >>>
-> >>> Patches can be found here..
-> >>> git://gitorious.org/omap-pm/linux.git for-dt/serial
-> >>>
-> >>> I also had to pull in a fix[2] for DT testing (already in linux-omap
-> >>> master) which was missing as the serial runtime branch[1]
-> >>> was based on an older master commit.
-> >>>
-> >>> Changes in v3:
-> >>> -1- Rebased on latest serial runtime patches
-> >>> -2- Minor typr fixes
-> >>>
-> >>> Changes in v2:
-> >>> -1- Got rid of binding to define which uart is console
-> >>> -2- Added checks to default clock speed to 48Mhz
-> >>> -3- Added compatible for each OMAP family
-> >>> -4- Used of_alias_get_id to populate port.line
-> >>>
-> >>> [1] git://gitorious.org/runtime_3-0/runtime_3-0.git for_3_3/lo_rc4_uartruntime
-> >>> [2] http://www.spinics.net/lists/arm-kernel/msg150751.html
-> >>>
-> >>> Rajendra Nayak (4):
-> >>>   omap-serial: Get rid of all pdev->id usage
-> >>>   omap-serial: Use default clock speed (48Mhz) if not specified
-> >>>   omap-serial: Add minimal device tree support
-> >>>   ARM: omap: pass minimal SoC/board data for UART from dt
-> >>>
-> >>>  .../devicetree/bindings/serial/omap_serial.txt     |   10 +++
-> >>>  arch/arm/boot/dts/omap3.dtsi                       |   31 ++++++++
-> >>>  arch/arm/boot/dts/omap4.dtsi                       |   28 +++++++
-> >>>  arch/arm/mach-omap2/board-generic.c                |    1 -
-> >>>  drivers/tty/serial/omap-serial.c                   |   80 +++++++++++++++----
-> >>>  5 files changed, 132 insertions(+), 18 deletions(-)
-> >>>  create mode 100644 Documentation/devicetree/bindings/serial/omap_serial.txt
-> >>
-> >> Looks good. For the series:
-> >>
-> >> Reviewed-by: Rob Herring <rob.herring@calxeda.com>
+> > > Greg, Alan,
+> > > 
+> > > Rajendra Nayak <rnayak@ti.com> writes:
+> > > 
+> > > > v3 is rebased on top of the latest serial runtime
+> > > > patches[1] and boot tested with/without DT on OMAP4
+> > > > SDP and OMAP4 Panda boards.
+> > > 
+> > > With your ack on the drivers/tty/* stuff, I can queue this via the
+> > > OMAP tree on top of the runtime PM conversion that it depends on.
 > > 
-> > Care to check if your Reviewed-by can also be applied
-> > to the additional patch "[PATCH] arm/dts: Add minimal device
-> > tree support for omap2420 and omap2430" that's needed
-> > to keep serial port working for omap2 with this series?
+> > Go for it
 > 
-> It looks fine.
+> Fine with me as well.
 
-OK thanks.
+For the record, I'll apply these directly into the omap uart
+branch as Kevin is on vacation. 
+
+Regards,
 
 Tony
