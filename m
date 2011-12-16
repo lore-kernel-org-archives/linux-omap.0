@@ -1,72 +1,57 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Should I worry about "omap-mcbsp.2: alias fck already exists"
- or is it expected?
-Date: Fri, 16 Dec 2011 02:24:26 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112160219030.12660@utopia.booyaka.com>
-References: <20111212103553.044b17bb@notabene.brown> <4EE5D8A5.1010308@ti.com>
+From: Shawn Guo <shawn.guo@freescale.com>
+Subject: Re: [PATCH v5 1/5] ARM: l2x0/pl310: Refactor Kconfig to be more
+ maintainable
+Date: Fri, 16 Dec 2011 17:54:55 +0800
+Message-ID: <20111216095454.GD3519@S2100-06.ap.freescale.net>
+References: <1323964434-6764-1-git-send-email-dave.martin@linaro.org>
+ <1323964434-6764-2-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46727 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406Ab1LPJY1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 04:24:27 -0500
-In-Reply-To: <4EE5D8A5.1010308@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1323964434-6764-2-git-send-email-dave.martin@linaro.org>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Kukjin Kim <kgene.kim@samsung.com>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Anton Vorontsov <avorontsov@mvista.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Colin Cross <ccross@google.com>, Shawn Guo <shawn.guo@linaro.org>, Tony Lindgren <tony@atomide.com>, Paul Mundt <lethal@linux-sh.org>, linux-samsung-soc@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Sascha Hauer <kernel@pengutronix.de>, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, John Linn <john.linn@xilinx.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: NeilBrown <neilb@suse.de>, linux-omap@vger.kernel.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, jarkko.nikula@bitmer.com
 
-(cc Jarkko)
-
-On Mon, 12 Dec 2011, Cousson, Benoit wrote:
-
-> On 12/12/2011 12:35 AM, NeilBrown wrote:
-> > 
-> > In 3.2-rc5 (and some earlier kernels) I'm getting the boot-time warning:
-> > 
-> > [    0.186828]  omap-mcbsp.2: alias fck already exists
-> > 
-> > and
-> > 
-> > [    0.188476]  omap-mcbsp.3: alias fck already exists
-> > 
-> > This happens because omap_alloc_device() contains:
-> > 
-> > 
-> > 	for (i = 0; i<  oh_cnt; i++) {
-> > 		hwmods[i]->od = od;
-> > 		_add_hwmod_clocks_clkdev(od, hwmods[i]);
-> > 	}
-> > 
-> > so if oh_cnt is ever>  1 (which is is for mcbsp.2 and .3 in
-> > omap_hwmod_3xxx_data.c as they both declare a '.devattr'), then
-> > _add_hwmod_clocks_clkdev will be called twice with the one 'od', and both
-> > calls will try to add an alias 'fsck' to that same device, and the second
-> > will always give a warning.
-> > 
-> > Is this actually a bug,
+On Thu, Dec 15, 2011 at 03:53:50PM +0000, Dave Martin wrote:
+> Making CACHE_L2X0 depend on (huge list of MACH_ and ARCH_ configs)
+> is bothersome to maintain and likely to lead to merge conflicts.
 > 
-> It is indeed a bug. The point is that in theory most hwmod should have an
-> unique device to represent them. But in the case of the Mcbsp2 and 3, due to
-> the tightly coupled sidetone, and because each one has a dedicated OCP port,
-> it was decided to have 2 hwmods but only one omap_device.
+> This patch moves the knowledge of which platforms have a L2x0 or
+> PL310 cache controller to the individual machines.  To enable this,
+> a new MIGHT_HAVE_CACHE_L2X0 config option is introduced to allow
+> machines to indicate that they may have such a cache controller
+> independently of each other.
 > 
-> I'm wondering now if another device should not be considered, but I'll let
-> Peter decide for the McBSP driver organization.
+> Boards/SoCs which cannot reliably operate without the L2 cache
+> controller support will need to select CACHE_L2X0 directly from
+> their own Kconfigs instead.  This applies to some TrustZone-enabled
+> boards where Linux runs in the Normal World, for example.
+> 
+> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+> Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
+>         (for cns3xxx)
+> Acked-by: Tony Lindgren <tony@atomide.com>
+>         (for omap)
+> ---
+[...]
+> diff --git a/arch/arm/plat-mxc/Kconfig b/arch/arm/plat-mxc/Kconfig
+> index b3a1f2b..b30708e 100644
+> --- a/arch/arm/plat-mxc/Kconfig
+> +++ b/arch/arm/plat-mxc/Kconfig
+> @@ -20,6 +20,7 @@ config ARCH_IMX_V6_V7
+>  	bool "i.MX3, i.MX6"
+>  	select AUTO_ZRELADDR if !ZBOOT_ROM
+>  	select ARM_PATCH_PHYS_VIRT
+> +	select MIGHT_HAVE_CACHE_L2X0
+>  	help
+>  	  This enables support for systems based on the Freescale i.MX3 and i.MX6
+>  	  family.
 
-The sidetone blocks should definitely have separate devices & drivers, but 
-AFAIK from Jarkko, this turns out to be not so easy due to an OMAP3 
-hardware bug:
+Acked-by: Shawn Guo <shawn.guo@linaro.org>
 
-   http://www.spinics.net/lists/linux-omap/msg58101.html
-
-So basically the interface clock autoidle handling needs to be fixed in 
-the omap_hwmod code, so IP blocks with buggy autoidle handling can be 
-marked in the hwmod data, and the hwmod code can control the interface 
-clock autoidle bits along with the module's PM runtime status.
-
-Patches welcome :-)
-
-
-- Paul
+-- 
+Regards,
+Shawn
