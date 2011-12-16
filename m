@@ -1,52 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [GIT PULL] ARM: OMAP: I2C: prepare to use hwmod reset in
- driver
-Date: Fri, 16 Dec 2011 13:59:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112161357250.12660@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1112160254320.12660@utopia.booyaka.com> <20111216195002.GL32251@atomide.com> <alpine.DEB.2.00.1112161314180.12660@utopia.booyaka.com> <20111216204123.GM32251@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 0/4] OMAP serial device tree support
+Date: Fri, 16 Dec 2011 13:57:31 -0800
+Message-ID: <20111216215731.GQ32251@atomide.com>
+References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
+ <4EE8A90A.10206@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38875 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760017Ab1LPU7m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 15:59:42 -0500
-In-Reply-To: <20111216204123.GM32251@atomide.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:30090 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760653Ab1LPV5g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 16:57:36 -0500
+Content-Disposition: inline
+In-Reply-To: <4EE8A90A.10206@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Shubhrajyoti <shubhrajyoti@ti.com>, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-Hi
+Rob,
 
-On Fri, 16 Dec 2011, Tony Lindgren wrote:
-
-> * Paul Walmsley <paul@pwsan.com> [111216 11:45]:
-> > On Fri, 16 Dec 2011, Tony Lindgren wrote:
+* Rob Herring <robherring2@gmail.com> [111214 05:16]:
+> On 12/14/2011 05:55 AM, Rajendra Nayak wrote:
+> > v3 is rebased on top of the latest serial runtime
+> > patches[1] and boot tested with/without DT on OMAP4
+> > SDP and OMAP4 Panda boards.
 > > 
-> > > * Paul Walmsley <paul@pwsan.com> [111216 01:24]:
-> > >
-> > > > Shubhrajyoti D (2):
-> > > >       ARM: OMAP: omap_device: add omap_device_reset to reset all the hwmods in the device
-> > > >       ARM: OMAP: I2C: Reset support
-> > > > 
-> > > Can you please update shi to leave out the extra callback
-> > > function int (*device_reset) (struct device *dev) as I'd
-> > > rather see that happen with pm_runtime calls?
+> > Patches can be found here..
+> > git://gitorious.org/omap-pm/linux.git for-dt/serial
 > > 
-> > What PM runtime call is used to reset a device?
+> > I also had to pull in a fix[2] for DT testing (already in linux-omap
+> > master) which was missing as the serial runtime branch[1]
+> > was based on an older master commit.
+> > 
+> > Changes in v3:
+> > -1- Rebased on latest serial runtime patches
+> > -2- Minor typr fixes
+> > 
+> > Changes in v2:
+> > -1- Got rid of binding to define which uart is console
+> > -2- Added checks to default clock speed to 48Mhz
+> > -3- Added compatible for each OMAP family
+> > -4- Used of_alias_get_id to populate port.line
+> > 
+> > [1] git://gitorious.org/runtime_3-0/runtime_3-0.git for_3_3/lo_rc4_uartruntime
+> > [2] http://www.spinics.net/lists/arm-kernel/msg150751.html
+> > 
+> > Rajendra Nayak (4):
+> >   omap-serial: Get rid of all pdev->id usage
+> >   omap-serial: Use default clock speed (48Mhz) if not specified
+> >   omap-serial: Add minimal device tree support
+> >   ARM: omap: pass minimal SoC/board data for UART from dt
+> > 
+> >  .../devicetree/bindings/serial/omap_serial.txt     |   10 +++
+> >  arch/arm/boot/dts/omap3.dtsi                       |   31 ++++++++
+> >  arch/arm/boot/dts/omap4.dtsi                       |   28 +++++++
+> >  arch/arm/mach-omap2/board-generic.c                |    1 -
+> >  drivers/tty/serial/omap-serial.c                   |   80 +++++++++++++++----
+> >  5 files changed, 132 insertions(+), 18 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/serial/omap_serial.txt
 > 
-> Hmm how about pm_runtime_disable? Or do we need a new
-> call for reset?
+> Looks good. For the series:
+> 
+> Reviewed-by: Rob Herring <rob.herring@calxeda.com>
 
-Looking at the last few hunks of:
+Care to check if your Reviewed-by can also be applied
+to the additional patch "[PATCH] arm/dts: Add minimal device
+tree support for omap2420 and omap2430" that's needed
+to keep serial port working for omap2 with this series?
 
-http://marc.info/?l=linux-omap&m=132377389204328&w=2
+Regards,
 
-it appears to me that the driver needs to reset the device while it's 
-still active & powered on, etc.
-
-Shubhrajyoti, care to comment further?
-
-
-- Paul
+Tony
