@@ -1,20 +1,18 @@
 From: Olof Johansson <olof@lixom.net>
-Subject: Re: [GIT PULL] SoC changes for omap4470, ti814x, am33xx for v3.3
- merge window
-Date: Thu, 15 Dec 2011 23:24:24 -0800
-Message-ID: <CAOesGMgC_sWWQg4GbLfyxfGWB=fpUYCU1QXfHcWk0b+MHkSe+w@mail.gmail.com>
-References: <20111214193547.GI32251@atomide.com>
-	<20111214194843.GL32251@atomide.com>
+Subject: Re: [GIT PULL] omap musb platform init updates for v3.3 merge window
+Date: Thu, 15 Dec 2011 23:24:35 -0800
+Message-ID: <CAOesGMh8fsubEp4chJWcysDgUT+8ZrxwfxxzSjB7ktS_iQhyXQ@mail.gmail.com>
+References: <20111214194218.GK32251@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-yx0-f174.google.com ([209.85.213.174]:52938 "EHLO
 	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477Ab1LPHYZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 02:24:25 -0500
-Received: by yenm11 with SMTP id m11so2012244yen.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 23:24:25 -0800 (PST)
-In-Reply-To: <20111214194843.GL32251@atomide.com>
+	with ESMTP id S1759075Ab1LPHYf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 02:24:35 -0500
+Received: by mail-yx0-f174.google.com with SMTP id m11so2012244yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 23:24:35 -0800 (PST)
+In-Reply-To: <20111214194218.GK32251@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
@@ -22,21 +20,19 @@ Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-o
 
 Hi,
 
-On Wed, Dec 14, 2011 at 11:48 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Tony Lindgren <tony@atomide.com> [111214 11:04]:
->> Hi Arnd & Olof,
->>
->> Please pull support for new omap variants from:
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
+On Wed, Dec 14, 2011 at 11:42 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Arnd & Olof,
 >
-> Sorry the link above should be:
+> Please pull musb updates from:
 >
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap soc
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap musb
 >
-> As below in the pull request.
+> This branch enables musb for some new omaps and boards.
+>
+> It depends on the board branch I posted a pull request
+> for just before this email.
 
-Pulled into next/soc, thanks.
+Thanks, pulled into next/boards.
 
 
 -Olof
