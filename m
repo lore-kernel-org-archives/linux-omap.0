@@ -1,109 +1,55 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v9 00/31] gpio/omap: driver cleanup and fixes
-Date: Fri, 16 Dec 2011 12:58:31 +0530
-Message-ID: <CAMQu2gyZtuW3HLbWH5wH-YjB4SpLD9tz5kpVdRHi2j9RsXLA2w@mail.gmail.com>
-References: <1323807633-23713-1-git-send-email-tarun.kanti@ti.com>
+From: deepthi <deepthi_kiran@mindtree.com>
+Subject: Re: ZOOM2 doesn't boot on upstream kernel
+Date: Fri, 16 Dec 2011 07:33:37 +0000 (UTC)
+Message-ID: <loom.20111216T082358-46@post.gmane.org>
+References: <AANLkTilypMkwLYcpFCI5ZwSKOGHIAwDI7Bp9IdN9UAv_@mail.gmail.com> <2A3DCF3DA181AD40BDE86A3150B27B6B030DED31F3@dbde02.ent.ti.com> <AANLkTikkCeusIKA2KyRcVWbxVXKmLA8-_RfC2A4u3ySM@mail.gmail.com> <A24693684029E5489D1D202277BE894456224D59@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:34169 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758988Ab1LPH3J convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 02:29:09 -0500
-Received: by qadc11 with SMTP id c11so1760948qad.4
-        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 23:28:53 -0800 (PST)
-In-Reply-To: <1323807633-23713-1-git-send-email-tarun.kanti@ti.com>
+Received: from lo.gmane.org ([80.91.229.12]:54825 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751136Ab1LPHfI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Dec 2011 02:35:08 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1RbSJu-0002pd-GC
+	for linux-omap@vger.kernel.org; Fri, 16 Dec 2011 08:35:06 +0100
+Received: from 112.121.55.9 ([112.121.55.9])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 08:35:06 +0100
+Received: from deepthi_kiran by 112.121.55.9 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 08:35:06 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
 
-Tarun,
 
-On Wed, Dec 14, 2011 at 1:50 AM, Tarun Kanti DebBarma
-<tarun.kanti@ti.com> wrote:
-> This series is continuation of cleanup of OMAP GPIO driver and fixes.
-> The cleanup include getting rid of cpu_is_* checks wherever possible,
-> use of gpio_bank list instead of static array, use of unique platform
-> specific value associated data member to OMAP platforms to avoid
-> cpu_is_* checks. The series also include PM runtime support.
->
-> Baseline: git://github.com/khilman/linux-omap-pm.git
-> Branch: for_3.3/gpio-base
->
-> Baseline: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linu=
-x-2.6.git
-> Branch: master
-> Commit: b835c0f
->
-> Power Tests
-> a) OMAP3430SDP
-> - Modify board-3430sdp.c file to have multiple GPIO modules active
-> =A0with debounce timeout enabled.
-> - Enable CPU-Idle
-> - Enable UART timeouts
-> - Enable offmode
-> - echo mem > /sys/power/state
-> - Verify retention and offmode count increment
->
-> b) ZOOM3
-> - Enable CPU-Idle
-> - Enable UART timeout
-> - echo mem > /sys/power/state
-> - Wakeup system using serial keyboard
-> - Verify retention count increment
->
-> Functional Tests
-> - Done on OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430
->
-> Bootup Test
-> - Done on OMAP1710
->
-> v9:
-> - Summary of Comments/Issues fixed
-> =A0* GPIO wakeup does not work
-> =A0* Call debounce clock enable/disable functions from PM runtime cal=
-lbacks.
-> =A0 =A0This will avoid calling the functions from multiple places.
-> =A0* Modify description of following patch to match latest changes.
-> =A0 =A0gpio/omap: save and restore debounce registers
-> =A0* Use (bank->regs->set_dataout && bank->regs->clr_dataout) togethe=
-r instead
-> =A0 =A0of using only one of them.
-> =A0* Remove cpu_is_omapxxxx() checks from set_gpio_trigger().
-> =A0* _gpio_dbck_enable() in runtime callback triggered from omap_gpio=
-_request
-> =A0 =A0does not enable dbck because dbck_enable_mask is not set at th=
-is point.
-> =A0* Workaround associated with an errata got missed in v8. This has =
-been
-> =A0 =A0 =A0included.
->
-As reported by Kevin ( off-the list), only 25 patches out of 31
-reached to the list.
-The rest 8, for some reason didn't reached to the list.
+Hi,
 
-Also since you have added few additional bug fixes in this series on to=
-p of
-the v8, the v9 becomes slightly different.
+We are trying to boot 35 kernel on zoom2,I tried with android_zoom3 config and
+choosing MACH as zoom2 and also with omap_zoom2_defconfig, kernel is not booting
+at all,it is struck after 
+Starting kernel ...
 
-So here is what I suggest.
-1. Repost your v9 only with those 25 reworked patches.
-2. Create a separate series for additional bug fixes which will apply o=
-n top
-of 1)
+Uncompressing Linux...
+ done, booting the kernel.
 
-That way it's easier to line up the patches since the 25 ones have gone=
- though
-few review cycles where as the new 8 has only gone through the internal=
- review.
+I have taken the omap4 panda release kernel for gingerbread.
+Image name it is showing as Linux-2.6.35.7-00371-gcfb80c7-di
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please let me know Which kernel we have to take for zoom2 35.
+I have tried with following bootargs
+setenv bootargs console=ttyS3,115200n8 mem=256M  root=/dev/mmcblk0p2 rootdelay=1
+init=/init omap_vout.video1_numbuffers=6 omap_vout.vid1_static_vrfb_alloc=y
+omapfb.vram=0:4M
+I even tried with ttyO3 also.
+What should be the exact console should it be ttyO0?
+Please help me out to come out from this issue
+
+
+
+
+
