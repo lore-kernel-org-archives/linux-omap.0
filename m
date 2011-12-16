@@ -1,124 +1,191 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] ARM: OMAP AM3517/3505: fix crash on boot due to incorrect
- voltagedomain data
-Date: Fri, 16 Dec 2011 01:02:25 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112160100520.12660@utopia.booyaka.com>
+Subject: [PATCH v2] ARM: OMAP3: hwmod data: disable multiblock reads on MMC1/2
+ on OMAP34xx/35xx <= ES2.1
+Date: Fri, 16 Dec 2011 01:04:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112152346080.12660@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1110061453540.4611@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45287 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab1LPIC0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 03:02:26 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1110061453540.4611@utopia.booyaka.com>
+Sender: linux-mmc-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Igor Grinberg <grinberg@compulab.co.il>, Kevin Hilman <khilman@ti.com>
+Cc: linux-mmc@vger.kernel.org, Dave Hylands <dhylands@gmail.com>, Steve Sakoman <sakoman@gmail.com>
+List-Id: linux-omap@vger.kernel.org
 
 
-AM3517/3505 chips don't have voltage controller and voltage processor
-IP blocks.  Trying to use OMAP34xx/36xx voltage domain data on these
-chips causes a crash during boot:
+The HSMMC1/HSMMC2 host controllers on OMAP34xx and
+OMAP3503/3515/3525/3530 chips at ES levels prior to 3.0 can't do multiple
+block reads[1].  Mark the hwmod data appropriately.
 
-  omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
-  Unable to handle kernel NULL pointer dereference at virtual address 00000025
-  pgd = c0004000
-  [00000025] *pgd=00000000
-  Internal error: Oops: 5 [#1] SMP
-  Modules linked in:
-  CPU: 0    Tainted: G        W     (3.2.0-rc5-00006-g402ecf4 #304)
-  PC is at omap_vp_init+0x5c/0x14c
-  LR is at omap_vp_init+0x54/0x14c
+Reported by Dave Hylands <dhylands@gmail.com> and Steve Sakoman
+<sakoman@gmail.com>.  Thanks to Steve Sakoman for further help
+testing this patch.
 
-Fix this by using very minimal voltage domain definitions for AM3517/3505.
+1. See for example Advisory 2.1.1.128 "MMC: Multiple Block Read
+   Operation Issue" in _OMAP3530/3525/3515/3503 Silicon Errata_
+   Revision F (October 2010) (SPRZ278F), available from
+   http://focus.ti.com/lit/er/sprz278f/sprz278f.pdf
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Kevin Hilman <khilman@ti.com>
+Cc: Dave Hylands <dhylands@gmail.com>
+Cc: Steve Sakoman <sakoman@gmail.com>
 ---
-Boot-tested on a CompuLab CM-T3517 and an OMAP37xx BeagleBoard.  Intended 
-for 3.2-rc.
 
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |   40 +++++++++++++++++++++----
- 1 files changed, 34 insertions(+), 6 deletions(-)
+The first version of this patch caused MMC hwmods to not be registered on 
+36xx/37xx chips.  Thanks to Steve Sakoman for noting this.  This version 
+fixes it - tested on 37xx BeagleBoard.
 
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index 071101d..636b688 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -31,6 +31,14 @@
-  * VDD data
-  */
- 
-+/* OMAP3-common voltagedomain data */
-+
-+static struct voltagedomain omap3_voltdm_wkup = {
-+	.name = "wakeup",
-+};
-+
-+/* 34xx/36xx voltagedomain data */
-+
- static const struct omap_vfsm_instance omap3_vdd1_vfsm = {
- 	.voltsetup_reg = OMAP3_PRM_VOLTSETUP1_OFFSET,
- 	.voltsetup_mask = OMAP3430_SETUP_TIME1_MASK,
-@@ -63,10 +71,6 @@ static struct voltagedomain omap3_voltdm_core = {
- 	.vp = &omap3_vp_core,
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   94 ++++++++++++++++++++++++++-
+ 1 files changed, 90 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 905fc44..27f2fad 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3125,7 +3125,35 @@ static struct omap_mmc_dev_attr mmc1_dev_attr = {
+ 	.flags = OMAP_HSMMC_SUPPORTS_DUAL_VOLT,
  };
  
--static struct voltagedomain omap3_voltdm_wkup = {
--	.name = "wakeup",
--};
--
- static struct voltagedomain *voltagedomains_omap3[] __initdata = {
- 	&omap3_voltdm_mpu,
- 	&omap3_voltdm_core,
-@@ -74,11 +78,30 @@ static struct voltagedomain *voltagedomains_omap3[] __initdata = {
- 	NULL,
+-static struct omap_hwmod omap3xxx_mmc1_hwmod = {
++/* See 35xx errata 2.1.1.128 in SPRZ278F */
++static struct omap_mmc_dev_attr mmc1_pre_es3_dev_attr = {
++	.flags = (OMAP_HSMMC_SUPPORTS_DUAL_VOLT |
++		  OMAP_HSMMC_BROKEN_MULTIBLOCK_READ),
++};
++
++static struct omap_hwmod omap3xxx_pre_es3_mmc1_hwmod = {
++	.name		= "mmc1",
++	.mpu_irqs	= omap34xx_mmc1_mpu_irqs,
++	.sdma_reqs	= omap34xx_mmc1_sdma_reqs,
++	.opt_clks	= omap34xx_mmc1_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(omap34xx_mmc1_opt_clks),
++	.main_clk	= "mmchs1_fck",
++	.prcm		= {
++		.omap2 = {
++			.module_offs = CORE_MOD,
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MMC1_SHIFT,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MMC1_SHIFT,
++		},
++	},
++	.dev_attr	= &mmc1_pre_es3_dev_attr,
++	.slaves		= omap3xxx_mmc1_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mmc1_slaves),
++	.class		= &omap34xx_mmc_class,
++};
++
++static struct omap_hwmod omap3xxx_es3plus_mmc1_hwmod = {
+ 	.name		= "mmc1",
+ 	.mpu_irqs	= omap34xx_mmc1_mpu_irqs,
+ 	.sdma_reqs	= omap34xx_mmc1_sdma_reqs,
+@@ -3168,7 +3196,34 @@ static struct omap_hwmod_ocp_if *omap3xxx_mmc2_slaves[] = {
+ 	&omap3xxx_l4_core__mmc2,
  };
  
-+/* AM35xx voltagedomain data */
-+
-+static struct voltagedomain am35xx_voltdm_mpu = {
-+	.name = "mpu_iva",
+-static struct omap_hwmod omap3xxx_mmc2_hwmod = {
++/* See 35xx errata 2.1.1.128 in SPRZ278F */
++static struct omap_mmc_dev_attr mmc2_pre_es3_dev_attr = {
++	.flags = OMAP_HSMMC_BROKEN_MULTIBLOCK_READ,
 +};
 +
-+static struct voltagedomain am35xx_voltdm_core = {
-+	.name = "core",
++static struct omap_hwmod omap3xxx_pre_es3_mmc2_hwmod = {
++	.name		= "mmc2",
++	.mpu_irqs	= omap34xx_mmc2_mpu_irqs,
++	.sdma_reqs	= omap34xx_mmc2_sdma_reqs,
++	.opt_clks	= omap34xx_mmc2_opt_clks,
++	.opt_clks_cnt	= ARRAY_SIZE(omap34xx_mmc2_opt_clks),
++	.main_clk	= "mmchs2_fck",
++	.prcm		= {
++		.omap2 = {
++			.module_offs = CORE_MOD,
++			.prcm_reg_id = 1,
++			.module_bit = OMAP3430_EN_MMC2_SHIFT,
++			.idlest_reg_id = 1,
++			.idlest_idle_bit = OMAP3430_ST_MMC2_SHIFT,
++		},
++	},
++	.dev_attr	= &mmc2_pre_es3_dev_attr,
++	.slaves		= omap3xxx_mmc2_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_mmc2_slaves),
++	.class		= &omap34xx_mmc_class,
 +};
 +
-+static struct voltagedomain *voltagedomains_am35xx[] __initdata = {
-+	&am35xx_voltdm_mpu,
-+	&am35xx_voltdm_core,
-+	&omap3_voltdm_wkup,
-+	NULL,
-+};
-+
-+
- static const char *sys_clk_name __initdata = "sys_ck";
++static struct omap_hwmod omap3xxx_es3plus_mmc2_hwmod = {
+ 	.name		= "mmc2",
+ 	.mpu_irqs	= omap34xx_mmc2_mpu_irqs,
+ 	.sdma_reqs	= omap34xx_mmc2_sdma_reqs,
+@@ -3447,8 +3502,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l4_core_hwmod,
+ 	&omap3xxx_l4_per_hwmod,
+ 	&omap3xxx_l4_wkup_hwmod,
+-	&omap3xxx_mmc1_hwmod,
+-	&omap3xxx_mmc2_hwmod,
+ 	&omap3xxx_mmc3_hwmod,
+ 	&omap3xxx_mpu_hwmod,
  
- void __init omap3xxx_voltagedomains_init(void)
- {
- 	struct voltagedomain *voltdm;
-+	struct voltagedomain **voltdms;
- 	int i;
- 
- 	/*
-@@ -93,8 +116,13 @@ void __init omap3xxx_voltagedomains_init(void)
- 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
- 	}
- 
--	for (i = 0; voltdm = voltagedomains_omap3[i], voltdm; i++)
-+	if (cpu_is_omap3517() || cpu_is_omap3505())
-+		voltdms = voltagedomains_am35xx;
-+	else
-+		voltdms = voltagedomains_omap3;
-+
-+	for (i = 0; voltdm = voltdms[i], voltdm; i++)
- 		voltdm->sys_clk.name = sys_clk_name;
- 
--	voltdm_init(voltagedomains_omap3);
-+	voltdm_init(voltdms);
+@@ -3531,6 +3584,20 @@ static __initdata struct omap_hwmod *omap3430es2plus_hwmods[] = {
+ 	NULL
  };
+ 
++/* <= 3430ES3-only hwmods */
++static struct omap_hwmod *omap3430_pre_es3_hwmods[] __initdata = {
++	&omap3xxx_pre_es3_mmc1_hwmod,
++	&omap3xxx_pre_es3_mmc2_hwmod,
++	NULL
++};
++
++/* 3430ES3+-only hwmods */
++static struct omap_hwmod *omap3430_es3plus_hwmods[] __initdata = {
++	&omap3xxx_es3plus_mmc1_hwmod,
++	&omap3xxx_es3plus_mmc2_hwmod,
++	NULL
++};
++
+ /* 34xx-only hwmods (all ES revisions) */
+ static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
+ 	&omap3xxx_iva_hwmod,
+@@ -3551,6 +3618,8 @@ static __initdata struct omap_hwmod *omap36xx_hwmods[] = {
+ 	&omap3xxx_mailbox_hwmod,
+ 	&omap3xxx_usb_host_hs_hwmod,
+ 	&omap3xxx_usb_tll_hs_hwmod,
++	&omap3xxx_es3plus_mmc1_hwmod,
++	&omap3xxx_es3plus_mmc2_hwmod,
+ 	NULL
+ };
+ 
+@@ -3560,6 +3629,8 @@ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
+ 	&am35xx_uart4_hwmod,
+ 	&omap3xxx_usb_host_hs_hwmod,
+ 	&omap3xxx_usb_tll_hs_hwmod,
++	&omap3xxx_es3plus_mmc1_hwmod,
++	&omap3xxx_es3plus_mmc2_hwmod,
+ 	NULL
+ };
+ 
+@@ -3619,6 +3690,21 @@ int __init omap3xxx_hwmod_init(void)
+ 		h = omap3430es2plus_hwmods;
+ 	};
+ 
++	if (h) {
++		r = omap_hwmod_register(h);
++		if (r < 0)
++			return r;
++	}
++
++	h = NULL;
++	if (rev == OMAP3430_REV_ES1_0 || rev == OMAP3430_REV_ES2_0 ||
++	    rev == OMAP3430_REV_ES2_1) {
++		h = omap3430_pre_es3_hwmods;
++	} else if (rev == OMAP3430_REV_ES3_0 || rev == OMAP3430_REV_ES3_1 ||
++		   rev == OMAP3430_REV_ES3_1_2) {
++		h = omap3430_es3plus_hwmods;
++	};
++
+ 	if (h)
+ 		r = omap_hwmod_register(h);
+ 
 -- 
 1.7.7.3
 
