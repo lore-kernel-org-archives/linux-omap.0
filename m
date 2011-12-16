@@ -1,56 +1,42 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V1] arm/dts: Add support for TI OMAP3 EVM board
-Date: Fri, 16 Dec 2011 12:35:53 +0530
-Message-ID: <1324019153-13316-1-git-send-email-hvaibhav@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] SoC changes for omap4470, ti814x, am33xx for v3.3
+ merge window
+Date: Thu, 15 Dec 2011 23:24:24 -0800
+Message-ID: <CAOesGMgC_sWWQg4GbLfyxfGWB=fpUYCU1QXfHcWk0b+MHkSe+w@mail.gmail.com>
+References: <20111214193547.GI32251@atomide.com>
+	<20111214194843.GL32251@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53430 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756067Ab1LPHGK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 02:06:10 -0500
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:52938 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751477Ab1LPHYZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 02:24:25 -0500
+Received: by yenm11 with SMTP id m11so2012244yen.19
+        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 23:24:25 -0800 (PST)
+In-Reply-To: <20111214194843.GL32251@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, b-cousson@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Add OMAP3 EVM (OMAP3530, AM/DM37x) DTS file to use the omap3.dtsi SoC file,
-along with memory node information.
+Hi,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
-Boot tested it on AM/DM37x EVM, kernel parses the info correctly.
+On Wed, Dec 14, 2011 at 11:48 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Tony Lindgren <tony@atomide.com> [111214 11:04]:
+>> Hi Arnd & Olof,
+>>
+>> Please pull support for new omap variants from:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap
+>
+> Sorry the link above should be:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap soc
+>
+> As below in the pull request.
 
- arch/arm/boot/dts/omap3-evm.dts |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap3-evm.dts
+Pulled into next/soc, thanks.
 
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-new file mode 100644
-index 0000000..2eee16e
---- /dev/null
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -0,0 +1,20 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	model = "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
-+	compatible = "ti,omap3-evm", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+};
---
-1.7.0.4
 
+-Olof
