@@ -1,66 +1,50 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH v2] OMAP: DSS2: Support for UMSH-8173MD TFT panel
-Date: Fri, 16 Dec 2011 18:30:24 +0100
-Message-ID: <1324056624-16283-1-git-send-email-zonque@gmail.com>
-References: <1324056181-14360-1-git-send-email-zonque@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] OMAP4: mcbsp: Enable FIFO usage
+Date: Fri, 16 Dec 2011 09:36:00 -0800
+Message-ID: <20111216173600.GB32251@atomide.com>
+References: <1323941547-7714-1-git-send-email-peter.ujfalusi@ti.com>
+ <1323941547-7714-2-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:33981 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760266Ab1LPRag (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 12:30:36 -0500
-In-Reply-To: <1324056181-14360-1-git-send-email-zonque@gmail.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:55963 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760251Ab1LPRgI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 12:36:08 -0500
+Content-Disposition: inline
+In-Reply-To: <1323941547-7714-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Daniel Mack <zonque@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
----
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [111215 01:01]:
+> All McBSP instances on OMAP4 has 128 word long FIFO
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-v2 is a resent with ".power_on_delay" and ".acb" values corrected.
+Please merge via ASoC tree:
 
+Acked-by: Tony Lindgren <tony@atomide.com>
 
- drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 519c47d..cbcf164 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -297,6 +297,31 @@ static struct panel_config generic_dpi_panels[] = {
- 
- 		.name			= "apollon",
- 	},
-+
-+	/* Microtips Technologies - UMSH-8173MD */
-+	{
-+		{
-+			.x_res		= 800,
-+			.y_res		= 480,
-+
-+			.pixel_clock	= 34560,
-+
-+			.hsw		= 13,
-+			.hfp		= 101,
-+			.hbp		= 101,
-+
-+			.vsw		= 23,
-+			.vfp		= 1,
-+			.vbp		= 1,
-+		},
-+		.acbi			= 0x0,
-+		.acb			= 0x0,
-+		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-+		.power_on_delay		= 0,
-+		.power_off_delay	= 0,
-+		.name			= "UMSH-8173MD",
-+	},
- };
- 
- struct panel_drv_data {
--- 
-1.7.7.4
-
+> ---
+>  arch/arm/mach-omap2/mcbsp.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+> index 292eee3..857860b 100644
+> --- a/arch/arm/mach-omap2/mcbsp.c
+> +++ b/arch/arm/mach-omap2/mcbsp.c
+> @@ -153,6 +153,9 @@ static int omap_init_mcbsp(struct omap_hwmod *oh, void *unused)
+>  		else
+>  			/* The FIFO has 128 locations */
+>  			pdata->buffer_size = 0x80;
+> +	} else if (oh->class->rev == MCBSP_CONFIG_TYPE4) {
+> +		/* The FIFO has 128 locations for all instances */
+> +		pdata->buffer_size = 0x80;
+>  	}
+>  
+>  	if (oh->class->rev >= MCBSP_CONFIG_TYPE3)
+> -- 
+> 1.7.8
+> 
