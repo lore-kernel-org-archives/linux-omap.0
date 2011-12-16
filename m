@@ -1,52 +1,117 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 3/3] ARM: OMAP: hwmod: Look for hwmod/module level context
- lost count if supported
-Date: Fri, 16 Dec 2011 18:11:08 +0530
-Message-ID: <4EEB3C64.30008@ti.com>
-References: <1320317665-6381-1-git-send-email-rnayak@ti.com> <1320317665-6381-4-git-send-email-rnayak@ti.com> <4ED52007.8010804@ti.com> <4ED85835.7080108@ti.com> <alpine.DEB.2.00.1112160414530.12660@utopia.booyaka.com> <4EEB36E5.8020504@ti.com> <alpine.DEB.2.00.1112160538200.12660@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v4] ARM: OMAP2+: hwmod: Add a new flag to handle hwmods left
+ enabled at init
+Date: Fri, 16 Dec 2011 05:50:12 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112160544470.12660@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:45109 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759034Ab1LPMlP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 07:41:15 -0500
-Received: by mail-yx0-f173.google.com with SMTP id m6so2459344yen.18
-        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 04:41:14 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1112160538200.12660@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:57792 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053Ab1LPMuP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 07:50:15 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: tony@atomide.com
+Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, rnayak@ti.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
 
-On Friday 16 December 2011 06:08 PM, Paul Walmsley wrote:
-> On Fri, 16 Dec 2011, Rajendra Nayak wrote:
->
->> On Friday 16 December 2011 04:46 PM, Paul Walmsley wrote:
->>>
->>> Hi Rajendra,
->>>
->>> I've combined your patches down to one patch and changed the logic a
->>> little bit.  It looks to me that the update and clear context registers
->>> can be done in one step, since an IP block shouldn't lose context when
->>> it's enabled.  But maybe I'm missing something?
->>
->> Thanks for the patch. The changes look fine and I also did a quick
->> test on an internal tree which supports core OSWR and it seems to
->> work fine too.
->
-> Great, thanks.  Will wait on this one until you have a chance to tinker
-> with it during the 3.4 time frame.
 
-Sure, will work some more on this and maybe re-submit it with open 
-switch RET support on OMAP4 when it would really be useful and can
-also be tested to work well.
+From: Rajendra Nayak <rnayak@ti.com>
 
-thanks,
-Rajendra
->
->
-> - Paul
+An hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
+enabled state by the hwmod framework post the initial setup.
+Once a real user of the device (a driver) tries to enable it
+at a later point, the hwmod framework throws a WARN() about
+the device being already in enabled state.
+
+Fix this by introducing a new internal flag '_HWMOD_SKIP_ENABLE' to
+identify such devices/hwmods. When the device/hwmod is requested to be
+enabled (the first time) by its driver/user, nothing except the
+mux-enable is needed. The mux data is board specific and is
+unavailable during initial enable() of the device, done by the
+framework as part of setup().
+
+A good example of a such a device is an UART used as debug console.
+The UART module needs to be kept enabled through the boot, until the
+UART driver takes control of it, for debug prints to appear on
+the console.
+
+Acked-by: Kevin Hilman <khilman@ti.com>
+Acked-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: use a flag rather than a state; updated commit message;
+ edited some documentation]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+
+This patch needs to be applied along with Govindraj & Kevin's  UART
+patch set.  Otherwise lots of nasty warnings are generated to the console
+during boot.  Applies on top of v3.2-rc5.
+
+ arch/arm/mach-omap2/omap_hwmod.c             |   23 ++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +++
+ 2 files changed, 25 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index 529142a..f673f80 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1441,6 +1441,25 @@ static int _enable(struct omap_hwmod *oh)
+ 
+ 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+ 
++	/*
++	 * hwmods with HWMOD_INIT_NO_IDLE flag set are left
++	 * in enabled state at init.
++	 * Now that someone is really trying to enable them,
++	 * just ensure that the hwmod mux is set.
++	 */
++	if (oh->_int_flags & _HWMOD_SKIP_ENABLE) {
++		/*
++		 * If the caller has mux data populated, do the mux'ing
++		 * which wouldn't have been done as part of the _enable()
++		 * done during setup.
++		 */
++		if (oh->mux)
++			omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
++
++		oh->_int_flags &= ~_HWMOD_SKIP_ENABLE;
++		return 0;
++	}
++
+ 	if (oh->_state != _HWMOD_STATE_INITIALIZED &&
+ 	    oh->_state != _HWMOD_STATE_IDLE &&
+ 	    oh->_state != _HWMOD_STATE_DISABLED) {
+@@ -1744,8 +1763,10 @@ static int _setup(struct omap_hwmod *oh, void *data)
+ 	 * it should be set by the core code as a runtime flag during startup
+ 	 */
+ 	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
+-	    (postsetup_state == _HWMOD_STATE_IDLE))
++	    (postsetup_state == _HWMOD_STATE_IDLE)) {
++		oh->_int_flags |= _HWMOD_SKIP_ENABLE;
+ 		postsetup_state = _HWMOD_STATE_ENABLED;
++	}
+ 
+ 	if (postsetup_state == _HWMOD_STATE_IDLE)
+ 		_idle(oh);
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 8b372ed..1a13c02 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -416,10 +416,13 @@ struct omap_hwmod_omap4_prcm {
+  * _HWMOD_NO_MPU_PORT: no path exists for the MPU to write to this module
+  * _HWMOD_WAKEUP_ENABLED: set when the omap_hwmod code has enabled ENAWAKEUP
+  * _HWMOD_SYSCONFIG_LOADED: set when the OCP_SYSCONFIG value has been cached
++ * _HWMOD_SKIP_ENABLE: set if hwmod enabled during init (HWMOD_INIT_NO_IDLE) -
++ *     causes the first call to _enable() to only update the pinmux
+  */
+ #define _HWMOD_NO_MPU_PORT			(1 << 0)
+ #define _HWMOD_WAKEUP_ENABLED			(1 << 1)
+ #define _HWMOD_SYSCONFIG_LOADED			(1 << 2)
++#define _HWMOD_SKIP_ENABLE			(1 << 3)
+ 
+ /*
+  * omap_hwmod._state definitions
+-- 
+1.7.7.3
 
