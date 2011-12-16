@@ -1,43 +1,72 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ASoC: OMAP: HDMI: Prevent DSS module from going idle
- when playing audio
-Date: Fri, 16 Dec 2011 02:13:08 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112160211400.12660@utopia.booyaka.com>
-References: <1324019032-31532-1-git-send-email-ricardo.neri@ti.com>  <alpine.DEB.2.00.1112160107380.12660@utopia.booyaka.com>  <1324023504.1859.11.camel@deskari>  <alpine.DEB.2.00.1112160121250.12660@utopia.booyaka.com> <1324025267.1859.29.camel@deskari>
+Subject: Re: Should I worry about "omap-mcbsp.2: alias fck already exists"
+ or is it expected?
+Date: Fri, 16 Dec 2011 02:24:26 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112160219030.12660@utopia.booyaka.com>
+References: <20111212103553.044b17bb@notabene.brown> <4EE5D8A5.1010308@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54431 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46727 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051Ab1LPJNJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 04:13:09 -0500
-In-Reply-To: <1324025267.1859.29.camel@deskari>
+	with ESMTP id S1751406Ab1LPJY1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 04:24:27 -0500
+In-Reply-To: <4EE5D8A5.1010308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>, b-cousson@ti.com, linux-omap@vger.kernel.org, mythripk@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: NeilBrown <neilb@suse.de>, linux-omap@vger.kernel.org, "Ujfalusi, Peter" <peter.ujfalusi@ti.com>, jarkko.nikula@bitmer.com
 
-On Fri, 16 Dec 2011, Tomi Valkeinen wrote:
+(cc Jarkko)
 
-> On Fri, 2011-12-16 at 01:27 -0700, Paul Walmsley wrote:
-> > On Fri, 16 Dec 2011, Tomi Valkeinen wrote:
+On Mon, 12 Dec 2011, Cousson, Benoit wrote:
+
+> On 12/12/2011 12:35 AM, NeilBrown wrote:
 > > 
-> > > But with DT we can't use func pointers in platform_data either, right?
+> > In 3.2-rc5 (and some earlier kernels) I'm getting the boot-time warning:
 > > 
-> > In the future, if someone wants to run a platform_data-less kernel, 
-> > they'll have to come up with a replacement mechanism for these.  Several 
-> > replacements have been proposed internally, such as having an 
-> > omap_bus/omap_device for devices with OMAP-specific integration, but right 
-> > now there are more pressing crises to deal with...
+> > [    0.186828]  omap-mcbsp.2: alias fck already exists
+> > 
+> > and
+> > 
+> > [    0.188476]  omap-mcbsp.3: alias fck already exists
+> > 
+> > This happens because omap_alloc_device() contains:
+> > 
+> > 
+> > 	for (i = 0; i<  oh_cnt; i++) {
+> > 		hwmods[i]->od = od;
+> > 		_add_hwmod_clocks_clkdev(od, hwmods[i]);
+> > 	}
+> > 
+> > so if oh_cnt is ever>  1 (which is is for mcbsp.2 and .3 in
+> > omap_hwmod_3xxx_data.c as they both declare a '.devattr'), then
+> > _add_hwmod_clocks_clkdev will be called twice with the one 'od', and both
+> > calls will try to add an alias 'fsck' to that same device, and the second
+> > will always give a warning.
+> > 
+> > Is this actually a bug,
 > 
-> Ok. Benoit was telling me not to use pdata, so I thought it's a hard
-> rule for DT. He didn't give me a clear alternative, though =).
+> It is indeed a bug. The point is that in theory most hwmod should have an
+> unique device to represent them. But in the case of the Mcbsp2 and 3, due to
+> the tightly coupled sidetone, and because each one has a dedicated OCP port,
+> it was decided to have 2 hwmods but only one omap_device.
+> 
+> I'm wondering now if another device should not be considered, but I'll let
+> Peter decide for the McBSP driver organization.
 
-As far as I know, we've got no other choice.  And if we don't add these, 
-then not only will current code be broken, but when the time comes to 
-convert away from using platform_data function pointers, then no one will 
-know what functions should be exposed from the integration code for the 
-driver to call.
+The sidetone blocks should definitely have separate devices & drivers, but 
+AFAIK from Jarkko, this turns out to be not so easy due to an OMAP3 
+hardware bug:
+
+   http://www.spinics.net/lists/linux-omap/msg58101.html
+
+So basically the interface clock autoidle handling needs to be fixed in 
+the omap_hwmod code, so IP blocks with buggy autoidle handling can be 
+marked in the hwmod data, and the hwmod code can control the interface 
+clock autoidle bits along with the module's PM runtime status.
+
+Patches welcome :-)
 
 
 - Paul
