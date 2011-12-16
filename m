@@ -1,31 +1,38 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ASoC: OMAP: HDMI: Prevent DSS module from going idle
- when playing audio
-Date: Fri, 16 Dec 2011 01:27:29 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112160121250.12660@utopia.booyaka.com>
-References: <1324019032-31532-1-git-send-email-ricardo.neri@ti.com>  <alpine.DEB.2.00.1112160107380.12660@utopia.booyaka.com> <1324023504.1859.11.camel@deskari>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv8 1/5] OMAP3+: HWMOD: Add the default clockactivity for
+ I2C
+Date: Fri, 16 Dec 2011 01:35:18 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112160135060.12660@utopia.booyaka.com>
+References: <1323773758-6375-1-git-send-email-shubhrajyoti@ti.com> <1323773758-6375-2-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44893 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab1LPI1a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 03:27:30 -0500
-In-Reply-To: <1324023504.1859.11.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1323773758-6375-2-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, b-cousson-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>, b-cousson@ti.com, linux-omap@vger.kernel.org, mythripk@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
 
-On Fri, 16 Dec 2011, Tomi Valkeinen wrote:
+On Tue, 13 Dec 2011, Shubhrajyoti D wrote:
 
-> But with DT we can't use func pointers in platform_data either, right?
+> For I2C clockactivity field is added for OMAP3 and OMAP4 that defines how the
+> interface (OCP) and functional (system) clocks behave when the I2C module is
+> idle.
+> 
+> The configuration of the clock activity bit field (per TRM) is as follows:
+> 0x0: Both clocks can be cut off
+> 0x1: Only OCP clock must be kept active; system clock
+>      can be cut off
+> 0x3: Both clocks must be kept active
+> 0x2: Only system clock must be kept active; OCP clock
+>      can be cut off
+> 
+> The patch makes 0x2(CLOCKACT_TEST_ICLK) the default for OMAP3 and OMAP4.
+> 
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
 
-In the future, if someone wants to run a platform_data-less kernel, 
-they'll have to come up with a replacement mechanism for these.  Several 
-replacements have been proposed internally, such as having an 
-omap_bus/omap_device for devices with OMAP-specific integration, but right 
-now there are more pressing crises to deal with...
+Thanks, queued for 3.3.
 
 
 - Paul
