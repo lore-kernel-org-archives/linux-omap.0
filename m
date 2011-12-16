@@ -1,66 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ASoC: OMAP: HDMI: Prevent DSS module from going idle
- when playing audio
-Date: Fri, 16 Dec 2011 09:19:07 -0800
-Message-ID: <20111216171906.GZ32251@atomide.com>
-References: <1324019032-31532-1-git-send-email-ricardo.neri@ti.com>
- <alpine.DEB.2.00.1112160107380.12660@utopia.booyaka.com>
- <1324023504.1859.11.camel@deskari>
- <alpine.DEB.2.00.1112160121250.12660@utopia.booyaka.com>
- <1324025267.1859.29.camel@deskari>
- <alpine.DEB.2.00.1112160211400.12660@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH] OMAP: DSS2: Support for UMSH-8173MD TFT panel
+Date: Fri, 16 Dec 2011 18:23:01 +0100
+Message-ID: <1324056181-14360-1-git-send-email-zonque@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40968 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751955Ab1LPRTL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 12:19:11 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1112160211400.12660@utopia.booyaka.com>
+Received: from svenfoo.org ([82.94.215.22]:58188 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752189Ab1LPRXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Dec 2011 12:23:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Ricardo Neri <ricardo.neri@ti.com>, b-cousson@ti.com, linux-omap@vger.kernel.org, mythripk@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Daniel Mack <zonque@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 
-* Paul Walmsley <paul@pwsan.com> [111216 00:41]:
-> On Fri, 16 Dec 2011, Tomi Valkeinen wrote:
-> 
-> > On Fri, 2011-12-16 at 01:27 -0700, Paul Walmsley wrote:
-> > > On Fri, 16 Dec 2011, Tomi Valkeinen wrote:
-> > > 
-> > > > But with DT we can't use func pointers in platform_data either, right?
-> > > 
-> > > In the future, if someone wants to run a platform_data-less kernel, 
-> > > they'll have to come up with a replacement mechanism for these.  Several 
-> > > replacements have been proposed internally, such as having an 
-> > > omap_bus/omap_device for devices with OMAP-specific integration, but right 
-> > > now there are more pressing crises to deal with...
-> > 
-> > Ok. Benoit was telling me not to use pdata, so I thought it's a hard
-> > rule for DT. He didn't give me a clear alternative, though =).
-> 
-> As far as I know, we've got no other choice.  And if we don't add these, 
-> then not only will current code be broken, but when the time comes to 
-> convert away from using platform_data function pointers, then no one will 
-> know what functions should be exposed from the integration code for the 
-> driver to call.
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+---
+ drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-There really should not be any need for platform_data with device tree.
+diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
+index 519c47d..8ce72ca 100644
+--- a/drivers/video/omap2/displays/panel-generic-dpi.c
++++ b/drivers/video/omap2/displays/panel-generic-dpi.c
+@@ -297,6 +297,31 @@ static struct panel_config generic_dpi_panels[] = {
+ 
+ 		.name			= "apollon",
+ 	},
++
++	/* Microtips Technologies - UMSH-8173MD */
++	{
++		{
++			.x_res		= 800,
++			.y_res		= 480,
++
++			.pixel_clock	= 34560,
++
++			.hsw		= 13,
++			.hfp		= 101,
++			.hbp		= 101,
++
++			.vsw		= 23,
++			.vfp		= 1,
++			.vbp		= 1,
++		},
++		.acbi			= 0x0,
++		.acb			= 0x1,
++		.config			= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
++		.power_on_delay		= 100,
++		.power_off_delay	= 0,
++		.name			= "UMSH-8173MD",
++	},
+ };
+ 
+ struct panel_drv_data {
+-- 
+1.7.7.4
 
-Idling a device should be done with pm_runtime calls. Then the
-bus code should idle the right device, in this case using the hwmod
-calls.
-
-Most of the platform_data function pointers can be replaced with
-Linux generic calls for regulator framework etc. If some frameworks
-are missing, then that's obviously a problem that should be addressed.
-
-Different devices can be handled with a combination of compatible
-flag + data. For example, take a look at drivers/tty/serial/of_serial.c
-and note how the of_platform_serial_table has a .data pointer for
-each different device.
-
-Regards,
-
-Tony
