@@ -1,75 +1,179 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
- space
-Date: Fri, 16 Dec 2011 15:43:31 +0100
-Message-ID: <4EEB5913.3090901@ti.com>
-References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com>
+Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
+ hwmod
+Date: Fri, 16 Dec 2011 15:54:52 +0100
+Message-ID: <4EEB5BBC.7050807@ti.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39131 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755762Ab1LPOnm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 09:43:42 -0500
-In-Reply-To: <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33796 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751962Ab1LPOzN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 09:55:13 -0500
+In-Reply-To: <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: Ming Lei <ming.lei@canonical.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 
-On 12/16/2011 7:28 AM, Paul Walmsley wrote:
+Hi Paul,
+
+On 12/16/2011 6:53 AM, Paul Walmsley wrote:
 > Hi Beno=EEt
 >
-> On Mon, 28 Nov 2011, Peter Ujfalusi wrote:
+> On Wed, 14 Dec 2011, Ming Lei wrote:
 >
->> To be able to get the memory resources by name from
->> the DMIC driver (for MPU and for DMA).
->
-> Any comments on this one?  Looks like we'd need to add these names as
-> hints in the script.
-
-Maybe not, in theory we should be able to detect the dual mapping and=20
-add the proper name. I did that for some other IP in the ABE domain, so=
-=20
-it should be doable for that one too.
-
->> Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
+>> Signed-off-by: Ming Lei<ming.lei@canonical.com>
 
 Acked-by: Benoit Cousson <b-cousson@ti.com>
 
+>> ---
+>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++=
+++++++++++++
+>>   1 files changed, 81 insertions(+), 0 deletions(-)
+>
+> any comments on this patch?  I'd like to queue it if it looks good to=
+ you.
+
+It looks good to me. The only minor comment is about fdif location in=20
+the list that should be sorted and thus cannot be after wd_timer2.
+
+Regards,
 Benoit
 
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 ++
->>   1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> - Paul
+>
 >>
 >> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/m=
 ach-omap2/omap_hwmod_44xx_data.c
->> index 7695e5d..8b75c60 100644
+>> index 6cf21ee..30db754 100644
 >> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
 >> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -1028,6 +1028,7 @@ static struct omap_hwmod_dma_info omap44xx_dmi=
-c_sdma_reqs[] =3D {
+>> @@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
+>>   static struct omap_hwmod omap44xx_dsp_hwmod;
+>>   static struct omap_hwmod omap44xx_dss_hwmod;
+>>   static struct omap_hwmod omap44xx_emif_fw_hwmod;
+>> +static struct omap_hwmod omap44xx_fdif_hwmod;
+>>   static struct omap_hwmod omap44xx_hsi_hwmod;
+>>   static struct omap_hwmod omap44xx_ipu_hwmod;
+>>   static struct omap_hwmod omap44xx_iss_hwmod;
+>> @@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_sy=
+stem__l3_main_2 =3D {
+>>   	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>>   };
 >>
->>   static struct omap_hwmod_addr_space omap44xx_dmic_addrs[] =3D {
->>   	{
->> +		.name		=3D "mpu",
->>   		.pa_start	=3D 0x4012e000,
->>   		.pa_end		=3D 0x4012e07f,
->>   		.flags		=3D ADDR_TYPE_RT
->> @@ -1046,6 +1047,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_ab=
-e__dmic =3D {
+>> +/* fdif ->  l3_main_2 */
+>> +static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
+>> +	.master		=3D&omap44xx_fdif_hwmod,
+>> +	.slave		=3D&omap44xx_l3_main_2_hwmod,
+>> +	.clk		=3D "l3_div_ck",
+>> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>>   /* hsi ->  l3_main_2 */
+>>   static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
+>>   	.master		=3D&omap44xx_hsi_hwmod,
+>> @@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_h=
+wmod =3D {
+>>   	.slaves_cnt	=3D ARRAY_SIZE(omap44xx_wd_timer3_slaves),
+>>   };
 >>
->>   static struct omap_hwmod_addr_space omap44xx_dmic_dma_addrs[] =3D =
-{
->>   	{
->> +		.name		=3D "dma",
->>   		.pa_start	=3D 0x4902e000,
->>   		.pa_end		=3D 0x4902e07f,
->>   		.flags		=3D ADDR_TYPE_RT
->
+>> +/* 'fdif' class */
+>> +static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
+>> +	.rev_offs	=3D 0x0000,
+>> +	.sysc_offs	=3D 0x0010,
+>> +	.sysc_flags	=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
+>> +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
+>> +	.idlemodes	=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>> +			   MSTANDBY_FORCE | MSTANDBY_NO |
+>> +			   MSTANDBY_SMART),
+>> +	.sysc_fields	=3D&omap_hwmod_sysc_type2,
+>> +};
+>> +
+>> +static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
+>> +	.name	=3D "fdif",
+>> +	.sysc	=3D&omap44xx_fdif_sysc,
+>> +};
+>> +
+>> +/*fdif*/
+>> +static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
+>> +	{
+>> +		.pa_start	=3D 0x4a10a000,
+>> +		.pa_end		=3D 0x4a10afff,
+>> +		.flags		=3D ADDR_TYPE_RT
+>> +	},
+>> +	{ }
+>> +};
+>> +
+>> +/* l4_cfg ->  fdif */
+>> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
+>> +	.master		=3D&omap44xx_l4_cfg_hwmod,
+>> +	.slave		=3D&omap44xx_fdif_hwmod,
+>> +	.clk		=3D "l4_div_ck",
+>> +	.addr		=3D omap44xx_fdif_addrs,
+>> +	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>> +/* fdif slave ports */
+>> +static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
+>> +	&omap44xx_l4_cfg__fdif,
+>> +};
+>> +static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
+>> +	{ .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
+>> +	{ .irq =3D -1 }
+>> +};
+>> +
+>> +/* fdif master ports */
+>> +static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
+>> +	&omap44xx_fdif__l3_main_2,
+>> +};
+>> +
+>> +static struct omap_hwmod omap44xx_fdif_hwmod =3D {
+>> +	.name		=3D "fdif",
+>> +	.class		=3D&omap44xx_fdif_hwmod_class,
+>> +	.clkdm_name	=3D "iss_clkdm",
+>> +	.mpu_irqs	=3D omap44xx_fdif_irqs,
+>> +	.main_clk	=3D "fdif_fck",
+>> +	.prcm =3D {
+>> +		.omap4 =3D {
+>> +			.clkctrl_offs =3D OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
+>> +			.context_offs =3D OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
+>> +			.modulemode   =3D MODULEMODE_SWCTRL,
+>> +		},
+>> +	},
+>> +	.slaves		=3D omap44xx_fdif_slaves,
+>> +	.slaves_cnt	=3D ARRAY_SIZE(omap44xx_fdif_slaves),
+>> +	.masters	=3D omap44xx_fdif_masters,
+>> +	.masters_cnt	=3D ARRAY_SIZE(omap44xx_fdif_masters),
+>> +};
+>> +
+>>   static __initdata struct omap_hwmod *omap44xx_hwmods[] =3D {
+>>
+>>   	/* dmm class */
+>> @@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_=
+hwmods[] =3D {
+>>   	&omap44xx_wd_timer2_hwmod,
+>>   	&omap44xx_wd_timer3_hwmod,
+>>
+>> +	/* fdif class */
+>> +	&omap44xx_fdif_hwmod,
+>> +
+>>   	NULL,
+>>   };
+>>
+>> --
+>> 1.7.5.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
 >
 > - Paul
