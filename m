@@ -1,44 +1,65 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [QUESTION] How to set static/dynamic dependency between clock domains
-Date: Fri, 16 Dec 2011 20:43:22 +0530
-Message-ID: <CAMQu2gxNvrMXYs0gPYTS3wUL=toL=ccRxso25esXwmx9j4O5fg@mail.gmail.com>
-References: <CACVXFVMe7T2WJiDwc9DFz9ifUPQG4pcYzFtx6O=gs7pFgrkNJg@mail.gmail.com>
- <CACVXFVNOpfWxod_pN-kiQPoQ7n=XSFeV6WK6sf+8hYSiZ2rDBA@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v3 4/4] ARM: omap: pass minimal SoC/board data for UART
+ from dt
+Date: Fri, 16 Dec 2011 16:21:43 +0100
+Message-ID: <4EEB6207.9090200@ti.com>
+References: <1323863746-18145-1-git-send-email-rnayak@ti.com> <1323863746-18145-5-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:44091 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756363Ab1LPPNp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Dec 2011 10:13:45 -0500
-Received: by mail-qw0-f48.google.com with SMTP id c16so2358569qad.14
-        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 07:13:43 -0800 (PST)
-In-Reply-To: <CACVXFVNOpfWxod_pN-kiQPoQ7n=XSFeV6WK6sf+8hYSiZ2rDBA@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1323863746-18145-5-git-send-email-rnayak@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, khilman@ti.com, tony@atomide.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Fri, Dec 16, 2011 at 7:20 PM, Ming Lei <tom.leiming@gmail.com> wrote:
-> Hi,
->
-> On Fri, Dec 16, 2011 at 9:24 PM, Ming Lei <tom.leiming@gmail.com> wrote:
->
->> [1], add static dependency
->
-> Sorry for the mess, see attachment for the change.
->
-Your patch is setting static dependency between ISS and l3_2.
-It's not dynamic dep. Dynamic dep is managed through hardware and they
-are not configurable. But with static dep. you can over-ride that behavior
-as you have done.
+Hi Rajendra,
 
-This will impact power since l3_2 can't idle as long as iss clock
-domain is active.
+Just one minor comment if you plan to repost.
 
-I need to check internal code-base but I don't remember this
-issue observed so far.
+On 12/14/2011 12:55 PM, Rajendra Nayak wrote:
+> Pass minimal data needed for console boot, from dt, for
+> OMAP4 panda/sdp and OMAP3 beagle boards, and get rid of the
+> static initialization from generic board file.
+>
+> Acked-by: Rob Herring<rob.herring@calxeda.com>
+> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
 
-Regards
-Santosh
+Tested-by: Benoit Cousson <b-cousson@ti.com>
+
+>   arch/arm/boot/dts/omap3.dtsi        |   31 +++++++++++++++++++++++++++++++
+>   arch/arm/boot/dts/omap4.dtsi        |   28 ++++++++++++++++++++++++++++
+>   arch/arm/mach-omap2/board-generic.c |    1 -
+>   3 files changed, 59 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index d202bb5..216c331 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -13,6 +13,13 @@
+>   / {
+>   	compatible = "ti,omap3430", "ti,omap3";
+>
+> +	aliases {
+> +		serial0 =&uart1;
+> +		serial1 =&uart2;
+> +		serial2 =&uart3;
+> +		serial3 =&uart4;
+> +	};
+> +
+>   	cpus {
+>   		cpu@0 {
+>   			compatible = "arm,cortex-a8";
+> @@ -59,5 +66,29 @@
+>   			interrupt-controller;
+>   			#interrupt-cells =<1>;
+>   		};
+> +
+> +		uart1: serial@0x4806a000 {
+
+Could you get rid of the 0x prefix for consistency?
+This is applicable for the omap4.dtsi as well.
+
+Thanks,
+Benoit
