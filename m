@@ -1,36 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] ARM: OMAP3/4: hwmod data changes for 3.3
-Date: Fri, 16 Dec 2011 11:48:14 -0800
-Message-ID: <20111216194813.GI32251@atomide.com>
-References: <alpine.DEB.2.00.1112160423360.12660@utopia.booyaka.com>
+Subject: Re: [GIT PULL] ARM: OMAP: EHCI/OHCI: convert to runtime PM
+Date: Fri, 16 Dec 2011 11:48:27 -0800
+Message-ID: <20111216194827.GJ32251@atomide.com>
+References: <alpine.DEB.2.00.1112160447440.12660@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49407 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760245Ab1LPTsP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 14:48:15 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1112160423360.12660@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1112160447440.12660@utopia.booyaka.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [111216 02:53]:
-> Hi Tony
+* Paul Walmsley <paul@pwsan.com> [111216 03:20]:
+> Hi Tony,
 > 
-> Here are some hwmod data changes for the 3.3 merge window.  Note that they 
-> have a dependency on the 3.2-rc hwmod data fixes.  Once those are merged, 
-> I'd be happy to update this pull request on a stable commit.
+> This series converts the USB EHCI/OHCI code to use runtime PM.  It has 
+> multiple hwmods for its omap_device, but Keshava & Partha have promised to 
+> post patches to solve that problem for the 3.4 merge window.
 > 
-> The following changes since commit 91a36bdb3ada99ebf3a613a0dab2d741445ffd7f:
-> 
->   ARM: OMAP: hwmod data: fix the panic on Nokia RM-680 during boot (2011-12-15 22:38:37 -0700)
+> This series has a dependency on the "hwmod_data_devel_3.3" branch, which 
+> in turn depends on the "hwmod_data_fixes_3.2rc" branch.
 
-Thanks pulling into hwmod branch on top of fixes-non-critical-part2.
-No need to rebase since I have your commit above pulled already in
-fixes-non-critical-part2.
+Thanks pulling into ehci branch on top of hwmod branch which is based
+on fixes-non-critical-part2.
 
 Regards,
 
