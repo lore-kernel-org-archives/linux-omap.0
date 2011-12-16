@@ -1,69 +1,68 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] am35xx-emac: move generic EMAC init to separate file
-Date: Thu, 15 Dec 2011 23:13:09 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112152257150.12660@utopia.booyaka.com>
-References: <1321490199-24371-1-git-send-email-yanok@emcraft.com> <20111208001503.GV31337@atomide.com> <4EE93564.3010006@emcraft.com> <4EE9C057.6010204@compulab.co.il> <20111215184342.GT32251@atomide.com> <4EEA69C2.4000503@emcraft.com>
+Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
+ space
+Date: Thu, 15 Dec 2011 23:28:14 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com>
+References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-594604338-1324016894=:12660"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49217 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:49500 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856Ab1LPGNK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 01:13:10 -0500
-In-Reply-To: <4EEA69C2.4000503@emcraft.com>
+	with ESMTP id S1751399Ab1LPG2Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 01:28:16 -0500
+In-Reply-To: <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: Tony Lindgren <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, Ranjith Lohithakshan <ranjithl@ti.com>, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>
 
-(cc'ing Ranjith)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi
+--155748971-594604338-1324016894=:12660
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On Fri, 16 Dec 2011, Ilya Yanok wrote:
+Hi Beno=EEt
 
-> >>>>> +	clk_add_alias(NULL, dev_name(&am35xx_emac_device.dev),
-> >>>>> +		      "emac_clk", &am35xx_emac_device.dev);
-> >>>>> +	clk_add_alias(NULL, dev_name(&am35xx_mdio_device.dev),
-> >>>>> +		      "phy_clk", &am35xx_emac_device.dev);
-> >>>>
-> >>>> Hmm after moving the code and should be a separate patch, don't
-> >>>> we already have these clock aliases in cloc3xxx_data.c?
-> >>>
-> >>> No, we have
-> >>> CLK("davinci_emac", "emac_clk"...) and
-> >>> CLK("davinci_emac", "phy_clk"...)
-> >>> while drivers want ("davinci_emac", NULL) and ("davinci_mdio", NULL).
-> >>>
-> >>> Probably we have to fix the clock definitions instead of adding the aliases.
-> >>>
-> >>> So, should I post this as a separate patch?
-> >>
-> >> If it comes to that question, Cc Paul...
-> > 
-> > Yes please do that as a separate patch.
-> 
-> Ok, let's wait for Paul's answer and then I'll prepare a separate patch.
+On Mon, 28 Nov 2011, Peter Ujfalusi wrote:
 
-Unfortunately the AM3517 TRM (SPRUGR0) here doesn't really have the same 
-level of clock integration information that the WBU TRMs have, so it's 
-kind of hard to tell what's going on :-(
+> To be able to get the memory resources by name from
+> the DMIC driver (for MPU and for DMA).
 
-Looking at Figure 22-1 "EMAC and MDIO Block Diagram", it appears that what 
-we call "emac_fck" is really just an optional functional clock for the 
-MDIO PHY?
+Any comments on this one?  Looks like we'd need to add these names as=20
+hints in the script.
 
-And it sounds like the AM35xx clock that we call "emac_ick" is actually a 
-combined interface and functional clock for the EMAC and MDIO IP blocks?  
-I guess a combined interface/functional clock would make sense, since the 
-EMAC seems to contain a DMA controller.
-  
-Maybe Ranjith can provide some more information; he's cc'ed.
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
+map2/omap_hwmod_44xx_data.c
+> index 7695e5d..8b75c60 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+> @@ -1028,6 +1028,7 @@ static struct omap_hwmod_dma_info omap44xx_dmic_sdm=
+a_reqs[] =3D {
+> =20
+>  static struct omap_hwmod_addr_space omap44xx_dmic_addrs[] =3D {
+>  =09{
+> +=09=09.name=09=09=3D "mpu",
+>  =09=09.pa_start=09=3D 0x4012e000,
+>  =09=09.pa_end=09=09=3D 0x4012e07f,
+>  =09=09.flags=09=09=3D ADDR_TYPE_RT
+> @@ -1046,6 +1047,7 @@ static struct omap_hwmod_ocp_if omap44xx_l4_abe__dm=
+ic =3D {
+> =20
+>  static struct omap_hwmod_addr_space omap44xx_dmic_dma_addrs[] =3D {
+>  =09{
+> +=09=09.name=09=09=3D "dma",
+>  =09=09.pa_start=09=3D 0x4902e000,
+>  =09=09.pa_end=09=09=3D 0x4902e07f,
+>  =09=09.flags=09=09=3D ADDR_TYPE_RT
 
-In any case, your changes sound reasonable to me, so a patch to the clock 
-file sounds good.  I'd suggest both changing the clkdev aliases and 
-renaming emac_fck - that's a confusing name and I don't think it's in the 
-TRM as such.
 
 
 - Paul
+--155748971-594604338-1324016894=:12660--
