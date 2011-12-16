@@ -1,47 +1,33 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: problem with twl4030 GPIO irqs
-Date: Fri, 16 Dec 2011 02:03:51 +0200
-Message-ID: <CANOLnON1-vg45KWZ7Rp+jL1n-jwBiTA2Qmkr_z1XnDKQ0XBPJw@mail.gmail.com>
+From: David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH v4 REPOST 2/5] ARM: SMP: Refactor Kconfig to be more
+ maintainable
+Date: Thu, 15 Dec 2011 16:31:11 -0800
+Message-ID: <20111216003111.GA8811@codeaurora.org>
+References: <1323862781-3465-1-git-send-email-dave.martin@linaro.org>
+ <1323862781-3465-3-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:46259 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938Ab1LPADw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 19:03:52 -0500
-Received: by eekc4 with SMTP id c4so2687329eek.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 16:03:51 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1323862781-3465-3-git-send-email-dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Martin <dave.martin-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Pawel Moll <pawel.moll-5wv7dgnIgG8@public.gmane.org>, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Anton Vorontsov <avorontsov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Haojian Zhuang <haojian.zhuang-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Paul Mundt <lethal-M7jkjyW5wf5g9hUCZPvPmw@public.gmane.org>, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Linn <john.linn-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: NeilBrown <neilb@suse.de>, Felipe Balbi <balbi@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-Hi,
+On Wed, Dec 14, 2011 at 11:39:38AM +0000, Dave Martin wrote:
+> Making SMP depend on (huge list of MACH_ and ARCH_ configs) is
+> bothersome to maintain and likely to lead to merge conflicts.
+> 
+> This patch moves the knowledge of which platforms are SMP-capable
+> to the individual machines.  To enable this, a new HAVE_SMP config
+> option is introduced to allow machines to indicate that they can
+> run in a SMP configuration.
+> 
+>  arch/arm/mach-msm/Kconfig      |    1 +
 
-I'm running 3.2-rc5 on pandora with Neil's twl patches on top, and
-omap_hsmmc driver fails to probe:
-[    3.491394] omap_hsmmc omap_hsmmc.0: context was not lost
-[    3.497161] omap_hsmmc omap_hsmmc.0: enabled
-[    3.715270] omap_hsmmc omap_hsmmc.0: Unable to grab MMC CD IRQ
+Acked-by: David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 
-Pandora is using twl4030 GPIOs for card detect. From what I tried to
-debug, omap_hsmmc is failing after call to request_irq() on card
-detect irq with -EINVAL, irq number is 384 which is in range of other
-twl4030 irqs. It looks like request_irq() is calling
-request_threaded_irq() on ARM with NULL thread_fn, which in turn calls
-__setup_irq() that calls irq_settings_is_nested_thread() that results
-with true. As this nested flag is set it checks thread_fn, but that is
-NULL causing -EINVAL final result.
-
-Could someone who knows irq code better look at this? I think this
-should reproduce on beagle too.
-
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
