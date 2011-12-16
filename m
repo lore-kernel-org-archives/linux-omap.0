@@ -1,117 +1,216 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v4] ARM: OMAP2+: hwmod: Add a new flag to handle hwmods left
- enabled at init
-Date: Fri, 16 Dec 2011 05:50:12 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112160544470.12660@utopia.booyaka.com>
+Subject: [PATCH v2] ARM: OMAP4: hwmod: Don't wait for the idle status if
+ modulemode is not supported
+Date: Fri, 16 Dec 2011 05:55:23 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112160553300.12660@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57792 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:43647 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab1LPMuP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 07:50:15 -0500
+	with ESMTP id S1751953Ab1LPMzY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 07:55:24 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: b-cousson@ti.com, linux-omap@vger.kernel.org, rnayak@ti.com, khilman@ti.com, govindraj.raja@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, robherring2@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com
 
+From: Benoit Cousson <b-cousson@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+If the module does not have any modulemode, the _disable_module function
+will do nothing. There is then no point waiting for a idle status change.
 
-An hwmod with a 'HWMOD_INIT_NO_IDLE' flag set, is left in
-enabled state by the hwmod framework post the initial setup.
-Once a real user of the device (a driver) tries to enable it
-at a later point, the hwmod framework throws a WARN() about
-the device being already in enabled state.
+It will remove the following warnings.
 
-Fix this by introducing a new internal flag '_HWMOD_SKIP_ENABLE' to
-identify such devices/hwmods. When the device/hwmod is requested to be
-enabled (the first time) by its driver/user, nothing except the
-mux-enable is needed. The mux data is board specific and is
-unavailable during initial enable() of the device, done by the
-framework as part of setup().
+[    0.331848] omap_hwmod: dmm: _wait_target_disable failed
+[    0.339935] omap_hwmod: emif_fw: _wait_target_disable failed
+[    0.348358] omap_hwmod: l3_main_1: _wait_target_disable failed
+[    0.356964] omap_hwmod: l3_main_2: _wait_target_disable failed
+[    0.365600] omap_hwmod: l4_abe: _wait_target_disable failed
+[    0.373931] omap_hwmod: l4_cfg: _wait_target_disable failed
+[    0.382263] omap_hwmod: l4_per: _wait_target_disable failed
+[    0.391113] omap_hwmod: l4_wkup: _wait_target_disable failed
+[    0.399536] omap_hwmod: dma_system: _wait_target_disable failed
+[    0.408325] omap_hwmod: dss_core: _wait_target_disable failed
+[    0.416839] omap_hwmod: dss_dispc: _wait_target_disable failed
+[    0.425445] omap_hwmod: dss_dsi1: _wait_target_disable failed
+[    0.433990] omap_hwmod: dss_dsi2: _wait_target_disable failed
+[    0.442504] omap_hwmod: dss_hdmi: _wait_target_disable failed
+[    0.451019] omap_hwmod: dss_rfbi: _wait_target_disable failed
+[    0.459564] omap_hwmod: dss_venc: _wait_target_disable failed
+[    0.489471] omap_hwmod: mailbox: _wait_target_disable failed
+[    0.505920] omap_hwmod: spinlock: _wait_target_disable failed
 
-A good example of a such a device is an UART used as debug console.
-The UART module needs to be kept enabled through the boot, until the
-UART driver takes control of it, for debug prints to appear on
-the console.
+Note: For such module, the state is managed automatically by HW according
+to clock domain transition. It is then not possible to wait for idle even
+later in the _idle function since the status will change at clock domain
+boundary.
 
-Acked-by: Kevin Hilman <khilman@ti.com>
-Acked-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-[paul@pwsan.com: use a flag rather than a state; updated commit message;
- edited some documentation]
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+[paul@pwsan.com: renamed fns to indicate that they are OMAP4-only; moved
+ _wait_target_disable() into _disable_module(), removing duplicate code]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
 ---
+Should apply cleanly on top of "[PATCH v4] ARM: OMAP2+: hwmod: Add a new 
+flag to handle hwmods left enabled at init".
 
-This patch needs to be applied along with Govindraj & Kevin's  UART
-patch set.  Otherwise lots of nasty warnings are generated to the console
-during boot.  Applies on top of v3.2-rc5.
-
- arch/arm/mach-omap2/omap_hwmod.c             |   23 ++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +++
- 2 files changed, 25 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   98 +++++++++++++++++++-------------------
+ 1 files changed, 49 insertions(+), 49 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 529142a..f673f80 100644
+index f673f80..72bc377 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1441,6 +1441,25 @@ static int _enable(struct omap_hwmod *oh)
+@@ -706,27 +706,65 @@ static void _enable_module(struct omap_hwmod *oh)
+ }
  
- 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
- 
-+	/*
-+	 * hwmods with HWMOD_INIT_NO_IDLE flag set are left
-+	 * in enabled state at init.
-+	 * Now that someone is really trying to enable them,
-+	 * just ensure that the hwmod mux is set.
-+	 */
-+	if (oh->_int_flags & _HWMOD_SKIP_ENABLE) {
-+		/*
-+		 * If the caller has mux data populated, do the mux'ing
-+		 * which wouldn't have been done as part of the _enable()
-+		 * done during setup.
-+		 */
-+		if (oh->mux)
-+			omap_hwmod_mux(oh->mux, _HWMOD_STATE_ENABLED);
-+
-+		oh->_int_flags &= ~_HWMOD_SKIP_ENABLE;
+ /**
+- * _disable_module - enable CLKCTRL modulemode on OMAP4
++ * _omap4_wait_target_disable - wait for a module to be disabled on OMAP4
++ * @oh: struct omap_hwmod *
++ *
++ * Wait for a module @oh to enter slave idle.  Returns 0 if the module
++ * does not have an IDLEST bit or if the module successfully enters
++ * slave idle; otherwise, pass along the return value of the
++ * appropriate *_cm*_wait_module_idle() function.
++ */
++static int _omap4_wait_target_disable(struct omap_hwmod *oh)
++{
++	if (!cpu_is_omap44xx())
 +		return 0;
-+	}
 +
- 	if (oh->_state != _HWMOD_STATE_INITIALIZED &&
- 	    oh->_state != _HWMOD_STATE_IDLE &&
- 	    oh->_state != _HWMOD_STATE_DISABLED) {
-@@ -1744,8 +1763,10 @@ static int _setup(struct omap_hwmod *oh, void *data)
- 	 * it should be set by the core code as a runtime flag during startup
- 	 */
- 	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
--	    (postsetup_state == _HWMOD_STATE_IDLE))
-+	    (postsetup_state == _HWMOD_STATE_IDLE)) {
-+		oh->_int_flags |= _HWMOD_SKIP_ENABLE;
- 		postsetup_state = _HWMOD_STATE_ENABLED;
-+	}
- 
- 	if (postsetup_state == _HWMOD_STATE_IDLE)
- 		_idle(oh);
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index 8b372ed..1a13c02 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -416,10 +416,13 @@ struct omap_hwmod_omap4_prcm {
-  * _HWMOD_NO_MPU_PORT: no path exists for the MPU to write to this module
-  * _HWMOD_WAKEUP_ENABLED: set when the omap_hwmod code has enabled ENAWAKEUP
-  * _HWMOD_SYSCONFIG_LOADED: set when the OCP_SYSCONFIG value has been cached
-+ * _HWMOD_SKIP_ENABLE: set if hwmod enabled during init (HWMOD_INIT_NO_IDLE) -
-+ *     causes the first call to _enable() to only update the pinmux
++	if (!oh)
++		return -EINVAL;
++
++	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
++		return 0;
++
++	if (oh->flags & HWMOD_NO_IDLEST)
++		return 0;
++
++	return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
++					     oh->clkdm->cm_inst,
++					     oh->clkdm->clkdm_offs,
++					     oh->prcm.omap4.clkctrl_offs);
++}
++
++/**
++ * _omap4_disable_module - enable CLKCTRL modulemode on OMAP4
+  * @oh: struct omap_hwmod *
+  *
+  * Disable the PRCM module mode related to the hwmod @oh.
+- * No return value.
++ * Return EINVAL if the modulemode is not supported and 0 in case of success.
   */
- #define _HWMOD_NO_MPU_PORT			(1 << 0)
- #define _HWMOD_WAKEUP_ENABLED			(1 << 1)
- #define _HWMOD_SYSCONFIG_LOADED			(1 << 2)
-+#define _HWMOD_SKIP_ENABLE			(1 << 3)
+-static void _disable_module(struct omap_hwmod *oh)
++static int _omap4_disable_module(struct omap_hwmod *oh)
+ {
++	int v;
++
+ 	/* The module mode does not exist prior OMAP4 */
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		return;
++	if (!cpu_is_omap44xx())
++		return -EINVAL;
  
- /*
-  * omap_hwmod._state definitions
+ 	if (!oh->clkdm || !oh->prcm.omap4.modulemode)
+-		return;
++		return -EINVAL;
+ 
+-	pr_debug("omap_hwmod: %s: _disable_module\n", oh->name);
++	pr_debug("omap_hwmod: %s: %s\n", oh->name, __func__);
+ 
+ 	omap4_cminst_module_disable(oh->clkdm->prcm_partition,
+ 				    oh->clkdm->cm_inst,
+ 				    oh->clkdm->clkdm_offs,
+ 				    oh->prcm.omap4.clkctrl_offs);
++
++	v = _omap4_wait_target_disable(oh);
++	if (v)
++		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
++			oh->name);
++
++	return 0;
+ }
+ 
+ /**
+@@ -1153,36 +1191,6 @@ static int _wait_target_ready(struct omap_hwmod *oh)
+ }
+ 
+ /**
+- * _wait_target_disable - wait for a module to be disabled
+- * @oh: struct omap_hwmod *
+- *
+- * Wait for a module @oh to enter slave idle.  Returns 0 if the module
+- * does not have an IDLEST bit or if the module successfully enters
+- * slave idle; otherwise, pass along the return value of the
+- * appropriate *_cm*_wait_module_idle() function.
+- */
+-static int _wait_target_disable(struct omap_hwmod *oh)
+-{
+-	/* TODO: For now just handle OMAP4+ */
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		return 0;
+-
+-	if (!oh)
+-		return -EINVAL;
+-
+-	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+-		return 0;
+-
+-	if (oh->flags & HWMOD_NO_IDLEST)
+-		return 0;
+-
+-	return omap4_cminst_wait_module_idle(oh->clkdm->prcm_partition,
+-					     oh->clkdm->cm_inst,
+-					     oh->clkdm->clkdm_offs,
+-					     oh->prcm.omap4.clkctrl_offs);
+-}
+-
+-/**
+  * _lookup_hardreset - fill register bit info for this hwmod/reset line
+  * @oh: struct omap_hwmod *
+  * @name: name of the reset line in the context of this hwmod
+@@ -1543,8 +1551,6 @@ static int _enable(struct omap_hwmod *oh)
+  */
+ static int _idle(struct omap_hwmod *oh)
+ {
+-	int ret;
+-
+ 	pr_debug("omap_hwmod: %s: idling\n", oh->name);
+ 
+ 	if (oh->_state != _HWMOD_STATE_ENABLED) {
+@@ -1556,11 +1562,9 @@ static int _idle(struct omap_hwmod *oh)
+ 	if (oh->class->sysc)
+ 		_idle_sysc(oh);
+ 	_del_initiator_dep(oh, mpu_oh);
+-	_disable_module(oh);
+-	ret = _wait_target_disable(oh);
+-	if (ret)
+-		pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
+-			oh->name);
++
++	_omap4_disable_module(oh);
++
+ 	/*
+ 	 * The module must be in idle mode before disabling any parents
+ 	 * clocks. Otherwise, the parent clock might be disabled before
+@@ -1661,11 +1665,7 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	if (oh->_state == _HWMOD_STATE_ENABLED) {
+ 		_del_initiator_dep(oh, mpu_oh);
+ 		/* XXX what about the other system initiators here? dma, dsp */
+-		_disable_module(oh);
+-		ret = _wait_target_disable(oh);
+-		if (ret)
+-			pr_warn("omap_hwmod: %s: _wait_target_disable failed\n",
+-				oh->name);
++		_omap4_disable_module(oh);
+ 		_disable_clocks(oh);
+ 		if (oh->clkdm)
+ 			clkdm_hwmod_disable(oh->clkdm, oh);
 -- 
 1.7.7.3
 
