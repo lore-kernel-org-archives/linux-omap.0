@@ -1,52 +1,65 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCHv5] OMAP: I2C: Fix the interrupt clearing in OMAP4
-Date: Fri, 16 Dec 2011 19:13:15 +0530
-Message-ID: <1324042995-5543-1-git-send-email-shubhrajyoti@ti.com>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: Re: [QUESTION] How to set static/dynamic dependency between clock domains
+Date: Fri, 16 Dec 2011 21:50:46 +0800
+Message-ID: <CACVXFVNOpfWxod_pN-kiQPoQ7n=XSFeV6WK6sf+8hYSiZ2rDBA@mail.gmail.com>
+References: <CACVXFVMe7T2WJiDwc9DFz9ifUPQG4pcYzFtx6O=gs7pFgrkNJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/mixed; boundary=f46d044280ce51a37204b435e31d
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:37337 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759212Ab1LPNut (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 08:50:49 -0500
+Received: by faar15 with SMTP id r15so2929340faa.19
+        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 05:50:48 -0800 (PST)
+In-Reply-To: <CACVXFVMe7T2WJiDwc9DFz9ifUPQG4pcYzFtx6O=gs7pFgrkNJg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Paul Walmsley <paul@pwsan.com>, Rajendra Nayak <rnayak@ti.com>
 
-On OMAP4 we were writing 1 to IRQENABLE_CLR which cleared only
-the arbitration lost interrupt. The patch intends to fix the same by writing 0
-to the IE register clearing all interrupts.
+--f46d044280ce51a37204b435e31d
+Content-Type: text/plain; charset=ISO-8859-1
 
-This is based on the work done by Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>.
+Hi,
 
-The  changes from the original patch ...
--  Does not use the IRQENABLE_CLR register to clear as it is not mentioned
-  to be legacy register IRQENABLE_CLR helps in  atomically
-  setting/clearing specific interrupts, instead use the OMAP_I2C_IE_REG as we are
-  clearing all interrupts.
+On Fri, Dec 16, 2011 at 9:24 PM, Ming Lei <tom.leiming@gmail.com> wrote:
 
-Cc: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Original patch can be found here:
-http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=41049d62e146e0fafe2fac0a31be566b3bbc9149
+> [1], add static dependency
 
- drivers/i2c/busses/i2c-omap.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+Sorry for the mess, see attachment for the change.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e0733b7..11f6c9b 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -297,10 +297,8 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 	pdata = dev->dev->platform_data;
- 
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-+
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
- 
- 	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
- 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+thanks,
 -- 
-1.7.1
+Ming Lei
+
+--f46d044280ce51a37204b435e31d
+Content-Type: text/x-patch; charset=US-ASCII; name="dyndep.patch"
+Content-Disposition: attachment; filename="dyndep.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gw99954n0
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvcG00NHh4LmMgYi9hcmNoL2FybS9tYWNo
+LW9tYXAyL3BtNDR4eC5jCmluZGV4IGMyNjRlZjcuLjIzZTFmOGMgMTAwNjQ0Ci0tLSBhL2FyY2gv
+YXJtL21hY2gtb21hcDIvcG00NHh4LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTQ0eHgu
+YwpAQCAtMTk4LDYgKzE5OCw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXA0X3BtX2luaXQodm9p
+ZCkKIAlpbnQgcmV0OwogCXN0cnVjdCBjbG9ja2RvbWFpbiAqZW1pZl9jbGtkbSwgKm1wdXNzX2Ns
+a2RtLCAqbDNfMV9jbGtkbTsKIAlzdHJ1Y3QgY2xvY2tkb21haW4gKmR1Y2F0aV9jbGtkbSwgKmwz
+XzJfY2xrZG0sICpsNF9wZXJfY2xrZG07CisJc3RydWN0IGNsb2NrZG9tYWluICppc3NfY2xrZG07
+CiAKIAlpZiAoIWNwdV9pc19vbWFwNDR4eCgpKQogCQlyZXR1cm4gLUVOT0RFVjsKQEAgLTIyNyw4
+ICsyMjgsMTAgQEAgc3RhdGljIGludCBfX2luaXQgb21hcDRfcG1faW5pdCh2b2lkKQogCWwzXzJf
+Y2xrZG0gPSBjbGtkbV9sb29rdXAoImwzXzJfY2xrZG0iKTsKIAlsNF9wZXJfY2xrZG0gPSBjbGtk
+bV9sb29rdXAoImw0X3Blcl9jbGtkbSIpOwogCWR1Y2F0aV9jbGtkbSA9IGNsa2RtX2xvb2t1cCgi
+ZHVjYXRpX2Nsa2RtIik7CisJaXNzX2Nsa2RtID0gY2xrZG1fbG9va3VwKCJpc3NfY2xrZG0iKTsK
+IAlpZiAoKCFtcHVzc19jbGtkbSkgfHwgKCFlbWlmX2Nsa2RtKSB8fCAoIWwzXzFfY2xrZG0pIHx8
+Ci0JCSghbDNfMl9jbGtkbSkgfHwgKCFkdWNhdGlfY2xrZG0pIHx8ICghbDRfcGVyX2Nsa2RtKSkK
+KwkJKCFsM18yX2Nsa2RtKSB8fCAoIWR1Y2F0aV9jbGtkbSkgfHwgKCFsNF9wZXJfY2xrZG0pIHx8
+CisJCSghaXNzX2Nsa2RtKSkKIAkJZ290byBlcnIyOwogCiAJcmV0ID0gY2xrZG1fYWRkX3drZGVw
+KG1wdXNzX2Nsa2RtLCBlbWlmX2Nsa2RtKTsKQEAgLTIzNyw2ICsyNDAsNyBAQCBzdGF0aWMgaW50
+IF9faW5pdCBvbWFwNF9wbV9pbml0KHZvaWQpCiAJcmV0IHw9IGNsa2RtX2FkZF93a2RlcChtcHVz
+c19jbGtkbSwgbDRfcGVyX2Nsa2RtKTsKIAlyZXQgfD0gY2xrZG1fYWRkX3drZGVwKGR1Y2F0aV9j
+bGtkbSwgbDNfMV9jbGtkbSk7CiAJcmV0IHw9IGNsa2RtX2FkZF93a2RlcChkdWNhdGlfY2xrZG0s
+IGwzXzJfY2xrZG0pOworCXJldCB8PSBjbGtkbV9hZGRfd2tkZXAoaXNzX2Nsa2RtLCBsM18yX2Ns
+a2RtKTsKIAlpZiAocmV0KSB7CiAJCXByX2VycigiRmFpbGVkIHRvIGFkZCBNUFVTUyAtPiBMMy9F
+TUlGL0w0UEVSLCBEVUNBVEkgLT4gTDMgIgogCQkJCSJ3YWtldXAgZGVwZW5kZW5jeVxuIik7Cg==
+--f46d044280ce51a37204b435e31d--
