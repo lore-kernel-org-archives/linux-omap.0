@@ -1,56 +1,73 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: problem with twl4030 GPIO irqs
-Date: Fri, 16 Dec 2011 02:56:32 +0200
-Message-ID: <CAMP44s04pfCU3Y33FeER+N4LFCVJuaK+U=wZ+zzpkv2an9mpMg@mail.gmail.com>
-References: <CANOLnON1-vg45KWZ7Rp+jL1n-jwBiTA2Qmkr_z1XnDKQ0XBPJw@mail.gmail.com>
+Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
+Date: Fri, 16 Dec 2011 02:59:57 +0200
+Message-ID: <CAMP44s3eeTOBRiFwEL3FypDY_+-MReqYJJVO1URNrnFVFXzvDg@mail.gmail.com>
+References: <1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
+	<Pine.LNX.4.44L0.1112151821360.1644-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:65520 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1LPA4c convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Dec 2011 19:56:32 -0500
-Received: by dajs34 with SMTP id s34so1724061daj.19
-        for <linux-omap@vger.kernel.org>; Thu, 15 Dec 2011 16:56:32 -0800 (PST)
-In-Reply-To: <CANOLnON1-vg45KWZ7Rp+jL1n-jwBiTA2Qmkr_z1XnDKQ0XBPJw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1112151821360.1644-100000@iolanthe.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org, NeilBrown <neilb@suse.de>, Felipe Balbi <balbi@ti.com>
 
-On Fri, Dec 16, 2011 at 2:03 AM, Grazvydas Ignotas <notasas@gmail.com> =
-wrote:
-> I'm running 3.2-rc5 on pandora with Neil's twl patches on top, and
-> omap_hsmmc driver fails to probe:
-> [ =C2=A0 =C2=A03.491394] omap_hsmmc omap_hsmmc.0: context was not los=
-t
-> [ =C2=A0 =C2=A03.497161] omap_hsmmc omap_hsmmc.0: enabled
-> [ =C2=A0 =C2=A03.715270] omap_hsmmc omap_hsmmc.0: Unable to grab MMC =
-CD IRQ
+On Fri, Dec 16, 2011 at 1:22 AM, Alan Stern <stern@rowland.harvard.edu>=
+ wrote:
+> On Fri, 16 Dec 2011, Felipe Contreras wrote:
 >
-> Pandora is using twl4030 GPIOs for card detect. From what I tried to
-> debug, omap_hsmmc is failing after call to request_irq() on card
-> detect irq with -EINVAL, irq number is 384 which is in range of other
-> twl4030 irqs. It looks like request_irq() is calling
-> request_threaded_irq() on ARM with NULL thread_fn, which in turn call=
-s
-> __setup_irq() that calls irq_settings_is_nested_thread() that results
-> with true. As this nested flag is set it checks thread_fn, but that i=
-s
-> NULL causing -EINVAL final result.
+>> Properly call pm_runtime_put() afer pm_runttime_get() on errors.
+>>
+>> Untested.
+>>
+>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+>> ---
+>> =C2=A0drivers/usb/musb/musb_gadget.c | =C2=A0 =C2=A01 +
+>> =C2=A0drivers/usb/musb/omap2430.c =C2=A0 =C2=A0| =C2=A0 =C2=A01 +
+>> =C2=A02 files changed, 2 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_=
+gadget.c
+>> index 922148f..95bfd2d 100644
+>> --- a/drivers/usb/musb/musb_gadget.c
+>> +++ b/drivers/usb/musb/musb_gadget.c
+>> @@ -1960,6 +1960,7 @@ static int musb_gadget_start(struct usb_gadget=
+ *g,
+>> =C2=A0err2:
+>> =C2=A0 =C2=A0 =C2=A0 if (!is_otg_enabled(musb))
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 musb_stop(musb);
+>> + =C2=A0 =C2=A0 pm_runtime_put(musb->controller);
+>> =C2=A0err0:
+>> =C2=A0 =C2=A0 =C2=A0 return retval;
+>> =C2=A0}
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430=
+=2Ec
+>> index ba85f27..4edfb91 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -385,6 +385,7 @@ static void omap2430_musb_disable(struct musb *m=
+usb)
+>>
+>> =C2=A0static int omap2430_musb_exit(struct musb *musb)
+>> =C2=A0{
+>> + =C2=A0 =C2=A0 pm_runtime_put(musb->controller);
+>> =C2=A0 =C2=A0 =C2=A0 del_timer_sync(&musb_idle_timer);
+>>
+>> =C2=A0 =C2=A0 =C2=A0 omap2430_low_level_exit(musb);
 >
-> Could someone who knows irq code better look at this? I think this
-> should reproduce on beagle too.
+> Should these calls be pm_runtime_put_sync() instead of
+> pm_runtime_put()?
 
-Basically all the modules of twl4030 should be converted to use
-request_threaded_irq(), if they are not, they will fail, and that's
-good, as trying to workaround the issue would just cause more trouble.
+I don't see why... The thing failed, it's not going to be used any
+more so better let PM deactivate the device. But now that you point
+this out, pm_runtime_put() on omap2430_musb_exit() should probably go
+at the end of the function, after all the actions have been done.
+
+I'll send an updated patch tomorrow, if there are no further comments.
+
+Cheers.
 
 --=20
 =46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
