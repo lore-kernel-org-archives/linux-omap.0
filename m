@@ -1,166 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
- hwmod
-Date: Thu, 15 Dec 2011 22:53:11 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] arm/dts: Add support for OMAP3 Mistral EVM board
+Date: Fri, 16 Dec 2011 11:36:00 +0530
+Message-ID: <1324015560-26735-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-247848974-1324014791=:12660"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1323871214-25435-2-git-send-email-ming.lei@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: b-cousson@ti.com
-Cc: Ming Lei <ming.lei@canonical.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50232 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751185Ab1LPGGT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Dec 2011 01:06:19 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, b-cousson@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Add OMAP3 Mistral EVM DTS file to use the omap3.dtsi SoC file,
+along with memory node information.
 
---155748971-247848974-1324014791=:12660
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+Boot tested it on DM37x Mistral EVM, kernel parses the info correctly.
 
-Hi Beno=EEt
+ arch/arm/boot/dts/omap3-evm.dts |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm.dts
 
-On Wed, 14 Dec 2011, Ming Lei wrote:
+diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+new file mode 100644
+index 0000000..59b2de0
+--- /dev/null
++++ b/arch/arm/boot/dts/omap3-evm.dts
+@@ -0,0 +1,20 @@
++/*
++ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++
++/ {
++	model = "TI OMAP3 Mistral EVM";
++	compatible = "ti,omap3-evm", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++};
+-- 
+1.7.0.4
 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++++++++=
-++++++
->  1 files changed, 81 insertions(+), 0 deletions(-)
-
-any comments on this patch?  I'd like to queue it if it looks good to you.
-
-- Paul
-
->=20
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-o=
-map2/omap_hwmod_44xx_data.c
-> index 6cf21ee..30db754 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-> @@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
->  static struct omap_hwmod omap44xx_dsp_hwmod;
->  static struct omap_hwmod omap44xx_dss_hwmod;
->  static struct omap_hwmod omap44xx_emif_fw_hwmod;
-> +static struct omap_hwmod omap44xx_fdif_hwmod;
->  static struct omap_hwmod omap44xx_hsi_hwmod;
->  static struct omap_hwmod omap44xx_ipu_hwmod;
->  static struct omap_hwmod omap44xx_iss_hwmod;
-> @@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system_=
-_l3_main_2 =3D {
->  =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
->  };
-> =20
-> +/* fdif -> l3_main_2 */
-> +static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
-> +=09.master=09=09=3D &omap44xx_fdif_hwmod,
-> +=09.slave=09=09=3D &omap44xx_l3_main_2_hwmod,
-> +=09.clk=09=09=3D "l3_div_ck",
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
->  /* hsi -> l3_main_2 */
->  static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
->  =09.master=09=09=3D &omap44xx_hsi_hwmod,
-> @@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod =
-=3D {
->  =09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_wd_timer3_slaves),
->  };
-> =20
-> +/* 'fdif' class */
-> +static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
-> +=09.rev_offs=09=3D 0x0000,
-> +=09.sysc_offs=09=3D 0x0010,
-> +=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
-> +=09=09=09   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-> +=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-> +=09=09=09   MSTANDBY_FORCE | MSTANDBY_NO |
-> +=09=09=09   MSTANDBY_SMART),
-> +=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
-> +};
-> +
-> +static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
-> +=09.name=09=3D "fdif",
-> +=09.sysc=09=3D &omap44xx_fdif_sysc,
-> +};
-> +
-> +/*fdif*/
-> +static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
-> +=09{
-> +=09=09.pa_start=09=3D 0x4a10a000,
-> +=09=09.pa_end=09=09=3D 0x4a10afff,
-> +=09=09.flags=09=09=3D ADDR_TYPE_RT
-> +=09},
-> +=09{ }
-> +};
-> +
-> +/* l4_cfg -> fdif */
-> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
-> +=09.master=09=09=3D &omap44xx_l4_cfg_hwmod,
-> +=09.slave=09=09=3D &omap44xx_fdif_hwmod,
-> +=09.clk=09=09=3D "l4_div_ck",
-> +=09.addr=09=09=3D omap44xx_fdif_addrs,
-> +=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-> +};
-> +
-> +/* fdif slave ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
-> +=09&omap44xx_l4_cfg__fdif,
-> +};
-> +static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
-> +=09{ .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
-> +=09{ .irq =3D -1 }
-> +};
-> +
-> +/* fdif master ports */
-> +static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
-> +=09&omap44xx_fdif__l3_main_2,
-> +};
-> +
-> +static struct omap_hwmod omap44xx_fdif_hwmod =3D {
-> +=09.name=09=09=3D "fdif",
-> +=09.class=09=09=3D &omap44xx_fdif_hwmod_class,
-> +=09.clkdm_name=09=3D "iss_clkdm",
-> +=09.mpu_irqs=09=3D omap44xx_fdif_irqs,
-> +=09.main_clk=09=3D "fdif_fck",
-> +=09.prcm =3D {
-> +=09=09.omap4 =3D {
-> +=09=09=09.clkctrl_offs =3D OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
-> +=09=09=09.context_offs =3D OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
-> +=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-> +=09=09},
-> +=09},
-> +=09.slaves=09=09=3D omap44xx_fdif_slaves,
-> +=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_slaves),
-> +=09.masters=09=3D omap44xx_fdif_masters,
-> +=09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_masters),
-> +};
-> +
->  static __initdata struct omap_hwmod *omap44xx_hwmods[] =3D {
-> =20
->  =09/* dmm class */
-> @@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmod=
-s[] =3D {
->  =09&omap44xx_wd_timer2_hwmod,
->  =09&omap44xx_wd_timer3_hwmod,
-> =20
-> +=09/* fdif class */
-> +=09&omap44xx_fdif_hwmod,
-> +
->  =09NULL,
->  };
-> =20
-> --=20
-> 1.7.5.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-
-
-- Paul
---155748971-247848974-1324014791=:12660--
