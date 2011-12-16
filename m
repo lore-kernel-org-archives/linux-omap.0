@@ -1,82 +1,119 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v4 1/4] OMAP3: hwmod data: add mmu data for iva and isp
-Date: Thu, 15 Dec 2011 20:01:54 -0600
-Message-ID: <CAB-zwWiTHD38s6Mz_xfxhxBqYph1ctTmhU5dntnp4zHsUwJtHA@mail.gmail.com>
+Subject: Re: [PATCH v4 4/4] OMAP3/4: iommu: adapt to runtime pm
+Date: Thu, 15 Dec 2011 20:59:23 -0600
+Message-ID: <CAB-zwWg1CUbL+kFSTxAOpNE=mBsDKODcJpm-fHkS=t6KRhTwPA@mail.gmail.com>
 References: <1323922709-6986-1-git-send-email-omar.ramirez@ti.com>
-	<1323922709-6986-2-git-send-email-omar.ramirez@ti.com>
-	<CAMP44s2WFghH4qPKuwSQJFaoLEmfAtcHB3DRZwNYe4zXTQexfQ@mail.gmail.com>
+	<1323922709-6986-5-git-send-email-omar.ramirez@ti.com>
+	<CAMP44s2YFqwFgWeWjMdzDH_00x1NAkFRwgSvp+f8NggcD2eiOw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:51296 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751922Ab1LPCB4 convert rfc822-to-8bit
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:53290 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756456Ab1LPC7Z convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Dec 2011 21:01:56 -0500
-In-Reply-To: <CAMP44s2WFghH4qPKuwSQJFaoLEmfAtcHB3DRZwNYe4zXTQexfQ@mail.gmail.com>
+	Thu, 15 Dec 2011 21:59:25 -0500
+In-Reply-To: <CAMP44s2YFqwFgWeWjMdzDH_00x1NAkFRwgSvp+f8NggcD2eiOw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Felipe Contreras <felipe.contreras@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, iommu@lists.linux-foundation.org, MyungJoo Ham <myungjoo.ham@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Dec 15, 2011 at 6:39 PM, Felipe Contreras
+On Thu, Dec 15, 2011 at 6:33 PM, Felipe Contreras
 <felipe.contreras@gmail.com> wrote:
 > On Thu, Dec 15, 2011 at 6:18 AM, Omar Ramirez Luna <omar.ramirez@ti.c=
 om> wrote:
->> +/* l4_core -> isp mmu */
->> +static struct omap_hwmod_ocp_if omap3xxx_l4_core__isp_mmu =3D {
->> + =A0 =A0 =A0 .master =A0 =A0 =A0 =A0 =3D &omap3xxx_l4_core_hwmod,
->> + =A0 =A0 =A0 .slave =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_isp_mmu_hwmod,
->> + =A0 =A0 =A0 .addr =A0 =A0 =A0 =A0 =A0 =3D omap3xxx_isp_mmu_addrs,
->> + =A0 =A0 =A0 .user =A0 =A0 =A0 =A0 =A0 =3D OCP_USER_MPU | OCP_USER_=
-SDMA,
->> +};
+>> @@ -123,11 +123,10 @@ static int iommu_enable(struct omap_iommu *obj=
+)
+>> =A0 =A0 =A0 =A0if (!arch_iommu)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENODEV;
+>>
+>> - =A0 =A0 =A0 clk_enable(obj->clk);
+>> + =A0 =A0 =A0 pm_runtime_get_sync(obj->dev);
+>>
+>> =A0 =A0 =A0 =A0err =3D arch_iommu->enable(obj);
+>>
+>> - =A0 =A0 =A0 clk_disable(obj->clk);
+>> =A0 =A0 =A0 =A0return err;
+>> =A0}
 >
-> Are you sure you are not missing something like:
+> Hmm, this is called on omap_iommu_attach, and iommu_disable is not
+> called until omap_iommu_detach, so this means the device will never
+> sleep. Why don't you call pm_runtime_put() instead of clk_disable()?
+
+Here once you call pm_runtime_put, the hwmod should turn off iva2_ck
+leaving device unpowered, not usable if it is part of an independent
+module and that module is still awake, but since the module clock
+feeds both the dsp and the mmu this doesn't occur. However might be
+possible if there is a specific clock to feed the mmu and another for
+the mmu user.
+
+In theory iommu should be independent on handling its clock resources,
+take tidspbridge, it powers iva2_clk which indirectly powers iva_mmu,
+so as long as the dsp is powered and using the mmu (omap_iommu_attach)
+the iommu should be ON, once you omap_iommu_detach means that the
+device is no longer using the iommu and can be put to sleep.
+
+This could be helpful if your main processor can go to sleep
+independently of other processors, say you attach the iommu and leave
+the dsp doing calculations and memory accesses through mmu while the
+main processor decides to enter sleep.
+
+> All the rest of the calls to pm_runtime_get/put after this are
+> basically no-ops, because the count will never go below 1.
+
+I didn't try but without calling iommu_attach the other functions that
+use pm_runtime_get/put can still be called as they are exported
+symbols. I believe omap-iommu-debug.c does something like this to dump
+stuff. This should be cleaned up/audited, IMHO, but it doesn't seem to
+belong to this conversion series.
+
+> You mention some irq issues, but could it be due to some bad clocks i=
+n
+> the hwmod data?
+
+There are no "issues" with irqs, just a weird case, see below...
+
+=2E..
+>> @@ -780,9 +777,7 @@ static irqreturn_t iommu_fault_handler(int irq, =
+void *data)
+>> =A0 =A0 =A0 =A0if (!obj->refcount)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return IRQ_NONE;
+>>
+>> - =A0 =A0 =A0 clk_enable(obj->clk);
+>> =A0 =A0 =A0 =A0errs =3D iommu_report_fault(obj, &da);
+>> - =A0 =A0 =A0 clk_disable(obj->clk);
 >
-> =A0.clk =3D "cam_ick",
+> Why?
 
-I believe in this case cam_ick is used as the main clock as it
-supplies both functional and interface.
+In order to get an irq from the mmu, the mmu should be functional and
+have a clock, but iommu_enable used to enable and disable the clock.
 
+In the end you are able to get an irq because someone else
+(tidspbridge) has the mmu indirectly powered (since they share the
+same clock), I felt this shouldn't be and the iommu should handle its
+own clocks even if they are shared with other modules.
+
+Hence iommu_enable does pm_runtime_get for the life time of the user of=
+ the mmu.
+
+=2E..
+>> @@ -996,7 +987,8 @@ static int __devexit omap_iommu_remove(struct pl=
+atform_device *pdev)
+>> =A0 =A0 =A0 =A0release_mem_region(res->start, resource_size(res));
+>> =A0 =A0 =A0 =A0iounmap(obj->regbase);
+>>
+>> - =A0 =A0 =A0 clk_put(obj->clk);
+>> + =A0 =A0 =A0 pm_runtime_disable(obj->dev);
 >
->> +/* isp mmu slave ports */
->> +static struct omap_hwmod_ocp_if *omap3xxx_isp_mmu_slaves[] =3D {
->> + =A0 =A0 =A0 &omap3xxx_l4_core__isp_mmu,
->> +};
->> +
->> +static struct omap_hwmod omap3xxx_isp_mmu_hwmod =3D {
->> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "isp_mmu",
->> + =A0 =A0 =A0 .class =A0 =A0 =A0 =A0 =A0=3D &omap3xxx_mmu_hwmod_clas=
-s,
->> + =A0 =A0 =A0 .mpu_irqs =A0 =A0 =A0 =3D omap3xxx_isp_mmu_irqs,
->> + =A0 =A0 =A0 .main_clk =A0 =A0 =A0 =3D "cam_ick",
->
-> It's not "cam_fck"?
+> I'm not sure if this is needed; you want to resume the driver? AFAICS
+> kfree will take care of that _without_ resuming.
 
-AFAIK cam_fck doesn't exist in the code, and CAM_L3_ICK is used as
-both ick/fck according to TRM.
+No, the driver should resume only if there are outstanding wake up
+requests, right? I don't seem to get this question.
 
->
->> + =A0 =A0 =A0 .dev_attr =A0 =A0 =A0 =3D &isp_mmu_dev_attr,
->> + =A0 =A0 =A0 .slaves =A0 =A0 =A0 =A0 =3D omap3xxx_isp_mmu_slaves,
->> + =A0 =A0 =A0 .slaves_cnt =A0 =A0 =3D ARRAY_SIZE(omap3xxx_isp_mmu_sl=
-aves),
->> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D HWMOD_NO_IDLEST,
->> +};
->
-> Most of the stuff I see the hwmods is .main_lock =3D "foo_fck", slave
-> .clk =3D "foo_ick". Maybe that explains the irq issues you get.
-
-I see irq issues with iva hwmod because tidspbridge doesn't use iommu
-API yet, so if you enable both the mmu hwmod and tidspbridge own mmu
-implementation there will be some conflicts.
-
-I didn't see isp issues though, but I didn't went more than
-booting/enabling with isp mmu.
-
-Regards,
+Thanks,
 
 Omar
 --
