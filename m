@@ -1,76 +1,67 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
-Date: Sat, 17 Dec 2011 11:04:33 +0000
-Message-ID: <20111217110433.GC14547@n2100.arm.linux.org.uk>
-References: <1323834838-2206-1-git-send-email-mturquette@linaro.org>
- <1323834838-2206-4-git-send-email-mturquette@linaro.org>
- <alpine.LFD.2.02.1112141007550.3020@ionos>
- <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2] arm:omap: cleanup & split omap2/3/4_check_revision
+ function
+Date: Sat, 17 Dec 2011 16:08:14 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A805FE52@DBDE01.ent.ti.com>
+References: <1324037006-31984-1-git-send-email-hvaibhav@ti.com>
+ <20111217012730.GD6464@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Turquette, Mike" <mturquette@ti.com>
-Cc: andrew@lunn.ch, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, Colin Cross <ccross@google.com>, jeremy.kerr@canonical.com, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39775 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751605Ab1LQQIU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Dec 2011 11:08:20 -0500
+In-Reply-To: <20111217012730.GD6464@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
 
-On Fri, Dec 16, 2011 at 04:45:48PM -0800, Turquette, Mike wrote:
-> On Wed, Dec 14, 2011 at 5:18 AM, Thomas Gleixner <tglx@linutronix.de> wro=
-te:
-> > On Tue, 13 Dec 2011, Mike Turquette wrote:
-> >> +void __clk_unprepare(struct clk *clk)
-> >> +{
-> >> + =A0 =A0 if (!clk)
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return;
-> >> +
-> >> + =A0 =A0 if (WARN_ON(clk->prepare_count =3D=3D 0))
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return;
-> >> +
-> >> + =A0 =A0 if (--clk->prepare_count > 0)
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return;
-> >> +
-> >> + =A0 =A0 WARN_ON(clk->enable_count > 0);
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Saturday, December 17, 2011 6:58 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; Hilman, Kevin
+> Subject: Re: [PATCH-V2] arm:omap: cleanup & split omap2/3/4_check_revision
+> function
+> 
+> * Vaibhav Hiremath <hvaibhav@ti.com> [111216 03:32]:
+> > This patch doesn't change functionality or behavior of the code
+> > execution; it barely cleans up the code and splits into SoC
+> > specific implementation for Rev ID and feature detection.
 > >
-> > So this leaves the clock enable count set. I'm a bit wary about
-> > that. Shouldn't it either return (including bumping the prepare_count
-> > again) or call clk_disable() ?
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> > Changes from V1:
+> > 	- Incorporated suggessions from Tony to split the function
+> 
+> Thanks for working on this, the end result looks much better.
+> 
+> Can you please split it into two or more patches as this patch
+> is pretty much unreadable unfortunately?
+> 
+> Maybe add empty check_revision functions first or something
+> like that so the diff stays readable?
+> 
+> Also..
+> 
+> > +static void __init omap3_cpuinfo(const char *cpu_rev)
+> > +{
+> > +	const char *cpu_name;
+> 
+> ..the _cpuinfo functions can now be void as the cpu_rev
+> is already set globally?
+> 
+Thanks Tony,
 
-No it should not.
+I will incorporate all the changes (split the patch) and submit the patch series now.
 
-> I've hit this in my port of OMAP.  It comes from this simple situation:
-> =
+Thanks,
+Vaibhav
 
-> driver 1 (adapted for clk_prepare/clk_unprepare):
-> clk_prepare(clk);
-> clk_enable(clk);
-> =
-
-> ...
-> =
-
-> driver2 (not adapted for clk_prepare/clk_unprepare):
-> clk_enable(clk);
-
-So this is basically buggy.  Look, it's quite simple.  Convert _all_
-your drivers to clk_prepare/clk_unprepare _before_ you start switching
-your platform to use these new functions.  You can do that _today_
-without exception.
-
-We must refuse to merge _any_ user which does this the old way - and
-we should have been doing this since my commit was merged into mainline
-to allow drivers to be converted.
-
-And stop trying to think of ways around this inside clk_prepare/
-clk_unprepare/clk_enable/clk_disable.  You can't do it.  Just fix _all_
-the drivers.  Now.  Before you start implementing clk_prepare/clk_unprepare.
+> Regards,
+> 
+> Tony
