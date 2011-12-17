@@ -1,60 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
- for OMAP2+ systems
-Date: Fri, 16 Dec 2011 16:20:42 -0800
-Message-ID: <20111217002042.GA6464@atomide.com>
-References: <y>
- <1323190149-6492-2-git-send-email-b-cousson@ti.com>
- <1323782836.1877.79.camel@deskari>
- <4EE75448.4010701@ti.com>
- <20111213223855.GW32251@atomide.com>
- <4EEB62F4.2010202@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: I2C: prepare to use hwmod reset in driver
+Date: Fri, 16 Dec 2011 16:24:09 -0800
+Message-ID: <20111217002409.GB6464@atomide.com>
+References: <alpine.DEB.2.00.1112160254320.12660@utopia.booyaka.com>
+ <20111216195002.GL32251@atomide.com>
+ <alpine.DEB.2.00.1112161314180.12660@utopia.booyaka.com>
+ <20111216204123.GM32251@atomide.com>
+ <alpine.DEB.2.00.1112161357250.12660@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58518 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61234 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759657Ab1LQAUs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 19:20:48 -0500
+	with ESMTP id S1752663Ab1LQAYL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 19:24:11 -0500
 Content-Disposition: inline
-In-Reply-To: <4EEB62F4.2010202@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1112161357250.12660@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, Shubhrajyoti <shubhrajyoti@ti.com>, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org
 
-* Cousson, Benoit <b-cousson@ti.com> [111216 06:53]:
-> Hi Tony,
+* Paul Walmsley <paul@pwsan.com> [111216 12:27]:
+> Hi
 > 
-> On 12/13/2011 11:38 PM, Tony Lindgren wrote:
-> > * Cousson, Benoit<b-cousson@ti.com>  [111213 05:02]:
-> >> On 12/13/2011 2:27 PM, Tomi Valkeinen wrote:
-> >>> Hi,
-> >>>
-> >>> On Tue, 2011-12-06 at 17:49 +0100, Benoit Cousson wrote:
-> >>>> devicetree will become the mandatory boot method for OMAP2+.
-> >>>> In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
-> >>>> select USE_OF by default for every OMAP2+ systems.
-> >>>> Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
-> >>>> boot loader to keep working properly.
-> >>>
-> >>> APPENDED_DTB sounds a bit dangerous to be enabled by default according
-> >>> to the config help text.
-> >>
-> >> The help is indeed really scary :-)
-> > 
-> > Heh, but it's also true.
-> > 
-> >> Tony,
-> >> Do we want to keep it by default? Or should we fix the kconfig help?
-> > 
-> > Let's just leave out those two from omap2plus_defconfig then.
+> On Fri, 16 Dec 2011, Tony Lindgren wrote:
 > 
-> Here is the updated version.
-> Just let me know if you'd like to get the full series re-posted.
+> > * Paul Walmsley <paul@pwsan.com> [111216 11:45]:
+> > > On Fri, 16 Dec 2011, Tony Lindgren wrote:
+> > > 
+> > > > * Paul Walmsley <paul@pwsan.com> [111216 01:24]:
+> > > >
+> > > > > Shubhrajyoti D (2):
+> > > > >       ARM: OMAP: omap_device: add omap_device_reset to reset all the hwmods in the device
+> > > > >       ARM: OMAP: I2C: Reset support
+> > > > > 
+> > > > Can you please update shi to leave out the extra callback
+> > > > function int (*device_reset) (struct device *dev) as I'd
+> > > > rather see that happen with pm_runtime calls?
+> > > 
+> > > What PM runtime call is used to reset a device?
+> > 
+> > Hmm how about pm_runtime_disable? Or do we need a new
+> > call for reset?
 
-Thanks applying into dt branch. No need to repost this series.
-
-Regards,
-
-Tony
+Meanwhile as Paul pointed out, we still need the device_reset
+pointer, so pulling in this series into i2c branch.
+ 
+> Looking at the last few hunks of:
+> 
+> http://marc.info/?l=linux-omap&m=132377389204328&w=2
+> 
+> it appears to me that the driver needs to reset the device while it's 
+> still active & powered on, etc.
+> 
+> Shubhrajyoti, care to comment further?
+> 
+> 
+> - Paul
