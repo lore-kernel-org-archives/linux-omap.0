@@ -1,50 +1,65 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Interesting L3 driver panic on v3.2-rc5 on 3530
-Date: Sat, 17 Dec 2011 10:44:51 +0530
-Message-ID: <CAMQu2gwVRd7XktK_oeg7pELwybFuc1MXUPrc8o8_TSDwJPJnZw@mail.gmail.com>
-References: <alpine.DEB.2.00.1112161859190.12660@utopia.booyaka.com>
+From: Thomas Renninger <trenn@suse.de>
+Subject: Re: [PATCH 1/4] cpupower: Add cpupower-idle-info manpage
+Date: Sat, 17 Dec 2011 10:21:57 +0100
+Message-ID: <201112171021.58492.trenn@suse.de>
+References: <1324046154-64824-1-git-send-email-trenn@suse.de>
+	<1324046154-64824-2-git-send-email-trenn@suse.de>
+	<CAORVsuVrm+dWGgs-taatnUMZsYvYg_tdx1=7ekWp0qM+25DorQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41086 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750833Ab1LQFPO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 17 Dec 2011 00:15:14 -0500
-Received: by qcsc2 with SMTP id c2so2399618qcs.7
-        for <linux-omap@vger.kernel.org>; Fri, 16 Dec 2011 21:15:12 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1112161859190.12660@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <CAORVsuVrm+dWGgs-taatnUMZsYvYg_tdx1=7ekWp0qM+25DorQ@mail.gmail.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: cpufreq@vger.kernel.org, linux-acpi@vger.kernel.org, linux@dominikbrodowski.net, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
 
-On Sat, Dec 17, 2011 at 7:32 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> Hi
->
-> Just got this on a cold boot on 3530 BeagleBoard. =A0The hwmod warnin=
-gs
-> are expected, but the BUG() from the L3 bus driver ISR is not.
->
-> Probably we should not BUG there, but log something akin to an x86
-> machine check exception.
->
-Looks like similar scenario as the DSS reset again and the timeout
-error leading to BUG_ON.
+On Friday 16 December 2011 17:18:37 Jean Pihet wrote:
+> Hi Thomas,
+> 
+> On Fri, Dec 16, 2011 at 3:35 PM, Thomas Renninger <trenn@suse.de> wrote:
+> > The last missing manpage for cpupower tools.
+> Great!
+> 
+> > More info about other architecture's sleep state specialities would be great.
+> I wonder if it is the right place for some arch specific information
+> about the sleep states.
+> 
+> I propose to document this in a more generic doc file (e.g.
+> Documentation/arm/OMAP/omap_pm) and link it from the manpage.
+Duplicating info at different places increases needed maintenance.
+Mabye above should be more about the kernel implementation details
+and the manpage should more include the bits a typical user
+wants to know?
 
-May be we should not BUG_ON though that state of interconnect is
-more or less not recoverable as per documents. That way at least boot
-won't crash.
+> What do you think?
+The POLL state is a bit confusing on X86 cpupower idle-info output.
+Also on X86 the CPU may decide to use other states than the kernel
+requested and the cpupower monitor tool should get used to see them.
+This directly affects the output/usage of the tool and to understand it,
+it should be documented in the manpage.
 
-We need to find out the initiator leading to the timeout to see what's
-going on.
+IMO it's not bad to have a somewhat bigger manpage here.
+Especially on ARM, also the "ordinary" user wants to know
+about how/whether the cpu power functionalities work as expected
+without the need of looking at the kernel sources.
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For now I could only try out cpupower on an ARM platform
+with cpufreq support.
+Would be great if someone could give cpupower idle-info
+a try on such a machine.
+Think of a typical user, not a kernel hacker and what he needs to
+know to interpret and understand the output.
+Maybe it's self-explanatory already, maybe the one or other arch
+specific bit should get explained?
+
+   Thomas
