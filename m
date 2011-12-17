@@ -1,43 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 0/4] OMAP serial device tree support
-Date: Fri, 16 Dec 2011 14:17:31 -0800
-Message-ID: <20111216221731.GS32251@atomide.com>
-References: <1323863746-18145-1-git-send-email-rnayak@ti.com>
- <87d3brnpsi.fsf@ti.com>
- <20111214171843.5f638874@bob.linux.org.uk>
- <20111214182710.GC8039@kroah.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
+ for OMAP2+ systems
+Date: Fri, 16 Dec 2011 16:20:42 -0800
+Message-ID: <20111217002042.GA6464@atomide.com>
+References: <y>
+ <1323190149-6492-2-git-send-email-b-cousson@ti.com>
+ <1323782836.1877.79.camel@deskari>
+ <4EE75448.4010701@ti.com>
+ <20111213223855.GW32251@atomide.com>
+ <4EEB62F4.2010202@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58518 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759657Ab1LQAUs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Dec 2011 19:20:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20111214182710.GC8039@kroah.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@linux.intel.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, govindraj.raja@ti.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, robherring2@gmail.com
+In-Reply-To: <4EEB62F4.2010202@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Greg KH <greg@kroah.com> [111214 10:27]:
-> On Wed, Dec 14, 2011 at 05:18:43PM +0000, Alan Cox wrote:
-> > On Wed, 14 Dec 2011 07:20:13 -0800
-> > Kevin Hilman <khilman@ti.com> wrote:
-> > 
-> > > Greg, Alan,
-> > > 
-> > > Rajendra Nayak <rnayak@ti.com> writes:
-> > > 
-> > > > v3 is rebased on top of the latest serial runtime
-> > > > patches[1] and boot tested with/without DT on OMAP4
-> > > > SDP and OMAP4 Panda boards.
-> > > 
-> > > With your ack on the drivers/tty/* stuff, I can queue this via the
-> > > OMAP tree on top of the runtime PM conversion that it depends on.
-> > 
-> > Go for it
+* Cousson, Benoit <b-cousson@ti.com> [111216 06:53]:
+> Hi Tony,
 > 
-> Fine with me as well.
+> On 12/13/2011 11:38 PM, Tony Lindgren wrote:
+> > * Cousson, Benoit<b-cousson@ti.com>  [111213 05:02]:
+> >> On 12/13/2011 2:27 PM, Tomi Valkeinen wrote:
+> >>> Hi,
+> >>>
+> >>> On Tue, 2011-12-06 at 17:49 +0100, Benoit Cousson wrote:
+> >>>> devicetree will become the mandatory boot method for OMAP2+.
+> >>>> In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
+> >>>> select USE_OF by default for every OMAP2+ systems.
+> >>>> Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
+> >>>> boot loader to keep working properly.
+> >>>
+> >>> APPENDED_DTB sounds a bit dangerous to be enabled by default according
+> >>> to the config help text.
+> >>
+> >> The help is indeed really scary :-)
+> > 
+> > Heh, but it's also true.
+> > 
+> >> Tony,
+> >> Do we want to keep it by default? Or should we fix the kconfig help?
+> > 
+> > Let's just leave out those two from omap2plus_defconfig then.
+> 
+> Here is the updated version.
+> Just let me know if you'd like to get the full series re-posted.
 
-For the record, I'll apply these directly into the omap uart
-branch as Kevin is on vacation. 
+Thanks applying into dt branch. No need to repost this series.
 
 Regards,
 
