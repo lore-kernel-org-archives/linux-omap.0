@@ -1,15 +1,15 @@
 From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: Re: [PATCH v5 REPOST 1/5] ARM: l2x0/pl310: Refactor Kconfig to be
- more maintainable
-Date: Mon, 19 Dec 2011 00:57:25 +0900
-Message-ID: <4EEE0D65.1050700@samsung.com>
+Subject: Re: [PATCH v5 REPOST 2/5] ARM: SMP: Refactor Kconfig to be more
+ maintainable
+Date: Mon, 19 Dec 2011 00:57:47 +0900
+Message-ID: <4EEE0D7B.5080805@samsung.com>
 References: <1324053332-6431-1-git-send-email-dave.martin@linaro.org>
- <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
+ <1324053332-6431-3-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
+In-Reply-To: <1324053332-6431-3-git-send-email-dave.martin@linaro.org>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -24,40 +24,32 @@ Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas 
 List-Id: linux-omap@vger.kernel.org
 
 On 12/17/11 01:35, Dave Martin wrote:
-> Making CACHE_L2X0 depend on (huge list of MACH_ and ARCH_ configs)
-> is bothersome to maintain and likely to lead to merge conflicts.
+> Making SMP depend on (huge list of MACH_ and ARCH_ configs) is
+> bothersome to maintain and likely to lead to merge conflicts.
 >
-> This patch moves the knowledge of which platforms have a L2x0 or
-> PL310 cache controller to the individual machines.  To enable this,
-> a new MIGHT_HAVE_CACHE_L2X0 config option is introduced to allow
-> machines to indicate that they may have such a cache controller
-> independently of each other.
->
-> Boards/SoCs which cannot reliably operate without the L2 cache
-> controller support will need to select CACHE_L2X0 directly from
-> their own Kconfigs instead.  This applies to some TrustZone-enabled
-> boards where Linux runs in the Normal World, for example.
+> This patch moves the knowledge of which platforms are SMP-capable
+> to the individual machines.  To enable this, a new HAVE_SMP config
+> option is introduced to allow machines to indicate that they can
+> run in a SMP configuration.
 >
 > Signed-off-by: Dave Martin<dave.martin@linaro.org>
-> Acked-by: Anton Vorontsov<cbouatmailru@gmail.com>
->          (for cns3xxx)
+> Acked-by: Linus Walleij<linus.walleij@linaro.org>
+>          (for nomadik, ux500)
 > Acked-by: Tony Lindgren<tony@atomide.com>
 >          (for omap)
-> Acked-by: Shawn Guo<shawn.guo@linaro.org>
->          (for imx)
 
 for exynos:
 Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
 > ---
->   arch/arm/Kconfig               |    8 ++++++++
+>   arch/arm/Kconfig               |   18 ++++++++++++++----
 >   arch/arm/mach-exynos/Kconfig   |    1 +
+>   arch/arm/mach-imx/Kconfig      |    1 +
+>   arch/arm/mach-msm/Kconfig      |    1 +
 >   arch/arm/mach-omap2/Kconfig    |    1 +
->   arch/arm/mach-realview/Kconfig |    5 +++++
+>   arch/arm/mach-realview/Kconfig |    4 ++++
 >   arch/arm/mach-vexpress/Kconfig |    1 +
->   arch/arm/mm/Kconfig            |   23 ++++++++++++++++-------
->   arch/arm/plat-mxc/Kconfig      |    1 +
->   7 files changed, 33 insertions(+), 7 deletions(-)
+>   7 files changed, 23 insertions(+), 4 deletions(-)
 
 (snip)
 
