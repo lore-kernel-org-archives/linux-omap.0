@@ -1,62 +1,39 @@
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: Re: [PATCH v5 REPOST 2/5] ARM: SMP: Refactor Kconfig to be more
- maintainable
-Date: Mon, 19 Dec 2011 00:57:47 +0900
-Message-ID: <4EEE0D7B.5080805@samsung.com>
-References: <1324053332-6431-1-git-send-email-dave.martin@linaro.org>
- <1324053332-6431-3-git-send-email-dave.martin@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1324053332-6431-3-git-send-email-dave.martin@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Anton Vorontsov <cbouatmailru@gmail.com>, Will Deacon <will.deacon@arm.com>, Daniel Walker <dwalker@fifo99.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, =?ISO-8859-1?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Brown <davidb@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, linux-arm-msm@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fabio Estevam <fabio.estevam@freescale.>
+From: Daniel Mack <zonque@gmail.com>
+Subject: [PATCH] ARM: OMAP: avoid NULL pointer dereference when no PMIC is configured
+Date: Sun, 18 Dec 2011 20:13:48 +0100
+Message-ID: <1324235628-26439-1-git-send-email-zonque@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:60499 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751966Ab1LRTNz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 18 Dec 2011 14:13:55 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>
 
-On 12/17/11 01:35, Dave Martin wrote:
-> Making SMP depend on (huge list of MACH_ and ARCH_ configs) is
-> bothersome to maintain and likely to lead to merge conflicts.
->
-> This patch moves the knowledge of which platforms are SMP-capable
-> to the individual machines.  To enable this, a new HAVE_SMP config
-> option is introduced to allow machines to indicate that they can
-> run in a SMP configuration.
->
-> Signed-off-by: Dave Martin<dave.martin@linaro.org>
-> Acked-by: Linus Walleij<linus.walleij@linaro.org>
->          (for nomadik, ux500)
-> Acked-by: Tony Lindgren<tony@atomide.com>
->          (for omap)
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/vp.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-for exynos:
-Acked-by: Kukjin Kim <kgene.kim@samsung.com>
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index 66bd700..5407173 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -41,6 +41,11 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	u32 val, sys_clk_rate, timeout, waittime;
+ 	u32 vddmin, vddmax, vstepmin, vstepmax;
+ 
++	if (!voltdm->pmic) {
++		pr_err("%s: No PMIC configured.\n", __func__, voltdm->name);
++		return;
++	}
++
+ 	if (!voltdm->read || !voltdm->write) {
+ 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
+ 			__func__, voltdm->name);
+-- 
+1.7.7.4
 
-> ---
->   arch/arm/Kconfig               |   18 ++++++++++++++----
->   arch/arm/mach-exynos/Kconfig   |    1 +
->   arch/arm/mach-imx/Kconfig      |    1 +
->   arch/arm/mach-msm/Kconfig      |    1 +
->   arch/arm/mach-omap2/Kconfig    |    1 +
->   arch/arm/mach-realview/Kconfig |    4 ++++
->   arch/arm/mach-vexpress/Kconfig |    1 +
->   7 files changed, 23 insertions(+), 4 deletions(-)
-
-(snip)
-
-Thanks.
-
-Best regards,
-Kgene.
---
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
