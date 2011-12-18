@@ -1,43 +1,43 @@
-From: Ilya Yanok <yanok@emcraft.com>
-Subject: [PATCH] davinci-cpdma: fix locking issue in cpdma_chan_stop
-Date: Sun, 18 Dec 2011 21:02:04 +0100
-Message-ID: <1324238524-21330-1-git-send-email-yanok@emcraft.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: omap3isp hangs with 3.2-rc2
+Date: Sun, 18 Dec 2011 22:47:12 +0100
+Message-ID: <201112182247.13646.laurent.pinchart@ideasonboard.com>
+References: <CAK=Wgbbt-c-PzmqWmJ-wMaWup-Jm6vzjrKkonXSMirGq+V-BJQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:58546 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896Ab1LRUCK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Dec 2011 15:02:10 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50181 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751198Ab1LRVrO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Dec 2011 16:47:14 -0500
+In-Reply-To: <CAK=Wgbbt-c-PzmqWmJ-wMaWup-Jm6vzjrKkonXSMirGq+V-BJQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: netdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: Ilya Yanok <yanok@emcraft.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Free the channel lock before calling __cpdma_chan_process to prevent
-dead lock.
+Hi Ohad,
 
-Signed-off-by: Ilya Yanok <yanok@emcraft.com>
----
- drivers/net/ethernet/ti/davinci_cpdma.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+On Tuesday 22 November 2011 16:02:29 Ohad Ben-Cohen wrote:
+> Hi Laurent,
+> 
+> With 3.2-rc2, omap3isp seems to silently hang in my setup (sensor-less
+> OMAP3).
+> 
+> Turning on lockdep yields the below messages, care to take a quick look ?
 
-diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
-index dca9d33..c97d2f5 100644
---- a/drivers/net/ethernet/ti/davinci_cpdma.c
-+++ b/drivers/net/ethernet/ti/davinci_cpdma.c
-@@ -836,11 +836,13 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
- 	chan_write(chan, cp, CPDMA_TEARDOWN_VALUE);
- 
- 	/* handle completed packets */
-+	spin_unlock_irqrestore(&chan->lock, flags);
- 	do {
- 		ret = __cpdma_chan_process(chan);
- 		if (ret < 0)
- 			break;
- 	} while ((ret & CPDMA_DESC_TD_COMPLETE) == 0);
-+	spin_lock_irqsave(&chan->lock, flags);
- 
- 	/* remaining packets haven't been tx/rx'ed, clean them up */
- 	while (chan->head) {
+Investigation complete.
+
+http://patchwork.linuxtv.org/patch/8451/
+
+I hadn't realized the breakage was already present in v3.2-rc, I thought it 
+was queued for v3.3. That's why I've delayed the fix.
+
+Mauro, can that patch be pushed to v3.2 ? It's pretty urgent.
+
 -- 
-1.7.6.4
+Regards,
 
+Laurent Pinchart
