@@ -1,39 +1,43 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH] ARM: OMAP: avoid NULL pointer dereference when no PMIC is configured
-Date: Sun, 18 Dec 2011 20:13:48 +0100
-Message-ID: <1324235628-26439-1-git-send-email-zonque@gmail.com>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: [PATCH] davinci-cpdma: fix locking issue in cpdma_chan_stop
+Date: Sun, 18 Dec 2011 21:02:04 +0100
+Message-ID: <1324238524-21330-1-git-send-email-yanok@emcraft.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from svenfoo.org ([82.94.215.22]:60499 "EHLO mail.zonque.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751966Ab1LRTNz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 18 Dec 2011 14:13:55 -0500
+Received: from mail-out.m-online.net ([212.18.0.9]:58546 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab1LRUCK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 18 Dec 2011 15:02:10 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Daniel Mack <zonque@gmail.com>, Tony Lindgren <tony@atomide.com>
+To: netdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Ilya Yanok <yanok@emcraft.com>
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Free the channel lock before calling __cpdma_chan_process to prevent
+dead lock.
+
+Signed-off-by: Ilya Yanok <yanok@emcraft.com>
 ---
- arch/arm/mach-omap2/vp.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/net/ethernet/ti/davinci_cpdma.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
-index 66bd700..5407173 100644
---- a/arch/arm/mach-omap2/vp.c
-+++ b/arch/arm/mach-omap2/vp.c
-@@ -41,6 +41,11 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
- 	u32 val, sys_clk_rate, timeout, waittime;
- 	u32 vddmin, vddmax, vstepmin, vstepmax;
+diff --git a/drivers/net/ethernet/ti/davinci_cpdma.c b/drivers/net/ethernet/ti/davinci_cpdma.c
+index dca9d33..c97d2f5 100644
+--- a/drivers/net/ethernet/ti/davinci_cpdma.c
++++ b/drivers/net/ethernet/ti/davinci_cpdma.c
+@@ -836,11 +836,13 @@ int cpdma_chan_stop(struct cpdma_chan *chan)
+ 	chan_write(chan, cp, CPDMA_TEARDOWN_VALUE);
  
-+	if (!voltdm->pmic) {
-+		pr_err("%s: No PMIC configured.\n", __func__, voltdm->name);
-+		return;
-+	}
-+
- 	if (!voltdm->read || !voltdm->write) {
- 		pr_err("%s: No read/write API for accessing vdd_%s regs\n",
- 			__func__, voltdm->name);
+ 	/* handle completed packets */
++	spin_unlock_irqrestore(&chan->lock, flags);
+ 	do {
+ 		ret = __cpdma_chan_process(chan);
+ 		if (ret < 0)
+ 			break;
+ 	} while ((ret & CPDMA_DESC_TD_COMPLETE) == 0);
++	spin_lock_irqsave(&chan->lock, flags);
+ 
+ 	/* remaining packets haven't been tx/rx'ed, clean them up */
+ 	while (chan->head) {
 -- 
-1.7.7.4
+1.7.6.4
 
