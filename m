@@ -1,123 +1,70 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH V2 1/2] mcx: very basic support for HTKW mcx board
-Date: Sun, 18 Dec 2011 15:21:51 +0200
-Message-ID: <4EEDE8EF.6030205@compulab.co.il>
-References: <1323910383-1184-1-git-send-email-yanok@emcraft.com> <1323910383-1184-2-git-send-email-yanok@emcraft.com> <4EE9C31B.7080206@compulab.co.il> <4EE9C957.30504@ti.com> <4EE9D1C3.2050903@compulab.co.il>
+From: Kukjin Kim <kgene.kim@samsung.com>
+Subject: Re: [PATCH v5 REPOST 1/5] ARM: l2x0/pl310: Refactor Kconfig to be
+ more maintainable
+Date: Mon, 19 Dec 2011 00:57:25 +0900
+Message-ID: <4EEE0D65.1050700@samsung.com>
+References: <1324053332-6431-1-git-send-email-dave.martin@linaro.org>
+ <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:52850
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751615Ab1LRNWI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 18 Dec 2011 08:22:08 -0500
-In-Reply-To: <4EE9D1C3.2050903@compulab.co.il>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Anton Vorontsov <cbouatmailru@gmail.com>, Will Deacon <will.deacon@arm.com>, Daniel Walker <dwalker@fifo99.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, =?ISO-8859-1?Q?Uwe_Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Brown <davidb@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, linux-arm-msm@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fabio Estevam <fabio.estevam@freescale.>
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Ilya Yanok <yanok@emcraft.com>, linux-omap@vger.kernel.org, sasha_d@emcraft.com, Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>
 
-Forgot to Cc devicetree-discuss - done now.
+On 12/17/11 01:35, Dave Martin wrote:
+> Making CACHE_L2X0 depend on (huge list of MACH_ and ARCH_ configs)
+> is bothersome to maintain and likely to lead to merge conflicts.
+>
+> This patch moves the knowledge of which platforms have a L2x0 or
+> PL310 cache controller to the individual machines.  To enable this,
+> a new MIGHT_HAVE_CACHE_L2X0 config option is introduced to allow
+> machines to indicate that they may have such a cache controller
+> independently of each other.
+>
+> Boards/SoCs which cannot reliably operate without the L2 cache
+> controller support will need to select CACHE_L2X0 directly from
+> their own Kconfigs instead.  This applies to some TrustZone-enabled
+> boards where Linux runs in the Normal World, for example.
+>
+> Signed-off-by: Dave Martin<dave.martin@linaro.org>
+> Acked-by: Anton Vorontsov<cbouatmailru@gmail.com>
+>          (for cns3xxx)
+> Acked-by: Tony Lindgren<tony@atomide.com>
+>          (for omap)
+> Acked-by: Shawn Guo<shawn.guo@linaro.org>
+>          (for imx)
 
-On 12/15/11 12:53, Igor Grinberg wrote:
-> On 12/15/11 12:17, Cousson, Benoit wrote:
->> Hi Igor,
->>
->> On 12/15/2011 10:51 AM, Igor Grinberg wrote:
->>> On 12/15/11 02:53, Ilya Yanok wrote:
->>>> Very basic support for HTKW mcx board. Able to boot via board-generic
->>>> and ramdisk/initramfs, however most of peripherals is unsupported.
->>>> Produces tons of twl4030 related errors as this board doesn't have
->>>> twl4030 installed.
->>>>
->>>> Signed-off-by: Ilya Yanok<yanok@emcraft.com>
->>>>
->>>> ---
->>>> Changes from V1:
->>>>
->>>>   - device tree moved to the separate patch
->>>>   - iva node is disabled instead of using custom includes
->>>>   - removed bootargs entry
->>>>
->>>>   arch/arm/boot/dts/mcx.dts |   27 +++++++++++++++++++++++++++
->>>>   1 files changed, 27 insertions(+), 0 deletions(-)
->>>>   create mode 100644 arch/arm/boot/dts/mcx.dts
->>>>
->>>> diff --git a/arch/arm/boot/dts/mcx.dts b/arch/arm/boot/dts/mcx.dts
->>>> new file mode 100644
->>>> index 0000000..66b81bd
->>>> --- /dev/null
->>>> +++ b/arch/arm/boot/dts/mcx.dts
->>>> @@ -0,0 +1,27 @@
->>>> +/*
->>>> + * Copyright (C) 2011 Ilya Yanok, EmCraft Systems
->>>> + *
->>>> + * This program is free software; you can redistribute it and/or modify
->>>> + * it under the terms of the GNU General Public License version 2 as
->>>> + * published by the Free Software Foundation.
->>>> + */
->>>> +/dts-v1/;
->>>> +
->>>> +/include/ "omap3.dtsi"
->>>> +
->>>> +/ {
->>>> +    model = "HTKW mcx";
->>>> +    compatible = "htkw,mcx", "ti,omap3";
->>>> +
->>>> +    memory {
->>>> +        device_type = "memory";
->>>> +        reg =<0x80000000 0x10000000>; /* 256 MB */
->>>> +    };
->>>> +
->>>> +    /* AM35xx doesn't have IVA */
->>>> +    soc {
->>>> +        iva {
->>>> +            status = "disabled";
->>>> +        };
->>>> +    };
->>>
->>> I don't get it...
->>> Why SoCs that do not have those IP blocks should poke
->>> their configuration inside the h/w description
->>> (e.g. disable/enable/workaround/hack)?
->>
->> This is indeed the proper way assuming the HW does contain this information. I do not know for this OMAP variant, but this kind of information is not necessarily well exposed inside the HW.
->>
->>> This way, why don't we also disable the PCIe which this SoC does not have?
->>> Of course, I'm exaggerating, but this just does not scale...
->>> Soon you will have a bunch of boards disabling stuff,
->>> that they *do not have natively*...
->>> Why don't generic OMAP3 DT file disable the EMAC?
->>> If we will go this way, we will find ourself fixing it later
->>> and producing the renaming/moving "churn", won't we?
->>
->> You are indeed exaggerating :-)
->>
->> Assuming that device is an OMAP3 variant, it seems OK to me to define it like that. am35xx = omap3 + (new IPs) - (IPs not supported)
-> 
-> I still haven't seen any real cons about my proposed solution:
-> Have include file for each IP, for example IP1/2/3/4...
-> omap3 = (include IPs supported: IP1, IP3, IP4)
-> am35x = (include IPs supported: IP1, IP2, IP4)
-> 
-> This way, we will be able to easily support any mixture of those whenever
-> TI releases new version of AM/DM3/4/5/6xxx - just include those you have.
-> 
-> Also, OMAP3 is not a variant of OMAP2, but has several same IPs inside
-> (or am I wrong?). Same probably will stand for OMAP4/5/6...
-> In my proposed way we can share those IPs without duplicating them.
-> 
->>
->> The good point with DT is that you can add or *remove* things from an included file.
-> 
-> Yes, but I don't think board DT file should do it...
-> It contradicts, the DT=="hardware description" statement.
-> 
-> I also think that it is good thing to try and find a common set of IPs,
-> but it can be done by including those and still stay scalable...
+for exynos:
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
+> ---
+>   arch/arm/Kconfig               |    8 ++++++++
+>   arch/arm/mach-exynos/Kconfig   |    1 +
+>   arch/arm/mach-omap2/Kconfig    |    1 +
+>   arch/arm/mach-realview/Kconfig |    5 +++++
+>   arch/arm/mach-vexpress/Kconfig |    1 +
+>   arch/arm/mm/Kconfig            |   23 ++++++++++++++++-------
+>   arch/arm/plat-mxc/Kconfig      |    1 +
+>   7 files changed, 33 insertions(+), 7 deletions(-)
 
--- 
-Regards,
-Igor.
+(snip)
+
+Thanks.
+
+Best regards,
+Kgene.
+--
+Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
+SW Solution Development Team, Samsung Electronics Co., Ltd.
