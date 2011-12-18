@@ -1,67 +1,67 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2] arm:omap: cleanup & split omap2/3/4_check_revision
- function
-Date: Sat, 17 Dec 2011 16:08:14 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A805FE52@DBDE01.ent.ti.com>
-References: <1324037006-31984-1-git-send-email-hvaibhav@ti.com>
- <20111217012730.GD6464@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] ARM: OMAP: fix erroneous mmc2 clock change on mmc3 setup
+Date: Sun, 18 Dec 2011 02:35:47 +0200
+Message-ID: <1324168547-26569-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39775 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751605Ab1LQQIU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Dec 2011 11:08:20 -0500
-In-Reply-To: <20111217012730.GD6464@atomide.com>
-Content-Language: en-US
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:35461 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751070Ab1LRAfx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Dec 2011 19:35:53 -0500
+Received: by eekc4 with SMTP id c4so4308943eek.19
+        for <linux-omap@vger.kernel.org>; Sat, 17 Dec 2011 16:35:51 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Saturday, December 17, 2011 6:58 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; Hilman, Kevin
-> Subject: Re: [PATCH-V2] arm:omap: cleanup & split omap2/3/4_check_revision
-> function
-> 
-> * Vaibhav Hiremath <hvaibhav@ti.com> [111216 03:32]:
-> > This patch doesn't change functionality or behavior of the code
-> > execution; it barely cleans up the code and splits into SoC
-> > specific implementation for Rev ID and feature detection.
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> > Changes from V1:
-> > 	- Incorporated suggessions from Tony to split the function
-> 
-> Thanks for working on this, the end result looks much better.
-> 
-> Can you please split it into two or more patches as this patch
-> is pretty much unreadable unfortunately?
-> 
-> Maybe add empty check_revision functions first or something
-> like that so the diff stays readable?
-> 
-> Also..
-> 
-> > +static void __init omap3_cpuinfo(const char *cpu_rev)
-> > +{
-> > +	const char *cpu_name;
-> 
-> ..the _cpuinfo functions can now be void as the cpu_rev
-> is already set globally?
-> 
-Thanks Tony,
+hsmmc23_before_set_reg() can set MMCSDIO2ADPCLKISEL bit, which
+enables internal clock for MMC2. Currently this function is also called
+by code handling MMC3, and if .internal_clock is set in platform data
+(by default it currently is), it will set MMCSDIO2ADPCLKISEL for MMC2
+instead of MMC3 (MMC3 doesn't have such bit so nothing actually needs to
+be done). This breaks 2nd SD slot on pandora.
 
-I will incorporate all the changes (split the patch) and submit the patch series now.
+Fix this by changing hsmmc23_before_set_reg() to only handle MMC2.
+Note that this removes .remux() call for MMC3, but no board currently
+needs it and it's also not called for MMC4 and MMC5.
 
-Thanks,
-Vaibhav
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+applies both on mainline and hsmmc branch.
 
-> Regards,
-> 
-> Tony
+ arch/arm/mach-omap2/hsmmc.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+index f4a1020..d90ac08 100644
+--- a/arch/arm/mach-omap2/hsmmc.c
++++ b/arch/arm/mach-omap2/hsmmc.c
+@@ -171,7 +171,7 @@ static void omap4_hsmmc1_after_set_reg(struct device *dev, int slot,
+ 	}
+ }
+ 
+-static void hsmmc23_before_set_reg(struct device *dev, int slot,
++static void hsmmc2_before_set_reg(struct device *dev, int slot,
+ 				   int power_on, int vdd)
+ {
+ 	struct omap_mmc_platform_data *mmc = dev->platform_data;
+@@ -378,14 +378,13 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+ 			c->caps &= ~MMC_CAP_8_BIT_DATA;
+ 			c->caps |= MMC_CAP_4_BIT_DATA;
+ 		}
+-		/* FALLTHROUGH */
+-	case 3:
+ 		if (mmc->slots[0].features & HSMMC_HAS_PBIAS) {
+ 			/* off-chip level shifting, or none */
+-			mmc->slots[0].before_set_reg = hsmmc23_before_set_reg;
++			mmc->slots[0].before_set_reg = hsmmc2_before_set_reg;
+ 			mmc->slots[0].after_set_reg = NULL;
+ 		}
+ 		break;
++	case 3:
+ 	case 4:
+ 	case 5:
+ 		mmc->slots[0].before_set_reg = NULL;
+-- 
+1.7.0.4
+
