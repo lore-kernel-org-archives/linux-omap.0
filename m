@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 4/9] usb: renesas: gadget: use generic map/unmap routines
-Date: Mon, 19 Dec 2011 12:30:26 +0200
-Message-ID: <1324290632-23758-5-git-send-email-balbi@ti.com>
+Subject: [PATCH 3/9] usb: gadget: langwell: use generic map/unmap functions
+Date: Mon, 19 Dec 2011 12:30:25 +0200
+Message-ID: <1324290632-23758-4-git-send-email-balbi@ti.com>
 References: <1324290632-23758-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1324290632-23758-1-git-send-email-balbi@ti.com>
@@ -15,89 +15,78 @@ USB requests and it's better to use them.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/renesas_usbhs/mod_gadget.c |   60 ++++----------------------------
- 1 files changed, 7 insertions(+), 53 deletions(-)
+ drivers/usb/gadget/langwell_udc.c |   45 +++++-------------------------------
+ 1 files changed, 7 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
-index 528691d5f..cb92a1d 100644
---- a/drivers/usb/renesas_usbhs/mod_gadget.c
-+++ b/drivers/usb/renesas_usbhs/mod_gadget.c
-@@ -165,69 +165,23 @@ static void usbhsg_queue_push(struct usbhsg_uep *uep,
- /*
-  *		dma map/unmap
-  */
--static int usbhsg_dma_map(struct device *dev,
--			  struct usbhs_pkt *pkt,
--			  enum dma_data_direction dir)
--{
--	struct usbhsg_request *ureq = usbhsg_pkt_to_ureq(pkt);
--	struct usb_request *req = &ureq->req;
+diff --git a/drivers/usb/gadget/langwell_udc.c b/drivers/usb/gadget/langwell_udc.c
+index fa0fcc1..fe7fbe3 100644
+--- a/drivers/usb/gadget/langwell_udc.c
++++ b/drivers/usb/gadget/langwell_udc.c
+@@ -406,16 +406,7 @@ static void done(struct langwell_ep *ep, struct langwell_request *req,
+ 		dma_pool_free(dev->dtd_pool, curr_dtd, curr_dtd->dtd_dma);
+ 	}
+ 
+-	if (req->mapped) {
+-		dma_unmap_single(&dev->pdev->dev,
+-			req->req.dma, req->req.length,
+-			is_in(ep) ? PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
+-		req->req.dma = DMA_ADDR_INVALID;
+-		req->mapped = 0;
+-	} else
+-		dma_sync_single_for_cpu(&dev->pdev->dev, req->req.dma,
+-				req->req.length,
+-				is_in(ep) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++	usb_gadget_unmap_request(&dev->gadget, &req->req, is_in(ep));
+ 
+ 	if (status != -ESHUTDOWN)
+ 		dev_dbg(&dev->pdev->dev,
+@@ -754,7 +745,8 @@ static int langwell_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
+ 	struct langwell_ep	*ep;
+ 	struct langwell_udc	*dev;
+ 	unsigned long		flags;
+-	int			is_iso = 0, zlflag = 0;
++	int			is_iso = 0;
++	int			ret;
+ 
+ 	/* always require a cpu-view buffer */
+ 	req = container_of(_req, struct langwell_request, req);
+@@ -781,33 +773,10 @@ static int langwell_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
+ 	if (unlikely(!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN))
+ 		return -ESHUTDOWN;
+ 
+-	/* set up dma mapping in case the caller didn't */
+-	if (_req->dma == DMA_ADDR_INVALID) {
+-		/* WORKAROUND: WARN_ON(size == 0) */
+-		if (_req->length == 0) {
+-			dev_vdbg(&dev->pdev->dev, "req->length: 0->1\n");
+-			zlflag = 1;
+-			_req->length++;
+-		}
 -
--	if (pkt->dma != DMA_ADDR_INVALID) {
--		dev_err(dev, "dma is already mapped\n");
--		return -EIO;
--	}
+-		_req->dma = dma_map_single(&dev->pdev->dev,
+-				_req->buf, _req->length,
+-				is_in(ep) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-		if (zlflag && (_req->length == 1)) {
+-			dev_vdbg(&dev->pdev->dev, "req->length: 1->0\n");
+-			zlflag = 0;
+-			_req->length = 0;
+-		}
 -
--	if (req->dma == DMA_ADDR_INVALID) {
--		pkt->dma = dma_map_single(dev, pkt->buf, pkt->length, dir);
+-		req->mapped = 1;
+-		dev_vdbg(&dev->pdev->dev, "req->mapped = 1\n");
 -	} else {
--		dma_sync_single_for_device(dev, req->dma, req->length, dir);
--		pkt->dma = req->dma;
+-		dma_sync_single_for_device(&dev->pdev->dev,
+-				_req->dma, _req->length,
+-				is_in(ep) ?  DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-		req->mapped = 0;
+-		dev_vdbg(&dev->pdev->dev, "req->mapped = 0\n");
 -	}
--
--	if (dma_mapping_error(dev, pkt->dma)) {
--		dev_err(dev, "dma mapping error %llx\n", (u64)pkt->dma);
--		return -EIO;
--	}
--
--	return 0;
--}
--
--static int usbhsg_dma_unmap(struct device *dev,
--			    struct usbhs_pkt *pkt,
--			    enum dma_data_direction dir)
-+static int usbhsg_dma_map_ctrl(struct usbhs_pkt *pkt, int map)
- {
- 	struct usbhsg_request *ureq = usbhsg_pkt_to_ureq(pkt);
- 	struct usb_request *req = &ureq->req;
--
--	if (pkt->dma == DMA_ADDR_INVALID) {
--		dev_err(dev, "dma is not mapped\n");
--		return -EIO;
--	}
--
--	if (req->dma == DMA_ADDR_INVALID)
--		dma_unmap_single(dev, pkt->dma, pkt->length, dir);
--	else
--		dma_sync_single_for_cpu(dev, req->dma, req->length, dir);
--
--	pkt->dma = DMA_ADDR_INVALID;
--
--	return 0;
--}
--
--static int usbhsg_dma_map_ctrl(struct usbhs_pkt *pkt, int map)
--{
- 	struct usbhs_pipe *pipe = pkt->pipe;
- 	struct usbhsg_uep *uep = usbhsg_pipe_to_uep(pipe);
- 	struct usbhsg_gpriv *gpriv = usbhsg_uep_to_gpriv(uep);
--	struct device *dev = usbhsg_gpriv_to_dev(gpriv);
- 	enum dma_data_direction dir;
++	/* set up dma mapping */
++	ret = usb_gadget_map_request(&dev->gadget, &req->req, is_in(ep));
++	if (ret)
++		return ret;
  
- 	dir = usbhs_pipe_is_dir_in(pipe) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
- 
--	if (map)
--		return usbhsg_dma_map(dev, pkt, dir);
--	else
--		return usbhsg_dma_unmap(dev, pkt, dir);
-+	if (map) {
-+		return usb_gadget_map_request(&gpriv->gadget, req, dir);
-+	} else {
-+		usb_gadget_unmap_request(&gpriv->gadget, req, dir);
-+		return 0;
-+	}
- }
- 
- /*
+ 	dev_dbg(&dev->pdev->dev,
+ 			"%s queue req %p, len %u, buf %p, dma 0x%08x\n",
 -- 
 1.7.8.rc3
