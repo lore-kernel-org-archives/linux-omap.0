@@ -1,44 +1,37 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
- space
-Date: Mon, 19 Dec 2011 14:51:50 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112191451140.12660@utopia.booyaka.com>
-References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com> <4EEB5913.3090901@ti.com>
+Subject: [GIT PULL] ARM: OMAP3/4: miscellaneous hwmod data updates
+Date: Mon, 19 Dec 2011 14:57:19 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112191456030.12660@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51606 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:53301 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325Ab1LSVvv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 16:51:51 -0500
-In-Reply-To: <4EEB5913.3090901@ti.com>
+	with ESMTP id S1751610Ab1LSV5U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 16:57:20 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi
+Hi Tony
 
-On Fri, 16 Dec 2011, Cousson, Benoit wrote:
+The following changes since commit dc47ce90c3a822cd7c9e9339fe4d5f61dcb26b50:
 
-> On 12/16/2011 7:28 AM, Paul Walmsley wrote:
-> > On Mon, 28 Nov 2011, Peter Ujfalusi wrote:
-> > 
-> > > To be able to get the memory resources by name from
-> > > the DMIC driver (for MPU and for DMA).
-> > 
-> > Any comments on this one?  Looks like we'd need to add these names as
-> > hints in the script.
-> 
-> Maybe not, in theory we should be able to detect the dual mapping and add the
-> proper name. I did that for some other IP in the ABE domain, so it should be
-> doable for that one too.
-> 
-> > > Signed-off-by: Peter Ujfalusi<peter.ujfalusi@ti.com>
-> 
-> Acked-by: Benoit Cousson <b-cousson@ti.com>
+  Linux 3.2-rc5 (2011-12-09 15:09:32 -0800)
 
-Cool.  Queued for when Tony wants to pull it.
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 hwmod_data_b_devel_3.3
 
+Ming Lei (1):
+      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
 
-- Paul
+Peter Ujfalusi (1):
+      ARM: OMAP4: hwmod data: Add names for DMIC memory address space
+
+Shubhrajyoti D (1):
+      ARM: OMAP3+: hwmod data: Add the default clockactivity for I2C
+
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    7 +-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   96 ++++++++++++++++++++++++++-
+ 2 files changed, 96 insertions(+), 7 deletions(-)
