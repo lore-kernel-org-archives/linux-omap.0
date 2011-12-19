@@ -1,83 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap prcm changes for v3.3 merge window
-Date: Mon, 19 Dec 2011 12:00:46 -0800
-Message-ID: <20111219200046.GS6464@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54168 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544Ab1LSUAu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 15:00:50 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] usb: musb: fix pm_runtime mismatch
+Date: Mon, 19 Dec 2011 22:01:54 +0200
+Message-ID: <1324324914-14584-1-git-send-email-felipe.contreras@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Arnd & Olof,
+From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Please pull omap prcm changes from:
+In musb_init_controller() there's a pm_runtime_put(), but there's no
+pm_runtime_get(), which creates a mismatch that causes the driver to
+sleep when it shouldn't.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap prcm
+This was introduced in 7acc619[1], but it wasn't triggered in my setup
+until 18a2689[2] was merged to Linus' branch at point df0914[3]. IOW;
+when PM is working as it was supposed to.
 
-These changes adds support for PRCM (Power, Reset, Clock, Module)
-chained interrupt handling. This will eventually allow us to start
-making PM parts into driver modules and move them out of arch/arm.
+However, it seems most of the time this is used in a way that keeps the
+counter above 0, so nobody noticed. Also, it seems to depend on the
+configuration used in versions before 3.1, but not later (or in it).
 
-These are also needed for the serial port runtime PM patches that
-I'll post a pull request for after this.
+I found the problem by loading isp1704_charger before any usb gadgets:
+http://article.gmane.org/gmane.linux.kernel/1226122
 
-Note that these have a slight dependency to the previously merged
-omap4 branch so it would produce a minor merge conflict if based
-on something earlier. However, the following uart branch has a
-dependency to both omap4 branch and this branch, so I've based
-this on omap4 branch also.
+All versions after 2.6.39 are affected.
 
-Regards,
+[1] usb: musb: Idle path retention and offmode support for OMAP3
+[2] OMAP2+: musb: hwmod adaptation for musb registration
+[3] Merge branch 'omap-for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6
 
-Tony
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/usb/musb/musb_core.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-
-The following changes since commit 4c89aad9f4803875f7065e825badc9ba61922091:
-  Tony Lindgren (1):
-        Merge branch 'for_3.3/pm/omap4-mpuss' of git://git.kernel.org/.../khilman/linux-omap-pm into omap4
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap prcm
-
-Govindraj R (1):
-      ARM: OMAP2+: hwmod: Add API to enable IO ring wakeup
-
-Paul Walmsley (2):
-      ARM: OMAP2+: mux: add wakeup-capable hwmod mux entries to dynamic list
-      ARM: OMAP3/4: PRM: add functions to read pending IRQs, PRM barrier
-
-Rajendra Nayak (1):
-      ARM: OMAP2+: hwmod: Add a new flag to handle hwmods left enabled at init
-
-Tero Kristo (6):
-      ARM: OMAP: PRCM: add support for chain interrupt handler
-      ARM: OMAP: PRCM: add suspend prepare / finish support
-      ARM: OMAP2+: mux: add support for PAD wakeup interrupts
-      ARM: OMAP: hwmod: add support for selecting mpu_irq for each wakeup pad
-      ARM: OMAP3: pm: use prcm chain handler
-      ARM: OMAP4: PRM: use PRCM interrupt handler
-
-Tony Lindgren (1):
-      Merge branch 'tk_prm_chain_handler_devel_3.3' of git://git.pwsan.com/linux-2.6 into prcm
-
- arch/arm/mach-omap2/Makefile                 |    3 +-
- arch/arm/mach-omap2/mux.c                    |   89 +++++++-
- arch/arm/mach-omap2/omap_hwmod.c             |  125 ++++++++++-
- arch/arm/mach-omap2/pm34xx.c                 |  115 ++++------
- arch/arm/mach-omap2/prcm-common.h            |   75 ++++++-
- arch/arm/mach-omap2/prm2xxx_3xxx.c           |   97 ++++++++-
- arch/arm/mach-omap2/prm2xxx_3xxx.h           |    9 +-
- arch/arm/mach-omap2/prm44xx.c                |  116 ++++++++++
- arch/arm/mach-omap2/prm44xx.h                |    8 +-
- arch/arm/mach-omap2/prm_common.c             |  320 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +
- 11 files changed, 884 insertions(+), 79 deletions(-)
- create mode 100644 arch/arm/mach-omap2/prm_common.c
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index b63ab15..920f04e 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2012,8 +2012,6 @@ musb_init_controller(struct device *dev, int nIrq, void __iomem *ctrl)
+ 	if (status < 0)
+ 		goto fail3;
+ 
+-	pm_runtime_put(musb->controller);
