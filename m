@@ -1,93 +1,54 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 04/10] include: platform_data: Platform data header for
- OMAP4 ASoC audio
-Date: Mon, 19 Dec 2011 16:04:53 +0200
-Message-ID: <4EEF4485.8050809@ti.com>
-References: <1323856022-24053-1-git-send-email-peter.ujfalusi@ti.com> <1323856022-24053-5-git-send-email-peter.ujfalusi@ti.com> <20111214095745.GD3072@opensource.wolfsonmicro.com> <3652535.KtFJC1aH5Z@barack> <20111217093645.GH2833@opensource.wolfsonmicro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Aneesh V <aneesh@ti.com>
+Subject: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF and DDR
+Date: Mon, 19 Dec 2011 19:35:30 +0530
+Message-ID: <1324303533-17458-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:47320 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750880Ab1LSOE6 (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:54409 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750880Ab1LSOFm (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 09:04:58 -0500
-Received: by mail-lpp01m010-f46.google.com with SMTP id p5so2170352lag.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 06:04:56 -0800 (PST)
-In-Reply-To: <20111217093645.GH2833@opensource.wolfsonmicro.com>
+	Mon, 19 Dec 2011 09:05:42 -0500
+Received: by mail-yw0-f52.google.com with SMTP id n12so5066464yhn.39
+        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 06:05:41 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>
 
-Hi Mark, Tony,
+This is an RFC to add new device tree bindings for DDR memories and
+EMIF - TI's DDR SDRAM controller. 
 
-On 12/17/2011 11:36 AM, Mark Brown wrote:
->> Yes this is planed for the Dtree support, but the aim here is to get=
- working=20
->> audio on PandaBoard as well with upstream kernel.
->=20
-> Just do it right to start off with, the device tree bindings should
-> normally map closely onto the platform data where platform data exist=
-s
-> already and you're going to have to have the code structured by featu=
-re
-> anyway.
+The first patch adds bindings for DDR memories. Currently,
+we have added properties for only DDR3 and LPDDR2 memories.
+However, the binding can be easily extended to describe
+other types such as DDR2 in the future.
 
-I do not want to 'bloat' the board files under mach-omap2 for sdp4430,
-Panda with string arrays to pass the DAPM routing from there to the ASo=
-C
-machine driver to construct the board specific routing.
-All of this sort of thing will go away with DT in the future (including
-the platform_data).
+The second patch provides the bindings for the EMIF controller.
 
-I planed to do this similar way as it is done for the tegra_wm8903.c
-machine driver:
-- without DT blob we support only sdp4430, Panda boards
-- with DT we will have similar mapping as tegra is planning to have.
+The final patch provides DT data for EMIF controller instances
+in OMAP4 and LPDDR2 memories attached to them on various boards.
 
-If Tony is fine to add text array constructed under mach-omap2 which
-describes the ASoC DAPM mapping, I can do it, but AFAIK we should
-minimize the code size in that part of the kernel.
+Thanks to Rajendra for answering my numerous queries on device tree.
 
-To pass the routing from the board files I need to modify the platform_=
-data:
+This is a re-post of the RFC that was posted to devicetree-discuss ml,
+now sent to a larger audience and looping out an internal list.
+Please ignore the previous version.
 
-struct omap-abe-twl6040-connection {
-	const char *sink;
-	const char *source;
-};
+Aneesh V (3):
+  dt: device tree bindings for DDR memories
+  dt: device tree bindings for TI's EMIF sdram controller
+  arm/dts: EMIF and lpddr2 device tree data for OMAP4 boards
 
-struct omap_abe_twl6040_data {
-	char *card_name;
-	enum board_type board;
-	struct omap-abe-twl6040-connection *route;
-	int num_of_routes;
-};
+ Documentation/devicetree/bindings/ddr/ddr.txt      |  114 ++++++++++++++++++++
+ .../devicetree/bindings/ddr/ddr_timings.txt        |   62 +++++++++++
+ .../bindings/memory-controllers/ti/emif.txt        |   64 +++++++++++
+ arch/arm/boot/dts/omap-common-devices.dtsi         |   63 +++++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   13 +++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   13 +++
+ arch/arm/boot/dts/omap4.dtsi                       |   19 ++++
+ 7 files changed, 348 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/ddr/ddr.txt
+ create mode 100644 Documentation/devicetree/bindings/ddr/ddr_timings.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ create mode 100644 arch/arm/boot/dts/omap-common-devices.dtsi
 
-In board files:
-struct omap-abe-twl6040-connection sdp4430_asoc_route[] =3D {
-	{"MAINMIC", "Main Mic Bias"},
-	{"SUBMIC", "Main Mic Bias"},
-	{"Main Mic Bias", "Ext Mic"},
-	...
-	16 string pair.
-}
-
-If this is acceptable by Tony, I can do this.
-
-To describe the routing via feature flags is not really practical due t=
-o
-the possible variation I can think of.
-
-Tony: what do you think? Is this something that is allowed to do under
-plat-omap2?
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
