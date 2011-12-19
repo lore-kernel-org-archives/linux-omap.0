@@ -1,49 +1,30 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH v2 4/4] musb: omap2430: avoid pm_runtime_disable()
-Date: Mon, 19 Dec 2011 22:17:51 +0200
-Message-ID: <1324325871-15137-5-git-send-email-felipe.contreras@nokia.com>
-References: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:23471 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751610Ab1LSUTy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 15:19:54 -0500
-In-Reply-To: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>
-
 From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
+Date: Mon, 19 Dec 2011 22:20:09 +0200
+Message-ID: <CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
+References: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
+	<1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
+	<20111219081137.GF3146@legolas.emea.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111219081137.GF3146@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-These are handled by drivers core, and in a way that doesn't wake up the
-devices.
+On Mon, Dec 19, 2011 at 10:11 AM, Felipe Balbi <balbi@ti.com> wrote:
+> On Fri, Dec 16, 2011 at 01:05:08AM +0200, Felipe Contreras wrote:
+>> Properly call pm_runtime_put() afer pm_runttime_get() on errors.
+>>
+>> Untested.
+>
+> sorry, but I'm not applying untested patches. I need someone to give a
+> Tested-by.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- drivers/usb/musb/omap2430.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+I'm pretty sure most people don't test the exit paths, but fine, don't
+apply them. Who needs power management anyway.
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 521d806..66c1b8d 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -328,7 +328,6 @@ static int omap2430_musb_init(struct musb *musb)
- 	return 0;
- 
- err1:
--	pm_runtime_disable(dev);
- 	return status;
- }
- 
-@@ -472,7 +471,6 @@ static int __exit omap2430_remove(struct platform_device *pdev)
- 	platform_device_del(glue->musb);
- 	platform_device_put(glue->musb);
- 	pm_runtime_put(&pdev->dev);
--	pm_runtime_disable(&pdev->dev);
- 	kfree(glue);
- 
- 	return 0;
 -- 
-1.7.8
-
+Felipe Contreras
