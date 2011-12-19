@@ -1,177 +1,68 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH v2 1/7][RESEND] ARM: OMAP1: ams-delta: register latch dependent devices later
-Date: Tue, 20 Dec 2011 00:28:32 +0100
-Message-ID: <201112200028.32947.jkrzyszt@tis.icnet.pl>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl> <83e934adfc691b347534edb7788a67ab2e6bd7e1.1324331816.git.jkrzyszt@tis.icnet.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF
+ and DDR
+Date: Mon, 19 Dec 2011 15:35:59 -0800
+Message-ID: <20111219233559.GW6464@atomide.com>
+References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+ <4EEFC23A.30201@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <83e934adfc691b347534edb7788a67ab2e6bd7e1.1324331816.git.jkrzyszt@tis.icnet.pl>
-Sender: linux-input-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46198 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752453Ab1LSXgF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 18:36:05 -0500
+Content-Disposition: inline
+In-Reply-To: <4EEFC23A.30201@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: Aneesh V <aneesh@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Resending because of a typo in the Cc: list, sorry.
+* Rob Herring <robherring2@gmail.com> [111219 14:29]:
+> On 12/19/2011 08:05 AM, Aneesh V wrote:
+> > This is an RFC to add new device tree bindings for DDR memories and
+> > EMIF - TI's DDR SDRAM controller. 
+> > 
+> > The first patch adds bindings for DDR memories. Currently,
+> > we have added properties for only DDR3 and LPDDR2 memories.
+> > However, the binding can be easily extended to describe
+> > other types such as DDR2 in the future.
+> > 
+> > The second patch provides the bindings for the EMIF controller.
+> > 
+> > The final patch provides DT data for EMIF controller instances
+> > in OMAP4 and LPDDR2 memories attached to them on various boards.
+> > 
+> > Thanks to Rajendra for answering my numerous queries on device tree.
+> > 
+> > This is a re-post of the RFC that was posted to devicetree-discuss ml,
+> > now sent to a larger audience and looping out an internal list.
+> > Please ignore the previous version.
+> 
+> There's already a standard way (i.e. JEDEC standard) to define DDR chip
+> configuration that's called SPD. Why invent something new? While this is
+> normally an i2c eeprom on a DIMM, there's no reason you couldn't get it
+> from somewhere else including perhaps the DT. There's already code in
+> u-boot that can parse SPD data.
 
-8<--------------------------
-
-In preparation to converting Amstrad Delta on-board latches to
-basic_mmio_gpio devices, registration of platform devices which depend
-on latches and will require initialization of their GPIO pins first,
-should be moved out of .machine_init down to late_initcall level, as the
-gpio-generic driver is not available until device_initcall time.  The
-latch reset operation, which will be replaced with GPIO initialization,
-must also be moved to late_initcall for the same reason.
-
-Since there was already another, separate arch_initcall function for
-setting up one of those latch dependent devices, the on-board modem
-device, reuse that function, i.e., rename it to a name that matches the
-new purpose, extend with other device setup relocated from
-.machine_init, and move down to the late_initcall level.
-
-While being at it, add missing gpio_free() in case the modem platform
-device registration fails.
-
-In addition, defer registration of the Amstrad Delta ASoC and serio
-devices, done from their device driver files, until late_initcall time,
-as those drivers will depend on their GPIO pins already requested from
-the board late_init() function until updated to register their GPIO pins
-themselves.
-
-Thanks to Tony Lindgren <tony@atomide.com> who suggested this approach
-instead of shifting up the gpio-generic driver initialization.
-
-Created and tested against linux-3.2-rc6.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-This patch was not present in the initial submission, it replaces the
-old patch 1/10, providing an alternative solution not touching the
-gpio-generic driver.
-
-Thanks,
-Janusz
-
-
- arch/arm/mach-omap1/board-ams-delta.c |   28 ++++++++++++++++++++--------
- drivers/input/serio/ams_delta_serio.c |    4 ++++
- sound/soc/omap/ams-delta.c            |    4 ++++
- 3 files changed, 28 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index b0f15d2..50987c9 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -275,11 +275,14 @@ static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
- };
+I agree generic JEDEC standard would be good for the DT.
  
- static struct platform_device *ams_delta_devices[] __initdata = {
--	&ams_delta_nand_device,
- 	&ams_delta_kp_device,
-+	&ams_delta_camera_device,
-+};
-+
-+static struct platform_device *late_devices[] __initdata = {
-+	&ams_delta_nand_device,
- 	&ams_delta_lcd_device,
- 	&ams_delta_led_device,
--	&ams_delta_camera_device,
- };
- 
- static void __init ams_delta_init(void)
-@@ -307,9 +310,6 @@ static void __init ams_delta_init(void)
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
--	/* Clear latch2 (NAND, LCD, modem enable) */
--	ams_delta_latch2_write(~0, 0);
--
- 	omap1_usb_init(&ams_delta_usb_config);
- 	omap1_set_camera_info(&ams_delta_camera_platform_data);
- #ifdef CONFIG_LEDS_TRIGGERS
-@@ -345,13 +345,18 @@ static struct platform_device ams_delta_modem_device = {
- 	},
- };
- 
--static int __init ams_delta_modem_init(void)
-+static int __init late_init(void)
- {
- 	int err;
- 
- 	if (!machine_is_ams_delta())
- 		return -ENODEV;
- 
-+	/* Clear latch2 (NAND, LCD, modem enable) */
-+	ams_delta_latch2_write(~0, 0);
-+
-+	platform_add_devices(late_devices, ARRAY_SIZE(late_devices));
-+
- 	omap_cfg_reg(M14_1510_GPIO2);
- 	ams_delta_modem_ports[0].irq =
- 			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
-@@ -367,9 +372,16 @@ static int __init ams_delta_modem_init(void)
- 		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
- 		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
- 
--	return platform_device_register(&ams_delta_modem_device);
-+	err = platform_device_register(&ams_delta_modem_device);
-+	if (err)
-+		goto gpio_free;
-+	return 0;
-+
-+gpio_free:
-+	gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
-+	return err;
- }
--arch_initcall(ams_delta_modem_init);
-+late_initcall(late_init);
- 
- static void __init ams_delta_map_io(void)
- {
-diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-index d4d08bd..56ffd7c 100644
---- a/drivers/input/serio/ams_delta_serio.c
-+++ b/drivers/input/serio/ams_delta_serio.c
-@@ -165,6 +165,9 @@ serio:
- 	kfree(ams_delta_serio);
- 	return err;
- }
-+#ifndef MODULE
-+late_initcall(ams_delta_serio_init);
-+#else
- module_init(ams_delta_serio_init);
- 
- static void __exit ams_delta_serio_exit(void)
-@@ -175,3 +178,4 @@ static void __exit ams_delta_serio_exit(void)
- 	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
- }
- module_exit(ams_delta_serio_exit);
-+#endif
-diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
-index ccb8a6a..1764a3b 100644
---- a/sound/soc/omap/ams-delta.c
-+++ b/sound/soc/omap/ams-delta.c
-@@ -636,6 +636,9 @@ err:
- 	platform_device_put(ams_delta_audio_platform_device);
- 	return ret;
- }
-+#ifndef MODULE
-+late_initcall(ams_delta_module_init);
-+#else
- module_init(ams_delta_module_init);
- 
- static void __exit ams_delta_module_exit(void)
-@@ -657,6 +660,7 @@ static void __exit ams_delta_module_exit(void)
- 	platform_device_unregister(ams_delta_audio_platform_device);
- }
- module_exit(ams_delta_module_exit);
-+#endif
- 
- MODULE_AUTHOR("Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>");
- MODULE_DESCRIPTION("ALSA SoC driver for Amstrad E3 (Delta) videophone");
--- 
-1.7.3.4
+> In general, is it really feasible to parse the DTB before DDR is
+> initialized?
 
+Changing timings is still needed for DVFS during runtime.
+
+But we can boot to userspace with bootloader set timings, so I'm
+thinking that maybe these timings should be just set by loadable
+modules. Just the configuration of which timings to select should
+be passed via DT. Something in compatible like:
+
+	.compatible = "ti,omap3630", "sdram-micron-mt46h32m32lf-6";
+
+And that should allow the SDRC driver to only accept timings for
+"sdram-micron-mt46h32m32lf-6".
+
+Regards,
+
+Tony
