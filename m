@@ -1,47 +1,117 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 0/9] Add a generic request map/unmap routine
-Date: Mon, 19 Dec 2011 12:30:22 +0200
-Message-ID: <1324290632-23758-1-git-send-email-balbi@ti.com>
+Subject: [PATCH 1/9] usb: gadget: add generic map/unmap request utilities
+Date: Mon, 19 Dec 2011 12:30:23 +0200
+Message-ID: <1324290632-23758-2-git-send-email-balbi@ti.com>
+References: <1324290632-23758-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1324290632-23758-1-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Linux USB Mailing List <linux-usb@vger.kernel.org>
 Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi all,
+such utilities are currently duplicated on all UDC
+drivers basically with the same structure. Let's group
+all implementations into one generic implementation
+and get rid of that duplication.
 
-here's a more complete map/unmap rework patchset.
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/usb/gadget/udc-core.c |   53 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/gadget.h    |   10 +++++++
+ 2 files changed, 63 insertions(+), 0 deletions(-)
 
-Please give it a try and reply with your Tested-by ASAP.
-
-These patches were written on top of the Scatter/Gather
-support patchset, so if you want to try it out, you might
-need those first, as an alternative, you can drop patch 2
-of this series if you're not testing against dwc3 and it
-should apply fine on top of greg/usb-next
-
-Felipe Balbi (9):
-  usb: gadget: add generic map/unmap request utilities
-  usb: dwc3: gadget: use generic map/unmap routines
-  usb: gadget: langwell: use generic map/unmap functions
-  usb: renesas: gadget: use generic map/unmap routines
-  usb: gadget: amd5536: use generic map/unmap routines
-  usb: gadget: r8a66597: use generic map/unmap routines
-  usb: gadget: net2272: use generic map/umap routines
-  usb: gadget: net2280: use generic map/unmap routines
-  usb: gadget: goku: use generic map/unmap routines
-
- drivers/usb/dwc3/gadget.c              |   80 +++++---------------------------
- drivers/usb/gadget/amd5536udc.c        |   32 ++-----------
- drivers/usb/gadget/goku_udc.c          |   17 +++----
- drivers/usb/gadget/langwell_udc.c      |   45 +++---------------
- drivers/usb/gadget/net2272.c           |   18 +++----
- drivers/usb/gadget/net2280.c           |   19 ++++----
- drivers/usb/gadget/r8a66597-udc.c      |   10 +---
- drivers/usb/gadget/udc-core.c          |   53 +++++++++++++++++++++
- drivers/usb/renesas_usbhs/mod_gadget.c |   60 +++---------------------
- include/linux/usb/gadget.h             |   10 ++++
- 10 files changed, 120 insertions(+), 224 deletions(-)
-
+diff --git a/drivers/usb/gadget/udc-core.c b/drivers/usb/gadget/udc-core.c
+index 0b0d12c..2031c11 100644
+--- a/drivers/usb/gadget/udc-core.c
++++ b/drivers/usb/gadget/udc-core.c
+@@ -22,6 +22,7 @@
+ #include <linux/device.h>
+ #include <linux/list.h>
+ #include <linux/err.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/gadget.h>
+@@ -49,6 +50,58 @@ static DEFINE_MUTEX(udc_lock);
+ 
+ /* ------------------------------------------------------------------------- */
+ 
++int usb_gadget_map_request(struct usb_gadget *gadget,
++		struct usb_request *req, int direction)
++{
++	if (req->length == 0)
++		return 0;
++
++	if (req->num_sgs) {
++		int     mapped;
++
++		mapped = dma_map_sg(&gadget->dev, req->sg, req->num_sgs,
++				direction ? DMA_TO_DEVICE
++				: DMA_FROM_DEVICE);
++		if (mapped == 0) {
++			dev_err(&gadget->dev, "failed to map SGs\n");
++			return -EFAULT;
++		}
++
++		req->num_mapped_sgs = mapped;
++	} else {
++		req->dma = dma_map_single(&gadget->dev, req->buf, req->length,
++				direction ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++
++		if (dma_mapping_error(&gadget->dev, req->dma)) {
++			dev_err(&gadget->dev, "failed to map buffer\n");
++			return -EFAULT;
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(usb_gadget_map_request);
++
++void usb_gadget_unmap_request(struct usb_gadget *gadget,
++		struct usb_request *req, int direction)
++{
++	if (req->length == 0)
++		return;
++
++	if (req->num_mapped_sgs) {
++		dma_unmap_sg(&gadget->dev, req->sg, req->num_sgs,
++				direction ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++
++		req->num_mapped_sgs = 0;
++	} else {
++		dma_unmap_single(&gadget->dev, req->dma, req->length,
++				direction ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++	}
++}
++EXPORT_SYMBOL_GPL(usb_gadget_unmap_request);
++
++/* ------------------------------------------------------------------------- */
++
+ /**
+  * usb_gadget_start - tells usb device controller to start up
+  * @gadget: The gadget we want to get started
+diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
+index 911d4c7..9f84fdf 100644
+--- a/include/linux/usb/gadget.h
++++ b/include/linux/usb/gadget.h
+@@ -950,6 +950,16 @@ static inline void usb_free_descriptors(struct usb_descriptor_header **v)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++/* utility to simplify map/unmap of usb_requests to/from DMA */
++
++extern int usb_gadget_map_request(struct usb_gadget *gadget,
++		struct usb_request *req, int direction);
++
++extern void usb_gadget_unmap_request(struct usb_gadget *gadget,
++		struct usb_request *req, int direction);
++
++/*-------------------------------------------------------------------------*/
++
+ /* utility wrapping a simple endpoint selection policy */
+ 
+ extern struct usb_ep *usb_ep_autoconfig(struct usb_gadget *,
 -- 
 1.7.8.rc3
