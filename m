@@ -1,192 +1,102 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: [RFC v2 PATCH 3/3] arm/dts: EMIF and lpddr2 device tree data for OMAP4 boards
-Date: Mon, 19 Dec 2011 19:35:33 +0530
-Message-ID: <1324303533-17458-4-git-send-email-aneesh@ti.com>
-References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/9] usb: gadget: add generic map/unmap request utilities
+Date: Mon, 19 Dec 2011 10:19:46 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1112191018320.1746-100000@iolanthe.rowland.org>
+References: <1324290632-23758-2-git-send-email-balbi@ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:34257 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750880Ab1LSOGG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 09:06:06 -0500
-Received: by mail-yx0-f175.google.com with SMTP id m12so3335331yen.20
-        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 06:06:04 -0800 (PST)
-In-Reply-To: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:47216 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752587Ab1LSPTr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 10:19:47 -0500
+In-Reply-To: <1324290632-23758-2-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 
-Device tree data for the EMIF sdram controllers in OMAP4
-and DDR memories attached to OMAP4 boards.
+On Mon, 19 Dec 2011, Felipe Balbi wrote:
 
-Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Aneesh V <aneesh@ti.com>
----
- arch/arm/boot/dts/omap-common-devices.dtsi |   63 ++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda.dts          |   13 ++++++
- arch/arm/boot/dts/omap4-sdp.dts            |   13 ++++++
- arch/arm/boot/dts/omap4.dtsi               |   19 ++++++++
- 4 files changed, 108 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/omap-common-devices.dtsi
+> such utilities are currently duplicated on all UDC
+> drivers basically with the same structure. Let's group
+> all implementations into one generic implementation
+> and get rid of that duplication.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  drivers/usb/gadget/udc-core.c |   53 +++++++++++++++++++++++++++++++++++++++++
+>  include/linux/usb/gadget.h    |   10 +++++++
+>  2 files changed, 63 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/udc-core.c b/drivers/usb/gadget/udc-core.c
+> index 0b0d12c..2031c11 100644
+> --- a/drivers/usb/gadget/udc-core.c
+> +++ b/drivers/usb/gadget/udc-core.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/device.h>
+>  #include <linux/list.h>
+>  #include <linux/err.h>
+> +#include <linux/dma-mapping.h>
+>  
+>  #include <linux/usb/ch9.h>
+>  #include <linux/usb/gadget.h>
+> @@ -49,6 +50,58 @@ static DEFINE_MUTEX(udc_lock);
+>  
+>  /* ------------------------------------------------------------------------- */
+>  
+> +int usb_gadget_map_request(struct usb_gadget *gadget,
+> +		struct usb_request *req, int direction)
+> +{
+> +	if (req->length == 0)
+> +		return 0;
+> +
+> +	if (req->num_sgs) {
+> +		int     mapped;
+> +
+> +		mapped = dma_map_sg(&gadget->dev, req->sg, req->num_sgs,
+> +				direction ? DMA_TO_DEVICE
+> +				: DMA_FROM_DEVICE);
+> +		if (mapped == 0) {
+> +			dev_err(&gadget->dev, "failed to map SGs\n");
+> +			return -EFAULT;
+> +		}
+> +
+> +		req->num_mapped_sgs = mapped;
+> +	} else {
+> +		req->dma = dma_map_single(&gadget->dev, req->buf, req->length,
+> +				direction ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+> +
+> +		if (dma_mapping_error(&gadget->dev, req->dma)) {
+> +			dev_err(&gadget->dev, "failed to map buffer\n");
+> +			return -EFAULT;
+> +		}
+> +	}
+> +
+> +	return 0;
 
-diff --git a/arch/arm/boot/dts/omap-common-devices.dtsi b/arch/arm/boot/dts/omap-common-devices.dtsi
-new file mode 100644
-index 0000000..bac2a40
---- /dev/null
-+++ b/arch/arm/boot/dts/omap-common-devices.dtsi
-@@ -0,0 +1,63 @@
-+/*
-+ * Common devices used in different OMAP boards
-+ */
-+
-+/ {
-+	elpida_ECB240ABACN: ddr {
-+		compatible 	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
-+		density		= "2Gb";
-+		io-width	= "x32";
-+
-+		tRPab-min-nCK	= <3>;
-+		tRCD-min-nCK	= <3>;
-+		tWR-min-nCK	= <3>;
-+		tRASmin-min-nCK	= <3>;
-+		tRRD-min-nCK	= <2>;
-+		tWTR-min-nCK	= <2>;
-+		tXP-min-nCK	= <2>;
-+		tRTP-min-nCK	= <2>;
-+		tCKE-min-nCK	= <3>;
-+		tCKESR-min-nCK	= <3>;
-+		tFAW-min-nCK	= <8>;
-+
-+		timings_elpida_ECB240ABACN_400mhz: ddr-timings@1 {
-+			min-freq	= <10000000>;
-+			max-freq	= <400000000>;
-+			tRPab-ps	= <21000>;
-+			tRCD-ps		= <18000>;
-+			tWR-ps		= <15000>;
-+			tRAS-min-ps	= <42000>;
-+			tRRD-ps		= <10000>;
-+			tWTR-ps		= <7500>;
-+			tXP-ps		= <7500>;
-+			tRTP-ps		= <7500>;
-+			tCKESR-ps	= <15000>;
-+			tDQSCK-max-ps 	= <5500>;
-+			tFAW-ps		= <50000>;
-+			tZQCS-ps	= <90000>;
-+			tZQCL-ps	= <360000>;
-+			tZQinit-ps	= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+		};
-+
-+		timings_elpida_ECB240ABACN_200mhz: ddr-timings@ {
-+			min-freq	= <10000000>;
-+			max-freq	= <200000000>;
-+			tRPab-ps	= <21000>;
-+			tRCD-ps		= <18000>;
-+			tWR-ps		= <15000>;
-+			tRAS-min-ps	= <42000>;
-+			tRRD-ps		= <10000>;
-+			tWTR-ps		= <10000>;
-+			tXP-ps		= <7500>;
-+			tRTP-ps		= <7500>;
-+			tCKESR-ps	= <15000>;
-+			tDQSCK-max-ps 	= <5500>;
-+			tFAW-ps		= <50000>;
-+			tZQCS-ps	= <90000>;
-+			tZQCL-ps	= <360000>;
-+			tZQinit-ps	= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index c702657..3446f4f 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- /include/ "omap4.dtsi"
-+/include/ "omap-common-devices.dtsi"
- 
- / {
- 	model = "TI OMAP4 PandaBoard";
-@@ -26,4 +27,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
-+
-+	ocp {
-+		emif1: emif@0x4c000000 {
-+			cs1-used;
-+			ddr-handle = <&elpida_ECB240ABACN>;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			cs1-used;
-+			ddr-handle = <&elpida_ECB240ABACN>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 066e28c..799ac0a 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- /include/ "omap4.dtsi"
-+/include/ "omap-common-devices.dtsi"
- 
- / {
- 	model = "TI OMAP4 SDP board";
-@@ -26,4 +27,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
-+
-+	ocp {
-+		emif1: emif@0x4c000000 {
-+			cs1-used;
-+			ddr-handle = <&elpida_ECB240ABACN>;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			cs1-used;
-+			ddr-handle = <&elpida_ECB240ABACN>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 4c61c82..5393ae5 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -99,5 +99,24 @@
- 			reg = <0x48241000 0x1000>,
- 			      <0x48240100 0x0100>;
- 		};
-+
-+		emif1: emif@0x4c000000 {
-+			compatible	= "ti,emif-lpddr2";
-+			ti,hwmods	= "emif1";
-+			phy-type	= "phy-type-omap4";
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			compatible	= "ti,emif-lpddr2";
-+			ti,hwmods	= "emif2";
-+			phy-type	= "phy-type-omap4";
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
-+
- 	};
- };
--- 
-1.7.1
+You forgot to set req->mapped.
+
+> +}
+> +EXPORT_SYMBOL_GPL(usb_gadget_map_request);
+> +
+> +void usb_gadget_unmap_request(struct usb_gadget *gadget,
+> +		struct usb_request *req, int direction)
+> +{
+> +	if (req->length == 0)
+> +		return;
+> +
+> +	if (req->num_mapped_sgs) {
+> +		dma_unmap_sg(&gadget->dev, req->sg, req->num_sgs,
+> +				direction ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+> +
+> +		req->num_mapped_sgs = 0;
+> +	} else {
+> +		dma_unmap_single(&gadget->dev, req->dma, req->length,
+> +				direction ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+> +	}
+
+You forgot to clear req->mapped.
+
+Alan Stern
 
