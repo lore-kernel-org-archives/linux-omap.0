@@ -1,7 +1,7 @@
 From: Felipe Balbi <balbi@ti.com>
-Subject: [PATCH 5/9] usb: gadget: amd5536: use generic map/unmap routines
-Date: Mon, 19 Dec 2011 12:30:27 +0200
-Message-ID: <1324290632-23758-6-git-send-email-balbi@ti.com>
+Subject: [PATCH 7/9] usb: gadget: net2272: use generic map/umap routines
+Date: Mon, 19 Dec 2011 12:30:29 +0200
+Message-ID: <1324290632-23758-8-git-send-email-balbi@ti.com>
 References: <1324290632-23758-1-git-send-email-balbi@ti.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1324290632-23758-1-git-send-email-balbi@ti.com>
@@ -15,59 +15,44 @@ USB requests and it's better to use them.
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/amd5536udc.c |   32 +++++---------------------------
- 1 files changed, 5 insertions(+), 27 deletions(-)
+ drivers/usb/gadget/net2272.c |   18 ++++++++----------
+ 1 files changed, 8 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/gadget/amd5536udc.c b/drivers/usb/gadget/amd5536udc.c
-index e9a2c5c..d3d0282 100644
---- a/drivers/usb/gadget/amd5536udc.c
-+++ b/drivers/usb/gadget/amd5536udc.c
-@@ -831,20 +831,7 @@ __acquires(ep->dev->lock)
+diff --git a/drivers/usb/gadget/net2272.c b/drivers/usb/gadget/net2272.c
+index 4c81d54..db99d74 100644
+--- a/drivers/usb/gadget/net2272.c
++++ b/drivers/usb/gadget/net2272.c
+@@ -385,12 +385,9 @@ net2272_done(struct net2272_ep *ep, struct net2272_request *req, int status)
+ 		status = req->req.status;
  
  	dev = ep->dev;
- 	/* unmap DMA */
--	if (req->dma_mapping) {
--		if (ep->in)
--			pci_unmap_single(dev->pdev,
--					req->req.dma,
--					req->req.length,
--					PCI_DMA_TODEVICE);
--		else
--			pci_unmap_single(dev->pdev,
--					req->req.dma,
--					req->req.length,
--					PCI_DMA_FROMDEVICE);
--		req->dma_mapping = 0;
--		req->req.dma = DMA_DONT_USE;
+-	if (use_dma && req->mapped) {
+-		dma_unmap_single(dev->dev, req->req.dma, req->req.length,
+-			ep->is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-		req->req.dma = DMA_ADDR_INVALID;
+-		req->mapped = 0;
 -	}
-+	usb_gadget_unmap_request(&dev->gadget, &req->req, ep->in);
++	if (use_dma)
++		usb_gadget_map_request(&dev->gadget, &req->req,
++				ep->is_in);
  
- 	halted = ep->halted;
- 	ep->halted = 1;
-@@ -1095,20 +1082,11 @@ udc_queue(struct usb_ep *usbep, struct usb_request *usbreq, gfp_t gfp)
+ 	if (status && status != -ESHUTDOWN)
+ 		dev_vdbg(dev->dev, "complete %s req %p stat %d len %u/%u buf %p\n",
+@@ -850,10 +847,11 @@ net2272_queue(struct usb_ep *_ep, struct usb_request *_req, gfp_t gfp_flags)
  		return -ESHUTDOWN;
  
- 	/* map dma (usually done before) */
--	if (ep->dma && usbreq->length != 0
--			&& (usbreq->dma == DMA_DONT_USE || usbreq->dma == 0)) {
-+	if (ep->dma) {
- 		VDBG(dev, "DMA map req %p\n", req);
--		if (ep->in)
--			usbreq->dma = pci_map_single(dev->pdev,
--						usbreq->buf,
--						usbreq->length,
--						PCI_DMA_TODEVICE);
--		else
--			usbreq->dma = pci_map_single(dev->pdev,
--						usbreq->buf,
--						usbreq->length,
--						PCI_DMA_FROMDEVICE);
--		req->dma_mapping = 1;
-+		retval = usb_gadget_map_request(&udc->gadget, &req->req, ep->in);
-+		if (retval)
-+			return retval;
+ 	/* set up dma mapping in case the caller didn't */
+-	if (use_dma && ep->dma && _req->dma == DMA_ADDR_INVALID) {
+-		_req->dma = dma_map_single(dev->dev, _req->buf, _req->length,
+-			ep->is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-		req->mapped = 1;
++	if (use_dma && ep->dma) {
++		status = usb_gadget_map_request(&dev->gadget, &req->req,
++				ep->is_in);
++		if (status)
++			return status;
  	}
  
- 	VDBG(dev, "%s queue req %p, len %d req->td_data=%p buf %p\n",
+ 	dev_vdbg(dev->dev, "%s queue req %p, len %d buf %p dma %08llx %s\n",
 -- 
 1.7.8.rc3
