@@ -1,13 +1,13 @@
 From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH v2 1/4] usb: musb: fix pm_runtime mismatches
-Date: Mon, 19 Dec 2011 22:17:48 +0200
-Message-ID: <1324325871-15137-2-git-send-email-felipe.contreras@nokia.com>
+Subject: [PATCH v2 3/4] usb: musb: remove a bit of indentation
+Date: Mon, 19 Dec 2011 22:17:50 +0200
+Message-ID: <1324325871-15137-4-git-send-email-felipe.contreras@nokia.com>
 References: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:51282 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:51372 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753163Ab1LSUUe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 15:20:34 -0500
+	id S1751610Ab1LSUUq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Dec 2011 15:20:46 -0500
 In-Reply-To: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,41 +16,51 @@ Cc: linux-omap <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.e
 
 From: Felipe Contreras <felipe.contreras@gmail.com>
 
-Properly call pm_runtime_put() afer pm_runttime_get() on errors.
-Comments from Alan Stern.
-
-Untested.
+And use dev instead of musb->controller.
 
 Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/usb/musb/musb_gadget.c |    1 +
- drivers/usb/musb/omap2430.c    |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/usb/musb/omap2430.c |   27 +++++++++++++--------------
+ 1 files changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
-index 922148f..4d6a37a 100644
---- a/drivers/usb/musb/musb_gadget.c
-+++ b/drivers/usb/musb/musb_gadget.c
-@@ -1960,6 +1960,7 @@ static int musb_gadget_start(struct usb_gadget *g,
- err2:
- 	if (!is_otg_enabled(musb))
- 		musb_stop(musb);
-+	pm_runtime_put_sync(musb->controller);
- err0:
- 	return retval;
- }
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index ba85f27..1a5d45e 100644
+index 6f574ec..521d806 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -389,6 +389,7 @@ static int omap2430_musb_exit(struct musb *musb)
+@@ -344,20 +344,19 @@ static void omap2430_musb_enable(struct musb *musb)
  
- 	omap2430_low_level_exit(musb);
- 	otg_put_transceiver(musb->xceiv);
-+	pm_runtime_put_sync(musb->controller);
- 
- 	return 0;
- }
+ 	case USB_EVENT_ID:
+ 		otg_init(musb->xceiv);
+-		if (data->interface_type == MUSB_INTERFACE_UTMI) {
+-			devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
+-			/* start the session */
+-			devctl |= MUSB_DEVCTL_SESSION;
+-			musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
+-			while (musb_readb(musb->mregs, MUSB_DEVCTL) &
+-						MUSB_DEVCTL_BDEVICE) {
+-				cpu_relax();
+-
+-				if (time_after(jiffies, timeout)) {
+-					dev_err(musb->controller,
+-					"configured as A device timeout");
+-					break;
+-				}
++		if (data->interface_type != MUSB_INTERFACE_UTMI)
++			break;
++		devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
++		/* start the session */
++		devctl |= MUSB_DEVCTL_SESSION;
++		musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
++		while (musb_readb(musb->mregs, MUSB_DEVCTL) &
++				MUSB_DEVCTL_BDEVICE) {
++			cpu_relax();
++
++			if (time_after(jiffies, timeout)) {
++				dev_err(dev, "configured as A device timeout");
++				break;
+ 			}
+ 		}
+ 		break;
 -- 
 1.7.8
 
