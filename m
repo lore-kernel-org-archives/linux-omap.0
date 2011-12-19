@@ -1,47 +1,56 @@
-From: Felipe Contreras <felipe.contreras-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 2/4] usb: musb: trivial cleanup
-Date: Mon, 19 Dec 2011 22:17:49 +0200
-Message-ID: <1324325871-15137-3-git-send-email-felipe.contreras@nokia.com>
+From: Felipe Contreras <felipe.contreras@nokia.com>
+Subject: [PATCH v2 1/4] usb: musb: fix pm_runtime mismatches
+Date: Mon, 19 Dec 2011 22:17:48 +0200
+Message-ID: <1324325871-15137-2-git-send-email-felipe.contreras@nokia.com>
 References: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1324325871-15137-1-git-send-email-felipe.contreras-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([147.243.128.26]:51282 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753163Ab1LSUUe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Dec 2011 15:20:34 -0500
+In-Reply-To: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>
 
-From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
 
-enabled && driver || !enabled can be simplified to !enabled || driver.
+Properly call pm_runtime_put() afer pm_runttime_get() on errors.
+Comments from Alan Stern.
 
-Signed-off-by: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Untested.
+
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
 ---
- drivers/usb/musb/omap2430.c |    8 +-------
- 1 files changed, 1 insertions(+), 7 deletions(-)
+ drivers/usb/musb/musb_gadget.c |    1 +
+ drivers/usb/musb/omap2430.c    |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/usb/musb/musb_gadget.c b/drivers/usb/musb/musb_gadget.c
+index 922148f..4d6a37a 100644
+--- a/drivers/usb/musb/musb_gadget.c
++++ b/drivers/usb/musb/musb_gadget.c
+@@ -1960,6 +1960,7 @@ static int musb_gadget_start(struct usb_gadget *g,
+ err2:
+ 	if (!is_otg_enabled(musb))
+ 		musb_stop(musb);
++	pm_runtime_put_sync(musb->controller);
+ err0:
+ 	return retval;
+ }
 diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 1a5d45e..6f574ec 100644
+index ba85f27..1a5d45e 100644
 --- a/drivers/usb/musb/omap2430.c
 +++ b/drivers/usb/musb/omap2430.c
-@@ -236,13 +236,7 @@ static int musb_otg_notifications(struct notifier_block *nb,
- 	case USB_EVENT_ID:
- 		dev_dbg(musb->controller, "ID GND\n");
+@@ -389,6 +389,7 @@ static int omap2430_musb_exit(struct musb *musb)
  
--		if (is_otg_enabled(musb)) {
--			if (musb->gadget_driver) {
--				pm_runtime_get_sync(musb->controller);
--				otg_init(musb->xceiv);
--				omap2430_musb_set_vbus(musb, 1);
--			}
--		} else {
-+		if (!is_otg_enabled(musb) || musb->gadget_driver) {
- 			pm_runtime_get_sync(musb->controller);
- 			otg_init(musb->xceiv);
- 			omap2430_musb_set_vbus(musb, 1);
+ 	omap2430_low_level_exit(musb);
+ 	otg_put_transceiver(musb->xceiv);
++	pm_runtime_put_sync(musb->controller);
+ 
+ 	return 0;
+ }
 -- 
 1.7.8
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
