@@ -1,52 +1,44 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [RFC v2 PATCH 2/3] dt: device tree bindings for TI's EMIF sdram controller
-Date: Mon, 19 Dec 2011 08:59:18 -0800
-Message-ID: <CAOesGMidr_orQ60wWrDkSPXZziZ6wuThTixmQj-idkkDjrMG0A@mail.gmail.com>
-References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
-	<1324303533-17458-3-git-send-email-aneesh@ti.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [GIT PULL] ARM: OMAP: I2C: prepare to use hwmod reset in driver
+Date: Mon, 19 Dec 2011 23:07:40 +0530
+Message-ID: <4EEF7664.3000203@ti.com>
+References: <alpine.DEB.2.00.1112160254320.12660@utopia.booyaka.com> <20111216195002.GL32251@atomide.com> <alpine.DEB.2.00.1112161314180.12660@utopia.booyaka.com> <20111216204123.GM32251@atomide.com> <alpine.DEB.2.00.1112161357250.12660@utopia.booyaka.com> <20111217002409.GB6464@atomide.com> <4EED9DD4.3020506@ti.com> <4EEF6714.2040208@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:39516 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab1LSQ7U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 11:59:20 -0500
-Received: by wgbdr13 with SMTP id dr13so11038261wgb.1
-        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 08:59:19 -0800 (PST)
-In-Reply-To: <1324303533-17458-3-git-send-email-aneesh@ti.com>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:44432 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751172Ab1LSRht (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Dec 2011 12:37:49 -0500
+Received: by mail-iy0-f171.google.com with SMTP id w33so11149020iag.16
+        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 09:37:45 -0800 (PST)
+In-Reply-To: <4EEF6714.2040208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Oh wait, when I saw 3/3 I realized the following too:
+On Monday 19 December 2011 10:02 PM, Cousson, Benoit wrote:
+> Hi Shubhro,
+>
+> On 12/18/2011 9:01 AM, Shubhrajyoti wrote:
+>
+> [...]
+>
+>> The driver does a reset in the error path.
+>> Since we are not supposed to access the sysc reg the function is needed.
+>
+> I'm just wondering what will happen to the driver if this callback is
+> not provided during the device creation? This is what will happen
+> during DT boot for example?
+>
+> Is it a mandatory function?
+This is used in the recovery mechanism in case of errors like some one
+holding the bus and not releasing it etc.
 
-On Mon, Dec 19, 2011 at 6:05 AM, Aneesh V <aneesh@ti.com> wrote:
+>
+> Thanks,
+> Benoit
 
-> +- phy-type =A0 =A0 : string indicating the phy type. Should be one o=
-f the
-> + =A0following:
-> +
-> + =A0"phy-type-omap4" =A0: PHY used in OMAP4 family of SoCs
-> +
-> + =A0"phy-type-dm81xx" : PHY used in DM81XX family of SoCs
-
-No, again please don't define new string properties when a simple
-binary property will do just fine. Just use "phy-type-omap4" or
-"phy-type-dm81xx" as an empty property to indicate what phy is used.
-Or encode as an integer and list the valid values here.
-
-Every time you add a string to the device tree, the data structure
-grows, not to mention the fact that it adds a lot of string
-comparisons during setup. Please keep that in mind when defining
-bindings.
-
-
-
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
