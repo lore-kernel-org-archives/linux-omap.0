@@ -1,204 +1,34 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V3 2/2] arm:omap: cleanup & split omap2/3/4_check_revision function
-Date: Mon, 19 Dec 2011 15:50:15 +0530
-Message-ID: <1324290015-12679-3-git-send-email-hvaibhav@ti.com>
-References: <1324290015-12679-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V3 0/2] arm:omap:cleanup & split omap2/3/4_check_revision function
+Date: Mon, 19 Dec 2011 15:50:13 +0530
+Message-ID: <1324290015-12679-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36866 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751840Ab1LSKUY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:20:24 -0500
-In-Reply-To: <1324290015-12679-1-git-send-email-hvaibhav@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57663 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840Ab1LSKUW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 05:20:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: tony@atomide.com, khilman@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This patch doesn't change functionality or behavior of the code
-execution; it barely cleans up the code and splits into SoC
-specific implementation for Rev ID and feature detection.
+Change log:
+==========
+Changes from V2:
+	- Split the patch to make it more readable.
+	- Make omap3_cpuinfo void funtion, since cpu_rev is global now.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-CC: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/id.c              |   46 ++++++--------------------------
- arch/arm/mach-omap2/io.c              |    9 +++++-
- arch/arm/plat-omap/include/plat/cpu.h |    7 ++++-
- 3 files changed, 23 insertions(+), 39 deletions(-)
+Changes from V1:
+	- Incorporated suggessions from Tony to split the function
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 752dcae..92e4d55 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -112,7 +112,7 @@ void omap_get_die_id(struct omap_die_id *odi)
- 	odi->id_3 = read_tap_reg(OMAP_TAP_DIE_ID_3);
- }
+Vaibhav Hiremath (2):
+  arm:omap: Make cpu_rev static global variable
+  arm:omap: cleanup & split omap2/3/4_check_revision function
 
--static void __init omap24xx_check_revision(void)
-+void __init omap2xxx_check_revision(void)
- {
- 	int i, j;
- 	u32 idcode, prod_id;
-@@ -222,7 +222,7 @@ static void __init omap3_cpuinfo(void)
- 		omap_features |= OMAP3_HAS_ ##feat;			\
- 	}
-
--static void __init omap3_check_features(void)
-+void __init omap3xxx_check_features(void)
- {
- 	u32 status;
-
-@@ -249,9 +249,11 @@ static void __init omap3_check_features(void)
- 	 * TODO: Get additional info (where applicable)
- 	 *       e.g. Size of L2 cache.
- 	 */
-+
-+	omap3_cpuinfo();
- }
-
--static void __init omap4_check_features(void)
-+void __init omap4xxx_check_features(void)
- {
- 	u32 si_type;
-
-@@ -276,12 +278,13 @@ static void __init omap4_check_features(void)
- 	}
- }
-
--static void __init ti81xx_check_features(void)
-+void __init ti81xx_check_features(void)
- {
- 	omap_features = OMAP3_HAS_NEON;
-+	omap3_cpuinfo();
- }
-
--static void __init omap3_check_revision(void)
-+void __init omap3xxx_check_revision(void)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-@@ -421,7 +424,7 @@ static void __init omap3_check_revision(void)
- 	}
- }
-
--static void __init omap4_check_revision(void)
-+void __init omap4xxx_check_revision(void)
- {
- 	u32 idcode;
- 	u16 hawkeye;
-@@ -495,37 +498,6 @@ static void __init omap4_check_revision(void)
- }
-
- /*
-- * Try to detect the exact revision of the omap we're running on
-- */
--void __init omap2_check_revision(void)
--{
--	/*
--	 * At this point we have an idea about the processor revision set
--	 * earlier with omap2_set_globals_tap().
--	 */
--	if (cpu_is_omap24xx()) {
--		omap24xx_check_revision();
--	} else if (cpu_is_omap34xx()) {
--		omap3_check_revision();
--
--		/* TI81XX doesn't have feature register */
--		if (!cpu_is_ti81xx())
--			omap3_check_features();
--		else
--			ti81xx_check_features();
--
--		omap3_cpuinfo();
--		return;
--	} else if (cpu_is_omap44xx()) {
--		omap4_check_revision();
--		omap4_check_features();
--		return;
--	} else {
--		pr_err("OMAP revision unknown, please fix!\n");
--	}
--}
--
--/*
-  * Set up things for map_io and processor detection later on. Gets called
-  * pretty much first thing from board init. For multi-omap, this gets
-  * cpu_is_omapxxxx() working accurately enough for map_io. Then we'll try to
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 3f174d5..81cf60f 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -351,7 +351,6 @@ static int _set_hwmod_postsetup_state(struct omap_hwmod *oh, void *data)
-
- static void __init omap_common_init_early(void)
- {
--	omap2_check_revision();
- 	omap_init_consistent_dma_size();
- }
-
-@@ -392,6 +391,7 @@ static void __init omap_hwmod_init_postsetup(void)
- void __init omap2420_init_early(void)
- {
- 	omap2_set_globals_242x();
-+	omap2xxx_check_revision();
- 	omap_common_init_early();
- 	omap2xxx_voltagedomains_init();
- 	omap242x_powerdomains_init();
-@@ -404,6 +404,7 @@ void __init omap2420_init_early(void)
- void __init omap2430_init_early(void)
- {
- 	omap2_set_globals_243x();
-+	omap2xxx_check_revision();
- 	omap_common_init_early();
- 	omap2xxx_voltagedomains_init();
- 	omap243x_powerdomains_init();
-@@ -422,6 +423,8 @@ void __init omap2430_init_early(void)
- void __init omap3_init_early(void)
- {
- 	omap2_set_globals_3xxx();
-+	omap3xxx_check_revision();
-+	omap3xxx_check_features();
- 	omap_common_init_early();
- 	omap3xxx_voltagedomains_init();
- 	omap3xxx_powerdomains_init();
-@@ -454,6 +457,8 @@ void __init am35xx_init_early(void)
- void __init ti81xx_init_early(void)
- {
- 	omap2_set_globals_ti81xx();
-+	omap3xxx_check_revision();
-+	ti81xx_check_features();
- 	omap_common_init_early();
- 	omap3xxx_voltagedomains_init();
- 	omap3xxx_powerdomains_init();
-@@ -468,6 +473,8 @@ void __init ti81xx_init_early(void)
- void __init omap4430_init_early(void)
- {
- 	omap2_set_globals_443x();
-+	omap4xxx_check_revision();
-+	omap4xxx_check_features();
- 	omap_common_init_early();
- 	omap44xx_voltagedomains_init();
- 	omap44xx_powerdomains_init();
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 6b51086..428ccb1 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -451,7 +451,12 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define OMAP447X_CLASS		0x44700044
- #define OMAP4470_REV_ES1_0	(OMAP447X_CLASS | (0x10 << 8))
-
--void omap2_check_revision(void);
-+void omap2xxx_check_revision(void);
-+void omap3xxx_check_revision(void);
-+void omap4xxx_check_revision(void);
-+void omap3xxx_check_features(void);
-+void ti81xx_check_features(void);
-+void omap4xxx_check_features(void);
-
- /*
-  * Runtime detection of OMAP3 features
---
-1.7.0.4
+ arch/arm/mach-omap2/id.c              |  186 ++++++++++++++-------------------
+ arch/arm/mach-omap2/io.c              |    9 ++-
+ arch/arm/plat-omap/include/plat/cpu.h |    7 +-
+ 3 files changed, 92 insertions(+), 110 deletions(-)
 
