@@ -1,76 +1,89 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v4 4/4] OMAP3/4: iommu: adapt to runtime pm
-Date: Mon, 19 Dec 2011 18:27:17 +0200
-Message-ID: <CAMP44s0hYWiZ8OnjQ6Jy_W7MCveP+WyHG18Tt2jRGzxSwoQP3w@mail.gmail.com>
-References: <1323922709-6986-1-git-send-email-omar.ramirez@ti.com>
-	<1323922709-6986-5-git-send-email-omar.ramirez@ti.com>
-	<CAMP44s3Jb9DZLUyDVU_HmQbaJKp=2qym7Z6uauNchJh0fPL4hQ@mail.gmail.com>
-	<CAB-zwWhpmwRP2mNu-CdX-RVgmTRjw0UsYckAVsM+qztmVdvc7A@mail.gmail.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH 1/9] usb: gadget: add generic map/unmap request utilities
+Date: Mon, 19 Dec 2011 11:27:21 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1112191116320.1746-100000@iolanthe.rowland.org>
+References: <20111219154931.GA30355@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:46127 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032Ab1LSQ1R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 11:27:17 -0500
-In-Reply-To: <CAB-zwWhpmwRP2mNu-CdX-RVgmTRjw0UsYckAVsM+qztmVdvc7A@mail.gmail.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:47267 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751544Ab1LSQ1W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 11:27:22 -0500
+In-Reply-To: <20111219154931.GA30355@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, iommu@lists.linux-foundation.org, MyungJoo Ham <myungjoo.ham@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 
-On Fri, Dec 16, 2011 at 5:18 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
-m> wrote:
-> On Thu, Dec 15, 2011 at 6:53 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Thu, Dec 15, 2011 at 6:18 AM, Omar Ramirez Luna <omar.ramirez@ti.=
-com> wrote:
->>> Use runtime PM functionality interfaced with hwmod enable/idle
->>> functions, to replace direct clock operations, reset and sysconfig
->>> handling.
->>>
->>> Removed clk handling during interrupt, given that in order to recei=
-ve one,
->>> the device should be powered on in advance. Now doing pm_runtime_ge=
-t/put
->>> on iommu_enable/disable so it doesn't rely on others to keep the cl=
-ocks on.
->>>
->>> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
->>> ---
->>> =C2=A0arch/arm/mach-omap2/iommu2.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 | =C2=A0 17 -----------
->>> =C2=A0arch/arm/mach-omap2/omap-iommu.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-| =C2=A0 =C2=A01 -
->>> =C2=A0arch/arm/plat-omap/include/plat/iommu.h =C2=A0| =C2=A0 =C2=A0=
-2 -
->>> =C2=A0arch/arm/plat-omap/include/plat/iommu2.h | =C2=A0 =C2=A02 -
->>> =C2=A0drivers/iommu/omap-iommu.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 | =C2=A0 44 ++++++++++++-----------------
->>> =C2=A05 files changed, 18 insertions(+), 48 deletions(-)
->>
->> Shouldn't pm_runtime_enable() be called in omap_iommu_init(), and
->> omap_iommu_probe() call pm_runtime_get_sync()/put() on the sections
->> where the device should be active?
->
-> omap_iommu_init is called on module init however omap_iommu_probe is
-> called by driver instance (isp, iva), on probe pm_runtime_enable
-> activates runtime for both isp and iva devices, one at a time.
+On Mon, 19 Dec 2011, Felipe Balbi wrote:
 
-Yes, but omap_iommu_init() will *always* be called at boot time and
-will register the data for all the devices. If the 'iommu' module is
-never loaded, then the devices will remain active the whole time.
+> > > +		if (dma_mapping_error(&gadget->dev, req->dma)) {
+> > > +			dev_err(&gadget->dev, "failed to map buffer\n");
+> > > +			return -EFAULT;
+> > > +		}
+> > > +	}
+> > > +
+> > > +	return 0;
+> > 
+> > You forgot to set req->mapped.
+> 
+> actually there's no 'mapped' field on struct usb_request. That's a
 
-Maybe Paul or somebody with better knowledge of the pm runtime
-framework can clarify this.
+Whoops, you're right.  It's part of the UDC-private structure.
 
-Cheers.
+> nonsense added to all struct my_controller_request just because of that
+> DMA_ADDR_INVALID hackery. I'm dropping that completely. There were no
+> gadget drivers allocating memory from coherent or mapping requests
+> themselves, so req->mapped becomes useless.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There's more to it than that.  A controller might support DMA on some
+endpoints but not others, or for certain request lengths but not
+others.  Hence when a request finishes, the driver needs to know
+whether the request was mapped for DMA.
+
+For example, your net2280 patch needs to be fixed.  Here's how it looks
+now:
+
+> --- a/drivers/usb/gadget/net2280.c
+> +++ b/drivers/usb/gadget/net2280.c
+> @@ -806,12 +806,8 @@ done (struct net2280_ep *ep, struct net2280_request *req, int status)
+>  		status = req->req.status;
+>  
+>  	dev = ep->dev;
+> -	if (req->mapped) {
+> -		pci_unmap_single (dev->pdev, req->req.dma, req->req.length,
+> -			ep->is_in ? PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
+> -		req->req.dma = DMA_ADDR_INVALID;
+> -		req->mapped = 0;
+> -	}
+> +	if (req->mapped)
+> +		usb_gadget_unmap_request(&dev->gadget, &req->req, ep->is_in);
+
+This code will never be executed because you never set req->mapped.  
+And after that's fixed, when the unmapping occurs, req->mapped has to
+be set back to 0.
+
+> @@ -857,10 +853,13 @@ net2280_queue (struct usb_ep *_ep, struct usb_request *_req, gfp_t gfp_flags)
+>  		return -EOPNOTSUPP;
+>  
+>  	/* set up dma mapping in case the caller didn't */
+> -	if (ep->dma && _req->dma == DMA_ADDR_INVALID) {
+> -		_req->dma = pci_map_single (dev->pdev, _req->buf, _req->length,
+> -			ep->is_in ? PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
+> -		req->mapped = 1;
+> +	if (ep->dma) {
+> +		int ret;
+> +
+> +		ret = usb_gadget_map_request(&dev->gadget, &req->req,
+> +				ep->is_in);
+> +		if (ret)
+> +			return ret;
+
+You probably need to set req->mapped right here.  Or rather, avoid 
+removing the line that sets it.
+
+>  	}
+
+Alan Stern
+
