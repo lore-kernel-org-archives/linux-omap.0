@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] Borderline fixes for v3.2-rc6
-Date: Mon, 19 Dec 2011 11:42:49 -0800
-Message-ID: <20111219194249.GO6464@atomide.com>
+Subject: [GIT PULL] omap hwmod changes for v3.3 merge window
+Date: Mon, 19 Dec 2011 11:48:18 -0800
+Message-ID: <20111219194818.GQ6464@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53026 "EHLO
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:57287 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752145Ab1LSTmy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 14:42:54 -0500
+	with ESMTP id S1752364Ab1LSTsW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 14:48:22 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -17,43 +17,49 @@ Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
 Hi Arnd & Olof,
 
-Here are two fixes that could potentially go into v3.2 -rc cycle.
+Please pull omap hwmod changes from:
 
-One fixes a harmless but annoying warning that happens on omap 34xx
-processors during boot. The other one fixes booting on pretty rare
-secure mode development board, but that's fixed in "features that
-never worked earlier either" style.
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap hwmod
 
-We can surely wait on these fixes, but if you have something going
-upstream anyways, then these might be worth considering too.
-
-I'll post a following pull request for fixes-non-critical-part2
-that is based on this one, so no need to pull in this one in case
-you're not sending any more fixes for the -rc cycle:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-hwmod
+These changes are mostly needed for the USB *HCI support to
+behave. These depend on the fixes-non-critical-part2 posted
+earlier.
 
 Regards,
 
 Tony
 
 
-The following changes since commit e5fe29c7198a1f6616286dfc8602a69da165cb3f:
-  Felipe Contreras (1):
-        ARM: OMAP: rx51: fix USB
+The following changes since commit 30c95692f62a40170833e87f3cd50fcbfe87c1a2:
+  Santosh Shilimkar (1):
+        ARM: OMAP4: clock: Add CPU local timer clock node
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-hwmod
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap hwmod
 
-Aaro Koskinen (1):
-      ARM: OMAP: hwmod data: fix the panic on Nokia RM-680 during boot
+Benoit Cousson (1):
+      ARM: OMAP: USB: EHCI and OHCI hwmod structures for OMAP4
 
-Felipe Contreras (1):
-      ARM: OMAP: hwmod data: fix iva and mailbox hwmods for OMAP 3
+Keshava Munegowda (1):
+      ARM: OMAP: USB: EHCI and OHCI hwmod structures for OMAP3
+
+Kyle Manna (1):
+      ARM: OMAP: hwmod data: Add support for AM35xx UART4/ttyO3
+
+Paul Walmsley (1):
+      ARM: OMAP3: hwmod data: disable multiblock reads on MMC1/2 on OMAP34xx/35xx <= ES2.1
+
+Shubhrajyoti D (1):
+      ARM: OMAP3+: hwmod data: Add the default clockactivity for I2C
 
 Tony Lindgren (1):
-      Merge branch 'hwmod_data_fixes_3.2rc' of git://git.pwsan.com/linux-2.6 into fixes-hwmod
+      Merge branch 'hwmod_data_devel_3.3' of git://git.pwsan.com/linux-2.6 into hwmod
 
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock3xxx_data.c       |   11 +
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |  374 +++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  217 ++++++++++++++++-
+ arch/arm/mach-omap2/prcm-common.h          |    2 +
+ arch/arm/plat-omap/include/plat/irqs.h     |    2 +-
+ arch/arm/plat-omap/include/plat/serial.h   |    1 +
+ 6 files changed, 594 insertions(+), 13 deletions(-)
