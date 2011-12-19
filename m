@@ -1,34 +1,37 @@
-From: Felipe Contreras <felipe.contreras@nokia.com>
-Subject: [PATCH v2 0/4] musb fixes and cleanups
-Date: Mon, 19 Dec 2011 22:17:47 +0200
-Message-ID: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:51389 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751610Ab1LSUUs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 15:20:48 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
+Date: Mon, 19 Dec 2011 22:21:53 +0200
+Message-ID: <CAMP44s08LPo5Fp+jjictn48bMLo9R0OyGryYw32Bup6TqmCxEQ@mail.gmail.com>
+References: <CAMP44s3eeTOBRiFwEL3FypDY_+-MReqYJJVO1URNrnFVFXzvDg@mail.gmail.com>
+	<Pine.LNX.4.44L0.1112152228030.22491-100000@netrider.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1112152228030.22491-100000@netrider.rowland.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Hi,
+On Fri, Dec 16, 2011 at 5:30 AM, Alan Stern <stern@rowland.harvard.edu>=
+ wrote:
+> On Fri, 16 Dec 2011, Felipe Contreras wrote:
+>> > Should these calls be pm_runtime_put_sync() instead of
+>> > pm_runtime_put()?
+>>
+>> I don't see why... The thing failed, it's not going to be used any
+>> more so better let PM deactivate the device.
+>
+> It's not a big deal. =C2=A0The difference is that pm_runtime_put_sync=
+()
+> avoids an extra context switch when suspending the device. =C2=A0A mi=
+nor
+> optimization, that's all.
 
-Here's a few cleanups and possible fixes. Nothing major.
+Ok, I used what most of the code was using, but I've trusted you and
+updated the patches. It would probably make sense to do the same in
+other places.
 
-In v2 I added comments from Alan Stern, and another possible fix by removing
-some pm_runtime_disable() calls.
-
-Felipe Contreras (4):
-  usb: musb: fix pm_runtime mismatches
-  usb: musb: trivial cleanup
-  usb: musb: remove a bit of indentation
-  musb: omap2430: avoid pm_runtime_disable()
-
- drivers/usb/musb/musb_gadget.c |    1 +
- drivers/usb/musb/omap2430.c    |   38 +++++++++++++++-----------------------
- 2 files changed, 16 insertions(+), 23 deletions(-)
-
--- 
-1.7.8
-
+--=20
+=46elipe Contreras
