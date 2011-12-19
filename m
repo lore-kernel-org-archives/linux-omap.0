@@ -1,80 +1,50 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 2/2] OMAPDSS: HDMI: Disable DDC internal pull up
-Date: Mon, 19 Dec 2011 14:53:59 +0200
-Message-ID: <1324299239.31482.37.camel@deskari>
-References: <1324298206-19161-1-git-send-email-mythripk@ti.com>
-	 <1324298206-19161-2-git-send-email-mythripk@ti.com>
+From: Sergei Shtylyov <sshtylyov-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 9/9] usb: gadget: goku: use generic map/unmap routines
+Date: Mon, 19 Dec 2011 17:02:51 +0400
+Message-ID: <4EEF35FB.9090707@mvista.com>
+References: <1324290632-23758-1-git-send-email-balbi@ti.com> <1324290632-23758-10-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-uYvo5RyIMyeiubFjJCMt"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51765 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751568Ab1LSMyE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 07:54:04 -0500
-Received: by mail-lpp01m010-f43.google.com with SMTP id w12so7467970lag.30
-        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 04:54:02 -0800 (PST)
-In-Reply-To: <1324298206-19161-2-git-send-email-mythripk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1324290632-23758-10-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Greg Kroah-Hartman (supporter:USB SUBSYSTEM ,commit_signer:28/50=56%)" <gregkh-l3A5Bk7waGM@public.gmane.org>, "Thomas Dahlmann (supporter:AMD GEODE CS5536...)" <dahlmann.thomas-KvP5wT2u2U0@public.gmane.org>, "Kuninori Morimoto (commit_signer:43/50=86%)" <kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "open list:DESIGNWARE USB3 D..." <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:AMD GEODE CS5536..." <linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
+Hello.
 
---=-uYvo5RyIMyeiubFjJCMt
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 19-12-2011 14:30, Felipe Balbi wrote:
 
-On Mon, 2011-12-19 at 18:06 +0530, mythripk@ti.com wrote:
+> those routines have everything we need to map/unmap
+> USB requests and it's better to use them.
 
-> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-> index 0cb0469..799470f 100644
-> --- a/include/video/omapdss.h
-> +++ b/include/video/omapdss.h
-> @@ -200,6 +200,10 @@ enum omap_dss_clk_source {
->  	OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI,	/* OMAP4: PLL2_CLK2 */
->  };
-> =20
-> +enum omap_hdmi_flags {
-> +	OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP =3D 1 << 0,
-> +};
-> +
->  /* RFBI */
-> =20
->  struct rfbi_timings {
-> @@ -310,7 +314,7 @@ struct omap_dss_board_info {
->  /* Init with the board info */
->  extern int omap_display_init(struct omap_dss_board_info *board_data);
->  /* HDMI mux init*/
-> -extern int  omap_hdmi_init(void);
-> +extern int omap_hdmi_init(int flags);
+> Signed-off-by: Felipe Balbi<balbi-l0cyMroinI0@public.gmane.org>
+> ---
+>   drivers/usb/gadget/goku_udc.c |   17 +++++++----------
+>   1 files changed, 7 insertions(+), 10 deletions(-)
 
-You have an enum for flags, so use the enum instead of int.
+> diff --git a/drivers/usb/gadget/goku_udc.c b/drivers/usb/gadget/goku_udc.c
+> index 5af70fcc..bc47735 100644
+> --- a/drivers/usb/gadget/goku_udc.c
+> +++ b/drivers/usb/gadget/goku_udc.c
+[...]
+> @@ -736,10 +732,11 @@ goku_queue(struct usb_ep *_ep, struct usb_request *_req, gfp_t gfp_flags)
+>   		return -EBUSY;
+>
+>   	/* set up dma mapping in case the caller didn't */
+> -	if (ep->dma&&  _req->dma == DMA_ADDR_INVALID) {
+> -		_req->dma = pci_map_single(dev->pdev, _req->buf, _req->length,
+> -			ep->is_in ? PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
+> -		req->mapped = 1;
+> +	if (ep->dma) {
+> +		status = usb_gadget_map_request(&dev->gadget, &req->req,
 
- Tomi
+    Not '&_req->req'?
 
-
---=-uYvo5RyIMyeiubFjJCMt
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJO7zPnAAoJEPo9qoy8lh71I2QQAIGskZJvDBiAKtWYgtssxIDl
-Q9V5QaNDeV+TmneyKZ3rbgVN2rOAqsiJx7J6Ry+1cWZqCTxkGcuArfHZwb3kF4AR
-0nJlmllYS2h92Ltqo65HU9UybPsir/rg2JS+X4n+I2/v2OdP6dvcGb+XRtGIdkxA
-ja1BNUly4d8D+v01xcbIBS5nUDPchPjPEHlEE6dsUb1ADeBLPvboaf3hyThE2Izg
-PuccoXCIQ5s2h8QdsTcB6QE8VO51wHuC09H7T7HkkrEiPojmCyA5fR/INKIHnGpp
-yEh/pC78GBIaDfpttXBTsUWylZT9+Iv4rtUMaqtmFTcXdaGmZa+XpANIkpv98Xlc
-9e8PHJMLW06iwM14xrcTFNB93omZWeqEfiNQqnhqyEdWcI1cYI5BSoDa/o7ujy4I
-HIyFPStBGR50GsEy6GZLbxQgrHUk+1mbnI8MIgXV+fka8Zi9hdInOgSqd9+fHPo9
-zpIEOeDavRrG8/TxvvNt2sTe9wzDBQ14BI2mWqp3qMmKTnyipaOfK/0MgUr1Iw+2
-QMyfgvFqQ5ZiApK9roUoh1axeL84QX+B5Cj/HJ5HhcVIz37IVQlGBLh2u3Xjp05/
-zU27fXaiQQSBHLUcftpB8xCLZsMY1iuKeeUlo1A0A+qWWuiluBWtS7YKk/VHKRzV
-ebqnhtZg8gx5kvYh5zQi
-=cOkQ
------END PGP SIGNATURE-----
-
---=-uYvo5RyIMyeiubFjJCMt--
-
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
