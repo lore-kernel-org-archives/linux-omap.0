@@ -1,151 +1,80 @@
-From: <mythripk@ti.com>
-Subject: [PATCH v2 2/2] OMAPDSS: HDMI: Disable DDC internal pull up
-Date: Mon, 19 Dec 2011 18:06:46 +0530
-Message-ID: <1324298206-19161-2-git-send-email-mythripk@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 2/2] OMAPDSS: HDMI: Disable DDC internal pull up
+Date: Mon, 19 Dec 2011 14:53:59 +0200
+Message-ID: <1324299239.31482.37.camel@deskari>
 References: <1324298206-19161-1-git-send-email-mythripk@ti.com>
+	 <1324298206-19161-2-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-uYvo5RyIMyeiubFjJCMt"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43717 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751866Ab1LSMoZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 07:44:25 -0500
-In-Reply-To: <1324298206-19161-1-git-send-email-mythripk@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:51765 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751568Ab1LSMyE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Dec 2011 07:54:04 -0500
+Received: by mail-lpp01m010-f43.google.com with SMTP id w12so7467970lag.30
+        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 04:54:02 -0800 (PST)
+In-Reply-To: <1324298206-19161-2-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-Cc: Mythri P K <mythripk@ti.com>, Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+To: mythripk@ti.com
+Cc: linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
-From: Mythri P K <mythripk@ti.com>
 
-Disables the internal pull resistor for SDA and SCL which are enabled by
-default, as there are external pull up's in 4460 and 4430 ES2.3
-SDP, Blaze and Panda Boards, It is done to avoid the EDID read failure.
+--=-uYvo5RyIMyeiubFjJCMt
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c    |    9 ++++++++-
- arch/arm/mach-omap2/board-omap4panda.c |   10 +++++++++-
- arch/arm/mach-omap2/display.c          |   22 +++++++++++++++++++---
- include/video/omapdss.h                |    6 +++++-
- 4 files changed, 41 insertions(+), 6 deletions(-)
+On Mon, 2011-12-19 at 18:06 +0530, mythripk@ti.com wrote:
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index c3bd640..4af874a 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -826,7 +826,14 @@ static void omap_4430sdp_display_init(void)
- 	sdp4430_lcd_init();
- 	sdp4430_picodlp_init();
- 	omap_display_init(&sdp4430_dss_data);
--	omap_hdmi_init();
-+	/*
-+	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
-+	 * later have external pull up on the HDMI I2C lines
-+	 */
-+	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
-+		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
-+	else
-+		omap_hdmi_init(0);
- }
- 
- #ifdef CONFIG_OMAP_MUX
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index d95df2e..00103e3 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -541,7 +541,15 @@ void omap4_panda_display_init(void)
- 		pr_err("error initializing panda DVI\n");
- 
- 	omap_display_init(&omap4_panda_dss_data);
--	omap_hdmi_init();
-+
-+	/*
-+	 * OMAP4460SDP/Blaze and OMAP4430 ES2.3 SDP/Blaze boards and
-+	 * later have external pull up on the HDMI I2C lines
-+	 */
-+	if (cpu_is_omap446x() || omap_rev() > OMAP4430_REV_ES2_2)
-+		omap_hdmi_init(OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP);
-+	else
-+		omap_hdmi_init(0);
- }
- 
- static void __init omap4_panda_init(void)
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 8436088..041fc52 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -97,8 +97,11 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
- 	{ "dss_hdmi", "omapdss_hdmi", -1 },
- };
- 
--static void omap4_hdmi_mux_pads()
-+static void omap4_hdmi_mux_pads(int flags)
- {
-+	u32 reg;
-+	u16 control_i2c_1;
-+
- 	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
- 	omap_mux_init_signal("hdmi_hpd",
- 			OMAP_PIN_INPUT_PULLUP);
-@@ -109,6 +112,19 @@ static void omap4_hdmi_mux_pads()
- 			OMAP_PIN_INPUT_PULLUP);
- 	omap_mux_init_signal("hdmi_ddc_sda",
- 			OMAP_PIN_INPUT_PULLUP);
-+
-+	/*
-+	 * CONTROL_I2C_1: HDMI_DDC_SDA_PULLUPRESX (bit 28) and
-+	 * HDMI_DDC_SCL_PULLUPRESX (bit 24) are set to disable
-+	 * internal pull up resistor.
-+	 */
-+	if (flags & OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP) {
-+		control_i2c_1 = OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_I2C_1;
-+		reg = omap4_ctrl_pad_readl(control_i2c_1);
-+		reg |= (OMAP4_HDMI_DDC_SDA_PULLUPRESX_MASK |
-+			OMAP4_HDMI_DDC_SCL_PULLUPRESX_MASK);
-+			omap4_ctrl_pad_writel(reg, control_i2c_1);
-+	}
- }
- 
- static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
-@@ -144,10 +160,10 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	return 0;
- }
- 
--int omap_hdmi_init(void)
-+int omap_hdmi_init(int flags)
- {
- 	if (cpu_is_omap44xx())
--		omap4_hdmi_mux_pads();
-+		omap4_hdmi_mux_pads(flags);
- 
- 	return 0;
- }
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 0cb0469..799470f 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -200,6 +200,10 @@ enum omap_dss_clk_source {
- 	OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI,	/* OMAP4: PLL2_CLK2 */
- };
- 
-+enum omap_hdmi_flags {
-+	OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP = 1 << 0,
-+};
-+
- /* RFBI */
- 
- struct rfbi_timings {
-@@ -310,7 +314,7 @@ struct omap_dss_board_info {
- /* Init with the board info */
- extern int omap_display_init(struct omap_dss_board_info *board_data);
- /* HDMI mux init*/
--extern int  omap_hdmi_init(void);
-+extern int omap_hdmi_init(int flags);
- 
- struct omap_display_platform_data {
- 	struct omap_dss_board_info *board_data;
--- 
-1.7.5.4
+> diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+> index 0cb0469..799470f 100644
+> --- a/include/video/omapdss.h
+> +++ b/include/video/omapdss.h
+> @@ -200,6 +200,10 @@ enum omap_dss_clk_source {
+>  	OMAP_DSS_CLK_SRC_DSI2_PLL_HSDIV_DSI,	/* OMAP4: PLL2_CLK2 */
+>  };
+> =20
+> +enum omap_hdmi_flags {
+> +	OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP =3D 1 << 0,
+> +};
+> +
+>  /* RFBI */
+> =20
+>  struct rfbi_timings {
+> @@ -310,7 +314,7 @@ struct omap_dss_board_info {
+>  /* Init with the board info */
+>  extern int omap_display_init(struct omap_dss_board_info *board_data);
+>  /* HDMI mux init*/
+> -extern int  omap_hdmi_init(void);
+> +extern int omap_hdmi_init(int flags);
+
+You have an enum for flags, so use the enum instead of int.
+
+ Tomi
+
+
+--=-uYvo5RyIMyeiubFjJCMt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO7zPnAAoJEPo9qoy8lh71I2QQAIGskZJvDBiAKtWYgtssxIDl
+Q9V5QaNDeV+TmneyKZ3rbgVN2rOAqsiJx7J6Ry+1cWZqCTxkGcuArfHZwb3kF4AR
+0nJlmllYS2h92Ltqo65HU9UybPsir/rg2JS+X4n+I2/v2OdP6dvcGb+XRtGIdkxA
+ja1BNUly4d8D+v01xcbIBS5nUDPchPjPEHlEE6dsUb1ADeBLPvboaf3hyThE2Izg
+PuccoXCIQ5s2h8QdsTcB6QE8VO51wHuC09H7T7HkkrEiPojmCyA5fR/INKIHnGpp
+yEh/pC78GBIaDfpttXBTsUWylZT9+Iv4rtUMaqtmFTcXdaGmZa+XpANIkpv98Xlc
+9e8PHJMLW06iwM14xrcTFNB93omZWeqEfiNQqnhqyEdWcI1cYI5BSoDa/o7ujy4I
+HIyFPStBGR50GsEy6GZLbxQgrHUk+1mbnI8MIgXV+fka8Zi9hdInOgSqd9+fHPo9
+zpIEOeDavRrG8/TxvvNt2sTe9wzDBQ14BI2mWqp3qMmKTnyipaOfK/0MgUr1Iw+2
+QMyfgvFqQ5ZiApK9roUoh1axeL84QX+B5Cj/HJ5HhcVIz37IVQlGBLh2u3Xjp05/
+zU27fXaiQQSBHLUcftpB8xCLZsMY1iuKeeUlo1A0A+qWWuiluBWtS7YKk/VHKRzV
+ebqnhtZg8gx5kvYh5zQi
+=cOkQ
+-----END PGP SIGNATURE-----
+
+--=-uYvo5RyIMyeiubFjJCMt--
 
