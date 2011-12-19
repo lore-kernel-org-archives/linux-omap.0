@@ -1,37 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [GIT PULL] ARM: OMAP3/4: miscellaneous hwmod data updates
-Date: Mon, 19 Dec 2011 14:57:19 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112191456030.12660@utopia.booyaka.com>
+From: Peter Barada <peter.barada@logicpd.com>
+Subject: linux-3.0: system suspend leaves usbhost clocks enabled
+Date: Mon, 19 Dec 2011 17:02:00 -0500
+Message-ID: <4EEFB458.1050100@logicpd.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53301 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610Ab1LSV5U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 16:57:20 -0500
+Received: from 174-46-170-154.static.twtelecom.net ([174.46.170.154]:39867
+	"HELO edprlnx06.logicpd.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1751646Ab1LSWLz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Dec 2011 17:11:55 -0500
+Received: from [172.16.10.2] (unknown [172.16.10.2])
+	by edprlnx06.logicpd.com (Postfix) with ESMTP id A9572600095
+	for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 16:02:14 -0600 (CST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tony
+I'm working with linux-3.0 (I know its not the latest), and I have the
+USB host working.
 
-The following changes since commit dc47ce90c3a822cd7c9e9339fe4d5f61dcb26b50:
+However when I try to suspend, the usbhost power domain doesn't go into
+suspend.  I've added code to capture the PRCM registers in SRAM just
+before the WFI is executed and dump them after it resumes.  For usbhost
+I'm seeing:
 
-  Linux 3.2-rc5 (2011-12-09 15:09:32 -0800)
+48005400 CM_FCLKEN_USBHOST    00000003 != 00000000
+48005410 CM_ICLKEN_USBHOST    00000001 != 00000000
+48005420 CM_IDLEST_USBHOST    00000000 != 00000003
 
-are available in the git repository at:
-  git://git.pwsan.com/linux-2.6 hwmod_data_b_devel_3.3
+Which means that the usbhost interface/function clocks are not
+disabled.  I also noticed in the core/peripheral domain that a lot of
+interface clocks are enabled (compared to the older 2.6.32 kernel I was
+working on), even for devices that I don't have any platform_device
+for(so the device's probe will fail).
 
-Ming Lei (1):
-      ARM: OMAP4: hwmod data: introduce fdif(face detect module) hwmod
+As far as I can tell, the only place the usbhost f/i clocks are enabled
+is in omap_hsusb_enable(), and  disabled in omap_hsusb_disable().  I see
+omap_hsusb_eneable() called on startup, but never see
+omap_hsusb_disable() called during system suspend.
 
-Peter Ujfalusi (1):
-      ARM: OMAP4: hwmod data: Add names for DMIC memory address space
+Any ideas how I can get the usbhost clocks disabled across a board suspend?
 
-Shubhrajyoti D (1):
-      ARM: OMAP3+: hwmod data: Add the default clockactivity for I2C
+-- 
+Peter Barada
+peter.barada@logicpd.com
 
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |    7 +-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   96 ++++++++++++++++++++++++++-
- 2 files changed, 96 insertions(+), 7 deletions(-)
