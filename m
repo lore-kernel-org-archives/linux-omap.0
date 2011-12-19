@@ -1,36 +1,90 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [GIT PULL] ARM: OMAP: I2C: prepare to use hwmod reset in driver
-Date: Mon, 19 Dec 2011 17:32:20 +0100
-Message-ID: <4EEF6714.2040208@ti.com>
-References: <alpine.DEB.2.00.1112160254320.12660@utopia.booyaka.com> <20111216195002.GL32251@atomide.com> <alpine.DEB.2.00.1112161314180.12660@utopia.booyaka.com> <20111216204123.GM32251@atomide.com> <alpine.DEB.2.00.1112161357250.12660@utopia.booyaka.com> <20111217002409.GB6464@atomide.com> <4EED9DD4.3020506@ti.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 04/10] rtc: rtc-twl: Add DT support for RTC inside
+ twl4030/twl6030
+Date: Mon, 19 Dec 2011 17:52:26 +0100
+Message-ID: <4EEF6BCA.908@ti.com>
+References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
+ <1323439361-1647-5-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50966 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751713Ab1LSQc1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 11:32:27 -0500
-In-Reply-To: <4EED9DD4.3020506@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <1323439361-1647-5-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Shubhro,
+Hi Alessandro,
 
-On 12/18/2011 9:01 AM, Shubhrajyoti wrote:
-
-[...]
-
-> The driver does a reset in the error path.
-> Since we are not supposed to access the sysc reg the function is needed.
-
-I'm just wondering what will happen to the driver if this callback is 
-not provided during the device creation? This is what will happen during 
-DT boot for example?
-
-Is it a mandatory function?
+Gentle ping on this patch.
 
 Thanks,
 Benoit
+
+On 12/9/2011 3:02 PM, Benoit Cousson wrote:
+> Add the DT support for the TI rtc-twl present in the twl4030
+> and twl6030 devices.
+>
+> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Alessandro Zummo<a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>
+> ---
+>   Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
+>   drivers/rtc/rtc-twl.c                             |   10 ++++++++--
+>   2 files changed, 20 insertions(+), 2 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
+>
+> diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+> new file mode 100644
+> index 0000000..596e0c9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
+> @@ -0,0 +1,12 @@
+> +* TI twl RTC
+> +
+> +The TWL family (twl4030/6030) contains a RTC.
+> +
+> +Required properties:
+> +- compatible : Should be twl4030-rtc
+> +
+> +Examples:
+> +
+> +rtc@0 {
+> +    compatible = "ti,twl4030-rtc";
+> +};
+> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+> index 20687d5..d43b4f6 100644
+> --- a/drivers/rtc/rtc-twl.c
+> +++ b/drivers/rtc/rtc-twl.c
+> @@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platform_device *pdev)
+>   #define twl_rtc_resume  NULL
+>   #endif
+>
+> +static const struct of_device_id twl_rtc_of_match[] = {
+> +	{.compatible = "ti,twl4030-rtc", },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
+>   MODULE_ALIAS("platform:twl_rtc");
+>
+>   static struct platform_driver twl4030rtc_driver = {
+> @@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc_driver = {
+>   	.suspend	= twl_rtc_suspend,
+>   	.resume		= twl_rtc_resume,
+>   	.driver		= {
+> -		.owner	= THIS_MODULE,
+> -		.name	= "twl_rtc",
+> +		.owner		= THIS_MODULE,
+> +		.name		= "twl_rtc",
+> +		.of_match_table = twl_rtc_of_match,
+>   	},
+>   };
+>
