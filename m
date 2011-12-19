@@ -1,34 +1,52 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: ZOOM2 doesn't boot on upstream kernel
-Date: Mon, 19 Dec 2011 18:56:14 +0200
-Message-ID: <CAMP44s2WRGBP8TP6v-2fZGywgdZ_N719D4QJtnxao4cZUco7Rg@mail.gmail.com>
-References: <AANLkTilypMkwLYcpFCI5ZwSKOGHIAwDI7Bp9IdN9UAv_@mail.gmail.com>
-	<2A3DCF3DA181AD40BDE86A3150B27B6B030DED31F3@dbde02.ent.ti.com>
-	<AANLkTikkCeusIKA2KyRcVWbxVXKmLA8-_RfC2A4u3ySM@mail.gmail.com>
-	<A24693684029E5489D1D202277BE894456224D59@dlee02.ent.ti.com>
-	<loom.20111216T082358-46@post.gmane.org>
-	<20111216205302.GN32251@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [RFC v2 PATCH 2/3] dt: device tree bindings for TI's EMIF sdram controller
+Date: Mon, 19 Dec 2011 08:59:18 -0800
+Message-ID: <CAOesGMidr_orQ60wWrDkSPXZziZ6wuThTixmQj-idkkDjrMG0A@mail.gmail.com>
+References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+	<1324303533-17458-3-git-send-email-aneesh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48599 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388Ab1LSQ4P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 11:56:15 -0500
-Received: by pbdu13 with SMTP id u13so1942280pbd.19
-        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 08:56:14 -0800 (PST)
-In-Reply-To: <20111216205302.GN32251@atomide.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:39516 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556Ab1LSQ7U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 11:59:20 -0500
+Received: by wgbdr13 with SMTP id dr13so11038261wgb.1
+        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 08:59:19 -0800 (PST)
+In-Reply-To: <1324303533-17458-3-git-send-email-aneesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: deepthi <deepthi_kiran@mindtree.com>, linux-omap@vger.kernel.org
+To: Aneesh V <aneesh@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Fri, Dec 16, 2011 at 10:53 PM, Tony Lindgren <tony@atomide.com> wrote:
-> You should use ttyO for the omap ports, but zoom debug board
-> has external 8250 ftdi ports, so those show up as ttyS and
-> not ttyO.
+Oh wait, when I saw 3/3 I realized the following too:
 
-Plus that was changed on 2.6.36 (or after?) and he is using 2.6.35.
+On Mon, Dec 19, 2011 at 6:05 AM, Aneesh V <aneesh@ti.com> wrote:
 
--- 
-Felipe Contreras
+> +- phy-type =A0 =A0 : string indicating the phy type. Should be one o=
+f the
+> + =A0following:
+> +
+> + =A0"phy-type-omap4" =A0: PHY used in OMAP4 family of SoCs
+> +
+> + =A0"phy-type-dm81xx" : PHY used in DM81XX family of SoCs
+
+No, again please don't define new string properties when a simple
+binary property will do just fine. Just use "phy-type-omap4" or
+"phy-type-dm81xx" as an empty property to indicate what phy is used.
+Or encode as an integer and list the valid values here.
+
+Every time you add a string to the device tree, the data structure
+grows, not to mention the fact that it adds a lot of string
+comparisons during setup. Please keep that in mind when defining
+bindings.
+
+
+
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
