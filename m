@@ -1,210 +1,196 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/6] OMAP: PM: register to the per-device PM
- QoS framework
-Date: Mon, 19 Dec 2011 14:12:20 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1112191405310.12660@utopia.booyaka.com>
-References: <1323874304-5001-1-git-send-email-j-pihet@ti.com>
-	<1323874304-5001-4-git-send-email-j-pihet@ti.com>
+Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
+ hwmod
+Date: Mon, 19 Dec 2011 14:48:38 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112191447270.12660@utopia.booyaka.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com> <4EEB5BBC.7050807@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED;
-	BOUNDARY="155748971-1433855630-1324328824=:12660"
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <1323874304-5001-4-git-send-email-j-pihet@ti.com>
-Content-ID: <alpine.DEB.2.00.1112191411280.12660@utopia.booyaka.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: jean.pihet@newoldbits.com
-Cc: Kevin Hilman <khilman@ti.com>, Linux PM mailing list <linux-pm@lists.linux-foundation.org>, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1471173727-1324331318=:12660"
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4EEB5BBC.7050807@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Ming Lei <ming.lei@canonical.com>, Mauro Carvalho Chehab <mchehab@infradead.org>, Tony Lindgren <tony@atomide.com>, Sylwester Nawrocki <snjw23@gmail.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-1433855630-1324328824=:12660
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+--155748971-1471173727-1324331318=:12660
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1112191411281.12660@utopia.booyaka.com>
 
-Hi
+Hi Beno=EEt,
 
-On Wed, 14 Dec 2011, jean.pihet@newoldbits.com wrote:
+On Fri, 16 Dec 2011, Cousson, Benoit wrote:
 
-> From: Jean Pihet <j-pihet@ti.com>
+> On 12/16/2011 6:53 AM, Paul Walmsley wrote:
+> > Hi Beno=EEt
+> >=20
+> > On Wed, 14 Dec 2011, Ming Lei wrote:
+> >=20
+> > > Signed-off-by: Ming Lei<ming.lei@canonical.com>
 >=20
-> Implement the devices wake-up latency constraints using the global
-> device PM QoS notification handler which applies the constraints to the
-> underlying layer by calling the corresponding function at hwmod level.
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
 >=20
-> Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
-> latency constraints on MPU, CORE and PER.
+> > > ---
+> > >   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81
+> > > ++++++++++++++++++++++++++++
+> > >   1 files changed, 81 insertions(+), 0 deletions(-)
+> >=20
+> > any comments on this patch?  I'd like to queue it if it looks good to y=
+ou.
 >=20
-> Signed-off-by: Jean Pihet <j-pihet@ti.com>
-> Reviewed-by: Kevin Hilman <khilman@ti.com>
+> It looks good to me. The only minor comment is about fdif location in the=
+ list
+> that should be sorted and thus cannot be after wd_timer2.
 
-I've modified this patch to work with omap_devices that contain multiple=20
-hwmods, and to move the code to the mach-omap2/omap_device.c code, which=20
-seems to make more sense.  Since the hwmod set-constraint and=20
-remove-constraint functions are now split, this code also must determine=20
-which one to call.
+Thanks, patch updated to match the script output and queued.  Modified=20
+patch follows.
+
 
 - Paul
 
-From: Jean Pihet <j-pihet@ti.com>
-Date: Sun, 18 Dec 2011 16:42:07 -0700
-Subject: [PATCH] ARM: OMAP: omap_device: register to the per-device PM QoS
- framework
+From: Ming Lei <ming.lei@canonical.com>
+Date: Mon, 19 Dec 2011 14:34:06 -0700
+Subject: [PATCH] ARM: OMAP4: hwmod data: introduce fdif(face detect module)
+ hwmod
 
-Implement the devices wake-up latency constraints using the global
-device PM QoS notification handler which applies the constraints to the
-underlying layer by calling the corresponding function at hwmod level.
+Add hwmod data for the OMAP4 FDIF IP block.
 
-Tested on OMAP3 Beagleboard and OMAP4 Pandaboard in RET/OFF using wake-up
-latency constraints on MPU, CORE and PER.
-
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
-Reviewed-by: Kevin Hilman <khilman@ti.com>
-[paul@pwsan.com: modified to work with omap_devices with large numbers of
- hwmods; moved code to mach-omap2/omap_device.c; added documentation; use
- notifier return codes]
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Acked-by: Beno=EEt Cousson <b-cousson@ti.com>
+[paul@pwsan.com: rearranged to match script output; fixed FDIF end address =
+to
+ match script data; wrote trivial changelog]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/plat-omap/omap_device.c |   74 ++++++++++++++++++++++++++++++++++=
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   85 ++++++++++++++++++++++++=
 ++++
- 1 files changed, 74 insertions(+), 0 deletions(-)
+ 1 files changed, 85 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_dev=
-ice.c
-index e8d9869..b2c18b7 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -2,6 +2,7 @@
-  * omap_device implementation
-  *
-  * Copyright (C) 2009-2010 Nokia Corporation
-+ * Copyright (C) 2011 Texas Instruments, Inc.
-  * Paul Walmsley, Kevin Hilman
-  *
-  * Developed in collaboration with (alphabetical order): Benoit
-@@ -88,6 +89,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/of.h>
- #include <linux/notifier.h>
-+#include <linux/pm_qos.h>
-=20
- #include <plat/omap_device.h>
- #include <plat/omap_hwmod.h>
-@@ -409,6 +411,67 @@ static int _omap_device_notifier_call(struct notifier_=
-block *nb,
- =09return NOTIFY_DONE;
- }
-=20
-+/**
-+ * _omap_device_pm_qos_handler - interface to the per-device PM QoS framew=
-ork
-+ * @nb: pointer to omap_device_pm_qos_nb (not used)
-+ * @new_value: new maximum wakeup latency constraint for @req->dev (in =B5=
-s)
-+ * @req: struct dev_pm_qos_request * passed by the Linux PM QoS code
-+ *
-+ * Called by the Linux core device PM QoS code to alter the maximum
-+ * wakeup latency constraint on a device.  If the underlying device is
-+ * an omap_device, then this code will pass the constraint on to the
-+ * underlying hwmods.  Returns -EINVAL if this code can't handle the
-+ * constraint for some reason, or passes along the return code from the
-+ * hwmod wakeup latency constraint functions.
-+ */
-+static int _omap_device_pm_qos_handler(struct notifier_block *nb,
-+=09=09=09=09       unsigned long new_value,
-+=09=09=09=09       void *req)
-+{
-+=09struct omap_device *od;
-+=09struct omap_hwmod *oh;
-+=09struct platform_device *pdev;
-+=09struct dev_pm_qos_request *dev_pm_qos_req =3D req;
-+=09int ret =3D NOTIFY_OK;
-+=09int r, i;
-+
-+=09pr_debug("OMAP PM constraints: req@0x%p, new_value=3D%lu\n",
-+=09=09 req, new_value);
-+
-+=09/* Look for the platform device for the constraint target device */
-+=09pdev =3D to_platform_device(dev_pm_qos_req->dev);
-+
-+=09/* Try to catch non platform devices */
-+=09if (pdev->name =3D=3D NULL) {
-+=09=09pr_err("%s: Error: platform device for device %s not valid\n",
-+=09=09       __func__, dev_name(dev_pm_qos_req->dev));
-+=09=09return NOTIFY_DONE;
-+=09}
-+
-+=09/* Find the associated omap_device for dev */
-+=09od =3D to_omap_device(pdev);
-+=09if (od =3D=3D NULL) {
-+=09=09pr_err("%s: Error: no omap_device for device %s\n",
-+=09=09       __func__, dev_name(dev_pm_qos_req->dev));
-+=09=09return NOTIFY_DONE;
-+=09}
-+
-+=09pr_debug("OMAP PM constraints: req@0x%p, dev=3D0x%p, new_value=3D%lu\n"=
-,
-+=09=09 req, dev_pm_qos_req->dev, new_value);
-+
-+=09for (i =3D 0; i < od->hwmods_cnt; i++) {
-+=09=09oh =3D od->hwmods[i];
-+=09=09if (new_value =3D=3D PM_QOS_DEV_LAT_DEFAULT_VALUE)
-+=09=09=09r =3D omap_hwmod_remove_wakeuplat_constraint(oh, dev_pm_qos_req);
-+=09=09else
-+=09=09=09r =3D omap_hwmod_set_wakeuplat_constraint(oh, dev_pm_qos_req, new=
-_value);
-+
-+=09=09if (!r)
-+=09=09=09ret =3D NOTIFY_BAD;
-+=09}
-+
-+=09return ret;
-+}
-=20
- /* Public functions for use by core code */
-=20
-@@ -1135,13 +1198,24 @@ struct device omap_device_parent =3D {
- =09.parent         =3D &platform_bus,
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index daaf165..3ac4bf6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
+ static struct omap_hwmod omap44xx_dsp_hwmod;
+ static struct omap_hwmod omap44xx_dss_hwmod;
+ static struct omap_hwmod omap44xx_emif_fw_hwmod;
++static struct omap_hwmod omap44xx_fdif_hwmod;
+ static struct omap_hwmod omap44xx_hsi_hwmod;
+ static struct omap_hwmod omap44xx_ipu_hwmod;
+ static struct omap_hwmod omap44xx_iss_hwmod;
+@@ -346,6 +347,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l=
+3_main_2 =3D {
+ =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
  };
 =20
-+static struct notifier_block omap_device_pm_qos_nb =3D {
-+=09.notifier_call=09=3D _omap_device_pm_qos_handler,
++/* fdif -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
++=09.master=09=09=3D &omap44xx_fdif_hwmod,
++=09.slave=09=09=3D &omap44xx_l3_main_2_hwmod,
++=09.clk=09=09=3D "l3_div_ck",
++=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
 +};
 +
- static struct notifier_block platform_nb =3D {
- =09.notifier_call =3D _omap_device_notifier_call,
+ /* hsi -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
+ =09.master=09=09=3D &omap44xx_hsi_hwmod,
+@@ -1797,6 +1806,79 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod =3D=
+ {
  };
 =20
- static int __init omap_device_init(void)
- {
-+=09int ret;
+ /*
++ * 'fdif' class
++ * face detection hw accelerator module
++ */
 +
- =09bus_register_notifier(&platform_bus_type, &platform_nb);
++static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
++=09.rev_offs=09=3D 0x0000,
++=09.sysc_offs=09=3D 0x0010,
++=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
++=09=09=09   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++=09=09=09   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
++};
 +
-+=09ret =3D dev_pm_qos_add_global_notifier(&omap_device_pm_qos_nb);
-+=09if (!ret)
-+=09=09pr_err("omap_device: cannot add global notifier for dev PM QoS\n");
++static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
++=09.name=09=3D "fdif",
++=09.sysc=09=3D &omap44xx_fdif_sysc,
++};
 +
- =09return device_register(&omap_device_parent);
- }
- core_initcall(omap_device_init);
++/* fdif */
++static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
++=09{ .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
++=09{ .irq =3D -1 }
++};
++
++/* fdif master ports */
++static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
++=09&omap44xx_fdif__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
++=09{
++=09=09.pa_start=09=3D 0x4a10a000,
++=09=09.pa_end=09=09=3D 0x4a10a1ff,
++=09=09.flags=09=09=3D ADDR_TYPE_RT
++=09},
++=09{ }
++};
++
++/* l4_cfg -> fdif */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
++=09.master=09=09=3D &omap44xx_l4_cfg_hwmod,
++=09.slave=09=09=3D &omap44xx_fdif_hwmod,
++=09.clk=09=09=3D "l4_div_ck",
++=09.addr=09=09=3D omap44xx_fdif_addrs,
++=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* fdif slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
++=09&omap44xx_l4_cfg__fdif,
++};
++
++static struct omap_hwmod omap44xx_fdif_hwmod =3D {
++=09.name=09=09=3D "fdif",
++=09.class=09=09=3D &omap44xx_fdif_hwmod_class,
++=09.clkdm_name=09=3D "iss_clkdm",
++=09.mpu_irqs=09=3D omap44xx_fdif_irqs,
++=09.main_clk=09=3D "fdif_fck",
++=09.prcm =3D {
++=09=09.omap4 =3D {
++=09=09=09.clkctrl_offs =3D OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
++=09=09=09.context_offs =3D OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
++=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
++=09=09},
++=09},
++=09.slaves=09=09=3D omap44xx_fdif_slaves,
++=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_slaves),
++=09.masters=09=3D omap44xx_fdif_masters,
++=09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_masters),
++};
++
++/*
+  * 'gpio' class
+  * general purpose io module
+  */
+@@ -5327,6 +5409,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[=
+] =3D {
+ =09&omap44xx_dss_rfbi_hwmod,
+ =09&omap44xx_dss_venc_hwmod,
+=20
++=09/* fdif class */
++=09&omap44xx_fdif_hwmod,
++
+ =09/* gpio class */
+ =09&omap44xx_gpio1_hwmod,
+ =09&omap44xx_gpio2_hwmod,
 --=20
 1.7.7.3
---155748971-1433855630-1324328824=:12660
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-
---155748971-1433855630-1324328824=:12660--
+--155748971-1471173727-1324331318=:12660--
