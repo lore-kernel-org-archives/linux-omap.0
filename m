@@ -1,100 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/7][RESEND] ARM: OMAP1: ams-delta: register latch
- dependent devices later
-Date: Tue, 20 Dec 2011 10:06:11 -0800
-Message-ID: <20111220180610.GB24444@atomide.com>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <83e934adfc691b347534edb7788a67ab2e6bd7e1.1324331816.git.jkrzyszt@tis.icnet.pl>
- <201112200028.32947.jkrzyszt@tis.icnet.pl>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: Interesting L3 driver panic on v3.2-rc5 on 3530
+Date: Tue, 20 Dec 2011 23:15:38 +0400
+Message-ID: <4EF0DEDA.8040401@emcraft.com>
+References: <alpine.DEB.2.00.1112161859190.12660@utopia.booyaka.com> <loom.20111220T013434-130@post.gmane.org> <4EF07E2A.7030201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201112200028.32947.jkrzyszt@tis.icnet.pl>
-Sender: linux-input-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ocean.emcraft.com ([213.221.7.182]:46260 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab1LTTPH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 14:15:07 -0500
+In-Reply-To: <4EF07E2A.7030201@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: linux-omap@vger.kernel.org, "paul@pwsan.com" <paul@pwsan.com>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111219 14:57]:
-> Resending because of a typo in the Cc: list, sorry.
-> 
-> 8<--------------------------
-> 
-> In preparation to converting Amstrad Delta on-board latches to
-> basic_mmio_gpio devices, registration of platform devices which depend
-> on latches and will require initialization of their GPIO pins first,
-> should be moved out of .machine_init down to late_initcall level, as the
-> gpio-generic driver is not available until device_initcall time.  The
-> latch reset operation, which will be replaced with GPIO initialization,
-> must also be moved to late_initcall for the same reason.
-> 
-> Since there was already another, separate arch_initcall function for
-> setting up one of those latch dependent devices, the on-board modem
-> device, reuse that function, i.e., rename it to a name that matches the
-> new purpose, extend with other device setup relocated from
-> .machine_init, and move down to the late_initcall level.
-> 
-> While being at it, add missing gpio_free() in case the modem platform
-> device registration fails.
-> 
-> In addition, defer registration of the Amstrad Delta ASoC and serio
-> devices, done from their device driver files, until late_initcall time,
-> as those drivers will depend on their GPIO pins already requested from
-> the board late_init() function until updated to register their GPIO pins
-> themselves.
-> 
-> Thanks to Tony Lindgren <tony@atomide.com> who suggested this approach
-> instead of shifting up the gpio-generic driver initialization.
-...
- 
-> --- a/drivers/input/serio/ams_delta_serio.c
-> +++ b/drivers/input/serio/ams_delta_serio.c
-> @@ -165,6 +165,9 @@ serio:
->  	kfree(ams_delta_serio);
->  	return err;
->  }
-> +#ifndef MODULE
-> +late_initcall(ams_delta_serio_init);
-> +#else
->  module_init(ams_delta_serio_init);
->  
->  static void __exit ams_delta_serio_exit(void)
-> @@ -175,3 +178,4 @@ static void __exit ams_delta_serio_exit(void)
->  	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
->  }
->  module_exit(ams_delta_serio_exit);
-> +#endif
-> diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
-> index ccb8a6a..1764a3b 100644
-> --- a/sound/soc/omap/ams-delta.c
-> +++ b/sound/soc/omap/ams-delta.c
-> @@ -636,6 +636,9 @@ err:
->  	platform_device_put(ams_delta_audio_platform_device);
->  	return ret;
->  }
-> +#ifndef MODULE
-> +late_initcall(ams_delta_module_init);
-> +#else
->  module_init(ams_delta_module_init);
->  
->  static void __exit ams_delta_module_exit(void)
-> @@ -657,6 +660,7 @@ static void __exit ams_delta_module_exit(void)
->  	platform_device_unregister(ams_delta_audio_platform_device);
->  }
->  module_exit(ams_delta_module_exit);
-> +#endif
->  
->  MODULE_AUTHOR("Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>");
->  MODULE_DESCRIPTION("ALSA SoC driver for Amstrad E3 (Delta) videophone");
+Hi Archit,
 
-This looks a bit odd.. I think these drivers should be converted to
-a proper platform_driver so you can get rid of the machine_is_ams_delta
-check in the init. Then you can rely on the probe to match the
-device. To deal with the init order issues, you can pass a set_power
-function pointer in platform_data that the driver can use. Or
-set up a fixed regulator for it.
+On 20.12.2011 16:23, Archit Taneja wrote:
+>>> [    0.238494] Kernel BUG at c0033e34 [verbose debug info unavailable]
+>>> [    0.245025] Internal error: Oops - undefined instruction: 0 [#1] SMP
+>>> [    0.262390] PC is at omap3_l3_app_irq+0x108/0x12c
+>>
+>> I'm getting the same error on one of my AM3517 boards.
+>> L3_SI_FLAG_STATUS_0 register has bit 15 set that means Display SS IA
+>> burst
+>> timeout according to the RM.
+>>
+>> Regards, Ilya.
+> 
+> Do the bootloaders on these boards enable display?
 
-Regards,
+Yes, U-Boot on the problematic board enables the display. Disabling
+display support in U-Boot makes this problem go away.
 
-Tony
+> There was a patch which got into the kernel in 3.2-rc4:
+> 
+> b923d40dd4211c4ef7d4efa2bd81b7ca1d8744c1
+> ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in
+> bootloader
+> 
+> This tries to disable any display outputs if enabled in bootloader. If
+> this issue didn't happen before, we might want to look into this code.
+
+Hm. I can't say reverting this patch solves the problem completely. It
+seems to me that the bug triggers more rarely without this patch but I
+can't say for sure: it might be just a coincedence.
+
+> Could you share what debug prints you get from the function
+> omap_dss_reset() (its in arch/arm/mach-omap2/display.c)
+
+I can't see much debug output from this function/file. The only line is
+
+dss_core: softreset done
+
+and it's the same regardless of the bug was triggered or not.
+
+Do you wish me to add some debugging output and present the results? It
+would be great if you could say what data to dump.
+
+Regards, Ilya.
