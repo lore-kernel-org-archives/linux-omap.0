@@ -1,61 +1,158 @@
-From: Wolfram Sang <w.sang@pengutronix.de>
-Subject: Re: [PATCH V2] omap-serial: add RS485 mode support
-Date: Tue, 20 Dec 2011 22:53:33 +0100
-Message-ID: <20111220215333.GA6775@pengutronix.de>
-References: <1324416212-10012-1-git-send-email-yanok@emcraft.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41222 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516Ab1LTVxe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 16:53:34 -0500
-Content-Disposition: inline
-In-Reply-To: <1324416212-10012-1-git-send-email-yanok@emcraft.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH v2 1/7 v2] ARM: OMAP1: ams-delta: register latch dependent devices later
+Date: Tue, 20 Dec 2011 22:54:18 +0100
+Message-ID: <1324418058-30905-1-git-send-email-jkrzyszt@tis.icnet.pl>
+References: <201112200028.32947.jkrzyszt@tis.icnet.pl>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <201112200028.32947.jkrzyszt@tis.icnet.pl>
+Sender: linux-input-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-input@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, sasha_d@emcraft.com
 
+In preparation to converting Amstrad Delta on-board latches to
+basic_mmio_gpio devices, registration of platform devices which depend
+on latches and will require initialization of their GPIO pins first,
+should be moved out of .machine_init down to late_initcall level, as the
+gpio-generic driver is not available until device_initcall time.  The
+latch reset operation, which will be replaced with GPIO initialization,
+must also be moved to late_initcall for the same reason.
 
---SUOF0GtieIMvvwua
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Since there was already another, separate arch_initcall function for
+setting up one of those latch dependent devices, the on-board modem
+device, reuse that function, i.e., rename it to a name that matches the
+new purpose, extend with other device setup relocated from
+.machine_init, and move down to the late_initcall level.
 
-Hi,
+While being at it, add missing gpio_free() in case the modem platform
+device registration fails.
 
-On Tue, Dec 20, 2011 at 10:23:32PM +0100, Ilya Yanok wrote:
+Thanks to Tony Lindgren <tony@atomide.com> who suggested this approach
+instead of shifting up the gpio-generic driver initialization.
 
-> Add support for asserting RTS line while TX is in progress. OMAP
-> hardware doesn't support auto-RS485 mode so we control the line from
-> software. We use TX_EMPTY_CTL_IT bit in SCR register to generate TX
-> empty interrupt.
+In addition, defer registration of the Amstrad Delta ASoC and serio
+devices, done from their device driver files, until late_initcall time,
+as those drivers will depend on their GPIO pins already requested from
+the board late_init() function until updated to register their GPIO pins
+themselves.
 
-Sorry to bring bad news, but software RS485 is not mainlinable [1].
-You can browse linux-serial for RS485 to find more threads about it.
+Created and tested against linux-3.2-rc6.
 
-Regards,
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+Changes since the initial version of this patch:
+* use late_initcall() unconditionally in modules, requested by Russell
+  King (thanks!); an updated patch 7/7 will follow,
+* in the changelog message, move credits to Tony up a bit, since the
+  person responsible for other changes (he might not necessarily like)
+  is me, not him ;).
 
-   Wolfram
+Comments copied from this patch initial submission:
+This patch was not present in the initial submission, it replaces the
+old patch 1/10, providing an alternative solution not touching the
+gpio-generic driver.
 
-[1] http://article.gmane.org/gmane.linux.serial/3619/
+ arch/arm/mach-omap1/board-ams-delta.c |   28 ++++++++++++++++++++--------
+ drivers/input/serio/ams_delta_serio.c |    2 +-
+ sound/soc/omap/ams-delta.c            |    2 +-
+ 3 files changed, 22 insertions(+), 10 deletions(-)
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index b0f15d2..50987c9 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -275,11 +275,14 @@ static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
+ };
+ 
+ static struct platform_device *ams_delta_devices[] __initdata = {
+-	&ams_delta_nand_device,
+ 	&ams_delta_kp_device,
++	&ams_delta_camera_device,
++};
++
++static struct platform_device *late_devices[] __initdata = {
++	&ams_delta_nand_device,
+ 	&ams_delta_lcd_device,
+ 	&ams_delta_led_device,
+-	&ams_delta_camera_device,
+ };
+ 
+ static void __init ams_delta_init(void)
+@@ -307,9 +310,6 @@ static void __init ams_delta_init(void)
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
+ 
+-	/* Clear latch2 (NAND, LCD, modem enable) */
+-	ams_delta_latch2_write(~0, 0);
+-
+ 	omap1_usb_init(&ams_delta_usb_config);
+ 	omap1_set_camera_info(&ams_delta_camera_platform_data);
+ #ifdef CONFIG_LEDS_TRIGGERS
+@@ -345,13 +345,18 @@ static struct platform_device ams_delta_modem_device = {
+ 	},
+ };
+ 
+-static int __init ams_delta_modem_init(void)
++static int __init late_init(void)
+ {
+ 	int err;
+ 
+ 	if (!machine_is_ams_delta())
+ 		return -ENODEV;
+ 
++	/* Clear latch2 (NAND, LCD, modem enable) */
++	ams_delta_latch2_write(~0, 0);
++
++	platform_add_devices(late_devices, ARRAY_SIZE(late_devices));
++
+ 	omap_cfg_reg(M14_1510_GPIO2);
+ 	ams_delta_modem_ports[0].irq =
+ 			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+@@ -367,9 +372,16 @@ static int __init ams_delta_modem_init(void)
+ 		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+ 		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
+ 
+-	return platform_device_register(&ams_delta_modem_device);
++	err = platform_device_register(&ams_delta_modem_device);
++	if (err)
++		goto gpio_free;
++	return 0;
++
++gpio_free:
++	gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
++	return err;
+ }
+-arch_initcall(ams_delta_modem_init);
++late_initcall(late_init);
+ 
+ static void __init ams_delta_map_io(void)
+ {
+diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
+index d4d08bd..835d37a 100644
+--- a/drivers/input/serio/ams_delta_serio.c
++++ b/drivers/input/serio/ams_delta_serio.c
+@@ -165,7 +165,7 @@ serio:
+ 	kfree(ams_delta_serio);
+ 	return err;
+ }
+-module_init(ams_delta_serio_init);
++late_initcall(ams_delta_serio_init);
+ 
+ static void __exit ams_delta_serio_exit(void)
+ {
+diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
+index ccb8a6a..be81bc7 100644
+--- a/sound/soc/omap/ams-delta.c
++++ b/sound/soc/omap/ams-delta.c
+@@ -636,7 +636,7 @@ err:
+ 	platform_device_put(ams_delta_audio_platform_device);
+ 	return ret;
+ }
+-module_init(ams_delta_module_init);
++late_initcall(ams_delta_module_init);
+ 
+ static void __exit ams_delta_module_exit(void)
+ {
+-- 
+1.7.3.4
 
---SUOF0GtieIMvvwua
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk7xA90ACgkQD27XaX1/VRtCTACfZxKBulFF3XyFIxpJ/vf+hy14
-9jsAn04KXRYrLOMRyNahHdw/5LL+VYRK
-=iACt
------END PGP SIGNATURE-----
-
---SUOF0GtieIMvvwua--
