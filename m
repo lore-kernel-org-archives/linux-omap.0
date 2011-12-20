@@ -1,72 +1,84 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
-Date: Tue, 20 Dec 2011 13:19:38 +0200
-Message-ID: <20111220111935.GE31842@legolas.emea.dhcp.ti.com>
-References: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
- <1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
- <20111219081137.GF3146@legolas.emea.dhcp.ti.com>
- <CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2] usb: musb: fix pm_runtime mismatch
+Date: Tue, 20 Dec 2011 13:38:25 +0200
+Message-ID: <20111220113823.GJ31842@legolas.emea.dhcp.ti.com>
+References: <1324324914-14584-1-git-send-email-felipe.contreras@nokia.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39542 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751764Ab1LTLTp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 06:19:45 -0500
+	protocol="application/pgp-signature"; boundary="9aCKuHbn5v2q3RVc"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1324324914-14584-1-git-send-email-felipe.contreras-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Felipe Contreras <felipe.contreras-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jarkko Nikula <jarkko.nikula-FVTvWyuFUl3QT0dZR+AlfA@public.gmane.org>, Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>
 
 
---SNIs70sCzqvszXB4
+--9aCKuHbn5v2q3RVc
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 19, 2011 at 10:20:09PM +0200, Felipe Contreras wrote:
-> On Mon, Dec 19, 2011 at 10:11 AM, Felipe Balbi <balbi@ti.com> wrote:
-> > On Fri, Dec 16, 2011 at 01:05:08AM +0200, Felipe Contreras wrote:
-> >> Properly call pm_runtime_put() afer pm_runttime_get() on errors.
-> >>
-> >> Untested.
-> >
-> > sorry, but I'm not applying untested patches. I need someone to give a
-> > Tested-by.
+On Mon, Dec 19, 2011 at 10:01:54PM +0200, Felipe Contreras wrote:
+> From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 >=20
-> I'm pretty sure most people don't test the exit paths, but fine, don't
-> apply them. Who needs power management anyway.
+> In musb_init_controller() there's a pm_runtime_put(), but there's no
+> pm_runtime_get(), which creates a mismatch that causes the driver to
+> sleep when it shouldn't.
+>=20
+> This was introduced in 7acc619[1], but it wasn't triggered in my setup
+> until 18a2689[2] was merged to Linus' branch at point df0914[3]. IOW;
+> when PM is working as it was supposed to.
+>=20
+> However, it seems most of the time this is used in a way that keeps the
+> counter above 0, so nobody noticed. Also, it seems to depend on the
+> configuration used in versions before 3.1, but not later (or in it).
+>=20
+> I found the problem by loading isp1704_charger before any usb gadgets:
+> http://article.gmane.org/gmane.linux.kernel/1226122
+>=20
+> All versions after 2.6.39 are affected.
+>=20
+> [1] usb: musb: Idle path retention and offmode support for OMAP3
+> [2] OMAP2+: musb: hwmod adaptation for musb registration
+> [3] Merge branch 'omap-for-linus' of git://git.kernel.org/pub/scm/linux/k=
+ernel/git/tmlind/linux-omap-2.6
+>=20
+> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: Hema HK <hemahk-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-if it wasn't tested you can't claim $SUBJECT makes PM magically work.
+applied, thanks
 
 --=20
 balbi
 
---SNIs70sCzqvszXB4
+--9aCKuHbn5v2q3RVc
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJO8G9HAAoJEIaOsuA1yqRE6PAP/3AywDvJuY0QyfM4zGGCbNKE
-A2kxxAaUhaRMuqM/k3s/8gS+oHzOtCfe4WgYB+Vlsb6f3o4Fh0TMgFB4Nz6ZbLxC
-iUGt+h+s4xfWRqXarUb9cpYjiYPdZ/686TQFJD4LEcGp0jm+0WipV0TYmid2nj3c
-kWPxJkHQRYL/rFz08Pw66M2F1oW8hnhojwxNyGqP76CvoLwW967HAVbTNpllmZj7
-cggqAGdnxfKRfuUnNNsw11vJBQaIy1RpPOhSgHpgCpmUcdNQ0IqmDbltQx/Sm0TW
-8WAlmmtcK1101IB+ejSf4kkXBW9qBsY594Kv1soyalt3AdwgafQ8Zg0NxGqE/4MA
-x67h8dUgho3YsvLqhtoKXiCX9XxcL+cJtp6huy2qCrMA15b1cLakTEUF9MvO7UKV
-omEVk2SZRbSMYGwF4K33tP155bF73YztrwQjjZjnLkijnqgq0UDvhOhIznd8Lr1K
-LoqBn9ktmkFqvyMTuO82QU656J04ysAxBGYdeHU3G3f9wvH7aL11Y5h4ixJvLkPb
-vYdXh43Z66IPVBqzqI2xkmcvNXzmmuyK316nOW1RljyKZTLDlVTo6oPO69kQq7EZ
-7Q6vikPoXEvnggcabBAl7z2YSfgHF34vwtYPV0Zpp5dZR9QXJH+LO2Avn05b18/8
-IkFcEQt8VEcrWdstJKqe
-=zZeH
+iQIcBAEBAgAGBQJO8HOvAAoJEIaOsuA1yqRERB4P/08Mx+ZByh3INWPzHPztXiLM
+3FSz3inIRYde+VZqB0DUDp50JxpgT1hvvpl1kuxHBXHv9glfsUX9G2cdHXXSl9VM
+KlOwcb/7dFo6Xq18PK5+ff5Vwy5eIXSxRg4DnK/iWpHVo/KT2S4zeEpma3dwxlmI
+I39ANSwvJUGwhQA6uoEEtJsG4TJFOPf5fYvyw9FCOnV2M8m+tKh5kcJBEnYB/yhG
+FQo6ZMFitvqXD7xAjpa633KvHFoTqhG8jAyMo7iV7owcs5VA2hhmwB8P+cowbT5K
+8qIOhE3z7dT20DYRdIB1Bf9v/zgEc8jr53Po5PJ4Dl04aOOfGXr3QTZRBOULPTWt
+Wjc5uEHLxg58rJyJ73SQMsAS0643iRaE1CVanirT80PQOV05y1VNKMvuKzjzVMyN
+VpfnAxkyxpBj93C7/A3SUpm5PQ93BKIukmO0SoZFSFQJIJ/1off2ZjmfMyDCdpRo
+PmAWe+8NV+k3LnNw+8f1jK2Jk6iMer7Sw8XmZIRaB9c/zp2PIupF+S3MNN2F5EbH
+eUU4xgSpPj39xh/BJMf7a04MMZf4w/K01KtH8a6ufdBHlcY98bdCxqKUuKuyDF3K
+Ih6o9lZxZ5UCZWAWGeYT/B/rg/Ovogo3/7UVv+YyhXG7gzD016UrX3jr7UwLadVg
+FRSN89jmHYKWW8JEhAF9
+=X3Ra
 -----END PGP SIGNATURE-----
 
---SNIs70sCzqvszXB4--
+--9aCKuHbn5v2q3RVc--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
