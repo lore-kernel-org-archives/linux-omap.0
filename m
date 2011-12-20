@@ -1,206 +1,64 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] input: serio: ams-delta: toggle keyboard power over GPIO
-Date: Tue, 20 Dec 2011 23:10:34 +0100
-Message-ID: <1324419034-31024-1-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <378bcda9c6cb6a1ddeeb54817078bc7ec68c5987.1324331816.git.jkrzyszt@tis.icnet.pl>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: [PATCH] am35xx-emac: move generic EMAC init to separate file
+Date: Wed, 21 Dec 2011 02:31:07 +0400
+Message-ID: <4EF10CAB.4010503@emcraft.com>
+References: <1321490199-24371-1-git-send-email-yanok@emcraft.com> <20111208001503.GV31337@atomide.com> <4EE93564.3010006@emcraft.com> <4EE9C057.6010204@compulab.co.il> <20111215184342.GT32251@atomide.com> <4EEA69C2.4000503@emcraft.com> <alpine.DEB.2.00.1112152257150.12660@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:49980 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478Ab1LTWLZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 17:11:25 -0500
-In-Reply-To: <378bcda9c6cb6a1ddeeb54817078bc7ec68c5987.1324331816.git.jkrzyszt@tis.icnet.pl>
+Received: from ocean.emcraft.com ([213.221.7.182]:52508 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab1LTWak (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 17:30:40 -0500
+In-Reply-To: <alpine.DEB.2.00.1112152257150.12660@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>, Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, Ranjith Lohithakshan <ranjithl@ti.com>, wd@denx.de, dzu@denx.de, sasha_d@emcraft.com
 
-Don't use Amstrad Delta custom I/O functions once GPIO interface is
-available for the underlying hardware.
+Hi Paul,
 
-While requesting and initializing GPIO pins used, also take care of one
-extra pin KEYBRD_DATAOUT which, even if not used by the driver, belongs
-to the device and affects its functioning.
+On 16.12.2011 10:13, Paul Walmsley wrote:
+>> Ok, let's wait for Paul's answer and then I'll prepare a separate patch.
+> 
+> Unfortunately the AM3517 TRM (SPRUGR0) here doesn't really have the same 
+> level of clock integration information that the WBU TRMs have, so it's 
+> kind of hard to tell what's going on :-(
+> 
+> Looking at Figure 22-1 "EMAC and MDIO Block Diagram", it appears that what 
+> we call "emac_fck" is really just an optional functional clock for the 
+> MDIO PHY?
 
-Once done, move the driver initialization back to the device_initcall
-level, reverting the temporary chane introduced with patch 1/7 "ARM:
-OMAP1: ams-delta: register latch dependent devices later".  That change
-is no longer required once the driver takes care of registering used
-GPIO pins, and it's better to initialize the device before others using
-the latch2 based GPIO pins, otherwise a garbage is reported on boot,
-perhaps due to random data already captured by the FIQ handler while the
-keyboard related latch bits are written with random values during
-initialization of those other latch2 dependent devices.
+Hm. I have to admit I'm completely lost here.
+CONTROL_IPSS_CLK_CTRL register has bit controlling "Func clock of
+CPGMAC". But there is no mention of this clock anywhere else in the
+manual. I can't find neither where it comes from nor how it's used.
+According to the current sources it comes from external 50MHz RMII
+clock, do you think this is correct?
 
-Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
-basic_mmio_gpio"
+EMAC section speaks something about variable frequency peripheral clock
+which is used to generate MDIO bus clock signal. But I can't find any
+information on that clock in the other parts of the document. It seems
+to me the EMAC section was just copied from DaVinci RM without any
+editing...
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
-Hi,
-I'm submitting only this one refreshed on top of updated 1/7. All others
-(2/7-6/7) don't require any refresh, can be rebased smoothly.
+> And it sounds like the AM35xx clock that we call "emac_ick" is actually a 
+> combined interface and functional clock for the EMAC and MDIO IP blocks?  
+> I guess a combined interface/functional clock would make sense, since the 
+> EMAC seems to contain a DMA controller.
+>   
+> Maybe Ranjith can provide some more information; he's cc'ed.
+> 
+> In any case, your changes sound reasonable to me, so a patch to the clock 
+> file sounds good.  I'd suggest both changing the clkdev aliases and 
+> renaming emac_fck - that's a confusing name and I don't think it's in the 
+> TRM as such.
 
-Thanks,
-Janusz
+Actually it's called Func clock in the manual (see
+CONTROL_IPSS_CLK_CTRL). Do you still think we have to rename it?
 
+I have another concern: changing clkdev aliases make things work for me
+but now I'm not sure if this change is really correct...
 
-Changes against version 2:
-* refreshed on top of updated patch 1/7 v2,
-* changelog: corrected patch 1/7 summary (was inaccurate).
-
-Changes against initial version:
-* was 9/10,
-* rebased on top of v2 of patch 2/7, just in case,
-* moved AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT pin handling from the board
-  code to the driver,
-* reverted a temporary change to the driver initcall level, introduced
-  by the new solution provided with patch 1/7.
-
-
- arch/arm/mach-omap1/board-ams-delta.c             |   10 ----
- arch/arm/plat-omap/include/plat/board-ams-delta.h |    2 -
- drivers/input/serio/ams_delta_serio.c             |   53 ++++++++++++--------
-:x 3 files changed, 32 insertions(+), 33 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 3aba8f9..673cf21 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -227,16 +227,6 @@ static struct gpio latch_gpios[] __initconst = {
- 		.label	= "dockit2",
- 	},
- 	{
--		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "keybrd_pwr",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "keybrd_dataout",
--	},
--	{
- 		.gpio	= AMS_DELTA_GPIO_PIN_SCARD_RSTIN,
- 		.flags	= GPIOF_OUT_INIT_LOW,
- 		.label	= "scard_rstin",
-diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-index e9ad673..027e79e 100644
---- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
-+++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-@@ -28,8 +28,6 @@
- 
- #if defined (CONFIG_MACH_AMS_DELTA)
- 
--#define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
--#define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
- #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
- #define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
- #define AMS_DELTA_LATCH2_MODEM_NRESET	0x1000
-diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-index 835d37a..ef1ec40 100644
---- a/drivers/input/serio/ams_delta_serio.c
-+++ b/drivers/input/serio/ams_delta_serio.c
-@@ -92,8 +92,7 @@ static irqreturn_t ams_delta_serio_interrupt(int irq, void *dev_id)
- static int ams_delta_serio_open(struct serio *serio)
- {
- 	/* enable keyboard */
--	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR,
--			AMD_DELTA_LATCH2_KEYBRD_PWR);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 1);
- 
- 	return 0;
- }
-@@ -101,9 +100,32 @@ static int ams_delta_serio_open(struct serio *serio)
- static void ams_delta_serio_close(struct serio *serio)
- {
- 	/* disable keyboard */
--	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR, 0);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 0);
- }
- 
-+static struct gpio _gpios[] __initconst_or_module = {
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATA,
-+		.flags	= GPIOF_DIR_IN,
-+		.label	= "serio-data",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_CLK,
-+		.flags	= GPIOF_DIR_IN,
-+		.label	= "serio-clock",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
-+		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "serio-power",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
-+		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "serio-dataout",
-+	},
-+};
-+
- static int __init ams_delta_serio_init(void)
- {
- 	int err;
-@@ -123,19 +145,11 @@ static int __init ams_delta_serio_init(void)
- 	strlcpy(ams_delta_serio->phys, "GPIO/serio0",
- 			sizeof(ams_delta_serio->phys));
- 
--	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_DATA, "serio-data");
-+	err = gpio_request_array(_gpios, ARRAY_SIZE(_gpios));
- 	if (err) {
--		pr_err("ams_delta_serio: Couldn't request gpio pin for data\n");
-+		pr_err("ams_delta_serio: Couldn't request gpio pins\n");
- 		goto serio;
- 	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
--
--	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_CLK, "serio-clock");
--	if (err) {
--		pr_err("ams_delta_serio: couldn't request gpio pin for clock\n");
--		goto gpio_data;
--	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
- 
- 	err = request_irq(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK),
- 			ams_delta_serio_interrupt, IRQ_TYPE_EDGE_RISING,
-@@ -143,7 +157,7 @@ static int __init ams_delta_serio_init(void)
- 	if (err < 0) {
- 		pr_err("ams_delta_serio: couldn't request gpio interrupt %d\n",
- 				gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
--		goto gpio_clk;
-+		goto gpio;
- 	}
- 	/*
- 	 * Since GPIO register handling for keyboard clock pin is performed
-@@ -157,21 +171,18 @@ static int __init ams_delta_serio_init(void)
- 	dev_info(&ams_delta_serio->dev, "%s\n", ams_delta_serio->name);
- 
- 	return 0;
--gpio_clk:
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
--gpio_data:
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-+gpio:
-+	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
- serio:
- 	kfree(ams_delta_serio);
- 	return err;
- }
--late_initcall(ams_delta_serio_init);
-+module_init(ams_delta_serio_init);
- 
- static void __exit ams_delta_serio_exit(void)
- {
- 	serio_unregister_port(ams_delta_serio);
- 	free_irq(OMAP_GPIO_IRQ(AMS_DELTA_GPIO_PIN_KEYBRD_CLK), 0);
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-+	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
- }
- module_exit(ams_delta_serio_exit);
--- 
-1.7.3.4
-
+Regards, Ilya.
