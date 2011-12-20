@@ -1,83 +1,67 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v3 03/11] rtc: rtc-twl: Add DT support for RTC inside
- twl4030/twl6030
-Date: Tue, 20 Dec 2011 17:27:16 +0100
-Message-ID: <1324398444-23296-4-git-send-email-b-cousson@ti.com>
-References: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH v3 02/11] i2c: OMAP: Add DT support for i2c controller
+Date: Tue, 20 Dec 2011 10:42:43 -0600
+Message-ID: <4EF0BB03.6040906@gmail.com>
+References: <1324398444-23296-1-git-send-email-b-cousson@ti.com> <1324398444-23296-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1324398444-23296-1-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:56872 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751285Ab1LTQmp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 11:42:45 -0500
+Received: by yenm11 with SMTP id m11so4114302yen.19
+        for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 08:42:45 -0800 (PST)
+In-Reply-To: <1324398444-23296-3-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, Ben Dooks <ben-linux@fluff.org>, Kevin Hilman <khilman@ti.com>
 
-Add the DT support for the TI rtc-twl present in the twl4030
-and twl6030 devices.
+On 12/20/2011 10:27 AM, Benoit Cousson wrote:
+> Add initial DT support to retrieve the frequency using a
+> DT attribute instead of the pdata pointer if of_node exist.
+> 
+> Add documentation for omap i2c controller binding.
+> 
+> Based on original patches from Manju and Grant.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Ben Dooks <ben-linux@fluff.org>
+> Cc: Kevin Hilman <khilman@ti.com>
 
-Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>
----
- Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
- drivers/rtc/rtc-twl.c                             |   10 ++++++++--
- 2 files changed, 20 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
+One issue below, otherwise:
 
-diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-new file mode 100644
-index 0000000..596e0c9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-@@ -0,0 +1,12 @@
-+* TI twl RTC
-+
-+The TWL family (twl4030/6030) contains a RTC.
-+
-+Required properties:
-+- compatible : Should be twl4030-rtc
-+
-+Examples:
-+
-+rtc@0 {
-+    compatible = "ti,twl4030-rtc";
-+};
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 20687d5..d43b4f6 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platform_device *pdev)
- #define twl_rtc_resume  NULL
- #endif
- 
-+static const struct of_device_id twl_rtc_of_match[] = {
-+	{.compatible = "ti,twl4030-rtc", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
- MODULE_ALIAS("platform:twl_rtc");
- 
- static struct platform_driver twl4030rtc_driver = {
-@@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc_driver = {
- 	.suspend	= twl_rtc_suspend,
- 	.resume		= twl_rtc_resume,
- 	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= "twl_rtc",
-+		.owner		= THIS_MODULE,
-+		.name		= "twl_rtc",
-+		.of_match_table = twl_rtc_of_match,
- 	},
- };
- 
--- 
-1.7.0.4
+Reviewed-by: Rob Herring <rob.herring@calxeda.com>
+
+
+> @@ -1001,15 +1019,24 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_release_region;
+>  	}
+>  
+> -	if (pdata != NULL) {
+> -		speed = pdata->clkrate;
+> +	match = of_match_device(omap_i2c_of_match, &pdev->dev);
+> +	if (match) {
+> +		u32 freq = 100000; /* default to 100000 Hz */
+> +
+> +		pdata = match->data;
+> +		dev->dtrev = pdata->rev;
+> +		dev->flags = pdata->flags;
+> +
+> +		of_property_read_u32(node, "clock-frequency", &freq);
+> +		/* convert DT freq value in Hz into kHz for speed */
+> +		dev->speed = freq / 1000;
+> +	} else if (pdata != NULL) {
+> +		dev->speed = pdata->clkrate;
+> +		dev->flags = pdata->flags;
+>  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> -	} else {
+> -		speed = 100;	/* Default speed */
+> -		dev->set_mpu_wkup_lat = NULL;
+> +		dev->dtrev = pdata->rev;
+
+If you get here, pdata is NULL.
+
+Rob
