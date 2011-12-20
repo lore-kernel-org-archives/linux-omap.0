@@ -1,72 +1,70 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V4 0/3] Introducing TI's New SoC/board AM335XEVM
-Date: Tue, 20 Dec 2011 12:15:01 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8062CD4@DBDE01.ent.ti.com>
-References: <1320946837-32507-1-git-send-email-hvaibhav@ti.com>
-	<878vmxxjrv.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A80474FD@DBDE01.ent.ti.com>
-	<878vmws4z8.fsf@ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A902847B@DBDE01.ent.ti.com>
- <87aa7akhe9.fsf@ti.com>
+From: "Mahapatra, Chandrabhanu" <cmahapatra@ti.com>
+Subject: Re: [PATCH V2 0/2] OMAPDSS: DISPC: Peformance improvement of DISPC Scaling
+Date: Tue, 20 Dec 2011 17:46:51 +0530
+Message-ID: <CAF0AtAu8bHRhKv0so49NiCbT2eyfAHn6+Rp74h+r2pK7wXqYqA@mail.gmail.com>
+References: <1324283602-6383-1-git-send-email-cmahapatra@ti.com>
+	<1324370169.2042.2.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45380 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125Ab1LTMPV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 07:15:21 -0500
-In-Reply-To: <87aa7akhe9.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:49555 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751125Ab1LTMQw convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Dec 2011 07:16:52 -0500
+In-Reply-To: <1324370169.2042.2.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
-Cc: Russell King <rmk@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, linux-fbdev@vger.kernel.org
+
+On Tue, Dec 20, 2011 at 2:06 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Mon, 2011-12-19 at 14:03 +0530, Chandrabhanu Mahapatra wrote:
+>> Hi everyone,
+>> the following patch set directs to improve the scaling performance o=
+f DISPC
+>> module which consists of two pacthes.
+>>
+>> The first patch is based on code of Lajos Molnar <lajos@ti.com> from=
+ Android
+>> Kernel, which updates the code with new set of coefficients to impro=
+ve the
+>> scaling performance.
+>>
+>> The second patch is based on some very valuable suggestions by
+>> Sebastien Fagard <s-fagard@ti.com> and directs to modify the clock
+>> requirements for scaling to support OMAP4 and avoid clock failure is=
+sues.
+>>
+>> I have tested these patches on OMAP2, OMAP3 AND OMAP4. To test on 24=
+30SDP
+>> board I have created a patch to enable the display which will follow=
+ later.
+>>
+>> All your comments and suggestions are welcome.
+>
+> Thanks, this looks good. Applied to DSS master branch. There was a mi=
+nor
+> conflict with the Makefile, but I fixed that.
+>
+> Btw, when doing new versions of a patch series, it would be good to h=
+ave
+> a short history of the series in the introduction email, so that the
+> reviewers can easily see what's new in each version.
+>
+> =A0Tomi
+>
+Thanks Tomi ! Its a good idea to including history of the series in
+the introduction. I will do so in further patches to come.
 
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Friday, December 02, 2011 11:04 PM
-> To: Mohammed, Afzal
-> Cc: Hiremath, Vaibhav; Russell King; linux-omap@vger.kernel.org;
-> tony@atomide.com; linux-arm-kernel@lists.infradead.org; paul@pwsan.com
-> Subject: Re: [PATCH-V4 0/3] Introducing TI's New SoC/board AM335XEVM
-> 
-> "Mohammed, Afzal" <afzal@ti.com> writes:
-> 
-> > Hi Kevin,
-> >
-> > On Thu, Dec 01, 2011 at 20:40:03, Hilman, Kevin wrote:
-> >> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
-> > :
-> >> > We can detect the board using on-board EEPROM, so same mach-id
-> >> > should work for both EVM and Beagle.
-> >>
-> >> > And also going forward with device tree approach we may
-> >> > not need different id's, right?
-> >>
-> >> Right, which is why I'm wondering why are there sevral new AM33x
-> >> mach-types when only one of them is being used:
-> >>
-> >> 3684    TI AM335X IA EVM        am335xiaevm     Afzal Mohammed
-> >> 3589    TI AM335X EVM           am335xevm       Vaibhav Bedia
-> >> 3808    Beaglebone Board        beaglebone      Steven Kipisz
-> >>
-> >> Russell has been trying to cleanup athe mach-types, so if these others
-> >> are not going to be used, I suggest they be deleted.
-> >
-> > "3684-TI AM335X IA EVM" is required as IA EVM uses a different UART,
-> > because of which early prints can't be captured, problem mentioned
-> > in http://marc.info/?l=linux-omap&m=131286938723617&w=2
-> 
-> This problem will be solved by using the device tree.
-> 
-
-Kevin,
-
-Will this solve earlyprintk as well?
-
-Thanks,
-Vaibhav
-
-> Kevin
+--=20
+Chandrabhanu Mahapatra
+Texas Instruments India Pvt. Ltd.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
