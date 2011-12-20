@@ -1,64 +1,44 @@
-From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: Interesting L3 driver panic on v3.2-rc5 on 3530
-Date: Tue, 20 Dec 2011 23:15:38 +0400
-Message-ID: <4EF0DEDA.8040401@emcraft.com>
-References: <alpine.DEB.2.00.1112161859190.12660@utopia.booyaka.com> <loom.20111220T013434-130@post.gmane.org> <4EF07E2A.7030201@ti.com>
+From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
+Date: Tue, 20 Dec 2011 21:43:45 +0200
+Message-ID: <CAMP44s1m9oXpiw506kE6JJn5xO+oCRL8B0UixUf4X=Ew00=wHA@mail.gmail.com>
+References: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
+	<1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
+	<20111219081137.GF3146@legolas.emea.dhcp.ti.com>
+	<CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
+	<20111220111935.GE31842@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ocean.emcraft.com ([213.221.7.182]:46260 "EHLO
-	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643Ab1LTTPH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 14:15:07 -0500
-In-Reply-To: <4EF07E2A.7030201@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20111220111935.GE31842-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: balbi-l0cyMroinI0@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: linux-omap@vger.kernel.org, "paul@pwsan.com" <paul@pwsan.com>
 
-Hi Archit,
-
-On 20.12.2011 16:23, Archit Taneja wrote:
->>> [    0.238494] Kernel BUG at c0033e34 [verbose debug info unavailable]
->>> [    0.245025] Internal error: Oops - undefined instruction: 0 [#1] SMP
->>> [    0.262390] PC is at omap3_l3_app_irq+0x108/0x12c
+On Tue, Dec 20, 2011 at 1:19 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+> On Mon, Dec 19, 2011 at 10:20:09PM +0200, Felipe Contreras wrote:
+>> On Mon, Dec 19, 2011 at 10:11 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
+>> > On Fri, Dec 16, 2011 at 01:05:08AM +0200, Felipe Contreras wrote:
+>> >> Properly call pm_runtime_put() afer pm_runttime_get() on errors.
+>> >>
+>> >> Untested.
+>> >
+>> > sorry, but I'm not applying untested patches. I need someone to give a
+>> > Tested-by.
 >>
->> I'm getting the same error on one of my AM3517 boards.
->> L3_SI_FLAG_STATUS_0 register has bit 15 set that means Display SS IA
->> burst
->> timeout according to the RM.
->>
->> Regards, Ilya.
-> 
-> Do the bootloaders on these boards enable display?
+>> I'm pretty sure most people don't test the exit paths, but fine, don't
+>> apply them. Who needs power management anyway.
+>
+> if it wasn't tested you can't claim $SUBJECT makes PM magically work.
 
-Yes, U-Boot on the problematic board enables the display. Disabling
-display support in U-Boot makes this problem go away.
+It's clear from the code, no need to test to see that pm_runtime_get()
+is called but not pm_runtime_put(), thus the device remains active,
+thus PM would not work after that.
 
-> There was a patch which got into the kernel in 3.2-rc4:
-> 
-> b923d40dd4211c4ef7d4efa2bd81b7ca1d8744c1
-> ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is enabled in
-> bootloader
-> 
-> This tries to disable any display outputs if enabled in bootloader. If
-> this issue didn't happen before, we might want to look into this code.
-
-Hm. I can't say reverting this patch solves the problem completely. It
-seems to me that the bug triggers more rarely without this patch but I
-can't say for sure: it might be just a coincedence.
-
-> Could you share what debug prints you get from the function
-> omap_dss_reset() (its in arch/arm/mach-omap2/display.c)
-
-I can't see much debug output from this function/file. The only line is
-
-dss_core: softreset done
-
-and it's the same regardless of the bug was triggered or not.
-
-Do you wish me to add some debugging output and present the results? It
-would be great if you could say what data to dump.
-
-Regards, Ilya.
+-- 
+Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
