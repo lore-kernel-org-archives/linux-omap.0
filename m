@@ -1,44 +1,41 @@
-From: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
-Date: Tue, 20 Dec 2011 21:43:45 +0200
-Message-ID: <CAMP44s1m9oXpiw506kE6JJn5xO+oCRL8B0UixUf4X=Ew00=wHA@mail.gmail.com>
-References: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
-	<1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
-	<20111219081137.GF3146@legolas.emea.dhcp.ti.com>
-	<CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
-	<20111220111935.GE31842@legolas.emea.dhcp.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [GIT PULL] ARM: OMAP: device PM constraints: preparatory support
+Date: Tue, 20 Dec 2011 12:53:42 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1112201251010.12660@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111220111935.GE31842-UiBtZHVXSwEVvW8u9ZQWYwjfymiNCTlR@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balbi-l0cyMroinI0@public.gmane.org
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:49777 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab1LTTxn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 14:53:43 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Dec 20, 2011 at 1:19 PM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
-> On Mon, Dec 19, 2011 at 10:20:09PM +0200, Felipe Contreras wrote:
->> On Mon, Dec 19, 2011 at 10:11 AM, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org> wrote:
->> > On Fri, Dec 16, 2011 at 01:05:08AM +0200, Felipe Contreras wrote:
->> >> Properly call pm_runtime_put() afer pm_runttime_get() on errors.
->> >>
->> >> Untested.
->> >
->> > sorry, but I'm not applying untested patches. I need someone to give a
->> > Tested-by.
->>
->> I'm pretty sure most people don't test the exit paths, but fine, don't
->> apply them. Who needs power management anyway.
->
-> if it wasn't tested you can't claim $SUBJECT makes PM magically work.
+Hi Tony
 
-It's clear from the code, no need to test to see that pm_runtime_get()
-is called but not pm_runtime_put(), thus the device remains active,
-thus PM would not work after that.
+These patches prepare for the introduction of the powerdomain device PM 
+constraints, via the standard Linux device PM mechanism that Rafael 
+Wysocki introduced.
 
--- 
-Felipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+After the powerdomain device PM constraints go in, we should be able to 
+remove some of the OMAP PM interface (currently via platform_data function 
+pointers) currently in our tree.
+
+The following changes since commit dc47ce90c3a822cd7c9e9339fe4d5f61dcb26b50:
+
+  Linux 3.2-rc5 (2011-12-09 15:09:32 -0800)
+
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 jp_hwmod_pm_dev_lat_devel_3.3
+
+Jean Pihet (2):
+      ARM: OMAP2+: hwmod: manage the wake-up latency constraints
+      ARM: OMAP: omap_device: register to the per-device PM QoS framework
+
+ arch/arm/mach-omap2/omap_hwmod.c             |   54 ++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    5 ++
+ arch/arm/plat-omap/omap_device.c             |   74 ++++++++++++++++++++++++++
+ 3 files changed, 132 insertions(+), 1 deletions(-)
