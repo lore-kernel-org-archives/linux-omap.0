@@ -1,61 +1,41 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [alsa-devel] [PATCH v2 1/7][RESEND] ARM: OMAP1: ams-delta: register latch	dependent devices later
-Date: Tue, 20 Dec 2011 21:51:33 +0100
-Message-ID: <201112202151.34062.jkrzyszt@tis.icnet.pl>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl> <201112200028.32947.jkrzyszt@tis.icnet.pl> <20111220204046.GA3354@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/7][RESEND] ARM: OMAP1: ams-delta: register latch
+ dependent devices later
+Date: Tue, 20 Dec 2011 12:57:06 -0800
+Message-ID: <20111220205706.GH17267@atomide.com>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <201112200028.32947.jkrzyszt@tis.icnet.pl>
+ <20111220180610.GB24444@atomide.com>
+ <201112202134.36802.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20111220204046.GA3354@n2100.arm.linux.org.uk>
-Sender: linux-input-owner@vger.kernel.org
-To: alsa-devel@alsa-project.org
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53848 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751514Ab1LTU5O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 15:57:14 -0500
+Content-Disposition: inline
+In-Reply-To: <201112202134.36802.jkrzyszt@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-On Tuesday 20 of December 2011 at 21:40:46, Russell King - ARM Linux wrote:
-> On Tue, Dec 20, 2011 at 12:28:32AM +0100, Janusz Krzysztofik wrote:
-> > diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-> > index d4d08bd..56ffd7c 100644
-> > --- a/drivers/input/serio/ams_delta_serio.c
-> > +++ b/drivers/input/serio/ams_delta_serio.c
-> > @@ -165,6 +165,9 @@ serio:
-> >  	kfree(ams_delta_serio);
-> >  	return err;
-> >  }
-> > +#ifndef MODULE
-> > +late_initcall(ams_delta_serio_init);
-> > +#else
-> >  module_init(ams_delta_serio_init);
-> >  
-> >  static void __exit ams_delta_serio_exit(void)
-> > @@ -175,3 +178,4 @@ static void __exit ams_delta_serio_exit(void)
-> >  	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-> >  }
-> >  module_exit(ams_delta_serio_exit);
-> > +#endif
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111220 12:03]:
+> On Tuesday 20 of December 2011 at 19:06:11, Tony Lindgren wrote:
 > 
-> It's worth noting:
+> > To deal with the init order issues, you can pass a set_power
+> > function pointer in platform_data that the driver can use. Or
+> > set up a fixed regulator for it.
 > 
-> #ifndef MODULE
-> #define late_initcall(fn)               __define_initcall("7",fn,7)
-> #else /* MODULE */
-> #define late_initcall(fn)               module_init(fn)
-> 
-> So really, all these ifndefs aren't required.  Just change the module_init()
-> to late_initcall().
+> I'm already working on the follow up patch series mentioned in the cover 
+> letter, and yes, I'm using the fixed regulator. Be patient, please, as 
+> my resources are somehow limited.
 
-Thanks, I'll follow your pattern. My reason for using those ifdefery was 
-a comment still found in include/linux/init.h:
+Yes, I understand. For this patch I'm fine with the late_initcall
+changes Russell suggested, then the rest can be done in separate
+patches later on.
 
-#else /* MODULE */
+Regards,
 
-/* Don't use these in modules, but some people do... */
-#define early_initcall(fn)              module_init(fn)
-#define core_initcall(fn)               module_init(fn)
-...
-#define late_initcall(fn)               module_init(fn)
-
-Thanks,
-Janusz
+Tony
