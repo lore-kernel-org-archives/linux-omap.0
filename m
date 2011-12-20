@@ -1,118 +1,84 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 5/5] ARM: OMAP2+: board-generic: Use of_irq_init API
-Date: Tue, 20 Dec 2011 14:39:58 +0100
-Message-ID: <1324388398-2683-6-git-send-email-b-cousson@ti.com>
-References: <1324388398-2683-1-git-send-email-b-cousson@ti.com>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF
+ and DDR
+Date: Tue, 20 Dec 2011 19:38:09 +0530
+Message-ID: <4EF096C9.1070808@ti.com>
+References: <1324303533-17458-1-git-send-email-aneesh@ti.com> <4EEFC23A.30201@gmail.com> <20111219233559.GW6464@atomide.com> <4EF0671B.7090508@ti.com> <4EF0824A.9060208@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36267 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002Ab1LTNke (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 08:40:34 -0500
-In-Reply-To: <1324388398-2683-1-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:34459 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751719Ab1LTOIR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Dec 2011 09:08:17 -0500
+Received: by mail-yx0-f175.google.com with SMTP id m12so4409759yen.34
+        for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 06:08:15 -0800 (PST)
+In-Reply-To: <4EF0824A.9060208@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rob.herring@calxeda.com, tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Use the of_irq_init API introduced in 3.2 to handle
-interrupt-controller with DT.
-Update the irq_match table to map the proper XXX_of_init
-functions for INTC and GIC drivers.
+Hi Benoit
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
----
- arch/arm/mach-omap2/board-generic.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+On Tuesday 20 December 2011 06:10 PM, Cousson, Benoit wrote:
+> Hi Aneesh,
+>
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index e493877..2529017 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -12,6 +12,7 @@
-  * published by the Free Software Foundation.
-  */
- #include <linux/io.h>
-+#include <linux/of_irq.h>
- #include <linux/of_platform.h>
- #include <linux/irqdomain.h>
- #include <linux/i2c/twl.h>
-@@ -24,6 +25,17 @@
- #include "common.h"
- #include "common-board-devices.h"
- 
-+static struct of_device_id irq_match[] __initdata = {
-+	{ .compatible = "ti,omap2-intc", .data = intc_of_init, },
-+	{ .compatible = "arm,cortex-a9-gic", .data = gic_of_init, },
-+	{ }
-+};
-+
-+static void __init omap_init_irq(void)
-+{
-+	of_irq_init(irq_match);
-+}
-+
- /*
-  * XXX: Still needed to boot until the i2c & twl driver is adapted to
-  * device-tree
-@@ -58,18 +70,8 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- 	{ }
- };
- 
--static struct of_device_id intc_match[] __initdata = {
--	{ .compatible = "ti,omap3-intc", },
--	{ .compatible = "arm,cortex-a9-gic", },
--	{ }
--};
--
- static void __init omap_generic_init(void)
- {
--	struct device_node *node = of_find_matching_node(NULL, intc_match);
--	if (node)
--		irq_domain_add_simple(node, 0);
--
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
- 
-@@ -103,7 +105,7 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap242x_map_io,
- 	.init_early	= omap2420_init_early,
--	.init_irq	= omap2_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= omap2_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
- 	.timer		= &omap2_timer,
-@@ -122,7 +124,7 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap243x_map_io,
- 	.init_early	= omap2430_init_early,
--	.init_irq	= omap2_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= omap2_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
- 	.timer		= &omap2_timer,
-@@ -141,7 +143,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
- 	.init_early	= omap3430_init_early,
--	.init_irq	= omap3_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap3_init,
- 	.timer		= &omap3_timer,
-@@ -160,7 +162,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap4_map_io,
- 	.init_early	= omap4430_init_early,
--	.init_irq	= gic_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= gic_handle_irq,
- 	.init_machine	= omap4_init,
- 	.timer		= &omap4_timer,
--- 
-1.7.0.4
+<snip>
 
+>>>> In general, is it really feasible to parse the DTB before DDR is
+>>>> initialized?
+>>>
+>>> Changing timings is still needed for DVFS during runtime.
+>>>
+>>> But we can boot to userspace with bootloader set timings, so I'm
+>>
+>> As far as I understand, in the current out-of-tree DVFS implementation
+>> for OMAP, DVFS can start even before user-space.
+>
+> Maybe it is the case, but that does not mean it should.
+> We can potentially delay the DVFS init until the user-space is started.
+> This should not be considered as a big constraint.
+>
+>>> thinking that maybe these timings should be just set by loadable
+>>> modules. Just the configuration of which timings to select should
+>>> be passed via DT. Something in compatible like:
+>>>
+>>> .compatible = "ti,omap3630", "sdram-micron-mt46h32m32lf-6";
+>>>
+>>> And that should allow the SDRC driver to only accept timings for
+>>> "sdram-micron-mt46h32m32lf-6".
+>>
+>> Do you mean one module per memory device and have all timing data in
+>> the respective module? Wouldn't this clutter the kernel proper with all
+>> these tables. By having the timing data in DT, it can be eventually
+>> moved out of kernel eventually, right?
+>
+> Yes, that's the theory, but referring to Olof's point, this is not
+> necessarily the goal of DT to store all the information that are not
+> board dependent.
+> In this case, each DDR will have it sets of well known AC timings data
+> that will never depend of the board config. In this case, storing that
+> inside DT might not be the best solution.
+>
+> In fact we always had the same kind of discussion for the pinmux data
+> and for the clock data...
+>
+> The conclusion being that most of the static data does not have to be in
+> the DTS.
+> But since Linus was complaining about the huge amount of data inside the
+> kernel, it is not obvious what the best solution is:-)
+
+Hmm.. I get the point now. Linus' complaint is what I had in mind too.
+My humble opinion is to have such data in DTS but re-use it as much as
+possible. That is, we could have something like a "sdram-micron-
+mt46h32m32lf-6.dtsi"(as you suggested before) that can be included by
+board level DTS files. I think the fact that dts files are organized at
+arch level today is limiting such re-use. Please correct me if I am
+wrong.
+
+br,
+Aneesh
