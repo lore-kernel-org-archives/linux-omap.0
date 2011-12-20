@@ -1,87 +1,72 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] AM35xx: disable checking for reserved feature bits
-Date: Tue, 20 Dec 2011 10:55:08 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8062B59@DBDE01.ent.ti.com>
-References: <1320796298-7202-1-git-send-email-yanok@emcraft.com>
-	<87d3d2kt83.fsf@ti.com> <20111207235825.GS31337@atomide.com>
- <87ty59gr25.fsf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/3] usb: musb: fix pm_runtime mismatches
+Date: Tue, 20 Dec 2011 13:19:38 +0200
+Message-ID: <20111220111935.GE31842@legolas.emea.dhcp.ti.com>
+References: <1323990310-11905-1-git-send-email-felipe.contreras@gmail.com>
+ <1323990310-11905-2-git-send-email-felipe.contreras@gmail.com>
+ <20111219081137.GF3146@legolas.emea.dhcp.ti.com>
+ <CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55647 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104Ab1LTKzb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 05:55:31 -0500
-In-Reply-To: <87ty59gr25.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:39542 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751764Ab1LTLTp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Dec 2011 06:19:45 -0500
+Content-Disposition: inline
+In-Reply-To: <CAMP44s2pbLRHB2ko9t-zQEpTFw=TaCS9b_qRmvAobgxeJ9WrCw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: Ilya Yanok <yanok@emcraft.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "wd@denx.de" <wd@denx.de>, "dzu@denx.de" <dzu@denx.de>, "sasha_d@emcraft.com" <sasha_d@emcraft.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: balbi@ti.com, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>
 
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Saturday, December 10, 2011 6:51 AM
-> To: Tony Lindgren
-> Cc: Ilya Yanok; linux-omap@vger.kernel.org; wd@denx.de; dzu@denx.de;
-> sasha_d@emcraft.com; Hiremath, Vaibhav
-> Subject: Re: [PATCH] AM35xx: disable checking for reserved feature bits
-> 
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> [...]
-> 
-> >> This "feature" selection mechanism is clearly not scaling to newer SoCs.
-> >> While this patch works around the problem, IMO, we need a more scalable
-> >> solution.
+--SNIs70sCzqvszXB4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, Dec 19, 2011 at 10:20:09PM +0200, Felipe Contreras wrote:
+> On Mon, Dec 19, 2011 at 10:11 AM, Felipe Balbi <balbi@ti.com> wrote:
+> > On Fri, Dec 16, 2011 at 01:05:08AM +0200, Felipe Contreras wrote:
+> >> Properly call pm_runtime_put() afer pm_runttime_get() on errors.
+> >>
+> >> Untested.
 > >
-> > Agreed.
-> >
-<snip>
-> >
-> > This should be coordinated with the splitting of feature detection
-> > as posted by Vaibhave in thread "[RFC PATCH] arm:omap: cleanup & split
-> > omap2/3/4_check_revision function" thread.
-> 
-> Vaibhav,
-> 
-> Feel free to take my proposed patch and develop it further and include
-> it in your rework of the SoC/feature detection.
-> 
-Kevin,
+> > sorry, but I'm not applying untested patches. I need someone to give a
+> > Tested-by.
+>=20
+> I'm pretty sure most people don't test the exit paths, but fine, don't
+> apply them. Who needs power management anyway.
 
-I spend some time on this, and I think it is not possible to use HWMOD 
-Entries for feature check. Reason being,
+if it wasn't tested you can't claim $SUBJECT makes PM magically work.
 
-	- The whole revision story is built upon howkeye and silicon rev.
-        And both remains same for different devices in same family, 
-        For example,
-          omap3430, omap3503 and omap3515 (for that matter all AM37x) all
-          will have same howkeye and silicon revision no.
+--=20
+balbi
 
-        Also, in the kernel we have something like.
+--SNIs70sCzqvszXB4
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-# define cpu_is_omap3515()              (cpu_is_omap3430() &&           \
-                                                 (!omap3_has_iva()) &&   \
-                                                 (omap3_has_sgx()))
-# define cpu_is_omap3525()              (cpu_is_omap3430() &&           \
-                                                 (!omap3_has_sgx()) &&   \
-                                                 (omap3_has_iva()))
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-        Which means, you can not do IP detection before check_feature
-        function.
+iQIcBAEBAgAGBQJO8G9HAAoJEIaOsuA1yqRE6PAP/3AywDvJuY0QyfM4zGGCbNKE
+A2kxxAaUhaRMuqM/k3s/8gS+oHzOtCfe4WgYB+Vlsb6f3o4Fh0TMgFB4Nz6ZbLxC
+iUGt+h+s4xfWRqXarUb9cpYjiYPdZ/686TQFJD4LEcGp0jm+0WipV0TYmid2nj3c
+kWPxJkHQRYL/rFz08Pw66M2F1oW8hnhojwxNyGqP76CvoLwW967HAVbTNpllmZj7
+cggqAGdnxfKRfuUnNNsw11vJBQaIy1RpPOhSgHpgCpmUcdNQ0IqmDbltQx/Sm0TW
+8WAlmmtcK1101IB+ejSf4kkXBW9qBsY594Kv1soyalt3AdwgafQ8Zg0NxGqE/4MA
+x67h8dUgho3YsvLqhtoKXiCX9XxcL+cJtp6huy2qCrMA15b1cLakTEUF9MvO7UKV
+omEVk2SZRbSMYGwF4K33tP155bF73YztrwQjjZjnLkijnqgq0UDvhOhIznd8Lr1K
+LoqBn9ktmkFqvyMTuO82QU656J04ysAxBGYdeHU3G3f9wvH7aL11Y5h4ixJvLkPb
+vYdXh43Z66IPVBqzqI2xkmcvNXzmmuyK316nOW1RljyKZTLDlVTo6oPO69kQq7EZ
+7Q6vikPoXEvnggcabBAl7z2YSfgHF34vwtYPV0Zpp5dZR9QXJH+LO2Avn05b18/8
+IkFcEQt8VEcrWdstJKqe
+=zZeH
+-----END PGP SIGNATURE-----
 
-	- The current omap_hwmod_xxxx_data.c uses silicon version alone
-        and only differentiate between silicon versions. We do not 
-        differentiate between different family of devices while registering
-        hwmod data.
-
-So the conclusion is, we have to stick to check_feature function.
-
-Thanks,
-Vaibhav
-
-
-> Kevin
+--SNIs70sCzqvszXB4--
