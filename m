@@ -1,171 +1,89 @@
-From: <mythripk@ti.com>
-Subject: [PATCH v2 1/2] OMAPDSS: HDMI: Move duplicate code from boardfile
-Date: Tue, 20 Dec 2011 14:08:02 +0530
-Message-ID: <1324370283-11884-1-git-send-email-mythripk@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v3 2/2] OMAPDSS: HDMI: Disable DDC internal pull up
+Date: Tue, 20 Dec 2011 10:56:53 +0200
+Message-ID: <1324371413.2042.11.camel@deskari>
+References: <1324370283-11884-1-git-send-email-mythripk@ti.com>
+	 <1324370283-11884-2-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-dLlvYpmo2+03F8vO1gMb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33934 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638Ab1LTIpj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 03:45:39 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id pBK8jbNj013245
-	for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 02:45:38 -0600
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id pBK8jaoB022548
-	for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 14:15:37 +0530 (IST)
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:42455 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750865Ab1LTI47 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Dec 2011 03:56:59 -0500
+Received: by lago2 with SMTP id o2so2454084lag.38
+        for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 00:56:56 -0800 (PST)
+In-Reply-To: <1324370283-11884-2-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
-Cc: Mythri P K <mythripk@ti.com>
+To: mythripk@ti.com
+Cc: linux-omap@vger.kernel.org, Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
 
-From: Mythri P K <mythripk@ti.com>
 
-Move duplicate HDMI mux_init code from omap4 and panda board file
-to display file.
+--=-dLlvYpmo2+03F8vO1gMb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c    |   16 +---------------
- arch/arm/mach-omap2/board-omap4panda.c |   17 +----------------
- arch/arm/mach-omap2/display.c          |   23 +++++++++++++++++++++++
- include/video/omapdss.h                |    2 ++
- 4 files changed, 27 insertions(+), 31 deletions(-)
+On Tue, 2011-12-20 at 14:08 +0530, mythripk@ti.com wrote:
+> From: Mythri P K <mythripk@ti.com>
+>=20
+> Disables the internal pull resistor for SDA and SCL which are enabled by
+> default, as there are external pull up's in 4460 and 4430 ES2.3
+> SDP, Blaze and Panda Boards, It is done to avoid the EDID read failure.
+>=20
+> Signed-off-by: Ricardo Salveti de Araujo <ricardo.salveti@linaro.org>
+> Signed-off-by: Mythri P K <mythripk@ti.com>
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 73b1e99..c3bd640 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -595,20 +595,6 @@ static void __init omap_sfh7741prox_init(void)
- 			__func__, OMAP4_SFH7741_ENABLE_GPIO, error);
- }
- 
--static void sdp4430_hdmi_mux_init(void)
--{
--	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
--	omap_mux_init_signal("hdmi_hpd",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_cec",
--			OMAP_PIN_INPUT_PULLUP);
--	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
--	omap_mux_init_signal("hdmi_ddc_scl",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_ddc_sda",
--			OMAP_PIN_INPUT_PULLUP);
--}
--
- static struct gpio sdp4430_hdmi_gpios[] = {
- 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
-@@ -838,9 +824,9 @@ static void omap_4430sdp_display_init(void)
- 		pr_err("%s: Could not get display_sel GPIO\n", __func__);
- 
- 	sdp4430_lcd_init();
--	sdp4430_hdmi_mux_init();
- 	sdp4430_picodlp_init();
- 	omap_display_init(&sdp4430_dss_data);
-+	omap_hdmi_init();
- }
- 
- #ifdef CONFIG_OMAP_MUX
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index a5b576b..d95df2e 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -478,21 +478,6 @@ int __init omap4_panda_dvi_init(void)
- 	return r;
- }
- 
--
--static void omap4_panda_hdmi_mux_init(void)
--{
--	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
--	omap_mux_init_signal("hdmi_hpd",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_cec",
--			OMAP_PIN_INPUT_PULLUP);
--	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
--	omap_mux_init_signal("hdmi_ddc_scl",
--			OMAP_PIN_INPUT_PULLUP);
--	omap_mux_init_signal("hdmi_ddc_sda",
--			OMAP_PIN_INPUT_PULLUP);
--}
--
- static struct gpio panda_hdmi_gpios[] = {
- 	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
-@@ -555,8 +540,8 @@ void omap4_panda_display_init(void)
- 	if (r)
- 		pr_err("error initializing panda DVI\n");
- 
--	omap4_panda_hdmi_mux_init();
- 	omap_display_init(&omap4_panda_dss_data);
-+	omap_hdmi_init();
- }
- 
- static void __init omap4_panda_init(void)
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index dce9905..8436088 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -29,6 +29,7 @@
- #include <plat/omap-pm.h>
- #include <plat/common.h>
- 
-+#include "mux.h"
- #include "control.h"
- #include "display.h"
- 
-@@ -96,6 +97,20 @@ static const struct omap_dss_hwmod_data omap4_dss_hwmod_data[] __initdata = {
- 	{ "dss_hdmi", "omapdss_hdmi", -1 },
- };
- 
-+static void omap4_hdmi_mux_pads()
-+{
-+	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
-+	omap_mux_init_signal("hdmi_hpd",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_cec",
-+			OMAP_PIN_INPUT_PULLUP);
-+	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
-+	omap_mux_init_signal("hdmi_ddc_scl",
-+			OMAP_PIN_INPUT_PULLUP);
-+	omap_mux_init_signal("hdmi_ddc_sda",
-+			OMAP_PIN_INPUT_PULLUP);
-+}
-+
- static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- {
- 	u32 enable_mask, enable_shift;
-@@ -129,6 +144,14 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	return 0;
- }
- 
-+int omap_hdmi_init(void)
-+{
-+	if (cpu_is_omap44xx())
-+		omap4_hdmi_mux_pads();
-+
-+	return 0;
-+}
-+
- static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
- {
- 	if (cpu_is_omap44xx())
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 378c7ed..0cb0469 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -309,6 +309,8 @@ struct omap_dss_board_info {
- 
- /* Init with the board info */
- extern int omap_display_init(struct omap_dss_board_info *board_data);
-+/* HDMI mux init*/
-+extern int omap_hdmi_init(void);
- 
- struct omap_display_platform_data {
- 	struct omap_dss_board_info *board_data;
--- 
-1.7.5.4
+<snip>
+
+>  struct rfbi_timings {
+> @@ -310,7 +314,7 @@ struct omap_dss_board_info {
+>  /* Init with the board info */
+>  extern int omap_display_init(struct omap_dss_board_info *board_data);
+>  /* HDMI mux init*/
+> -extern int  omap_hdmi_init(void);
+> +extern int omap_hdmi_init(enum omap_hdmi_flags flags);
+
+These patches you sent are broken. You add the omap_hdmi_init line in
+the previous patch, and change it here, but the lines are different
+(this one has two spaces between "int" and "omap_hdmi_init", and the
+previous doesn't) so the patches cannot be applied.
+
+I guess you hand edited them, or did something else manually. Never do
+that. Use git rebase or similar methods to edit the patches, and create
+the whole patch set with git-format-patch in one go.
+
+If you absolutely have to edit the patch files, apply them to your git
+tree afterwards and use git-format-patch to create the patch series
+before sending.
+
+And an introductory email with version history would be nice also.
+
+ Tomi
+
+
+--=-dLlvYpmo2+03F8vO1gMb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO8E3VAAoJEPo9qoy8lh714SUP/jITvsvRKlwu3Ki2+ymYqfdl
+fs3IxtBn77v5a0/ky5b1dV6BU8hxm9xKX/BG83BsYVWh3jxxNqALlxD+GQ0OFeW/
+Tswv8FGYADq3FMd8ZmDsReVRwGY06sFt576aRooThF28YBx3vNbmxqfvH7JdbMsN
+rg0RTyECInSnNMdeT4Oj5Wy3r8UQbwg55FyKgdRhkHvyKg+QwolCLmp0sTxnkb64
+ZHc6jAVcym0b9POcbCEwrculdVS7pAe+IRnsKTD5fLtC7VhppGKBQ8RWmU0dju2g
+yeSch+PhKCsS96/Zl1bDP5UNQyMV6t2iFk4ceVkXeAOijfzmaOW86WcO5mSK7Hnf
+usqIfT9h22ygZf9KMDYlNrZwPQZzK+gjFjIM85HsbyQPpp3PpfARIYjiwnSy3QSN
+LCkEzvh6zfBmYghBph0SEhJenSsO0X7rB6qc+H86p7lmYb7nxz/wGrL77gZ0qkw4
+r67ojNVzs+VwuaZuRzgRI763G+Irh9QKVyB8OaJHzkz8SMXgdS7FOpmI7o/jR6O9
+EMnqmynPCnOndNjpG/AF8eN06Z3WjWNjsvydQkIAfLW9NBtdC0+sUA1rQB5AygvJ
+68dqAeah+84izzBTbjQs7PQHuVDq2a+zn0/bd1Nkcpjqp4d/NyEhaKtQMmG10BgI
+S6iLbD2Ph0DsDhGnzVZd
+=KqDK
+-----END PGP SIGNATURE-----
+
+--=-dLlvYpmo2+03F8vO1gMb--
 
