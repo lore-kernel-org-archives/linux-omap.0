@@ -1,78 +1,119 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 06/11] arm/dts: twl6030: Add DTS file for twl6030 PMIC
-Date: Tue, 20 Dec 2011 17:27:19 +0100
-Message-ID: <1324398444-23296-7-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v3 11/11] ARM: OMAP2+: board-generic: Remove i2c static init
+Date: Tue, 20 Dec 2011 17:27:24 +0100
+Message-ID: <1324398444-23296-12-git-send-email-b-cousson@ti.com>
 References: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53416 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59853 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751625Ab1LTQ2M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 11:28:12 -0500
+	id S1751665Ab1LTQ2N (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Dec 2011 11:28:13 -0500
 In-Reply-To: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: rob.herring@calxeda.com, tony@atomide.com
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, Benoit Cousson <b-cousson@ti.com>
 
-Add a dedicated DTS file for the twl6030 Power IC.
-This chip is a big SoC that will be reused in a lot of various
-OMAP4+ boards.
+This mainly reverts the commit that was adding the i2c static init.
 
-Note: This file is supposed to be included in a board DTS that will
-create the twl node in order to allow the &twl reference to work.
-
-Exmaple:
-...
-&i2c1 {
-    twl: twl@48 {
-        reg = <0x48>;
-        interrupts = <0 7 4>;
-        interrupt-controller;
-        interrupt-parent = <&gic>;
-    };
-};
-
-/include/ "twl6030.dtsi"
-...
+Since the i2c and twl nodes are now present, there is no need
+for the static initialization anymore.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/twl6030.dtsi |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/twl6030.dtsi
+ arch/arm/mach-omap2/board-generic.c |   48 +---------------------------------
+ 1 files changed, 2 insertions(+), 46 deletions(-)
 
-diff --git a/arch/arm/boot/dts/twl6030.dtsi b/arch/arm/boot/dts/twl6030.dtsi
-new file mode 100644
-index 0000000..b7b4e5e
---- /dev/null
-+++ b/arch/arm/boot/dts/twl6030.dtsi
-@@ -0,0 +1,22 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+/*
-+ * Integrated Power Management Chip
-+ * http://www.ti.com/lit/ds/symlink/twl6030.pdf
-+ */
-+&twl {
-+	compatible = "ti,twl6030";
-+	interrupt-controller;
-+	#interrupt-cells = <1>;
-+
-+	rtc {
-+		compatible = "ti,twl4030-rtc";
-+		interrupts = <11>;
-+	};
-+};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 2529017..38f105d 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -15,7 +15,6 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/irqdomain.h>
+-#include <linux/i2c/twl.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/hardware/gic.h>
+@@ -36,34 +35,6 @@ static void __init omap_init_irq(void)
+ 	of_irq_init(irq_match);
+ }
+ 
+-/*
+- * XXX: Still needed to boot until the i2c & twl driver is adapted to
+- * device-tree
+- */
+-#ifdef CONFIG_ARCH_OMAP4
+-static struct twl4030_platform_data sdp4430_twldata = {
+-	.irq_base	= TWL6030_IRQ_BASE,
+-	.irq_end	= TWL6030_IRQ_END,
+-};
+-
+-static void __init omap4_i2c_init(void)
+-{
+-	omap4_pmic_init("twl6030", &sdp4430_twldata);
+-}
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static struct twl4030_platform_data beagle_twldata = {
+-	.irq_base	= TWL4030_IRQ_BASE,
+-	.irq_end	= TWL4030_IRQ_END,
+-};
+-
+-static void __init omap3_i2c_init(void)
+-{
+-	omap3_pmic_init("twl4030", &beagle_twldata);
+-}
+-#endif
+-
+ static struct of_device_id omap_dt_match_table[] __initdata = {
+ 	{ .compatible = "simple-bus", },
+ 	{ .compatible = "ti,omap-infra", },
+@@ -78,21 +49,6 @@ static void __init omap_generic_init(void)
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
+ 
+-#ifdef CONFIG_ARCH_OMAP4
+-static void __init omap4_init(void)
+-{
+-	omap4_i2c_init();
+-	omap_generic_init();
+-}
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static void __init omap3_init(void)
+-{
+-	omap3_i2c_init();
+-	omap_generic_init();
+-}
+-#endif
+ 
+ #if defined(CONFIG_SOC_OMAP2420)
+ static const char *omap242x_boards_compat[] __initdata = {
+@@ -145,7 +101,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+ 	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap_init_irq,
+ 	.handle_irq	= omap3_intc_handle_irq,
+-	.init_machine	= omap3_init,
++	.init_machine	= omap_generic_init,
+ 	.timer		= &omap3_timer,
+ 	.dt_compat	= omap3_boards_compat,
+ MACHINE_END
+@@ -164,7 +120,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.init_early	= omap4430_init_early,
+ 	.init_irq	= omap_init_irq,
+ 	.handle_irq	= gic_handle_irq,
+-	.init_machine	= omap4_init,
++	.init_machine	= omap_generic_init,
+ 	.timer		= &omap4_timer,
+ 	.dt_compat	= omap4_boards_compat,
+ MACHINE_END
 -- 
 1.7.0.4
 
