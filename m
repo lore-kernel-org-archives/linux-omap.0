@@ -1,84 +1,120 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF
- and DDR
-Date: Tue, 20 Dec 2011 16:14:43 +0530
-Message-ID: <4EF0671B.7090508@ti.com>
-References: <1324303533-17458-1-git-send-email-aneesh@ti.com> <4EEFC23A.30201@gmail.com> <20111219233559.GW6464@atomide.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 4/9] usb: renesas: gadget: use generic map/unmap routines
+Date: Tue, 20 Dec 2011 12:51:08 +0200
+Message-ID: <20111220105105.GB31842@legolas.emea.dhcp.ti.com>
+References: <1324290632-23758-1-git-send-email-balbi@ti.com>
+ <1324290632-23758-5-git-send-email-balbi@ti.com>
+ <87d3bkrp4n.wl%kuninori.morimoto.gx@renesas.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:41144 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751819Ab1LTKou (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:50055 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751422Ab1LTKvP (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 05:44:50 -0500
-Received: by ghrr20 with SMTP id r20so1528346ghr.39
-        for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 02:44:49 -0800 (PST)
-In-Reply-To: <20111219233559.GW6464@atomide.com>
+	Tue, 20 Dec 2011 05:51:15 -0500
+Content-Disposition: inline
+In-Reply-To: <87d3bkrp4n.wl%kuninori.morimoto.gx@renesas.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Rob Herring <robherring2@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 
-On Tuesday 20 December 2011 05:05 AM, Tony Lindgren wrote:
-> * Rob Herring<robherring2@gmail.com>  [111219 14:29]:
->> On 12/19/2011 08:05 AM, Aneesh V wrote:
->>> This is an RFC to add new device tree bindings for DDR memories and
->>> EMIF - TI's DDR SDRAM controller.
->>>
->>> The first patch adds bindings for DDR memories. Currently,
->>> we have added properties for only DDR3 and LPDDR2 memories.
->>> However, the binding can be easily extended to describe
->>> other types such as DDR2 in the future.
->>>
->>> The second patch provides the bindings for the EMIF controller.
->>>
->>> The final patch provides DT data for EMIF controller instances
->>> in OMAP4 and LPDDR2 memories attached to them on various boards.
->>>
->>> Thanks to Rajendra for answering my numerous queries on device tree.
->>>
->>> This is a re-post of the RFC that was posted to devicetree-discuss ml,
->>> now sent to a larger audience and looping out an internal list.
->>> Please ignore the previous version.
->>
->> There's already a standard way (i.e. JEDEC standard) to define DDR chip
->> configuration that's called SPD. Why invent something new? While this is
->> normally an i2c eeprom on a DIMM, there's no reason you couldn't get it
->> from somewhere else including perhaps the DT. There's already code in
->> u-boot that can parse SPD data.
->
-> I agree generic JEDEC standard would be good for the DT.
 
-Please see my comments in reply to Rob's mail. SPD doesn't seems to
-have a standard for LPDDR2. What JEDEC has now is not suitable for our
-needs.
+--s/l3CgOIzMHHjg/5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
->
->> In general, is it really feasible to parse the DTB before DDR is
->> initialized?
->
-> Changing timings is still needed for DVFS during runtime.
->
-> But we can boot to userspace with bootloader set timings, so I'm
+Hi,
 
-As far as I understand, in the current out-of-tree DVFS implementation
-for OMAP, DVFS can start even before user-space.
+On Mon, Dec 19, 2011 at 05:46:56PM -0800, Kuninori Morimoto wrote:
+> I tried this patch, but renesas_usbhs didn't work.
+> It seems have some bugs.
+>=20
+> 1. renesas_usbhs dma needs pkt->dma, but this patch didn't care it.
+> 2. dma direction seems wrong
+>    ("dir" needs 0/1, not DMA_xxx_DEVICE for usb_gadget_xx_request())
+>=20
+> And, renesas_usbhs can not use scatter/gather type dma
+>=20
+> #
+> # this is not super important, but
+> #
+> # int usb_gadget_map_request(struct usb_gadget *gadget,
+> #		struct usb_request *req, int direction)
+> #
+> # this "direction =3D 0/1" is a little bit un-understandable for me.
+> # it is difficult to understand "which direction ?" from code.
+> # if "direction =3D DMA_TO_DEVICE/DMA_FROM_DEVICE, it is understandable ;P
 
-> thinking that maybe these timings should be just set by loadable
-> modules. Just the configuration of which timings to select should
-> be passed via DT. Something in compatible like:
->
-> 	.compatible = "ti,omap3630", "sdram-micron-mt46h32m32lf-6";
->
-> And that should allow the SDRC driver to only accept timings for
-> "sdram-micron-mt46h32m32lf-6".
+I see. The thing is that we want usb_gadget_map/unmap_request() to
+handle that. In the long run, we might want to have a direction flag on
+the public struct usb_request and remove this extra parameter, but I'm
+still considering that :-)
 
-Do you mean one module per memory device and have all timing data in
-the respective module? Wouldn't this clutter the kernel proper with all
-these tables. By having the timing data in DT, it can be eventually
-moved out of kernel eventually, right?
+> Can you please add below fix patch ?
 
-br,
-Aneesh
+thanks, will do as soon as you fix below :-)
+
+> ------------------------------------------------
+> diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas=
+_usbhs/mod_gadget.c
+> index cb92a1d..c467067 100644
+> --- a/drivers/usb/renesas_usbhs/mod_gadget.c
+> +++ b/drivers/usb/renesas_usbhs/mod_gadget.c
+> @@ -173,15 +173,32 @@ static int usbhsg_dma_map_ctrl(struct usbhs_pkt *pk=
+t, int map)
+>  	struct usbhsg_uep *uep =3D usbhsg_pipe_to_uep(pipe);
+>  	struct usbhsg_gpriv *gpriv =3D usbhsg_uep_to_gpriv(uep);
+>  	enum dma_data_direction dir;
+> +	int ret;
+> =20
+> -	dir =3D usbhs_pipe_is_dir_in(pipe) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+> +	dir =3D !usbhs_pipe_is_dir_in(pipe);
+> =20
+>  	if (map) {
+> -		return usb_gadget_map_request(&gpriv->gadget, req, dir);
+> +		if (req->num_sgs) /* it can not use scatter/gather */
+> +			return -EIO;
+
+it would be better to through a big fat WARN() in this case. Gadget
+drivers are supposed to check whether you support SGs (by looking into
+gadget->sg_suported) before giving you a request with SGs.
+
+> +		if (pkt->dma !=3D DMA_ADDR_INVALID)
+> +			return -EIO;
+
+no no, we want to remove the whole DMA_ADDR_INVALID thing. What we're
+doing now is that UDC is required to map the request buffer. So gadget
+drivers must not do it. We shouldn't have this DMA_ADDR_INVALID macro
+anymore :-)
+
+--=20
+balbi
+
+--s/l3CgOIzMHHjg/5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJO8GiZAAoJEIaOsuA1yqREf1cP/iDKK6Cqqjfn+J5391b9D2E4
+06ZDFQxMgDHQDS6c+fVO/7/DFgG5udBZSuQzDmivn1ERioYMubXXTwCn1DUbQ/2l
+4mgz8DUGkPMPiHga6acsQv3lEz3UK8Mj3bPXWxDDa4WYQwGJHchv6f97zChOhjtH
+5l4cvftQK89ut1objiFRIwyjRXpIl1VOZG0tLoPcHtzdwFc7ywcyc35qeCR3mljp
+rqTXddfEKMp4feMMW0+HGXXIDySUQz64dMWIr/iLxQIik+khScDWgvOEZ3LBTex/
+1Pn5oKmpBLPbqblLJUSTUU4HHO+XzV+U4nUgAx+Ka8nZ4b6J5Y/wtxwwvqGjIrTp
+OPBnNr2nkbUVfvxZnLm9/umdxC3Bu6FDVOxqE8O5otpyO/rJIIpIvbQ8pl19Lktk
+hLAckwpKE5GWv/wDHdQyaVO4j+Jg48j3npS/lwAGUv7CZltid9+lzBob4GgDruda
+TLwOYaLBOfRZ3WtvcKYIIhf+e+dfKOVdCnJM3Vg9Hom6w3Ke2JIyhpF3lLg8/FSm
+UYVRjN6c4Brw++cOzaK0HgtzWhc+8PDIUi0f7FtBJW5FIL/njn97VmQs6kFZXeHI
+VKEspkHMFsBYyEbMEdV7IIxlBqGPPVgCGZqm9xN0Xbvwor1lFZyzLoHqfeiyYsRd
+AuznmBNAkr6nZnjauemd
+=sEAS
+-----END PGP SIGNATURE-----
+
+--s/l3CgOIzMHHjg/5--
