@@ -1,42 +1,34 @@
-From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: Interesting L3 driver panic on v3.2-rc5 on 3530
-Date: Tue, 20 Dec 2011 00:39:25 +0000 (UTC)
-Message-ID: <loom.20111220T013434-130@post.gmane.org>
-References: <alpine.DEB.2.00.1112161859190.12660@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:34520 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753018Ab1LTAkI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Dec 2011 19:40:08 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1RcnkS-0006Lh-ME
-	for linux-omap@vger.kernel.org; Tue, 20 Dec 2011 01:40:06 +0100
-Received: from ppp92-100-93-175.pppoe.avangarddsl.ru ([92.100.93.175])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 01:40:04 +0100
-Received: from yanok by ppp92-100-93-175.pppoe.avangarddsl.ru with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 01:40:04 +0100
-Sender: linux-omap-owner@vger.kernel.org
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH 01/10] arm: omap4: fix kconfig warning
+Date: Tue, 20 Dec 2011 02:42:18 +0200
+Message-ID: <1324341747-5922-2-git-send-email-felipe.contreras@gmail.com>
+References: <1324341747-5922-1-git-send-email-felipe.contreras@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1324341747-5922-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Felipe Balbi <balbi@ti.com>, Vladimir Zapolskiy <vz@mleia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi Paul,
+warning: (ARCH_OMAP4 && ARCH_VEXPRESS_CA9X4) selects ARM_ERRATA_720789 which has unmet direct dependencies (CPU_V7 && SMP)
 
-Paul Walmsley <paul <at> pwsan.com> writes:
-> [    0.238494] Kernel BUG at c0033e34 [verbose debug info unavailable]
-> [    0.245025] Internal error: Oops - undefined instruction: 0 [#1] SMP
-> [    0.262390] PC is at omap3_l3_app_irq+0x108/0x12c
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/mach-omap2/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'm getting the same error on one of my AM3517 boards.
-L3_SI_FLAG_STATUS_0 register has bit 15 set that means Display SS IA burst
-timeout according to the RM.
-
-Regards, Ilya.
-
-
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index e1293aa..eb7c3ac 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -46,7 +46,7 @@ config ARCH_OMAP4
+ 	select LOCAL_TIMERS if SMP
+ 	select PL310_ERRATA_588369
+ 	select PL310_ERRATA_727915
+-	select ARM_ERRATA_720789
++	select ARM_ERRATA_720789 if SMP
+ 	select ARCH_HAS_OPP
+ 	select PM_OPP if PM
+ 	select USB_ARCH_HAS_EHCI
+-- 
+1.7.8.rc1.14.g248db
