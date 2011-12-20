@@ -1,120 +1,87 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 4/9] usb: renesas: gadget: use generic map/unmap routines
-Date: Tue, 20 Dec 2011 12:51:08 +0200
-Message-ID: <20111220105105.GB31842@legolas.emea.dhcp.ti.com>
-References: <1324290632-23758-1-git-send-email-balbi@ti.com>
- <1324290632-23758-5-git-send-email-balbi@ti.com>
- <87d3bkrp4n.wl%kuninori.morimoto.gx@renesas.com>
-Reply-To: balbi@ti.com
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] AM35xx: disable checking for reserved feature bits
+Date: Tue, 20 Dec 2011 10:55:08 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8062B59@DBDE01.ent.ti.com>
+References: <1320796298-7202-1-git-send-email-yanok@emcraft.com>
+	<87d3d2kt83.fsf@ti.com> <20111207235825.GS31337@atomide.com>
+ <87ty59gr25.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:50055 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751422Ab1LTKvP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 05:51:15 -0500
-Content-Disposition: inline
-In-Reply-To: <87d3bkrp4n.wl%kuninori.morimoto.gx@renesas.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55647 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104Ab1LTKzb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 05:55:31 -0500
+In-Reply-To: <87ty59gr25.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
+To: "Hilman, Kevin" <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Ilya Yanok <yanok@emcraft.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "wd@denx.de" <wd@denx.de>, "dzu@denx.de" <dzu@denx.de>, "sasha_d@emcraft.com" <sasha_d@emcraft.com>
 
 
---s/l3CgOIzMHHjg/5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Saturday, December 10, 2011 6:51 AM
+> To: Tony Lindgren
+> Cc: Ilya Yanok; linux-omap@vger.kernel.org; wd@denx.de; dzu@denx.de;
+> sasha_d@emcraft.com; Hiremath, Vaibhav
+> Subject: Re: [PATCH] AM35xx: disable checking for reserved feature bits
+> 
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> [...]
+> 
+> >> This "feature" selection mechanism is clearly not scaling to newer SoCs.
+> >> While this patch works around the problem, IMO, we need a more scalable
+> >> solution.
+> >
+> > Agreed.
+> >
+<snip>
+> >
+> > This should be coordinated with the splitting of feature detection
+> > as posted by Vaibhave in thread "[RFC PATCH] arm:omap: cleanup & split
+> > omap2/3/4_check_revision function" thread.
+> 
+> Vaibhav,
+> 
+> Feel free to take my proposed patch and develop it further and include
+> it in your rework of the SoC/feature detection.
+> 
+Kevin,
 
-Hi,
+I spend some time on this, and I think it is not possible to use HWMOD 
+Entries for feature check. Reason being,
 
-On Mon, Dec 19, 2011 at 05:46:56PM -0800, Kuninori Morimoto wrote:
-> I tried this patch, but renesas_usbhs didn't work.
-> It seems have some bugs.
->=20
-> 1. renesas_usbhs dma needs pkt->dma, but this patch didn't care it.
-> 2. dma direction seems wrong
->    ("dir" needs 0/1, not DMA_xxx_DEVICE for usb_gadget_xx_request())
->=20
-> And, renesas_usbhs can not use scatter/gather type dma
->=20
-> #
-> # this is not super important, but
-> #
-> # int usb_gadget_map_request(struct usb_gadget *gadget,
-> #		struct usb_request *req, int direction)
-> #
-> # this "direction =3D 0/1" is a little bit un-understandable for me.
-> # it is difficult to understand "which direction ?" from code.
-> # if "direction =3D DMA_TO_DEVICE/DMA_FROM_DEVICE, it is understandable ;P
+	- The whole revision story is built upon howkeye and silicon rev.
+        And both remains same for different devices in same family, 
+        For example,
+          omap3430, omap3503 and omap3515 (for that matter all AM37x) all
+          will have same howkeye and silicon revision no.
 
-I see. The thing is that we want usb_gadget_map/unmap_request() to
-handle that. In the long run, we might want to have a direction flag on
-the public struct usb_request and remove this extra parameter, but I'm
-still considering that :-)
+        Also, in the kernel we have something like.
 
-> Can you please add below fix patch ?
+# define cpu_is_omap3515()              (cpu_is_omap3430() &&           \
+                                                 (!omap3_has_iva()) &&   \
+                                                 (omap3_has_sgx()))
+# define cpu_is_omap3525()              (cpu_is_omap3430() &&           \
+                                                 (!omap3_has_sgx()) &&   \
+                                                 (omap3_has_iva()))
 
-thanks, will do as soon as you fix below :-)
+        Which means, you can not do IP detection before check_feature
+        function.
 
-> ------------------------------------------------
-> diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas=
-_usbhs/mod_gadget.c
-> index cb92a1d..c467067 100644
-> --- a/drivers/usb/renesas_usbhs/mod_gadget.c
-> +++ b/drivers/usb/renesas_usbhs/mod_gadget.c
-> @@ -173,15 +173,32 @@ static int usbhsg_dma_map_ctrl(struct usbhs_pkt *pk=
-t, int map)
->  	struct usbhsg_uep *uep =3D usbhsg_pipe_to_uep(pipe);
->  	struct usbhsg_gpriv *gpriv =3D usbhsg_uep_to_gpriv(uep);
->  	enum dma_data_direction dir;
-> +	int ret;
-> =20
-> -	dir =3D usbhs_pipe_is_dir_in(pipe) ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-> +	dir =3D !usbhs_pipe_is_dir_in(pipe);
-> =20
->  	if (map) {
-> -		return usb_gadget_map_request(&gpriv->gadget, req, dir);
-> +		if (req->num_sgs) /* it can not use scatter/gather */
-> +			return -EIO;
+	- The current omap_hwmod_xxxx_data.c uses silicon version alone
+        and only differentiate between silicon versions. We do not 
+        differentiate between different family of devices while registering
+        hwmod data.
 
-it would be better to through a big fat WARN() in this case. Gadget
-drivers are supposed to check whether you support SGs (by looking into
-gadget->sg_suported) before giving you a request with SGs.
+So the conclusion is, we have to stick to check_feature function.
 
-> +		if (pkt->dma !=3D DMA_ADDR_INVALID)
-> +			return -EIO;
+Thanks,
+Vaibhav
 
-no no, we want to remove the whole DMA_ADDR_INVALID thing. What we're
-doing now is that UDC is required to map the request buffer. So gadget
-drivers must not do it. We shouldn't have this DMA_ADDR_INVALID macro
-anymore :-)
 
---=20
-balbi
-
---s/l3CgOIzMHHjg/5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJO8GiZAAoJEIaOsuA1yqREf1cP/iDKK6Cqqjfn+J5391b9D2E4
-06ZDFQxMgDHQDS6c+fVO/7/DFgG5udBZSuQzDmivn1ERioYMubXXTwCn1DUbQ/2l
-4mgz8DUGkPMPiHga6acsQv3lEz3UK8Mj3bPXWxDDa4WYQwGJHchv6f97zChOhjtH
-5l4cvftQK89ut1objiFRIwyjRXpIl1VOZG0tLoPcHtzdwFc7ywcyc35qeCR3mljp
-rqTXddfEKMp4feMMW0+HGXXIDySUQz64dMWIr/iLxQIik+khScDWgvOEZ3LBTex/
-1Pn5oKmpBLPbqblLJUSTUU4HHO+XzV+U4nUgAx+Ka8nZ4b6J5Y/wtxwwvqGjIrTp
-OPBnNr2nkbUVfvxZnLm9/umdxC3Bu6FDVOxqE8O5otpyO/rJIIpIvbQ8pl19Lktk
-hLAckwpKE5GWv/wDHdQyaVO4j+Jg48j3npS/lwAGUv7CZltid9+lzBob4GgDruda
-TLwOYaLBOfRZ3WtvcKYIIhf+e+dfKOVdCnJM3Vg9Hom6w3Ke2JIyhpF3lLg8/FSm
-UYVRjN6c4Brw++cOzaK0HgtzWhc+8PDIUi0f7FtBJW5FIL/njn97VmQs6kFZXeHI
-VKEspkHMFsBYyEbMEdV7IIxlBqGPPVgCGZqm9xN0Xbvwor1lFZyzLoHqfeiyYsRd
-AuznmBNAkr6nZnjauemd
-=sEAS
------END PGP SIGNATURE-----
-
---s/l3CgOIzMHHjg/5--
+> Kevin
