@@ -1,91 +1,80 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 04/10] rtc: rtc-twl: Add DT support for RTC inside
- twl4030/twl6030
-Date: Tue, 20 Dec 2011 16:13:41 +0100
-Message-ID: <4EF0A625.4050008@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
- <1323439361-1647-5-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v3 00/11] OMAP4: Add DT support for i2c and twl6030
+Date: Tue, 20 Dec 2011 17:27:13 +0100
+Message-ID: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1323439361-1647-5-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: "akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48080 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193Ab1LTQ1h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 11:27:37 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: rob.herring@calxeda.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, Benoit Cousson <b-cousson@ti.com>
 
-Hi Andrew,
+Hi Tony and Rob,
 
-I've never got any feedback on this patch from Alessandro and it seems
-that you took care of some rtc stuff recently.
+Here is the updated version of the i2c + twl DT adaptation series.
 
-Thanks in advance,
+This update, compared to v2 [1], is adding some dedicated dtsi files for
+the twl PMIC and audio IC. These devices will contain a huge amount of
+regulator nodes and thus deserve a dedicated file to avoid every boards
+to redefine the same data.
+The twl patch is now included in Samuel's for-next branch and thus dropped
+from this update.
+The i2c binding was cleaned as suggested by Rob to avoid all the ugly
+hexa flags inside the DTS.
+
+The pm.c was updated to prevent the SR / VP initialization in the DT
+context since none of them is DT aware for the moment.
+
+A couple of basic i2c devices are added for panda, beagle and sdp board.
+
+Patches are based on for_3.3/2_dt_irq, to get the latest GIC binding,
+and are available here:
+git://gitorious.org/omap-pm/linux.git for_3.3/3_omap_dt_i2c_twl
+
+Tested on Beagle and sdp4430.
+
+Comments are welcome.
+
+Regards,
 Benoit
 
-On 12/9/2011 3:02 PM, Benoit Cousson wrote:
-> Add the DT support for the TI rtc-twl present in the twl4030
-> and twl6030 devices.
->
-> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Alessandro Zummo<a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>
-> ---
->   Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
->   drivers/rtc/rtc-twl.c                             |   10 ++++++++--
->   2 files changed, 20 insertions(+), 2 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
->
-> diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-> new file mode 100644
-> index 0000000..596e0c9
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-> @@ -0,0 +1,12 @@
-> +* TI twl RTC
-> +
-> +The TWL family (twl4030/6030) contains a RTC.
-> +
-> +Required properties:
-> +- compatible : Should be twl4030-rtc
-> +
-> +Examples:
-> +
-> +rtc@0 {
-> +    compatible = "ti,twl4030-rtc";
-> +};
-> diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-> index 20687d5..d43b4f6 100644
-> --- a/drivers/rtc/rtc-twl.c
-> +++ b/drivers/rtc/rtc-twl.c
-> @@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platform_device *pdev)
->   #define twl_rtc_resume  NULL
->   #endif
->
-> +static const struct of_device_id twl_rtc_of_match[] = {
-> +	{.compatible = "ti,twl4030-rtc", },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
->   MODULE_ALIAS("platform:twl_rtc");
->
->   static struct platform_driver twl4030rtc_driver = {
-> @@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc_driver = {
->   	.suspend	= twl_rtc_suspend,
->   	.resume		= twl_rtc_resume,
->   	.driver		= {
-> -		.owner	= THIS_MODULE,
-> -		.name	= "twl_rtc",
-> +		.owner		= THIS_MODULE,
-> +		.name		= "twl_rtc",
-> +		.of_match_table = twl_rtc_of_match,
->   	},
->   };
->
+[1] http://www.spinics.net/lists/linux-omap/msg61260.html
+
+
+Benoit Cousson (11):
+  ARM: OMAP2+: pm: Do not init statically the SR and voltage layer with DT
+  i2c: OMAP: Add DT support for i2c controller
+  rtc: rtc-twl: Add DT support for RTC inside twl4030/twl6030
+  arm/dts: OMAP4: Add i2c controller nodes
+  arm/dts: OMAP3: Add i2c controller nodes
+  arm/dts: twl6030: Add DTS file for twl6030 PMIC
+  arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
+  arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
+  arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
+  arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
+  ARM: OMAP2+: board-generic: Remove i2c static init
+
+ Documentation/devicetree/bindings/i2c/omap-i2c.txt |   30 ++++++
+ Documentation/devicetree/bindings/rtc/twl-rtc.txt  |   12 +++
+ arch/arm/boot/dts/omap3-beagle.dts                 |   29 ++++++
+ arch/arm/boot/dts/omap3.dtsi                       |   21 ++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   34 +++++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   53 ++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   28 ++++++
+ arch/arm/boot/dts/twl4030.dtsi                     |   21 ++++
+ arch/arm/boot/dts/twl6030.dtsi                     |   22 ++++
+ arch/arm/mach-omap2/board-generic.c                |   48 +---------
+ arch/arm/mach-omap2/pm.c                           |    8 ++
+ drivers/i2c/busses/i2c-omap.c                      |  101 +++++++++++++-------
+ drivers/rtc/rtc-twl.c                              |   10 ++-
+ 13 files changed, 334 insertions(+), 83 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+ create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
+ create mode 100644 arch/arm/boot/dts/twl4030.dtsi
+ create mode 100644 arch/arm/boot/dts/twl6030.dtsi
+
