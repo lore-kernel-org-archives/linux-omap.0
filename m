@@ -1,83 +1,45 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 2/2] arm:omap: cleanup & split
- omap2/3/4_check_revision function
-Date: Tue, 20 Dec 2011 04:38:47 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A80623CE@DBDE01.ent.ti.com>
-References: <1324290015-12679-1-git-send-email-hvaibhav@ti.com>
- <1324290015-12679-3-git-send-email-hvaibhav@ti.com>
- <20111219235111.GX6464@atomide.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] Borderline fixes for v3.2-rc6
+Date: Mon, 19 Dec 2011 20:52:07 -0800
+Message-ID: <CAOesGMj-OyDu9pcOZ20o6G0W3-kkxyHF7o5DqDRaQkkUDf98CA@mail.gmail.com>
+References: <20111219194249.GO6464@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40155 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751900Ab1LTEiw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 23:38:52 -0500
-In-Reply-To: <20111219235111.GX6464@atomide.com>
-Content-Language: en-US
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:57946 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753015Ab1LTEwI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Dec 2011 23:52:08 -0500
+Received: by ggdk6 with SMTP id k6so4496150ggd.19
+        for <linux-omap@vger.kernel.org>; Mon, 19 Dec 2011 20:52:07 -0800 (PST)
+In-Reply-To: <20111219194249.GO6464@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Tuesday, December 20, 2011 5:21 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; Hilman, Kevin
-> Subject: Re: [PATCH-V3 2/2] arm:omap: cleanup & split
-> omap2/3/4_check_revision function
-> 
-> * Vaibhav Hiremath <hvaibhav@ti.com> [111219 01:48]:
-> > This patch doesn't change functionality or behavior of the code
-> > execution; it barely cleans up the code and splits into SoC
-> > specific implementation for Rev ID and feature detection.
-> 
-> Thanks, looks good now and allows further clean-up later on.
-> I'll apply these into soc-part2 branch.
-> 
-Thanks Tony.
+Hi Tony,
 
-Thanks,
-Vaibhav
+On Mon, Dec 19, 2011 at 11:42 AM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi Arnd & Olof,
+>
+> Here are two fixes that could potentially go into v3.2 -rc cycle.
+>
+> One fixes a harmless but annoying warning that happens on omap 34xx
+> processors during boot. The other one fixes booting on pretty rare
+> secure mode development board, but that's fixed in "features that
+> never worked earlier either" style.
+>
+> We can surely wait on these fixes, but if you have something going
+> upstream anyways, then these might be worth considering too.
+
+The hwmod patch is a regression so that one I'll take, the other one
+is a little less obvious that it should go in now. Also, shouldn't it
+be cc:d stable in that case?
+
+Let me know what you prefer (rebase with a cc: stable) or take out the
+secure mode patch. I'm collecting a small series of fixes so I'll pull
+it in tomorrow for that.
 
 
-> > @@ -495,37 +498,6 @@ static void __init omap4_check_revision(void)
-> >  }
-> >
-> >  /*
-> > - * Try to detect the exact revision of the omap we're running on
-> > - */
-> > -void __init omap2_check_revision(void)
-> > -{
-> > -	/*
-> > -	 * At this point we have an idea about the processor revision set
-> > -	 * earlier with omap2_set_globals_tap().
-> > -	 */
-> > -	if (cpu_is_omap24xx()) {
-> > -		omap24xx_check_revision();
-> > -	} else if (cpu_is_omap34xx()) {
-> > -		omap3_check_revision();
-> > -
-> > -		/* TI81XX doesn't have feature register */
-> > -		if (!cpu_is_ti81xx())
-> > -			omap3_check_features();
-> > -		else
-> > -			ti81xx_check_features();
-> > -
-> > -		omap3_cpuinfo();
-> > -		return;
-> > -	} else if (cpu_is_omap44xx()) {
-> > -		omap4_check_revision();
-> > -		omap4_check_features();
-> > -		return;
-> > -	} else {
-> > -		pr_err("OMAP revision unknown, please fix!\n");
-> > -	}
-> > -}
-> > -
-> 
-> Nice that we can get rid of this function now :)
-> 
-> Tony
+-Olof
