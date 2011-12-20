@@ -1,67 +1,72 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v2 4/4] musb: omap2430: avoid pm_runtime_disable()
-Date: Tue, 20 Dec 2011 13:57:04 +0200
-Message-ID: <20111220115702.GM31842@legolas.emea.dhcp.ti.com>
-References: <1324325871-15137-1-git-send-email-felipe.contreras@nokia.com>
- <1324325871-15137-5-git-send-email-felipe.contreras@nokia.com>
-Reply-To: balbi@ti.com
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V4 0/3] Introducing TI's New SoC/board AM335XEVM
+Date: Tue, 20 Dec 2011 12:15:01 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8062CD4@DBDE01.ent.ti.com>
+References: <1320946837-32507-1-git-send-email-hvaibhav@ti.com>
+	<878vmxxjrv.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A80474FD@DBDE01.ent.ti.com>
+	<878vmws4z8.fsf@ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A902847B@DBDE01.ent.ti.com>
+ <87aa7akhe9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oiL9LJXJsdjS5rzq"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:49378 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750809Ab1LTL5K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 06:57:10 -0500
-Content-Disposition: inline
-In-Reply-To: <1324325871-15137-5-git-send-email-felipe.contreras@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45380 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751125Ab1LTMPV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 07:15:21 -0500
+In-Reply-To: <87aa7akhe9.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: linux-usb@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jiri Kosina <trivial@kernel.org>, Felipe Contreras <felipe.contreras@gmail.com>
+To: "Hilman, Kevin" <khilman@ti.com>, "Mohammed, Afzal" <afzal@ti.com>
+Cc: Russell King <rmk@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>
 
 
---oiL9LJXJsdjS5rzq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Friday, December 02, 2011 11:04 PM
+> To: Mohammed, Afzal
+> Cc: Hiremath, Vaibhav; Russell King; linux-omap@vger.kernel.org;
+> tony@atomide.com; linux-arm-kernel@lists.infradead.org; paul@pwsan.com
+> Subject: Re: [PATCH-V4 0/3] Introducing TI's New SoC/board AM335XEVM
+> 
+> "Mohammed, Afzal" <afzal@ti.com> writes:
+> 
+> > Hi Kevin,
+> >
+> > On Thu, Dec 01, 2011 at 20:40:03, Hilman, Kevin wrote:
+> >> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> > :
+> >> > We can detect the board using on-board EEPROM, so same mach-id
+> >> > should work for both EVM and Beagle.
+> >>
+> >> > And also going forward with device tree approach we may
+> >> > not need different id's, right?
+> >>
+> >> Right, which is why I'm wondering why are there sevral new AM33x
+> >> mach-types when only one of them is being used:
+> >>
+> >> 3684    TI AM335X IA EVM        am335xiaevm     Afzal Mohammed
+> >> 3589    TI AM335X EVM           am335xevm       Vaibhav Bedia
+> >> 3808    Beaglebone Board        beaglebone      Steven Kipisz
+> >>
+> >> Russell has been trying to cleanup athe mach-types, so if these others
+> >> are not going to be used, I suggest they be deleted.
+> >
+> > "3684-TI AM335X IA EVM" is required as IA EVM uses a different UART,
+> > because of which early prints can't be captured, problem mentioned
+> > in http://marc.info/?l=linux-omap&m=131286938723617&w=2
+> 
+> This problem will be solved by using the device tree.
+> 
 
-Hi,
+Kevin,
 
-On Mon, Dec 19, 2011 at 10:17:51PM +0200, Felipe Contreras wrote:
-> From: Felipe Contreras <felipe.contreras@gmail.com>
->=20
-> These are handled by drivers core, and in a way that doesn't wake up the
-> devices.
->=20
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Will this solve earlyprintk as well?
 
-applied, thanks
+Thanks,
+Vaibhav
 
---=20
-balbi
-
---oiL9LJXJsdjS5rzq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJO8HgOAAoJEIaOsuA1yqREEOgP/0Il9p8FGm+DlhDVFDJKeOvG
-fkaB1XgYE/lMpIuwzkb+2b7dgx+aNNnDqLW7rVno3qrrYflJ4PW/hXk8IWlcFEDl
-NkAlrSCST5etPyXYztcrgY1pF9nfOUuVZ43n0tj2otOiYV+lQD8ayD+P8+XlItf0
-WZIf0r9U/l1HKzIjV8bX28WWCMqOef6Ivgyp/nODJ4h9qfSrXT+ja35AEDWzbTRE
-BlUDi30xt/q/W8x+a5JpkHs1eEIKxdK+cDDl1bL7Q42upGhPQt9Aq13a8q1jkmSD
-Hvl4pl2jxjVGgSAn3BZUjts8GVUbutBYwbd1c0CcpsE3b2t6mQ5sGi9CE0Opy8qT
-trzm0k98h2NhSf2yDln0P0EEqIQhtw88ejzkERsQFXJbDb2HK/7/fL0oIdzVSE6K
-ckdcSZ8I/UqIk/ek0K6d6vTisbOAn3cBybK7H19gX/AYh4PGlE99U//2MPjnC8EN
-CDIrRTHAyh0OKPFHMnKk7tVnySVWDuIE6qCO5dIIGlnRiQg/WmYFkTb1nFlBnVXU
-dHc6QdCxIDGvuf3lsTkROs132GnMC4rjNEVhC591WT4rl3FJLCBLVVLiiadGzznE
-6SyBx+TnmwMfN/RNnYif4QeiyAfkottkS8J4ZIZg5j/COU4UKZ38q2Rw1ZRPxPdd
-PTg4LCH9WT78pmOS540O
-=ff9N
------END PGP SIGNATURE-----
-
---oiL9LJXJsdjS5rzq--
+> Kevin
