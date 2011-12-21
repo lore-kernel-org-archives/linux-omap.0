@@ -1,53 +1,67 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Is Pandaboard cpuhotplug working stably?
-Date: Wed, 21 Dec 2011 09:46:24 +0000
-Message-ID: <20111221094624.GB3354@n2100.arm.linux.org.uk>
-References: <CAGsJ_4ydbMaS0DD6+j1m9tdCTCzw3TGELcY=KotupvvMMK1YOA@mail.gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH V2] am35xx-emac: move generic EMAC init to separate file
+Date: Wed, 21 Dec 2011 09:50:29 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8064441@DBDE01.ent.ti.com>
+References: <1324423590-32489-1-git-send-email-yanok@emcraft.com>
+ <79CD15C6BA57404B839C016229A409A8063F1C@DBDE01.ent.ti.com>
+ <4EF1A387.2030708@emcraft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59149 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752870Ab1LUJqd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 04:46:33 -0500
-Content-Disposition: inline
-In-Reply-To: <CAGsJ_4ydbMaS0DD6+j1m9tdCTCzw3TGELcY=KotupvvMMK1YOA@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48388 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751440Ab1LUJuo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 04:50:44 -0500
+In-Reply-To: <4EF1A387.2030708@emcraft.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Barry Song <21cnbao@gmail.com>
-Cc: linux-omap@vger.kernel.org, yongsheng.liu@csr.com, linaro-dev <linaro-dev@lists.linaro.org>, peiyu.li@csr.com, DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>, linux-arm-kernel@lists.infradead.org
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sasha_d@emcraft.com" <sasha_d@emcraft.com>
 
-On Wed, Dec 21, 2011 at 05:23:48PM +0800, Barry Song wrote:
-> Hi guys,
-> i tried cpuhotplug on pandaboard for both
-> Pandroid_Froyo_L27.8.2_release_pkg and Linaro 11.11. It has failed to
-> work stably.
-> On Pandroid_Froyo_L27.8.2_release_pkg, unplugging cpu1 works well:
-> # echo 0 > /sys/devices/system/cpu/cpu1/online
-> CPU1: shutdown
+
+> -----Original Message-----
+> From: Ilya Yanok [mailto:yanok@emcraft.com]
+> Sent: Wednesday, December 21, 2011 2:45 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; sasha_d@emcraft.com
+> Subject: Re: [PATCH V2] am35xx-emac: move generic EMAC init to separate
+> file
 > 
-> if i enable the cpu1 again by "echo 1 >
-> /sys/devices/system/cpu/cpu1/online", the system will restore to 3
-> random status: hang, normal, panic.
+> Hi,
 > 
-> Using  Linaro 11.11 release, "echo 0 >
-> /sys/devices/system/cpu/cpu1/online" will make system hang and the
-> whole system will not be able to reset by pressing reset key, the only
-> way to reset system is pulling out AV power.
+> On 21.12.2011 10:07, Hiremath, Vaibhav wrote:
+> >> +static struct resource am35xx_mdio_resources[] = {
+> >> +	{
+> >> +		.start  = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET,
+> >> +		.end    = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET +
+> >> +			  SZ_4K - 1,
+> >> +		.flags  = IORESOURCE_MEM,
+> >> +	},
+> >> +};
+> > This will not be board independent, using AM35xx everywhere.
 > 
-> i am sorry i can't get more time to debug and find more clues. just
-> want to ask people whether this is a version the cpuhotplug works
-> normal on?
+> Why? It will work for any AM35XX based board. Probably we can try and
+> make it work with EMACs on other AM3XXXs but I don't have these devices.
+> 
+> > To make it completely board independent, you should get all this
+> platform
+> > specific data from board file. Probably have emac_init() function here
+> and
+> > pass the data.
+> 
+> Hm.. This data is SoC-dependent not board-dependent, what's the reason
+> to move it to the board file?
+> 
+[Hiremath, Vaibhav] My bad. I got confused between 3530 and AM35x...
+Yeup, this is SoC specific thing for AM3517/05 device.
 
-cpu hotplug is basically totally buggered - the preconditions placed
-upon the bringup code path are basically impossible to satisfy in any
-shape or form at the moment.
+Thanks,
+Vaibhav
 
-There's the requirement that the secondary CPU is marked online and
-active before interrupts are enabled for the thread migration stuff
-to behave correctly.  However, this is incompatible with smp_call_function()
-which will wait for online CPUs to respond to an IPI - which this one
-won't because interrupts are disabled.
-
-I think there was some discussion about how to fix this but I don't
-recall the details.
+> > Do you know any other platform or device using this IP?
+> 
+> Yes, I have a couple of AM3517 based boards that use this IP.
+> 
+> Regards, Ilya.
