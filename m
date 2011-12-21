@@ -1,65 +1,181 @@
-From: Colin Cross <ccross@android.com>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 21 Dec 2011 11:05:41 -0800
-Message-ID: <CAMbhsRRnKoR3YPWrZzVynVe+dcuU5v0siYvmp2vbBcS1hquC7Q@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4EF1A0B4.5080307@linux.intel.com>
-	<CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
-	<4EF1AA8A.8060304@linux.intel.com>
-	<CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
-	<4EF1CD49.9020800@linux.intel.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 1/7 v2] ARM: OMAP1: ams-delta: register
+ latch dependent devices later
+Date: Wed, 21 Dec 2011 11:08:15 -0800
+Message-ID: <20111221190815.GC24444@atomide.com>
+References: <201112200028.32947.jkrzyszt@tis.icnet.pl>
+	<1324418058-30905-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4EF1CD49.9020800@linux.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1324418058-30905-1-git-send-email-jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Dec 21, 2011 at 4:12 AM, Arjan van de Ven <arjan@linux.intel.com> w=
-rote:
-> On 12/21/2011 10:55 AM, Colin Cross wrote:
->> On Wed, Dec 21, 2011 at 1:44 AM, Arjan van de Ven <arjan@linux.intel.com=
-> wrote:
->>> On 12/21/2011 10:40 AM, Colin Cross wrote:
->>>
->>>>> this smells fundamentally racey to me; you can get an interrupt one
->>>>> cycle after you think you're done, but before the last guy enters WFI=
-...
->>>>>
->>>>> how do you solve that issue ?
->>>>
->>>> All the cpus have interrupts off when they increment the counter, so
->>>> they cannot receive an interrupt. =A0If an interrupt is pending on one
->>>> of those cpus, it will be handled later when WFI aborts due to the
->>>> pending interrupt.
->>>
->>> ... but this leads to cases where you're aborting before other cpus are
->>> entering..... so your "last guy in" doesn't really work, since while cpu
->>> 0 thinks it's the last guy, cpu 1 is already on the way out/out
->>> already... =A0(heck it might already be going back to sleep if your idle
->>> code can run fast, like in the size of a cache miss)
->>
->> Once a cpu has incremented the counter, it has no way out unless either
->> 1: another cpu (that hasn't incremented the counter yet) receives an
->> interrupt, aborts idle, and clears its idle flag
->> or
->> 2: all cpus enter the ready counter, and call the cpuidle driver's
->> enter function.
->
-> .. or it enters WFI, and a physical device sends it an interrupt,
-> at which point it exits.
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111220 13:23]:
+> In preparation to converting Amstrad Delta on-board latches to
+> basic_mmio_gpio devices, registration of platform devices which depend
+> on latches and will require initialization of their GPIO pins first,
+> should be moved out of .machine_init down to late_initcall level, as the
+> gpio-generic driver is not available until device_initcall time.  The
+> latch reset operation, which will be replaced with GPIO initialization,
+> must also be moved to late_initcall for the same reason.
+> 
+> Since there was already another, separate arch_initcall function for
+> setting up one of those latch dependent devices, the on-board modem
+> device, reuse that function, i.e., rename it to a name that matches the
+> new purpose, extend with other device setup relocated from
+> .machine_init, and move down to the late_initcall level.
+> 
+> While being at it, add missing gpio_free() in case the modem platform
+> device registration fails.
+> 
+> Thanks to Tony Lindgren <tony@atomide.com> who suggested this approach
+> instead of shifting up the gpio-generic driver initialization.
+> 
+> In addition, defer registration of the Amstrad Delta ASoC and serio
+> devices, done from their device driver files, until late_initcall time,
+> as those drivers will depend on their GPIO pins already requested from
+> the board late_init() function until updated to register their GPIO pins
+> themselves.
+> 
+> Created and tested against linux-3.2-rc6.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-None of the cpus will return to the idle loop until all cpus have
-decremented the ready counter back to 0, so they can't wrap around
-again.
+Planning to apply this series. Dmitry, care to ack the drivers/input/serio/
+related change?
+
+Regards,
+
+Tony
+
+> ---
+> Changes since the initial version of this patch:
+> * use late_initcall() unconditionally in modules, requested by Russell
+>   King (thanks!); an updated patch 7/7 will follow,
+> * in the changelog message, move credits to Tony up a bit, since the
+>   person responsible for other changes (he might not necessarily like)
+>   is me, not him ;).
+> 
+> Comments copied from this patch initial submission:
+> This patch was not present in the initial submission, it replaces the
+> old patch 1/10, providing an alternative solution not touching the
+> gpio-generic driver.
+> 
+>  arch/arm/mach-omap1/board-ams-delta.c |   28 ++++++++++++++++++++--------
+>  drivers/input/serio/ams_delta_serio.c |    2 +-
+>  sound/soc/omap/ams-delta.c            |    2 +-
+>  3 files changed, 22 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> index b0f15d2..50987c9 100644
+> --- a/arch/arm/mach-omap1/board-ams-delta.c
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> @@ -275,11 +275,14 @@ static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
+>  };
+>  
+>  static struct platform_device *ams_delta_devices[] __initdata = {
+> -	&ams_delta_nand_device,
+>  	&ams_delta_kp_device,
+> +	&ams_delta_camera_device,
+> +};
+> +
+> +static struct platform_device *late_devices[] __initdata = {
+> +	&ams_delta_nand_device,
+>  	&ams_delta_lcd_device,
+>  	&ams_delta_led_device,
+> -	&ams_delta_camera_device,
+>  };
+>  
+>  static void __init ams_delta_init(void)
+> @@ -307,9 +310,6 @@ static void __init ams_delta_init(void)
+>  	omap_serial_init();
+>  	omap_register_i2c_bus(1, 100, NULL, 0);
+>  
+> -	/* Clear latch2 (NAND, LCD, modem enable) */
+> -	ams_delta_latch2_write(~0, 0);
+> -
+>  	omap1_usb_init(&ams_delta_usb_config);
+>  	omap1_set_camera_info(&ams_delta_camera_platform_data);
+>  #ifdef CONFIG_LEDS_TRIGGERS
+> @@ -345,13 +345,18 @@ static struct platform_device ams_delta_modem_device = {
+>  	},
+>  };
+>  
+> -static int __init ams_delta_modem_init(void)
+> +static int __init late_init(void)
+>  {
+>  	int err;
+>  
+>  	if (!machine_is_ams_delta())
+>  		return -ENODEV;
+>  
+> +	/* Clear latch2 (NAND, LCD, modem enable) */
+> +	ams_delta_latch2_write(~0, 0);
+> +
+> +	platform_add_devices(late_devices, ARRAY_SIZE(late_devices));
+> +
+>  	omap_cfg_reg(M14_1510_GPIO2);
+>  	ams_delta_modem_ports[0].irq =
+>  			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+> @@ -367,9 +372,16 @@ static int __init ams_delta_modem_init(void)
+>  		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+>  		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
+>  
+> -	return platform_device_register(&ams_delta_modem_device);
+> +	err = platform_device_register(&ams_delta_modem_device);
+> +	if (err)
+> +		goto gpio_free;
+> +	return 0;
+> +
+> +gpio_free:
+> +	gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+> +	return err;
+>  }
+> -arch_initcall(ams_delta_modem_init);
+> +late_initcall(late_init);
+>  
+>  static void __init ams_delta_map_io(void)
+>  {
+> diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
+> index d4d08bd..835d37a 100644
+> --- a/drivers/input/serio/ams_delta_serio.c
+> +++ b/drivers/input/serio/ams_delta_serio.c
+> @@ -165,7 +165,7 @@ serio:
+>  	kfree(ams_delta_serio);
+>  	return err;
+>  }
+> -module_init(ams_delta_serio_init);
+> +late_initcall(ams_delta_serio_init);
+>  
+>  static void __exit ams_delta_serio_exit(void)
+>  {
+> diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
+> index ccb8a6a..be81bc7 100644
+> --- a/sound/soc/omap/ams-delta.c
+> +++ b/sound/soc/omap/ams-delta.c
+> @@ -636,7 +636,7 @@ err:
+>  	platform_device_put(ams_delta_audio_platform_device);
+>  	return ret;
+>  }
+> -module_init(ams_delta_module_init);
+> +late_initcall(ams_delta_module_init);
+>  
+>  static void __exit ams_delta_module_exit(void)
+>  {
+> -- 
+> 1.7.3.4
+> 
