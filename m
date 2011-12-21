@@ -1,48 +1,74 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 21 Dec 2011 13:12:57 +0100
-Message-ID: <4EF1CD49.9020800@linux.intel.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com> <4EF1A0B4.5080307@linux.intel.com> <CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com> <4EF1AA8A.8060304@linux.intel.com> <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: [PATCH V3 1/2] mcx: very basic support for HTKW mcx board
+Date: Wed, 21 Dec 2011 16:47:51 +0100
+Message-ID: <1324482472-23987-2-git-send-email-yanok@emcraft.com>
+References: <1324482472-23987-1-git-send-email-yanok@emcraft.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:3119 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751629Ab1LUMNB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Dec 2011 07:13:01 -0500
-In-Reply-To: <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:39263 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751606Ab1LUPsA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 10:48:00 -0500
+In-Reply-To: <1324482472-23987-1-git-send-email-yanok@emcraft.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@android.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@lists.linux-foundation.org, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Amit Kucheria <amit.kucheria@linaro.org>, Trinabh Gupta <g.trinabh@gmail.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, devicetree-discuss@lists.ozlabs.org, Ilya Yanok <yanok@emcraft.com>
 
-On 12/21/2011 10:55 AM, Colin Cross wrote:
-> On Wed, Dec 21, 2011 at 1:44 AM, Arjan van de Ven <arjan@linux.intel.com> wrote:
->> On 12/21/2011 10:40 AM, Colin Cross wrote:
->>
->>>> this smells fundamentally racey to me; you can get an interrupt one
->>>> cycle after you think you're done, but before the last guy enters WFI...
->>>>
->>>> how do you solve that issue ?
->>>
->>> All the cpus have interrupts off when they increment the counter, so
->>> they cannot receive an interrupt.  If an interrupt is pending on one
->>> of those cpus, it will be handled later when WFI aborts due to the
->>> pending interrupt.
->>
->> ... but this leads to cases where you're aborting before other cpus are
->> entering..... so your "last guy in" doesn't really work, since while cpu
->> 0 thinks it's the last guy, cpu 1 is already on the way out/out
->> already...  (heck it might already be going back to sleep if your idle
->> code can run fast, like in the size of a cache miss)
-> 
-> Once a cpu has incremented the counter, it has no way out unless either
-> 1: another cpu (that hasn't incremented the counter yet) receives an
-> interrupt, aborts idle, and clears its idle flag
-> or
-> 2: all cpus enter the ready counter, and call the cpuidle driver's
-> enter function.
+Very basic support for HTKW mcx board. Able to boot via board-generic
+and ramdisk/initramfs, however most of peripherals is unsupported.
+Produces tons of twl4030 related errors as this board doesn't have
+twl4030 installed.
 
-.. or it enters WFI, and a physical device sends it an interrupt,
-at which point it exits.
+Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+
+---
+Changes from V2:
+
+ - None
+
+Changes from V1:
+
+ - device tree move to the separate patch
+ - iva node is disabled instead of using custom includes
+ - removed bootargs entry
+
+ arch/arm/boot/dts/mcx.dts |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/mcx.dts
+
+diff --git a/arch/arm/boot/dts/mcx.dts b/arch/arm/boot/dts/mcx.dts
+new file mode 100644
+index 0000000..66b81bd
+--- /dev/null
++++ b/arch/arm/boot/dts/mcx.dts
+@@ -0,0 +1,27 @@
++/*
++ * Copyright (C) 2011 Ilya Yanok, EmCraft Systems
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++/dts-v1/;
++
++/include/ "omap3.dtsi"
++
++/ {
++	model = "HTKW mcx";
++	compatible = "htkw,mcx", "ti,omap3";
++
++	memory {
++		device_type = "memory";
++		reg = <0x80000000 0x10000000>; /* 256 MB */
++	};
++
++	/* AM35xx doesn't have IVA */
++	soc {
++		iva {
++			status = "disabled";
++		};
++	};
++};
+-- 
+1.7.6.4
+
