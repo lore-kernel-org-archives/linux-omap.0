@@ -1,68 +1,83 @@
-From: "Horny Singles" <53layp20af@w2pay4la0v.20m.com>
-Subject: Hookup and date TONIGHT
-Date: Tue, 20 Dec 2011 20:44:33 -0500
-Message-ID: <20111220204433.4459@web001.nyc1.bluetie.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH] mmc: omap: remove clock rate hard coding
+Date: Wed, 21 Dec 2011 03:22:10 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C304F5B6@DBDE01.ent.ti.com>
+References: <79CD15C6BA57404B839C016229A409A8062A41@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from outbound003.nyc1.bluetie.com ([206.65.163.13]:57693 "EHLO
-	outbound003.nyc1.bluetie.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753344Ab1LUBuU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Dec 2011 20:50:20 -0500
-Received: from web001.nyc1.bluetie.com (localhost.localdomain [127.0.0.1])
-	by web001.nyc1.bluetie.com (Postfix) with ESMTP id 118DA10C81A1
-	for <linux-omap@vger.kernel.org>; Tue, 20 Dec 2011 20:50:19 -0500 (EST)
+Received: from devils.ext.ti.com ([198.47.26.153]:57838 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750947Ab1LUDWP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 22:22:15 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8062A41@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 53layp20af@w2pay4la0v.20m.com
+To: "S, Venkatraman" <svenkatr@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
 
-Hookup and date TONIGHT
+On Tue, Dec 20, 2011 at 15:12, S, Venkatraman wrote:
+> From: Balaji TK <balajitk@ti.com>
+> 
+> MMC master clock rate can vary for each instance of the MMC controller
+> on the device. Use clk_get_rate instead to get the value.
+> 
+>   Signed-off-by: Balaji TK  <balajitk@ti.com>
+>   Reviewed-by: Venkatraman S <svenkatr@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |    7 +++----
+>  1 files changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index d5fe43d..5b35c7e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -120,7 +120,6 @@
+>  
+>  #define MMC_AUTOSUSPEND_DELAY	100
+>  #define MMC_TIMEOUT_MS		20
+> -#define OMAP_MMC_MASTER_CLOCK	96000000
+>  #define OMAP_MMC_MIN_CLOCK	400000
+>  #define OMAP_MMC_MAX_CLOCK	52000000
+>  #define DRIVER_NAME		"omap_hsmmc"
+> @@ -598,12 +597,12 @@ static void omap_hsmmc_disable_irq(struct omap_hsmmc_host *host)
+>  }
+>  
+>  /* Calculate divisor for the given clock frequency */
+> -static u16 calc_divisor(struct mmc_ios *ios)
+> +static u16 calc_divisor(struct omap_hsmmc_host *host, struct mmc_ios *ios)
+>  {
+>  	u16 dsor = 0;
+>  
+>  	if (ios->clock) {
+> -		dsor = DIV_ROUND_UP(OMAP_MMC_MASTER_CLOCK, ios->clock);
+> +		dsor = DIV_ROUND_UP(clk_get_rate(host->fclk), ios->clock);
+>  		if (dsor > 250)
+>  			dsor = 250;
+>  	}
+> @@ -623,7 +622,7 @@ static void omap_hsmmc_set_clock(struct omap_hsmmc_host *host)
+>  
+>  	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
+>  	regval = regval & ~(CLKD_MASK | DTO_MASK);
+> -	regval = regval | (calc_divisor(ios) << 6) | (DTO << 16);
+> +	regval = regval | (calc_divisor(host, ios) << 6) | (DTO << 16);
+>  	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
+>  	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+>  		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-http://zoquo.com/o
+Tested on AM335x platform.
 
+Tested-by: Hebbar, Gururaja <gururaja.hebbar@ti.com>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-This is an advertisement.
-
-To stop receiving messages, please visit here:
-http://zoquo.com/p
-
-Or send a request to:
-117 8th Ave W
-Vancouver, CA
+Regards, 
+Gururaja
