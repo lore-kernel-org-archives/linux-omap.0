@@ -1,94 +1,36 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] OMAP2+: ads7846_init: put gpio_pendown into pdata if
- it's provided
-Date: Wed, 21 Dec 2011 19:22:38 +0200
-Message-ID: <4EF215DE.8060002@compulab.co.il>
-References: <1324485086-31410-1-git-send-email-yanok@emcraft.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: Adding remoteproc/rpmsg to linux-next
+Date: Wed, 21 Dec 2011 19:35:07 +0200
+Message-ID: <CAK=WgbZm9txdvZ1VW-iUn5306yMz1Y=DT_Uygwi6zPZNyWx7gA@mail.gmail.com>
+References: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
+ <20111212103301.5ff6a582dca82394ace40e8d@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090005060607030204050504"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:47364
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752554Ab1LURWr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Dec 2011 12:22:47 -0500
-In-Reply-To: <1324485086-31410-1-git-send-email-yanok@emcraft.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, sasha_d@emcraft.com
-
-This is a multi-part message in MIME format.
---------------090005060607030204050504
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20111212103301.5ff6a582dca82394ace40e8d@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Brian Swetland <swetland@google.com>, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rusty Russell <rusty@rustcorp.com.au>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Saravana Kannan <skannan@codeaurora.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>
+List-Id: linux-omap@vger.kernel.org
 
-Hi Ilya,
+Hi Arnd,
 
-Please, Cc the linux-arm-kernel@lists.infradead.org for patches,
-so Tony, or whoever will not need to resend them...
+On Mon, Dec 12, 2011 at 1:33 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> On Fri, 9 Dec 2011 16:55:27 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
+>>
+>> Can you please add the following remoteproc tree to linux-next ?
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next
+>
+> I have added that from today.
 
-On 12/21/11 18:31, Ilya Yanok wrote:
-> If platform data is provided by the caller gpio_pendown is put into
-> unused static ads7846_config structure and effectively has no effect.
-> Of course caller can set gpio_pendown field in platform data himself
-> but it seems natural to do this in ads7846_init to remove duplication.
-> 
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
-> ---
->  arch/arm/mach-omap2/common-board-devices.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-> index 2d1d775..eb408dd 100644
-> --- a/arch/arm/mach-omap2/common-board-devices.c
-> +++ b/arch/arm/mach-omap2/common-board-devices.c
-> @@ -75,7 +75,10 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->  			gpio_set_debounce(gpio_pendown, gpio_debounce);
->  	}
->  
-> -	ads7846_config.gpio_pendown = gpio_pendown;
-> +	if (!board_pdata)
-> +		ads7846_config.gpio_pendown = gpio_pendown;
-> +	else
-> +		board_pdata->gpio_pendown = gpio_pendown;
->  
->  	spi_bi->bus_num	= bus_num;
->  	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
+Would you like rpmsg/remoteproc to go through arm-soc or do you prefer
+me to send a pull request directly to Linus ?
 
-The fact that the ads7846_config has no effect in case
-the board_pdata is provided does not really meter...
-How about reusing the existing "if" instead of adding another one?
-Like in the attached patch?
+If you prefer the former (IIRC you told me you might consider it in a
+random ELCE hallway conversation :) then I'll send you a pull request.
 
+I'm happy either way.
 
--- 
-Regards,
-Igor.
-
---------------090005060607030204050504
-Content-Type: text/x-patch;
- name="touch.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="touch.patch"
-
-diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
-index 94ccf46..e8a7368 100644
---- a/arch/arm/mach-omap2/common-board-devices.c
-+++ b/arch/arm/mach-omap2/common-board-devices.c
-@@ -102,8 +102,10 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
- 	spi_bi->bus_num	= bus_num;
- 	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
- 
--	if (board_pdata)
-+	if (board_pdata) {
-+		board_pdata->gpio_pendown = gpio_pendown;
- 		spi_bi->platform_data = board_pdata;
-+	}
- 
- 	spi_register_board_info(&ads7846_spi_board_info, 1);
- }
-
---------------090005060607030204050504--
+Thanks!
+Ohad.
