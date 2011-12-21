@@ -1,56 +1,79 @@
-From: Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 21 Dec 2011 01:55:13 -0800
-Message-ID: <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4EF1A0B4.5080307@linux.intel.com>
-	<CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
-	<4EF1AA8A.8060304@linux.intel.com>
+From: Barry Song <21cnbao@gmail.com>
+Subject: Re: Is Pandaboard cpuhotplug working stably?
+Date: Wed, 21 Dec 2011 17:59:07 +0800
+Message-ID: <CAGsJ_4w0iVXC6qmDzmkuOb=ZN=Q0bF7EAFkxeYR_d7-vo+8bqQ@mail.gmail.com>
+References: <CAGsJ_4ydbMaS0DD6+j1m9tdCTCzw3TGELcY=KotupvvMMK1YOA@mail.gmail.com>
+ <20111221094624.GB3354@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EF1AA8A.8060304-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Trinabh Gupta <g.trinabh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Deepthi Dharwar <deepthi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:58157 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622Ab1LUJ73 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 04:59:29 -0500
+Received: by eaad14 with SMTP id d14so1028707eaa.19
+        for <linux-omap@vger.kernel.org>; Wed, 21 Dec 2011 01:59:28 -0800 (PST)
+In-Reply-To: <20111221094624.GB3354@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, yongsheng.liu@csr.com, linaro-dev <linaro-dev@lists.linaro.org>, peiyu.li@csr.com, DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, Dec 21, 2011 at 1:44 AM, Arjan van de Ven <arjan-VuQAYsv1562vlLw7lfJaRg@public.gmane.org=
-m> wrote:
-> On 12/21/2011 10:40 AM, Colin Cross wrote:
->
->>> this smells fundamentally racey to me; you can get an interrupt one
->>> cycle after you think you're done, but before the last guy enters W=
-=46I...
->>>
->>> how do you solve that issue ?
+2011/12/21 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+> On Wed, Dec 21, 2011 at 05:23:48PM +0800, Barry Song wrote:
+>> Hi guys,
+>> i tried cpuhotplug on pandaboard for both
+>> Pandroid_Froyo_L27.8.2_release_pkg and Linaro 11.11. It has failed t=
+o
+>> work stably.
+>> On Pandroid_Froyo_L27.8.2_release_pkg, unplugging cpu1 works well:
+>> # echo 0 > /sys/devices/system/cpu/cpu1/online
+>> CPU1: shutdown
 >>
->> All the cpus have interrupts off when they increment the counter, so
->> they cannot receive an interrupt. =A0If an interrupt is pending on o=
-ne
->> of those cpus, it will be handled later when WFI aborts due to the
->> pending interrupt.
+>> if i enable the cpu1 again by "echo 1 >
+>> /sys/devices/system/cpu/cpu1/online", the system will restore to 3
+>> random status: hang, normal, panic.
+>>
+>> Using =C2=A0Linaro 11.11 release, "echo 0 >
+>> /sys/devices/system/cpu/cpu1/online" will make system hang and the
+>> whole system will not be able to reset by pressing reset key, the on=
+ly
+>> way to reset system is pulling out AV power.
+>>
+>> i am sorry i can't get more time to debug and find more clues. just
+>> want to ask people whether this is a version the cpuhotplug works
+>> normal on?
 >
-> ... but this leads to cases where you're aborting before other cpus a=
-re
-> entering..... so your "last guy in" doesn't really work, since while =
-cpu
-> 0 thinks it's the last guy, cpu 1 is already on the way out/out
-> already... =A0(heck it might already be going back to sleep if your i=
-dle
-> code can run fast, like in the size of a cache miss)
+> cpu hotplug is basically totally buggered - the preconditions placed
+> upon the bringup code path are basically impossible to satisfy in any
+> shape or form at the moment.
+>
+> There's the requirement that the secondary CPU is marked online and
+> active before interrupts are enabled for the thread migration stuff
+> to behave correctly. =C2=A0However, this is incompatible with smp_cal=
+l_function()
+> which will wait for online CPUs to respond to an IPI - which this one
+> won't because interrupts are disabled.
+>
+> I think there was some discussion about how to fix this but I don't
+> recall the details.
 
-Once a cpu has incremented the counter, it has no way out unless either
-1: another cpu (that hasn't incremented the counter yet) receives an
-interrupt, aborts idle, and clears its idle flag
-or
-2: all cpus enter the ready counter, and call the cpuidle driver's
-enter function.
+thanks, Russell. then could i think this is an ARM-kernel-specific bug
+which exists on all ARM SMP chips for the moment?
+and that bug doesn't happen on x86:
+root@ubuntu:~/simple-rootfs/initrd/bin# echo 0 >
+/sys/devices/system/cpu/cpu3/online
+root@ubuntu:~/simple-rootfs/initrd/bin# echo 1 >
+/sys/devices/system/cpu/cpu3/online
+root@ubuntu:~/simple-rootfs/initrd/bin# echo 0 >
+/sys/devices/system/cpu/cpu2/online
+root@ubuntu:~/simple-rootfs/initrd/bin# echo 1 >
+/sys/devices/system/cpu/cpu2/online
 
-In your example, cpu 1 has incremented the counter, so it cannot be on
-the way out unless cpu 0 aborts (in which case it will not increment
-the counter, and the counter will never be equal to the number of
-cpus), or unless cpu 0 turns off its interrupts and incrementes the
-counter (in which case neither cpu can return until after the cpuidle
-driver's enter function has been called on all cpus).
+-barry
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
