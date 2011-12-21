@@ -1,67 +1,56 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH V2] am35xx-emac: move generic EMAC init to separate file
-Date: Wed, 21 Dec 2011 09:50:29 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8064441@DBDE01.ent.ti.com>
-References: <1324423590-32489-1-git-send-email-yanok@emcraft.com>
- <79CD15C6BA57404B839C016229A409A8063F1C@DBDE01.ent.ti.com>
- <4EF1A387.2030708@emcraft.com>
+From: Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 0/3] coupled cpuidle state support
+Date: Wed, 21 Dec 2011 01:55:13 -0800
+Message-ID: <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+	<4EF1A0B4.5080307@linux.intel.com>
+	<CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
+	<4EF1AA8A.8060304@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48388 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751440Ab1LUJuo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 04:50:44 -0500
-In-Reply-To: <4EF1A387.2030708@emcraft.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4EF1AA8A.8060304-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Trinabh Gupta <g.trinabh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Deepthi Dharwar <deepthi-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sasha_d@emcraft.com" <sasha_d@emcraft.com>
 
+On Wed, Dec 21, 2011 at 1:44 AM, Arjan van de Ven <arjan-VuQAYsv1562vlLw7lfJaRg@public.gmane.org=
+m> wrote:
+> On 12/21/2011 10:40 AM, Colin Cross wrote:
+>
+>>> this smells fundamentally racey to me; you can get an interrupt one
+>>> cycle after you think you're done, but before the last guy enters W=
+=46I...
+>>>
+>>> how do you solve that issue ?
+>>
+>> All the cpus have interrupts off when they increment the counter, so
+>> they cannot receive an interrupt. =A0If an interrupt is pending on o=
+ne
+>> of those cpus, it will be handled later when WFI aborts due to the
+>> pending interrupt.
+>
+> ... but this leads to cases where you're aborting before other cpus a=
+re
+> entering..... so your "last guy in" doesn't really work, since while =
+cpu
+> 0 thinks it's the last guy, cpu 1 is already on the way out/out
+> already... =A0(heck it might already be going back to sleep if your i=
+dle
+> code can run fast, like in the size of a cache miss)
 
-> -----Original Message-----
-> From: Ilya Yanok [mailto:yanok@emcraft.com]
-> Sent: Wednesday, December 21, 2011 2:45 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; sasha_d@emcraft.com
-> Subject: Re: [PATCH V2] am35xx-emac: move generic EMAC init to separate
-> file
-> 
-> Hi,
-> 
-> On 21.12.2011 10:07, Hiremath, Vaibhav wrote:
-> >> +static struct resource am35xx_mdio_resources[] = {
-> >> +	{
-> >> +		.start  = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET,
-> >> +		.end    = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET +
-> >> +			  SZ_4K - 1,
-> >> +		.flags  = IORESOURCE_MEM,
-> >> +	},
-> >> +};
-> > This will not be board independent, using AM35xx everywhere.
-> 
-> Why? It will work for any AM35XX based board. Probably we can try and
-> make it work with EMACs on other AM3XXXs but I don't have these devices.
-> 
-> > To make it completely board independent, you should get all this
-> platform
-> > specific data from board file. Probably have emac_init() function here
-> and
-> > pass the data.
-> 
-> Hm.. This data is SoC-dependent not board-dependent, what's the reason
-> to move it to the board file?
-> 
-[Hiremath, Vaibhav] My bad. I got confused between 3530 and AM35x...
-Yeup, this is SoC specific thing for AM3517/05 device.
+Once a cpu has incremented the counter, it has no way out unless either
+1: another cpu (that hasn't incremented the counter yet) receives an
+interrupt, aborts idle, and clears its idle flag
+or
+2: all cpus enter the ready counter, and call the cpuidle driver's
+enter function.
 
-Thanks,
-Vaibhav
-
-> > Do you know any other platform or device using this IP?
-> 
-> Yes, I have a couple of AM3517 based boards that use this IP.
-> 
-> Regards, Ilya.
+In your example, cpu 1 has incremented the counter, so it cannot be on
+the way out unless cpu 0 aborts (in which case it will not increment
+the counter, and the counter will never be equal to the number of
+cpus), or unless cpu 0 turns off its interrupts and incrementes the
+counter (in which case neither cpu can return until after the cpuidle
+driver's enter function has been called on all cpus).
