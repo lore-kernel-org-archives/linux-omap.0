@@ -1,278 +1,91 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 5/7] MTD: NAND: ams-delta: use GPIO instead of
- custom I/O
-Date: Wed, 21 Dec 2011 11:12:12 -0800
-Message-ID: <20111221191211.GE24444@atomide.com>
-References: <cover.1324331816.git.jkrzyszt@tis.icnet.pl>
- <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: board-generic: Replace #if defined by
+ #ifdef for consistency
+Date: Wed, 21 Dec 2011 11:19:15 -0800
+Message-ID: <20111221191915.GF24444@atomide.com>
+References: <y>
+ <1323190149-6492-4-git-send-email-b-cousson@ti.com>
+ <4EF08B8B.2040400@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:40685 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751649Ab1LUTTU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 14:19:20 -0500
 Content-Disposition: inline
-In-Reply-To: <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Artem Bityutskiy <dedekind1@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>
+In-Reply-To: <4EF08B8B.2040400@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111219 14:41]:
-> Don't use Amstrad Delta custom I/O functions for controlling the device,
-> use GPIO API instead.
+* Cousson, Benoit <b-cousson@ti.com> [111220 04:48]:
+> Hi Tony,
 > 
-> While being at it, add missing gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB).
+> What about that patch?
 > 
-> Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
-> basic_mmio_gpio"
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Cc: David Woodhouse <dwmw2@infradead.org>
-> Cc: Tony Lindgren <tony@atomide.com>
+> This is the only one that is missing in lo.
+> I know it is not a big deal, but it will make things a little bit cleaner.
 
-Artem, care to ack this one?
+I think we should wait on this one and combine it later on into
+some other clean-up patch.
 
 Regards,
 
 Tony
-
-
-> ---
-> Changes against initial version:
-> * no functional changes,
-> * rebased on top of v2 of patch 2/7, just in case.
-> 
-> Comments copied from initial submission:
-> 
-> Hi,
-> I considered dropping the Amstrad Delta NAND driver and moving to either
-> gpio-nand or gen_nand, but finally decided to keep it for now.
-> 
-> The problem with the gpio-nand is that it seems to match a different
-> hardware interface model. Having no knowledge about the original
-> hardware that driver was designed in mind, I'd rather not try to
-> modify it, and creating another GPIO based NAND driver also seems not
-> a really good idea.
-> 
-> If I decided to use gen_nand instead, I would have to move virtually all
-> of the old driver callback functions somewhere under arch, either to the
-> board file or to a new one, and still use some hacks unless either
-> nand_base.c or plat_nand.c is modified.
-> 
-> I'm willing to take one of those two approaches in a follow up series if
-> I get a positive feedback.
-> 
+ 
 > Thanks,
-> Janusz
+> Benoit
 > 
-> 
->  arch/arm/mach-omap1/board-ams-delta.c             |   30 --------
->  arch/arm/plat-omap/include/plat/board-ams-delta.h |    6 --
->  drivers/mtd/nand/ams-delta.c                      |   74 ++++++++++++++------
->  3 files changed, 52 insertions(+), 58 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-> index 034d009..cc6f962 100644
-> --- a/arch/arm/mach-omap1/board-ams-delta.c
-> +++ b/arch/arm/mach-omap1/board-ams-delta.c
-> @@ -237,36 +237,6 @@ static struct gpio latch_gpios[] __initconst = {
->  		.label	= "lcd_ndisp",
->  	},
->  	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
-> -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "nand_nce",
-> -	},
-> -	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
-> -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "nand_nre",
-> -	},
-> -	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
-> -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "nand_nwp",
-> -	},
-> -	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
-> -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "nand_nwe",
-> -	},
-> -	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
-> -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "nand_ale",
-> -	},
-> -	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
-> -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "nand_cle",
-> -	},
-> -	{
->  		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
->  		.flags	= GPIOF_OUT_INIT_LOW,
->  		.label	= "keybrd_pwr",
-> diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-> index a0f86ca..3e57833 100644
-> --- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
-> +++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-> @@ -30,12 +30,6 @@
->  
->  #define AMS_DELTA_LATCH2_LCD_VBLEN	0x0001
->  #define AMS_DELTA_LATCH2_LCD_NDISP	0x0002
-> -#define AMS_DELTA_LATCH2_NAND_NCE	0x0004
-> -#define AMS_DELTA_LATCH2_NAND_NRE	0x0008
-> -#define AMS_DELTA_LATCH2_NAND_NWP	0x0010
-> -#define AMS_DELTA_LATCH2_NAND_NWE	0x0020
-> -#define AMS_DELTA_LATCH2_NAND_ALE	0x0040
-> -#define AMS_DELTA_LATCH2_NAND_CLE	0x0080
->  #define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
->  #define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
->  #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
-> diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
-> index 9e6b498..5769bd2 100644
-> --- a/drivers/mtd/nand/ams-delta.c
-> +++ b/drivers/mtd/nand/ams-delta.c
-> @@ -26,7 +26,7 @@
->  #include <asm/io.h>
->  #include <mach/hardware.h>
->  #include <asm/sizes.h>
-> -#include <asm/gpio.h>
-> +#include <linux/gpio.h>
->  #include <plat/board-ams-delta.h>
->  
->  /*
-> @@ -34,8 +34,6 @@
->   */
->  static struct mtd_info *ams_delta_mtd = NULL;
->  
-> -#define NAND_MASK (AMS_DELTA_LATCH2_NAND_NRE | AMS_DELTA_LATCH2_NAND_NWE | AMS_DELTA_LATCH2_NAND_CLE | AMS_DELTA_LATCH2_NAND_ALE | AMS_DELTA_LATCH2_NAND_NCE | AMS_DELTA_LATCH2_NAND_NWP)
-> -
->  /*
->   * Define partitions for flash devices
->   */
-> @@ -68,10 +66,9 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
->  
->  	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
->  	writew(byte, this->IO_ADDR_W);
-> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE, 0);
-> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 0);
->  	ndelay(40);
-> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE,
-> -			       AMS_DELTA_LATCH2_NAND_NWE);
-> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 1);
->  }
->  
->  static u_char ams_delta_read_byte(struct mtd_info *mtd)
-> @@ -80,12 +77,11 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
->  	struct nand_chip *this = mtd->priv;
->  	void __iomem *io_base = this->priv;
->  
-> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE, 0);
-> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 0);
->  	ndelay(40);
->  	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
->  	res = readw(this->IO_ADDR_R);
-> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE,
-> -			       AMS_DELTA_LATCH2_NAND_NRE);
-> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 1);
->  
->  	return res;
->  }
-> @@ -132,15 +128,12 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
->  {
->  
->  	if (ctrl & NAND_CTRL_CHANGE) {
-> -		unsigned long bits;
-> -
-> -		bits = (~ctrl & NAND_NCE) ? AMS_DELTA_LATCH2_NAND_NCE : 0;
-> -		bits |= (ctrl & NAND_CLE) ? AMS_DELTA_LATCH2_NAND_CLE : 0;
-> -		bits |= (ctrl & NAND_ALE) ? AMS_DELTA_LATCH2_NAND_ALE : 0;
-> -
-> -		ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_CLE |
-> -				AMS_DELTA_LATCH2_NAND_ALE |
-> -				AMS_DELTA_LATCH2_NAND_NCE, bits);
-> +		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
-> +				(ctrl & NAND_NCE) == 0);
-> +		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
-> +				(ctrl & NAND_CLE) != 0);
-> +		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
-> +				(ctrl & NAND_ALE) != 0);
->  	}
->  
->  	if (cmd != NAND_CMD_NONE)
-> @@ -152,6 +145,39 @@ static int ams_delta_nand_ready(struct mtd_info *mtd)
->  	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
->  }
->  
-> +static struct gpio _mandatory_gpio[] __initconst_or_module = {
-> +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
-> +		.flags	= GPIOF_OUT_INIT_HIGH,
-> +		.label	= "nand_nce",
-> +	},
-> +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
-> +		.flags	= GPIOF_OUT_INIT_HIGH,
-> +		.label	= "nand_nre",
-> +	},
-> +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
-> +		.flags	= GPIOF_OUT_INIT_HIGH,
-> +		.label	= "nand_nwp",
-> +	},
-> +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
-> +		.flags	= GPIOF_OUT_INIT_HIGH,
-> +		.label	= "nand_nwe",
-> +	},
-> +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
-> +		.flags	= GPIOF_OUT_INIT_LOW,
-> +		.label	= "nand_ale",
-> +	},
-> +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
-> +		.flags	= GPIOF_OUT_INIT_LOW,
-> +		.label	= "nand_cle",
-> +	},
-> +};
-> +
->  /*
->   * Main initialization routine
->   */
-> @@ -223,10 +249,9 @@ static int __devinit ams_delta_init(struct platform_device *pdev)
->  	platform_set_drvdata(pdev, io_base);
->  
->  	/* Set chip enabled, but  */
-> -	ams_delta_latch2_write(NAND_MASK, AMS_DELTA_LATCH2_NAND_NRE |
-> -					  AMS_DELTA_LATCH2_NAND_NWE |
-> -					  AMS_DELTA_LATCH2_NAND_NCE |
-> -					  AMS_DELTA_LATCH2_NAND_NWP);
-> +	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
-> +	if (err)
-> +		goto out_gpio;
->  
->  	/* Scan to find existence of the device */
->  	if (nand_scan(ams_delta_mtd, 1)) {
-> @@ -241,7 +266,10 @@ static int __devinit ams_delta_init(struct platform_device *pdev)
->  	goto out;
->  
->   out_mtd:
-> +	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
-> +out_gpio:
->  	platform_set_drvdata(pdev, NULL);
-> +	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
->  	iounmap(io_base);
->  out_release_io:
->  	release_mem_region(res->start, resource_size(res));
-> @@ -262,6 +290,8 @@ static int __devexit ams_delta_cleanup(struct platform_device *pdev)
->  	/* Release resources, unregister device */
->  	nand_release(ams_delta_mtd);
->  
-> +	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
-> +	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
->  	iounmap(io_base);
->  	release_mem_region(res->start, resource_size(res));
->  
-> -- 
-> 1.7.3.4
+> On 12/6/2011 5:49 PM, Benoit Cousson wrote:
+> >The file contains a mix of #ifdef and #if defined().
+> >Replace the #if... by #ifdef.
+> >
+> >Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+> >Cc: Tony Lindgren<tony@atomide.com>
+> >---
+> >  arch/arm/mach-omap2/board-generic.c |    8 ++++----
+> >  1 files changed, 4 insertions(+), 4 deletions(-)
+> >
+> >diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+> >index fb55fa3..09f44e0 100644
+> >--- a/arch/arm/mach-omap2/board-generic.c
+> >+++ b/arch/arm/mach-omap2/board-generic.c
+> >@@ -92,7 +92,7 @@ static void __init omap3_init(void)
+> >  }
+> >  #endif
+> >
+> >-#if defined(CONFIG_SOC_OMAP2420)
+> >+#ifdef CONFIG_SOC_OMAP2420
+> >  static const char *omap242x_boards_compat[] __initdata = {
+> >  	"ti,omap2420",
+> >  	NULL,
+> >@@ -110,7 +110,7 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
+> >  MACHINE_END
+> >  #endif
+> >
+> >-#if defined(CONFIG_SOC_OMAP2430)
+> >+#ifdef CONFIG_SOC_OMAP2430
+> >  static const char *omap243x_boards_compat[] __initdata = {
+> >  	"ti,omap2430",
+> >  	NULL,
+> >@@ -128,7 +128,7 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
+> >  MACHINE_END
+> >  #endif
+> >
+> >-#if defined(CONFIG_ARCH_OMAP3)
+> >+#ifdef CONFIG_ARCH_OMAP3
+> >  static const char *omap3_boards_compat[] __initdata = {
+> >  	"ti,omap3",
+> >  	NULL,
+> >@@ -146,7 +146,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+> >  MACHINE_END
+> >  #endif
+> >
+> >-#if defined(CONFIG_ARCH_OMAP4)
+> >+#ifdef CONFIG_ARCH_OMAP4
+> >  static const char *omap4_boards_compat[] __initdata = {
+> >  	"ti,omap4",
+> >  	NULL,
 > 
