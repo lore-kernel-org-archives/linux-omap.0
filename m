@@ -1,93 +1,382 @@
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: RE: [PATCH] ARM: remove header files included more than once
-Date: Wed, 21 Dec 2011 13:10:23 +0900
-Message-ID: <061b01ccbf96$763f95e0$62bec1a0$%kim@samsung.com>
-References: <1323447943-23595-1-git-send-email-omar.ramirez@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH V2] am35xx-emac: move generic EMAC init to separate file
+Date: Wed, 21 Dec 2011 06:07:01 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8063F1C@DBDE01.ent.ti.com>
+References: <1324423590-32489-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:10705 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002Ab1LUEK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Dec 2011 23:10:26 -0500
-Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LWJ0032RCXDZTC0@mailout3.samsung.com> for
- linux-omap@vger.kernel.org; Wed, 21 Dec 2011 13:10:25 +0900 (KST)
-Received: from DOKGENEKIM03 ([12.23.120.114])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LWJ002H4CXBYJ00@mmp1.samsung.com>
- for linux-omap@vger.kernel.org; Wed, 21 Dec 2011 13:10:25 +0900 (KST)
-In-reply-to: <1323447943-23595-1-git-send-email-omar.ramirez@ti.com>
-Content-language: ko
+Received: from devils.ext.ti.com ([198.47.26.153]:36318 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750915Ab1LUGHQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 01:07:16 -0500
+In-Reply-To: <1324423590-32489-1-git-send-email-yanok@emcraft.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Omar Ramirez Luna' <omar.ramirez@ti.com>, 'Russell King' <linux@arm.linux.org.uk>
-Cc: 'Jiandong Zheng' <jdzheng@broadcom.com>, 'Scott Branden' <sbranden@broadcom.com>, 'David Brown' <davidb@codeaurora.org>, 'Daniel Walker' <dwalker@fifo99.com>, 'Bryan Huntsman' <bryanh@codeaurora.org>, 'Tony Lindgren' <tony@atomide.com>, 'Benoit Cousson' <b-cousson@ti.com>, 'Eric Miao' <eric.y.miao@gmail.com>, 'Paul Mundt' <lethal@linux-sh.org>, 'Magnus Damm' <magnus.damm@gmail.com>, 'Srinidhi Kasagar' <srinidhi.kasagar@stericsson.com>, 'Linus Walleij' <linus.walleij@stericsson.com>, 'Paul Walmsley' <paul@pwsan.com>, 'Ben Dooks' <ben-linux@fluff.org>, 'Simtec Linux Team' <linux@simtec.co.uk>, 'Daniel Silverstone' <dsilvers@simtec.co.uk>, 'Stephen Boyd' <sboyd@codeaurora.org>, 'Krzysztof Halasa' <khc@pm.waw.pl>, 'Lei Wen' <leiwen@marvell.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Ilya Yanok <yanok@emcraft.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "sasha_d@emcraft.com" <sasha_d@emcraft.com>
 
-Omar Ramirez Luna wrote:
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Ilya Yanok
+> Sent: Wednesday, December 21, 2011 4:57 AM
+> To: linux-omap@vger.kernel.org
+> Cc: sasha_d@emcraft.com; Ilya Yanok
+> Subject: [PATCH V2] am35xx-emac: move generic EMAC init to separate file
 > 
-> checkincludes.pl complains about these:
-> 	linux/debugfs.h
-> 	linux/dma-mapping.h
-> 	linux/gpio.h
-> 	linux/sched.h
-> 	linux/slab.h
-> 	plat/common.h
-> 	plat/i2c.h
+> AM35xx SoCs include DaVinci EMAC IP. Initialization code in
+> board-am3517evm.c is pretty board independent and will work for any
+> AM35xx based board so move this code to it's own file to be reused by
+> other boards.
 > 
-> Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+> 
 > ---
->  arch/arm/mach-bcmring/dma.c                 |    1 -
->  arch/arm/mach-ks8695/leds.c                 |    1 -
->  arch/arm/mach-mmp/aspenite.c                |    1 -
->  arch/arm/mach-mmp/tavorevb.c                |    1 -
->  arch/arm/mach-msm/board-msm7x30.c           |    1 -
->  arch/arm/mach-msm/board-qsd8x50.c           |    1 -
->  arch/arm/mach-omap2/board-ldp.c             |    1 -
->  arch/arm/mach-omap2/io.c                    |    1 -
->  arch/arm/mach-omap2/omap_hwmod_44xx_data.c  |    1 -
->  arch/arm/mach-pxa/pxa25x.c                  |    1 -
->  arch/arm/mach-pxa/pxa27x.c                  |    1 -
->  arch/arm/mach-pxa/saarb.c                   |    1 -
->  arch/arm/mach-shmobile/board-ag5evm.c       |    1 -
->  arch/arm/mach-ux500/board-mop500-u8500uib.c |    1 -
->  arch/arm/plat-omap/clock.c                  |    1 -
->  arch/arm/plat-samsung/dev-backlight.c       |    1 -
->  16 files changed, 0 insertions(+), 16 deletions(-)
+> Changes from V1:
 > 
-
-(snip)
-
-> diff --git a/arch/arm/plat-samsung/dev-backlight.c
-b/arch/arm/plat-samsung/dev-backlight.c
-> index e657305..a976c02 100644
-> --- a/arch/arm/plat-samsung/dev-backlight.c
-> +++ b/arch/arm/plat-samsung/dev-backlight.c
-> @@ -15,7 +15,6 @@
->  #include <linux/slab.h>
->  #include <linux/io.h>
->  #include <linux/pwm_backlight.h>
-> -#include <linux/slab.h>
+>  - removed clock aliases
 > 
->  #include <plat/devs.h>
->  #include <plat/gpio-cfg.h>
+>  arch/arm/mach-omap2/Makefile          |    3 +
+>  arch/arm/mach-omap2/am35xx-emac.c     |  131
+> +++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/am35xx-emac.h     |   16 ++++
+>  arch/arm/mach-omap2/board-am3517evm.c |  114 +---------------------------
+> -
+>  4 files changed, 152 insertions(+), 112 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/am35xx-emac.c
+>  create mode 100644 arch/arm/mach-omap2/am35xx-emac.h
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index fc9b238..5d75cb5 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -270,4 +270,7 @@ smsc911x-$(CONFIG_SMSC911X)		:= gpmc-smsc911x.o
+>  obj-y					+= $(smsc911x-m) $(smsc911x-y)
+>  obj-$(CONFIG_ARCH_OMAP4)		+= hwspinlock.o
+> 
+> +emac-$(CONFIG_TI_DAVINCI_EMAC)		:= am35xx-emac.o
+> +obj-y					+= $(emac-m) $(emac-y)
+> +
+>  obj-y					+= common-board-devices.o twl-common.o
+> diff --git a/arch/arm/mach-omap2/am35xx-emac.c b/arch/arm/mach-
+> omap2/am35xx-emac.c
+> new file mode 100644
+> index 0000000..eb23a09
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/am35xx-emac.c
+> @@ -0,0 +1,131 @@
+> +/*
+> + * Copyright (C) 2011 Ilya Yanok, Emcraft Systems
+> + *
+> + * Based on mach-omap2/board-am3517evm.c
+> + * Copyright (C) 2009 Texas Instruments Incorporated
+> + * Author: Ranjith Lohithakshan <ranjithl@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
+> + * whether express or implied; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/davinci_emac.h>
+> +#include <linux/platform_device.h>
+> +#include <plat/irqs.h>
+> +#include <mach/am35xx.h>
+> +
+> +#include "control.h"
+> +
+> +static struct mdio_platform_data am35xx_mdio_pdata;
+> +
+> +static struct resource am35xx_mdio_resources[] = {
+> +	{
+> +		.start  = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET,
+> +		.end    = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET +
+> +			  SZ_4K - 1,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +};
+This will not be board independent, using AM35xx everywhere.
+
+To make it completely board independent, you should get all this platform 
+specific data from board file. Probably have emac_init() function here and 
+pass the data.
+
+
+Do you know any other platform or device using this IP?
+
+Thanks,
+Vaibhav
+
+> +
+> +static struct platform_device am35xx_mdio_device = {
+> +	.name		= "davinci_mdio",
+> +	.id		= 0,
+> +	.num_resources	= ARRAY_SIZE(am35xx_mdio_resources),
+> +	.resource	= am35xx_mdio_resources,
+> +	.dev.platform_data = &am35xx_mdio_pdata,
+> +};
+> +
+> +static void am35xx_enable_ethernet_int(void)
+> +{
+> +	u32 regval;
+> +
+> +	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> +	regval = (regval | AM35XX_CPGMAC_C0_RX_PULSE_CLR |
+> +		AM35XX_CPGMAC_C0_TX_PULSE_CLR |
+> +		AM35XX_CPGMAC_C0_MISC_PULSE_CLR |
+> +		AM35XX_CPGMAC_C0_RX_THRESH_CLR);
+> +	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
+> +	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> +}
+> +
+> +static void am35xx_disable_ethernet_int(void)
+> +{
+> +	u32 regval;
+> +
+> +	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> +	regval = (regval | AM35XX_CPGMAC_C0_RX_PULSE_CLR |
+> +		AM35XX_CPGMAC_C0_TX_PULSE_CLR);
+> +	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
+> +	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> +}
+> +
+> +static struct emac_platform_data am35xx_emac_pdata = {
+> +	.ctrl_reg_offset	= AM35XX_EMAC_CNTRL_OFFSET,
+> +	.ctrl_mod_reg_offset	= AM35XX_EMAC_CNTRL_MOD_OFFSET,
+> +	.ctrl_ram_offset	= AM35XX_EMAC_CNTRL_RAM_OFFSET,
+> +	.ctrl_ram_size		= AM35XX_EMAC_CNTRL_RAM_SIZE,
+> +	.version		= EMAC_VERSION_2,
+> +	.hw_ram_addr		= AM35XX_EMAC_HW_RAM_ADDR,
+> +	.interrupt_enable	= am35xx_enable_ethernet_int,
+> +	.interrupt_disable	= am35xx_disable_ethernet_int,
+> +};
+> +
+> +static struct resource am35xx_emac_resources[] = {
+> +	{
+> +		.start  = AM35XX_IPSS_EMAC_BASE,
+> +		.end    = AM35XX_IPSS_EMAC_BASE + 0x2FFFF,
+> +		.flags  = IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.start  = INT_35XX_EMAC_C0_RXTHRESH_IRQ,
+> +		.end    = INT_35XX_EMAC_C0_RXTHRESH_IRQ,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start  = INT_35XX_EMAC_C0_RX_PULSE_IRQ,
+> +		.end    = INT_35XX_EMAC_C0_RX_PULSE_IRQ,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start  = INT_35XX_EMAC_C0_TX_PULSE_IRQ,
+> +		.end    = INT_35XX_EMAC_C0_TX_PULSE_IRQ,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start  = INT_35XX_EMAC_C0_MISC_PULSE_IRQ,
+> +		.end    = INT_35XX_EMAC_C0_MISC_PULSE_IRQ,
+> +		.flags  = IORESOURCE_IRQ,
+> +	},
+> +};
+> +
+> +static struct platform_device am35xx_emac_device = {
+> +	.name		= "davinci_emac",
+> +	.id		= -1,
+> +	.num_resources	= ARRAY_SIZE(am35xx_emac_resources),
+> +	.resource	= am35xx_emac_resources,
+> +	.dev		= {
+> +		.platform_data	= &am35xx_emac_pdata,
+> +	},
+> +};
+> +
+> +void am35xx_ethernet_init(unsigned long mdio_bus_freq, int rmii_en)
+> +{
+> +	unsigned int regval;
+> +
+> +	am35xx_emac_pdata.rmii_en = rmii_en;
+> +	am35xx_mdio_pdata.bus_freq = mdio_bus_freq;
+> +	platform_device_register(&am35xx_emac_device);
+> +	platform_device_register(&am35xx_mdio_device);
+> +
+> +	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+> +	regval = regval & (~(AM35XX_CPGMACSS_SW_RST));
+> +	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
+> +	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+> +}
+> diff --git a/arch/arm/mach-omap2/am35xx-emac.h b/arch/arm/mach-
+> omap2/am35xx-emac.h
+> new file mode 100644
+> index 0000000..e318d9a
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/am35xx-emac.h
+> @@ -0,0 +1,16 @@
+> +/*
+> + * Copyright (C) 2011 Ilya Yanok, Emcraft Systems
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifdef CONFIG_TI_DAVINCI_EMAC
+> +void am35xx_ethernet_init(unsigned long mdio_bus_freq, int rmii_en);
+> +#else
+> +static inline void am35xx_ethernet_init(unsigned long mdio_bus_freq,
+> +		int rmii_en)
+> +{
+> +}
+> +#endif
+> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
+> omap2/board-am3517evm.c
+> index 3a44f07..0842f58 100644
+> --- a/arch/arm/mach-omap2/board-am3517evm.c
+> +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> @@ -39,123 +39,13 @@
+>  #include <video/omap-panel-generic-dpi.h>
+>  #include <video/omap-panel-dvi.h>
+> 
+> +#include "am35xx-emac.h"
+>  #include "mux.h"
+>  #include "control.h"
+>  #include "hsmmc.h"
+> 
+>  #define AM35XX_EVM_MDIO_FREQUENCY	(1000000)
+> 
+> -static struct mdio_platform_data am3517_evm_mdio_pdata = {
+> -	.bus_freq	= AM35XX_EVM_MDIO_FREQUENCY,
+> -};
+> -
+> -static struct resource am3517_mdio_resources[] = {
+> -	{
+> -		.start  = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET,
+> -		.end    = AM35XX_IPSS_EMAC_BASE + AM35XX_EMAC_MDIO_OFFSET +
+> -			  SZ_4K - 1,
+> -		.flags  = IORESOURCE_MEM,
+> -	},
+> -};
+> -
+> -static struct platform_device am3517_mdio_device = {
+> -	.name		= "davinci_mdio",
+> -	.id		= 0,
+> -	.num_resources	= ARRAY_SIZE(am3517_mdio_resources),
+> -	.resource	= am3517_mdio_resources,
+> -	.dev.platform_data = &am3517_evm_mdio_pdata,
+> -};
+> -
+> -static struct emac_platform_data am3517_evm_emac_pdata = {
+> -	.rmii_en	= 1,
+> -};
+> -
+> -static struct resource am3517_emac_resources[] = {
+> -	{
+> -		.start  = AM35XX_IPSS_EMAC_BASE,
+> -		.end    = AM35XX_IPSS_EMAC_BASE + 0x2FFFF,
+> -		.flags  = IORESOURCE_MEM,
+> -	},
+> -	{
+> -		.start  = INT_35XX_EMAC_C0_RXTHRESH_IRQ,
+> -		.end    = INT_35XX_EMAC_C0_RXTHRESH_IRQ,
+> -		.flags  = IORESOURCE_IRQ,
+> -	},
+> -	{
+> -		.start  = INT_35XX_EMAC_C0_RX_PULSE_IRQ,
+> -		.end    = INT_35XX_EMAC_C0_RX_PULSE_IRQ,
+> -		.flags  = IORESOURCE_IRQ,
+> -	},
+> -	{
+> -		.start  = INT_35XX_EMAC_C0_TX_PULSE_IRQ,
+> -		.end    = INT_35XX_EMAC_C0_TX_PULSE_IRQ,
+> -		.flags  = IORESOURCE_IRQ,
+> -	},
+> -	{
+> -		.start  = INT_35XX_EMAC_C0_MISC_PULSE_IRQ,
+> -		.end    = INT_35XX_EMAC_C0_MISC_PULSE_IRQ,
+> -		.flags  = IORESOURCE_IRQ,
+> -	},
+> -};
+> -
+> -static struct platform_device am3517_emac_device = {
+> -	.name		= "davinci_emac",
+> -	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(am3517_emac_resources),
+> -	.resource	= am3517_emac_resources,
+> -};
+> -
+> -static void am3517_enable_ethernet_int(void)
+> -{
+> -	u32 regval;
+> -
+> -	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> -	regval = (regval | AM35XX_CPGMAC_C0_RX_PULSE_CLR |
+> -		AM35XX_CPGMAC_C0_TX_PULSE_CLR |
+> -		AM35XX_CPGMAC_C0_MISC_PULSE_CLR |
+> -		AM35XX_CPGMAC_C0_RX_THRESH_CLR);
+> -	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
+> -	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> -}
+> -
+> -static void am3517_disable_ethernet_int(void)
+> -{
+> -	u32 regval;
+> -
+> -	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> -	regval = (regval | AM35XX_CPGMAC_C0_RX_PULSE_CLR |
+> -		AM35XX_CPGMAC_C0_TX_PULSE_CLR);
+> -	omap_ctrl_writel(regval, AM35XX_CONTROL_LVL_INTR_CLEAR);
+> -	regval = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> -}
+> -
+> -static void am3517_evm_ethernet_init(struct emac_platform_data *pdata)
+> -{
+> -	unsigned int regval;
+> -
+> -	pdata->ctrl_reg_offset		= AM35XX_EMAC_CNTRL_OFFSET;
+> -	pdata->ctrl_mod_reg_offset	= AM35XX_EMAC_CNTRL_MOD_OFFSET;
+> -	pdata->ctrl_ram_offset		= AM35XX_EMAC_CNTRL_RAM_OFFSET;
+> -	pdata->ctrl_ram_size		= AM35XX_EMAC_CNTRL_RAM_SIZE;
+> -	pdata->version			= EMAC_VERSION_2;
+> -	pdata->hw_ram_addr		= AM35XX_EMAC_HW_RAM_ADDR;
+> -	pdata->interrupt_enable		= am3517_enable_ethernet_int;
+> -	pdata->interrupt_disable	= am3517_disable_ethernet_int;
+> -	am3517_emac_device.dev.platform_data	= pdata;
+> -	platform_device_register(&am3517_emac_device);
+> -	platform_device_register(&am3517_mdio_device);
+> -	clk_add_alias(NULL, dev_name(&am3517_mdio_device.dev),
+> -		      NULL, &am3517_emac_device.dev);
+> -
+> -	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+> -	regval = regval & (~(AM35XX_CPGMACSS_SW_RST));
+> -	omap_ctrl_writel(regval, AM35XX_CONTROL_IP_SW_RESET);
+> -	regval = omap_ctrl_readl(AM35XX_CONTROL_IP_SW_RESET);
+> -
+> -	return ;
+> -}
+> -
+> -
+> 
+>  #define LCD_PANEL_PWR		176
+>  #define LCD_PANEL_BKLIGHT_PWR	182
+> @@ -498,7 +388,7 @@ static void __init am3517_evm_init(void)
+>  	i2c_register_board_info(1, am3517evm_i2c1_boardinfo,
+>  				ARRAY_SIZE(am3517evm_i2c1_boardinfo));
+>  	/*Ethernet*/
+> -	am3517_evm_ethernet_init(&am3517_evm_emac_pdata);
+> +	am35xx_ethernet_init(AM35XX_EVM_MDIO_FREQUENCY, 1);
+> 
+>  	/* MUSB */
+>  	am3517_evm_musb_init();
 > --
-> 1.7.4.1
-
-Hi,
-
-Above has been already fixed in mainline.
-:commit d7a4c45ec24b6c6773ff302c3c9cb5ed46c8e211 ("ARM: SAMSUNG: remove
-duplicated header include").
-
-Anyway, thanks.
-
-Best regards,
-Kgene.
---
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
-
+> 1.7.6.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
