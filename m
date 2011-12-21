@@ -1,216 +1,278 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] input: serio: ams-delta: toggle keyboard power over
- GPIO
-Date: Wed, 21 Dec 2011 11:09:45 -0800
-Message-ID: <20111221190945.GD24444@atomide.com>
-References: <378bcda9c6cb6a1ddeeb54817078bc7ec68c5987.1324331816.git.jkrzyszt@tis.icnet.pl>
- <1324419034-31024-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2 5/7] MTD: NAND: ams-delta: use GPIO instead of
+ custom I/O
+Date: Wed, 21 Dec 2011 11:12:12 -0800
+Message-ID: <20111221191211.GE24444@atomide.com>
+References: <cover.1324331816.git.jkrzyszt@tis.icnet.pl>
+ <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1324419034-31024-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Sender: linux-input-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+In-Reply-To: <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Artem Bityutskiy <dedekind1@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111220 13:39]:
-> Don't use Amstrad Delta custom I/O functions once GPIO interface is
-> available for the underlying hardware.
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111219 14:41]:
+> Don't use Amstrad Delta custom I/O functions for controlling the device,
+> use GPIO API instead.
 > 
-> While requesting and initializing GPIO pins used, also take care of one
-> extra pin KEYBRD_DATAOUT which, even if not used by the driver, belongs
-> to the device and affects its functioning.
-> 
-> Once done, move the driver initialization back to the device_initcall
-> level, reverting the temporary chane introduced with patch 1/7 "ARM:
-> OMAP1: ams-delta: register latch dependent devices later".  That change
-> is no longer required once the driver takes care of registering used
-> GPIO pins, and it's better to initialize the device before others using
-> the latch2 based GPIO pins, otherwise a garbage is reported on boot,
-> perhaps due to random data already captured by the FIQ handler while the
-> keyboard related latch bits are written with random values during
-> initialization of those other latch2 dependent devices.
+> While being at it, add missing gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB).
 > 
 > Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
 > basic_mmio_gpio"
 > 
 > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Cc: David Woodhouse <dwmw2@infradead.org>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-I'm assuming Dmitry's ack for an earlier version of this patch also
-covers this one when applying.
+Artem, care to ack this one?
 
 Regards,
 
 Tony
 
+
 > ---
+> Changes against initial version:
+> * no functional changes,
+> * rebased on top of v2 of patch 2/7, just in case.
+> 
+> Comments copied from initial submission:
+> 
 > Hi,
-> I'm submitting only this one refreshed on top of updated 1/7. All others
-> (2/7-6/7) don't require any refresh, can be rebased smoothly.
+> I considered dropping the Amstrad Delta NAND driver and moving to either
+> gpio-nand or gen_nand, but finally decided to keep it for now.
+> 
+> The problem with the gpio-nand is that it seems to match a different
+> hardware interface model. Having no knowledge about the original
+> hardware that driver was designed in mind, I'd rather not try to
+> modify it, and creating another GPIO based NAND driver also seems not
+> a really good idea.
+> 
+> If I decided to use gen_nand instead, I would have to move virtually all
+> of the old driver callback functions somewhere under arch, either to the
+> board file or to a new one, and still use some hacks unless either
+> nand_base.c or plat_nand.c is modified.
+> 
+> I'm willing to take one of those two approaches in a follow up series if
+> I get a positive feedback.
 > 
 > Thanks,
 > Janusz
 > 
 > 
-> Changes against version 2:
-> * refreshed on top of updated patch 1/7 v2,
-> * changelog: corrected patch 1/7 summary (was inaccurate).
-> 
-> Changes against initial version:
-> * was 9/10,
-> * rebased on top of v2 of patch 2/7, just in case,
-> * moved AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT pin handling from the board
->   code to the driver,
-> * reverted a temporary change to the driver initcall level, introduced
->   by the new solution provided with patch 1/7.
-> 
-> 
->  arch/arm/mach-omap1/board-ams-delta.c             |   10 ----
->  arch/arm/plat-omap/include/plat/board-ams-delta.h |    2 -
->  drivers/input/serio/ams_delta_serio.c             |   53 ++++++++++++--------
-> :x 3 files changed, 32 insertions(+), 33 deletions(-)
+>  arch/arm/mach-omap1/board-ams-delta.c             |   30 --------
+>  arch/arm/plat-omap/include/plat/board-ams-delta.h |    6 --
+>  drivers/mtd/nand/ams-delta.c                      |   74 ++++++++++++++------
+>  3 files changed, 52 insertions(+), 58 deletions(-)
 > 
 > diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-> index 3aba8f9..673cf21 100644
+> index 034d009..cc6f962 100644
 > --- a/arch/arm/mach-omap1/board-ams-delta.c
 > +++ b/arch/arm/mach-omap1/board-ams-delta.c
-> @@ -227,16 +227,6 @@ static struct gpio latch_gpios[] __initconst = {
->  		.label	= "dockit2",
+> @@ -237,36 +237,6 @@ static struct gpio latch_gpios[] __initconst = {
+>  		.label	= "lcd_ndisp",
 >  	},
 >  	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
+> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
 > -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "keybrd_pwr",
+> -		.label	= "nand_nce",
 > -	},
 > -	{
-> -		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
+> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
 > -		.flags	= GPIOF_OUT_INIT_LOW,
-> -		.label	= "keybrd_dataout",
+> -		.label	= "nand_nre",
 > -	},
 > -	{
->  		.gpio	= AMS_DELTA_GPIO_PIN_SCARD_RSTIN,
+> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
+> -		.flags	= GPIOF_OUT_INIT_LOW,
+> -		.label	= "nand_nwp",
+> -	},
+> -	{
+> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
+> -		.flags	= GPIOF_OUT_INIT_LOW,
+> -		.label	= "nand_nwe",
+> -	},
+> -	{
+> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
+> -		.flags	= GPIOF_OUT_INIT_LOW,
+> -		.label	= "nand_ale",
+> -	},
+> -	{
+> -		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
+> -		.flags	= GPIOF_OUT_INIT_LOW,
+> -		.label	= "nand_cle",
+> -	},
+> -	{
+>  		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
 >  		.flags	= GPIOF_OUT_INIT_LOW,
->  		.label	= "scard_rstin",
+>  		.label	= "keybrd_pwr",
 > diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-> index e9ad673..027e79e 100644
+> index a0f86ca..3e57833 100644
 > --- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
 > +++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-> @@ -28,8 +28,6 @@
+> @@ -30,12 +30,6 @@
 >  
->  #if defined (CONFIG_MACH_AMS_DELTA)
->  
-> -#define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
-> -#define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
+>  #define AMS_DELTA_LATCH2_LCD_VBLEN	0x0001
+>  #define AMS_DELTA_LATCH2_LCD_NDISP	0x0002
+> -#define AMS_DELTA_LATCH2_NAND_NCE	0x0004
+> -#define AMS_DELTA_LATCH2_NAND_NRE	0x0008
+> -#define AMS_DELTA_LATCH2_NAND_NWP	0x0010
+> -#define AMS_DELTA_LATCH2_NAND_NWE	0x0020
+> -#define AMS_DELTA_LATCH2_NAND_ALE	0x0040
+> -#define AMS_DELTA_LATCH2_NAND_CLE	0x0080
+>  #define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
+>  #define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
 >  #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
->  #define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
->  #define AMS_DELTA_LATCH2_MODEM_NRESET	0x1000
-> diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-> index 835d37a..ef1ec40 100644
-> --- a/drivers/input/serio/ams_delta_serio.c
-> +++ b/drivers/input/serio/ams_delta_serio.c
-> @@ -92,8 +92,7 @@ static irqreturn_t ams_delta_serio_interrupt(int irq, void *dev_id)
->  static int ams_delta_serio_open(struct serio *serio)
->  {
->  	/* enable keyboard */
-> -	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR,
-> -			AMD_DELTA_LATCH2_KEYBRD_PWR);
-> +	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 1);
+> diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
+> index 9e6b498..5769bd2 100644
+> --- a/drivers/mtd/nand/ams-delta.c
+> +++ b/drivers/mtd/nand/ams-delta.c
+> @@ -26,7 +26,7 @@
+>  #include <asm/io.h>
+>  #include <mach/hardware.h>
+>  #include <asm/sizes.h>
+> -#include <asm/gpio.h>
+> +#include <linux/gpio.h>
+>  #include <plat/board-ams-delta.h>
 >  
->  	return 0;
->  }
-> @@ -101,9 +100,32 @@ static int ams_delta_serio_open(struct serio *serio)
->  static void ams_delta_serio_close(struct serio *serio)
->  {
->  	/* disable keyboard */
-> -	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR, 0);
-> +	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 0);
+>  /*
+> @@ -34,8 +34,6 @@
+>   */
+>  static struct mtd_info *ams_delta_mtd = NULL;
+>  
+> -#define NAND_MASK (AMS_DELTA_LATCH2_NAND_NRE | AMS_DELTA_LATCH2_NAND_NWE | AMS_DELTA_LATCH2_NAND_CLE | AMS_DELTA_LATCH2_NAND_ALE | AMS_DELTA_LATCH2_NAND_NCE | AMS_DELTA_LATCH2_NAND_NWP)
+> -
+>  /*
+>   * Define partitions for flash devices
+>   */
+> @@ -68,10 +66,9 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
+>  
+>  	writew(0, io_base + OMAP_MPUIO_IO_CNTL);
+>  	writew(byte, this->IO_ADDR_W);
+> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE, 0);
+> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 0);
+>  	ndelay(40);
+> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE,
+> -			       AMS_DELTA_LATCH2_NAND_NWE);
+> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NWE, 1);
 >  }
 >  
-> +static struct gpio _gpios[] __initconst_or_module = {
+>  static u_char ams_delta_read_byte(struct mtd_info *mtd)
+> @@ -80,12 +77,11 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
+>  	struct nand_chip *this = mtd->priv;
+>  	void __iomem *io_base = this->priv;
+>  
+> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE, 0);
+> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 0);
+>  	ndelay(40);
+>  	writew(~0, io_base + OMAP_MPUIO_IO_CNTL);
+>  	res = readw(this->IO_ADDR_R);
+> -	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE,
+> -			       AMS_DELTA_LATCH2_NAND_NRE);
+> +	gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NRE, 1);
+>  
+>  	return res;
+>  }
+> @@ -132,15 +128,12 @@ static void ams_delta_hwcontrol(struct mtd_info *mtd, int cmd,
+>  {
+>  
+>  	if (ctrl & NAND_CTRL_CHANGE) {
+> -		unsigned long bits;
+> -
+> -		bits = (~ctrl & NAND_NCE) ? AMS_DELTA_LATCH2_NAND_NCE : 0;
+> -		bits |= (ctrl & NAND_CLE) ? AMS_DELTA_LATCH2_NAND_CLE : 0;
+> -		bits |= (ctrl & NAND_ALE) ? AMS_DELTA_LATCH2_NAND_ALE : 0;
+> -
+> -		ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_CLE |
+> -				AMS_DELTA_LATCH2_NAND_ALE |
+> -				AMS_DELTA_LATCH2_NAND_NCE, bits);
+> +		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_NCE,
+> +				(ctrl & NAND_NCE) == 0);
+> +		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_CLE,
+> +				(ctrl & NAND_CLE) != 0);
+> +		gpio_set_value(AMS_DELTA_GPIO_PIN_NAND_ALE,
+> +				(ctrl & NAND_ALE) != 0);
+>  	}
+>  
+>  	if (cmd != NAND_CMD_NONE)
+> @@ -152,6 +145,39 @@ static int ams_delta_nand_ready(struct mtd_info *mtd)
+>  	return gpio_get_value(AMS_DELTA_GPIO_PIN_NAND_RB);
+>  }
+>  
+> +static struct gpio _mandatory_gpio[] __initconst_or_module = {
 > +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATA,
-> +		.flags	= GPIOF_DIR_IN,
-> +		.label	= "serio-data",
+> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NCE,
+> +		.flags	= GPIOF_OUT_INIT_HIGH,
+> +		.label	= "nand_nce",
 > +	},
 > +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_CLK,
-> +		.flags	= GPIOF_DIR_IN,
-> +		.label	= "serio-clock",
+> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NRE,
+> +		.flags	= GPIOF_OUT_INIT_HIGH,
+> +		.label	= "nand_nre",
 > +	},
 > +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
+> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWP,
+> +		.flags	= GPIOF_OUT_INIT_HIGH,
+> +		.label	= "nand_nwp",
+> +	},
+> +	{
+> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_NWE,
+> +		.flags	= GPIOF_OUT_INIT_HIGH,
+> +		.label	= "nand_nwe",
+> +	},
+> +	{
+> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_ALE,
 > +		.flags	= GPIOF_OUT_INIT_LOW,
-> +		.label	= "serio-power",
+> +		.label	= "nand_ale",
 > +	},
 > +	{
-> +		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
+> +		.gpio	= AMS_DELTA_GPIO_PIN_NAND_CLE,
 > +		.flags	= GPIOF_OUT_INIT_LOW,
-> +		.label	= "serio-dataout",
+> +		.label	= "nand_cle",
 > +	},
 > +};
 > +
->  static int __init ams_delta_serio_init(void)
->  {
->  	int err;
-> @@ -123,19 +145,11 @@ static int __init ams_delta_serio_init(void)
->  	strlcpy(ams_delta_serio->phys, "GPIO/serio0",
->  			sizeof(ams_delta_serio->phys));
+>  /*
+>   * Main initialization routine
+>   */
+> @@ -223,10 +249,9 @@ static int __devinit ams_delta_init(struct platform_device *pdev)
+>  	platform_set_drvdata(pdev, io_base);
 >  
-> -	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_DATA, "serio-data");
-> +	err = gpio_request_array(_gpios, ARRAY_SIZE(_gpios));
->  	if (err) {
-> -		pr_err("ams_delta_serio: Couldn't request gpio pin for data\n");
-> +		pr_err("ams_delta_serio: Couldn't request gpio pins\n");
->  		goto serio;
->  	}
-> -	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-> -
-> -	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_CLK, "serio-clock");
-> -	if (err) {
-> -		pr_err("ams_delta_serio: couldn't request gpio pin for clock\n");
-> -		goto gpio_data;
-> -	}
-> -	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
+>  	/* Set chip enabled, but  */
+> -	ams_delta_latch2_write(NAND_MASK, AMS_DELTA_LATCH2_NAND_NRE |
+> -					  AMS_DELTA_LATCH2_NAND_NWE |
+> -					  AMS_DELTA_LATCH2_NAND_NCE |
+> -					  AMS_DELTA_LATCH2_NAND_NWP);
+> +	err = gpio_request_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+> +	if (err)
+> +		goto out_gpio;
 >  
->  	err = request_irq(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK),
->  			ams_delta_serio_interrupt, IRQ_TYPE_EDGE_RISING,
-> @@ -143,7 +157,7 @@ static int __init ams_delta_serio_init(void)
->  	if (err < 0) {
->  		pr_err("ams_delta_serio: couldn't request gpio interrupt %d\n",
->  				gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
-> -		goto gpio_clk;
-> +		goto gpio;
->  	}
->  	/*
->  	 * Since GPIO register handling for keyboard clock pin is performed
-> @@ -157,21 +171,18 @@ static int __init ams_delta_serio_init(void)
->  	dev_info(&ams_delta_serio->dev, "%s\n", ams_delta_serio->name);
+>  	/* Scan to find existence of the device */
+>  	if (nand_scan(ams_delta_mtd, 1)) {
+> @@ -241,7 +266,10 @@ static int __devinit ams_delta_init(struct platform_device *pdev)
+>  	goto out;
 >  
->  	return 0;
-> -gpio_clk:
-> -	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
-> -gpio_data:
-> -	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-> +gpio:
-> +	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
->  serio:
->  	kfree(ams_delta_serio);
->  	return err;
->  }
-> -late_initcall(ams_delta_serio_init);
-> +module_init(ams_delta_serio_init);
+>   out_mtd:
+> +	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+> +out_gpio:
+>  	platform_set_drvdata(pdev, NULL);
+> +	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
+>  	iounmap(io_base);
+>  out_release_io:
+>  	release_mem_region(res->start, resource_size(res));
+> @@ -262,6 +290,8 @@ static int __devexit ams_delta_cleanup(struct platform_device *pdev)
+>  	/* Release resources, unregister device */
+>  	nand_release(ams_delta_mtd);
 >  
->  static void __exit ams_delta_serio_exit(void)
->  {
->  	serio_unregister_port(ams_delta_serio);
->  	free_irq(OMAP_GPIO_IRQ(AMS_DELTA_GPIO_PIN_KEYBRD_CLK), 0);
-> -	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
-> -	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-> +	gpio_free_array(_gpios, ARRAY_SIZE(_gpios));
->  }
->  module_exit(ams_delta_serio_exit);
+> +	gpio_free_array(_mandatory_gpio, ARRAY_SIZE(_mandatory_gpio));
+> +	gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB);
+>  	iounmap(io_base);
+>  	release_mem_region(res->start, resource_size(res));
+>  
 > -- 
 > 1.7.3.4
 > 
