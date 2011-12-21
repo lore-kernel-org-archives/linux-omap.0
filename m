@@ -1,57 +1,48 @@
-From: Colin Cross <ccross@android.com>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 21 Dec 2011 11:42:28 -0800
-Message-ID: <CAMbhsRSPCo9MSGp57Fv0sRdYUFcdwx8jEz1-CfX8LdKf8X4MVg@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4EF1A0B4.5080307@linux.intel.com>
-	<CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
-	<4EF1AA8A.8060304@linux.intel.com>
-	<CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
-	<4EF1CD49.9020800@linux.intel.com>
-	<CAMbhsRRnKoR3YPWrZzVynVe+dcuU5v0siYvmp2vbBcS1hquC7Q@mail.gmail.com>
-	<4EF2352C.3060102@linux.intel.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2 5/7] MTD: NAND: ams-delta: use GPIO instead of custom I/O
+Date: Wed, 21 Dec 2011 20:45:34 +0100
+Message-ID: <201112212045.34850.jkrzyszt@tis.icnet.pl>
+References: <cover.1324331816.git.jkrzyszt@tis.icnet.pl> <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl> <20111221191211.GE24444@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <4EF2352C.3060102@linux.intel.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:36960 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752991Ab1LUTrG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Dec 2011 14:47:06 -0500
+In-Reply-To: <20111221191211.GE24444@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>
 
-On Wed, Dec 21, 2011 at 11:36 AM, Arjan van de Ven
-<arjan@linux.intel.com> wrote:
->>>
->>> .. or it enters WFI, and a physical device sends it an interrupt,
->>> at which point it exits.
->>
->> None of the cpus will return to the idle loop until all cpus have
->> decremented the ready counter back to 0, so they can't wrap around
->> again.
->
->
-> yikes, so you IPI all the cpus on the first exit.
-> that must burn power ;-(
+On Wednesday 21 of December 2011 at 20:12:12, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111219 14:41]:
+> > Don't use Amstrad Delta custom I/O functions for controlling the device,
+> > use GPIO API instead.
+> > 
+> > While being at it, add missing gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB).
+> > 
+> > Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
+> > basic_mmio_gpio"
+> > 
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > Cc: David Woodhouse <dwmw2@infradead.org>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> 
+> Artem, care to ack this one?
 
-No, you're not understanding the point of this series.
 
-If your cpus can go in and out of idle independently, you don't use
-this code at all.  Each cpu can call WFI and come back out without
-talking to the other cpu.
+BTW, following the get_maintainer.pl script suggestions, I tried to 
+include Artem in the Cc: list, but that script provided me with an 
+invalid Artem's email address at nokia.com, and I gave up once my email 
+gateway refused to accept that message. Now I've verified that several 
+half or more year old commits signed by Artem were the sources of that 
+apparently outdated information. Looks like the get_maintainer.pl script 
+needs improvement, or should be used with care by people who don't 
+follow all email address changes ;).
 
-However, if you have two cpus that share some part of the SoC that can
-be turned off in idle, like the L2 cache controller or the system bus,
-the two cpus need to go to idle together, and they will both boot
-together when either one receives an interrupt (although one will
-likely immediately go back to a shallower state that doesn't require
-coordination with the other cpu).  There is no way around this, it's
-how the hardware works on some ARM platforms.
+Thanks,
+Janusz
