@@ -1,68 +1,52 @@
-From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: [PATCH] OMAP2+: ads7846_init: put gpio_pendown into pdata if
- it's provided
-Date: Wed, 21 Dec 2011 22:06:43 +0400
-Message-ID: <4EF22033.9030806@emcraft.com>
-References: <1324485086-31410-1-git-send-email-yanok@emcraft.com> <4EF215DE.8060002@compulab.co.il>
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH 00/10] OMAP4: ASoC: Support for PandaBoard family
+Date: Wed, 21 Dec 2011 18:26:23 +0000
+Message-ID: <1324491983.8478.4.camel@odin>
+References: <1323856022-24053-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ocean.emcraft.com ([213.221.7.182]:54425 "EHLO
-	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab1LUSGO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 13:06:14 -0500
-In-Reply-To: <4EF215DE.8060002@compulab.co.il>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:37260 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752215Ab1LUS0c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Dec 2011 13:26:32 -0500
+Received: by mail-ww0-f47.google.com with SMTP id dr10so15157235wgb.4
+        for <linux-omap@vger.kernel.org>; Wed, 21 Dec 2011 10:26:31 -0800 (PST)
+In-Reply-To: <1323856022-24053-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: linux-omap@vger.kernel.org, sasha_d@emcraft.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-Hi Igor,
-
-On 21.12.2011 21:22, Igor Grinberg wrote:
-> Please, Cc the linux-arm-kernel@lists.infradead.org for patches,
-> so Tony, or whoever will not need to resend them...
-
-Uh.. Actually I thought that linux-omap ML is a good place for really
-OMAP-specific patches like this one and there is no much sense posting
-such patches into the main ARM list...
-
-Ok, I will Cc linux-arm-kernel in future.
-
->> If platform data is provided by the caller gpio_pendown is put into
->> unused static ads7846_config structure and effectively has no effect.
->> Of course caller can set gpio_pendown field in platform data himself
->> but it seems natural to do this in ads7846_init to remove duplication.
->>
->> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
->> ---
->>  arch/arm/mach-omap2/common-board-devices.c |    5 ++++-
->>  1 files changed, 4 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
->> index 2d1d775..eb408dd 100644
->> --- a/arch/arm/mach-omap2/common-board-devices.c
->> +++ b/arch/arm/mach-omap2/common-board-devices.c
->> @@ -75,7 +75,10 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->>  			gpio_set_debounce(gpio_pendown, gpio_debounce);
->>  	}
->>  
->> -	ads7846_config.gpio_pendown = gpio_pendown;
->> +	if (!board_pdata)
->> +		ads7846_config.gpio_pendown = gpio_pendown;
->> +	else
->> +		board_pdata->gpio_pendown = gpio_pendown;
->>  
->>  	spi_bi->bus_num	= bus_num;
->>  	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
+On Wed, 2011-12-14 at 11:46 +0200, Peter Ujfalusi wrote:
+> Hello,
 > 
-> The fact that the ads7846_config has no effect in case
-> the board_pdata is provided does not really meter...
-> How about reusing the existing "if" instead of adding another one?
-> Like in the attached patch?
+> the following series will add ASoC support for PandaBoards.
+> PandaBoards have different audio routings compared to SDP4430/Blaze boards, but
+> the differences not that big to justify a new ASoC machine driver.
+> 
+> Main changes:
+> - Rename the sdp4430 ASoC machine driver to use generic name: omap-abe-twl6040
+> - Convert the ASoC machine driver to platform driver
+> - The type of the board, and the desired sound card name is passed via platform
+>   data to the ASoC machine driver
+> - Based on the board type the driver selects different audio routings
+> - Registration of the needed platform devices in board files (sdp4403, panda)
+> 
+> After this series the sound card names will be different for easier UCM
+> integration:
+> "OMAP4-SDP4430" for SDP4430/Blaze boards
+> "OMAP4-Panda" for PandaBoard 4430
+> "OMAP4-PandaES" for PandaBoard ES (4460)
+> 
 
-Yes, I think your version is a bit clearer. Probably it makes to add
-"else" clause and move ads7846_config.gpio_pendown assignment under it.
+1,2,3 Applied.
 
-Regards, Ilya.
+5 & 8 depend on the others so best to resend with Acks if unchanged.
+
+Thanks
+
+Liam
+
