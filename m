@@ -1,40 +1,60 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v2 5/7] MTD: NAND: ams-delta: use GPIO instead of custom
- I/O
-Date: Wed, 21 Dec 2011 22:56:50 +0200
-Message-ID: <1324501012.2110.2.camel@koala>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 07/10] ASoC: OMAP: ams-delta: Drive
+	modem/codec pins over GPIO API
+Date: Wed, 21 Dec 2011 23:14:39 +0100
+Message-ID: <201112212314.39844.jkrzyszt@tis.icnet.pl>
 References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-	 <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl>
-Reply-To: dedekind1@gmail.com
+	<1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1324492424.8478.5.camel@odin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:51674 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751481Ab1LUU4z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Dec 2011 15:56:55 -0500
-In-Reply-To: <ebab42f6ddd313afb38b71880ac7865e4e0ceab4.1324331816.git.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1324492424.8478.5.camel@odin>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Liam Girdwood <lrg@ti.com>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mtd@lists.infradead.org, David Woodhouse <dwmw2@infradead.org>
 
-On Tue, 2011-12-20 at 00:08 +0100, Janusz Krzysztofik wrote:
-> Don't use Amstrad Delta custom I/O functions for controlling the device,
-> use GPIO API instead.
+On Wednesday 21 of December 2011 at 19:33:44, Liam Girdwood wrote:
+> On Sun, 2011-12-11 at 21:12 +0100, Janusz Krzysztofik wrote:
+> > Don't use Amstrad Delta custom I/O functions any longer, replace them
+> > with GPIO. Old pin definitions, no longer used by the modem bits either,
+> > can be dropped.
+> > 
+> > Depends on patch 2/10 "ARM: OMAP1: Convert Amstrad E3 latches to
+> > basic_mmio_gpio".
+> > 
+> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 > 
-> While being at it, add missing gpio_free(AMS_DELTA_GPIO_PIN_NAND_RB).
-> 
-> Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
-> basic_mmio_gpio"
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Cc: David Woodhouse <dwmw2@infradead.org>
-> Cc: Tony Lindgren <tony@atomide.com>
+> Applied.
 
-Looks good, thanks!
+Hi,
+I'm sorry, but I've probably missed to infrom you explicitly, i.e. other 
+than in a cover letter to v2 of this series, that this particular patch 
+has been dropped from the series. I've already started working on an 
+alternative solution, which I intend to submit as a separate set. It 
+will be free of potentail problems with two devices, a modem and the 
+sound card, accessing the same GPIO pins concurrently. For the 
+MODEM_NRESET pin I've already set up a virtual regulator on top of it, 
+and for the MODEM_CODEC pin I'll probably choose a virtual clock (pinmux 
+would match the hardware more closely here, but it looks too complicated 
+to me). Moreover, I've already started to move all those GPIO pin 
+related functions, i.e. bias control, digital mute and line discipline 
+interaction, from the board file to the codec driver, where all those 
+seem to belong.
 
-Reviewed-by: Artem Bityutskiy <Artem.Bityutskiy@linux.intel.com>
+Having this patch applied will conflict with the regultor and the clock 
+solutions, taking control over those two GPIO pins. Please revert this 
+patch, or reset it if still possible.
 
+Thanks,
+Janusz
