@@ -1,36 +1,68 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: Adding remoteproc/rpmsg to linux-next
-Date: Wed, 21 Dec 2011 19:35:07 +0200
-Message-ID: <CAK=WgbZm9txdvZ1VW-iUn5306yMz1Y=DT_Uygwi6zPZNyWx7gA@mail.gmail.com>
-References: <CAK=WgbaU6vpiBGSgogYPjQNmrF-U0wk1rSXMX83DdgQa9hw5Mw@mail.gmail.com>
- <20111212103301.5ff6a582dca82394ace40e8d@canb.auug.org.au>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: [PATCH] OMAP2+: ads7846_init: put gpio_pendown into pdata if
+ it's provided
+Date: Wed, 21 Dec 2011 22:06:43 +0400
+Message-ID: <4EF22033.9030806@emcraft.com>
+References: <1324485086-31410-1-git-send-email-yanok@emcraft.com> <4EF215DE.8060002@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20111212103301.5ff6a582dca82394ace40e8d@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-next@vger.kernel.org, Grant Likely <grant.likely@secretlab.ca>, Brian Swetland <swetland@google.com>, akpm@linux-foundation.org, Greg KH <greg@kroah.com>, Stephen Boyd <sboyd@codeaurora.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Rusty Russell <rusty@rustcorp.com.au>, Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Saravana Kannan <skannan@codeaurora.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Linus Walleij <linus.walleij@linaro.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ocean.emcraft.com ([213.221.7.182]:54425 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754Ab1LUSGO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Dec 2011 13:06:14 -0500
+In-Reply-To: <4EF215DE.8060002@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-omap@vger.kernel.org, sasha_d@emcraft.com
 
-Hi Arnd,
+Hi Igor,
 
-On Mon, Dec 12, 2011 at 1:33 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> On Fri, 9 Dec 2011 16:55:27 +0200 Ohad Ben-Cohen <ohad@wizery.com> wrote:
+On 21.12.2011 21:22, Igor Grinberg wrote:
+> Please, Cc the linux-arm-kernel@lists.infradead.org for patches,
+> so Tony, or whoever will not need to resend them...
+
+Uh.. Actually I thought that linux-omap ML is a good place for really
+OMAP-specific patches like this one and there is no much sense posting
+such patches into the main ARM list...
+
+Ok, I will Cc linux-arm-kernel in future.
+
+>> If platform data is provided by the caller gpio_pendown is put into
+>> unused static ads7846_config structure and effectively has no effect.
+>> Of course caller can set gpio_pendown field in platform data himself
+>> but it seems natural to do this in ads7846_init to remove duplication.
 >>
->> Can you please add the following remoteproc tree to linux-next ?
+>> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+>> ---
+>>  arch/arm/mach-omap2/common-board-devices.c |    5 ++++-
+>>  1 files changed, 4 insertions(+), 1 deletions(-)
 >>
->> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next
->
-> I have added that from today.
+>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+>> index 2d1d775..eb408dd 100644
+>> --- a/arch/arm/mach-omap2/common-board-devices.c
+>> +++ b/arch/arm/mach-omap2/common-board-devices.c
+>> @@ -75,7 +75,10 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+>>  			gpio_set_debounce(gpio_pendown, gpio_debounce);
+>>  	}
+>>  
+>> -	ads7846_config.gpio_pendown = gpio_pendown;
+>> +	if (!board_pdata)
+>> +		ads7846_config.gpio_pendown = gpio_pendown;
+>> +	else
+>> +		board_pdata->gpio_pendown = gpio_pendown;
+>>  
+>>  	spi_bi->bus_num	= bus_num;
+>>  	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
+> 
+> The fact that the ads7846_config has no effect in case
+> the board_pdata is provided does not really meter...
+> How about reusing the existing "if" instead of adding another one?
+> Like in the attached patch?
 
-Would you like rpmsg/remoteproc to go through arm-soc or do you prefer
-me to send a pull request directly to Linus ?
+Yes, I think your version is a bit clearer. Probably it makes to add
+"else" clause and move ads7846_config.gpio_pendown assignment under it.
 
-If you prefer the former (IIRC you told me you might consider it in a
-random ELCE hallway conversation :) then I'll send you a pull request.
-
-I'm happy either way.
-
-Thanks!
-Ohad.
+Regards, Ilya.
