@@ -1,8 +1,7 @@
 From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 08/12] arm/dts: twl4030: Add DTS file for twl4030 PM +
- Audio IC
-Date: Thu, 22 Dec 2011 15:56:42 +0100
-Message-ID: <1324565806-31142-9-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v4 09/12] arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
+Date: Thu, 22 Dec 2011 15:56:43 +0100
+Message-ID: <1324565806-31142-10-git-send-email-b-cousson@ti.com>
 References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,44 +21,65 @@ To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y
 Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add a dedicated DTS file for the twl4030/5030 Power + Audio IC.
-This chip is a big SoC that will be reused in a lot of various
-OMAP3 boards.
+Update pandaboard dts file with required clock frequencies
+for the i2c client devices existing on pandaboard.
+
+Add the twl6030 node in i2c1 controller.
+
+This is the minimal support needed to boot OMAP4 boards
+without any crash.
+The support for all the features included in this MFD will be
+added later.
+
+Add a generic i2c EEPROM entry.
 
 Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
 ---
- arch/arm/boot/dts/twl4030.dtsi |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/twl4030.dtsi
+ arch/arm/boot/dts/omap4-panda.dts |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-new file mode 100644
-index 0000000..8be5223
---- /dev/null
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -0,0 +1,21 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index 9755ad5..29646dc 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -18,3 +18,37 @@
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
+ };
 +
-+/*
-+ * Integrated Power Management Chip
-+ */
-+&twl {
-+	compatible = "ti,twl4030";
-+	interrupt-controller;
-+	#interrupt-cells = <1>;
++&i2c1 {
++	clock-frequency = <400000>;
 +
-+	rtc {
-+		compatible = "ti,twl4030-rtc";
-+		interrupts = <11>;
++	twl: twl@48 {
++		reg = <0x48>;
++		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
++		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
++		interrupt-parent = <&gic>;
 +	};
++};
++
++/include/ "twl6030.dtsi"
++
++&i2c2 {
++	clock-frequency = <400000>;
++};
++
++&i2c3 {
++	clock-frequency = <100000>;
++
++	/*
++	 * Display monitor features are burnt in their EEPROM as EDID data.
++	 * The EEPROM is connected as I2C slave device.
++	 */
++	eeprom@50 {
++		compatible = "ti,eeprom";
++		reg = <0x50>;
++	};
++};
++
++&i2c4 {
++	clock-frequency = <400000>;
 +};
 -- 
 1.7.0.4
