@@ -1,355 +1,68 @@
-From: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
-Date: Thu, 22 Dec 2011 13:52:04 +0530
-Message-ID: <4EF2E8AC.40300@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com> <1323439361-1647-3-git-send-email-b-cousson@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
+Date: Thu, 22 Dec 2011 14:05:36 +0530
+Message-ID: <CAMQu2gxws83BUdj_eMbF0xpA1Mo_OA_MswE7KUm5pvbn3YbMuQ@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+ <4EF1A0B4.5080307@linux.intel.com> <CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
+ <4EF1AA8A.8060304@linux.intel.com> <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
+ <4EF1CD49.9020800@linux.intel.com> <CAMbhsRRnKoR3YPWrZzVynVe+dcuU5v0siYvmp2vbBcS1hquC7Q@mail.gmail.com>
+ <4EF2352C.3060102@linux.intel.com> <CAMbhsRSPCo9MSGp57Fv0sRdYUFcdwx8jEz1-CfX8LdKf8X4MVg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1323439361-1647-3-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMbhsRSPCo9MSGp57Fv0sRdYUFcdwx8jEz1-CfX8LdKf8X4MVg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
+Cc: Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Since it touches the driver file
-+linux-i2c
-On Friday 09 December 2011 07:32 PM, Benoit Cousson wrote:
-> Add initial DT support to retrieve the frequency using a
-> DT attribute instead of the pdata pointer if of_node exist.
+On Thu, Dec 22, 2011 at 1:12 AM, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org> wrote=
+:
+> On Wed, Dec 21, 2011 at 11:36 AM, Arjan van de Ven
+> <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+>>>>
+>>>> .. or it enters WFI, and a physical device sends it an interrupt,
+>>>> at which point it exits.
+>>>
+>>> None of the cpus will return to the idle loop until all cpus have
+>>> decremented the ready counter back to 0, so they can't wrap around
+>>> again.
+>>
+>>
+>> yikes, so you IPI all the cpus on the first exit.
+>> that must burn power ;-(
 >
-> Add documentation for omap i2c controller binding.
+> No, you're not understanding the point of this series.
 >
-> Based on original patches from Manju and Grant.
+> If your cpus can go in and out of idle independently, you don't use
+> this code at all. =A0Each cpu can call WFI and come back out without
+> talking to the other cpu.
 >
-> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/i2c/omap-i2c.txt |   42 ++++++++
->  drivers/i2c/busses/i2c-omap.c                      |  100 +++++++++++++-------
->  2 files changed, 107 insertions(+), 35 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
->
-> diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
-> new file mode 100644
-> index 0000000..d259a17
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
-> @@ -0,0 +1,42 @@
-> +I2C for OMAP platforms
-> +
-> +Required properties :
-> +- compatible : Must be "ti,omap3-i2c" or "ti,omap4-i2c"
-> +- ti,hwmods : Must be "i2c<n>", n being the instance number (1-based)
-> +- #address-cells = <1>;
-> +- #size-cells = <0>;
-> +
-> +Recommended properties :
-> +- clock-frequency : Desired I2C bus clock frequency in Hz. Otherwise
-> +  the default 100 kHz frequency will be used.
-> +
-> +Optional properties:
-> +- Child nodes conforming to i2c bus binding
-> +- ti,flags : u32: settings or errata relative to the i2c
-> +    0x1:   OMAP_I2C_FLAG_NO_FIFO
-> +    0x2:   OMAP_I2C_FLAG_SIMPLE_CLOCK
-> +    0x4:   OMAP_I2C_FLAG_16BIT_DATA_REG
-> +    0x8:   OMAP_I2C_FLAG_RESET_REGS_POSTIDLE
-> +    0x10:  OMAP_I2C_FLAG_APPLY_ERRATA_I207
-> +    0x20:  OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK
-> +    0x40:  OMAP_I2C_FLAG_FORCE_19200_INT_CLK
-> +  Valid for ti,omap3-i2c only:
-> +    0x80:  OMAP_I2C_FLAG_BUS_SHIFT_1: 8 bits registers
-> +    0x100: OMAP_I2C_FLAG_BUS_SHIFT_2: 16 bits registers
-> +
-> +Note: Current implementation will fetch base address, irq and dma
-> +from omap hwmod data base during device registration.
-> +Future plan is to migrate hwmod data base contents into device tree
-> +blob so that, all the required data will be used from device tree dts
-> +file.
-> +
-> +Examples :
-> +
-> +i2c1: i2c@0 {
-> +    compatible = "ti,omap3-i2c";
-> +    #address-cells = <1>;
-> +    #size-cells = <0>;
-> +    ti,hwmods = "i2c1";
-> +    clock-frequency = <400000>;
-> +    ti,flags = <0x118>;
-> +};
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index a43d002..b4a8eee 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -37,6 +37,8 @@
->  #include <linux/platform_device.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> +#include <linux/of_i2c.h>
-> +#include <linux/of_device.h>
->  #include <linux/slab.h>
->  #include <linux/i2c-omap.h>
->  #include <linux/pm_runtime.h>
-> @@ -182,7 +184,9 @@ struct omap_i2c_dev {
->  	u32			latency;	/* maximum mpu wkup latency */
->  	void			(*set_mpu_wkup_lat)(struct device *dev,
->  						    long latency);
-> -	u32			speed;		/* Speed of bus in Khz */
-> +	u32			speed;		/* Speed of bus in kHz */
-> +	u32			dtrev;		/* extra revision from DT */
-> +	u32			flags;
->  	u16			cmd_err;
->  	u8			*buf;
->  	u8			*regs;
-> @@ -266,11 +270,7 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
->  
->  static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  {
-> -	struct omap_i2c_bus_platform_data *pdata;
-> -
-> -	pdata = dev->dev->platform_data;
-> -
-> -	if (pdata->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-> +	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
->  		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-> @@ -291,13 +291,10 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  
->  static void omap_i2c_idle(struct omap_i2c_dev *dev)
->  {
-> -	struct omap_i2c_bus_platform_data *pdata;
->  	u16 iv;
->  
-> -	pdata = dev->dev->platform_data;
-> -
->  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-> -	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
-> +	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
->  		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
->  	else
->  		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-> @@ -320,9 +317,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  	unsigned long timeout;
->  	unsigned long internal_clk = 0;
->  	struct clk *fclk;
-> -	struct omap_i2c_bus_platform_data *pdata;
-> -
-> -	pdata = dev->dev->platform_data;
->  
->  	if (dev->rev >= OMAP_I2C_OMAP1_REV_2) {
->  		/* Disable I2C controller before soft reset */
-> @@ -373,7 +367,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  	}
->  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
->  
-> -	if (pdata->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
-> +	if (dev->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
->  		/*
->  		 * The I2C functional clock is the armxor_ck, so there's
->  		 * no need to get "armxor_ck" separately.  Now, if OMAP2420
-> @@ -397,7 +391,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			psc = fclk_rate / 12000000;
->  	}
->  
-> -	if (!(pdata->flags & OMAP_I2C_FLAG_SIMPLE_CLOCK)) {
-> +	if (!(dev->flags & OMAP_I2C_FLAG_SIMPLE_CLOCK)) {
->  
->  		/*
->  		 * HSI2C controller internal clk rate should be 19.2 Mhz for
-> @@ -406,7 +400,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  		 * The filter is iclk (fclk for HS) period.
->  		 */
->  		if (dev->speed > 400 ||
-> -			       pdata->flags & OMAP_I2C_FLAG_FORCE_19200_INT_CLK)
-> +			       dev->flags & OMAP_I2C_FLAG_FORCE_19200_INT_CLK)
->  			internal_clk = 19200;
->  		else if (dev->speed > 100)
->  			internal_clk = 9600;
-> @@ -475,7 +469,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  
->  	dev->errata = 0;
->  
-> -	if (pdata->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-> +	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
->  		dev->errata |= I2C_OMAP_ERRATA_I207;
->  
->  	/* Enable interrupts */
-> @@ -484,7 +478,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
->  				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
->  	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> -	if (pdata->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-> +	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
->  		dev->pscstate = psc;
->  		dev->scllstate = scll;
->  		dev->sclhstate = sclh;
-> @@ -804,9 +798,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  	u16 bits;
->  	u16 stat, w;
->  	int err, count = 0;
-> -	struct omap_i2c_bus_platform_data *pdata;
-> -
-> -	pdata = dev->dev->platform_data;
->  
->  	if (pm_runtime_suspended(dev->dev))
->  		return IRQ_NONE;
-> @@ -875,7 +866,7 @@ complete:
->  					 * Data reg in 2430, omap3 and
->  					 * omap4 is 8 bit wide
->  					 */
-> -					if (pdata->flags &
-> +					if (dev->flags &
->  						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
->  						if (dev->buf_len) {
->  							*dev->buf++ = w >> 8;
-> @@ -918,7 +909,7 @@ complete:
->  					 * Data reg in 2430, omap3 and
->  					 * omap4 is 8 bit wide
->  					 */
-> -					if (pdata->flags &
-> +					if (dev->flags &
->  						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
->  						if (dev->buf_len) {
->  							w |= *dev->buf++ << 8;
-> @@ -965,6 +956,31 @@ static const struct i2c_algorithm omap_i2c_algo = {
->  	.functionality	= omap_i2c_func,
->  };
->  
-> +#ifdef CONFIG_OF
-> +static struct omap_i2c_bus_platform_data omap3_pdata = {
-> +	.rev = OMAP_I2C_IP_VERSION_1,
-> +};
-> +
-> +static struct omap_i2c_bus_platform_data omap4_pdata = {
-> +	.rev = OMAP_I2C_IP_VERSION_2,
-> +};
-> +
-> +static const struct of_device_id omap_i2c_of_match[] = {
-> +	{
-> +		.compatible = "ti,omap4-i2c",
-> +		.data = &omap4_pdata,
-> +	},
-> +	{
-> +		.compatible = "ti,omap3-i2c",
-> +		.data = &omap3_pdata,
-> +	},
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
-> +#else
-> +#define omap_i2c_of_match NULL
-> +#endif
-> +
->  static int __devinit
->  omap_i2c_probe(struct platform_device *pdev)
->  {
-> @@ -972,9 +988,10 @@ omap_i2c_probe(struct platform_device *pdev)
->  	struct i2c_adapter	*adap;
->  	struct resource		*mem, *irq, *ioarea;
->  	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
-> +	struct device_node	*node = pdev->dev.of_node;
-> +	const struct of_device_id *match;
->  	irq_handler_t isr;
->  	int r;
-> -	u32 speed = 0;
->  
->  	/* NOTE: driver uses the static register mapping */
->  	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> @@ -1001,15 +1018,24 @@ omap_i2c_probe(struct platform_device *pdev)
->  		goto err_release_region;
->  	}
->  
-> -	if (pdata != NULL) {
-> -		speed = pdata->clkrate;
-> +	match = of_match_device(omap_i2c_of_match, &pdev->dev);
-> +	if (match) {
-> +		u32 freq = 100000; /* default to 100000 Hz */
-> +		pdata = match->data;
-> +
-> +		of_property_read_u32(node, "clock-frequency", &freq);
-> +		/* convert DT freq value in Hz into kHz for speed */
-> +		dev->speed = freq / 1000;
-> +		of_property_read_u32(node, "ti,flags", &dev->flags);
-> +		dev->dtrev = pdata->rev;
-> +
-> +	} else if (pdata != NULL) {
-> +		dev->speed = pdata->clkrate;
-> +		dev->flags = pdata->flags;
->  		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-> -	} else {
-> -		speed = 100;	/* Default speed */
-> -		dev->set_mpu_wkup_lat = NULL;
-> +		dev->dtrev = pdata->rev;
->  	}
->  
-> -	dev->speed = speed;
->  	dev->dev = &pdev->dev;
->  	dev->irq = irq->start;
->  	dev->base = ioremap(mem->start, resource_size(mem));
-> @@ -1020,9 +1046,9 @@ omap_i2c_probe(struct platform_device *pdev)
->  
->  	platform_set_drvdata(pdev, dev);
->  
-> -	dev->reg_shift = (pdata->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
-> +	dev->reg_shift = (dev->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
->  
-> -	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
-> +	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
->  		dev->regs = (u8 *)reg_map_ip_v2;
->  	else
->  		dev->regs = (u8 *)reg_map_ip_v1;
-> @@ -1035,7 +1061,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	if (dev->rev <= OMAP_I2C_REV_ON_3430)
->  		dev->errata |= I2C_OMAP3_1P153;
->  
-> -	if (!(pdata->flags & OMAP_I2C_FLAG_NO_FIFO)) {
-> +	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
->  		u16 s;
->  
->  		/* Set up the fifo size - Get total size */
-> @@ -1057,7 +1083,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  		/* calculate wakeup latency constraint for MPU */
->  		if (dev->set_mpu_wkup_lat != NULL)
->  			dev->latency = (1000000 * dev->fifo_size) /
-> -				       (1000 * speed / 8);
-> +				       (1000 * dev->speed / 8);
->  	}
->  
->  	/* reset ASAP, clearing any IRQs */
-> @@ -1073,7 +1099,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	}
->  
->  	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
-> -		 pdata->rev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-> +		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
->  
->  	pm_runtime_put(dev->dev);
->  
-> @@ -1084,6 +1110,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
->  	adap->algo = &omap_i2c_algo;
->  	adap->dev.parent = &pdev->dev;
-> +	adap->dev.of_node = pdev->dev.of_node;
->  
->  	/* i2c device drivers may be active on return from add_adapter() */
->  	adap->nr = pdev->id;
-> @@ -1093,6 +1120,8 @@ omap_i2c_probe(struct platform_device *pdev)
->  		goto err_free_irq;
->  	}
->  
-> +	of_i2c_register_devices(adap);
-> +
->  	return 0;
->  
->  err_free_irq:
-> @@ -1165,6 +1194,7 @@ static struct platform_driver omap_i2c_driver = {
->  		.name	= "omap_i2c",
->  		.owner	= THIS_MODULE,
->  		.pm	= OMAP_I2C_PM_OPS,
-> +		.of_match_table = omap_i2c_of_match,
->  	},
->  };
->  
+Indeed. The SOCs, Arch's which does support low power
+state independently and doesn't need any co-ordination between CPU's
+will continue to work same way as before with this series.
+
+> However, if you have two cpus that share some part of the SoC that ca=
+n
+> be turned off in idle, like the L2 cache controller or the system bus=
+,
+> the two cpus need to go to idle together, and they will both boot
+> together when either one receives an interrupt (although one will
+> likely immediately go back to a shallower state that doesn't require
+> coordination with the other cpu). =A0There is no way around this, it'=
+s
+> how the hardware works on some ARM platforms.
+
+Apart from shared peripherals which Colin pointed out, OMAP also
+brings in the security software state which is kind of executing in
+parallel with linux. This state is lost in certain deeper low power
+states and since the security software is affine to only master CPU
+(because of OMAP security architecture), the co-ordination is
+mandatory to achieve those low power states.
+
+So this additional CPU co-ordination logic for such C-states
+really helps to solve the issue in most generic way.
+
+Regards
+Santosh
