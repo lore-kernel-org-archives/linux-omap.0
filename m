@@ -1,56 +1,63 @@
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
- memops
-Date: Thu, 22 Dec 2011 10:28:49 +0100
-Message-ID: <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
- <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
+Date: Thu, 22 Dec 2011 15:00:34 +0530
+Message-ID: <CAMQu2gxq26=pNA3L8aXUbLR4ZAT5RqyNawtm2qsPVc5cJCdOLg@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+ <4EF1A0B4.5080307@linux.intel.com> <CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
+ <4EF1AA8A.8060304@linux.intel.com> <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
+ <4EF1CD49.9020800@linux.intel.com> <CAMbhsRRnKoR3YPWrZzVynVe+dcuU5v0siYvmp2vbBcS1hquC7Q@mail.gmail.com>
+ <4EF2352C.3060102@linux.intel.com> <CAMbhsRSPCo9MSGp57Fv0sRdYUFcdwx8jEz1-CfX8LdKf8X4MVg@mail.gmail.com>
+ <CAMQu2gxws83BUdj_eMbF0xpA1Mo_OA_MswE7KUm5pvbn3YbMuQ@mail.gmail.com> <4EF2F01E.8060307@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-reply-to: <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
-Content-language: pl
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Ming Lei' <ming.lei@canonical.com>, 'Mauro Carvalho Chehab' <mchehab@infradead.org>, 'Tony Lindgren' <tony@atomide.com>
-Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>, 'Alan Cox' <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, 'Pawel Osciak' <p.osciak@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:41428 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754890Ab1LVJa4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 04:30:56 -0500
+In-Reply-To: <4EF2F01E.8060307@linux.intel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Colin Cross <ccross@android.com>, Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hello,
+On Thu, Dec 22, 2011 at 2:23 PM, Arjan van de Ven <arjan@linux.intel.com> wrote:
+> On 12/22/2011 9:35 AM, Shilimkar, Santosh wrote:
+>
+>> Indeed. The SOCs, Arch's which does support low power
+>> state independently and doesn't need any co-ordination between CPU's
+>> will continue to work same way as before with this series.
+>
+> btw I think you misunderstand; I don't object to a need for something
+> like this,
+I did. Thanks for clarification.
 
-On Wednesday, December 14, 2011 3:00 PM Ming Lei wrote:
+> I am just very concerned that this may not be possible to be
+> done in a race-free way.
+>
+I agree to those races but may be they are harmless.
+Also the safe state need not be just WFI and can be bit deeper
+where the co-ordination between isn't necessary. So that should
+still not burn the power that much.
 
-> DMA contig memory resource is very limited and precious, also
-> accessing to it from CPU is very slow on some platform.
-> 
-> For some cases(such as the comming face detection driver), DMA Streaming
-> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
-> physical memory but letting video device driver to handle DMA buffer mapping
-> and unmapping things.
-> 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+For simplicity let's assume a two CPU scenario.
+Ideal scenario:
+CPU 1 has entered idle and incremented counter for the
+co-ordinated C state. CPU0 also enter and increments the
+counter and now the subsystem and interconnect can go
+down along with CPU cluster.
 
-Could you elaborate a bit why do you think that DMA contig memory resource
-is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
-the alloc_pages() call with order > 0 will also fail.
+Few of the race conditions will possibly lead to void
+the above conditions  and in that case the counter would
+reflect that and such a C-state won't be attempted and
+a safe C-state would be attempted. That should still work
+fine.
 
-I understand that there might be some speed issues with coherent (uncached)
-userspace mappings, but I would solve it in completely different way. The interface
-for both coherent/uncached and non-coherent/cached contig allocator should be the
-same, so exchanging them is easy and will not require changes in the driver.
-I'm planning to introduce some design changes in memory allocator api and introduce
-prepare and finish callbacks in allocator ops. I hope to post the rfc after
-Christmas. For your face detection driver using standard dma-contig allocator
-shouldn't be a big issue.
+Some how this hardware/security restriction is bit stupid
+and likely going against the existing CPUIDLE design
+which expect that a CPUIDLE thread are per CPU and it should
+be independent and local to that CPU.
 
-Your current implementation also abuses the design and api of videobuf2 memory
-allocators. If the allocator needs to return a custom structure to the driver
-you should use cookie method. vaddr is intended to provide only a pointer to
-kernel virtual mapping, but you pass a struct page * there.
-
-(snipped)
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards
+Santosh
