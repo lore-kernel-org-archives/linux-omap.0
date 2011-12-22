@@ -1,35 +1,33 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 8/9] OMAP4: omap4panda: Enable audio support
-Date: Thu, 22 Dec 2011 11:38:29 -0800
-Message-ID: <20111222193829.GS24444@atomide.com>
-References: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
- <1324582474-18181-9-git-send-email-peter.ujfalusi@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 01/10] arm: omap4: fix kconfig warning
+Date: Thu, 22 Dec 2011 22:09:27 +0200
+Message-ID: <CAMP44s2MfdS-woETebYsTHEPZsBuBpP2dfmfBibC+JWZZ2iLKQ@mail.gmail.com>
+References: <1324341747-5922-1-git-send-email-felipe.contreras@gmail.com>
+	<1324341747-5922-2-git-send-email-felipe.contreras@gmail.com>
+	<20111222182240.GN24444@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:20535 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753896Ab1LVTid (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 14:38:33 -0500
-Content-Disposition: inline
-In-Reply-To: <1324582474-18181-9-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:64773 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135Ab1LVUJd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 15:09:33 -0500
+In-Reply-To: <20111222182240.GN24444@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, David Anders <x0132446@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Felipe Balbi <balbi@ti.com>, Vladimir Zapolskiy <vz@mleia.com>, Russell King <linux@arm.linux.org.uk>, "open list:OMAP SUPPORT" <linux-omap@vger.kernel.org>, "open list:ARM PORT" <linux-arm-kernel@lists.infradead.org>
 
-* Peter Ujfalusi <peter.ujfalusi@ti.com> [111222 11:03]:
-> PandaBoard has twl6040 codec for audio.
-> Register the omap4-abe-twl6040 platform device.
-> Add platform data to enable the twl6040 codec.
-> Since there is a difference in audio between  PandaBoard 4430
-> and PandaBoard ES (4460):
-> Use different name for the sound card:
-> "OMAP4-Panda" for PandaBoard 4430
-> "OMAP4-PandaES" for PandaBoard ES
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> CC: David Anders <x0132446@ti.com>
+On Thu, Dec 22, 2011 at 8:22 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Felipe Contreras <felipe.contreras@gmail.com> [111219 16:11]:
+>> warning: (ARCH_OMAP4 && ARCH_VEXPRESS_CA9X4) selects ARM_ERRATA_720789 which has unmet direct dependencies (CPU_V7 && SMP)
+>
+> Thanks applying into fixes-non-critical-part3.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Actually, please disregard this one, it should be handled by this:
+http://article.gmane.org/gmane.linux.ports.arm.kernel/141942
+
+Cheers.
+
+-- 
+Felipe Contreras
