@@ -1,82 +1,96 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 2/9] OMAP4: 4430sdp: Register platform device for OMAP4 audio
-Date: Thu, 22 Dec 2011 21:34:27 +0200
-Message-ID: <1324582474-18181-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 4/9] ASoC: twl6040: Convert MICBIAS to SUPPLY widget
+Date: Thu, 22 Dec 2011 21:34:29 +0200
+Message-ID: <1324582474-18181-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:59402 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755644Ab1LVTfk (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:58424 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755661Ab1LVTfr (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 14:35:40 -0500
-Received: by mail-lpp01m010-f43.google.com with SMTP id w12so9722424lag.30
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 11:35:39 -0800 (PST)
+	Thu, 22 Dec 2011 14:35:47 -0500
+Received: by lagr15 with SMTP id r15so3902026lag.40
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 11:35:45 -0800 (PST)
 In-Reply-To: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-To avoid breakage in audio support with the coming change
-in ASoC machine driver (conversion to platfrom device).
+In order to avoid breakage change the omap-abe-twl6040
+machine driver's routing.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+ sound/soc/codecs/twl6040.c        |   16 ++++++++--------
+ sound/soc/omap/omap-abe-twl6040.c |   14 +++++++-------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 21b62bd..394cbab 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -41,6 +41,7 @@
- #include <video/omap-panel-nokia-dsi.h>
- #include <video/omap-panel-picodlp.h>
- #include <linux/wl12xx.h>
-+#include <linux/platform_data/omap-abe-twl6040.h>
+diff --git a/sound/soc/codecs/twl6040.c b/sound/soc/codecs/twl6040.c
+index a4a65dc..2be98e8 100644
+--- a/sound/soc/codecs/twl6040.c
++++ b/sound/soc/codecs/twl6040.c
+@@ -1102,14 +1102,14 @@ static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
+ 			TWL6040_REG_MICRCTL, 2, 0),
  
- #include "mux.h"
- #include "hsmmc.h"
-@@ -377,12 +378,38 @@ static struct platform_device sdp4430_dmic_codec = {
- 	.id	= -1,
+ 	/* Microphone bias */
+-	SND_SOC_DAPM_MICBIAS("Headset Mic Bias",
+-			TWL6040_REG_AMICBCTL, 0, 0),
+-	SND_SOC_DAPM_MICBIAS("Main Mic Bias",
+-			TWL6040_REG_AMICBCTL, 4, 0),
+-	SND_SOC_DAPM_MICBIAS("Digital Mic1 Bias",
+-			TWL6040_REG_DMICBCTL, 0, 0),
+-	SND_SOC_DAPM_MICBIAS("Digital Mic2 Bias",
+-			TWL6040_REG_DMICBCTL, 4, 0),
++	SND_SOC_DAPM_SUPPLY("Headset Mic Bias",
++			    TWL6040_REG_AMICBCTL, 0, 0, NULL, 0),
++	SND_SOC_DAPM_SUPPLY("Main Mic Bias",
++			    TWL6040_REG_AMICBCTL, 4, 0, NULL, 0),
++	SND_SOC_DAPM_SUPPLY("Digital Mic1 Bias",
++			    TWL6040_REG_DMICBCTL, 0, 0, NULL, 0),
++	SND_SOC_DAPM_SUPPLY("Digital Mic2 Bias",
++			    TWL6040_REG_DMICBCTL, 4, 0, NULL, 0),
+ 
+ 	/* DACs */
+ 	SND_SOC_DAPM_DAC("HSDAC Left", "Headset Playback", SND_SOC_NOPM, 0, 0),
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
+index 4974ea1..18a25b0 100644
+--- a/sound/soc/omap/omap-abe-twl6040.c
++++ b/sound/soc/omap/omap-abe-twl6040.c
+@@ -123,17 +123,17 @@ static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
+ 
+ static const struct snd_soc_dapm_route audio_map[] = {
+ 	/* External Mics: MAINMIC, SUBMIC with bias*/
+-	{"MAINMIC", NULL, "Main Mic Bias"},
+-	{"SUBMIC", NULL, "Main Mic Bias"},
+-	{"Main Mic Bias", NULL, "Ext Mic"},
++	{"MAINMIC", NULL, "Ext Mic"},
++	{"SUBMIC", NULL, "Ext Mic"},
++	{"Ext Mic", NULL, "Main Mic Bias"},
+ 
+ 	/* External Speakers: HFL, HFR */
+ 	{"Ext Spk", NULL, "HFL"},
+ 	{"Ext Spk", NULL, "HFR"},
+ 
+ 	/* Headset Mic: HSMIC with bias */
+-	{"HSMIC", NULL, "Headset Mic Bias"},
+-	{"Headset Mic Bias", NULL, "Headset Mic"},
++	{"HSMIC", NULL, "Headset Mic"},
++	{"Headset Mic", NULL, "Headset Mic Bias"},
+ 
+ 	/* Headset Stereophone (Headphone): HSOL, HSOR */
+ 	{"Headset Stereophone", NULL, "HSOL"},
+@@ -182,8 +182,8 @@ static const struct snd_soc_dapm_widget dmic_dapm_widgets[] = {
  };
  
-+static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
-+	.card_name = "SDP4430",
-+	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+	.has_ep		= 1,
-+	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+	.has_vibra	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+
-+	.has_dmic	= 1,
-+	.has_hsmic	= 1,
-+	.has_mainmic	= 1,
-+	.has_submic	= 1,
-+	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+
-+	.jack_detection = 1,
-+};
-+
-+static struct platform_device sdp4430_abe_audio = {
-+	.name		= "omap-abe-twl6040",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &sdp4430_abe_audio_data,
-+	},
-+};
-+
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
- 	&sdp4430_vbat,
- 	&sdp4430_dmic_codec,
-+	&sdp4430_abe_audio,
+ static const struct snd_soc_dapm_route dmic_audio_map[] = {
+-	{"DMic", NULL, "Digital Mic1 Bias"},
+-	{"Digital Mic1 Bias", NULL, "Digital Mic"},
++	{"DMic", NULL, "Digital Mic"},
++	{"Digital Mic", NULL, "Digital Mic1 Bias"},
  };
  
- static struct omap_musb_board_data musb_board_data = {
+ static int omapabe_dmic_init(struct snd_soc_pcm_runtime *rtd)
 -- 
 1.7.8.1
 
