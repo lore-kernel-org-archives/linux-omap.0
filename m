@@ -1,78 +1,38 @@
-From: Ilya Yanok <yanok@emcraft.com>
-Subject: [PATCH] OMAP3: hwmod_data: register dss hwmods after dss_core
-Date: Thu, 22 Dec 2011 15:02:43 +0100
-Message-ID: <1324562563-27119-1-git-send-email-yanok@emcraft.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 9/9] ASoC: Kconfig: OMAP4: Enable support for PandaBoards
+Date: Thu, 22 Dec 2011 16:11:44 +0200
+Message-ID: <4EF33AA0.2090004@ti.com>
+References: <1324557768-8216-1-git-send-email-peter.ujfalusi@ti.com> <1324557768-8216-10-git-send-email-peter.ujfalusi@ti.com> <20111222132658.GT4546@opensource.wolfsonmicro.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:53634 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782Ab1LVOCs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 09:02:48 -0500
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:36019 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752448Ab1LVOLm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 09:11:42 -0500
+Received: by lahc1 with SMTP id c1so4738416lah.22
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 06:11:40 -0800 (PST)
+In-Reply-To: <20111222132658.GT4546@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: sasha_d@emcraft.com, Ilya Yanok <yanok@emcraft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-dss_core has to be initialized before any other DSS hwmod. Currently
-this is broken as dss_core is listed in chip/revision specific hwmod
-lists while other DSS hwmods are listed in common list which is
-registered first.
+On 12/22/2011 03:26 PM, Mark Brown wrote:
+> Given that it's now a platform device and there's a reasonable
+> expectation that there will be lots of other boards derived from this
+> it'd seem sensible to just remove the machine dependencies so people
+> don't have to patch the Kconfig.
 
-This patch moves DSS hwmods (except for dss_core) to the separate list
-which is registered last to ensure that dss_core is already registered.
+True, I'll replace the machine dependencies that we only depend on OMAP=
+4
 
-CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
-CC: Archit Taneja <archit@ti.com>
-CC: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Ilya Yanok <yanok@emcraft.com>
----
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 5324e8d..85536ff 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -3523,12 +3523,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_uart2_hwmod,
- 	&omap3xxx_uart3_hwmod,
- 
--	/* dss class */
--	&omap3xxx_dss_dispc_hwmod,
--	&omap3xxx_dss_dsi1_hwmod,
--	&omap3xxx_dss_rfbi_hwmod,
--	&omap3xxx_dss_venc_hwmod,
--
- 	/* i2c class */
- 	&omap3xxx_i2c1_hwmod,
- 	&omap3xxx_i2c2_hwmod,
-@@ -3635,6 +3629,15 @@ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
- 	NULL
- };
- 
-+static __initdata struct omap_hwmod *omap3xxx_dss_hwmods[] = {
-+	/* dss class */
-+	&omap3xxx_dss_dispc_hwmod,
-+	&omap3xxx_dss_dsi1_hwmod,
-+	&omap3xxx_dss_rfbi_hwmod,
-+	&omap3xxx_dss_venc_hwmod,
-+	NULL
-+};
-+
- int __init omap3xxx_hwmod_init(void)
- {
- 	int r;
-@@ -3708,6 +3711,11 @@ int __init omap3xxx_hwmod_init(void)
- 
- 	if (h)
- 		r = omap_hwmod_register(h);
-+	if (r < 0)
-+		return r;
-+
-+	/* Register common DSS hwmods later than dss_core */
-+	r = omap_hwmod_register(omap3xxx_dss_hwmods);
- 
- 	return r;
- }
--- 
-1.7.6.4
-
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
