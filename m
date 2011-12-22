@@ -1,41 +1,97 @@
-From: Arjan van de Ven <arjan@linux.intel.com>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Thu, 22 Dec 2011 09:53:50 +0100
-Message-ID: <4EF2F01E.8060307@linux.intel.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4EF1A0B4.5080307@linux.intel.com>
-	<CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
-	<4EF1AA8A.8060304@linux.intel.com>
-	<CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
-	<4EF1CD49.9020800@linux.intel.com>
-	<CAMbhsRRnKoR3YPWrZzVynVe+dcuU5v0siYvmp2vbBcS1hquC7Q@mail.gmail.com>
-	<4EF2352C.3060102@linux.intel.com>
-	<CAMbhsRSPCo9MSGp57Fv0sRdYUFcdwx8jEz1-CfX8LdKf8X4MVg@mail.gmail.com>
-	<CAMQu2gxws83BUdj_eMbF0xpA1Mo_OA_MswE7KUm5pvbn3YbMuQ@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v3 02/11] i2c: OMAP: Add DT support for i2c controller
+Date: Thu, 22 Dec 2011 09:55:39 +0100
+Message-ID: <4EF2F08B.4070907@ti.com>
+References: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
+ <1324398444-23296-3-git-send-email-b-cousson@ti.com>
+ <4EF0BB03.6040906@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <CAMQu2gxws83BUdj_eMbF0xpA1Mo_OA_MswE7KUm5pvbn3YbMuQ@mail.gmail.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, Colin Cross <ccross@android.com>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <4EF0BB03.6040906-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 12/22/2011 9:35 AM, Shilimkar, Santosh wrote:
+Hi Rob,
 
-> Indeed. The SOCs, Arch's which does support low power
-> state independently and doesn't need any co-ordination between CPU's
-> will continue to work same way as before with this series.
+On 12/20/2011 5:42 PM, Rob Herring wrote:
+> On 12/20/2011 10:27 AM, Benoit Cousson wrote:
+>> Add initial DT support to retrieve the frequency using a
+>> DT attribute instead of the pdata pointer if of_node exist.
+>>
+>> Add documentation for omap i2c controller binding.
+>>
+>> Based on original patches from Manju and Grant.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Ben Dooks<ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+>> Cc: Kevin Hilman<khilman-l0cyMroinI0@public.gmane.org>
+>
+> One issue below, otherwise:
+>
+> Reviewed-by: Rob Herring<rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+>
+>
+>> @@ -1001,15 +1019,24 @@ omap_i2c_probe(struct platform_device *pdev)
+>>   		goto err_release_region;
+>>   	}
+>>
+>> -	if (pdata != NULL) {
+>> -		speed = pdata->clkrate;
+>> +	match = of_match_device(omap_i2c_of_match,&pdev->dev);
+>> +	if (match) {
+>> +		u32 freq = 100000; /* default to 100000 Hz */
+>> +
+>> +		pdata = match->data;
+>> +		dev->dtrev = pdata->rev;
+>> +		dev->flags = pdata->flags;
+>> +
+>> +		of_property_read_u32(node, "clock-frequency",&freq);
+>> +		/* convert DT freq value in Hz into kHz for speed */
+>> +		dev->speed = freq / 1000;
+>> +	} else if (pdata != NULL) {
+>> +		dev->speed = pdata->clkrate;
+>> +		dev->flags = pdata->flags;
+>>   		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+>> -	} else {
+>> -		speed = 100;	/* Default speed */
+>> -		dev->set_mpu_wkup_lat = NULL;
+>> +		dev->dtrev = pdata->rev;
+>
+> If you get here, pdata is NULL.
 
-btw I think you misunderstand; I don't object to a need for something
-like this, I am just very concerned that this may not be possible to be
-done in a race-free way.
+Mmm, it should not. It's true that the patch is not super readable, but 
+here is the result:
+
+	if (match) {
+		u32 freq = 100000; /* default to 100000 Hz */
+
+		pdata = match->data;
+		dev->dtrev = pdata->rev;
+		dev->flags = pdata->flags;
+
+		of_property_read_u32(node, "clock-frequency", &freq);
+		/* convert DT freq value in Hz into kHz for speed */
+		dev->speed = freq / 1000;
+	} else if (pdata != NULL) {
+		dev->speed = pdata->clkrate;
+		dev->flags = pdata->flags;
+		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+		dev->dtrev = pdata->rev;
+	}
+
+I removed every other pdata reference after this point.
+
+Regards,
+Benoit
