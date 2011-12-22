@@ -1,235 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] input: serio: ams-delta: toggle keyboard power over
- GPIO
-Date: Thu, 22 Dec 2011 10:06:29 -0800
-Message-ID: <20111222180629.GK24444@atomide.com>
-References: <378bcda9c6cb6a1ddeeb54817078bc7ec68c5987.1324331816.git.jkrzyszt@tis.icnet.pl>
- <1324419034-31024-1-git-send-email-jkrzyszt@tis.icnet.pl>
- <20111221190945.GD24444@atomide.com>
- <201112212055.10343.jkrzyszt@tis.icnet.pl>
- <20111222174537.GB21103@core.coreip.homeip.net>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 8/9] OMAP4: omap4panda: Enable audio support
+Date: Thu, 22 Dec 2011 20:08:31 +0200
+Message-ID: <4EF3721F.8080908@ti.com>
+References: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com> <1324571902-16918-9-git-send-email-peter.ujfalusi@ti.com> <20111222173216.GJ24444@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20111222174537.GB21103@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:49959 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755754Ab1LVSI2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 13:08:28 -0500
+Received: by mail-lpp01m010-f52.google.com with SMTP id j13so5730356lah.39
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 10:08:27 -0800 (PST)
+In-Reply-To: <20111222173216.GJ24444@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [111222 09:13]:
-> On Wed, Dec 21, 2011 at 08:55:09PM +0100, Janusz Krzysztofik wrote:
-> > On Wednesday 21 of December 2011 at 20:09:45, Tony Lindgren wrote:
-> > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111220 13:39]:
-> > > > Don't use Amstrad Delta custom I/O functions once GPIO interface is
-> > > > available for the underlying hardware.
-> > > > 
-> > > > While requesting and initializing GPIO pins used, also take care of one
-> > > > extra pin KEYBRD_DATAOUT which, even if not used by the driver, belongs
-> > > > to the device and affects its functioning.
-> > > > 
-> > > > Once done, move the driver initialization back to the device_initcall
-> > > > level, reverting the temporary chane introduced with patch 1/7 "ARM:
-> > > > OMAP1: ams-delta: register latch dependent devices later".  That change
-> > > > is no longer required once the driver takes care of registering used
-> > > > GPIO pins, and it's better to initialize the device before others using
-> > > > the latch2 based GPIO pins, otherwise a garbage is reported on boot,
-> > > > perhaps due to random data already captured by the FIQ handler while the
-> > > > keyboard related latch bits are written with random values during
-> > > > initialization of those other latch2 dependent devices.
-> > > > 
-> > > > Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
-> > > > basic_mmio_gpio"
-> > > > 
-> > > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > > 
-> > > I'm assuming Dmitry's ack for an earlier version of this patch also
-> > > covers this one when applying.
-> > 
-> > Hi Dmitry,
-> > Can we assume your ack still valid for this version?
-> > 
-> 
-> Yes, please merge with your other changes.
+Hi Tony,
 
-OK thanks.
- 
-> BTW, if you could rename :static struct gpio _gpios" to "ams_delta_gpios"
-> that would be even better.
+On 12/22/2011 07:32 PM, Tony Lindgren wrote:
+> Hi,
+>=20
+>> @@ -548,6 +588,19 @@ void omap4_panda_display_init(void)
+>>  	omap_display_init(&omap4_panda_dss_data);
+>>  }
+>> =20
+>> +static void omap4_panda_audio_init(void)
+>> +{
+>> +	if (cpu_is_omap4430()) {
+>> +		/* PandaBoard 4430 */
+>> +		panda_abe_audio_data.card_name =3D "PandaBoard";
+>> +		/* Audio in is connected to HSMIC */
+>> +		panda_abe_audio_data.has_hsmic =3D 1;
+>> +	} else {
+>> +		/* PandaBoard ES */
+>> +		panda_abe_audio_data.card_name =3D "PandaBoardES";
+>> +	}
+>> +}
+>> +
+>=20
+> Please move the cpu_is_omap4430() check from audio_init to..
+>=20
+>>  static void __init omap4_panda_init(void)
+>>  {
+>>  	int package =3D OMAP_PACKAGE_CBS;
+>> @@ -560,6 +613,7 @@ static void __init omap4_panda_init(void)
+>>  		pr_err("error setting wl12xx data\n");
+>> =20
+>>  	omap4_panda_i2c_init();
+>> +	omap4_panda_audio_init();
+>>  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+>>  	platform_device_register(&omap_vwlan_device);
+>>  	board_serial_init();
+>=20
+> ..omap4_panda_init() instead and set some flag that other
+> devices can use too so we don't have cpu_is_omap tests
+> for each init function. I'd assume that will be needed for
+> other devices too, but that's just a guess of course :)
 
-Done, pushing into omap1-part2 branch with the updated patch below.
+I was planning to have omap4_panda_init_rev(), which would be called
+just before the i2c_init().
+If other drivers need to differentiate between Panda and PandaES they
+can add their code there.
 
-Regards,
+We can use GPIOs to get the board ID, I'm looking at those for a
+followup patch.
+The only issue is that the ID1 GPIO number is different between 4430,
+and 4460 based Panda.
+We can have similar revision handling as we have for Beagle at the end.
 
-Tony
-
-
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Date: Tue, 20 Dec 2011 23:10:34 +0100
-Subject: [PATCH] input: serio: ams-delta: toggle keyboard power over GPIO
-
-Don't use Amstrad Delta custom I/O functions once GPIO interface is
-available for the underlying hardware.
-
-While requesting and initializing GPIO pins used, also take care of one
-extra pin KEYBRD_DATAOUT which, even if not used by the driver, belongs
-to the device and affects its functioning.
-
-Once done, move the driver initialization back to the device_initcall
-level, reverting the temporary chane introduced with patch 1/7 "ARM:
-OMAP1: ams-delta: register latch dependent devices later".  That change
-is no longer required once the driver takes care of registering used
-GPIO pins, and it's better to initialize the device before others using
-the latch2 based GPIO pins, otherwise a garbage is reported on boot,
-perhaps due to random data already captured by the FIQ handler while the
-keyboard related latch bits are written with random values during
-initialization of those other latch2 dependent devices.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Acked-by: Dmitry Torokhov <dtor@mail.ru>
-[tony@atomide.com: renamed _gpios to ams_delta_gpios]
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 3aba8f9..673cf21 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -227,16 +227,6 @@ static struct gpio latch_gpios[] __initconst = {
- 		.label	= "dockit2",
- 	},
- 	{
--		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "keybrd_pwr",
--	},
--	{
--		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
--		.flags	= GPIOF_OUT_INIT_LOW,
--		.label	= "keybrd_dataout",
--	},
--	{
- 		.gpio	= AMS_DELTA_GPIO_PIN_SCARD_RSTIN,
- 		.flags	= GPIOF_OUT_INIT_LOW,
- 		.label	= "scard_rstin",
-diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-index e9ad673..027e79e 100644
---- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
-+++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-@@ -28,8 +28,6 @@
- 
- #if defined (CONFIG_MACH_AMS_DELTA)
- 
--#define AMD_DELTA_LATCH2_KEYBRD_PWR	0x0100
--#define AMD_DELTA_LATCH2_KEYBRD_DATA	0x0200
- #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
- #define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
- #define AMS_DELTA_LATCH2_MODEM_NRESET	0x1000
-diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
-index 835d37a..0571e2e 100644
---- a/drivers/input/serio/ams_delta_serio.c
-+++ b/drivers/input/serio/ams_delta_serio.c
-@@ -92,8 +92,7 @@ static irqreturn_t ams_delta_serio_interrupt(int irq, void *dev_id)
- static int ams_delta_serio_open(struct serio *serio)
- {
- 	/* enable keyboard */
--	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR,
--			AMD_DELTA_LATCH2_KEYBRD_PWR);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 1);
- 
- 	return 0;
- }
-@@ -101,9 +100,32 @@ static int ams_delta_serio_open(struct serio *serio)
- static void ams_delta_serio_close(struct serio *serio)
- {
- 	/* disable keyboard */
--	ams_delta_latch2_write(AMD_DELTA_LATCH2_KEYBRD_PWR, 0);
-+	gpio_set_value(AMS_DELTA_GPIO_PIN_KEYBRD_PWR, 0);
- }
- 
-+static struct gpio ams_delta_gpios[] __initconst_or_module = {
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATA,
-+		.flags	= GPIOF_DIR_IN,
-+		.label	= "serio-data",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_CLK,
-+		.flags	= GPIOF_DIR_IN,
-+		.label	= "serio-clock",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_PWR,
-+		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "serio-power",
-+	},
-+	{
-+		.gpio	= AMS_DELTA_GPIO_PIN_KEYBRD_DATAOUT,
-+		.flags	= GPIOF_OUT_INIT_LOW,
-+		.label	= "serio-dataout",
-+	},
-+};
-+
- static int __init ams_delta_serio_init(void)
- {
- 	int err;
-@@ -123,19 +145,12 @@ static int __init ams_delta_serio_init(void)
- 	strlcpy(ams_delta_serio->phys, "GPIO/serio0",
- 			sizeof(ams_delta_serio->phys));
- 
--	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_DATA, "serio-data");
-+	err = gpio_request_array(ams_delta_gpios,
-+				ARRAY_SIZE(ams_delta_gpios));
- 	if (err) {
--		pr_err("ams_delta_serio: Couldn't request gpio pin for data\n");
-+		pr_err("ams_delta_serio: Couldn't request gpio pins\n");
- 		goto serio;
- 	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
--
--	err = gpio_request(AMS_DELTA_GPIO_PIN_KEYBRD_CLK, "serio-clock");
--	if (err) {
--		pr_err("ams_delta_serio: couldn't request gpio pin for clock\n");
--		goto gpio_data;
--	}
--	gpio_direction_input(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
- 
- 	err = request_irq(gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK),
- 			ams_delta_serio_interrupt, IRQ_TYPE_EDGE_RISING,
-@@ -143,7 +158,7 @@ static int __init ams_delta_serio_init(void)
- 	if (err < 0) {
- 		pr_err("ams_delta_serio: couldn't request gpio interrupt %d\n",
- 				gpio_to_irq(AMS_DELTA_GPIO_PIN_KEYBRD_CLK));
--		goto gpio_clk;
-+		goto gpio;
- 	}
- 	/*
- 	 * Since GPIO register handling for keyboard clock pin is performed
-@@ -157,21 +172,20 @@ static int __init ams_delta_serio_init(void)
- 	dev_info(&ams_delta_serio->dev, "%s\n", ams_delta_serio->name);
- 
- 	return 0;
--gpio_clk:
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
--gpio_data:
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-+gpio:
-+	gpio_free_array(ams_delta_gpios,
-+			ARRAY_SIZE(ams_delta_gpios));
- serio:
- 	kfree(ams_delta_serio);
- 	return err;
- }
--late_initcall(ams_delta_serio_init);
-+module_init(ams_delta_serio_init);
- 
- static void __exit ams_delta_serio_exit(void)
- {
- 	serio_unregister_port(ams_delta_serio);
- 	free_irq(OMAP_GPIO_IRQ(AMS_DELTA_GPIO_PIN_KEYBRD_CLK), 0);
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_CLK);
--	gpio_free(AMS_DELTA_GPIO_PIN_KEYBRD_DATA);
-+	gpio_free_array(ams_delta_gpios,
-+			ARRAY_SIZE(ams_delta_gpios));
- }
- module_exit(ams_delta_serio_exit);
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
