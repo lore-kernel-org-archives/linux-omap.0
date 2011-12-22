@@ -1,52 +1,88 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 9/9] ASoC: Kconfig: OMAP4: Enable support for PandaBoards
-Date: Thu, 22 Dec 2011 21:34:34 +0200
-Message-ID: <1324582474-18181-10-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3 2/9] OMAP4: 4430sdp: Register platform device for
+ OMAP4 audio
+Date: Thu, 22 Dec 2011 11:37:36 -0800
+Message-ID: <20111222193736.GR24444@atomide.com>
 References: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
+ <1324582474-18181-3-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:32986 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755732Ab1LVTf5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 14:35:57 -0500
-Received: by lahl5 with SMTP id l5so6386681lah.27
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 11:35:55 -0800 (PST)
-In-Reply-To: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:19931 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753561Ab1LVThn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 14:37:43 -0500
+Content-Disposition: inline
+In-Reply-To: <1324582474-18181-3-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Enable ASoC audio support for OMAP4 based machines with
-twl6040 codec via the omap-abe-twl6040 machine driver.
+* Peter Ujfalusi <peter.ujfalusi@ti.com> [111222 11:03]:
+> To avoid breakage in audio support with the coming change
+> in ASoC machine driver (conversion to platfrom device).
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/Kconfig |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 98410b8..47b23fe 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -99,7 +99,7 @@ config SND_OMAP_SOC_SDP3430
- 
- config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
--	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
-+	depends on TWL4030_CORE && SND_OMAP_SOC && ARCH_OMAP4
- 	select SND_OMAP_SOC_DMIC
- 	select SND_OMAP_SOC_MCPDM
- 	select SND_SOC_TWL6040
-@@ -108,6 +108,8 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	  Say Y if you want to add support for SoC audio on OMAP boards using
- 	  ABE and twl6040 codec. This driver currently supports:
- 	  - SDP4430/Blaze boards
-+	  - PandaBoard (4430)
-+	  - PandaBoardES (4460)
- 
- config SND_OMAP_SOC_OMAP4_HDMI
- 	tristate "SoC Audio support for Texas Instruments OMAP4 HDMI"
--- 
-1.7.8.1
-
+> ---
+>  arch/arm/mach-omap2/board-4430sdp.c |   27 +++++++++++++++++++++++++++
+>  1 files changed, 27 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 21b62bd..394cbab 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -41,6 +41,7 @@
+>  #include <video/omap-panel-nokia-dsi.h>
+>  #include <video/omap-panel-picodlp.h>
+>  #include <linux/wl12xx.h>
+> +#include <linux/platform_data/omap-abe-twl6040.h>
+>  
+>  #include "mux.h"
+>  #include "hsmmc.h"
+> @@ -377,12 +378,38 @@ static struct platform_device sdp4430_dmic_codec = {
+>  	.id	= -1,
+>  };
+>  
+> +static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
+> +	.card_name = "SDP4430",
+> +	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+> +	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+> +	.has_ep		= 1,
+> +	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+> +	.has_vibra	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+> +
+> +	.has_dmic	= 1,
+> +	.has_hsmic	= 1,
+> +	.has_mainmic	= 1,
+> +	.has_submic	= 1,
+> +	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
+> +
+> +	.jack_detection = 1,
+> +};
+> +
+> +static struct platform_device sdp4430_abe_audio = {
+> +	.name		= "omap-abe-twl6040",
+> +	.id		= -1,
+> +	.dev = {
+> +		.platform_data = &sdp4430_abe_audio_data,
+> +	},
+> +};
+> +
+>  static struct platform_device *sdp4430_devices[] __initdata = {
+>  	&sdp4430_gpio_keys_device,
+>  	&sdp4430_leds_gpio,
+>  	&sdp4430_leds_pwm,
+>  	&sdp4430_vbat,
+>  	&sdp4430_dmic_codec,
+> +	&sdp4430_abe_audio,
+>  };
+>  
+>  static struct omap_musb_board_data musb_board_data = {
+> -- 
+> 1.7.8.1
+> 
