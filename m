@@ -1,61 +1,78 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 02/11] i2c: OMAP: Add DT support for i2c controller
-Date: Thu, 22 Dec 2011 15:01:40 +0100
-Message-ID: <4EF33844.5080105@ti.com>
-References: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
- <1324398444-23296-3-git-send-email-b-cousson@ti.com>
- <CAOesGMiwg9gVDDwCjuCcAPX6hc2E6OgH-c_nAqhCHmj7y5oCeQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <CAOesGMiwg9gVDDwCjuCcAPX6hc2E6OgH-c_nAqhCHmj7y5oCeQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: [PATCH] OMAP3: hwmod_data: register dss hwmods after dss_core
+Date: Thu, 22 Dec 2011 15:02:43 +0100
+Message-ID: <1324562563-27119-1-git-send-email-yanok@emcraft.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-out.m-online.net ([212.18.0.10]:53634 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751782Ab1LVOCs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 09:02:48 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: sasha_d@emcraft.com, Ilya Yanok <yanok@emcraft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Olof,
+dss_core has to be initialized before any other DSS hwmod. Currently
+this is broken as dss_core is listed in chip/revision specific hwmod
+lists while other DSS hwmods are listed in common list which is
+registered first.
 
-On 12/20/2011 10:24 PM, Olof Johansson wrote:
-> Hi,
->
-> On Tue, Dec 20, 2011 at 8:27 AM, Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>  wrote:
->
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index a43d002..dcbc1ec 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -37,6 +37,8 @@
->>   #include<linux/platform_device.h>
->>   #include<linux/clk.h>
->>   #include<linux/io.h>
->> +#include<linux/of_i2c.h>
->> +#include<linux/of_device.h>
->>   #include<linux/slab.h>
->>   #include<linux/i2c-omap.h>
->>   #include<linux/pm_runtime.h>
-> [...]
->> @@ -1165,6 +1195,7 @@ static struct platform_driver omap_i2c_driver = {
->>                 .name   = "omap_i2c",
->>                 .owner  = THIS_MODULE,
->>                 .pm     = OMAP_I2C_PM_OPS,
->> +               .of_match_table = of_match_ptr(omap_i2c_of_match),
->>         },
->>   };
->
-> of_match_ptr() comes from<linux/of.h>, so you need to include that to
-> not break !CONFIG_OF builds.
+This patch moves DSS hwmods (except for dss_core) to the separate list
+which is registered last to ensure that dss_core is already registered.
 
-Good point, I'll fix that.
+CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Archit Taneja <archit@ti.com>
+CC: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
 
-Thanks,
-Benoit
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 5324e8d..85536ff 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -3523,12 +3523,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_uart2_hwmod,
+ 	&omap3xxx_uart3_hwmod,
+ 
+-	/* dss class */
+-	&omap3xxx_dss_dispc_hwmod,
+-	&omap3xxx_dss_dsi1_hwmod,
+-	&omap3xxx_dss_rfbi_hwmod,
+-	&omap3xxx_dss_venc_hwmod,
+-
+ 	/* i2c class */
+ 	&omap3xxx_i2c1_hwmod,
+ 	&omap3xxx_i2c2_hwmod,
+@@ -3635,6 +3629,15 @@ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
+ 	NULL
+ };
+ 
++static __initdata struct omap_hwmod *omap3xxx_dss_hwmods[] = {
++	/* dss class */
++	&omap3xxx_dss_dispc_hwmod,
++	&omap3xxx_dss_dsi1_hwmod,
++	&omap3xxx_dss_rfbi_hwmod,
++	&omap3xxx_dss_venc_hwmod,
++	NULL
++};
++
+ int __init omap3xxx_hwmod_init(void)
+ {
+ 	int r;
+@@ -3708,6 +3711,11 @@ int __init omap3xxx_hwmod_init(void)
+ 
+ 	if (h)
+ 		r = omap_hwmod_register(h);
++	if (r < 0)
++		return r;
++
++	/* Register common DSS hwmods later than dss_core */
++	r = omap_hwmod_register(omap3xxx_dss_hwmods);
+ 
+ 	return r;
+ }
+-- 
+1.7.6.4
+
