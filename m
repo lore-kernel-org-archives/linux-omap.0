@@ -1,41 +1,79 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 4/9] ASoC: twl6040: Convert MICBIAS to SUPPLY widget
-Date: Thu, 22 Dec 2011 16:30:17 +0200
-Message-ID: <4EF33EF9.5090306@ti.com>
-References: <1324557768-8216-1-git-send-email-peter.ujfalusi@ti.com> <1324557768-8216-5-git-send-email-peter.ujfalusi@ti.com> <20111222141503.GZ4546@opensource.wolfsonmicro.com>
+From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v4 00/12] OMAP4: Add DT support for i2c and twl6030
+Date: Thu, 22 Dec 2011 15:56:34 +0100
+Message-ID: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:47786 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751273Ab1LVOaO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 09:30:14 -0500
-Received: by mail-lpp01m010-f41.google.com with SMTP id v3so1773485lag.0
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 06:30:12 -0800 (PST)
-In-Reply-To: <20111222141503.GZ4546@opensource.wolfsonmicro.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
+Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-On 12/22/2011 04:15 PM, Mark Brown wrote:
-> On Thu, Dec 22, 2011 at 02:42:43PM +0200, Peter Ujfalusi wrote:
->> In order to avoid breakage change the omap-abe-twl6040
->> machine driver's routing.
->=20
-> I was going to apply this but it doesn't apply against current code..=
-=2E
+Hi Tony and Rob,
 
-Yes, because I is touching the machine driver as well (after the rename=
-)
-to avoid breakage.
+Here is the updated version of the i2c + twl DT adaptation series.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This update, compared to v3 [1], is fixing the twl-core build for non-OMAP
+platform.
+Per Olof's suggestion, adding the of.h include in the i2c driver to avoid
+problem in case on non-DT build.
+
+Patches are based on for_3.3/2_dt_irq, to get the latest GIC binding,
+and are available here:
+git://gitorious.org/omap-pm/linux.git for_3.3/3_omap_dt_i2c_twl
+
+Tested on Beagle and sdp4430. Build tested for x86.
+
+Comments are welcome.
+
+Regards,
+Benoit
+
+[1] http://www.spinics.net/lists/linux-omap/msg62127.html
+
+Benoit Cousson (12):
+  ARM: OMAP2+: pm: Do not init statically the SR and voltage layer with DT
+  i2c: OMAP: Add DT support for i2c controller
+  mfd: twl-core: Add initial DT support for twl4030/twl6030
+  rtc: rtc-twl: Add DT support for RTC inside twl4030/twl6030
+  arm/dts: OMAP4: Add i2c controller nodes
+  arm/dts: OMAP3: Add i2c controller nodes
+  arm/dts: twl6030: Add DTS file for twl6030 PMIC
+  arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
+  arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
+  arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
+  arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
+  ARM: OMAP2+: board-generic: Remove i2c static init
+
+ Documentation/devicetree/bindings/i2c/omap-i2c.txt |   30 ++++++
+ .../devicetree/bindings/mfd/twl-familly.txt        |   47 +++++++++
+ Documentation/devicetree/bindings/rtc/twl-rtc.txt  |   12 +++
+ arch/arm/boot/dts/omap3-beagle.dts                 |   29 ++++++
+ arch/arm/boot/dts/omap3.dtsi                       |   21 ++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   34 +++++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   53 ++++++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   28 ++++++
+ arch/arm/boot/dts/twl4030.dtsi                     |   21 ++++
+ arch/arm/boot/dts/twl6030.dtsi                     |   22 ++++
+ arch/arm/mach-omap2/board-generic.c                |   48 +---------
+ arch/arm/mach-omap2/pm.c                           |    8 ++
+ drivers/i2c/busses/i2c-omap.c                      |  102 +++++++++++++-------
+ drivers/mfd/Kconfig                                |    1 +
+ drivers/mfd/twl-core.c                             |   51 ++++++++++-
+ drivers/rtc/rtc-twl.c                              |   10 ++-
+ 16 files changed, 433 insertions(+), 84 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
+ create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
+ create mode 100644 arch/arm/boot/dts/twl4030.dtsi
+ create mode 100644 arch/arm/boot/dts/twl6030.dtsi
