@@ -1,76 +1,75 @@
-From: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH] OMAP2+: ads7846_init: put gpio_pendown into pdata if
- it's provided
-Date: Thu, 22 Dec 2011 10:49:27 +0200
-Message-ID: <4EF2EF17.8040208@compulab.co.il>
-References: <1324485086-31410-1-git-send-email-yanok@emcraft.com> <4EF215DE.8060002@compulab.co.il> <4EF22033.9030806@emcraft.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: Is Pandaboard cpuhotplug working stably?
+Date: Thu, 22 Dec 2011 14:19:23 +0530
+Message-ID: <CAMQu2gy8mwJ-aKit0b4d7=4FkxeFakfnL-phy0eMOK81Oe=PCw@mail.gmail.com>
+References: <CAGsJ_4ydbMaS0DD6+j1m9tdCTCzw3TGELcY=KotupvvMMK1YOA@mail.gmail.com>
+ <20111221094624.GB3354@n2100.arm.linux.org.uk> <CAGsJ_4w0iVXC6qmDzmkuOb=ZN=Q0bF7EAFkxeYR_d7-vo+8bqQ@mail.gmail.com>
+ <20111221100706.GC3354@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:51195
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751868Ab1LVItd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 03:49:33 -0500
-In-Reply-To: <4EF22033.9030806@emcraft.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:56138 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751868Ab1LVItr convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 03:49:47 -0500
+Received: by mail-qy0-f176.google.com with SMTP id c2so5357978qcs.7
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 00:49:46 -0800 (PST)
+In-Reply-To: <20111221100706.GC3354@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, sasha_d@emcraft.com
+To: Barry Song <21cnbao@gmail.com>
+Cc: linux-omap@vger.kernel.org, yongsheng.liu@csr.com, linaro-dev <linaro-dev@lists.linaro.org>, peiyu.li@csr.com, DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>, linux-arm-kernel@lists.infradead.org, peterz@infradead.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On 12/21/11 20:06, Ilya Yanok wrote:
-> Hi Igor,
-> 
-> On 21.12.2011 21:22, Igor Grinberg wrote:
->> Please, Cc the linux-arm-kernel@lists.infradead.org for patches,
->> so Tony, or whoever will not need to resend them...
-> 
-> Uh.. Actually I thought that linux-omap ML is a good place for really
-> OMAP-specific patches like this one and there is no much sense posting
-> such patches into the main ARM list...
-> 
-> Ok, I will Cc linux-arm-kernel in future.
-> 
->>> If platform data is provided by the caller gpio_pendown is put into
->>> unused static ads7846_config structure and effectively has no effect.
->>> Of course caller can set gpio_pendown field in platform data himself
->>> but it seems natural to do this in ads7846_init to remove duplication.
->>>
->>> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
->>> ---
->>>  arch/arm/mach-omap2/common-board-devices.c |    5 ++++-
->>>  1 files changed, 4 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
->>> index 2d1d775..eb408dd 100644
->>> --- a/arch/arm/mach-omap2/common-board-devices.c
->>> +++ b/arch/arm/mach-omap2/common-board-devices.c
->>> @@ -75,7 +75,10 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
->>>  			gpio_set_debounce(gpio_pendown, gpio_debounce);
->>>  	}
->>>  
->>> -	ads7846_config.gpio_pendown = gpio_pendown;
->>> +	if (!board_pdata)
->>> +		ads7846_config.gpio_pendown = gpio_pendown;
->>> +	else
->>> +		board_pdata->gpio_pendown = gpio_pendown;
->>>  
->>>  	spi_bi->bus_num	= bus_num;
->>>  	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
++ Peter Z
+
+On Wed, Dec 21, 2011 at 3:37 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Wed, Dec 21, 2011 at 05:59:07PM +0800, Barry Song wrote:
+>> 2011/12/21 Russell King - ARM Linux <linux@arm.linux.org.uk>:
+>> > cpu hotplug is basically totally buggered - the preconditions plac=
+ed
+>> > upon the bringup code path are basically impossible to satisfy in =
+any
+>> > shape or form at the moment.
+>> >
+>> > There's the requirement that the secondary CPU is marked online an=
+d
+>> > active before interrupts are enabled for the thread migration stuf=
+f
+>> > to behave correctly. =A0However, this is incompatible with smp_cal=
+l_function()
+>> > which will wait for online CPUs to respond to an IPI - which this =
+one
+>> > won't because interrupts are disabled.
+>> >
+>> > I think there was some discussion about how to fix this but I don'=
+t
+>> > recall the details.
 >>
->> The fact that the ads7846_config has no effect in case
->> the board_pdata is provided does not really meter...
->> How about reusing the existing "if" instead of adding another one?
->> Like in the attached patch?
-> 
-> Yes, I think your version is a bit clearer. Probably it makes to add
-> "else" clause and move ads7846_config.gpio_pendown assignment under it.
+>> thanks, Russell. then could i think this is an ARM-kernel-specific b=
+ug
+>> which exists on all ARM SMP chips for the moment?
+>> and that bug doesn't happen on x86:
+>
+> I don't think so. =A0There's nothing ARM specific about it.
 
-Sounds fine, care to send a v2?
-You can add my SOB.
+There are few patches floating around for this issue. I posted one vers=
+ion
+long back [1] and then there was one more form Thomas G.
+The most recent is from one is from Peter Z [2] which is moving the
+fix for the cup online race to core code.
 
+Can you try Peter's patch with your test-case ?
 
--- 
 Regards,
-Igor.
+Santosh
+
+[1] https://lkml.org/lkml/2011/6/20/79
+[2] https://lkml.org/lkml/2011/12/15/255
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
