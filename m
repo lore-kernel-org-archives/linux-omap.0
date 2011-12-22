@@ -1,67 +1,61 @@
-From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: [PATCH] OMAP3: hwmod_data: add HWMOD_INIT_NO_RESET flag for dss_dispc
-Date: Thu, 22 Dec 2011 16:42:32 +0400
-Message-ID: <4EF325B8.2090206@emcraft.com>
-References: <1324515653-17287-1-git-send-email-yanok@emcraft.com> <1324548785.13282.10.camel@deskari>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 0/9] OMAP4: ASoC: Support for PandaBoard family
+Date: Thu, 22 Dec 2011 14:42:39 +0200
+Message-ID: <1324557768-8216-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ocean.emcraft.com ([213.221.7.182]:41954 "EHLO
-	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581Ab1LVMmD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 07:42:03 -0500
-In-Reply-To: <1324548785.13282.10.camel@deskari>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:43282 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755165Ab1LVMnY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 07:43:24 -0500
+Received: by lahd3 with SMTP id d3so1187163lah.5
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 04:43:21 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-Hi Tomi,
+Hello,
 
-On 22.12.2011 14:13, Tomi Valkeinen wrote:
-> On Thu, 2011-12-22 at 02:00 +0100, Ilya Yanok wrote:
->> Resetting DISPC when a DISPC output is enabled causes the DSS to go into
->> an inconsistent state.
->>
->> commit b923d40dd4211c4ef7d4efa2bd81b7ca1d8744c1
->> Author: Archit Taneja <archit@ti.com>
->> Date:   Thu Oct 6 18:04:08 2011 -0600
->>
->>     ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is
->> enabled in bootloader
->>
->> tries to deal with this problem by checking if display is enabled and
->> disabling it before doing reset.
->>
->> But in my setup dss_dispc is resetted from omap_hwmod_setup_all function
->> _before_ calling omap_dss_reset. So when dispc_disable_outputs is
->> executed dispc is already reset and nothing happens.
-> 
-> Hmm, why is that? You don't have the dss hwmod before dispc in the list
-> of hwmods? The code presumes that dss hwmod is handled first.
+the following series will add ASoC support for PandaBoards.
+PandaBoards have different audio routings compared to SDP4430/Blaze boards, but
+the differences not that big to justify a new ASoC machine driver.
 
-Looking at the arch/arm/mach-omap2/omap_hwmod_3xxx_data.c I can see that
-dss_dispc is in the list of generic hwmods which is registered first
-while dss_core hwmod is in revision-specific lists which are registered
-later. I think this is the real root of the problem, thanks for pointing
-this out!
+This series is based on the first three patch from the v1 sereis (those, which
+has been applied by Liam).
 
-> 
->> This patch and HWMOD_INIT_NO_RESET flags to dss_dispc hwmod thus leaving
->> DISPC untouched so that omap_dss_reset can take care of it.
-> 
-> omap_dss_reset() doesn't reset dispc, so this will leave dispc
-> un-reseted.
-> 
-> The idea of the current code is to do the reset similarly on all OMAPs.
-> The sequence should be:
-> 
-> - omap_dss_reset(), which disables dispc outputs and manually resets dss
-> registers.
-> - then the rest of the dss modules reset themselves normally, using the
-> softreset bit.
+Changes since v1:
+As suggested by Mark the platform data, machine driver has been converted to
+process feature flags instead of Board IDs.
+- The ASoC machine driver registers all DAPM widgets. Based on the received
+  configuration it will disable the unused paths
+- PCM for dmic is only created, if the board has digital mic conencted
+- Jack functionality will be only used on boards supporting it
+- Sound card name for SDP4430 has net been changed
 
-But currently omap_dss_reset() is called the last.
+Regards,
+Peter
+---
+Peter Ujfalusi (9):
+  include: platform_data: Platform data header for OMAP4 ASoC audio
+  OMAP4: 4430sdp: Register platform device for OMAP4 audio
+  ASoC: omap-abe-twl6040: Convert to platform deriver
+  ASoC: twl6040: Convert MICBIAS to SUPPLY widget
+  ASoC: omap-abe-twl6040: Add complete DAPM routing
+  ASoC: omap-abe-twl6040: DAI link selection based on platform data
+  ASoC: omap-abe-twl6040: Configure card according to platform data
+  OMAP4: omap4panda: Enable audio support
+  ASoC: Kconfig: OMAP4: Enable support for PandaBoards
 
-Regards, Ilya.
+ arch/arm/mach-omap2/board-4430sdp.c            |   27 ++++
+ arch/arm/mach-omap2/board-omap4panda.c         |   56 ++++++++-
+ include/linux/platform_data/omap-abe-twl6040.h |   48 +++++++
+ sound/soc/codecs/twl6040.c                     |   16 +-
+ sound/soc/omap/Kconfig                         |    5 +-
+ sound/soc/omap/omap-abe-twl6040.c              |  178 ++++++++++++++++--------
+ 6 files changed, 260 insertions(+), 70 deletions(-)
+ create mode 100644 include/linux/platform_data/omap-abe-twl6040.h
+
+-- 
+1.7.8.1
+
