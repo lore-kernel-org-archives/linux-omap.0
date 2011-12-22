@@ -1,69 +1,56 @@
-From: "Girdwood, Liam" <lrg@ti.com>
-Subject: Re: [PATCH 07/10] ASoC: OMAP: ams-delta: Drive
- modem/codec pins over GPIO API
-Date: Thu, 22 Dec 2011 09:25:26 +0000
-Message-ID: <CABS+qY1Ng0JQMan++sG+T0jcCFOdDH61hzQ=AXyAD-BPDTpDFg@mail.gmail.com>
-References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
-	<1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
-	<1324492424.8478.5.camel@odin>
-	<201112212314.39844.jkrzyszt@tis.icnet.pl>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
+ memops
+Date: Thu, 22 Dec 2011 10:28:49 +0100
+Message-ID: <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+ <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <201112212314.39844.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+Content-language: pl
+Sender: linux-kernel-owner@vger.kernel.org
+To: 'Ming Lei' <ming.lei@canonical.com>, 'Mauro Carvalho Chehab' <mchehab@infradead.org>, 'Tony Lindgren' <tony@atomide.com>
+Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>, 'Alan Cox' <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-media@vger.kernel.org, 'Pawel Osciak' <p.osciak@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On 21 December 2011 22:14, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-> On Wednesday 21 of December 2011 at 19:33:44, Liam Girdwood wrote:
->> On Sun, 2011-12-11 at 21:12 +0100, Janusz Krzysztofik wrote:
->> > Don't use Amstrad Delta custom I/O functions any longer, replace them
->> > with GPIO. Old pin definitions, no longer used by the modem bits either,
->> > can be dropped.
->> >
->> > Depends on patch 2/10 "ARM: OMAP1: Convert Amstrad E3 latches to
->> > basic_mmio_gpio".
->> >
->> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
->>
->> Applied.
->
-> Hi,
-> I'm sorry, but I've probably missed to infrom you explicitly, i.e. other
-> than in a cover letter to v2 of this series, that this particular patch
-> has been dropped from the series. I've already started working on an
-> alternative solution, which I intend to submit as a separate set. It
-> will be free of potentail problems with two devices, a modem and the
-> sound card, accessing the same GPIO pins concurrently. For the
-> MODEM_NRESET pin I've already set up a virtual regulator on top of it,
-> and for the MODEM_CODEC pin I'll probably choose a virtual clock (pinmux
-> would match the hardware more closely here, but it looks too complicated
-> to me). Moreover, I've already started to move all those GPIO pin
-> related functions, i.e. bias control, digital mute and line discipline
-> interaction, from the board file to the codec driver, where all those
-> seem to belong.
->
-> Having this patch applied will conflict with the regultor and the clock
-> solutions, taking control over those two GPIO pins. Please revert this
-> patch, or reset it if still possible.
->
-> Thanks,
-> Janusz
+Hello,
 
-Will do, I never pushed last night as it was late. So I'll only will
-have to make a local change.
+On Wednesday, December 14, 2011 3:00 PM Ming Lei wrote:
 
-Thanks
+> DMA contig memory resource is very limited and precious, also
+> accessing to it from CPU is very slow on some platform.
+> 
+> For some cases(such as the comming face detection driver), DMA Streaming
+> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
+> physical memory but letting video device driver to handle DMA buffer mapping
+> and unmapping things.
+> 
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
 
-Liam
+Could you elaborate a bit why do you think that DMA contig memory resource
+is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
+the alloc_pages() call with order > 0 will also fail.
+
+I understand that there might be some speed issues with coherent (uncached)
+userspace mappings, but I would solve it in completely different way. The interface
+for both coherent/uncached and non-coherent/cached contig allocator should be the
+same, so exchanging them is easy and will not require changes in the driver.
+I'm planning to introduce some design changes in memory allocator api and introduce
+prepare and finish callbacks in allocator ops. I hope to post the rfc after
+Christmas. For your face detection driver using standard dma-contig allocator
+shouldn't be a big issue.
+
+Your current implementation also abuses the design and api of videobuf2 memory
+allocators. If the allocator needs to return a custom structure to the driver
+you should use cookie method. vaddr is intended to provide only a pointer to
+kernel virtual mapping, but you pass a struct page * there.
+
+(snipped)
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
