@@ -1,108 +1,119 @@
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 10/12] arm/dts: omap4-sdp: Add twl6030,
- i2c3 and i2c4 devices
-Date: Thu, 22 Dec 2011 15:56:44 +0100
-Message-ID: <1324565806-31142-11-git-send-email-b-cousson@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v4 12/12] ARM: OMAP2+: board-generic: Remove i2c static init
+Date: Thu, 22 Dec 2011 15:56:46 +0100
+Message-ID: <1324565806-31142-13-git-send-email-b-cousson@ti.com>
 References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <1324565806-31142-1-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34243 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754246Ab1LVO65 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 09:58:57 -0500
+In-Reply-To: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: rob.herring@calxeda.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-i2c@vger.kernel.org, sameo@linux.intel.com, ben-linux@fluff.org, Benoit Cousson <b-cousson@ti.com>
 
-Update DTS file with required clock frequencies
-for the i2c client devices existing on sdp4430.
+This mainly reverts the commit that was adding the i2c static init.
 
-Add the twl6030 node inside the i2c1 controller node.
-This is the minimal support needed to boot OMAP4 boards
-without any crash.
-The support for all the features included in this MFD will be
-added later.
+Since the i2c and twl nodes are now present, there is no need
+for the static initialization anymore.
 
-Add the RTC submodule inside the twl node.
-
-Add tmp105 temperature sensor in i2c3
-Add bh1780 Ambient Light Sensor in i2c3
-Add hmc5843 3-Axis Digital Compass in i2c4
-
-Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/omap4-sdp.dts |   53 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 53 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-generic.c |   48 +---------------------------------
+ 1 files changed, 2 insertions(+), 46 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 63c6b2b..17e829a 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -18,3 +18,56 @@
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
- };
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+
-+	twl: twl@48 {
-+		reg = <0x48>;
-+		/* SPI = 0, IRQ# = 7, 4 = active high level-sensitive */
-+		interrupts = <0 7 4>; /* IRQ_SYS_1N cascaded to gic */
-+		interrupt-parent = <&gic>;
-+	};
-+};
-+
-+/include/ "twl6030.dtsi"
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+	reg = <0x48072000 0x100>, <0x48072100 0x100>, <0x48072200 0x100>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * Temperature Sensor
-+	 * http://www.ti.com/lit/ds/symlink/tmp105.pdf
-+	 */
-+	tmp105@48 {
-+		compatible = "ti,tmp105";
-+		reg = <0x48>;
-+	};
-+
-+	/*
-+	 * Ambient Light Sensor
-+	 * http://www.rohm.com/products/databook/sensor/pdf/bh1780gli-e.pdf
-+	 */
-+	bh1780@29 {
-+		compatible = "rohm,bh1780";
-+		reg = <0x29>;
-+	};
-+};
-+
-+&i2c4 {
-+	clock-frequency = <400000>;
-+
-+	/*
-+	 * 3-Axis Digital Compass
-+	 * http://www.sparkfun.com/datasheets/Sensors/Magneto/HMC5843.pdf
-+	 */
-+	hmc5843@1e {
-+		compatible = "honeywell,hmc5843";
-+		reg = <0x1e>;
-+	};
-+};
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 2529017..38f105d 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -15,7 +15,6 @@
+ #include <linux/of_irq.h>
+ #include <linux/of_platform.h>
+ #include <linux/irqdomain.h>
+-#include <linux/i2c/twl.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/hardware/gic.h>
+@@ -36,34 +35,6 @@ static void __init omap_init_irq(void)
+ 	of_irq_init(irq_match);
+ }
+ 
+-/*
+- * XXX: Still needed to boot until the i2c & twl driver is adapted to
+- * device-tree
+- */
+-#ifdef CONFIG_ARCH_OMAP4
+-static struct twl4030_platform_data sdp4430_twldata = {
+-	.irq_base	= TWL6030_IRQ_BASE,
+-	.irq_end	= TWL6030_IRQ_END,
+-};
+-
+-static void __init omap4_i2c_init(void)
+-{
+-	omap4_pmic_init("twl6030", &sdp4430_twldata);
+-}
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static struct twl4030_platform_data beagle_twldata = {
+-	.irq_base	= TWL4030_IRQ_BASE,
+-	.irq_end	= TWL4030_IRQ_END,
+-};
+-
+-static void __init omap3_i2c_init(void)
+-{
+-	omap3_pmic_init("twl4030", &beagle_twldata);
+-}
+-#endif
+-
+ static struct of_device_id omap_dt_match_table[] __initdata = {
+ 	{ .compatible = "simple-bus", },
+ 	{ .compatible = "ti,omap-infra", },
+@@ -78,21 +49,6 @@ static void __init omap_generic_init(void)
+ 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
+ }
+ 
+-#ifdef CONFIG_ARCH_OMAP4
+-static void __init omap4_init(void)
+-{
+-	omap4_i2c_init();
+-	omap_generic_init();
+-}
+-#endif
+-
+-#ifdef CONFIG_ARCH_OMAP3
+-static void __init omap3_init(void)
+-{
+-	omap3_i2c_init();
+-	omap_generic_init();
+-}
+-#endif
+ 
+ #if defined(CONFIG_SOC_OMAP2420)
+ static const char *omap242x_boards_compat[] __initdata = {
+@@ -145,7 +101,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+ 	.init_early	= omap3430_init_early,
+ 	.init_irq	= omap_init_irq,
+ 	.handle_irq	= omap3_intc_handle_irq,
+-	.init_machine	= omap3_init,
++	.init_machine	= omap_generic_init,
+ 	.timer		= &omap3_timer,
+ 	.dt_compat	= omap3_boards_compat,
+ MACHINE_END
+@@ -164,7 +120,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
+ 	.init_early	= omap4430_init_early,
+ 	.init_irq	= omap_init_irq,
+ 	.handle_irq	= gic_handle_irq,
+-	.init_machine	= omap4_init,
++	.init_machine	= omap_generic_init,
+ 	.timer		= &omap4_timer,
+ 	.dt_compat	= omap4_boards_compat,
+ MACHINE_END
 -- 
 1.7.0.4
+
