@@ -1,132 +1,82 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 3/9] ASoC: omap-abe-twl6040: Convert to platform deriver
-Date: Thu, 22 Dec 2011 21:34:28 +0200
-Message-ID: <1324582474-18181-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 2/9] OMAP4: 4430sdp: Register platform device for OMAP4 audio
+Date: Thu, 22 Dec 2011 21:34:27 +0200
+Message-ID: <1324582474-18181-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:50239 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755645Ab1LVTfo (ORCPT
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:59402 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755644Ab1LVTfk (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 14:35:44 -0500
-Received: by mail-lpp01m010-f53.google.com with SMTP id r15so3972969lag.12
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 11:35:43 -0800 (PST)
+	Thu, 22 Dec 2011 14:35:40 -0500
+Received: by mail-lpp01m010-f43.google.com with SMTP id w12so9722424lag.30
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 11:35:39 -0800 (PST)
 In-Reply-To: <1324582474-18181-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Peter Ujfalusi <peter.ujfalusi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Convert the OMAP4 ABE/TWL6040 machine driver to platform
-driver.
-For the card name use the string provided via platform data.
-The card's name for OMAP4 SDP4430 has been changed:
-SDP4430 -> OMAP4-SDP4430
+To avoid breakage in audio support with the coming change
+in ASoC machine driver (conversion to platfrom device).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- sound/soc/omap/omap-abe-twl6040.c |   59 ++++++++++++++++++++++--------------
- 1 files changed, 36 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |   27 +++++++++++++++++++++++++++
+ 1 files changed, 27 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 9c6d97a..4974ea1 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -23,6 +23,7 @@
- #include <linux/clk.h>
- #include <linux/platform_device.h>
- #include <linux/mfd/twl6040.h>
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 21b62bd..394cbab 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -41,6 +41,7 @@
+ #include <video/omap-panel-nokia-dsi.h>
+ #include <video/omap-panel-picodlp.h>
+ #include <linux/wl12xx.h>
 +#include <linux/platform_data/omap-abe-twl6040.h>
- #include <linux/module.h>
  
- #include <sound/core.h>
-@@ -226,7 +227,6 @@ static struct snd_soc_dai_link sdp4430_dai[] = {
- 
- /* Audio machine driver */
- static struct snd_soc_card omapabe_card = {
--	.name = "SDP4430",
- 	.dai_link = sdp4430_dai,
- 	.num_links = ARRAY_SIZE(sdp4430_dai),
- 
-@@ -236,43 +236,56 @@ static struct snd_soc_card omapabe_card = {
- 	.num_dapm_routes = ARRAY_SIZE(audio_map),
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -377,12 +378,38 @@ static struct platform_device sdp4430_dmic_codec = {
+ 	.id	= -1,
  };
  
--static struct platform_device *omapabe_snd_device;
--
--static int __init omapabe_soc_init(void)
-+static __devinit int omapabe_probe(struct platform_device *pdev)
- {
-+	struct omap_abe_twl6040_data *pdata = dev_get_platdata(&pdev->dev);
-+	struct snd_soc_card *card = &omapabe_card;
- 	int ret;
- 
--	if (!machine_is_omap_4430sdp())
--		return -ENODEV;
--	printk(KERN_INFO "SDP4430 SoC init\n");
-+	card->dev = &pdev->dev;
- 
--	omapabe_snd_device = platform_device_alloc("soc-audio", -1);
--	if (!omapabe_snd_device) {
--		printk(KERN_ERR "Platform device allocation failed\n");
--		return -ENOMEM;
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Missing pdata\n");
-+		return -ENODEV;
- 	}
- 
--	platform_set_drvdata(omapabe_snd_device, &omapabe_card);
-+	if (pdata->card_name) {
-+		card->name = pdata->card_name;
-+	} else {
-+		dev_err(&pdev->dev, "Card name is not provided\n");
-+		return -ENODEV;
-+	}
- 
--	ret = platform_device_add(omapabe_snd_device);
-+	ret = snd_soc_register_card(card);
- 	if (ret)
--		goto err;
--
--	return 0;
-+		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
-+			ret);
- 
--err:
--	printk(KERN_ERR "Unable to add platform device\n");
--	platform_device_put(omapabe_snd_device);
- 	return ret;
- }
--module_init(omapabe_soc_init);
- 
--static void __exit omapabe_soc_exit(void)
-+static int __devexit omapabe_remove(struct platform_device *pdev)
- {
--	platform_device_unregister(omapabe_snd_device);
-+	struct snd_soc_card *card = platform_get_drvdata(pdev);
++static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
++	.card_name = "SDP4430",
++	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_ep		= 1,
++	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_vibra	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
 +
-+	snd_soc_unregister_card(card);
++	.has_dmic	= 1,
++	.has_hsmic	= 1,
++	.has_mainmic	= 1,
++	.has_submic	= 1,
++	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
 +
-+	return 0;
- }
--module_exit(omapabe_soc_exit);
-+
-+static struct platform_driver omapabe_driver = {
-+	.driver = {
-+		.name = "omap-abe-twl6040",
-+		.owner = THIS_MODULE,
-+		.pm = &snd_soc_pm_ops,
-+	},
-+	.probe = omapabe_probe,
-+	.remove = __devexit_p(omapabe_remove),
++	.jack_detection = 1,
 +};
 +
-+module_platform_driver(omapabe_driver);
++static struct platform_device sdp4430_abe_audio = {
++	.name		= "omap-abe-twl6040",
++	.id		= -1,
++	.dev = {
++		.platform_data = &sdp4430_abe_audio_data,
++	},
++};
++
+ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ 	&sdp4430_leds_pwm,
+ 	&sdp4430_vbat,
+ 	&sdp4430_dmic_codec,
++	&sdp4430_abe_audio,
+ };
  
- MODULE_AUTHOR("Misael Lopez Cruz <misael.lopez@ti.com>");
- MODULE_DESCRIPTION("ALSA SoC for OMAP boards with ABE and twl6040 codec");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap-abe-twl6040");
+ static struct omap_musb_board_data musb_board_data = {
 -- 
 1.7.8.1
 
