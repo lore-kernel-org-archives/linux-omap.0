@@ -1,41 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 1/7 v2] ARM: OMAP1: ams-delta: register latch
- dependent devices later
-Date: Thu, 22 Dec 2011 11:10:33 +0000
-Message-ID: <20111222111032.GK4546@opensource.wolfsonmicro.com>
-References: <201112200028.32947.jkrzyszt@tis.icnet.pl>
- <201112212051.13113.jkrzyszt@tis.icnet.pl>
- <20111221200728.GG24444@atomide.com>
- <201112221139.16317.jkrzyszt@tis.icnet.pl>
- <4EF30F9C.7030708@bitmer.com>
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: Re: [PATCH] OMAP3: hwmod_data: add HWMOD_INIT_NO_RESET flag for dss_dispc
+Date: Thu, 22 Dec 2011 16:42:32 +0400
+Message-ID: <4EF325B8.2090206@emcraft.com>
+References: <1324515653-17287-1-git-send-email-yanok@emcraft.com> <1324548785.13282.10.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51582 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755176Ab1LVLKh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:10:37 -0500
-Content-Disposition: inline
-In-Reply-To: <4EF30F9C.7030708@bitmer.com>
+Received: from ocean.emcraft.com ([213.221.7.182]:41954 "EHLO
+	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752581Ab1LVMmD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 07:42:03 -0500
+In-Reply-To: <1324548785.13282.10.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-input@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Dec 22, 2011 at 01:08:12PM +0200, Jarkko Nikula wrote:
-> On 12/22/2011 12:39 PM, Janusz Krzysztofik wrote:
+Hi Tomi,
 
-Guys *please* delete irrelevant context from mails.  I wasn't reading
-any of the rest of it since nothing about the subject line says anything
-about anything relevant and there was no content anywhere near the start
-of the actual mails.  I only saw this because Jarkko did trim the
-context.
+On 22.12.2011 14:13, Tomi Valkeinen wrote:
+> On Thu, 2011-12-22 at 02:00 +0100, Ilya Yanok wrote:
+>> Resetting DISPC when a DISPC output is enabled causes the DSS to go into
+>> an inconsistent state.
+>>
+>> commit b923d40dd4211c4ef7d4efa2bd81b7ca1d8744c1
+>> Author: Archit Taneja <archit@ti.com>
+>> Date:   Thu Oct 6 18:04:08 2011 -0600
+>>
+>>     ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is
+>> enabled in bootloader
+>>
+>> tries to deal with this problem by checking if display is enabled and
+>> disabling it before doing reset.
+>>
+>> But in my setup dss_dispc is resetted from omap_hwmod_setup_all function
+>> _before_ calling omap_dss_reset. So when dispc_disable_outputs is
+>> executed dispc is already reset and nothing happens.
+> 
+> Hmm, why is that? You don't have the dss hwmod before dispc in the list
+> of hwmods? The code presumes that dss hwmod is handled first.
 
-> >Jarkko, Mark or Liam, care to ack this change, moving the Amstrad Delta
-> >sound card registration to late_initcall?
+Looking at the arch/arm/mach-omap2/omap_hwmod_3xxx_data.c I can see that
+dss_dispc is in the list of generic hwmods which is registered first
+while dss_core hwmod is in revision-specific lists which are registered
+later. I think this is the real root of the problem, thanks for pointing
+this out!
 
-> Unfortunately I haven't had time to look at the series but I'm fine
-> with sound/soc/omap/ams-delta.c change.
+> 
+>> This patch and HWMOD_INIT_NO_RESET flags to dss_dispc hwmod thus leaving
+>> DISPC untouched so that omap_dss_reset can take care of it.
+> 
+> omap_dss_reset() doesn't reset dispc, so this will leave dispc
+> un-reseted.
+> 
+> The idea of the current code is to do the reset similarly on all OMAPs.
+> The sequence should be:
+> 
+> - omap_dss_reset(), which disables dispc outputs and manually resets dss
+> registers.
+> - then the rest of the dss modules reset themselves normally, using the
+> softreset bit.
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+But currently omap_dss_reset() is called the last.
+
+Regards, Ilya.
