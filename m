@@ -1,89 +1,96 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v3 00/11] OMAP4: Add DT support for i2c and twl6030
-Date: Thu, 22 Dec 2011 09:07:49 -0600
-Message-ID: <4EF347C5.5020401@gmail.com>
-References: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] OMAP3: hwmod_data: register dss hwmods after dss_core
+Date: Thu, 22 Dec 2011 17:10:42 +0200
+Message-ID: <4EF34872.4030700@compulab.co.il>
+References: <1324562563-27119-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38353 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819Ab1LVPHw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 10:07:52 -0500
-Received: by yhr47 with SMTP id 47so5973273yhr.19
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 07:07:51 -0800 (PST)
-In-Reply-To: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:53570
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752915Ab1LVPLP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Dec 2011 10:11:15 -0500
+In-Reply-To: <1324562563-27119-1-git-send-email-yanok@emcraft.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, sasha_d@emcraft.com
 
-On 12/20/2011 10:27 AM, Benoit Cousson wrote:
-> Hi Tony and Rob,
-> 
-> Here is the updated version of the i2c + twl DT adaptation series.
-> 
-> This update, compared to v2 [1], is adding some dedicated dtsi files for
-> the twl PMIC and audio IC. These devices will contain a huge amount of
-> regulator nodes and thus deserve a dedicated file to avoid every boards
-> to redefine the same data.
-> The twl patch is now included in Samuel's for-next branch and thus dropped
-> from this update.
-> The i2c binding was cleaned as suggested by Rob to avoid all the ugly
-> hexa flags inside the DTS.
-> 
-> The pm.c was updated to prevent the SR / VP initialization in the DT
-> context since none of them is DT aware for the moment.
-> 
-> A couple of basic i2c devices are added for panda, beagle and sdp board.
-> 
-> Patches are based on for_3.3/2_dt_irq, to get the latest GIC binding,
-> and are available here:
-> git://gitorious.org/omap-pm/linux.git for_3.3/3_omap_dt_i2c_twl
-> 
-> Tested on Beagle and sdp4430.
-> 
-> Comments are welcome.
-> 
-> Regards,
-> Benoit
-> 
-> [1] http://www.spinics.net/lists/linux-omap/msg61260.html
-> 
-> 
-> Benoit Cousson (11):
->   ARM: OMAP2+: pm: Do not init statically the SR and voltage layer with DT
->   i2c: OMAP: Add DT support for i2c controller
->   rtc: rtc-twl: Add DT support for RTC inside twl4030/twl6030
->   arm/dts: OMAP4: Add i2c controller nodes
->   arm/dts: OMAP3: Add i2c controller nodes
->   arm/dts: twl6030: Add DTS file for twl6030 PMIC
->   arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
->   arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
->   arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
->   arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
->   ARM: OMAP2+: board-generic: Remove i2c static init
-> 
->  Documentation/devicetree/bindings/i2c/omap-i2c.txt |   30 ++++++
->  Documentation/devicetree/bindings/rtc/twl-rtc.txt  |   12 +++
->  arch/arm/boot/dts/omap3-beagle.dts                 |   29 ++++++
->  arch/arm/boot/dts/omap3.dtsi                       |   21 ++++
->  arch/arm/boot/dts/omap4-panda.dts                  |   34 +++++++
->  arch/arm/boot/dts/omap4-sdp.dts                    |   53 ++++++++++
->  arch/arm/boot/dts/omap4.dtsi                       |   28 ++++++
->  arch/arm/boot/dts/twl4030.dtsi                     |   21 ++++
->  arch/arm/boot/dts/twl6030.dtsi                     |   22 ++++
->  arch/arm/mach-omap2/board-generic.c                |   48 +---------
->  arch/arm/mach-omap2/pm.c                           |    8 ++
->  drivers/i2c/busses/i2c-omap.c                      |  101 +++++++++++++-------
->  drivers/rtc/rtc-twl.c                              |   10 ++-
->  13 files changed, 334 insertions(+), 83 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
->  create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
->  create mode 100644 arch/arm/boot/dts/twl4030.dtsi
->  create mode 100644 arch/arm/boot/dts/twl6030.dtsi
+Hi Ilya,
 
-For the series:
+Thanks for the patch.
 
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+On 12/22/11 16:02, Ilya Yanok wrote:
+> dss_core has to be initialized before any other DSS hwmod. Currently
+> this is broken as dss_core is listed in chip/revision specific hwmod
+> lists while other DSS hwmods are listed in common list which is
+> registered first.
+> 
+> This patch moves DSS hwmods (except for dss_core) to the separate list
+> which is registered last to ensure that dss_core is already registered.
+
+I would suggest to add an in-code comment for this
+(more descriptive, than the one you did for that patch),
+and describe the otherwise breakage, so next time it would be
+a bit harder to break that thing...
+
+> 
+> CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> CC: Archit Taneja <archit@ti.com>
+> CC: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+> ---
+>  arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   20 ++++++++++++++------
+>  1 files changed, 14 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 5324e8d..85536ff 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -3523,12 +3523,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+>  	&omap3xxx_uart2_hwmod,
+>  	&omap3xxx_uart3_hwmod,
+>  
+> -	/* dss class */
+> -	&omap3xxx_dss_dispc_hwmod,
+> -	&omap3xxx_dss_dsi1_hwmod,
+> -	&omap3xxx_dss_rfbi_hwmod,
+> -	&omap3xxx_dss_venc_hwmod,
+> -
+>  	/* i2c class */
+>  	&omap3xxx_i2c1_hwmod,
+>  	&omap3xxx_i2c2_hwmod,
+> @@ -3635,6 +3629,15 @@ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
+>  	NULL
+>  };
+>  
+> +static __initdata struct omap_hwmod *omap3xxx_dss_hwmods[] = {
+> +	/* dss class */
+> +	&omap3xxx_dss_dispc_hwmod,
+> +	&omap3xxx_dss_dsi1_hwmod,
+> +	&omap3xxx_dss_rfbi_hwmod,
+> +	&omap3xxx_dss_venc_hwmod,
+> +	NULL
+> +};
+> +
+>  int __init omap3xxx_hwmod_init(void)
+>  {
+>  	int r;
+> @@ -3708,6 +3711,11 @@ int __init omap3xxx_hwmod_init(void)
+>  
+>  	if (h)
+>  		r = omap_hwmod_register(h);
+> +	if (r < 0)
+> +		return r;
+> +
+> +	/* Register common DSS hwmods later than dss_core */
+> +	r = omap_hwmod_register(omap3xxx_dss_hwmods);
+>  
+>  	return r;
+>  }
+
+-- 
+Regards,
+Igor.
