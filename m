@@ -1,96 +1,137 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 7/9] ASoC: omap-abe-twl6040: Configure card according to platform data
-Date: Thu, 22 Dec 2011 18:38:20 +0200
-Message-ID: <1324571902-16918-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 8/9] OMAP4: omap4panda: Enable audio support
+Date: Thu, 22 Dec 2011 18:38:21 +0200
+Message-ID: <1324571902-16918-9-git-send-email-peter.ujfalusi@ti.com>
 References: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:43970 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755428Ab1LVQiz (ORCPT
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:41240 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755418Ab1LVQi4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 11:38:55 -0500
-Received: by mail-lpp01m010-f54.google.com with SMTP id l5so6287284lah.27
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 08:38:53 -0800 (PST)
+	Thu, 22 Dec 2011 11:38:56 -0500
+Received: by mail-lpp01m010-f48.google.com with SMTP id m7so3089237laa.7
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 08:38:55 -0800 (PST)
 In-Reply-To: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
 Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Disable the not connected pins on the board based on the
-received platform data.
-DO not register the jack function on boards, which does not have
-means to detect it (jack is always connected).
+PandaBoard has twl6040 codec for audio.
+Register the omap4-abe-twl6040 platform device.
+Add platform data to enable the twl6040 codec.
+Since there is a difference in audio between  PandaBoard 4430
+and PandaBoard ES (4460):
+Use different name for the sound card:
+"OMAP4-Panda" for PandaBoard 4430
+"OMAP4-PandaES" for PandaBoard ES
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/omap-abe-twl6040.c |   41 ++++++++++++++++++++++++++----------
- 1 files changed, 29 insertions(+), 12 deletions(-)
 
-diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 9e6e4c2..7a8fbe2 100644
---- a/sound/soc/omap/omap-abe-twl6040.c
-+++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -157,10 +157,29 @@ static const struct snd_soc_dapm_route audio_map[] = {
- 	{"AFMR", NULL, "Line In"},
+board: audio for panda
+---
+ arch/arm/mach-omap2/board-omap4panda.c |   56 +++++++++++++++++++++++++++++++-
+ 1 files changed, 55 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b6f1144..cb843fc 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -28,6 +28,7 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
+ #include <linux/wl12xx.h>
++#include <linux/platform_data/omap-abe-twl6040.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/hardware/gic.h>
+@@ -90,9 +91,31 @@ static struct platform_device leds_gpio = {
+ 	},
  };
  
-+#define twl6040_disconnect_pin(dapm, connected, pin)	\
-+	if (!connected)					\
-+		snd_soc_dapm_disable_pin(dapm, pin);
++static struct omap_abe_twl6040_data panda_abe_audio_data = {
++	/* Audio out */
++	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* HandsFree through expasion connector */
++	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* PandaBoard: FM TX, PandaBoardES: can be connected to audio out */
++	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* PandaBoard: FM RX, PandaBoardES: audio in */
++	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	/* No jack detection. */
++	.jack_detection	= 0,
++};
 +
- static int omapabe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
- {
- 	struct snd_soc_codec *codec = rtd->codec;
--	int ret, hs_trim;
-+	struct snd_soc_card *card = codec->card;
-+	struct snd_soc_dapm_context *dapm = &codec->dapm;
-+	struct omap_abe_twl6040_data *pdata = dev_get_platdata(card->dev);
-+	int hs_trim;
-+	int ret = 0;
++static struct platform_device panda_abe_audio = {
++	.name		= "omap-abe-twl6040",
++	.id		= -1,
++	.dev = {
++		.platform_data = &panda_abe_audio_data,
++	},
++};
 +
-+	/* Disable not connected paths if not used */
-+	twl6040_disconnect_pin(dapm, pdata->has_hs, "Headset Stereophone");
-+	twl6040_disconnect_pin(dapm, pdata->has_hf, "Ext Spk");
-+	twl6040_disconnect_pin(dapm, pdata->has_ep, "Earphone Spk");
-+	twl6040_disconnect_pin(dapm, pdata->has_aux, "Line Out");
-+	twl6040_disconnect_pin(dapm, pdata->has_vibra, "Vinrator");
-+	twl6040_disconnect_pin(dapm, pdata->has_hsmic, "Headset Mic");
-+	twl6040_disconnect_pin(dapm, pdata->has_mainmic, "Main Handset Mic");
-+	twl6040_disconnect_pin(dapm, pdata->has_submic, "Sub Handset Mic");
-+	twl6040_disconnect_pin(dapm, pdata->has_afm, "Line In");
+ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
++	&panda_abe_audio,
+ };
  
- 	/*
- 	 * Configure McPDM offset cancellation based on the HSOTRIM value from
-@@ -170,19 +189,17 @@ static int omapabe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
- 	omap_mcpdm_configure_dn_offsets(rtd, TWL6040_HSF_TRIM_LEFT(hs_trim),
- 					TWL6040_HSF_TRIM_RIGHT(hs_trim));
- 
--	/* Headset jack detection */
--	ret = snd_soc_jack_new(codec, "Headset Jack",
--				SND_JACK_HEADSET, &hs_jack);
--	if (ret)
--		return ret;
--
--	ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
--				hs_jack_pins);
-+	/* Headset jack detection only if it is supported */
-+	if (pdata->jack_detection) {
-+		ret = snd_soc_jack_new(codec, "Headset Jack",
-+					SND_JACK_HEADSET, &hs_jack);
-+		if (ret)
-+			return ret;
- 
--	if (machine_is_omap_4430sdp())
-+		ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
-+					hs_jack_pins);
- 		twl6040_hs_jack_detect(codec, &hs_jack, SND_JACK_HEADSET);
--	else
--		snd_soc_jack_report(&hs_jack, SND_JACK_HEADSET, SND_JACK_HEADSET);
-+	}
- 
- 	return ret;
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+@@ -251,8 +274,25 @@ static int __init omap4_twl6030_hsmmc_init(struct omap2_hsmmc_info *controllers)
+ 	return 0;
  }
+ 
++static struct twl4030_codec_data twl6040_codec = {
++	/* single-step ramp for headset and handsfree */
++	.hs_left_step	= 0x0f,
++	.hs_right_step	= 0x0f,
++	.hf_left_step	= 0x1d,
++	.hf_right_step	= 0x1d,
++};
++
++static struct twl4030_audio_data twl6040_audio = {
++	.codec		= &twl6040_codec,
++	.audpwron_gpio	= 127,
++	.naudint_irq	= OMAP44XX_IRQ_SYS_2N,
++	.irq_base	= TWL6040_CODEC_IRQ_BASE,
++};
++
+ /* Panda board uses the common PMIC configuration */
+-static struct twl4030_platform_data omap4_panda_twldata;
++static struct twl4030_platform_data omap4_panda_twldata = {
++	.audio		= &twl6040_audio,
++};
+ 
+ /*
+  * Display monitor features are burnt in their EEPROM as EDID data. The EEPROM
+@@ -548,6 +588,19 @@ void omap4_panda_display_init(void)
+ 	omap_display_init(&omap4_panda_dss_data);
+ }
+ 
++static void omap4_panda_audio_init(void)
++{
++	if (cpu_is_omap4430()) {
++		/* PandaBoard 4430 */
++		panda_abe_audio_data.card_name = "PandaBoard";
++		/* Audio in is connected to HSMIC */
++		panda_abe_audio_data.has_hsmic = 1;
++	} else {
++		/* PandaBoard ES */
++		panda_abe_audio_data.card_name = "PandaBoardES";
++	}
++}
++
+ static void __init omap4_panda_init(void)
+ {
+ 	int package = OMAP_PACKAGE_CBS;
+@@ -560,6 +613,7 @@ static void __init omap4_panda_init(void)
+ 		pr_err("error setting wl12xx data\n");
+ 
+ 	omap4_panda_i2c_init();
++	omap4_panda_audio_init();
+ 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+ 	platform_device_register(&omap_vwlan_device);
+ 	board_serial_init();
 -- 
 1.7.8.1
 
