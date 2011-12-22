@@ -1,48 +1,64 @@
-From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v4 03/12] mfd: twl-core: Add initial DT support for
- twl4030/twl6030
-Date: Thu, 22 Dec 2011 18:31:06 +0100
-Message-ID: <20111222173106.GJ5183@sortiz-mobl>
-References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
- <1324565806-31142-4-git-send-email-b-cousson@ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [GIT PULL] Non critical fixes for v3.3 merge window, part2
+Date: Thu, 22 Dec 2011 09:27:01 -0800
+Message-ID: <CAOesGMgWjyOoj22Yqz0hx0wbOnd=uTdh5SkkC9SgZBZRKxwpDw@mail.gmail.com>
+References: <20111219194546.GP6464@atomide.com>
+	<20111219202354.GA17267@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1324565806-31142-4-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:51753 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164Ab1LVR1C convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 12:27:02 -0500
+Received: by ghbg21 with SMTP id g21so96969ghb.19
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 09:27:01 -0800 (PST)
+In-Reply-To: <20111219202354.GA17267@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Benoit,
+On Mon, Dec 19, 2011 at 12:23 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> Resending with mailing lists in Cc.
+>
+> * Tony Lindgren <tony@atomide.com> [111219 11:45]:
+>> Hi Arnd & Olof,
+>>
+>> Please pull few non-critical fixes for v3.3 merge window from:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixe=
+s-non-critical-part2
+>>
+>> These will be needed for some omap hwmod and ehci changes I'll
+>> post pull requests for after this. Note that this is based on
+>> the earlier pull request for fixes, so those two fixes will also
+>> get pulled in if they don't make it to the -rc cycle.
+>>
+>> Regards,
+>>
+>> Tony
+>>
+>>
+>> The following changes since commit 4a4de1d9b47156525ceb46c7faf6ae404=
+2d90aa7:
+>> =A0 Tony Lindgren (1):
+>> =A0 =A0 =A0 =A0 Merge branch 'hwmod_data_fixes_3.2rc' of git://git.p=
+wsan.com/linux-2.6 into fixes-hwmod
+>>
+>> are available in the git repository at:
+>>
+>> =A0 git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap =
+fixes-non-critical-part2
 
-On Thu, Dec 22, 2011 at 03:56:37PM +0100, Benoit Cousson wrote:
-> Add initial device-tree support for twl familly chips.
-> The current version is missing the regulator entries due
-> to the lack of DT regulator bindings for the moment.
-> Only the simple sub-modules that do not depend on
-> platform_data information can be initialized properly.
-> 
-> Add irqdomain support.
-> 
-> Add documentation for the Texas Instruments TWL Integrated Chip.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> Cc: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-> Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> ---
->  .../devicetree/bindings/mfd/twl-familly.txt        |   47 ++++++++++++++++++
->  drivers/mfd/Kconfig                                |    1 +
->  drivers/mfd/twl-core.c                             |   51 +++++++++++++++++++-
->  3 files changed, 98 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
-Patch applied instead of the previous one, thanks for the quick fix.
+Pulled into next/fixes-non-critical. Thanks!
 
-Cheers,
-Samuel.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
