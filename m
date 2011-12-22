@@ -1,46 +1,78 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 8/9] OMAP4: omap4panda: Enable audio support
-Date: Thu, 22 Dec 2011 20:24:41 +0200
-Message-ID: <4EF375E9.3060201@ti.com>
-References: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com> <1324571902-16918-9-git-send-email-peter.ujfalusi@ti.com> <20111222173216.GJ24444@atomide.com> <4EF3721F.8080908@ti.com> <20111222181518.GM24444@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: hsmmc: add max_freq field
+Date: Thu, 22 Dec 2011 10:51:06 -0800
+Message-ID: <20111222185106.GQ24444@atomide.com>
+References: <1323868927-3738-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39873 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752096Ab1LVSYk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 13:24:40 -0500
-Received: by lago2 with SMTP id o2so4605093lag.24
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 10:24:37 -0800 (PST)
-In-Reply-To: <20111222181518.GM24444@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1323868927-3738-1-git-send-email-zonque@gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 12/22/2011 08:15 PM, Tony Lindgren wrote:
-> OK, sounds good to me. Maybe just make omap4_panda_init_rev() do
-> the cpu_is_omap check for now and then you can patch in the dynamic
-> detection later on?
+* Daniel Mack <zonque@gmail.com> [111214 04:51]:
+> External circuitry like level shifters may limit the maximum operation
+> speed of the hsmmc controller. Add a field to struct omap2_hsmmc_info
+> so boards can adjust the setting on demand.
+> 
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-Yes, this is exactly what will be done for v3.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
->> We can use GPIOs to get the board ID, I'm looking at those for a
->> followup patch.
->> The only issue is that the ID1 GPIO number is different between 4430=
-,
->> and 4460 based Panda.
->> We can have similar revision handling as we have for Beagle at the e=
-nd.
->=20
-> OK great.
-
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/hsmmc.c   |    1 +
+>  arch/arm/mach-omap2/hsmmc.h   |    2 ++
+>  drivers/mmc/host/omap_hsmmc.c |    8 ++++++--
+>  3 files changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
+> index f4a1020..4c7bc36 100644
+> --- a/arch/arm/mach-omap2/hsmmc.c
+> +++ b/arch/arm/mach-omap2/hsmmc.c
+> @@ -298,6 +298,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+>  	mmc->slots[0].caps = c->caps;
+>  	mmc->slots[0].internal_clock = !c->ext_clock;
+>  	mmc->dma_mask = 0xffffffff;
+> +	mmc->max_freq = c->max_freq;
+>  	if (cpu_is_omap44xx())
+>  		mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
+>  	else
+> diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
+> index f757e78..65a8c12 100644
+> --- a/arch/arm/mach-omap2/hsmmc.h
+> +++ b/arch/arm/mach-omap2/hsmmc.h
+> @@ -25,6 +25,8 @@ struct omap2_hsmmc_info {
+>  	char	*name;		/* or NULL for default */
+>  	struct device *dev;	/* returned: pointer to mmc adapter */
+>  	int	ocr_mask;	/* temporary HACK */
+> +	int	max_freq;	/* maximum clock, if constrained by external
+> +				 * circuitry, or 0 for default */
+>  	/* Remux (pad configuration) when powering on/off */
+>  	void (*remux)(struct device *dev, int slot, int power_on);
+>  	/* init some special card */
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 101cd31..8215ef9 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+>  	if (mmc_slot(host).vcc_aux_disable_is_sleep)
+>  		mmc_slot(host).no_off = 1;
+>  
+> -	mmc->f_min	= OMAP_MMC_MIN_CLOCK;
+> -	mmc->f_max	= OMAP_MMC_MAX_CLOCK;
+> +	mmc->f_min = OMAP_MMC_MIN_CLOCK;
+> +
+> +	if (pdata->max_freq > 0)
+> +		mmc->f_max = pdata->max_freq;
+> +	else
+> +		mmc->f_max = OMAP_MMC_MAX_CLOCK;
+>  
+>  	spin_lock_init(&host->irq_lock);
+>  
+> -- 
+> 1.7.7.4
+> 
