@@ -1,91 +1,183 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Is Pandaboard cpuhotplug working stably?
-Date: Thu, 22 Dec 2011 15:57:48 +0530
-Message-ID: <CAMQu2gzXbjiTDbS5bs3sKLu63C9es4hr8VHQ575sLO8QV2F3rg@mail.gmail.com>
-References: <CAGsJ_4ydbMaS0DD6+j1m9tdCTCzw3TGELcY=KotupvvMMK1YOA@mail.gmail.com>
- <20111221094624.GB3354@n2100.arm.linux.org.uk> <CAGsJ_4w0iVXC6qmDzmkuOb=ZN=Q0bF7EAFkxeYR_d7-vo+8bqQ@mail.gmail.com>
- <20111221100706.GC3354@n2100.arm.linux.org.uk> <CAMQu2gy8mwJ-aKit0b4d7=4FkxeFakfnL-phy0eMOK81Oe=PCw@mail.gmail.com>
- <20111222102454.GD3354@n2100.arm.linux.org.uk>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v2 1/7 v2] ARM: OMAP1: ams-delta: register latch dependent devices later
+Date: Thu, 22 Dec 2011 11:39:15 +0100
+Message-ID: <201112221139.16317.jkrzyszt@tis.icnet.pl>
+References: <201112200028.32947.jkrzyszt@tis.icnet.pl> <201112212051.13113.jkrzyszt@tis.icnet.pl> <20111221200728.GG24444@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:58978 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416Ab1LVK2K convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 05:28:10 -0500
-Received: by qadb15 with SMTP id b15so6349429qad.5
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 02:28:09 -0800 (PST)
-In-Reply-To: <20111222102454.GD3354@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20111221200728.GG24444@atomide.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Barry Song <21cnbao@gmail.com>, linux-omap@vger.kernel.org, yongsheng.liu@csr.com, linaro-dev <linaro-dev@lists.linaro.org>, peiyu.li@csr.com, DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>, linux-arm-kernel@lists.infradead.org, peterz@infradead.org
 
-On Thu, Dec 22, 2011 at 3:54 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Thu, Dec 22, 2011 at 02:19:23PM +0530, Shilimkar, Santosh wrote:
->> + Peter Z
->>
->> On Wed, Dec 21, 2011 at 3:37 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > On Wed, Dec 21, 2011 at 05:59:07PM +0800, Barry Song wrote:
->> >> 2011/12/21 Russell King - ARM Linux <linux@arm.linux.org.uk>:
->> >> > cpu hotplug is basically totally buggered - the preconditions p=
-laced
->> >> > upon the bringup code path are basically impossible to satisfy =
-in any
->> >> > shape or form at the moment.
->> >> >
->> >> > There's the requirement that the secondary CPU is marked online=
- and
->> >> > active before interrupts are enabled for the thread migration s=
-tuff
->> >> > to behave correctly. =A0However, this is incompatible with smp_=
-call_function()
->> >> > which will wait for online CPUs to respond to an IPI - which th=
-is one
->> >> > won't because interrupts are disabled.
->> >> >
->> >> > I think there was some discussion about how to fix this but I d=
-on't
->> >> > recall the details.
->> >>
->> >> thanks, Russell. then could i think this is an ARM-kernel-specifi=
-c bug
->> >> which exists on all ARM SMP chips for the moment?
->> >> and that bug doesn't happen on x86:
->> >
->> > I don't think so. =A0There's nothing ARM specific about it.
->>
->> There are few patches floating around for this issue. I posted one v=
-ersion
->> long back [1] and then there was one more form Thomas G.
->> The most recent is from one is from Peter Z [2] which is moving the
->> fix for the cup online race to core code.
->>
->> Can you try Peter's patch with your test-case ?
->>
->> Regards,
->> Santosh
->>
->> [1] https://lkml.org/lkml/2011/6/20/79
->> [2] https://lkml.org/lkml/2011/12/15/255
->
-> [1] is already fixed - and is not the latest "problem" with this code=
-=2E
-> Fixing the problem in [1] actually itself created the latest problem
-> with smp_call_function() which wasn't there before this change. =A0Pa=
-tch
-> [2] refers to this problem and proposes a fix for it.
+On Wednesday 21 of December 2011 at 21:07:29, Tony Lindgren wrote:
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111221 11:20]:
+> > On Wednesday 21 of December 2011 at 20:08:15, Tony Lindgren wrote:
+> > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111220 13:23]:
+> > > > In preparation to converting Amstrad Delta on-board latches to
+> > > > basic_mmio_gpio devices, registration of platform devices which depend
+> > > > on latches and will require initialization of their GPIO pins first,
+> > > > should be moved out of .machine_init down to late_initcall level, as the
+> > > > gpio-generic driver is not available until device_initcall time.  The
+> > > > latch reset operation, which will be replaced with GPIO initialization,
+> > > > must also be moved to late_initcall for the same reason.
+> > > > 
+> > > > Since there was already another, separate arch_initcall function for
+> > > > setting up one of those latch dependent devices, the on-board modem
+> > > > device, reuse that function, i.e., rename it to a name that matches the
+> > > > new purpose, extend with other device setup relocated from
+> > > > .machine_init, and move down to the late_initcall level.
+> > > > 
+> > > > While being at it, add missing gpio_free() in case the modem platform
+> > > > device registration fails.
+> > > > 
+> > > > Thanks to Tony Lindgren <tony@atomide.com> who suggested this approach
+> > > > instead of shifting up the gpio-generic driver initialization.
+> > > > 
+> > > > In addition, defer registration of the Amstrad Delta ASoC and serio
+> > > > devices, done from their device driver files, until late_initcall time,
+> > > > as those drivers will depend on their GPIO pins already requested from
+> > > > the board late_init() function until updated to register their GPIO pins
+> > > > themselves.
+> > > > 
+> > > > Created and tested against linux-3.2-rc6.
+> > > > 
+> > > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > > 
+> > > Planning to apply this series. Dmitry, care to ack the drivers/input/serio/
+> > > related change?
+> > 
+> > Don't we need Jarkko's or Mark's or Liam's ack as well for the change to 
+> > the sound/soc/omap/ams-delta.c file?
+> 
+> Yes, you're right.
 
-Thanks Russell for information. Looks like I missed in between thread.
+Jarkko, Mark or Liam, care to ack this change, moving the Amstrad Delta 
+sound card registration to late_initcall?
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Janusz
+
+> > > > Changes since the initial version of this patch:
+> > > > * use late_initcall() unconditionally in modules, requested by Russell
+> > > >   King (thanks!); an updated patch 7/7 will follow,
+> > > > * in the changelog message, move credits to Tony up a bit, since the
+> > > >   person responsible for other changes (he might not necessarily like)
+> > > >   is me, not him ;).
+> > > > 
+> > > > Comments copied from this patch initial submission:
+> > > > This patch was not present in the initial submission, it replaces the
+> > > > old patch 1/10, providing an alternative solution not touching the
+> > > > gpio-generic driver.
+> > > > 
+> > > >  arch/arm/mach-omap1/board-ams-delta.c |   28 ++++++++++++++++++++--------
+> > > >  drivers/input/serio/ams_delta_serio.c |    2 +-
+> > > >  sound/soc/omap/ams-delta.c            |    2 +-
+> > > >  3 files changed, 22 insertions(+), 10 deletions(-)
+> > > > 
+> > > > diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> > > > index b0f15d2..50987c9 100644
+> > > > --- a/arch/arm/mach-omap1/board-ams-delta.c
+> > > > +++ b/arch/arm/mach-omap1/board-ams-delta.c
+> > > > @@ -275,11 +275,14 @@ static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
+> > > >  };
+> > > >  
+> > > >  static struct platform_device *ams_delta_devices[] __initdata = {
+> > > > -	&ams_delta_nand_device,
+> > > >  	&ams_delta_kp_device,
+> > > > +	&ams_delta_camera_device,
+> > > > +};
+> > > > +
+> > > > +static struct platform_device *late_devices[] __initdata = {
+> > > > +	&ams_delta_nand_device,
+> > > >  	&ams_delta_lcd_device,
+> > > >  	&ams_delta_led_device,
+> > > > -	&ams_delta_camera_device,
+> > > >  };
+> > > >  
+> > > >  static void __init ams_delta_init(void)
+> > > > @@ -307,9 +310,6 @@ static void __init ams_delta_init(void)
+> > > >  	omap_serial_init();
+> > > >  	omap_register_i2c_bus(1, 100, NULL, 0);
+> > > >  
+> > > > -	/* Clear latch2 (NAND, LCD, modem enable) */
+> > > > -	ams_delta_latch2_write(~0, 0);
+> > > > -
+> > > >  	omap1_usb_init(&ams_delta_usb_config);
+> > > >  	omap1_set_camera_info(&ams_delta_camera_platform_data);
+> > > >  #ifdef CONFIG_LEDS_TRIGGERS
+> > > > @@ -345,13 +345,18 @@ static struct platform_device ams_delta_modem_device = {
+> > > >  	},
+> > > >  };
+> > > >  
+> > > > -static int __init ams_delta_modem_init(void)
+> > > > +static int __init late_init(void)
+> > > >  {
+> > > >  	int err;
+> > > >  
+> > > >  	if (!machine_is_ams_delta())
+> > > >  		return -ENODEV;
+> > > >  
+> > > > +	/* Clear latch2 (NAND, LCD, modem enable) */
+> > > > +	ams_delta_latch2_write(~0, 0);
+> > > > +
+> > > > +	platform_add_devices(late_devices, ARRAY_SIZE(late_devices));
+> > > > +
+> > > >  	omap_cfg_reg(M14_1510_GPIO2);
+> > > >  	ams_delta_modem_ports[0].irq =
+> > > >  			gpio_to_irq(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+> > > > @@ -367,9 +372,16 @@ static int __init ams_delta_modem_init(void)
+> > > >  		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+> > > >  		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
+> > > >  
+> > > > -	return platform_device_register(&ams_delta_modem_device);
+> > > > +	err = platform_device_register(&ams_delta_modem_device);
+> > > > +	if (err)
+> > > > +		goto gpio_free;
+> > > > +	return 0;
+> > > > +
+> > > > +gpio_free:
+> > > > +	gpio_free(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
+> > > > +	return err;
+> > > >  }
+> > > > -arch_initcall(ams_delta_modem_init);
+> > > > +late_initcall(late_init);
+> > > >  
+> > > >  static void __init ams_delta_map_io(void)
+> > > >  {
+> > > > diff --git a/drivers/input/serio/ams_delta_serio.c b/drivers/input/serio/ams_delta_serio.c
+> > > > index d4d08bd..835d37a 100644
+> > > > --- a/drivers/input/serio/ams_delta_serio.c
+> > > > +++ b/drivers/input/serio/ams_delta_serio.c
+> > > > @@ -165,7 +165,7 @@ serio:
+> > > >  	kfree(ams_delta_serio);
+> > > >  	return err;
+> > > >  }
+> > > > -module_init(ams_delta_serio_init);
+> > > > +late_initcall(ams_delta_serio_init);
+> > > >  
+> > > >  static void __exit ams_delta_serio_exit(void)
+> > > >  {
+> > > > diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
+> > > > index ccb8a6a..be81bc7 100644
+> > > > --- a/sound/soc/omap/ams-delta.c
+> > > > +++ b/sound/soc/omap/ams-delta.c
+> > > > @@ -636,7 +636,7 @@ err:
+> > > >  	platform_device_put(ams_delta_audio_platform_device);
+> > > >  	return ret;
+> > > >  }
+> > > > -module_init(ams_delta_module_init);
+> > > > +late_initcall(ams_delta_module_init);
+> > > >  
+> > > >  static void __exit ams_delta_module_exit(void)
+> > > >  {
+> > > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
