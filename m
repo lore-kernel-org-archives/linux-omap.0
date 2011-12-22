@@ -1,41 +1,56 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 1/9] include: platform_data: Platform data header for
- OMAP4 ASoC audio
-Date: Thu, 22 Dec 2011 17:28:39 +0000
-Message-ID: <20111222172838.GA29622@opensource.wolfsonmicro.com>
-References: <1324557768-8216-1-git-send-email-peter.ujfalusi@ti.com>
- <1324557768-8216-2-git-send-email-peter.ujfalusi@ti.com>
- <20111222130453.GQ4546@opensource.wolfsonmicro.com>
- <1324568573.4138.5.camel@odin>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 0/9] OMAP4: ASoC: Support for PandaBoard family
+Date: Thu, 22 Dec 2011 19:30:28 +0200
+Message-ID: <4EF36934.5010709@ti.com>
+References: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40580 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752911Ab1LVR2m (ORCPT
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:45028 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753157Ab1LVRa1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 12:28:42 -0500
-Content-Disposition: inline
-In-Reply-To: <1324568573.4138.5.camel@odin>
+	Thu, 22 Dec 2011 12:30:27 -0500
+Received: by lahj13 with SMTP id j13so2924147lah.25
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 09:30:24 -0800 (PST)
+In-Reply-To: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Dec 22, 2011 at 03:42:53PM +0000, Liam Girdwood wrote:
-> On Thu, 2011-12-22 at 13:04 +0000, Mark Brown wrote:
+On 12/22/2011 06:38 PM, Peter Ujfalusi wrote:
+> Hello,
+>=20
+> the following series will add ASoC support for PandaBoards.
+> PandaBoards have different audio routings compared to SDP4430/Blaze b=
+oards, but
+> the differences not that big to justify a new ASoC machine driver.
+>=20
+> This series is based on the first three patch from the v1 sereis (tho=
+se, which
+> has been applied by Liam).
+>=20
+> Changes since v1:
+> As suggested by Mark the platform data, machine driver has been conve=
+rted to
+> process feature flags instead of Board IDs.
+> - The ASoC machine driver registers all DAPM widgets. Based on the re=
+ceived
+>   configuration it will disable the unused paths
+> - PCM for dmic is only created, if the board has digital mic conencte=
+d
+> - Jack functionality will be only used on boards supporting it
+> - Sound card name for SDP4430 has net been changed
 
-> > omap-abe-mcpdm-twl6040 please.  Seriously, just drop the abe - it's not
-> > an optional feature of the OMAP and the names are getting quite long.
+Sorry for the resend, I did ment to send another series, but I ended up
+in a wrong directory before I run git-send-email.
 
-> ABE can be an optional feature on OMAP (and quite an important one when
-> it is used). Fwiw, we do have a mixture of users, most use the ABE but
-> some don't, so it's best to specify ABE in the naming to avoid any
-> confusion.
-
-Do you mean to say that there are OMAP4 variants that don't have the
-ABE or that some people choose not to do so for some reason, and unless
-the ABE might not be there shouldn't the driver just support both ABE
-and non-ABE paths anyway?  That's what the out of tree systems I've seen
-have done, though the main use of the non-ABE paths has always been
-confirming that issues are in the ABE.
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
