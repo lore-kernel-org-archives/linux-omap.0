@@ -1,8 +1,7 @@
 From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 04/12] rtc: rtc-twl: Add DT support for RTC inside
- twl4030/twl6030
-Date: Thu, 22 Dec 2011 15:56:38 +0100
-Message-ID: <1324565806-31142-5-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v4 06/12] arm/dts: OMAP3: Add i2c controller nodes
+Date: Thu, 22 Dec 2011 15:56:40 +0100
+Message-ID: <1324565806-31142-7-git-send-email-b-cousson@ti.com>
 References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -19,65 +18,48 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add the DT support for the TI rtc-twl present in the twl4030
-and twl6030 devices.
+Add i2c controllers nodes into the main ocp bus.
 
 Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>
+Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
 ---
- Documentation/devicetree/bindings/rtc/twl-rtc.txt |   12 ++++++++++++
- drivers/rtc/rtc-twl.c                             |   10 ++++++++--
- 2 files changed, 20 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/rtc/twl-rtc.txt
+ arch/arm/boot/dts/omap3.dtsi |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/rtc/twl-rtc.txt b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-new file mode 100644
-index 0000000..596e0c9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/rtc/twl-rtc.txt
-@@ -0,0 +1,12 @@
-+* TI twl RTC
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 6866dc7..697b210 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -61,5 +61,26 @@
+ 			ti,intc-size = <96>;
+ 			reg = <0x48200000 0x1000>;
+ 		};
 +
-+The TWL family (twl4030/6030) contains a RTC.
++		i2c1: i2c@1 {
++			compatible = "ti,omap3-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c1";
++		};
 +
-+Required properties:
-+- compatible : Should be twl4030-rtc
++		i2c2: i2c@2 {
++			compatible = "ti,omap3-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c2";
++		};
 +
-+Examples:
-+
-+rtc@0 {
-+    compatible = "ti,twl4030-rtc";
-+};
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 20687d5..d43b4f6 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -550,6 +550,11 @@ static int twl_rtc_resume(struct platform_device *pdev)
- #define twl_rtc_resume  NULL
- #endif
- 
-+static const struct of_device_id twl_rtc_of_match[] = {
-+	{.compatible = "ti,twl4030-rtc", },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, twl_rtc_of_match);
- MODULE_ALIAS("platform:twl_rtc");
- 
- static struct platform_driver twl4030rtc_driver = {
-@@ -559,8 +564,9 @@ static struct platform_driver twl4030rtc_driver = {
- 	.suspend	= twl_rtc_suspend,
- 	.resume		= twl_rtc_resume,
- 	.driver		= {
--		.owner	= THIS_MODULE,
--		.name	= "twl_rtc",
-+		.owner		= THIS_MODULE,
-+		.name		= "twl_rtc",
-+		.of_match_table = twl_rtc_of_match,
- 	},
++		i2c3: i2c@3 {
++			compatible = "ti,omap3-i2c";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "i2c3";
++		};
+ 	};
  };
- 
 -- 
 1.7.0.4
