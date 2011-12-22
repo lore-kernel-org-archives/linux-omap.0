@@ -1,7 +1,8 @@
 From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v4 02/12] i2c: OMAP: Add DT support for i2c controller
-Date: Thu, 22 Dec 2011 15:56:36 +0100
-Message-ID: <1324565806-31142-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v4 03/12] mfd: twl-core: Add initial DT support for
+ twl4030/twl6030
+Date: Thu, 22 Dec 2011 15:56:37 +0100
+Message-ID: <1324565806-31142-4-git-send-email-b-cousson@ti.com>
 References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,337 +19,192 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
 Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 To: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-Add initial DT support to retrieve the frequency using a
-DT attribute instead of the pdata pointer if of_node exist.
+Add initial device-tree support for twl familly chips.
+The current version is missing the regulator entries due
+to the lack of DT regulator bindings for the moment.
+Only the simple sub-modules that do not depend on
+platform_data information can be initialized properly.
 
-Add documentation for omap i2c controller binding.
+Add irqdomain support.
 
-Based on original patches from Manju and Grant.
+Add documentation for the Texas Instruments TWL Integrated Chip.
 
 Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Reviewed-by: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- Documentation/devicetree/bindings/i2c/omap-i2c.txt |   30 ++++++
- drivers/i2c/busses/i2c-omap.c                      |  102 +++++++++++++-------
- 2 files changed, 97 insertions(+), 35 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/i2c/omap-i2c.txt
+ .../devicetree/bindings/mfd/twl-familly.txt        |   47 ++++++++++++++++++
+ drivers/mfd/Kconfig                                |    1 +
+ drivers/mfd/twl-core.c                             |   51 +++++++++++++++++++-
+ 3 files changed, 98 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
 
-diff --git a/Documentation/devicetree/bindings/i2c/omap-i2c.txt b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
+diff --git a/Documentation/devicetree/bindings/mfd/twl-familly.txt b/Documentation/devicetree/bindings/mfd/twl-familly.txt
 new file mode 100644
-index 0000000..56564aa
+index 0000000..ff4cacd
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/i2c/omap-i2c.txt
-@@ -0,0 +1,30 @@
-+I2C for OMAP platforms
++++ b/Documentation/devicetree/bindings/mfd/twl-familly.txt
+@@ -0,0 +1,47 @@
++Texas Instruments TWL family
 +
-+Required properties :
-+- compatible : Must be "ti,omap3-i2c" or "ti,omap4-i2c"
-+- ti,hwmods : Must be "i2c<n>", n being the instance number (1-based)
-+- #address-cells = <1>;
-+- #size-cells = <0>;
++The TWLs are Integrated Power Management Chips.
++Some version might contain much more analog function like
++USB transceiver or Audio amplifier.
++These chips are connected to an i2c bus.
 +
-+Recommended properties :
-+- clock-frequency : Desired I2C bus clock frequency in Hz. Otherwise
-+  the default 100 kHz frequency will be used.
 +
-+Optional properties:
-+- Child nodes conforming to i2c bus binding
++Required properties:
++- compatible : Must be "ti,twl4030";
++  For Integrated power-management/audio CODEC device used in OMAP3
++  based boards
++- compatible : Must be "ti,twl6030";
++  For Integrated power-management used in OMAP4 based boards
++- interrupts : This i2c device has an IRQ line connected to the main SoC
++- interrupt-controller : Since the twl support several interrupts internally,
++  it is considered as an interrupt controller cascaded to the SoC one.
++- #interrupt-cells = <1>;
++- interrupt-parent : The parent interrupt controller.
 +
-+Note: Current implementation will fetch base address, irq and dma
-+from omap hwmod data base during device registration.
-+Future plan is to migrate hwmod data base contents into device tree
-+blob so that, all the required data will be used from device tree dts
-+file.
++Optional node:
++- Child nodes contain in the twl. The twl family is made of severals variants
++  that support a different number of features.
++  The children nodes will thus depend of the capabilty of the variant.
 +
-+Examples :
 +
-+i2c1: i2c@0 {
-+    compatible = "ti,omap3-i2c";
++Example:
++/*
++ * Integrated Power Management Chip
++ * http://www.ti.com/lit/ds/symlink/twl6030.pdf
++ */
++twl@48 {
++    compatible = "ti,twl6030";
++    reg = <0x48>;
++    interrupts = <39>; /* IRQ_SYS_1N cascaded to gic */
++    interrupt-controller;
++    #interrupt-cells = <1>;
++    interrupt-parent = <&gic>;
 +    #address-cells = <1>;
 +    #size-cells = <0>;
-+    ti,hwmods = "i2c1";
-+    clock-frequency = <400000>;
++
++    twl_rtc {
++        compatible = "ti,twl_rtc";
++        interrupts = <11>;
++        reg = <0>;
++    };
 +};
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index a43d002..b03b3e3 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -37,6 +37,9 @@
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index f1391c2..f0de088 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -200,6 +200,7 @@ config MENELAUS
+ config TWL4030_CORE
+ 	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+ 	depends on I2C=y && GENERIC_HARDIRQS
++	select IRQ_DOMAIN
+ 	help
+ 	  Say yes here if you have TWL4030 / TWL6030 family chip on your board.
+ 	  This core driver provides register access and IRQ handling
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index bfbd660..698bf0d 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -34,6 +34,11 @@
  #include <linux/platform_device.h>
  #include <linux/clk.h>
- #include <linux/io.h>
+ #include <linux/err.h>
++#include <linux/device.h>
 +#include <linux/of.h>
-+#include <linux/of_i2c.h>
-+#include <linux/of_device.h>
- #include <linux/slab.h>
- #include <linux/i2c-omap.h>
- #include <linux/pm_runtime.h>
-@@ -182,7 +185,9 @@ struct omap_i2c_dev {
- 	u32			latency;	/* maximum mpu wkup latency */
- 	void			(*set_mpu_wkup_lat)(struct device *dev,
- 						    long latency);
--	u32			speed;		/* Speed of bus in Khz */
-+	u32			speed;		/* Speed of bus in kHz */
-+	u32			dtrev;		/* extra revision from DT */
-+	u32			flags;
- 	u16			cmd_err;
- 	u8			*buf;
- 	u8			*regs;
-@@ -266,11 +271,7 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
++#include <linux/of_irq.h>
++#include <linux/of_platform.h>
++#include <linux/irqdomain.h>
  
- static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
--	struct omap_i2c_bus_platform_data *pdata;
--
--	pdata = dev->dev->platform_data;
--
--	if (pdata->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-+	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
- 		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-@@ -291,13 +292,10 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+ #include <linux/regulator/machine.h>
  
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
- {
--	struct omap_i2c_bus_platform_data *pdata;
- 	u16 iv;
+@@ -144,6 +149,9 @@
  
--	pdata = dev->dev->platform_data;
--
- 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
-+	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
- 		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
- 	else
- 		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-@@ -320,9 +318,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	unsigned long timeout;
- 	unsigned long internal_clk = 0;
- 	struct clk *fclk;
--	struct omap_i2c_bus_platform_data *pdata;
--
--	pdata = dev->dev->platform_data;
+ #define TWL_MODULE_LAST TWL4030_MODULE_LAST
  
- 	if (dev->rev >= OMAP_I2C_OMAP1_REV_2) {
- 		/* Disable I2C controller before soft reset */
-@@ -373,7 +368,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	}
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++#define TWL4030_NR_IRQS    8
++#define TWL6030_NR_IRQS    20
++
+ /* Base Address defns for twl4030_map[] */
  
--	if (pdata->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
-+	if (dev->flags & OMAP_I2C_FLAG_ALWAYS_ARMXOR_CLK) {
- 		/*
- 		 * The I2C functional clock is the armxor_ck, so there's
- 		 * no need to get "armxor_ck" separately.  Now, if OMAP2420
-@@ -397,7 +392,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			psc = fclk_rate / 12000000;
+ /* subchip/slave 0 - USB ID */
+@@ -255,6 +263,7 @@ struct twl_client {
+ 
+ static struct twl_client twl_modules[TWL_NUM_SLAVES];
+ 
++static struct irq_domain domain;
+ 
+ /* mapping the module id to slave id and base address */
+ struct twl_mapping {
+@@ -1183,14 +1192,48 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	int				status;
+ 	unsigned			i;
+ 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
++	struct device_node		*node = client->dev.of_node;
+ 	u8 temp;
+ 	int ret = 0;
++	int nr_irqs = TWL4030_NR_IRQS;
++
++	if ((id->driver_data) & TWL6030_CLASS)
++		nr_irqs = TWL6030_NR_IRQS;
++
++	if (node && !pdata) {
++		/*
++		 * XXX: Temporary pdata until the information is correctly
++		 * retrieved by every TWL modules from DT.
++		 */
++		pdata = devm_kzalloc(&client->dev,
++				     sizeof(struct twl4030_platform_data),
++				     GFP_KERNEL);
++		if (!pdata)
++			return -ENOMEM;
++	}
+ 
+ 	if (!pdata) {
+ 		dev_dbg(&client->dev, "no platform data?\n");
+ 		return -EINVAL;
  	}
  
--	if (!(pdata->flags & OMAP_I2C_FLAG_SIMPLE_CLOCK)) {
-+	if (!(dev->flags & OMAP_I2C_FLAG_SIMPLE_CLOCK)) {
- 
- 		/*
- 		 * HSI2C controller internal clk rate should be 19.2 Mhz for
-@@ -406,7 +401,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		 * The filter is iclk (fclk for HS) period.
- 		 */
- 		if (dev->speed > 400 ||
--			       pdata->flags & OMAP_I2C_FLAG_FORCE_19200_INT_CLK)
-+			       dev->flags & OMAP_I2C_FLAG_FORCE_19200_INT_CLK)
- 			internal_clk = 19200;
- 		else if (dev->speed > 100)
- 			internal_clk = 9600;
-@@ -475,7 +470,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 
- 	dev->errata = 0;
- 
--	if (pdata->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-+	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
- 		dev->errata |= I2C_OMAP_ERRATA_I207;
- 
- 	/* Enable interrupts */
-@@ -484,7 +479,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
- 				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
- 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
--	if (pdata->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-+	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
- 		dev->pscstate = psc;
- 		dev->scllstate = scll;
- 		dev->sclhstate = sclh;
-@@ -804,9 +799,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	u16 bits;
- 	u16 stat, w;
- 	int err, count = 0;
--	struct omap_i2c_bus_platform_data *pdata;
--
--	pdata = dev->dev->platform_data;
- 
- 	if (pm_runtime_suspended(dev->dev))
- 		return IRQ_NONE;
-@@ -875,7 +867,7 @@ complete:
- 					 * Data reg in 2430, omap3 and
- 					 * omap4 is 8 bit wide
- 					 */
--					if (pdata->flags &
-+					if (dev->flags &
- 						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
- 						if (dev->buf_len) {
- 							*dev->buf++ = w >> 8;
-@@ -918,7 +910,7 @@ complete:
- 					 * Data reg in 2430, omap3 and
- 					 * omap4 is 8 bit wide
- 					 */
--					if (pdata->flags &
-+					if (dev->flags &
- 						 OMAP_I2C_FLAG_16BIT_DATA_REG) {
- 						if (dev->buf_len) {
- 							w |= *dev->buf++ << 8;
-@@ -965,6 +957,32 @@ static const struct i2c_algorithm omap_i2c_algo = {
- 	.functionality	= omap_i2c_func,
- };
- 
-+#ifdef CONFIG_OF
-+static struct omap_i2c_bus_platform_data omap3_pdata = {
-+	.rev = OMAP_I2C_IP_VERSION_1,
-+	.flags = OMAP_I2C_FLAG_APPLY_ERRATA_I207 |
-+		 OMAP_I2C_FLAG_RESET_REGS_POSTIDLE |
-+		 OMAP_I2C_FLAG_BUS_SHIFT_2,
-+};
++	status = irq_alloc_descs(-1, pdata->irq_base, nr_irqs, 0);
++	if (IS_ERR_VALUE(status)) {
++		dev_err(&client->dev, "Fail to allocate IRQ descs\n");
++		return status;
++	}
 +
-+static struct omap_i2c_bus_platform_data omap4_pdata = {
-+	.rev = OMAP_I2C_IP_VERSION_2,
-+};
++	pdata->irq_base = status;
++	pdata->irq_end = pdata->irq_base + nr_irqs;
 +
-+static const struct of_device_id omap_i2c_of_match[] = {
-+	{
-+		.compatible = "ti,omap4-i2c",
-+		.data = &omap4_pdata,
-+	},
-+	{
-+		.compatible = "ti,omap3-i2c",
-+		.data = &omap3_pdata,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
++	domain.irq_base = pdata->irq_base;
++	domain.nr_irq = nr_irqs;
++#ifdef CONFIG_OF_IRQ
++	domain.of_node = of_node_get(node);
++	domain.ops = &irq_domain_simple_ops;
 +#endif
++	irq_domain_add(&domain);
 +
- static int __devinit
- omap_i2c_probe(struct platform_device *pdev)
- {
-@@ -972,9 +990,10 @@ omap_i2c_probe(struct platform_device *pdev)
- 	struct i2c_adapter	*adap;
- 	struct resource		*mem, *irq, *ioarea;
- 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
-+	struct device_node	*node = pdev->dev.of_node;
-+	const struct of_device_id *match;
- 	irq_handler_t isr;
- 	int r;
--	u32 speed = 0;
- 
- 	/* NOTE: driver uses the static register mapping */
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-@@ -1001,15 +1020,24 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_release_region;
+ 	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
+ 		dev_dbg(&client->dev, "can't talk I2C?\n");
+ 		return -EIO;
+@@ -1270,7 +1313,13 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
  	}
  
--	if (pdata != NULL) {
--		speed = pdata->clkrate;
-+	match = of_match_device(omap_i2c_of_match, &pdev->dev);
-+	if (match) {
-+		u32 freq = 100000; /* default to 100000 Hz */
+-	status = add_children(pdata, id->driver_data);
++#ifdef CONFIG_OF_DEVICE
++	if (node)
++		status = of_platform_populate(node, NULL, NULL, &client->dev);
++	else
++#endif
++		status = add_children(pdata, id->driver_data);
 +
-+		pdata = match->data;
-+		dev->dtrev = pdata->rev;
-+		dev->flags = pdata->flags;
-+
-+		of_property_read_u32(node, "clock-frequency", &freq);
-+		/* convert DT freq value in Hz into kHz for speed */
-+		dev->speed = freq / 1000;
-+	} else if (pdata != NULL) {
-+		dev->speed = pdata->clkrate;
-+		dev->flags = pdata->flags;
- 		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
--	} else {
--		speed = 100;	/* Default speed */
--		dev->set_mpu_wkup_lat = NULL;
-+		dev->dtrev = pdata->rev;
- 	}
- 
--	dev->speed = speed;
- 	dev->dev = &pdev->dev;
- 	dev->irq = irq->start;
- 	dev->base = ioremap(mem->start, resource_size(mem));
-@@ -1020,9 +1048,9 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, dev);
- 
--	dev->reg_shift = (pdata->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
-+	dev->reg_shift = (dev->flags >> OMAP_I2C_FLAG_BUS_SHIFT__SHIFT) & 3;
- 
--	if (pdata->rev == OMAP_I2C_IP_VERSION_2)
-+	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
- 		dev->regs = (u8 *)reg_map_ip_v2;
- 	else
- 		dev->regs = (u8 *)reg_map_ip_v1;
-@@ -1035,7 +1063,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	if (dev->rev <= OMAP_I2C_REV_ON_3430)
- 		dev->errata |= I2C_OMAP3_1P153;
- 
--	if (!(pdata->flags & OMAP_I2C_FLAG_NO_FIFO)) {
-+	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
- 		u16 s;
- 
- 		/* Set up the fifo size - Get total size */
-@@ -1057,7 +1085,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 		/* calculate wakeup latency constraint for MPU */
- 		if (dev->set_mpu_wkup_lat != NULL)
- 			dev->latency = (1000000 * dev->fifo_size) /
--				       (1000 * speed / 8);
-+				       (1000 * dev->speed / 8);
- 	}
- 
- 	/* reset ASAP, clearing any IRQs */
-@@ -1073,7 +1101,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	}
- 
- 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
--		 pdata->rev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
-+		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
- 
- 	pm_runtime_put(dev->dev);
- 
-@@ -1084,6 +1112,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	strlcpy(adap->name, "OMAP I2C adapter", sizeof(adap->name));
- 	adap->algo = &omap_i2c_algo;
- 	adap->dev.parent = &pdev->dev;
-+	adap->dev.of_node = pdev->dev.of_node;
- 
- 	/* i2c device drivers may be active on return from add_adapter() */
- 	adap->nr = pdev->id;
-@@ -1093,6 +1122,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_free_irq;
- 	}
- 
-+	of_i2c_register_devices(adap);
-+
- 	return 0;
- 
- err_free_irq:
-@@ -1165,6 +1196,7 @@ static struct platform_driver omap_i2c_driver = {
- 		.name	= "omap_i2c",
- 		.owner	= THIS_MODULE,
- 		.pm	= OMAP_I2C_PM_OPS,
-+		.of_match_table = of_match_ptr(omap_i2c_of_match),
- 	},
- };
- 
+ fail:
+ 	if (status < 0)
+ 		twl_remove(client);
 -- 
 1.7.0.4
