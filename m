@@ -1,35 +1,56 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v2 9/9] ASoC: Kconfig: OMAP4: Enable support for
- PandaBoards
-Date: Thu, 22 Dec 2011 13:26:59 +0000
-Message-ID: <20111222132658.GT4546@opensource.wolfsonmicro.com>
-References: <1324557768-8216-1-git-send-email-peter.ujfalusi@ti.com>
- <1324557768-8216-10-git-send-email-peter.ujfalusi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ilya Yanok <yanok@emcraft.com>
+Subject: [PATCH V2] OMAP2+: ads7846_init: put gpio_pendown into pdata if it's provided
+Date: Thu, 22 Dec 2011 15:00:48 +0100
+Message-ID: <1324562448-24066-1-git-send-email-yanok@emcraft.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33392 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751671Ab1LVN1B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 08:27:01 -0500
-Content-Disposition: inline
-In-Reply-To: <1324557768-8216-10-git-send-email-peter.ujfalusi@ti.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:47265 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689Ab1LVOA6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 09:00:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@infradead.org
+Cc: sasha_d@emcraft.com, Ilya Yanok <yanok@emcraft.com>, Igor Grinberg <grinberg@compulab.co.il>
 
-On Thu, Dec 22, 2011 at 02:42:48PM +0200, Peter Ujfalusi wrote:
+If platform data is provided by the caller gpio_pendown is put into
+unused static ads7846_config structure and effectively has no effect.
+Of course caller can set gpio_pendown field in platform data himself
+but it seems natural to do this in ads7846_init to remove duplication.
 
->  config SND_OMAP_SOC_OMAP_ABE_TWL6040
->  	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
-> -	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
-> +	depends on TWL4030_CORE && SND_OMAP_SOC
-> +	depends on MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+Signed-off-by: Ilya Yanok <yanok@emcraft.com>
 
-Given that it's now a platform device and there's a reasonable
-expectation that there will be lots of other boards derived from this
-it'd seem sensible to just remove the machine dependencies so people
-don't have to patch the Kconfig.  Otherwise it kind of defeats the point
-of making the code generic.
+---
+Changes from V1:
+
+ - existing if clause reused
+
+ arch/arm/mach-omap2/common-board-devices.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/common-board-devices.c b/arch/arm/mach-omap2/common-board-devices.c
+index 2d1d775..9498b0f 100644
+--- a/arch/arm/mach-omap2/common-board-devices.c
++++ b/arch/arm/mach-omap2/common-board-devices.c
+@@ -75,13 +75,15 @@ void __init omap_ads7846_init(int bus_num, int gpio_pendown, int gpio_debounce,
+ 			gpio_set_debounce(gpio_pendown, gpio_debounce);
+ 	}
+ 
+-	ads7846_config.gpio_pendown = gpio_pendown;
+-
+ 	spi_bi->bus_num	= bus_num;
+ 	spi_bi->irq	= OMAP_GPIO_IRQ(gpio_pendown);
+ 
+-	if (board_pdata)
++	if (board_pdata) {
++		board_pdata->gpio_pendown = gpio_pendown;
+ 		spi_bi->platform_data = board_pdata;
++	} else {
++		ads7846_config.gpio_pendown = gpio_pendown;
++	}
+ 
+ 	spi_register_board_info(&ads7846_spi_board_info, 1);
+ }
+-- 
+1.7.6.4
+
