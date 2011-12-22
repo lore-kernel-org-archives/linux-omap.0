@@ -1,97 +1,69 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 02/11] i2c: OMAP: Add DT support for i2c controller
-Date: Thu, 22 Dec 2011 09:55:39 +0100
-Message-ID: <4EF2F08B.4070907@ti.com>
-References: <1324398444-23296-1-git-send-email-b-cousson@ti.com>
- <1324398444-23296-3-git-send-email-b-cousson@ti.com>
- <4EF0BB03.6040906@gmail.com>
+From: "Girdwood, Liam" <lrg@ti.com>
+Subject: Re: [PATCH 07/10] ASoC: OMAP: ams-delta: Drive
+ modem/codec pins over GPIO API
+Date: Thu, 22 Dec 2011 09:25:26 +0000
+Message-ID: <CABS+qY1Ng0JQMan++sG+T0jcCFOdDH61hzQ=AXyAD-BPDTpDFg@mail.gmail.com>
+References: <1323634328-856-1-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1323634328-856-8-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1324492424.8478.5.camel@odin>
+	<201112212314.39844.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <4EF0BB03.6040906-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <201112212314.39844.jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Rob,
-
-On 12/20/2011 5:42 PM, Rob Herring wrote:
-> On 12/20/2011 10:27 AM, Benoit Cousson wrote:
->> Add initial DT support to retrieve the frequency using a
->> DT attribute instead of the pdata pointer if of_node exist.
+On 21 December 2011 22:14, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> On Wednesday 21 of December 2011 at 19:33:44, Liam Girdwood wrote:
+>> On Sun, 2011-12-11 at 21:12 +0100, Janusz Krzysztofik wrote:
+>> > Don't use Amstrad Delta custom I/O functions any longer, replace them
+>> > with GPIO. Old pin definitions, no longer used by the modem bits either,
+>> > can be dropped.
+>> >
+>> > Depends on patch 2/10 "ARM: OMAP1: Convert Amstrad E3 latches to
+>> > basic_mmio_gpio".
+>> >
+>> > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 >>
->> Add documentation for omap i2c controller binding.
->>
->> Based on original patches from Manju and Grant.
->>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Ben Dooks<ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
->> Cc: Kevin Hilman<khilman-l0cyMroinI0@public.gmane.org>
+>> Applied.
 >
-> One issue below, otherwise:
+> Hi,
+> I'm sorry, but I've probably missed to infrom you explicitly, i.e. other
+> than in a cover letter to v2 of this series, that this particular patch
+> has been dropped from the series. I've already started working on an
+> alternative solution, which I intend to submit as a separate set. It
+> will be free of potentail problems with two devices, a modem and the
+> sound card, accessing the same GPIO pins concurrently. For the
+> MODEM_NRESET pin I've already set up a virtual regulator on top of it,
+> and for the MODEM_CODEC pin I'll probably choose a virtual clock (pinmux
+> would match the hardware more closely here, but it looks too complicated
+> to me). Moreover, I've already started to move all those GPIO pin
+> related functions, i.e. bias control, digital mute and line discipline
+> interaction, from the board file to the codec driver, where all those
+> seem to belong.
 >
-> Reviewed-by: Rob Herring<rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+> Having this patch applied will conflict with the regultor and the clock
+> solutions, taking control over those two GPIO pins. Please revert this
+> patch, or reset it if still possible.
 >
->
->> @@ -1001,15 +1019,24 @@ omap_i2c_probe(struct platform_device *pdev)
->>   		goto err_release_region;
->>   	}
->>
->> -	if (pdata != NULL) {
->> -		speed = pdata->clkrate;
->> +	match = of_match_device(omap_i2c_of_match,&pdev->dev);
->> +	if (match) {
->> +		u32 freq = 100000; /* default to 100000 Hz */
->> +
->> +		pdata = match->data;
->> +		dev->dtrev = pdata->rev;
->> +		dev->flags = pdata->flags;
->> +
->> +		of_property_read_u32(node, "clock-frequency",&freq);
->> +		/* convert DT freq value in Hz into kHz for speed */
->> +		dev->speed = freq / 1000;
->> +	} else if (pdata != NULL) {
->> +		dev->speed = pdata->clkrate;
->> +		dev->flags = pdata->flags;
->>   		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
->> -	} else {
->> -		speed = 100;	/* Default speed */
->> -		dev->set_mpu_wkup_lat = NULL;
->> +		dev->dtrev = pdata->rev;
->
-> If you get here, pdata is NULL.
+> Thanks,
+> Janusz
 
-Mmm, it should not. It's true that the patch is not super readable, but 
-here is the result:
+Will do, I never pushed last night as it was late. So I'll only will
+have to make a local change.
 
-	if (match) {
-		u32 freq = 100000; /* default to 100000 Hz */
+Thanks
 
-		pdata = match->data;
-		dev->dtrev = pdata->rev;
-		dev->flags = pdata->flags;
-
-		of_property_read_u32(node, "clock-frequency", &freq);
-		/* convert DT freq value in Hz into kHz for speed */
-		dev->speed = freq / 1000;
-	} else if (pdata != NULL) {
-		dev->speed = pdata->clkrate;
-		dev->flags = pdata->flags;
-		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-		dev->dtrev = pdata->rev;
-	}
-
-I removed every other pdata reference after this point.
-
-Regards,
-Benoit
+Liam
