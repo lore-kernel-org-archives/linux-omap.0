@@ -1,63 +1,91 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
-Date: Thu, 22 Dec 2011 15:00:34 +0530
-Message-ID: <CAMQu2gxq26=pNA3L8aXUbLR4ZAT5RqyNawtm2qsPVc5cJCdOLg@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
- <4EF1A0B4.5080307@linux.intel.com> <CAMbhsRRP7s9xsHqxhb=iMfHAJFcqAea-6CDORZS34RCPNo+UWw@mail.gmail.com>
- <4EF1AA8A.8060304@linux.intel.com> <CAMbhsRSNTUvou9Gf6T4Ggq=jfxsWUcn7M2yNsKQz6aNrt6gLDg@mail.gmail.com>
- <4EF1CD49.9020800@linux.intel.com> <CAMbhsRRnKoR3YPWrZzVynVe+dcuU5v0siYvmp2vbBcS1hquC7Q@mail.gmail.com>
- <4EF2352C.3060102@linux.intel.com> <CAMbhsRSPCo9MSGp57Fv0sRdYUFcdwx8jEz1-CfX8LdKf8X4MVg@mail.gmail.com>
- <CAMQu2gxws83BUdj_eMbF0xpA1Mo_OA_MswE7KUm5pvbn3YbMuQ@mail.gmail.com> <4EF2F01E.8060307@linux.intel.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAP3: hwmod_data: add HWMOD_INIT_NO_RESET flag for
+ dss_dispc
+Date: Thu, 22 Dec 2011 12:13:05 +0200
+Message-ID: <1324548785.13282.10.camel@deskari>
+References: <1324515653-17287-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-MTg020uw+BmRkZfEL11F"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:41428 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754890Ab1LVJa4 (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58437 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752029Ab1LVKNK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 04:30:56 -0500
-In-Reply-To: <4EF2F01E.8060307@linux.intel.com>
+	Thu, 22 Dec 2011 05:13:10 -0500
+Received: by lami14 with SMTP id i14so4676244lam.34
+        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 02:13:07 -0800 (PST)
+In-Reply-To: <1324515653-17287-1-git-send-email-yanok@emcraft.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Colin Cross <ccross@android.com>, Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Dec 22, 2011 at 2:23 PM, Arjan van de Ven <arjan@linux.intel.com> wrote:
-> On 12/22/2011 9:35 AM, Shilimkar, Santosh wrote:
->
->> Indeed. The SOCs, Arch's which does support low power
->> state independently and doesn't need any co-ordination between CPU's
->> will continue to work same way as before with this series.
->
-> btw I think you misunderstand; I don't object to a need for something
-> like this,
-I did. Thanks for clarification.
 
-> I am just very concerned that this may not be possible to be
-> done in a race-free way.
->
-I agree to those races but may be they are harmless.
-Also the safe state need not be just WFI and can be bit deeper
-where the co-ordination between isn't necessary. So that should
-still not burn the power that much.
+--=-MTg020uw+BmRkZfEL11F
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-For simplicity let's assume a two CPU scenario.
-Ideal scenario:
-CPU 1 has entered idle and incremented counter for the
-co-ordinated C state. CPU0 also enter and increments the
-counter and now the subsystem and interconnect can go
-down along with CPU cluster.
+On Thu, 2011-12-22 at 02:00 +0100, Ilya Yanok wrote:
+> Resetting DISPC when a DISPC output is enabled causes the DSS to go into
+> an inconsistent state.
+>=20
+> commit b923d40dd4211c4ef7d4efa2bd81b7ca1d8744c1
+> Author: Archit Taneja <archit@ti.com>
+> Date:   Thu Oct 6 18:04:08 2011 -0600
+>=20
+>     ARM: OMAP2PLUS: DSS: Ensure DSS works correctly if display is
+> enabled in bootloader
+>=20
+> tries to deal with this problem by checking if display is enabled and
+> disabling it before doing reset.
+>=20
+> But in my setup dss_dispc is resetted from omap_hwmod_setup_all function
+> _before_ calling omap_dss_reset. So when dispc_disable_outputs is
+> executed dispc is already reset and nothing happens.
 
-Few of the race conditions will possibly lead to void
-the above conditions  and in that case the counter would
-reflect that and such a C-state won't be attempted and
-a safe C-state would be attempted. That should still work
-fine.
+Hmm, why is that? You don't have the dss hwmod before dispc in the list
+of hwmods? The code presumes that dss hwmod is handled first.
 
-Some how this hardware/security restriction is bit stupid
-and likely going against the existing CPUIDLE design
-which expect that a CPUIDLE thread are per CPU and it should
-be independent and local to that CPU.
+> This patch and HWMOD_INIT_NO_RESET flags to dss_dispc hwmod thus leaving
+> DISPC untouched so that omap_dss_reset can take care of it.
 
-Regards
-Santosh
+omap_dss_reset() doesn't reset dispc, so this will leave dispc
+un-reseted.
+
+The idea of the current code is to do the reset similarly on all OMAPs.
+The sequence should be:
+
+- omap_dss_reset(), which disables dispc outputs and manually resets dss
+registers.
+- then the rest of the dss modules reset themselves normally, using the
+softreset bit.
+
+Your patch would break that.
+
+ Tomi
+
+
+--=-MTg020uw+BmRkZfEL11F
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJO8wKxAAoJEPo9qoy8lh71YmoP/3r3lrX1IkHX1PRitBp08+Sh
+DUlTRB5hg0cQIpci6oaSFXlSoGJitbxPsyl3zRhR8KMv2+14I7a5woRndLf29TpO
+u1tJWSEw7P0JdVPk7K6BLGmBgrmxx1XSKUK8ObEIaettFV29XZeJcJFIQxPfko6z
+UnNtfzs5yI3Xwyycn+2n5zAv1xfTKw9gR3PKy8tPsivkOzPOR+nDZqAMMMMwr6L9
+7wqrfEOWCPcrZ0wHf3S2V/GYWjKg7wJuK967NfyHsDNLTfxR9YAc5bR+nyRUXCIi
+8TXT1UDRZMkvUM+I3xu/XD4bimcP1k/7amRYTuafy86Y3KtkCcPhDDCv11Pb65L/
+96np9dYWFqEf+tMcxt7tE0m7ZeWgBpsmxAKZw4hD82201dZQH5dxYXckhgFvjkUC
+zkDYHva4yQ+/rWBd+nYAK8rtr8QjcP0GQElDJAUJn+leRuEEvCHtTsQ2F84lnFB2
+wUChaLnpAgAFw14pVt0bYA4Czu2g9WwujMo+L6nlge5qIViNgKnKIlpVyXuqZF5m
+fRCguF0IvEEAO9RImJCqKnpjEnULlLASMRKop6D7k9Ain08SPCnUsiS0YRnXUUoJ
+N6sz9Si9eJE1/oUHZJE7SnwMGpBUVPzV5OcdjzEdGNv2SF3aKa/WX1iGVxl+z4p7
+j5zZbrGfBjEsZ/cNSN6G
+=1CB4
+-----END PGP SIGNATURE-----
+
+--=-MTg020uw+BmRkZfEL11F--
+
