@@ -1,65 +1,60 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 3/5] ASoC: omap-mcbsp: Use the new interface for configuring CLKR/FSR mux
-Date: Thu, 22 Dec 2011 19:31:44 +0200
-Message-ID: <1324575106-17172-4-git-send-email-peter.ujfalusi@ti.com>
-References: <1324575106-17172-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 8/9] OMAP4: omap4panda: Enable audio support
+Date: Thu, 22 Dec 2011 09:32:16 -0800
+Message-ID: <20111222173216.GJ24444@atomide.com>
+References: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
+ <1324571902-16918-9-git-send-email-peter.ujfalusi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:50929 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753226Ab1LVRcH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 12:32:07 -0500
-Received: by lahd3 with SMTP id d3so1309327lah.5
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 09:31:57 -0800 (PST)
-In-Reply-To: <1324575106-17172-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:41700 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753226Ab1LVRcY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 12:32:24 -0500
+Content-Disposition: inline
+In-Reply-To: <1324571902-16918-9-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Switch using the new API to configure the 6 pin port's CLKR/FSR mux
-configuration.
+Hi,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/omap-mcbsp.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
+> @@ -548,6 +588,19 @@ void omap4_panda_display_init(void)
+>  	omap_display_init(&omap4_panda_dss_data);
+>  }
+>  
+> +static void omap4_panda_audio_init(void)
+> +{
+> +	if (cpu_is_omap4430()) {
+> +		/* PandaBoard 4430 */
+> +		panda_abe_audio_data.card_name = "PandaBoard";
+> +		/* Audio in is connected to HSMIC */
+> +		panda_abe_audio_data.has_hsmic = 1;
+> +	} else {
+> +		/* PandaBoard ES */
+> +		panda_abe_audio_data.card_name = "PandaBoardES";
+> +	}
+> +}
+> +
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 0173719..b9b0a9b 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -575,22 +575,26 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
- 	case OMAP_MCBSP_CLKR_SRC_CLKR:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_clkr_src(CLKR_SRC_CLKR);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp_data->bus_id,
-+						    CLKR_SRC_CLKR);
- 		break;
- 	case OMAP_MCBSP_CLKR_SRC_CLKX:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_clkr_src(CLKR_SRC_CLKX);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp_data->bus_id,
-+						    CLKR_SRC_CLKX);
- 		break;
- 	case OMAP_MCBSP_FSR_SRC_FSR:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_fsr_src(FSR_SRC_FSR);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp_data->bus_id,
-+						    FSR_SRC_FSR);
- 		break;
- 	case OMAP_MCBSP_FSR_SRC_FSX:
- 		if (cpu_class_is_omap1())
- 			break;
--		omap2_mcbsp1_mux_fsr_src(FSR_SRC_FSX);
-+		err = omap_mcbsp_6pin_src_mux(mcbsp_data->bus_id,
-+						    FSR_SRC_FSX);
- 		break;
- 	default:
- 		err = -ENODEV;
--- 
-1.7.8.1
+Please move the cpu_is_omap4430() check from audio_init to..
 
+>  static void __init omap4_panda_init(void)
+>  {
+>  	int package = OMAP_PACKAGE_CBS;
+> @@ -560,6 +613,7 @@ static void __init omap4_panda_init(void)
+>  		pr_err("error setting wl12xx data\n");
+>  
+>  	omap4_panda_i2c_init();
+> +	omap4_panda_audio_init();
+>  	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
+>  	platform_device_register(&omap_vwlan_device);
+>  	board_serial_init();
+
+..omap4_panda_init() instead and set some flag that other
+devices can use too so we don't have cpu_is_omap tests
+for each init function. I'd assume that will be needed for
+other devices too, but that's just a guess of course :)
+
+Tony
