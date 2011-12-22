@@ -1,53 +1,45 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 9/9] ASoC: Kconfig: OMAP4: Enable support for PandaBoards
-Date: Thu, 22 Dec 2011 18:38:22 +0200
-Message-ID: <1324571902-16918-10-git-send-email-peter.ujfalusi@ti.com>
-References: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] Borderline fixes for v3.2-rc6
+Date: Thu, 22 Dec 2011 09:11:12 -0800
+Message-ID: <20111222171112.GH24444@atomide.com>
+References: <20111219194249.GO6464@atomide.com>
+ <CAOesGMj-OyDu9pcOZ20o6G0W3-kkxyHF7o5DqDRaQkkUDf98CA@mail.gmail.com>
+ <20111220171041.GA24444@atomide.com>
+ <CAOesGMhXnSB8-eW=NxjFqv_9Br5pD5XOi==wAL_j+bDoj_+gCw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:41010 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755428Ab1LVQi6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 11:38:58 -0500
-Received: by mail-lpp01m010-f54.google.com with SMTP id l5so4388299lah.41
-        for <linux-omap@vger.kernel.org>; Thu, 22 Dec 2011 08:38:57 -0800 (PST)
-In-Reply-To: <1324571902-16918-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28244 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163Ab1LVRLR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Dec 2011 12:11:17 -0500
+Content-Disposition: inline
+In-Reply-To: <CAOesGMhXnSB8-eW=NxjFqv_9Br5pD5XOi==wAL_j+bDoj_+gCw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Olof Johansson <olof@lixom.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Enable the ASoC audio support for PandaBoard family via
-teh omap-abe-twl6040 machine driver.
+Hi Olof,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- sound/soc/omap/Kconfig |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+* Olof Johansson <olof@lixom.net> [111220 09:29]:
+> On Tue, Dec 20, 2011 at 9:10 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > I've branched it out into fixes-hwmod-regression with just that
+> > same commit in it. The second patch in this series will be pulled in
+> > with fixes-non-critical-part2. Updated pull request below.
+> 
+> Thanks, I pulled fixes-hwmod-regression into fixes and fixes-hwmod
+> into next/fixes-non-critical.
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 98410b8..2d19119 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -99,7 +99,8 @@ config SND_OMAP_SOC_SDP3430
- 
- config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	tristate "SoC Audio support for OMAP boards using ABE and twl6040 codec"
--	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
-+	depends on TWL4030_CORE && SND_OMAP_SOC
-+	depends on MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
- 	select SND_OMAP_SOC_DMIC
- 	select SND_OMAP_SOC_MCPDM
- 	select SND_SOC_TWL6040
-@@ -108,6 +109,8 @@ config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	  Say Y if you want to add support for SoC audio on OMAP boards using
- 	  ABE and twl6040 codec. This driver currently supports:
- 	  - SDP4430/Blaze boards
-+	  - PandaBoard (4430)
-+	  - PandaBoardES (4460)
- 
- config SND_OMAP_SOC_OMAP4_HDMI
- 	tristate "SoC Audio support for Texas Instruments OMAP4 HDMI"
--- 
-1.7.8.1
+Just checking.. Looks like you pulled fixes-hwmod into a new branch
+named fixes-non-critical-part2, but did not pull the same name branch
+fixes-non-critical-part2 that I posted?
 
+That's this pull request:
+
+http://www.spinics.net/lists/linux-omap/msg62050.html
+
+Regards,
+
+Tony
