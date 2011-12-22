@@ -1,27 +1,59 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/5] ASoC: omap-mcbsp: Use the new interface for
- configuring CLKR/FSR mux
-Date: Thu, 22 Dec 2011 17:33:22 +0000
-Message-ID: <20111222173321.GC29622@opensource.wolfsonmicro.com>
-References: <1324575106-17172-1-git-send-email-peter.ujfalusi@ti.com>
- <1324575106-17172-4-git-send-email-peter.ujfalusi@ti.com>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] input: serio: ams-delta: toggle keyboard power over GPIO
+Date: Thu, 22 Dec 2011 09:45:38 -0800
+Message-ID: <20111222174537.GB21103@core.coreip.homeip.net>
+References: <378bcda9c6cb6a1ddeeb54817078bc7ec68c5987.1324331816.git.jkrzyszt@tis.icnet.pl>
+ <1324419034-31024-1-git-send-email-jkrzyszt@tis.icnet.pl>
+ <20111221190945.GD24444@atomide.com>
+ <201112212055.10343.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38068 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753371Ab1LVRdZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Dec 2011 12:33:25 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1324575106-17172-4-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201112212055.10343.jkrzyszt@tis.icnet.pl>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Dec 22, 2011 at 07:31:44PM +0200, Peter Ujfalusi wrote:
-> Switch using the new API to configure the 6 pin port's CLKR/FSR mux
-> configuration.
+On Wed, Dec 21, 2011 at 08:55:09PM +0100, Janusz Krzysztofik wrote:
+> On Wednesday 21 of December 2011 at 20:09:45, Tony Lindgren wrote:
+> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [111220 13:39]:
+> > > Don't use Amstrad Delta custom I/O functions once GPIO interface is
+> > > available for the underlying hardware.
+> > > 
+> > > While requesting and initializing GPIO pins used, also take care of one
+> > > extra pin KEYBRD_DATAOUT which, even if not used by the driver, belongs
+> > > to the device and affects its functioning.
+> > > 
+> > > Once done, move the driver initialization back to the device_initcall
+> > > level, reverting the temporary chane introduced with patch 1/7 "ARM:
+> > > OMAP1: ams-delta: register latch dependent devices later".  That change
+> > > is no longer required once the driver takes care of registering used
+> > > GPIO pins, and it's better to initialize the device before others using
+> > > the latch2 based GPIO pins, otherwise a garbage is reported on boot,
+> > > perhaps due to random data already captured by the FIQ handler while the
+> > > keyboard related latch bits are written with random values during
+> > > initialization of those other latch2 dependent devices.
+> > > 
+> > > Depends on patch 2/7 "ARM: OMAP1: ams-delta: convert latches to
+> > > basic_mmio_gpio"
+> > > 
+> > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > 
+> > I'm assuming Dmitry's ack for an earlier version of this patch also
+> > covers this one when applying.
+> 
+> Hi Dmitry,
+> Can we assume your ack still valid for this version?
+> 
 
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Yes, please merge with your other changes.
+
+BTW, if you could rename :static struct gpio _gpios" to "ams_delta_gpios"
+that would be even better.
+
+Thanks!
+
+-- 
+Dmitry
