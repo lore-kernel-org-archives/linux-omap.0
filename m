@@ -1,43 +1,135 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: problem with twl4030 GPIO irqs
-Date: Fri, 23 Dec 2011 12:57:28 +0200
-Message-ID: <CANOLnON4P7ZQpCtUz8TOFHDd+1SQuJzLS=FVeHKPJ2_e0EiL9g@mail.gmail.com>
-References: <CANOLnON1-vg45KWZ7Rp+jL1n-jwBiTA2Qmkr_z1XnDKQ0XBPJw@mail.gmail.com>
-	<20111216115032.4c4dfbb5@notabene.brown>
-	<CANOLnOOxBT=AS=C3sNKecYdCHmpFBZ1-Tr+YkOrp7jzq9BMgCg@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/2] TPS65217: Add tps65217 regulator driver
+Date: Fri, 23 Dec 2011 11:15:39 +0000
+Message-ID: <20111223111538.GE2834@opensource.wolfsonmicro.com>
+References: <1324617696-14350-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:38027 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754141Ab1LWK5a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Dec 2011 05:57:30 -0500
-Received: by eekc4 with SMTP id c4so9203543eek.19
-        for <linux-omap@vger.kernel.org>; Fri, 23 Dec 2011 02:57:29 -0800 (PST)
-In-Reply-To: <CANOLnOOxBT=AS=C3sNKecYdCHmpFBZ1-Tr+YkOrp7jzq9BMgCg@mail.gmail.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54581 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754211Ab1LWLPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Dec 2011 06:15:42 -0500
+Content-Disposition: inline
+In-Reply-To: <1324617696-14350-1-git-send-email-anilkumar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+To: AnilKumar Ch <anilkumar@ti.com>
+Cc: sameo@linux.intel.com, lrg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
 
-Neil,
+On Fri, Dec 23, 2011 at 10:51:36AM +0530, AnilKumar Ch wrote:
 
-> On Fri, Dec 16, 2011 at 2:50 AM, NeilBrown <neilb@suse.de> wrote:
->> Try this.
->>
->> I wrote it for a slightly different reason, but I think it applies h=
-ere.
->>
+Again there really ought to be some opportunity for code sharing here.
 
-Could you submit this to mmc list please? It's no fun without working
-mmc driver, maybe it can still make in to the upcoming merge window.
+> +	help
+> +	  This driver supports TPS65217 voltage regulator chips. TPS65217 provides
+> +	  three step-down converters and four general-purpose LDO voltage regulators.
+> +	  It supports software based voltage control for different voltage domains
 
+This needs word wrapping.
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +/* Supported voltage values for regulators (in milliVolts) */
+> +static const u16 VDCDC1_VSEL_table[] = {
+> +	900, 925, 950, 975,
+> +	1000, 1025, 1050, 1075,
+> +	1100, 1125, 1150, 1175,
+> +	1200, 1225, 1250, 1275,
+> +	1300, 1325, 1350, 1375,
+> +	1400, 1425, 1450, 1475,
+> +	1500, 1550, 1600, 1650,
+> +	1700, 1750, 1800,
+> +};
+
+You should replace all these vsel tables with calculations in the code,
+they're all regular steps and some of the tables are getting a bit
+large.
+
+> +static inline int tps65217_pmic_read(struct tps65217_pmic *tps, u8 reg)
+> +{
+> +	u8 val;
+> +	int err;
+> +
+> +	err = tps->mfd->read_dev(tps->mfd, reg, 1, &val);
+> +	if (err)
+> +		return err;
+> +
+> +	return val;
+> +}
+
+There's no way stuff like this should be open coded in each driver using
+the MFD, basic register I/O stuff should be implemented in a single
+place in the MFD core driver.  All this I/O code should be there.
+
+> +static int tps65217_pmic_reg_read(struct tps65217_pmic *tps, u8 reg)
+> +{
+> +	int data;
+> +
+> +	mutex_lock(&tps->io_lock);
+> +
+> +	data = tps65217_pmic_read(tps, reg);
+> +	if (data < 0)
+> +		dev_err(tps->mfd->dev, "Read from reg 0x%x failed\n", reg);
+> +
+> +	mutex_unlock(&tps->io_lock);
+> +	return data;
+> +}
+
+Three levels of read and write functions seems excessive...
+
+> +	if (dcdc < TPS65217_DCDC_1 || dcdc > TPS65217_DCDC_3)
+> +		return -EINVAL;
+> +
+> +	switch (dcdc) {
+> +	case TPS65217_DCDC_1:
+> +		mask = TPS65217_ENABLE_DC1_EN;
+> +		break;
+> +	case TPS65217_DCDC_2:
+> +		mask = TPS65217_ENABLE_DC2_EN;
+> +		break;
+> +	case TPS65217_DCDC_3:
+> +		mask = TPS65217_ENABLE_DC3_EN;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+
+You may as well just use the switch statements to check if the
+regulators are supported given the way this is coded.  Though it would
+be even better to just have an array with the per regulator data which
+you look up (or use shifting to work out the bit if that's possible).
+
+> +	/* password protected register write level 1 setting */
+> +	tps->wp_level = TPS65217_PROTECT_L1;
+> +
+> +	return tps65217_pmic_set_bits(tps, TPS65217_REG_ENABLE, mask);
+
+This looks like there's an abstraction problem somewhere along the line
+- wp_level is a member of the struct but it's basically being used as a
+parameter.  Indeed perhaps the write function ought to just do this all
+by itself.
+
+> +	/* password protected register write level 1 setting */
+> +	tps->wp_level = TPS65217_PROTECT_L1;
+
+You should use these constants consistently through the driver, in other
+places you're using magic numbers directly.
+
+> +	for (vsel = 0; vsel < tps->info[dcdc]->table_len; vsel++) {
+> +		int mV = tps->info[dcdc]->table[vsel];
+> +		int uV = mV * 1000;
+> +
+> +		/* Break at the first in-range value */
+> +		if (min_uV <= uV && uV <= max_uV)
+> +			break;
+> +	}
+
+If you are going to use a table you should implement set_voltage_sel()
+which will do the table walk for you, but like I say you should just be
+using a calculation.
+
+> +	tps = kzalloc(sizeof(*tps), GFP_KERNEL);
+> +	if (!tps)
+> +		return -ENOMEM;
+
+Use devm_kzalloc().
