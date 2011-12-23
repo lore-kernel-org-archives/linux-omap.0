@@ -1,154 +1,87 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 2/4] ASoC: cx20442: add bias control over a
-	platform provided regulator
-Date: Sat, 24 Dec 2011 00:12:22 +0100
-Message-ID: <1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
+Subject: [PATCH 3/4] ARM: OMAP1: ams-delta: update the modem to use regulator API
+Date: Sat, 24 Dec 2011 00:12:23 +0100
+Message-ID: <1324681944-19067-4-git-send-email-jkrzyszt@tis.icnet.pl>
 References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
 
-Now that a regulator device for controlling the codec chip reset state
-over a platform agnostic regulator API is available on the only board
-using this driver so far, extend the driver with a bias control function
-which will request virtual power to the codec chip from that virtual
-regulator, and will supersede the present implementation existing at the
-sound card level.
+After the CX20442 codec driver already takes care of enabling the codec
+power for itself, but before dropping the old bias control method from
+the Amstrad Delta ASoC sound card file, which in fact keeps the modem
+power always on, even after the ASoC device close for now, extend the
+modem setup with a power management callback, which toggles the
+regulator up to the modem's needs, reusing the previously set up
+regulator consumer for this. Also, drop the MODEM_NRESET pin setup from
+the modem initialization procedure, as this operation was already
+ineffective since patch 1/4, and not needed because the regulator is set
+up as initially enabled.
 
-Thanks to the regulator sharing mechanism, both the old (the sound card)
-and the new (the codec) implementations will coexist smoothly until the
-sound card file is updated.
-
-While extending the cx20442 structure, drop unused control_type member.
-
-Created against linxu-3.2-rc6, tested on top of patch 1/4 "ARM: OMAP1:
-ams-delta: set up regulator over modem reset GPIO pin".
+Depends on patch 1/4 "ARM: OMAP1: ams-delta: set up regulator over modem
+reset GPIO pin" to apply cleanly, and requires patch 2/4 "ASoC: cx20442:
+add bias control over a platform provided regulator" for the sound card
+/ codec bundle to still work correctly in coexistence with the modem.
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- sound/soc/codecs/cx20442.c |   58 ++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 56 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c |   20 +++++++++++++++-----
+ 1 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/sound/soc/codecs/cx20442.c b/sound/soc/codecs/cx20442.c
-index bc7067d..d159c23 100644
---- a/sound/soc/codecs/cx20442.c
-+++ b/sound/soc/codecs/cx20442.c
-@@ -16,6 +16,7 @@
- #include <linux/tty.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/regulator/consumer.h>
+diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+index b5a1a3b..9b52aeb 100644
+--- a/arch/arm/mach-omap1/board-ams-delta.c
++++ b/arch/arm/mach-omap1/board-ams-delta.c
+@@ -528,6 +528,14 @@ static void __init ams_delta_init(void)
+ 	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
+ }
  
- #include <sound/core.h>
- #include <sound/initval.h>
-@@ -25,8 +26,12 @@
- 
- 
- struct cx20442_priv {
--	enum snd_soc_control_type control_type;
- 	void *control_data;
-+	struct {
-+		struct mutex lock;
-+		struct regulator *regulator;
-+		bool enabled;
-+	} por;
- };
- 
- #define CX20442_PM		0x0
-@@ -324,6 +329,41 @@ static struct snd_soc_dai_driver cx20442_dai = {
- 	},
- };
- 
-+static int cx20442_set_bias_level(struct snd_soc_codec *codec,
-+		enum snd_soc_bias_level level)
++static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
 +{
-+	struct cx20442_priv *cx20442 = snd_soc_codec_get_drvdata(codec);
-+	int err = 0;
++	struct regulator_consumer_data *consumer = port->private_data;
 +
-+	mutex_lock(&cx20442->por.lock);
-+	switch (level) {
-+	case SND_SOC_BIAS_ON:
-+	case SND_SOC_BIAS_PREPARE:
-+		if (IS_ERR(cx20442->por.regulator)) {
-+			err = PTR_ERR(cx20442->por.regulator);
-+		} else if (!cx20442->por.enabled) {
-+			err = regulator_enable(cx20442->por.regulator);
-+			if (!err)
-+				cx20442->por.enabled = true;
-+		}
-+		break;
-+	case SND_SOC_BIAS_STANDBY:
-+	case SND_SOC_BIAS_OFF:
-+		if (IS_ERR(cx20442->por.regulator)) {
-+			err = PTR_ERR(cx20442->por.regulator);
-+		} else if (cx20442->por.enabled) {
-+			err = regulator_disable(cx20442->por.regulator);
-+			if (!err)
-+				cx20442->por.enabled = false;
-+		}
-+	}
-+	mutex_unlock(&cx20442->por.lock);
-+	if (!err)
-+		codec->dapm.bias_level = level;
-+
-+	return err;
++	if (state != old)
++		regulator_toggle(consumer, state == 0);
 +}
 +
- static int cx20442_codec_probe(struct snd_soc_codec *codec)
- {
- 	struct cx20442_priv *cx20442;
-@@ -331,9 +371,12 @@ static int cx20442_codec_probe(struct snd_soc_codec *codec)
- 	cx20442 = kzalloc(sizeof(struct cx20442_priv), GFP_KERNEL);
- 	if (cx20442 == NULL)
- 		return -ENOMEM;
--	snd_soc_codec_set_drvdata(codec, cx20442);
- 
-+	mutex_init(&cx20442->por.lock);
-+	cx20442->por.regulator = regulator_get(codec->dev, "POR");
- 	cx20442->control_data = NULL;
-+
-+	snd_soc_codec_set_drvdata(codec, cx20442);
- 	codec->hw_write = NULL;
- 	codec->card->pop_time = 0;
- 
-@@ -350,6 +393,16 @@ static int cx20442_codec_remove(struct snd_soc_codec *codec)
- 			tty_hangup(tty);
+ static struct plat_serial8250_port ams_delta_modem_ports[] = {
+ 	{
+ 		.membase	= IOMEM(MODEM_VIRT),
+@@ -538,6 +546,8 @@ static struct plat_serial8250_port ams_delta_modem_ports[] = {
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 1,
+ 		.uartclk	= BASE_BAUD * 16,
++		.pm		= modem_pm,
++		.private_data	= &modem_nreset,
+ 	},
+ 	{ },
+ };
+@@ -582,9 +592,8 @@ static int __init late_init(void)
  	}
+ 	gpio_direction_input(AMS_DELTA_GPIO_PIN_MODEM_IRQ);
  
-+	mutex_lock(&cx20442->por.lock);
-+	if (!IS_ERR(cx20442->por.regulator)) {
-+		if (cx20442->por.enabled)
-+			regulator_disable(cx20442->por.regulator);
-+		regulator_put(cx20442->por.regulator);
-+		cx20442->por.regulator = ERR_PTR(-ENODEV);
-+	}
-+	mutex_unlock(&cx20442->por.lock);
-+
-+	snd_soc_codec_set_drvdata(codec, NULL);
- 	kfree(cx20442);
- 	return 0;
- }
-@@ -359,6 +412,7 @@ static const u8 cx20442_reg;
- static struct snd_soc_codec_driver cx20442_codec_dev = {
- 	.probe = 	cx20442_codec_probe,
- 	.remove = 	cx20442_codec_remove,
-+	.set_bias_level = cx20442_set_bias_level,
- 	.reg_cache_default = &cx20442_reg,
- 	.reg_cache_size = 1,
- 	.reg_word_size = sizeof(u8),
+-	ams_delta_latch2_write(
+-		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+-		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
++	ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_CODEC,
++			AMS_DELTA_LATCH2_MODEM_CODEC);
+ 
+ 	err = platform_device_register(&ams_delta_modem_device);
+ 	if (err)
+@@ -593,8 +602,9 @@ static int __init late_init(void)
+ 	/*
+ 	 * Once the modem device is registered, the modem_nreset
+ 	 * regulator can be requested on behalf of that device.
+-	 * The regulator is used via ams_delta_latch_write()
+-	 * by the modem and ASoC drivers until updated.
++	 * In addition to the modem .pm callback, that regulator
++	 * is still used via the ams_delta_latch_write() wrapper
++	 * by the ASoC driver until updated.
+ 	 */
+ 	mutex_init(&modem_nreset.lock);
+ 	modem_nreset.regulator = regulator_get(&ams_delta_modem_device.dev,
 -- 
 1.7.3.4
