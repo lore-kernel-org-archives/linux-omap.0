@@ -1,49 +1,43 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/2] MFD: TPS65217: Add new mfd device for TPS65217
-Date: Fri, 23 Dec 2011 10:49:18 +0000
-Message-ID: <20111223104918.GD2834@opensource.wolfsonmicro.com>
-References: <1324617679-14301-1-git-send-email-anilkumar@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: problem with twl4030 GPIO irqs
+Date: Fri, 23 Dec 2011 12:57:28 +0200
+Message-ID: <CANOLnON4P7ZQpCtUz8TOFHDd+1SQuJzLS=FVeHKPJ2_e0EiL9g@mail.gmail.com>
+References: <CANOLnON1-vg45KWZ7Rp+jL1n-jwBiTA2Qmkr_z1XnDKQ0XBPJw@mail.gmail.com>
+	<20111216115032.4c4dfbb5@notabene.brown>
+	<CANOLnOOxBT=AS=C3sNKecYdCHmpFBZ1-Tr+YkOrp7jzq9BMgCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:42664 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753918Ab1LWKtW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Dec 2011 05:49:22 -0500
-Content-Disposition: inline
-In-Reply-To: <1324617679-14301-1-git-send-email-anilkumar@ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:38027 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754141Ab1LWK5a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Dec 2011 05:57:30 -0500
+Received: by eekc4 with SMTP id c4so9203543eek.19
+        for <linux-omap@vger.kernel.org>; Fri, 23 Dec 2011 02:57:29 -0800 (PST)
+In-Reply-To: <CANOLnOOxBT=AS=C3sNKecYdCHmpFBZ1-Tr+YkOrp7jzq9BMgCg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: sameo@linux.intel.com, lrg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+To: NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Fri, Dec 23, 2011 at 10:51:19AM +0530, AnilKumar Ch wrote:
-> The TPS65217 chip is a power management IC for Portable Navigation Systems
-> and Tablet Computing devices. It contains the following components:
+Neil,
 
-I can't help but thinking that there ought to be more code sharing
-between the various TI PMIC drivers.
+> On Fri, Dec 16, 2011 at 2:50 AM, NeilBrown <neilb@suse.de> wrote:
+>> Try this.
+>>
+>> I wrote it for a slightly different reason, but I think it applies h=
+ere.
+>>
 
-> +static int tps65217_i2c_read_device(struct tps65217_dev *tps65217, char reg,
-> +				  int bytes, void *dest)
-> +{
-> +	struct i2c_client *i2c = tps65217->i2c_client;
-> +	struct i2c_msg xfer[2];
-> +	int ret;
+Could you submit this to mmc list please? It's no fun without working
+mmc driver, maybe it can still make in to the upcoming merge window.
 
-Use regmap for the register I/O, this will save a lot of code and will
-also give access to things like the register cache code.
 
-> +	tps65217 = kzalloc(sizeof(struct tps65217_dev), GFP_KERNEL);
-> +	if (tps65217 == NULL)
-> +		return -ENOMEM;
-
-Use devm_kzalloc(), it saves all the unwinding code.
-
-> +/* All register addresses */
-> +#define TPS65217_REG_CHIPID		0X00
-
-You should verify this as part of the probe() routine - read it back to
-make sure it's what's expected, and log the chip revision too in case it
-is useful for diagnostics.
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
