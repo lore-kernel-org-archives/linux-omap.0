@@ -1,38 +1,63 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH v4 4/4] OMAP3/4: iommu: adapt to runtime pm
-Date: Sat, 24 Dec 2011 18:03:24 -0600
-Message-ID: <CAB-zwWicBq8sUZCiRLP_6QX3jL7gsTvF0-NP1r+AvDWP+aWsMg@mail.gmail.com>
-References: <1323922709-6986-1-git-send-email-omar.ramirez@ti.com>
-	<1323922709-6986-5-git-send-email-omar.ramirez@ti.com>
-	<CAMP44s3Jb9DZLUyDVU_HmQbaJKp=2qym7Z6uauNchJh0fPL4hQ@mail.gmail.com>
-	<CAB-zwWhpmwRP2mNu-CdX-RVgmTRjw0UsYckAVsM+qztmVdvc7A@mail.gmail.com>
-	<CAMP44s0hYWiZ8OnjQ6Jy_W7MCveP+WyHG18Tt2jRGzxSwoQP3w@mail.gmail.com>
-	<CAB-zwWio5iMTyofv3Hx5Q7G7rYY5cRU4kXNQzMF0NRprEd8=5g@mail.gmail.com>
-	<CAMP44s2JWRN4XVCVrbVUJwZK9zkT6p2dPnK2SPuZXJPj71c4Yg@mail.gmail.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2 0/2] arm:omap:am33xx: Add voltage and power domain data
+Date: Sun, 25 Dec 2011 14:30:26 +0530
+Message-ID: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33568 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754846Ab1LYADr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Dec 2011 19:03:47 -0500
-In-Reply-To: <CAMP44s2JWRN4XVCVrbVUJwZK9zkT6p2dPnK2SPuZXJPj71c4Yg@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:34281 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105Ab1LYJAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Dec 2011 04:00:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, iommu@lists.linux-foundation.org, MyungJoo Ham <myungjoo.ham@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Fri, Dec 23, 2011 at 11:04 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> Which omap-iommu? The platform driver, or the device stuff? The device
-> stuff is always built-in, but not the platform driver
-> (drivers/iommu/omap-iommu.c), that can be a module.
+Last time I had submitted a big patch-series, almost changing >7.5K lines
+for AM33XX voltage, power, clock and HWMOD data support (as a RFC);
+which I believe is very hard to review and difficult to manage also.
+So I decided to split the patches as and when they are clean
+and ready for review/merge/acceptance,
+    - Voltage and Power data (ready)
+    - Clock (common-clk migration) and HWMOD
 
-Both, I can't recall exactly when it changed (prior to being moved to
-drivers/iommu it could be built as a module), but now
-CONFIG_OMAP_IOMMU is boolean type.
+This patch-series is created on top of my last patch submitted
+for OMAP4 PRM cleanup for PWRSTCTRL & PWRSTST -
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60468.html
 
-Regards,
+As always, I maintain a seperate git repository where you can find
+these patches + some patches to get AM335xEVM/BeagleBone to boot cleanly.
 
-Omar
+http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=summary
+Branch - am335x-staging
+
+Link to first version (RFC version) -
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg58742.html
+
+Changes form V1:
+	- Splitted patchs based on dependencies.
+	- Incorporated all Kevin Hilman's review comments
+	  * Have only one patch for data and Makefile/Kconfig changes
+	  * Voltage Data: Add ".scalable = false" entry, to indicate
+	    clearly that scaling is not supported yet.
+	- Reuse all OMAP4 PRM implementation
+	  * Thanks to Kevin and Rajendra for helping me out in this.
+
+Vaibhav Hiremath (2):
+  arm:omap:am33xx: Add voltage domain data
+  arm:omap:am33xx: Add power domain data
+
+ arch/arm/mach-omap2/Makefile                  |    5 +
+ arch/arm/mach-omap2/io.c                      |    2 +
+ arch/arm/mach-omap2/omap_hwmod.c              |    1 +
+ arch/arm/mach-omap2/powerdomain.h             |    5 +-
+ arch/arm/mach-omap2/powerdomains33xx_data.c   |  134 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm33xx.h                 |  118 ++++++++++++++++++++++
+ arch/arm/mach-omap2/voltage.h                 |    1 +
+ arch/arm/mach-omap2/voltagedomains33xx_data.c |   46 +++++++++
+ 8 files changed, 310 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/powerdomains33xx_data.c
+ create mode 100644 arch/arm/mach-omap2/prm33xx.h
+ create mode 100644 arch/arm/mach-omap2/voltagedomains33xx_data.c
+
