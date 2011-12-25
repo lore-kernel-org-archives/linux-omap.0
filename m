@@ -1,231 +1,38 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 4/4] ASoC: OMAP: ams-delta: drop .set_bias_level callback
-Date: Sat, 24 Dec 2011 00:12:24 +0100
-Message-ID: <1324681944-19067-5-git-send-email-jkrzyszt@tis.icnet.pl>
-References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v4 4/4] OMAP3/4: iommu: adapt to runtime pm
+Date: Sat, 24 Dec 2011 18:03:24 -0600
+Message-ID: <CAB-zwWicBq8sUZCiRLP_6QX3jL7gsTvF0-NP1r+AvDWP+aWsMg@mail.gmail.com>
+References: <1323922709-6986-1-git-send-email-omar.ramirez@ti.com>
+	<1323922709-6986-5-git-send-email-omar.ramirez@ti.com>
+	<CAMP44s3Jb9DZLUyDVU_HmQbaJKp=2qym7Z6uauNchJh0fPL4hQ@mail.gmail.com>
+	<CAB-zwWhpmwRP2mNu-CdX-RVgmTRjw0UsYckAVsM+qztmVdvc7A@mail.gmail.com>
+	<CAMP44s0hYWiZ8OnjQ6Jy_W7MCveP+WyHG18Tt2jRGzxSwoQP3w@mail.gmail.com>
+	<CAB-zwWio5iMTyofv3Hx5Q7G7rYY5cRU4kXNQzMF0NRprEd8=5g@mail.gmail.com>
+	<CAMP44s2JWRN4XVCVrbVUJwZK9zkT6p2dPnK2SPuZXJPj71c4Yg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:36123 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757999Ab1LWXOb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Dec 2011 18:14:31 -0500
-In-Reply-To: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33568 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754846Ab1LYADr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 24 Dec 2011 19:03:47 -0500
+In-Reply-To: <CAMP44s2JWRN4XVCVrbVUJwZK9zkT6p2dPnK2SPuZXJPj71c4Yg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, iommu@lists.linux-foundation.org, MyungJoo Ham <myungjoo.ham@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-This functionality has just been implemented in the cx20442 codec
-driver, no need to keep it here duplicated.
+On Fri, Dec 23, 2011 at 11:04 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> Which omap-iommu? The platform driver, or the device stuff? The device
+> stuff is always built-in, but not the platform driver
+> (drivers/iommu/omap-iommu.c), that can be a module.
 
-Once done, remove the no longer needed AMS_DELTA_LATCH2_MODEM_NRESET
-symbol from the Amstrad Delta header file, and a call to the
-regulator_toggle() helper function from the old API wrapper found in the
-board file.  While being at it, move that function definition, together
-with the regulator consumer related data structure, down to the modem
-related section for better readability.
+Both, I can't recall exactly when it changed (prior to being moved to
+drivers/iommu it could be built as a module), but now
+CONFIG_OMAP_IOMMU is boolean type.
 
-Depends on patch 3/4 "ARM: OMAP1: ams-delta: update the modem to use
-regulator API"
+Regards,
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
- arch/arm/mach-omap1/board-ams-delta.c             |   75 ++++++++++-----------
- arch/arm/plat-omap/include/plat/board-ams-delta.h |    1 -
- sound/soc/omap/ams-delta.c                        |   34 ---------
- 3 files changed, 36 insertions(+), 74 deletions(-)
-
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 9b52aeb..945c4db 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -289,41 +289,6 @@ static struct platform_device modem_nreset_device = {
- 	},
- };
- 
--struct regulator_consumer_data {
--	struct mutex lock;
--	struct regulator *regulator;
--	bool enabled;
--};
--
--static int regulator_toggle(struct regulator_consumer_data *consumer,
--		bool enable)
--{
--	int err = 0;
--
--	if (!consumer->regulator)
--		return -ENODEV;
--
--	mutex_lock(&consumer->lock);
--	if (IS_ERR(consumer->regulator)) {
--		err = PTR_ERR(consumer->regulator);
--	} else if (enable) {
--		if (!consumer->enabled) {
--			err = regulator_enable(consumer->regulator);
--			consumer->enabled = true;
--		}
--	} else {
--		if (consumer->enabled) {
--			err = regulator_disable(consumer->regulator);
--			consumer->enabled = false;
--		}
--	}
--	mutex_unlock(&consumer->lock);
--
--	return err;
--}
--
--static struct regulator_consumer_data modem_nreset;
--
- void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value)
- {
- 	int bit = 0;
-@@ -333,7 +298,7 @@ void ams_delta_latch_write(int base, int ngpio, u16 mask, u16 value)
- 		if (!(mask & bitpos))
- 			continue;
- 		if (base + bit == AMS_DELTA_GPIO_PIN_MODEM_NRESET)
--			regulator_toggle(&modem_nreset, (value & bitpos) != 0);
-+			continue;
- 		else
- 			gpio_set_value(base + bit, (value & bitpos) != 0);
- 	}
-@@ -528,6 +493,39 @@ static void __init ams_delta_init(void)
- 	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
- }
- 
-+struct regulator_consumer_data {
-+	struct mutex lock;
-+	struct regulator *regulator;
-+	bool enabled;
-+};
-+
-+static int regulator_toggle(struct regulator_consumer_data *consumer,
-+		bool enable)
-+{
-+	int err = 0;
-+
-+	if (!consumer->regulator)
-+		return -ENODEV;
-+
-+	mutex_lock(&consumer->lock);
-+	if (IS_ERR(consumer->regulator)) {
-+		err = PTR_ERR(consumer->regulator);
-+	} else if (enable) {
-+		if (!consumer->enabled) {
-+			err = regulator_enable(consumer->regulator);
-+			consumer->enabled = true;
-+		}
-+	} else {
-+		if (consumer->enabled) {
-+			err = regulator_disable(consumer->regulator);
-+			consumer->enabled = false;
-+		}
-+	}
-+	mutex_unlock(&consumer->lock);
-+
-+	return err;
-+}
-+
- static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
- {
- 	struct regulator_consumer_data *consumer = port->private_data;
-@@ -536,6 +534,8 @@ static void modem_pm(struct uart_port *port, unsigned int state, unsigned old)
- 		regulator_toggle(consumer, state == 0);
- }
- 
-+static struct regulator_consumer_data modem_nreset;
-+
- static struct plat_serial8250_port ams_delta_modem_ports[] = {
- 	{
- 		.membase	= IOMEM(MODEM_VIRT),
-@@ -602,9 +602,6 @@ static int __init late_init(void)
- 	/*
- 	 * Once the modem device is registered, the modem_nreset
- 	 * regulator can be requested on behalf of that device.
--	 * In addition to the modem .pm callback, that regulator
--	 * is still used via the ams_delta_latch_write() wrapper
--	 * by the ASoC driver until updated.
- 	 */
- 	mutex_init(&modem_nreset.lock);
- 	modem_nreset.regulator = regulator_get(&ams_delta_modem_device.dev,
-diff --git a/arch/arm/plat-omap/include/plat/board-ams-delta.h b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-index 027e79e..ad6f865 100644
---- a/arch/arm/plat-omap/include/plat/board-ams-delta.h
-+++ b/arch/arm/plat-omap/include/plat/board-ams-delta.h
-@@ -30,7 +30,6 @@
- 
- #define AMD_DELTA_LATCH2_SCARD_RSTIN	0x0400
- #define AMD_DELTA_LATCH2_SCARD_CMDVCC	0x0800
--#define AMS_DELTA_LATCH2_MODEM_NRESET	0x1000
- #define AMS_DELTA_LATCH2_MODEM_CODEC	0x2000
- 
- #define AMS_DELTA_GPIO_PIN_KEYBRD_DATA	0
-diff --git a/sound/soc/omap/ams-delta.c b/sound/soc/omap/ams-delta.c
-index be81bc7..d213d04 100644
---- a/sound/soc/omap/ams-delta.c
-+++ b/sound/soc/omap/ams-delta.c
-@@ -426,31 +426,6 @@ static struct snd_soc_ops ams_delta_ops = {
- };
- 
- 
--/* Board specific codec bias level control */
--static int ams_delta_set_bias_level(struct snd_soc_card *card,
--				    struct snd_soc_dapm_context *dapm,
--				    enum snd_soc_bias_level level)
--{
--	struct snd_soc_codec *codec = card->rtd->codec;
--
--	switch (level) {
--	case SND_SOC_BIAS_ON:
--	case SND_SOC_BIAS_PREPARE:
--	case SND_SOC_BIAS_STANDBY:
--		if (codec->dapm.bias_level == SND_SOC_BIAS_OFF)
--			ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_NRESET,
--						AMS_DELTA_LATCH2_MODEM_NRESET);
--		break;
--	case SND_SOC_BIAS_OFF:
--		if (codec->dapm.bias_level != SND_SOC_BIAS_OFF)
--			ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_NRESET,
--						0);
--	}
--	codec->dapm.bias_level = level;
--
--	return 0;
--}
--
- /* Digital mute implemented using modem/CPU multiplexer.
-  * Shares hardware with codec config pulse generation */
- static bool ams_delta_muted = 1;
-@@ -514,9 +489,6 @@ static int ams_delta_cx20442_init(struct snd_soc_pcm_runtime *rtd)
- 		ams_delta_ops.shutdown = ams_delta_shutdown;
- 	}
- 
--	/* Set codec bias level */
--	ams_delta_set_bias_level(card, dapm, SND_SOC_BIAS_STANDBY);
--
- 	/* Add hook switch - can be used to control the codec from userspace
- 	 * even if line discipline fails */
- 	ret = snd_soc_jack_new(rtd->codec, "hook_switch",
-@@ -599,7 +571,6 @@ static struct snd_soc_card ams_delta_audio_card = {
- 	.name = "AMS_DELTA",
- 	.dai_link = &ams_delta_dai_link,
- 	.num_links = 1,
--	.set_bias_level = ams_delta_set_bias_level,
- };
- 
- /* Module init/exit */
-@@ -648,11 +619,6 @@ static void __exit ams_delta_module_exit(void)
- 			ARRAY_SIZE(ams_delta_hook_switch_gpios),
- 			ams_delta_hook_switch_gpios);
- 
--	/* Keep modem power on */
--	ams_delta_set_bias_level(&ams_delta_audio_card,
--				 &ams_delta_audio_card.rtd[0].codec->dapm,
--				 SND_SOC_BIAS_STANDBY);
--
- 	platform_device_unregister(cx20442_platform_device);
- 	platform_device_unregister(ams_delta_audio_platform_device);
- }
--- 
-1.7.3.4
-
+Omar
