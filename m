@@ -1,40 +1,47 @@
-From: "postcodesloetrij-  Bonus" <Postinfo@luckymail.com>
-Subject: End of year bonus!!
-Date: Sun, 25 Dec 2011 14:55:33 -0700
-Message-ID: <0bb7cee5361d32f4a30bf4aa2b0d9925.squirrel__18339.7121997134$1324851218$gmane$org@macmail.lakotanetwork.com>
-Reply-To: Postinfo@luckymail.com
+From: Alessandro Zummo <a.zummo@towertech.it>
+Subject: Re: [PATCH v2 04/10] rtc: rtc-twl: Add DT support for RTC inside
+ twl4030/twl6030
+Date: Mon, 26 Dec 2011 02:18:35 +0100
+Message-ID: <20111226021835.08c8205b@linux.lan.towertech.it>
+References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
+ <1323439361-1647-5-git-send-email-b-cousson@ti.com>
+ <4EEF6BCA.908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from filter3.e-filtering.net ([64.251.173.164]:41411 "EHLO
-	filter3.e-filtering.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753228Ab1LYWM5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 25 Dec 2011 17:12:57 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4EEF6BCA.908@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: rtc-linux@googlegroups.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-postcodesloetrij-  Bonus !!
+On Mon, 19 Dec 2011 17:52:26 +0100
+"Cousson, Benoit" <b-cousson@ti.com> wrote:
 
-Promotion advertisement !!: we are please to inform you that the
-Postcode-lottery yearly award award promotion program held 25th Dec  2011,
-have pronounce your e-mail address as the luckily winner of a total sum:
-of ?100,000(One Hundred Thousand Euros
-Only)
+> Hi Alessandro,
+> 
+> Gentle ping on this patch.
 
-Please email via BV Post-lottery Solicitors Fund Verification Department
-with your Serial-No:LE-0031#55330 for your claim,
+ Hi, 
 
-Office/Email:Postinfo@luckymail.com
-Tell:+31-645-764-338/Netherlands
+ Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 
-This program is organize to promote the postcode lottery company award
-yearly, and we are strictly and skeptical regard your winning information
-that  is why you are advice to forward your serial number the claim
-department only and without any dis-closer to any person /friends for
-security reason
+ Andrew will probably pick it up. ty.
 
-Sincerely,
-Mrs:Hase Van Willems
-Promotion Coordinator.
+-- 
 
+ Best regards,
+
+ Alessandro Zummo,
+  Tower Technologies - Torino, Italy
+
+  http://www.towertech.it
