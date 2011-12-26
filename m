@@ -1,47 +1,59 @@
-From: Alessandro Zummo <a.zummo@towertech.it>
-Subject: Re: [PATCH v2 04/10] rtc: rtc-twl: Add DT support for RTC inside
- twl4030/twl6030
-Date: Mon, 26 Dec 2011 02:18:35 +0100
-Message-ID: <20111226021835.08c8205b@linux.lan.towertech.it>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
- <1323439361-1647-5-git-send-email-b-cousson@ti.com>
- <4EEF6BCA.908@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/4] ASoC: cx20442: add bias control over a
+ platform provided regulator
+Date: Mon, 26 Dec 2011 11:02:01 +0000
+Message-ID: <20111226110201.GA8722@opensource.wolfsonmicro.com>
+References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4EEF6BCA.908@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: rtc-linux@googlegroups.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, rob.herring@calxeda.com, grant.likely@secretlab.ca, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 19 Dec 2011 17:52:26 +0100
-"Cousson, Benoit" <b-cousson@ti.com> wrote:
+On Sat, Dec 24, 2011 at 12:12:22AM +0100, Janusz Krzysztofik wrote:
 
-> Hi Alessandro,
-> 
-> Gentle ping on this patch.
+> +	case SND_SOC_BIAS_ON:
+> +	case SND_SOC_BIAS_PREPARE:
+> +		if (IS_ERR(cx20442->por.regulator)) {
+> +			err = PTR_ERR(cx20442->por.regulator);
+> +		} else if (!cx20442->por.enabled) {
+> +			err = regulator_enable(cx20442->por.regulator);
+> +			if (!err)
+> +				cx20442->por.enabled = true;
+> +		}
+> +		break;
+> +	case SND_SOC_BIAS_STANDBY:
+> +	case SND_SOC_BIAS_OFF:
+> +		if (IS_ERR(cx20442->por.regulator)) {
+> +			err = PTR_ERR(cx20442->por.regulator);
+> +		} else if (cx20442->por.enabled) {
+> +			err = regulator_disable(cx20442->por.regulator);
+> +			if (!err)
+> +				cx20442->por.enabled = false;
+> +		}
+> +	}
+> +	mutex_unlock(&cx20442->por.lock);
 
- Hi, 
+You can avoid the mutex and simplify the code by relying on the fact
+that the only possible transitions are:
 
- Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+   OFF <-> STANDBY <-> PREPARE <-> ON
 
- Andrew will probably pick it up. ty.
-
--- 
-
- Best regards,
-
- Alessandro Zummo,
-  Tower Technologies - Torino, Italy
-
-  http://www.towertech.it
+which would look a lot more natural - you shouldn't need to remember if
+the regulator is enabled, you should just turn it on in the STANDBY to
+PREPARE transition and turn it off in the ON to PREPARE or PREPARE to
+STANDBY transitions.
