@@ -1,57 +1,34 @@
 From: Ilya Yanok <yanok@emcraft.com>
-Subject: [PATCH] OMAPDSS: add OrtusTech COM43H4M10XTC display support
-Date: Mon, 26 Dec 2011 23:56:41 +0100
-Message-ID: <1324940201-16079-1-git-send-email-yanok@emcraft.com>
+Subject: [PATCH 0/2] Support for TeeJet Mt.Ventoux
+Date: Tue, 27 Dec 2011 00:08:30 +0100
+Message-ID: <1324940912-18164-1-git-send-email-yanok@emcraft.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:41788 "EHLO
+Received: from mail-out.m-online.net ([212.18.0.9]:55906 "EHLO
 	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab1LZW44 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Dec 2011 17:56:56 -0500
+	with ESMTP id S1752552Ab1LZXIm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Dec 2011 18:08:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
-Cc: sasha_d@emcraft.com, Ilya Yanok <yanok@emcraft.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
+Cc: sasha_d@emcraft.com, Ilya Yanok <yanok@emcraft.com>
 
-dd data for the OrtusTech COM43H4M10XTC display to the
-generic_dpi_panel driver.
+Split into two parts:
+ 1. Device tree only to be used with board-generic (only serial works)
+ 2. Full board support via custom machine file for board-testing
 
-CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Signed-off-by: Ilya Yanok <yanok@emcraft.com>
----
- drivers/video/omap2/displays/panel-generic-dpi.c |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+Ilya Yanok (2):
+  mt_ventoux: very basic support for TeeJet Mt.Ventoux board
+  mt_ventoux: support for TeeJet Mt.Ventoux board
 
-diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/video/omap2/displays/panel-generic-dpi.c
-index 593f831..99669ae 100644
---- a/drivers/video/omap2/displays/panel-generic-dpi.c
-+++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-@@ -317,6 +317,26 @@ static struct panel_config generic_dpi_panels[] = {
- 					  OMAP_DSS_LCD_IHS,
- 		.name			= "focaltech_etm070003dh6",
- 	},
-+	/* OrtusTech COM43H4M10XTC */
-+	{
-+		{
-+			.x_res		= 480,
-+			.y_res		= 272,
-+
-+			.pixel_clock	= 8000,
-+
-+			.hsw		= 41,
-+			.hfp		= 8,
-+			.hbp		= 4,
-+
-+			.vsw		= 10,
-+			.vfp		= 4,
-+			.vbp		= 2,
-+		},
-+		.config			= OMAP_DSS_LCD_TFT,
-+
-+		.name			= "ortustech_com43h4m10xtc",
-+	},
- };
- 
- struct panel_drv_data {
+ arch/arm/boot/dts/am3517_mt_ventoux.dts       |   27 +
+ arch/arm/mach-omap2/Kconfig                   |    6 +
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/board-am3517_mt_ventoux.c |  708 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/uncompress.h  |    1 +
+ 5 files changed, 743 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/am3517_mt_ventoux.dts
+ create mode 100644 arch/arm/mach-omap2/board-am3517_mt_ventoux.c
+
 -- 
 1.7.6.4
 
