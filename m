@@ -1,55 +1,67 @@
-From: Barry Song <21cnbao@gmail.com>
-Subject: Re: [PATCH v5 REPOST 1/5] ARM: l2x0/pl310: Refactor Kconfig to be
- more maintainable
-Date: Tue, 27 Dec 2011 20:40:31 +0800
-Message-ID: <CAGsJ_4wFZHrnKv-aYkm11iHjgmjgHZQ3UJ2yofC2fPYa+RMidg@mail.gmail.com>
-References: <1324053332-6431-1-git-send-email-dave.martin@linaro.org>
- <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 2/4] ASoC: cx20442: add bias control over a
+	platform provided regulator
+Date: Tue, 27 Dec 2011 15:16:08 +0100
+Message-ID: <201112271516.09114.jkrzyszt@tis.icnet.pl>
+References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
+	<20111226110201.GA8722@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Linus Walleij <linus.walleij@linaro.org>, Anton Vorontsov <cbouatmailru@gmail.com>, Will Deacon <will.deacon@arm.com>, Daniel Walker <dwalker@fifo99.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, David Brown <davidb@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, linux-arm-msm@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>, Barry Song <baohua.song@csr.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infra
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20111226110201.GA8722@opensource.wolfsonmicro.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-MjAxMS8xMi8xNyBEYXZlIE1hcnRpbiA8ZGF2ZS5tYXJ0aW5AbGluYXJvLm9yZz46Cj4gTWFraW5n
-IENBQ0hFX0wyWDAgZGVwZW5kIG9uIChodWdlIGxpc3Qgb2YgTUFDSF8gYW5kIEFSQ0hfIGNvbmZp
-Z3MpCj4gaXMgYm90aGVyc29tZSB0byBtYWludGFpbiBhbmQgbGlrZWx5IHRvIGxlYWQgdG8gbWVy
-Z2UgY29uZmxpY3RzLgo+Cj4gVGhpcyBwYXRjaCBtb3ZlcyB0aGUga25vd2xlZGdlIG9mIHdoaWNo
-IHBsYXRmb3JtcyBoYXZlIGEgTDJ4MCBvcgo+IFBMMzEwIGNhY2hlIGNvbnRyb2xsZXIgdG8gdGhl
-IGluZGl2aWR1YWwgbWFjaGluZXMuIMKgVG8gZW5hYmxlIHRoaXMsCj4gYSBuZXcgTUlHSFRfSEFW
-RV9DQUNIRV9MMlgwIGNvbmZpZyBvcHRpb24gaXMgaW50cm9kdWNlZCB0byBhbGxvdwo+IG1hY2hp
-bmVzIHRvIGluZGljYXRlIHRoYXQgdGhleSBtYXkgaGF2ZSBzdWNoIGEgY2FjaGUgY29udHJvbGxl
-cgo+IGluZGVwZW5kZW50bHkgb2YgZWFjaCBvdGhlci4KPgo+IEJvYXJkcy9Tb0NzIHdoaWNoIGNh
-bm5vdCByZWxpYWJseSBvcGVyYXRlIHdpdGhvdXQgdGhlIEwyIGNhY2hlCj4gY29udHJvbGxlciBz
-dXBwb3J0IHdpbGwgbmVlZCB0byBzZWxlY3QgQ0FDSEVfTDJYMCBkaXJlY3RseSBmcm9tCj4gdGhl
-aXIgb3duIEtjb25maWdzIGluc3RlYWQuIMKgVGhpcyBhcHBsaWVzIHRvIHNvbWUgVHJ1c3Rab25l
-LWVuYWJsZWQKPiBib2FyZHMgd2hlcmUgTGludXggcnVucyBpbiB0aGUgTm9ybWFsIFdvcmxkLCBm
-b3IgZXhhbXBsZS4KPgo+IFNpZ25lZC1vZmYtYnk6IERhdmUgTWFydGluIDxkYXZlLm1hcnRpbkBs
-aW5hcm8ub3JnPgo+IEFja2VkLWJ5OiBBbnRvbiBWb3JvbnRzb3YgPGNib3VhdG1haWxydUBnbWFp
-bC5jb20+Cj4gwqAgwqAgwqAgwqAoZm9yIGNuczN4eHgpCj4gQWNrZWQtYnk6IFRvbnkgTGluZGdy
-ZW4gPHRvbnlAYXRvbWlkZS5jb20+Cj4gwqAgwqAgwqAgwqAoZm9yIG9tYXApCj4gQWNrZWQtYnk6
-IFNoYXduIEd1byA8c2hhd24uZ3VvQGxpbmFyby5vcmc+Cj4gwqAgwqAgwqAgwqAoZm9yIGlteCkK
-CkFja2VkLWJ5OiBCYXJyeSBTb25nIDxiYW9odWEuc29uZ0Bjc3IuY29tPgogICAgICAgIChmb3Ig
-cHJpbWEyKQo+IC0tLQo+IMKgYXJjaC9hcm0vS2NvbmZpZyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB8
-IMKgIMKgOCArKysrKysrKwo+IMKgYXJjaC9hcm0vbWFjaC1leHlub3MvS2NvbmZpZyDCoCB8IMKg
-IMKgMSArCj4gwqBhcmNoL2FybS9tYWNoLW9tYXAyL0tjb25maWcgwqAgwqB8IMKgIMKgMSArCj4g
-wqBhcmNoL2FybS9tYWNoLXJlYWx2aWV3L0tjb25maWcgfCDCoCDCoDUgKysrKysKPiDCoGFyY2gv
-YXJtL21hY2gtdmV4cHJlc3MvS2NvbmZpZyB8IMKgIMKgMSArCj4gwqBhcmNoL2FybS9tbS9LY29u
-ZmlnIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCAyMyArKysrKysrKysrKysrKysrLS0tLS0tLQo+IMKg
-YXJjaC9hcm0vcGxhdC1teGMvS2NvbmZpZyDCoCDCoCDCoHwgwqAgwqAxICsKPiDCoDcgZmlsZXMg
-Y2hhbmdlZCwgMzMgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKPgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
-aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Monday 26 of December 2011 at 12:02:01, Mark Brown wrote:
+> On Sat, Dec 24, 2011 at 12:12:22AM +0100, Janusz Krzysztofik wrote:
+> 
+> > +	case SND_SOC_BIAS_ON:
+> > +	case SND_SOC_BIAS_PREPARE:
+> > +		if (IS_ERR(cx20442->por.regulator)) {
+> > +			err = PTR_ERR(cx20442->por.regulator);
+> > +		} else if (!cx20442->por.enabled) {
+> > +			err = regulator_enable(cx20442->por.regulator);
+> > +			if (!err)
+> > +				cx20442->por.enabled = true;
+> > +		}
+> > +		break;
+> > +	case SND_SOC_BIAS_STANDBY:
+> > +	case SND_SOC_BIAS_OFF:
+> > +		if (IS_ERR(cx20442->por.regulator)) {
+> > +			err = PTR_ERR(cx20442->por.regulator);
+> > +		} else if (cx20442->por.enabled) {
+> > +			err = regulator_disable(cx20442->por.regulator);
+> > +			if (!err)
+> > +				cx20442->por.enabled = false;
+> > +		}
+> > +	}
+> > +	mutex_unlock(&cx20442->por.lock);
+> 
+> You can avoid the mutex and simplify the code by relying on the fact
+> that the only possible transitions are:
+> 
+>    OFF <-> STANDBY <-> PREPARE <-> ON
+> 
+> which would look a lot more natural - you shouldn't need to remember if
+> the regulator is enabled, you should just turn it on in the STANDBY to
+> PREPARE transition and turn it off in the ON to PREPARE or PREPARE to
+> STANDBY transitions.
+
+Can I assume STANDBY or OFF at the time the codec .remove method is 
+called? If not, is there a helper function available which can be called 
+in order to perform all those ON -> PREPARE -> STANDBY [-> OFF] transitions before calling regulator_put()?
+
+Thanks,
+Janusz
