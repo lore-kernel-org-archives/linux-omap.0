@@ -1,14 +1,14 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v9 REPOST 20/25] gpio/omap: fix incorrect access of debounce module
-Date: Tue, 27 Dec 2011 21:39:31 +0530
-Message-ID: <1325002176-25626-21-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v9 REPOST 21/25] gpio/omap: remove omap_gpio_save_context overhead
+Date: Tue, 27 Dec 2011 21:39:32 +0530
+Message-ID: <1325002176-25626-22-git-send-email-tarun.kanti@ti.com>
 References: <1325002176-25626-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52275 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43101 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754420Ab1L0QJy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754609Ab1L0QJy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 27 Dec 2011 11:09:54 -0500
 In-Reply-To: <1325002176-25626-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,62 +16,181 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Enable debounce clock before writing/reading debounce registers.
-Disable the clock at the end so that it is synchronized with the
-pm_runtime_get/put_sync calls.
-
-Enable debounce clock per module. This call is mandatory because
-in omap_gpio_request() when *_runtime_get_sync() is called,
-_gpio_dbck_enable() within runtime callbck fails to turn on dbck
- because dbck_enable_mask used within _gpio_dbck_enable() is still
-not initialized at that point. Therefore we have to enable dbck here.
+Context is now saved dynamically in respective functions whenever and
+whichever registers are modified. This avoid overhead of saving all
+registers context in the runtime suspend callback.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/gpio/gpio-omap.c |   56 +++++++++++++++++++++++-----------------------
+ 1 files changed, 28 insertions(+), 28 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 0ea3dc9..7515382 100644
+index 7515382..4056d78 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -203,22 +203,30 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
- 
- 	l = GPIO_BIT(bank, gpio);
- 
-+	clk_enable(bank->dbck);
- 	reg = bank->base + bank->regs->debounce;
- 	__raw_writel(debounce, reg);
- 
- 	reg = bank->base + bank->regs->debounce_en;
- 	val = __raw_readl(reg);
- 
--	if (debounce) {
-+	if (debounce)
- 		val |= l;
--		clk_enable(bank->dbck);
--	} else {
-+	else
- 		val &= ~l;
--		clk_disable(bank->dbck);
--	}
- 	bank->dbck_enable_mask = val;
- 
- 	__raw_writel(val, reg);
-+	clk_disable(bank->dbck);
-+	/*
-+	 * Enable debounce clock per module.
-+	 * This call is mandatory because in omap_gpio_request() when
-+	 * *_runtime_get_sync() is called,  _gpio_dbck_enable() within
-+	 * runtime callbck fails to turn on dbck because dbck_enable_mask
-+	 * used within _gpio_dbck_enable() is still not initialized at
-+	 * that point. Therefore we have to enable dbck here.
-+	 */
-+	_gpio_dbck_enable(bank);
+@@ -101,6 +101,7 @@ static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
+ 	else
+ 		l &= ~(1 << gpio);
+ 	__raw_writel(l, reg);
++	bank->context.oe = l;
  }
  
- static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 
+@@ -131,6 +132,7 @@ static void _set_gpio_dataout_mask(struct gpio_bank *bank, int gpio, int enable)
+ 	else
+ 		l &= ~gpio_bit;
+ 	__raw_writel(l, reg);
++	bank->context.dataout = l;
+ }
+ 
+ static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
+@@ -244,8 +246,20 @@ static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
+ 	_gpio_rmw(base, bank->regs->fallingdetect, gpio_bit,
+ 		  trigger & IRQ_TYPE_EDGE_FALLING);
+ 
+-	if (likely(!(bank->non_wakeup_gpios & gpio_bit)))
++	bank->context.leveldetect0 =
++			__raw_readl(bank->base + bank->regs->leveldetect0);
++	bank->context.leveldetect1 =
++			__raw_readl(bank->base + bank->regs->leveldetect1);
++	bank->context.risingdetect =
++			__raw_readl(bank->base + bank->regs->risingdetect);
++	bank->context.fallingdetect =
++			__raw_readl(bank->base + bank->regs->fallingdetect);
++
++	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
+ 		_gpio_rmw(base, bank->regs->wkup_en, gpio_bit, trigger != 0);
++		bank->context.wake_en =
++			__raw_readl(bank->base + bank->regs->wkup_en);
++	}
+ 
+ 	/* This part needs to be executed always for OMAP{34xx, 44xx} */
+ 	if (!bank->regs->irqctrl) {
+@@ -338,6 +352,8 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+ 
+ 		/* Enable wake-up during idle for dynamic tick */
+ 		_gpio_rmw(base, bank->regs->wkup_en, 1 << gpio, trigger);
++		bank->context.wake_en =
++			__raw_readl(bank->base + bank->regs->wkup_en);
+ 		__raw_writel(l, reg);
+ 	}
+ 	return 0;
+@@ -430,6 +446,7 @@ static void _enable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 	}
+ 
+ 	__raw_writel(l, reg);
++	bank->context.irqenable1 = l;
+ }
+ 
+ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+@@ -450,6 +467,7 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 	}
+ 
+ 	__raw_writel(l, reg);
++	bank->context.irqenable1 = l;
+ }
+ 
+ static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
+@@ -541,6 +559,7 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+ 		/* Module is enabled, clocks are not gated */
+ 		ctrl &= ~GPIO_MOD_CTRL_BIT;
+ 		__raw_writel(ctrl, reg);
++		bank->context.ctrl = ctrl;
+ 	}
+ 
+ 	bank->mod_usage |= 1 << offset;
+@@ -558,9 +577,12 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 
+-	if (bank->regs->wkup_en)
++	if (bank->regs->wkup_en) {
+ 		/* Disable wake-up during idle for dynamic tick */
+ 		_gpio_rmw(base, bank->regs->wkup_en, 1 << offset, 0);
++		bank->context.wake_en =
++			__raw_readl(bank->base + bank->regs->wkup_en);
++	}
+ 
+ 	bank->mod_usage &= ~(1 << offset);
+ 
+@@ -572,6 +594,7 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
+ 		/* Module is disabled, clocks are gated */
+ 		ctrl |= GPIO_MOD_CTRL_BIT;
+ 		__raw_writel(ctrl, reg);
++		bank->context.ctrl = ctrl;
+ 	}
+ 
+ 	_reset_gpio(bank, bank->chip.base + offset);
+@@ -1157,7 +1180,6 @@ static int omap_gpio_resume(struct device *dev)
+ }
+ 
+ 
+-static void omap_gpio_save_context(struct gpio_bank *bank);
+ static void omap_gpio_restore_context(struct gpio_bank *bank);
+ 
+ static int omap_gpio_runtime_suspend(struct device *dev)
+@@ -1170,7 +1192,7 @@ static int omap_gpio_runtime_suspend(struct device *dev)
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	if (bank->power_mode != OFF_MODE) {
+ 		bank->power_mode = 0;
+-		goto save_gpio_context;
++		goto update_gpio_context_count;
+ 	}
+ 	/*
+ 	 * If going to OFF, remove triggering for all
+@@ -1178,7 +1200,7 @@ static int omap_gpio_runtime_suspend(struct device *dev)
+ 	 * generated.  See OMAP2420 Errata item 1.101.
+ 	 */
+ 	if (!(bank->enabled_non_wakeup_gpios))
+-		goto save_gpio_context;
++		goto update_gpio_context_count;
+ 
+ 	bank->saved_datain = __raw_readl(bank->base +
+ 						bank->regs->datain);
+@@ -1195,12 +1217,11 @@ static int omap_gpio_runtime_suspend(struct device *dev)
+ 
+ 	bank->workaround_enabled = true;
+ 
+-save_gpio_context:
++update_gpio_context_count:
+ 	if (bank->get_context_loss_count)
+ 		bank->context_loss_count =
+ 				bank->get_context_loss_count(bank->dev);
+ 
+-	omap_gpio_save_context(bank);
+ 	_gpio_dbck_disable(bank);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+@@ -1319,27 +1340,6 @@ void omap2_gpio_resume_after_idle(void)
+ 	}
+ }
+ 
+-static void omap_gpio_save_context(struct gpio_bank *bank)
+-{
+-	bank->context.irqenable1 =
+-			__raw_readl(bank->base + bank->regs->irqenable);
+-	bank->context.irqenable2 =
+-			__raw_readl(bank->base + bank->regs->irqenable2);
+-	bank->context.wake_en =
+-			__raw_readl(bank->base + bank->regs->wkup_en);
+-	bank->context.ctrl = __raw_readl(bank->base + bank->regs->ctrl);
+-	bank->context.oe = __raw_readl(bank->base + bank->regs->direction);
+-	bank->context.leveldetect0 =
+-			__raw_readl(bank->base + bank->regs->leveldetect0);
+-	bank->context.leveldetect1 =
+-			__raw_readl(bank->base + bank->regs->leveldetect1);
+-	bank->context.risingdetect =
+-			__raw_readl(bank->base + bank->regs->risingdetect);
+-	bank->context.fallingdetect =
+-			__raw_readl(bank->base + bank->regs->fallingdetect);
+-	bank->context.dataout = __raw_readl(bank->base + bank->regs->dataout);
+-}
+-
+ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ {
+ 	__raw_writel(bank->context.irqenable1,
 -- 
 1.7.0.4
 
