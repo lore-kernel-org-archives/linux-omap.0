@@ -1,56 +1,42 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v9 REPOST 24/25] gpio/omap: restore OE only after setting the output level
-Date: Tue, 27 Dec 2011 21:39:35 +0530
-Message-ID: <1325002176-25626-25-git-send-email-tarun.kanti@ti.com>
-References: <1325002176-25626-1-git-send-email-tarun.kanti@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/4] ASoC: cx20442: add bias control over a
+ platform provided regulator
+Date: Tue, 27 Dec 2011 17:26:00 +0000
+Message-ID: <20111227172559.GB22970@opensource.wolfsonmicro.com>
+References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
+	<1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
+	<20111226110201.GA8722@opensource.wolfsonmicro.com>
+	<201112271516.09114.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37334 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754325Ab1L0QJy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Dec 2011 11:09:54 -0500
-In-Reply-To: <1325002176-25626-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <201112271516.09114.jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+On Tue, Dec 27, 2011 at 03:16:08PM +0100, Janusz Krzysztofik wrote:
+> On Monday 26 of December 2011 at 12:02:01, Mark Brown wrote:
 
-Setup the dataout register before restoring OE. This is to make
-sure that we have valid data in dataout register which would be
-made available in output pins as soon as OE is enabled. Else,
-there is risk of unknown data getting out into gpio pins.
+> > which would look a lot more natural - you shouldn't need to remember if
+> > the regulator is enabled, you should just turn it on in the STANDBY to
+> > PREPARE transition and turn it off in the ON to PREPARE or PREPARE to
+> > STANDBY transitions.
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/gpio/gpio-omap.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+> Can I assume STANDBY or OFF at the time the codec .remove method is 
+> called? If not, is there a helper function available which can be called 
+> in order to perform all those ON -> PREPARE -> STANDBY [-> OFF] transitions before calling regulator_put()?
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 36aaea7..81fdbcf 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -1351,7 +1351,6 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 	__raw_writel(bank->context.wake_en,
- 				bank->base + bank->regs->wkup_en);
- 	__raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
--	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
- 	__raw_writel(bank->context.leveldetect0,
- 				bank->base + bank->regs->leveldetect0);
- 	__raw_writel(bank->context.leveldetect1,
-@@ -1361,6 +1360,8 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 	__raw_writel(bank->context.fallingdetect,
- 				bank->base + bank->regs->fallingdetect);
- 	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
-+	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
-+
- 	if (bank->dbck_enable_mask) {
- 		__raw_writel(bank->context.debounce, bank->base +
- 					bank->regs->debounce);
--- 
-1.7.0.4
-
+It'll be in STANDBY or OFF depending on if the device sets
+idle_bias_off.
