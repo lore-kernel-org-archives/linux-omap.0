@@ -1,42 +1,32 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/4] ASoC: cx20442: add bias control over a
- platform provided regulator
-Date: Tue, 27 Dec 2011 17:26:00 +0000
-Message-ID: <20111227172559.GB22970@opensource.wolfsonmicro.com>
-References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
-	<1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
-	<20111226110201.GA8722@opensource.wolfsonmicro.com>
-	<201112271516.09114.jkrzyszt@tis.icnet.pl>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] mmc: omap: remove clock rate hard coding
+Date: Tue, 27 Dec 2011 13:23:51 -0500
+Message-ID: <m27h1hkh54.fsf@bob.laptop.org>
+References: <1324374120-19920-1-git-send-email-svenkatr@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <201112271516.09114.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1324374120-19920-1-git-send-email-svenkatr@ti.com> (Venkatraman
+	S.'s message of "Tue, 20 Dec 2011 15:12:00 +0530")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Venkatraman S <svenkatr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji TK <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 27, 2011 at 03:16:08PM +0100, Janusz Krzysztofik wrote:
-> On Monday 26 of December 2011 at 12:02:01, Mark Brown wrote:
+Hi,
 
-> > which would look a lot more natural - you shouldn't need to remember if
-> > the regulator is enabled, you should just turn it on in the STANDBY to
-> > PREPARE transition and turn it off in the ON to PREPARE or PREPARE to
-> > STANDBY transitions.
+On Tue, Dec 20 2011, Venkatraman S wrote:
+> From: Balaji TK <balajitk@ti.com>
+>
+> MMC master clock rate can vary for each instance of the MMC controller
+> on the device. Use clk_get_rate instead to get the value.
+>
+>   Signed-off-by: Balaji TK  <balajitk@ti.com>
+>   Reviewed-by: Venkatraman S <svenkatr@ti.com>
 
-> Can I assume STANDBY or OFF at the time the codec .remove method is 
-> called? If not, is there a helper function available which can be called 
-> in order to perform all those ON -> PREPARE -> STANDBY [-> OFF] transitions before calling regulator_put()?
+Thanks, pushed to mmc-next for 3.3.
 
-It'll be in STANDBY or OFF depending on if the device sets
-idle_bias_off.
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
