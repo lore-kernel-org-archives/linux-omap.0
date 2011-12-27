@@ -1,67 +1,88 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH 2/4] ASoC: cx20442: add bias control over a
-	platform provided regulator
-Date: Tue, 27 Dec 2011 15:16:08 +0100
-Message-ID: <201112271516.09114.jkrzyszt@tis.icnet.pl>
-References: <1324681944-19067-1-git-send-email-jkrzyszt@tis.icnet.pl>
-	<1324681944-19067-3-git-send-email-jkrzyszt@tis.icnet.pl>
-	<20111226110201.GA8722@opensource.wolfsonmicro.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+ i2c NACK without STP
+Date: Tue, 27 Dec 2011 20:18:21 +0530
+Message-ID: <CANrkHUZ530H+0+YKy2QJPFbwUQ1zqD=OaSrF6ByTbpx6eU421Q@mail.gmail.com>
+References: <20110614102409.GN3352@atomide.com>
+	<1308048853-21911-1-git-send-email-j.weitzel@phytec.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20111226110201.GA8722@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47526 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754409Ab1L0OsX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Dec 2011 09:48:23 -0500
+In-Reply-To: <1308048853-21911-1-git-send-email-j.weitzel@phytec.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ben-linux@fluff.org, linux-i2c@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, andy.green@linaro.org, patches@linaro.org, andy@warmcat.com, tony@atomide.com, peter.maydell@linaro.org, khilman@ti.com, Jan Weitzel <j.weitzel@phytec.de>, Shubhrajyoti Datta <shubhrajyoti@ti.com>
 
-On Monday 26 of December 2011 at 12:02:01, Mark Brown wrote:
-> On Sat, Dec 24, 2011 at 12:12:22AM +0100, Janusz Krzysztofik wrote:
-> 
-> > +	case SND_SOC_BIAS_ON:
-> > +	case SND_SOC_BIAS_PREPARE:
-> > +		if (IS_ERR(cx20442->por.regulator)) {
-> > +			err = PTR_ERR(cx20442->por.regulator);
-> > +		} else if (!cx20442->por.enabled) {
-> > +			err = regulator_enable(cx20442->por.regulator);
-> > +			if (!err)
-> > +				cx20442->por.enabled = true;
-> > +		}
-> > +		break;
-> > +	case SND_SOC_BIAS_STANDBY:
-> > +	case SND_SOC_BIAS_OFF:
-> > +		if (IS_ERR(cx20442->por.regulator)) {
-> > +			err = PTR_ERR(cx20442->por.regulator);
-> > +		} else if (cx20442->por.enabled) {
-> > +			err = regulator_disable(cx20442->por.regulator);
-> > +			if (!err)
-> > +				cx20442->por.enabled = false;
-> > +		}
-> > +	}
-> > +	mutex_unlock(&cx20442->por.lock);
-> 
-> You can avoid the mutex and simplify the code by relying on the fact
-> that the only possible transitions are:
-> 
->    OFF <-> STANDBY <-> PREPARE <-> ON
-> 
-> which would look a lot more natural - you shouldn't need to remember if
-> the regulator is enabled, you should just turn it on in the STANDBY to
-> PREPARE transition and turn it off in the ON to PREPARE or PREPARE to
-> STANDBY transitions.
+On Tue, Jun 14, 2011 at 4:24 PM, Jan Weitzel <j.weitzel@phytec.de> wrot=
+e:
+> On OMAP4 OMAP_I2C_STAT_NACK is causing a timeout on the next access.
+> The isr cleans all flags in OMAP_I2C_CON_REG by setting OMAP_I2C_CON_=
+STP
+> OMAP_I2C_CON_STP is also set in omap_i2c_xfer_msg on the last message=
+=2E
+>
+> According to the TI TSR the sequence for OMAP_I2C_STAT_NACK and
+> OMAP_I2C_STAT_AL are nearly the same.
+> Removing the OMAP_I2C_CON_STP part in the isr fix the problem.
+> Tested on OMAP4430 and OMAP3530 (here NACK was not a problem)
+> Fixes also booting on 2430sdp.
+>
+> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Can I assume STANDBY or OFF at the time the codec .remove method is 
-called? If not, is there a helper function available which can be called 
-in order to perform all those ON -> PREPARE -> STANDBY [-> OFF] transitions before calling regulator_put()?
+Acked-by: Balaji T K <balajitk@ti.com>
+Can you please queue this patch
 
-Thanks,
-Janusz
+This patch has been tested in linux-omap tree
+http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap.git;a=3Dc=
+ommit;h=3D464fca36d98b97ccd05e4f200ab7483d3acc8345
+
+> ---
+> =A0drivers/i2c/busses/i2c-omap.c | =A0 =A06 ++----
+> =A01 files changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
+map.c
+> index 58a58c7..670f2a2 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -836,11 +836,9 @@ complete:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0~(OMAP=
+_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_I=
+2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+>
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (stat & OMAP_I2C_STAT_NACK)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err |=3D OMAP_I2C_STAT=
+_NACK;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_i2c_write_reg(dev,=
+ OMAP_I2C_CON_REG,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0OMAP_I2C_CON_STP);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> +
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (stat & OMAP_I2C_STAT_AL) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev->dev, "Arb=
+itration lost\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err |=3D OMAP_I2C_STAT=
+_AL;
+> --
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
