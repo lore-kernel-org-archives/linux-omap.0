@@ -1,32 +1,37 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] mmc: omap: remove clock rate hard coding
-Date: Tue, 27 Dec 2011 13:23:51 -0500
-Message-ID: <m27h1hkh54.fsf@bob.laptop.org>
-References: <1324374120-19920-1-git-send-email-svenkatr@ti.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap hwmod changes for v3.3 merge window
+Date: Tue, 27 Dec 2011 21:52:50 +0000
+Message-ID: <201112272152.50502.arnd@arndb.de>
+References: <20111219194818.GQ6464@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1324374120-19920-1-git-send-email-svenkatr@ti.com> (Venkatraman
-	S.'s message of "Tue, 20 Dec 2011 15:12:00 +0530")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Venkatraman S <svenkatr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Balaji TK <balajitk@ti.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.10]:59111 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751376Ab1L0WIc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Dec 2011 17:08:32 -0500
+In-Reply-To: <20111219194818.GQ6464@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi,
+On Monday 19 December 2011, Tony Lindgren wrote:
+> Hi Arnd & Olof,
+> 
+> Please pull omap hwmod changes from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap hwmod
+> 
+> These changes are mostly needed for the USB *HCI support to
+> behave. These depend on the fixes-non-critical-part2 posted
+> earlier.
+> 
 
-On Tue, Dec 20 2011, Venkatraman S wrote:
-> From: Balaji TK <balajitk@ti.com>
->
-> MMC master clock rate can vary for each instance of the MMC controller
-> on the device. Use clk_get_rate instead to get the value.
->
->   Signed-off-by: Balaji TK  <balajitk@ti.com>
->   Reviewed-by: Venkatraman S <svenkatr@ti.com>
+Pulled into next/devel, and written down the dependency.
+I wasn't sure about whether this should be next/pm or next/devel,
+decided for next/devel in the end.
 
-Thanks, pushed to mmc-next for 3.3.
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+	Arnd
