@@ -1,53 +1,46 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v9 REPOST 25/25] gpio/omap: handle set_dataout reg capable IP on restore
-Date: Tue, 27 Dec 2011 21:39:36 +0530
-Message-ID: <1325002176-25626-26-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v9 REPOST 13/25] gpio/omap: remove unnecessary bit-masking for read access
+Date: Tue, 27 Dec 2011 21:39:24 +0530
+Message-ID: <1325002176-25626-14-git-send-email-tarun.kanti@ti.com>
 References: <1325002176-25626-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37335 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52274 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754047Ab1L0QJy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754344Ab1L0QJy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 27 Dec 2011 11:09:54 -0500
 In-Reply-To: <1325002176-25626-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Nishanth Menon <nm@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, Charulatha V <charu@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+Remove un-necessary bit masking. Since the register are 4 byte aligned
+and readl would work as is. The 'enabled' mask is already taking care
+to mask for bank width.
 
-GPIO IP revisions such as those used in OMAP4 have a set_dataout
-while the previous revisions used a single dataout register.
-Depending on what is available restore the dataout settings
-to the right register.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Charulatha V <charu@ti.com>
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/gpio/gpio-omap.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 81fdbcf..4273401 100644
+index 485b6b2..38beccc 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1359,7 +1359,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 				bank->base + bank->regs->risingdetect);
- 	__raw_writel(bank->context.fallingdetect,
- 				bank->base + bank->regs->fallingdetect);
--	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
-+	if (bank->regs->set_dataout && bank->regs->clr_dataout)
-+		__raw_writel(bank->context.dataout,
-+				bank->base + bank->regs->set_dataout);
-+	else
-+		__raw_writel(bank->context.dataout,
-+				bank->base + bank->regs->dataout);
- 	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
+@@ -576,9 +576,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 		enabled = _get_gpio_irqbank_mask(bank);
+ 		isr_saved = isr = __raw_readl(isr_reg) & enabled;
  
- 	if (bank->dbck_enable_mask) {
+-		if (cpu_is_omap15xx() && (bank->method == METHOD_MPUIO))
+-			isr &= 0x0000ffff;
+-
+ 		if (bank->level_mask)
+ 			level_mask = bank->level_mask & enabled;
+ 
 -- 
 1.7.0.4
 
