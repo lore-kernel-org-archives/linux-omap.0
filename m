@@ -1,166 +1,165 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC PATCH 21/29] OMAPDSS: DISPC: Configure overlay-like parameters in dispc_wb_setup
-Date: Tue, 27 Dec 2011 18:07:04 +0530
-Message-ID: <1324989432-3625-22-git-send-email-archit@ti.com>
+Subject: [RFC PATCH 22/29] OMAPDSS: DISPC: Setup writeback go, enable and channel_in functions
+Date: Tue, 27 Dec 2011 18:07:05 +0530
+Message-ID: <1324989432-3625-23-git-send-email-archit@ti.com>
 References: <1324989432-3625-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52246 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753752Ab1L0Mjv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Dec 2011 07:39:51 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:58076 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753752Ab1L0Mjz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Dec 2011 07:39:55 -0500
 In-Reply-To: <1324989432-3625-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: rohitkc@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Call dispc_plane_setup() through dispc_wb_setup() to configure overlay-like
-parameters. Create a helper function in writeback.c called dss_wb_calc_params()
-which for now calculates the input width and height which goes to writeback.
-Create a dummy dispc function which returns the channel of the manager to which
-the writeback pipeline is connected.
+Fill up dispc_wb_go(), dispc_wb_go_busy(), dispc_wb_enable() and
+dispc_wb_get_channel_in()/set_channel_in() with writeback register writes. Make
+a minor modification in dss_wb_write_regs_extra() to pass the plane_id instead
+of the writeback id when calling dispc_wb_set_channel_in().
 
-The parameters in dispc_plane_setup() which do not hold for writeback are filled
-passed as zeroes or false, dispc_plane_setup() takes care of not configuring
-them if the plane is writeback.
+Setup dispc_wb_enable() as dispc_enable_lcd_out() function and wait for the
+FRAMEDONEWB interrupt while disabling writeback.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/apply.c     |    5 ++++-
- drivers/video/omap2/dss/dispc.c     |   33 +++++++++++++++++++++++++++++++--
- drivers/video/omap2/dss/dss.h       |    6 +++++-
- drivers/video/omap2/dss/writeback.c |   17 +++++++++++++++++
- 4 files changed, 57 insertions(+), 4 deletions(-)
+ drivers/video/omap2/dss/apply.c |    2 +-
+ drivers/video/omap2/dss/dispc.c |   68 +++++++++++++++++++++++++++++++++++----
+ drivers/video/omap2/dss/dss.h   |    2 +-
+ 3 files changed, 63 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index a17cc47..dd1fd419 100644
+index dd1fd419..57b061f 100644
 --- a/drivers/video/omap2/dss/apply.c
 +++ b/drivers/video/omap2/dss/apply.c
-@@ -661,6 +661,7 @@ static void dss_wb_write_regs(struct omap_dss_writeback *wb)
- {
- 	struct wb_priv_data *wp = get_wb_priv(wb);
- 	struct omap_dss_writeback_info *wi;
-+	u16 in_width, in_height;
- 	int r;
- 
- 	if (!wp->enabled || !wp->info_dirty)
-@@ -670,7 +671,9 @@ static void dss_wb_write_regs(struct omap_dss_writeback *wb)
- 
- 	wi = &wp->info;
- 
--	r = dispc_wb_setup(wb->id, wi);
-+	dss_wb_calc_params(wb, wi, &in_width, &in_height);
-+
-+	r = dispc_wb_setup(wb->id, wi, in_width, in_height);
- 	if (r) {
- 		DSSERR("dispc_wb_setup failed\n");
+@@ -690,7 +690,7 @@ static void dss_wb_write_regs_extra(struct omap_dss_writeback *wb)
+ 	if (!wp->extra_info_dirty)
  		return;
+ 
+-	dispc_wb_set_channel_in(wb->id, wp->channel_in);
++	dispc_wb_set_channel_in(wb->plane_id, wp->channel_in);
+ 	dispc_ovl_set_fifo_threshold(wb->plane_id, wp->fifo_low, wp->fifo_high);
+ 
+ 	wp->extra_info_dirty = false;
 diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 3a40f8e..c7de56d 100644
+index c7de56d..cbce120 100644
 --- a/drivers/video/omap2/dss/dispc.c
 +++ b/drivers/video/omap2/dss/dispc.c
-@@ -908,6 +908,13 @@ void dispc_wb_set_channel_in(int id, enum dss_writeback_channel_in ch_in)
- 	return;
+@@ -510,12 +510,26 @@ void dispc_mgr_go(enum omap_channel channel)
+ 
+ bool dispc_wb_go_busy(int id)
+ {
+-	return false;
++	return REG_GET(DISPC_CONTROL2, 6, 6) == 1;
  }
  
-+static enum omap_channel dispc_wb_get_channel_in(int plane)
-+{
-+	/* Return LCD channel for now */
-+
-+	return OMAP_DSS_CHANNEL_LCD;
-+}
-+
- static void dispc_ovl_set_burst_size(enum omap_plane plane,
- 		enum omap_burst_size burst_size)
+ void dispc_wb_go(int id)
  {
-@@ -1935,9 +1942,31 @@ int dispc_ovl_setup(enum omap_plane plane, struct omap_overlay_info *oi,
- 	return r;
- }
- 
--int dispc_wb_setup(int id, struct omap_dss_writeback_info *wi)
-+int dispc_wb_setup(int id, struct omap_dss_writeback_info *wi,
-+		u16 in_width, u16 in_height)
- {
--	return 0;
-+	int r;
+-	return;
 +	struct omap_dss_writeback *wb = omap_dss_get_writeback(id);
-+	const int pos_x = 0, pos_y = 0;
-+	const u8 zorder = 0, global_alpha = 0;
-+	const bool chroma_upscale = false, ilace = false, replication = false;
-+	enum omap_channel channel;
++	bool enable, go;
 +
-+	channel = dispc_wb_get_channel_in(wb->plane_id);
++	enable = REG_GET(DISPC_OVL_ATTRIBUTES(wb->plane_id), 0, 0) == 1;
 +
-+	DSSDBG("dispc_wb_setup %d, pa %x, pa_uv %x, %d,%d -> %dx%d, cmode %x, "
-+		"rot %d, mir %d, chan %d\n",
-+		wb->id, wi->paddr, wi->p_uv_addr, in_width, in_height,
-+		wi->buf_width, wi->buf_height, wi->color_mode, wi->rotation,
-+		wi->mirror, channel);
++	if (!enable)
++		return;
 +
-+	r = dispc_plane_setup(wb->plane_id, channel, wb->caps, wi->paddr,
-+		wi->p_uv_addr, in_width, pos_x, pos_y, in_width, in_height,
-+		wi->buf_width, wi->buf_height, wi->color_mode, wi->rotation,
-+		wi->mirror, zorder, wi->pre_mult_alpha, global_alpha,
-+		wi->rotation_type, chroma_upscale, ilace, replication);
++	go = REG_GET(DISPC_CONTROL2, 6, 6) == 1;
++	if (go) {
++		DSSERR("GO bit not down for WB\n");
++		return;
++	}
 +
-+	return r;
++	REG_FLD_MOD(DISPC_CONTROL2, 1, 6, 6);
  }
  
- int dispc_ovl_enable(enum omap_plane plane, bool enable)
+ static void dispc_ovl_write_firh_reg(enum omap_plane plane, int reg, u32 value)
+@@ -903,16 +917,24 @@ static enum omap_channel dispc_ovl_get_channel_out(enum omap_plane plane)
+ 	return channel;
+ }
+ 
+-void dispc_wb_set_channel_in(int id, enum dss_writeback_channel_in ch_in)
++void dispc_wb_set_channel_in(int plane, enum dss_writeback_channel_in ch_in)
+ {
+-	return;
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), ch_in, 18, 16);
+ }
+ 
+ static enum omap_channel dispc_wb_get_channel_in(int plane)
+ {
+-	/* Return LCD channel for now */
++	int channel_in = REG_GET(DISPC_OVL_ATTRIBUTES(plane), 18, 16);
+ 
+-	return OMAP_DSS_CHANNEL_LCD;
++	switch (channel_in) {
++	case OMAP_DSS_WB_LCD2_MGR:
++		return OMAP_DSS_CHANNEL_LCD2;
++	case OMAP_DSS_WB_TV_MGR:
++		return OMAP_DSS_CHANNEL_DIGIT;
++	case OMAP_DSS_WB_LCD1_MGR:
++	default:
++		return OMAP_DSS_CHANNEL_LCD;
++	};
+ }
+ 
+ static void dispc_ovl_set_burst_size(enum omap_plane plane,
+@@ -2138,7 +2160,39 @@ void dispc_mgr_enable(enum omap_channel channel, bool enable)
+ 
+ void dispc_wb_enable(int id, bool enable)
+ {
+-	return;
++	struct omap_dss_writeback *wb = omap_dss_get_writeback(id);
++	enum omap_plane plane = wb->plane_id;
++	struct completion frame_done_completion;
++	bool is_on;
++	int r;
++	u32 irq;
++
++	is_on = REG_GET(DISPC_OVL_ATTRIBUTES(plane), 0, 0);
++	irq = DISPC_IRQ_FRAMEDONEWB;
++
++	if (!enable && is_on) {
++		init_completion(&frame_done_completion);
++
++		r = omap_dispc_register_isr(dispc_disable_isr,
++				&frame_done_completion, irq);
++
++		if (r)
++			DSSERR("failed to register FRAMEDONEWB isr\n");
++	}
++
++	REG_FLD_MOD(DISPC_OVL_ATTRIBUTES(plane), enable ? 1 : 0, 0, 0);
++
++	if (!enable && is_on) {
++		if (!wait_for_completion_timeout(&frame_done_completion,
++					msecs_to_jiffies(100)))
++			DSSERR("timeout waiting for FRAMEDONEWB\n");
++
++		r = omap_dispc_unregister_isr(dispc_disable_isr,
++				&frame_done_completion, irq);
++
++		if (r)
++			DSSERR("failed to unregister FRAMEDONEWB isr\n");
++	}
+ }
+ 
+ void dispc_lcd_enable_signal_polarity(bool act_high)
 diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-index 1b128f1..69b4793 100644
+index 69b4793..c05658b 100644
 --- a/drivers/video/omap2/dss/dss.h
 +++ b/drivers/video/omap2/dss/dss.h
-@@ -249,6 +249,9 @@ void dss_init_writeback(void);
- void dss_uninit_writeback(void);
- int writeback_init_display(struct omap_dss_device *dssdev);
- enum dss_writeback_channel_in dss_wb_calc_channel_in(struct omap_dss_writeback *wb);
-+void dss_wb_calc_params(struct omap_dss_writeback *wb,
-+		struct omap_dss_writeback_info *wi, u16 *in_width,
-+		u16 *in_height);
- int dss_wb_simple_check(struct omap_dss_writeback *wb,
- 		const struct omap_dss_writeback_info *info);
- 
-@@ -492,7 +495,8 @@ void dispc_mgr_setup(enum omap_channel channel,
- 
- bool dispc_wb_go_busy(int id);
- void dispc_wb_go(int id);
--int dispc_wb_setup(int id, struct omap_dss_writeback_info *wi);
-+int dispc_wb_setup(int id, struct omap_dss_writeback_info *wi,
-+		u16 in_width, u16 in_height);
+@@ -498,7 +498,7 @@ void dispc_wb_go(int id);
+ int dispc_wb_setup(int id, struct omap_dss_writeback_info *wi,
+ 		u16 in_width, u16 in_height);
  void dispc_wb_enable(int id, bool enable);
- void dispc_wb_set_channel_in(int id, enum dss_writeback_channel_in ch_in);
+-void dispc_wb_set_channel_in(int id, enum dss_writeback_channel_in ch_in);
++void dispc_wb_set_channel_in(int plane, enum dss_writeback_channel_in ch_in);
  
-diff --git a/drivers/video/omap2/dss/writeback.c b/drivers/video/omap2/dss/writeback.c
-index 14103bf..7c4e9c0 100644
---- a/drivers/video/omap2/dss/writeback.c
-+++ b/drivers/video/omap2/dss/writeback.c
-@@ -141,6 +141,23 @@ enum dss_writeback_channel_in dss_wb_calc_channel_in(struct omap_dss_writeback *
- 	}
- }
- 
-+void dss_wb_calc_params(struct omap_dss_writeback *wb,
-+		struct omap_dss_writeback_info *wi, u16 *in_width,
-+		u16 *in_height)
-+{
-+	struct omap_video_timings timings;
-+	struct omap_dss_device *dssdev;
-+	struct omap_overlay_manager *mgr;
-+
-+	mgr = wb->dssdev->manager;
-+	dssdev = mgr->get_display(mgr);
-+
-+	dssdev->driver->get_timings(dssdev, &timings);
-+
-+	*in_width = timings.x_res;
-+	*in_height = timings.y_res;
-+}
-+
- int dss_wb_simple_check(struct omap_dss_writeback *wb,
- 		const struct omap_dss_writeback_info *info)
- {
+ /* VENC */
+ #ifdef CONFIG_OMAP2_DSS_VENC
 -- 
 1.7.4.1
 
