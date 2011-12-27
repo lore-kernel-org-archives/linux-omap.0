@@ -1,97 +1,61 @@
 From: Archit Taneja <archit@ti.com>
-Subject: [RFC PATCH 27/29] OMAPDSS: MANAGER: Split manager_display_store into smaller functions
-Date: Tue, 27 Dec 2011 18:07:10 +0530
-Message-ID: <1324989432-3625-28-git-send-email-archit@ti.com>
+Subject: [RFC PATCH 28/29] OMAPDSS: MANAGER: Add writeback as a sysfs attribute
+Date: Tue, 27 Dec 2011 18:07:11 +0530
+Message-ID: <1324989432-3625-29-git-send-email-archit@ti.com>
 References: <1324989432-3625-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45144 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58094 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753752Ab1L0MkQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Dec 2011 07:40:16 -0500
+	id S1753752Ab1L0MkU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Dec 2011 07:40:20 -0500
 In-Reply-To: <1324989432-3625-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com
 Cc: rohitkc@ti.com, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-Split manager_display_store() into two function, the first function finds a
-device with the same name. The second unsets the current output attached and
-sets the one we had searched for.
+Add writeback as a sysfs attribute. This can be used to show and store the dummy
+writeback panel that the manager can connect to.
 
-This is done so that there can be re use between display store and writeback
-store sysfs ops.
+Add checks so that in the store functions so that a display store cant set a
+writeback device and vice versa.
 
 Signed-off-by: Archit Taneja <archit@ti.com>
 ---
- drivers/video/omap2/dss/manager.c |   46 ++++++++++++++++++++++++++++++------
- 1 files changed, 38 insertions(+), 8 deletions(-)
+ drivers/video/omap2/dss/manager.c |   38 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 38 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index f4fd3d8..fb7c1e6 100644
+index fb7c1e6..a064656 100644
 --- a/drivers/video/omap2/dss/manager.c
 +++ b/drivers/video/omap2/dss/manager.c
-@@ -49,13 +49,11 @@ static ssize_t manager_display_show(struct omap_overlay_manager *mgr, char *buf)
- 			dssdev->name : "<none>");
- }
+@@ -129,6 +129,41 @@ static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
+ 	if (r)
+ 		return r;
  
--static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
-+static int dss_find_device_buf(struct omap_dss_device **pdssdev,
- 		const char *buf, size_t size)
- {
--	int r = 0;
- 	size_t len = size;
- 	struct omap_dss_device *dssdev = NULL;
--	struct omap_dss_device *curr_display;
- 
- 	int match(struct omap_dss_device *dssdev, void *data)
- 	{
-@@ -73,12 +71,25 @@ static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
- 		return -EINVAL;
- 
- 	if (dssdev)
--		DSSDBG("display %s found\n", dssdev->name);
-+		DSSDBG("device %s found\n", dssdev->name);
++	if (dssdev->wbdev) {
++		r = -EINVAL;
++		return r;
++	}
 +
-+	*pdssdev = dssdev;
++	r = dss_mgr_set_output(mgr, dssdev);
++	if (r)
++		return r;
 +
-+	return 0;
++	return size;
 +}
-+static int dss_mgr_set_output(struct omap_overlay_manager *mgr,
-+		struct omap_dss_device *dssdev)
++
++static ssize_t manager_writeback_show(struct omap_overlay_manager *mgr, char *buf)
 +{
-+	int r;
-+	struct omap_dss_device *curr_dssdev;
- 
--	curr_display = mgr->get_display(mgr);
-+	if (dssdev->wbdev)
-+		curr_dssdev = mgr->get_writeback(mgr);
-+	else
-+		curr_dssdev = mgr->get_display(mgr);
- 
--	if (curr_display) {
--		r = mgr->unset_device(mgr, curr_display);
-+	if (curr_dssdev) {
-+		r = mgr->unset_device(mgr, curr_dssdev);
- 		if (r) {
- 			DSSERR("failed to unset display\n");
- 			goto put_device;
-@@ -99,11 +110,30 @@ static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
- 		}
- 	}
- 
-+	return 0;
++	struct omap_dss_device *wb_device = mgr->get_writeback(mgr);
 +
- put_device:
- 	if (dssdev)
- 		omap_dss_put_device(dssdev);
- 
--	return r ? r : size;
-+	return r;
++	return snprintf(buf, PAGE_SIZE, "%s\n", wb_device ?
++			wb_device->name : "<none>");
 +}
 +
-+static ssize_t manager_display_store(struct omap_overlay_manager *mgr,
++static ssize_t manager_writeback_store(struct omap_overlay_manager *mgr,
 +		const char *buf, size_t size)
 +{
 +	int r;
@@ -101,14 +65,31 @@ index f4fd3d8..fb7c1e6 100644
 +	if (r)
 +		return r;
 +
-+	r = dss_mgr_set_output(mgr, dssdev);
-+	if (r)
++	if (!dssdev->wbdev) {
++		r = -EINVAL;
 +		return r;
++	}
 +
-+	return size;
- }
- 
- static ssize_t manager_default_color_show(struct omap_overlay_manager *mgr,
+ 	r = dss_mgr_set_output(mgr, dssdev);
+ 	if (r)
+ 		return r;
+@@ -452,6 +487,8 @@ struct manager_attribute {
+ static MANAGER_ATTR(name, S_IRUGO, manager_name_show, NULL);
+ static MANAGER_ATTR(display, S_IRUGO|S_IWUSR,
+ 		manager_display_show, manager_display_store);
++static MANAGER_ATTR(writeback, S_IRUGO|S_IWUSR,
++		manager_writeback_show, manager_writeback_store);
+ static MANAGER_ATTR(default_color, S_IRUGO|S_IWUSR,
+ 		manager_default_color_show, manager_default_color_store);
+ static MANAGER_ATTR(trans_key_type, S_IRUGO|S_IWUSR,
+@@ -475,6 +512,7 @@ static MANAGER_ATTR(cpr_coef, S_IRUGO|S_IWUSR,
+ static struct attribute *manager_sysfs_attrs[] = {
+ 	&manager_attr_name.attr,
+ 	&manager_attr_display.attr,
++	&manager_attr_writeback.attr,
+ 	&manager_attr_default_color.attr,
+ 	&manager_attr_trans_key_type.attr,
+ 	&manager_attr_trans_key_value.attr,
 -- 
 1.7.4.1
 
