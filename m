@@ -1,83 +1,45 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH 2/2] TPS65217: Add tps65217 regulator driver
-Date: Wed, 28 Dec 2011 14:36:56 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC103EE1A@DBDE01.ent.ti.com>
-References: <1324617696-14350-1-git-send-email-anilkumar@ti.com>
- <20111223111538.GE2834@opensource.wolfsonmicro.com>
- <331ABD5ECB02734CA317220B2BBEABC103ECAB@DBDE01.ent.ti.com>
- <20111228113602.GC24405@opensource.wolfsonmicro.com>
+From: Andre Puschmann <andre.puschmann@tu-ilmenau.de>
+Subject: Problem booting Overo Tide at 720MHz
+Date: Wed, 28 Dec 2011 16:26:32 +0100
+Message-ID: <jdfcf8$7ii$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111228113602.GC24405@opensource.wolfsonmicro.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:58557 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752964Ab1L1P0w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Dec 2011 10:26:52 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
+	id 1RfvOx-0005yL-6c
+	for linux-omap@vger.kernel.org; Wed, 28 Dec 2011 16:26:47 +0100
+Received: from dslb-188-103-250-025.pools.arcor-ip.net ([188.103.250.25])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 28 Dec 2011 16:26:47 +0100
+Received: from andre.puschmann by dslb-188-103-250-025.pools.arcor-ip.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 28 Dec 2011 16:26:47 +0100
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Mark,
+Hi list,
 
-On Wed, Dec 28, 2011 at 17:06:02, Mark Brown wrote:
-> On Wed, Dec 28, 2011 at 09:14:31AM +0000, AnilKumar, Chimata wrote:
-> > On Fri, Dec 23, 2011 at 16:45:39, Mark Brown wrote:
-> > > On Fri, Dec 23, 2011 at 10:51:36AM +0530, AnilKumar Ch wrote:
-> 
-> > > > +/* Supported voltage values for regulators (in milliVolts) */
-> > > > +static const u16 VDCDC1_VSEL_table[] = {
-> > > > +	900, 925, 950, 975,
-> > > > +	1000, 1025, 1050, 1075,
-> > > > +	1100, 1125, 1150, 1175,
-> > > > +	1200, 1225, 1250, 1275,
-> > > > +	1300, 1325, 1350, 1375,
-> > > > +	1400, 1425, 1450, 1475,
-> > > > +	1500, 1550, 1600, 1650,
-> > > > +	1700, 1750, 1800,
-> > > > +};
-> 
-> > > You should replace all these vsel tables with calculations in the code,
-> > > they're all regular steps and some of the tables are getting a bit
-> > > large.
-> 
-> > TPS65217 don't have any formula for computing the next voltage value. In
-> > entire voltage scale range there is an inconsistency in the step size.
-> 
-> if (voltage < 1500)
-> 	...
-> else
-> 	...
+a couple of days ago I was posting a similar issue where Linux wouldn't
+start after u-boot. I am trying to boot a recent kernel using Steve's
+omap-3.2 branch on an Overo Tide based board.
 
-Changed to functions instead of tables
+A recent checkout doesn't boot and hangs after u-boot hands over to the
+kernel. After some digging I figured out that this has something to do
+with the OPP settings for running at 720MHz.
 
-> 
-> > > > +	for (vsel = 0; vsel < tps->info[dcdc]->table_len; vsel++) {
-> > > > +		int mV = tps->info[dcdc]->table[vsel];
-> > > > +		int uV = mV * 1000;
-> > > > +
-> > > > +		/* Break at the first in-range value */
-> > > > +		if (min_uV <= uV && uV <= max_uV)
-> > > > +			break;
-> > > > +	}
-> 
-> > > If you are going to use a table you should implement set_voltage_sel()
-> > > which will do the table walk for you, but like I say you should just be
-> > > using a calculation.
-> 
-> > As per my understanding set_voltage_sel() is used to set a voltage if we
-> > know the selector. But here it's different case, based on the min and
-> > max voltages we have to identify the selector. For identifying the selector
-> > we have to walk through the table. I did not find any helper functions
-> > for walking through the table.
-> 
-> No, that would be totally unusable by anything.  If you implement _sel
-> the core will do the mapping into a selector for you; if you take the
-> time to look at the code you'll see that it's implementing exactly the
-> above loop.
->
+After commenting out omap3_opp_enable_720Mhz() in opp3xxx_data.c the
+kernel boots fine.
 
-I got it, core part I missed and now I changed the set_voltage to
-set_voltage_sel().
+Does this work for all others?
 
-Thanks
-AnilKumar
+Regards,
+Andre
+
