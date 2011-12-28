@@ -1,45 +1,34 @@
-From: Andre Puschmann <andre.puschmann@tu-ilmenau.de>
-Subject: Problem booting Overo Tide at 720MHz
-Date: Wed, 28 Dec 2011 16:26:32 +0100
-Message-ID: <jdfcf8$7ii$1@dough.gmane.org>
+From: "RICHARD TANG" <tagnrichard@yahoo.com.hk>
+Subject: MAIL
+Date: Wed, 28 Dec 2011 17:20:48 +0200
+Message-ID: <20111228172048.85034h4z6k1c5jv4__41287.1271757924$1325088330$gmane$org@82.137.248.25>
+Reply-To: tangrichad@yahoo.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:58557 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752964Ab1L1P0w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Dec 2011 10:26:52 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1RfvOx-0005yL-6c
-	for linux-omap@vger.kernel.org; Wed, 28 Dec 2011 16:26:47 +0100
-Received: from dslb-188-103-250-025.pools.arcor-ip.net ([188.103.250.25])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 28 Dec 2011 16:26:47 +0100
-Received: from andre.puschmann by dslb-188-103-250-025.pools.arcor-ip.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Wed, 28 Dec 2011 16:26:47 +0100
+Received: from mgw06.190.sy ([82.137.248.25]:57253 "EHLO smtp6.190.sy"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753011Ab1L1QFO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Dec 2011 11:05:14 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi list,
 
-a couple of days ago I was posting a similar issue where Linux wouldn't
-start after u-boot. I am trying to boot a recent kernel using Steve's
-omap-3.2 branch on an Overo Tide based board.
 
-A recent checkout doesn't boot and hangs after u-boot hands over to the
-kernel. After some digging I figured out that this has something to do
-with the OPP settings for running at 720MHz.
+Mail From Tang.
 
-After commenting out omap3_opp_enable_720Mhz() in opp3xxx_data.c the
-kernel boots fine.
-
-Does this work for all others?
+I work with the hang seng Bank Hong Kong.I have a business proposition  
+for you involving a trade in my bank which I know we will be of mutual  
+benefit to both of us, If interested mail me at:tangrichad@yahoo.cn
 
 Regards,
-Andre
+Richard Tang.
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
