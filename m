@@ -1,26 +1,39 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/4] OMAPDSS/ASoC: Repair broken HDMI audio in K3.2-rcX
-Date: Thu, 29 Dec 2011 18:48:29 +0000
-Message-ID: <20111229184829.GC32392@sirena.org.uk>
-References: <1324018993-31466-1-git-send-email-ricardo.neri@ti.com>
- <CAP5A+B8ZPMBROeu6wkT8G5v_e1jhYTNrCATP0mi71wcsC2DZHg@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: It looks like snd-soc-rx51 only works as built-in, not as a module
+Date: Thu, 29 Dec 2011 23:25:50 +0200
+Message-ID: <CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com>
+References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
+	<20111210082741.GA32605@earth.universe>
+	<CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com>
+	<20111229183712.GB32392@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:42400 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab1L2Ssa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Dec 2011 13:48:30 -0500
-Content-Disposition: inline
-In-Reply-To: <CAP5A+B8ZPMBROeu6wkT8G5v_e1jhYTNrCATP0mi71wcsC2DZHg@mail.gmail.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42959 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754437Ab1L2VZv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Dec 2011 16:25:51 -0500
+Received: by eaad14 with SMTP id d14so6187437eaa.19
+        for <linux-omap@vger.kernel.org>; Thu, 29 Dec 2011 13:25:50 -0800 (PST)
+In-Reply-To: <20111229183712.GB32392@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: Ricardo Neri <ricardo.neri@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Sebastian Reichel <sre@debian.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On Thu, Dec 29, 2011 at 03:26:48PM +0530, K, Mythri P wrote:
+On Thu, Dec 29, 2011 at 8:37 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Sat, Dec 10, 2011 at 05:59:57PM +0200, Felipe Contreras wrote:
+>
+>> It was not working for me, but it seems the problem was related to
+>> mdev/udev; snd_soc_tlv320aic3x has to be loaded before snd-soc-rx51.
+>
+> That should not be required, the modules should be loadable in any
+> order.
 
-> We could not also try to move the ASoC HDMI audio codec driver from
-> DSS to sound, but this is good for now.
+Are you sure? I recall having a similar discussion with Rusell King,
+and the conclusion is that certain modules are supposed to be loaded
+by udev at boot time, and it seems snd_soc_tlv320aic3x is one of them.
 
-You should certainly send the driver for review on the ALSA list...
+-- 
+Felipe Contreras
