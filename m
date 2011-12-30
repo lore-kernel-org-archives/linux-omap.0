@@ -1,91 +1,74 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: It looks like snd-soc-rx51 only works as built-in, not as a module
-Date: Thu, 29 Dec 2011 22:22:31 +0000
-Message-ID: <yw1x7h1ff26w.fsf@unicorn.mansr.com>
-References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
-	<20111210082741.GA32605@earth.universe>
-	<CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com>
-	<20111229183712.GB32392@sirena.org.uk>
-	<CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com>
-	<20111229212707.GA9737@opensource.wolfsonmicro.com>
-	<CAMP44s2SU_M0Fpt43YDLLhPrgsGzkgpHRWHLcJO4f8N=0HHdvg@mail.gmail.com>
-	<20111229215407.GB9737@opensource.wolfsonmicro.com>
+From: NeilBrown <neilb@suse.de>
+Subject: [PATCH] omap: add rcu_locking to omap2_set_init_voltage.
+Date: Fri, 30 Dec 2011 12:33:29 +1100
+Message-ID: <20111230123329.75f1c7da@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/0YJr7RF2g6VjxdQ5oDEAvYU"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:36581 "EHLO lo.gmane.org"
+Received: from cantor2.suse.de ([195.135.220.15]:49392 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754379Ab1L2WWz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Dec 2011 17:22:55 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1RgONB-00015S-Mu
-	for linux-omap@vger.kernel.org; Thu, 29 Dec 2011 23:22:53 +0100
-Received: from unicorn.mansr.com ([78.86.181.103])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 29 Dec 2011 23:22:53 +0100
-Received: from mans by unicorn.mansr.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 29 Dec 2011 23:22:53 +0100
+	id S1751221Ab1L3Bdp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Dec 2011 20:33:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: alsa-devel@alsa-project.org
+To: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
+--Sig_/0YJr7RF2g6VjxdQ5oDEAvYU
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> On Thu, Dec 29, 2011 at 11:51:11PM +0200, Felipe Contreras wrote:
->> On Thu, Dec 29, 2011 at 11:27 PM, Mark Brown
->> > On Thu, Dec 29, 2011 at 11:25:50PM +0200, Felipe Contreras wrote:
->> >> On Thu, Dec 29, 2011 at 8:37 PM, Mark Brown
->> >> > On Sat, Dec 10, 2011 at 05:59:57PM +0200, Felipe Contreras wrot=
-e:
->
->> >> >> It was not working for me, but it seems the problem was relate=
-d to
->> >> >> mdev/udev; snd_soc_tlv320aic3x has to be loaded before snd-soc=
--rx51.
->
->> >> > That should not be required, the modules should be loadable in =
-any
->> >> > order.
->
->> >> Are you sure? I recall having a similar discussion with Rusell Ki=
-ng,
->> >> and the conclusion is that certain modules are supposed to be loa=
-ded
->> >> by udev at boot time, and it seems snd_soc_tlv320aic3x is one of =
-them.
->
->> > I'm absolutely positive. =A0ASoC supports loading the modules in a=
-ny
->> > order. =A0udev is supposed to load anything autoloadable at boot t=
-ime,
->> > including I2C devices, but that's orthogonal to the order in which
->> > things actually get loaded - udev can randomly reorder things if i=
-t
->> > feels like it.
->
->> Yes, but udev loads snd_soc_tlv320aic3x, not snd-soc-rx51.
->
-> That is compltelely orthogonal to what you were saying above about th=
-e
-> ordering of module loading.
->
-> The reason the driver is not loaded automatically is that the OMAP
-> machine drivers have not been converted to platform devices.
 
-I posted patches doing the conversion a long time ago (September?).  It
-seems they got lost somewhere.
+opp_find_freq_ceil and opp_get_voltage are documented as requiring
+rcu_lock to be held.  So hold it.
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
+Signed-off-by: NeilBrown <neilb@suse.de>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 00bff46..470976e 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -174,14 +174,17 @@ static int __init omap2_set_init_voltage(char *vdd_na=
+me, char *clk_name,
+ 	freq =3D clk->rate;
+ 	clk_put(clk);
+=20
++	rcu_read_lock();
+ 	opp =3D opp_find_freq_ceil(dev, &freq);
+ 	if (IS_ERR(opp)) {
++		rcu_read_unlock();
+ 		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
+ 			__func__, vdd_name);
+ 		goto exit;
+ 	}
+=20
+ 	bootup_volt =3D opp_get_voltage(opp);
++	rcu_read_unlock();
+ 	if (!bootup_volt) {
+ 		pr_err("%s: unable to find voltage corresponding "
+ 			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
+
+--Sig_/0YJr7RF2g6VjxdQ5oDEAvYU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBTv0U6Tnsnt1WYoG5AQLXJA//d9thSSvLE4+EsSR4YaGn6lEuDMG3UJ+b
+QvckxWPEiMcO5svut2xOuQfapK/bDhLRtBZ3coMCl7uADyVrTmdMJpcl90wOnz87
+td9kPnvYOMKEfNktyIJAsRmz+IBXul6jFOP0JTNFKDSU5lyPze1lZv1Zramz/afF
+2mFqxzlQ6JlUidDN8/J5VzYXlF1Q2AfhpTDQQVAjNDMV2FZ0EkDpZ9Fb0y+9vN50
+Cekvmkw3jJY4REy/1T9YOOMcf4bwlQqUs8KiOJFknJeY+NVWGIW8PCRelWHlCEVt
+lgBAGFgvYabIfCeaXfg2yWA0oOuXjVyTjKWrrmLPdTgDbt2IlN06d5rscmdf1gQB
+9ScF4t0QGyFhrBgWzKk4HhTLtLcqIvDp254GasL9zwgrwq+DGXG+uRcU/8wha5+L
+ptd4An88sK8NI8GSGmh8A/SbxeUeJPpWB9T1z2H8b9u665QPLrNGCWxj0DqS9idi
+cL6SBwBp+JTXchQHXf+ECDwmZ3m0rn2Hn+rIYZyDNm/uXDXyxrN4VmTdSveZyZS8
+ZZNhhW9HQD/Ygabooi2t7iDXmNGAQn/78/76BcN0SMC/I2eJYdMqabRXk7l16iGh
+50aSxZJiUOqR13MX9YNsTuJJkQT0MYtOT08rpaJd6PMBSLa4x5qtFVpzznWOYnJh
+7uSD7Ja9py4=
+=ScxH
+-----END PGP SIGNATURE-----
+
+--Sig_/0YJr7RF2g6VjxdQ5oDEAvYU--
