@@ -1,78 +1,77 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 4/5] omap_hdq: handle case where isr sees a 0 status byte.
+Subject: [PATCH 5/5] bq27x00 - don't report power-supply change so often.
 Date: Fri, 30 Dec 2011 11:58:49 +1100
-Message-ID: <20111230005849.11559.50437.stgit@notabene.brown>
+Message-ID: <20111230005849.11559.78948.stgit@notabene.brown>
 References: <20111230004947.11559.81184.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50138 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:50139 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754991Ab1L3CsL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Dec 2011 21:48:11 -0500
+	id S1754963Ab1L3CsT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Dec 2011 21:48:19 -0500
 In-Reply-To: <20111230004947.11559.81184.stgit@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-According to the documentation, when an isr happens one of the
-3 bits in INT_STATUS must be set to say why.
-But I sometimes see a value of zero.
-
-The only explanation I can think of is that someone else reads the
-register and so clears the bits.  But I cannot find that someone.
-
-So until we do, intuit what must have caused the interrupt.
-If we were trying to write, assume it completed.
-If we were trying to read and go something other than 0xFF,
-assume the read completed.
-If we read 0xFF, assume the read timed-out.
+A power_supply_changed should only be reported on significant changes
+such as transition between charging and not.  Incremental changes
+such as charge increasing should not be reported - that can easily
+be polled for.
 
 Signed-off-by: NeilBrown <neilb@suse.de>
 ---
 
- drivers/w1/masters/omap_hdq.c |   26 +++++++++++++++++++++++++-
- 1 files changed, 25 insertions(+), 1 deletions(-)
+ drivers/power/bq27x00_battery.c |   15 ++++++++++++---
+ 1 files changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index 848399b..6b82469 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -211,9 +211,33 @@ static irqreturn_t hdq_isr(int irq, void *_hdq)
+diff --git a/drivers/power/bq27x00_battery.c b/drivers/power/bq27x00_battery.c
+index bb16f5b..7993a17 100644
+--- a/drivers/power/bq27x00_battery.c
++++ b/drivers/power/bq27x00_battery.c
+@@ -57,11 +57,15 @@
+ #define BQ27000_FLAG_CHGS		BIT(7)
+ #define BQ27000_FLAG_FC			BIT(5)
+ 
++#define BQ27000_FLAGS_IMPORTANT		(BQ27000_FLAG_FC|BQ27000_FLAG_CHGS|BIT(31))
++
+ #define BQ27500_REG_SOC			0x2C
+ #define BQ27500_REG_DCAP		0x3C /* Design capacity */
+ #define BQ27500_FLAG_DSC		BIT(0)
+ #define BQ27500_FLAG_FC			BIT(9)
+ 
++#define BQ27500_FLAGS_IMPORTANT		(BQ27500_FLAG_FC|BQ27500_FLAG_DSC|BIT(31))
++
+ #define BQ27000_RS			20 /* Resistor sense */
+ 
+ struct bq27x00_device_info;
+@@ -259,6 +263,7 @@ static void bq27x00_update(struct bq27x00_device_info *di)
  {
- 	struct hdq_data *hdq_data = _hdq;
- 	unsigned long irqflags;
-+	u8 status;
+ 	struct bq27x00_reg_cache cache = {0, };
+ 	bool is_bq27500 = di->chip == BQ27500;
++	int flags_changed;
  
- 	spin_lock_irqsave(&hdq_data->hdq_spinlock, irqflags);
--	hdq_data->hdq_irqstatus = hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-+	status = hdq_reg_in(hdq_data, OMAP_HDQ_INT_STATUS);
-+	if (!status) {
-+		/* I sometimes see a zero status even though the read
-+		 * seems to have been successful.  Very strange.
-+		 * But we did get an interrupt, so figure out what
-+		 * must have happened.
-+		 */
-+		u8 ctrl = hdq_reg_in(hdq_data, OMAP_HDQ_CTRL_STATUS);
-+		dev_dbg(hdq_data->dev, "hdr_isr: INT=0!  CTRL=0x%02x\n", ctrl);
-+		if (!(ctrl & OMAP_HDQ_CTRL_STATUS_GO)) {
-+			/* It has definitely finished.. */
-+			if (ctrl & OMAP_HDQ_CTRL_STATUS_DIR) {
-+				/* A read finished or timed-out */
-+				u8 data = hdq_reg_in(hdq_data,
-+						      OMAP_HDQ_RX_DATA);
-+				if (data == 0xFF)
-+					status = OMAP_HDQ_INT_STATUS_TIMEOUT;
-+				else
-+					status = OMAP_HDQ_INT_STATUS_RXCOMPLETE;
-+			} else
-+				status = OMAP_HDQ_INT_STATUS_TXCOMPLETE;
-+		}
-+	}
-+	hdq_data->hdq_irqstatus = status;
- 	spin_unlock_irqrestore(&hdq_data->hdq_spinlock, irqflags);
- 	dev_dbg(hdq_data->dev, "hdq_isr: %x", hdq_data->hdq_irqstatus);
+ 	cache.flags = bq27x00_read(di, BQ27x00_REG_FLAGS, is_bq27500);
+ 	if (cache.flags >= 0) {
+@@ -280,10 +285,14 @@ static void bq27x00_update(struct bq27x00_device_info *di)
  
+ 	/* Ignore current_now which is a snapshot of the current battery state
+ 	 * and is likely to be different even between two consecutive reads */
+-	if (memcmp(&di->cache, &cache, sizeof(cache) - sizeof(int)) != 0) {
+-		di->cache = cache;
++	flags_changed = di->cache.flags ^ cache.flags;
++	di->cache = cache;
++	if (is_bq27500)
++		flags_changed &= BQ27500_FLAGS_IMPORTANT;
++	else
++		flags_changed &= BQ27000_FLAGS_IMPORTANT;
++	if (flags_changed)
+ 		power_supply_changed(&di->bat);
+-	}
+ 
+ 	di->last_update = jiffies;
+ }
 
 
