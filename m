@@ -1,121 +1,44 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 5/5] bq27x00 - don't report power-supply change so often.
-Date: Fri, 30 Dec 2011 13:13:28 +0200
-Message-ID: <CANOLnOM7QbF5aMb1iW0W2t6B1q1J+cROMU8SpD185DyC33w4kA@mail.gmail.com>
-References: <20111230004947.11559.81184.stgit@notabene.brown>
-	<20111230005849.11559.78948.stgit@notabene.brown>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [alsa-devel] It looks like snd-soc-rx51 only works as built-in,
+ not as a module
+Date: Fri, 30 Dec 2011 13:15:06 +0200
+Message-ID: <4EFD9D3A.7090208@bitmer.com>
+References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>	<20111210082741.GA32605@earth.universe>	<CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com>	<20111229183712.GB32392@sirena.org.uk>	<CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com>	<20111229212707.GA9737@opensource.wolfsonmicro.com>	<CAMP44s2SU_M0Fpt43YDLLhPrgsGzkgpHRWHLcJO4f8N=0HHdvg@mail.gmail.com>	<20111229215407.GB9737@opensource.wolfsonmicro.com>	<yw1x7h1ff26w.fsf@unicorn.mansr.com> <20111230105244.GA21638@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:41890 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751959Ab1L3LNa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Dec 2011 06:13:30 -0500
-In-Reply-To: <20111230005849.11559.78948.stgit@notabene.brown>
+Received: from bitmer.com ([213.157.87.50]:33537 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752606Ab1L3LPj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Dec 2011 06:15:39 -0500
+In-Reply-To: <20111230105244.GA21638@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>, Anton Vorontsov <cbouatmailru@gmail.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: =?ISO-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-CCing Lars who added this. I vaguely recall something about generating
-events to make some battery monitors update but I forget the details
-now, maybe it was about something else. Also CCing Anton (the
-maintainer).
+On 12/30/2011 12:52 PM, Mark Brown wrote:
+> On Thu, Dec 29, 2011 at 10:22:31PM +0000, M?ns Rullg?rd wrote:
+>> Mark Brown<broonie@opensource.wolfsonmicro.com>  writes:
+>
+>>> The reason the driver is not loaded automatically is that the OMAP
+>>> machine drivers have not been converted to platform devices.
+>
+>> I posted patches doing the conversion a long time ago (September?). =
+ It
+>> seems they got lost somewhere.
+>
+> Most of them have been converted, but the rx51 wasn't.
 
-On Fri, Dec 30, 2011 at 2:58 AM, NeilBrown <neilb@suse.de> wrote:
-> A power_supply_changed should only be reported on significant changes
-> such as transition between charging and not. =C2=A0Incremental change=
-s
-> such as charge increasing should not be reported - that can easily
-> be polled for.
->
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> ---
->
-> =C2=A0drivers/power/bq27x00_battery.c | =C2=A0 15 ++++++++++++---
-> =C2=A01 files changed, 12 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/power/bq27x00_battery.c b/drivers/power/bq27x00_=
-battery.c
-> index bb16f5b..7993a17 100644
-> --- a/drivers/power/bq27x00_battery.c
-> +++ b/drivers/power/bq27x00_battery.c
-> @@ -57,11 +57,15 @@
-> =C2=A0#define BQ27000_FLAG_CHGS =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0BIT(7)
-> =C2=A0#define BQ27000_FLAG_FC =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0BIT(5)
->
-> +#define BQ27000_FLAGS_IMPORTANT =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0(BQ27000_FLAG_FC|BQ27000_FLAG_CHGS|BIT(31))
-> +
-> =C2=A0#define BQ27500_REG_SOC =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00x2C
-> =C2=A0#define BQ27500_REG_DCAP =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 0x3C /* Design capacity */
-> =C2=A0#define BQ27500_FLAG_DSC =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 BIT(0)
-> =C2=A0#define BQ27500_FLAG_FC =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0BIT(9)
->
-> +#define BQ27500_FLAGS_IMPORTANT =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0(BQ27500_FLAG_FC|BQ27500_FLAG_DSC|BIT(31))
-> +
-> =C2=A0#define BQ27000_RS =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 20 /* Resistor sense */
->
-> =C2=A0struct bq27x00_device_info;
-> @@ -259,6 +263,7 @@ static void bq27x00_update(struct bq27x00_device_=
-info *di)
-> =C2=A0{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct bq27x00_reg_cache cache =3D {0, };
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0bool is_bq27500 =3D di->chip =3D=3D BQ2750=
-0;
-> + =C2=A0 =C2=A0 =C2=A0 int flags_changed;
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0cache.flags =3D bq27x00_read(di, BQ27x00_R=
-EG_FLAGS, is_bq27500);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (cache.flags >=3D 0) {
-> @@ -280,10 +285,14 @@ static void bq27x00_update(struct bq27x00_devic=
-e_info *di)
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Ignore current_now which is a snapshot =
-of the current battery state
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 * and is likely to be different even betw=
-een two consecutive reads */
-> - =C2=A0 =C2=A0 =C2=A0 if (memcmp(&di->cache, &cache, sizeof(cache) -=
- sizeof(int)) !=3D 0) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 di->cache =3D cach=
-e;
-> + =C2=A0 =C2=A0 =C2=A0 flags_changed =3D di->cache.flags ^ cache.flag=
-s;
-> + =C2=A0 =C2=A0 =C2=A0 di->cache =3D cache;
-> + =C2=A0 =C2=A0 =C2=A0 if (is_bq27500)
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flags_changed &=3D=
- BQ27500_FLAGS_IMPORTANT;
-> + =C2=A0 =C2=A0 =C2=A0 else
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 flags_changed &=3D=
- BQ27000_FLAGS_IMPORTANT;
-> + =C2=A0 =C2=A0 =C2=A0 if (flags_changed)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0power_supply_c=
-hanged(&di->bat);
-> - =C2=A0 =C2=A0 =C2=A0 }
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0di->last_update =3D jiffies;
-> =C2=A0}
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
-
+I guess that patch has been forgotten. M=E5ns: care to check and resend=
+?=20
+It's definitely great to get OMAP ASoC machine driver autoloading worki=
+ng.
 
 --=20
-Gra=C5=BEvydas
+Jarkko
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
