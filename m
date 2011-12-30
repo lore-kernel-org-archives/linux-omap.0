@@ -1,7 +1,7 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 1/5] Fix w1_bq27000
+Subject: [PATCH 2/5] omap_hdq: Fix some error/debug handling.
 Date: Fri, 30 Dec 2011 11:58:49 +1100
-Message-ID: <20111230005849.11559.79397.stgit@notabene.brown>
+Message-ID: <20111230005849.11559.60004.stgit@notabene.brown>
 References: <20111230004947.11559.81184.stgit@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,76 +12,89 @@ Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-w1_bq27000 adds a bq27000-battery platform device but does not provide
-platform data for it. This causes the bq27x00 driver to dereference a NULL
-pointer.
-So provide the appropriate platform data.  This requires modifying
-w1_bq27000_read so that it find the w1 device as the parent of the bq device.
-
-Also there is no point exporting w1_bq27000_read as nothing else uses it
-or could use it.  So make it static.
-
-Finally, as there is no way to track how many batteries have been found, and
-we will probably only find one, use an id number of '-1' to assert that this
-is a unique instance.
+- some debug messages missed spaces
+- sometimes no error was returned when it should have been
+- sometimes a message is printed when there is no error, rather
+  than when there is one.
 
 Signed-off-by: NeilBrown <neilb@suse.de>
 ---
 
- drivers/w1/slaves/w1_bq27000.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/w1/masters/omap_hdq.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/w1/slaves/w1_bq27000.c b/drivers/w1/slaves/w1_bq27000.c
-index 8f4c91f..8f10fd2 100644
---- a/drivers/w1/slaves/w1_bq27000.c
-+++ b/drivers/w1/slaves/w1_bq27000.c
-@@ -15,6 +15,7 @@
- #include <linux/types.h>
- #include <linux/platform_device.h>
- #include <linux/mutex.h>
-+#include <linux/power/bq27x00_battery.h>
- 
- #include "../w1.h"
- #include "../w1_int.h"
-@@ -39,10 +40,10 @@ void w1_bq27000_write(struct device *dev, u8 buf, u8 reg)
- }
- EXPORT_SYMBOL(w1_bq27000_write);
- 
--int w1_bq27000_read(struct device *dev, u8 reg)
-+static int w1_bq27000_read(struct device *dev, unsigned int reg)
- {
- 	u8 val;
--	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-+	struct w1_slave *sl = container_of(dev->parent, struct w1_slave, dev);
- 
- 	if (!dev)
- 		return 0;
-@@ -52,19 +53,25 @@ int w1_bq27000_read(struct device *dev, u8 reg)
- 
- 	return val;
- }
--EXPORT_SYMBOL(w1_bq27000_read);
-+
-+static struct bq27000_platform_data bq27000_battery_info = {
-+	.read   = w1_bq27000_read,
-+	.name   = "bq27000-battery",
-+};
- 
- static int w1_bq27000_add_slave(struct w1_slave *sl)
- {
- 	int ret;
--	int id = 1;
- 	struct platform_device *pdev;
- 
--	pdev = platform_device_alloc("bq27000-battery", id);
-+	pdev = platform_device_alloc("bq27000-battery", -1);
- 	if (!pdev) {
- 		ret = -ENOMEM;
- 		return ret;
+diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+index 5ef385b..3036b61 100644
+--- a/drivers/w1/masters/omap_hdq.c
++++ b/drivers/w1/masters/omap_hdq.c
+@@ -180,6 +180,7 @@ static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
+ 		hdq_data->hdq_irqstatus, OMAP_HDQ_TIMEOUT);
+ 	if (ret == 0) {
+ 		dev_dbg(hdq_data->dev, "TX wait elapsed\n");
++		ret = -ETIMEDOUT;
+ 		goto out;
  	}
-+	ret = platform_device_add_data(pdev,
-+				       &bq27000_battery_info,
-+				       sizeof(bq27000_battery_info));
- 	pdev->dev.parent = &sl->dev;
  
- 	ret = platform_device_add(pdev);
+@@ -187,7 +188,7 @@ static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
+ 	/* check irqstatus */
+ 	if (!(*status & OMAP_HDQ_INT_STATUS_TXCOMPLETE)) {
+ 		dev_dbg(hdq_data->dev, "timeout waiting for"
+-			"TXCOMPLETE/RXCOMPLETE, %x", *status);
++			" TXCOMPLETE/RXCOMPLETE, %x", *status);
+ 		ret = -ETIMEDOUT;
+ 		goto out;
+ 	}
+@@ -198,7 +199,7 @@ static int hdq_write_byte(struct hdq_data *hdq_data, u8 val, u8 *status)
+ 			OMAP_HDQ_FLAG_CLEAR, &tmp_status);
+ 	if (ret) {
+ 		dev_dbg(hdq_data->dev, "timeout waiting GO bit"
+-			"return to zero, %x", tmp_status);
++			" return to zero, %x", tmp_status);
+ 	}
+ 
+ out:
+@@ -341,7 +342,7 @@ static int omap_hdq_break(struct hdq_data *hdq_data)
+ 			&tmp_status);
+ 	if (ret)
+ 		dev_dbg(hdq_data->dev, "timeout waiting INIT&GO bits"
+-			"return to zero, %x", tmp_status);
++			" return to zero, %x", tmp_status);
+ 
+ out:
+ 	mutex_unlock(&hdq_data->hdq_mutex);
+@@ -386,7 +387,7 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u8 *val)
+ 		/* check irqstatus */
+ 		if (!(status & OMAP_HDQ_INT_STATUS_RXCOMPLETE)) {
+ 			dev_dbg(hdq_data->dev, "timeout waiting for"
+-				"RXCOMPLETE, %x", status);
++				" RXCOMPLETE, %x", status);
+ 			ret = -ETIMEDOUT;
+ 			goto out;
+ 		}
+@@ -396,7 +397,7 @@ static int hdq_read_byte(struct hdq_data *hdq_data, u8 *val)
+ out:
+ 	mutex_unlock(&hdq_data->hdq_mutex);
+ rtn:
+-	return 0;
++	return ret;
+ 
+ }
+ 
+@@ -470,7 +471,7 @@ static int omap_hdq_put(struct hdq_data *hdq_data)
+ 
+ 	if (0 == hdq_data->hdq_usecount) {
+ 		dev_dbg(hdq_data->dev, "attempt to decrement use count"
+-			"when it is zero");
++			" when it is zero");
+ 		ret = -EINVAL;
+ 	} else {
+ 		hdq_data->hdq_usecount--;
+@@ -540,7 +541,7 @@ static void omap_w1_write_byte(void *_hdq, u8 byte)
+ 	mutex_unlock(&hdq_data->hdq_mutex);
+ 
+ 	ret = hdq_write_byte(hdq_data, byte, &status);
+-	if (ret == 0) {
++	if (ret < 0) {
+ 		dev_dbg(hdq_data->dev, "TX failure:Ctrl status %x\n", status);
+ 		return;
+ 	}
