@@ -1,19 +1,15 @@
 From: NeilBrown <neilb@suse.de>
 Subject: [PATCH 0/5] Improvements to bq27000 management on OMAP
 Date: Fri, 30 Dec 2011 11:58:49 +1100
-Message-ID: <20111230004947.11559.81184.stgit@notabene.brown>
+Message-ID: <20111230004947.11559.81184.stgit__31736.6835814484$1325209566$gmane$org@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49522 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751545Ab1L3Bpb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Dec 2011 20:45:31 -0500
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Evgeniy Polyakov <zbr@ioremap.net>, Lars-Peter Clausen <lars@metafoo.de>, Rodolfo Giometti <giometti@linux.it>, "Pali =?utf-8?b?Um9ow6FyIg==?= <pali.rohar@gmail.com>@suse.de"@suse.de, Anton Vorontsov <cbouatmailru@gmail.com>, Madhusudhan Chikkature <madhu.cr@ti.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
 [re-sent with multiple To: headers to placate vger.kernel.org]
 
@@ -65,4 +61,3 @@ NeilBrown (5):
 
 -- 
 Signature
-
