@@ -1,125 +1,72 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH] omap2430 musb: Make musb_otg_notification non-blocking
-Date: Fri, 30 Dec 2011 12:36:28 +1100
-Message-ID: <20111230123628.76720567@notabene.brown>
+Subject: [PATCH] video/omap2. dispc_mgr_enable needs runtime PM
+Date: Fri, 30 Dec 2011 12:37:55 +1100
+Message-ID: <20111230123755.384a5b5c@notabene.brown>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/PshiCbE=HVVz52oDXJSsI0T"; protocol="application/pgp-signature"
+ boundary="Sig_/wGzbW0Y_+gpCRYgxyEygNw0"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49433 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:49466 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754171Ab1L3Bgi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Dec 2011 20:36:38 -0500
+	id S1751339Ab1L3BiH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Dec 2011 20:38:07 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org
 
---Sig_/PshiCbE=HVVz52oDXJSsI0T
+--Sig_/wGzbW0Y_+gpCRYgxyEygNw0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
 
 
-This callback is on an 'atomic notificaitons' queue but is written
-as a blocking notifier.
-
-Convert to use a work-queue to run from non-atomic context.
+When dispc_mgr_enable is called during shutdown the device might
+be asleep, which causes problems.  So ensure it is awake.
 
 Signed-off-by: NeilBrown <neilb@suse.de>
 
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index b3c065a..fb90d94 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -352,6 +352,8 @@ struct musb {
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/disp=
+c.c
+index 5c81533..75a767f 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -2052,12 +2052,14 @@ bool dispc_mgr_is_enabled(enum omap_channel channel)
 =20
- 	struct timer_list	otg_timer;
- 	struct notifier_block	nb;
-+	struct work_struct	notify_work;
-+	unsigned long		event;
-=20
- 	struct dma_controller	*dma_controller;
-=20
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index ba85f27..a0fe317 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -223,11 +223,11 @@ static inline void omap2430_low_level_init(struct mus=
-b *musb)
- 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
+ void dispc_mgr_enable(enum omap_channel channel, bool enable)
+ {
++	dispc_runtime_get();
+ 	if (dispc_mgr_is_lcd(channel))
+ 		dispc_mgr_enable_lcd_out(channel, enable);
+ 	else if (channel =3D=3D OMAP_DSS_CHANNEL_DIGIT)
+ 		dispc_mgr_enable_digit_out(enable);
+ 	else
+ 		BUG();
++	dispc_runtime_put();
  }
 =20
--/* blocking notifier support */
--static int musb_otg_notifications(struct notifier_block *nb,
--		unsigned long event, void *unused)
-+/* work function for atomic notifier  */
-+static void musb_otg_notify_work(struct work_struct *ws)
- {
--	struct musb	*musb =3D container_of(nb, struct musb, nb);
-+	struct musb	*musb =3D container_of(ws, struct musb, notify_work);
-+	unsigned long event =3D musb->event;
- 	struct device *dev =3D musb->controller;
- 	struct musb_hdrc_platform_data *pdata =3D dev->platform_data;
- 	struct omap_musb_board_data *data =3D pdata->board_data;
-@@ -274,8 +274,18 @@ static int musb_otg_notifications(struct notifier_bloc=
-k *nb,
- 		break;
- 	default:
- 		dev_dbg(musb->controller, "ID float\n");
--		return NOTIFY_DONE;
-+		break;
- 	}
-+}
-+
-+static int musb_otg_notifications(struct notifier_block *nb,
-+				  unsigned long event,
-+				  void *unused)
-+{
-+	struct musb *musb =3D container_of(nb, struct musb, nb);
-+
-+	musb->event =3D event;
-+	schedule_work(&musb->notify_work);
-=20
- 	return NOTIFY_OK;
- }
-@@ -323,6 +333,7 @@ static int omap2430_musb_init(struct musb *musb)
- 			musb_readl(musb->mregs, OTG_INTERFSEL),
- 			musb_readl(musb->mregs, OTG_SIMENABLE));
-=20
-+	INIT_WORK(&musb->notify_work, musb_otg_notify_work);
- 	musb->nb.notifier_call =3D musb_otg_notifications;
- 	status =3D otg_register_notifier(musb->xceiv, &musb->nb);
-=20
-@@ -386,6 +397,7 @@ static void omap2430_musb_disable(struct musb *musb)
- static int omap2430_musb_exit(struct musb *musb)
- {
- 	del_timer_sync(&musb_idle_timer);
-+	cancel_work_sync(&musb->notify_work);
-=20
- 	omap2430_low_level_exit(musb);
- 	otg_put_transceiver(musb->xceiv);
+ void dispc_lcd_enable_signal_polarity(bool act_high)
 
---Sig_/PshiCbE=HVVz52oDXJSsI0T
+--Sig_/wGzbW0Y_+gpCRYgxyEygNw0
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIVAwUBTv0VnTnsnt1WYoG5AQJdAQ//UIb6TTcdh0J1sYo7hAOc7v7//ruPGpXX
-5p2vIbQFy2NiS1khNjudxuTwSYttZIDsGSGR+0NJjtjvE1wkt4QJrCHBEAwn4Xcr
-CEebu3djBUJp9meSt/vmkmEmBO1pbPmBus4U72v4KdT0ucvLVFJPgajKF3zIjt7l
-iMm5mrF42YzgYILM9m9r3v3AAjC7mtJ2vSqMZpt8L7/+LtS+cDTJiWkNK2eIrpWI
-CbRz4jqEM7n+mz45Vk19WEczU7GQWojc1ENzjbwba9g+RLmtJd0cT+g7YWPxQJA/
-/zOmL617Y52MKdPULY2i8fWRhAtpjWa7zcXd9hdw/c5MkSiKHlJEQ93vCz5A0a/1
-ti6cyTEFik1o/NSJhWV9acU+RsoCP1GJNIGeGCL0W+PJTNEo9CzToEgmGgnHpK4B
-XyDIPam+EHi7/vSrrRS6rfAYq1E5QdMlRQ5rsYhJKJbV+0vcXOKSiBPH7LwL+ukU
-cm4lBW+YQxaDA0h6/rRHE+SV4EhhoYvzAkI5aIXac+MfN/E7LGWCv6TrrLkuisop
-2JVs4wi3XqWfXqEIz2egknS95skUm1bfcLxAE15uFZLvFLOQBRt5EqX189XDD6wR
-/5hJj7yMvkf1R8M83OBON72MIP0DKKTpuJogmvkT3yb4ExRtc3jtTsI5HuFS95f9
-KuFC9nvwEwQ=
-=zMw5
+iQIVAwUBTv0V8znsnt1WYoG5AQJOeQ//ff5wFhUil4DE7DmX0LIydZaxbtYCLqiB
+tffzPhhkKK4FYb02rmBMHqbkPR9XMS8zxSBIJHY4YC1/aPD8NRDlYVA31f6uZWx2
+Fa8iI1AzFGQZk3NZlo8UzQJbY26lCSmqKh7sC5R+XK+yr2Ed9UbngyJPoYqOfqNp
+/2+Vn+AGb048gRMJAj+lSBuAPLh6L2Qt1LgSOWC2Jk/sHB2Nd2JghwY7S8teIAjG
+azMAgYGufzuYmimr31H5n3b3jcTdDJPUH4uRLnef0gBDgQ8lgEv5oNC7Jh2Ifb8l
+Vfts5b+ZHL0j1G+b8MtXkdrWHiLiydbLRpT4oJIeAUI72D2UMCeJ00WWW2I2sPZa
+7IVhzj9TV7T3O8H81FIIgor8X2p1TRHwAlP0ddImT9yqBFrFe+uYY3/28b976neE
+74cSUpqv8SLfp1HMCJevRveqw+7yoA8XxdUayJOW07Xo4Vf0TarHV+izLQFDfuSK
+uoyx9EenlNGCgAiYngmGM6vpYj6CSanmEFu5f7CEV7LFXhfIrfVsFkLpsmSXDD3J
+MXKD51G8GsiUHQ9p3Dh2fdFwPaulORiKW16ZGkoVwXc9Bc92SGyA6i97X/TB9Jjg
+LRad5D4lRIkSbsK0iYN/Arbo4dftltrcS6m1i5mMYewksM7EQu6vGYU4/Ad4BkEj
+snbXXVQ24yI=
+=2wFU
 -----END PGP SIGNATURE-----
 
---Sig_/PshiCbE=HVVz52oDXJSsI0T--
+--Sig_/wGzbW0Y_+gpCRYgxyEygNw0--
