@@ -1,77 +1,59 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 5/5] bq27x00 - don't report power-supply change so often.
-Date: Fri, 30 Dec 2011 11:58:49 +1100
-Message-ID: <20111230005849.11559.78948.stgit@notabene.brown>
-References: <20111230004947.11559.81184.stgit@notabene.brown>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH v2 0/4] Amstrad Delta: access MODEM_RESET GPIO
+	pin over a regulator
+Date: Fri, 30 Dec 2011 04:04:52 +0100
+Message-ID: <1325214296-2888-1-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50139 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754963Ab1L3CsT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Dec 2011 21:48:19 -0500
-In-Reply-To: <20111230004947.11559.81184.stgit@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-A power_supply_changed should only be reported on significant changes
-such as transition between charging and not.  Incremental changes
-such as charge increasing should not be reported - that can easily
-be polled for.
+The Amstrad Delta on-board latch2 bit named MODEM_NRESET, now available
+as a GPIO pin AMS_DELTA_GPIO_PIN_NMODEM_RESET, is used to power up/down
+(bring into/out of a reset state) two distinct on-board devices
+simultaneously: the modem, and the voice codec. As a consequence, that
+bit is, or can be, manipulated concurrently by two drivers, or their
+platform provided hooks.
 
-Signed-off-by: NeilBrown <neilb@suse.de>
----
+Instead of updating those drivers to use the gpiolib API as a new method
+of controlling the MODEM_NRESET pin state, like it was done to other
+drivers accessing latch2 pins, and still being vulnerable to potential
+concurrency conflicts, or trying to solve that sharing issue with a
+custom piece of code, set up a fixed regulator device on top of that
+GPIO pin and update both drivers to manipulate that regulator, not the
+GPIO pin directly.
 
- drivers/power/bq27x00_battery.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
+Changes against initial version:
+* in both the codec and the modem callbacks, don't track the regulator
+  enable/disable state, compare new targert bias level (the codec case)
+  or power state (the modem case) with the old value instead; thanks to
+  Mark Brown who suggested this solution,
+* a few other minor changes, mostly stylistic.
 
-diff --git a/drivers/power/bq27x00_battery.c b/drivers/power/bq27x00_battery.c
-index bb16f5b..7993a17 100644
---- a/drivers/power/bq27x00_battery.c
-+++ b/drivers/power/bq27x00_battery.c
-@@ -57,11 +57,15 @@
- #define BQ27000_FLAG_CHGS		BIT(7)
- #define BQ27000_FLAG_FC			BIT(5)
- 
-+#define BQ27000_FLAGS_IMPORTANT		(BQ27000_FLAG_FC|BQ27000_FLAG_CHGS|BIT(31))
-+
- #define BQ27500_REG_SOC			0x2C
- #define BQ27500_REG_DCAP		0x3C /* Design capacity */
- #define BQ27500_FLAG_DSC		BIT(0)
- #define BQ27500_FLAG_FC			BIT(9)
- 
-+#define BQ27500_FLAGS_IMPORTANT		(BQ27500_FLAG_FC|BQ27500_FLAG_DSC|BIT(31))
-+
- #define BQ27000_RS			20 /* Resistor sense */
- 
- struct bq27x00_device_info;
-@@ -259,6 +263,7 @@ static void bq27x00_update(struct bq27x00_device_info *di)
- {
- 	struct bq27x00_reg_cache cache = {0, };
- 	bool is_bq27500 = di->chip == BQ27500;
-+	int flags_changed;
- 
- 	cache.flags = bq27x00_read(di, BQ27x00_REG_FLAGS, is_bq27500);
- 	if (cache.flags >= 0) {
-@@ -280,10 +285,14 @@ static void bq27x00_update(struct bq27x00_device_info *di)
- 
- 	/* Ignore current_now which is a snapshot of the current battery state
- 	 * and is likely to be different even between two consecutive reads */
--	if (memcmp(&di->cache, &cache, sizeof(cache) - sizeof(int)) != 0) {
--		di->cache = cache;
-+	flags_changed = di->cache.flags ^ cache.flags;
-+	di->cache = cache;
-+	if (is_bq27500)
-+		flags_changed &= BQ27500_FLAGS_IMPORTANT;
-+	else
-+		flags_changed &= BQ27000_FLAGS_IMPORTANT;
-+	if (flags_changed)
- 		power_supply_changed(&di->bat);
--	}
- 
- 	di->last_update = jiffies;
- }
+Janusz Krzysztofik (4):
+  ARM: OMAP1: ams-delta: set up regulator over modem reset GPIO pin
+  ASoC: cx20442: add bias control over a platform provided regulator
+  ARM: OMAP1: ams-delta: update the modem to use regulator API
+  ASoC: OMAP: ams-delta: drop .set_bias_level callback
 
+ arch/arm/mach-omap1/Kconfig                       |    2 +
+ arch/arm/mach-omap1/board-ams-delta.c             |   94 +++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/board-ams-delta.h |    1 -
+ sound/soc/codecs/cx20442.c                        |   48 ++++++++++-
+ sound/soc/omap/ams-delta.c                        |   34 --------
+ 5 files changed, 133 insertions(+), 46 deletions(-)
 
+-- 
+1.7.3.4
