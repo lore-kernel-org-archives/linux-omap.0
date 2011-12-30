@@ -1,96 +1,106 @@
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: [BUG] SIOCSIFFLAGS returns -EIO on SMSC LAN911x
-Date: Fri, 30 Dec 2011 10:09:57 +0100
-Message-ID: <CAAwP0s0xsXTW9M18mpSeYipLqT7v_LH6RyRK3wRYV1qYo0S01A@mail.gmail.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH V2] OMAP3: hwmod_data: register dss hwmods after dss_core
+Date: Fri, 30 Dec 2011 15:32:30 +0530
+Message-ID: <4EFD8C36.9000208@ti.com>
+References: <1324562563-27119-1-git-send-email-yanok@emcraft.com> <1325028693-14728-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:63689 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179Ab1L3JKT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Dec 2011 04:10:19 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:54224 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375Ab1L3KDK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Dec 2011 05:03:10 -0500
+In-Reply-To: <1325028693-14728-1-git-send-email-yanok@emcraft.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-netdev@vger.kernel.org, linux-omap@vger.kernel.org, kernelnewbies <kernelnewbies@kernelnewbies.org>
-Cc: Enric Balletbo i Serra <eballetbo@iseebcn.com>, Herbert Valerio Riedel <hvr@gnu.org>
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il, sasha_d@emcraft.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Hello,
+Hi,
 
-We have an issue with the SMSC LAN911x driver with today linux-2.6 [1]
-executing on an IGEPv2 [2] board using omap2plus_defconfig.
+On Wednesday 28 December 2011 05:01 AM, Ilya Yanok wrote:
+> dss_core has to be initialized before any other DSS hwmod. Currently
+> this is broken as dss_core is listed in chip/revision specific hwmod
+> lists while other DSS hwmods are listed in common list which is
+> registered first.
+>
+> This patch moves DSS hwmods (except for dss_core) to the separate list
+> which is registered last to ensure that dss_core is already registered.
+>
+> This solves the problem with BUG() in L3 interrupt handler on boards
+> with DSS enabled in bootloader.
+>
+> CC: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> CC: Archit Taneja<archit@ti.com>
+> CC: Paul Walmsley<paul@pwsan.com>
+> Signed-off-by: Ilya Yanok<yanok@emcraft.com>
+> ---
+>
+> Changes from V1:
+>   - Added extended comment
+>
+>   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   28 ++++++++++++++++++++++------
+>   1 files changed, 22 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> index 5324e8d..f263d3c 100644
+> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+> @@ -3523,12 +3523,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+>   	&omap3xxx_uart2_hwmod,
+>   	&omap3xxx_uart3_hwmod,
+>
+> -	/* dss class */
+> -	&omap3xxx_dss_dispc_hwmod,
+> -	&omap3xxx_dss_dsi1_hwmod,
+> -	&omap3xxx_dss_rfbi_hwmod,
+> -	&omap3xxx_dss_venc_hwmod,
+> -
+>   	/* i2c class */
+>   	&omap3xxx_i2c1_hwmod,
+>   	&omap3xxx_i2c2_hwmod,
+> @@ -3635,6 +3629,15 @@ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
+>   	NULL
+>   };
+>
+> +static __initdata struct omap_hwmod *omap3xxx_dss_hwmods[] = {
+> +	/* dss class */
+> +	&omap3xxx_dss_dispc_hwmod,
+> +	&omap3xxx_dss_dsi1_hwmod,
+> +	&omap3xxx_dss_rfbi_hwmod,
+> +	&omap3xxx_dss_venc_hwmod,
+> +	NULL
+> +};
+> +
+>   int __init omap3xxx_hwmod_init(void)
+>   {
+>   	int r;
+> @@ -3708,6 +3711,19 @@ int __init omap3xxx_hwmod_init(void)
+>
+>   	if (h)
+>   		r = omap_hwmod_register(h);
+> +	if (r<  0)
+> +		return r;
+> +
+> +	/*
+> +	 * DSS code presumes that dss_core hwmod is handled first,
+> +	 * _before_ any other DSS related hwmods so register common
+> +	 * DSS hwmods last to ensure that dss_core is already registered.
+> +	 * Otherwise some change things may happen, for ex. if dispc
+> +	 * is handled before dss_core and DSS is enabled in bootloader
+> +	 * DIPSC will be reset with outputs enabled which sometimes leads
+> +	 * to unrecoverable L3 error.
+> +	 */
+> +	r = omap_hwmod_register(omap3xxx_dss_hwmods);
 
-When I try to bring up the network interface, the ioctl set interface
-flags command (SIOCSIFFLAGS)  fails returning -EIO:
+This looks fine, but it should be needed for other OMAP2 and OMAP4 also. 
+If you could extend the patch we could test it out for the other OMAPs.
 
-root@igep00x0:~# ifconfig eth0 up
-ifconfig: SIOCSIFFLAGS: Input/output error
+Thanks,
+Archit
 
-But if I execute again it succeeds:
+>
+>   	return r;
+>   }
 
-root@igep00x0:~# ifconfig eth0 up
-[  832.465423] smsc911x smsc911x.0: eth0: SMSC911x/921x identified at
-0xdb086000, IRQ: 336
-
-We found that the problem is on the SMSC LAN911x driver
-(drivers/net/ethernet/smsc/smsc911x.c) net_dev ndo_open function
-handler smsc911x_open.
-
-When the handler is called, it tries to software reset the device by
-writing a bit to a self-clearing configuration register. According to
-the data-sheet the hardware clears that bit to notify that the reset
-was successfully:
-
- static int smsc911x_soft_reset(struct smsc911x_data *pdata)
-{
-        unsigned int timeout;
-        unsigned int temp;
-
-        /* Reset the LAN911x */
-        smsc911x_reg_write(pdata, HW_CFG, HW_CFG_SRST_);
-        timeout =3D 10;
-        do {
-                udelay(10);
-                temp =3D smsc911x_reg_read(pdata, HW_CFG);
-        } while ((--timeout) && (temp & HW_CFG_SRST_));
-
-        if (unlikely(temp & HW_CFG_SRST_)) {
-                SMSC_WARN(pdata, drv, "Failed to complete reset");
-                return -EIO;
-        }
-        return 0;
-}
-
-The condition temp & HW_CFG_SRST_ is false so the error code -EIO is
-returned and propagated to user-space.
-
-By doing a git bisect we found that this strange behavior exists when
-the Kconfig tristate compilation condition SMSC_PHY has the value yes
-to be compiled built-in:
-
-SMSC_PHY=3Dy
-
-If this config symbol has the value module (m) or not build at all,
-then bringing up the network interface never fails.
-
-Did anyone have the same problem?
-
-The problem is really strange to me, especially since we are sure that
-all the requirements to software reset the device are meet in both
-cases (with SMSC_PHY compiled built-in and without it)
-
-[1]: HEAD on commit 371de6e4e0042adf4f9b54c414154f57414ddd37 drm/i915:
-Disable RC6 on Sandybridge by default
-[2]: https://wiki.linaro.org/Boards/Igep
-
-Thank you and best regards,
-
---=20
-Javier Mart=C3=ADnez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
