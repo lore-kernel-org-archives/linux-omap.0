@@ -1,163 +1,125 @@
 From: NeilBrown <neilb@suse.de>
-Subject: [PATCH] omap_hsmmc - use threaded irq handler for card-detect.
-Date: Fri, 30 Dec 2011 12:35:13 +1100
-Message-ID: <20111230123513.6a843526@notabene.brown>
+Subject: [PATCH] omap2430 musb: Make musb_otg_notification non-blocking
+Date: Fri, 30 Dec 2011 12:36:28 +1100
+Message-ID: <20111230123628.76720567@notabene.brown>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/RArZZEY8frjVL5viKLgm3lm"; protocol="application/pgp-signature"
+ boundary="Sig_/PshiCbE=HVVz52oDXJSsI0T"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:49423 "EHLO mx2.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:49433 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754171Ab1L3BfY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Dec 2011 20:35:24 -0500
+	id S1754171Ab1L3Bgi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Dec 2011 20:36:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Ball <cjb@laptop.org>, Tony Lindgren <tony@atomide.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
---Sig_/RArZZEY8frjVL5viKLgm3lm
+--Sig_/PshiCbE=HVVz52oDXJSsI0T
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
 
 
-As the card-detect irq handler just schedules work to be done by
-a thread, we can use request_threaded_irq to do much of the work for
-us.  This means that interrupts which arrive by handle_nested_irq
-actually work.
+This callback is on an 'atomic notificaitons' queue but is written
+as a blocking notifier.
 
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+Convert to use a work-queue to run from non-atomic context.
+
 Signed-off-by: NeilBrown <neilb@suse.de>
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index d5fe43d..56f6cfc 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -24,7 +24,6 @@
- #include <linux/delay.h>
- #include <linux/dma-mapping.h>
- #include <linux/platform_device.h>
--#include <linux/workqueue.h>
- #include <linux/timer.h>
- #include <linux/clk.h>
- #include <linux/mmc/host.h>
-@@ -163,7 +162,6 @@ struct omap_hsmmc_host {
- 	 */
- 	struct	regulator	*vcc;
- 	struct	regulator	*vcc_aux;
--	struct	work_struct	mmc_carddetect_work;
- 	void	__iomem		*base;
- 	resource_size_t		mapbase;
- 	spinlock_t		irq_lock; /* Prevent races with irq handler */
-@@ -1280,17 +1278,16 @@ static void omap_hsmmc_protect_card(struct omap_hsm=
-mc_host *host)
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index b3c065a..fb90d94 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -352,6 +352,8 @@ struct musb {
+=20
+ 	struct timer_list	otg_timer;
+ 	struct notifier_block	nb;
++	struct work_struct	notify_work;
++	unsigned long		event;
+=20
+ 	struct dma_controller	*dma_controller;
+=20
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index ba85f27..a0fe317 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -223,11 +223,11 @@ static inline void omap2430_low_level_init(struct mus=
+b *musb)
+ 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
  }
 =20
- /*
-- * Work Item to notify the core about card insertion/removal
-+ * irq handler to notify the core about card insertion/removal
-  */
--static void omap_hsmmc_detect(struct work_struct *work)
-+static irqreturn_t omap_hsmmc_detect(int irq, void *dev_id)
+-/* blocking notifier support */
+-static int musb_otg_notifications(struct notifier_block *nb,
+-		unsigned long event, void *unused)
++/* work function for atomic notifier  */
++static void musb_otg_notify_work(struct work_struct *ws)
  {
--	struct omap_hsmmc_host *host =3D
--		container_of(work, struct omap_hsmmc_host, mmc_carddetect_work);
-+	struct omap_hsmmc_host *host =3D dev_id;
- 	struct omap_mmc_slot_data *slot =3D &mmc_slot(host);
- 	int carddetect;
+-	struct musb	*musb =3D container_of(nb, struct musb, nb);
++	struct musb	*musb =3D container_of(ws, struct musb, notify_work);
++	unsigned long event =3D musb->event;
+ 	struct device *dev =3D musb->controller;
+ 	struct musb_hdrc_platform_data *pdata =3D dev->platform_data;
+ 	struct omap_musb_board_data *data =3D pdata->board_data;
+@@ -274,8 +274,18 @@ static int musb_otg_notifications(struct notifier_bloc=
+k *nb,
+ 		break;
+ 	default:
+ 		dev_dbg(musb->controller, "ID float\n");
+-		return NOTIFY_DONE;
++		break;
+ 	}
++}
++
++static int musb_otg_notifications(struct notifier_block *nb,
++				  unsigned long event,
++				  void *unused)
++{
++	struct musb *musb =3D container_of(nb, struct musb, nb);
++
++	musb->event =3D event;
++	schedule_work(&musb->notify_work);
 =20
- 	if (host->suspended)
--		return;
-+		return IRQ_HANDLED;
-=20
- 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
-=20
-@@ -1305,19 +1302,6 @@ static void omap_hsmmc_detect(struct work_struct *wo=
-rk)
- 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
- 	else
- 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
--}
--
--/*
-- * ISR for handling card insertion and removal
-- */
--static irqreturn_t omap_hsmmc_cd_handler(int irq, void *dev_id)
--{
--	struct omap_hsmmc_host *host =3D (struct omap_hsmmc_host *)dev_id;
--
--	if (host->suspended)
--		return IRQ_HANDLED;
--	schedule_work(&host->mmc_carddetect_work);
--
- 	return IRQ_HANDLED;
+ 	return NOTIFY_OK;
  }
+@@ -323,6 +333,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 			musb_readl(musb->mregs, OTG_INTERFSEL),
+ 			musb_readl(musb->mregs, OTG_SIMENABLE));
 =20
-@@ -1919,7 +1903,6 @@ static int __init omap_hsmmc_probe(struct platform_de=
-vice *pdev)
- 	host->next_data.cookie =3D 1;
++	INIT_WORK(&musb->notify_work, musb_otg_notify_work);
+ 	musb->nb.notifier_call =3D musb_otg_notifications;
+ 	status =3D otg_register_notifier(musb->xceiv, &musb->nb);
 =20
- 	platform_set_drvdata(pdev, host);
--	INIT_WORK(&host->mmc_carddetect_work, omap_hsmmc_detect);
+@@ -386,6 +397,7 @@ static void omap2430_musb_disable(struct musb *musb)
+ static int omap2430_musb_exit(struct musb *musb)
+ {
+ 	del_timer_sync(&musb_idle_timer);
++	cancel_work_sync(&musb->notify_work);
 =20
- 	mmc->ops	=3D &omap_hsmmc_ops;
-=20
-@@ -2047,10 +2030,11 @@ static int __init omap_hsmmc_probe(struct platform_=
-device *pdev)
-=20
- 	/* Request IRQ for card detect */
- 	if ((mmc_slot(host).card_detect_irq)) {
--		ret =3D request_irq(mmc_slot(host).card_detect_irq,
--				  omap_hsmmc_cd_handler,
--				  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
--				  mmc_hostname(mmc), host);
-+		ret =3D request_threaded_irq(mmc_slot(host).card_detect_irq,
-+					   NULL,
-+					   omap_hsmmc_detect,
-+					   IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
-+					   mmc_hostname(mmc), host);
- 		if (ret) {
- 			dev_dbg(mmc_dev(host->mmc),
- 				"Unable to grab MMC CD IRQ\n");
-@@ -2129,7 +2113,6 @@ static int omap_hsmmc_remove(struct platform_device *=
-pdev)
- 		free_irq(host->irq, host);
- 		if (mmc_slot(host).card_detect_irq)
- 			free_irq(mmc_slot(host).card_detect_irq, host);
--		flush_work_sync(&host->mmc_carddetect_work);
-=20
- 		pm_runtime_put_sync(host->dev);
- 		pm_runtime_disable(host->dev);
-@@ -2176,7 +2159,6 @@ static int omap_hsmmc_suspend(struct device *dev)
- 				return ret;
- 			}
- 		}
--		cancel_work_sync(&host->mmc_carddetect_work);
- 		ret =3D mmc_suspend_host(host->mmc);
-=20
- 		if (ret =3D=3D 0) {
+ 	omap2430_low_level_exit(musb);
+ 	otg_put_transceiver(musb->xceiv);
 
---Sig_/RArZZEY8frjVL5viKLgm3lm
+--Sig_/PshiCbE=HVVz52oDXJSsI0T
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIVAwUBTv0VUTnsnt1WYoG5AQIoRw//TuWbRjM8YZUxhLe7D0bDH5jRzxlMHHQn
-FTwwtXNjYCsf4ApCzNpytWiysz+4HS7oj+0SMRFe7Ass1luuoWjmUvHyNuSi0QuI
-/5ubBiQV4KiXajLI8q+oLzIdgEVxCKkzOfBkmRRUAe2WwvWvKHF86d30RSs9uzbl
-DN+06uXlPA9HaTqfZI0XON/CArytyNzfsvpTmZmbPOhhW2D920NHYUdWBrwUAANb
-P/QpSw+QOSj6qemb/pVoGFfEMxI2Qx7wJPKhVxcn+R5lJ21w1ctoTF+ePGp9csUF
-1NCdZgCqbQaXxwH+xdHtrFEk1TURQGNrbImCREuo2Jp3/9aUFahdUZs3Td8zHWDS
-x2VSiRYebxfMO6a8/pP88dwtjxIG86d+2h9j2fxNdp54TsFz+Vmxccf2RMayZb57
-LcV6ZbytQxgDxaM5GyCxo2q6lr8B68ks8V4C7Zywbr7s1OHH9q4d9EOmjC2rZ1qr
-m2CE+V1neTHlaRRed+cFa34hZ5W96z2X3zL+uYdeC3rfDXmDRAZ4TI5HQWUu6ToG
-eWFXkxwDRsZgLi+dqGBE/O3umJ5FOXcchL/f9uvS06HwnoZDwAy0OGaFBq/DMYOf
-kt0Hvo6tl/TGi8ESFqMdb0au0sgcWjmM8Eel9FgaYWsLB3xOwo7Boeibo92q1QWH
-uBsaWvUKp5g=
-=DQzd
+iQIVAwUBTv0VnTnsnt1WYoG5AQJdAQ//UIb6TTcdh0J1sYo7hAOc7v7//ruPGpXX
+5p2vIbQFy2NiS1khNjudxuTwSYttZIDsGSGR+0NJjtjvE1wkt4QJrCHBEAwn4Xcr
+CEebu3djBUJp9meSt/vmkmEmBO1pbPmBus4U72v4KdT0ucvLVFJPgajKF3zIjt7l
+iMm5mrF42YzgYILM9m9r3v3AAjC7mtJ2vSqMZpt8L7/+LtS+cDTJiWkNK2eIrpWI
+CbRz4jqEM7n+mz45Vk19WEczU7GQWojc1ENzjbwba9g+RLmtJd0cT+g7YWPxQJA/
+/zOmL617Y52MKdPULY2i8fWRhAtpjWa7zcXd9hdw/c5MkSiKHlJEQ93vCz5A0a/1
+ti6cyTEFik1o/NSJhWV9acU+RsoCP1GJNIGeGCL0W+PJTNEo9CzToEgmGgnHpK4B
+XyDIPam+EHi7/vSrrRS6rfAYq1E5QdMlRQ5rsYhJKJbV+0vcXOKSiBPH7LwL+ukU
+cm4lBW+YQxaDA0h6/rRHE+SV4EhhoYvzAkI5aIXac+MfN/E7LGWCv6TrrLkuisop
+2JVs4wi3XqWfXqEIz2egknS95skUm1bfcLxAE15uFZLvFLOQBRt5EqX189XDD6wR
+/5hJj7yMvkf1R8M83OBON72MIP0DKKTpuJogmvkT3yb4ExRtc3jtTsI5HuFS95f9
+KuFC9nvwEwQ=
+=zMw5
 -----END PGP SIGNATURE-----
 
---Sig_/RArZZEY8frjVL5viKLgm3lm--
+--Sig_/PshiCbE=HVVz52oDXJSsI0T--
