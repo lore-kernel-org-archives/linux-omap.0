@@ -1,106 +1,38 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH V2] OMAP3: hwmod_data: register dss hwmods after dss_core
-Date: Fri, 30 Dec 2011 15:32:30 +0530
-Message-ID: <4EFD8C36.9000208@ti.com>
-References: <1324562563-27119-1-git-send-email-yanok@emcraft.com> <1325028693-14728-1-git-send-email-yanok@emcraft.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] It looks like snd-soc-rx51 only works as
+ built-in, not as a module
+Date: Fri, 30 Dec 2011 10:52:45 +0000
+Message-ID: <20111230105244.GA21638@sirena.org.uk>
+References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
+ <20111210082741.GA32605@earth.universe>
+ <CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com>
+ <20111229183712.GB32392@sirena.org.uk>
+ <CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com>
+ <20111229212707.GA9737@opensource.wolfsonmicro.com>
+ <CAMP44s2SU_M0Fpt43YDLLhPrgsGzkgpHRWHLcJO4f8N=0HHdvg@mail.gmail.com>
+ <20111229215407.GB9737@opensource.wolfsonmicro.com>
+ <yw1x7h1ff26w.fsf@unicorn.mansr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54224 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375Ab1L3KDK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Dec 2011 05:03:10 -0500
-In-Reply-To: <1325028693-14728-1-git-send-email-yanok@emcraft.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:48525 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881Ab1L3Kws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Dec 2011 05:52:48 -0500
+Content-Disposition: inline
+In-Reply-To: <yw1x7h1ff26w.fsf@unicorn.mansr.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, grinberg@compulab.co.il, sasha_d@emcraft.com, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: M?ns Rullg?rd <mans@mansr.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-Hi,
+On Thu, Dec 29, 2011 at 10:22:31PM +0000, M?ns Rullg?rd wrote:
+> Mark Brown <broonie@opensource.wolfsonmicro.com> writes:
 
-On Wednesday 28 December 2011 05:01 AM, Ilya Yanok wrote:
-> dss_core has to be initialized before any other DSS hwmod. Currently
-> this is broken as dss_core is listed in chip/revision specific hwmod
-> lists while other DSS hwmods are listed in common list which is
-> registered first.
->
-> This patch moves DSS hwmods (except for dss_core) to the separate list
-> which is registered last to ensure that dss_core is already registered.
->
-> This solves the problem with BUG() in L3 interrupt handler on boards
-> with DSS enabled in bootloader.
->
-> CC: Tomi Valkeinen<tomi.valkeinen@ti.com>
-> CC: Archit Taneja<archit@ti.com>
-> CC: Paul Walmsley<paul@pwsan.com>
-> Signed-off-by: Ilya Yanok<yanok@emcraft.com>
-> ---
->
-> Changes from V1:
->   - Added extended comment
->
->   arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   28 ++++++++++++++++++++++------
->   1 files changed, 22 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> index 5324e8d..f263d3c 100644
-> --- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> +++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-> @@ -3523,12 +3523,6 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
->   	&omap3xxx_uart2_hwmod,
->   	&omap3xxx_uart3_hwmod,
->
-> -	/* dss class */
-> -	&omap3xxx_dss_dispc_hwmod,
-> -	&omap3xxx_dss_dsi1_hwmod,
-> -	&omap3xxx_dss_rfbi_hwmod,
-> -	&omap3xxx_dss_venc_hwmod,
-> -
->   	/* i2c class */
->   	&omap3xxx_i2c1_hwmod,
->   	&omap3xxx_i2c2_hwmod,
-> @@ -3635,6 +3629,15 @@ static __initdata struct omap_hwmod *am35xx_hwmods[] = {
->   	NULL
->   };
->
-> +static __initdata struct omap_hwmod *omap3xxx_dss_hwmods[] = {
-> +	/* dss class */
-> +	&omap3xxx_dss_dispc_hwmod,
-> +	&omap3xxx_dss_dsi1_hwmod,
-> +	&omap3xxx_dss_rfbi_hwmod,
-> +	&omap3xxx_dss_venc_hwmod,
-> +	NULL
-> +};
-> +
->   int __init omap3xxx_hwmod_init(void)
->   {
->   	int r;
-> @@ -3708,6 +3711,19 @@ int __init omap3xxx_hwmod_init(void)
->
->   	if (h)
->   		r = omap_hwmod_register(h);
-> +	if (r<  0)
-> +		return r;
-> +
-> +	/*
-> +	 * DSS code presumes that dss_core hwmod is handled first,
-> +	 * _before_ any other DSS related hwmods so register common
-> +	 * DSS hwmods last to ensure that dss_core is already registered.
-> +	 * Otherwise some change things may happen, for ex. if dispc
-> +	 * is handled before dss_core and DSS is enabled in bootloader
-> +	 * DIPSC will be reset with outputs enabled which sometimes leads
-> +	 * to unrecoverable L3 error.
-> +	 */
-> +	r = omap_hwmod_register(omap3xxx_dss_hwmods);
+> > The reason the driver is not loaded automatically is that the OMAP
+> > machine drivers have not been converted to platform devices.
 
-This looks fine, but it should be needed for other OMAP2 and OMAP4 also. 
-If you could extend the patch we could test it out for the other OMAPs.
+> I posted patches doing the conversion a long time ago (September?).  It
+> seems they got lost somewhere.
 
-Thanks,
-Archit
-
->
->   	return r;
->   }
-
+Most of them have been converted, but the rx51 wasn't.
