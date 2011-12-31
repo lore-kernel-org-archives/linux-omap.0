@@ -1,40 +1,96 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] It looks like snd-soc-rx51 only works as
-	built-in, not as a module
-Date: Sat, 31 Dec 2011 01:02:14 +0000
-Message-ID: <20111231010214.GB5835@opensource.wolfsonmicro.com>
-References: <CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com> <20111229183712.GB32392@sirena.org.uk> <CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com> <20111229212707.GA9737@opensource.wolfsonmicro.com> <CAMP44s2SU_M0Fpt43YDLLhPrgsGzkgpHRWHLcJO4f8N=0HHdvg@mail.gmail.com> <20111229215407.GB9737@opensource.wolfsonmicro.com> <yw1x7h1ff26w.fsf@unicorn.mansr.com> <20111230105244.GA21638@sirena.org.uk> <yw1xy5ttex9k.fsf@unicorn.mansr.com> <yw1xaa69dfay.fsf@unicorn.mansr.com>
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: Re: [PATCH 5/5] bq27x00 - don't report power-supply change so often.
+Date: Sat, 31 Dec 2011 12:27:43 +0100
+Message-ID: <4EFEF1AF.9060001@metafoo.de>
+References: <20111230004947.11559.81184.stgit@notabene.brown>	<20111230005849.11559.78948.stgit@notabene.brown> <CANOLnOM7QbF5aMb1iW0W2t6B1q1J+cROMU8SpD185DyC33w4kA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60421 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751939Ab1LaBCP (ORCPT
+Received: from mailhost.informatik.uni-hamburg.de ([134.100.9.70]:51148 "EHLO
+	mailhost.informatik.uni-hamburg.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752342Ab1LaL2R (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Dec 2011 20:02:15 -0500
-Content-Disposition: inline
-In-Reply-To: <yw1xaa69dfay.fsf@unicorn.mansr.com>
+	Sat, 31 Dec 2011 06:28:17 -0500
+In-Reply-To: <CANOLnOM7QbF5aMb1iW0W2t6B1q1J+cROMU8SpD185DyC33w4kA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anton Vorontsov <cbouatmailru@gmail.com>
 
-On Fri, Dec 30, 2011 at 07:34:29PM +0000, M=E5ns Rullg=E5rd wrote:
-> M=E5ns Rullg=E5rd <mans@mansr.com> writes:
+On 12/30/2011 12:13 PM, Grazvydas Ignotas wrote:
+> CCing Lars who added this. I vaguely recall something about generating
+> events to make some battery monitors update but I forget the details
+> now, maybe it was about something else. Also CCing Anton (the
+> maintainer).
+> 
+> On Fri, Dec 30, 2011 at 2:58 AM, NeilBrown <neilb@suse.de> wrote:
+>> A power_supply_changed should only be reported on significant changes
+>> such as transition between charging and not.  Incremental changes
+>> such as charge increasing should not be reported - that can easily
+>> be polled for.
 
-> > In which tree?  I haven't seen anything of the kind.
+Well, you can also poll for those "significant" changes, too. The point of
+adding this was to have a centralized point where polling takes place instead
+of letting each battery monitor do this on its own. Though if, as you wrote in
+the cover letter, the some properties change every time the values are read it
+might makes sense to exclude these from the comparison. On the other hand one
+event every 6 minutes doesn't really sound harmful and I would suspect that
+battery monitors will use a similar interval when manually polling the device.
 
-The random sampling of drivers I looked at seemed to be doing something
-sensible.
+- Lars
 
-> That would be this one:
-> http://article.gmane.org/gmane.linux.alsa.devel/89052
+>>
+>> Signed-off-by: NeilBrown <neilb@suse.de>
+>> ---
+>>
+>>  drivers/power/bq27x00_battery.c |   15 ++++++++++++---
+>>  1 files changed, 12 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/power/bq27x00_battery.c b/drivers/power/bq27x00_battery.c
+>> index bb16f5b..7993a17 100644
+>> --- a/drivers/power/bq27x00_battery.c
+>> +++ b/drivers/power/bq27x00_battery.c
+>> @@ -57,11 +57,15 @@
+>>  #define BQ27000_FLAG_CHGS              BIT(7)
+>>  #define BQ27000_FLAG_FC                        BIT(5)
+>>
+>> +#define BQ27000_FLAGS_IMPORTANT                (BQ27000_FLAG_FC|BQ27000_FLAG_CHGS|BIT(31))
+>> +
+>>  #define BQ27500_REG_SOC                        0x2C
+>>  #define BQ27500_REG_DCAP               0x3C /* Design capacity */
+>>  #define BQ27500_FLAG_DSC               BIT(0)
+>>  #define BQ27500_FLAG_FC                        BIT(9)
+>>
+>> +#define BQ27500_FLAGS_IMPORTANT                (BQ27500_FLAG_FC|BQ27500_FLAG_DSC|BIT(31))
+>> +
+>>  #define BQ27000_RS                     20 /* Resistor sense */
+>>
+>>  struct bq27x00_device_info;
+>> @@ -259,6 +263,7 @@ static void bq27x00_update(struct bq27x00_device_info *di)
+>>  {
+>>        struct bq27x00_reg_cache cache = {0, };
+>>        bool is_bq27500 = di->chip == BQ27500;
+>> +       int flags_changed;
+>>
+>>        cache.flags = bq27x00_read(di, BQ27x00_REG_FLAGS, is_bq27500);
+>>        if (cache.flags >= 0) {
+>> @@ -280,10 +285,14 @@ static void bq27x00_update(struct bq27x00_device_info *di)
+>>
+>>        /* Ignore current_now which is a snapshot of the current battery state
+>>         * and is likely to be different even between two consecutive reads */
+>> -       if (memcmp(&di->cache, &cache, sizeof(cache) - sizeof(int)) != 0) {
+>> -               di->cache = cache;
+>> +       flags_changed = di->cache.flags ^ cache.flags;
+>> +       di->cache = cache;
+>> +       if (is_bq27500)
+>> +               flags_changed &= BQ27500_FLAGS_IMPORTANT;
+>> +       else
+>> +               flags_changed &= BQ27000_FLAGS_IMPORTANT;
+>> +       if (flags_changed)
+>>                power_supply_changed(&di->bat);
+>> -       }
+>>
+>>        di->last_update = jiffies;
+>>  }
 
-Oh, well.  Liam is a bit lossy sometimes.  You really need to repost
-patches if they're worthwhile, don't just let them rot.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
