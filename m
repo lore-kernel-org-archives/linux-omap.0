@@ -1,59 +1,44 @@
-From: Sebastian Reichel <sre@debian.org>
-Subject: RX51 modem support
-Date: Sat, 31 Dec 2011 22:24:06 +0100
-Message-ID: <20111231212406.GA17188@earth.universe>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v5 REPOST 1/5] ARM: l2x0/pl310: Refactor Kconfig to be
+ more maintainable
+Date: Sun, 1 Jan 2012 14:44:51 +0100
+Message-ID: <CACRpkdaZ8fph0tgQMceVKzSNo9gbsaRFrz9c2TKYqYZgtbgdbw@mail.gmail.com>
+References: <1324053332-6431-1-git-send-email-dave.martin@linaro.org>
+ <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comu.ring0.de ([46.4.151.82]:49621 "EHLO smtp.ring0.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753071Ab1LaVYR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 31 Dec 2011 16:24:17 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Dave Martin <dave.martin@linaro.org>
+Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Barry Song <baohua.song@csr.com>, Will Deacon <will.deacon@arm.com>, Daniel Walker <dwalker@fifo99.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?= <u.kleine-koenig@pengutronix.de>, David Brown <davidb@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, linux-arm-msm@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, Anton Vorontsov <cbouatmailru@gmail.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fabio Estevam <fabio.estevam@freescale.com>, Colin Cross <ccross@google.com>B
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Chinea <carlos.chinea@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
+On Fri, Dec 16, 2011 at 5:35 PM, Dave Martin <dave.martin@linaro.org> wrote:
 
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Making CACHE_L2X0 depend on (huge list of MACH_ and ARCH_ configs)
+> is bothersome to maintain and likely to lead to merge conflicts.
+(...)
+>
+> Signed-off-by: Dave Martin <dave.martin@linaro.org>
+> Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
+> =A0 =A0 =A0 =A0(for cns3xxx)
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> =A0 =A0 =A0 =A0(for omap)
+> Acked-by: Shawn Guo <shawn.guo@linaro.org>
+> =A0 =A0 =A0 =A0(for imx)
 
-Hi Carlos,
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+(for ux500)
 
-The HSI framework is in linux-next and should go into 3.3 in the
-next weeks. You wrote, that you will take care of SSI & rx51,
-once the framework is in the kernel [0].
-
-What's the current status of this? Will this work be ready
-for 3.4?
-
-[0] https://lkml.org/lkml/2011/6/8/42
-
--- Sebastian
-
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJO/312AAoJENju1/PIO/qaKMAP/1AO1Hn0Y8082s8CVtNmP8da
-zxRxbCR6MlG2AdRWdcyEE+EslNqXQPfq0scI/rkM+fF/XAEufnUROCr0b3DVTDTT
-w0kZqyBrM+En5ZuwQE6NmUUH+8M8imHMeM4gvu+C+OWdXqD7rK4i+rPEzt+1iM8E
-z4YBqJ7IbmsQOaLvUwvIjdTvZna6kr3VBs67QtzNcQTucEwpE6wwgU0d3v/S1F+8
-f3wtVzWduJVi1uRBKy7VCVXSK68Bi58koe2hidOXbmfpF0jlc1hzeqWUQorlDhK4
-mjWjLErwWh1nl4n7VlzvyZt7p4p1jPidt2drtBFeubMUb/2LBCXJ/HTy9HWxHtLx
-axCZgVDaYpz3Hec2fBHk5cW560W79ramHIA02+B8JCFDRD13biqxCLr1wvvYfS9k
-IKfkgA3bM/DJsuCS02/AH2nBZA3dKSKm/9frFDRrPSJk0hUbpDsDf+OZbge/S+4G
-rIwVFhcnV83RCay9i0TSgWgXxfhbYqGeVe8EXNyADney2NQDp7G5vrI7QXKpaDSC
-116xWMEdxGmIFmtdrD43QpiPYgngqnsA0/hhmfSR2iZlxSvIOkA4Dk26TbP9nxNX
-651w00lOCcgruiZZB5R6sbAaU5Fd2TFUSNxE8Eq3qLfhHuHc73ILfE0mb91NDExh
-oyQm1psBOqXa+a8FAAhk
-=yXwn
------END PGP SIGNATURE-----
-
---9jxsPFA5p3P2qPhR--
+Yours,
+Linus Walleij
