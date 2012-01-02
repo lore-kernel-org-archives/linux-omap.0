@@ -1,55 +1,190 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH v4 03/12] mfd: twl-core: Add initial DT support for
- twl4030/twl6030
-Date: Mon, 2 Jan 2012 02:04:54 -0700
-Message-ID: <20120102090454.GO18381@ponder.secretlab.ca>
-References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
- <1324565806-31142-4-git-send-email-b-cousson@ti.com>
+From: <mythripk@ti.com>
+Subject: [PATCH 1/3 REPOST] OMAPDSS: HDMI: Move Avi infoframe structure to
+Date: Mon, 2 Jan 2012 14:28:53 +0530
+Message-ID: <1325494735-30160-2-git-send-email-mythripk@ti.com>
+References: <1325494735-30160-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1324565806-31142-4-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59510 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751938Ab2ABJG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jan 2012 04:06:27 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0296P9I003497
+	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 03:06:25 -0600
+Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q0296NHC018571
+	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 14:36:24 +0530 (IST)
+In-Reply-To: <1325494735-30160-1-git-send-email-mythripk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-On Thu, Dec 22, 2011 at 03:56:37PM +0100, Benoit Cousson wrote:
-> Add initial device-tree support for twl familly chips.
-> The current version is missing the regulator entries due
-> to the lack of DT regulator bindings for the moment.
-> Only the simple sub-modules that do not depend on
-> platform_data information can be initialized properly.
-> 
-> Add irqdomain support.
-> 
-> Add documentation for the Texas Instruments TWL Integrated Chip.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-> Cc: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-> Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> ---
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index f1391c2..f0de088 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -200,6 +200,7 @@ config MENELAUS
->  config TWL4030_CORE
->  	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
->  	depends on I2C=y && GENERIC_HARDIRQS
-> +	select IRQ_DOMAIN
+From: Mythri P K <mythripk@ti.com>
 
-As discussed on linux-next, this breaks powerpc.  Drivers cannot select
-IRQ_DOMAIN, it can only be selected by architectures.  Drivers must depend
-on it instead.
+With AVI infoframe various parameters of video stream such as
+aspect ratio, quantization range, videocode etc will be indicated
+from source to sink.Thus AVI information needs to be set/accessed
+by the middle ware based on the video content.
+Thus this parameter is now moved to the ip_data structure.
+
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ drivers/video/omap2/dss/ti_hdmi.h         |   42 +++++++++++++++++++++++++++++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    8 +++---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   40 ---------------------------
+ 3 files changed, 46 insertions(+), 44 deletions(-)
+
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 3cf5198..835cfb1 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -108,6 +108,47 @@ struct ti_hdmi_ip_ops {
+ 
+ };
+ 
++/*
++ * Refer to section 8.2 in HDMI 1.3 specification for
++ * details about infoframe databytes
++ */
++struct hdmi_core_infoframe_avi {
++	/* Y0, Y1 rgb,yCbCr */
++	u8	db1_format;
++	/* A0  Active information Present */
++	u8	db1_active_info;
++	/* B0, B1 Bar info data valid */
++	u8	db1_bar_info_dv;
++	/* S0, S1 scan information */
++	u8	db1_scan_info;
++	/* C0, C1 colorimetry */
++	u8	db2_colorimetry;
++	/* M0, M1 Aspect ratio (4:3, 16:9) */
++	u8	db2_aspect_ratio;
++	/* R0...R3 Active format aspect ratio */
++	u8	db2_active_fmt_ar;
++	/* ITC IT content. */
++	u8	db3_itc;
++	/* EC0, EC1, EC2 Extended colorimetry */
++	u8	db3_ec;
++	/* Q1, Q0 Quantization range */
++	u8	db3_q_range;
++	/* SC1, SC0 Non-uniform picture scaling */
++	u8	db3_nup_scaling;
++	/* VIC0..6 Video format identification */
++	u8	db4_videocode;
++	/* PR0..PR3 Pixel repetition factor */
++	u8	db5_pixel_repeat;
++	/* Line number end of top bar */
++	u16	db6_7_line_eoftop;
++	/* Line number start of bottom bar */
++	u16	db8_9_line_sofbottom;
++	/* Pixel number end of left bar */
++	u16	db10_11_pixel_eofleft;
++	/* Pixel number start of right bar */
++	u16	db12_13_pixel_sofright;
++};
++
+ struct hdmi_ip_data {
+ 	void __iomem	*base_wp;	/* HDMI wrapper */
+ 	unsigned long	core_sys_offset;
+@@ -117,6 +158,7 @@ struct hdmi_ip_data {
+ 	const struct ti_hdmi_ip_ops *ops;
+ 	struct hdmi_config cfg;
+ 	struct hdmi_pll_info pll_data;
++	struct hdmi_core_infoframe_avi avi_cfg;
+ };
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index ccc6254..b66d82e 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -534,12 +534,12 @@ static void hdmi_core_video_config(struct hdmi_ip_data *ip_data,
+ 			HDMI_CORE_SYS_TMDS_CTRL, cfg->tclk_sel_clkmult, 6, 5);
+ }
+ 
+-static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data,
+-		struct hdmi_core_infoframe_avi info_avi)
++static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
+ {
+ 	u32 val;
+ 	char sum = 0, checksum = 0;
+ 	void __iomem *av_base = hdmi_av_base(ip_data);
++	struct hdmi_core_infoframe_avi info_avi = ip_data->avi_cfg;
+ 
+ 	sum += 0x82 + 0x002 + 0x00D;
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_TYPE, 0x082);
+@@ -718,7 +718,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
+ 	struct omap_video_timings video_timing;
+ 	struct hdmi_video_format video_format;
+ 	/* HDMI core */
+-	struct hdmi_core_infoframe_avi avi_cfg;
++	struct hdmi_core_infoframe_avi avi_cfg = ip_data->avi_cfg;
+ 	struct hdmi_core_video_config v_core_cfg;
+ 	struct hdmi_core_packet_enable_repeat repeat_cfg;
+ 	struct hdmi_config *cfg = &ip_data->cfg;
+@@ -780,7 +780,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
+ 	avi_cfg.db10_11_pixel_eofleft = 0;
+ 	avi_cfg.db12_13_pixel_sofright = 0;
+ 
+-	hdmi_core_aux_infoframe_avi_config(ip_data, avi_cfg);
++	hdmi_core_aux_infoframe_avi_config(ip_data);
+ 
+ 	/* enable/repeat the infoframe */
+ 	repeat_cfg.avi_infoframe = HDMI_PACKETENABLE;
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+index 914bec6..21f1d82 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+@@ -450,46 +450,6 @@ struct hdmi_core_video_config {
+  * Refer to section 8.2 in HDMI 1.3 specification for
+  * details about infoframe databytes
+  */
+-struct hdmi_core_infoframe_avi {
+-	/* Y0, Y1 rgb,yCbCr */
+-	u8	db1_format;
+-	/* A0  Active information Present */
+-	u8	db1_active_info;
+-	/* B0, B1 Bar info data valid */
+-	u8	db1_bar_info_dv;
+-	/* S0, S1 scan information */
+-	u8	db1_scan_info;
+-	/* C0, C1 colorimetry */
+-	u8	db2_colorimetry;
+-	/* M0, M1 Aspect ratio (4:3, 16:9) */
+-	u8	db2_aspect_ratio;
+-	/* R0...R3 Active format aspect ratio */
+-	u8	db2_active_fmt_ar;
+-	/* ITC IT content. */
+-	u8	db3_itc;
+-	/* EC0, EC1, EC2 Extended colorimetry */
+-	u8	db3_ec;
+-	/* Q1, Q0 Quantization range */
+-	u8	db3_q_range;
+-	/* SC1, SC0 Non-uniform picture scaling */
+-	u8	db3_nup_scaling;
+-	/* VIC0..6 Video format identification */
+-	u8	db4_videocode;
+-	/* PR0..PR3 Pixel repetition factor */
+-	u8	db5_pixel_repeat;
+-	/* Line number end of top bar */
+-	u16	db6_7_line_eoftop;
+-	/* Line number start of bottom bar */
+-	u16	db8_9_line_sofbottom;
+-	/* Pixel number end of left bar */
+-	u16	db10_11_pixel_eofleft;
+-	/* Pixel number start of right bar */
+-	u16	db12_13_pixel_sofright;
+-};
+-/*
+- * Refer to section 8.2 in HDMI 1.3 specification for
+- * details about infoframe databytes
+- */
+ struct hdmi_core_infoframe_audio {
+ 	u8 db1_coding_type;
+ 	u8 db1_channel_count;
+-- 
+1.7.5.4
+
