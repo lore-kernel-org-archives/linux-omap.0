@@ -1,44 +1,47 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v5 REPOST 1/5] ARM: l2x0/pl310: Refactor Kconfig to be
- more maintainable
-Date: Sun, 1 Jan 2012 14:44:51 +0100
-Message-ID: <CACRpkdaZ8fph0tgQMceVKzSNo9gbsaRFrz9c2TKYqYZgtbgdbw@mail.gmail.com>
-References: <1324053332-6431-1-git-send-email-dave.martin@linaro.org>
- <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
+From: <mythripk@ti.com>
+Subject: [PATCH v4 0/2] OMAPDSS: HDMI: Boardfile cleanup
+Date: Mon, 2 Jan 2012 14:02:36 +0530
+Message-ID: <1325493158-25740-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1324053332-6431-2-git-send-email-dave.martin@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Dave Martin <dave.martin@linaro.org>
-Cc: linux-sh@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Barry Song <baohua.song@csr.com>, Will Deacon <will.deacon@arm.com>, Daniel Walker <dwalker@fifo99.com>, John Linn <john.linn@xilinx.com>, Kukjin Kim <kgene.kim@samsung.com>, Magnus Damm <magnus.damm@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, =?ISO-8859-1?Q?Uwe_Kleine=2DK=F6nig?= <u.kleine-koenig@pengutronix.de>, David Brown <davidb@codeaurora.org>, Pawel Moll <pawel.moll@arm.com>, patches@linaro.org, linux-arm-msm@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, linux-samsung-soc@vger.kernel.org, Anton Vorontsov <cbouatmailru@gmail.com>, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Fabio Estevam <fabio.estevam@freescale.com>, Colin Cross <ccross@google.com>B
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43948 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751843Ab2ABIkK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jan 2012 03:40:10 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q028e8JY026685
+	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 02:40:09 -0600
+Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q028e71n013620
+	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 14:10:08 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
+Cc: Mythri P K <mythripk@ti.com>
 
-On Fri, Dec 16, 2011 at 5:35 PM, Dave Martin <dave.martin@linaro.org> wrote:
+From: Mythri P K <mythripk@ti.com>
 
-> Making CACHE_L2X0 depend on (huge list of MACH_ and ARCH_ configs)
-> is bothersome to maintain and likely to lead to merge conflicts.
-(...)
->
-> Signed-off-by: Dave Martin <dave.martin@linaro.org>
-> Acked-by: Anton Vorontsov <cbouatmailru@gmail.com>
-> =A0 =A0 =A0 =A0(for cns3xxx)
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> =A0 =A0 =A0 =A0(for omap)
-> Acked-by: Shawn Guo <shawn.guo@linaro.org>
-> =A0 =A0 =A0 =A0(for imx)
+Clean up of boardfiles to have the functions common to differnt boards in a
+common display file, Also in some OMAP4 boards external pull-up's are enabled
+thus enabling internal pull up should be a parameter from the boardfile.
 
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
-(for ux500)
+changes since v3 : Comment improvement to move some portion from boardfile to
+display.
+changes since v2 : Make the flag as enum.
+changes since v1 : Make omap hdmi_init generic to handle different parameters
+and pass the pull up as a flag instead of int. 
 
-Yours,
-Linus Walleij
+Mythri P K (2):
+  OMAPDSS: HDMI: Move duplicate code from boardfile
+  OMAPDSS: HDMI: Disable DDC internal pull up
+
+ arch/arm/mach-omap2/board-4430sdp.c    |   23 ++++++------------
+ arch/arm/mach-omap2/board-omap4panda.c |   25 +++++++-------------
+ arch/arm/mach-omap2/display.c          |   39 ++++++++++++++++++++++++++++++++
+ include/video/omapdss.h                |    6 +++++
+ 4 files changed, 62 insertions(+), 31 deletions(-)
+
+-- 
+1.7.5.4
+
