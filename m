@@ -1,22 +1,20 @@
 From: <mythripk@ti.com>
 Subject: [PATCH 1/3 REPOST] OMAPDSS: HDMI: Move Avi infoframe structure to
-Date: Mon, 2 Jan 2012 14:28:53 +0530
-Message-ID: <1325494735-30160-2-git-send-email-mythripk@ti.com>
-References: <1325494735-30160-1-git-send-email-mythripk@ti.com>
+Date: Mon, 2 Jan 2012 14:28:52 +0530
+Message-ID: <1325494735-30160-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59510 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59507 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751938Ab2ABJG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Jan 2012 04:06:27 -0500
+	id S1751778Ab2ABJG0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jan 2012 04:06:26 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0296P9I003497
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0296Otv003495
 	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 03:06:25 -0600
 Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q0296NHC018571
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q0296NH8018571
 	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 14:36:24 +0530 (IST)
-In-Reply-To: <1325494735-30160-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
