@@ -1,23 +1,24 @@
 From: <mythripk@ti.com>
-Subject: [PATCH 2/3 REPOST] OMAPDSS: HDMI: Add support to configure quantization
-Date: Mon, 2 Jan 2012 14:28:54 +0530
-Message-ID: <1325494735-30160-3-git-send-email-mythripk@ti.com>
+Subject: [PATCH 3/3 REPOST] OMAPDSS: HDMI: Add sysfs support to configure
+Date: Mon, 2 Jan 2012 14:28:55 +0530
+Message-ID: <1325494735-30160-4-git-send-email-mythripk@ti.com>
 References: <1325494735-30160-1-git-send-email-mythripk@ti.com>
  <1325494735-30160-2-git-send-email-mythripk@ti.com>
+ <1325494735-30160-3-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59508 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59509 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752415Ab2ABJG0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Jan 2012 04:06:26 -0500
+	id S1751960Ab2ABJG1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Jan 2012 04:06:27 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0296PRx003496
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0296Phi003498
 	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 03:06:25 -0600
 Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q0296NHA018571
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q0296NHD018571
 	for <linux-omap@vger.kernel.org>; Mon, 2 Jan 2012 14:36:24 +0530 (IST)
-In-Reply-To: <1325494735-30160-2-git-send-email-mythripk@ti.com>
+In-Reply-To: <1325494735-30160-3-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
@@ -25,98 +26,155 @@ Cc: Mythri P K <mythripk@ti.com>
 
 From: Mythri P K <mythripk@ti.com>
 
-Configure the IP to support the limited range and full range quantization
-mode. If the full range is configured HDMI transmitter will expand the range
-of pixel data from 16-235 to full 8 bit 0-235.
+Add sysfs support for the uset space to configure limited range or full range
+quantization for HDMI.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/ti_hdmi.h         |    7 +++++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   40 +++++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+), 0 deletions(-)
+ drivers/video/omap2/dss/dss.h          |    2 +
+ drivers/video/omap2/dss/dss_features.c |    1 +
+ drivers/video/omap2/dss/hdmi.c         |   28 +++++++++++++++++++++++++
+ drivers/video/omap2/dss/hdmi_panel.c   |   35 +++++++++++++++++++++++++++++++-
+ drivers/video/omap2/dss/ti_hdmi.h      |    2 +
+ 5 files changed, 67 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index 835cfb1..1b485ee 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -42,6 +42,11 @@ enum hdmi_clk_refsel {
- 	HDMI_REFSEL_SYSCLK = 3
+diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
+index 6308fc5..cf1f0f9 100644
+--- a/drivers/video/omap2/dss/dss.h
++++ b/drivers/video/omap2/dss/dss.h
+@@ -498,6 +498,8 @@ int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
+ 					struct omap_video_timings *timings);
+ int omapdss_hdmi_read_edid(u8 *buf, int len);
+ bool omapdss_hdmi_detect(void);
++int omapdss_hdmi_get_range(void);
++int omapdss_hdmi_set_range(int range);
+ int hdmi_panel_init(void);
+ void hdmi_panel_exit(void);
+ 
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index b402699..c7e71b9 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -465,6 +465,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
+ 	.dump_core		=	ti_hdmi_4xxx_core_dump,
+ 	.dump_pll		=	ti_hdmi_4xxx_pll_dump,
+ 	.dump_phy		=	ti_hdmi_4xxx_phy_dump,
++	.configure_range	=	ti_hdmi_4xxx_configure_range,
+ 
  };
  
-+enum hdmi_range {
-+	HDMI_LIMITED_RANGE = 0,
-+	HDMI_FULL_RANGE = 1,
-+};
-+
- /* HDMI timing structure */
- struct hdmi_video_timings {
- 	u16 x_res;
-@@ -159,6 +164,7 @@ struct hdmi_ip_data {
- 	struct hdmi_config cfg;
- 	struct hdmi_pll_info pll_data;
- 	struct hdmi_core_infoframe_avi avi_cfg;
-+	enum hdmi_range range;
- };
- int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
-@@ -172,5 +178,6 @@ void ti_hdmi_4xxx_wp_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
- void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
-+int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data);
- 
- #endif
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index b66d82e..a98ce8a 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -610,6 +610,46 @@ static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
- 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_CHSUM, checksum);
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 34f3dae..3a9a1a2 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -377,6 +377,34 @@ static void hdmi_power_off(struct omap_dss_device *dssdev)
+ 	hdmi_runtime_put();
  }
  
-+int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data)
++int omapdss_hdmi_set_range(int range)
 +{
-+	int var;
++	int r = 0;
++	enum hdmi_range old_range;
 +
-+	switch (ip_data->range) {
-+	/*
-+	 * Setting the AVI infroframe to respective limited range
-+	 * 0 if limited range 1 if full range
-+	 */
-+	case HDMI_LIMITED_RANGE:
-+		ip_data->avi_cfg.db3_q_range = HDMI_INFOFRAME_AVI_DB3Q_LR;
-+		hdmi_core_aux_infoframe_avi_config(ip_data);
-+		var = hdmi_read_reg(hdmi_core_sys_base(ip_data),
-+						HDMI_CORE_SYS_VID_ACEN);
-+		var = FLD_MOD(var, 1, 1, 1);
-+		hdmi_write_reg(hdmi_core_sys_base(ip_data),
-+						HDMI_CORE_SYS_VID_ACEN, var);
-+		break;
-+	case HDMI_FULL_RANGE:
-+	default:
-+		/* HDMI 1.3 section 6.6 YCBCR components shall
-+		 * always be Limited Range
-+		 */
-+		if (ip_data->avi_cfg.db1_format ==
-+					HDMI_INFOFRAME_AVI_DB1Y_YUV422) {
-+			pr_err("Only limited range is supported for YUV");
++	old_range = hdmi.ip_data.range;
++	hdmi.ip_data.range = range;
++
++	/* HDMI 1.3 section 6.6 VGA (640x480) format requires Full Range */
++	if ((range == 0) &&
++		((hdmi.ip_data.cfg.cm.code == 4 &&
++		hdmi.ip_data.cfg.cm.mode == HDMI_DVI) ||
++		(hdmi.ip_data.cfg.cm.code == 1 &&
++		hdmi.ip_data.cfg.cm.mode == HDMI_HDMI)))
 +			return -EINVAL;
-+		}
-+		ip_data->avi_cfg.db3_q_range = HDMI_INFOFRAME_AVI_DB3Q_FR;
-+		hdmi_core_aux_infoframe_avi_config(ip_data);
-+			var = hdmi_read_reg(hdmi_core_sys_base(ip_data),
-+						HDMI_CORE_SYS_VID_MODE);
-+			var = FLD_MOD(var, 1, 4, 4);
-+			hdmi_write_reg(hdmi_core_sys_base(ip_data),
-+						HDMI_CORE_SYS_VID_MODE, var);
-+		break;
-+	}
-+	return 0;
++
++	r = hdmi.ip_data.ops->configure_range(&hdmi.ip_data);
++	if (r)
++		hdmi.ip_data.range = old_range;
++
++	return r;
 +}
 +
- static void hdmi_core_av_packet_config(struct hdmi_ip_data *ip_data,
- 		struct hdmi_core_packet_enable_repeat repeat_cfg)
++int omapdss_hdmi_get_range(void)
++{
++	return hdmi.ip_data.range;
++}
++
+ int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
+ 					struct omap_video_timings *timings)
  {
+diff --git a/drivers/video/omap2/dss/hdmi_panel.c b/drivers/video/omap2/dss/hdmi_panel.c
+index 533d5dc..c0aa922 100644
+--- a/drivers/video/omap2/dss/hdmi_panel.c
++++ b/drivers/video/omap2/dss/hdmi_panel.c
+@@ -33,6 +33,33 @@ static struct {
+ 	struct mutex hdmi_lock;
+ } hdmi;
+ 
++static ssize_t hdmi_range_show(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int r;
++
++	r = omapdss_hdmi_get_range();
++	return snprintf(buf, PAGE_SIZE, "%d\n", r);
++}
++
++static ssize_t hdmi_range_store(struct device *dev,
++	struct device_attribute *attr,
++	const char *buf, size_t size)
++{
++	unsigned long range;
++	int r = kstrtoul(buf, 0, &range);
++
++	if (r || range > 1)
++		return -EINVAL;
++
++	r = omapdss_hdmi_set_range(range);
++	if (r)
++		return r;
++
++	return size;
++}
++
++static DEVICE_ATTR(range, S_IRUGO | S_IWUSR, hdmi_range_show, hdmi_range_store);
+ 
+ static int hdmi_panel_probe(struct omap_dss_device *dssdev)
+ {
+@@ -41,6 +68,12 @@ static int hdmi_panel_probe(struct omap_dss_device *dssdev)
+ 	dssdev->panel.config = OMAP_DSS_LCD_TFT |
+ 			OMAP_DSS_LCD_IVS | OMAP_DSS_LCD_IHS;
+ 
++	/* sysfs entry to provide user space control to set
++	 * quantization range
++	 */
++	if (device_create_file(&dssdev->dev, &dev_attr_range))
++		DSSERR("failed to create sysfs file\n");
++
+ 	dssdev->panel.timings = (struct omap_video_timings){640, 480, 25175, 96, 16, 48, 2 , 11, 31};
+ 
+ 	DSSDBG("hdmi_panel_probe x_res= %d y_res = %d\n",
+@@ -51,7 +84,7 @@ static int hdmi_panel_probe(struct omap_dss_device *dssdev)
+ 
+ static void hdmi_panel_remove(struct omap_dss_device *dssdev)
+ {
+-
++	device_remove_file(&dssdev->dev, &dev_attr_range);
+ }
+ 
+ static int hdmi_panel_enable(struct omap_dss_device *dssdev)
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 1b485ee..1f15d74 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -111,6 +111,8 @@ struct ti_hdmi_ip_ops {
+ 
+ 	void (*dump_phy)(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ 
++	int (*configure_range)(struct hdmi_ip_data *ip_data);
++
+ };
+ 
+ /*
 -- 
 1.7.5.4
 
