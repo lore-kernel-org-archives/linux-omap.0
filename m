@@ -1,67 +1,92 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH V2 2/2] TPS65217: Add tps65217 regulator driver
-Date: Mon, 2 Jan 2012 13:16:48 +0000
-Message-ID: <20120102131648.GJ4300@opensource.wolfsonmicro.com>
-References: <1325508522-23217-1-git-send-email-anilkumar@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: It looks like snd-soc-rx51 only works as built-in, not as a module
+Date: Mon, 2 Jan 2012 20:33:03 +0200
+Message-ID: <CAMP44s1hUYAcMTDBBPAbV=m39oGrbKXUhv44bp71XkNg-dEBzA@mail.gmail.com>
+References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
+	<20111210082741.GA32605@earth.universe>
+	<CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com>
+	<20111229183712.GB32392@sirena.org.uk>
+	<CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com>
+	<20111229212707.GA9737@opensource.wolfsonmicro.com>
+	<CAMP44s2SU_M0Fpt43YDLLhPrgsGzkgpHRWHLcJO4f8N=0HHdvg@mail.gmail.com>
+	<20111229215407.GB9737@opensource.wolfsonmicro.com>
+	<CAMP44s0EzmhdZ4X91c5X7Rn9q44QcUDm2KNDO81ue16SBWM6_g@mail.gmail.com>
+	<20111231005935.GA5835@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1325508522-23217-1-git-send-email-anilkumar@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: AnilKumar Ch <anilkumar@ti.com>
-Cc: sameo@linux.intel.com, lrg@ti.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, nsekhar@ti.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62662 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752791Ab2ABSdF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jan 2012 13:33:05 -0500
+Received: by eaad14 with SMTP id d14so8144391eaa.19
+        for <linux-omap@vger.kernel.org>; Mon, 02 Jan 2012 10:33:03 -0800 (PST)
+In-Reply-To: <20111231005935.GA5835@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Sebastian Reichel <sre@debian.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-On Mon, Jan 02, 2012 at 06:18:42PM +0530, AnilKumar Ch wrote:
-> This patch adds tps65217 PMIC as a regulator
+On Sat, Dec 31, 2011 at 2:59 AM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Fri, Dec 30, 2011 at 10:00:55PM +0200, Felipe Contreras wrote:
+>> On Thu, Dec 29, 2011 at 11:54 PM, Mark Brown
+>> > On Thu, Dec 29, 2011 at 11:51:11PM +0200, Felipe Contreras wrote:
+>
+>> >> >> > That should not be required, the modules should be loadable =
+in any
+>> >> >> > order.
+>
+>> >> Yes, but udev loads snd_soc_tlv320aic3x, not snd-soc-rx51.
+>
+>> > That is compltelely orthogonal to what you were saying above about=
+ the
+>> > ordering of module loading.
+>
+>> Not really, because if both are compiled as modules,
+>> snd_soc_tlv320aic3x will always be loaded first (automatically by
+>> udev).
+>
+> Which is relevant because...? =C2=A0To repeat, the ordering of module=
+ loading
+> is totally ortogonal as any ordering of modules is supported. =C2=A0Y=
+ou
+> appear to be totally ignoring what I am writing here.
 
-Use subject lines appropriate for the subsystem you're submitting
-against.
+One thing how things _should_ be, and another is how things actually
+_are_. Right now snd-soc-rx51 doesn't work if it's loaded before
+snd_soc_tlv320aic3x. Period.
 
-> +config REGULATOR_TPS65217
-> +	tristate "TI TPS65217 Power regulators"
-> +	depends on (I2C && MFD_TPS65217)
+That means that *right now*, snd-soc-rx51 works fine with udev,
+because snd_soc_tlv320aic3x will be loaded at boot time. Now, if
+snd-soc-rx51 is converted and loaded automatically by udev as well,
+the issues might appear again.
 
-Should only depend on the MFD, there's no direct I2C usage.
+>> > The reason the driver is not loaded automatically is that the OMAP
+>> > machine drivers have not been converted to platform devices.
+>
+>> Well, if that's the case then there's a real issue. There doesn't se=
+em
+>> to be a MODULE_DEPENDS(), or anything like that.
+>
+> A MODULE_DEPENDS() would also be irrelevant here.
 
-> +static unsigned int tps65217_vsel_to_uv_range0(unsigned int vsel)
-> +{
-> +	unsigned int uV = 0;
-> +
-> +	if (vsel <= 24)
-> +		uV = ((vsel * 25000) + 900000);
-> +	else if (vsel > 24 && vsel <= 52)
-> +		uV = (((vsel - 24) * 50000) + 1500000);
-> +	else if (vsel > 52 && vsel <= 56)
-> +		uV = (((vsel - 52) * 100000) + 2900000);
+Ok.
 
-No need for the > checks as this is already taken care of by being in
-the else clause.
+>> snd-soc-rx51 seems to depend on snd_soc_tlv320aic3x through
+>> codec_dai_name, and codec_name, and so on. I don't know how this
+>> dependency is supposed to work out.
+>
+> All the drivers should load via the normal driver instantiation
+> mechainsms and when they're all there they'll get matched together.
 
-> +static unsigned int tps65217_vsel_to_uv_range2(unsigned int vsel)
-> +{
-> +	unsigned int uV = 0;
-> +
-> +	if (vsel <= 8)
-> +		uV = ((vsel * 50000) + 1500000);
-> +	else if (vsel > 9 && vsel <= 13)
-> +		uV = (((vsel - 8) * 100000) + 1900000);
-> +	else if (vsel > 13)
-> +		uV = (((vsel - 13) * 50000) + 2400000);
-> +
-> +	return uV;
+Ok, I hope so.
 
-In all of these functions there ought to be a check to make sure vsel
-isn't out of range and return an error if it is.
-
-> +static int tps65217_pmic_set_bits(struct tps65217 *tps, unsigned int reg,
-> +		unsigned int mask, unsigned int val, unsigned int level)
-> +{
-
-To repeat what I said when reviewing the previous version of the patch
-things like this shouldn't be open coded in individual function drivers,
-they should be in the MFD driver.  There is *nothing* PMIC specific
-about register access.
-
-I've stopped reading at this point.
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
