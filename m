@@ -1,98 +1,190 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: It looks like snd-soc-rx51 only works as built-in, not as a module
-Date: Tue, 03 Jan 2012 00:19:17 +0000
-Message-ID: <yw1xobul8woq.fsf@unicorn.mansr.com>
-References: <CAMP44s1DPE3ey+Cf48ShbAu_-vv2NC8ppkABT7fDmsE3_j9AmQ@mail.gmail.com>
-	<20111210082741.GA32605@earth.universe>
-	<CAMP44s3c68z-+3j9OR3pyBFVzH-LJ7WcMu-BnejhkfrxnF4rqA@mail.gmail.com>
-	<20111229183712.GB32392@sirena.org.uk>
-	<CAMP44s2Vo0iPa6aq6PGy8YSEnEQuNVi1345BtLV9U8zng61uFA@mail.gmail.com>
-	<20111229212707.GA9737@opensource.wolfsonmicro.com>
-	<CAMP44s2SU_M0Fpt43YDLLhPrgsGzkgpHRWHLcJO4f8N=0HHdvg@mail.gmail.com>
-	<20111229215407.GB9737@opensource.wolfsonmicro.com>
-	<CAMP44s0EzmhdZ4X91c5X7Rn9q44QcUDm2KNDO81ue16SBWM6_g@mail.gmail.com>
-	<20111231005935.GA5835@opensource.wolfsonmicro.com>
-	<CAMP44s1hUYAcMTDBBPAbV=m39oGrbKXUhv44bp71XkNg-dEBzA@mail.gmail.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: [PATCH 5/5] bq27x00 - don't report power-supply change so
+ often.
+Date: Tue, 3 Jan 2012 12:02:06 +1100
+Message-ID: <20120103120206.7f4ead54@notabene.brown>
+References: <20111230004947.11559.81184.stgit@notabene.brown>
+ <20111230005849.11559.78948.stgit@notabene.brown>
+ <CANOLnOM7QbF5aMb1iW0W2t6B1q1J+cROMU8SpD185DyC33w4kA@mail.gmail.com>
+ <4EFEF1AF.9060001@metafoo.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from unicorn.mansr.com ([78.86.181.103]:36573 "EHLO
-	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753461Ab2ACATT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Jan 2012 19:19:19 -0500
-In-Reply-To: <CAMP44s1hUYAcMTDBBPAbV=m39oGrbKXUhv44bp71XkNg-dEBzA@mail.gmail.com>
-	(Felipe Contreras's message of "Mon, 2 Jan 2012 20:33:03 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/Lt8_Zioh8vogmhogkBx9BJt"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4EFEF1AF.9060001@metafoo.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Anton Vorontsov <cbouatmailru@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Sebastian Reichel <sre@debian.org>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org
 
-=46elipe Contreras <felipe.contreras@gmail.com> writes:
+--Sig_/Lt8_Zioh8vogmhogkBx9BJt
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> On Sat, Dec 31, 2011 at 2:59 AM, Mark Brown
-> <broonie@opensource.wolfsonmicro.com> wrote:
->> On Fri, Dec 30, 2011 at 10:00:55PM +0200, Felipe Contreras wrote:
->>> On Thu, Dec 29, 2011 at 11:54 PM, Mark Brown
->>> > On Thu, Dec 29, 2011 at 11:51:11PM +0200, Felipe Contreras wrote:
->>
->>> >> >> > That should not be required, the modules should be loadable=
- in any
->>> >> >> > order.
->>
->>> >> Yes, but udev loads snd_soc_tlv320aic3x, not snd-soc-rx51.
->>
->>> > That is compltelely orthogonal to what you were saying above abou=
-t the
->>> > ordering of module loading.
->>
->>> Not really, because if both are compiled as modules,
->>> snd_soc_tlv320aic3x will always be loaded first (automatically by
->>> udev).
->>
->> Which is relevant because...? =A0To repeat, the ordering of module l=
-oading
->> is totally ortogonal as any ordering of modules is supported. =A0You
->> appear to be totally ignoring what I am writing here.
->
-> One thing how things _should_ be, and another is how things actually
-> _are_. Right now snd-soc-rx51 doesn't work if it's loaded before
-> snd_soc_tlv320aic3x. Period.
->
-> That means that *right now*, snd-soc-rx51 works fine with udev,
-> because snd_soc_tlv320aic3x will be loaded at boot time. Now, if
-> snd-soc-rx51 is converted and loaded automatically by udev as well,
-> the issues might appear again.
->
->>> > The reason the driver is not loaded automatically is that the OMA=
-P
->>> > machine drivers have not been converted to platform devices.
->>
->>> Well, if that's the case then there's a real issue. There doesn't s=
-eem
->>> to be a MODULE_DEPENDS(), or anything like that.
->>
->> A MODULE_DEPENDS() would also be irrelevant here.
->
-> Ok.
->
->>> snd-soc-rx51 seems to depend on snd_soc_tlv320aic3x through
->>> codec_dai_name, and codec_name, and so on. I don't know how this
->>> dependency is supposed to work out.
->>
->> All the drivers should load via the normal driver instantiation
->> mechainsms and when they're all there they'll get matched together.
->
-> Ok, I hope so.
+On Sat, 31 Dec 2011 12:27:43 +0100 Lars-Peter Clausen <lars@metafoo.de> wro=
+te:
 
-Does this patch change anything?
-http://article.gmane.org/gmane.linux.alsa.devel/89052
+> On 12/30/2011 12:13 PM, Grazvydas Ignotas wrote:
+> > CCing Lars who added this. I vaguely recall something about generating
+> > events to make some battery monitors update but I forget the details
+> > now, maybe it was about something else. Also CCing Anton (the
+> > maintainer).
+> >=20
+> > On Fri, Dec 30, 2011 at 2:58 AM, NeilBrown <neilb@suse.de> wrote:
+> >> A power_supply_changed should only be reported on significant changes
+> >> such as transition between charging and not.  Incremental changes
+> >> such as charge increasing should not be reported - that can easily
+> >> be polled for.
+>=20
+> Well, you can also poll for those "significant" changes, too. The point of
+> adding this was to have a centralized point where polling takes place ins=
+tead
+> of letting each battery monitor do this on its own. Though if, as you wro=
+te in
+> the cover letter, the some properties change every time the values are re=
+ad it
+> might makes sense to exclude these from the comparison. On the other hand=
+ one
+> event every 6 minutes doesn't really sound harmful and I would suspect th=
+at
+> battery monitors will use a similar interval when manually polling the de=
+vice.
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+
+ That is a very good point.  user-space could poll for all of the changes a=
+nd
+ polling the kernel provides no real benefit.
+
+ I don't really see the problem with each battery monitor doing their own
+ polling.  At least that way they would have control over when polling
+ happens.
+
+ Polling every 6 minutes does not really seem like a lot - except that
+ polling at all in the kernel should be avoided.  If the system is idle and
+ has managed to get into a lower power state, waking up just to check on the
+ battery would be the wrong thing to do.
+
+ A battery monitor could notice that no-one cared (e.g. A X11 client not
+ getting any 'expose' events) and could stop polling.  The kernel cannot do
+ that.
+
+ However the part of the current code that really bothered me was that a
+ 'change' event is generated every time anyone polls the battery status - b=
+ut
+ at most every 5 seconds.  These extra change events really aren't wanted.
+
+ I think we should always be cautious of adding change events.  They are
+ not there just to report when any detail changed, else a 'keyboard' device
+ would report a 'change' event on every keystroke.
+ The main purpose of uevents are to report 'add' and 'remove' of devices.
+ 'change' is for situations where a device changes in a way that is very
+ similar to an 'add' or a 'remove' but isn't implemented as a new device.
+ A simple example is inserting a CD into a CD drive.  Before the device
+ couldn't do anything useful, now it can.  It is a new medium, which is
+ almost like a new device but just not implemented that way.  So it deserve=
+s a
+ change event.
+ Or when a power supply gets plugged in.  We really have a new thing here -
+ we have added power.  But as the power isn't a device we cannot have an
+ 'add' uevent, so we have a 'change' uevent on the power supply.
+
+ So I would be in favour of removing the in-kernel polling altogether.
+ That puts complete control where it belongs: is the app that is monitoring
+ the battery.
+
+ Thoughts??
+
+Thanks,
+NeilBrown
+
+
+>=20
+> - Lars
+>=20
+> >>
+> >> Signed-off-by: NeilBrown <neilb@suse.de>
+> >> ---
+> >>
+> >>  drivers/power/bq27x00_battery.c |   15 ++++++++++++---
+> >>  1 files changed, 12 insertions(+), 3 deletions(-)
+> >>
+> >> diff --git a/drivers/power/bq27x00_battery.c b/drivers/power/bq27x00_b=
+attery.c
+> >> index bb16f5b..7993a17 100644
+> >> --- a/drivers/power/bq27x00_battery.c
+> >> +++ b/drivers/power/bq27x00_battery.c
+> >> @@ -57,11 +57,15 @@
+> >>  #define BQ27000_FLAG_CHGS              BIT(7)
+> >>  #define BQ27000_FLAG_FC                        BIT(5)
+> >>
+> >> +#define BQ27000_FLAGS_IMPORTANT                (BQ27000_FLAG_FC|BQ270=
+00_FLAG_CHGS|BIT(31))
+> >> +
+> >>  #define BQ27500_REG_SOC                        0x2C
+> >>  #define BQ27500_REG_DCAP               0x3C /* Design capacity */
+> >>  #define BQ27500_FLAG_DSC               BIT(0)
+> >>  #define BQ27500_FLAG_FC                        BIT(9)
+> >>
+> >> +#define BQ27500_FLAGS_IMPORTANT                (BQ27500_FLAG_FC|BQ275=
+00_FLAG_DSC|BIT(31))
+> >> +
+> >>  #define BQ27000_RS                     20 /* Resistor sense */
+> >>
+> >>  struct bq27x00_device_info;
+> >> @@ -259,6 +263,7 @@ static void bq27x00_update(struct bq27x00_device_i=
+nfo *di)
+> >>  {
+> >>        struct bq27x00_reg_cache cache =3D {0, };
+> >>        bool is_bq27500 =3D di->chip =3D=3D BQ27500;
+> >> +       int flags_changed;
+> >>
+> >>        cache.flags =3D bq27x00_read(di, BQ27x00_REG_FLAGS, is_bq27500);
+> >>        if (cache.flags >=3D 0) {
+> >> @@ -280,10 +285,14 @@ static void bq27x00_update(struct bq27x00_device=
+_info *di)
+> >>
+> >>        /* Ignore current_now which is a snapshot of the current batter=
+y state
+> >>         * and is likely to be different even between two consecutive r=
+eads */
+> >> -       if (memcmp(&di->cache, &cache, sizeof(cache) - sizeof(int)) !=
+=3D 0) {
+> >> -               di->cache =3D cache;
+> >> +       flags_changed =3D di->cache.flags ^ cache.flags;
+> >> +       di->cache =3D cache;
+> >> +       if (is_bq27500)
+> >> +               flags_changed &=3D BQ27500_FLAGS_IMPORTANT;
+> >> +       else
+> >> +               flags_changed &=3D BQ27000_FLAGS_IMPORTANT;
+> >> +       if (flags_changed)
+> >>                power_supply_changed(&di->bat);
+> >> -       }
+> >>
+> >>        di->last_update =3D jiffies;
+> >>  }
+
+
+--Sig_/Lt8_Zioh8vogmhogkBx9BJt
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBTwJTjjnsnt1WYoG5AQKhaw//WoHHOWc9SSsTKsFKhmH8PnRy6c44T7QW
+fwIPAGLfcEUKvP6gAuyCt4ImcgPBlhQ4F1sjDpm8PGfcN4QDsWbfNOEbpWtVoKR7
+IzdZFExARJGWXCOv9kBmJ8VbLHCk5UKh8HlFYtqQ+iMhU4XeLkTe8Pvnpn0P8H9o
+zibjvhYT4JYWmTUjQH2hEAQ0YmWT5cd8u1O4AbgJm+ROa4ziCGXgJm+wmRkqAaYN
+hGgm/WlVx0akdN9bgc1lLQJlBEfBlAqWdXpZuIIhdCSNzoLWFu24jTQBaSIPfdgU
+EmGM4OMPk6kQE55OEtwD522ZZi8TJxXqlKH+XGSrbQ9aQVBjruju1YyVHg33GOh5
+1ez+0S7Tq/xeNC1VumNuk9pQnY6K6rFzFcshxx1I7VQ+jXsRHAkScVYR4RgSUY9z
+TByCz8OxkYwrH8ThtOaLIH+XaRYujL0+yXOPoHKVyAmdHgd1FPd3oaKtAzVI+gK3
+jgcjFwTH+jMqqk7ipSVCeJ0pcSuBtiAGbbMISuysO8G9KWZyJ+4JUxoXZdgI/Wim
+0M1P672dxGV0snvOnJFD4mdpfGNkX7p4+hoRSgPtoRLz1Bcv+XRraj6EeO6FHMW7
+KwpyIrIAOe5mGp9MP+KVesVC0HbYR71uTNv9grmi6A5HllU9/pP7+DRJ7+cpUnxh
+2kiAGmrOEgI=
+=CHmO
+-----END PGP SIGNATURE-----
+
+--Sig_/Lt8_Zioh8vogmhogkBx9BJt--
