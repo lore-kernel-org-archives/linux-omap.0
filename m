@@ -1,67 +1,59 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP3: don't init PM on AM35{05,17}
-Date: Tue, 03 Jan 2012 15:37:55 -0800
-Message-ID: <87lipo8ii4.fsf@ti.com>
-References: <4EEE80DE.8040001@emcraft.com>
-	<1324339251-10764-1-git-send-email-yanok@emcraft.com>
+Subject: Re: [PATCH] omap: use usleep_range() instead of mdelay()/udelay()
+Date: Tue, 03 Jan 2012 15:58:16 -0800
+Message-ID: <87fwfw8hk7.fsf@ti.com>
+References: <4EF18426.3040805@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:47747 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752312Ab2ACXiA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 18:38:00 -0500
-Received: by mail-iy0-f181.google.com with SMTP id k12so34671224iak.40
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 15:37:59 -0800 (PST)
-In-Reply-To: <1324339251-10764-1-git-send-email-yanok@emcraft.com> (Ilya
-	Yanok's message of "Tue, 20 Dec 2011 01:00:51 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4EF18426.3040805@linaro.org> (Dmitry Antipov's message of "Wed,
+	21 Dec 2011 11:00:54 +0400")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Antipov <dmitry.antipov@linaro.org>
+Cc: linaro-dev@lists.linaro.org, patches@linaro.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-omap@vger.kernel.org
 
-Ilya Yanok <yanok@emcraft.com> writes:
+Dmitry Antipov <dmitry.antipov@linaro.org> writes:
 
-> Current OMAP3 PM code seems to be incompatible with AM35{05,17} and
-> leads to system hang during boot.
-> Disable PM init on AM35{05,17} until working implementation will be
-> merged.
+> From e4db974edb5c46360465462518a88b83f1bdedf6 Mon Sep 17 00:00:00 2001
+> From: Dmitry Antipov <dmitry.antipov@linaro.org>
+> Date: Wed, 21 Dec 2011 10:57:08 +0400
+> Subject: [PATCH] omap: use usleep_range() instead of mdelay()/udelay()
 
-Were you able to find out where exactly things got hung up?
-
-We're trying hard to avoid adding more cpu_is_* checks so would like to
-better understand the problem before merging such a fix.
+Please include a signoff and a descriptive changelog (describing why.)
 
 Thanks,
 
 Kevin
 
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
 > ---
-> This patch solves the problem for me but I'm curious why simple
-> CONFIG_PM disabling doesn't work? I'm getting
-> Unhandled fault: external abort on non-linefetch
-> while trying to access absolutely valid register from omapdss/venc
-> driver. I've tried to disable VENC but then I got the same error
-> from omap_wdt driver. Is it supposed to be so? Are !CONFIG_PM
-> configurations supported? How comes that disabling CONFIG_PM
-> makes some registers inaccessible?
+>  arch/arm/mach-omap2/omap_phy_internal.c |    2 +-
+>  arch/arm/mach-omap2/vc.c                |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 >
-> Regards, Ilya.
+> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+> index 58775e3..e5dff64 100644
+> --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> @@ -145,7 +145,7 @@ int omap4430_phy_suspend(struct device *dev, int suspend)
+>  		/* power on the phy */
+>  		if (__raw_readl(ctrl_base + CONTROL_DEV_CONF) & PHY_PD) {
+>  			__raw_writel(~PHY_PD, ctrl_base + CONTROL_DEV_CONF);
+> -			mdelay(200);
+> +			usleep_range(200000, 201000);
+>  		}
 >
->  arch/arm/mach-omap2/pm34xx.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  		/* restore the context */
+> diff --git a/arch/arm/mach-omap2/vc.c b/arch/arm/mach-omap2/vc.c
+> index 031d116..57f44d5 100644
+> --- a/arch/arm/mach-omap2/vc.c
+> +++ b/arch/arm/mach-omap2/vc.c
+> @@ -151,7 +151,7 @@ void omap_vc_post_scale(struct voltagedomain *voltdm,
+>  	/* SMPS slew rate / step size. 2us added as buffer. */
+>  	smps_delay = ((smps_steps * voltdm->pmic->step_size) /
+>  			voltdm->pmic->slew_rate) + 2;
+> -	udelay(smps_delay);
+> +	usleep_range(smps_delay, smps_delay + 10);
+>  }
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index fc69875..0f30742 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -790,7 +790,7 @@ static int __init omap3_pm_init(void)
->  	struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core_clkdm;
->  	int ret;
->  
-> -	if (!cpu_is_omap34xx())
-> +	if (!cpu_is_omap34xx() || cpu_is_omap3505() || cpu_is_omap3517())
->  		return -ENODEV;
->  
->  	if (!omap3_has_io_chain_ctrl())
+>  /* vc_bypass_scale - VC bypass method of voltage scaling */
