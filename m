@@ -1,96 +1,85 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: add OrtusTech COM43H4M10XTC display support
-Date: Tue, 03 Jan 2012 11:30:22 +0200
-Message-ID: <1325583022.1973.9.camel@deskari>
-References: <1324940201-16079-1-git-send-email-yanok@emcraft.com>
+Subject: Re: [PATCH v4 0/2] OMAPDSS: HDMI: Boardfile cleanup
+Date: Tue, 03 Jan 2012 11:39:43 +0200
+Message-ID: <1325583583.1973.11.camel@deskari>
+References: <1325493158-25740-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-21tz4qj160QGJfEQmE+p"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-uE4XtG6fVPX1OfsXI0JT"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47584 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751185Ab2ACJa1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 04:30:27 -0500
-In-Reply-To: <1324940201-16079-1-git-send-email-yanok@emcraft.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:32825 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751288Ab2ACJjr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 04:39:47 -0500
+Received: by mail-lpp01m010-f50.google.com with SMTP id u2so7359302lag.23
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 01:39:46 -0800 (PST)
+In-Reply-To: <1325493158-25740-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ilya Yanok <yanok@emcraft.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sasha_d@emcraft.com
+To: mythripk@ti.com
+Cc: linux-omap@vger.kernel.org
 
 
---=-21tz4qj160QGJfEQmE+p
+--=-uE4XtG6fVPX1OfsXI0JT
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2011-12-26 at 23:56 +0100, Ilya Yanok wrote:
-> dd data for the OrtusTech COM43H4M10XTC display to the
-> generic_dpi_panel driver.
+On Mon, 2012-01-02 at 14:02 +0530, mythripk@ti.com wrote:
+> From: Mythri P K <mythripk@ti.com>
 >=20
-> CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
-> ---
->  drivers/video/omap2/displays/panel-generic-dpi.c |   20 ++++++++++++++++=
-++++
->  1 files changed, 20 insertions(+), 0 deletions(-)
+> Clean up of boardfiles to have the functions common to differnt boards in=
+ a
+> common display file, Also in some OMAP4 boards external pull-up's are ena=
+bled
+> thus enabling internal pull up should be a parameter from the boardfile.
 >=20
-> diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/v=
-ideo/omap2/displays/panel-generic-dpi.c
-> index 593f831..99669ae 100644
-> --- a/drivers/video/omap2/displays/panel-generic-dpi.c
-> +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-> @@ -317,6 +317,26 @@ static struct panel_config generic_dpi_panels[] =3D =
-{
->  					  OMAP_DSS_LCD_IHS,
->  		.name			=3D "focaltech_etm070003dh6",
->  	},
-> +	/* OrtusTech COM43H4M10XTC */
-> +	{
-> +		{
-> +			.x_res		=3D 480,
-> +			.y_res		=3D 272,
-> +
-> +			.pixel_clock	=3D 8000,
-> +
-> +			.hsw		=3D 41,
-> +			.hfp		=3D 8,
-> +			.hbp		=3D 4,
-> +
-> +			.vsw		=3D 10,
-> +			.vfp		=3D 4,
-> +			.vbp		=3D 2,
-> +		},
-> +		.config			=3D OMAP_DSS_LCD_TFT,
-> +
-> +		.name			=3D "ortustech_com43h4m10xtc",
-> +	},
->  };
-> =20
+> changes since v3 : Comment improvement to move some portion from boardfil=
+e to
+> display.
+> changes since v2 : Make the flag as enum.
+> changes since v1 : Make omap hdmi_init generic to handle different parame=
+ters
+> and pass the pull up as a flag instead of int.=20
+>=20
+> Mythri P K (2):
+>   OMAPDSS: HDMI: Move duplicate code from boardfile
+>   OMAPDSS: HDMI: Disable DDC internal pull up
+>=20
+>  arch/arm/mach-omap2/board-4430sdp.c    |   23 ++++++------------
+>  arch/arm/mach-omap2/board-omap4panda.c |   25 +++++++-------------
+>  arch/arm/mach-omap2/display.c          |   39 ++++++++++++++++++++++++++=
+++++++
+>  include/video/omapdss.h                |    6 +++++
+>  4 files changed, 62 insertions(+), 31 deletions(-)
 
-Thanks, I'll apply to DSS tree.
+These look fine, I'll apply to DSS tree.
+
+Btw, do you know what is the reason to use an external pull-up on the
+newer boards? Is the internal pull-up somehow insufficient?
 
  Tomi
 
 
---=-21tz4qj160QGJfEQmE+p
+--=-uE4XtG6fVPX1OfsXI0JT
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPAsquAAoJEPo9qoy8lh71T6MQAILIOhNIdXMbot3P6m2xR/hl
-gjTT68HImSiTSxAcWQThVAy9E/0ICaXD9P7tXtyY1EnknDHEC0Waz+gB+cZcjhFL
-PYwDFNJatdoE5PW0Bncr/PMrMk1KXkPb03DNp6GdH25lUFiDah4aqiFAkDTV2ohG
-B1kLU7Yj+edMED81bgZJJMHUQMvn4MDb9qF8B9ZiK0lK5360LxxuYIHbLnTATtqK
-smh+7UQGzoMla3CHmbK246UnixmIiUG4+9BAEl6oINz8No+2O8wpbM7ZnUjZarVB
-zGLIym0VAZl6CoAYMUTf40jO2tSgjBNHXZozBXZyr1R5aXBuBLdqrqxVF8F9YEcU
-CjmibBWTYt0NC0n6P92vzgHEbKDemW8MchO2LBz8cSfEOnQIbgQwe/oNOg+ZSvNC
-f2HD087J/xVABhsX13irIavOuuQRPW0tB/Cod5uaKNRI3EQkxBeW5pleEhMdDuOI
-yWvOgyZfnbP24MrgLINMS6MT/fIJhegdqUCgimiZ87N37N96C7Ah2yStMkHaYsmy
-cDRGXJNALlw249iN3jtppvDcDXceyVd21+/q5Cv0P1SV9q7vjb+/4wsa55H0hvMq
-RvaoApjaf/HMP4nUC4I5Qe3yRaHJKFvtHeKA7wABbgS3JQGg/uRt3N9Yp6vh1IAc
-L40KEyxMWj6svUIamU6Q
-=EonG
+iQIcBAABAgAGBQJPAszfAAoJEPo9qoy8lh717FcP/AwAppCPYZoiOdsfR1X8pa3F
+6lhTJLQwyH4zTYS9ZQEdwpE/JCv5sSgfV0DlMA0EoIhE1ytX8ejbe5dk8YAOFYQN
+QdhYvK9wmrAH3NTOC4iPtNCKwZsckYQRrK/hwclg/GPzj+uC+Q3ko75GJvk0Qbko
+Z30NsbrC0qMZ0YmGRM6rSPcB8mvwJCNaEOC2KTRalZtUZMl2MfGyk2lUwbVx/wmw
+Re9y5pq4vSM56k4uprQ59Cm271vjqotar/y3c/kTc0GVOxoS+hCO44217YYKRJqL
+LMVDXidRedk0xBF2DAe+AX9eajz4AWrp9PRplqkV58Bf7pAJp5dt7lkqOFCl7JJ9
+C/+claP69NG/tCa1rgnvdgFzVDi/Ms+eubWtEJbznpwREwMVD/nMEalpB4c6Tnev
+LtuC5ANDDBGHUuOLuYX93JP0gg9/z02LIFgb+hK7cLfFU/YWUUlz2VJ3F5v3qOan
+ez2wqy6Cl130tuBA06i7T4cVAxEAfc9TwEUgPT5L89J1wciMR44L8hEQILs4lpkR
+Riyq7EaXleH6XGMPrWGMzWZm/b+4n2YR9ouyuisauBRCA24iABiqFq5vZx0QktFU
+dv809L8YXuMMz0BWwegg8IA3F8n2+AQgMhQF5eAO8qrs+ZoYRyTTNPgmsNb1f1N8
+Teht/mS3RM7IM+YFUXAE
+=nKNJ
 -----END PGP SIGNATURE-----
 
---=-21tz4qj160QGJfEQmE+p--
+--=-uE4XtG6fVPX1OfsXI0JT--
 
