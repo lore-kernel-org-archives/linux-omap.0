@@ -1,39 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/4] OMAPDSS/ASoC: Repair broken HDMI audio in K3.2-rcX
-Date: Tue, 3 Jan 2012 20:09:09 +0000
-Message-ID: <20120103200908.GB2843@opensource.wolfsonmicro.com>
-References: <1324018993-31466-1-git-send-email-ricardo.neri@ti.com>
- <CAP5A+B8ZPMBROeu6wkT8G5v_e1jhYTNrCATP0mi71wcsC2DZHg@mail.gmail.com>
- <20111229184829.GC32392@sirena.org.uk>
- <1325570274.2082.5.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP3: don't init PM on AM35{05,17}
+Date: Tue, 03 Jan 2012 15:37:55 -0800
+Message-ID: <87lipo8ii4.fsf@ti.com>
+References: <4EEE80DE.8040001@emcraft.com>
+	<1324339251-10764-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33819 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754731Ab2ACUJM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 15:09:12 -0500
-Content-Disposition: inline
-In-Reply-To: <1325570274.2082.5.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:47747 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752312Ab2ACXiA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 18:38:00 -0500
+Received: by mail-iy0-f181.google.com with SMTP id k12so34671224iak.40
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 15:37:59 -0800 (PST)
+In-Reply-To: <1324339251-10764-1-git-send-email-yanok@emcraft.com> (Ilya
+	Yanok's message of "Tue, 20 Dec 2011 01:00:51 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Jan 02, 2012 at 11:57:54PM -0600, Ricardo Neri wrote:
-> On Thu, 2011-12-29 at 18:48 +0000, Mark Brown wrote:
-> > On Thu, Dec 29, 2011 at 03:26:48PM +0530, K, Mythri P wrote:
+Ilya Yanok <yanok@emcraft.com> writes:
 
-> > > We could not also try to move the ASoC HDMI audio codec driver from
-> > > DSS to sound, but this is good for now.
+> Current OMAP3 PM code seems to be incompatible with AM35{05,17} and
+> leads to system hang during boot.
+> Disable PM init on AM35{05,17} until working implementation will be
+> merged.
 
-> > You should certainly send the driver for review on the ALSA list...
+Were you able to find out where exactly things got hung up?
 
-> Yes, the goal is to move the ASoC OMAP4 HDMI codec to sound for K3.3. I
-> will submit to the ALSA list when I have a first draft.
+We're trying hard to avoid adding more cpu_is_* checks so would like to
+better understand the problem before merging such a fix.
 
-It shouldn't really have hit mainline without ALSA side review.  For the
-HDMI stuff it's not actually clear that keeping the CPU side code out of
-the video directory is sensible, there's rather more video complexity
-than audio going on and the two are heavily interlinked.  The main thing
-is to make sure that the code that's there is sensible.
+Thanks,
+
+Kevin
+
+> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
+> ---
+> This patch solves the problem for me but I'm curious why simple
+> CONFIG_PM disabling doesn't work? I'm getting
+> Unhandled fault: external abort on non-linefetch
+> while trying to access absolutely valid register from omapdss/venc
+> driver. I've tried to disable VENC but then I got the same error
+> from omap_wdt driver. Is it supposed to be so? Are !CONFIG_PM
+> configurations supported? How comes that disabling CONFIG_PM
+> makes some registers inaccessible?
+>
+> Regards, Ilya.
+>
+>  arch/arm/mach-omap2/pm34xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index fc69875..0f30742 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -790,7 +790,7 @@ static int __init omap3_pm_init(void)
+>  	struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core_clkdm;
+>  	int ret;
+>  
+> -	if (!cpu_is_omap34xx())
+> +	if (!cpu_is_omap34xx() || cpu_is_omap3505() || cpu_is_omap3517())
+>  		return -ENODEV;
+>  
+>  	if (!omap3_has_io_chain_ctrl())
