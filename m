@@ -1,38 +1,95 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 0/4] OMAPDSS/ASoC: Repair broken HDMI audio in K3.2-rcX
-Date: Mon, 2 Jan 2012 23:57:54 -0600
-Message-ID: <1325570274.2082.5.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
-References: <1324018993-31466-1-git-send-email-ricardo.neri@ti.com>
-	 <CAP5A+B8ZPMBROeu6wkT8G5v_e1jhYTNrCATP0mi71wcsC2DZHg@mail.gmail.com>
-	 <20111229184829.GC32392@sirena.org.uk>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH V2 2/2] TPS65217: Add tps65217 regulator driver
+Date: Tue, 3 Jan 2012 06:16:18 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC104023C@DBDE01.ent.ti.com>
+References: <1325508522-23217-1-git-send-email-anilkumar@ti.com>
+ <20120102131648.GJ4300@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42957 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750810Ab2ACF6A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Jan 2012 00:58:00 -0500
-In-Reply-To: <20111229184829.GC32392@sirena.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:42779 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab2ACGQZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 01:16:25 -0500
+In-Reply-To: <20120102131648.GJ4300@opensource.wolfsonmicro.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "K, Mythri P" <mythripk@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
+Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
 
-Hi Mythri, Mark,
-On Thu, 2011-12-29 at 18:48 +0000, Mark Brown wrote:
-> On Thu, Dec 29, 2011 at 03:26:48PM +0530, K, Mythri P wrote:
+Hi Mark,
+
+On Mon, Jan 02, 2012 at 18:46:48, Mark Brown wrote:
+> On Mon, Jan 02, 2012 at 06:18:42PM +0530, AnilKumar Ch wrote:
+> > This patch adds tps65217 PMIC as a regulator
 > 
-> > We could not also try to move the ASoC HDMI audio codec driver from
-> > DSS to sound, but this is good for now.
+> Use subject lines appropriate for the subsystem you're submitting
+> against.
 > 
-> You should certainly send the driver for review on the ALSA list...
+> > +config REGULATOR_TPS65217
+> > +	tristate "TI TPS65217 Power regulators"
+> > +	depends on (I2C && MFD_TPS65217)
+> 
+> Should only depend on the MFD, there's no direct I2C usage.
 
-Yes, the goal is to move the ASoC OMAP4 HDMI codec to sound for K3.3. I
-will submit to the ALSA list when I have a first draft.
+Agree, removed I2C
 
-Thanks,
+> 
+> > +static unsigned int tps65217_vsel_to_uv_range0(unsigned int vsel)
+> > +{
+> > +	unsigned int uV = 0;
+> > +
+> > +	if (vsel <= 24)
+> > +		uV = ((vsel * 25000) + 900000);
+> > +	else if (vsel > 24 && vsel <= 52)
+> > +		uV = (((vsel - 24) * 50000) + 1500000);
+> > +	else if (vsel > 52 && vsel <= 56)
+> > +		uV = (((vsel - 52) * 100000) + 2900000);
+> 
+> No need for the > checks as this is already taken care of by being in
+> the else clause.
 
-Ricardo
+Changed
 
+> 
+> > +static unsigned int tps65217_vsel_to_uv_range2(unsigned int vsel)
+> > +{
+> > +	unsigned int uV = 0;
+> > +
+> > +	if (vsel <= 8)
+> > +		uV = ((vsel * 50000) + 1500000);
+> > +	else if (vsel > 9 && vsel <= 13)
+> > +		uV = (((vsel - 8) * 100000) + 1900000);
+> > +	else if (vsel > 13)
+> > +		uV = (((vsel - 13) * 50000) + 2400000);
+> > +
+> > +	return uV;
+> 
+> In all of these functions there ought to be a check to make sure vsel
+> isn't out of range and return an error if it is.
 
+Added error checks as well.
+
+> 
+> > +static int tps65217_pmic_set_bits(struct tps65217 *tps, unsigned int reg,
+> > +		unsigned int mask, unsigned int val, unsigned int level)
+> > +{
+> 
+> To repeat what I said when reviewing the previous version of the patch
+> things like this shouldn't be open coded in individual function drivers,
+> they should be in the MFD driver.  There is *nothing* PMIC specific
+> about register access.
+> 
+> I've stopped reading at this point.
+> 
+
+Mark sorry about this, password protected writes/update bits are required
+only for regulator so I put it in regulator driver. I got your point, will
+be moved to MFD driver.
+
+Thanks for your patience here.
+
+Regards,
+AnilKumar
