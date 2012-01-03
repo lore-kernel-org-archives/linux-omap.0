@@ -1,104 +1,96 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3] OMAP: DSS2: Support for UMSH-8173MD TFT panel
-Date: Tue, 03 Jan 2012 11:21:55 +0200
-Message-ID: <1325582515.1973.8.camel@deskari>
-References: <1324370436.2042.4.camel@deskari>
-	 <1324374872-5132-1-git-send-email-zonque@gmail.com>
+Subject: Re: [PATCH] OMAPDSS: add OrtusTech COM43H4M10XTC display support
+Date: Tue, 03 Jan 2012 11:30:22 +0200
+Message-ID: <1325583022.1973.9.camel@deskari>
+References: <1324940201-16079-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-99B+Trxf2HvzDPiiYXHb"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-21tz4qj160QGJfEQmE+p"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:53266 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751185Ab2ACJWC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 04:22:02 -0500
-Received: by lahd3 with SMTP id d3so3636562lah.19
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 01:21:59 -0800 (PST)
-In-Reply-To: <1324374872-5132-1-git-send-email-zonque@gmail.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:47584 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751185Ab2ACJa1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 04:30:27 -0500
+In-Reply-To: <1324940201-16079-1-git-send-email-yanok@emcraft.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-omap@vger.kernel.org, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+To: Ilya Yanok <yanok@emcraft.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, sasha_d@emcraft.com
 
 
---=-99B+Trxf2HvzDPiiYXHb
+--=-21tz4qj160QGJfEQmE+p
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2011-12-20 at 10:54 +0100, Daniel Mack wrote:
-> This patch adds support for Microtip Technologies' UMSH-8173MD 800x480
-> RGB TFT panel. Tested with an OMAP3 board.
+On Mon, 2011-12-26 at 23:56 +0100, Ilya Yanok wrote:
+> dd data for the OrtusTech COM43H4M10XTC display to the
+> generic_dpi_panel driver.
 >=20
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+> CC: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
 > ---
->  drivers/video/omap2/displays/panel-generic-dpi.c |   25 ++++++++++++++++=
-++++++
->  1 files changed, 25 insertions(+), 0 deletions(-)
+>  drivers/video/omap2/displays/panel-generic-dpi.c |   20 ++++++++++++++++=
+++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
 >=20
 > diff --git a/drivers/video/omap2/displays/panel-generic-dpi.c b/drivers/v=
 ideo/omap2/displays/panel-generic-dpi.c
-> index 519c47d..cbcf164 100644
+> index 593f831..99669ae 100644
 > --- a/drivers/video/omap2/displays/panel-generic-dpi.c
 > +++ b/drivers/video/omap2/displays/panel-generic-dpi.c
-> @@ -297,6 +297,31 @@ static struct panel_config generic_dpi_panels[] =3D =
+> @@ -317,6 +317,26 @@ static struct panel_config generic_dpi_panels[] =3D =
 {
-> =20
->  		.name			=3D "apollon",
+>  					  OMAP_DSS_LCD_IHS,
+>  		.name			=3D "focaltech_etm070003dh6",
 >  	},
-> +
-> +	/* Microtips Technologies - UMSH-8173MD */
+> +	/* OrtusTech COM43H4M10XTC */
 > +	{
 > +		{
-> +			.x_res		=3D 800,
-> +			.y_res		=3D 480,
+> +			.x_res		=3D 480,
+> +			.y_res		=3D 272,
 > +
-> +			.pixel_clock	=3D 34560,
+> +			.pixel_clock	=3D 8000,
 > +
-> +			.hsw		=3D 13,
-> +			.hfp		=3D 101,
-> +			.hbp		=3D 101,
+> +			.hsw		=3D 41,
+> +			.hfp		=3D 8,
+> +			.hbp		=3D 4,
 > +
-> +			.vsw		=3D 23,
-> +			.vfp		=3D 1,
-> +			.vbp		=3D 1,
+> +			.vsw		=3D 10,
+> +			.vfp		=3D 4,
+> +			.vbp		=3D 2,
 > +		},
-> +		.acbi			=3D 0x0,
-> +		.acb			=3D 0x0,
-> +		.config			=3D OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-> +					  OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IPC,
-> +		.power_on_delay		=3D 0,
-> +		.power_off_delay	=3D 0,
-> +		.name			=3D "UMSH-8173MD",
+> +		.config			=3D OMAP_DSS_LCD_TFT,
+> +
+> +		.name			=3D "ortustech_com43h4m10xtc",
+> +	},
+>  };
+> =20
 
-Looks fine, except the panel name is not in line with the other panel
-names. I suggest "microtips_umsh_8173md". I can apply the patch and
-make the change if you are ok with the name.
+Thanks, I'll apply to DSS tree.
 
  Tomi
 
 
---=-99B+Trxf2HvzDPiiYXHb
+--=-21tz4qj160QGJfEQmE+p
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPAsizAAoJEPo9qoy8lh71AhYQAK8ShujQ0Pg562JdvmHe1ChD
-UVfUhP0hjhhkSwXcR7k1CdXqIme+rp2yoDGrw0k98WVVxhln2bY77Gwu31tvzQ6r
-kOpybU0opo291f89Py2HL2l9njUdz/RvIAucL2tZMIsKFjaz7wWAvT0Wy+1RiNWB
-qmutQzKtbNR5QLC23UnOEK0TGZZaOu3G652LnY1m0mNI13HxLWmB1P9CapUGjs6j
-tYjLZ2M46UjJQEqfLpXtEJXlZ4TW9wB/vgpRXMAzX11TxSZN75/wMelr2qftRItV
-upzQZzozU524HH2RZKzz4yjTwGIwjagSHUeOfCHoK18GAZLPDKxZYPLVxnAwEhZB
-Ep+pH9wqPJ2yLp+RPHD5blSsPEHPM4SA7zAQ12HGWLxmMYBE/IGwmQS008sjoAwz
-m5d9W7OdFGas1eBjJXrfHOWdpR6/n/JKBn1FW2TM5lBtpMn94/JyH3tFNWSSP2TJ
-69xKX8LeDtUY8XS0l8IymRv7dTjneGYzgZ52kB4SaiN5jviO6cVlRPruQLScXWLz
-uS/qi0jjZoyT7K9djTFroEL/Izl7uej4GkL1HWoaiYn1LTm0Y6TCvOFvwcmISvhb
-rmlfvnREHWGhtMmNar7oon+BmtKMjiIWt3mTnYeH2cSsiThDH6ad0+sjgEsD9yUr
-XBKzLUFuiSaCRzVP46oZ
-=aiWZ
+iQIcBAABAgAGBQJPAsquAAoJEPo9qoy8lh71T6MQAILIOhNIdXMbot3P6m2xR/hl
+gjTT68HImSiTSxAcWQThVAy9E/0ICaXD9P7tXtyY1EnknDHEC0Waz+gB+cZcjhFL
+PYwDFNJatdoE5PW0Bncr/PMrMk1KXkPb03DNp6GdH25lUFiDah4aqiFAkDTV2ohG
+B1kLU7Yj+edMED81bgZJJMHUQMvn4MDb9qF8B9ZiK0lK5360LxxuYIHbLnTATtqK
+smh+7UQGzoMla3CHmbK246UnixmIiUG4+9BAEl6oINz8No+2O8wpbM7ZnUjZarVB
+zGLIym0VAZl6CoAYMUTf40jO2tSgjBNHXZozBXZyr1R5aXBuBLdqrqxVF8F9YEcU
+CjmibBWTYt0NC0n6P92vzgHEbKDemW8MchO2LBz8cSfEOnQIbgQwe/oNOg+ZSvNC
+f2HD087J/xVABhsX13irIavOuuQRPW0tB/Cod5uaKNRI3EQkxBeW5pleEhMdDuOI
+yWvOgyZfnbP24MrgLINMS6MT/fIJhegdqUCgimiZ87N37N96C7Ah2yStMkHaYsmy
+cDRGXJNALlw249iN3jtppvDcDXceyVd21+/q5Cv0P1SV9q7vjb+/4wsa55H0hvMq
+RvaoApjaf/HMP4nUC4I5Qe3yRaHJKFvtHeKA7wABbgS3JQGg/uRt3N9Yp6vh1IAc
+L40KEyxMWj6svUIamU6Q
+=EonG
 -----END PGP SIGNATURE-----
 
---=-99B+Trxf2HvzDPiiYXHb--
+--=-21tz4qj160QGJfEQmE+p--
 
