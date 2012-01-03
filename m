@@ -1,274 +1,236 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 3/4] OMAPDSS: HDMI: change the timing match logic
-Date: Tue, 03 Jan 2012 12:04:46 +0200
-Message-ID: <1325585086.1973.30.camel@deskari>
-References: <1325493896-26355-1-git-send-email-mythripk@ti.com>
-	 <1325493896-26355-2-git-send-email-mythripk@ti.com>
-	 <1325493896-26355-3-git-send-email-mythripk@ti.com>
-	 <1325493896-26355-4-git-send-email-mythripk@ti.com>
+Subject: Re: [PATCH 1/3 REPOST] OMAPDSS: HDMI: Move Avi infoframe structure
+ to
+Date: Tue, 03 Jan 2012 12:09:41 +0200
+Message-ID: <1325585381.1973.33.camel@deskari>
+References: <1325494735-30160-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ILrru3BBCa7TtAjL5I0H"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Ox5DlPbKixrgMpLlXPZA"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39883 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751477Ab2ACKEw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 05:04:52 -0500
-Received: by lagj5 with SMTP id j5so14098549lag.1
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 02:04:49 -0800 (PST)
-In-Reply-To: <1325493896-26355-4-git-send-email-mythripk@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53862 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751477Ab2ACKJp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Jan 2012 05:09:45 -0500
+Received: by mail-lpp01m010-f53.google.com with SMTP id r15so7859239lag.26
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 02:09:44 -0800 (PST)
+In-Reply-To: <1325494735-30160-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mythripk@ti.com
 Cc: linux-omap@vger.kernel.org
 
 
---=-ILrru3BBCa7TtAjL5I0H
+--=-Ox5DlPbKixrgMpLlXPZA
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2012-01-02 at 14:14 +0530, mythripk@ti.com wrote:
+Hi,
+
+Again the subjects are cut off in mid sentence. And the patch series
+contains patch 1 two times.
+
+Please use git-format-patch and git-send-email to send proper patches,
+and please check the patches before sending.
+
+ Tomi
+
+On Mon, 2012-01-02 at 14:28 +0530, mythripk@ti.com wrote:
 > From: Mythri P K <mythripk@ti.com>
 >=20
-> Change the timing match logic, Instead of the statically mapped method
-> to get the corresponding timings for a given code and mode, move to a
-> simpler array indexed method. It  will help to scale up to add more
-> timings when needed.
+> With AVI infoframe various parameters of video stream such as
+> aspect ratio, quantization range, videocode etc will be indicated
+> from source to sink.Thus AVI information needs to be set/accessed
+> by the middle ware based on the video content.
+> Thus this parameter is now moved to the ip_data structure.
 >=20
 > Signed-off-by: Mythri P K <mythripk@ti.com>
 > ---
->  drivers/video/omap2/dss/hdmi.c |  174 +++++++++++++++++-----------------=
-------
->  1 files changed, 75 insertions(+), 99 deletions(-)
-
-
-> -static int get_timings_index(void)
-> +static const struct hdmi_config *hdmi_find_timing(
-> +					const struct hdmi_config *timings_arr,
-> +					int len)
->  {
-> -	int code;
-> +	int i;
-> +	const struct hdmi_config *timing, timing1 =3D { {0}, {0} };
+>  drivers/video/omap2/dss/ti_hdmi.h         |   42 +++++++++++++++++++++++=
+++++++
+>  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    8 +++---
+>  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   40 -----------------------=
+----
+>  3 files changed, 46 insertions(+), 44 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/=
+ti_hdmi.h
+> index 3cf5198..835cfb1 100644
+> --- a/drivers/video/omap2/dss/ti_hdmi.h
+> +++ b/drivers/video/omap2/dss/ti_hdmi.h
+> @@ -108,6 +108,47 @@ struct ti_hdmi_ip_ops {
 > =20
-> -	if (hdmi.mode =3D=3D 0)
-> -		code =3D code_vesa[hdmi.code];
-> -	else
-> -		code =3D code_cea[hdmi.code];
-> +	for (i =3D 0; i < len; i++) {
-> +		if (timings_arr[i].cm.code =3D=3D hdmi.code) {
-> +			timing =3D &timings_arr[i];
-> +			return timing;
-> +		}
-> +	}
-> +	timing =3D &timing1;
-> +	return timing;
-> +}
-
-You should return NULL if the find fails, not a timing struct with zero
-values. And then there's no need for timing nor timing1 variables.
-
-Furthermore, the code is broken. The timing1 value is allocated from the
-stack frame of hdmi_find_timing function. You return a pointer to that,
-but the value is no longer valid after the function returns.
-
+>  };
 > =20
-> -	if (code =3D=3D -1)	{
-> -		/* HDMI code 4 corresponds to 640 * 480 VGA */
-> -		hdmi.code =3D 4;
-> -		/* DVI mode 1 corresponds to HDMI 0 to DVI */
-> -		hdmi.mode =3D HDMI_DVI;
-> +static const struct hdmi_config *hdmi_get_timings(void)
-> +{
-> +	const struct hdmi_config *timing;
-> =20
-> -		code =3D code_vesa[hdmi.code];
-> +	if (hdmi.mode =3D=3D 0) {
-> +		timing =3D hdmi_find_timing(vesa_timings,
-> +					ARRAY_SIZE(vesa_timings));
-> +	} else {
-> +		timing =3D hdmi_find_timing(cea_timings,
-> +					ARRAY_SIZE(cea_timings));
-> +	}
-> +	return timing;
-> +}
-
-hdmi.mode is enum hdmi_core_hdmi_dvi, isn't it? Then you should use the
-enum values when comparing, not 0. Although the use of that enum seems
-to be broken elsewhere also, as struct hdmi_cm uses int instead of the
-enum. That (and the other similar mode problems) should be fixed in a
-separate patch.
-
-And I think this function would be cleaner this way:
-
-static const struct hdmi_config *hdmi_get_timings(void)
-{
-	const struct hdmi_config *arr;
-	int len;
-
-	if (hdmi.mode =3D=3D HDMI_DVI) {
-		arr =3D vesa_timings;
-		len =3D ARRAY_SIZE(vesa_timings);
-	} else {
-		arr =3D cea_timings;
-		len =3D ARRAY_SIZE(cea_timings);
-	}
-
-	return hdmi_find_timing(arr, len);
-}
-
-> +static bool hdmi_timings_compare(struct omap_video_timings *timing1,
-> +				const struct hdmi_video_timings *timing2)
-> +{
-> +	int timing1_vsync, timing1_hsync, timing2_vsync, timing2_hsync;
+> +/*
+> + * Refer to section 8.2 in HDMI 1.3 specification for
+> + * details about infoframe databytes
+> + */
+> +struct hdmi_core_infoframe_avi {
+> +	/* Y0, Y1 rgb,yCbCr */
+> +	u8	db1_format;
+> +	/* A0  Active information Present */
+> +	u8	db1_active_info;
+> +	/* B0, B1 Bar info data valid */
+> +	u8	db1_bar_info_dv;
+> +	/* S0, S1 scan information */
+> +	u8	db1_scan_info;
+> +	/* C0, C1 colorimetry */
+> +	u8	db2_colorimetry;
+> +	/* M0, M1 Aspect ratio (4:3, 16:9) */
+> +	u8	db2_aspect_ratio;
+> +	/* R0...R3 Active format aspect ratio */
+> +	u8	db2_active_fmt_ar;
+> +	/* ITC IT content. */
+> +	u8	db3_itc;
+> +	/* EC0, EC1, EC2 Extended colorimetry */
+> +	u8	db3_ec;
+> +	/* Q1, Q0 Quantization range */
+> +	u8	db3_q_range;
+> +	/* SC1, SC0 Non-uniform picture scaling */
+> +	u8	db3_nup_scaling;
+> +	/* VIC0..6 Video format identification */
+> +	u8	db4_videocode;
+> +	/* PR0..PR3 Pixel repetition factor */
+> +	u8	db5_pixel_repeat;
+> +	/* Line number end of top bar */
+> +	u16	db6_7_line_eoftop;
+> +	/* Line number start of bottom bar */
+> +	u16	db8_9_line_sofbottom;
+> +	/* Pixel number end of left bar */
+> +	u16	db10_11_pixel_eofleft;
+> +	/* Pixel number start of right bar */
+> +	u16	db12_13_pixel_sofright;
+> +};
 > +
-> +	if ((timing2->pixel_clock =3D=3D timing1->pixel_clock) &&
-> +		(timing2->x_res =3D=3D timing1->x_res) &&
-> +		(timing2->y_res =3D=3D timing1->y_res)) {
-> +
-> +		timing2_hsync =3D timing2->hfp + timing2->hsw + timing2->hbp;
-> +		timing1_hsync =3D timing1->hfp + timing1->hsw + timing1->hbp;
-> +		timing2_vsync =3D timing2->vfp + timing2->vsw + timing2->vbp;
-> +		timing1_vsync =3D timing2->vfp + timing2->vsw + timing2->vbp;
-> +
-> +		DSSDBG("timing1_hsync =3D %d timing1_vsync =3D %d"\
-> +			"timing2_hsync =3D %d timing2_vsync =3D %d\n",
-> +			timing1_hsync, timing1_vsync,
-> +			timing2_hsync, timing2_vsync);
-> +
-> +		if ((timing1_hsync =3D=3D timing2_hsync) &&
-> +			(timing1_vsync =3D=3D timing2_vsync)) {
-> +			return true;
-> +		}
->  	}
-> -	return code;
-> +	return false;
+>  struct hdmi_ip_data {
+>  	void __iomem	*base_wp;	/* HDMI wrapper */
+>  	unsigned long	core_sys_offset;
+> @@ -117,6 +158,7 @@ struct hdmi_ip_data {
+>  	const struct ti_hdmi_ip_ops *ops;
+>  	struct hdmi_config cfg;
+>  	struct hdmi_pll_info pll_data;
+> +	struct hdmi_core_infoframe_avi avi_cfg;
+>  };
+>  int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+>  void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+> diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/om=
+ap2/dss/ti_hdmi_4xxx_ip.c
+> index ccc6254..b66d82e 100644
+> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+> @@ -534,12 +534,12 @@ static void hdmi_core_video_config(struct hdmi_ip_d=
+ata *ip_data,
+>  			HDMI_CORE_SYS_TMDS_CTRL, cfg->tclk_sel_clkmult, 6, 5);
 >  }
 > =20
->  static struct hdmi_cm hdmi_get_code(struct omap_video_timings *timing)
+> -static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_d=
+ata,
+> -		struct hdmi_core_infoframe_avi info_avi)
+> +static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_d=
+ata)
 >  {
-> -	int i =3D 0, code =3D -1, temp_vsync =3D 0, temp_hsync =3D 0;
-> -	int timing_vsync =3D 0, timing_hsync =3D 0;
-> -	struct hdmi_video_timings temp;
-> +	int i;
->  	struct hdmi_cm cm =3D {-1};
->  	DSSDBG("hdmi_get_code\n");
+>  	u32 val;
+>  	char sum =3D 0, checksum =3D 0;
+>  	void __iomem *av_base =3D hdmi_av_base(ip_data);
+> +	struct hdmi_core_infoframe_avi info_avi =3D ip_data->avi_cfg;
 > =20
-> -	for (i =3D 0; i < OMAP_HDMI_TIMINGS_NB; i++) {
-> -		temp =3D cea_vesa_timings[i].timings;
-> -		if ((temp.pixel_clock =3D=3D timing->pixel_clock) &&
-> -			(temp.x_res =3D=3D timing->x_res) &&
-> -			(temp.y_res =3D=3D timing->y_res)) {
-> -
-> -			temp_hsync =3D temp.hfp + temp.hsw + temp.hbp;
-> -			timing_hsync =3D timing->hfp + timing->hsw + timing->hbp;
-> -			temp_vsync =3D temp.vfp + temp.vsw + temp.vbp;
-> -			timing_vsync =3D timing->vfp + timing->vsw + timing->vbp;
-> -
-> -			DSSDBG("temp_hsync =3D %d , temp_vsync =3D %d"
-> -				"timing_hsync =3D %d, timing_vsync =3D %d\n",
-> -				temp_hsync, temp_hsync,
-> -				timing_hsync, timing_vsync);
-> -
-> -			if ((temp_hsync =3D=3D timing_hsync) &&
-> -					(temp_vsync =3D=3D timing_vsync)) {
-> -				code =3D i;
-> -				cm.code =3D code_index[i];
-> -				if (code < 14)
-> -					cm.mode =3D HDMI_HDMI;
-> -				else
-> -					cm.mode =3D HDMI_DVI;
-> -				DSSDBG("Hdmi_code =3D %d mode =3D %d\n",
-> -					 cm.code, cm.mode);
-> -				break;
-> -			 }
-> +	for (i =3D 0; i < ARRAY_SIZE(cea_timings); i++) {
-> +		if (hdmi_timings_compare(timing, &cea_timings[i].timings)) {
-> +			cm =3D cea_timings[i].cm;
-> +			goto end;
-> +		}
-> +	}
-> +	for (i =3D 0; i < ARRAY_SIZE(vesa_timings); i++) {
-> +		if (hdmi_timings_compare(timing, &vesa_timings[i].timings)) {
-> +			cm =3D vesa_timings[i].cm;
-> +			goto end;
->  		}
->  	}
+>  	sum +=3D 0x82 + 0x002 + 0x00D;
+>  	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_TYPE, 0x082);
+> @@ -718,7 +718,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data=
+ *ip_data)
+>  	struct omap_video_timings video_timing;
+>  	struct hdmi_video_format video_format;
+>  	/* HDMI core */
+> -	struct hdmi_core_infoframe_avi avi_cfg;
+> +	struct hdmi_core_infoframe_avi avi_cfg =3D ip_data->avi_cfg;
+>  	struct hdmi_core_video_config v_core_cfg;
+>  	struct hdmi_core_packet_enable_repeat repeat_cfg;
+>  	struct hdmi_config *cfg =3D &ip_data->cfg;
+> @@ -780,7 +780,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data=
+ *ip_data)
+>  	avi_cfg.db10_11_pixel_eofleft =3D 0;
+>  	avi_cfg.db12_13_pixel_sofright =3D 0;
 > =20
-> -	return cm;
-> -}
-> +end:	return cm;
+> -	hdmi_core_aux_infoframe_avi_config(ip_data, avi_cfg);
+> +	hdmi_core_aux_infoframe_avi_config(ip_data);
 > =20
-> -static void update_hdmi_timings(struct hdmi_config *cfg,
-> -		struct omap_video_timings *timings, int code)
-> -{
-> -	cfg->timings.x_res =3D timings->x_res;
-> -	cfg->timings.y_res =3D timings->y_res;
-> -	cfg->timings.hbp =3D timings->hbp;
-> -	cfg->timings.hfp =3D timings->hfp;
-> -	cfg->timings.hsw =3D timings->hsw;
-> -	cfg->timings.vbp =3D timings->vbp;
-> -	cfg->timings.vfp =3D timings->vfp;
-> -	cfg->timings.vsw =3D timings->vsw;
-> -	cfg->timings.pixel_clock =3D timings->pixel_clock;
-> -	cfg->timings.vsync_pol =3D cea_vesa_timings[code].timings.vsync_pol;
-> -	cfg->timings.hsync_pol =3D cea_vesa_timings[code].timings.hsync_pol;
->  }
-> =20
->  unsigned long hdmi_get_pixel_clock(void)
-> @@ -325,7 +295,7 @@ static void hdmi_compute_pll(struct omap_dss_device *=
-dssdev, int phy,
-> =20
->  static int hdmi_power_on(struct omap_dss_device *dssdev)
->  {
-> -	int r, code =3D 0;
-> +	int r;
->  	struct omap_video_timings *p;
->  	unsigned long phy;
-> =20
-> @@ -341,8 +311,14 @@ static int hdmi_power_on(struct omap_dss_device *dss=
-dev)
->  		dssdev->panel.timings.x_res,
->  		dssdev->panel.timings.y_res);
-> =20
-> -	code =3D get_timings_index();
-> -	update_hdmi_timings(&hdmi.ip_data.cfg, p, code);
-> +	hdmi.ip_data.cfg =3D *(hdmi_get_timings());
-> +	if (hdmi.ip_data.cfg.timings.x_res =3D=3D 0) {
-
-Here you should check if the function returns NULL, and use that to
-decide if it failed or not.
-
-> +		/* HDMI code 4 corresponds to 640 * 480 VGA */
-> +		hdmi.code =3D 4;
-> +		/* DVI mode 1 corresponds to HDMI 0 to DVI */
-> +		hdmi.mode =3D HDMI_DVI;
-> +		hdmi.ip_data.cfg =3D vesa_timings[0];
-> +	}
-=20
- Tomi
+>  	/* enable/repeat the infoframe */
+>  	repeat_cfg.avi_infoframe =3D HDMI_PACKETENABLE;
+> diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/om=
+ap2/dss/ti_hdmi_4xxx_ip.h
+> index 914bec6..21f1d82 100644
+> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
+> @@ -450,46 +450,6 @@ struct hdmi_core_video_config {
+>   * Refer to section 8.2 in HDMI 1.3 specification for
+>   * details about infoframe databytes
+>   */
+> -struct hdmi_core_infoframe_avi {
+> -	/* Y0, Y1 rgb,yCbCr */
+> -	u8	db1_format;
+> -	/* A0  Active information Present */
+> -	u8	db1_active_info;
+> -	/* B0, B1 Bar info data valid */
+> -	u8	db1_bar_info_dv;
+> -	/* S0, S1 scan information */
+> -	u8	db1_scan_info;
+> -	/* C0, C1 colorimetry */
+> -	u8	db2_colorimetry;
+> -	/* M0, M1 Aspect ratio (4:3, 16:9) */
+> -	u8	db2_aspect_ratio;
+> -	/* R0...R3 Active format aspect ratio */
+> -	u8	db2_active_fmt_ar;
+> -	/* ITC IT content. */
+> -	u8	db3_itc;
+> -	/* EC0, EC1, EC2 Extended colorimetry */
+> -	u8	db3_ec;
+> -	/* Q1, Q0 Quantization range */
+> -	u8	db3_q_range;
+> -	/* SC1, SC0 Non-uniform picture scaling */
+> -	u8	db3_nup_scaling;
+> -	/* VIC0..6 Video format identification */
+> -	u8	db4_videocode;
+> -	/* PR0..PR3 Pixel repetition factor */
+> -	u8	db5_pixel_repeat;
+> -	/* Line number end of top bar */
+> -	u16	db6_7_line_eoftop;
+> -	/* Line number start of bottom bar */
+> -	u16	db8_9_line_sofbottom;
+> -	/* Pixel number end of left bar */
+> -	u16	db10_11_pixel_eofleft;
+> -	/* Pixel number start of right bar */
+> -	u16	db12_13_pixel_sofright;
+> -};
+> -/*
+> - * Refer to section 8.2 in HDMI 1.3 specification for
+> - * details about infoframe databytes
+> - */
+>  struct hdmi_core_infoframe_audio {
+>  	u8 db1_coding_type;
+>  	u8 db1_channel_count;
 
 
---=-ILrru3BBCa7TtAjL5I0H
+--=-Ox5DlPbKixrgMpLlXPZA
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPAtK+AAoJEPo9qoy8lh71UjUP/iZacAKwfRC9IaRg+Rq/lSif
-au9Y7hDdT5kFwAUpnt5M6g6GdtX5rYvBXwqFVRx0a89KpqIwBEcB50ix3nZ8HYRI
-Y2WHtTVQvk901Ph4Pppy71oB13iWL30s2Suo1MWEsCYwruPKDmb5stvU6ZjPRKDs
-k85Vt/+82yrxB0MrPOnFwSPtCtv2ntP0NvbcbSExCrfbxRPSrsK/0LUycTXMuY9p
-WjkRc0crrQ6w9H57Fbswclgenps+BCTxa9l7LWSPXMACWvkOIYmWgfOg9SIoFHhQ
-oLZnLoOiNXnEfqF7On0BcFXoLWfuXwBeNOTyxNnOwgggomWiALU8ubFA5Bm6lXyE
-jOLepYv+dNadAZ9sg79TMhXVRt4qvyzI2Wo/4YitaKTNu66iP3LT+0r9uvq7LWhJ
-pE9GFu3dff4V1JKGPtOPuqcbSVSbeWQ4DVS71d570mMTKGJnYtM2EqiKak8OaIs/
-o48DtiughZ8hqokKboAe1KxihsO/FqTf5hotdRnn+j4JpFFMBlyGoIJ3UlVfPx4G
-NbW9T2NNL52hSPMykr6Y/S3Kh6kdU9jv1Vzk4Ez1rVungxzASZX/FAIhlrZZjYel
-AbahcNVeHuPaKaTofNwK+X4lQu6VC7nIUUcagal7lomnM98PyHRuRAmKz3cZyd3j
-yNtzaliOUjse+YYANgsN
-=QFB8
+iQIcBAABAgAGBQJPAtPlAAoJEPo9qoy8lh71HBoP/jynGioIQyMGdSDPP/h5WWBi
+t/9rIz0RKHP9cHmGAHO8/FH4FHyKaup5y/Ilo7IbWQ376WaI1kuBDrVhRGWg2ikp
+9n9N0zVIiEISR/P/DgrzJOl1kQboWEc8AOyw7cFm5C2ccvMylsQlanaj8jJe+I3N
+ftraAudiQtc7L4t0ZS+eQrs54q18nJRplGQZzlXarDYsVpyHYdDOFT1dJG6vNuRs
+vv6fGRqa89dKU8jOEtSw8tOZ0VVnRQvEhFP1wbkZRhdmrVP3N0MO8/RBzWwK7Tds
+6kNi03+Oat2L9yue/X22KO2pn3xFPD3bczDcQw9rRB15rLPeIu7cgo07b+S0G0Ir
+oh8RVBxS4Meb2iaE5LIQrt7pfZTfwvprZFF9rGj0Bo0S9yJ7WhJiIF7Ncl2Bm3Gv
+0Zu0jvBNE0ex7+vwtaxgEJS3BjmQ8VEcj7SsaY0cS99wAx3a+G+PCk+giearg46F
+nzp+qmsKGOMs5DJoP8ZpYZKpDeGlkZn1/mlblsWH9J6X96bjQ91A8hdtawwix/hj
+lt5ifP4rh680rHpTcc1R542G52EDlO4YYVnc35fWUEjTvkKQpS56gkW679bIFQz6
+L2yEK5EoN0qM556Qw4mCS6c9qsseR7936g12SWnUTyKMw3N4DTXc68zmWYqmGwqM
+UqoFLewh3NG/1jOMNduV
+=Gpps
 -----END PGP SIGNATURE-----
 
---=-ILrru3BBCa7TtAjL5I0H--
+--=-Ox5DlPbKixrgMpLlXPZA--
 
