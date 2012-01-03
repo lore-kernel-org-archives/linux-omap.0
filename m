@@ -1,258 +1,69 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v4 03/12] mfd: twl-core: Add initial DT support for twl4030/twl6030
-Date: Tue, 3 Jan 2012 15:09:49 +0100
-Message-ID: <4F030C2D.3000808@ti.com>
-References: <1324565806-31142-1-git-send-email-b-cousson@ti.com> <1324565806-31142-4-git-send-email-b-cousson@ti.com> <20120102090454.GO18381@ponder.secretlab.ca>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH v8 19/20] OMAP2+: UART: Do not gate uart clocks if used
+ for debug_prints
+Date: Tue, 3 Jan 2012 19:42:46 +0530
+Message-ID: <CAAL8m4z-AsVzfubqBy=nP6EN=m6MjTma1+50+aywQ=hmoF6Ejg@mail.gmail.com>
+References: <1321005712-21871-1-git-send-email-govindraj.raja@ti.com>
+ <1321005712-21871-5-git-send-email-govindraj.raja@ti.com> <B5906170F1614E41A8A28DE3B8D1214304B3E2@DBDE01.ent.ti.com>
+ <CAAL8m4yXD-gpeXNVsCOYeDkYDWmVX8FUcpXKjx6k=AXSF4V9iA@mail.gmail.com>
+ <B5906170F1614E41A8A28DE3B8D1214304BAD3@DBDE01.ent.ti.com>
+ <CAAL8m4yhtUNjoKwECnQEYNoaL-M+RaHXACanAeJW64DPsJ_hWg@mail.gmail.com> <B5906170F1614E41A8A28DE3B8D1214304BB42@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120102090454.GO18381-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
-Cc: rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D1214304BB42@DBDE01.ent.ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "R, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Basak, Partha" <p-basak2@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On 1/2/2012 10:04 AM, Grant Likely wrote:
-> On Thu, Dec 22, 2011 at 03:56:37PM +0100, Benoit Cousson wrote:
->> Add initial device-tree support for twl familly chips.
->> The current version is missing the regulator entries due
->> to the lack of DT regulator bindings for the moment.
->> Only the simple sub-modules that do not depend on
->> platform_data information can be initialized properly.
+On Tue, Jan 3, 2012 at 5:22 PM, Bedia, Vaibhav <vaibhav.bedia@ti.com> w=
+rote:
+> On Tue, Jan 03, 2012 at 16:01:52, Govindraj wrote:
+>> >
+>> > I have basic suspend-resume working on it. Strangely this works ir=
+respective
+>> > of the value of tty_dev wakeup entry. Do you know if this is expec=
+ted on OMAP?
+>> >
 >>
->> Add irqdomain support.
+>> AFAIK yes.
+>
+> Ok.
+>
 >>
->> Add documentation for the Texas Instruments TWL Integrated Chip.
+>> > The other issue concerning runtime PM is that as soon as I set a n=
+on-zero to
+>> > the autosuspend_delay_ms I get some garbage characters and eventua=
+lly the
+>> > console stops responding.
+>> >
+>> > [root@arago /]# cat .../omap_uart.0/power/autosuspend_delay_ms
+>> > -1
+>> > [root@arago /]# echo 3000 > =D6KW=EB=E9=AB+=D7=E9=AB+wU.=C9=D1=B9,=
+z,=BD=DD.=C9=BDosuspend_delay=D5=A3=BD=CD=D5=CD...
+>> > [root@arago /]# <- No response after some time
+>> >
 >>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Balaji T K<balajitk-l0cyMroinI0@public.gmane.org>
->> Cc: Graeme Gregory<gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
->> Cc: Samuel Ortiz<sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->> ---
->> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
->> index f1391c2..f0de088 100644
->> --- a/drivers/mfd/Kconfig
->> +++ b/drivers/mfd/Kconfig
->> @@ -200,6 +200,7 @@ config MENELAUS
->>   config TWL4030_CORE
->>   	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
->>   	depends on I2C=y&&  GENERIC_HARDIRQS
->> +	select IRQ_DOMAIN
-> 
-> As discussed on linux-next, this breaks powerpc.  Drivers cannot select
-> IRQ_DOMAIN, it can only be selected by architectures.  Drivers must depend
-> on it instead.
+>> try enabling CONFIG_CPU_IDLE for pm qos_usage from uart driver.
+>>
+>
+> Its enabled.
 
-OK, good to know. The previous version was already breaking non-ARM platform because the IRQ_DOMAIN was not defined, hence this update.
-I was able to check that this patch was fixing at least x86... but did not have any way to check the PPC build.
+I checked on Beagle-xm with latest LO master I don't see that issue.
 
-To be honest, I did not fully understand that this flag was there because some arch does not support IRQ domain yet and thus it should be selected at arch level.
+Lo master commit used
+commit: 6489f6de3a219dfd23a91261eea1b09fba7ae128
 
-Samuel,
-Here is the updated version, and hopefully the last one, including Grant's fix.
+Logs:
+http://pastebin.pandaboard.org/index.php/view/55509914
 
+--
 Thanks,
-Benoit
-
----
->From c213f7c905a1ec66f6d394db2f6ff4c1cd74b991 Mon Sep 17 00:00:00 2001
-From: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Date: Mon, 29 Aug 2011 16:20:23 +0200
-Subject: [PATCH v5 03/12] mfd: twl-core: Add initial DT support for twl4030/twl6030
-
-Add initial device-tree support for twl familly chips.
-The current version is missing the regulator entries due
-to the lack of DT regulator bindings for the moment.
-Only the simple sub-modules that do not depend on
-platform_data information can be initialized properly.
-
-Add irqdomain support.
-
-Add documentation for the Texas Instruments TWL Integrated Chip.
-
-Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-Cc: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
-Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Acked-by: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
-[grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org: Fix IRQ_DOMAIN dependency in kconfig]
-Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
----
- .../devicetree/bindings/mfd/twl-familly.txt        |   47 ++++++++++++++++++
- drivers/mfd/Kconfig                                |    2 +-
- drivers/mfd/twl-core.c                             |   51 +++++++++++++++++++-
- 3 files changed, 98 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
-
-diff --git a/Documentation/devicetree/bindings/mfd/twl-familly.txt b/Documentation/devicetree/bindings/mfd/twl-familly.txt
-new file mode 100644
-index 0000000..ff4cacd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mfd/twl-familly.txt
-@@ -0,0 +1,47 @@
-+Texas Instruments TWL family
-+
-+The TWLs are Integrated Power Management Chips.
-+Some version might contain much more analog function like
-+USB transceiver or Audio amplifier.
-+These chips are connected to an i2c bus.
-+
-+
-+Required properties:
-+- compatible : Must be "ti,twl4030";
-+  For Integrated power-management/audio CODEC device used in OMAP3
-+  based boards
-+- compatible : Must be "ti,twl6030";
-+  For Integrated power-management used in OMAP4 based boards
-+- interrupts : This i2c device has an IRQ line connected to the main SoC
-+- interrupt-controller : Since the twl support several interrupts internally,
-+  it is considered as an interrupt controller cascaded to the SoC one.
-+- #interrupt-cells = <1>;
-+- interrupt-parent : The parent interrupt controller.
-+
-+Optional node:
-+- Child nodes contain in the twl. The twl family is made of several variants
-+  that support a different number of features.
-+  The children nodes will thus depend of the capability of the variant.
-+
-+
-+Example:
-+/*
-+ * Integrated Power Management Chip
-+ * http://www.ti.com/lit/ds/symlink/twl6030.pdf
-+ */
-+twl@48 {
-+    compatible = "ti,twl6030";
-+    reg = <0x48>;
-+    interrupts = <39>; /* IRQ_SYS_1N cascaded to gic */
-+    interrupt-controller;
-+    #interrupt-cells = <1>;
-+    interrupt-parent = <&gic>;
-+    #address-cells = <1>;
-+    #size-cells = <0>;
-+
-+    twl_rtc {
-+        compatible = "ti,twl_rtc";
-+        interrupts = <11>;
-+        reg = <0>;
-+    };
-+};
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index f1391c2..09fea20 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -199,7 +199,7 @@ config MENELAUS
- 
- config TWL4030_CORE
- 	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
--	depends on I2C=y && GENERIC_HARDIRQS
-+	depends on I2C=y && GENERIC_HARDIRQS && IRQ_DOMAIN
- 	help
- 	  Say yes here if you have TWL4030 / TWL6030 family chip on your board.
- 	  This core driver provides register access and IRQ handling
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index bfbd660..698bf0d 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -34,6 +34,11 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/err.h>
-+#include <linux/device.h>
-+#include <linux/of.h>
-+#include <linux/of_irq.h>
-+#include <linux/of_platform.h>
-+#include <linux/irqdomain.h>
- 
- #include <linux/regulator/machine.h>
- 
-@@ -144,6 +149,9 @@
- 
- #define TWL_MODULE_LAST TWL4030_MODULE_LAST
- 
-+#define TWL4030_NR_IRQS    8
-+#define TWL6030_NR_IRQS    20
-+
- /* Base Address defns for twl4030_map[] */
- 
- /* subchip/slave 0 - USB ID */
-@@ -255,6 +263,7 @@ struct twl_client {
- 
- static struct twl_client twl_modules[TWL_NUM_SLAVES];
- 
-+static struct irq_domain domain;
- 
- /* mapping the module id to slave id and base address */
- struct twl_mapping {
-@@ -1183,14 +1192,48 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	int				status;
- 	unsigned			i;
- 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
-+	struct device_node		*node = client->dev.of_node;
- 	u8 temp;
- 	int ret = 0;
-+	int nr_irqs = TWL4030_NR_IRQS;
-+
-+	if ((id->driver_data) & TWL6030_CLASS)
-+		nr_irqs = TWL6030_NR_IRQS;
-+
-+	if (node && !pdata) {
-+		/*
-+		 * XXX: Temporary pdata until the information is correctly
-+		 * retrieved by every TWL modules from DT.
-+		 */
-+		pdata = devm_kzalloc(&client->dev,
-+				     sizeof(struct twl4030_platform_data),
-+				     GFP_KERNEL);
-+		if (!pdata)
-+			return -ENOMEM;
-+	}
- 
- 	if (!pdata) {
- 		dev_dbg(&client->dev, "no platform data?\n");
- 		return -EINVAL;
- 	}
- 
-+	status = irq_alloc_descs(-1, pdata->irq_base, nr_irqs, 0);
-+	if (IS_ERR_VALUE(status)) {
-+		dev_err(&client->dev, "Fail to allocate IRQ descs\n");
-+		return status;
-+	}
-+
-+	pdata->irq_base = status;
-+	pdata->irq_end = pdata->irq_base + nr_irqs;
-+
-+	domain.irq_base = pdata->irq_base;
-+	domain.nr_irq = nr_irqs;
-+#ifdef CONFIG_OF_IRQ
-+	domain.of_node = of_node_get(node);
-+	domain.ops = &irq_domain_simple_ops;
-+#endif
-+	irq_domain_add(&domain);
-+
- 	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
- 		dev_dbg(&client->dev, "can't talk I2C?\n");
- 		return -EIO;
-@@ -1270,7 +1313,13 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
- 	}
- 
--	status = add_children(pdata, id->driver_data);
-+#ifdef CONFIG_OF_DEVICE
-+	if (node)
-+		status = of_platform_populate(node, NULL, NULL, &client->dev);
-+	else
-+#endif
-+		status = add_children(pdata, id->driver_data);
-+
- fail:
- 	if (status < 0)
- 		twl_remove(client);
--- 
-1.7.0.4
-
-
-
-
- 
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
