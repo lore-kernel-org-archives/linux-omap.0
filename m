@@ -1,54 +1,51 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH RFC] MFD: OMAP: USB: Make the runtime functions depend on CONFIG_PM_RUNTIME
-Date: Tue, 03 Jan 2012 16:14:07 -0800
-Message-ID: <874nwc8gts.fsf@ti.com>
-References: <1325572979-6090-1-git-send-email-shubhrajyoti@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/3] coupled cpuidle state support
+Date: Tue, 03 Jan 2012 16:41:27 -0800
+Message-ID: <87sjjw70zs.fsf@ti.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1325572979-6090-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-	(Shubhrajyoti D.'s message of "Tue, 3 Jan 2012 12:12:59 +0530")
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1324426147-16735-1-git-send-email-ccross@android.com> (Colin
+ Cross's message of "Tue, 20 Dec 2011 16:09:04 -0800")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Colin Cross <ccross@android.com>
+Cc: Len Brown <len.brown@intel.com>, Trinabh Gupta <g.trinabh@gmail.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+Colin Cross <ccross@android.com> writes:
 
-> Currently the runtime functions are compiled regardless
-> of CONFIG_PM_RUNTIME flag. This patch intends to fix the same by
-> using SET_RUNTIME_PM_OPS.
->
-> Cc : Keshava Munegowda <keshava_mgowda-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-> ---
-> applies on Tony's ehci branch.
-> Compile tested only.
 
-You also should compile test this with runtime PM disabled.  I believe
-the current patch will lead to 'function defined but not used' warnings.
+> This patch series implements an alternative solution, where each
+> cpu will wait in the WFI state until all cpus are ready to enter
+> a coupled state, at which point the coupled state function will
+> be called on all cpus at approximately the same time.
+
+This looks great, and is certainly preferred to hotplug IMO.
+
+[...]
+
+> None of the platforms I work with have an SMP idle implementation
+> upstream, so I can't easily show a patch that converts a platform
+> from hotplug governor to coupled cpuidle states.  
+
+Basic OMAP4 CPUidle support is in now queued for v3.3 (see omap4
+branch Tony's tree[1].)  
+
+Can you (or Santosh) send a patch that adds coupled support to that
+driver so it can see some broader testing on OMAP4?
+
+Thanks,
 
 Kevin
 
->  drivers/mfd/omap-usb-host.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 3f565ef..ef72ebe 100644
-> --- a/drivers/mfd/omap-usb-host.c
-> +++ b/drivers/mfd/omap-usb-host.c
-> @@ -887,8 +887,8 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
->  }
->  
->  static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
-> -	.runtime_suspend	= usbhs_runtime_suspend,
-> -	.runtime_resume		= usbhs_runtime_resume,
-> +	SET_RUNTIME_PM_OPS(usbhs_runtime_suspend,
-> +				usbhs_runtime_resume, NULL)
->  };
->  
->  static struct platform_driver usbhs_omap_driver = {
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
