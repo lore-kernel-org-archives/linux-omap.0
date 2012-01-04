@@ -1,22 +1,22 @@
 From: <mythripk@ti.com>
-Subject: [PATCH v3 1/4] OMAPDSS: HDMI: remove duplicate video interface code
-Date: Wed, 4 Jan 2012 16:39:54 +0530
-Message-ID: <1325675397-15241-2-git-send-email-mythripk@ti.com>
-References: <1325675397-15241-1-git-send-email-mythripk@ti.com>
+Subject: [PATCH v2 2/3] OMAPDSS: HDMI: Add quantization range support in IP lib
+Date: Wed, 4 Jan 2012 17:23:09 +0530
+Message-ID: <1325677990-16414-2-git-send-email-mythripk@ti.com>
+References: <1325677990-16414-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38815 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60614 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754126Ab2ADLR1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Jan 2012 06:17:27 -0500
+	id S1752785Ab2ADMAk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Jan 2012 07:00:40 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q04BHPfm006143
-	for <linux-omap@vger.kernel.org>; Wed, 4 Jan 2012 05:17:26 -0600
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q04C0cDd010022
+	for <linux-omap@vger.kernel.org>; Wed, 4 Jan 2012 06:00:39 -0600
 Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q04BHOpT008146
-	for <linux-omap@vger.kernel.org>; Wed, 4 Jan 2012 16:47:25 +0530 (IST)
-In-Reply-To: <1325675397-15241-1-git-send-email-mythripk@ti.com>
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q04C0cud015372
+	for <linux-omap@vger.kernel.org>; Wed, 4 Jan 2012 17:30:38 +0530 (IST)
+In-Reply-To: <1325677990-16414-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
@@ -24,115 +24,98 @@ Cc: Mythri P K <mythripk@ti.com>
 
 From: Mythri P K <mythripk@ti.com>
 
-video interface structure is a duplicate structure with parameters which are
-already present in ip_data config structure, Thus removing the structure and
-modifying corresponding code.
+Configure the IP to support the limited range and full range quantization
+mode. If the full range is configured HDMI transmitter will expand the range
+of pixel data from 16-235 to full 8 bit 0-235.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   31 +++++++---------------------
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    7 ------
- 2 files changed, 8 insertions(+), 30 deletions(-)
+ drivers/video/omap2/dss/ti_hdmi.h         |    7 +++++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   40 +++++++++++++++++++++++++++++
+ 2 files changed, 47 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index e1a6ce5..403d6fc 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -629,8 +629,7 @@ static void hdmi_core_av_packet_config(struct hdmi_ip_data *ip_data,
- }
- 
- static void hdmi_wp_init(struct omap_video_timings *timings,
--			struct hdmi_video_format *video_fmt,
--			struct hdmi_video_interface *video_int)
-+			struct hdmi_video_format *video_fmt)
- {
- 	pr_debug("Enter hdmi_wp_init\n");
- 
-@@ -645,12 +644,6 @@ static void hdmi_wp_init(struct omap_video_timings *timings,
- 	video_fmt->y_res = 0;
- 	video_fmt->x_res = 0;
- 
--	video_int->vsp = 0;
--	video_int->hsp = 0;
--
--	video_int->interlacing = 0;
--	video_int->tm = 0; /* HDMI_TIMING_SLAVE */
--
- }
- 
- void ti_hdmi_4xxx_wp_video_start(struct hdmi_ip_data *ip_data, bool start)
-@@ -687,17 +680,16 @@ static void hdmi_wp_video_config_format(struct hdmi_ip_data *ip_data,
- 	hdmi_write_reg(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_SIZE, l);
- }
- 
--static void hdmi_wp_video_config_interface(struct hdmi_ip_data *ip_data,
--		struct hdmi_video_interface *video_int)
-+static void hdmi_wp_video_config_interface(struct hdmi_ip_data *ip_data)
- {
- 	u32 r;
- 	pr_debug("Enter hdmi_wp_video_config_interface\n");
- 
- 	r = hdmi_read_reg(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG);
--	r = FLD_MOD(r, video_int->vsp, 7, 7);
--	r = FLD_MOD(r, video_int->hsp, 6, 6);
--	r = FLD_MOD(r, video_int->interlacing, 3, 3);
--	r = FLD_MOD(r, video_int->tm, 1, 0);
-+	r = FLD_MOD(r, ip_data->cfg.timings.vsync_pol, 7, 7);
-+	r = FLD_MOD(r, ip_data->cfg.timings.hsync_pol, 6, 6);
-+	r = FLD_MOD(r, ip_data->cfg.interlace, 3, 3);
-+	r = FLD_MOD(r, 1, 1, 0); /* HDMI_TIMING_MASTER_24BIT */
- 	hdmi_write_reg(hdmi_wp_base(ip_data), HDMI_WP_VIDEO_CFG, r);
- }
- 
-@@ -725,15 +717,13 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
- 	/* HDMI */
- 	struct omap_video_timings video_timing;
- 	struct hdmi_video_format video_format;
--	struct hdmi_video_interface video_interface;
- 	/* HDMI core */
- 	struct hdmi_core_infoframe_avi avi_cfg;
- 	struct hdmi_core_video_config v_core_cfg;
- 	struct hdmi_core_packet_enable_repeat repeat_cfg;
- 	struct hdmi_config *cfg = &ip_data->cfg;
- 
--	hdmi_wp_init(&video_timing, &video_format,
--		&video_interface);
-+	hdmi_wp_init(&video_timing, &video_format);
- 
- 	hdmi_core_init(&v_core_cfg,
- 		&avi_cfg,
-@@ -748,12 +738,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
- 
- 	hdmi_wp_video_config_format(ip_data, &video_format);
- 
--	video_interface.vsp = cfg->timings.vsync_pol;
--	video_interface.hsp = cfg->timings.hsync_pol;
--	video_interface.interlacing = cfg->interlace;
--	video_interface.tm = 1 ; /* HDMI_TIMING_MASTER_24BIT */
--
--	hdmi_wp_video_config_interface(ip_data, &video_interface);
-+	hdmi_wp_video_config_interface(ip_data);
- 
- 	/*
- 	 * configure core video part
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index 2040956..914bec6 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -517,13 +517,6 @@ struct hdmi_video_format {
- 	u32			x_res;	/* pixel per line */
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 835cfb1..1b485ee 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -42,6 +42,11 @@ enum hdmi_clk_refsel {
+ 	HDMI_REFSEL_SYSCLK = 3
  };
  
--struct hdmi_video_interface {
--	int	vsp;	/* Vsync polarity */
--	int	hsp;	/* Hsync polarity */
--	int	interlacing;
--	int	tm;	/* Timing mode */
--};
--
- struct hdmi_audio_format {
- 	enum hdmi_stereo_channels		stereo_channels;
- 	u8					active_chnnls_msk;
++enum hdmi_range {
++	HDMI_LIMITED_RANGE = 0,
++	HDMI_FULL_RANGE = 1,
++};
++
+ /* HDMI timing structure */
+ struct hdmi_video_timings {
+ 	u16 x_res;
+@@ -159,6 +164,7 @@ struct hdmi_ip_data {
+ 	struct hdmi_config cfg;
+ 	struct hdmi_pll_info pll_data;
+ 	struct hdmi_core_infoframe_avi avi_cfg;
++	enum hdmi_range range;
+ };
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+@@ -172,5 +178,6 @@ void ti_hdmi_4xxx_wp_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
++int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data);
+ 
+ #endif
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index b66d82e..a98ce8a 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -610,6 +610,46 @@ static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_CHSUM, checksum);
+ }
+ 
++int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data)
++{
++	int var;
++
++	switch (ip_data->range) {
++	/*
++	 * Setting the AVI infroframe to respective limited range
++	 * 0 if limited range 1 if full range
++	 */
++	case HDMI_LIMITED_RANGE:
++		ip_data->avi_cfg.db3_q_range = HDMI_INFOFRAME_AVI_DB3Q_LR;
++		hdmi_core_aux_infoframe_avi_config(ip_data);
++		var = hdmi_read_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_ACEN);
++		var = FLD_MOD(var, 1, 1, 1);
++		hdmi_write_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_ACEN, var);
++		break;
++	case HDMI_FULL_RANGE:
++	default:
++		/* HDMI 1.3 section 6.6 YCBCR components shall
++		 * always be Limited Range
++		 */
++		if (ip_data->avi_cfg.db1_format ==
++					HDMI_INFOFRAME_AVI_DB1Y_YUV422) {
++			pr_err("Only limited range is supported for YUV");
++			return -EINVAL;
++		}
++		ip_data->avi_cfg.db3_q_range = HDMI_INFOFRAME_AVI_DB3Q_FR;
++		hdmi_core_aux_infoframe_avi_config(ip_data);
++			var = hdmi_read_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_MODE);
++			var = FLD_MOD(var, 1, 4, 4);
++			hdmi_write_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_MODE, var);
++		break;
++	}
++	return 0;
++}
++
+ static void hdmi_core_av_packet_config(struct hdmi_ip_data *ip_data,
+ 		struct hdmi_core_packet_enable_repeat repeat_cfg)
+ {
 -- 
 1.7.5.4
 
