@@ -1,56 +1,111 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 02/10] i2c: OMAP: Add DT support for i2c controller
-Date: Wed, 4 Jan 2012 14:36:24 +0100
-Message-ID: <4F0455D8.7060904@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com> <1323439361-1647-3-git-send-email-b-cousson@ti.com> <87hb14q7vj.fsf@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 1/3] cpuidle: refactor out cpuidle_enter_state
+Date: Wed, 4 Jan 2012 15:08:02 +0100
+Message-ID: <CAORVsuV-=h9qVcFB7ezEOV2ptLMT=FJcdvaspLj-qAzFK4-NEQ@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+	<1324426147-16735-2-git-send-email-ccross@android.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47609 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755459Ab2ADNgv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Jan 2012 08:36:51 -0500
-In-Reply-To: <87hb14q7vj.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <1324426147-16735-2-git-send-email-ccross@android.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Colin Cross <ccross@android.com>
+Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: tony@atomide.com, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ben Dooks <ben-linux@fluff.org>
 
-Hi Kevin,
+Hi Colin,
 
-On 12/14/2011 2:06 AM, Kevin Hilman wrote:
-> Benoit Cousson<b-cousson@ti.com>  writes:
+On Wed, Dec 21, 2011 at 1:09 AM, Colin Cross <ccross@android.com> wrote:
+> Split the code to enter a state and update the stats into a helper
+> function, cpuidle_enter_state, and export it. =A0This function will
+> be called by the coupled state code to handle entering the safe
+> state and the final coupled state.
 >
->> Add initial DT support to retrieve the frequency using a
->> DT attribute instead of the pdata pointer if of_node exist.
->>
->> Add documentation for omap i2c controller binding.
->>
->> Based on original patches from Manju and Grant.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Ben Dooks<ben-linux@fluff.org>
+> Signed-off-by: Colin Cross <ccross@android.com>
+> ---
+> =A0drivers/cpuidle/cpuidle.c | =A0 43 +++++++++++++++++++++++++++++------=
+--------
+> =A0drivers/cpuidle/cpuidle.h | =A0 =A02 ++
+> =A02 files changed, 31 insertions(+), 14 deletions(-)
 >
-> This seems indepenent from the rest of the series, and I can queue up
-> for merge via the I2C tree.
+> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+> index 06ce268..1486b3c 100644
+> --- a/drivers/cpuidle/cpuidle.c
+> +++ b/drivers/cpuidle/cpuidle.c
+> @@ -54,6 +54,34 @@ static void cpuidle_kick_cpus(void) {}
+> =A0static int __cpuidle_register_device(struct cpuidle_device *dev);
 >
-> Benoit, please confirm that we shouldn't have any problems if this patch
-> goes independently.
+> =A0/**
+> + * cpuidle_enter_state
+> + *
+> + * enter the state and update stats
+> + */
+> +int cpuidle_enter_state(struct cpuidle_device *dev, struct cpuidle_drive=
+r *drv,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int next_state)
+> +{
+> + =A0 =A0 =A0 int entered_state;
+> + =A0 =A0 =A0 struct cpuidle_state *target_state;
+> +
+> + =A0 =A0 =A0 target_state =3D &drv->states[next_state];
+> +
+> + =A0 =A0 =A0 entered_state =3D target_state->enter(dev, drv, next_state);
+> +
+> + =A0 =A0 =A0 if (entered_state >=3D 0) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Update cpuidle counters */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* This can be moved to within driver enter=
+ routine
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* but that results in multiple copies of=
+ same code.
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->states_usage[entered_state].time +=3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (unsigned l=
+ong long)dev->last_residency;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->states_usage[entered_state].usage++;
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 return entered_state;
+> +}
+> +
+> +/**
+> =A0* cpuidle_idle_call - the main idle loop
+> =A0*
+> =A0* NOTE: no locks or semaphores should be used here
+> @@ -63,7 +91,6 @@ int cpuidle_idle_call(void)
+> =A0{
+> =A0 =A0 =A0 =A0struct cpuidle_device *dev =3D __this_cpu_read(cpuidle_dev=
+ices);
+> =A0 =A0 =A0 =A0struct cpuidle_driver *drv =3D cpuidle_get_driver();
+> - =A0 =A0 =A0 struct cpuidle_state *target_state;
+> =A0 =A0 =A0 =A0int next_state, entered_state;
 >
-> Grant/Rob, with your ack on the bindings, I can queue this up for the
-> I2C maintainers along with some other OMAP I2C changes for v3.3.
+> =A0 =A0 =A0 =A0if (off)
+> @@ -92,26 +119,14 @@ int cpuidle_idle_call(void)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return 0;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 target_state =3D &drv->states[next_state];
+> -
+> =A0 =A0 =A0 =A0trace_power_start(POWER_CSTATE, next_state, dev->cpu);
+> =A0 =A0 =A0 =A0trace_cpu_idle(next_state, dev->cpu);
+>
+> - =A0 =A0 =A0 entered_state =3D target_state->enter(dev, drv, next_state);
+> + =A0 =A0 =A0 entered_state =3D cpuidle_enter_state(dev, drv, next_state);
+>
+> =A0 =A0 =A0 =A0trace_power_end(dev->cpu);
+> =A0 =A0 =A0 =A0trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
+The cpu_idle traces are only present in this function and not in
+cpuidle_enter_state. Is that expected? Can all the transitions from
+all the cpus get traced that way?
 
-I removed the nasty bindings and got the Reviewed-by: from Rob for the 
-v4 [1].
-
-Could you take it in your branch? I've just tried merging your 
-for_3.3/i2c/misc on top of my for_3.3/3_omap_dt_i2c_twl branch and 
-tested it successfully on OMAP4 DT boot.
-
-Thanks,
-Benoit
-
-
-[1] http://lkml.org/lkml/2011/12/22/176
-
+Regards,
+Jean
