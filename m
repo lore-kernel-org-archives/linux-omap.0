@@ -1,86 +1,105 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
-Date: Wed, 04 Jan 2012 08:32:31 -0600
-Message-ID: <4F0462FF.1000308@gmail.com>
-References: <1323834838-2206-1-git-send-email-mturquette@linaro.org> <1323834838-2206-4-git-send-email-mturquette@linaro.org> <alpine.LFD.2.02.1112141007550.3020@ionos> <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com> <20120104021541.GI2414@b20223-02.ap.freescale.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Mark Olleson <mark.olleson@yamaha.co.uk>
+Subject: Re: [PATCH] ARM: OMAP2+ i2c NACK without STP
+Date: Wed, 4 Jan 2012 14:42:46 +0000
+Message-ID: <9C97AB15-07D0-4EF5-80A1-193FEB5B49C8@yamaha.co.uk>
+Mime-Version: 1.0 (Apple Message framework v1251.1)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48809 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753763Ab2ADOci (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 09:32:38 -0500
-In-Reply-To: <20120104021541.GI2414@b20223-02.ap.freescale.net>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:38564 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754077Ab2ADOmu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 09:42:50 -0500
+Received: by werm1 with SMTP id m1so8588755wer.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 06:42:49 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Zhao <richard.zhao@freescale.com>
-Cc: "Turquette, Mike" <mturquette@ti.com>, andrew@lunn.ch, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, Colin Cross <ccross@google.com>, jeremy.kerr@canonical.com, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
+To: linux-omap@vger.kernel.org
 
-On 01/03/2012 08:15 PM, Richard Zhao wrote:
-> On Fri, Dec 16, 2011 at 04:45:48PM -0800, Turquette, Mike wrote:
->> On Wed, Dec 14, 2011 at 5:18 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
->>> On Tue, 13 Dec 2011, Mike Turquette wrote:
+I have found another circumstance in which the bus locks up which is possibly a regression caused by this patch.
 
-snip
+When performing a transfer with repeat starts, if one of the parts, that is is NOT the last in the sequence AND is a master-write AND is NACKed by the remote device, OMAP_I2C_CON_STP is never set and the bus is left in the busy state when returning to user-land with an error-code.
 
->>>> +/**
->>>> + * clk_init - initialize the data structures in a struct clk
->>>> + * @dev: device initializing this clk, placeholder for now
->>>> + * @clk: clk being initialized
->>>> + *
->>>> + * Initializes the lists in struct clk, queries the hardware for the
->>>> + * parent and rate and sets them both.  Adds the clk to the sysfs tree
->>>> + * topology.
->>>> + *
->>>> + * Caller must populate clk->name and clk->flags before calling
->>>
->>> I'm not too happy about this construct. That leaves struct clk and its
->>> members exposed to the world instead of making it a real opaque
->>> cookie. I know from my own painful experience, that this will lead to
->>> random fiddling in that data structure in drivers and arch code just
->>> because the core code has a shortcoming.
->>>
->>> Why can't we make struct clk a real cookie and confine the data
->>> structure to the core code ?
->>>
->>> That would change the init call to something like:
->>>
->>> struct clk *clk_init(struct device *dev, const struct clk_hw *hw,
->>>                     struct clk *parent)
->>>
->>> And have:
->>> struct clk_hw {
->>>       struct clk_hw_ops *ops;
->>>       const char        *name;
->>>       unsigned long     flags;
->>> };
->>>
->>> Implementers can do:
->>> struct my_clk_hw {
->>>       struct clk_hw    hw;
->>>       mydata;
->>> };
->>>
->>> And then change the clk ops callbacks to take struct clk_hw * as an
->>> argument.
-> We have to define static clocks before we adopt DT binding.
-> If clk is opaque and allocate memory in clk core, it'll make hard
-> to define static clocks. And register/init will pass a long parameter
-> list.
+This code responsible for this is towards the bottom of  omap_i2c_xfer_msg() generates OMAP_I2C_CON_STP only when the NACK occurs on the last part of a repeat-start transfer. 
 
-DT is not a prerequisite for having dynamically created clocks. You can
-make clock init dynamic without DT.
+ 	if (dev->cmd_err & OMAP_I2C_STAT_NACK) {
+	..
+		if (stop) {
+			w = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
+			w |= OMAP_I2C_CON_STP;
+			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, w);
+		}
+		return -EREMOTEIO;	
 
-What data goes in struct clk vs. struct clk_hw could change over time.
-So perhaps we can start with some data in clk_hw and plan to move it to
-struct clk later. Even if almost everything ends up in clk_hw initially,
-at least the structure is in place to have common, core-only data
-separate from platform data.
+The caller - omap_i2c_xfer() - quickly bails following the error and doesn't attempt to try subsequent parts of the transfer. 
 
-What is the actual data you need to be static and accessible to the
-platform code? A ptr to parent clk is the main thing I've seen for
-static initialization. So make the parent ptr be struct clk_hw* and
-allow the platforms to access.
+I'm slight perplexed by the original intention here: was it to i) fail quickly or ii) retry iii) continue with remaining parts of the transfer?  
 
-Rob
+The first of these feels right to me - in which we case we need a OMAP_I2C_CON_STP asserted following all NACKs
+
+Anyone got any insight?
+
+
+Mark
+
+
+
+
+On Tue, Jun 14, 2011 at 4:24 PM, Jan Weitzel <j.weitzel@phytec.de> wrote:
+> On OMAP4 OMAP_I2C_STAT_NACK is causing a timeout on the next access.
+> The isr cleans all flags in OMAP_I2C_CON_REG by setting OMAP_I2C_CON_STP
+> OMAP_I2C_CON_STP is also set in omap_i2c_xfer_msg on the last message.
+>
+> According to the TI TSR the sequence for OMAP_I2C_STAT_NACK and
+> OMAP_I2C_STAT_AL are nearly the same.
+> Removing the OMAP_I2C_CON_STP part in the isr fix the problem.
+> Tested on OMAP4430 and OMAP3530 (here NACK was not a problem)
+> Fixes also booting on 2430sdp.
+>
+> Signed-off-by: Jan Weitzel <j.weitzel@phytec.de>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+Acked-by: Balaji T K <balajitk@ti.com>
+Can you please queue this patch
+
+This patch has been tested in linux-omap tree
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=464fca36d98b97ccd05e4f200ab7483d3acc8345
+
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 58a58c7..670f2a2 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -836,11 +836,9 @@ complete:
+>                                ~(OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR |
+>                                OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+>
+> -               if (stat & OMAP_I2C_STAT_NACK) {
+> +               if (stat & OMAP_I2C_STAT_NACK)
+>                        err |= OMAP_I2C_STAT_NACK;
+> -                       omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> -                                          OMAP_I2C_CON_STP);
+> -               }
+> +
+>                if (stat & OMAP_I2C_STAT_AL) {
+>                        dev_err(dev->dev, "Arbitration lost\n");
+>                        err |= OMAP_I2C_STAT_AL;
+> --
+> 1.7.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+
