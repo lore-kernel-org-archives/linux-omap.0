@@ -1,129 +1,86 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 3/3] of/irq: Add interrupts-names property to name an
- irq resource
-Date: Wed, 4 Jan 2012 15:15:57 +0100
-Message-ID: <4F045F1D.2080207@ti.com>
-References: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
- <1323095036-3739-4-git-send-email-b-cousson@ti.com>
- <20120104071749.GA15503@ponder.secretlab.ca>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
+Date: Wed, 04 Jan 2012 08:32:31 -0600
+Message-ID: <4F0462FF.1000308@gmail.com>
+References: <1323834838-2206-1-git-send-email-mturquette@linaro.org> <1323834838-2206-4-git-send-email-mturquette@linaro.org> <alpine.LFD.2.02.1112141007550.3020@ionos> <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com> <20120104021541.GI2414@b20223-02.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120104071749.GA15503-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48809 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753763Ab2ADOci (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 09:32:38 -0500
+In-Reply-To: <20120104021541.GI2414@b20223-02.ap.freescale.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Richard Zhao <richard.zhao@freescale.com>
+Cc: "Turquette, Mike" <mturquette@ti.com>, andrew@lunn.ch, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, Colin Cross <ccross@google.com>, jeremy.kerr@canonical.com, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
 
-Hi Grant,
+On 01/03/2012 08:15 PM, Richard Zhao wrote:
+> On Fri, Dec 16, 2011 at 04:45:48PM -0800, Turquette, Mike wrote:
+>> On Wed, Dec 14, 2011 at 5:18 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
+>>> On Tue, 13 Dec 2011, Mike Turquette wrote:
 
-On 1/4/2012 8:17 AM, Grant Likely wrote:
-> On Mon, Dec 05, 2011 at 03:23:56PM +0100, Benoit Cousson wrote:
->> In a HW system, resources in general have name to identify them.
->> The is the case as well for IORESOURCE_IRQ resources filled by DT
->> "interrupts" entries.
->> The current DT mechanism is relying on the "interrupts" order to identify
->> the proper resource. This is error prone and not the natural way to
->> retrieve an information in general.
->
-> I do not agree with this assessment.  interrupt property order has
-> worked quite well for a very long time.  There are some uses cases
-> that want to access it by-name, but I expect accessing by-index to
-> continue to be the preferred method.  I'm going to drop this paragraph
-> from the commit text.
+snip
 
-OK, fair enough. My point was when the HW description is providing names 
-to list several IRQ resources, giving a number instead is error prone. 
-If, on the other side, the spec is providing something like IRQ_A, B or 
-C, then yes, the by-index is the natural one.
+>>>> +/**
+>>>> + * clk_init - initialize the data structures in a struct clk
+>>>> + * @dev: device initializing this clk, placeholder for now
+>>>> + * @clk: clk being initialized
+>>>> + *
+>>>> + * Initializes the lists in struct clk, queries the hardware for the
+>>>> + * parent and rate and sets them both.  Adds the clk to the sysfs tree
+>>>> + * topology.
+>>>> + *
+>>>> + * Caller must populate clk->name and clk->flags before calling
+>>>
+>>> I'm not too happy about this construct. That leaves struct clk and its
+>>> members exposed to the world instead of making it a real opaque
+>>> cookie. I know from my own painful experience, that this will lead to
+>>> random fiddling in that data structure in drivers and arch code just
+>>> because the core code has a shortcoming.
+>>>
+>>> Why can't we make struct clk a real cookie and confine the data
+>>> structure to the core code ?
+>>>
+>>> That would change the init call to something like:
+>>>
+>>> struct clk *clk_init(struct device *dev, const struct clk_hw *hw,
+>>>                     struct clk *parent)
+>>>
+>>> And have:
+>>> struct clk_hw {
+>>>       struct clk_hw_ops *ops;
+>>>       const char        *name;
+>>>       unsigned long     flags;
+>>> };
+>>>
+>>> Implementers can do:
+>>> struct my_clk_hw {
+>>>       struct clk_hw    hw;
+>>>       mydata;
+>>> };
+>>>
+>>> And then change the clk ops callbacks to take struct clk_hw * as an
+>>> argument.
+> We have to define static clocks before we adopt DT binding.
+> If clk is opaque and allocate memory in clk core, it'll make hard
+> to define static clocks. And register/init will pass a long parameter
+> list.
 
-Considering that most IPs will anyway only have one IRQ line, the 
-by-index method will be the most widely used.
+DT is not a prerequisite for having dynamically created clocks. You can
+make clock init dynamic without DT.
 
->> Moreover, the resource does support a name and an API is available to
->> allow a driver to retrieve the resource using the name instead of an
->> index.
->>
->> Add a interrupts-names property to allow the possiblity to provide a name
->> to any interrupts entries.
->> If the name is available, use it to name the resource, otherwise
->> keep the legacy device full name.
->>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
->> Cc: Rob Herring<rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
->> ---
->>   .../devicetree/bindings/interrupts-names.txt       |   50 ++++++++++++++++++++
->>   drivers/of/irq.c                                   |   11 ++++-
->>   2 files changed, 60 insertions(+), 1 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/interrupts-names.txt
->>
->> diff --git a/Documentation/devicetree/bindings/interrupts-names.txt b/Documentation/devicetree/bindings/interrupts-names.txt
->> new file mode 100644
->> index 0000000..d9a796d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/interrupts-names.txt
->> @@ -0,0 +1,50 @@
->> +interrupts-names property
->> +
->> +In a HW system, physical resources in general have name to identify them.
->> +The is the case as well for interrupt lines.
->> +The current DT mechanism is relying on the "interrupts" order to identify
->> +the proper resource. The interrupts-names is adding the possiblity to
->> +provide a name to interrupts entries.
->> +
->> +Usage:
->> +
->> +This attribute must be used along with a regular interrupts entry. If not
->> +it will be simply ignored.
->
-> This documentation is pretty much identical to the reg-names property
-> description.  I'll merge the two into a single file.
+What data goes in struct clk vs. struct clk_hw could change over time.
+So perhaps we can start with some data in clk_hw and plan to move it to
+struct clk later. Even if almost everything ends up in clk_hw initially,
+at least the structure is in place to have common, core-only data
+separate from platform data.
 
-OK.
+What is the actual data you need to be static and accessible to the
+platform code? A ptr to parent clk is the main thing I've seen for
+static initialization. So make the parent ptr be struct clk_hw* and
+allow the platforms to access.
 
->
->> +
->> +
->> +Example:
->> +
->> +
->> +l4-abe {
->> +	compatible = "simple-bus";
->> +	#address-cells =<2>;
->> +	#size-cells =<1>;
->> +	ranges =<0 0 0x48000000 0x00001000>, /* MPU path */
->> +		<1 0 0x49000000 0x00001000>; /* L3 path */
->> +	mcasp {
->> +		compatible = "ti,mcasp";
->> +		reg =<0 0x10 0x10>,<0 0x20 0x10>,
->> +		<1 0x10 0x10>,<1 0x20 0x10>;
->> +		reg-names = "mpu", "dat",
->> +			    "dma", "dma_dat";
->> +		interrupts =<11>,<12>;
->> +		interrupts-names = "rx", "tx";
->
-> Nitpick: I'm going to change the property name to "interrupt-names"
-> (dropping the 's' from interrupts).  After playing with the clock
-> binding (clocks vs. clock-names) and looking at what could be done
-> with the gpio binding (gpios vs. gpio-names), I think it 'feels' more
-> consistent to drop the s.
-
-Fully agree, I made a comment on that in the cover-letter because I was 
-not fully happy with that either.
-
-> Merged, thanks.
-
-Cool, thanks.
-
-Regards,
-Benoit
+Rob
