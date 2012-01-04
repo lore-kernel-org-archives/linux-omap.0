@@ -1,53 +1,62 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/3] of/base: Take NULL string into account for property
- with multiple strings
-Date: Wed, 4 Jan 2012 00:34:39 -0700
-Message-ID: <20120104073439.GB15503@ponder.secretlab.ca>
-References: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
- <1323095036-3739-2-git-send-email-b-cousson@ti.com>
- <4EEF4401.1060303@gmail.com>
- <4F030D69.5010709@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] video/omap2. dispc_mgr_enable needs runtime PM
+Date: Wed, 04 Jan 2012 09:50:56 +0200
+Message-ID: <1325663456.1875.14.camel@deskari>
+References: <20111230123755.384a5b5c@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-np/MFQNWjF2ymvqJZL8H"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:57400 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab2ADHem (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 02:34:42 -0500
-Received: by iaeh11 with SMTP id h11so32145280iae.19
-        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 23:34:42 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4F030D69.5010709@ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40490 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751619Ab2ADHvC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 02:51:02 -0500
+In-Reply-To: <20111230123755.384a5b5c@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: NeilBrown <neilb@suse.de>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Tue, Jan 03, 2012 at 03:15:05PM +0100, Cousson, Benoit wrote:
-> Hi Grant,
-> 
-> On 12/19/2011 3:02 PM, Rob Herring wrote:
-> >On 12/05/2011 08:23 AM, Benoit Cousson wrote:
-> >>The current implementation just ignore any NULL string inserted in a
-> >>multiple strings property.
-> >>In some cases we can have a property with a fix number of strings but
-> >>not necessarily used, like for example in a list of valid pinmux modes.
-> >>
-> >>  prop = "uart_rx", "uart_tx", "", "", "safe_mode";
-> >>
-> >>Do no skip NULL string and take them into account in
-> >>of_property_read_string_index and of_property_count_strings.
-> >>
-> >>Reported-by: Tony Lindgren<tony@atomide.com>
-> >>Signed-off-by: Benoit Cousson<b-cousson@ti.com>
-> >>Cc: Grant Likely<grant.likely@secretlab.ca>
-> >>Cc: Rob Herring<rob.herring@calxeda.com>
-> >
-> >Applied. The others need Grant's agreement.
-> 
-> New year gentle ping.
 
-merged both; should appear in linux-next tomorrow.
+--=-np/MFQNWjF2ymvqJZL8H
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-g.
+(dropping the Tony and Kevin, as they're probably not interested in
+this)
+
+On Fri, 2011-12-30 at 12:37 +1100, NeilBrown wrote:
+>=20
+> When dispc_mgr_enable is called during shutdown the device might
+> be asleep, which causes problems.  So ensure it is awake.
+
+How does this problem happen? dispc_mgr_enable(channel, false) shouldn't
+be called if the device is asleep, and thus dispc_mgr_enable() shouldn't
+use dispc_runtime_get.
+
+ Tomi
+
+
+--=-np/MFQNWjF2ymvqJZL8H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPBATgAAoJEPo9qoy8lh71jgIP/0yvVpmxrWdfFy42uHDZTGA+
+toPqFy0swbf729slqWArBUyxsnke/0fjp62xolyH+vXCDwnwP3PujL2qgF6emcLn
+uhHjgI3g2AQopApYjGx4GAZoHVuzjKlEbW/jDY7e5It2p+5NOQDTnyyxC6WfsbgD
+1S8Wna36G+oOX3Qgbzflz0w5x4CucSIxMvcgIYstmA5HSrOXiHSMLP5sSFyuAmcc
+T+gYt8Mc28kLFsreX+UR+coZrq+Yj9Vpqpj3CAMVZEiuTY/8DsCshptUjFzt4x7Z
+DFRmRc7N9EDA518vnXAwa1lUEcYIgCANuur3WJPPDd7oigx1aK49XoRE6t7Eza+B
+IATWPptunY+Oq7clCfZFznCYmNAjWVqV+twmSx4WA7luqYC6d2km/JH4P98ZOwcs
+pyaDH6zONOfXhoWFgfEQ3MImWaGfbAprAF/xPky8+fir1uYpR2nRi9mVeyTTSq/V
+UdbUB/hRjbJ/dCqCoJC1ZJOoSwT78GdJKYlV/QCsM07+QdsKiqWOs+wjkuvMbvLb
+7ehROYkjT0rui+KL2hzk6mNtXaEdK777xoQeGh/5Z/NyLKxtiW2HpWpFYSnBZvaA
+DxTDv8NLlW02ZgtQefNWcYiJYX1OKoK/SHQ7cBfpKHtjgYEejs8TsNXDVVFORHmu
+ErGxbKHInQr2zbpiv3dr
+=8gY6
+-----END PGP SIGNATURE-----
+
+--=-np/MFQNWjF2ymvqJZL8H--
 
