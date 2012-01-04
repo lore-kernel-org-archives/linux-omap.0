@@ -1,103 +1,156 @@
 From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/7] amp/remoteproc: add framework for controlling remote
- processors
-Date: Tue, 3 Jan 2012 16:35:34 -0700
-Message-ID: <20120103233534.GC2492@ponder.secretlab.ca>
-References: <1319536106-25802-1-git-send-email-ohad@wizery.com>
- <1319536106-25802-2-git-send-email-ohad@wizery.com>
+Subject: Re: [PATCH 3/3] of/irq: Add interrupts-names property to name an irq
+ resource
+Date: Wed, 4 Jan 2012 00:17:49 -0700
+Message-ID: <20120104071749.GA15503@ponder.secretlab.ca>
+References: <1323095036-3739-1-git-send-email-b-cousson@ti.com>
+ <1323095036-3739-4-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34615 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752693Ab2ADHRy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 02:17:54 -0500
+Received: by iaeh11 with SMTP id h11so32123180iae.19
+        for <linux-omap@vger.kernel.org>; Tue, 03 Jan 2012 23:17:54 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1319536106-25802-2-git-send-email-ohad@wizery.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Russell King <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, Tony Lindgren <tony@atomide.com>, Brian Swetland <swetland@google.com>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Boyd <sboyd@codeaurora.org>, linux-kernel@vger.kernel.org, Greg KH <greg@kroah.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <1323095036-3739-4-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Oct 25, 2011 at 11:48:20AM +0200, Ohad Ben-Cohen wrote:
-> Modern SoCs typically employ a central symmetric multiprocessing (SMP)
-> application processor running Linux, with several other asymmetric
-> multiprocessing (AMP) heterogeneous processors running different instances
-> of operating system, whether Linux or any other flavor of real-time OS.
+On Mon, Dec 05, 2011 at 03:23:56PM +0100, Benoit Cousson wrote:
+> In a HW system, resources in general have name to identify them.
+> The is the case as well for IORESOURCE_IRQ resources filled by DT
+> "interrupts" entries.
+> The current DT mechanism is relying on the "interrupts" order to identify
+> the proper resource. This is error prone and not the natural way to
+> retrieve an information in general.
+
+I do not agree with this assessment.  interrupt property order has
+worked quite well for a very long time.  There are some uses cases
+that want to access it by-name, but I expect accessing by-index to
+continue to be the preferred method.  I'm going to drop this paragraph
+from the commit text.
+
+> Moreover, the resource does support a name and an API is available to
+> allow a driver to retrieve the resource using the name instead of an
+> index.
 > 
-> Booting a remote processor in an AMP configuration typically involves:
-> - Loading a firmware which contains the OS image
-> - Allocating and providing it required system resources (e.g. memory)
-> - Programming an IOMMU (when relevant)
-> - Powering on the device
+> Add a interrupts-names property to allow the possiblity to provide a name
+> to any interrupts entries.
+> If the name is available, use it to name the resource, otherwise
+> keep the legacy device full name.
 > 
-> This patch introduces a generic framework that allows drivers to do
-> that. In the future, this framework will also include runtime power
-> management and error recovery.
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> ---
+>  .../devicetree/bindings/interrupts-names.txt       |   50 ++++++++++++++++++++
+>  drivers/of/irq.c                                   |   11 ++++-
+>  2 files changed, 60 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/interrupts-names.txt
 > 
-> Based on (but now quite far from) work done by Fernando Guzman Lugo
-> <fernando.lugo@ti.com>.
-[...]
-> +static int rproc_load_segments(struct rproc *rproc, const u8 *elf_data)
-> +{
-> +	struct device *dev = rproc->dev;
-> +	struct elf32_hdr *ehdr;
-> +	struct elf32_phdr *phdr;
-> +	int i, ret = 0;
+> diff --git a/Documentation/devicetree/bindings/interrupts-names.txt b/Documentation/devicetree/bindings/interrupts-names.txt
+> new file mode 100644
+> index 0000000..d9a796d
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/interrupts-names.txt
+> @@ -0,0 +1,50 @@
+> +interrupts-names property
 > +
-> +	ehdr = (struct elf32_hdr *)elf_data;
-> +	phdr = (struct elf32_phdr *)(elf_data + ehdr->e_phoff);
+> +In a HW system, physical resources in general have name to identify them.
+> +The is the case as well for interrupt lines.
+> +The current DT mechanism is relying on the "interrupts" order to identify
+> +the proper resource. The interrupts-names is adding the possiblity to
+> +provide a name to interrupts entries.
 > +
-> +	/* go through the available ELF segments */
-> +	for (i = 0; i < ehdr->e_phnum; i++, phdr++) {
-> +		u32 da = phdr->p_paddr;
-> +		u32 memsz = phdr->p_memsz;
-> +		u32 filesz = phdr->p_filesz;
-
-This could be an endianess problem.  If the endianess of the host and
-the rproc are different, then what is the endianess of the elf file?
-Is the endianess of the elf file verified before attempting to parse it?
-
-> +/* handle firmware resource entries before booting the remote processor */
-> +static int
-> +rproc_handle_boot_rsc(struct rproc *rproc, struct fw_resource *rsc, int len)
-> +{
-> +	struct device *dev = rproc->dev;
-> +	int ret = 0;
+> +Usage:
 > +
-> +	while (len >= sizeof(*rsc)) {
-> +		dev_dbg(dev, "rsc: type %d, da 0x%llx, pa 0x%llx, len 0x%x, "
-> +			"id %d, name %s, flags %x\n", rsc->type, rsc->da,
-> +			rsc->pa, rsc->len, rsc->id, rsc->name, rsc->flags);
+> +This attribute must be used along with a regular interrupts entry. If not
+> +it will be simply ignored.
+
+This documentation is pretty much identical to the reg-names property
+description.  I'll merge the two into a single file.
+
 > +
-> +		switch (rsc->type) {
-> +		case RSC_CARVEOUT:
-> +			ret = rproc_handle_carveout(rproc, rsc);
-> +			break;
-> +		case RSC_DEVMEM:
-> +			ret = rproc_handle_devmem(rproc, rsc);
-> +			break;
-> +		case RSC_TRACE:
-> +			ret = rproc_handle_trace(rproc, rsc);
-> +			break;
-> +		case RSC_VRING:
-> +			ret = rproc_handle_vring(rproc, rsc);
-> +			break;
-> +		case RSC_VIRTIO_DEV:
-> +			/* this one is handled early upon registration */
-> +			break;
-> +		default:
-> +			dev_warn(dev, "unsupported resource %d\n", rsc->type);
-> +			break;
-> +		}
+> +
+> +Example:
+> +
+> +
+> +l4-abe {
+> +	compatible = "simple-bus";
+> +	#address-cells = <2>;
+> +	#size-cells = <1>;
+> +	ranges = <0 0 0x48000000 0x00001000>, /* MPU path */
+> +		 <1 0 0x49000000 0x00001000>; /* L3 path */
+> +	mcasp {
+> +		compatible = "ti,mcasp";
+> +		reg = <0 0x10 0x10>, <0 0x20 0x10>,
+> +		      <1 0x10 0x10>, <1 0x20 0x10>;
+> +		reg-names = "mpu", "dat",
+> +			    "dma", "dma_dat";
+> +		interrupts = <11>, <12>;
+> +		interrupts-names = "rx", "tx";
 
-Nitpick: A look up table would be easier to extend in the future.
+Nitpick: I'm going to change the property name to "interrupt-names"
+(dropping the 's' from interrupts).  After playing with the clock
+binding (clocks vs. clock-names) and looking at what could be done
+with the gpio binding (gpios vs. gpio-names), I think it 'feels' more
+consistent to drop the s.
 
-Otherwise;
+Merged, thanks.
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+> +	};
+> +
+> +	timer {
+> +		compatible = "ti,timer";
+> +		reg = <0 0x40 0x10>, <1 0x40 0x10>;
+> +		reg-names = "mpu", "dma";
+> +	};
+> +};
+> +
+> +
+> +usb {
+> +	compatible = "ti,usb-host";
+> +	reg = <0x4a064000 0x800>, <0x4a064800 0x200>,
+> +	      <0x4a064c00 0x200>;
+> +	reg-names = "config", "ohci", "ehci";
+> +	interrupts = <14>, <15>;
+> +	interrupts-names = "ohci", "ehci";
+> +};
+> +
+> diff --git a/drivers/of/irq.c b/drivers/of/irq.c
+> index 19c0115..604b53f 100644
+> --- a/drivers/of/irq.c
+> +++ b/drivers/of/irq.c
+> @@ -346,9 +346,18 @@ int of_irq_to_resource(struct device_node *dev, int index, struct resource *r)
+>  	/* Only dereference the resource if both the
+>  	 * resource and the irq are valid. */
+>  	if (r && irq != NO_IRQ) {
+> +		const char *name = NULL;
+> +
+> +		/*
+> +		 * Get optional "interrupts-names" property to add a name
+> +		 * to the resource.
+> +		 */
+> +		of_property_read_string_index(dev, "interrupts-names", index,
+> +					      &name);
+> +
+>  		r->start = r->end = irq;
+>  		r->flags = IORESOURCE_IRQ;
+> -		r->name = dev->full_name;
+> +		r->name = name ? name : dev->full_name;
+>  	}
+>  
+>  	return irq;
+> -- 
+> 1.7.0.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
