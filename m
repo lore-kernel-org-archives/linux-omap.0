@@ -1,128 +1,204 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 10/10] ARM: OMAP2+: board-generic: Remove i2c static
- init
-Date: Wed, 4 Jan 2012 11:15:34 -0700
-Message-ID: <20120104181534.GQ15503@ponder.secretlab.ca>
+From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Subject: Re: [PATCH v2 03/10] mfd: twl-core: Add initial DT support for
+ twl4030/twl6030
+Date: Wed, 4 Jan 2012 11:12:24 -0700
+Message-ID: <20120104181224.GJ15503@ponder.secretlab.ca>
 References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
- <1323439361-1647-11-git-send-email-b-cousson@ti.com>
+ <1323439361-1647-4-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43766 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751467Ab2ADTGS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 14:06:18 -0500
-Received: by mail-vw0-f46.google.com with SMTP id fc26so13621965vbb.19
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 11:06:18 -0800 (PST)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1323439361-1647-11-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1323439361-1647-4-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: tony@atomide.com, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Dec 09, 2011 at 03:02:41PM +0100, Benoit Cousson wrote:
-> This mainly reverts the commit that was adding the i2c static init.
+On Fri, Dec 09, 2011 at 03:02:34PM +0100, Benoit Cousson wrote:
+> Add initial device-tree support for twl familly chips.
+> The current version is missing the regulator entries due
+> to the lack of DT regulator bindings for the moment.
+> Only the simple sub-modules that do not depend on
+> platform_data information can be initialized properly.
 > 
-> Since the i2c and twl nodes are now present, there is no need
-> for the static initialization anymore.
+> Add documentation for the Texas Instruments TWL Integrated Chip.
 > 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-
+> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> Cc: Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
+> Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/board-generic.c |   48 +---------------------------------
->  1 files changed, 2 insertions(+), 46 deletions(-)
+>  .../devicetree/bindings/mfd/twl-familly.txt        |   47 +++++++++++++++++
+>  drivers/mfd/twl-core.c                             |   53 ++++++++++++++++++--
+>  2 files changed, 96 insertions(+), 4 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/mfd/twl-familly.txt
 > 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index 16c301e..63a2495 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -15,7 +15,6 @@
->  #include <linux/of_irq.h>
->  #include <linux/of_platform.h>
->  #include <linux/irqdomain.h>
-> -#include <linux/i2c/twl.h>
+> diff --git a/Documentation/devicetree/bindings/mfd/twl-familly.txt b/Documentation/devicetree/bindings/mfd/twl-familly.txt
+> new file mode 100644
+> index 0000000..ff4cacd
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mfd/twl-familly.txt
+> @@ -0,0 +1,47 @@
+> +Texas Instruments TWL family
+> +
+> +The TWLs are Integrated Power Management Chips.
+> +Some version might contain much more analog function like
+> +USB transceiver or Audio amplifier.
+> +These chips are connected to an i2c bus.
+> +
+> +
+> +Required properties:
+> +- compatible : Must be "ti,twl4030";
+> +  For Integrated power-management/audio CODEC device used in OMAP3
+> +  based boards
+> +- compatible : Must be "ti,twl6030";
+> +  For Integrated power-management used in OMAP4 based boards
+> +- interrupts : This i2c device has an IRQ line connected to the main SoC
+> +- interrupt-controller : Since the twl support several interrupts internally,
+> +  it is considered as an interrupt controller cascaded to the SoC one.
+> +- #interrupt-cells = <1>;
+> +- interrupt-parent : The parent interrupt controller.
+> +
+> +Optional node:
+> +- Child nodes contain in the twl. The twl family is made of severals variants
+> +  that support a different number of features.
+> +  The children nodes will thus depend of the capabilty of the variant.
+> +
+> +
+> +Example:
+> +/*
+> + * Integrated Power Management Chip
+> + * http://www.ti.com/lit/ds/symlink/twl6030.pdf
+> + */
+> +twl@48 {
+> +    compatible = "ti,twl6030";
+> +    reg = <0x48>;
+> +    interrupts = <39>; /* IRQ_SYS_1N cascaded to gic */
+> +    interrupt-controller;
+> +    #interrupt-cells = <1>;
+> +    interrupt-parent = <&gic>;
+> +    #address-cells = <1>;
+> +    #size-cells = <0>;
+> +
+> +    twl_rtc {
+> +        compatible = "ti,twl_rtc";
+> +        interrupts = <11>;
+> +        reg = <0>;
+> +    };
+> +};
+> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+> index bfbd660..524d9d8 100644
+> --- a/drivers/mfd/twl-core.c
+> +++ b/drivers/mfd/twl-core.c
+> @@ -34,6 +34,10 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+> +#include <linux/slab.h>
+> +#include <linux/of_irq.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/irqdomain.h>
 >  
->  #include <mach/hardware.h>
->  #include <asm/hardware/gic.h>
-> @@ -36,34 +35,6 @@ static void __init omap_init_irq(void)
->  	of_irq_init(irq_match);
+>  #include <linux/regulator/machine.h>
+>  
+> @@ -1183,22 +1187,53 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  	int				status;
+>  	unsigned			i;
+>  	struct twl4030_platform_data	*pdata = client->dev.platform_data;
+> +	struct device_node		*node = client->dev.of_node;
+>  	u8 temp;
+>  	int ret = 0;
+>  
+> +	if (node && !pdata) {
+> +		/*
+> +		 * XXX: Temporary fake pdata until the information
+> +		 * is correctly retrieved by every TWL modules from DT.
+> +		 */
+> +		pdata = kzalloc(sizeof(struct twl4030_platform_data),
+> +				GFP_KERNEL);
+
+devm_kzalloc() so that it gets cleaned up on remove.
+
+> +		if (!pdata) {
+> +			status = -ENOMEM;
+> +			goto exit;
+> +		}
+> +
+> +		/*
+> +		 * XXX: For the moment the IRQs for TWL seems to be encoded in
+> +		 * the global OMAP space. That should be cleaned to allow
+> +		 * dynamically adding a new IRQ controller.
+> +		 */
+> +		if ((id->driver_data) & TWL6030_CLASS) {
+> +			pdata->irq_base = TWL6030_IRQ_BASE;
+> +			pdata->irq_end = pdata->irq_base + TWL6030_BASE_NR_IRQS;
+> +		} else {
+> +			pdata->irq_base = TWL4030_IRQ_BASE;
+> +			pdata->irq_end = pdata->irq_base + TWL4030_BASE_NR_IRQS;
+> +		}
+> +		irq_domain_add_simple(node, pdata->irq_base);
+
+Yes, you'll want a follow-up patch to convert to dynamically allocated
+irqs... but I've got to merge the final irq_domain work first.  :-)
+
+Acked-by: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+
+> +	}
+> +
+>  	if (!pdata) {
+>  		dev_dbg(&client->dev, "no platform data?\n");
+> -		return -EINVAL;
+> +		status = -EINVAL;
+> +		goto fail_free;
+>  	}
+>  
+>  	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
+>  		dev_dbg(&client->dev, "can't talk I2C?\n");
+> -		return -EIO;
+> +		status = -EIO;
+> +		goto fail_free;
+>  	}
+>  
+>  	if (inuse) {
+>  		dev_dbg(&client->dev, "driver is already in use\n");
+> -		return -EBUSY;
+> +		status = -EBUSY;
+> +		goto fail_free;
+>  	}
+>  
+>  	for (i = 0; i < TWL_NUM_SLAVES; i++) {
+> @@ -1270,10 +1305,20 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
+>  	}
+>  
+> -	status = add_children(pdata, id->driver_data);
+> +#ifdef CONFIG_OF_DEVICE
+> +	if (node)
+> +		status = of_platform_populate(node, NULL, NULL, &client->dev);
+> +	else
+> +#endif
+> +		status = add_children(pdata, id->driver_data);
+> +
+>  fail:
+>  	if (status < 0)
+>  		twl_remove(client);
+> +fail_free:
+> +	if (node)
+> +		kfree(pdata);
+> +exit:
+>  	return status;
 >  }
 >  
-> -/*
-> - * XXX: Still needed to boot until the i2c & twl driver is adapted to
-> - * device-tree
-> - */
-> -#ifdef CONFIG_ARCH_OMAP4
-> -static struct twl4030_platform_data sdp4430_twldata = {
-> -	.irq_base	= TWL6030_IRQ_BASE,
-> -	.irq_end	= TWL6030_IRQ_END,
-> -};
-> -
-> -static void __init omap4_i2c_init(void)
-> -{
-> -	omap4_pmic_init("twl6030", &sdp4430_twldata);
-> -}
-> -#endif
-> -
-> -#ifdef CONFIG_ARCH_OMAP3
-> -static struct twl4030_platform_data beagle_twldata = {
-> -	.irq_base	= TWL4030_IRQ_BASE,
-> -	.irq_end	= TWL4030_IRQ_END,
-> -};
-> -
-> -static void __init omap3_i2c_init(void)
-> -{
-> -	omap3_pmic_init("twl4030", &beagle_twldata);
-> -}
-> -#endif
-> -
->  static struct of_device_id omap_dt_match_table[] __initdata = {
->  	{ .compatible = "simple-bus", },
->  	{ .compatible = "ti,omap-infra", },
-> @@ -78,21 +49,6 @@ static void __init omap_generic_init(void)
->  	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
->  }
->  
-> -#ifdef CONFIG_ARCH_OMAP4
-> -static void __init omap4_init(void)
-> -{
-> -	omap4_i2c_init();
-> -	omap_generic_init();
-> -}
-> -#endif
-> -
-> -#ifdef CONFIG_ARCH_OMAP3
-> -static void __init omap3_init(void)
-> -{
-> -	omap3_i2c_init();
-> -	omap_generic_init();
-> -}
-> -#endif
->  
->  #ifdef CONFIG_SOC_OMAP2420
->  static const char *omap242x_boards_compat[] __initdata = {
-> @@ -145,7 +101,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->  	.init_early	= omap3430_init_early,
->  	.init_irq	= omap_init_irq,
->  	.handle_irq	= omap3_intc_handle_irq,
-> -	.init_machine	= omap3_init,
-> +	.init_machine	= omap_generic_init,
->  	.timer		= &omap3_timer,
->  	.dt_compat	= omap3_boards_compat,
->  MACHINE_END
-> @@ -164,7 +120,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
->  	.init_early	= omap4430_init_early,
->  	.init_irq	= omap_init_irq,
->  	.handle_irq	= gic_handle_irq,
-> -	.init_machine	= omap4_init,
-> +	.init_machine	= omap_generic_init,
->  	.timer		= &omap4_timer,
->  	.dt_compat	= omap4_boards_compat,
->  MACHINE_END
 > -- 
 > 1.7.0.4
 > 
