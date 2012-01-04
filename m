@@ -1,84 +1,65 @@
-From: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Subject: Re: [PATCH v2 06/10] arm/dts: OMAP3: Add i2c controller nodes
-Date: Wed, 4 Jan 2012 11:14:00 -0700
-Message-ID: <20120104181400.GM15503@ponder.secretlab.ca>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 01/10] ARM: OMAP2+: pm: Do not init statically the SR
+ and voltage layer with DT
+Date: Wed, 4 Jan 2012 11:04:32 -0700
+Message-ID: <20120104180432.GH15503@ponder.secretlab.ca>
 References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
- <1323439361-1647-7-git-send-email-b-cousson@ti.com>
+ <1323439361-1647-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:51347 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932105Ab2ADTGW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 14:06:22 -0500
+Received: by mail-vx0-f174.google.com with SMTP id fk14so13444702vcb.19
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 11:06:22 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1323439361-1647-7-git-send-email-b-cousson-l0cyMroinI0@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
+In-Reply-To: <1323439361-1647-2-git-send-email-b-cousson@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, rob.herring@calxeda.com, Kevin Hilman <khilman@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Dec 09, 2011 at 03:02:37PM +0100, Benoit Cousson wrote:
-> Add i2c controllers nodes into the main ocp bus.
+On Fri, Dec 09, 2011 at 03:02:32PM +0100, Benoit Cousson wrote:
+> In the case of DT, the PMIC and SR initialization will be done using
+> a completely different mechanism.
 > 
-> Signed-off-by: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> Cc: Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
+> Disable this part if a DT blob is available.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 
-Acked-by: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 
+> Cc: Kevin Hilman <khilman@ti.com>
 > ---
->  arch/arm/boot/dts/omap3.dtsi |   28 ++++++++++++++++++++++++++++
->  1 files changed, 28 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
-> index 6866dc7..81d8e2c 100644
-> --- a/arch/arm/boot/dts/omap3.dtsi
-> +++ b/arch/arm/boot/dts/omap3.dtsi
-> @@ -61,5 +61,33 @@
->  			ti,intc-size = <96>;
->  			reg = <0x48200000 0x1000>;
->  		};
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 1881fe9..ad4f693 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -227,6 +227,14 @@ postcore_initcall(omap2_common_pm_init);
+>  
+>  static int __init omap2_common_pm_late_init(void)
+>  {
+> +	/*
+> +	 * In the case of DT, the PMIC and SR initialization will be done using
+> +	 * a completely different mechanism.
+> +	 * Disable this part if a DT blob is available.
+> +	 */
+> +	if (of_have_populated_dt())
+> +		return 0;
 > +
-> +		/*
-> +		 * Flags for all i2c instances: 0x118
-> +		 * APPLY_ERRATA_I207 | RESET_REGS_POSTIDLE | BUS_SHIFT_2
-> +		 */
-> +		i2c1: i2c@1 {
-> +			compatible = "ti,omap3-i2c";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			ti,hwmods = "i2c1";
-> +			ti,flags = <0x118>;
-> +		};
-> +
-> +		i2c2: i2c@2 {
-> +			compatible = "ti,omap3-i2c";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			ti,hwmods = "i2c2";
-> +			ti,flags = <0x118>;
-> +		};
-> +
-> +		i2c3: i2c@3 {
-> +			compatible = "ti,omap3-i2c";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			ti,hwmods = "i2c3";
-> +			ti,flags = <0x118>;
-> +		};
->  	};
->  };
+>  	/* Init the voltage layer */
+>  	omap_pmic_late_init();
+>  	omap_voltage_late_init();
 > -- 
 > 1.7.0.4
 > 
 > 
 > _______________________________________________
 > linux-arm-kernel mailing list
-> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+> linux-arm-kernel@lists.infradead.org
 > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
