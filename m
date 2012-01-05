@@ -1,122 +1,140 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v3 3/4] OMAPDSS: HDMI: change the timing match logic
-Date: Thu, 05 Jan 2012 09:21:50 +0200
-Message-ID: <1325748110.2045.23.camel@deskari>
-References: <1325675397-15241-1-git-send-email-mythripk@ti.com>
-	 <1325675397-15241-2-git-send-email-mythripk@ti.com>
-	 <1325675397-15241-3-git-send-email-mythripk@ti.com>
-	 <1325675397-15241-4-git-send-email-mythripk@ti.com>
+Subject: Re: [PATCH v2 2/3] OMAPDSS: HDMI: Add quantization range support
+ in IP lib
+Date: Thu, 05 Jan 2012 09:23:24 +0200
+Message-ID: <1325748204.2045.25.camel@deskari>
+References: <1325677990-16414-1-git-send-email-mythripk@ti.com>
+	 <1325677990-16414-2-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-fsX0lVBuK6ia7XiEVf7y"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-f7c1XGzZiEsexlZ2QT3U"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:49466 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756991Ab2AEHV4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 02:21:56 -0500
-Received: by lagu2 with SMTP id u2so70369lag.9
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 23:21:53 -0800 (PST)
-In-Reply-To: <1325675397-15241-4-git-send-email-mythripk@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45395 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757069Ab2AEHX3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 02:23:29 -0500
+Received: by lagu2 with SMTP id u2so100426lag.37
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 23:23:26 -0800 (PST)
+In-Reply-To: <1325677990-16414-2-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mythripk@ti.com
 Cc: linux-omap@vger.kernel.org
 
 
---=-fsX0lVBuK6ia7XiEVf7y
+--=-f7c1XGzZiEsexlZ2QT3U
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2012-01-04 at 16:39 +0530, mythripk@ti.com wrote:
+On Wed, 2012-01-04 at 17:23 +0530, mythripk@ti.com wrote:
 > From: Mythri P K <mythripk@ti.com>
 >=20
-> Change the timing match logic, Instead of the statically mapped method
-> to get the corresponding timings for a given code and mode, move to a
-> simpler array indexed method. It  will help to scale up to add more
-> timings when needed.
+> Configure the IP to support the limited range and full range quantization
+> mode. If the full range is configured HDMI transmitter will expand the ra=
+nge
+> of pixel data from 16-235 to full 8 bit 0-235.
 >=20
 > Signed-off-by: Mythri P K <mythripk@ti.com>
 > ---
->  drivers/video/omap2/dss/hdmi.c |  177 +++++++++++++++++-----------------=
------
->  1 files changed, 77 insertions(+), 100 deletions(-)
-
-> -static int get_timings_index(void)
-> +static const struct hdmi_config *hdmi_find_timing(
-> +					const struct hdmi_config *timings_arr,
-> +					int len)
->  {
-> -	int code;
-> +	int i;
-> +	const struct hdmi_config *timing =3D NULL;
+>  drivers/video/omap2/dss/ti_hdmi.h         |    7 +++++
+>  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   40 +++++++++++++++++++++++=
+++++++
+>  2 files changed, 47 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/=
+ti_hdmi.h
+> index 835cfb1..1b485ee 100644
+> --- a/drivers/video/omap2/dss/ti_hdmi.h
+> +++ b/drivers/video/omap2/dss/ti_hdmi.h
+> @@ -42,6 +42,11 @@ enum hdmi_clk_refsel {
+>  	HDMI_REFSEL_SYSCLK =3D 3
+>  };
 > =20
-> -	if (hdmi.mode =3D=3D 0)
-> -		code =3D code_vesa[hdmi.code];
-> -	else
-> -		code =3D code_cea[hdmi.code];
-> +	for (i =3D 0; i < len; i++) {
-> +		if (timings_arr[i].cm.code =3D=3D hdmi.code) {
-> +			timing =3D &timings_arr[i];
-> +			return timing;
-> +		}
-> +	}
-> +	return timing;
-
-You don't need the timing variable at all. Just return &timings_arr[i]
-or NULL.
-=20
-> @@ -341,9 +312,15 @@ static int hdmi_power_on(struct omap_dss_device *dss=
-dev)
->  		dssdev->panel.timings.x_res,
->  		dssdev->panel.timings.y_res);
+> +enum hdmi_range {
+> +	HDMI_LIMITED_RANGE =3D 0,
+> +	HDMI_FULL_RANGE =3D 1,
+> +};
+> +
+>  /* HDMI timing structure */
+>  struct hdmi_video_timings {
+>  	u16 x_res;
+> @@ -159,6 +164,7 @@ struct hdmi_ip_data {
+>  	struct hdmi_config cfg;
+>  	struct hdmi_pll_info pll_data;
+>  	struct hdmi_core_infoframe_avi avi_cfg;
+> +	enum hdmi_range range;
+>  };
+>  int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+>  void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+> @@ -172,5 +178,6 @@ void ti_hdmi_4xxx_wp_dump(struct hdmi_ip_data *ip_dat=
+a, struct seq_file *s);
+>  void ti_hdmi_4xxx_pll_dump(struct hdmi_ip_data *ip_data, struct seq_file=
+ *s);
+>  void ti_hdmi_4xxx_core_dump(struct hdmi_ip_data *ip_data, struct seq_fil=
+e *s);
+>  void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file=
+ *s);
+> +int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data);
 > =20
-> -	code =3D get_timings_index();
-> -	update_hdmi_timings(&hdmi.ip_data.cfg, p, code);
-> -
-> +	if (hdmi_get_timings() =3D=3D NULL) {
-> +		/* HDMI code 4 corresponds to 640 * 480 VGA */
-> +		hdmi.code =3D 4;
-> +		/* DVI mode 1 corresponds to HDMI 0 to DVI */
-> +		hdmi.mode =3D HDMI_DVI;
-> +		hdmi.ip_data.cfg =3D vesa_timings[0];
-> +	} else {
-> +		hdmi.ip_data.cfg =3D *(hdmi_get_timings());
-> +	}
+>  #endif
+> diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/om=
+ap2/dss/ti_hdmi_4xxx_ip.c
+> index b66d82e..a98ce8a 100644
+> --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+> +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+> @@ -610,6 +610,46 @@ static void hdmi_core_aux_infoframe_avi_config(struc=
+t hdmi_ip_data *ip_data)
+>  	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_CHSUM, checksum);
+>  }
+> =20
+> +int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data)
+> +{
+> +	int var;
+> +
+> +	switch (ip_data->range) {
+> +	/*
+> +	 * Setting the AVI infroframe to respective limited range
+> +	 * 0 if limited range 1 if full range
+> +	 */
+> +	case HDMI_LIMITED_RANGE:
+> +		ip_data->avi_cfg.db3_q_range =3D HDMI_INFOFRAME_AVI_DB3Q_LR;
+> +		hdmi_core_aux_infoframe_avi_config(ip_data);
+> +		var =3D hdmi_read_reg(hdmi_core_sys_base(ip_data),
+> +						HDMI_CORE_SYS_VID_ACEN);
+> +		var =3D FLD_MOD(var, 1, 1, 1);
+> +		hdmi_write_reg(hdmi_core_sys_base(ip_data),
+> +						HDMI_CORE_SYS_VID_ACEN, var);
+> +		break;
+> +	case HDMI_FULL_RANGE:
+> +	default:
 
-Now you are searching for the timings twice... Do:
-
-timings =3D hdmi_get_timings();
-
-if (timings =3D=3D NULL) {
-	/* default to VGA */
-	...
-} else {
-	hdmi.ip_data.cfg =3D *timings;
-}
+I don't think you should have HDMI_FULL_RANGE and default at the same
+case. If the range is not limited or full, the value is illegal and you
+should give an error.
 
  Tomi
 
 
---=-fsX0lVBuK6ia7XiEVf7y
+--=-f7c1XGzZiEsexlZ2QT3U
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPBU+OAAoJEPo9qoy8lh717RkP/3+7UzPZuMtic/fntbEdr29W
-hYmAmSToxXVbDeHLzhQ9KtvQ9N+WHP2MOdrDMSQXwGIP3H+mCq/FGfmMGa0D4MN4
-98MKaMYFKaL5S0OUheSKDyNPK0D+OSFQ5hqe/fBws816+2HTUtgBGPjowijbY3RM
-p1BcJo9r2bpUBV9Kap7bZPApmHiPmR8cklhq0wRlbnbpKhcZftDSWszjDE7YydLk
-O0fXA8K2XhMDafRziMzKm8vrHywEbOfQEtDuCYQK0fW/H3GqHzMmGvfEKH5P/WdB
-/48VtXGa4U+X0IPWTQm+ZhpJ7ErT+WeO3JvaCvJDjk1PoYoVyOgrOyPp3dChxmRo
-HeUutpEuBjZyj/BIgaZYOcooeosm/772cDV7i3AcWx+85MHVxjnR6oMZvudp3Cbf
-0DoradpcRyUDcVLKbMEOyKVRJT3v4Uys1AqaPlTG/M08DAcj3Hf34gVmPZBjDFSM
-hfBtxelgiQQuPJEgS6mJ1WeAZKl5SeNpvTXLscjt1BqeKEMFIV6iE1HQKiBJaEQ2
-oqaFU7tzBobJxZI2bLdDm0zS8jHTjeAFMr1IGOMzNUufTfSI3YoWhIzJRwZ2pxze
-PdwUDH0LKHFJ5Fq1h0YzGQOGP5kO/wwGGzYalX2urnlB012VCEe+NdP93M4nywPD
-zlE6zPawkVEr0BY3QFOR
-=cq1o
+iQIcBAABAgAGBQJPBU/rAAoJEPo9qoy8lh71kOEQAJo18FGqrH4JVuQwklnCoyhi
+bNvSCj3lCbv6NNHF2iAxD3Q8Q25wIge5z0nfkhPNyZfCT9N2vVagCzWvuekqjnj5
+A0ora1kzCIJzwZibv3umamffjFs/iIxqP0vaHozgtrz2q/QrIuqar+ubSpybTWVD
+IZQAgQ7dHBzSho2C+qHOKI4QI+1FmiFbV+hcsWk0kKv17uWp5mzXD0tWxpc88Jtq
+icANgfvXlcf/jQqt3sa63VWL/XSDOX1/iJ+pEmBfgePJmK1Hk4Nmjo7IO1twy3d4
+GS1LrHvJ6F7kVJmfjrdbEniboFo4a1Nh4nvbmW1K70g+Jht4xHty5ms/qJaGkK9R
+KGk/8NfTRLx2fnqsV2MLTsxWxoDdM4JXVTUihlmD+xfxjeteEYOMKORPU4YSQeNS
+uMjR6lgYC0HrEdg/88vJm8lLTwpzWV2prMPRCtBB5zAvZiabL3TjYSz9NWil20f1
+zS2YmT1f87k/Q/zpBfpWFQFojGJvlQH9oEjXhgr86pZXnoucCDcioVBpe1XumnZu
+hvRNTNPP3D7sGlLKBpikS222RdiI6xEyvcbm8rQRDHDtGUCq9Gl7QGVpgqu4kel0
+70ni38BQHk4st97TqXZBGp3cqSxFwzyJJ2uTGDyB0wcY1B5VDdhodncfQqYFZZYu
+J5dKs92m1ygp0lg4kr+n
+=VyfN
 -----END PGP SIGNATURE-----
 
---=-fsX0lVBuK6ia7XiEVf7y--
+--=-f7c1XGzZiEsexlZ2QT3U--
 
