@@ -1,93 +1,50 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH-V1] arm/dts: Add support for TI OMAP3 EVM board
-Date: Thu, 5 Jan 2012 11:09:24 -0700
-Message-ID: <20120105180924.GE22653@ponder.secretlab.ca>
-References: <1324019153-13316-1-git-send-email-hvaibhav@ti.com>
- <79CD15C6BA57404B839C016229A409A80719AC@DBDE01.ent.ti.com>
- <4F05ABAF.8080702@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH v4 4/4] OMAP3/4: iommu: adapt to runtime pm
+Date: Thu, 5 Jan 2012 12:26:02 -0600
+Message-ID: <CAB-zwWif_tTbR02aHorT+g4htmYVE5i+0w=mDEiTNF7ctdWfow@mail.gmail.com>
+References: <1323922709-6986-1-git-send-email-omar.ramirez@ti.com>
+	<1323922709-6986-5-git-send-email-omar.ramirez@ti.com>
+	<CAMP44s3Jb9DZLUyDVU_HmQbaJKp=2qym7Z6uauNchJh0fPL4hQ@mail.gmail.com>
+	<CAB-zwWhpmwRP2mNu-CdX-RVgmTRjw0UsYckAVsM+qztmVdvc7A@mail.gmail.com>
+	<CAMP44s0hYWiZ8OnjQ6Jy_W7MCveP+WyHG18Tt2jRGzxSwoQP3w@mail.gmail.com>
+	<CAB-zwWio5iMTyofv3Hx5Q7G7rYY5cRU4kXNQzMF0NRprEd8=5g@mail.gmail.com>
+	<CAMP44s2JWRN4XVCVrbVUJwZK9zkT6p2dPnK2SPuZXJPj71c4Yg@mail.gmail.com>
+	<CAB-zwWicBq8sUZCiRLP_6QX3jL7gsTvF0-NP1r+AvDWP+aWsMg@mail.gmail.com>
+	<CAMP44s2zKVRd3+uJUAo+WaaV=n9LvM-5q_cFivEtE=iTzFbfeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:58182 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933Ab2AESJ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 13:09:28 -0500
-Received: by yhnn56 with SMTP id n56so260745yhn.19
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jan 2012 10:09:27 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4F05ABAF.8080702@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:43074 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757887Ab2AES0F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 13:26:05 -0500
+In-Reply-To: <CAMP44s2zKVRd3+uJUAo+WaaV=n9LvM-5q_cFivEtE=iTzFbfeg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "tony@atomide.com" <tony@atomide.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, Ohad Ben-Cohen <ohad@wizery.com>, Russell King <linux@arm.linux.org.uk>, Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>, iommu@lists.linux-foundation.org, MyungJoo Ham <myungjoo.ham@gmail.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Jan 05, 2012 at 02:54:55PM +0100, Cousson, Benoit wrote:
-> Hi Vaibhav,
-> 
-> On 1/5/2012 12:18 PM, Hiremath, Vaibhav wrote:
-> >>From: Hiremath, Vaibhav
-> >>Sent: Friday, December 16, 2011 12:36 PM
-> >>To: linux-omap@vger.kernel.org
-> >>Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org; devicetree-
-> >>discuss@lists.ozlabs.org; grant.likely@secretlab.ca; Cousson, Benoit;
-> >>Hiremath, Vaibhav
-> >>Subject: [PATCH-V1] arm/dts: Add support for TI OMAP3 EVM board
-> >>
-> >>Add OMAP3 EVM (OMAP3530, AM/DM37x) DTS file to use the omap3.dtsi SoC file,
-> >>along with memory node information.
-> >>
-> >>Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
-> >>---
-> >>Boot tested it on AM/DM37x EVM, kernel parses the info correctly.
-> >>
-> >>  arch/arm/boot/dts/omap3-evm.dts |   20 ++++++++++++++++++++
-> >>  1 files changed, 20 insertions(+), 0 deletions(-)
-> >>  create mode 100644 arch/arm/boot/dts/omap3-evm.dts
-> >>
-> >>diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-
-> >>evm.dts
-> >>new file mode 100644
-> >>index 0000000..2eee16e
-> >>--- /dev/null
-> >>+++ b/arch/arm/boot/dts/omap3-evm.dts
-> >>@@ -0,0 +1,20 @@
-> >>+/*
-> >>+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-> >>+ *
-> >>+ * This program is free software; you can redistribute it and/or modify
-> >>+ * it under the terms of the GNU General Public License version 2 as
-> >>+ * published by the Free Software Foundation.
-> >>+ */
-> >>+/dts-v1/;
-> >>+
-> >>+/include/ "omap3.dtsi"
-> >>+
-> >>+/ {
-> >>+	model = "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
-> >>+	compatible = "ti,omap3-evm", "ti,omap3";
-> >>+
-> >>+	memory {
-> >>+		device_type = "memory";
-> >>+		reg =<0x80000000 0x10000000>; /* 256 MB */
-> >>+	};
-> >>+};
-> >Can this merged? OR anybody has any comments here?
-> 
-> I guess that with Rob or Grant's ack, Tony should be able to merge it.
-> That being said, since it is outside mach-omap, I'm not sure what
-> the right path is.
-> I can add it in my DTS series, but that one will have dependencies
-> with the i2c driver DT adaptation.
-> 
-> FWIW, Acked-by: Benoit Cousson <b-cousson@ti.com>
+On Tue, Dec 27, 2011 at 3:41 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Sun, Dec 25, 2011 at 2:03 AM, Ramirez Luna, Omar <omar.ramirez@ti.com> wrote:
+>> On Fri, Dec 23, 2011 at 11:04 AM, Felipe Contreras
+>> <felipe.contreras@gmail.com> wrote:
+>>> Which omap-iommu? The platform driver, or the device stuff? The device
+>>> stuff is always built-in, but not the platform driver
+>>> (drivers/iommu/omap-iommu.c), that can be a module.
+>>
+>> Both, I can't recall exactly when it changed (prior to being moved to
+>> drivers/iommu it could be built as a module), but now
+>> CONFIG_OMAP_IOMMU is boolean type.
+>
+> I see. Still, it looks like the proper way to use the API is to call
+> _enable() on the platform driver.
 
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+I'm sorry, I don't seem to follow... you want _enable in platform
+driver, and you call drivers/iommu/omap-iommu.c the platform driver...
 
-> 
-> Regards,
-> Benoit
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+And that is precisely where pm_runtime_enable() is, no?
+
+Regards,
+
+Omar
