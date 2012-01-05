@@ -1,107 +1,50 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [RFC/PATCH 4/7] ARM: OMAP: AM35x: remove redunant cpu_is checks for AM3505
-Date: Wed,  4 Jan 2012 17:16:43 -0800
-Message-ID: <1325726206-11199-5-git-send-email-khilman@ti.com>
+Subject: [RFC/PATCH 5/7] ARM: OMAP: clock: remove unused CK_3505 flag
+Date: Wed,  4 Jan 2012 17:16:44 -0800
+Message-ID: <1325726206-11199-6-git-send-email-khilman@ti.com>
 References: <1325726206-11199-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:44470 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757459Ab2AEBQ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 20:16:59 -0500
-Received: by mail-gx0-f170.google.com with SMTP id v1so10388ggn.29
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 17:16:58 -0800 (PST)
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48128 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757459Ab2AEBRC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 20:17:02 -0500
+Received: by yenl2 with SMTP id l2so7938yen.8
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 17:17:01 -0800 (PST)
 In-Reply-To: <1325726206-11199-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-There are several checks for AM35x devices done using
-
-      if (cpu_is_omap3517() || cpu_is_omap3505())
-
-However, since the 3505 is just a 3517 without an SGX, the 3505 check
-is redundant because cpu_is_omap3517() will always be true whenever
-cpu_is_omap3505() is true.  From <plat/cpu.h>:
-
- #define cpu_is_omap3505() (cpu_is_omap3517() && !omap3_has_sgx())
-
-Therefore, remove the redunant 3505 checks.  This helps move towards
-removal of SoC detection that depends on specific IP detection.
+This flag is no longer used since clock init all AM35x devices
+is now the same.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/hsmmc.c                   |    8 ++++----
- arch/arm/mach-omap2/usb-musb.c                |    2 +-
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/include/plat/clkdev_omap.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index bd844af..c49a91d 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -353,7 +353,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 	 *
- 	 * temporary HACK: ocr_mask instead of fixed supply
- 	 */
--	if (cpu_is_omap3505() || cpu_is_omap3517())
-+	if (cpu_is_omap3517())
- 		mmc->slots[0].ocr_mask = MMC_VDD_165_195 |
- 					 MMC_VDD_26_27 |
- 					 MMC_VDD_27_28 |
-@@ -363,7 +363,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 	else
- 		mmc->slots[0].ocr_mask = c->ocr_mask;
+diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+index b299b8d..45afa4d 100644
+--- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
++++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+@@ -34,7 +34,6 @@ struct omap_clk {
+ #define CK_243X		(1 << 5)	/* 243x, 253x */
+ #define CK_3430ES1	(1 << 6)	/* 34xxES1 only */
+ #define CK_3430ES2PLUS	(1 << 7)	/* 34xxES2, ES3, non-Sitara 35xx only */
+-#define CK_3505		(1 << 8)
+ #define CK_3517		(1 << 9)
+ #define CK_36XX		(1 << 10)	/* 36xx/37xx-specific clocks */
+ #define CK_443X		(1 << 11)
+@@ -44,7 +43,7 @@ struct omap_clk {
  
--	if (!cpu_is_omap3517() && !cpu_is_omap3505())
-+	if (!cpu_is_omap3517())
- 		mmc->slots[0].features |= HSMMC_HAS_PBIAS;
  
- 	if (cpu_is_omap44xx() && (omap_rev() > OMAP4430_REV_ES1_0))
-@@ -386,7 +386,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 			}
- 		}
+ #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
+-#define CK_AM35XX	(CK_3505 | CK_3517)	/* all Sitara AM35xx */
++#define CK_AM35XX	CK_3517		/* all Sitara AM35xx */
+ #define CK_3XXX		(CK_34XX | CK_AM35XX | CK_36XX)
  
--		if (cpu_is_omap3517() || cpu_is_omap3505())
-+		if (cpu_is_omap3517())
- 			mmc->slots[0].set_power = nop_mmc_set_power;
  
- 		/* OMAP3630 HSMMC1 supports only 4-bit */
-@@ -398,7 +398,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 		}
- 		break;
- 	case 2:
--		if (cpu_is_omap3517() || cpu_is_omap3505())
-+		if (cpu_is_omap3517())
- 			mmc->slots[0].set_power = am35x_hsmmc2_set_power;
- 
- 		if (c->ext_clock)
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 8d5ed77..bf33b4d 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -90,7 +90,7 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 	musb_plat.mode = board_data->mode;
- 	musb_plat.extvbus = board_data->extvbus;
- 
--	if (cpu_is_omap3517() || cpu_is_omap3505()) {
-+	if (cpu_is_omap3517()) {
- 		oh_name = "am35x_otg_hs";
- 		name = "musb-am35x";
- 	} else if (cpu_is_ti81xx()) {
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index c005e2f..bdb82f1 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -116,7 +116,7 @@ void __init omap3xxx_voltagedomains_init(void)
- 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
- 	}
- 
--	if (cpu_is_omap3517() || cpu_is_omap3505())
-+	if (cpu_is_omap3517())
- 		voltdms = voltagedomains_am35xx;
- 	else
- 		voltdms = voltagedomains_omap3;
 -- 
 1.7.8.2
 
