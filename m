@@ -1,50 +1,56 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [RFC/PATCH 5/7] ARM: OMAP: clock: remove unused CK_3505 flag
-Date: Wed,  4 Jan 2012 17:16:44 -0800
-Message-ID: <1325726206-11199-6-git-send-email-khilman@ti.com>
+Subject: [RFC/PATCH 7/7] ARM: OMAP: remove unused cpu_is_omap3530()
+Date: Wed,  4 Jan 2012 17:16:46 -0800
+Message-ID: <1325726206-11199-8-git-send-email-khilman@ti.com>
 References: <1325726206-11199-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48128 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757459Ab2AEBRC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 20:17:02 -0500
-Received: by yenl2 with SMTP id l2so7938yen.8
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 17:17:01 -0800 (PST)
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:57496 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757459Ab2AEBRI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 20:17:08 -0500
+Received: by yenm3 with SMTP id m3so4507yen.40
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 17:17:07 -0800 (PST)
 In-Reply-To: <1325726206-11199-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This flag is no longer used since clock init all AM35x devices
-is now the same.
+The cpu_is_omap3530() macro is unused, remove.
 
 Signed-off-by: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/include/plat/clkdev_omap.h |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/plat/cpu.h |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-index b299b8d..45afa4d 100644
---- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
-+++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
-@@ -34,7 +34,6 @@ struct omap_clk {
- #define CK_243X		(1 << 5)	/* 243x, 253x */
- #define CK_3430ES1	(1 << 6)	/* 34xxES1 only */
- #define CK_3430ES2PLUS	(1 << 7)	/* 34xxES2, ES3, non-Sitara 35xx only */
--#define CK_3505		(1 << 8)
- #define CK_3517		(1 << 9)
- #define CK_36XX		(1 << 10)	/* 36xx/37xx-specific clocks */
- #define CK_443X		(1 << 11)
-@@ -44,7 +43,7 @@ struct omap_clk {
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 8d858c2..2c8e5ab 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -290,7 +290,6 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define cpu_is_omap2422()		0
+ #define cpu_is_omap2423()		0
+ #define cpu_is_omap2430()		0
+-#define cpu_is_omap3530()		0
+ #define cpu_is_omap3517()		0
+ #define cpu_is_omap3430()		0
+ #define cpu_is_omap4430()		0
+@@ -344,7 +343,6 @@ IS_OMAP_TYPE(3517, 0x3517)
  
- 
- #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
--#define CK_AM35XX	(CK_3505 | CK_3517)	/* all Sitara AM35xx */
-+#define CK_AM35XX	CK_3517		/* all Sitara AM35xx */
- #define CK_3XXX		(CK_34XX | CK_AM35XX | CK_36XX)
- 
- 
+ #if defined(CONFIG_ARCH_OMAP3)
+ # undef cpu_is_omap3430
+-# undef cpu_is_omap3530
+ # undef cpu_is_omap3517
+ # undef cpu_is_ti81xx
+ # undef cpu_is_ti816x
+@@ -352,7 +350,6 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # undef cpu_is_am33xx
+ # undef cpu_is_am335x
+ # define cpu_is_omap3430()		is_omap3430()
+-# define cpu_is_omap3530()		(cpu_is_omap3430())
+ # define cpu_is_omap3517()		is_omap3517()
+ # undef cpu_is_omap3630
+ # define cpu_is_omap3630()		is_omap363x()
 -- 
 1.7.8.2
 
