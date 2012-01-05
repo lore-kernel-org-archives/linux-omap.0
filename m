@@ -1,196 +1,116 @@
-From: "Turquette, Mike" <mturquette@ti.com>
-Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
-Date: Wed, 4 Jan 2012 20:07:28 -0800
-Message-ID: <CAJOA=zPgwiOSoyZK1SpzZVZfTOmwruTR=WO+gRdVZrZVzNuPSA@mail.gmail.com>
-References: <1323834838-2206-1-git-send-email-mturquette@linaro.org>
- <1323834838-2206-4-git-send-email-mturquette@linaro.org> <alpine.LFD.2.02.1112141007550.3020@ionos>
- <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com>
- <20120104021541.GI2414@b20223-02.ap.freescale.net> <4F0462FF.1000308@gmail.com>
- <CAJOA=zPw7UuhE4R3SsBeyzQ2_iN29Zv-ExaUTTFCah+GoFSfNQ@mail.gmail.com> <4F0506D0.30109@gmail.com>
+From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH] OMAP/I2C - Fix timeout problem during suspend.
+Date: Thu, 5 Jan 2012 18:10:26 +1100
+Message-ID: <20120105181026.24b8c0f4@notabene.brown>
+References: <20111230124030.12c3d02c@notabene.brown>
+	<87boqjaz5n.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:32826 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757802Ab2AEEIO convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Jan 2012 23:08:14 -0500
-In-Reply-To: <4F0506D0.30109@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/knpVEH+fr0iZ4ZOYUyUOD3u"; protocol="application/pgp-signature"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <87boqjaz5n.fsf-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Richard Zhao <richard.zhao@freescale.com>, andrew@lunn.ch, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, Colin Cross <ccross@google.com>, jeremy.kerr@canonical.com, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
 
-On Wed, Jan 4, 2012 at 6:11 PM, Rob Herring <robherring2@gmail.com> wro=
-te:
-> On 01/04/2012 07:01 PM, Turquette, Mike wrote:
->> On Wed, Jan 4, 2012 at 6:32 AM, Rob Herring <robherring2@gmail.com> =
-wrote:
->>> On 01/03/2012 08:15 PM, Richard Zhao wrote:
->>>> On Fri, Dec 16, 2011 at 04:45:48PM -0800, Turquette, Mike wrote:
->>>>> On Wed, Dec 14, 2011 at 5:18 AM, Thomas Gleixner <tglx@linutronix=
-=2Ede> wrote:
->>>>>> On Tue, 13 Dec 2011, Mike Turquette wrote:
->>>
->>> snip
->>>
->>>>>>> +/**
->>>>>>> + * clk_init - initialize the data structures in a struct clk
->>>>>>> + * @dev: device initializing this clk, placeholder for now
->>>>>>> + * @clk: clk being initialized
->>>>>>> + *
->>>>>>> + * Initializes the lists in struct clk, queries the hardware f=
-or the
->>>>>>> + * parent and rate and sets them both. =A0Adds the clk to the =
-sysfs tree
->>>>>>> + * topology.
->>>>>>> + *
->>>>>>> + * Caller must populate clk->name and clk->flags before callin=
-g
->>>>>>
->>>>>> I'm not too happy about this construct. That leaves struct clk a=
-nd its
->>>>>> members exposed to the world instead of making it a real opaque
->>>>>> cookie. I know from my own painful experience, that this will le=
-ad to
->>>>>> random fiddling in that data structure in drivers and arch code =
-just
->>>>>> because the core code has a shortcoming.
->>>>>>
->>>>>> Why can't we make struct clk a real cookie and confine the data
->>>>>> structure to the core code ?
->>>>>>
->>>>>> That would change the init call to something like:
->>>>>>
->>>>>> struct clk *clk_init(struct device *dev, const struct clk_hw *hw=
-,
->>>>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct clk *parent)
->>>>>>
->>>>>> And have:
->>>>>> struct clk_hw {
->>>>>> =A0 =A0 =A0 struct clk_hw_ops *ops;
->>>>>> =A0 =A0 =A0 const char =A0 =A0 =A0 =A0*name;
->>>>>> =A0 =A0 =A0 unsigned long =A0 =A0 flags;
->>>>>> };
->>>>>>
->>>>>> Implementers can do:
->>>>>> struct my_clk_hw {
->>>>>> =A0 =A0 =A0 struct clk_hw =A0 =A0hw;
->>>>>> =A0 =A0 =A0 mydata;
->>>>>> };
->>>>>>
->>>>>> And then change the clk ops callbacks to take struct clk_hw * as=
- an
->>>>>> argument.
->>>> We have to define static clocks before we adopt DT binding.
->>>> If clk is opaque and allocate memory in clk core, it'll make hard
->>>> to define static clocks. And register/init will pass a long parame=
-ter
->>>> list.
->>>
->>> DT is not a prerequisite for having dynamically created clocks. You=
- can
->>> make clock init dynamic without DT.
->>
->> Agreed.
->>
->>> What data goes in struct clk vs. struct clk_hw could change over ti=
-me.
->>> So perhaps we can start with some data in clk_hw and plan to move i=
-t to
->>> struct clk later. Even if almost everything ends up in clk_hw initi=
-ally,
->>> at least the structure is in place to have common, core-only data
->>> separate from platform data.
->>
->> What is the point of this?
->
-> To have a way forward. It would be nice to have a clk infrastructure
-> before I retire...
+--Sig_/knpVEH+fr0iZ4ZOYUyUOD3u
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Haha, agreed.
+On Wed, 04 Jan 2012 14:19:48 -0800 Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
 
->
->> The original clk_hw was defined simply as:
->>
->> struct clk_hw {
->> =A0 =A0 =A0 =A0 struct clk *clk;
->> };
->>
->> It's only purpose in life was as a handle for navigation between the
->> opaque struct clk and the hardware-specific struct my_clk_hw. =A0str=
-uct
->> clk_hw is defined in clk.h and everyone can see it. =A0If we're sudd=
-enly
->> OK putting clk data in this structure then why bother with an opaque
->> struct clk at all?
->>
->>> What is the actual data you need to be static and accessible to the
->>> platform code? A ptr to parent clk is the main thing I've seen for
->>> static initialization. So make the parent ptr be struct clk_hw* and
->>> allow the platforms to access.
->>
->> To answer your question on what data we're trying to expose: platfor=
-m
->> code commonly needs the parent pointer and the clk rate (and by
->> extension, the rate of the parent). =A0For debug/error prints it is =
-also
->> nice to have the clk name. =A0Generic clk flags are also conceivably
->> something that platform code might want.
->
-> I agree with the need to have the parent and flags from a static init
-> perspective. There's not really a good reason the others can't be
-> accessed thru accessors though.
->
->> I'd like to spin the question around: if we're OK exposing some stuf=
-f
->> (in your example above, the parent pointer), then what clk data are
->> you trying to hide?
->
-> Well, everything from drivers which the current clk implementations d=
-o
-> hide. Catching abuse in with drivers coming in from all different tre=
-es
-> and lists will be impossible.
->
-> For platform code it is more fuzzy. I don't think platform code shoul=
-d
-> be allowed to muck with prepare/enable counts for example.
+> +Felipe
+>=20
+> NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> writes:
+>=20
+> > On a board with OMAP3 processor and TWL4030 Power management,
+> > we need to talk to the TWL4030 during late suspend but cannot
+> > because the I2C interrupt is disabled (as late suspend disables
+> > interrupt).
+>=20
+> I'm not convinced this is the right solution to this problem.
+>=20
+> IMO, this problem is caused by the MUSB driver being broken for
+> suspend/resume.  I've reported this problem (and an RFC/PATCH)
+> already[1], but I don't think the driver has been fixed.
+>=20
+> Can you try my patch[1] to see if it fixes your problem as well?
+>=20
+> Kevin
+>=20
+> [1] http://marc.info/?l=3Dlinux-omap&m=3D132252827112721&w=3D2
+>=20
 
-So there is a clear dichotomy: drivers shouldn't be exposed to any of
-it and platform code should be exposed to some of it.
+Yes... and no.
 
-How about a drivers/clk/clk-private.h which will define struct clk and
-must only be included by clk drivers in drivers/clk/*?
+I reverted my patch to confirm that the timeout messages come back which
+they did.
+I then applied your patch and the suspend was nice and smooth again with no
+timeouts.  So that is good.
 
-This establishes a bright line between those things which are allowed
-to know the details of struct clk and those that are not: namely that
-clk drivers in drivers/clk/ may use '#include "clk-private.h"'.
-Obviously struct clk is opaque to the rest of the kernel (in the same
-way it has been prior to the common clk patches) and there is no need
-for struct clk_hw anymore.  Also helper functions are no longer needed
-for clock driver code, which I think *is* a manageable set of code to
-review.  Also clk drivers must live in drivers/clk/ for this to work
-(without a big ugly path in someone's #include directive somewhere).
+However immediately after I wake it up I get:
 
-Thoughts?
+[  109.193054] Powerdomain (core_pwrdm) didn't enter target state 1
+[  109.199310] Could not enter target state in pm_suspend
 
-Regards,
-Mike
+whereas with my patch in place I get:
 
->
-> Rob
->
->>
->> Regards,
->> Mike
->>
->>>
->>> Rob
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[  123.666046] Successfully put all powerdomains to target state
+
+Following this hint I looked into current draw.  With my patch I get a
+suspend-time current draw of 60-80mA (which is still too high..).
+With your patch in place I get 120mA or more (about 4 tests, definitely at
+least 30mA difference).  I measure this by checking the 'charge_now' report=
+ed
+by the bq27000 in the battery.
+
+This is without the usb cable plugged in.  With usb plugged in your version
+has the positive effect that charging continues while in suspend while with
+mine it doesn't.  But I don't think that justifies the extra current drain =
+:-)
+
+So I'll be sticking with my patch for now.
+
+My next problem I need to resolve relates to i2c and the charger as well.
+When entering suspend the various twl4030 interrupts are disabled by not
+masked.  This means they can still fire but are not handled until after
+suspend.  This effectively blocks other interrupts from the twl4030 that I
+actually want (like the RTC alarm).
+I think there are at least 3 or 4 bugs in here making it rather hard to sort
+out.  However I think I will want to mask interrupt sources when they are
+disabled.  To mask the interrupts I need to talk to the twl4030 over i2c.
+And this means that I need the i2c interrupt to still be working.
+
+So I feel that my patch might be more generally useful.  However I confess
+that there is a lot here that I don't completely understand, and I might ha=
+ve
+a different opinion tomorrow.
+
+Thanks,
+NeilBrown
+
+
+--Sig_/knpVEH+fr0iZ4ZOYUyUOD3u
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBTwVM4jnsnt1WYoG5AQLmRA/+L+GDHyyweJuo5Ot4BJzPjb3rPnHZN25A
+Qo/+0mhgwMtZylDj+m3gAEeD3XqdnjlY4Ck4+lrstynNUWze8GatN+BVCGHbz6fS
+kXhgXZlXukU5Uk69tDDYwvn+QM+8dhw/902zQ0Z6Ew9ngM/GasW/e+gf3hAiIKCo
+F3rgJctW3/S92KU/bBGfUJAETSpeZcbCO/9953ujsNNs9FcHVO6YJ+Eh301S4BpO
+AHXTUuzhyJCuhOH26rSvM5V8ZiAGQ6pSRkGiKhZ/6dP3DzCDp66lPQSouRFMBHII
+G2HtoLplSSGHBHaPkHrrswC7DtTPPGhJ/GGvcCBbTKR76u28JIQxaoJfZPiWLolm
+dZHkOiqbQJYzg+alBUgAjN9KLvOIZ4XUeS3YN624noxzNYJ19FtyZXXIYUtf3CN+
+EEoyIbJ8eL/dgShHwDfDbODd+5xTlOzg3+P8sLhu9fyZmx4cNXEshxVnZm5Ps/pf
+IzGEV/R/u+pfNLo4ZHH5L3AlRSbmhLq53dFalrzybGnY0HomshRPMfyvFVbroEEG
+v1Q8KF0WkdHQeuzMy4ugOXS3SGseKrJF9fZkHOcdg72cLL/4LLsCuVCoNuqPgxmB
+xAfR04oIjwb0l27rYyjjfvns22NsI2l9e+3kO7qyMqKpLLGX2WxYkHuD7ubIpJhx
+rEX7Uuc0Tdo=
+=OaJS
+-----END PGP SIGNATURE-----
+
+--Sig_/knpVEH+fr0iZ4ZOYUyUOD3u--
