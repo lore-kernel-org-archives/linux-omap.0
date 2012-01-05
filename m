@@ -1,116 +1,197 @@
-From: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH] OMAP/I2C - Fix timeout problem during suspend.
-Date: Thu, 5 Jan 2012 18:10:26 +1100
-Message-ID: <20120105181026.24b8c0f4@notabene.brown>
-References: <20111230124030.12c3d02c@notabene.brown>
-	<87boqjaz5n.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2 3/3] OMAPDSS: HDMI: Sysfs support to configure
+ quantization
+Date: Thu, 05 Jan 2012 09:21:31 +0200
+Message-ID: <1325748091.2045.22.camel@deskari>
+References: <1325677990-16414-1-git-send-email-mythripk@ti.com>
+	 <1325677990-16414-2-git-send-email-mythripk@ti.com>
+	 <1325677990-16414-3-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/knpVEH+fr0iZ4ZOYUyUOD3u"; protocol="application/pgp-signature"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87boqjaz5n.fsf-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-UpnERhxqMEKw3N1wtf4/"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:53993 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752132Ab2AEHVf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 02:21:35 -0500
+Received: by mail-lpp01m010-f48.google.com with SMTP id m7so90741laa.35
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 23:21:34 -0800 (PST)
+In-Reply-To: <1325677990-16414-3-git-send-email-mythripk@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: mythripk@ti.com
+Cc: linux-omap@vger.kernel.org
 
---Sig_/knpVEH+fr0iZ4ZOYUyUOD3u
-Content-Type: text/plain; charset=US-ASCII
+
+--=-UpnERhxqMEKw3N1wtf4/
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 04 Jan 2012 14:19:48 -0800 Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
-
-> +Felipe
+On Wed, 2012-01-04 at 17:23 +0530, mythripk@ti.com wrote:
+> From: Mythri P K <mythripk@ti.com>
 >=20
-> NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> writes:
+> Add sysfs support for the uset space to configure limited range or full r=
+ange
+> quantization for HDMI.
 >=20
-> > On a board with OMAP3 processor and TWL4030 Power management,
-> > we need to talk to the TWL4030 during late suspend but cannot
-> > because the I2C interrupt is disabled (as late suspend disables
-> > interrupt).
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  drivers/video/omap2/dss/dss.h          |    2 +
+>  drivers/video/omap2/dss/dss_features.c |    1 +
+>  drivers/video/omap2/dss/hdmi.c         |   28 +++++++++++++++++++++++++
+>  drivers/video/omap2/dss/hdmi_panel.c   |   35 ++++++++++++++++++++++++++=
++++++-
+>  drivers/video/omap2/dss/ti_hdmi.h      |    2 +
+>  5 files changed, 67 insertions(+), 1 deletions(-)
 >=20
-> I'm not convinced this is the right solution to this problem.
->=20
-> IMO, this problem is caused by the MUSB driver being broken for
-> suspend/resume.  I've reported this problem (and an RFC/PATCH)
-> already[1], but I don't think the driver has been fixed.
->=20
-> Can you try my patch[1] to see if it fixes your problem as well?
->=20
-> Kevin
->=20
-> [1] http://marc.info/?l=3Dlinux-omap&m=3D132252827112721&w=3D2
->=20
+> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.=
+h
+> index 6308fc5..cf1f0f9 100644
+> --- a/drivers/video/omap2/dss/dss.h
+> +++ b/drivers/video/omap2/dss/dss.h
+> @@ -498,6 +498,8 @@ int omapdss_hdmi_display_check_timing(struct omap_dss=
+_device *dssdev,
+>  					struct omap_video_timings *timings);
+>  int omapdss_hdmi_read_edid(u8 *buf, int len);
+>  bool omapdss_hdmi_detect(void);
+> +int omapdss_hdmi_get_range(void);
+> +int omapdss_hdmi_set_range(int range);
+>  int hdmi_panel_init(void);
+>  void hdmi_panel_exit(void);
+> =20
+> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2=
+/dss/dss_features.c
+> index b402699..c7e71b9 100644
+> --- a/drivers/video/omap2/dss/dss_features.c
+> +++ b/drivers/video/omap2/dss/dss_features.c
+> @@ -465,6 +465,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functio=
+ns =3D {
+>  	.dump_core		=3D	ti_hdmi_4xxx_core_dump,
+>  	.dump_pll		=3D	ti_hdmi_4xxx_pll_dump,
+>  	.dump_phy		=3D	ti_hdmi_4xxx_phy_dump,
+> +	.configure_range	=3D	ti_hdmi_4xxx_configure_range,
+> =20
+>  };
+> =20
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdm=
+i.c
+> index 4bb7678..ae7918e 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -378,6 +378,34 @@ static void hdmi_power_off(struct omap_dss_device *d=
+ssdev)
+>  	hdmi_runtime_put();
+>  }
+> =20
+> +int omapdss_hdmi_set_range(int range)
 
-Yes... and no.
+Range is an enum, not an int.
 
-I reverted my patch to confirm that the timeout messages come back which
-they did.
-I then applied your patch and the suspend was nice and smooth again with no
-timeouts.  So that is good.
+> +{
+> +	int r =3D 0;
+> +	enum hdmi_range old_range;
+> +
+> +	old_range =3D hdmi.ip_data.range;
+> +	hdmi.ip_data.range =3D range;
+> +
+> +	/* HDMI 1.3 section 6.6 VGA (640x480) format requires Full Range */
+> +	if ((range =3D=3D 0) &&
 
-However immediately after I wake it up I get:
+Range is an enum, not an int.
 
-[  109.193054] Powerdomain (core_pwrdm) didn't enter target state 1
-[  109.199310] Could not enter target state in pm_suspend
+> +		((hdmi.ip_data.cfg.cm.code =3D=3D 4 &&
+> +		hdmi.ip_data.cfg.cm.mode =3D=3D HDMI_DVI) ||
+> +		(hdmi.ip_data.cfg.cm.code =3D=3D 1 &&
+> +		hdmi.ip_data.cfg.cm.mode =3D=3D HDMI_HDMI)))
+> +			return -EINVAL;
+> +
+> +	r =3D hdmi.ip_data.ops->configure_range(&hdmi.ip_data);
+> +	if (r)
+> +		hdmi.ip_data.range =3D old_range;
+> +
+> +	return r;
+> +}
+> +
+> +int omapdss_hdmi_get_range(void)
 
-whereas with my patch in place I get:
+Range is an enum, not an int... I won't comment on any more of these
+cases, please check all uses of range.
 
-[  123.666046] Successfully put all powerdomains to target state
+> +{
+> +	return hdmi.ip_data.range;
+> +}
+> +
+>  int omapdss_hdmi_display_check_timing(struct omap_dss_device *dssdev,
+>  					struct omap_video_timings *timings)
+>  {
+> diff --git a/drivers/video/omap2/dss/hdmi_panel.c b/drivers/video/omap2/d=
+ss/hdmi_panel.c
+> index 533d5dc..c0aa922 100644
+> --- a/drivers/video/omap2/dss/hdmi_panel.c
+> +++ b/drivers/video/omap2/dss/hdmi_panel.c
+> @@ -33,6 +33,33 @@ static struct {
+>  	struct mutex hdmi_lock;
+>  } hdmi;
+> =20
+> +static ssize_t hdmi_range_show(struct device *dev,
+> +	struct device_attribute *attr, char *buf)
+> +{
+> +	int r;
+> +
+> +	r =3D omapdss_hdmi_get_range();
+> +	return snprintf(buf, PAGE_SIZE, "%d\n", r);
+> +}
+> +
+> +static ssize_t hdmi_range_store(struct device *dev,
+> +	struct device_attribute *attr,
+> +	const char *buf, size_t size)
+> +{
+> +	unsigned long range;
+> +	int r =3D kstrtoul(buf, 0, &range);
+> +
+> +	if (r || range > 1)
+> +		return -EINVAL;
+> +
+> +	r =3D omapdss_hdmi_set_range(range);
+> +	if (r)
+> +		return r;
+> +
+> +	return size;
+> +}
 
-Following this hint I looked into current draw.  With my patch I get a
-suspend-time current draw of 60-80mA (which is still too high..).
-With your patch in place I get 120mA or more (about 4 tests, definitely at
-least 30mA difference).  I measure this by checking the 'charge_now' report=
-ed
-by the bq27000 in the battery.
+I don't like to add a new custom userspace API, but I guess we don't
+have much choice.
 
-This is without the usb cable plugged in.  With usb plugged in your version
-has the positive effect that charging continues while in suspend while with
-mine it doesn't.  But I don't think that justifies the extra current drain =
-:-)
+However, I don't think using 0 and 1 in the API is very good. The
+choices with range should probably be "full" and "limited".
 
-So I'll be sticking with my patch for now.
+Btw, I tried to apply this patch set on top of dss master with and
+without the "improve the timings..." patch set, and failed both. What
+are these patches based on?
 
-My next problem I need to resolve relates to i2c and the charger as well.
-When entering suspend the various twl4030 interrupts are disabled by not
-masked.  This means they can still fire but are not handled until after
-suspend.  This effectively blocks other interrupts from the twl4030 that I
-actually want (like the RTC alarm).
-I think there are at least 3 or 4 bugs in here making it rather hard to sort
-out.  However I think I will want to mask interrupt sources when they are
-disabled.  To mask the interrupts I need to talk to the twl4030 over i2c.
-And this means that I need the i2c interrupt to still be working.
-
-So I feel that my patch might be more generally useful.  However I confess
-that there is a lot here that I don't completely understand, and I might ha=
-ve
-a different opinion tomorrow.
-
-Thanks,
-NeilBrown
+ Tomi
 
 
---Sig_/knpVEH+fr0iZ4ZOYUyUOD3u
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+--=-UpnERhxqMEKw3N1wtf4/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIVAwUBTwVM4jnsnt1WYoG5AQLmRA/+L+GDHyyweJuo5Ot4BJzPjb3rPnHZN25A
-Qo/+0mhgwMtZylDj+m3gAEeD3XqdnjlY4Ck4+lrstynNUWze8GatN+BVCGHbz6fS
-kXhgXZlXukU5Uk69tDDYwvn+QM+8dhw/902zQ0Z6Ew9ngM/GasW/e+gf3hAiIKCo
-F3rgJctW3/S92KU/bBGfUJAETSpeZcbCO/9953ujsNNs9FcHVO6YJ+Eh301S4BpO
-AHXTUuzhyJCuhOH26rSvM5V8ZiAGQ6pSRkGiKhZ/6dP3DzCDp66lPQSouRFMBHII
-G2HtoLplSSGHBHaPkHrrswC7DtTPPGhJ/GGvcCBbTKR76u28JIQxaoJfZPiWLolm
-dZHkOiqbQJYzg+alBUgAjN9KLvOIZ4XUeS3YN624noxzNYJ19FtyZXXIYUtf3CN+
-EEoyIbJ8eL/dgShHwDfDbODd+5xTlOzg3+P8sLhu9fyZmx4cNXEshxVnZm5Ps/pf
-IzGEV/R/u+pfNLo4ZHH5L3AlRSbmhLq53dFalrzybGnY0HomshRPMfyvFVbroEEG
-v1Q8KF0WkdHQeuzMy4ugOXS3SGseKrJF9fZkHOcdg72cLL/4LLsCuVCoNuqPgxmB
-xAfR04oIjwb0l27rYyjjfvns22NsI2l9e+3kO7qyMqKpLLGX2WxYkHuD7ubIpJhx
-rEX7Uuc0Tdo=
-=OaJS
+iQIcBAABAgAGBQJPBU92AAoJEPo9qoy8lh71VYMQAKk4n3eWWy8IrruM/BCJvaCh
+sVeI1WLGtwuz81ABtH+5lNEGRHYtoZTgCMJZqNSnpuYgBxQ7y38vzN8RTTtLKyua
+y1O90u+0i2AEel3+BdFOp83ZS5Jbcugydohx1qKMSvxAv7ZvayfcpsTqYJwSE60P
+7Ee41qdJztWto/zqmDJ0HOm4DnVOYpogwNx9nJYZNSV3jdBEhQmy2pQfQw0SXbDh
+Mhh1U86DuASaMsKbVYDT64dFlisv1jZQ4k6a94sGDZLYB+K7q9nqljMi0gzxI6T8
+NoijtPxKi9uDFUrJGKnDb0jHTyxJooVkplplZjdQf6dtkFVXsEEirYQWdv5wtLuT
+29UzmUAsFWiqCyBeQsf6NP2vZCskJhXgpgWGOTyGzJJb1IYDEG2pPLGv8zAZ5+XZ
+lpZmuAAl8hf75RGAEIIEIYx8GD3Ly04oZIaUMJAaJQsP4wLI/3BCIjq+b9NvCa5M
+XA6oAKC05uSL6BJfGdn+GIiqbRi/GJNrNwrbEfnDXIPXIOZdUkkmAXIfH60NFY8h
+0P1sLym7MhBjgp585Z/ENUafWI7sR9q0qytrMb5fAHyOS0I+VFwSb5XOaOp1Wow5
+NTVWR0qwNadaVw5xOLBItNImWQo0fFHvryRqGf1QkjyVaWZL0y+Ua2oLm8j/NooN
++KoFiLAwJK58/0NWYnrI
+=j6vp
 -----END PGP SIGNATURE-----
 
---Sig_/knpVEH+fr0iZ4ZOYUyUOD3u--
+--=-UpnERhxqMEKw3N1wtf4/--
+
