@@ -1,82 +1,70 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 03/10] mfd: twl-core: Add initial DT support for
- twl4030/twl6030
-Date: Thu, 5 Jan 2012 11:21:21 +0100
-Message-ID: <4F0579A1.2080102@ti.com>
-References: <1323439361-1647-1-git-send-email-b-cousson@ti.com>
- <1323439361-1647-4-git-send-email-b-cousson@ti.com>
- <20120104181224.GJ15503@ponder.secretlab.ca>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC/PATCH 5/7] ARM: OMAP: clock: remove unused CK_3505 flag
+Date: Thu, 5 Jan 2012 11:06:43 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A807193F@DBDE01.ent.ti.com>
+References: <1325726206-11199-1-git-send-email-khilman@ti.com>
+ <1325726206-11199-6-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120104181224.GJ15503-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48687 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754932Ab2AELGw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 06:06:52 -0500
+In-Reply-To: <1325726206-11199-6-git-send-email-khilman@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Hi Grant,
 
-On 1/4/2012 7:12 PM, Grant Likely wrote:
-> On Fri, Dec 09, 2011 at 03:02:34PM +0100, Benoit Cousson wrote:
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Thursday, January 05, 2012 6:47 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Paul Walmsley; Hiremath, Vaibhav
+> Subject: [RFC/PATCH 5/7] ARM: OMAP: clock: remove unused CK_3505 flag
+> 
+> This flag is no longer used since clock init all AM35x devices
+> is now the same.
+> 
+This can be merged with 
 
-[...]
-
->> @@ -1183,22 +1187,53 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
->>   	int				status;
->>   	unsigned			i;
->>   	struct twl4030_platform_data	*pdata = client->dev.platform_data;
->> +	struct device_node		*node = client->dev.of_node;
->>   	u8 temp;
->>   	int ret = 0;
->>
->> +	if (node&&  !pdata) {
->> +		/*
->> +		 * XXX: Temporary fake pdata until the information
->> +		 * is correctly retrieved by every TWL modules from DT.
->> +		 */
->> +		pdata = kzalloc(sizeof(struct twl4030_platform_data),
->> +				GFP_KERNEL);
->
-> devm_kzalloc() so that it gets cleaned up on remove.
-
-Yep, it was already updated like that in the v4.
-
->> +		if (!pdata) {
->> +			status = -ENOMEM;
->> +			goto exit;
->> +		}
->> +
->> +		/*
->> +		 * XXX: For the moment the IRQs for TWL seems to be encoded in
->> +		 * the global OMAP space. That should be cleaned to allow
->> +		 * dynamically adding a new IRQ controller.
->> +		 */
->> +		if ((id->driver_data)&  TWL6030_CLASS) {
->> +			pdata->irq_base = TWL6030_IRQ_BASE;
->> +			pdata->irq_end = pdata->irq_base + TWL6030_BASE_NR_IRQS;
->> +		} else {
->> +			pdata->irq_base = TWL4030_IRQ_BASE;
->> +			pdata->irq_end = pdata->irq_base + TWL4030_BASE_NR_IRQS;
->> +		}
->> +		irq_domain_add_simple(node, pdata->irq_base);
->
-> Yes, you'll want a follow-up patch to convert to dynamically allocated
-> irqs... but I've got to merge the final irq_domain work first.  :-)
-
-Yes. I already have a version based on Rob's series, but did not push it 
-since Rob was not confident with the merge of that feature for 3.3.
-
-> Acked-by: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+ARM: OMAP3: clock data: replace 3503/3517 flag with AM35x flag for UART4
 
 Thanks,
-Benoit
+Vaibhav
+
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/clkdev_omap.h |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> index b299b8d..45afa4d 100644
+> --- a/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> +++ b/arch/arm/plat-omap/include/plat/clkdev_omap.h
+> @@ -34,7 +34,6 @@ struct omap_clk {
+>  #define CK_243X		(1 << 5)	/* 243x, 253x */
+>  #define CK_3430ES1	(1 << 6)	/* 34xxES1 only */
+>  #define CK_3430ES2PLUS	(1 << 7)	/* 34xxES2, ES3, non-Sitara 35xx only
+> */
+> -#define CK_3505		(1 << 8)
+>  #define CK_3517		(1 << 9)
+>  #define CK_36XX		(1 << 10)	/* 36xx/37xx-specific clocks */
+>  #define CK_443X		(1 << 11)
+> @@ -44,7 +43,7 @@ struct omap_clk {
+> 
+> 
+>  #define CK_34XX		(CK_3430ES1 | CK_3430ES2PLUS)
+> -#define CK_AM35XX	(CK_3505 | CK_3517)	/* all Sitara AM35xx */
+> +#define CK_AM35XX	CK_3517		/* all Sitara AM35xx */
+>  #define CK_3XXX		(CK_34XX | CK_AM35XX | CK_36XX)
+> 
+> 
+> --
+> 1.7.8.2
+
