@@ -1,50 +1,71 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH 0/7] ARM: OMAP: remove IP checks from SoC family detection
-Date: Wed,  4 Jan 2012 17:16:39 -0800
-Message-ID: <1325726206-11199-1-git-send-email-khilman@ti.com>
+Subject: [RFC/PATCH 1/7] ARM: OMAP: remove unused cpu_is macros that depend on specific IP checks
+Date: Wed,  4 Jan 2012 17:16:40 -0800
+Message-ID: <1325726206-11199-2-git-send-email-khilman@ti.com>
+References: <1325726206-11199-1-git-send-email-khilman@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:57505 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757459Ab2AEBQs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 20:16:48 -0500
-Received: by mail-gy0-f170.google.com with SMTP id r1so12076ghr.15
-        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 17:16:48 -0800 (PST)
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:53281 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757459Ab2AEBQv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Jan 2012 20:16:51 -0500
+Received: by mail-gx0-f180.google.com with SMTP id q1so17919ggn.11
+        for <linux-omap@vger.kernel.org>; Wed, 04 Jan 2012 17:16:50 -0800 (PST)
+In-Reply-To: <1325726206-11199-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Currently, our SoC detection is based on SoC family detection
-(using die ID) and the presence of specific IP blocks (or feature.)
+The cpu_is_omap35* macros for 3503, 3515, 3525) are unused.
 
-This series begins the separation of the SoC family detection and
-specific IP detection.
+Remove them in order to start removing IP detection from SoC family
+detection.
 
-Applies on top of Tony's current master branch and so far, it has only
-been compile tested using omap2plus_defconfig.
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/plat-omap/include/plat/cpu.h |   15 ---------------
+ 1 files changed, 0 insertions(+), 15 deletions(-)
 
-Kevin
-
-
-Kevin Hilman (7):
-  ARM: OMAP: remove unused cpu_is macros that depend on specific IP
-    checks
-  ARM: OMAP3: clock data: replace 3503/3517 flag with AM35x flag for
-    UART4
-  ARM: OMAP3: clock data: treat all AM35x devices the same
-  ARM: OMAP: AM35x: remove redunant cpu_is checks for AM3505
-  ARM: OMAP: clock: remove unused CK_3505 flag
-  ARM: OMAP: remove unused cpu_is_omap3505()
-  ARM: OMAP: remove unused cpu_is_omap3530()
-
- arch/arm/mach-omap2/clock3xxx_data.c          |   16 +-------------
- arch/arm/mach-omap2/hsmmc.c                   |    8 +++---
- arch/arm/mach-omap2/usb-musb.c                |    2 +-
- arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
- arch/arm/plat-omap/include/plat/clkdev_omap.h |    3 +-
- arch/arm/plat-omap/include/plat/cpu.h         |   26 +------------------------
- 6 files changed, 10 insertions(+), 47 deletions(-)
-
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 428ccb1..bcad3dc 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -292,9 +292,6 @@ IS_OMAP_TYPE(3517, 0x3517)
+ #define cpu_is_omap2422()		0
+ #define cpu_is_omap2423()		0
+ #define cpu_is_omap2430()		0
+-#define cpu_is_omap3503()		0
+-#define cpu_is_omap3515()		0
+-#define cpu_is_omap3525()		0
+ #define cpu_is_omap3530()		0
+ #define cpu_is_omap3505()		0
+ #define cpu_is_omap3517()		0
+@@ -350,9 +347,6 @@ IS_OMAP_TYPE(3517, 0x3517)
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
+ # undef cpu_is_omap3430
+-# undef cpu_is_omap3503
+-# undef cpu_is_omap3515
+-# undef cpu_is_omap3525
+ # undef cpu_is_omap3530
+ # undef cpu_is_omap3505
+ # undef cpu_is_omap3517
+@@ -362,15 +356,6 @@ IS_OMAP_TYPE(3517, 0x3517)
+ # undef cpu_is_am33xx
+ # undef cpu_is_am335x
+ # define cpu_is_omap3430()		is_omap3430()
+-# define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
+-						(!omap3_has_iva()) &&	\
+-						(!omap3_has_sgx()))
+-# define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
+-						(!omap3_has_iva()) &&	\
+-						(omap3_has_sgx()))
+-# define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
+-						(!omap3_has_sgx()) &&	\
+-						(omap3_has_iva()))
+ # define cpu_is_omap3530()		(cpu_is_omap3430())
+ # define cpu_is_omap3517()		is_omap3517()
+ # define cpu_is_omap3505()		(cpu_is_omap3517() &&		\
 -- 
 1.7.8.2
 
