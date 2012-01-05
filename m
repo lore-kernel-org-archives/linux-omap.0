@@ -1,74 +1,75 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/7] ARM: OMAP: remove IP checks from SoC family
- detection
-Date: Thu, 5 Jan 2012 11:15:58 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8071991@DBDE01.ent.ti.com>
-References: <1325726206-11199-1-git-send-email-khilman@ti.com>
+Subject: RE: [PATCH-V1] arm/dts: Add support for TI OMAP3 EVM board
+Date: Thu, 5 Jan 2012 11:18:42 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A80719AC@DBDE01.ent.ti.com>
+References: <1324019153-13316-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51248 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:49153 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755274Ab2AELQF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 06:16:05 -0500
-In-Reply-To: <1325726206-11199-1-git-send-email-khilman@ti.com>
+	id S1755018Ab2AELS7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 06:18:59 -0500
+In-Reply-To: <1324019153-13316-1-git-send-email-hvaibhav@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "Cousson, Benoit" <b-cousson@ti.com>
 
 > -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Thursday, January 05, 2012 6:47 AM
+> From: Hiremath, Vaibhav
+> Sent: Friday, December 16, 2011 12:36 PM
 > To: linux-omap@vger.kernel.org
-> Cc: Paul Walmsley; Hiremath, Vaibhav
-> Subject: [PATCH 0/7] ARM: OMAP: remove IP checks from SoC family detection
+> Cc: tony@atomide.com; linux-arm-kernel@lists.infradead.org; devicetree-
+> discuss@lists.ozlabs.org; grant.likely@secretlab.ca; Cousson, Benoit;
+> Hiremath, Vaibhav
+> Subject: [PATCH-V1] arm/dts: Add support for TI OMAP3 EVM board
 > 
-> Currently, our SoC detection is based on SoC family detection
-> (using die ID) and the presence of specific IP blocks (or feature.)
+> Add OMAP3 EVM (OMAP3530, AM/DM37x) DTS file to use the omap3.dtsi SoC file,
+> along with memory node information.
 > 
-> This series begins the separation of the SoC family detection and
-> specific IP detection.
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+> Boot tested it on AM/DM37x EVM, kernel parses the info correctly.
 > 
-> Applies on top of Tony's current master branch and so far, it has only
-> been compile tested using omap2plus_defconfig.
+>  arch/arm/boot/dts/omap3-evm.dts |   20 ++++++++++++++++++++
+>  1 files changed, 20 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/boot/dts/omap3-evm.dts
 > 
-I tested it on OMAP3EVM (AM37x) and AM3517EVM as well and it is booting up
-for me.
-
-Feel free to add my acked and/or tested by.
-
-
-Just FYI, not related to the patch series at all, but I am getting into some issues with ramdisk mounting (which was working earlier, not sure). Probably I have to create fresh image and try...
+> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-
+> evm.dts
+> new file mode 100644
+> index 0000000..2eee16e
+> --- /dev/null
+> +++ b/arch/arm/boot/dts/omap3-evm.dts
+> @@ -0,0 +1,20 @@
+> +/*
+> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +/dts-v1/;
+> +
+> +/include/ "omap3.dtsi"
+> +
+> +/ {
+> +	model = "TI OMAP3 EVM (OMAP3530, AM/DM37x)";
+> +	compatible = "ti,omap3-evm", "ti,omap3";
+> +
+> +	memory {
+> +		device_type = "memory";
+> +		reg = <0x80000000 0x10000000>; /* 256 MB */
+> +	};
+> +};
+Can this merged? OR anybody has any comments here?
 
 Thanks,
 Vaibhav
 
-> Kevin
-> 
-> 
-> Kevin Hilman (7):
->   ARM: OMAP: remove unused cpu_is macros that depend on specific IP
->     checks
->   ARM: OMAP3: clock data: replace 3503/3517 flag with AM35x flag for
->     UART4
->   ARM: OMAP3: clock data: treat all AM35x devices the same
->   ARM: OMAP: AM35x: remove redunant cpu_is checks for AM3505
->   ARM: OMAP: clock: remove unused CK_3505 flag
->   ARM: OMAP: remove unused cpu_is_omap3505()
->   ARM: OMAP: remove unused cpu_is_omap3530()
-> 
->  arch/arm/mach-omap2/clock3xxx_data.c          |   16 +-------------
->  arch/arm/mach-omap2/hsmmc.c                   |    8 +++---
->  arch/arm/mach-omap2/usb-musb.c                |    2 +-
->  arch/arm/mach-omap2/voltagedomains3xxx_data.c |    2 +-
->  arch/arm/plat-omap/include/plat/clkdev_omap.h |    3 +-
->  arch/arm/plat-omap/include/plat/cpu.h         |   26 +-------------------
-> -----
->  6 files changed, 10 insertions(+), 47 deletions(-)
-> 
 > --
-> 1.7.8.2
+> 1.7.0.4
 
