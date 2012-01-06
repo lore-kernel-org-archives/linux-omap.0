@@ -1,100 +1,65 @@
-From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] OMAP/I2C - Fix timeout problem during suspend.
-Date: Thu, 05 Jan 2012 12:48:39 -0800
-Message-ID: <87sjjt98pk.fsf@ti.com>
-References: <20111230124030.12c3d02c@notabene.brown> <87boqjaz5n.fsf@ti.com>
-	<20120105181026.24b8c0f4@notabene.brown>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [RFC/PATCH 3/7] ARM: OMAP3: clock data: treat all AM35x devices the same
+Date: Thu, 05 Jan 2012 16:04:20 -0800
+Message-ID: <87pqex7l2z.fsf@ti.com>
+References: <1325726206-11199-1-git-send-email-khilman@ti.com>
+	<1325726206-11199-4-git-send-email-khilman@ti.com>
+	<79CD15C6BA57404B839C016229A409A807195B@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120105181026.24b8c0f4-wvvUuzkyo1EYVZTmpyfIwg@public.gmane.org> (NeilBrown's message of
-	"Thu, 5 Jan 2012 18:10:26 +1100")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:37408 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755978Ab2AFAEY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Jan 2012 19:04:24 -0500
+Received: by mail-gy0-f171.google.com with SMTP id 10so647892ghy.16
+        for <linux-omap@vger.kernel.org>; Thu, 05 Jan 2012 16:04:23 -0800 (PST)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A807195B@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Thu, 5 Jan 2012 11:07:19 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> writes:
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 
-> On Wed, 04 Jan 2012 14:19:48 -0800 Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org> wrote:
->
->> +Felipe
+>> -----Original Message-----
+>> From: Hilman, Kevin
+>> Sent: Thursday, January 05, 2012 6:47 AM
+>> To: linux-omap@vger.kernel.org
+>> Cc: Paul Walmsley; Hiremath, Vaibhav
+>> Subject: [RFC/PATCH 3/7] ARM: OMAP3: clock data: treat all AM35x devices
+>> the same
 >> 
->> NeilBrown <neilb-l3A5Bk7waGM@public.gmane.org> writes:
+>> The init for 3505/3517 specific clocks depends on the ordering of
+>> cpu_is checks, is error prone and confusing (there are 2 separate
+>> checks for cpu_is_omap3505()).
 >> 
->> > On a board with OMAP3 processor and TWL4030 Power management,
->> > we need to talk to the TWL4030 during late suspend but cannot
->> > because the I2C interrupt is disabled (as late suspend disables
->> > interrupt).
+>> Remove the 3505-specific checking since CK_3505 flag is not used, and
+>> treat all AM35x clocks the same.
 >> 
->> I'm not convinced this is the right solution to this problem.
+>> This means that the SGX clock (the only AM35x clkdev not currently
+>> flagged for 3505) will now be registered on 3505, but that is
+>> harmless.  That can be cleaned up when the clkdev nodes are removed in
+>> favor of them being registered by hwmod.
 >> 
->> IMO, this problem is caused by the MUSB driver being broken for
->> suspend/resume.  I've reported this problem (and an RFC/PATCH)
->> already[1], but I don't think the driver has been fixed.
->> 
->> Can you try my patch[1] to see if it fixes your problem as well?
->> 
->> Kevin
->> 
->> [1] http://marc.info/?l=linux-omap&m=132252827112721&w=2
->> 
->
-> Yes... and no.
->
-> I reverted my patch to confirm that the timeout messages come back which
-> they did.
-> I then applied your patch and the suspend was nice and smooth again with no
-> timeouts.  So that is good.
->
-> However immediately after I wake it up I get:
->
-> [  109.193054] Powerdomain (core_pwrdm) didn't enter target state 1
-> [  109.199310] Could not enter target state in pm_suspend
->
-> whereas with my patch in place I get:
->
-> [  123.666046] Successfully put all powerdomains to target state
->
-> Following this hint I looked into current draw.  With my patch I get a
-> suspend-time current draw of 60-80mA (which is still too high..).
-> With your patch in place I get 120mA or more (about 4 tests, definitely at
-> least 30mA difference).  I measure this by checking the 'charge_now' reported
-> by the bq27000 in the battery.
->
-> This is without the usb cable plugged in.  
+> [Hiremath, Vaibhav] How do you think we can use hwmod here?
 
-Strange... without the usb cable plugged in, runtime PM should kick in
-and suspend the device long before system suspend happens so that there
-shouldn't be anything for the MUSB driver to do during system suspend.
+I haven't thought in detail about the exact fix for this, but it
+shouldn't be difficult. For example, it could be as simple as creating
+some more per-family hwmod lists of optional hwmods.  Then, during init,
+register them based on the feature flag.
 
-> With usb plugged in your version
-> has the positive effect that charging continues while in suspend while with
-> mine it doesn't.  But I don't think that justifies the extra current drain :-)
+Longer term, it may be that we handle this using DT, but I'm not sure we
+will use DT to describe that level of SoC detail.
 
-The reason I implemented it that way was because I understood that with
-a cable plugged in, you cant reliabaly suspend (or resume) MUSB due to
-HW bugs/limitations.  
+> Currently hwmod is also dependent on cpu_is_xxxx to register respective modules.
 
-Hopefully Felipe can chime in here to clarify.
+In mainline it is only done by CPU family (revision), not using cpu_is*
 
-> So I'll be sticking with my patch for now.
->
-> My next problem I need to resolve relates to i2c and the charger as well.
-> When entering suspend the various twl4030 interrupts are disabled by not
-> masked.  This means they can still fire but are not handled until after
-> suspend.  This effectively blocks other interrupts from the twl4030 that I
-> actually want (like the RTC alarm).
-> I think there are at least 3 or 4 bugs in here making it rather hard to sort
-> out.  However I think I will want to mask interrupt sources when they are
-> disabled.  To mask the interrupts I need to talk to the twl4030 over i2c.
-> And this means that I need the i2c interrupt to still be working.
->
-> So I feel that my patch might be more generally useful.  However I confess
-> that there is a lot here that I don't completely understand, and I might have
-> a different opinion tomorrow.
+> I completely understand and agree to the fact that there may not be any harm
+> due to this, but this means, iva will be always registered for 3505 devices.
 
-I think your patch is probably useful also, but would like to see the
-MUSB driver issues better clarified and fixed as well.
+Correct for today, but not difficult to remedy by fixing up the hwmod init.
 
 Kevin
