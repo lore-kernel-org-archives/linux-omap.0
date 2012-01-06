@@ -1,93 +1,83 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [RFC/PATCH 3/7] ARM: OMAP3: clock data: treat all AM35x devices the same
-Date: Thu, 05 Jan 2012 16:59:41 -0800
-Message-ID: <871urd7iiq.fsf@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC/PATCH 3/7] ARM: OMAP3: clock data: treat all AM35x devices
+ the same
+Date: Fri, 6 Jan 2012 08:59:44 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8073B53@DBDE01.ent.ti.com>
 References: <1325726206-11199-1-git-send-email-khilman@ti.com>
 	<1325726206-11199-4-git-send-email-khilman@ti.com>
-	<CAORVsuXRG=8BesXvfynO_TdUbvZdVTsTcrfC6LNsPdsi54+gpw@mail.gmail.com>
+	<79CD15C6BA57404B839C016229A409A807195B@DBDE01.ent.ti.com>
+ <87pqex7l2z.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:34611 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030245Ab2AFA7q convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Jan 2012 19:59:46 -0500
-Received: by mail-gx0-f182.google.com with SMTP id p1so605700ggn.41
-        for <linux-omap@vger.kernel.org>; Thu, 05 Jan 2012 16:59:44 -0800 (PST)
-In-Reply-To: <CAORVsuXRG=8BesXvfynO_TdUbvZdVTsTcrfC6LNsPdsi54+gpw@mail.gmail.com>
-	(Jean Pihet's message of "Thu, 5 Jan 2012 10:48:48 +0100")
+Received: from comal.ext.ti.com ([198.47.26.152]:51082 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752972Ab2AFI7v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jan 2012 03:59:51 -0500
+In-Reply-To: <87pqex7l2z.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Vaibhav Hiremath <hvaibhav@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+> -----Original Message-----
+> From: Hilman, Kevin
+> Sent: Friday, January 06, 2012 5:34 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; Paul Walmsley
+> Subject: Re: [RFC/PATCH 3/7] ARM: OMAP3: clock data: treat all AM35x
+> devices the same
+> 
+> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: Hilman, Kevin
+> >> Sent: Thursday, January 05, 2012 6:47 AM
+> >> To: linux-omap@vger.kernel.org
+> >> Cc: Paul Walmsley; Hiremath, Vaibhav
+> >> Subject: [RFC/PATCH 3/7] ARM: OMAP3: clock data: treat all AM35x
+> devices
+> >> the same
+> >>
+> >> The init for 3505/3517 specific clocks depends on the ordering of
+> >> cpu_is checks, is error prone and confusing (there are 2 separate
+> >> checks for cpu_is_omap3505()).
+> >>
+> >> Remove the 3505-specific checking since CK_3505 flag is not used, and
+> >> treat all AM35x clocks the same.
+> >>
+> >> This means that the SGX clock (the only AM35x clkdev not currently
+> >> flagged for 3505) will now be registered on 3505, but that is
+> >> harmless.  That can be cleaned up when the clkdev nodes are removed in
+> >> favor of them being registered by hwmod.
+> >>
+> > [Hiremath, Vaibhav] How do you think we can use hwmod here?
+> 
+> I haven't thought in detail about the exact fix for this, but it
+> shouldn't be difficult. For example, it could be as simple as creating
+> some more per-family hwmod lists of optional hwmods.  Then, during init,
+> register them based on the feature flag.
+> 
+> Longer term, it may be that we handle this using DT, but I'm not sure we
+> will use DT to describe that level of SoC detail.
+> 
+> > Currently hwmod is also dependent on cpu_is_xxxx to register respective
+> modules.
+> 
+> In mainline it is only done by CPU family (revision), not using cpu_is*
+> 
+Yeah, I missed this point (was referring different code base).
 
-> Hi Kevin,
->
-> On Thu, Jan 5, 2012 at 2:16 AM, Kevin Hilman <khilman@ti.com> wrote:
->> The init for 3505/3517 specific clocks depends on the ordering of
->> cpu_is checks, is error prone and confusing (there are 2 separate
->> checks for cpu_is_omap3505()).
->>
->> Remove the 3505-specific checking since CK_3505 flag is not used, an=
-d
->> treat all AM35x clocks the same.
-> Since the only remaining check is for omap3517 and from this comment
-> it should be better to use a generic check, e.g. cpu_is_omap35xx().
+Thanks,
+Vaibhav
 
-Yes, or probably AM35xx.
-
->> This means that the SGX clock (the only AM35x clkdev not currently
->> flagged for 3505) will now be registered on 3505, but that is
->> harmless. =C2=A0That can be cleaned up when the clkdev nodes are rem=
-oved in
->> favor of them being registered by hwmod.
->>
->> Signed-off-by: Kevin Hilman <khilman@ti.com>
->> ---
->> =C2=A0arch/arm/mach-omap2/clock3xxx_data.c | =C2=A0 14 +------------=
--
->> =C2=A01 files changed, 1 insertions(+), 13 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-om=
-ap2/clock3xxx_data.c
->> index e09e506..26fb4d9 100644
->> --- a/arch/arm/mach-omap2/clock3xxx_data.c
->> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
->> @@ -3505,21 +3505,9 @@ int __init omap3xxx_clk_init(void)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct omap_clk *c;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0u32 cpu_clkflg =3D 0;
->>
->> - =C2=A0 =C2=A0 =C2=A0 /*
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* 3505 must be tested before 3517, sinc=
-e 3517 returns true
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* for both AM3517 chips and AM3517 fami=
-ly chips, which
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* includes 3505. =C2=A0Unfortunately th=
-ere's no obvious family
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0* test for 3517/3505 :-(
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
->> - =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap3505()) {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cpu_mask =3D RATE=
-_IN_34XX;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cpu_clkflg =3D CK=
-_3505;
->> - =C2=A0 =C2=A0 =C2=A0 } else if (cpu_is_omap3517()) {
->> + =C2=A0 =C2=A0 =C2=A0 if (cpu_is_omap3517()) {
-> This is rather confusing if it applies to other omap35xx variants.
-> cpu_is_omap35xx() is better.
->
-> What do you think?
-
-Agreed, and am working on a patch that changes this to cpu_is_am35xx(),
-but didn't have time to get it out yet.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > I completely understand and agree to the fact that there may not be any
+> harm
+> > due to this, but this means, iva will be always registered for 3505
+> devices.
+> 
+> Correct for today, but not difficult to remedy by fixing up the hwmod init.
+> 
+> Kevin
