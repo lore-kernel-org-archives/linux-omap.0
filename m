@@ -1,328 +1,358 @@
-From: Stephane Eranian <eranian@googlemail.com>
-Subject: [BUG] perf_event: no PMU interrupt on OMAP4 with 3.2.0 (Pandaboard)
-Date: Fri, 6 Jan 2012 14:48:12 +0100
-Message-ID: <20120106134812.GB5122@quad>
+From: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
+Subject: [PATCH] irqdomain: Initialize number of IRQs for simple domains
+Date: Fri,  6 Jan 2012 15:28:25 +0100
+Message-ID: <1325860112-22051-1-git-send-email-thierry.reding@avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57802 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302Ab2AFNsR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Jan 2012 08:48:17 -0500
-Received: by werm1 with SMTP id m1so1122168wer.19
-        for <linux-omap@vger.kernel.org>; Fri, 06 Jan 2012 05:48:15 -0800 (PST)
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Daniel Walker <dwalker-zu3NM2574RrQT0dZR+AlfA@public.gmane.org>, Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, David Brown <davidb-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "open list:ARM/QUALCOMM MSM..." <linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Barry Song <baohua.song-kQvG35nSl+M@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "open list:OMAP SUPPORT" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Victor <linux-PelNFVqkFnVyf+4FbqDuWQ@public.gmane.org>, "open list:ARM/ATMEL AT91RM9..." <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bryan Huntsman <bryanh-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Richard Zhao <richard.zhao-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, Sascha Hauer <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: will.deacon@arm.com, ming.lei@canonical.com, b-cousson@ti.com, paul@pwsan.com
 
-Hi,
+The irq_domain_add() function needs the number of interrupts in the
+domain to properly initialize them. In addition the allocated domain
+is now returned by the irq_domain_{add,generate}_simple() helpers.
 
-I am trying to get perf_event to work properly on my OMAP4 Pandabaord
-running the 3.2.0 kernel. I am the developer on libpfm4 and a regular
-contributor to the perf_event subsystem and perf tool. I want to use
-a Pandaboard to test libpfm4 ARM support.
-
-I have been talking with Will Deacon and he suggested I post to this list.
-
-I know that the off-the-shelf 3.2.0 does not have working PMU interrupts.
-I have integrated additional patches from both Ming Lei and Linaro. It
-seems some parts of those patches were integrated into 3.2.0.
-
-I have attached my 3.2.0 changes to this message. With that, I get perf_event
-to register PMU interrupts 33 and 34. However, they don't fire when I count
-therefore the counts are bogus (counters wrap around).
-
-I suspect I am missing something in the patch I put together. But I don't know
-what's missing. I am not an ARM platform expert. I am hoping someone on this
-list may shed some light on this problem.
-
-It would be really nice to have perf_event running out of the box on Pandaboard
-for 3.3. It would go a long way into making performance monitoring usable on ARM.
-
-Thanks.
+Signed-off-by: Thierry Reding <thierry.reding-RM9K5IK7kjKj5M59NBduVrNAH6kLmebB@public.gmane.org>
 ---
+ arch/arm/mach-at91/board-dt.c         |    6 +++++-
+ arch/arm/mach-imx/imx51-dt.c          |   13 +++++++++++--
+ arch/arm/mach-imx/imx53-dt.c          |   13 +++++++++++--
+ arch/arm/mach-imx/mach-imx6q.c        |    4 +++-
+ arch/arm/mach-msm/board-msm8x60.c     |    7 +++++--
+ arch/arm/mach-omap2/board-generic.c   |    7 +++++--
+ arch/arm/mach-prima2/irq.c            |    4 +++-
+ arch/arm/mach-versatile/core.c        |   10 ++++++++--
+ arch/arm/plat-mxc/include/mach/irqs.h |    1 +
+ arch/arm/plat-mxc/tzic.c              |    2 --
+ include/linux/irqdomain.h             |   27 ++++++++++++++++++++++-----
+ kernel/irq/irqdomain.c                |   30 +++++++++++++++++++-----------
+ 12 files changed, 93 insertions(+), 31 deletions(-)
 
-diff --git a/arch/arm/include/asm/pmu.h b/arch/arm/include/asm/pmu.h
-index 0bda22c..b5a5be2 100644
---- a/arch/arm/include/asm/pmu.h
-+++ b/arch/arm/include/asm/pmu.h
-@@ -27,13 +27,22 @@ enum arm_pmu_type {
- /*
-  * struct arm_pmu_platdata - ARM PMU platform data
-  *
-- * @handle_irq: an optional handler which will be called from the interrupt and
-- * passed the address of the low level handler, and can be used to implement
-- * any platform specific handling before or after calling it.
-+ * @handle_irq: an optional handler which will be called from the
-+ *	interrupt and passed the address of the low level handler,
-+ *	and can be used to implement any platform specific handling
-+ *	before or after calling it.
-+ * @enable_irq: an optional handler which will be called after
-+ *	request_irq and be used to handle some platform specific
-+ *	irq enablement
-+ * @disable_irq: an optional handler which will be called before
-+ *	free_irq and be used to handle some platform specific
-+ *	irq disablement
-  */
- struct arm_pmu_platdata {
- 	irqreturn_t (*handle_irq)(int irq, void *dev,
- 				  irq_handler_t pmu_handler);
-+	void (*enable_irq)(int irq);
-+	void (*disable_irq)(int irq);
- };
+diff --git a/arch/arm/mach-at91/board-dt.c b/arch/arm/mach-at91/board-dt.c
+index bb6b434..12f003d 100644
+--- a/arch/arm/mach-at91/board-dt.c
++++ b/arch/arm/mach-at91/board-dt.c
+@@ -95,7 +95,11 @@ static const struct of_device_id aic_of_match[] __initconst = {
  
- #ifdef CONFIG_CPU_HAS_PMU
-diff --git a/arch/arm/kernel/perf_event.c b/arch/arm/kernel/perf_event.c
-index 88b0941..24e001f 100644
---- a/arch/arm/kernel/perf_event.c
-+++ b/arch/arm/kernel/perf_event.c
-@@ -380,6 +380,8 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
+ static void __init at91_dt_init_irq(void)
  {
- 	int i, irq, irqs;
- 	struct platform_device *pmu_device = armpmu->plat_device;
-+	struct arm_pmu_platdata *plat =
-+		dev_get_platdata(&pmu_device->dev);
- 
- 	irqs = min(pmu_device->num_resources, num_possible_cpus());
- 
-@@ -387,8 +389,11 @@ armpmu_release_hardware(struct arm_pmu *armpmu)
- 		if (!cpumask_test_and_clear_cpu(i, &armpmu->active_irqs))
- 			continue;
- 		irq = platform_get_irq(pmu_device, i);
--		if (irq >= 0)
-+		if (irq >= 0) {
-+			if (plat->disable_irq)
-+				plat->disable_irq(irq);
- 			free_irq(irq, armpmu);
-+		}
- 	}
- 
- 	release_pmu(armpmu->type);
-@@ -449,6 +454,8 @@ armpmu_reserve_hardware(struct arm_pmu *armpmu)
- 			armpmu_release_hardware(armpmu);
- 			return err;
- 		}
-+		if (plat->enable_irq)
-+			plat->enable_irq(irq);
- 
- 		cpumask_set_cpu(i, &armpmu->active_irqs);
- 	}
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index c15cfad..6caf31a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -17,12 +17,14 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/pm_runtime.h>
- 
- #include <mach/hardware.h>
- #include <mach/irqs.h>
- #include <asm/mach-types.h>
- #include <asm/mach/map.h>
- #include <asm/pmu.h>
-+#include <asm/cti.h>
- 
- #include <plat/tc.h>
- #include <plat/board.h>
-@@ -404,14 +406,136 @@ static struct platform_device omap_pmu_device = {
- 	.num_resources	= 1,
- };
- 
--static void omap_init_pmu(void)
-+static struct arm_pmu_platdata omap4_pmu_data;
-+static struct cti omap4_cti[2];
-+static struct platform_device *pmu_dev;
+-	irq_domain_generate_simple(aic_of_match, 0xfffff000, 0);
++	struct irq_domain *domain;
 +
-+static void omap4_enable_cti(int irq)
- {
--	if (cpu_is_omap24xx())
-+	pm_runtime_get_sync(&pmu_dev->dev);
-+
-+	if (irq == OMAP44XX_IRQ_CTI0)
-+		cti_enable(&omap4_cti[0]);
-+	else if (irq == OMAP44XX_IRQ_CTI1)
-+		cti_enable(&omap4_cti[1]);
-+}
-+
-+static void omap4_disable_cti(int irq)
-+{
-+	if (irq == OMAP44XX_IRQ_CTI0)
-+		cti_disable(&omap4_cti[0]);
-+	else if (irq == OMAP44XX_IRQ_CTI1)
-+		cti_disable(&omap4_cti[1]);
-+	pm_runtime_put(&pmu_dev->dev);
-+}
-+
-+static irqreturn_t omap4_pmu_handler(int irq, void *dev, irq_handler_t handler)
-+{
-+	if (irq == OMAP44XX_IRQ_CTI0)
-+		cti_irq_ack(&omap4_cti[0]);
-+	else if (irq == OMAP44XX_IRQ_CTI1)
-+		cti_irq_ack(&omap4_cti[1]);
-+
-+	return handler(irq, dev);
-+}
-+
-+static void omap4_configure_pmu_irq(void)
-+{
-+	void __iomem *base0;
-+	void __iomem *base1;
-+
-+	base0 = ioremap(OMAP44XX_CTI0_BASE, SZ_4K);
-+	base1 = ioremap(OMAP44XX_CTI1_BASE, SZ_4K);
-+	if (!base0 && !base1) {
-+		pr_err("ioremap for OMAP4 CTI failed\n");
-+		return;
-+	}
-+
-+	/*configure CTI0 for pmu irq routing*/
-+	cti_init(&omap4_cti[0], base0, OMAP44XX_IRQ_CTI0, 6);
-+	cti_unlock(&omap4_cti[0]);
-+	cti_map_trigger(&omap4_cti[0], 1, 6, 2);
-+
-+	/*configure CTI1 for pmu irq routing*/
-+	cti_init(&omap4_cti[1], base1, OMAP44XX_IRQ_CTI1, 6);
-+	cti_unlock(&omap4_cti[1]);
-+	cti_map_trigger(&omap4_cti[1], 1, 6, 2);
-+
-+	omap4_pmu_data.handle_irq = omap4_pmu_handler;
-+	omap4_pmu_data.enable_irq = omap4_enable_cti;
-+	omap4_pmu_data.disable_irq = omap4_disable_cti;
-+}
-+
-+static struct arm_pmu_platdata omap4_pmu_data;
-+static struct omap_device_pm_latency omap_pmu_latency[] = {
-+	[0] = {
-+		.deactivate_func = omap_device_idle_hwmods,
-+		.activate_func   = omap_device_enable_hwmods,
-+		.flags		 = OMAP_DEVICE_LATENCY_AUTO_ADJUST,
-+	},
-+};
-+
-+static struct platform_device* __init omap4_init_pmu(void)
-+{
-+	int id = -1;
-+	const char *hw;
-+	struct platform_device *pd;
-+	struct omap_hwmod* oh[3];
-+	char *dev_name = "arm-pmu";
-+
-+	hw = "l3_main_3";
-+	oh[0] = omap_hwmod_lookup(hw);
-+	if (!oh[0]) {
-+		pr_err("Could not look up %s hwmod\n", hw);
-+		return NULL;
-+	}
-+	hw = "l3_instr";
-+	oh[1] = omap_hwmod_lookup(hw);
-+	if (!oh[1]) {
-+		pr_err("Could not look up %s hwmod\n", hw);
-+		return NULL;
-+	}
-+	hw = "emu";
-+	oh[2] = omap_hwmod_lookup(hw);
-+	if (!oh[2]) {
-+		pr_err("Could not look up %s hwmod\n", hw);
-+		return NULL;
-+	}
-+
-+	pd = omap_device_build_ss(dev_name, id, oh, 3, &omap4_pmu_data,
-+			sizeof(omap4_pmu_data),
-+			omap_pmu_latency,
-+			ARRAY_SIZE(omap_pmu_latency), 0);
-+	WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
-+			dev_name);
-+	return pd;
-+}
-+
-+static void __init omap_init_pmu(void)
-+{
-+	if (cpu_is_omap24xx()) {
- 		omap_pmu_device.resource = &omap2_pmu_resource;
--	else if (cpu_is_omap34xx())
-+	} else if (cpu_is_omap34xx()) {
- 		omap_pmu_device.resource = &omap3_pmu_resource;
--	else
-+	} else if (cpu_is_omap44xx()) {
-+		struct platform_device *pd;
-+
-+		pd = omap4_init_pmu();
-+		if (!pd)
-+			return;
-+{ int i;
-+  for (i = 0 ; i < 2; i++)
-+		printk("RES:%d IRQ:%d\n", i, platform_get_irq(pd, i));
-+}
-+		pmu_dev = pd;
-+		pm_runtime_enable(&pd->dev);
-+		pm_runtime_get_sync(&pd->dev);
-+		omap4_configure_pmu_irq();
-+		pm_runtime_put(&pd->dev);
-+		return;
-+	} else {
- 		return;
-+	}
- 
- 	platform_device_register(&omap_pmu_device);
++	domain = irq_domain_generate_simple(aic_of_match, 0xfffff000, 0,
++			NR_AIC_IRQS);
++	WARN_ON(IS_ERR(domain));
+ 	at91_init_irq_default();
  }
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index daaf165..dd4e1c2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -5276,6 +5276,30 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
- };
  
-+static struct omap_hwmod_class omap44xx_emu_hwmod_class = {
-+	.name	= "emu",
-+};
+diff --git a/arch/arm/mach-imx/imx51-dt.c b/arch/arm/mach-imx/imx51-dt.c
+index e6bad17..72bf94c 100644
+--- a/arch/arm/mach-imx/imx51-dt.c
++++ b/arch/arm/mach-imx/imx51-dt.c
+@@ -47,7 +47,12 @@ static const struct of_dev_auxdata imx51_auxdata_lookup[] __initconst = {
+ static int __init imx51_tzic_add_irq_domain(struct device_node *np,
+ 				struct device_node *interrupt_parent)
+ {
+-	irq_domain_add_simple(np, 0);
++	struct irq_domain *domain;
 +
-+static struct omap_hwmod_irq_info omap44xx_emu_irqs[] = {
-+	{ .name = "cti0", .irq = 1 + OMAP44XX_IRQ_GIC_START },
-+	{ .name = "cti1", .irq = 2 + OMAP44XX_IRQ_GIC_START },
-+	{ .irq = -1 }
-+};
++	domain = irq_domain_add_simple(np, 0, TZIC_NUM_IRQS);
++	if (IS_ERR(domain))
++		return PTR_ERR(domain);
 +
-+/*emu hwmod*/
-+static struct omap_hwmod omap44xx_emu_hwmod = {
-+	.name		= "emu",
-+	.class		= &omap44xx_emu_hwmod_class,
-+	.clkdm_name	= "emu_sys_clkdm",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP4_CM_EMU_CLKSTCTRL_OFFSET,
-+			.modulemode   = MODULEMODE_HWCTRL,
-+		},
-+	},
-+	.mpu_irqs	= omap44xx_emu_irqs,
-+};
+ 	return 0;
+ }
+ 
+@@ -55,9 +60,13 @@ static int __init imx51_gpio_add_irq_domain(struct device_node *np,
+ 				struct device_node *interrupt_parent)
+ {
+ 	static int gpio_irq_base = MXC_GPIO_IRQ_START + ARCH_NR_GPIOS;
++	struct irq_domain *domain;
+ 
+ 	gpio_irq_base -= 32;
+-	irq_domain_add_simple(np, gpio_irq_base);
 +
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
++	domain = irq_domain_add_simple(np, gpio_irq_base, 32);
++	if (IS_ERR(domain))
++		return PTR_ERR(domain);
  
- 	/* dmm class */
-@@ -5422,6 +5446,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_wd_timer2_hwmod,
- 	&omap44xx_wd_timer3_hwmod,
- 
-+	/*emu class*/
-+	&omap44xx_emu_hwmod,
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-imx/imx53-dt.c b/arch/arm/mach-imx/imx53-dt.c
+index 05ebb3e..ccae620 100644
+--- a/arch/arm/mach-imx/imx53-dt.c
++++ b/arch/arm/mach-imx/imx53-dt.c
+@@ -51,7 +51,12 @@ static const struct of_dev_auxdata imx53_auxdata_lookup[] __initconst = {
+ static int __init imx53_tzic_add_irq_domain(struct device_node *np,
+ 				struct device_node *interrupt_parent)
+ {
+-	irq_domain_add_simple(np, 0);
++	struct irq_domain *domain;
 +
- 	NULL,
- };
++	domain = irq_domain_add_simple(np, 0, TZIC_NUM_IRQS);
++	if (IS_ERR(domain))
++		return PTR_ERR(domain);
++
+ 	return 0;
+ }
  
-diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
-index ea2b8a6..b127a16 100644
---- a/arch/arm/plat-omap/include/plat/omap44xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-@@ -57,5 +57,7 @@
- #define OMAP44XX_HSUSB_OHCI_BASE	(L4_44XX_BASE + 0x64800)
- #define OMAP44XX_HSUSB_EHCI_BASE	(L4_44XX_BASE + 0x64C00)
+@@ -59,9 +64,13 @@ static int __init imx53_gpio_add_irq_domain(struct device_node *np,
+ 				struct device_node *interrupt_parent)
+ {
+ 	static int gpio_irq_base = MXC_GPIO_IRQ_START + ARCH_NR_GPIOS;
++	struct irq_domain *domain;
  
-+#define OMAP44XX_CTI0_BASE		0x54148000
-+#define OMAP44XX_CTI1_BASE		0x54149000
- #endif /* __ASM_ARCH_OMAP44XX_H */
+ 	gpio_irq_base -= 32;
+-	irq_domain_add_simple(np, gpio_irq_base);
++
++	domain = irq_domain_add_simple(np, gpio_irq_base, 32);
++	if (IS_ERR(domain))
++		return PTR_ERR(domain);
  
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-imx/mach-imx6q.c b/arch/arm/mach-imx/mach-imx6q.c
+index c257281..9ed7812 100644
+--- a/arch/arm/mach-imx/mach-imx6q.c
++++ b/arch/arm/mach-imx/mach-imx6q.c
+@@ -95,9 +95,11 @@ static int __init imx6q_gpio_add_irq_domain(struct device_node *np,
+ 				struct device_node *interrupt_parent)
+ {
+ 	static int gpio_irq_base = MXC_GPIO_IRQ_START + ARCH_NR_GPIOS;
++	struct irq_domain *domain;
+ 
+ 	gpio_irq_base -= 32;
+-	irq_domain_add_simple(np, gpio_irq_base);
++	domain = irq_domain_add_simple(np, gpio_irq_base, 32);
++	WARN_ON(IS_ERR(domain));
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-msm/board-msm8x60.c b/arch/arm/mach-msm/board-msm8x60.c
+index 0a11342..a50c7e2 100644
+--- a/arch/arm/mach-msm/board-msm8x60.c
++++ b/arch/arm/mach-msm/board-msm8x60.c
+@@ -84,8 +84,11 @@ static void __init msm8x60_dt_init(void)
+ 
+ 	node = of_find_matching_node_by_address(NULL, msm_dt_gic_match,
+ 			MSM8X60_QGIC_DIST_PHYS);
+-	if (node)
+-		irq_domain_add_simple(node, GIC_SPI_START);
++	if (node) {
++		struct irq_domain *domain = irq_domain_add_simple(node,
++				GIC_SPI_START, NR_MSM_IRQS);
++		WARN_ON(IS_ERR(domain));
++	}
+ 
+ 	if (of_machine_is_compatible("qcom,msm8660-surf")) {
+ 		printk(KERN_INFO "Init surf UART registers\n");
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index d587560..bf67781 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -66,8 +66,11 @@ static struct of_device_id intc_match[] __initdata = {
+ static void __init omap_generic_init(void)
+ {
+ 	struct device_node *node = of_find_matching_node(NULL, intc_match);
+-	if (node)
+-		irq_domain_add_simple(node, 0);
++	if (node) {
++		struct irq_domain *domain;
++		domain = irq_domain_add_simple(node, 0, INTCPS_NR_IRQS);
++		WARN_ON(IS_ERR(domain));
++	}
+ 
+ 	omap_sdrc_init(NULL, NULL);
+ 
+diff --git a/arch/arm/mach-prima2/irq.c b/arch/arm/mach-prima2/irq.c
+index d93ceef..d3c5136 100644
+--- a/arch/arm/mach-prima2/irq.c
++++ b/arch/arm/mach-prima2/irq.c
+@@ -58,6 +58,7 @@ static struct of_device_id intc_ids[]  = {
+ 
+ void __init sirfsoc_of_irq_init(void)
+ {
++	struct irq_domain *domain;
+ 	struct device_node *np;
+ 
+ 	np = of_find_matching_node(NULL, intc_ids);
+@@ -68,7 +69,8 @@ void __init sirfsoc_of_irq_init(void)
+ 	if (!sirfsoc_intc_base)
+ 		panic("unable to map intc cpu registers\n");
+ 
+-	irq_domain_add_simple(np, 0);
++	domain = irq_domain_add_simple(np, 0, NR_IRQS);
++	WARN_ON(IS_ERR(domain));
+ 
+ 	of_node_put(np);
+ 
+diff --git a/arch/arm/mach-versatile/core.c b/arch/arm/mach-versatile/core.c
+index 02b7b93..6c40be4 100644
+--- a/arch/arm/mach-versatile/core.c
++++ b/arch/arm/mach-versatile/core.c
+@@ -98,13 +98,19 @@ static const struct of_device_id sic_of_match[] __initconst = {
+ 
+ void __init versatile_init_irq(void)
+ {
++	struct irq_domain *domain;
++
+ 	vic_init(VA_VIC_BASE, IRQ_VIC_START, ~0, 0);
+-	irq_domain_generate_simple(vic_of_match, VERSATILE_VIC_BASE, IRQ_VIC_START);
++	domain = irq_domain_generate_simple(vic_of_match, VERSATILE_VIC_BASE,
++			IRQ_VIC_START, IRQ_VIC_END - IRQ_VIC_START + 1);
++	WARN_ON(IS_ERR(domain));
+ 
+ 	writel(~0, VA_SIC_BASE + SIC_IRQ_ENABLE_CLEAR);
+ 
+ 	fpga_irq_init(IRQ_VICSOURCE31, ~PIC_MASK, &sic_irq);
+-	irq_domain_generate_simple(sic_of_match, VERSATILE_SIC_BASE, IRQ_SIC_START);
++	domain = irq_domain_generate_simple(sic_of_match, VERSATILE_SIC_BASE,
++			IRQ_SIC_START, IRQ_SIC_END - IRQ_SIC_START + 1);
++	WARN_ON(IS_ERR(domain));
+ 
+ 	/*
+ 	 * Interrupts on secondary controller from 0 to 8 are routed to
+diff --git a/arch/arm/plat-mxc/include/mach/irqs.h b/arch/arm/plat-mxc/include/mach/irqs.h
+index fd9efb0..2fda5aa 100644
+--- a/arch/arm/plat-mxc/include/mach/irqs.h
++++ b/arch/arm/plat-mxc/include/mach/irqs.h
+@@ -54,6 +54,7 @@
+ /* REVISIT: Add IPU irqs on IMX51 */
+ 
+ #define NR_IRQS			(MXC_IPU_IRQ_START + MX3_IPU_IRQS)
++#define TZIC_NUM_IRQS		128
+ 
+ extern int imx_irq_set_priority(unsigned char irq, unsigned char prio);
+ 
+diff --git a/arch/arm/plat-mxc/tzic.c b/arch/arm/plat-mxc/tzic.c
+index 98308ec..98b23b8 100644
+--- a/arch/arm/plat-mxc/tzic.c
++++ b/arch/arm/plat-mxc/tzic.c
+@@ -50,8 +50,6 @@
+ 
+ void __iomem *tzic_base; /* Used as irq controller base in entry-macro.S */
+ 
+-#define TZIC_NUM_IRQS 128
+-
+ #ifdef CONFIG_FIQ
+ static int tzic_set_irq_fiq(unsigned int irq, unsigned int type)
+ {
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index bd4272b..1538d4c 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -15,6 +15,7 @@
+ #ifndef _LINUX_IRQDOMAIN_H
+ #define _LINUX_IRQDOMAIN_H
+ 
++#include <linux/err.h>
+ #include <linux/irq.h>
+ #include <linux/mod_devicetable.h>
+ 
+@@ -96,12 +97,28 @@ extern struct irq_domain_ops irq_domain_simple_ops;
+ #endif /* CONFIG_IRQ_DOMAIN */
+ 
+ #if defined(CONFIG_IRQ_DOMAIN) && defined(CONFIG_OF_IRQ)
+-extern void irq_domain_add_simple(struct device_node *controller, int irq_base);
+-extern void irq_domain_generate_simple(const struct of_device_id *match,
+-					u64 phys_base, unsigned int irq_start);
++extern struct irq_domain *irq_domain_add_simple(struct device_node *controller,
++						unsigned int irq_base,
++						unsigned int nr_irq);
++extern struct irq_domain *irq_domain_generate_simple(const struct of_device_id *match,
++						     u64 phys_base,
++						     unsigned int irq_start,
++						     unsigned int nr_irq);
+ #else /* CONFIG_IRQ_DOMAIN && CONFIG_OF_IRQ */
+-static inline void irq_domain_generate_simple(const struct of_device_id *match,
+-					u64 phys_base, unsigned int irq_start) { }
++static inline struct irq_domain *irq_domain_add_simple(struct device_node *controller,
++						       int irq_base,
++						       unsigned int nr_irq)
++{
++	return ERR_PTR(-ENOSYS);
++}
++
++static inline struct irq_domain *irq_domain_generate_simple(const struct of_device_id *match,
++							    u64 phys_base,
++							    unsigned int irq_start,
++							    unsigned int nr_irq)
++{
++	return ERR_PTR(-ENOSYS);
++}
+ #endif /* CONFIG_IRQ_DOMAIN && CONFIG_OF_IRQ */
+ 
+ #endif /* _LINUX_IRQDOMAIN_H */
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 1f9e265..807c44b 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -147,36 +147,44 @@ int irq_domain_simple_dt_translate(struct irq_domain *d,
+ }
+ 
+ /**
+- * irq_domain_create_simple() - Set up a 'simple' translation range
++ * irq_domain_add_simple() - Set up a 'simple' translation range
+  */
+-void irq_domain_add_simple(struct device_node *controller, int irq_base)
++struct irq_domain *irq_domain_add_simple(struct device_node *controller,
++					 unsigned int irq_base,
++					 unsigned int nr_irq)
+ {
+ 	struct irq_domain *domain;
+ 
+ 	domain = kzalloc(sizeof(*domain), GFP_KERNEL);
+-	if (!domain) {
+-		WARN_ON(1);
+-		return;
+-	}
++	if (!domain)
++		return ERR_PTR(-ENOMEM);
+ 
+ 	domain->irq_base = irq_base;
++	domain->nr_irq = nr_irq;
+ 	domain->of_node = of_node_get(controller);
+ 	domain->ops = &irq_domain_simple_ops;
+ 	irq_domain_add(domain);
++
++	return domain;
+ }
+ EXPORT_SYMBOL_GPL(irq_domain_add_simple);
+ 
+-void irq_domain_generate_simple(const struct of_device_id *match,
+-				u64 phys_base, unsigned int irq_start)
++struct irq_domain *irq_domain_generate_simple(const struct of_device_id *match,
++					      u64 phys_base,
++					      unsigned int irq_start,
++					      unsigned int nr_irq)
+ {
++	struct irq_domain *domain = ERR_PTR(-ENODEV);
+ 	struct device_node *node;
+-	pr_info("looking for phys_base=%llx, irq_start=%i\n",
+-		(unsigned long long) phys_base, (int) irq_start);
++	pr_info("looking for phys_base=%llx, irq_start=%u, nr_irq=%u\n",
++		(unsigned long long) phys_base, irq_start, nr_irq);
+ 	node = of_find_matching_node_by_address(NULL, match, phys_base);
+ 	if (node)
+-		irq_domain_add_simple(node, irq_start);
++		domain = irq_domain_add_simple(node, irq_start, nr_irq);
+ 	else
+ 		pr_info("no node found\n");
++
++	return domain;
+ }
+ EXPORT_SYMBOL_GPL(irq_domain_generate_simple);
+ #endif /* CONFIG_OF_IRQ */
+-- 
+1.7.8.1
