@@ -1,62 +1,43 @@
-From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH] OMAP: I2C: add devexit to the remove code
-Date: Fri, 6 Jan 2012 16:28:20 +0000
-Message-ID: <20120106162820.GB8441@trinity.fluff.org>
-References: <1324365959-4143-1-git-send-email-shubhrajyoti@ti.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 1/3] ARM: OMAP2+: kconfig: Enable devicetree by default
+ for OMAP2+ systems
+Date: Fri, 6 Jan 2012 17:37:17 +0100
+Message-ID: <4F07233D.5000001@ti.com>
+References: <1323190149-6492-2-git-send-email-b-cousson@ti.com>
+ <CACxGe6sAEs4H4FR75psy74x9V3mbp6wAdryJbDu8HBZ4tMmyvw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1324365959-4143-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <CACxGe6sAEs4H4FR75psy74x9V3mbp6wAdryJbDu8HBZ4tMmyvw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Dec 20, 2011 at 12:55:59PM +0530, Shubhrajyoti D wrote:
-> The omap_i2c_remove function may not be needed after
-> device exit so the memory could be freed.
-> 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+On 1/4/2012 9:11 PM, Grant Likely wrote:
+> On Tue, Dec 6, 2011 at 9:49 AM, Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>  wrote:
+>> devicetree will become the mandatory boot method for OMAP2+.
+>> In order to avoid cluttering the OMAP code with #ifdef CONFIG_OF,
+>> select USE_OF by default for every OMAP2+ systems.
+>> Select as well the APPENDED_DTB and ATAG_DTB_COMPAT to allow legacy
+>> boot loader to keep working properly.
+>>
+>> Enable PROC_DEVICETREE as well.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+>> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+>
+> Acked-by: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
 
-Will add this later.
+Thanks for the reviews.
 
-> ---
->  drivers/i2c/busses/i2c-omap.c |    5 ++---
->  1 files changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index fa23faa..2efdc6b 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1111,8 +1111,7 @@ err_release_region:
->  	return r;
->  }
->  
-> -static int
-> -omap_i2c_remove(struct platform_device *pdev)
-> +static int __devexit omap_i2c_remove(struct platform_device *pdev)
->  {
->  	struct omap_i2c_dev	*dev = platform_get_drvdata(pdev);
->  	struct resource		*mem;
-> @@ -1161,7 +1160,7 @@ static struct dev_pm_ops omap_i2c_pm_ops = {
->  
->  static struct platform_driver omap_i2c_driver = {
->  	.probe		= omap_i2c_probe,
-> -	.remove		= omap_i2c_remove,
-> +	.remove		= __devexit_p(omap_i2c_remove),
->  	.driver		= {
->  		.name	= "omap_i2c",
->  		.owner	= THIS_MODULE,
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Ben Dooks, ben-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, http://www.fluff.org/ben/
-
-Large Hadron Colada: A large Pina Colada that makes the universe disappear.
+Benoit
