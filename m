@@ -1,67 +1,137 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 0/7] ARM: OMAP: remove IP checks from SoC family
- detection
-Date: Sun, 8 Jan 2012 08:56:13 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8075352@DBDE01.ent.ti.com>
-References: <1325726206-11199-1-git-send-email-khilman@ti.com>
-	<79CD15C6BA57404B839C016229A409A8071991@DBDE01.ent.ti.com>
- <87aa604q5w.fsf@ti.com>
+Subject: RE: [RFC PATCH] arm:omap:omap4: Remove hardcoded reg-offs for
+ PWRSTCTRL & PWRSTST
+Date: Sun, 8 Jan 2012 09:50:49 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A807547B@DBDE01.ent.ti.com>
+References: <hvaibhav@ti.com>
+	<1324371451-2267-1-git-send-email-hvaibhav@ti.com> <87ehvc3a4g.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58307 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59607 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751746Ab2AHI4W convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 03:56:22 -0500
-In-Reply-To: <87aa604q5w.fsf@ti.com>
+	id S1751813Ab2AHJu6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 04:50:58 -0500
+In-Reply-To: <87ehvc3a4g.fsf@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>
+
 
 > -----Original Message-----
 > From: Hilman, Kevin
-> Sent: Saturday, January 07, 2012 12:25 AM
+> Sent: Saturday, January 07, 2012 12:57 AM
 > To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; Paul Walmsley
-> Subject: Re: [PATCH 0/7] ARM: OMAP: remove IP checks from SoC family
-> detection
+> Cc: linux-omap@vger.kernel.org; Paul Walmsley; Nayak, Rajendra; Tony
+> Lindgren
+> Subject: Re: [RFC PATCH] arm:omap:omap4: Remove hardcoded reg-offs for
+> PWRSTCTRL & PWRSTST
 > 
-> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> Vaibhav Hiremath <hvaibhav@ti.com> writes:
 > 
-> >> Currently, our SoC detection is based on SoC family detection
-> >> (using die ID) and the presence of specific IP blocks (or feature.)
-> >>
-> >> This series begins the separation of the SoC family detection and
-> >> specific IP detection.
-> >>
-> >> Applies on top of Tony's current master branch and so far, it has only
-> >> been compile tested using omap2plus_defconfig.
-> >>
-> > I tested it on OMAP3EVM (AM37x) and AM3517EVM as well and it is booting
-> up
-> > for me.
+> > PRM module in AM33XX is closer to OMAP4 PRM module, so it makes complete
+> > sense to reuse all the code from existing OMAP4 implementation.
+> > Having said that, ther is a catch here with respect to AM33XX device,
 > >
-> > Feel free to add my acked and/or tested by.
+> > The register offset in PRM module is not consistent
+> > across (crazy IP integration), for example,
+> >
+> > PRM_XXX         PWRSTCTRL PWRSTST RSTCTRL RSTST
+> > ===============================================
+> > PRM_PER_MOD:    0x0C,     0x08,   0x00,   0x04
+> > PRM_WKUP_MOD:   0x04,     0x08,   0x00,   0x0C
+> > PRM_MPU_MOD:    0x00,     0x04,   0x08,   NA
+> > PRM_DEVICE_MOD: NA,       NA,     0x00,   0x08
+> >
+> > So in order to reuse the existing OMAP4 code, we have to add
+> > separate entry for register offsets, especially
+> > PWRSTCTRL & PWRSTST.
 > 
-> Great, thanks for testing!
+> > This patch removes the existing hard-coded way of providing
+> > offset to omap4_prminst_xxx API's and instead use offsets
+> > provided in powerdomainsxxxx_data.
 > 
-> Can you also test with the patch 8 that I just sent?   It boot tests
-> fine on my AM3517 EVM, but didn't do any other tests.
+> Thanks, I think this is a much better approach.
 > 
-Yes Kevin,
+Kevin, Thanks a lot for review ...
 
-I have also boot tested it at my end on both AM3517EVM and OMAP3EVM (AM37x)
-And it boots up fine for me as well.
+> However, for ease of review, I think it should still be broken up a bit
+> more.  First, create a patch that just changes the existing OMAP4 code
+> to use the new fields without changing any functionality.
+> powerdomain.h, pwerdomain44xx.c, powerdomains44xx_data.c
+> 
+> Then, the AM33x support should be added in a separate patch.
+> 
+Ok, point taken.
+I will divide it into 3 logical patches.
+
+
+> [...]
+> 
+> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-
+> omap2/omap_hwmod.c
+> > index 5192cab..4fd53d4 100644
+> > --- a/arch/arm/mach-omap2/omap_hwmod.c
+> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
+> > @@ -1288,14 +1288,14 @@ static int _assert_hardreset(struct omap_hwmod
+> *oh, const char *name)
+> >  	if (IS_ERR_VALUE(ret))
+> >  		return ret;
+> >
+> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> > -		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
+> > -						  ohri.rst_shift);
+> 
+> Why are moving this OMAP2/3 code below?
+> 
+> I assume it is because cpu_is_omap34xx() is true for AM33xx?  If so, a
+> comment is probably needed here so we don't mess with the ordering.
+> 
+Ok, will add comment in next version.
 
 Thanks,
 Vaibhav
 
-
-
-> Thanks,
+> > -	else if (cpu_is_omap44xx())
+> > +	if (cpu_is_omap44xx() || cpu_is_am33xx())
+> >  		return omap4_prminst_assert_hardreset(ohri.rst_shift,
+> >  				  oh->clkdm->pwrdm.ptr->prcm_partition,
+> >  				  oh->clkdm->pwrdm.ptr->prcm_offs,
+> >  				  oh->prcm.omap4.rstctrl_offs);
+> > +	else if (cpu_is_omap24xx() || cpu_is_omap34xx())
+> > +		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
+> > +						  ohri.rst_shift);
+> >  	else
+> >  		return -EINVAL;
+> >  }
+> > @@ -1322,11 +1322,7 @@ static int _deassert_hardreset(struct omap_hwmod
+> *oh, const char *name)
+> >  	if (IS_ERR_VALUE(ret))
+> >  		return ret;
+> >
+> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> > -		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
+> > -						   ohri.rst_shift,
+> > -						   ohri.st_shift);
+> > -	} else if (cpu_is_omap44xx()) {
+> > +	if (cpu_is_omap44xx() || cpu_is_am33xx()) {
+> >  		if (ohri.st_shift)
+> >  			pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does
+> not support st_shift\n",
+> >  			       oh->name, name);
+> > @@ -1334,6 +1330,10 @@ static int _deassert_hardreset(struct omap_hwmod
+> *oh, const char *name)
+> >  				  oh->clkdm->pwrdm.ptr->prcm_partition,
+> >  				  oh->clkdm->pwrdm.ptr->prcm_offs,
+> >  				  oh->prcm.omap4.rstctrl_offs);
+> > +	} else if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> > +		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
+> > +						   ohri.rst_shift,
+> > +						   ohri.st_shift);
+> 
+> same comment as above.
 > 
 > Kevin
-
