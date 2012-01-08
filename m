@@ -1,71 +1,65 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 2/3] arm:omap:omap4: Maintain virtual addr in in _prm_bases table
-Date: Sun, 8 Jan 2012 15:48:13 +0530
-Message-ID: <1326017894-7632-3-git-send-email-hvaibhav@ti.com>
-References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V2 0/3] arm:omap:omap4:Remove hardcoded reg-offs for PWRSTCTRL & PWRSTST
+Date: Sun, 8 Jan 2012 15:48:11 +0530
+Message-ID: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59039 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59036 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955Ab2AHKSY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1751512Ab2AHKSY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Sun, 8 Jan 2012 05:18:24 -0500
-In-Reply-To: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Since, now omap4 prm code is reused for AM33XX device where,
-PRM module fall under different domain than omap4.
-So instead of maintaining phy addr for PRM partition
-in _prm_bases[] table and then changing it to virt addr for r/w,
-just directly maintain respective virt addr.
+This patch series removes the existing hard-coded way of providing
+offset to omap4_prminst_xxx API's and instead use offsets
+provided in powerdomainsxxxx_data.
+Also, hook up AM33XX device support to existing omap4 PRM code.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/prminst44xx.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+Background:
+==========
+PRM module in AM33XX is closer to OMAP4 PRM module, so it complete
+sense to reuse all the code from existing OMAP4 implementation.
+Having said that, ther is a catch here with respect to AM33XX device,
 
-diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-index f6de5bc..3d9894f 100644
---- a/arch/arm/mach-omap2/prminst44xx.c
-+++ b/arch/arm/mach-omap2/prminst44xx.c
-@@ -26,11 +26,11 @@
+The register offset in PRM module is not consistent
+across (crazy IP integration), for example,
 
- static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
- 	[OMAP4430_INVALID_PRCM_PARTITION]	= 0,
--	[OMAP4430_PRM_PARTITION]		= OMAP4430_PRM_BASE,
-+	[OMAP4430_PRM_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
- 	[OMAP4430_CM1_PARTITION]		= 0,
- 	[OMAP4430_CM2_PARTITION]		= 0,
- 	[OMAP4430_SCRM_PARTITION]		= 0,
--	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP4430_PRCM_MPU_BASE,
-+	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
- };
+PRM_XXX         PWRSTCTRL PWRSTST RSTCTRL RSTST
+===============================================
+PRM_PER_MOD:    0x0C,     0x08,   0x00,   0x04
+PRM_WKUP_MOD:   0x04,     0x08,   0x00,   0x0C
+PRM_MPU_MOD:    0x00,     0x04,   0x08,   NA
+PRM_DEVICE_MOD: NA,       NA,     0x00,   0x08
 
- /* Read a register in a PRM instance */
-@@ -39,8 +39,7 @@ u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
- 	       !_prm_bases[part]);
--	return __raw_readl(OMAP2_L4_IO_ADDRESS(_prm_bases[part] + inst +
--					       idx));
-+	return __raw_readl(_prm_bases[part] + inst + idx);
- }
+So in order to reuse the existing OMAP4 code, we have to add
+seperate entry for register offsets, especially
+PWRSTCTRL & PWRSTST.
 
- /* Write into a register in a PRM instance */
-@@ -49,7 +48,7 @@ void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
- 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
- 	       !_prm_bases[part]);
--	__raw_writel(val, OMAP2_L4_IO_ADDRESS(_prm_bases[part] + inst + idx));
-+	__raw_writel(val, _prm_bases[part] + inst + idx);
- }
+This patch series is dependent on recently submitted
+voltage and powerdomain data patch for AM33xx device -
 
- /* Read-modify-write a register in PRM. Caller must lock */
---
-1.7.0.4
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60719.html
+
+Changes from V1:
+	- As per Kevin's comment, patch is split into logical
+	  commits for ease of review.
+	- Added specific comment for cpu_is_xxx check order change.
+
+
+Vaibhav Hiremath (3):
+  arm:omap:omap4: Remove hardcoded reg-offs for PWRSTCTRL & PWRSTST
+  arm:omap:omap4: Maintain virtual addr in in _prm_bases table
+  arm:omap:omap4: Hook-up am33xx support to existing prm code
+
+ arch/arm/mach-omap2/omap_hwmod.c            |   44 +++++++++++++++++++--------
+ arch/arm/mach-omap2/powerdomain.h           |    4 ++
+ arch/arm/mach-omap2/powerdomain44xx.c       |   24 +++++++-------
+ arch/arm/mach-omap2/powerdomains44xx_data.c |    8 +++++
+ arch/arm/mach-omap2/prcm44xx.h              |    4 ++-
+ arch/arm/mach-omap2/prminst44xx.c           |   11 ++++---
+ 6 files changed, 64 insertions(+), 31 deletions(-)
 
