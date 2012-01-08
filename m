@@ -1,57 +1,78 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
-Date: Sun, 8 Jan 2012 12:43:40 +0200
-Message-ID: <20120108104339.GP9323@valkosipuli.localdomain>
-References: <1323875656-17147-1-git-send-email-sakari.ailus@iki.fi>
+From: PRIZE <Martine.Sennegon-Meslem@univ-paris1.fr>
+Subject: {Spam?}
+Date: Sun, 08 Jan 2012 17:18:29 +0100
+Message-ID: <20120108171829.bgr4m7oj23qecwsw@courrier.univ-paris1.fr>
+Reply-To: googlelott_ery@hotmail.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="=_aexiwbgnwt4"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:32919 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751264Ab2AHKnp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 05:43:45 -0500
-Content-Disposition: inline
-In-Reply-To: <1323875656-17147-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.univ-paris1.fr ([193.55.96.129]:38962 "EHLO
+	mx1.univ-paris1.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754015Ab2AHQaP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 11:30:15 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-Hi Tony and Paul,
+This message is in MIME format.
 
-On Wed, Dec 14, 2011 at 05:14:16PM +0200, Sakari Ailus wrote:
-> The register is used to configure the behaviour of the CSI-2 and CCP-2
-> receivers. This register is available only in OMAP3630.
-> 
-> The original patch was submitted by Vimarsh Zutshi.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  arch/arm/mach-omap2/control.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-> index d4ef75d..6a26a0d 100644
-> --- a/arch/arm/mach-omap2/control.h
-> +++ b/arch/arm/mach-omap2/control.h
-> @@ -183,6 +183,7 @@
->  #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
->  #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
->  #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
-> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
+--=_aexiwbgnwt4
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 
-I assume this patch hasn't gone anywhere yet which might be good. While the
-definition of this register would appear to belong to this file, it is being
-included from the OMAP 3 ISP driver, which only uses it if it's running on
-the 3630. The problem is that control.h isn't apparently intended to be
-included except locally and I didn't find a suitable file under include/mach
-to put this definition either. Currently this file is being included by the
-ISP driver with an explicit path.
 
-Do you have an insight how this could be handled better?
-
-Kind regards,
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Ce message a ete verifie par MailScanner
+pour des virus ou des polluriels et rien de
+suspect n'a ete trouve.
+
+
+--=_aexiwbgnwt4
+Content-Type: application/msword;
+	name="prize.rtf"
+Content-Disposition: attachment;
+	filename="prize.rtf"
+Content-Transfer-Encoding: base64
+
+e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzE2MzkzXGRl
+ZmxhbmdmZTE2Mzkze1xmb250dGJse1xmMFxmbW9kZXJuXGZwcnExXGZjaGFy
+c2V0MCBDb3VyaWVyIE5ldzt9e1xmMVxmcm9tYW5cZnBycTJcZmNoYXJzZXQw
+IFRpbWVzIE5ldyBSb21hbjt9e1xmMlxmc3dpc3NcZnBycTJcZmNoYXJzZXQw
+IEFyaWFsO317XGYzXGZzd2lzc1xmcHJxMlxmY2hhcnNldDAgQ2FsaWJyaTt9
+fQ0Ke1xjb2xvcnRibCA7XHJlZDBcZ3JlZW4wXGJsdWUwO1xyZWQyNTVcZ3Jl
+ZW4wXGJsdWUwO30NCntcKlxnZW5lcmF0b3IgTXNmdGVkaXQgNS40MS4yMS4y
+NTA5O31cdmlld2tpbmQ0XHVjMVxwYXJkXG5vd2lkY3RscGFyXHFjXGNmMVxs
+YW5nOVxiXGYwXGZzMjQgIFRoaXMgaXNcfnRvIGluZm9ybSB5b3UgdGhhdCB5
+b3VyIGVtYWlsIGFkZHJlc3MgaGFzIHdvbiBwcml6ZSBtb25leSBvZlx+KFxj
+ZjJcZnMyN1wnYTM1MDAsMDAwLjAwXGNmMVxmczI0ICkgR0JQIGZvciBiZWVu
+IGFuIGFjdGl2ZSB3ZWIgZW1haWwgdXNlci4gVGhpcyBMb3R0ZXJ5XH5wcm9t
+b3Rpb24gd2FzIG9yZ2FuaXplZCBieSBHb29nbGUgR21haWwgJiBSZWRpZmZt
+YWlsIExPVFRFUlkgSU5DICYgV0lORE9XUyBMSVZFLlxjZjBcYjBcZjFccGFy
+DQpcY2YxXGJcZjBccGFyDQpBIGNoZXF1ZSBvZiA1MDAsMDAwLjAwIEdCUCBo
+YXMgYmVlbiBpc3N1ZWQgYWdhaW5zdCB5b3VyIHdpbm5pbmcgZW1haWwgYW5k
+IGhhcyBiZWVuIGZvcndhcmQgdG8gRmFpciBXYXlzIENvdXJpZXIgQ29tcGFu
+eSBmb3IgZGVsaXZlcnkgdG8geW91ciBjb3VudHJ5IG9mIHJlc2lkZW5jZS5c
+cGFyDQpccGFyZFxub3dpZGN0bHBhciBZb3UgYXJlIHJlcXVpcmVkIHRvIGNv
+bnRhY3QgRkFJUldBWVMgQ09VUklFUiBDT01QQU5ZIHZpYSBlbWFpbCB3aXRo
+IHRoZSBkZXRhaWxzIGJlbG93IHRvIGNsYWltIHlvdXIgd2lubmluZ3NccGFy
+DQpccGFyDQoxLiBGdWxsIG5hbWU6XHBhcg0KMi4gQ29udGFjdCBBZGRyZXNz
+OlxjZjBcZnMyMiAgICAgICAgICAgICAgICAgICAgXGIwXGYxXHBhcg0KXGNm
+MVxiXGYwXGZzMjQgMy4gQWdlOlxmMVxwYXINClxmMCA0LiBUZWxlcGhvbmUg
+TnVtYmVyOlxwYXINCjUuIFNleDpccGFyDQo2LiBPY2N1cGF0aW9uOlxwYXIN
+CjcuIFN0YXRlOlxwYXINCjguIENvdW50cnk6XHBhcg0KOS4gTmF0aW9uYWxp
+dHk6XHBhcg0KICAgICAgICAgICAgICAgICBccGFyDQpOYW1lOlxjZjIgIE1y
+LkNveCBSb29uZXlcY2YxICBccGFyDQpcY2YyIENvbnRhY3Q6XGIwXGYyXGZz
+MjAgZ29vZ2xlbG90dF9lcnlAaG90bWFpbC5jby51a1xiXGYwXGZzMjRccGFy
+DQogICAgICAgICAgICAgICAgICAgIFxjZjFcYjBcZjJcZnMyMFx+XGNmMFxm
+MVxmczI0XHBhcg0KXGNmMVxiXGYwIFRoYW5rIHlvdSBhbmQgYWNjZXB0IG15
+IGhlYXJ0eSBjb25ncmF0dWxhdGlvbnMgb25jZSBhZ2FpbiFcflx+XGNmMFxi
+MFxmM1xmczIyXHBhcg0KfQ0KAA==
+
+--=_aexiwbgnwt4--
+
