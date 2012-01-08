@@ -1,63 +1,69 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Bad page state in tidspbridge driver
-Date: Sun, 8 Jan 2012 19:17:31 +0100
-Message-ID: <201201081917.31376.laurent.pinchart@ideasonboard.com>
+From: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v4 03/12] mfd: twl-core: Add initial DT support for
+ twl4030/twl6030
+Date: Mon, 9 Jan 2012 00:38:20 +0100
+Message-ID: <20120108233820.GH13679@sortiz-mobl>
+References: <1324565806-31142-1-git-send-email-b-cousson@ti.com>
+ <1324565806-31142-4-git-send-email-b-cousson@ti.com>
+ <20120102090454.GO18381@ponder.secretlab.ca>
+ <4F030C2D.3000808@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58635 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302Ab2AHSRI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 13:17:08 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4F030C2D.3000808-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Arne Caspari <arne@unicap-imaging.org>
 
-Hi,
+Hi Benoit,
 
-I'm hitting what seems to be a tidspbridge driver issue when using gst-dsp 
-with the DSP JPEG encoder.
+On Tue, Jan 03, 2012 at 03:09:49PM +0100, Cousson, Benoit wrote:
+> On 1/2/2012 10:04 AM, Grant Likely wrote:
+> > On Thu, Dec 22, 2011 at 03:56:37PM +0100, Benoit Cousson wrote:
+> >> Add initial device-tree support for twl familly chips.
+> >> The current version is missing the regulator entries due
+> >> to the lack of DT regulator bindings for the moment.
+> >> Only the simple sub-modules that do not depend on
+> >> platform_data information can be initialized properly.
+> >>
+> >> Add irqdomain support.
+> >>
+> >> Add documentation for the Texas Instruments TWL Integrated Chip.
+> >>
+> >> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
+> >> Cc: Balaji T K<balajitk-l0cyMroinI0@public.gmane.org>
+> >> Cc: Graeme Gregory<gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>
+> >> Cc: Samuel Ortiz<sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> >> ---
+> >> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> >> index f1391c2..f0de088 100644
+> >> --- a/drivers/mfd/Kconfig
+> >> +++ b/drivers/mfd/Kconfig
+> >> @@ -200,6 +200,7 @@ config MENELAUS
+> >>   config TWL4030_CORE
+> >>   	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
+> >>   	depends on I2C=y&&  GENERIC_HARDIRQS
+> >> +	select IRQ_DOMAIN
+> > 
+> > As discussed on linux-next, this breaks powerpc.  Drivers cannot select
+> > IRQ_DOMAIN, it can only be selected by architectures.  Drivers must depend
+> > on it instead.
+> 
+> OK, good to know. The previous version was already breaking non-ARM platform because the IRQ_DOMAIN was not defined, hence this update.
+> I was able to check that this patch was fixing at least x86... but did not have any way to check the PPC build.
+> 
+> To be honest, I did not fully understand that this flag was there because some arch does not support IRQ domain yet and thus it should be selected at arch level.
+> 
+> Samuel,
+> Here is the updated version, and hopefully the last one, including Grant's fix.
+> 
+Thanks, I applied it now.
 
-My application captures images from the OMAP3 ISP directly to frame buffer 
-memory for display. It then passes the frame buffer buffer pointer to gst-dsp 
-and the tidspbridge driver, which maps them to the DSP IOMMU address space.
-
-When starting the JPEG encoder a bunch of identical messages are printed to 
-the kernel log:
-
-[14643.065490] BUG: Bad page state in process source:src  pfn:89e39
-[14643.072143] page:c0b11720 count:0 mapcount:0 mapping:  (null) index:0x0
-[14643.079437] page flags: 0x410(dirty|reserved)
-[14643.084197] [<c003ee5c>] (unwind_backtrace+0x0/0xe0) from [<c00a4c34>] 
-(bad_page+0xc4/0xec)
-[14643.093505] [<c00a4c34>] (bad_page+0xc4/0xec) from [<c00a5480>] 
-(free_pages_prepare+0x70/0xe8)
-[14643.102935] [<c00a5480>] (free_pages_prepare+0x70/0xe8) from [<c00a5634>] 
-(free_hot_cold_page+0x20/0x1ac)
-[14643.113525] [<c00a5634>] (free_hot_cold_page+0x20/0x1ac) from [<bf00d120>] 
-(bridge_brd_mem_un_map+0x12c/0x3d4 [bridgedriver])
-[14643.126007] [<bf00d120>] (bridge_brd_mem_un_map+0x12c/0x3d4 [bridgedriver]) 
-from [<bf01cda8>] (proc_un_map+0x6c/0xa0 [bridgedriver])
-[14643.139404] [<bf01cda8>] (proc_un_map+0x6c/0xa0 [bridgedriver]) from 
-[<bf014490>] (api_call_dev_ioctl+0xe8/0x10c [bridgedriver])
-[14643.152160] [<bf014490>] (api_call_dev_ioctl+0xe8/0x10c [bridgedriver]) 
-from [<bf0208b8>] (bridge_ioctl+0x12c/0x15c [bridgedriver])
-[14643.165191] [<bf0208b8>] (bridge_ioctl+0x12c/0x15c [bridgedriver]) from 
-[<c00d8fd8>] (do_vfs_ioctl+0x4e8/0x55c)
-[14643.176177] [<c00d8fd8>] (do_vfs_ioctl+0x4e8/0x55c) from [<c00d9080>] 
-(sys_ioctl+0x34/0x54)
-[14643.185333] [<c00d9080>] (sys_ioctl+0x34/0x54) from [<c003a700>] 
-(ret_fast_syscall+0x0/0x3c)
-
-The backtrace is printed because the page has the PG_reserved flag set, which 
-is expected (as far as I know) for the frame buffer memory.
-
-Is this use case unsupported ?
+Cheers,
+Samuel.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Intel Open Source Technology Centre
+http://oss.intel.com/
