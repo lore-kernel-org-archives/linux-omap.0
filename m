@@ -1,208 +1,57 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 1/3] arm:omap:omap4: Remove hardcoded reg-offs for PWRSTCTRL & PWRSTST
-Date: Sun, 8 Jan 2012 15:48:12 +0530
-Message-ID: <1326017894-7632-2-git-send-email-hvaibhav@ti.com>
-References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/1] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Sun, 8 Jan 2012 12:43:40 +0200
+Message-ID: <20120108104339.GP9323@valkosipuli.localdomain>
+References: <1323875656-17147-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59037 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751264Ab2AHKSY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Jan 2012 05:18:24 -0500
-In-Reply-To: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:32919 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751264Ab2AHKnp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 05:43:45 -0500
+Content-Disposition: inline
+In-Reply-To: <1323875656-17147-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: tony@atomide.com, paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com
 
-This patch removes the existing hard-coded way of providing
-offset to omap4_prminst_xxx API's and instead use offsets
-provided in powerdomainsxxxx_data.
+Hi Tony and Paul,
 
-Very much required for the new device AM33XX, where,
+On Wed, Dec 14, 2011 at 05:14:16PM +0200, Sakari Ailus wrote:
+> The register is used to configure the behaviour of the CSI-2 and CCP-2
+> receivers. This register is available only in OMAP3630.
+> 
+> The original patch was submitted by Vimarsh Zutshi.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  arch/arm/mach-omap2/control.h |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> index d4ef75d..6a26a0d 100644
+> --- a/arch/arm/mach-omap2/control.h
+> +++ b/arch/arm/mach-omap2/control.h
+> @@ -183,6 +183,7 @@
+>  #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+>  #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+>  #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
+> +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
 
-PRM module in AM33XX is closer to OMAP4 PRM module, so it makes
-complete sense to reuse all the code from existing OMAP4 implementation.
-Having said that, ther is a catch here with respect to AM33XX device,
+I assume this patch hasn't gone anywhere yet which might be good. While the
+definition of this register would appear to belong to this file, it is being
+included from the OMAP 3 ISP driver, which only uses it if it's running on
+the 3630. The problem is that control.h isn't apparently intended to be
+included except locally and I didn't find a suitable file under include/mach
+to put this definition either. Currently this file is being included by the
+ISP driver with an explicit path.
 
-The register offset in PRM module is not consistent
-across (crazy IP integration), for example,
+Do you have an insight how this could be handled better?
 
-PRM_XXX         PWRSTCTRL PWRSTST RSTCTRL RSTST
-===============================================
-PRM_PER_MOD:    0x0C,     0x08,   0x00,   0x04
-PRM_WKUP_MOD:   0x04,     0x08,   0x00,   0x0C
-PRM_MPU_MOD:    0x00,     0x04,   0x08,   NA
-PRM_DEVICE_MOD: NA,       NA,     0x00,   0x08
+Kind regards,
 
-So in order to reuse the existing OMAP4 code, we have to add
-seperate entry for register offsets, especially
-PWRSTCTRL & PWRSTST.
-
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/powerdomain.h           |    4 ++++
- arch/arm/mach-omap2/powerdomain44xx.c       |   24 ++++++++++++------------
- arch/arm/mach-omap2/powerdomains44xx_data.c |    8 ++++++++
- 3 files changed, 24 insertions(+), 12 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 0d72a8a..9ebb872 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -92,6 +92,8 @@ struct powerdomain;
-  * @pwrdm_clkdms: Clockdomains in this powerdomain
-  * @node: list_head linking all powerdomains
-  * @voltdm_node: list_head linking all powerdomains in a voltagedomain
-+ * @pwrstctrl_offs: XXX_PWRSTCTRL reg offset from prcm_offs
-+ * @pwrstst_offs: XXX_PWRSTST reg offset from prcm_offs
-  * @state:
-  * @state_counter:
-  * @timer:
-@@ -121,6 +123,8 @@ struct powerdomain {
- 	unsigned ret_logic_off_counter;
- 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
-
-+	u8 pwrstctrl_offs;
-+	u8 pwrstst_offs;
- #ifdef CONFIG_PM_DEBUG
- 	s64 timer;
- 	s64 state_timer[PWRDM_MAX_PWRSTS];
-diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
-index a7880af..b088540 100644
---- a/arch/arm/mach-omap2/powerdomain44xx.c
-+++ b/arch/arm/mach-omap2/powerdomain44xx.c
-@@ -28,7 +28,7 @@ static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP_POWERSTATE_MASK,
- 					(pwrst << OMAP_POWERSTATE_SHIFT),
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
-+					pwrdm->prcm_offs, pwrdm->pwrstctrl_offs);
- 	return 0;
- }
-
-@@ -37,7 +37,7 @@ static int omap4_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= OMAP_POWERSTATE_MASK;
- 	v >>= OMAP_POWERSTATE_SHIFT;
-
-@@ -49,7 +49,7 @@ static int omap4_pwrdm_read_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP_POWERSTATEST_MASK;
- 	v >>= OMAP_POWERSTATEST_SHIFT;
-
-@@ -61,7 +61,7 @@ static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP4430_LASTPOWERSTATEENTERED_MASK;
- 	v >>= OMAP4430_LASTPOWERSTATEENTERED_SHIFT;
-
-@@ -73,7 +73,7 @@ static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
- 					(1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
-+					pwrdm->prcm_offs, pwrdm->pwrstctrl_offs);
- 	return 0;
- }
-
-@@ -82,7 +82,7 @@ static int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
- 					OMAP4430_LASTPOWERSTATEENTERED_MASK,
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTST);
-+					pwrdm->prcm_offs, pwrdm->pwrstst_offs);
- 	return 0;
- }
-
-@@ -93,7 +93,7 @@ static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
- 	v = pwrst << __ffs(OMAP4430_LOGICRETSTATE_MASK);
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOGICRETSTATE_MASK, v,
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
-
- 	return 0;
- }
-@@ -107,7 +107,7 @@ static int omap4_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
-
- 	omap4_prminst_rmw_inst_reg_bits(m, (pwrst << __ffs(m)),
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
-
- 	return 0;
- }
-@@ -131,7 +131,7 @@ static int omap4_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP4430_LOGICSTATEST_MASK;
- 	v >>= OMAP4430_LOGICSTATEST_SHIFT;
-
-@@ -157,7 +157,7 @@ static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- 	m = omap2_pwrdm_get_mem_bank_stst_mask(bank);
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= m;
- 	v >>= __ffs(m);
-
-@@ -171,7 +171,7 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
- 	m = omap2_pwrdm_get_mem_bank_retst_mask(bank);
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= m;
- 	v >>= __ffs(m);
-
-@@ -191,7 +191,7 @@ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	/* XXX Is this udelay() value meaningful? */
- 	while ((omap4_prminst_read_inst_reg(pwrdm->prcm_partition,
- 					    pwrdm->prcm_offs,
--					    OMAP4_PM_PWSTST) &
-+					    pwrdm->pwrstst_offs) &
- 		OMAP_INTRANSITION_MASK) &&
- 	       (c++ < PWRDM_TRANSITION_BAILOUT))
- 		udelay(1);
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index 704664c..e1f545b 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -352,7 +352,15 @@ static struct powerdomain *powerdomains_omap44xx[] __initdata = {
-
- void __init omap44xx_powerdomains_init(void)
- {
-+	int i;
-+
- 	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
-+	/* Initialise PRM reg offs to default value */
-+	for (i = 0; powerdomains_omap44xx[i] != NULL; i++) {
-+		struct powerdomain *pwrdm = powerdomains_omap44xx[i];
-+		pwrdm->pwrstctrl_offs = OMAP4_PM_PWSTCTRL;
-+		pwrdm->pwrstst_offs = OMAP4_PM_PWSTST;
-+	}
- 	pwrdm_register_pwrdms(powerdomains_omap44xx);
- 	pwrdm_complete_init();
- }
---
-1.7.0.4
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
