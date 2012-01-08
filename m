@@ -1,137 +1,71 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC PATCH] arm:omap:omap4: Remove hardcoded reg-offs for
- PWRSTCTRL & PWRSTST
-Date: Sun, 8 Jan 2012 09:50:49 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A807547B@DBDE01.ent.ti.com>
-References: <hvaibhav@ti.com>
-	<1324371451-2267-1-git-send-email-hvaibhav@ti.com> <87ehvc3a4g.fsf@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2 2/3] arm:omap:omap4: Maintain virtual addr in in _prm_bases table
+Date: Sun, 8 Jan 2012 15:48:13 +0530
+Message-ID: <1326017894-7632-3-git-send-email-hvaibhav@ti.com>
+References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59607 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59039 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813Ab2AHJu6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 04:50:58 -0500
-In-Reply-To: <87ehvc3a4g.fsf@ti.com>
-Content-Language: en-US
+	id S1751955Ab2AHKSY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 8 Jan 2012 05:18:24 -0500
+In-Reply-To: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
+Since, now omap4 prm code is reused for AM33XX device where,
+PRM module fall under different domain than omap4.
+So instead of maintaining phy addr for PRM partition
+in _prm_bases[] table and then changing it to virt addr for r/w,
+just directly maintain respective virt addr.
 
-> -----Original Message-----
-> From: Hilman, Kevin
-> Sent: Saturday, January 07, 2012 12:57 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; Paul Walmsley; Nayak, Rajendra; Tony
-> Lindgren
-> Subject: Re: [RFC PATCH] arm:omap:omap4: Remove hardcoded reg-offs for
-> PWRSTCTRL & PWRSTST
-> 
-> Vaibhav Hiremath <hvaibhav@ti.com> writes:
-> 
-> > PRM module in AM33XX is closer to OMAP4 PRM module, so it makes complete
-> > sense to reuse all the code from existing OMAP4 implementation.
-> > Having said that, ther is a catch here with respect to AM33XX device,
-> >
-> > The register offset in PRM module is not consistent
-> > across (crazy IP integration), for example,
-> >
-> > PRM_XXX         PWRSTCTRL PWRSTST RSTCTRL RSTST
-> > ===============================================
-> > PRM_PER_MOD:    0x0C,     0x08,   0x00,   0x04
-> > PRM_WKUP_MOD:   0x04,     0x08,   0x00,   0x0C
-> > PRM_MPU_MOD:    0x00,     0x04,   0x08,   NA
-> > PRM_DEVICE_MOD: NA,       NA,     0x00,   0x08
-> >
-> > So in order to reuse the existing OMAP4 code, we have to add
-> > separate entry for register offsets, especially
-> > PWRSTCTRL & PWRSTST.
-> 
-> > This patch removes the existing hard-coded way of providing
-> > offset to omap4_prminst_xxx API's and instead use offsets
-> > provided in powerdomainsxxxx_data.
-> 
-> Thanks, I think this is a much better approach.
-> 
-Kevin, Thanks a lot for review ...
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/prminst44xx.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-> However, for ease of review, I think it should still be broken up a bit
-> more.  First, create a patch that just changes the existing OMAP4 code
-> to use the new fields without changing any functionality.
-> powerdomain.h, pwerdomain44xx.c, powerdomains44xx_data.c
-> 
-> Then, the AM33x support should be added in a separate patch.
-> 
-Ok, point taken.
-I will divide it into 3 logical patches.
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index f6de5bc..3d9894f 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -26,11 +26,11 @@
 
+ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+ 	[OMAP4430_INVALID_PRCM_PARTITION]	= 0,
+-	[OMAP4430_PRM_PARTITION]		= OMAP4430_PRM_BASE,
++	[OMAP4430_PRM_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRM_BASE),
+ 	[OMAP4430_CM1_PARTITION]		= 0,
+ 	[OMAP4430_CM2_PARTITION]		= 0,
+ 	[OMAP4430_SCRM_PARTITION]		= 0,
+-	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP4430_PRCM_MPU_BASE,
++	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+ };
 
-> [...]
-> 
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-
-> omap2/omap_hwmod.c
-> > index 5192cab..4fd53d4 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod.c
-> > +++ b/arch/arm/mach-omap2/omap_hwmod.c
-> > @@ -1288,14 +1288,14 @@ static int _assert_hardreset(struct omap_hwmod
-> *oh, const char *name)
-> >  	if (IS_ERR_VALUE(ret))
-> >  		return ret;
-> >
-> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> > -		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
-> > -						  ohri.rst_shift);
-> 
-> Why are moving this OMAP2/3 code below?
-> 
-> I assume it is because cpu_is_omap34xx() is true for AM33xx?  If so, a
-> comment is probably needed here so we don't mess with the ordering.
-> 
-Ok, will add comment in next version.
+ /* Read a register in a PRM instance */
+@@ -39,8 +39,7 @@ u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
+ 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
+ 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
+ 	       !_prm_bases[part]);
+-	return __raw_readl(OMAP2_L4_IO_ADDRESS(_prm_bases[part] + inst +
+-					       idx));
++	return __raw_readl(_prm_bases[part] + inst + idx);
+ }
 
-Thanks,
-Vaibhav
+ /* Write into a register in a PRM instance */
+@@ -49,7 +48,7 @@ void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
+ 	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
+ 	       part == OMAP4430_INVALID_PRCM_PARTITION ||
+ 	       !_prm_bases[part]);
+-	__raw_writel(val, OMAP2_L4_IO_ADDRESS(_prm_bases[part] + inst + idx));
++	__raw_writel(val, _prm_bases[part] + inst + idx);
+ }
 
-> > -	else if (cpu_is_omap44xx())
-> > +	if (cpu_is_omap44xx() || cpu_is_am33xx())
-> >  		return omap4_prminst_assert_hardreset(ohri.rst_shift,
-> >  				  oh->clkdm->pwrdm.ptr->prcm_partition,
-> >  				  oh->clkdm->pwrdm.ptr->prcm_offs,
-> >  				  oh->prcm.omap4.rstctrl_offs);
-> > +	else if (cpu_is_omap24xx() || cpu_is_omap34xx())
-> > +		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
-> > +						  ohri.rst_shift);
-> >  	else
-> >  		return -EINVAL;
-> >  }
-> > @@ -1322,11 +1322,7 @@ static int _deassert_hardreset(struct omap_hwmod
-> *oh, const char *name)
-> >  	if (IS_ERR_VALUE(ret))
-> >  		return ret;
-> >
-> > -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-> > -		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
-> > -						   ohri.rst_shift,
-> > -						   ohri.st_shift);
-> > -	} else if (cpu_is_omap44xx()) {
-> > +	if (cpu_is_omap44xx() || cpu_is_am33xx()) {
-> >  		if (ohri.st_shift)
-> >  			pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does
-> not support st_shift\n",
-> >  			       oh->name, name);
-> > @@ -1334,6 +1330,10 @@ static int _deassert_hardreset(struct omap_hwmod
-> *oh, const char *name)
-> >  				  oh->clkdm->pwrdm.ptr->prcm_partition,
-> >  				  oh->clkdm->pwrdm.ptr->prcm_offs,
-> >  				  oh->prcm.omap4.rstctrl_offs);
-> > +	} else if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-> > +		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
-> > +						   ohri.rst_shift,
-> > +						   ohri.st_shift);
-> 
-> same comment as above.
-> 
-> Kevin
+ /* Read-modify-write a register in PRM. Caller must lock */
+--
+1.7.0.4
+
