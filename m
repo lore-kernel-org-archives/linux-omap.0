@@ -1,89 +1,63 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF
- and DDR
-Date: Sun, 08 Jan 2012 18:23:23 +0100
-Message-ID: <4F09D10B.7010807@ti.com>
-References: <1324303533-17458-1-git-send-email-aneesh@ti.com> <4EEFC23A.30201@gmail.com> <20111219233559.GW6464@atomide.com> <4EF0671B.7090508@ti.com> <4EF0824A.9060208@ti.com> <4EF096C9.1070808@ti.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Bad page state in tidspbridge driver
+Date: Sun, 8 Jan 2012 19:17:31 +0100
+Message-ID: <201201081917.31376.laurent.pinchart@ideasonboard.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:55533 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753417Ab2AHRX3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 12:23:29 -0500
-Received: by ggdk6 with SMTP id k6so1527535ggd.33
-        for <linux-omap@vger.kernel.org>; Sun, 08 Jan 2012 09:23:27 -0800 (PST)
-In-Reply-To: <4EF096C9.1070808@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58635 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752302Ab2AHSRI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Jan 2012 13:17:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Olof Johansson <olof@lixom.net>
+To: linux-omap@vger.kernel.org
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Arne Caspari <arne@unicap-imaging.org>
 
 Hi,
 
-On Tuesday 20 December 2011 03:08 PM, Aneesh V wrote:
-> Hi Benoit
->
-> On Tuesday 20 December 2011 06:10 PM, Cousson, Benoit wrote:
->> Hi Aneesh,
->>
->
-> <snip>
->
->>>>> In general, is it really feasible to parse the DTB before DDR is
->>>>> initialized?
->>>>
->>>> Changing timings is still needed for DVFS during runtime.
->>>>
->>>> But we can boot to userspace with bootloader set timings, so I'm
->>>
->>> As far as I understand, in the current out-of-tree DVFS implementation
->>> for OMAP, DVFS can start even before user-space.
->>
->> Maybe it is the case, but that does not mean it should.
->> We can potentially delay the DVFS init until the user-space is started.
->> This should not be considered as a big constraint.
->>
->>>> thinking that maybe these timings should be just set by loadable
->>>> modules. Just the configuration of which timings to select should
->>>> be passed via DT. Something in compatible like:
->>>>
->>>> .compatible = "ti,omap3630", "sdram-micron-mt46h32m32lf-6";
->>>>
->>>> And that should allow the SDRC driver to only accept timings for
->>>> "sdram-micron-mt46h32m32lf-6".
->>>
->>> Do you mean one module per memory device and have all timing data in
->>> the respective module? Wouldn't this clutter the kernel proper with all
->>> these tables. By having the timing data in DT, it can be eventually
->>> moved out of kernel eventually, right?
->>
->> Yes, that's the theory, but referring to Olof's point, this is not
->> necessarily the goal of DT to store all the information that are not
->> board dependent.
->> In this case, each DDR will have it sets of well known AC timings data
->> that will never depend of the board config. In this case, storing that
->> inside DT might not be the best solution.
->>
->> In fact we always had the same kind of discussion for the pinmux data
->> and for the clock data...
->>
->> The conclusion being that most of the static data does not have to be in
->> the DTS.
->> But since Linus was complaining about the huge amount of data inside the
->> kernel, it is not obvious what the best solution is:-)
->
-> Hmm.. I get the point now. Linus' complaint is what I had in mind too.
-> My humble opinion is to have such data in DTS but re-use it as much as
-> possible. That is, we could have something like a "sdram-micron-
-> mt46h32m32lf-6.dtsi"(as you suggested before) that can be included by
-> board level DTS files. I think the fact that dts files are organized at
-> arch level today is limiting such re-use. Please correct me if I am
-> wrong.
+I'm hitting what seems to be a tidspbridge driver issue when using gst-dsp 
+with the DSP JPEG encoder.
 
-Gentle reminder on this one. Are we aligned on having the DDR timings
-in device tree?
+My application captures images from the OMAP3 ISP directly to frame buffer 
+memory for display. It then passes the frame buffer buffer pointer to gst-dsp 
+and the tidspbridge driver, which maps them to the DSP IOMMU address space.
 
-br,
-Aneesh
+When starting the JPEG encoder a bunch of identical messages are printed to 
+the kernel log:
+
+[14643.065490] BUG: Bad page state in process source:src  pfn:89e39
+[14643.072143] page:c0b11720 count:0 mapcount:0 mapping:  (null) index:0x0
+[14643.079437] page flags: 0x410(dirty|reserved)
+[14643.084197] [<c003ee5c>] (unwind_backtrace+0x0/0xe0) from [<c00a4c34>] 
+(bad_page+0xc4/0xec)
+[14643.093505] [<c00a4c34>] (bad_page+0xc4/0xec) from [<c00a5480>] 
+(free_pages_prepare+0x70/0xe8)
+[14643.102935] [<c00a5480>] (free_pages_prepare+0x70/0xe8) from [<c00a5634>] 
+(free_hot_cold_page+0x20/0x1ac)
+[14643.113525] [<c00a5634>] (free_hot_cold_page+0x20/0x1ac) from [<bf00d120>] 
+(bridge_brd_mem_un_map+0x12c/0x3d4 [bridgedriver])
+[14643.126007] [<bf00d120>] (bridge_brd_mem_un_map+0x12c/0x3d4 [bridgedriver]) 
+from [<bf01cda8>] (proc_un_map+0x6c/0xa0 [bridgedriver])
+[14643.139404] [<bf01cda8>] (proc_un_map+0x6c/0xa0 [bridgedriver]) from 
+[<bf014490>] (api_call_dev_ioctl+0xe8/0x10c [bridgedriver])
+[14643.152160] [<bf014490>] (api_call_dev_ioctl+0xe8/0x10c [bridgedriver]) 
+from [<bf0208b8>] (bridge_ioctl+0x12c/0x15c [bridgedriver])
+[14643.165191] [<bf0208b8>] (bridge_ioctl+0x12c/0x15c [bridgedriver]) from 
+[<c00d8fd8>] (do_vfs_ioctl+0x4e8/0x55c)
+[14643.176177] [<c00d8fd8>] (do_vfs_ioctl+0x4e8/0x55c) from [<c00d9080>] 
+(sys_ioctl+0x34/0x54)
+[14643.185333] [<c00d9080>] (sys_ioctl+0x34/0x54) from [<c003a700>] 
+(ret_fast_syscall+0x0/0x3c)
+
+The backtrace is printed because the page has the PG_reserved flag set, which 
+is expected (as far as I know) for the frame buffer memory.
+
+Is this use case unsupported ?
+
+-- 
+Regards,
+
+Laurent Pinchart
