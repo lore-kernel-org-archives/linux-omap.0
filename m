@@ -1,54 +1,66 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: [GIT PULL] ARM: OMAP2+: Interrupt controllers adaptation to DT
-Date: Mon, 9 Jan 2012 14:57:17 +0100
-Message-ID: <4F0AF23D.9040103@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: [GIT PULL] ARM: OMAP3+: Add DT support for i2c, twl6030 and EVM
+Date: Mon, 9 Jan 2012 17:34:53 +0100
+Message-ID: <4F0B172D.6020105@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41296 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932304Ab2AIQfG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Jan 2012 11:35:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 
 Hi Tony,
 
-If this is not too late, could you please pull the OMAP interrupt controllers adaptation to device tree?
+If this is not too late, could you please pull the various OMAP device tree patches?
 
-This series is based on your lo/dt branch to get the DTS and board cleanup.
+This series assume that all the drivers adaptation to DT are already merged and is based on my previous interrupt controller series.
+It means it has a strong dependency with i2c tree, mfd tree and rtc tree.
+
+I added as well the patch from Vaibhav for EVM early DT support.
 
 Thanks,
 Benoit
 
 
-The following changes since commit 40c0591f0a349ec074357e05c6ab1a3bc951807c:
+The following changes since commit 89f504c5376bb09bd08bb3a3fe4c80949a594069:
   Benoit Cousson (1):
-        ARM: OMAP2+: kconfig: Enable devicetree by default for OMAP2+ systems
+        ARM: OMAP2+: board-generic: Use of_irq_init API
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.3/dt_irq
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.3/dt_i2c_twl_evm
 
-Benoit Cousson (5):
-      arm/dts: OMAP4: Update DTS file with new GIC bindings
-      ARM: OMAP2/3: intc: Add irqdomain support
-      ARM: OMAP2/3: intc: Add DT support for TI interrupt controller
-      arm/dts: OMAP3: Add interrupt-controller bindings for INTC
-      ARM: OMAP2+: board-generic: Use of_irq_init API
+Benoit Cousson (9):
+      ARM: OMAP2+: pm: Do not init statically the SR and voltage layer with DT
+      arm/dts: OMAP4: Add i2c controller nodes
+      arm/dts: OMAP3: Add i2c controller nodes
+      arm/dts: twl6030: Add DTS file for twl6030 PMIC
+      arm/dts: twl4030: Add DTS file for twl4030 PM + Audio IC
+      arm/dts: omap4-panda: Add twl6030 and i2c EEPROM
+      arm/dts: omap4-sdp: Add twl6030, i2c3 and i2c4 devices
+      arm/dts: omap3-beagle: Add twl4030 and i2c EEPROM
+      ARM: OMAP2+: board-generic: Remove i2c static init
 
- .../devicetree/bindings/arm/omap/intc.txt          |   27 +++++++++++
- arch/arm/boot/dts/omap3.dtsi                       |    6 ++-
- arch/arm/boot/dts/omap4.dtsi                       |    2 +-
- arch/arm/mach-omap2/board-generic.c                |   30 +++++++------
- arch/arm/mach-omap2/common.h                       |   10 ++++
- arch/arm/mach-omap2/irq.c                          |   48 ++++++++++++++++++--
- 6 files changed, 102 insertions(+), 21 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
+Vaibhav Hiremath (1):
+      arm/dts: Add support for TI OMAP3 EVM board
+
+ arch/arm/boot/dts/omap3-beagle.dts  |   29 +++++++++++++++++++
+ arch/arm/boot/dts/omap3-evm.dts     |   20 +++++++++++++
+ arch/arm/boot/dts/omap3.dtsi        |   21 ++++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts   |   34 ++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts     |   53 +++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4.dtsi        |   28 ++++++++++++++++++
+ arch/arm/boot/dts/twl4030.dtsi      |   21 ++++++++++++++
+ arch/arm/boot/dts/twl6030.dtsi      |   22 ++++++++++++++
+ arch/arm/mach-omap2/board-generic.c |   48 +------------------------------
+ arch/arm/mach-omap2/pm.c            |    8 +++++
+ 10 files changed, 238 insertions(+), 46 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm.dts
+ create mode 100644 arch/arm/boot/dts/twl4030.dtsi
+ create mode 100644 arch/arm/boot/dts/twl6030.dtsi
