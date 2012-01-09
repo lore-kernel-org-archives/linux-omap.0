@@ -1,59 +1,74 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 2/5] ARM: OMAP2/3: intc: Add irqdomain support
-Date: Mon, 9 Jan 2012 10:56:24 +0100
-Message-ID: <4F0AB9C8.10501@ti.com>
-References: <1324388398-2683-1-git-send-email-b-cousson@ti.com> <1324388398-2683-3-git-send-email-b-cousson@ti.com> <20120106212230.GB7457@ponder.secretlab.ca>
+From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
+Subject: Re: [PATCH RFC] MFD: OMAP: USB: Make the runtime functions depend on CONFIG_PM_RUNTIME
+Date: Mon, 9 Jan 2012 17:00:45 +0530
+Message-ID: <CAM=Q2csKSgvTrEyJn_nJRyphn-T0EkWwp3k5CKzL8TQMoDRZQw@mail.gmail.com>
+References: <1325572979-6090-1-git-send-email-shubhrajyoti@ti.com>
+	<874nwc8gts.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56314 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599Ab2AIJ4h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2012 04:56:37 -0500
-In-Reply-To: <20120106212230.GB7457@ponder.secretlab.ca>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:60695 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753221Ab2AILar convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2012 06:30:47 -0500
+In-Reply-To: <874nwc8gts.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: rob.herring@calxeda.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Grant,
-
-On 1/6/2012 10:22 PM, Grant Likely wrote:
-> On Tue, Dec 20, 2011 at 02:39:55PM +0100, Benoit Cousson wrote:
-
-[...]
-
->> +	/*
->> +	 * XXX: Use a 0 irq_base for the moment since the legacy devices
->> +	 * created statically are expected a hwirq = irq mapping.
->> +	 * A proper offset will be added later, when IRQ resource creation
->> +	 * will be handled by DT.
->> +	 */
->> +	domain.irq_base = 0;
->> +	domain.nr_irq = nr_irqs;
->> +	domain.ops =&irq_domain_simple_ops;
->> +	irq_domain_add(&domain);
+On Wed, Jan 4, 2012 at 5:44 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Shubhrajyoti D <shubhrajyoti@ti.com> writes:
 >
-> The omap doesn't need anything special from irq_domain.  You can use
-> irq_domain_add_simple().  A recent patch was posted that makes
-> irq_domain_add_simple() accepts a nr_irqs parameter and returns the
-> allocated irq domain.
+>> Currently the runtime functions are compiled regardless
+>> of CONFIG_PM_RUNTIME flag. This patch intends to fix the same by
+>> using SET_RUNTIME_PM_OPS.
+>>
+>> Cc : Keshava Munegowda <keshava_mgowda@ti.com>
+>> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+>> ---
+>> applies on Tony's ehci branch.
+>> Compile tested only.
+>
+> You also should compile test this with runtime PM disabled. =A0I beli=
+eve
+> the current patch will lead to 'function defined but not used' warnin=
+gs.
 
-Yes, I saw that, but in fact as discussed previously with Rob, even the 
-irq_domain_add_simple should become useless when Rob's series to convert 
-generic-chip to use irq_domain will be merged.
+Agree . thanks for pointing out.
 
-I have a patch ready for that, but like Nico for AT91, I decided to 
-avoid that dependency for 3.3, since that series was not yet stable.
-
-> However, that isn't enough reason for me to reject this patch if there
-> is any opportunity to get it into v3.3 provided you promise to fix it
-> up later.
-
-Yes, I do :-)
-
-> Acked-by: Grant Likely<grant.likely@secretlab.ca>
-
-Thanks,
-Benoit
+>
+> Kevin
+>
+>> =A0drivers/mfd/omap-usb-host.c | =A0 =A04 ++--
+>> =A01 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host=
+=2Ec
+>> index 3f565ef..ef72ebe 100644
+>> --- a/drivers/mfd/omap-usb-host.c
+>> +++ b/drivers/mfd/omap-usb-host.c
+>> @@ -887,8 +887,8 @@ static int __devexit usbhs_omap_remove(struct pl=
+atform_device *pdev)
+>> =A0}
+>>
+>> =A0static const struct dev_pm_ops usbhsomap_dev_pm_ops =3D {
+>> - =A0 =A0 .runtime_suspend =A0 =A0 =A0 =A0=3D usbhs_runtime_suspend,
+>> - =A0 =A0 .runtime_resume =A0 =A0 =A0 =A0 =3D usbhs_runtime_resume,
+>> + =A0 =A0 SET_RUNTIME_PM_OPS(usbhs_runtime_suspend,
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 usbhs_runt=
+ime_resume, NULL)
+>> =A0};
+>>
+>> =A0static struct platform_driver usbhs_omap_driver =3D {
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
