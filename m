@@ -1,77 +1,59 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH] irqdomain: Initialize number of IRQs for simple domains
-Date: Mon, 9 Jan 2012 10:03:12 +0100
-Message-ID: <20120109090311.GA10040@avionic-0098.mockup.avionic-design.de>
-References: <1325860112-22051-1-git-send-email-thierry.reding@avionic-design.de>
- <4F072843.6050306@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2 2/5] ARM: OMAP2/3: intc: Add irqdomain support
+Date: Mon, 9 Jan 2012 10:56:24 +0100
+Message-ID: <4F0AB9C8.10501@ti.com>
+References: <1324388398-2683-1-git-send-email-b-cousson@ti.com> <1324388398-2683-3-git-send-email-b-cousson@ti.com> <20120106212230.GB7457@ponder.secretlab.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4F072843.6050306@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, Tony Lindgren <tony@atomide.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Walker <dwalker@fifo99.com>, Russell King <linux@arm.linux.org.uk>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, David Brown <davidb@codeaurora.org>, "open list:ARM/QUALCOMM MSM..." <linux-arm-msm@vger.kernel.org>, Rob Herring <rob.herring@calxeda.com>, Barry Song <baohua.song@csr.com>, Thomas Gleixner <tglx@linutronix.de>, OMAP SUPPORT <linux-omap@vger.kernel.org>, Andrew Victor <linux@maxim.org.za>, "open list:ARM/ATMEL AT91RM9..." <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, Bryan Huntsman <bryanh@codeaurora.org>, Richard Zhao <richard.zhao@freescale.com>, Sascha Hauer <kernel@pengutronix.de>, David Woodhouse <dwmw2@infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:56314 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab2AIJ4h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Jan 2012 04:56:37 -0500
+In-Reply-To: <20120106212230.GB7457@ponder.secretlab.ca>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: rob.herring@calxeda.com, tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+Hi Grant,
 
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 1/6/2012 10:22 PM, Grant Likely wrote:
+> On Tue, Dec 20, 2011 at 02:39:55PM +0100, Benoit Cousson wrote:
 
-* Cousson, Benoit wrote:
-> Hi Thierry,
->=20
-> On 1/6/2012 3:28 PM, Thierry Reding wrote:
-> >The irq_domain_add() function needs the number of interrupts in the
-> >domain to properly initialize them. In addition the allocated domain
-> >is now returned by the irq_domain_{add,generate}_simple() helpers.
->=20
-> [...]
->=20
-> >diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/b=
-oard-generic.c
-> >index d587560..bf67781 100644
-> >--- a/arch/arm/mach-omap2/board-generic.c
-> >+++ b/arch/arm/mach-omap2/board-generic.c
-> >@@ -66,8 +66,11 @@ static struct of_device_id intc_match[] __initdata =
-=3D {
-> >  static void __init omap_generic_init(void)
-> >  {
-> >  	struct device_node *node =3D of_find_matching_node(NULL, intc_match);
-> >-	if (node)
-> >-		irq_domain_add_simple(node, 0);
-> >+	if (node) {
-> >+		struct irq_domain *domain;
-> >+		domain =3D irq_domain_add_simple(node, 0, INTCPS_NR_IRQS);
->=20
-> The number of interrupts will depend on the OMAP generation. That
-> one is just valid for the 3430 INTC controller.
-> Since the previous code was using zero, I guess that using 0 there
-> should be fine.
->=20
-> Moreover, that piece of code should not exist anymore on 3.3 if the
-> series I sent last month to leverage Rob's DT interrupt init is
-> merged [1].
->=20
-> I've just ping Rob and Grant on that series to get a status.
+[...]
 
-Okay, so I guess we should wait for you patch to go in first and I'll update
-this patch on top of that. I assume we can coordinate things in linux-next?
+>> +	/*
+>> +	 * XXX: Use a 0 irq_base for the moment since the legacy devices
+>> +	 * created statically are expected a hwirq = irq mapping.
+>> +	 * A proper offset will be added later, when IRQ resource creation
+>> +	 * will be handled by DT.
+>> +	 */
+>> +	domain.irq_base = 0;
+>> +	domain.nr_irq = nr_irqs;
+>> +	domain.ops =&irq_domain_simple_ops;
+>> +	irq_domain_add(&domain);
+>
+> The omap doesn't need anything special from irq_domain.  You can use
+> irq_domain_add_simple().  A recent patch was posted that makes
+> irq_domain_add_simple() accepts a nr_irqs parameter and returns the
+> allocated irq domain.
 
-Thierry
+Yes, I saw that, but in fact as discussed previously with Rob, even the 
+irq_domain_add_simple should become useless when Rob's series to convert 
+generic-chip to use irq_domain will be merged.
 
---1yeeQ81UyVL57Vl7
-Content-Type: application/pgp-signature
+I have a patch ready for that, but like Nico for AT91, I decided to 
+avoid that dependency for 3.3, since that series was not yet stable.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> However, that isn't enough reason for me to reject this patch if there
+> is any opportunity to get it into v3.3 provided you promise to fix it
+> up later.
 
-iEYEARECAAYFAk8KrU8ACgkQZ+BJyKLjJp+TRgCfZOrAsza8BDBWyon6uCOjTrsW
-V6IAnjIkRPQSQTh5AThunw4n4ZK1La8m
-=eQ7B
------END PGP SIGNATURE-----
+Yes, I do :-)
 
---1yeeQ81UyVL57Vl7--
+> Acked-by: Grant Likely<grant.likely@secretlab.ca>
+
+Thanks,
+Benoit
