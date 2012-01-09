@@ -1,68 +1,62 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH RFCv2] MFD: OMAP: USB: Make the runtime functions depend on
- CONFIG_PM_RUNTIME
-Date: Mon, 9 Jan 2012 17:00:57 +0530
-Message-ID: <1326108657-23595-1-git-send-email-shubhrajyoti@ti.com>
+From: Liam Girdwood <lrg@ti.com>
+Subject: Re: [PATCH v2 4/4] ASoC: OMAP: ams-delta: drop
+ .set_bias_level callback
+Date: Mon, 09 Jan 2012 11:53:35 +0000
+Message-ID: <1326110015.24178.5.camel@odin>
+References: <1325214296-2888-5-git-send-email-jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1325214296-2888-5-git-send-email-jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Currently the runtime functions are compiled regardless
-of CONFIG_PM_RUNTIME flag. This patch intends to fix the same by
-using SET_RUNTIME_PM_OPS.
+On Fri, 2011-12-30 at 04:04 +0100, Janusz Krzysztofik wrote:
+> This functionality has just been implemented in the cx20442 codec
+> driver, no need to keep it here duplicated.
+> 
+> Once done, remove the no longer used AMS_DELTA_LATCH2_MODEM_NRESET
+> symbol from the board header file and a call to the regulator_toggle()
+> helper function from the old API wrapper found in the board file.  While
+> being at it, simplify the way the modem .pm callback handles the
+> regulator, and drop that no longer used helper function and its related
+> consumer setup elements completely.
+> 
+> Depends on patch 3/4 "ARM: OMAP1: ams-delta: update the modem to use
+> regulator API"
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+> Changes against initial version:
+> * don't move consumer setup elements, now named to indicated their
+>   modem related purpose, down the file,
+> * don't track the regulator enavble/disable state, compare new target
+>   power state with the old one instead; thanks to Mark Brown for
+>   suggesting this simplification,
+> * actually drop all references to AMS_DELTA_LATCH2_MODEM_NRESET.
+> 
+>  arch/arm/mach-omap1/board-ams-delta.c             |   42 +++-----------------
+>  arch/arm/plat-omap/include/plat/board-ams-delta.h |    1 -
+>  sound/soc/omap/ams-delta.c                        |   32 ----------------
+>  3 files changed, 7 insertions(+), 68 deletions(-)
 
-Cc : Keshava Munegowda <keshava_mgowda@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
----
-applies on Tony's ehci branch.
-Compile tested only.
+I tried to apply against ASoC but it failed with the omap files. It may
+be better for this patch to go via Tony. 
 
- drivers/mfd/omap-usb-host.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+2/4 applies and builds ok, but if there is a runtime dependency on the
+rest it should go via Tony too.
 
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 3f565ef..2896d6b 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -422,6 +422,7 @@ static void usbhs_omap_tll_init(struct device *dev, u8 tll_channel_count)
- 	}
- }
- 
-+#ifdef CONFIG_PM_RUNTIME
- static int usbhs_runtime_resume(struct device *dev)
- {
- 	struct usbhs_hcd_omap		*omap = dev_get_drvdata(dev);
-@@ -489,6 +490,7 @@ static int usbhs_runtime_suspend(struct device *dev)
- 
- 	return 0;
- }
-+#endif
- 
- static void omap_usbhs_init(struct device *dev)
- {
-@@ -887,8 +889,8 @@ static int __devexit usbhs_omap_remove(struct platform_device *pdev)
- }
- 
- static const struct dev_pm_ops usbhsomap_dev_pm_ops = {
--	.runtime_suspend	= usbhs_runtime_suspend,
--	.runtime_resume		= usbhs_runtime_resume,
-+	SET_RUNTIME_PM_OPS(usbhs_runtime_suspend,
-+				usbhs_runtime_resume, NULL)
- };
- 
- static struct platform_driver usbhs_omap_driver = {
--- 
-1.7.1
+Thanks
+
+Liam
