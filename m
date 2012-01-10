@@ -1,101 +1,70 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH v2] irqdomain: Initialize number of IRQs for simple
- domains
-Date: Tue, 10 Jan 2012 11:44:35 +0100
-Message-ID: <20120110104435.GA10617@avionic-0098.mockup.avionic-design.de>
-References: <1326191059-26411-1-git-send-email-thierry.reding@avionic-design.de>
- <20120110103905.GC3226@page>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCHv12 0/9] OMAP3+: PRCM chain handler
+Date: Tue, 10 Jan 2012 11:41:08 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D1214304EDAC@DBDE01.ent.ti.com>
+References: <20111215213358.26632.44165.stgit@dusk>
+	<B5906170F1614E41A8A28DE3B8D1214304DF4E@DBDE01.ent.ti.com>
+ <87obucuzev.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="M9NhX3UHpAaciwkO"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62087 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768Ab2AJKra (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jan 2012 05:47:30 -0500
-Content-Disposition: inline
-In-Reply-To: <20120110103905.GC3226@page>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56578 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755321Ab2AJLlS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Jan 2012 06:41:18 -0500
+In-Reply-To: <87obucuzev.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jamie Iles <jamie@jamieiles.com>
-Cc: devicetree-discuss@lists.ozlabs.org, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Sascha Hauer <kernel@pengutronix.de>, Shawn Guo <shawn.guo@linaro.org>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua.song@csr.com>, Thomas Gleixner <tglx@linutronix.de>, Catalin Marinas <catalin.marinas@arm.com>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, "open list:ARM/ATMEL AT91RM9..." <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, open list:ARM/QUALCOMM
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+Hi Kevin,
 
---M9NhX3UHpAaciwkO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jan 10, 2012 at 06:49:52, Hilman, Kevin wrote:
+[...]
+> >
+> > 1. IO and wakeup events are not supported on AM33XX. Since cpu_is_34xx()
+> > holds true for AM33XX I ended up adding a !cpu_is_am33xx() check in 
+> > omap3xxx_prcm_init() to bypass the chain handler registration.
+> 
+> > Without such a check we were seeing a crash in USB since USB_CLKCTRL on 
+> > AM33XX just happens to be at the IRQENABLE_MPU_OFFSET of OMAP3.
+> > Hope such cpu_is_*() checks are acceptable.
+> 
+> We try to avoid them, especially when we already have existing feature
+> flag for IO wakeups.
+> 
+> Does something like (completely untested) patch below work for you?
+> 
+> Of course, that implies that that feature flag is initialized correctly
+> for AM33xx.
+> 
+> Kevin
+> 
+> 
+> 
+> diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+> index c1c4d86..87451d9 100644
+> --- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
+> +++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
+> @@ -302,7 +302,7 @@ void omap3xxx_prm_restore_irqen(u32 *saved_mask)
+>  
+>  static int __init omap3xxx_prcm_init(void)
+>  {
+> -	if (cpu_is_omap34xx())
+> +	if (cpu_is_omap34xx() && omap3_has_io_wakeup())
+>  		return omap_prcm_register_chain_handler(&omap3_prcm_irq_setup);
+>  	return 0;
+>  }
+> 
 
-* Jamie Iles wrote:
-> Hi Thierry,
->=20
-> On Tue, Jan 10, 2012 at 11:24:11AM +0100, Thierry Reding wrote:
-> > The irq_domain_add() function needs the number of interrupts in the
-> > domain to properly initialize them. In addition the allocated domain
-> > is now returned by the irq_domain_{add,generate}_simple() helpers.
-> >=20
-> > Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-> > Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-> > Acked-by: David Brown <davidb@codeaurora.org>
-> > ---
-> > Note: This patch should not be applied yet. There is a conflict with a
-> >       pending patch[0] by Benoit Cousson that will obsolete the OMAP2
-> >       hunk in this patch.
-> >=20
-> >       [0]: http://www.spinics.net/lists/linux-omap/msg62124.html
->=20
-> I also have a patch in Russell's tracker to remove one of the calls for=
-=20
-> versatile (for the VIC) that is no longer needed.
+I'll try this out once we have feature flag initialized on AM33xx.
+Can the cpu_is_omap34xx() check be completely dropped in that case?
+Or is there some other reason for retaining it?
 
-Okay, I'll take a note. I guess it is okay for this patch to go in only aft=
-er
-the conflicting patches have all been applied. I'm assuming that sooner or
-later those patches will land in linux-next and I can rebase this patch on
-top, right?
+I guess we'll still need a way to avoid the error message from mux.c
 
-> > diff --git a/arch/arm/mach-imx/imx51-dt.c b/arch/arm/mach-imx/imx51-dt.c
-> > index e6bad17..811ce88 100644
-> > --- a/arch/arm/mach-imx/imx51-dt.c
-> > +++ b/arch/arm/mach-imx/imx51-dt.c
-> > @@ -47,7 +47,12 @@ static const struct of_dev_auxdata imx51_auxdata_loo=
-kup[] __initconst =3D {
-> >  static int __init imx51_tzic_add_irq_domain(struct device_node *np,
-> >  				struct device_node *interrupt_parent)
-> >  {
-> > -	irq_domain_add_simple(np, 0);
-> > +	struct irq_domain *domain;
-> > +
-> > +	domain =3D irq_domain_add_simple(np, 0, TZIC_NUM_IRQS);
-> > +	if (!domain)
-> > +		return -ENOMEM;
-> > +
-> >  	return 0;
-> >  }
->=20
-> A real nit, but could this be written as:
->=20
-> 	return irq_domain_add_simple(np, 0, TZIC_NUM_IRQS) ? 0 : -ENOMEM;
->=20
-> to make it a little more concise (and the same for the others)?  Not a=20
-> big deal though, so either way:
->=20
-> Reviewed-by: Jamie Iles <jamie@jamieiles.com>
-
-Yes, I can do that.
-
-Thanks,
-Thierry
-
---M9NhX3UHpAaciwkO
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk8MFpMACgkQZ+BJyKLjJp/WdQCfdRvbIK29QwAps9EH7L0QFHKx
-tLYAoJlM7Q1QyLrTQu5eNnwFfHhEdlfB
-=IFCD
------END PGP SIGNATURE-----
-
---M9NhX3UHpAaciwkO--
+Regards,
+Vaibhav
