@@ -1,63 +1,54 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHV2 REPOST 2/7] ARM: OMAP3 PM: Move IO Daisychain function to omap3 prm file
-Date: Tue, 10 Jan 2012 09:33:33 -0800
-Message-ID: <87pqersbrm.fsf@ti.com>
+Subject: Re: [PATCHV2 REPOST 3/7] ARM: OMAP4 PM: Add IO Daisychain support
+Date: Tue, 10 Jan 2012 09:35:21 -0800
+Message-ID: <87ipkjsbom.fsf@ti.com>
 References: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
-	<1323878477-21122-3-git-send-email-vishwanath.bs@ti.com>
+	<1323878477-21122-4-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:51413 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755695Ab2AJRdh (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:34949 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932347Ab2AJRfY (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jan 2012 12:33:37 -0500
-Received: by mail-yw0-f44.google.com with SMTP id p56so1283055yhp.31
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jan 2012 09:33:36 -0800 (PST)
-In-Reply-To: <1323878477-21122-3-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Wed, 14 Dec 2011 21:31:12 +0530")
+	Tue, 10 Jan 2012 12:35:24 -0500
+Received: by yenq7 with SMTP id q7so1192476yen.7
+        for <linux-omap@vger.kernel.org>; Tue, 10 Jan 2012 09:35:23 -0800 (PST)
+In-Reply-To: <1323878477-21122-4-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Wed, 14 Dec 2011 21:31:13 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
 Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-> Since IO Daisychain modifies only PRM registers, it makes sense to move it to
-> PRM File.
+> From: Rajendra Nayak <rnayak@ti.com>
+>
+> patch adds IO Daisychain support for OMAP4 as per section 3.9.4 in OMAP4430
+> Public TRM.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+> Tested-by: Govindraj.R <govindraj.raja@ti.com>
 
-You also rename the function but don't describe why or what the new name
-means or where it comes from.  An only the 'enable' version is renamed,
-but the 'disable' version stays the same.  Confusing.
+One of my least favorite things to have to remind others to do, but:
 
-Also, please fix checkpatch warning:
+Please fix checkpatch warnings:
 
 WARNING: line over 80 characters
-#103: FILE: arch/arm/mach-omap2/prm2xxx_3xxx.c:259:
-+		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
+#43: FILE: arch/arm/mach-omap2/prm44xx.c:158:
++	if (!(omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET)
 
-[...]
+WARNING: line over 80 characters
+#46: FILE: arch/arm/mach-omap2/prm44xx.c:161:
++				OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_INST,
 
-> +/* OMAP3 Daisychain trigger sequence */
-> +void omap3_trigger_wuclk_ctrl(void)
-> +{
-> +	int i = 0;
-> +
-> +	omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
-> +			     PM_WKEN);
-> +	/* Do a readback to assure write has been done */
-> +	omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
-> +
-> +	omap_test_timeout(
-> +	(((omap2_prm_read_mod_reg(WKUP_MOD, PM_WKST) &
-> +		 OMAP3430_ST_IO_CHAIN_MASK) == 1)),
-> +	MAX_IOPAD_LATCH_TIME, i);
+WARNING: line over 80 characters
+#50: FILE: arch/arm/mach-omap2/prm44xx.c:165:
++	omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, OMAP4430_WUCLK_CTRL_MASK,
 
-indentation is messy
+WARNING: line over 80 characters
+#53: FILE: arch/arm/mach-omap2/prm44xx.c:168:
++		((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_OFFSET)
 
-> +
-> +	omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK, WKUP_MOD,
-> +			     PM_WKEN);
-> +}
-
-Kevin
