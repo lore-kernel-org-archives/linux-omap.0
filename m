@@ -1,48 +1,36 @@
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: Re: [PATCH v2] irqdomain: Initialize number of IRQs for simple
- domains
-Date: Tue, 10 Jan 2012 23:41:12 +0800
-Message-ID: <20120110154109.GB27831@S2101-09.ap.freescale.net>
-References: <1326191059-26411-1-git-send-email-thierry.reding@avionic-design.de>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHV2 REPOST 0/7] ARM: OMAP3PLUS PM: Add IO DaisyChain support via hwmod mux
+Date: Tue, 10 Jan 2012 09:26:10 -0800
+Message-ID: <878vlftqod.fsf@ti.com>
+References: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1326191059-26411-1-git-send-email-thierry.reding@avionic-design.de>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: devicetree-discuss@lists.ozlabs.org, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Sascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua.song@csr.com>, Thomas Gleixner <tglx@linutronix.de>, Catalin Marinas <catalin.marinas@arm.com>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, Jamie Iles <jamie@jamieiles.com>, "open list:ARM/ATMEL AT91RM9..." <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, open list:ARM/QUALCOM
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:37365 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755695Ab2AJR0O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Jan 2012 12:26:14 -0500
+Received: by mail-yx0-f172.google.com with SMTP id l8so1919676yen.31
+        for <linux-omap@vger.kernel.org>; Tue, 10 Jan 2012 09:26:13 -0800 (PST)
+In-Reply-To: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
+	(Vishwanath BS's message of "Wed, 14 Dec 2011 21:31:10 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vishwanath BS <vishwanath.bs@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tue, Jan 10, 2012 at 11:24:11AM +0100, Thierry Reding wrote:
-> The irq_domain_add() function needs the number of interrupts in the
-> domain to properly initialize them. In addition the allocated domain
-> is now returned by the irq_domain_{add,generate}_simple() helpers.
-> 
-> Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-> Acked-by: David Brown <davidb@codeaurora.org>
-> ---
-> Note: This patch should not be applied yet. There is a conflict with a
->       pending patch[0] by Benoit Cousson that will obsolete the OMAP2
->       hunk in this patch.
-> 
->       [0]: http://www.spinics.net/lists/linux-omap/msg62124.html
-> 
-> Changes in v2:
->  - Don't use ERR_PTR, keep the WARN_ON(1) and return NULL as requested
->    by Grant Likely.
->  - Integrate i.MX cleanup patch by Shawn Guo.
-> 
-...
->  arch/arm/mach-imx/imx51-dt.c          |   13 +++++++++++--
->  arch/arm/mach-imx/imx53-dt.c          |   13 +++++++++++--
->  arch/arm/mach-imx/mach-imx6q.c        |    6 +++++-
-...
->  arch/arm/plat-mxc/include/mach/irqs.h |   13 +++++++------
->  arch/arm/plat-mxc/tzic.c              |    2 --
+Vishwanath BS <vishwanath.bs@ti.com> writes:
 
-Acked-by: Shawn Guo <shawn.guo@linaro.org>
+> The following patch series provides IO Daisychain feature via omap hwmod mux framework.
+> The patch series has been generated against Tero's V11 irq chaining series [1].
 
-Regards,
-Shawn
+Tero's series has now been reworked a bit by Paul for merging in v3.3.
+
+Can you rebase and retest this against Tony's 'uart' branch which now
+includes the reworked PRCM handler as well as the UART runtime PM series
+that is queued for v3.3.
+
+Thanks,
+
+Kevin
