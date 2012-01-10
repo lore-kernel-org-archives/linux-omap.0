@@ -1,71 +1,145 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2 1/3] OMAPDSS: HDMI: HPD support in boardfile
-Date: Tue, 10 Jan 2012 09:43:20 +0200
-Message-ID: <1326181400.1939.42.camel@deskari>
-References: <1325853877-6712-1-git-send-email-mythripk@ti.com>
-	 <1325853877-6712-2-git-send-email-mythripk@ti.com>
-	 <1326181045.1939.38.camel@deskari>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH v2 3/3] OMAPDSS: HDMI: HPD support added to HDMI driver
+Date: Tue, 10 Jan 2012 13:28:56 +0530
+Message-ID: <4F0BEFC0.9010705@ti.com>
+References: <1325853877-6712-1-git-send-email-mythripk@ti.com> <1325853877-6712-2-git-send-email-mythripk@ti.com> <1325853877-6712-3-git-send-email-mythripk@ti.com> <1325853877-6712-4-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-glU5KHS9Z7rGU6+kzAPm"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:56629 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751108Ab2AJHnZ (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48305 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751379Ab2AJH7E (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jan 2012 02:43:25 -0500
-Received: by mail-lpp01m010-f44.google.com with SMTP id h2so2112987laa.31
-        for <linux-omap@vger.kernel.org>; Mon, 09 Jan 2012 23:43:23 -0800 (PST)
-In-Reply-To: <1326181045.1939.38.camel@deskari>
+	Tue, 10 Jan 2012 02:59:04 -0500
+Received: by mail-yx0-f176.google.com with SMTP id q7so866538yen.21
+        for <linux-omap@vger.kernel.org>; Mon, 09 Jan 2012 23:59:02 -0800 (PST)
+In-Reply-To: <1325853877-6712-4-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, linux-omap@vger.kernel.org
 
+Hi Mythri,
 
---=-glU5KHS9Z7rGU6+kzAPm
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2012-01-10 at 09:37 +0200, Tomi Valkeinen wrote:
-
-> I still think we should try to fix the bug at hand, not try to implement
-> proper HPD support. Was there something wrong with the example patch I
-> gave? (other than it needs some splitting up).
-
-And one reason I'm saying we shouldn't try to implement HPD properly is
-that with device tree the handling of the GPIOs will change, and if you
-now make the driver handle the HPD in the generic hdmi layer, it may
-well be that with dev tree it will change (I'm not sure yet how the
-GPIOs will be managed there, but most likely they will be passed to the
-IP driver).
-
-So I think we should make the simplest possible implementation to handle
-the PHY bug, inside the IP driver.
-
- Tomi
-
-
---=-glU5KHS9Z7rGU6+kzAPm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPC+wYAAoJEPo9qoy8lh71hGgQAIStklS+3SQ8VZWasEt91EIg
-egOl0tRCehQU3majDYoK6wmc/106egcMU5+G+4dRrVF67AU6cbNWUpFdV4xSaAwD
-Kpa7LwEw/r0oe2JbBmA9ljNnLmTZyqKf5aPbXN59uMRsDF2zUlkfM76NMEsyI2md
-wq/qnG5815BxCpKiu45XKIaERsp/0Z0CRqN9So7fBV78wjflmE/xEByynMrRjFo8
-NV1pwj+NVGnBVDvmeb9yiDpKLSALir7wGtcKjaG/S5oAjbKhKSZqbE5kg6/B338P
-C103dyikJ/JW0udpD0WWcR5uUYMEysuBFslzCcgKoGhBSdXzAeZbFOCYkEDMRe2c
-3yGB33GDi/K358NAim53ot8BtdODVsaWVyawkdrfcSBhiloG8cMfKDNn6O79fnbF
-ultCfr7mb+UJEdde9UlbEt6nSH1b/H643vpR+tY7ugdngnnvJTDFIy50NLZ3yHxe
-4x1s3sfj36CiubiF1OxeIEHt1w322EC2yGpoFTg6zM6sU7qv6vMEG/uiLUk2uxHC
-oATYee29XSF8aDwUa2xt+hvrK6KGb05J4Mmlw6aDTtcji0EP1BPLwJVvvY7hH9pq
-YAbqGfCRR3vd1hR77fBnr5MeII69OjhXMb+mnbwjxbd6E40gs9bXt6KhUo94GXah
-3uuxUQ38fVkrdhMghPn9
-=H0Mn
------END PGP SIGNATURE-----
-
---=-glU5KHS9Z7rGU6+kzAPm--
+On Friday 06 January 2012 06:14 PM, mythripk@ti.com wrote:
+> From: Mythri P K <mythripk@ti.com>
+>
+> GPIO based handling of connect/disconnect of the HDMI cable
+> (Hot-plug detect)is added to the HDMI driver.
+>
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+> ---
+>  drivers/video/omap2/dss/dss_features.c |    1 +
+>  drivers/video/omap2/dss/hdmi.c         |   49 ++++++++++++++++++++++++++++++++
+>  2 files changed, 50 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+> index 544b172..ef3f666 100644
+> --- a/drivers/video/omap2/dss/dss_features.c
+> +++ b/drivers/video/omap2/dss/dss_features.c
+> @@ -477,6 +477,7 @@ static const struct ti_hdmi_ip_ops omap4_hdmi_functions = {
+>  	.audio_enable		=       ti_hdmi_4xxx_wp_audio_enable,
+>  #endif
+>  	.configure_range	=	ti_hdmi_4xxx_configure_range,
+> +	.notify_hpd		=	ti_hdmi_4xxx_notify_hpd,
+>  
+>  };
+>  
+> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+> index 29de79f..4c3110d 100644
+> --- a/drivers/video/omap2/dss/hdmi.c
+> +++ b/drivers/video/omap2/dss/hdmi.c
+> @@ -66,6 +66,9 @@ static struct {
+>  	struct omap_display_platform_data *pdata;
+>  	struct platform_device *pdev;
+>  	struct hdmi_ip_data ip_data;
+> +	struct omap_dss_device *dssdev;
+> +
+> +	bool hpd;
+>  
+>  	struct clk *sys_clk;
+>  } hdmi;
+> @@ -461,6 +464,29 @@ void hdmi_dump_regs(struct seq_file *s)
+>  	mutex_unlock(&hdmi.lock);
+>  }
+>  
+> +static int hdmi_get_current_hpd(void)
+> +{
+> +	return gpio_get_value(hdmi.dssdev->hpd_gpio);
+> +}
+> +
+> +static irqreturn_t hpd_enable_handler(int irq, void *ptr)
+> +{
+> +	DSSDBG("hpd enable %d\n", hdmi.hpd);
+> +
+> +	hdmi.ip_data.ops->notify_hpd(&hdmi.ip_data, hdmi.hpd);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static irqreturn_t hpd_irq_handler(int irq, void *ptr)
+> +{
+> +	if (hdmi.dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
+> +		hdmi.hpd = hdmi_get_current_hpd();
+> +		return IRQ_WAKE_THREAD;
+> +	}
+> +	return IRQ_HANDLED;
+> +}
+> +
+>  int omapdss_hdmi_read_edid(u8 *buf, int len)
+>  {
+>  	int r;
+> @@ -782,11 +808,22 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+>  {
+>  	struct resource *hdmi_mem;
+>  	int r;
+> +	struct omap_dss_board_info *board_data;
+>  
+>  	hdmi.pdata = pdev->dev.platform_data;
+>  	hdmi.pdev = pdev;
+>  
+>  	mutex_init(&hdmi.lock);
+> +	/* save reference to HDMI device */
+> +	board_data = hdmi.pdata->board_data;
+> +	for (r = 0; r < board_data->num_devices; r++) {
+> +		if (board_data->devices[r]->type == OMAP_DISPLAY_TYPE_HDMI)
+> +			hdmi.dssdev = board_data->devices[r];
+> +	}
+> +	if (!hdmi.dssdev) {
+> +		DSSERR("can't get HDMI device\n");
+> +		return -EINVAL;
+> +	}
+>  
+>  	hdmi_mem = platform_get_resource(hdmi.pdev, IORESOURCE_MEM, 0);
+>  	if (!hdmi_mem) {
+> @@ -810,6 +847,16 @@ static int omapdss_hdmihw_probe(struct platform_device *pdev)
+>  
+>  	pm_runtime_enable(&pdev->dev);
+>  
+> +	r = request_threaded_irq(gpio_to_irq(hdmi.dssdev->hpd_gpio),
+> +			hpd_irq_handler, hpd_enable_handler,
+> +			IRQF_DISABLED | IRQF_TRIGGER_RISING |
+Why is  IRQF_DISABLED needed?
+> +			IRQF_TRIGGER_FALLING, "hpd", NULL);
+> +	if (r < 0) {
+> +		pr_err("hdmi: request_irq %d failed\n",
+> +			gpio_to_irq(hdmi.dssdev->hpd_gpio));
+> +		return -EINVAL;
+Could we return the error from  request_threaded_irq instead of masking
+with EINVAL.
+> +	}
+> +
+>  	hdmi.ip_data.core_sys_offset = HDMI_CORE_SYS;
+>  	hdmi.ip_data.core_av_offset = HDMI_CORE_AV;
+>  	hdmi.ip_data.pll_offset = HDMI_PLLCTRL;
+> @@ -840,6 +887,8 @@ static int omapdss_hdmihw_remove(struct platform_device *pdev)
+>  	snd_soc_unregister_codec(&pdev->dev);
+>  #endif
+>  
+> +	free_irq(gpio_to_irq(hdmi.dssdev->hpd_gpio), hpd_irq_handler);
+> +
+>  	pm_runtime_disable(&pdev->dev);
+>  
+>  	hdmi_put_clocks();
 
