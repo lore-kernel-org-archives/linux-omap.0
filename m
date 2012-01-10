@@ -1,42 +1,69 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHV2 REPOST 6/7] ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
-Date: Tue, 10 Jan 2012 09:56:21 -0800
-Message-ID: <87lipfqw56.fsf@ti.com>
-References: <1323878477-21122-1-git-send-email-vishwanath.bs@ti.com>
-	<1323878477-21122-7-git-send-email-vishwanath.bs@ti.com>
+Subject: Re: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to existing prm code
+Date: Tue, 10 Jan 2012 10:09:22 -0800
+Message-ID: <87zkdvpgz1.fsf@ti.com>
+References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+	<1326017894-7632-4-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:55982 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751849Ab2AJR4Y (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:46640 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754282Ab2AJSJ0 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jan 2012 12:56:24 -0500
-Received: by mail-yw0-f43.google.com with SMTP id j56so5994398yhj.30
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jan 2012 09:56:23 -0800 (PST)
-In-Reply-To: <1323878477-21122-7-git-send-email-vishwanath.bs@ti.com>
-	(Vishwanath BS's message of "Wed, 14 Dec 2011 21:31:16 +0530")
+	Tue, 10 Jan 2012 13:09:26 -0500
+Received: by mail-yw0-f46.google.com with SMTP id j63so986241yhj.33
+        for <linux-omap@vger.kernel.org>; Tue, 10 Jan 2012 10:09:25 -0800 (PST)
+In-Reply-To: <1326017894-7632-4-git-send-email-hvaibhav@ti.com> (Vaibhav
+	Hiremath's message of "Sun, 8 Jan 2012 15:48:14 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vishwanath BS <vishwanath.bs@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, Rajendra Nayak <rnayak@ti.com>
 
-Vishwanath BS <vishwanath.bs@ti.com> writes:
+Vaibhav Hiremath <hvaibhav@ti.com> writes:
 
-> As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-> control it from cpuidle path for OMAP3.
+> AM33XX PRM module (L4_WK domain) will be treated as another seperate
+> partition in _prm_bases[] table.
 >
-> Also as omap3_disable_io_chain is no longer being used, just remove the function.
+> Also, since cpu_is_omap34xx check is true for am33xx family of
+> devices, we must check cpu_is_am33xx fisrt, in order to follow
+> omap4 execution path.
+
+Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
+These AM3xxx devices make my brain hurt.
+
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+
+[...]
+
+> diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+> index 3d9894f..fcc4123 100644
+> --- a/arch/arm/mach-omap2/prminst44xx.c
+> +++ b/arch/arm/mach-omap2/prminst44xx.c
+> @@ -19,6 +19,7 @@
+>  #include "common.h"
 >
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> Tested-by: Govindraj.R <govindraj.raja@ti.com>
+>  #include "prm44xx.h"
+> +#include "prm33xx.h"
+>  #include "prminst44xx.h"
+>  #include "prm-regbits-44xx.h"
+>  #include "prcm44xx.h"
+> @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+>  	[OMAP4430_CM2_PARTITION]		= 0,
+>  	[OMAP4430_SCRM_PARTITION]		= 0,
+>  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+> +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
+>  };
 
-In the TRM (4460 public TRM vM) it says:
+I'm not crazy about just extending the "normal" OMAP4 table.  That would
+imply that with each OMAP4 derivatve we keep extending this table.
 
-  "The software must enable the I/O wakeup prior entering a low-power
-   mode and disable it following a wake-up event."
-
-but after this series, once it's enabled, it is never disabled.   What
-am I missing?
+Instead, how about rename this to one to omap44xx_prm_bases[], then
+create a new one called am33xx_prm_bases[].  Then, at init time, assing
+_prm_bases to the right one based on cpu_is_.
 
 Kevin
+
