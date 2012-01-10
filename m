@@ -1,42 +1,35 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V2 1/2] arm:omap:am33xx: Add voltage domain data
-Date: Tue, 10 Jan 2012 10:29:59 -0800
-Message-ID: <87ipkjpg0o.fsf@ti.com>
-References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
-	<1324803628-16790-2-git-send-email-hvaibhav@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv8 4/5] twl4030: add support for external voltage get/set
+Date: Tue, 10 Jan 2012 19:10:12 +0000
+Message-ID: <20120110191012.GI7164@opensource.wolfsonmicro.com>
+References: <1323444589-19940-1-git-send-email-t-kristo@ti.com> <1323444589-19940-5-git-send-email-t-kristo@ti.com> <871ur8weds.fsf@ti.com> <20120110033012.GM30766@opensource.wolfsonmicro.com> <87pqertwjt.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:39107 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756717Ab2AJSaD (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:48459 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756699Ab2AJTKO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jan 2012 13:30:03 -0500
-Received: by mail-gy0-f174.google.com with SMTP id g21so2616593ghb.33
-        for <linux-omap@vger.kernel.org>; Tue, 10 Jan 2012 10:30:01 -0800 (PST)
-In-Reply-To: <1324803628-16790-2-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Sun, 25 Dec 2011 14:30:27 +0530")
+	Tue, 10 Jan 2012 14:10:14 -0500
+Content-Disposition: inline
+In-Reply-To: <87pqertwjt.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org, Afzal Mohammed <afzal@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-Vaibhav Hiremath <hvaibhav@ti.com> writes:
+On Tue, Jan 10, 2012 at 07:19:18AM -0800, Kevin Hilman wrote:
 
-> Currently dummy voltage domain data is being created
-> in order to succeed boot process, nothing has been done
-> w.r.t actual hardware (voltage control).
->
-> Also, hook up the AM33XX voltage domain to OMAP framework.
->
-> Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Yes, some of the control still goes via the normal path (although I
+> forget which, maybe Benoit can remind us), so I think it's best to add
+> the HW control part to each regulator that might uses it.
 
-Data looks OK, but why the dummy voltage domains?   Does this device not
-support voltage scaling? 
+> Ideally this could be facilitated by adding the extentions to the
+> regulator core so the amount of code needed for each regulator driver
+> would be minimal.
 
-Also, I think it was my idea in an earlier review to add the 
-'.scalable = false', but it's not really necessary since the default is
-false.  Sorry 'bout that.
-
-Kevin
+I think the original version of the patch was something along those
+lines but it was just a general facility which ignored the regulator
+driver entirely which didn't feel well integrated.  The discussion
+suggested that this wasn't something that'd work with other regulators
+so a per-driver solution seemed OK.
