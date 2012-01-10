@@ -1,90 +1,48 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv8 4/5] OMAP: I2C: Remove the reset in the init path
-Date: Tue, 10 Jan 2012 07:26:06 -0800
-Message-ID: <87hb03tw8h.fsf@ti.com>
-References: <1323773758-6375-1-git-send-email-shubhrajyoti@ti.com>
-	<1323773758-6375-5-git-send-email-shubhrajyoti@ti.com>
-	<alpine.DEB.2.00.1112160139010.12660@utopia.booyaka.com>
-	<4EEB086A.2050607@ti.com>
-	<CANQgH-Ze1S6sy1uhzy_b8GWOCjF4+-9DOCcUn9mq1kAaT+Y7FA@mail.gmail.com>
-	<CANQgH-YLez8B-t8nf9_M8samn9YWUa7LcOFx6uPFrJE9tnXB1Q@mail.gmail.com>
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: Re: [PATCH v2] irqdomain: Initialize number of IRQs for simple
+ domains
+Date: Tue, 10 Jan 2012 23:41:12 +0800
+Message-ID: <20120110154109.GB27831@S2101-09.ap.freescale.net>
+References: <1326191059-26411-1-git-send-email-thierry.reding@avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:51565 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753093Ab2AJP0K convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Jan 2012 10:26:10 -0500
-In-Reply-To: <CANQgH-YLez8B-t8nf9_M8samn9YWUa7LcOFx6uPFrJE9tnXB1Q@mail.gmail.com>
-	(Shubhrajyoti Datta's message of "Tue, 10 Jan 2012 11:54:13 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1326191059-26411-1-git-send-email-thierry.reding@avionic-design.de>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: devicetree-discuss@lists.ozlabs.org, Andrew Victor <linux@maxim.org.za>, Nicolas Ferre <nicolas.ferre@atmel.com>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Russell King <linux@arm.linux.org.uk>, Sascha Hauer <kernel@pengutronix.de>, David Brown <davidb@codeaurora.org>, Daniel Walker <dwalker@fifo99.com>, Bryan Huntsman <bryanh@codeaurora.org>, Tony Lindgren <tony@atomide.com>, Barry Song <baohua.song@csr.com>, Thomas Gleixner <tglx@linutronix.de>, Catalin Marinas <catalin.marinas@arm.com>, David Woodhouse <dwmw2@infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Rob Herring <rob.herring@calxeda.com>, Jamie Iles <jamie@jamieiles.com>, "open list:ARM/ATMEL AT91RM9..." <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>, open list:ARM/QUALCOM
 List-Id: linux-omap@vger.kernel.org
-To: "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, ben-linux@fluff.org
 
-"Datta, Shubhrajyoti" <shubhrajyoti@ti.com> writes:
+On Tue, Jan 10, 2012 at 11:24:11AM +0100, Thierry Reding wrote:
+> The irq_domain_add() function needs the number of interrupts in the
+> domain to properly initialize them. In addition the allocated domain
+> is now returned by the irq_domain_{add,generate}_simple() helpers.
+> 
+> Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+> Acked-by: David Brown <davidb@codeaurora.org>
+> ---
+> Note: This patch should not be applied yet. There is a conflict with a
+>       pending patch[0] by Benoit Cousson that will obsolete the OMAP2
+>       hunk in this patch.
+> 
+>       [0]: http://www.spinics.net/lists/linux-omap/msg62124.html
+> 
+> Changes in v2:
+>  - Don't use ERR_PTR, keep the WARN_ON(1) and return NULL as requested
+>    by Grant Likely.
+>  - Integrate i.MX cleanup patch by Shawn Guo.
+> 
+...
+>  arch/arm/mach-imx/imx51-dt.c          |   13 +++++++++++--
+>  arch/arm/mach-imx/imx53-dt.c          |   13 +++++++++++--
+>  arch/arm/mach-imx/mach-imx6q.c        |    6 +++++-
+...
+>  arch/arm/plat-mxc/include/mach/irqs.h |   13 +++++++------
+>  arch/arm/plat-mxc/tzic.c              |    2 --
 
-> On Tue, Jan 10, 2012 at 11:53 AM, Datta, Shubhrajyoti
-> <shubhrajyoti@ti.com> wrote:
->>
->>
->>
->> On Fri, Dec 16, 2011 at 2:29 PM, Shubhrajyoti <shubhrajyoti@ti.com> =
-wrote:
->>>
->>> Ben,
->>>
->>> On Friday 16 December 2011 02:10 PM, Paul Walmsley wrote:
->>> > Hi
->>> >
->>> > On Tue, 13 Dec 2011, Shubhrajyoti D wrote:
->>> >
->>> >> - =C2=A0The reset in the driver at init is not needed anymore as=
- the
->>> >> =C2=A0 =C2=A0hwmod framework takes care of reseting it.
->>> >> - =C2=A0Reset is removed from omap_i2c_init, which was called
->>> >> =C2=A0 =C2=A0not only during probe, but also after time out and =
-error handling.
->>> >> =C2=A0 =C2=A0device_reset were added in those places to effect t=
-he reset.
->>> >> - =C2=A0Earlier the hwmod SYSC settings were over-written in the=
- driver.
->>> >> =C2=A0 =C2=A0Removing the same and letting the hwmod take care o=
-f the settings.
->>> >> - =C2=A0Clean up the SYSS_RESETDONE_MASK macro as it is no longe=
-r needed.
->>> >> - =C2=A0Clean up the SYSCONFIG SYSC bit definition macros.
->>> >> - =C2=A0Fix the typos in wakeup.
->>> >>
->>> >> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->>> >> ---
->>> >> =C2=A0drivers/i2c/busses/i2c-omap.c | =C2=A0 83 +++++++++++-----=
-------------------------
->>> >> =C2=A01 files changed, 23 insertions(+), 60 deletions(-)
->>> > This patch either needs to be acked by Ben with a note that it's =
-okay for
->>> > us to merge through the OMAP tree, or needs to be merged by Ben d=
-uring the
->>> > 3.4 merge window, after patches 1-3 have reached the mainline tre=
-e.
->>> I agree.
->>> Ben do you have any comments .
->>
->>
-> If there are no further comments can this be merged also ?
+Acked-by: Shawn Guo <shawn.guo@linaro.org>
 
-As Benoit mentioned earlier, the addition of new pdata fields will caus=
-e
-problems with the DT support already queued for v3.3.
-
-This series should be reworked on top of the DT support which Ben has
-now queued for v3.3 (my branch: for_3.3/i2c/misc)
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Shawn
