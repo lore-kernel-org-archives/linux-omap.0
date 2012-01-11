@@ -1,20 +1,16 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 Subject: [PATCH v2] I2C: OMAP: Recover from Bus Busy condition
-Date: Wed, 11 Jan 2012 23:11:33 +0530
-Message-ID: <1326303693-30106-1-git-send-email-shubhrajyoti@ti.com>
+Date: Wed, 11 Jan 2012 23:12:45 +0530
+Message-ID: <1326303765-30140-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42162 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755902Ab2AKRl7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jan 2012 12:41:59 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org, Vikram Pandita <vikram.pandita@ti.com>, Kevin Hilman <khilman@ti.com>, Jon Hunter <jon-hunter@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
 
 In case a peripheral is driving SDA bus low (ie. a start condition), provide
 a constant clock output using the test mode of the OMAP I2C controller to
@@ -35,10 +31,10 @@ mainline by Jon Hunter. A couple differences from the original patch ...
    init function the controller is disabled and the init function will
    re-enable later.
 
-Cc:  Kevin Hilman <khilman@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Jon Hunter <jon-hunter-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
 Original patch can be found here:
 http://git.omapzoom.org/?p=kernel/omap.git;a=commit;h=a2ab04192ba25e60f95ba1ff3af5601a2d7b5bd1
@@ -113,4 +109,3 @@ index f713eac..6d59bc6 100644
  	if (dev->set_mpu_wkup_lat != NULL)
 -- 
 1.7.1
-
