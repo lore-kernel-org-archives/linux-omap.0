@@ -1,126 +1,90 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 12 Jan 2012 09:59:40 +1100
-Message-ID: <20120112095940.0a54413e@notabene.brown>
-References: <WC20120109124643.880164@terrafix.co.uk>
-	<20120110080849.5a242adf@notabene.brown>
-	<alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/1] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Thu, 12 Jan 2012 01:03:55 +0200
+Message-ID: <20120111230355.GU9323@valkosipuli.localdomain>
+References: <1323875656-17147-1-git-send-email-sakari.ailus@iki.fi>
+ <20120108104339.GP9323@valkosipuli.localdomain>
+ <alpine.DEB.2.00.1201110700220.31702@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/27H=_LxSvzDOg7AGsLtwKNA"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:58795 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750939Ab2AKW7v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jan 2012 17:59:51 -0500
-In-Reply-To: <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:43096 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab2AKXEA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 18:04:00 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1201110700220.31702@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, linux-omap@vger.kernel.org
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, saaguirre@ti.com
 
---Sig_/27H=_LxSvzDOg7AGsLtwKNA
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Paul,
 
-On Wed, 11 Jan 2012 06:43:04 -0700 (MST) Paul Walmsley <paul@pwsan.com> wro=
-te:
+On Wed, Jan 11, 2012 at 07:11:58AM -0700, Paul Walmsley wrote:
+> On Sun, 8 Jan 2012, Sakari Ailus wrote:
+> 
+> > Hi Tony and Paul,
+> > 
+> > On Wed, Dec 14, 2011 at 05:14:16PM +0200, Sakari Ailus wrote:
+> > > The register is used to configure the behaviour of the CSI-2 and CCP-2
+> > > receivers. This register is available only in OMAP3630.
+> > > 
+> > > The original patch was submitted by Vimarsh Zutshi.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > >  arch/arm/mach-omap2/control.h |    1 +
+> > >  1 files changed, 1 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+> > > index d4ef75d..6a26a0d 100644
+> > > --- a/arch/arm/mach-omap2/control.h
+> > > +++ b/arch/arm/mach-omap2/control.h
+> > > @@ -183,6 +183,7 @@
+> > >  #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+> > >  #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+> > >  #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
+> > > +#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
+> > 
+> > I assume this patch hasn't gone anywhere yet which might be good. While the
+> > definition of this register would appear to belong to this file, it is being
+> > included from the OMAP 3 ISP driver, which only uses it if it's running on
+> > the 3630. The problem is that control.h isn't apparently intended to be
+> > included except locally and I didn't find a suitable file under include/mach
+> > to put this definition either. Currently this file is being included by the
+> > ISP driver with an explicit path.
+> > 
+> > Do you have an insight how this could be handled better?
+> 
+> We've been trying to ensure that register accesses to/from a given IP 
+> block only occur in a driver for that IP block.  So under that principle, 
+> any System Control Module accesses should go into a System Control Module 
+> driver.  Then that SCM driver should export (via EXPORT_SYMBOL) a 
+> higher-level interface to whatever code uses it.  The idea is that this 
+> interface would remain stable no matter what underlying SoC was in use.
+> 
+> Only thing is, we don't yet have a SCM driver.  Historically, since the 
+> SCM is tightly coupled with the underlying SoC, when we've needed to do 
+> something like this in the past, we've added code to 
+> arch/arm/mach-omap2/control.c.  But that's not really workable now.
+> 
+> Do you know if this register, or something like it, is present on later 
+> OMAPs?  Also, which bitfields are you planning to use?
 
-> cc Kevin
->=20
-> On Tue, 10 Jan 2012, NeilBrown wrote:
->=20
-> > It seems that when cpuidle on an omap3 tries to switch to lower power
-> > states, various things misbehave:
-> >  - UARTs lose characters
->=20
-> Is this with off-mode enabled, or is this with only retention idle=20
-> enabled?
+I don't believe it exists on other OMAPs --- possibly on 3730 but the CSI-2
+receiver is not officially supported on it. The register does not exist on
+the 3430, at least not under the same name --- a reason for not existing
+could be that the 3430 only has one CSI-2 receiver. The 4430 doesn't seem to
+have it either, at least not under that name.
 
-I haven't experimented with off-mode much.  When I try it the suspend-time
-current drain goes from 65mA to about 90mA which doesn't seem the right
-direction.  The only other observation is that the "cam" power domain
-doesn't reach the target state of '0'.  I'm guessing they are related but
-haven't progressed further. (I don't have anything like a camera driver
-compiled in - nor do I have a camera attached).
+I think the solution to conditionally access it in the ISP driver would be,
+albeit not pretty, a workable one: the driver is unlikely to be used on
+other platforms and this is a single register accessed in a single location.
+I'm of course open for better options.
 
-So it is just retention.
+Cc Sergio.
 
-I occasionally see evidence of a garbled char when I wake from suspend, but
-that doesn't bother me much.
-
-I spent some time exploring why cpuidle never drops below state 0 and found
-out that the code explicitly disables other states when uart is active - for
-a fairly broad definition of 'active'.
-
-I found the "sleep_timeout" setting and set them all to 1 second.  This mea=
-nt
-that cpuidle started working, but I got a lot of garbage characters.
-
->=20
-> If off-mode is enabled, and incoming serial traffic is used to wake the=20
-> system, it's known and expected that the first byte will be lost.  This i=
-s=20
-> an artifact of the hardware and seems to be unavoidable.
-
-Does this really mean CPU_IDLE cannot be used when you might expect chars
-from a serial port - e.g. GPS or Bluetooth?
-Which power domain needs to stay non-off?  I would guess 'CORE' for UART1,2
-and 'PER' for UART3,4.  I'm using UART3 for the console port, but it looks
-like 'PER' doesn't get switched off by CPUIDLE.
-
-What is the important issue here that I don't know about ? :-)
-
->=20
-> >  - dss loses sync
->=20
-> Best to take this up with the DSS maintainer directly.
->=20
-> >  - HDQ seems to lose everything.
->=20
-> Is this with off-mode enabled, or just with retention idle?
-
-Not off-mode - just retention.
-
->=20
-> If the former, this is hardly surprising as the HDQ driver=20
-> (drivers/w1/masters/omap_hdq.c) doesn't contain any context save/restore=
-=20
-> code.  In fact the HDQ driver doesn't even use PM runtime, so quite a bit=
-=20
-> of work is needed there.=20
-
-The HDQ driver does enable/disable the iclk and fclk.  I thought I read that
-having the clocks enabled would prevent the powerdomain from dropping to a
-lower-power state ??
-
-Could you suggest some other driver which does do the right sort of runtime
-PM that I could try copying?
-
-Thanks,
-NeilBrown
-
-
---Sig_/27H=_LxSvzDOg7AGsLtwKNA
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBTw4UXDnsnt1WYoG5AQJGwRAAh/LWWMEarFwzkDiv5dFOuHZOYCOirGEU
-d4/9kmddx6qMOXTXI92JRPpN80veIvibZ5lX10lKiD3nO23pM4emByi6mPfOaJqq
-ZB/I0s31Zg4RAE+3AeoxiiOoQ+Tfx/uUIqLVHxtQRg8gNK2CfN8VJViXMPSzQLop
-GW2wXNhZUbTjfcdIz3c7rfEDE5KWivCDCKZ93mSgKWUXE0KYZ7rFbhnUH+KNMAyo
-BTLwEZFo6UsqK0CRns8kqpAFfAGtHwJTeby2IPW7wffkLaEpquBao+kqB8FtuRTf
-++t9bpgDz/5rJtvS2pUS0UQKSC0n6WtjNjSN6uNaAZIjGtvKZzVaQqHaFMta04XC
-7CGt329WP0vFATR25HzBVg8+UumsVsIwv6xfHjqs09VD+CX4Y9E9W3x1WvB63Puu
-z+yJ2mEQ+wYbuwCfDMOa/IfZhJf1P9me+crmdR+iWG6nyaa21ZJlXmcmlx5vTZpk
-zjYcNx+IytmndTQtopn/+TGFgen7FgzJ2I3KX/g637OqBbE8TikhKwuf0THy9SXw
-aTC0G2RCR8IF2m0euRNjV3ePqjLlt0WSmfHMO5jf+km8ofkE3A9RDWgKT3IpXVuD
-X1xwVoRNP1ijAiIdVn5PZRN4MvdbqrGQQ86FJ5RfGhCNFDqZCahHL77TcEt9b8MK
-QLynfKiqZvM=
-=K2At
------END PGP SIGNATURE-----
-
---Sig_/27H=_LxSvzDOg7AGsLtwKNA--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
