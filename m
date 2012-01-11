@@ -1,100 +1,132 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH V3 2/2] regulator: tps65217: Add tps65217 regulator
- driver
-Date: Wed, 11 Jan 2012 08:22:59 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC104BF75@DBDE01.ent.ti.com>
-References: <1325670747-31429-1-git-send-email-anilkumar@ti.com>
- <20120109071930.GC22134@opensource.wolfsonmicro.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RFC] I2C : OMAP : make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+Date: Wed, 11 Jan 2012 14:00:57 +0530
+Message-ID: <1326270657-15309-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120109071930.GC22134@opensource.wolfsonmicro.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "Girdwood, Liam" <lrg@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Mark,
+The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
+and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
+Make the omap_i2c_unidle/idle also depend on CONFIG_PM_RUNTIME flag.
 
-On Mon, Jan 09, 2012 at 12:49:31, Mark Brown wrote:
-> On Wed, Jan 04, 2012 at 03:22:27PM +0530, AnilKumar Ch wrote:
-> 
-> This looks pretty good.  A couple of small issues.
-> 
-> > +static int tps65217_vsel_to_uv_range1(unsigned int vsel)
-> > +{
-> > +	int uV = 0;
-> > +
-> > +	if (vsel > 15)
-> > +		return -EINVAL;
-> > +
-> > +	if (vsel <= 2)
-> > +		uV = vsel * 100000 + 1000000;
-> > +	else if (vsel <= 6)
-> > +		uV = (vsel - 2) * 50000 + 1200000;
-> > +	else if (vsel <= 9)
-> > +		uV = (vsel - 6) * 100000 + 1400000;
-> > +	else if (vsel == 10)
-> > +		uV = 2500000;
-> > +	else if (vsel == 11)
-> > +		uV = 2750000;
-> > +	else if (vsel == 12)
-> > +		uV = 2800000;
-> > +	else if (vsel == 13)
-> > +		uV = 3000000;
-> > +	else if (vsel == 14)
-> > +		uV = 3100000;
-> > +	else
-> > +		uV = 3300000;
-> 
-> This looks like it should actually be a table - there's far too many
-> irregular steps here.  The other regulators looked to be benefiting from
-> the use of calculations.
+This fixes the below warn when CONFIG_PM_RUNTIME is not defined
 
-Changed to a table for this regulator only. 
+ CC      arch/arm/mach-omap2/board-ti8168evm.o
+drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
+drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
+  CC      net/ipv4/ip_forward.o
 
-> 
-> > +static int tps65217_pmic_dcdc_get_voltage(struct regulator_dev *dev)
-> > +{
-> > +	int ret;
-> > +	struct tps65217 *tps = rdev_get_drvdata(dev);
-> > +	unsigned int data, dcdc = rdev_get_id(dev);
-> > +
-> > +	if (dcdc < TPS65217_DCDC_1 || dcdc > TPS65217_DCDC_3)
-> > +		return -EINVAL;
-> > +
-> > +	ret = tps65217_reg_read(tps, tps->info[dcdc]->set_vout_reg, &data);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	data &= tps->info[dcdc]->set_vout_mask;
-> > +
-> > +	ret = tps->info[dcdc]->tps_range(data);
-> > +	if (ret < 0)
-> > +		dev_err(&dev->dev, "Failed to get voltage\n");
-> > +
-> > +	return ret;
-> 
-> It seems odd to implement this as a vanilla get_voltage()
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+applies to Kevin's for_3.3/i2c/misc branch
 
-Agree, changed to get_voltage_sel()
+ drivers/i2c/busses/i2c-omap.c |   82 ++++++++++++++++++++--------------------
+ 1 files changed, 41 insertions(+), 41 deletions(-)
 
-> 
-> > +static int tps65217_pmic_dcdc_set_voltage(struct regulator_dev *dev,
-> > +						unsigned selector)
-> > +{
-> 
-> but this as set_voltage_sel().  For non table based regulators plain
-> set_voltage() usually makes a bit more sense as we don't have to iterate
-> through the selectors looking for a match.
-> 
-
-I changed the implementation according to your point but the
-code size actually increased by 68 lines after fixing these
-comments. I will send across the replacement, please see if
-you like this one better.
-
-Regards,
-AnilKumar
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f713eac..ad564ac 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
+ }
+ 
+-static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+-{
+-	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+-		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+-		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+-	}
+-
+-	/*
+-	 * Don't write to this register if the IE state is 0 as it can
+-	 * cause deadlock.
+-	 */
+-	if (dev->iestate)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+-}
+-
+-static void omap_i2c_idle(struct omap_i2c_dev *dev)
+-{
+-	u16 iv;
+-
+-	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+-	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
+-		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
+-	else
+-		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
+-
+-	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
+-		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
+-	} else {
+-		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
+-
+-		/* Flush posted write */
+-		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+-	}
+-}
+-
+ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ {
+ 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+@@ -1159,6 +1118,47 @@ omap_i2c_remove(struct platform_device *pdev)
+ }
+ 
+ #ifdef CONFIG_PM_RUNTIME
++static void omap_i2c_unidle(struct omap_i2c_dev *dev)
++{
++	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
++		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
++		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
++		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
++	}
++
++	/*
++	 * Don't write to this register if the IE state is 0 as it can
++	 * cause deadlock.
++	 */
++	if (dev->iestate)
++		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
++}
++
++static void omap_i2c_idle(struct omap_i2c_dev *dev)
++{
++	u16 iv;
++
++	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
++	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
++		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
++	else
++		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
++
++	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
++		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
++	} else {
++		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
++
++		/* Flush posted write */
++		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++	}
++}
++
+ static int omap_i2c_runtime_suspend(struct device *dev)
+ {
+ 	struct platform_device *pdev = to_platform_device(dev);
+-- 
+1.7.1
