@@ -1,132 +1,66 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC] I2C : OMAP : make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
-Date: Wed, 11 Jan 2012 14:00:57 +0530
-Message-ID: <1326270657-15309-1-git-send-email-shubhrajyoti@ti.com>
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: [PATCH V4 0/2] Add TI TPS65217 PMIC driver support
+Date: Wed, 11 Jan 2012 16:11:26 +0530
+Message-ID: <1326278486-27162-1-git-send-email-anilkumar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37112 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753040Ab2AKKlg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Jan 2012 05:41:36 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sameo@linux.intel.com, lrg@ti.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, nsekhar@ti.com, AnilKumar Ch <anilkumar@ti.com>
 
-The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
-and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
-Make the omap_i2c_unidle/idle also depend on CONFIG_PM_RUNTIME flag.
+TPS65217 power management IC supports various features, like
+Battery charger, white LED driver along with basic regulator
+Functionality.
 
-This fixes the below warn when CONFIG_PM_RUNTIME is not defined
+This patch set adds support as an MFD device into the kernel
+to facilitate adding additional drivers on top of it.
 
- CC      arch/arm/mach-omap2/board-ti8168evm.o
-drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
-drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
-  CC      net/ipv4/ip_forward.o
+This device is used on one of AM335x platform (BeagleBone), and
+details about board can be accessed at -
+http://beagleboard.org/bone
 
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-applies to Kevin's for_3.3/i2c/misc branch
+Device Spec and related documents can be accessed from -
+http://www.ti.com/product/tps65217b
 
- drivers/i2c/busses/i2c-omap.c |   82 ++++++++++++++++++++--------------------
- 1 files changed, 41 insertions(+), 41 deletions(-)
+Changes form V3:
+	- Incorporated all Mark Brown's review commets on V3
+	  * changed non uniform step-size voltage range API to a table
+	  * Implemented set_voltage for formula based regulators
+	  * Implemented set_voltage_sel for table based regulators
+	  * changed get_voltage to get_voltage_sel
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index f713eac..ad564ac 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
--static void omap_i2c_unidle(struct omap_i2c_dev *dev)
--{
--	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
--		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
--		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
--	}
--
--	/*
--	 * Don't write to this register if the IE state is 0 as it can
--	 * cause deadlock.
--	 */
--	if (dev->iestate)
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
--}
--
--static void omap_i2c_idle(struct omap_i2c_dev *dev)
--{
--	u16 iv;
--
--	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
--
--	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
--		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
--	} else {
--		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
--
--		/* Flush posted write */
--		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--	}
--}
--
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
- 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
-@@ -1159,6 +1118,47 @@ omap_i2c_remove(struct platform_device *pdev)
- }
- 
- #ifdef CONFIG_PM_RUNTIME
-+static void omap_i2c_unidle(struct omap_i2c_dev *dev)
-+{
-+	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-+		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-+		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-+	}
-+
-+	/*
-+	 * Don't write to this register if the IE state is 0 as it can
-+	 * cause deadlock.
-+	 */
-+	if (dev->iestate)
-+		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+}
-+
-+static void omap_i2c_idle(struct omap_i2c_dev *dev)
-+{
-+	u16 iv;
-+
-+	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-+	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
-+		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
-+	else
-+		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-+
-+	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
-+		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
-+	} else {
-+		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
-+
-+		/* Flush posted write */
-+		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+	}
-+}
-+
- static int omap_i2c_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
--- 
-1.7.1
+Changes form V2:
+	- Incorporated all Mark Brown's review commets on V2
+	  * clear/set bit API's moved to MFD driver
+	  * voltage range API's clean-up
+
+Changes form V1:
+	- Incorporated all Mark Brown's review commets
+	  * MFD read/writes API's modifed to use regmap read/writes
+	  * kzalloc() changed to devm_kzalloc()
+	  * Converted voltage tables to function calls
+	  * set_voltage() changed to set_voltage_sel()
+	- cleaned-up the code little bit
+
+AnilKumar Ch (2):
+  MFD: TPS65217: Add new mfd device for TPS65217
+  regulator: tps65217: Add tps65217 regulator driver
+
+ drivers/mfd/Kconfig                    |   15 +
+ drivers/mfd/Makefile                   |    1 +
+ drivers/mfd/tps65217.c                 |  242 ++++++++++++++++
+ drivers/regulator/Kconfig              |    9 +
+ drivers/regulator/Makefile             |    1 +
+ drivers/regulator/tps65217-regulator.c |  493 ++++++++++++++++++++++++++++++++
+ include/linux/mfd/tps65217.h           |  283 ++++++++++++++++++
+ 7 files changed, 1044 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/mfd/tps65217.c
+ create mode 100644 drivers/regulator/tps65217-regulator.c
+ create mode 100644 include/linux/mfd/tps65217.h
+
