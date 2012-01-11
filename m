@@ -1,77 +1,71 @@
-From: Archit <a0393947@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Wed, 11 Jan 2012 19:52:13 +0530
-Message-ID: <4F0D9B15.4070803@ti.com>
-References: <WC20120109124643.880164@terrafix.co.uk> <20120110080849.5a242adf@notabene.brown> <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCHv8 4/5] OMAP: I2C: Remove the reset in the init path
+Date: Wed, 11 Jan 2012 15:23:44 +0100
+Message-ID: <4F0D9B70.3000309@ti.com>
+References: <1323773758-6375-1-git-send-email-shubhrajyoti@ti.com> <1323773758-6375-5-git-send-email-shubhrajyoti@ti.com> <alpine.DEB.2.00.1112160139010.12660@utopia.booyaka.com> <4EEB086A.2050607@ti.com> <CANQgH-Ze1S6sy1uhzy_b8GWOCjF4+-9DOCcUn9mq1kAaT+Y7FA@mail.gmail.com> <CANQgH-YLez8B-t8nf9_M8samn9YWUa7LcOFx6uPFrJE9tnXB1Q@mail.gmail.com> <87hb03tw8h.fsf@ti.com> <4F0D26DF.1020108@ti.com> <alpine.DEB.2.00.1201110619090.31702@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46526 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932404Ab2AKOWb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Jan 2012 09:22:31 -0500
-In-Reply-To: <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1201110619090.31702-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, NeilBrown <neilb@suse.de>, khilman@ti.com, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi,
+On 1/11/2012 2:29 PM, Paul Walmsley wrote:
+> On Wed, 11 Jan 2012, Shubhrajyoti wrote:
+>
+>> On Tuesday 10 January 2012 08:56 PM, Kevin Hilman wrote:
+>>> "Datta, Shubhrajyoti"<shubhrajyoti-l0cyMroinI0@public.gmane.org>  writes:
+>>>
+>>>> On Tue, Jan 10, 2012 at 11:53 AM, Datta, Shubhrajyoti
+>>>> <shubhrajyoti-l0cyMroinI0@public.gmane.org>  wrote:
+>>>>>
+>>>>> On Fri, Dec 16, 2011 at 2:29 PM, Shubhrajyoti<shubhrajyoti-l0cyMroinI0@public.gmane.org>  wrote:
+>>>>>> On Friday 16 December 2011 02:10 PM, Paul Walmsley wrote:
+>>>>>>
+>>>>>>> This patch either needs to be acked by Ben with a note that it's okay for
+>>>>>>> us to merge through the OMAP tree, or needs to be merged by Ben during the
+>>>>>>> 3.4 merge window, after patches 1-3 have reached the mainline tree.
+>>>>>> I agree.
+>>>>>> Ben do you have any comments .
+>>>>>
+>>>> If there are no further comments can this be merged also ?
+>>> As Benoit mentioned earlier, the addition of new pdata fields will cause
+>>> problems with the DT support already queued for v3.3.
+>>>
+>>> This series should be reworked on top of the DT support which Ben has
+>>> now queued for v3.3 (my branch: for_3.3/i2c/misc)
+>>
+>> Yes will rework it.
+>
+> Depending on what you plan to do, you'll probably need to coordinate this
+> with Tony also.  He's already pulled some of the patches from this series
+> into his i2c branch.
+>
+> The real question is how you plan to handle the device reset function,
+> given that the driver should compile on a non-OMAP build (meaning that you
+> can't call omap_device*() functions from the driver directly), nor should
+> the driver touch the SYSCONFIG register directly.
 
-On Wednesday 11 January 2012 07:13 PM, Paul Walmsley wrote:
-> cc Kevin
->
-> On Tue, 10 Jan 2012, NeilBrown wrote:
->
->> It seems that when cpuidle on an omap3 tries to switch to lower power
->> states, various things misbehave:
->>   - UARTs lose characters
->
-> Is this with off-mode enabled, or is this with only retention idle
-> enabled?
->
-> If off-mode is enabled, and incoming serial traffic is used to wake the
-> system, it's known and expected that the first byte will be lost.  This is
-> an artifact of the hardware and seems to be unavoidable.
->
->>   - dss loses sync
->
-> Best to take this up with the DSS maintainer directly.
+Something that puzzle me on that point is most architecture does not use 
+plateform_device and thus does not have any pdata to hack some custom 
+function pointers here an there.
+It means that there is probably some better solution to handle that.
 
-Could you enable omapdss debug by adding 'omapdss.debug=1 debug' in your 
-bootargs and share logs?
+AFAIU, the way PPC is handling that is by splitting the driver in a 
+generic part and in a platform specific part.
 
-The pm_runtime_get_sync() call in dss_runtime_get() is returning  a 
-negative value, could you print out that value too?
+You can then add any OMAP specific hacks in the OMAP specific part while 
+keeping most of generic code in a generic driver.
 
-If the call to pm_runtime_get_sync() fails, we bail out immediately. So 
-the LCD interface shouldn't have been enabled at all. I don't know why 
-we get sync lost errors.
+In this case, we just have to implement a small shim that will handle 
+the OMAP specific code for the reset. The generic driver will handle the 
+rest.
 
-There is a possibility that the LCD interface wasn't switched off when 
-for some reason when we suspended, and switching on the clocks again 
-tries to start the transfer without DSS being configured correctly?
+Maybe I'm missing some important details, but that does seems easily 
+doable for the i2c case.
 
-Also, are you on the final 3.2, or the 3.2-rc's by any chance? There 
-were some hwmod patches which got in 3.2-rc4 related to hwmod fixes.
-
-Archit
-
->
->>   - HDQ seems to lose everything.
->
-> Is this with off-mode enabled, or just with retention idle?
->
-> If the former, this is hardly surprising as the HDQ driver
-> (drivers/w1/masters/omap_hdq.c) doesn't contain any context save/restore
-> code.  In fact the HDQ driver doesn't even use PM runtime, so quite a bit
-> of work is needed there.
->
->
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Regards,
+Benoit
