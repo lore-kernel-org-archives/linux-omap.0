@@ -1,56 +1,54 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCHv8 4/5] OMAP: I2C: Remove the reset in the init path
-Date: Wed, 11 Jan 2012 06:29:06 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201110619090.31702@utopia.booyaka.com>
-References: <1323773758-6375-1-git-send-email-shubhrajyoti@ti.com> <1323773758-6375-5-git-send-email-shubhrajyoti@ti.com> <alpine.DEB.2.00.1112160139010.12660@utopia.booyaka.com> <4EEB086A.2050607@ti.com> <CANQgH-Ze1S6sy1uhzy_b8GWOCjF4+-9DOCcUn9mq1kAaT+Y7FA@mail.gmail.com>
- <CANQgH-YLez8B-t8nf9_M8samn9YWUa7LcOFx6uPFrJE9tnXB1Q@mail.gmail.com> <87hb03tw8h.fsf@ti.com> <4F0D26DF.1020108@ti.com>
+Subject: Re: DSS2/PM on 3.2 broken?
+Date: Wed, 11 Jan 2012 06:32:07 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201110631050.31702@utopia.booyaka.com>
+References: <WC20120109124643.880164@terrafix.co.uk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51864 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51875 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755784Ab2AKN3I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 08:29:08 -0500
-In-Reply-To: <4F0D26DF.1020108@ti.com>
+	with ESMTP id S1757226Ab2AKNcI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 08:32:08 -0500
+In-Reply-To: <WC20120109124643.880164@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, b-cousson@ti.com, ben-linux@fluff.org
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, 11 Jan 2012, Shubhrajyoti wrote:
+On Mon, 9 Jan 2012, Joe Woodward wrote:
 
-> On Tuesday 10 January 2012 08:56 PM, Kevin Hilman wrote:
-> > "Datta, Shubhrajyoti" <shubhrajyoti@ti.com> writes:
-> >
-> >> On Tue, Jan 10, 2012 at 11:53 AM, Datta, Shubhrajyoti
-> >> <shubhrajyoti@ti.com> wrote:
-> >>>
-> >>> On Fri, Dec 16, 2011 at 2:29 PM, Shubhrajyoti <shubhrajyoti@ti.com> wrote:
-> >>>> On Friday 16 December 2011 02:10 PM, Paul Walmsley wrote:
-> >>>>
-> >>>>> This patch either needs to be acked by Ben with a note that it's okay for
-> >>>>> us to merge through the OMAP tree, or needs to be merged by Ben during the
-> >>>>> 3.4 merge window, after patches 1-3 have reached the mainline tree.
-> >>>> I agree.
-> >>>> Ben do you have any comments .
-> >>>
-> >> If there are no further comments can this be merged also ?
-> > As Benoit mentioned earlier, the addition of new pdata fields will cause
-> > problems with the DT support already queued for v3.3.
-> >
-> > This series should be reworked on top of the DT support which Ben has
-> > now queued for v3.3 (my branch: for_3.3/i2c/misc)
+> I'm running on a Gumstix Overo (OMAP3530) with an 24-bit LCD panel connected via the DPI interface (using the generic panel driver).
 > 
-> Yes will rework it.
+> Entering standby used to work just fine on 3.0, but on 3.2 I get the following:
+> 
+> # echo mem > /sys/power/state
 
-Depending on what you plan to do, you'll probably need to coordinate this 
-with Tony also.  He's already pulled some of the patches from this series 
-into his i2c branch.
+...
 
-The real question is how you plan to handle the device reset function, 
-given that the driver should compile on a non-OMAP build (meaning that you 
-can't call omap_device*() functions from the driver directly), nor should 
-the driver touch the SYSCONFIG register directly.
+> [   24.466674] ------------[ cut here ]------------
+> [   24.466857] WARNING: at drivers/video/omap2/dss/dss.c:713 0xc01350f8()
+
+...
+
+> At which point the screen either restarts, or sometimes flickers and I get the following:
+> [   22.578796] omapdss DISPC error: SYNC_LOST on channel lcd, restarting the output with video overlays disabled
+> [   23.391571] omapdss DISPC error: SYNC_LOST on channel lcd, restarting the output with video overlays disabled
+> [   24.391571] omapdss DISPC error: SYNC_LOST on channel lcd, restarting the output with video overlays disabled
+> 
+> It normally recovers after doing this for a while...
+> 
+> Anyone have any ideas?
+
+Consider cc'ing the DSS maintainers and linux-fbdev list:
+
+OMAP DISPLAY SUBSYSTEM and FRAMEBUFFER SUPPORT (DSS2)
+M:	Tomi Valkeinen <tomi.valkeinen@ti.com>
+L:	linux-omap@vger.kernel.org
+L:	linux-fbdev@vger.kernel.org
+S:	Maintained
+F:	drivers/video/omap2/
+F:	Documentation/arm/OMAP/DSS
 
 
 - Paul
