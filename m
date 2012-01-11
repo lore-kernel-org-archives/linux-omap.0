@@ -1,58 +1,49 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 1/2] arm:omap:am33xx: Add voltage domain data
-Date: Wed, 11 Jan 2012 16:26:39 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317A10A8@DBDE01.ent.ti.com>
+Subject: RE: [PATCH-V2 0/2] arm:omap:am33xx: Add voltage and power domain
+ data
+Date: Wed, 11 Jan 2012 16:27:28 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317A10B6@DBDE01.ent.ti.com>
 References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
-	<1324803628-16790-2-git-send-email-hvaibhav@ti.com> <87ipkjpg0o.fsf@ti.com>
+ <87ty43f7p7.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36996 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37038 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751561Ab2AKQ0s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 11:26:48 -0500
-In-Reply-To: <87ipkjpg0o.fsf@ti.com>
+	id S1750970Ab2AKQ1e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 11:27:34 -0500
+In-Reply-To: <87ty43f7p7.fsf@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jan 10, 2012 at 23:59:59, Hilman, Kevin wrote:
+On Wed, Jan 11, 2012 at 05:09:48, Hilman, Kevin wrote:
 > Vaibhav Hiremath <hvaibhav@ti.com> writes:
 > 
-> > Currently dummy voltage domain data is being created
-> > in order to succeed boot process, nothing has been done
-> > w.r.t actual hardware (voltage control).
-> >
-> > Also, hook up the AM33XX voltage domain to OMAP framework.
-> >
-> > Signed-off-by: Afzal Mohammed <afzal@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > Last time I had submitted a big patch-series, almost changing >7.5K lines
+> > for AM33XX voltage, power, clock and HWMOD data support (as a RFC);
+> > which I believe is very hard to review and difficult to manage also.
+> > So I decided to split the patches as and when they are clean
+> > and ready for review/merge/acceptance,
 > 
-> Data looks OK, but why the dummy voltage domains?   Does this device not
-> support voltage scaling? 
+> FYI... 
 > 
-It does support voltage scaling.
-
-Kevin,
-This is part of initial baseport patches and complete PM support 
-along with voltage scaling will follow slowly as-n-when it is ready for submission.
-We still haven't got full power management working internally which we can submit immediately.
-
-
-> Also, I think it was my idea in an earlier review to add the 
-> '.scalable = false', but it's not really necessary since the default is
-> false.  Sorry 'bout that.
+> In usually (but not always) helps to specifically Cc the maintainers of
+> the code you're changin.  In this case, Paul & Benoit are maintaining
+> most of this core code/data, so you should make sure they are Cc'd as
+> well.
 > 
 
-Sorry it's my miss as well, I should have conformed it before submission.
-I will correct it in next version.
+My bad. I fully agree with you and will make sure that I will follow this.
 
 Thanks,
 Vaibhav
 
+> Thanks,
+> 
 > Kevin
 > 
 
