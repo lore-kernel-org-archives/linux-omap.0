@@ -1,77 +1,46 @@
 From: Ilya Yanok <yanok@emcraft.com>
-Subject: Re: [PATCH] OMAP3: don't init PM on AM35{05,17}
-Date: Wed, 11 Jan 2012 23:36:41 +0400
-Message-ID: <4F0DE4C9.5060903@emcraft.com>
-References: <4EEE80DE.8040001@emcraft.com>	<1324339251-10764-1-git-send-email-yanok@emcraft.com> <87lipo8ii4.fsf@ti.com>
+Subject: Re: [PATCH 2/2] mt_ventoux: support for TeeJet Mt.Ventoux board
+Date: Thu, 12 Jan 2012 00:04:14 +0400
+Message-ID: <4F0DEB3E.6060809@emcraft.com>
+References: <1324940912-18164-1-git-send-email-yanok@emcraft.com> <1324940912-18164-3-git-send-email-yanok@emcraft.com> <4EF97A41.7050605@compulab.co.il> <4EFA4E9C.30307@emcraft.com> <4F02CED6.8090709@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ocean.emcraft.com ([213.221.7.182]:35086 "EHLO
+Received: from ocean.emcraft.com ([213.221.7.182]:49895 "EHLO
 	ocean.emcraft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755898Ab2AKTgk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 14:36:40 -0500
-In-Reply-To: <87lipo8ii4.fsf@ti.com>
+	with ESMTP id S1755897Ab2AKUEY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Jan 2012 15:04:24 -0500
+In-Reply-To: <4F02CED6.8090709@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, sasha_d@emcraft.com
 
-Hi Kevin,
+Hi Igor,
 
-On 04.01.2012 03:37, Kevin Hilman wrote:
->> Current OMAP3 PM code seems to be incompatible with AM35{05,17} and
->> leads to system hang during boot.
->> Disable PM init on AM35{05,17} until working implementation will be
->> merged.
+On 03.01.2012 13:48, Igor Grinberg wrote:
+>> I will forward this info to hardware guys and ask about wiring. For now
+>> I will leave it as is. Thanks for this information it turned to be some
+>> kind of mystery. It would be great if you could give some pointer to the
+>> datasheet regarding VDDSHV and DSS.
 > 
-> Were you able to find out where exactly things got hung up?
+> Well, there is no direct pointer to that information, but
+> I've found these facts:
+> 1) the "Ball Characteristics" tables state that the DSS related pins
+>    (and also many others) are powered by the VDDSHV.
+> 2) the estimated power consumption of VDDSHV is the largest after the
+>    VDD_CORE, which is typical for DSS, but it is also one of the largest
+>    power domains, so I guess this cannot be a valid argument ;-)
+> 3) On the "Voltage domains" diagram, only the VDD_CORE is exposed and
+>    DSS is not listed in it, but there are other domains which are not
+>    exposed... (this only can exclude the DSS from VDD_CORE, but not
+>    absolutely, as datasheets can have mistakes or just not give that piece
+>    of information).
+> 
+> Still, it is a guess and not verified information.
 
-Well, actually there were two manifestations of this problem:
- 1. Output on the serial console is slow. I'm working with the board
-remotely so it really looked like slow internet connection but I've
-verified it and found that the problem is certainly on the board side. I
-can't say if it's the whole system running so slow or only serial
-console cause I haven't managed to boot it.
- 2. At some point cpu_idle() is called, execution goes to SRAM and never
-comes back...
+Yes, I understand. Thanks for sharing you thoughts!
 
 Regards, Ilya.
-
-> We're trying hard to avoid adding more cpu_is_* checks so would like to
-> better understand the problem before merging such a fix.
-> 
-> Thanks,
-> 
-> Kevin
-> 
->> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
->> ---
->> This patch solves the problem for me but I'm curious why simple
->> CONFIG_PM disabling doesn't work? I'm getting
->> Unhandled fault: external abort on non-linefetch
->> while trying to access absolutely valid register from omapdss/venc
->> driver. I've tried to disable VENC but then I got the same error
->> from omap_wdt driver. Is it supposed to be so? Are !CONFIG_PM
->> configurations supported? How comes that disabling CONFIG_PM
->> makes some registers inaccessible?
->>
->> Regards, Ilya.
->>
->>  arch/arm/mach-omap2/pm34xx.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->> index fc69875..0f30742 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -790,7 +790,7 @@ static int __init omap3_pm_init(void)
->>  	struct clockdomain *neon_clkdm, *per_clkdm, *mpu_clkdm, *core_clkdm;
->>  	int ret;
->>  
->> -	if (!cpu_is_omap34xx())
->> +	if (!cpu_is_omap34xx() || cpu_is_omap3505() || cpu_is_omap3517())
->>  		return -ENODEV;
->>  
->>  	if (!omap3_has_io_chain_ctrl())
 
