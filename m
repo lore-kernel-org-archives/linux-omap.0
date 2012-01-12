@@ -1,41 +1,70 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] usb: musb: drop superfluous pm_runtime calls around musb_shutdown
-Date: Thu, 12 Jan 2012 17:59:58 +0200
-Message-ID: <CAMP44s3rG+ZOoDSBdg0D+4-gFO5+akmLOeeDJ0f+3rtLnieHZw@mail.gmail.com>
-References: <1326374498-22968-1-git-send-email-notasas@gmail.com>
-	<CAMP44s3PnWCmCD1ip1EP9wMBDeOZ0EacpFTOTvASxYcFJh+W6A@mail.gmail.com>
-	<CANOLnOMj-Z7T8tcgjr-r1RrGFPpohbtvOg=FG6fVJR3ua17bxg@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: linux-next problems
+Date: Thu, 12 Jan 2012 18:05:18 +0200
+Message-ID: <1326384318.1896.20.camel@deskari>
+References: <1326382689.1896.12.camel@deskari>
+	 <CAK=WgbbJsfdcjv86y6PC2w1jxCyApL-LFj8PvoKSQDL2e7m4iA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60639 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753991Ab2ALQAA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jan 2012 11:00:00 -0500
-In-Reply-To: <CANOLnOMj-Z7T8tcgjr-r1RrGFPpohbtvOg=FG6fVJR3ua17bxg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-wflH8xajE0/yCNVVm5eZ"
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbbJsfdcjv86y6PC2w1jxCyApL-LFj8PvoKSQDL2e7m4iA@mail.gmail.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, Tero Kristo <t-kristo@ti.com>, linux-omap mailing list <linux-omap@vger.kernel.org>, linux-next@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
 
-On Thu, Jan 12, 2012 at 5:55 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
-> On Thu, Jan 12, 2012 at 5:45 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Thu, Jan 12, 2012 at 3:21 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
->>> Since commit 4f9edd2d7e8d "usb: musb: Fix the crash issue during reboot"
->>> musb_shutdown() does pm_runtime_get_sync/pm_runtime_put by itself, so
->>> this no longer needs to be done by the caller. Also, musb_exit_debugfs()
->>> doesn't access the device, so just drop those runtime_pm calls.
->>
->> I don't understand what is the relationship with 4f9edd2d7e8d and
->> musb_shutdown(), it seems this patch is basically reverting
->> 4f9edd2d7e8d.
->
-> No it's not, read my patch and it's description again. 4f9edd2d7e8d is
-> patching musb_shutdown(), mine musb_remove().
 
-Ohh, OK.
+--=-wflH8xajE0/yCNVVm5eZ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
--- 
-Felipe Contreras
+On Thu, 2012-01-12 at 17:58 +0200, Ohad Ben-Cohen wrote:
+> + Stephen
+>=20
+> Thanks, Tomi.
+>=20
+> On Thu, Jan 12, 2012 at 5:38 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+> > I was trying to compile linux-next for OMAP, but it doesn't compile wit=
+h
+> > the default configs.
+> ...
+> > drivers/remoteproc/remoteproc_rpmsg.c:100:6: error: too few arguments t=
+o function 'vring_new_virtqueue'
+>=20
+> This is due to a recent change in virtio.
+>=20
+> Stephen, I guess this won't be relevant for more than a few days, but
+> can you please take this patch below to linux-next ?
+> (alternatively feel free just to squash this to the merge commit.
+> whatever is easiest for you.)
+
+Why don't you just update your for-next branch, and it will be included
+into linux-next automatically?
+
+ Tomi
+
+
+--=-wflH8xajE0/yCNVVm5eZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPDwS+AAoJEPo9qoy8lh712UMP/35xMZutftmlyqHv4TJe+nAd
+hcMFK/hCCDU2RpSNJMUUS+ps8J7BzS7axxHl28rgZjU26fqBU0HGEaST/h1CdIrn
+SiJwBU8m7HYcN+PevKmEZt3eEy2bw/JgSczdm5HGFh/WVT6Uf6d39l11PxWLN1Sc
+e7okSVj1OxieVwpGS/Q45cXTsyLyaJ9+lT3SiJ1qF2om18QgZYesOdsV+D5Va7Y5
+J27G7bNdcwm9mWZoQGNayWf1LyEjP49YMPx+D27aYMXVvy/FZuJOKNIG0ra/i1CL
+XOj27FzNVvUB8fNP3KTvqtjGYWdztvJUnVpy1wL1kJFckTgby4oCTyW/T9u5p2dF
+n7sn3oMbJkvd2t99Jy2f1hKZhF+stToggRVq77FsUE7CQv3/uaJ2TQCe5IpgYqze
+KBqQji0RsgFO6uNPqBYH/FE/4akPvL0nSOkcanjz5oRmCgTJiPZ3Akdw6I/ioXLU
+45Tws7CnwjInfeRq2Cml4XaXrfvR3gEJBJm00oqEwVtWBWzmHCpTOg2dMbQun+aN
+YpxrzYdaARuNeRXXibeWm24sQ8nm2Pil05IOXaqqppzlcl1ZvuyID4ns6O4REauw
+vHAq4lmWHA+T/1BExur2oEP+j2wwSajiAtJDxWxUO4TIVrxjLOeGJgavkzsGWaXW
+QdYsMl7diBObR+HxhcPe
+=i58j
+-----END PGP SIGNATURE-----
+
+--=-wflH8xajE0/yCNVVm5eZ--
