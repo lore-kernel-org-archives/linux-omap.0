@@ -1,60 +1,67 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 25/26] OMAP: PM: convert the SmartReflex code into the AVS
- driver framework
-Date: Thu, 12 Jan 2012 12:13:36 +0100
-Message-ID: <CAORVsuWpKmaV9SUNEM9G=QLOb9ruKMPckeTWn3h8tkJVbQ6qJg@mail.gmail.com>
+Subject: Re: [RFC/PATCH 00/26] PM: Create the AVS class of drivers
+Date: Thu, 12 Jan 2012 12:17:52 +0100
+Message-ID: <CAORVsuUjTXSPxhRRN_eAC8oUNCeYscYu547VN52w50AdF3Zg2w@mail.gmail.com>
 References: <1321974370-25800-1-git-send-email-j-pihet@ti.com>
-	<1321974370-25800-26-git-send-email-j-pihet@ti.com>
-	<20111123095120.GD25068@legolas.emea.dhcp.ti.com>
-	<CAORVsuV2bRJrCnk2Kntr3YgZzoTcFyVcg6A6ZSUUOqkh9Jz0uA@mail.gmail.com>
-	<20111123110448.GP25068@legolas.emea.dhcp.ti.com>
-	<CAORVsuUio6viQxBFJES0wm7sP3O44se0CsiXue95XEKiR5_F4w@mail.gmail.com>
-	<87d3apvj26.fsf@ti.com>
+	<87mx9tu3x5.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57127 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab2ALLNh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 06:13:37 -0500
-Received: by vbmv11 with SMTP id v11so227199vbm.19
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jan 2012 03:13:36 -0800 (PST)
-In-Reply-To: <87d3apvj26.fsf@ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:52330 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750718Ab2ALLRx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 06:17:53 -0500
+Received: by vcbfk14 with SMTP id fk14so1256589vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 12 Jan 2012 03:17:52 -0800 (PST)
+In-Reply-To: <87mx9tu3x5.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: balbi@ti.com, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, paul@pwsan.com, rjw@sisk.pl, Jean Pihet <j-pihet@ti.com>
+Cc: rjw@sisk.pl, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, paul@pwsan.com, balbi@ti.com, Jean Pihet <j-pihet@ti.com>
 
-Kevin,
+Hi Kevin,
 
-On Thu, Jan 12, 2012 at 1:52 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
+On Thu, Jan 12, 2012 at 2:04 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Hi Jean,
 >
->>> if you already decide in runtime the correct initialization to call=
-, why
->>> do you add ifdefs ?
+> jean.pihet@newoldbits.com writes:
+>
+>> From: Jean Pihet <j-pihet@ti.com>
 >>
->> There is no #ifdef with CONFIG_POWER_AVS_OMAP_V[12], those options a=
-re
->> used to compile or not the respective modules, cf.
->> driver/power/avs/Makefile.
+>> The following patches are in RFC state; the code is still WIP and ha=
+s been
+>> compile tested only. Feedback on the code organization is welcome!
 >
-> I'd suggest not even having user-selectable Kconfig for this.
+> This series looks like a good cleanup to me.
 >
-> Just have a single Kconfig for POWER_AVS, then have
->
-> config POWER_AVS_OMAP
-> =A0 =A0 =A0 default PM && (ARCH_OMAP3 || ARCH_OMAP4)
->
-> which compiles both versions of the OMAP IP.
-Ok will do that.
+> Could you update this against current Linus tree which should now hav=
+e
+> all the OMAP stuff merged in and so we can get some broader testing h=
+ere.
+Ok
 
-Regards,
-Jean
+>
+> Rafael, are you OK with this as a new driver under drivers/power/avs?
+> It's only the last patch that moves the cleaned up driver under
+> drivers/power/avs.
+>
+> Maybe we should take this in two phases. =A0For the v3.4 merge window=
+, do
+> the cleanup (patches 1-25), and for the following merge window, move =
+it
+> under drivers/power/avs and post it to a broader audience for
+> discussion.
+Doing it that way helps to identify the dependencies with other OMAP
+specific code.
+
+Let me refresh this patch series and re-send.
 
 >
 > Kevin
+
+Regards,
+Jean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
