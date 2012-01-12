@@ -1,78 +1,41 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: linux-next problems
-Date: Thu, 12 Jan 2012 17:58:48 +0200
-Message-ID: <CAK=WgbbJsfdcjv86y6PC2w1jxCyApL-LFj8PvoKSQDL2e7m4iA@mail.gmail.com>
-References: <1326382689.1896.12.camel@deskari>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] usb: musb: drop superfluous pm_runtime calls around musb_shutdown
+Date: Thu, 12 Jan 2012 17:59:58 +0200
+Message-ID: <CAMP44s3rG+ZOoDSBdg0D+4-gFO5+akmLOeeDJ0f+3rtLnieHZw@mail.gmail.com>
+References: <1326374498-22968-1-git-send-email-notasas@gmail.com>
+	<CAMP44s3PnWCmCD1ip1EP9wMBDeOZ0EacpFTOTvASxYcFJh+W6A@mail.gmail.com>
+	<CANOLnOMj-Z7T8tcgjr-r1RrGFPpohbtvOg=FG6fVJR3ua17bxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:53624 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753991Ab2ALP7K (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 10:59:10 -0500
-In-Reply-To: <1326382689.1896.12.camel@deskari>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:60639 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753991Ab2ALQAA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jan 2012 11:00:00 -0500
+In-Reply-To: <CANOLnOMj-Z7T8tcgjr-r1RrGFPpohbtvOg=FG6fVJR3ua17bxg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap mailing list <linux-omap@vger.kernel.org>, linux-next@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
 
-+ Stephen
+On Thu, Jan 12, 2012 at 5:55 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+> On Thu, Jan 12, 2012 at 5:45 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> On Thu, Jan 12, 2012 at 3:21 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
+>>> Since commit 4f9edd2d7e8d "usb: musb: Fix the crash issue during reboot"
+>>> musb_shutdown() does pm_runtime_get_sync/pm_runtime_put by itself, so
+>>> this no longer needs to be done by the caller. Also, musb_exit_debugfs()
+>>> doesn't access the device, so just drop those runtime_pm calls.
+>>
+>> I don't understand what is the relationship with 4f9edd2d7e8d and
+>> musb_shutdown(), it seems this patch is basically reverting
+>> 4f9edd2d7e8d.
+>
+> No it's not, read my patch and it's description again. 4f9edd2d7e8d is
+> patching musb_shutdown(), mine musb_remove().
 
-Thanks, Tomi.
+Ohh, OK.
 
-On Thu, Jan 12, 2012 at 5:38 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> I was trying to compile linux-next for OMAP, but it doesn't compile with
-> the default configs.
-...
-> drivers/remoteproc/remoteproc_rpmsg.c:100:6: error: too few arguments to function 'vring_new_virtqueue'
-
-This is due to a recent change in virtio.
-
-Stephen, I guess this won't be relevant for more than a few days, but
-can you please take this patch below to linux-next ?
-(alternatively feel free just to squash this to the merge commit.
-whatever is easiest for you.)
-
-Thanks!
-Ohad.
-
->From 305aefa86e84a161f2535e4302eaf8b2338eeff8 Mon Sep 17 00:00:00 2001
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Thu, 12 Jan 2012 09:26:57 +0200
-Subject: [PATCH] remoteproc: don't use virtio's weak barriers
-
-When creating a virtqueue for rpmsg, tell virtio we're not interested
-in "weak" smp barriers, since we're talking to a real device.
-
-On ARM, this means using a DSB instead of a DMB, which is needed
-for platforms that kick the remote processor using some kind of
-a mailbox device mapped to Device memory (otherwise the kick can
-jump ahead and wake the remote processor before it has observed
-the changes to the vrings).
-
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
----
- drivers/remoteproc/remoteproc_rpmsg.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/remoteproc/remoteproc_rpmsg.c
-b/drivers/remoteproc/remoteproc_rpmsg.c
-index f30be4c..4f73e81 100644
---- a/drivers/remoteproc/remoteproc_rpmsg.c
-+++ b/drivers/remoteproc/remoteproc_rpmsg.c
-@@ -96,7 +96,11 @@ static struct virtqueue *rp_find_vq(struct
-virtio_device *vdev,
-
- 	dev_dbg(rproc->dev, "vring%d: va %p qsz %d\n", id, addr, len);
-
--	vq = vring_new_virtqueue(len, AMP_VRING_ALIGN, vdev, addr,
-+	/*
-+	 * Create the new vq, and tell virtio we're not interested in
-+	 * the 'weak' smp barriers, since we're talking with a real device.
-+	 */
-+	vq = vring_new_virtqueue(len, AMP_VRING_ALIGN, vdev, false, addr,
- 					rproc_virtio_notify, callback, name);
- 	if (!vq) {
- 		dev_err(rproc->dev, "vring_new_virtqueue %s failed\n", name);
 -- 
-1.7.5.4
+Felipe Contreras
