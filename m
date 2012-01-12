@@ -1,46 +1,58 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 12 Jan 2012 14:40:40 -0800
-Message-ID: <87obu8sfx3.fsf@ti.com>
-References: <WC20120109124643.880164@terrafix.co.uk>
-	<1326386551.1896.41.camel@deskari>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCHv8 4/5] OMAP: I2C: Remove the reset in the init path
+Date: Thu, 12 Jan 2012 16:22:52 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201121617300.3659@utopia.booyaka.com>
+References: <1323773758-6375-1-git-send-email-shubhrajyoti@ti.com> <1323773758-6375-5-git-send-email-shubhrajyoti@ti.com> <alpine.DEB.2.00.1112160139010.12660@utopia.booyaka.com> <4EEB086A.2050607@ti.com> <CANQgH-Ze1S6sy1uhzy_b8GWOCjF4+-9DOCcUn9mq1kAaT+Y7FA@mail.gmail.com>
+ <CANQgH-YLez8B-t8nf9_M8samn9YWUa7LcOFx6uPFrJE9tnXB1Q@mail.gmail.com> <87hb03tw8h.fsf@ti.com> <4F0D26DF.1020108@ti.com> <alpine.DEB.2.00.1201110619090.31702@utopia.booyaka.com> <4F0D9B70.3000309@ti.com> <alpine.DEB.2.00.1201110809530.31702@utopia.booyaka.com>
+ <4F0EEA9B.3030104@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:47395 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755630Ab2ALWkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jan 2012 17:40:43 -0500
-Received: by mail-tul01m020-f171.google.com with SMTP id wc7so2367324obb.16
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jan 2012 14:40:42 -0800 (PST)
-In-Reply-To: <1326386551.1896.41.camel@deskari> (Tomi Valkeinen's message of
-	"Thu, 12 Jan 2012 18:42:31 +0200")
+Received: from utopia.booyaka.com ([72.9.107.138]:38351 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755260Ab2ALXWx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 18:22:53 -0500
+In-Reply-To: <4F0EEA9B.3030104@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Shubhrajyoti <shubhrajyoti@ti.com>, Kevin Hilman <khilman@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ben-linux@fluff.org
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+On Thu, 12 Jan 2012, Cousson, Benoit wrote:
 
-> On Mon, 2012-01-09 at 12:46 +0000, Joe Woodward wrote:
->> I'm running on a Gumstix Overo (OMAP3530) with an 24-bit LCD panel connected via the DPI interface (using the generic panel driver).
->> 
->> Entering standby used to work just fine on 3.0, but on 3.2 I get the following:
->
-> I've been debugging this, but I'm at loss. I added some debug prints,
-> which I show below, and I also pushed them to
-> "git://gitorious.org/linux-omap-dss2/linux.git pm-test-prints" if
-> somebody wants to see exactly what they print.
->
-> Kevin, perhaps you have an idea what could be wrong here. Long version
-> below, short version: doing system suspend breaks omapdss, if omapdss
-> uses pm_runtime_put, but works with pm_runtime_put_sync.
+> On 1/11/2012 4:22 PM, Paul Walmsley wrote:
+> > On Wed, 11 Jan 2012, Cousson, Benoit wrote:
+> > 
+> > > Something that puzzle me on that point is most architecture does not use
+> > > plateform_device and thus does not have any pdata to hack some custom
+> > > function
+> > > pointers here an there.
+> > > It means that there is probably some better solution to handle that.
+> > 
+> > PCI and USB have their own bus-level device reset functions that are
+> > exported from bus code that lives under drivers/.  In a similar fashion,
+> > we could export omap_device_reset() from our arch/arm/plat-omap code.
+> > But that would require that arch/arm/plat-omap and arch/arm/mach-omap2
+> > code to be compiled for any ARM build that includes i2c-omap.c.  This
+> > would be good to avoid, under the principle that drivers should be
+> > buildable for any architecture.  (This is also why we wish to remove
+> > omap_{read,write}*() and cpu_is_omap() from any drivers which contain
+> > those.)
+> > 
+> > The intention a few years ago was to eventually create a a real omap_bus
+> > and omap_device, with the bus/device integration code living under
+> > drivers.  In such a situation, we'd be able to use something like the
+> > PCI/USB approach cleanly, since there wouldn't be dependencies to arch/
+> > code.
+> 
+> For reset, maybe the custom bus is a better approach, since it is something
+> that is handled by the OMAP core infrastructure.
+> I was referring more to all the other function pointer we have today in driver
+> like MMC, DSS that does not necessarily belong to a OMAP core stuff.
 
-Is the pm_runtime_put() done after system suspend has started?  
+Yes, that's right.  In general, cross-device dependencies with no 
+infrastructural consequences should be handled by EXPORT_SYMBOL() between 
+driver code.
 
-After system suspend has begun, the workqueue used for async callbacks
-is frozen, so any runtime PM calls that you want to work during
-suspend/resume must use the _sync versions.
 
-Kevin
+- Paul
