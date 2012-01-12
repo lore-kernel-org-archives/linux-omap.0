@@ -1,109 +1,138 @@
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] ARM: OMAP3: fix build on !CONFIG_IOMMU_API
-Date: Thu, 12 Jan 2012 13:07:13 +0100
-Message-ID: <201201121307.15698.laurent.pinchart@ideasonboard.com>
-References: <1326288491-25146-1-git-send-email-ohad@wizery.com>
+From: Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
+Date: Thu, 12 Jan 2012 15:13:01 +0200
+Message-ID: <20120112131301.GA3478@matterhorn1>
+References: <1323834838-2206-1-git-send-email-mturquette@linaro.org>
+	<1323834838-2206-4-git-send-email-mturquette@linaro.org>
+	<alpine.LFD.2.02.1112141007550.3020@ionos>
+	<CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com>
+	<20120104021541.GI2414@b20223-02.ap.freescale.net>
+	<4F0462FF.1000308@gmail.com>
+	<CAJOA=zPw7UuhE4R3SsBeyzQ2_iN29Zv-ExaUTTFCah+GoFSfNQ@mail.gmail.com>
+	<4F0506D0.30109@gmail.com>
+	<CAJOA=zPgwiOSoyZK1SpzZVZfTOmwruTR=WO+gRdVZrZVzNuPSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49780 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751860Ab2ALMHU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 07:07:20 -0500
-In-Reply-To: <1326288491-25146-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJOA=zPgwiOSoyZK1SpzZVZfTOmwruTR=WO+gRdVZrZVzNuPSA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: "Turquette, Mike" <mturquette-l0cyMroinI0@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>
+Cc: andrew-g2DYL2Zd6BY@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Richard Zhao <richard.zhao-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Arik Nemtsov <arik@wizery.com>, Raja Govindraj <govindraj.raja@ti.com>, Joerg Roedel <Joerg.Roedel@amd.com>
 
-Hi Ohad,
-
-On Wednesday 11 January 2012 14:28:11 Ohad Ben-Cohen wrote:
-> omap3isp depends on CONFIG_IOMMU_API, so avoid registering its
-> device (and defining its configuration structs) on !CONFIG_IOMMU_API.
-> 
-> This is generally nice to have, but more importantly, it fixes:
-> 
-> arch/arm/plat-omap/include/plat/iommu.h: In function 'dev_to_omap_iommu':
-> arch/arm/plat-omap/include/plat/iommu.h:135: error: 'struct
-> dev_archdata' has no member named 'iommu'
-> arch/arm/mach-omap2/devices.c: In function 'omap3_init_camera':
-> arch/arm/mach-omap2/devices.c:222: error: 'struct dev_archdata' has no
-> member named 'iommu'
-> make[1]: *** [arch/arm/mach-omap2/devices.o] Error 1
-> make: *** [arch/arm/mach-omap2] Error 2
-> 
-> Which happens because while setting up the omap3isp device we try
-> to access the (now nonexistent) iommu member of dev_archdata.
-> 
-> Compile tested with omap2plus_defconfig on today's:
-> 
-> commit e343a895a9f342f239c5e3c5ffc6c0b1707e6244
-> Merge: 06792c4 193a667
-> Author: Linus Torvalds <torvalds@linux-foundation.org>
-> Date:   Tue Jan 10 18:04:27 2012 -0800
-> 
->     Merge tag 'for-linus' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/mst/vhost
-> 
-> Reported-by: Govindraj Raja <govindraj.raja@ti.com>
-> Reported-by: Arik Nemtsov <arik@wizery.com>
-> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Joerg Roedel <Joerg.Roedel@amd.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> Sorry guys, my bad.
-> 
->  arch/arm/mach-omap2/devices.c |   14 +++++++++++++-
->  1 files changed, 13 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 46dfd1a..0b510ad 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -28,7 +28,6 @@
->  #include <plat/board.h>
->  #include <plat/mcbsp.h>
->  #include <plat/mmc.h>
-> -#include <plat/iommu.h>
->  #include <plat/dma.h>
->  #include <plat/omap_hwmod.h>
->  #include <plat/omap_device.h>
-> @@ -128,6 +127,10 @@ static struct platform_device omap2cam_device = {
->  };
->  #endif
-> 
-> +#if defined(CONFIG_IOMMU_API)
-> +
-> +#include <plat/iommu.h>
-> +
->  static struct resource omap3isp_resources[] = {
->  	{
->  		.start		= OMAP3430_ISP_BASE,
-> @@ -224,6 +227,15 @@ int omap3_init_camera(struct isp_platform_data *pdata)
->  	return platform_device_register(&omap3isp_device);
->  }
-> 
-> +#else /* !CONFIG_IOMMU_API */
-> +
-> +int omap3_init_camera(struct isp_platform_data *pdata)
-> +{
-> +	return 0;
-> +}
-> +
-> +#endif
-> +
->  static inline void omap_init_camera(void)
->  {
->  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-
--- 
-Regards,
-
-Laurent Pinchart
+T24gMTIgSmFuIDA0LCBUdXJxdWV0dGUsIE1pa2Ugd3JvdGU6Cj4gT24gV2VkLCBKYW4gNCwgMjAx
+MiBhdCA2OjExIFBNLCBSb2IgSGVycmluZyA8cm9iaGVycmluZzJAZ21haWwuY29tPiB3cm90ZToK
+PiA+IE9uIDAxLzA0LzIwMTIgMDc6MDEgUE0sIFR1cnF1ZXR0ZSwgTWlrZSB3cm90ZToKPiA+PiBP
+biBXZWQsIEphbiA0LCAyMDEyIGF0IDY6MzIgQU0sIFJvYiBIZXJyaW5nIDxyb2JoZXJyaW5nMkBn
+bWFpbC5jb20+IHdyb3RlOgo+ID4+PiBPbiAwMS8wMy8yMDEyIDA4OjE1IFBNLCBSaWNoYXJkIFpo
+YW8gd3JvdGU6Cj4gPj4+PiBPbiBGcmksIERlYyAxNiwgMjAxMSBhdCAwNDo0NTo0OFBNIC0wODAw
+LCBUdXJxdWV0dGUsIE1pa2Ugd3JvdGU6Cj4gPj4+Pj4gT24gV2VkLCBEZWMgMTQsIDIwMTEgYXQg
+NToxOCBBTSwgVGhvbWFzIEdsZWl4bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+IHdyb3RlOgo+ID4+
+Pj4+PiBPbiBUdWUsIDEzIERlYyAyMDExLCBNaWtlIFR1cnF1ZXR0ZSB3cm90ZToKPiA+Pj4KPiA+
+Pj4gc25pcAo+ID4+Pgo+ID4+Pj4+Pj4gKy8qKgo+ID4+Pj4+Pj4gKyAqIGNsa19pbml0IC0gaW5p
+dGlhbGl6ZSB0aGUgZGF0YSBzdHJ1Y3R1cmVzIGluIGEgc3RydWN0IGNsawo+ID4+Pj4+Pj4gKyAq
+IEBkZXY6IGRldmljZSBpbml0aWFsaXppbmcgdGhpcyBjbGssIHBsYWNlaG9sZGVyIGZvciBub3cK
+PiA+Pj4+Pj4+ICsgKiBAY2xrOiBjbGsgYmVpbmcgaW5pdGlhbGl6ZWQKPiA+Pj4+Pj4+ICsgKgo+
+ID4+Pj4+Pj4gKyAqIEluaXRpYWxpemVzIHRoZSBsaXN0cyBpbiBzdHJ1Y3QgY2xrLCBxdWVyaWVz
+IHRoZSBoYXJkd2FyZSBmb3IgdGhlCj4gPj4+Pj4+PiArICogcGFyZW50IGFuZCByYXRlIGFuZCBz
+ZXRzIHRoZW0gYm90aC4gwqBBZGRzIHRoZSBjbGsgdG8gdGhlIHN5c2ZzIHRyZWUKPiA+Pj4+Pj4+
+ICsgKiB0b3BvbG9neS4KPiA+Pj4+Pj4+ICsgKgo+ID4+Pj4+Pj4gKyAqIENhbGxlciBtdXN0IHBv
+cHVsYXRlIGNsay0+bmFtZSBhbmQgY2xrLT5mbGFncyBiZWZvcmUgY2FsbGluZwo+ID4+Pj4+Pgo+
+ID4+Pj4+PiBJJ20gbm90IHRvbyBoYXBweSBhYm91dCB0aGlzIGNvbnN0cnVjdC4gVGhhdCBsZWF2
+ZXMgc3RydWN0IGNsayBhbmQgaXRzCj4gPj4+Pj4+IG1lbWJlcnMgZXhwb3NlZCB0byB0aGUgd29y
+bGQgaW5zdGVhZCBvZiBtYWtpbmcgaXQgYSByZWFsIG9wYXF1ZQo+ID4+Pj4+PiBjb29raWUuIEkg
+a25vdyBmcm9tIG15IG93biBwYWluZnVsIGV4cGVyaWVuY2UsIHRoYXQgdGhpcyB3aWxsIGxlYWQg
+dG8KPiA+Pj4+Pj4gcmFuZG9tIGZpZGRsaW5nIGluIHRoYXQgZGF0YSBzdHJ1Y3R1cmUgaW4gZHJp
+dmVycyBhbmQgYXJjaCBjb2RlIGp1c3QKPiA+Pj4+Pj4gYmVjYXVzZSB0aGUgY29yZSBjb2RlIGhh
+cyBhIHNob3J0Y29taW5nLgo+ID4+Pj4+Pgo+ID4+Pj4+PiBXaHkgY2FuJ3Qgd2UgbWFrZSBzdHJ1
+Y3QgY2xrIGEgcmVhbCBjb29raWUgYW5kIGNvbmZpbmUgdGhlIGRhdGEKPiA+Pj4+Pj4gc3RydWN0
+dXJlIHRvIHRoZSBjb3JlIGNvZGUgPwo+ID4+Pj4+Pgo+ID4+Pj4+PiBUaGF0IHdvdWxkIGNoYW5n
+ZSB0aGUgaW5pdCBjYWxsIHRvIHNvbWV0aGluZyBsaWtlOgo+ID4+Pj4+Pgo+ID4+Pj4+PiBzdHJ1
+Y3QgY2xrICpjbGtfaW5pdChzdHJ1Y3QgZGV2aWNlICpkZXYsIGNvbnN0IHN0cnVjdCBjbGtfaHcg
+Kmh3LAo+ID4+Pj4+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzdHJ1Y3QgY2xrICpw
+YXJlbnQpCj4gPj4+Pj4+Cj4gPj4+Pj4+IEFuZCBoYXZlOgo+ID4+Pj4+PiBzdHJ1Y3QgY2xrX2h3
+IHsKPiA+Pj4+Pj4gwqAgwqAgwqAgc3RydWN0IGNsa19od19vcHMgKm9wczsKPiA+Pj4+Pj4gwqAg
+wqAgwqAgY29uc3QgY2hhciDCoCDCoCDCoCDCoCpuYW1lOwo+ID4+Pj4+PiDCoCDCoCDCoCB1bnNp
+Z25lZCBsb25nIMKgIMKgIGZsYWdzOwo+ID4+Pj4+PiB9Owo+ID4+Pj4+Pgo+ID4+Pj4+PiBJbXBs
+ZW1lbnRlcnMgY2FuIGRvOgo+ID4+Pj4+PiBzdHJ1Y3QgbXlfY2xrX2h3IHsKPiA+Pj4+Pj4gwqAg
+wqAgwqAgc3RydWN0IGNsa19odyDCoCDCoGh3Owo+ID4+Pj4+PiDCoCDCoCDCoCBteWRhdGE7Cj4g
+Pj4+Pj4+IH07Cj4gPj4+Pj4+Cj4gPj4+Pj4+IEFuZCB0aGVuIGNoYW5nZSB0aGUgY2xrIG9wcyBj
+YWxsYmFja3MgdG8gdGFrZSBzdHJ1Y3QgY2xrX2h3ICogYXMgYW4KPiA+Pj4+Pj4gYXJndW1lbnQu
+Cj4gPj4+PiBXZSBoYXZlIHRvIGRlZmluZSBzdGF0aWMgY2xvY2tzIGJlZm9yZSB3ZSBhZG9wdCBE
+VCBiaW5kaW5nLgo+ID4+Pj4gSWYgY2xrIGlzIG9wYXF1ZSBhbmQgYWxsb2NhdGUgbWVtb3J5IGlu
+IGNsayBjb3JlLCBpdCdsbCBtYWtlIGhhcmQKPiA+Pj4+IHRvIGRlZmluZSBzdGF0aWMgY2xvY2tz
+LiBBbmQgcmVnaXN0ZXIvaW5pdCB3aWxsIHBhc3MgYSBsb25nIHBhcmFtZXRlcgo+ID4+Pj4gbGlz
+dC4KPiA+Pj4KPiA+Pj4gRFQgaXMgbm90IGEgcHJlcmVxdWlzaXRlIGZvciBoYXZpbmcgZHluYW1p
+Y2FsbHkgY3JlYXRlZCBjbG9ja3MuIFlvdSBjYW4KPiA+Pj4gbWFrZSBjbG9jayBpbml0IGR5bmFt
+aWMgd2l0aG91dCBEVC4KPiA+Pgo+ID4+IEFncmVlZC4KPiA+Pgo+ID4+PiBXaGF0IGRhdGEgZ29l
+cyBpbiBzdHJ1Y3QgY2xrIHZzLiBzdHJ1Y3QgY2xrX2h3IGNvdWxkIGNoYW5nZSBvdmVyIHRpbWUu
+Cj4gPj4+IFNvIHBlcmhhcHMgd2UgY2FuIHN0YXJ0IHdpdGggc29tZSBkYXRhIGluIGNsa19odyBh
+bmQgcGxhbiB0byBtb3ZlIGl0IHRvCj4gPj4+IHN0cnVjdCBjbGsgbGF0ZXIuIEV2ZW4gaWYgYWxt
+b3N0IGV2ZXJ5dGhpbmcgZW5kcyB1cCBpbiBjbGtfaHcgaW5pdGlhbGx5LAo+ID4+PiBhdCBsZWFz
+dCB0aGUgc3RydWN0dXJlIGlzIGluIHBsYWNlIHRvIGhhdmUgY29tbW9uLCBjb3JlLW9ubHkgZGF0
+YQo+ID4+PiBzZXBhcmF0ZSBmcm9tIHBsYXRmb3JtIGRhdGEuCj4gPj4KPiA+PiBXaGF0IGlzIHRo
+ZSBwb2ludCBvZiB0aGlzPwo+ID4KPiA+IFRvIGhhdmUgYSB3YXkgZm9yd2FyZC4gSXQgd291bGQg
+YmUgbmljZSB0byBoYXZlIGEgY2xrIGluZnJhc3RydWN0dXJlCj4gPiBiZWZvcmUgSSByZXRpcmUu
+Li4KPiAKPiBIYWhhLCBhZ3JlZWQuCj4gCj4gPgo+ID4+IFRoZSBvcmlnaW5hbCBjbGtfaHcgd2Fz
+IGRlZmluZWQgc2ltcGx5IGFzOgo+ID4+Cj4gPj4gc3RydWN0IGNsa19odyB7Cj4gPj4gwqAgwqAg
+wqAgwqAgc3RydWN0IGNsayAqY2xrOwo+ID4+IH07Cj4gPj4KPiA+PiBJdCdzIG9ubHkgcHVycG9z
+ZSBpbiBsaWZlIHdhcyBhcyBhIGhhbmRsZSBmb3IgbmF2aWdhdGlvbiBiZXR3ZWVuIHRoZQo+ID4+
+IG9wYXF1ZSBzdHJ1Y3QgY2xrIGFuZCB0aGUgaGFyZHdhcmUtc3BlY2lmaWMgc3RydWN0IG15X2Ns
+a19ody4gwqBzdHJ1Y3QKPiA+PiBjbGtfaHcgaXMgZGVmaW5lZCBpbiBjbGsuaCBhbmQgZXZlcnlv
+bmUgY2FuIHNlZSBpdC4gwqBJZiB3ZSdyZSBzdWRkZW5seQo+ID4+IE9LIHB1dHRpbmcgY2xrIGRh
+dGEgaW4gdGhpcyBzdHJ1Y3R1cmUgdGhlbiB3aHkgYm90aGVyIHdpdGggYW4gb3BhcXVlCj4gPj4g
+c3RydWN0IGNsayBhdCBhbGw/Cj4gPj4KPiA+Pj4gV2hhdCBpcyB0aGUgYWN0dWFsIGRhdGEgeW91
+IG5lZWQgdG8gYmUgc3RhdGljIGFuZCBhY2Nlc3NpYmxlIHRvIHRoZQo+ID4+PiBwbGF0Zm9ybSBj
+b2RlPyBBIHB0ciB0byBwYXJlbnQgY2xrIGlzIHRoZSBtYWluIHRoaW5nIEkndmUgc2VlbiBmb3IK
+PiA+Pj4gc3RhdGljIGluaXRpYWxpemF0aW9uLiBTbyBtYWtlIHRoZSBwYXJlbnQgcHRyIGJlIHN0
+cnVjdCBjbGtfaHcqIGFuZAo+ID4+PiBhbGxvdyB0aGUgcGxhdGZvcm1zIHRvIGFjY2Vzcy4KPiA+
+Pgo+ID4+IFRvIGFuc3dlciB5b3VyIHF1ZXN0aW9uIG9uIHdoYXQgZGF0YSB3ZSdyZSB0cnlpbmcg
+dG8gZXhwb3NlOiBwbGF0Zm9ybQo+ID4+IGNvZGUgY29tbW9ubHkgbmVlZHMgdGhlIHBhcmVudCBw
+b2ludGVyIGFuZCB0aGUgY2xrIHJhdGUgKGFuZCBieQo+ID4+IGV4dGVuc2lvbiwgdGhlIHJhdGUg
+b2YgdGhlIHBhcmVudCkuIMKgRm9yIGRlYnVnL2Vycm9yIHByaW50cyBpdCBpcyBhbHNvCj4gPj4g
+bmljZSB0byBoYXZlIHRoZSBjbGsgbmFtZS4gwqBHZW5lcmljIGNsayBmbGFncyBhcmUgYWxzbyBj
+b25jZWl2YWJseQo+ID4+IHNvbWV0aGluZyB0aGF0IHBsYXRmb3JtIGNvZGUgbWlnaHQgd2FudC4K
+PiA+Cj4gPiBJIGFncmVlIHdpdGggdGhlIG5lZWQgdG8gaGF2ZSB0aGUgcGFyZW50IGFuZCBmbGFn
+cyBmcm9tIGEgc3RhdGljIGluaXQKPiA+IHBlcnNwZWN0aXZlLiBUaGVyZSdzIG5vdCByZWFsbHkg
+YSBnb29kIHJlYXNvbiB0aGUgb3RoZXJzIGNhbid0IGJlCj4gPiBhY2Nlc3NlZCB0aHJ1IGFjY2Vz
+c29ycyB0aG91Z2guCj4gPgo+ID4+IEknZCBsaWtlIHRvIHNwaW4gdGhlIHF1ZXN0aW9uIGFyb3Vu
+ZDogaWYgd2UncmUgT0sgZXhwb3Npbmcgc29tZSBzdHVmZgo+ID4+IChpbiB5b3VyIGV4YW1wbGUg
+YWJvdmUsIHRoZSBwYXJlbnQgcG9pbnRlciksIHRoZW4gd2hhdCBjbGsgZGF0YSBhcmUKPiA+PiB5
+b3UgdHJ5aW5nIHRvIGhpZGU/Cj4gPgo+ID4gV2VsbCwgZXZlcnl0aGluZyBmcm9tIGRyaXZlcnMg
+d2hpY2ggdGhlIGN1cnJlbnQgY2xrIGltcGxlbWVudGF0aW9ucyBkbwo+ID4gaGlkZS4gQ2F0Y2hp
+bmcgYWJ1c2UgaW4gd2l0aCBkcml2ZXJzIGNvbWluZyBpbiBmcm9tIGFsbCBkaWZmZXJlbnQgdHJl
+ZXMKPiA+IGFuZCBsaXN0cyB3aWxsIGJlIGltcG9zc2libGUuCj4gPgo+ID4gRm9yIHBsYXRmb3Jt
+IGNvZGUgaXQgaXMgbW9yZSBmdXp6eS4gSSBkb24ndCB0aGluayBwbGF0Zm9ybSBjb2RlIHNob3Vs
+ZAo+ID4gYmUgYWxsb3dlZCB0byBtdWNrIHdpdGggcHJlcGFyZS9lbmFibGUgY291bnRzIGZvciBl
+eGFtcGxlLgo+IAo+IFNvIHRoZXJlIGlzIGEgY2xlYXIgZGljaG90b215OiBkcml2ZXJzIHNob3Vs
+ZG4ndCBiZSBleHBvc2VkIHRvIGFueSBvZgo+IGl0IGFuZCBwbGF0Zm9ybSBjb2RlIHNob3VsZCBi
+ZSBleHBvc2VkIHRvIHNvbWUgb2YgaXQuCj4gCj4gSG93IGFib3V0IGEgZHJpdmVycy9jbGsvY2xr
+LXByaXZhdGUuaCB3aGljaCB3aWxsIGRlZmluZSBzdHJ1Y3QgY2xrIGFuZAo+IG11c3Qgb25seSBi
+ZSBpbmNsdWRlZCBieSBjbGsgZHJpdmVycyBpbiBkcml2ZXJzL2Nsay8qPwo+IAo+IFRoaXMgZXN0
+YWJsaXNoZXMgYSBicmlnaHQgbGluZSBiZXR3ZWVuIHRob3NlIHRoaW5ncyB3aGljaCBhcmUgYWxs
+b3dlZAo+IHRvIGtub3cgdGhlIGRldGFpbHMgb2Ygc3RydWN0IGNsayBhbmQgdGhvc2UgdGhhdCBh
+cmUgbm90OiBuYW1lbHkgdGhhdAo+IGNsayBkcml2ZXJzIGluIGRyaXZlcnMvY2xrLyBtYXkgdXNl
+ICcjaW5jbHVkZSAiY2xrLXByaXZhdGUuaCInLgo+IE9idmlvdXNseSBzdHJ1Y3QgY2xrIGlzIG9w
+YXF1ZSB0byB0aGUgcmVzdCBvZiB0aGUga2VybmVsIChpbiB0aGUgc2FtZQo+IHdheSBpdCBoYXMg
+YmVlbiBwcmlvciB0byB0aGUgY29tbW9uIGNsayBwYXRjaGVzKSBhbmQgdGhlcmUgaXMgbm8gbmVl
+ZAo+IGZvciBzdHJ1Y3QgY2xrX2h3IGFueW1vcmUuICBBbHNvIGhlbHBlciBmdW5jdGlvbnMgYXJl
+IG5vIGxvbmdlciBuZWVkZWQKPiBmb3IgY2xvY2sgZHJpdmVyIGNvZGUsIHdoaWNoIEkgdGhpbmsg
+KmlzKiBhIG1hbmFnZWFibGUgc2V0IG9mIGNvZGUgdG8KPiByZXZpZXcuICBBbHNvIGNsayBkcml2
+ZXJzIG11c3QgbGl2ZSBpbiBkcml2ZXJzL2Nsay8gZm9yIHRoaXMgdG8gd29yawo+ICh3aXRob3V0
+IGEgYmlnIHVnbHkgcGF0aCBpbiBzb21lb25lJ3MgI2luY2x1ZGUgZGlyZWN0aXZlIHNvbWV3aGVy
+ZSkuCj4gCj4gVGhvdWdodHM/Cj4gCj4gUmVnYXJkcywKPiBNaWtlCgpUaG9tYXM/IAoKV2UncmUg
+c3R1Y2sgb24gdGhpcyBmdW5kYW1lbnRhbCBwb2ludCBmb3IgYSB3aGlsZSBub3cuIEFuZCB2NSBv
+ZiB0aGUKcGF0Y2hzZXQgZG9lc24ndCBtYWtlIG11Y2ggc2Vuc2Ugd2l0aG91dCByZXNvbHZpbmcg
+aXQuCgovQW1pdAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KbGluYXJvLWRldiBtYWlsaW5nIGxpc3QKbGluYXJvLWRldkBsaXN0cy5saW5hcm8ub3JnCmh0
+dHA6Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8vbGluYXJvLWRldgo=
