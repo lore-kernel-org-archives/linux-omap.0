@@ -1,67 +1,104 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [RFC/PATCH 00/26] PM: Create the AVS class of drivers
-Date: Thu, 12 Jan 2012 12:17:52 +0100
-Message-ID: <CAORVsuUjTXSPxhRRN_eAC8oUNCeYscYu547VN52w50AdF3Zg2w@mail.gmail.com>
-References: <1321974370-25800-1-git-send-email-j-pihet@ti.com>
-	<87mx9tu3x5.fsf@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH v2] usb: musb: fix pm_runtime mismatch
+Date: Thu, 12 Jan 2012 13:56:02 +0200
+Message-ID: <CANOLnOP_aXGw2nxRE+VnW2ii2UV4JqJaxcfMbd3oVm6qfWxsGA@mail.gmail.com>
+References: <1324324914-14584-1-git-send-email-felipe.contreras@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:52330 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718Ab2ALLRx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 06:17:53 -0500
-Received: by vcbfk14 with SMTP id fk14so1256589vcb.19
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jan 2012 03:17:52 -0800 (PST)
-In-Reply-To: <87mx9tu3x5.fsf@ti.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40153 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751481Ab2ALL4F convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jan 2012 06:56:05 -0500
+In-Reply-To: <1324324914-14584-1-git-send-email-felipe.contreras@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: rjw@sisk.pl, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, paul@pwsan.com, balbi@ti.com, Jean Pihet <j-pihet@ti.com>
+To: Felipe Contreras <felipe.contreras@nokia.com>
+Cc: linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Felipe Contreras <felipe.contreras@gmail.com>, stable@vger.kernel.org, Hema HK <hemahk@ti.com>
 
-Hi Kevin,
+On Mon, Dec 19, 2011 at 10:01 PM, Felipe Contreras
+<felipe.contreras@nokia.com> wrote:
+> From: Felipe Contreras <felipe.contreras@gmail.com>
+>
+> In musb_init_controller() there's a pm_runtime_put(), but there's no
+> pm_runtime_get(), which creates a mismatch that causes the driver to
+> sleep when it shouldn't.
 
-On Thu, Jan 12, 2012 at 2:04 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Hi Jean,
+This patch is causing problems here, the device never suspends, I've
+verified musb_runtime_suspend and omap2430_runtime_suspend are never
+called in my setup, unless I revert this patch. I'm using musb with
+ethernet gadget; cable removal also doesn't suspend musb.
+
+It seems pm_runtime_put() that was removed was balancing out
+pm_runtime_get in musb_platform_init(), which is called at the
+beginning of musb_init_controller(). I think this pm_runtime_get()
+from musb_platform_init() should be moved to musb_init_controller() to
+stop confusing people and pm_runtime_put() needs to be brought back. I
+can do a patch if nobody objects.
+
+> This was introduced in 7acc619[1], but it wasn't triggered in my setu=
+p
+> until 18a2689[2] was merged to Linus' branch at point df0914[3]. IOW;
+> when PM is working as it was supposed to.
 >
-> jean.pihet@newoldbits.com writes:
+> However, it seems most of the time this is used in a way that keeps t=
+he
+> counter above 0, so nobody noticed. Also, it seems to depend on the
+> configuration used in versions before 3.1, but not later (or in it).
 >
->> From: Jean Pihet <j-pihet@ti.com>
->>
->> The following patches are in RFC state; the code is still WIP and ha=
-s been
->> compile tested only. Feedback on the code organization is welcome!
->
-> This series looks like a good cleanup to me.
->
-> Could you update this against current Linus tree which should now hav=
-e
-> all the OMAP stuff merged in and so we can get some broader testing h=
-ere.
-Ok
+> I found the problem by loading isp1704_charger before any usb gadgets=
+:
+> http://article.gmane.org/gmane.linux.kernel/1226122
+
+isp1704_charger seems to be doing otg_io_read(), and it's perfectly
+normal that musb can be suspended at the time isp1704 decides to do
+this. I think proper fix is to wake up must on musb_ulpi_read() and
+musb_ulpi_write() instead.
 
 >
-> Rafael, are you OK with this as a new driver under drivers/power/avs?
-> It's only the last patch that moves the cleaned up driver under
-> drivers/power/avs.
+> All versions after 2.6.39 are affected.
 >
-> Maybe we should take this in two phases. =A0For the v3.4 merge window=
-, do
-> the cleanup (patches 1-25), and for the following merge window, move =
-it
-> under drivers/power/avs and post it to a broader audience for
-> discussion.
-Doing it that way helps to identify the dependencies with other OMAP
-specific code.
-
-Let me refresh this patch series and re-send.
-
+> [1] usb: musb: Idle path retention and offmode support for OMAP3
+> [2] OMAP2+: musb: hwmod adaptation for musb registration
+> [3] Merge branch 'omap-for-linus' of git://git.kernel.org/pub/scm/lin=
+ux/kernel/git/tmlind/linux-omap-2.6
 >
-> Kevin
+> Cc: stable@vger.kernel.org
+> Cc: Hema HK <hemahk@ti.com>
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+> =C2=A0drivers/usb/musb/musb_core.c | =C2=A0 =C2=A02 --
+> =C2=A01 files changed, 0 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_cor=
+e.c
+> index b63ab15..920f04e 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -2012,8 +2012,6 @@ musb_init_controller(struct device *dev, int nI=
+rq, void __iomem *ctrl)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (status < 0)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto fail3;
+>
+> - =C2=A0 =C2=A0 =C2=A0 pm_runtime_put(musb->controller);
+> -
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D musb_init_debugfs(musb);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (status < 0)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto fail4;
+> --
+> 1.7.8
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
 
-Regards,
-Jean
+--=20
+Gra=C5=BEvydas
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
