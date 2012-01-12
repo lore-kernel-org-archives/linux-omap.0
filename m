@@ -1,85 +1,107 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 12 Jan 2012 11:30:36 +0200
-Message-ID: <1326360636.2065.11.camel@deskari>
-References: <WC20120109124643.880164@terrafix.co.uk>
-	 <20120110080849.5a242adf@notabene.brown>
-	 <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
-	 <4F0D9B15.4070803@ti.com>  <WC20120111151532.4602C0@terrafix.co.uk>
-	 <1326360490.2065.10.camel@deskari>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH RFC] omap-serial: Fix the error handling in the omap_serial probe
+Date: Thu, 12 Jan 2012 15:02:04 +0530
+Message-ID: <1326360724-7898-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-2eoD3O/232fEM9UFgxpw"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:39792 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753103Ab2ALJap (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Jan 2012 04:30:45 -0500
-Received: by lagv3 with SMTP id v3so900876lag.31
-        for <linux-omap@vger.kernel.org>; Thu, 12 Jan 2012 01:30:42 -0800 (PST)
-In-Reply-To: <1326360490.2065.10.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: khilman@ti.com, Archit <a0393947@ti.com>, Paul Walmsley <paul@pwsan.com>, NeilBrown <neilb@suse.de>, linux-omap@vger.kernel.org
 
+The patch does the following
 
---=-2eoD3O/232fEM9UFgxpw
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+- The pm_runtime_disable is called in the remove not in the error
+  case of probe.The patch calls the pm_runtime_disable in the error
+  case.
+- The  up is not freed in the error path. Fix the memory leak by calling
+ kfree in the error path.
+- Also the iounmap is not called fix the same by calling iounmap in the
+  error case of probe and remove .
+- Make the name of the error tags more meaningful.
 
-On Thu, 2012-01-12 at 11:28 +0200, Tomi Valkeinen wrote:
-> Hi,
->=20
-> On Wed, 2012-01-11 at 15:15 +0000, Joe Woodward wrote:
->=20
-> > > The pm_runtime_get_sync() call in dss_runtime_get() is returning  a=
-=20
-> > > negative value, could you print out that value too?
-> > >=20
-> > > If the call to pm_runtime_get_sync() fails, we bail out immediately. =
-So
-> > > the LCD interface shouldn't have been enabled at all. I don't know wh=
-y=20
-> > > we get sync lost errors.
-> > >=20
-> > > There is a possibility that the LCD interface wasn't switched off whe=
-n=20
-> > > for some reason when we suspended, and switching on the clocks again=
-=20
-> > > tries to start the transfer without DSS being configured correctly?
->=20
-> I can reproduce this on my Overo. The problem goes away if I change
-> dss's and dispc'c pm_runtime_put() calls to pm_runtime_put_sync(). But
-> I'm not quite sure why.
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+ drivers/tty/serial/omap-serial.c |   27 +++++++++++++++++----------
+ 1 files changed, 17 insertions(+), 10 deletions(-)
 
-Oh, one more thing. I didn't get any sync losts, but I may just have
-been lucky. So it may or may not be a separate problem.
-
- Tomi
-
-
---=-2eoD3O/232fEM9UFgxpw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPDqg8AAoJEPo9qoy8lh71qVgP/0LKOfdoFy+6OEuvW9LBnFeO
-bFs/Ux1YQ+XYB6DicukFDJLQ3kp63q1cENRuLXSBAT2KBoSgx945L1YDn6ipkuIn
-bfKwGhbxUePuWe84D0WdriPllN0JGHBk/O+eaJHLj1QniTeRyJ+nMdphfP678cg/
-91RYWNjf7Lv1/E82Y1RemvwH2GHuTt/sh+cG9Lmlv8i+qsPvPWn97jFyEsmnOyfQ
-lHXF2bxdf4WcTd4tT8JsVnZVsIjTESYQKFa1ER+2DAteaSJ2mWwD3RsVJC/91RMc
-zK5N4iAuPM4jWE7mDyDTbyUFECeq67UiT5ArShsOiaKLu63t3/GJfdLsJrcpcQi0
-sP+cI80oTwvC86vvfZk2yDQv1KA/mHAh2KmuZOSnKMh3P1JcVizkPm1S4YI+Qd1T
-m8WAaF/LhDGNlX6Aa5KYUbR0A5wsH/B5b0/0WDjh8J2vMhNvDo1q04AHf71D4GRo
-nBnKJUUryHtnket8rG+9+YANOZtOrRN75Jtk/1dOtujUoure+5HBts9fjIrQk7Yg
-Tg8IQ9L3WBWeG9xsav58plRpMcLW0oHTJ0NHTKIZqwpuVK8Ej3MUjsfTG1RgEj1J
-eEOCwBif9+U9VG90RII/qHEM01E1aMH8xnhgtW9R/L33dzzxaW32Xrup1v9+deQT
-7rWJXnty3VmlE8dhbfZM
-=K+iw
------END PGP SIGNATURE-----
-
---=-2eoD3O/232fEM9UFgxpw--
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index eb90a01..29fe6fd 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1369,14 +1369,14 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 
+ 	dma_rx = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
+ 	if (!dma_rx) {
+-		ret = -EINVAL;
+-		goto err;
++		ret = -ENXIO;
++		goto do_release_region;
+ 	}
+ 
+ 	dma_tx = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
+ 	if (!dma_tx) {
+-		ret = -EINVAL;
+-		goto err;
++		ret = -ENXIO;
++		goto do_release_region;
+ 	}
+ 
+ 	up = kzalloc(sizeof(*up), GFP_KERNEL);
+@@ -1403,7 +1403,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "failed to get alias/pdev id, errno %d\n",
+ 								up->port.line);
+ 		ret = -ENODEV;
+-		goto err;
++		goto err_port_line;
+ 	}
+ 
+ 	sprintf(up->name, "OMAP UART%d", up->port.line);
+@@ -1412,7 +1412,7 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 	if (!up->port.membase) {
+ 		dev_err(&pdev->dev, "can't ioremap UART\n");
+ 		ret = -ENOMEM;
+-		goto err;
++		goto err_ioremap;
+ 	}
+ 
+ 	up->port.flags = omap_up_info->flags;
+@@ -1458,16 +1458,22 @@ static int serial_omap_probe(struct platform_device *pdev)
+ 
+ 	ret = uart_add_one_port(&serial_omap_reg, &up->port);
+ 	if (ret != 0)
+-		goto do_release_region;
++		goto err_add_port;
+ 
+ 	pm_runtime_put(&pdev->dev);
+ 	platform_set_drvdata(pdev, up);
+ 	return 0;
+-err:
+-	dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
+-				pdev->id, __func__, ret);
++
++err_add_port:
++	pm_runtime_disable(&pdev->dev);
++	iounmap(up->port.membase);
++err_ioremap:
++err_port_line:
++	kfree(up);
+ do_release_region:
+ 	release_mem_region(mem->start, resource_size(mem));
++	dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
++				pdev->id, __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -1476,6 +1482,7 @@ static int serial_omap_remove(struct platform_device *dev)
+ 	struct uart_omap_port *up = platform_get_drvdata(dev);
+ 
+ 	if (up) {
++		iounmap(up->port.membase);
+ 		pm_runtime_disable(&up->pdev->dev);
+ 		uart_remove_one_port(&serial_omap_reg, &up->port);
+ 		pm_qos_remove_request(&up->pm_qos_request);
+-- 
+1.7.1
 
