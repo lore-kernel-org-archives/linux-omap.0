@@ -1,51 +1,73 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 4/6] OMAPDSS: DISPC: print fifo threshold values in bytes
-Date: Fri, 13 Jan 2012 13:46:31 +0200
-Message-ID: <1326455193-19716-5-git-send-email-tomi.valkeinen@ti.com>
-References: <1326455193-19716-1-git-send-email-tomi.valkeinen@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: omap clocksource timer selection: dmtimer OR 32K-Sync timer
+Date: Fri, 13 Jan 2012 12:21:32 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317A4E2E@DBDE01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:49049 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757967Ab2AMLqu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 06:46:50 -0500
-In-Reply-To: <1326455193-19716-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46369 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753134Ab2AMMVq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 07:21:46 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: archit@ti.com, rob@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Fifo thresholds are calculated using bytes, but the debug print prints
-values in buffer units. Change the prints to use bytes to be in line
-with the calculations, and also to print in the same units on all OMAPs.
+Hi,
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
----
- drivers/video/omap2/dss/dispc.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+In case of AM33xx family of devices, we do not have 32K Sync timer 
+(32K Counter) available; and the current implementation is based on 
+compile-time option, where clock-source is chosen by something like,
 
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index d711518..ba907bd 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1039,13 +1039,13 @@ void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high)
- 	dss_feat_get_reg_field(FEAT_REG_FIFOHIGHTHRESHOLD, &hi_start, &hi_end);
- 	dss_feat_get_reg_field(FEAT_REG_FIFOLOWTHRESHOLD, &lo_start, &lo_end);
- 
--	DSSDBG("fifo(%d) low/high old %u/%u, new %u/%u\n",
-+	DSSDBG("fifo(%d) threshold (bytes), old %u/%u, new %u/%u\n",
- 			plane,
- 			REG_GET(DISPC_OVL_FIFO_THRESHOLD(plane),
--				lo_start, lo_end),
-+				lo_start, lo_end) * unit,
- 			REG_GET(DISPC_OVL_FIFO_THRESHOLD(plane),
--				hi_start, hi_end),
--			low, high);
-+				hi_start, hi_end) * unit,
-+			low * unit, high * unit);
- 
- 	dispc_write_reg(DISPC_OVL_FIFO_THRESHOLD(plane),
- 			FLD_VAL(high, hi_start, hi_end) |
--- 
-1.7.4.1
+File - arch/arm/mach-omap2/timer.c
+
+#ifdef CONFIG_OMAP_32K_TIMER
+static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
+{
+...
+}
+#else
+static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
+{
+...
+}
+#endif
+
+
+But in order to support multi-omap build, we must
+make run-time decision to use the timer for kernel clock-source, either of -
+
+ - DMTIMER
+ - 32K Sync Timer
+
+The DMTIMER is already migrated to the HWMOD framework, but 32K Timer code
+has not yet migrated to it. So the question here is,
+
+1) Does it make sense to migrate counter_32k.c to search entry in hwmod 
+   table and if 32k_sync timer is available in hwmod table then use 32K   
+   timer for Kernel clock-source 
+   OR 
+   Fall back to DMTIMER.
+
+   OMAP4 hwmod table already has entry,
+
+   static struct omap_hwmod omap44xx_counter_32k_hwmod = {
+         .name           = "counter_32k",
+   ...
+   };
+
+   We need to have similar entries in all devices where 32K timer is present.
+
+2) OR simply add another cpu_is_am33xx() and then fall back to dmtimer?
+   Just to prove this, everything works here, I modified the code for this
+   and tested it on both AM335x EVM and AM37xEVM and it works fine for me.
+
+
+Any comments?? OR Better approach? OR anything which I am missing here?
+
+Thanks,
+Vaibhav
 
