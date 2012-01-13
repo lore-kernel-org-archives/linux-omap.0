@@ -1,91 +1,46 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 4/5] arm/dts: OMAP3: Add interrupt-controller bindings
- for INTC
-Date: Fri, 13 Jan 2012 12:03:07 +0100
-Message-ID: <4F100F6B.2050303@ti.com>
-References: <1324388398-2683-1-git-send-email-b-cousson@ti.com> <1324388398-2683-5-git-send-email-b-cousson@ti.com> <79CD15C6BA57404B839C016229A409A8317A43FC@DBDE01.ent.ti.com>
+From: Joerg Roedel <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH] ARM: OMAP3: fix build on !CONFIG_IOMMU_API
+Date: Fri, 13 Jan 2012 12:07:28 +0100
+Message-ID: <20120113110728.GC2275@amd.com>
+References: <1326288491-25146-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57353 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757565Ab2AMLDS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 06:03:18 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317A43FC@DBDE01.ent.ti.com>
+Received: from ch1ehsobe001.messaging.microsoft.com ([216.32.181.181]:53142
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752854Ab2AMLHl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 06:07:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1326288491-25146-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Arik Nemtsov <arik@wizery.com>, Raja Govindraj <govindraj.raja@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Hi Vaibhav,
+On Wed, Jan 11, 2012 at 03:28:11PM +0200, Ohad Ben-Cohen wrote:
+> omap3isp depends on CONFIG_IOMMU_API, so avoid registering its
+> device (and defining its configuration structs) on !CONFIG_IOMMU_API.
+> 
+> This is generally nice to have, but more importantly, it fixes:
+> 
+> arch/arm/plat-omap/include/plat/iommu.h: In function 'dev_to_omap_iommu':
+> arch/arm/plat-omap/include/plat/iommu.h:135: error: 'struct
+> dev_archdata' has no member named 'iommu'
+> arch/arm/mach-omap2/devices.c: In function 'omap3_init_camera':
+> arch/arm/mach-omap2/devices.c:222: error: 'struct dev_archdata' has no
+> member named 'iommu'
+> make[1]: *** [arch/arm/mach-omap2/devices.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
 
-On 1/13/2012 7:14 AM, Hiremath, Vaibhav wrote:
-> On Tue, Dec 20, 2011 at 19:09:57, Cousson, Benoit wrote:
+Will apply it as soon as the merge window closes.
 
-[...]
+	Joerg
 
->> +++ b/arch/arm/boot/dts/omap3.dtsi
->> @@ -54,10 +54,12 @@
->>   		ranges;
->>   		ti,hwmods = "l3_main";
->>
->> -		intc: interrupt-controller@1 {
->> -			compatible = "ti,omap3-intc";
->> +		intc: interrupt-controller@48200000 {
->> +			compatible = "ti,omap2-intc";
->>   			interrupt-controller;
->>   			#interrupt-cells =<1>;
->> +			ti,intc-size =<96>;
-> Can we configure/change this field in platform specific .dts file?
-> OR
-> Is there condition based configuration possible in DT?
+-- 
+AMD Operating System Research Center
 
-I'm not sure to fully understand how your two options differ.
-Otherwise, yes the DT it can be configured, that why I exposed this 
-attribute.
-The intc code was already supporting the ti81xx with 128 lines as well, 
-hence the need to make it configurable.
-The other option was two handle that in the driver with 2 different 
-compatible strings.
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
-> To be specific,
->
-> I am adding support for AM335x EVM (using all your DT support patches),
-> The device is considered as OMAP3 variant and when it comes to INTC support,
-> I need to configure it to value "128", rest everything is same
-> (including base add).
->
-> Can I do something like
->
-> File - am335x-evm.dts
->
-> /include/ "omap3.dtsi"
->
-> ....
-> Again change the specific fields of " intc: interrupt-controller"?
-
-Yes.
-
-> ....
->
-> How can this be handled?
-
-After the include, you can redefine the node and the hierarchy:
-
-+	ocp {
-+		intc: interrupt-controller@48200000 {
-+			ti,intc-size = <128>;
-+		};
-...
-
-or use the label directly:
-
-+&intc: {
-+	ti,intc-size =<128>;
-+}
-
-You can have a look at the way i2c or twl are using the include so far.
-
-Regards,
-Benoit
