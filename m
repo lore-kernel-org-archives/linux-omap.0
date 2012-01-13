@@ -1,76 +1,121 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: NeilBrown <neilb@suse.de>
 Subject: Re: DSS2/PM on 3.2 broken?
-Date: Fri, 13 Jan 2012 16:06:27 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201131543580.3659@utopia.booyaka.com>
-References: <WC20120109124643.880164@terrafix.co.uk> <20120110080849.5a242adf@notabene.brown> <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com> <20120112095940.0a54413e@notabene.brown> <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
- <87hazzquhb.fsf@ti.com> <87lipbp6uq.fsf@ti.com>
+Date: Sat, 14 Jan 2012 10:09:15 +1100
+Message-ID: <20120114100915.01c96727@notabene.brown>
+References: <WC20120109124643.880164@terrafix.co.uk>
+	<20120110080849.5a242adf@notabene.brown>
+	<alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
+	<20120112095940.0a54413e@notabene.brown>
+	<alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
+	<20120113222045.37f9b4ec@notabene.brown>
+	<alpine.DEB.2.00.1201130423280.3659@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/qBK__bAlgkDmYa.yGSKRsQU"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51756 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753938Ab2AMXG2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 18:06:28 -0500
-In-Reply-To: <87lipbp6uq.fsf@ti.com>
+Received: from cantor2.suse.de ([195.135.220.15]:33443 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753938Ab2AMXJ3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 18:09:29 -0500
+In-Reply-To: <alpine.DEB.2.00.1201130423280.3659@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>, t-kristo@ti.com, govindraj.raja@ti.com, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, t-kristo@ti.com, govindraj.raja@ti.com, linux-omap@vger.kernel.org
 
-On Fri, 13 Jan 2012, Kevin Hilman wrote:
+--Sig_/qBK__bAlgkDmYa.yGSKRsQU
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> Kevin Hilman <khilman@ti.com> writes:
-> 
-> [...]
-> 
-> >> From: Paul Walmsley <paul@pwsan.com>
-> >> Date: Fri, 13 Jan 2012 02:10:30 -0700
-> >> Subject: [PATCH] ARM: OMAP3: PM: allow MPU to enter low-power states even
-> >>  when the UART is active
-> >>
-> >> For some reason, both the existing OMAP3 PM code and the OMAP3 CPUIdle
-> >> driver prevent the MPU powerdomain from entering low-power modes when
-> >> any UART isn't asleep.  Possibly it is intended to minimize the ARM
-> >> wakeup latency when UART activity arrives, but the UART has a FIFO
-> >> that should handle this for most cases, with no dropped characters.  I
-> >> may be forgetting something important, though.  And CORE/PER low-power
-> >> states are a different matter entirely.
-> >
-> > Just FYI... the UART can_sleep hackery was removed for v3.3 and replaced
-> > by using a PM QoS constraint:
-> 
-> However, looking closer I see now that the constraint being used in the
-> mailine driver uses the CPU_DMA_LATENCY QoS constraint, which is preventing 
-> deeper C states as well just like the current code (before your patch),
-> so an similar fix will still be needed for mainline.
+On Fri, 13 Jan 2012 04:31:37 -0700 (MST) Paul Walmsley <paul@pwsan.com> wro=
+te:
 
-Hmm.  This is the following code in serial_omap_set_termios() ? 
+> On Fri, 13 Jan 2012, NeilBrown wrote:
+>=20
+> > Also, the HDQ access to the battery 'fuel gauge' is working fine, so
+> > presumably that gets disturbed by one of the lower power states (3,4,5).
+> > I guess it is 4,5,6 when CORE goes to RET or OFF.  So we need some way =
+for
+> > HDQ to say "I'm busy" just like UART can.  omap_hdq_can_sleep() ???
+> > There must be a cleaner way...
+>=20
+> The first thing to try is the HDQ runtime PM conversion series that was=20
+> sent separately.  Maybe let us know if that fixes the problem.
 
-	/* calculate wakeup latency constraint */
-	up->calc_latency = (1000000 * up->port.fifosize) /
-				(1000 * baud / 8);
-	up->latency = up->calc_latency;
-	schedule_work(&up->qos_work);
+Not completely - but I'm still exploring.
 
-Let's work out this formula for 115.2kbps:
+>=20
+> > More experiments:
+> >  - I enabled off_mode and started seeing state3 happening.  UART and HDQ
+> >    still fine - as expected.
+> >  - I set the  /sys/devices/system/cpu/cpu0/cpuidle/state?/usage values
+> >    all to '10'.
+> >    Now things start to break;
+> >    Console is mostly OK, but the first char after 10 seconds of idle is=
+ bad.
+> >    I type 'enter' and get 'C'.  In general the first char typed is mapp=
+ed to=20
+> >    something else in a consistent way:
+> >       0a -> c3
+> >       20 -> 90
+> >       55 -> d5
+> >       2a -> 95
+> >    It is a bit like we are missing a start bit, and a stop bit is shift=
+ing
+> >    down into the msb .. sometimes.
+>=20
+> I'm not seeing garbling at all on the OMAP3 BeagleBoard here, running v3.=
+2=20
+> with omap2plus_defconfig.  The first character from the console gets lost=
+,=20
+> which again is expected when the CORE enters a low-power state and there'=
+s=20
+> no flow control on the serial interface -- but no garbling.
 
-(1000000 * 16) / (1000 * 115200 / 8)
+What baud rate?
 
-= 16000000 / 14400000
+If I use 57600 or lower I see no problem at all.  The first char I type gets
+through fine.
+If I try higher rates (115200 is the default, I've tried 230400 and 460800)
+I get consistent corruption, though different corruptions at different rate=
+s.
 
-= 1.11...  (presumably the unit here is milliseconds)
+I've tried enabling hardware handshaking but it makes no difference -
+however it is possibly there is something wrong with the wiring so I'll che=
+ck
+that before pursuing that direction much further.
 
-= 1 (since up->calc_latency is a u32)
+Presumably with working hardware handshaking we should be able to avoid any
+loss or corruption??
 
-Then up->calc_latency is passed to pm_qos_update_request().  According to 
-Documentation/power/pm_qos_interface.txt, it is expecting microseconds.
-So that's one problem.  To fix that it should be 
+(I'm not sure if I said - but the board I am working on is the GTA04 Openmo=
+ko
+board: www.gta04.org).
 
-        up->calc_latency = (1000000 * up->port.fifosize) /
-                                (baud / 8);
-
-With that change, it should be possible to enter C3, with the timings that 
-are in the mainline cpuidle34xx.c.
+Thanks,
+NeilBrown
 
 
-- Paul
+--Sig_/qBK__bAlgkDmYa.yGSKRsQU
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBTxC5mznsnt1WYoG5AQKcsxAAuvVoHp3IJU0gmcCqCoci1zUqyoqLDwM2
+v9pJlNbXzO6iZ645xRFB/rCoAYDVQbOOBOCBdFm2rDcve5GhU1WXrWFWNgHXIC05
+L9AQe4FpSapJejpA9A2jF234N4Prk+si5YcZH8Y1b0fFv1GhfbOsnyDTzuvK/F/F
++kp5+ZiAzOQflIN0xYlJOFnFTe2Mo6fXIKTas61UIc/TnwplV3GxEzG42bmZ0V1a
+kosuBGt+KPOXUkPBOu09jMIQ6O8a17bNkF7rdQ29w6RFYwlBZJTmzxQ1W5bkMS7Q
+3YcTt5qbO6sFbjXzBtuoEpnd2i/RVhq+efSuy3uYRfoCuJnRom7nkhPjw7Er3hYH
+mIP8ynzkZc6qpMLYxXvH/H6AViPrTmYkrJlAJvDqEPEXl4WjYWnhkYDtKYmlHeM/
+PFlUW6TN4FfrVBA+Go7suf5V/nrGrT7msI9TzgENJYARpGIFG3UjLoM7ONNJHhad
+5RJWNYk3mb/oeXHemoeiT4aKfdOGUK+PXsFu9f7S4x4WDss2c37U3b1//tcm8byG
+CZWYox6UzS5Ii8iN2LaIWdSa88pj9yLRRuwrJy8pQ77GvLx0E50X0XH67eLXb/77
+5MAbUXpf50kSXp+SYt5SN09fZujoZgNR9W6ez6jz+wLms5+pfZnld0WblR66yFip
+8BC9+fwSapw=
+=IXgo
+-----END PGP SIGNATURE-----
+
+--Sig_/qBK__bAlgkDmYa.yGSKRsQU--
