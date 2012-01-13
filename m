@@ -1,74 +1,246 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] omap2+: add drm device
-Date: Fri, 13 Jan 2012 22:29:16 +0200
-Message-ID: <CAMP44s0jFJvHU4AMq86gmMdtLg9+hAM0vzS=7UP84UbpZ3tgOA@mail.gmail.com>
-References: <1326483687-458-1-git-send-email-rob.clark@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH 1/2] omap2+: add drm device
+Date: Fri, 13 Jan 2012 14:41:59 -0600
+Message-ID: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:40572 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753853Ab2AMU3R convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 15:29:17 -0500
-Received: by lago2 with SMTP id o2so494713lag.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 12:29:16 -0800 (PST)
-In-Reply-To: <1326483687-458-1-git-send-email-rob.clark@linaro.org>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:48756 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759145Ab2AMUmK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 15:42:10 -0500
+Received: by ggdk6 with SMTP id k6so1873326ggd.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 12:42:09 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
+To: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-On Fri, Jan 13, 2012 at 9:41 PM, Rob Clark <rob.clark@linaro.org> wrote=
-:
-> +void omapdrm_reserve_vram(void)
-> +{
-> +#ifdef CONFIG_CMA
-> + =C2=A0 =C2=A0 =C2=A0 /* Create private 32MiB contiguous memory area=
- for omapdrm.0 device
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* TODO revisit size.. if uc/wc buffers a=
-re allocated from CMA pages
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0* then the amount of memory we need goes=
- up..
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+From: Rob Clark <rob@ti.com>
 
-/*
- * Foo.
- */
+Register OMAP DRM/KMS platform device, and reserve a CMA region for
+the device to use for buffer allocation.
 
-> + =C2=A0 =C2=A0 =C2=A0 dma_declare_contiguous(&omap_drm_device.dev, 3=
-2*SZ_1M, 0, 0);
+v1: initial patch
+v2: move platform data structs into plat-omap to avoid having to
+    #include headers from drivers/staging and cleanups
 
-32 * SZ1_M
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+Note: after applying this patch there will be duplicate copies of the
+platform data structs (until the 2nd patch is applied).  But I tested
+to ensure this does not cause build breaks.  So the 2nd patch which
+should go thru staging tree is safe to be held until this patch hits
+Linus's master branch.
 
-> +#else
-> +# =C2=A0warning "CMA is not enabled, there may be limitations about =
-scanout buffer allocations on OMAP3 and earlier"
-> +#endif
-> +}
-> +
-> +#endif
-> diff --git a/arch/arm/plat-omap/drm.h b/arch/arm/plat-omap/drm.h
-> new file mode 100644
-> index 0000000..56e0c0e
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/drm.h
+ arch/arm/plat-omap/Makefile           |    2 +-
+ arch/arm/plat-omap/common.c           |    3 +-
+ arch/arm/plat-omap/drm.c              |   83 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/drm.h |   70 +++++++++++++++++++++++++++
+ 4 files changed, 156 insertions(+), 2 deletions(-)
+ create mode 100644 arch/arm/plat-omap/drm.c
+ create mode 100644 arch/arm/plat-omap/include/plat/drm.h
 
-Maybe this should go to include/plat
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 9a58461..b86e6cb 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Common support
+ obj-y := common.o sram.o clock.o devices.o dma.o mux.o \
+-	 usb.o fb.o counter_32k.o
++	 usb.o fb.o counter_32k.o drm.o
+ obj-m :=
+ obj-n :=
+ obj-  :=
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 06383b5..0d87dab 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -21,10 +21,10 @@
+ #include <plat/board.h>
+ #include <plat/vram.h>
+ #include <plat/dsp.h>
++#include <plat/drm.h>
+ 
+ #include <plat/omap-secure.h>
+ 
+-
+ #define NO_LENGTH_CHECK 0xffffffff
+ 
+ struct omap_board_config_kernel *omap_board_config __initdata;
+@@ -65,6 +65,7 @@ const void *__init omap_get_var_config(u16 tag, size_t *len)
+ 
+ void __init omap_reserve(void)
+ {
++	omapdrm_reserve_vram();
+ 	omapfb_reserve_sdram_memblock();
+ 	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
+diff --git a/arch/arm/plat-omap/drm.c b/arch/arm/plat-omap/drm.c
+new file mode 100644
+index 0000000..aa0ba69
+--- /dev/null
++++ b/arch/arm/plat-omap/drm.c
+@@ -0,0 +1,83 @@
++/*
++ * DRM/KMS device registration for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#ifdef CONFIG_CMA
++#  include <linux/dma-contiguous.h>
++#endif
++
++#include <plat/omap_device.h>
++#include <plat/omap_hwmod.h>
++
++#include <plat/drm.h>
++
++#if defined(CONFIG_DRM_OMAP) || (CONFIG_DRM_OMAP_MODULE)
++
++static struct omap_drm_platform_data omapdrm_platdata;
++static struct omap_dmm_platform_data dmm_platdata;
++
++static struct platform_device omap_drm_device = {
++		.dev = {
++			.coherent_dma_mask = DMA_BIT_MASK(32),
++			.platform_data = &omapdrm_platdata,
++		},
++		.name = "omapdrm",
++		.id = 0,
++};
++
++static int __init omap_init_gpu(void)
++{
++	struct omap_hwmod *oh = NULL;
++
++	/* lookup and populate the DMM information, if present - OMAP4+ */
++	oh = omap_hwmod_lookup("dmm");
++
++	if (oh) {
++		dmm_platdata.base = omap_hwmod_get_mpu_rt_va(oh);
++		dmm_platdata.irq = oh->mpu_irqs[0].irq;
++
++		if (dmm_platdata.base)
++			omapdrm_platdata.dmm_pdata = &dmm_platdata;
++	}
++
++	return platform_device_register(&omap_drm_device);
++}
++
++arch_initcall(omap_init_gpu);
++
++void omapdrm_reserve_vram(void)
++{
++#ifdef CONFIG_CMA
++	/*
++	 * Create private 32MiB contiguous memory area for omapdrm.0 device
++	 * TODO revisit size.. if uc/wc buffers are allocated from CMA pages
++	 * then the amount of memory we need goes up..
++	 */
++	dma_declare_contiguous(&omap_drm_device.dev, 32 * SZ_1M, 0, 0);
++#else
++#  warning "CMA is not enabled, there may be limitations about scanout buffer allocations on OMAP3 and earlier"
++#endif
++}
++
++#endif
+diff --git a/arch/arm/plat-omap/include/plat/drm.h b/arch/arm/plat-omap/include/plat/drm.h
+new file mode 100644
+index 0000000..e29be29
+--- /dev/null
++++ b/arch/arm/plat-omap/include/plat/drm.h
+@@ -0,0 +1,70 @@
++/*
++ * DRM/KMS device registration for TI OMAP platforms
++ *
++ * Copyright (C) 2012 Texas Instruments
++ * Author: Rob Clark <rob.clark@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef __PLAT_OMAP_DRM_H__
++#define __PLAT_OMAP_DRM_H__
++
++/*
++ * Optional platform data to configure the default configuration of which
++ * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
++ * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
++ * one manager, with priority given to managers that are connected to
++ * detected devices.  Remaining overlays are used as video planes.  This
++ * should be a good default behavior for most cases, but yet there still
++ * might be times when you wish to do something different.
++ */
++struct omap_kms_platform_data {
++	/* overlays to use as CRTCs: */
++	int ovl_cnt;
++	const int *ovl_ids;
++
++	/* overlays to use as video planes: */
++	int pln_cnt;
++	const int *pln_ids;
++
++	int mgr_cnt;
++	const int *mgr_ids;
++
++	int dev_cnt;
++	const char **dev_names;
++};
++
++struct omap_drm_platform_data {
++	struct omap_kms_platform_data *kms_pdata;
++	struct omap_dmm_platform_data *dmm_pdata;
++};
++
++struct omap_dmm_platform_data {
++	void __iomem *base;
++	int irq;
++};
++
++#if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
++
++void omapdrm_reserve_vram(void);
++
++#else
++
++static inline void omapdrm_reserve_vram(void)
++{
++}
++
++#endif
++
++#endif /* __PLAT_OMAP_DRM_H__ */
+-- 
+1.7.5.4
 
-> +#ifndef __PLAT_OMAP_DRM_H__
-> +#define __PLAT_OMAP_DRM_H__
-
-I see a lot of headers using this form:
-__ARCH_OMAP_FOO_H
-
-Cheers.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
