@@ -1,58 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap4: Fix omap_barriers_init for generic ioremap
- changes
-Date: Fri, 13 Jan 2012 08:44:59 -0800
-Message-ID: <20120113164459.GI15299@atomide.com>
-References: <20120112184256.GA2287@atomide.com>
- <alpine.LFD.2.02.1201121441580.2722@xanadu.home>
- <alpine.LFD.2.02.1201121447270.2722@xanadu.home>
- <20120112195951.GB2287@atomide.com>
- <20120113140520.GE16726@n2100.arm.linux.org.uk>
- <20120113150421.GF16726@n2100.arm.linux.org.uk>
+From: Joerg Roedel <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH] ARM: OMAP3: fix build on !CONFIG_IOMMU_API
+Date: Fri, 13 Jan 2012 17:46:48 +0100
+Message-ID: <20120113164648.GD2275@amd.com>
+References: <1326288491-25146-1-git-send-email-ohad@wizery.com>
+ <20120113110728.GC2275@amd.com>
+ <CAK=WgbZH_aZ44Crvy9dVHgXAAbeG=LkjetFg-7RAp+iJ4m7dQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53554 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758512Ab2AMQpL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 11:45:11 -0500
+Received: from am1ehsobe006.messaging.microsoft.com ([213.199.154.209]:50697
+	"EHLO AM1EHSOBE006.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751499Ab2AMQq5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 11:46:57 -0500
 Content-Disposition: inline
-In-Reply-To: <20120113150421.GF16726@n2100.arm.linux.org.uk>
+In-Reply-To: <CAK=WgbZH_aZ44Crvy9dVHgXAAbeG=LkjetFg-7RAp+iJ4m7dQg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Sascha Hauer <kernel@pengutronix.de>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org, Nicolas Pitre <nico@fluxnic.net>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Arik Nemtsov <arik@wizery.com>, Raja Govindraj <govindraj.raja@ti.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120113 06:31]:
-> On Fri, Jan 13, 2012 at 02:05:20PM +0000, Russell King - ARM Linux wrote:
-> > From: Russell King <rmk+kernel@arm.linux.org.uk>
-> > ARM: Add arm_memblock_steal() to allocate memory away from the kernel
-> > 
-> > Several platforms are now using the memblock_alloc+memblock_free+
-> > memblock_remove trick to obtain memory which won't be mapped in the
-> > kernel's page tables.  Most platforms do this (correctly) in the
-> > ->reserve callback.  However, OMAP has started to call these functions
-> > outside of this callback, and this is extremely unsafe - memory will
-> > not be unmapped, and could well be given out after memblock is no
-> > longer responsible for its management.
-> > 
-> > So, provide arm_memblock_steal() to perform this function, and ensure
-> > that it panic()s if it is used inappropriately.  Convert everyone
-> > over, including OMAP.
-> > 
-> > As a result, OMAP will panic on boot with this change.  OMAP needs to
-> > be fixed, or 137d105d50 (ARM: OMAP4: Fix errata i688 with MPU
-> > interconnect barriers.) reverted until such time it can be fixed
-> > correctly.
-> 
-> Santosh points out that this is only used if the errata i688 option is
-> enabled, so I've added to this patch to make this config option depend
-> on BROKEN, marked it as such, and commited the result to my fixes branch.
-> 
-> I'll be planning to push this to Linus sometime on Monday.
+On Fri, Jan 13, 2012 at 05:54:10PM +0200, Ohad Ben-Cohen wrote:
+> On Fri, Jan 13, 2012 at 1:07 PM, Joerg Roedel <Joerg.Roedel@amd.com> wrote:
+> > Will apply it as soon as the merge window closes.
 
-Sounds good to me.
+> Though we might want to consider sending this to Linus before rc1, to
+> eliminate global developers' pain as much as possible :)
 
-Thanks,
+Okay, so I will send out the fix early next week :)
 
-Tony
+
+	Joerg
+
+-- 
+AMD Operating System Research Center
+
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
+
