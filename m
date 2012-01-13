@@ -1,29 +1,49 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH] usb: musb: drop superfluous pm_runtime calls around musb_shutdown
-Date: Fri, 13 Jan 2012 11:02:48 +0530
-Message-ID: <4F0FC200.1020602@ti.com>
-References: <1326374498-22968-1-git-send-email-notasas@gmail.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: AM35xx
+Date: Fri, 13 Jan 2012 05:39:25 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317A43A5@DBDE01.ent.ti.com>
+References: <CAOd_LFxqZ6RKL_Q9Pp2biUJ8W61a+6ScXH6c_zWpTgyEtF-stw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:57404 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750759Ab2AMFc5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 00:32:57 -0500
-In-Reply-To: <1326374498-22968-1-git-send-email-notasas@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56398 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751559Ab2AMFj3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 00:39:29 -0500
+In-Reply-To: <CAOd_LFxqZ6RKL_Q9Pp2biUJ8W61a+6ScXH6c_zWpTgyEtF-stw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
+To: Cliff Brake <cliff.brake@gmail.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-On Thursday 12 January 2012 06:51 PM, Grazvydas Ignotas wrote:
-> Since commit 4f9edd2d7e8d "usb: musb: Fix the crash issue during reboot"
-> musb_shutdown() does pm_runtime_get_sync/pm_runtime_put by itself, so
-> this no longer needs to be done by the caller. Also, musb_exit_debugfs()
-> doesn't access the device, so just drop those runtime_pm calls.
->
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-Looks good to me
-Reviewed-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+On Fri, Jan 13, 2012 at 03:37:07, Cliff Brake wrote:
+> What kernel trees are recommended for v3.1 or v3.2 AM35xx support?
+> 
+> I've been using Linus' v3.2 tree.  We have quite a bit working, but
+> wondering if there is a place with additional fixes, etc.
+> 
+AFAIK, not on any of v3.x kernel versions. There is a release
+available on 2.6.37 which has been tested against AM3517EVM, 
+
+http://arago-project.org/git/projects/?p=linux-omap3.git;a=shortlog;h=refs/heads/OMAPPSP_04.02.00.07
+
+
+As up-streaming patches takes their own time, You have to forward port 
+patches to the v3.x kernel.
+
+Thanks,
+Vaibhav
+
+> Thanks,
+> Cliff
+> 
+> -- 
+> =================
+> http://bec-systems.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
