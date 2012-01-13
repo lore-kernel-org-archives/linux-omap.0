@@ -1,123 +1,51 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: omap clocksource timer selection: dmtimer OR 32K-Sync timer
-Date: Fri, 13 Jan 2012 15:41:04 +0100
-Message-ID: <CAMQu2gxkBV87YQE7SPmLXh0RZBR+SNHzHE5H-PVjuef+1UZp8Q@mail.gmail.com>
-References: <79CD15C6BA57404B839C016229A409A8317A4E2E@DBDE01.ent.ti.com>
- <CAMQu2gxYQOHX8n2RLfkLBw5hQMdvH389DfrguLtzpLcpmqBQMA@mail.gmail.com> <79CD15C6BA57404B839C016229A409A8317A4FD9@DBDE01.ent.ti.com>
+From: Shawn Guo <shawn.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
+Date: Fri, 13 Jan 2012 22:53:24 +0800
+Message-ID: <20120113145321.GB1810@S2101-09.ap.freescale.net>
+References: <1323834838-2206-1-git-send-email-mturquette@linaro.org>
+	<1323834838-2206-4-git-send-email-mturquette@linaro.org>
+	<alpine.LFD.2.02.1112141007550.3020@ionos>
+	<CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com>
+	<20120104021541.GI2414@b20223-02.ap.freescale.net>
+	<4F0462FF.1000308@gmail.com>
+	<CAJOA=zPw7UuhE4R3SsBeyzQ2_iN29Zv-ExaUTTFCah+GoFSfNQ@mail.gmail.com>
+	<4F0506D0.30109@gmail.com>
+	<CAJOA=zPgwiOSoyZK1SpzZVZfTOmwruTR=WO+gRdVZrZVzNuPSA@mail.gmail.com>
+	<4F0F7507.3080501@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:34221 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354Ab2AMOla convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 09:41:30 -0500
-Received: by mail-qy0-f172.google.com with SMTP id c1so366197qcs.31
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 06:41:26 -0800 (PST)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317A4FD9@DBDE01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4F0F7507.3080501-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Saravana Kannan <skannan-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: andrew-g2DYL2Zd6BY@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, eric.miao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Colin Cross <ccross-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, jeremy.kerr-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org, linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org, sboyd-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org, magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, arnd.bergmann-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org, linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Zhao <richard.zhao-KZfg59tc24xl57MIdRCFDg@public.gmane.org>, skannan-jfJNa2p1gH1BDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jan 13, 2012 at 2:42 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wr=
-ote:
-> On Fri, Jan 13, 2012 at 18:19:24, Shilimkar, Santosh wrote:
->> On Fri, Jan 13, 2012 at 1:21 PM, Hiremath, Vaibhav <hvaibhav@ti.com>=
- wrote:
->> > Hi,
->> >
->> > In case of AM33xx family of devices, we do not have 32K Sync timer
->> > (32K Counter) available; and the current implementation is based o=
-n
->> > compile-time option, where clock-source is chosen by something lik=
-e,
->> >
->> > File - arch/arm/mach-omap2/timer.c
->> >
->> > #ifdef CONFIG_OMAP_32K_TIMER
->> > static void __init omap2_gp_clocksource_init(int unused, const cha=
-r *dummy)
->> > {
->> > ...
->> > }
->> > #else
->> > static void __init omap2_gp_clocksource_init(int unused, const cha=
-r *dummy)
->> > {
->> > ...
->> > }
->> > #endif
->> >
->> >
->> > But in order to support multi-omap build, we must
->> > make run-time decision to use the timer for kernel clock-source, e=
-ither of -
->> >
->> > =A0- DMTIMER
->> > =A0- 32K Sync Timer
->> >
->> > The DMTIMER is already migrated to the HWMOD framework, but 32K Ti=
-mer code
->> > has not yet migrated to it. So the question here is,
->> >
->> > 1) Does it make sense to migrate counter_32k.c to search entry in =
-hwmod
->> > =A0 table and if 32k_sync timer is available in hwmod table then u=
-se 32K
->> > =A0 timer for Kernel clock-source
->> > =A0 OR
->> > =A0 Fall back to DMTIMER.
->> >
->> > =A0 OMAP4 hwmod table already has entry,
->> >
->> > =A0 static struct omap_hwmod omap44xx_counter_32k_hwmod =3D {
->> > =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "counter_32k",
->> > =A0 ...
->> > =A0 };
->> >
->> > =A0 We need to have similar entries in all devices where 32K timer=
- is present.
->> >
->> > 2) OR simply add another cpu_is_am33xx() and then fall back to dmt=
-imer?
->> > =A0 Just to prove this, everything works here, I modified the code=
- for this
->> > =A0 and tested it on both AM335x EVM and AM37xEVM and it works fin=
-e for me.
->> >
->> >
->> > Any comments?? OR Better approach? OR anything which I am missing =
-here?
->> >
->> You can register both the clock sources together with different
->> rating. Based on rating
->> timer code will automatically pick the better clock-source of two.
->> Ratings is based on the resolution of the timer.
->>
-> Santosh,
->
-> =A0- Still current compile time implementation must be changed/cleane=
-d, right?
-Yes. But that should be trivial.
+On Thu, Jan 12, 2012 at 04:04:23PM -0800, Saravana Kannan wrote:
+> While the original clk_hw suggestion was well intentioned, it just
+> forces too many unnecessary dereferences and indirection. It also
+> prevents static init of some fields as others have mentioned.
+> Overall, it made the MSM clock code a mess when I tried to convert
+> it to the common clock framework during Linaro Connect Q4 2011.
+> 
+> The current off-tree MSM clock code uses a very similar approach to
+> what the original patches that Jeremy sent out did. When Mike sent
+> out the patches that removed clk_hw, the MSM code was much clearer
+> and easier to convert to the common clock framework.
+> 
+I share the same feeling with migrating imx6 clock support to v2 and
+v3 of this series.  (v2 uses clk_hw, and v3 removes clk_hw.)
 
-> =A0- The 32k timer doesn't exist at all on AM33xx device, so you can =
-not
-> =A0 (and should not) Register this timer.
->
-Well there are many init call happens on various IP's which are not sup=
-ported
-across SOCs.
-
-Look at L2X0 cache init for example. In such cases you just return by n=
-ot
-doing anything on that hardware IP.
-
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Regards,
+Shawn
