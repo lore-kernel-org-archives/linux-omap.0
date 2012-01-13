@@ -1,239 +1,54 @@
-From: Saravana Kannan <skannan@codeaurora.org>
-Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
-Date: Thu, 12 Jan 2012 17:19:23 -0800
-Message-ID: <4F0F869B.1090906@codeaurora.org>
-References: <1323834838-2206-1-git-send-email-mturquette@linaro.org> <1323834838-2206-4-git-send-email-mturquette@linaro.org> <alpine.LFD.2.02.1112141007550.3020@ionos> <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com> <20120104021541.GI2414@b20223-02.ap.freescale.net> <4F0462FF.1000308@gmail.com> <CAJOA=zPw7UuhE4R3SsBeyzQ2_iN29Zv-ExaUTTFCah+GoFSfNQ@mail.gmail.com> <4F0506D0.30109@gmail.com> <CAJOA=zPgwiOSoyZK1SpzZVZfTOmwruTR=WO+gRdVZrZVzNuPSA@mail.gmail.com> <4F0F7507.3080501@codeaurora.org> <4F0F7F6E.1020905@gmail.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: Re: [PATCH 0/4] OMAPDSS/ASoC: Repair broken HDMI audio in K3.2-rcX
+Date: Thu, 12 Jan 2012 20:23:33 -0600
+Message-ID: <1326421413.2015.54.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+References: <1324018993-31466-1-git-send-email-ricardo.neri@ti.com>
+	 <CAP5A+B8ZPMBROeu6wkT8G5v_e1jhYTNrCATP0mi71wcsC2DZHg@mail.gmail.com>
+	 <20111229184829.GC32392@sirena.org.uk>
+	 <1325570274.2082.5.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+	 <20120103200908.GB2843@opensource.wolfsonmicro.com>
+	 <1326249881.1938.202.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+	 <20120112025933.GA22775@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:37272 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756312Ab2AMBTZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Jan 2012 20:19:25 -0500
-In-Reply-To: <4F0F7F6E.1020905@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35789 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751427Ab2AMCXi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Jan 2012 21:23:38 -0500
+In-Reply-To: <20120112025933.GA22775@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "Turquette, Mike" <mturquette@ti.com>, andrew@lunn.ch, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, amit.kucheria@linaro.org, jeremy.kerr@canonical.com, linux@arm.linux.org.uk, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, Colin Cross <ccross@google.com>, Richard Zhao <richard.zhao@freescale.com>, skannan@quicinc.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "K, Mythri P" <mythripk@ti.com>, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com
 
-On 01/12/2012 04:48 PM, Rob Herring wrote:
-> On 01/12/2012 06:04 PM, Saravana Kannan wrote:
->> On 01/04/2012 08:07 PM, Turquette, Mike wrote:
->>> On Wed, Jan 4, 2012 at 6:11 PM, Rob Herring<robherring2@gmail.com>
->>> wrote:
->>>> On 01/04/2012 07:01 PM, Turquette, Mike wrote:
->>>>> On Wed, Jan 4, 2012 at 6:32 AM, Rob Herring<robherring2@gmail.com>
->>>>> wrote:
->>>>>> On 01/03/2012 08:15 PM, Richard Zhao wrote:
->>>>>>> On Fri, Dec 16, 2011 at 04:45:48PM -0800, Turquette, Mike wrote:
->>>>>>>> On Wed, Dec 14, 2011 at 5:18 AM, Thomas
->>>>>>>> Gleixner<tglx@linutronix.de>   wrote:
->>>>>>>>> On Tue, 13 Dec 2011, Mike Turquette wrote:
->>>>>>
->>>>>> snip
->>>>>>
->>>>>>>>>> +/**
->>>>>>>>>> + * clk_init - initialize the data structures in a struct clk
->>>>>>>>>> + * @dev: device initializing this clk, placeholder for now
->>>>>>>>>> + * @clk: clk being initialized
->>>>>>>>>> + *
->>>>>>>>>> + * Initializes the lists in struct clk, queries the hardware
->>>>>>>>>> for the
->>>>>>>>>> + * parent and rate and sets them both.  Adds the clk to the
->>>>>>>>>> sysfs tree
->>>>>>>>>> + * topology.
->>>>>>>>>> + *
->>>>>>>>>> + * Caller must populate clk->name and clk->flags before calling
->>>>>>>>>
->>>>>>>>> I'm not too happy about this construct. That leaves struct clk
->>>>>>>>> and its
->>>>>>>>> members exposed to the world instead of making it a real opaque
->>>>>>>>> cookie. I know from my own painful experience, that this will
->>>>>>>>> lead to
->>>>>>>>> random fiddling in that data structure in drivers and arch code
->>>>>>>>> just
->>>>>>>>> because the core code has a shortcoming.
->>>>>>>>>
->>>>>>>>> Why can't we make struct clk a real cookie and confine the data
->>>>>>>>> structure to the core code ?
->>>>>>>>>
->>>>>>>>> That would change the init call to something like:
->>>>>>>>>
->>>>>>>>> struct clk *clk_init(struct device *dev, const struct clk_hw *hw,
->>>>>>>>>                       struct clk *parent)
->>>>>>>>>
->>>>>>>>> And have:
->>>>>>>>> struct clk_hw {
->>>>>>>>>         struct clk_hw_ops *ops;
->>>>>>>>>         const char        *name;
->>>>>>>>>         unsigned long     flags;
->>>>>>>>> };
->>>>>>>>>
->>>>>>>>> Implementers can do:
->>>>>>>>> struct my_clk_hw {
->>>>>>>>>         struct clk_hw    hw;
->>>>>>>>>         mydata;
->>>>>>>>> };
->>>>>>>>>
->>>>>>>>> And then change the clk ops callbacks to take struct clk_hw * as an
->>>>>>>>> argument.
->>>>>>> We have to define static clocks before we adopt DT binding.
->>>>>>> If clk is opaque and allocate memory in clk core, it'll make hard
->>>>>>> to define static clocks. And register/init will pass a long parameter
->>>>>>> list.
->>>>>>
->>>>>> DT is not a prerequisite for having dynamically created clocks. You
->>>>>> can
->>>>>> make clock init dynamic without DT.
->>>>>
->>>>> Agreed.
->>>>>
->>>>>> What data goes in struct clk vs. struct clk_hw could change over time.
->>>>>> So perhaps we can start with some data in clk_hw and plan to move
->>>>>> it to
->>>>>> struct clk later. Even if almost everything ends up in clk_hw
->>>>>> initially,
->>>>>> at least the structure is in place to have common, core-only data
->>>>>> separate from platform data.
->>>>>
->>>>> What is the point of this?
->>>>
->>>> To have a way forward. It would be nice to have a clk infrastructure
->>>> before I retire...
->>>
->>> Haha, agreed.
->>>
->>>>
->>>>> The original clk_hw was defined simply as:
->>>>>
->>>>> struct clk_hw {
->>>>>           struct clk *clk;
->>>>> };
->>>>>
->>>>> It's only purpose in life was as a handle for navigation between the
->>>>> opaque struct clk and the hardware-specific struct my_clk_hw.  struct
->>>>> clk_hw is defined in clk.h and everyone can see it.  If we're suddenly
->>>>> OK putting clk data in this structure then why bother with an opaque
->>>>> struct clk at all?
->>>>>
->>>>>> What is the actual data you need to be static and accessible to the
->>>>>> platform code? A ptr to parent clk is the main thing I've seen for
->>>>>> static initialization. So make the parent ptr be struct clk_hw* and
->>>>>> allow the platforms to access.
->>>>>
->>>>> To answer your question on what data we're trying to expose: platform
->>>>> code commonly needs the parent pointer and the clk rate (and by
->>>>> extension, the rate of the parent).  For debug/error prints it is also
->>>>> nice to have the clk name.  Generic clk flags are also conceivably
->>>>> something that platform code might want.
->>>>
->>>> I agree with the need to have the parent and flags from a static init
->>>> perspective. There's not really a good reason the others can't be
->>>> accessed thru accessors though.
->>>>
->>>>> I'd like to spin the question around: if we're OK exposing some stuff
->>>>> (in your example above, the parent pointer), then what clk data are
->>>>> you trying to hide?
->>>>
->>>> Well, everything from drivers which the current clk implementations do
->>>> hide. Catching abuse in with drivers coming in from all different trees
->>>> and lists will be impossible.
->>>>
->>>> For platform code it is more fuzzy. I don't think platform code should
->>>> be allowed to muck with prepare/enable counts for example.
->>>
->>> So there is a clear dichotomy: drivers shouldn't be exposed to any of
->>> it and platform code should be exposed to some of it.
->>>
->>> How about a drivers/clk/clk-private.h which will define struct clk and
->>> must only be included by clk drivers in drivers/clk/*?
->>>
->>> This establishes a bright line between those things which are allowed
->>> to know the details of struct clk and those that are not: namely that
->>> clk drivers in drivers/clk/ may use '#include "clk-private.h"'.
->>> Obviously struct clk is opaque to the rest of the kernel (in the same
->>> way it has been prior to the common clk patches) and there is no need
->>> for struct clk_hw anymore.  Also helper functions are no longer needed
->>> for clock driver code, which I think *is* a manageable set of code to
->>> review.  Also clk drivers must live in drivers/clk/ for this to work
->>> (without a big ugly path in someone's #include directive somewhere).
->>
->> While the original clk_hw suggestion was well intentioned, it just
->> forces too many unnecessary dereferences and indirection. It also
->> prevents static init of some fields as others have mentioned. Overall,
->> it made the MSM clock code a mess when I tried to convert it to the
->> common clock framework during Linaro Connect Q4 2011.
->>
->> The current off-tree MSM clock code uses a very similar approach to what
->> the original patches that Jeremy sent out did. When Mike sent out the
->> patches that removed clk_hw, the MSM code was much clearer and easier to
->> convert to the common clock framework.
->>
->> The clk-private.h suggestion by Mike is reasonable seems like a good
->> compromise. It support the idea of not letting the world peek into the
->> clock struct (I want this too) while letting the clock driver use the
->> struct without jumping through hoops. It has my vote (not the whole
->> patch series, but the idea of having clk driver/framework specific stuff
->> in clk-private.h). I really hope we move ahead with this.
->>
->
-> I'm fine with this approach. We're certainly no worse off as platforms
-> today have full access. However, it not me that has to be convinced.
+HI Mark,
+On Thu, 2012-01-12 at 02:59 +0000, Mark Brown wrote:
+> On Tue, Jan 10, 2012 at 08:44:41PM -0600, Ricardo Neri wrote:
+> 
+> > The approach that I am planning to follow is to move the ASOC HDMI OMAP4
+> > codec to the sound directory and leave all the IP-specific functions
+> > (e.g., to set registers) in the video directory. The audio code should
+> > be generic in the sense that it does not change an IP register directly.
+> > This is to follow a similar approach as that followed by DSS in which
+> > all IP-specific code is separated from DSS code. Also, it makes more
+> > sense to me to have the ASoC codec under sound/soc/codecs. 
+> 
+> Depending on how abstract that interface is it may be better to make it
+> into something more cross platform than just an OMAP thing - if you're
+> talking about not having any knowledge of the registers or anything then
+> it seems like that should be possible.  It would preclude the use of
+> something OMAP specific like DSS though.
 
-Sorry for not being clear. My previous mail was a general comment to the 
-community and not directed specifically at you Rob.
+Maybe what I am trying to do is something similar to what is done for
+the TWL6040 drivers: the power part goes to drivers/mfd and and the
+audio part goes to sound. In my case, the video part goes to DSS and the
+audio part goes to sound plus taking advantage of the the register
+abstraction and functionality that DSS is trying to provide. As you
+mention, this ties me to OMAP atm. I am an audio person :) and I am not
+sure all the functionality I require for audio is exported to more
+generic layers to allow not using DSS. I could try go take a look.
 
-> My suggestion was to build into the data structures at least the option
-> to have core only and core+platform data. Maybe the core only part is
-> mostly empty at first. This at least shows some intent to hide some of
-> the data. Which fields give you pain not having access to them? So far
-> this mainly seems to be parent and rate.
+Ricardo
 
-It's been a while, but if I'm not mistaken, it was messy to statically 
-initialize the parent field and to tie up the clock specific struct 
-(say, clk_fixed) to the generic clock struct (clk) without having to 
-define each of them separately.
-
-With the clk-private.h approach, I could do something like this:
-
-static struct fixed_clk cxo_clk = {
-	.reg = 0x12345678
-         .c = {
-                .dbg_name = "cxo_clk",
-                .ops = &clk_ops_cxo,
-                CLK_INIT(cxo_clk.c),
-        },
-}
-
-And without it, it would look something like:
-
-struct clk _cxo_clk;
-
-static struct msm_fixed_clk cxo_clk = {
-	.reg = 0x12345678
-	.c.clk = &_cxo_clk,
-};
-
-struct clk _cxo_clk = {
-        .name = "cxo_clk",
-        .ops = &clk_ops_cxo,
-        .hw = &cxo_clk.c
-};
-
-As you can see, I now have to give a name for a struct that I don't 
-really care about after init and pollute the name space. It's also 
-clumsy since both the structs try to reference each other and I have to 
-use forward declaration for every single clock I try to statically 
-initialize.
-
-I will also need to do several pointer derefs instead of using 
-container_of(), etc which is more efficient and less confusing than 
-multiple levels of pointer deref.
-
-Thanks,
-Saravana
-
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
