@@ -1,46 +1,85 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: AM35xx
-Date: Fri, 13 Jan 2012 05:39:25 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317A43A5@DBDE01.ent.ti.com>
-References: <CAOd_LFxqZ6RKL_Q9Pp2biUJ8W61a+6ScXH6c_zWpTgyEtF-stw@mail.gmail.com>
+Subject: RE: [PATCH v2 4/5] arm/dts: OMAP3: Add interrupt-controller
+ bindings for INTC
+Date: Fri, 13 Jan 2012 06:14:17 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317A43FC@DBDE01.ent.ti.com>
+References: <1324388398-2683-1-git-send-email-b-cousson@ti.com>
+ <1324388398-2683-5-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56398 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751559Ab2AMFj3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 00:39:29 -0500
-In-Reply-To: <CAOd_LFxqZ6RKL_Q9Pp2biUJ8W61a+6ScXH6c_zWpTgyEtF-stw@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39336 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752151Ab2AMGOc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 01:14:32 -0500
+In-Reply-To: <1324388398-2683-5-git-send-email-b-cousson@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cliff Brake <cliff.brake@gmail.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
+To: "Cousson, Benoit" <b-cousson@ti.com>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
 
-On Fri, Jan 13, 2012 at 03:37:07, Cliff Brake wrote:
-> What kernel trees are recommended for v3.1 or v3.2 AM35xx support?
+On Tue, Dec 20, 2011 at 19:09:57, Cousson, Benoit wrote:
+> Update the DTS with the proper information required by the
+> INTC bindings.
 > 
-> I've been using Linus' v3.2 tree.  We have quite a bit working, but
-> wondering if there is a place with additional fixes, etc.
+> - Add the number of interrupt lines
+> - Add the reg and the compatible entries.
 > 
-AFAIK, not on any of v3.x kernel versions. There is a release
-available on 2.6.37 which has been tested against AM3517EVM, 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> ---
+>  arch/arm/boot/dts/omap3.dtsi |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+> index d202bb5..6866dc7 100644
+> --- a/arch/arm/boot/dts/omap3.dtsi
+> +++ b/arch/arm/boot/dts/omap3.dtsi
+> @@ -54,10 +54,12 @@
+>  		ranges;
+>  		ti,hwmods = "l3_main";
+>  
+> -		intc: interrupt-controller@1 {
+> -			compatible = "ti,omap3-intc";
+> +		intc: interrupt-controller@48200000 {
+> +			compatible = "ti,omap2-intc";
+>  			interrupt-controller;
+>  			#interrupt-cells = <1>;
+> +			ti,intc-size = <96>;
+Can we configure/change this field in platform specific .dts file?
+OR
+Is there condition based configuration possible in DT?
 
-http://arago-project.org/git/projects/?p=linux-omap3.git;a=shortlog;h=refs/heads/OMAPPSP_04.02.00.07
+To be specific,
 
+I am adding support for AM335x EVM (using all your DT support patches),
+The device is considered as OMAP3 variant and when it comes to INTC support,
+I need to configure it to value "128", rest everything is same 
+(including base add).
 
-As up-streaming patches takes their own time, You have to forward port 
-patches to the v3.x kernel.
+Can I do something like
+
+File - am335x-evm.dts
+
+/include/ "omap3.dtsi"
+
+....
+Again change the specific fields of " intc: interrupt-controller"?
+....
+
+How can this be handled?
 
 Thanks,
 Vaibhav
-
-> Thanks,
-> Cliff
-> 
+> +			reg = <0x48200000 0x1000>;
+>  		};
+>  	};
+>  };
 > -- 
-> =================
-> http://bec-systems.com
+> 1.7.0.4
+> 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
