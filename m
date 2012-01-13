@@ -1,60 +1,53 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: Re: [PATCH 1/2] omap2+: add drm device
-Date: Fri, 13 Jan 2012 15:19:59 -0600
-Message-ID: <CAF6AEGvdLsg33yGqTQQ7EWJh_4+rGSPbCZmSSYCib1cSS2pqWg@mail.gmail.com>
-References: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
-	<CAMP44s36cE_dBQcyDnboUgbUCtjgMnLnZq8c+0qB8GfH9Tq8aA@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: DSS2/PM on 3.2 broken?
+Date: Fri, 13 Jan 2012 14:37:01 -0800
+Message-ID: <87lipbp6uq.fsf@ti.com>
+References: <WC20120109124643.880164@terrafix.co.uk>
+	<20120110080849.5a242adf@notabene.brown>
+	<alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
+	<20120112095940.0a54413e@notabene.brown>
+	<alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
+	<87hazzquhb.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:37339 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753831Ab2AMVUA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 16:20:00 -0500
-Received: by vcbfk1 with SMTP id fk1so644040vcb.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 13:19:59 -0800 (PST)
-In-Reply-To: <CAMP44s36cE_dBQcyDnboUgbUCtjgMnLnZq8c+0qB8GfH9Tq8aA@mail.gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:36905 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754127Ab2AMWhG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 17:37:06 -0500
+Received: by mail-yx0-f173.google.com with SMTP id l8so529942yen.32
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 14:37:04 -0800 (PST)
+In-Reply-To: <87hazzquhb.fsf@ti.com> (Kevin Hilman's message of "Fri, 13 Jan
+	2012 11:21:20 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, patches@linaro.org, Greg KH <greg@kroah.com>, dri-devel@lists.freedesktop.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
 
-On Fri, Jan 13, 2012 at 2:59 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Fri, Jan 13, 2012 at 10:41 PM, Rob Clark <rob.clark@linaro.org> wr=
-ote:
->> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefi=
-le
->> index 9a58461..b86e6cb 100644
->> --- a/arch/arm/plat-omap/Makefile
->> +++ b/arch/arm/plat-omap/Makefile
->> @@ -4,7 +4,7 @@
+Kevin Hilman <khilman@ti.com> writes:
+
+[...]
+
+>> From: Paul Walmsley <paul@pwsan.com>
+>> Date: Fri, 13 Jan 2012 02:10:30 -0700
+>> Subject: [PATCH] ARM: OMAP3: PM: allow MPU to enter low-power states even
+>>  when the UART is active
 >>
->> =A0# Common support
->> =A0obj-y :=3D common.o sram.o clock.o devices.o dma.o mux.o \
->> - =A0 =A0 =A0 =A0usb.o fb.o counter_32k.o
->> + =A0 =A0 =A0 =A0usb.o fb.o counter_32k.o drm.o
+>> For some reason, both the existing OMAP3 PM code and the OMAP3 CPUIdle
+>> driver prevent the MPU powerdomain from entering low-power modes when
+>> any UART isn't asleep.  Possibly it is intended to minimize the ARM
+>> wakeup latency when UART activity arrives, but the UART has a FIFO
+>> that should handle this for most cases, with no dropped characters.  I
+>> may be forgetting something important, though.  And CORE/PER low-power
+>> states are a different matter entirely.
 >
-> Should be something like this:
-> obj-$(CONFIG_DRM_OMAP) +=3D drm.o
+> Just FYI... the UART can_sleep hackery was removed for v3.3 and replaced
+> by using a PM QoS constraint:
 
-btw, how does that work if CONFIG_DRM_OMAP=3Dm?  Do you end up w/ a
-plat-omap module?
+However, looking closer I see now that the constraint being used in the
+mailine driver uses the CPU_DMA_LATENCY QoS constraint, which is preventing 
+deeper C states as well just like the current code (before your patch),
+so an similar fix will still be needed for mainline.
 
-BR,
--R
-
-> No?
->
-> --
-> Felipe Contreras
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
