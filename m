@@ -1,57 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap clocksource timer selection: dmtimer OR 32K-Sync timer
-Date: Fri, 13 Jan 2012 08:50:03 -0800
-Message-ID: <20120113165003.GJ15299@atomide.com>
-References: <79CD15C6BA57404B839C016229A409A8317A4E2E@DBDE01.ent.ti.com>
- <CAMQu2gxYQOHX8n2RLfkLBw5hQMdvH389DfrguLtzpLcpmqBQMA@mail.gmail.com>
- <79CD15C6BA57404B839C016229A409A8317A4FD9@DBDE01.ent.ti.com>
- <CAMQu2gxkBV87YQE7SPmLXh0RZBR+SNHzHE5H-PVjuef+1UZp8Q@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] arm: omap4: Fix omap_barriers_init for generic ioremap changes
+Date: Fri, 13 Jan 2012 19:12:31 +0200
+Message-ID: <CAMP44s2XNnOAiDCf1mbtpRV5MAk4LLFdgBpuOQg=pc9aakiDEQ@mail.gmail.com>
+References: <20120112184256.GA2287@atomide.com>
+	<alpine.LFD.2.02.1201121441580.2722@xanadu.home>
+	<alpine.LFD.2.02.1201121447270.2722@xanadu.home>
+	<20120112195951.GB2287@atomide.com>
+	<20120113140520.GE16726@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58094 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab2AMQuH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 11:50:07 -0500
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gxkBV87YQE7SPmLXh0RZBR+SNHzHE5H-PVjuef+1UZp8Q@mail.gmail.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57278 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752998Ab2AMRMd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 12:12:33 -0500
+Received: by lago2 with SMTP id o2so396598lag.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 09:12:31 -0800 (PST)
+In-Reply-To: <20120113140520.GE16726@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Nicolas Pitre <nico@fluxnic.net>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120113 06:08]:
-> On Fri, Jan 13, 2012 at 2:42 PM, Hiremath, Vaibhav <hvaibhav@ti.com> =
-wrote:
-> > On Fri, Jan 13, 2012 at 18:19:24, Shilimkar, Santosh wrote:
-> >> > =C2=A0 ...
-> >> > =C2=A0 };
-> >> >
-> >> > =C2=A0 We need to have similar entries in all devices where 32K =
-timer is present.
-> >> >
-> >> > 2) OR simply add another cpu_is_am33xx() and then fall back to d=
-mtimer?
-> >> > =C2=A0 Just to prove this, everything works here, I modified the=
- code for this
-> >> > =C2=A0 and tested it on both AM335x EVM and AM37xEVM and it work=
-s fine for me.
-> >> >
-> >> >
-> >> > Any comments?? OR Better approach? OR anything which I am missin=
-g here?
+On Fri, Jan 13, 2012 at 4:05 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> +phys_addr_t arm_memblock_steal(phys_addr_t size, phys_addr_t align)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 phys_addr_t phys;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 if (!arm_memblock_steal_permitted)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 panic("arm_membloc=
+k_steal used in an unsafe manner\n");
+> +
+> + =C2=A0 =C2=A0 =C2=A0 phys =3D memblock_alloc(size, align);
+> + =C2=A0 =C2=A0 =C2=A0 memblock_free(phys, size);
+> + =C2=A0 =C2=A0 =C2=A0 memblock_remove(phys, size);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 return phys;
+> +}
 
-Why don't you just add a new entry to mach-omap2/timer.c using the OMAP=
-_SYS_TIMER
-macro?
+Excellent! I think I suggested a function like that at some point.
 
-See for example the omap3_secure timer set up. That should allow
-specifying the clock source already.
+But I wonder about the 'align' argument. I think most people just
+copy-pasted SZ_1M, although I think originally you suggested SZ_2M,
+maybe it would make sense to align 'align' to SZ_1M, or set SZ_1M if
+it's 0 for convenience.
 
-Regards,
+Also, what about people that need memblock_alloc_base? AFAIK OMAP 3
+secure ram needs to be below certain area (I wonder why the current
+code is not handling that).
 
-Tony
+Cheers.
+
+--=20
+=46elipe Contreras
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
