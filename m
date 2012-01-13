@@ -1,88 +1,115 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: [GIT PULL] HSI framework
-Date: Fri, 13 Jan 2012 15:25:40 +0200
-Message-ID: <1326461140.32183.40.camel@groo>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: omap clocksource timer selection: dmtimer OR 32K-Sync timer
+Date: Fri, 13 Jan 2012 13:42:36 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317A4FD9@DBDE01.ent.ti.com>
+References: <79CD15C6BA57404B839C016229A409A8317A4E2E@DBDE01.ent.ti.com>
+ <CAMQu2gxYQOHX8n2RLfkLBw5hQMdvH389DfrguLtzpLcpmqBQMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:62478 "EHLO mgw-sa02.nokia.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35206 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751970Ab2AMN1E (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 08:27:04 -0500
+	id S1752905Ab2AMNmz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 08:42:55 -0500
+In-Reply-To: <CAMQu2gxYQOHX8n2RLfkLBw5hQMdvH389DfrguLtzpLcpmqBQMA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Linus Walleij <linus.walleij@linaro.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Sebastian Reichel <sre@debian.org>, artem.bityutskiy@linux.intel.com, Andras Domokos <andras.domokos@nokia.com>, ext Shubhrajyoti <shubhrajyoti@ti.com>, ext Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, ext Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Linus,
+On Fri, Jan 13, 2012 at 18:19:24, Shilimkar, Santosh wrote:
+> On Fri, Jan 13, 2012 at 1:21 PM, Hiremath, Vaibhav <hvaibhav@ti.com> =
+wrote:
+> > Hi,
+> >
+> > In case of AM33xx family of devices, we do not have 32K Sync timer
+> > (32K Counter) available; and the current implementation is based on
+> > compile-time option, where clock-source is chosen by something like=
+,
+> >
+> > File - arch/arm/mach-omap2/timer.c
+> >
+> > #ifdef CONFIG_OMAP_32K_TIMER
+> > static void __init omap2_gp_clocksource_init(int unused, const char=
+ *dummy)
+> > {
+> > ...
+> > }
+> > #else
+> > static void __init omap2_gp_clocksource_init(int unused, const char=
+ *dummy)
+> > {
+> > ...
+> > }
+> > #endif
+> >
+> >
+> > But in order to support multi-omap build, we must
+> > make run-time decision to use the timer for kernel clock-source, ei=
+ther of -
+> >
+> > =A0- DMTIMER
+> > =A0- 32K Sync Timer
+> >
+> > The DMTIMER is already migrated to the HWMOD framework, but 32K Tim=
+er code
+> > has not yet migrated to it. So the question here is,
+> >
+> > 1) Does it make sense to migrate counter_32k.c to search entry in h=
+wmod
+> > =A0 table and if 32k_sync timer is available in hwmod table then us=
+e 32K
+> > =A0 timer for Kernel clock-source
+> > =A0 OR
+> > =A0 Fall back to DMTIMER.
+> >
+> > =A0 OMAP4 hwmod table already has entry,
+> >
+> > =A0 static struct omap_hwmod omap44xx_counter_32k_hwmod =3D {
+> > =A0 =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "counter_32k",
+> > =A0 ...
+> > =A0 };
+> >
+> > =A0 We need to have similar entries in all devices where 32K timer =
+is present.
+> >
+> > 2) OR simply add another cpu_is_am33xx() and then fall back to dmti=
+mer?
+> > =A0 Just to prove this, everything works here, I modified the code =
+for this
+> > =A0 and tested it on both AM335x EVM and AM37xEVM and it works fine=
+ for me.
+> >
+> >
+> > Any comments?? OR Better approach? OR anything which I am missing h=
+ere?
+> >
+> You can register both the clock sources together with different
+> rating. Based on rating
+> timer code will automatically pick the better clock-source of two.
+> Ratings is based on the resolution of the timer.
+>=20
+Santosh,
 
-I have been working in an HSI framework. The High Speed Synchronous Serial Interface (HSI) is a serial interface mainly used for connecting application engines (APE) with cellular modem engines (CMT) in cellular handsets.
-
-The framework is currently being used for some people and we would like to see it integrated into the kernel for 3.3. There is no HW controller drivers in this pull, but some people have already some of them pending which they would like to push as soon as this integrated. I am also working on the acceptance for an TI OMAP one, based on a compatible legacy version of the interface called SSI.
-
-Please see the latest discussion thread about the framework patches here:
-
-https://lkml.org/lkml/2011/6/10/280
-
-Here thread discussion for integration:
-
-https://lkml.org/lkml/2011/10/20/177
-
-Here, the thread discussion to add the hsi repository to linux-next:
-
-https://lkml.org/lkml/2011/10/28/69
-
-The patches have been sitting for a while in linux-next without issues.
-
-The signed tag covering those commits: hsi_for_3.3 
-
-Thanks & Br,
-Carlos Chinea
-
-The following changes since commit 805a6af8dba5dfdd35ec35dc52ec0122400b2610:
-
-  Linux 3.2 (2012-01-04 15:55:44 -0800)
-
-are available in the git repository at:
-  git://gitorious.org/kernel-hsi/kernel-hsi.git for-next
-
-Andras Domokos (3):
-      HSI: hsi_char: Add HSI char device driver
-      HSI: hsi_char: Add HSI char device kernel configuration
-      HSI: hsi_char: Update ioctl-number.txt
-
-Carlos Chinea (2):
-      HSI: hsi: Introducing HSI framework
-      HSI: Add HSI API documentation
-
- Documentation/DocBook/device-drivers.tmpl |   17 +
- Documentation/ioctl/ioctl-number.txt      |    1 +
- drivers/Kconfig                           |    2 +
- drivers/Makefile                          |    1 +
- drivers/hsi/Kconfig                       |   19 +
- drivers/hsi/Makefile                      |    6 +
- drivers/hsi/clients/Kconfig               |   13 +
- drivers/hsi/clients/Makefile              |    5 +
- drivers/hsi/clients/hsi_char.c            |  802 +++++++++++++++++++++++++++++
- drivers/hsi/hsi.c                         |  494 ++++++++++++++++++
- drivers/hsi/hsi_boardinfo.c               |   62 +++
- drivers/hsi/hsi_core.h                    |   35 ++
- include/linux/Kbuild                      |    1 +
- include/linux/hsi/Kbuild                  |    1 +
- include/linux/hsi/hsi.h                   |  410 +++++++++++++++
- include/linux/hsi/hsi_char.h              |   63 +++
- 16 files changed, 1932 insertions(+), 0 deletions(-)
- create mode 100644 drivers/hsi/Kconfig
- create mode 100644 drivers/hsi/Makefile
- create mode 100644 drivers/hsi/clients/Kconfig
- create mode 100644 drivers/hsi/clients/Makefile
- create mode 100644 drivers/hsi/clients/hsi_char.c
- create mode 100644 drivers/hsi/hsi.c
- create mode 100644 drivers/hsi/hsi_boardinfo.c
- create mode 100644 drivers/hsi/hsi_core.h
- create mode 100644 include/linux/hsi/Kbuild
- create mode 100644 include/linux/hsi/hsi.h
- create mode 100644 include/linux/hsi/hsi_char.h
+ - Still current compile time implementation must be changed/cleaned, r=
+ight?
+ - The 32k timer doesn't exist at all on AM33xx device, so you can not
+   (and should not) Register this timer.=20
 
 
+Thanks,
+Vaibhav
+
+> That should remove the CONFIG option depedency.
+>=20
+> Regards
+> Santosh
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
