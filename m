@@ -1,126 +1,48 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH 2/2] drm/omap: platform data structs moved to plat-omap
-Date: Fri, 13 Jan 2012 14:42:00 -0600
-Message-ID: <1326487320-8781-2-git-send-email-rob.clark@linaro.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/2] omap2+: add drm device
+Date: Fri, 13 Jan 2012 22:59:07 +0200
+Message-ID: <CAMP44s36cE_dBQcyDnboUgbUCtjgMnLnZq8c+0qB8GfH9Tq8aA@mail.gmail.com>
 References: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:37379 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab2AMUmN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 15:42:13 -0500
-Received: by yenq4 with SMTP id q4so453276yen.19
-        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 12:42:12 -0800 (PST)
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:56338 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932912Ab2AMU7J convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 15:59:09 -0500
+Received: by lago2 with SMTP id o2so507658lag.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 12:59:07 -0800 (PST)
 In-Reply-To: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-From: Rob Clark <rob@ti.com>
+On Fri, Jan 13, 2012 at 10:41 PM, Rob Clark <rob.clark@linaro.org> wrot=
+e:
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefil=
+e
+> index 9a58461..b86e6cb 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -4,7 +4,7 @@
+>
+> =C2=A0# Common support
+> =C2=A0obj-y :=3D common.o sram.o clock.o devices.o dma.o mux.o \
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0usb.o fb.o counter_32k.o
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0usb.o fb.o counter_32k.o drm.o
 
-Platform data structs populated when the platform device is registered
-need to be #include'able under arch/arm/..., but having to #include
-headers from drivers/staging is messy.  Instead these structs are
-moved to arch/arm/plat-omap/include/plat.
+Should be something like this:
+obj-$(CONFIG_DRM_OMAP) +=3D drm.o
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
+No?
 
- drivers/staging/omapdrm/omap_dmm_tiler.h |    5 ---
- drivers/staging/omapdrm/omap_drv.h       |    2 +-
- drivers/staging/omapdrm/omap_priv.h      |   55 ------------------------------
- 3 files changed, 1 insertions(+), 61 deletions(-)
- delete mode 100644 drivers/staging/omapdrm/omap_priv.h
-
-diff --git a/drivers/staging/omapdrm/omap_dmm_tiler.h b/drivers/staging/omapdrm/omap_dmm_tiler.h
-index f87cb65..821d8e7 100644
---- a/drivers/staging/omapdrm/omap_dmm_tiler.h
-+++ b/drivers/staging/omapdrm/omap_dmm_tiler.h
-@@ -127,9 +127,4 @@ static inline bool validfmt(enum tiler_fmt fmt)
- 	}
- }
- 
--struct omap_dmm_platform_data {
--	void __iomem *base;
--	int irq;
--};
--
- #endif
-diff --git a/drivers/staging/omapdrm/omap_drv.h b/drivers/staging/omapdrm/omap_drv.h
-index 48f6fce..db275ca 100644
---- a/drivers/staging/omapdrm/omap_drv.h
-+++ b/drivers/staging/omapdrm/omap_drv.h
-@@ -25,8 +25,8 @@
- #include <linux/types.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc_helper.h>
-+#include <plat/drm.h>
- #include "omap_drm.h"
--#include "omap_priv.h"
- 
- #define DBG(fmt, ...) DRM_DEBUG(fmt"\n", ##__VA_ARGS__)
- #define VERB(fmt, ...) if (0) DRM_DEBUG(fmt, ##__VA_ARGS__) /* verbose debug */
-diff --git a/drivers/staging/omapdrm/omap_priv.h b/drivers/staging/omapdrm/omap_priv.h
-deleted file mode 100644
-index ef64414..0000000
---- a/drivers/staging/omapdrm/omap_priv.h
-+++ /dev/null
-@@ -1,55 +0,0 @@
--/*
-- * include/drm/omap_priv.h
-- *
-- * Copyright (C) 2011 Texas Instruments
-- * Author: Rob Clark <rob@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License version 2 as published by
-- * the Free Software Foundation.
-- *
-- * This program is distributed in the hope that it will be useful, but WITHOUT
-- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-- * more details.
-- *
-- * You should have received a copy of the GNU General Public License along with
-- * this program.  If not, see <http://www.gnu.org/licenses/>.
-- */
--
--#ifndef __OMAP_PRIV_H__
--#define __OMAP_PRIV_H__
--
--/* Non-userspace facing APIs
-- */
--
--/* optional platform data to configure the default configuration of which
-- * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
-- * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
-- * one manager, with priority given to managers that are connected to
-- * detected devices.  Remaining overlays are used as video planes.  This
-- * should be a good default behavior for most cases, but yet there still
-- * might be times when you wish to do something different.
-- */
--struct omap_kms_platform_data {
--	/* overlays to use as CRTCs: */
--	int ovl_cnt;
--	const int *ovl_ids;
--
--	/* overlays to use as video planes: */
--	int pln_cnt;
--	const int *pln_ids;
--
--	int mgr_cnt;
--	const int *mgr_ids;
--
--	int dev_cnt;
--	const char **dev_names;
--};
--
--struct omap_drm_platform_data {
--	struct omap_kms_platform_data *kms_pdata;
--	struct omap_dmm_platform_data *dmm_pdata;
--};
--
--#endif /* __OMAP_DRM_H__ */
--- 
-1.7.5.4
-
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
