@@ -1,90 +1,67 @@
-From: Archit <a0393947@ti.com>
-Subject: Re: [PATCH 5/6] OMAPDSS: DISPC: move fifo threhold calc to dispc.c
-Date: Sat, 14 Jan 2012 01:30:58 +0530
-Message-ID: <4F108D7A.4010802@ti.com>
-References: <1326455193-19716-1-git-send-email-tomi.valkeinen@ti.com> <1326455193-19716-6-git-send-email-tomi.valkeinen@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] omap2+: add drm device
+Date: Fri, 13 Jan 2012 22:23:36 +0200
+Message-ID: <CAMP44s16EvinPo3oxgiwY7D9uSyrSZFWFNhk5+8rndbMJDnP6g@mail.gmail.com>
+References: <1326483687-458-1-git-send-email-rob.clark@linaro.org>
+	<CAF6AEGuQt=MK=W3JShpHH-Vh-5WtjUW6+vyODXbpaVTeQQ8L4w@mail.gmail.com>
+	<CAMP44s2MdrzjOa7mS7a0z_-18GNm5nW_35JcX0iso+dRQvJPkw@mail.gmail.com>
+	<CAF6AEGsX3USGbqrMLgfWK=aO5JbsyELcvFMCMuH5XQGHr0y+XQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54551 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753574Ab2AMUBJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 15:01:09 -0500
-In-Reply-To: <1326455193-19716-6-git-send-email-tomi.valkeinen@ti.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:61657 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932694Ab2AMUXi convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Jan 2012 15:23:38 -0500
+Received: by lago2 with SMTP id o2so491958lag.19
+        for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 12:23:36 -0800 (PST)
+In-Reply-To: <CAF6AEGsX3USGbqrMLgfWK=aO5JbsyELcvFMCMuH5XQGHr0y+XQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com, rob@ti.com
+To: Rob Clark <rob@ti.com>
+Cc: linux-omap@vger.kernel.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Greg KH <greg@kroah.com>
 
-Hi,
-
-On Friday 13 January 2012 05:16 PM, Tomi Valkeinen wrote:
-> Move fifo threshold calculation into dispc.c, as the thresholds are
-> really dispc internal thing.
+On Fri, Jan 13, 2012 at 9:53 PM, Rob Clark <rob@ti.com> wrote:
+> On Fri, Jan 13, 2012 at 1:49 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+>> On Fri, Jan 13, 2012 at 9:46 PM, Rob Clark <rob@ti.com> wrote:
+>>> On Fri, Jan 13, 2012 at 1:41 PM, Rob Clark <rob.clark@linaro.org> w=
+rote:
+>>>> +/* files from staging that contain platform data structure defini=
+tions */
+>>>> +#include "../../../drivers/staging/omapdrm/omap_priv.h"
+>>>> +#include "../../../drivers/staging/omapdrm/omap_dmm_tiler.h"
+>>>
+>>> btw, I'm not a huge fan of doing #includes this way, so if someone =
+has
+>>> a better suggestion (given that staging drivers should not have
+>>> headers outside of drivers/staging) please let me know
+>>
+>> Move those structs to /arch/arm/plat-omap/drm.h?
 >
-> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> Can I do that? =C2=A0Maybe it depends of if you consider those struct=
+s as
+> part of the driver, or part of the platform?
 
-<snip>
+Why not? The platform is using them in arch/arm/plat-omap/drm.c.
 
-> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
-> index 511ae2a..1cbb7a5 100644
-> --- a/drivers/video/omap2/dss/dsi.c
-> +++ b/drivers/video/omap2/dss/dsi.c
-> @@ -4524,14 +4524,6 @@ int omapdss_dsi_enable_te(struct omap_dss_device *dssdev, bool enable)
->   }
->   EXPORT_SYMBOL(omapdss_dsi_enable_te);
->
-> -void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
-> -		u32 fifo_size, u32 burst_size,
-> -		u32 *fifo_low, u32 *fifo_high)
-> -{
-> -	*fifo_high = fifo_size - burst_size;
-> -	*fifo_low = fifo_size - burst_size * 2;
-> -}
+> I guess that looks like how it was handled for dspbridge, so maybe
+> that means it is a suitable precedent..
 
-We are removing the special treatment for overlays connected to DSI done 
-before. Won't this cause the issues you saw with DSI in OMAP3?
+Indeed, the way I see it is this: imagine there's another driver in
+staging (or maybe even out of tree), that requires this data. It would
+simply include plat-omap/drm.h to fill this. OK, this is pretty
+far-fetched, but demonstrates the point: platform data should be
+completely independent of the drivers.
 
-Archit
+Cheers.
 
-> -
->   int dsi_init_display(struct omap_dss_device *dssdev)
->   {
->   	struct platform_device *dsidev = dsi_get_dsidev_from_dssdev(dssdev);
-> diff --git a/drivers/video/omap2/dss/dss.h b/drivers/video/omap2/dss/dss.h
-> index 3cf99a9..f2378a8 100644
-> --- a/drivers/video/omap2/dss/dss.h
-> +++ b/drivers/video/omap2/dss/dss.h
-> @@ -202,9 +202,6 @@ void dss_uninit_device(struct platform_device *pdev,
->   		struct omap_dss_device *dssdev);
->   bool dss_use_replication(struct omap_dss_device *dssdev,
->   		enum omap_color_mode mode);
-> -void default_get_overlay_fifo_thresholds(enum omap_plane plane,
-> -		u32 fifo_size, u32 burst_size,
-> -		u32 *fifo_low, u32 *fifo_high);
->
->   /* manager */
->   int dss_init_overlay_managers(struct platform_device *pdev);
-> @@ -313,9 +310,6 @@ int dsi_pll_calc_clock_div_pck(struct platform_device *dsidev, bool is_tft,
->   int dsi_pll_init(struct platform_device *dsidev, bool enable_hsclk,
->   		bool enable_hsdiv);
->   void dsi_pll_uninit(struct platform_device *dsidev, bool disconnect_lanes);
-> -void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
-> -		u32 fifo_size, u32 burst_size,
-> -		u32 *fifo_low, u32 *fifo_high);
->   void dsi_wait_pll_hsdiv_dispc_active(struct platform_device *dsidev);
->   void dsi_wait_pll_hsdiv_dsi_active(struct platform_device *dsidev);
->   struct platform_device *dsi_get_dsidev_from_id(int module);
-> @@ -429,8 +423,8 @@ int dispc_calc_clock_rates(unsigned long dispc_fclk_rate,
->
->
->   void dispc_ovl_set_fifo_threshold(enum omap_plane plane, u32 low, u32 high);
-> -u32 dispc_ovl_get_fifo_size(enum omap_plane plane);
-> -u32 dispc_ovl_get_burst_size(enum omap_plane plane);
-> +void dispc_ovl_compute_fifo_thresholds(enum omap_plane plane,
-> +		u32 *fifo_low, u32 *fifo_high, bool use_fifomerge);
->   int dispc_ovl_setup(enum omap_plane plane, struct omap_overlay_info *oi,
->   		bool ilace, bool replication);
->   int dispc_ovl_enable(enum omap_plane plane, bool enable);
-
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
