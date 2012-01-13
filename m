@@ -1,44 +1,105 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: omap clocksource timer selection: dmtimer OR 32K-Sync timer
-Date: Fri, 13 Jan 2012 17:09:21 +0100
-Message-ID: <4F105731.8010008@ti.com>
-References: <79CD15C6BA57404B839C016229A409A8317A4E2E@DBDE01.ent.ti.com> <4F104B87.8080003@ti.com> <79CD15C6BA57404B839C016229A409A8317A52F0@DBDE01.ent.ti.com>
+From: Antonio Barbalace <antoniob@vt.edu>
+Subject: RE: support cpufreq on 3.0.10-rt27
+Date: Fri, 13 Jan 2012 11:35:15 -0500
+Message-ID: <20120113113515.60614nxwa1vxbxvn@webmail.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58400 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752934Ab2AMQJb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Jan 2012 11:09:31 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317A52F0@DBDE01.ent.ti.com>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:50633 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778Ab2AMQfU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 11:35:20 -0500
+Received: from steiner.cc.vt.edu (steiner.cc.vt.edu [198.82.163.51])
+	by lennier.cc.vt.edu (8.13.8/8.13.8) with ESMTP id q0DGVsDB005034
+	for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 11:35:19 -0500
+Received: from imp-b08.cc.vt.edu (imp-b08.cc.vt.edu [127.0.0.1])
+	by imp-b08.cc.vt.edu (8.13.8/8.13.8) with ESMTP id q0DGZFKC014706
+	for <linux-omap@vger.kernel.org>; Fri, 13 Jan 2012 11:35:15 -0500
+Received: (from apache@localhost)
+	by imp-b08.cc.vt.edu (8.13.8/8.13.8/Submit) id q0DGZFuv014705
+	for linux-omap@vger.kernel.org; Fri, 13 Jan 2012 11:35:15 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Hilman, Kevin" <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Russell King <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
 
-On 1/13/2012 4:52 PM, Hiremath, Vaibhav wrote:
-> On Fri, Jan 13, 2012 at 20:49:35, Cousson, Benoit wrote:
+I have some more questions inline..
 
-[...]
+Note that the previous patches I have submitted so far are not tight  
+to freq table values (any freq values can be selected).
 
->> A series was sent to do that by Felipe last year, but we somehow forgot
->> to rebase it on newer kernel and thus never reposted it.
+> > 1.
+> > In the Linux kernel the available MPU frequencies and voltages are  
+>  > listed in > arch/arm/mach-omap2/opp4xxx_data.c in the struct  >  
+> omap_opp_defq.
+> > Considering that the MPU can be driven by all the different  
+> frequencies that
+> > someone can generate on the dpll why only 4 frequencies are listed?
+> > Is it due to the fact that there are only 4 voltage domains availables?
+> > Can I add other frequency values?
+> OPP = frequency + voltage
 >
-> If you are ok, I can help you here.
-
-Thanks it will be cool if you can fix that series.
-
-> Can you please point me to git repo for
-> the same.
+> For any given frequency there is a minimum voltage which must be
+> applied for the IP to operate within spec. Conversely for any given
+> voltage there is a maximum frequency which an IP can operate at while
+> staying within spec.
 >
-> And also, this is important for AM33xx support in mainline.
+> It is true that you can lock the MPU's PLL at many different
+> frequencies, but we have only validated a small number of
+> frequency+voltage combinations.  It is advisable to stick with ones
+> provided in the OPP table so that there are no timing violations or
+> under-voltage issues.
+Will the smartreflex driver select the best voltage for me at any  
+time? How can I verify that the smartreflex is actually running? Is  
+there a device driver in the Linux source tree?
 
-Here is the link to the original series.
+> > 2.
+> > Cpufreq helps the user switching between different frequencies value.
+> > Frequency switching can help saving power. Switching frequency  
+> lets the core
+> > running at a different voltage, how can I also switch to the  
+> correct voltage
+> > domain? Voltage scaling is not taken into account in the cpufreq driver?
+> > Will the SmartReflex technology help me? please can you elaborate more on
+> > this point, pointing me on the OMAP4 pdf documentation? How can I switch
+> > frequency and voltage together to save the maximum power?
+> As a general rule, since you are interested in power management, your
+> best friend is Chapter 3 of the TRM, "Power, Reset and Clock
+> Management".  I know that Chapter 4 looks good since it is the MPU,
+> but Chapter 3 contains everything you need to know about PM.
+>
+> Kevin's patches will scale voltage as a part of the CPUfreq drivers
+> .target call.
+I went through Kevin's patches but I cannot see any voltage scaling in  
+cpufreq related stuff, can you please point me out on the exact code?
+Function trace on which I have went through:
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37403.html
+drivers/cpufreq/cpufreq.c: __cpufreq_driver_target
+drivers/cpufreq/omap-cpufreq.c: omap_target
+arch/arm/plat-omap/clock.c: clk_set_rate
+arch/arm/mach-omap2/clock.c: omap2_clk_set_rate
+arch/arm/mach-omap2/dpll3xxx.c: omap3_noncore_dpll_set_rate
 
-The hwmod format changed a lot since them, so it should be refreshed.
+> > 5.
+> > From SWPU231K I understand that each CPU is a power domain so I can change
+> > power state of each CPU independently. Is there a simple way to  
+> put one core
+> > to dormant or power-off mode in Linux?
+> You can turn off CPU1 (but not CPU0) with,
+> echo 0 > /sys/devices/system/cpu/cpu1/online
+>
+> And bring it back up with,
+> echo 1 > /sys/devices/system/cpu/cpu1/online
+>
+> This will migrate all work on CPU1 over to CPU0 and take the CPU1
+> power domain to the lowest power state, OFF mode.
+Wow! This work very well! Measuring power on my PandaBoard when  
+switching off CPU1 I do not see any power difference! Why?
 
-Regards,
-Benoit
+Thanks,
+Antonio
+
