@@ -1,38 +1,77 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Fri, 13 Jan 2012 18:28:13 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201131828010.3659@utopia.booyaka.com>
-References: <WC20120109124643.880164@terrafix.co.uk> <20120110080849.5a242adf@notabene.brown> <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com> <20120112095940.0a54413e@notabene.brown> <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
- <87hazzquhb.fsf@ti.com> <87lipbp6uq.fsf@ti.com> <alpine.DEB.2.00.1201131543580.3659@utopia.booyaka.com> <alpine.DEB.2.00.1201131606310.3659@utopia.booyaka.com> <20120114121726.5da0949c@notabene.brown>
+From: Saravana Kannan <skannan@codeaurora.org>
+Subject: Re: [PATCH v4 3/6] clk: introduce the common clock framework
+Date: Fri, 13 Jan 2012 20:18:34 -0800
+Message-ID: <4F11021A.8070407@codeaurora.org>
+References: <1323834838-2206-1-git-send-email-mturquette@linaro.org> <1323834838-2206-4-git-send-email-mturquette@linaro.org> <alpine.LFD.2.02.1112141007550.3020@ionos> <CAJOA=zO=gM2r4pCVo+orLqE9Q1SSw4h5nXsAHo-e_SHZAfvKDA@mail.gmail.com> <20111217110433.GC14547@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46458 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754185Ab2ANB2O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 20:28:14 -0500
-In-Reply-To: <20120114121726.5da0949c@notabene.brown>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:1770 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644Ab2ANESg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Jan 2012 23:18:36 -0500
+In-Reply-To: <20111217110433.GC14547@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: govindraj.raja@ti.com, Kevin Hilman <khilman@ti.com>, Joe Woodward <jw@terrafix.co.uk>, t-kristo@ti.com, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Turquette, Mike" <mturquette@ti.com>, andrew@lunn.ch, linaro-dev@lists.linaro.org, eric.miao@linaro.org, grant.likely@secretlab.ca, Colin Cross <ccross@google.com>, jeremy.kerr@canonical.com, sboyd@quicinc.com, magnus.damm@gmail.com, dsaxena@linaro.org, linux-arm-kernel@lists.infradead.org, arnd.bergmann@linaro.org, patches@linaro.org, Thomas Gleixner <tglx@linutronix.de>, linux-omap@vger.kernel.org, richard.zhao@linaro.org, shawn.guo@freescale.com, paul@pwsan.com, linus.walleij@stericsson.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, amit.kucheria@linaro.org, skannan@quicinc.com
 
-On Sat, 14 Jan 2012, NeilBrown wrote:
+On 12/17/2011 03:04 AM, Russell King - ARM Linux wrote:
+> On Fri, Dec 16, 2011 at 04:45:48PM -0800, Turquette, Mike wrote:
+>> On Wed, Dec 14, 2011 at 5:18 AM, Thomas Gleixner<tglx@linutronix.de>  wrote:
+>>> On Tue, 13 Dec 2011, Mike Turquette wrote:
+>>>> +void __clk_unprepare(struct clk *clk)
+>>>> +{
+>>>> +     if (!clk)
+>>>> +             return;
+>>>> +
+>>>> +     if (WARN_ON(clk->prepare_count == 0))
+>>>> +             return;
+>>>> +
+>>>> +     if (--clk->prepare_count>  0)
+>>>> +             return;
+>>>> +
+>>>> +     WARN_ON(clk->enable_count>  0);
+>>>
+>>> So this leaves the clock enable count set. I'm a bit wary about
+>>> that. Shouldn't it either return (including bumping the prepare_count
+>>> again) or call clk_disable() ?
+>
+> No it should not.
+>
+>> I've hit this in my port of OMAP.  It comes from this simple situation:
+>>
+>> driver 1 (adapted for clk_prepare/clk_unprepare):
+>> clk_prepare(clk);
+>> clk_enable(clk);
+>>
+>> ...
+>>
+>> driver2 (not adapted for clk_prepare/clk_unprepare):
+>> clk_enable(clk);
+>
+> So this is basically buggy.  Look, it's quite simple.  Convert _all_
+> your drivers to clk_prepare/clk_unprepare _before_ you start switching
+> your platform to use these new functions.  You can do that _today_
+> without exception.
+>
+> We must refuse to merge _any_ user which does this the old way - and
+> we should have been doing this since my commit was merged into mainline
+> to allow drivers to be converted.
+>
+> And stop trying to think of ways around this inside clk_prepare/
+> clk_unprepare/clk_enable/clk_disable.  You can't do it.  Just fix _all_
+> the drivers.  Now.  Before you start implementing clk_prepare/clk_unprepare.
 
-> On Fri, 13 Jan 2012 16:34:06 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrote:
-> 
-> 
-> > 
-> > So ideally this formula should change the "8" depending on the number of 
-> > data bits, whether there is a parity bit, and on the number of stop bits.  
-> > The real formula to determine the number of bits per byte should be 
-> > something like:
-> > 
-> >     bits_per_byte = number of data bits + 1 bit if parity is used + number 
-> >                     of stop bits
->                      + 1 for the start bit.
+I agree with Russell's suggestion. This is what I'm trying to do with 
+the MSM platform. Not sure if I'm too optimistic, but as of today, I'm 
+still optimistic I can push the MSM driver devs to get this done before 
+we enable real prepare/unprepare support.
 
-Indeed...
+Thanks,
+Saravana
 
-
-- Paul
+-- 
+Sent by an employee of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
