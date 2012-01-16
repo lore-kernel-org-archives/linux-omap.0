@@ -1,48 +1,44 @@
 From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 5/5] OMAP : serial : Check for error in get_context_loss_count
-Date: Mon, 16 Jan 2012 15:52:40 +0530
-Message-ID: <1326709360-26020-6-git-send-email-shubhrajyoti@ti.com>
+Subject: [PATCH 4/5] ARM : OMAP : serial : Make context_loss_cnt signed
+Date: Mon, 16 Jan 2012 15:52:39 +0530
+Message-ID: <1326709360-26020-5-git-send-email-shubhrajyoti@ti.com>
 References: <1326709360-26020-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41861 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754037Ab2APKW5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Jan 2012 05:22:57 -0500
 In-Reply-To: <1326709360-26020-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-serial@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-In serial_omap_runtime_resume in case of errors returned by
-get_context_loss_count print a warning and do a restore.
+get_context_loss_count returns an int however it is stored in
+unsigned integer context_loss_cnt . This patch tries to make
+context_loss_cnt int. So that in case of errors(which may be negative)
+the value is not interpreted wrongly.
 
 Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/tty/serial/omap-serial.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/plat/omap-serial.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
-index 8c6f137..e1c1a0f 100644
---- a/drivers/tty/serial/omap-serial.c
-+++ b/drivers/tty/serial/omap-serial.c
-@@ -1602,10 +1602,16 @@ static int serial_omap_runtime_resume(struct device *dev)
+diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm/plat-omap/include/plat/omap-serial.h
+index 9ff4444..b7fb6dc 100644
+--- a/arch/arm/plat-omap/include/plat/omap-serial.h
++++ b/arch/arm/plat-omap/include/plat/omap-serial.h
+@@ -128,7 +128,7 @@ struct uart_omap_port {
+ 	unsigned char		msr_saved_flags;
+ 	char			name[20];
+ 	unsigned long		port_activity;
+-	u32			context_loss_cnt;
++	int			context_loss_cnt;
+ 	u32			errata;
+ 	u8			wakeups_enabled;
  
- 	if (up) {
- 		if (pdata->get_context_loss_count) {
--			u32 loss_cnt = pdata->get_context_loss_count(dev);
-+			int loss_cnt = pdata->get_context_loss_count(dev);
- 
--			if (up->context_loss_cnt != loss_cnt)
-+			if (loss_cnt < 0) {
-+				dev_err(dev,
-+					"get_context_loss_count failed : %d\n",
-+					loss_cnt);
- 				serial_omap_restore_context(up);
-+			} else if (up->context_loss_cnt != loss_cnt) {
-+				serial_omap_restore_context(up);
-+			}
- 		}
- 
- 		/* Errata i291 */
 -- 
 1.7.1
 
