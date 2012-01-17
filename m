@@ -1,81 +1,101 @@
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by
- uBoot)?
-Date: Tue, 17 Jan 2012 15:57:46 -0500 (EST)
-Message-ID: <alpine.LFD.2.02.1201171553220.2722@xanadu.home>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
+Date: Tue, 17 Jan 2012 21:58:33 +0100
+Message-ID: <CAMQu2gzJHvTSbMhzwLx22PSh190Nun+x=6+NZpWJPz4p3BAMJA@mail.gmail.com>
 References: <20120116105949.GG16726@n2100.arm.linux.org.uk>
  <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com>
- <20120116131329.GA928@n2100.arm.linux.org.uk>
- <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
+ <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
  <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
- <4F15692D.4070100@ti.com>
- <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
- <20120117133918.GE11475@arm.com>
- <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
- <20120117162720.GG11475@arm.com>
- <CAMQu2gyCcGYk0tC_g2R9+OBYCvwupcjuUkRC5JxJ7maAVTs1YA@mail.gmail.com>
- <alpine.LFD.2.02.1201171425060.2722@xanadu.home>
- <CAMQu2gwjOuGadqsGqcpHvdH-Jhhj6cchyoZJMMsOQ20SXsKDOw@mail.gmail.com>
+ <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
+ <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+ <20120117162720.GG11475@arm.com> <CAMQu2gyCcGYk0tC_g2R9+OBYCvwupcjuUkRC5JxJ7maAVTs1YA@mail.gmail.com>
+ <alpine.LFD.2.02.1201171425060.2722@xanadu.home> <CAMQu2gwjOuGadqsGqcpHvdH-Jhhj6cchyoZJMMsOQ20SXsKDOw@mail.gmail.com>
  <alpine.LFD.2.02.1201171536470.2722@xanadu.home>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Boundary_(ID_1GJymua0QOYkI3s9ssk3UQ)"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from relais.videotron.ca ([24.201.245.36]:60003 "EHLO
-	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab2AQU54 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2012 15:57:56 -0500
-Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR002.ip.videotron.ca
- (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
- 2011)) with ESMTP id <0LXY00E8NN9WKO10@VL-VM-MR002.ip.videotron.ca> for
- linux-omap@vger.kernel.org; Tue, 17 Jan 2012 15:51:32 -0500 (EST)
-In-reply-to: <alpine.LFD.2.02.1201171536470.2722@xanadu.home>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:57824 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755631Ab2AQU66 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jan 2012 15:58:58 -0500
+Received: by mail-qw0-f42.google.com with SMTP id z32so3088858qad.1
+        for <linux-omap@vger.kernel.org>; Tue, 17 Jan 2012 12:58:57 -0800 (PST)
+In-Reply-To: <alpine.LFD.2.02.1201171536470.2722@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Nicolas Pitre <nico@fluxnic.net>
 Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---Boundary_(ID_1GJymua0QOYkI3s9ssk3UQ)
-Content-type: TEXT/PLAIN; charset=ISO-8859-1
-Content-transfer-encoding: 8BIT
-
-On Tue, 17 Jan 2012, Nicolas Pitre wrote:
-
+On Tue, Jan 17, 2012 at 9:45 PM, Nicolas Pitre <nico@fluxnic.net> wrote=
+:
 > On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
-> 
-> > On Tue, Jan 17, 2012 at 8:39 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
-> > > On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
-> > >
-> > >> How about allowing platform hooks for single SOC builds. I mean having
-> > >> this code under !single_zImage or something like that. That way we don't
-> > >> impact the single zImage efforts and also allow socs to have all those
-> > >> critical, vital bits enabled for the SOC specific builds.
-> > >
-> > > Absolutely not!  Because if we start doing that, people will get lazy
-> > > and no platform will ever work in a multi-SOC kernel.
-> > >
-> > > If your SOC require some fancy setup that is not shared by other
-> > > platforms then please abstract that into the bootloader, or make sure it
-> > > can be deferred later on.
-> > >
-> > There is nothing fancy here. It's an ARM security architecture feature which
-> > OMAP implements. Have given enough reason about boot-loaders issues.
-> 
-> I was not convinced by those reasons. Just push harder on the bootloader 
-> side.  There is _no_ reason for the bootloader not to take care of this 
-> very platform specific issue.  You can even do it into a standalone 
+>
+>> On Tue, Jan 17, 2012 at 8:39 PM, Nicolas Pitre <nico@fluxnic.net> wr=
+ote:
+>> > On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
+>> >
+>> >> How about allowing platform hooks for single SOC builds. I mean h=
+aving
+>> >> this code under !single_zImage or something like that. That way w=
+e don't
+>> >> impact the single zImage efforts and also allow socs to have all =
+those
+>> >> critical, vital bits enabled for the SOC specific builds.
+>> >
+>> > Absolutely not! =A0Because if we start doing that, people will get=
+ lazy
+>> > and no platform will ever work in a multi-SOC kernel.
+>> >
+>> > If your SOC require some fancy setup that is not shared by other
+>> > platforms then please abstract that into the bootloader, or make s=
+ure it
+>> > can be deferred later on.
+>> >
+>> There is nothing fancy here. It's an ARM security architecture featu=
+re which
+>> OMAP implements. Have given enough reason about boot-loaders issues.
+>
+> I was not convinced by those reasons. Just push harder on the bootloa=
+der
+> side. =A0There is _no_ reason for the bootloader not to take care of =
+this
+> very platform specific issue. =A0You can even do it into a standalone
 > uImage that returns to u-Boot after it is done with its magic.
+>
+>> Is OMAP getting beaten up here just because it uses ARM security
+>> feature and implements it's mechanics?
+>
+> I don't care if this is OMAP, UX500 or i.MX. =A0There is a line to be
+> drawn and this is just too bad if you are trying to cross it.
+>
+Well I was trying to get a solution for a genuine problem.
+Let's take an example.
 
-Alternatively, you may leverage all the infrastructure that was 
-implemented to support CPU offlining i.e. the creation of a 1:1 mapping 
-needed to disable the MMU and so on.  That should be possible for you to 
-just have the MMU turned off, then call the secure mode to turn on L2, 
-then restore MMU and normal operation of the kernel.  This can be 
-accomplished later during boot rather than right at the beginning.
+#ifdef CONFIG_ARM_ERRATA_742230
+        cmp     r6, #0x22                       @ only present up to r2=
+p2
+        mrcle   p15, 0, r10, c15, c0, 1         @ read diagnostic regis=
+ter
+        orrle   r10, r10, #1 << 4               @ set bit #4
+        mcrle   p15, 0, r10, c15, c0, 1         @ write diagnostic regi=
+ster
+#endif
 
+The SoC's which doesn't have security restriction and the kernel
+is in secure mode, above errata is applied in it's right place. Before
+MMU is enabled. There are many bits like this which are patched
+in kernel.
 
-Nicolas
+On OMAP, all these can't be set-up in kernel since kernel is
+in non-secure mode. To set such bit's we need to call some
+pre-defined security calls.
 
---Boundary_(ID_1GJymua0QOYkI3s9ssk3UQ)--
+Regards
+santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
