@@ -1,68 +1,62 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Tue, 17 Jan 2012 15:47:02 -0800
-Message-ID: <20120117154702.d009df12.akpm@linux-foundation.org>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
-	<331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
+From: Ben Dooks <ben-i2c@fluff.org>
+Subject: Re: [PATCH] MAINTAINERS: List i2c-omap and i2c-davinci drivers
+Date: Tue, 17 Jan 2012 23:10:18 +0000
+Message-ID: <20120117231018.GA7774@freya.fluff.org>
+References: <20120110153640.0d30a643@endymion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "arnd@arndb.de" <arnd@arndb.de>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cpc7-stkp7-2-0-cust918.10-2.cable.virginmedia.com ([86.22.251.151]:56232
+	"EHLO freya" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750849Ab2AQXxM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jan 2012 18:53:12 -0500
+Content-Disposition: inline
+In-Reply-To: <20120110153640.0d30a643@endymion.delvare>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Linux I2C <linux-i2c@vger.kernel.org>, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On Tue, 17 Jan 2012 07:32:47 +0000
-"AnilKumar, Chimata" <anilkumar@ti.com> wrote:
+On Tue, Jan 10, 2012 at 03:36:40PM +0100, Jean Delvare wrote:
+> This will ensure that the right people and lists are notified when
+> these drivers are modified.
 
-> Hi All,
+sounds like a good idea.
+ 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> ---
+> If there are no objections, I'll send this to Linus quickly.
 > 
-> Recalling the patch, provide the comments if there are any if not please include
-> this patch to v3.3 kernel.
-
-The patch is all mangled by someone's email client.  Wordwrapping, mime
-crap which my MUA can't decrypt, etc.
-
-> -----Original Message-----
-> From: AnilKumar, Chimata 
-> Sent: Friday, December 23, 2011 10:55 AM
-> To: arnd@arndb.de; greg@kroah.com; eric.piel@tremplin-utc.net; akpm@linux-foundation.org; broonie@opensource.wolfsonmicro.com; linux-kernel@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org; Nori, Sekhar; AnilKumar, Chimata
-
-A pet peeve which I haven't told anyone about.  If you've cc'ed someone
-on a patch then I want to cc them on the patch too.  That means I have
-to add their Cc: lines to the changelog.  But such Cc: lines include
-their real names.  By omitting their real names in the above fashion,
-you cause extra hassle for me.  Ideally, you should add their Cc: to
-the changelog as well as to the mail headers, to give thsoe people the
-best chance of seeing what is happening with the patch.
-
->
-> ..
->
-> +static ssize_t lis3lv02d_range_show(struct device *dev,
-> +			       struct device_attribute *attr, char *buf)
-> +{
-> +	lis3lv02d_sysfs_poweron(&lis3_dev);
-> +	return sprintf(buf, "%d\n", lis3_dev.g_range);
-> +}
-
-Are these interfaces documented anywhere?  If so, please update that
-documentation.  If not, why not ;)
-
-> @@ -809,15 +881,33 @@ static ssize_t lis3lv02d_rate_set(struct device *dev,
->  	return count;
->  }
+>  MAINTAINERS |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> --- linux-3.3-rc0.orig/MAINTAINERS	2012-01-10 15:24:37.000000000 +0100
+> +++ linux-3.3-rc0/MAINTAINERS	2012-01-10 15:27:28.000000000 +0100
+> @@ -4673,6 +4673,8 @@ Q:	http://patchwork.kernel.org/project/l
+>  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git
+>  S:	Maintained
+>  F:	arch/arm/*omap*/
+> +F:	drivers/i2c/busses/i2c-omap.c
+> +F:	include/linux/i2c-omap.h
 >  
-> +static ssize_t lis3lv02d_range_set(struct device *dev,
-> +				struct device_attribute *attr, const char *buf,
-> +				size_t count)
-> +{
-> +	unsigned long range;
-> +
-> +	if (strict_strtoul(buf, 0, &range))
-
-checkpatch would have told you that strict_strtoul() is deprecated. 
-Please always use checkpatch.
+>  OMAP CLOCK FRAMEWORK SUPPORT
+>  M:	Paul Walmsley <paul@pwsan.com>
+> @@ -5945,6 +5947,7 @@ L:	davinci-linux-open-source@linux.davin
+>  Q:	http://patchwork.kernel.org/project/linux-davinci/list/
+>  S:	Supported
+>  F:	arch/arm/mach-davinci
+> +F:	drivers/i2c/busses/i2c-davinci.c
+>  
+>  SIS 190 ETHERNET DRIVER
+>  M:	Francois Romieu <romieu@fr.zoreil.com>
+> 
+> 
+> -- 
+> Jean Delvare
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
