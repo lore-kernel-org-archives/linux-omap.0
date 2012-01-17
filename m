@@ -1,85 +1,48 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 5/6] OMAP: 4430SDP/Panda: add HDMI HPD gpio
-Date: Tue, 17 Jan 2012 14:49:01 +0200
-Message-ID: <1326804542-22285-6-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/6] OMAPDSS: remove wrong HDMI HPD muxing
+Date: Tue, 17 Jan 2012 14:48:59 +0200
+Message-ID: <1326804542-22285-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:42880 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752767Ab2AQMua (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:52386 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753639Ab2AQMtv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jan 2012 07:50:30 -0500
+	Tue, 17 Jan 2012 07:49:51 -0500
 In-Reply-To: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, mythripk@ti.com
 Cc: archit@ti.com, x0132446@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Both Panda and 4430SDP use GPIO 64 as HDMI hot-plug-detect. Configure
-this GPIO in the board files.
+"hdmi_hpd" pin is muxed to INPUT and PULLUP, but the pin is not
+currently used, and in the future when it is used, the pin is used as a
+GPIO and is board specific, not an OMAP4 wide thing.
+
+So remove the muxing for now.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
- arch/arm/mach-omap2/board-omap4panda.c |    3 +++
- 2 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/display.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 5dcc8df..a776c26 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -54,6 +54,7 @@
- #define OMAP4_SFH7741_ENABLE_GPIO		188
- #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
-+#define HDMI_GPIO_HPD  63 /* Hotplug detect */
- #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
- #define DLP_POWER_ON_GPIO	40
+diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+index ffd9bd9..d6e65e2 100644
+--- a/arch/arm/mach-omap2/display.c
++++ b/arch/arm/mach-omap2/display.c
+@@ -102,12 +102,8 @@ static void omap4_hdmi_mux_pads(enum omap_hdmi_flags flags)
+ 	u32 reg;
+ 	u16 control_i2c_1;
  
-@@ -598,6 +599,7 @@ static void __init omap_sfh7741prox_init(void)
- static struct gpio sdp4430_hdmi_gpios[] = {
- 	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
-+	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
- };
- 
- static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
-@@ -836,6 +838,7 @@ static void omap_4430sdp_display_init(void)
- 
- 	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
- 	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
- }
- 
- #ifdef CONFIG_OMAP_MUX
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 06a7075..b22a288 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -53,6 +53,7 @@
- #define GPIO_WIFI_IRQ		53
- #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
-+#define HDMI_GPIO_HPD  63 /* Hotplug detect */
- 
- /* wl127x BT, FM, GPS connectivity chip */
- static int wl1271_gpios[] = {46, -1, -1};
-@@ -481,6 +482,7 @@ int __init omap4_panda_dvi_init(void)
- static struct gpio panda_hdmi_gpios[] = {
- 	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
-+	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
- };
- 
- static int omap4_panda_panel_enable_hdmi(struct omap_dss_device *dssdev)
-@@ -552,6 +554,7 @@ void omap4_panda_display_init(void)
- 
- 	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
- 	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
-+	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
- }
- 
- static void __init omap4_panda_init(void)
+-	/* PAD0_HDMI_HPD_PAD1_HDMI_CEC */
+-	omap_mux_init_signal("hdmi_hpd",
+-			OMAP_PIN_INPUT_PULLUP);
+ 	omap_mux_init_signal("hdmi_cec",
+ 			OMAP_PIN_INPUT_PULLUP);
+-	/* PAD0_HDMI_DDC_SCL_PAD1_HDMI_DDC_SDA */
+ 	omap_mux_init_signal("hdmi_ddc_scl",
+ 			OMAP_PIN_INPUT_PULLUP);
+ 	omap_mux_init_signal("hdmi_ddc_sda",
 -- 
 1.7.4.1
 
