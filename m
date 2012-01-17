@@ -1,255 +1,100 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 6/6] OMAPDSS: HDMI: PHY burnout fix
-Date: Tue, 17 Jan 2012 15:04:30 +0200
-Message-ID: <1326805470-25575-1-git-send-email-tomi.valkeinen@ti.com>
-References: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39928 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753576Ab2AQNFL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jan 2012 08:05:11 -0500
-In-Reply-To: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 2/3] i2c-omap: use usleep_range(), get rid out of jiffies
+Date: Tue, 17 Jan 2012 16:52:36 +0400
+Message-ID: <1326804756-17703-1-git-send-email-dmitry.antipov@linaro.org>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, mythripk@ti.com
-Cc: archit@ti.com, x0132446@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-A hardware bug in the OMAP4 HDMI PHY causes physical damage to the board
-if the HDMI PHY is powered on when the cable is not connected.
+Use usleep_range() with return value to implement time-bounded
+wait-for hardware loop where delay is applicable; use ktime
+instead of jiffies for a busy-wait loop.
 
-This patch solves the problem by adding hot-plug-detection into the HDMI
-IP driver. This is not a real HPD support in the sense that nobody else
-than the IP driver gets to know about the HPD events, but is only meant
-to fix the HW bug.
-
-The strategy is simple: If the display device is turned off by the user,
-the PHY power is set to OFF. When the display device is turned on by the
-user, the PHY power is set either to LDOON or TXON, depending on whether
-the HDMI cable is connected.
-
-The reason to avoid PHY OFF when the display device is on, but the cable
-is disconnected, is that when the PHY is turned OFF, the HDMI IP is not
-"ticking" and thus the DISPC does not receive pixel clock from the HDMI
-IP. This would, for example, prevent any VSYNCs from happening, and
-would thus affect the users of omapdss. By using LDOON when the cable is
-disconnected we'll avoid the HW bug, but keep the HDMI working as usual
-from the user's point of view.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Signed-off-by: Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 ---
- arch/arm/mach-omap2/board-4430sdp.c       |    5 ++
- arch/arm/mach-omap2/board-omap4panda.c    |    5 ++
- drivers/video/omap2/dss/hdmi.c            |    3 +
- drivers/video/omap2/dss/ti_hdmi.h         |    4 ++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   68 +++++++++++++++++++++++++++--
- include/video/omapdss.h                   |    5 ++
- 6 files changed, 86 insertions(+), 4 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   23 +++++++++++------------
+ 1 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index a776c26..d4fe511 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -732,6 +732,10 @@ static void sdp4430_lcd_init(void)
- 		pr_err("%s: Could not get lcd2_reset_gpio\n", __func__);
- }
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index fa23faa..401a622 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -49,8 +49,8 @@
+ #define OMAP_I2C_REV_ON_3430		0x3C
+ #define OMAP_I2C_REV_ON_3530_4430	0x40
  
-+static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
-+	.hpd_gpio = HDMI_GPIO_HPD,
-+};
-+
- static struct omap_dss_device sdp4430_hdmi_device = {
- 	.name = "hdmi",
- 	.driver_name = "hdmi_panel",
-@@ -739,6 +743,7 @@ static struct omap_dss_device sdp4430_hdmi_device = {
- 	.platform_enable = sdp4430_panel_enable_hdmi,
- 	.platform_disable = sdp4430_panel_disable_hdmi,
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+	.data = &sdp4430_hdmi_data,
- };
+-/* timeout waiting for the controller to respond */
+-#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
++/* timeout waiting for the controller to respond, in usecs */
++#define OMAP_I2C_TIMEOUT USEC_PER_SEC
  
- static struct picodlp_panel_data sdp4430_picodlp_pdata = {
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index b22a288..c28ef20 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -502,6 +502,10 @@ static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
- 	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
- }
+ /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
+ enum {
+@@ -333,16 +333,16 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
+ 		/* For some reason we need to set the EN bit before the
+ 		 * reset done bit gets set. */
+-		timeout = jiffies + OMAP_I2C_TIMEOUT;
++		timeout = 0;
+ 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+ 		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
+ 			 SYSS_RESETDONE_MASK)) {
+-			if (time_after(jiffies, timeout)) {
++			if (timeout > OMAP_I2C_TIMEOUT) {
+ 				dev_warn(dev->dev, "timeout waiting "
+ 						"for controller reset\n");
+ 				return -ETIMEDOUT;
+ 			}
+-			msleep(1);
++			timeout += usleep_range(1000, 2000);
+ 		}
  
-+static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
-+	.hpd_gpio = HDMI_GPIO_HPD,
-+};
-+
- static struct omap_dss_device  omap4_panda_hdmi_device = {
- 	.name = "hdmi",
- 	.driver_name = "hdmi_panel",
-@@ -509,6 +513,7 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
- 	.platform_enable = omap4_panda_panel_enable_hdmi,
- 	.platform_disable = omap4_panda_panel_disable_hdmi,
- 	.channel = OMAP_DSS_CHANNEL_DIGIT,
-+	.data = &omap4_panda_hdmi_data,
- };
- 
- static struct omap_dss_device *omap4_panda_dss_devices[] = {
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 92a6679..3b76a20 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -469,6 +469,7 @@ bool omapdss_hdmi_detect(void)
- 
- int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+ 		/* SYSC register is cleared by the reset; rewrite it */
+@@ -498,15 +498,14 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+  */
+ static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
  {
-+	struct omap_dss_hdmi_data *priv = dssdev->data;
- 	int r = 0;
+-	unsigned long timeout;
++	unsigned long timeout = 0;
  
- 	DSSDBG("ENTER hdmi_display_enable\n");
-@@ -481,6 +482,8 @@ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
- 		goto err0;
+-	timeout = jiffies + OMAP_I2C_TIMEOUT;
+ 	while (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
+-		if (time_after(jiffies, timeout)) {
++		if (timeout > OMAP_I2C_TIMEOUT) {
+ 			dev_warn(dev->dev, "timeout waiting for bus ready\n");
+ 			return -ETIMEDOUT;
+ 		}
+-		msleep(1);
++		timeout += usleep_range(1000, 2000);
  	}
  
-+	hdmi.ip_data.hpd_gpio = priv->hpd_gpio;
-+
- 	r = omap_dss_start_device(dssdev);
- 	if (r) {
- 		DSSERR("failed to start device\n");
-diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index 26ec6d1..cb6f0f2 100644
---- a/drivers/video/omap2/dss/ti_hdmi.h
-+++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -122,6 +122,10 @@ struct hdmi_ip_data {
- 	const struct ti_hdmi_ip_ops *ops;
- 	struct hdmi_config cfg;
- 	struct hdmi_pll_info pll_data;
-+
-+	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
-+	int hpd_gpio;
-+	bool phy_tx_enabled;
- };
- int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
- void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index a229ae7..34e58dd 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -28,6 +28,7 @@
- #include <linux/delay.h>
- #include <linux/string.h>
- #include <linux/seq_file.h>
-+#include <linux/gpio.h>
- 
- #include "ti_hdmi_4xxx_ip.h"
- #include "dss.h"
-@@ -223,6 +224,49 @@ void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data)
- 	hdmi_set_pll_pwr(ip_data, HDMI_PLLPWRCMD_ALLOFF);
- }
- 
-+static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
-+{
-+	unsigned long flags;
-+	bool hpd;
-+	int r;
-+	/* this should be in ti_hdmi_4xxx_ip private data */
-+	static DEFINE_SPINLOCK(phy_tx_lock);
-+
-+	spin_lock_irqsave(&phy_tx_lock, flags);
-+
-+	hpd = gpio_get_value(ip_data->hpd_gpio);
-+
-+	if (hpd == ip_data->phy_tx_enabled) {
-+		spin_unlock_irqrestore(&phy_tx_lock, flags);
-+		return 0;
-+	}
-+
-+	if (hpd)
-+		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
-+	else
-+		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_LDOON);
-+
-+	if (r) {
-+		DSSERR("Failed to %s PHY TX power\n",
-+				hpd ? "enable" : "disable");
-+		goto err;
-+	}
-+
-+	ip_data->phy_tx_enabled = hpd;
-+err:
-+	spin_unlock_irqrestore(&phy_tx_lock, flags);
-+	return r;
-+}
-+
-+static irqreturn_t hpd_irq_handler(int irq, void *data)
-+{
-+	struct hdmi_ip_data *ip_data = data;
-+
-+	hdmi_check_hpd_state(ip_data);
-+
-+	return IRQ_HANDLED;
-+}
-+
- int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
- {
- 	u16 r = 0;
-@@ -232,10 +276,6 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
- 	if (r)
- 		return r;
- 
--	r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
--	if (r)
--		return r;
--
- 	/*
- 	 * Read address 0 in order to get the SCP reset done completed
- 	 * Dummy access performed to make sure reset is done
-@@ -257,12 +297,32 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
- 	/* Write to phy address 3 to change the polarity control */
- 	REG_FLD_MOD(phy_base, HDMI_TXPHY_PAD_CFG_CTRL, 0x1, 27, 27);
- 
-+	r = request_threaded_irq(gpio_to_irq(ip_data->hpd_gpio),
-+			NULL, hpd_irq_handler,
-+			IRQF_DISABLED | IRQF_TRIGGER_RISING |
-+			IRQF_TRIGGER_FALLING, "hpd", ip_data);
-+	if (r) {
-+		DSSERR("HPD IRQ request failed\n");
-+		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
-+		return r;
-+	}
-+
-+	r = hdmi_check_hpd_state(ip_data);
-+	if (r) {
-+		free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
-+		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
-+		return r;
-+	}
-+
  	return 0;
- }
+@@ -564,13 +563,13 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * Don't write stt and stp together on some hardware.
+ 	 */
+ 	if (dev->b_hw && stop) {
+-		unsigned long delay = jiffies + OMAP_I2C_TIMEOUT;
++		ktime_t start = ktime_get();
+ 		u16 con = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
+ 		while (con & OMAP_I2C_CON_STT) {
+ 			con = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
  
- void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data)
- {
-+	free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
-+
- 	hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
-+	ip_data->phy_tx_enabled = false;
- }
- 
- static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
-diff --git a/include/video/omapdss.h b/include/video/omapdss.h
-index 062b3b2..483f67c 100644
---- a/include/video/omapdss.h
-+++ b/include/video/omapdss.h
-@@ -590,6 +590,11 @@ struct omap_dss_device {
- 	int (*get_backlight)(struct omap_dss_device *dssdev);
- };
- 
-+struct omap_dss_hdmi_data
-+{
-+	int hpd_gpio;
-+};
-+
- struct omap_dss_driver {
- 	struct device_driver driver;
- 
+ 			/* Let the user know if i2c is in a bad state */
+-			if (time_after(jiffies, delay)) {
++			if (ktime_us_delta(ktime_get(), start) > OMAP_I2C_TIMEOUT) {
+ 				dev_err(dev->dev, "controller timed out "
+ 				"waiting for start condition to finish\n");
+ 				return -ETIMEDOUT;
+@@ -588,7 +587,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
+ 	r = wait_for_completion_timeout(&dev->cmd_complete,
+-					OMAP_I2C_TIMEOUT);
++					usecs_to_jiffies(OMAP_I2C_TIMEOUT));
+ 	dev->buf_len = 0;
+ 	if (r < 0)
+ 		return r;
 -- 
-1.7.4.1
-
+1.7.7.5
