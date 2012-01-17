@@ -1,125 +1,92 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
-Date: Tue, 17 Jan 2012 21:27:02 +0100
-Message-ID: <CAMQu2gwjOuGadqsGqcpHvdH-Jhhj6cchyoZJMMsOQ20SXsKDOw@mail.gmail.com>
-References: <20120116105949.GG16726@n2100.arm.linux.org.uk>
- <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com>
- <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
- <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
- <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
- <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
- <20120117162720.GG11475@arm.com> <CAMQu2gyCcGYk0tC_g2R9+OBYCvwupcjuUkRC5JxJ7maAVTs1YA@mail.gmail.com>
- <alpine.LFD.2.02.1201171425060.2722@xanadu.home>
+From: Archit <a0393947@ti.com>
+Subject: Re: [PATCH 5/6] OMAP: 4430SDP/Panda: add HDMI HPD gpio
+Date: Wed, 18 Jan 2012 02:02:59 +0530
+Message-ID: <4F15DAFB.40203@ti.com>
+References: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com> <1326804542-22285-6-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:46490 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751504Ab2AQU10 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Jan 2012 15:27:26 -0500
-Received: by mail-qy0-f175.google.com with SMTP id p14so2152870qcs.6
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jan 2012 12:27:25 -0800 (PST)
-In-Reply-To: <alpine.LFD.2.02.1201171425060.2722@xanadu.home>
+Received: from comal.ext.ti.com ([198.47.26.152]:45602 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751504Ab2AQUdE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jan 2012 15:33:04 -0500
+In-Reply-To: <1326804542-22285-6-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Pitre <nico@fluxnic.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, mythripk@ti.com, archit@ti.com, x0132446@ti.com
 
-On Tue, Jan 17, 2012 at 8:39 PM, Nicolas Pitre <nico@fluxnic.net> wrote=
-:
-> On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
->
->> On Tue, Jan 17, 2012 at 5:27 PM, Catalin Marinas
->> <catalin.marinas@arm.com> wrote:
->> > BTW, does the firmware make any checks on what bits it allows to b=
-e set?
->> > Some of them may have security implications (and may not even be
->> > documented).
->> >
->> > Anyway, the first step is this API provided by the secure firmware=
-=2E
->> > Since such API may need to be called before the MMU is initialised=
-,
->> > Linux would need to have knowledge of the platform type early on. =
-Having
->> > some platform hook (asm macro) to call early on wouldn't work with=
- the
->> > single zImage configuration. Stack space is not an issue as we alr=
-eady
->> > have one for ARMv7 for D-cache flushing (XIP kernels would work bu=
-t they
->> > aren't that many).
->> >
->> That's true.
->
-> That stack is ugly and _does_ break XIP (even if there aren't that ma=
-ny
-> if at all on ARMv7). =A0Since we're already writing to RAM while sett=
-ing
-> up the initial page table and therefore we did the necessary work to
-> locate it already, we could as well put a temporary stack for early
-> usage right below the page table.
->
->> >> Firmware point is actually irrelevant for OMAP since it can't be
->> >> changed once it is ROMed.
->> >>
->> >> Patching in boot-loaders isn't an option either since every custo=
-mers
->> >> prefers to use there own boot-loader and then controlling this vi=
-tal
->> >> bits is impossible.
->> >>
->> >> So I re-iterate that we need to have solution to this problem.
->> >
->> > I don't disagree with this, a solution is needed. In the past I wa=
-s for
->> > having platform hooks in the early kernel code path but in the lig=
-ht of
->> > latest kernel developments (FDT, single zImage), I no longer see t=
-his as
->> > acceptable.
->> >
->> Thanks for acknowledging the problem. Not allowing such hooks for si=
-ngle
->> zImage doesn't seems to be right. Nobody ships kernel build for all =
-socs,
->> and it's usage is really limited to few distro's. But that's differe=
-nt topic.
->
-> No, I think this is right on topic. =A0If nobody ships a kernel for
-> multiple SOCs, this is because right now this can't be done. =A0But
-> distros are craving for this ability.
->
->> How about allowing platform hooks for single SOC builds. I mean havi=
-ng
->> this code under !single_zImage or something like that. That way we d=
-on't
->> impact the single zImage efforts and also allow socs to have all tho=
-se
->> critical, vital bits enabled for the SOC specific builds.
->
-> Absolutely not! =A0Because if we start doing that, people will get la=
-zy
-> and no platform will ever work in a multi-SOC kernel.
->
-> If your SOC require some fancy setup that is not shared by other
-> platforms then please abstract that into the bootloader, or make sure=
- it
-> can be deferred later on.
->
-There is nothing fancy here. It's an ARM security architecture feature =
-which
-OMAP implements. Have given enough reason about boot-loaders issues.
+On Tuesday 17 January 2012 06:19 PM, Tomi Valkeinen wrote:
+> Both Panda and 4430SDP use GPIO 64 as HDMI hot-plug-detect. Configure
+> this GPIO in the board files.
 
-Is OMAP getting beaten up here just because it uses ARM security
-feature and implements it's mechanics?
+Minor comment: the commit message says GPIO 64, and the macros use gpio 
+63. Is this done intentionally?
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Archit
+
+>
+> Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> ---
+>   arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
+>   arch/arm/mach-omap2/board-omap4panda.c |    3 +++
+>   2 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index 5dcc8df..a776c26 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -54,6 +54,7 @@
+>   #define OMAP4_SFH7741_ENABLE_GPIO		188
+>   #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+>   #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+> +#define HDMI_GPIO_HPD  63 /* Hotplug detect */
+>   #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+>   #define DLP_POWER_ON_GPIO	40
+>
+> @@ -598,6 +599,7 @@ static void __init omap_sfh7741prox_init(void)
+>   static struct gpio sdp4430_hdmi_gpios[] = {
+>   	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+>   	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+> +	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
+>   };
+>
+>   static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
+> @@ -836,6 +838,7 @@ static void omap_4430sdp_display_init(void)
+>
+>   	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
+>   	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
+> +	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+>   }
+>
+>   #ifdef CONFIG_OMAP_MUX
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+> index 06a7075..b22a288 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -53,6 +53,7 @@
+>   #define GPIO_WIFI_IRQ		53
+>   #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+>   #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+> +#define HDMI_GPIO_HPD  63 /* Hotplug detect */
+>
+>   /* wl127x BT, FM, GPS connectivity chip */
+>   static int wl1271_gpios[] = {46, -1, -1};
+> @@ -481,6 +482,7 @@ int __init omap4_panda_dvi_init(void)
+>   static struct gpio panda_hdmi_gpios[] = {
+>   	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+>   	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+> +	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
+>   };
+>
+>   static int omap4_panda_panel_enable_hdmi(struct omap_dss_device *dssdev)
+> @@ -552,6 +554,7 @@ void omap4_panda_display_init(void)
+>
+>   	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
+>   	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
+> +	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+>   }
+>
+>   static void __init omap4_panda_init(void)
+
