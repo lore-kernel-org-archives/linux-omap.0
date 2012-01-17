@@ -1,65 +1,255 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled
- by uBoot)?
-Date: Tue, 17 Jan 2012 17:57:25 +0530
-Message-ID: <4F15692D.4070100@ti.com>
-References: <WC20120116100344.4204CC@terrafix.co.uk>
- <CAMQu2gw4H=m1QA+ucORYsO_LZR8Sj57=+jwmrkHu_7sdCzhN8g@mail.gmail.com>
- <20120116105949.GG16726@n2100.arm.linux.org.uk>
- <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com>
- <20120116131329.GA928@n2100.arm.linux.org.uk>
- <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
- <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120117121138.GC11475@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar,
- Santosh" <santosh.shilimkar@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 6/6] OMAPDSS: HDMI: PHY burnout fix
+Date: Tue, 17 Jan 2012 15:04:30 +0200
+Message-ID: <1326805470-25575-1-git-send-email-tomi.valkeinen@ti.com>
+References: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39928 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753576Ab2AQNFL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jan 2012 08:05:11 -0500
+In-Reply-To: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, mythripk@ti.com
+Cc: archit@ti.com, x0132446@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Hi Catalin,
+A hardware bug in the OMAP4 HDMI PHY causes physical damage to the board
+if the HDMI PHY is powered on when the cable is not connected.
 
-On Tuesday 17 January 2012 05:41 PM, Catalin Marinas wrote:
-> On Tue, Jan 17, 2012 at 08:54:44AM +0000, Joe Woodward wrote:
->> So, is the upshot of this that the kernel isn't going to be in a
->> position to enable the L2/outer cache on OMAP3 (due to the need for
->> hacky/unmaintainable code)?
->>
->> Hence the bootloader/uBoot had better leave it enabled...
->
-> It could but the Linux decompressor needs to be aware and either flush
-> the L2 (more difficult as it doesn't have all the device information) or
+This patch solves the problem by adding hot-plug-detection into the HDMI
+IP driver. This is not a real HPD support in the sense that nobody else
+than the IP driver gets to know about the HPD events, but is only meant
+to fix the HW bug.
 
-Cortex-A8 is aware of L2$ and can flush it, isn't it?
+The strategy is simple: If the display device is turned off by the user,
+the PHY power is set to OFF. When the display device is turned on by the
+user, the PHY power is set either to LDOON or TXON, depending on whether
+the HDMI cable is connected.
 
-> set the page table attributes to outer non-cacheable (TEX[2:0] = 0b100).
+The reason to avoid PHY OFF when the display device is on, but the cable
+is disconnected, is that when the PHY is turned OFF, the HDMI IP is not
+"ticking" and thus the DISPC does not receive pixel clock from the HDMI
+IP. This would, for example, prevent any VSYNCs from happening, and
+would thus affect the users of omapdss. By using LDOON when the cable is
+disconnected we'll avoid the HW bug, but keep the HDMI working as usual
+from the user's point of view.
 
-If the above is right, this is not needed right?
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c       |    5 ++
+ arch/arm/mach-omap2/board-omap4panda.c    |    5 ++
+ drivers/video/omap2/dss/hdmi.c            |    3 +
+ drivers/video/omap2/dss/ti_hdmi.h         |    4 ++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   68 +++++++++++++++++++++++++++--
+ include/video/omapdss.h                   |    5 ++
+ 6 files changed, 86 insertions(+), 4 deletions(-)
 
-> The latter may still not work if there are stale L2 cache lines left by
-> U-Boot (and that's always possible unless U-Boot also uses outer
-> non-cacheable memory attributes).
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index a776c26..d4fe511 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -732,6 +732,10 @@ static void sdp4430_lcd_init(void)
+ 		pr_err("%s: Could not get lcd2_reset_gpio\n", __func__);
+ }
+ 
++static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
++	.hpd_gpio = HDMI_GPIO_HPD,
++};
++
+ static struct omap_dss_device sdp4430_hdmi_device = {
+ 	.name = "hdmi",
+ 	.driver_name = "hdmi_panel",
+@@ -739,6 +743,7 @@ static struct omap_dss_device sdp4430_hdmi_device = {
+ 	.platform_enable = sdp4430_panel_enable_hdmi,
+ 	.platform_disable = sdp4430_panel_disable_hdmi,
+ 	.channel = OMAP_DSS_CHANNEL_DIGIT,
++	.data = &sdp4430_hdmi_data,
+ };
+ 
+ static struct picodlp_panel_data sdp4430_picodlp_pdata = {
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index b22a288..c28ef20 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -502,6 +502,10 @@ static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
+ 	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
+ }
+ 
++static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
++	.hpd_gpio = HDMI_GPIO_HPD,
++};
++
+ static struct omap_dss_device  omap4_panda_hdmi_device = {
+ 	.name = "hdmi",
+ 	.driver_name = "hdmi_panel",
+@@ -509,6 +513,7 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
+ 	.platform_enable = omap4_panda_panel_enable_hdmi,
+ 	.platform_disable = omap4_panda_panel_disable_hdmi,
+ 	.channel = OMAP_DSS_CHANNEL_DIGIT,
++	.data = &omap4_panda_hdmi_data,
+ };
+ 
+ static struct omap_dss_device *omap4_panda_dss_devices[] = {
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 92a6679..3b76a20 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -469,6 +469,7 @@ bool omapdss_hdmi_detect(void)
+ 
+ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+ {
++	struct omap_dss_hdmi_data *priv = dssdev->data;
+ 	int r = 0;
+ 
+ 	DSSDBG("ENTER hdmi_display_enable\n");
+@@ -481,6 +482,8 @@ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err0;
+ 	}
+ 
++	hdmi.ip_data.hpd_gpio = priv->hpd_gpio;
++
+ 	r = omap_dss_start_device(dssdev);
+ 	if (r) {
+ 		DSSERR("failed to start device\n");
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 26ec6d1..cb6f0f2 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -122,6 +122,10 @@ struct hdmi_ip_data {
+ 	const struct ti_hdmi_ip_ops *ops;
+ 	struct hdmi_config cfg;
+ 	struct hdmi_pll_info pll_data;
++
++	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
++	int hpd_gpio;
++	bool phy_tx_enabled;
+ };
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index a229ae7..34e58dd 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/string.h>
+ #include <linux/seq_file.h>
++#include <linux/gpio.h>
+ 
+ #include "ti_hdmi_4xxx_ip.h"
+ #include "dss.h"
+@@ -223,6 +224,49 @@ void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data)
+ 	hdmi_set_pll_pwr(ip_data, HDMI_PLLPWRCMD_ALLOFF);
+ }
+ 
++static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
++{
++	unsigned long flags;
++	bool hpd;
++	int r;
++	/* this should be in ti_hdmi_4xxx_ip private data */
++	static DEFINE_SPINLOCK(phy_tx_lock);
++
++	spin_lock_irqsave(&phy_tx_lock, flags);
++
++	hpd = gpio_get_value(ip_data->hpd_gpio);
++
++	if (hpd == ip_data->phy_tx_enabled) {
++		spin_unlock_irqrestore(&phy_tx_lock, flags);
++		return 0;
++	}
++
++	if (hpd)
++		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
++	else
++		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_LDOON);
++
++	if (r) {
++		DSSERR("Failed to %s PHY TX power\n",
++				hpd ? "enable" : "disable");
++		goto err;
++	}
++
++	ip_data->phy_tx_enabled = hpd;
++err:
++	spin_unlock_irqrestore(&phy_tx_lock, flags);
++	return r;
++}
++
++static irqreturn_t hpd_irq_handler(int irq, void *data)
++{
++	struct hdmi_ip_data *ip_data = data;
++
++	hdmi_check_hpd_state(ip_data);
++
++	return IRQ_HANDLED;
++}
++
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ {
+ 	u16 r = 0;
+@@ -232,10 +276,6 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ 	if (r)
+ 		return r;
+ 
+-	r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
+-	if (r)
+-		return r;
+-
+ 	/*
+ 	 * Read address 0 in order to get the SCP reset done completed
+ 	 * Dummy access performed to make sure reset is done
+@@ -257,12 +297,32 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ 	/* Write to phy address 3 to change the polarity control */
+ 	REG_FLD_MOD(phy_base, HDMI_TXPHY_PAD_CFG_CTRL, 0x1, 27, 27);
+ 
++	r = request_threaded_irq(gpio_to_irq(ip_data->hpd_gpio),
++			NULL, hpd_irq_handler,
++			IRQF_DISABLED | IRQF_TRIGGER_RISING |
++			IRQF_TRIGGER_FALLING, "hpd", ip_data);
++	if (r) {
++		DSSERR("HPD IRQ request failed\n");
++		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
++		return r;
++	}
++
++	r = hdmi_check_hpd_state(ip_data);
++	if (r) {
++		free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
++		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
++		return r;
++	}
++
+ 	return 0;
+ }
+ 
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data)
+ {
++	free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
++
+ 	hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
++	ip_data->phy_tx_enabled = false;
+ }
+ 
+ static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 062b3b2..483f67c 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -590,6 +590,11 @@ struct omap_dss_device {
+ 	int (*get_backlight)(struct omap_dss_device *dssdev);
+ };
+ 
++struct omap_dss_hdmi_data
++{
++	int hpd_gpio;
++};
++
+ struct omap_dss_driver {
+ 	struct device_driver driver;
+ 
+-- 
+1.7.4.1
 
-U-Boot flushes the caches before disabling it. On top of it, it does an
-invalidate after the disabling the caches to cover some corner case.
-So, it's guaranteed that there won't be any stale entries in L2 after
-U-Boot.
-
-So, we could as well leave L2$ enabled (and invalidated) and caches
-disabled globally after U-Boot. But I thought enabling L2$ again in
-kernel is the cleaner solution.
-
-br,
-Aneesh
