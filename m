@@ -1,136 +1,23 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] I2C : OMAP : make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
-Date: Tue, 17 Jan 2012 15:48:19 +0530
-Message-ID: <1326795499-13508-1-git-send-email-shubhrajyoti@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
+Date: Tue, 17 Jan 2012 10:54:42 +0000
+Message-ID: <20120117105441.GC2944@opensource.wolfsonmicro.com>
+References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khilman-l0cyMroinI0@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "AnilKumar, Chimata" <anilkumar@ti.com>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
-and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
-This patch removes the omap_i2c_unidle/idle functions and folds them
-into the runtime callbacks.
+On Tue, Jan 17, 2012 at 07:32:47AM +0000, AnilKumar, Chimata wrote:
 
-This fixes the below warn when CONFIG_PM_RUNTIME is not defined
+> Recalling the patch, provide the comments if there are any if not please include
+> this patch to v3.3 kernel.
 
- CC      arch/arm/mach-omap2/board-ti8168evm.o
-drivers/i2c/busses/i2c-omap.c:272: warning: 'omap_i2c_unidle' defined but not used
-drivers/i2c/busses/i2c-omap.c:293: warning: 'omap_i2c_idle' defined but not used
-  CC      net/ipv4/ip_forward.o
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Rebased to Kevin's tree i2c misc branch
-Tested on omsp4sdp and omap3sdp
-
-
- drivers/i2c/busses/i2c-omap.c |   75 +++++++++++++++++-----------------------
- 1 files changed, 32 insertions(+), 43 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index f713eac..914bed8 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -269,47 +269,6 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 				(i2c_dev->regs[reg] << i2c_dev->reg_shift));
- }
- 
--static void omap_i2c_unidle(struct omap_i2c_dev *dev)
--{
--	if (dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
--		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
--		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
--		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
--		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
--	}
--
--	/*
--	 * Don't write to this register if the IE state is 0 as it can
--	 * cause deadlock.
--	 */
--	if (dev->iestate)
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
--}
--
--static void omap_i2c_idle(struct omap_i2c_dev *dev)
--{
--	u16 iv;
--
--	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
--	if (dev->dtrev == OMAP_I2C_IP_VERSION_2)
--		omap_i2c_write_reg(dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
--	else
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
--
--	if (dev->rev < OMAP_I2C_OMAP1_REV_2) {
--		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
--	} else {
--		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, dev->iestate);
--
--		/* Flush posted write */
--		omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
--	}
--}
--
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
- 	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
-@@ -1163,8 +1122,22 @@ static int omap_i2c_runtime_suspend(struct device *dev)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
-+	u16 iv;
-+
-+	_dev->iestate = omap_i2c_read_reg(_dev, OMAP_I2C_IE_REG);
-+	if (_dev->dtrev == OMAP_I2C_IP_VERSION_2)
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IP_V2_IRQENABLE_CLR, 1);
-+	else
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, 0);
-+
-+	if (_dev->rev < OMAP_I2C_OMAP1_REV_2) {
-+		iv = omap_i2c_read_reg(_dev, OMAP_I2C_IV_REG); /* Read clears */
-+	} else {
-+		omap_i2c_write_reg(_dev, OMAP_I2C_STAT_REG, _dev->iestate);
- 
--	omap_i2c_idle(_dev);
-+		/* Flush posted write */
-+		omap_i2c_read_reg(_dev, OMAP_I2C_STAT_REG);
-+	}
- 
- 	return 0;
- }
-@@ -1174,7 +1147,23 @@ static int omap_i2c_runtime_resume(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_i2c_dev *_dev = platform_get_drvdata(pdev);
- 
--	omap_i2c_unidle(_dev);
-+	if (_dev->flags & OMAP_I2C_FLAG_RESET_REGS_POSTIDLE) {
-+		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, 0);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_PSC_REG, _dev->pscstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_SCLL_REG, _dev->scllstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_SCLH_REG, _dev->sclhstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_BUF_REG, _dev->bufstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_SYSC_REG, _dev->syscstate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_WE_REG, _dev->westate);
-+		omap_i2c_write_reg(_dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-+	}
-+
-+	/*
-+	 * Don't write to this register if the IE state is 0 as it can
-+	 * cause deadlock.
-+	 */
-+	if (_dev->iestate)
-+		omap_i2c_write_reg(_dev, OMAP_I2C_IE_REG, _dev->iestate);
- 
- 	return 0;
- }
--- 
-1.7.1
+There's no way this is going to make it into the 3.3 kernel at this
+point, we're almost at the end of the merge window.
