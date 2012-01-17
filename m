@@ -1,37 +1,62 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [GIT PULL] adding rpmsg and remoteproc to 3.3
-Date: Tue, 17 Jan 2012 22:00:26 +0200
-Message-ID: <CAK=WgbZV3PY=ujdLc=8t2F+XJiNfob1z8Tsz=ea77fPwHVxRjg@mail.gmail.com>
-References: <CAK=WgbbZBUiQkCOd=XqT9X_KexKKPft3NB6MCPK1DXfPcqAZ2w@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
+Date: Tue, 17 Jan 2012 21:11:37 +0100
+Message-ID: <CAMQu2gyjGYooWih=cK72VYEe8X_bKyOi3_eHec7cWi37CHBoJQ@mail.gmail.com>
+References: <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com>
+ <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
+ <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
+ <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
+ <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+ <20120117162720.GG11475@arm.com> <20120117194724.GI16726@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK=WgbbZBUiQkCOd=XqT9X_KexKKPft3NB6MCPK1DXfPcqAZ2w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, "Grosen, Mark" <mgrosen@ti.com>, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Rusty Russell <rusty@rustcorp.com.au>, Greg KH <greg@kroah.com>, akpm@linux-foundation.org, Stephen Boyd <sboyd@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "Shah, Bhavin" <bshah@ti.com>, Iliyan Malchev <malchev@google.com>, "Anna, Suman" <s-anna@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35061 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754778Ab2AQUMG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jan 2012 15:12:06 -0500
+Received: by qadc11 with SMTP id c11so380717qad.7
+        for <linux-omap@vger.kernel.org>; Tue, 17 Jan 2012 12:12:05 -0800 (PST)
+In-Reply-To: <20120117194724.GI16726@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-On Thu, Jan 12, 2012 at 9:01 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
-> Please pull:
+On Tue, Jan 17, 2012 at 8:47 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Jan 17, 2012 at 04:27:21PM +0000, Catalin Marinas wrote:
+>> Anyway, the first step is this API provided by the secure firmware.
+>> Since such API may need to be called before the MMU is initialised,
+>> Linux would need to have knowledge of the platform type early on. Ha=
+ving
+>> some platform hook (asm macro) to call early on wouldn't work with t=
+he
+>> single zImage configuration. Stack space is not an issue as we alrea=
+dy
+>> have one for ARMv7 for D-cache flushing (XIP kernels would work but =
+they
+>> aren't that many).
 >
-> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next-acked
->
-> To get the remoteproc and rpmsg frameworks, and a few fixes that were
-> collected after the frameworks were already merged into linux-next.
->
-> (I also tried to push this as a signed tag "rpmsg-for-3.3" but
-> am not sure how successful that feat really was)
+> It _is_ a problem. =A0How much stack space would these undefined plat=
+form
+> specific functions require? =A016 words? =A032 words? =A0A page? =A0W=
+here does
+> this memory come from? =A0The .data section, or are we going to stuff=
+ it
+> into what is supposed to be the read-only text section?
 
-git log --show-signature gives me the exact same output as git log
-does (just built 1.7.9.rc1.3.gb6310 to have it), so I'm not sure about
-the signature revalidation.
+Stack requirement is limited to saving and restoring the processor
+registers. There is no additional need. If this is an issue, we can als=
+o use
+SRAM as a stack for this operation.
 
-But I do see the tag and it looks sane, and being able to include a
-merge commentary is indeed nice. And I guess the signature
-revalidation isn't too important since I'm anyway using k.org.
-
-Please let me know if there are any issues,
-
-Thanks,
-Ohad.
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
