@@ -1,33 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled
-	by uBoot)?
-Date: Tue, 17 Jan 2012 19:47:24 +0000
-Message-ID: <20120117194724.GI16726@n2100.arm.linux.org.uk>
-References: <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com> <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com> <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com> <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com> <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com> <20120117162720.GG11475@arm.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [GIT PULL] adding rpmsg and remoteproc to 3.3
+Date: Tue, 17 Jan 2012 22:00:26 +0200
+Message-ID: <CAK=WgbZV3PY=ujdLc=8t2F+XJiNfob1z8Tsz=ea77fPwHVxRjg@mail.gmail.com>
+References: <CAK=WgbbZBUiQkCOd=XqT9X_KexKKPft3NB6MCPK1DXfPcqAZ2w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47474 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750870Ab2AQTrm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2012 14:47:42 -0500
-Content-Disposition: inline
-In-Reply-To: <20120117162720.GG11475@arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK=WgbbZBUiQkCOd=XqT9X_KexKKPft3NB6MCPK1DXfPcqAZ2w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, "Grosen, Mark" <mgrosen@ti.com>, Brian Swetland <swetland@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Rusty Russell <rusty@rustcorp.com.au>, Greg KH <greg@kroah.com>, akpm@linux-foundation.org, Stephen Boyd <sboyd@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "Shah, Bhavin" <bshah@ti.com>, Iliyan Malchev <malchev@google.com>, "Anna, Suman" <s-anna@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-On Tue, Jan 17, 2012 at 04:27:21PM +0000, Catalin Marinas wrote:
-> Anyway, the first step is this API provided by the secure firmware.
-> Since such API may need to be called before the MMU is initialised,
-> Linux would need to have knowledge of the platform type early on. Having
-> some platform hook (asm macro) to call early on wouldn't work with the
-> single zImage configuration. Stack space is not an issue as we already
-> have one for ARMv7 for D-cache flushing (XIP kernels would work but they
-> aren't that many).
+On Thu, Jan 12, 2012 at 9:01 PM, Ohad Ben-Cohen <ohad@wizery.com> wrote:
+> Please pull:
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git for-next-acked
+>
+> To get the remoteproc and rpmsg frameworks, and a few fixes that were
+> collected after the frameworks were already merged into linux-next.
+>
+> (I also tried to push this as a signed tag "rpmsg-for-3.3" but
+> am not sure how successful that feat really was)
 
-It _is_ a problem.  How much stack space would these undefined platform
-specific functions require?  16 words?  32 words?  A page?  Where does
-this memory come from?  The .data section, or are we going to stuff it
-into what is supposed to be the read-only text section?
+git log --show-signature gives me the exact same output as git log
+does (just built 1.7.9.rc1.3.gb6310 to have it), so I'm not sure about
+the signature revalidation.
+
+But I do see the tag and it looks sane, and being able to include a
+merge commentary is indeed nice. And I guess the signature
+revalidation isn't too important since I'm anyway using k.org.
+
+Please let me know if there are any issues,
+
+Thanks,
+Ohad.
