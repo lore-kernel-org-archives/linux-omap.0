@@ -1,73 +1,81 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled
-	by uBoot)?
-Date: Tue, 17 Jan 2012 20:48:10 +0000
-Message-ID: <20120117204810.GJ16726@n2100.arm.linux.org.uk>
-References: <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com> <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com> <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com> <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com> <20120117162720.GG11475@arm.com> <20120117194724.GI16726@n2100.arm.linux.org.uk> <CAMQu2gyjGYooWih=cK72VYEe8X_bKyOi3_eHec7cWi37CHBoJQ@mail.gmail.com>
+From: Nicolas Pitre <nico@fluxnic.net>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by
+ uBoot)?
+Date: Tue, 17 Jan 2012 15:57:46 -0500 (EST)
+Message-ID: <alpine.LFD.2.02.1201171553220.2722@xanadu.home>
+References: <20120116105949.GG16726@n2100.arm.linux.org.uk>
+ <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com>
+ <20120116131329.GA928@n2100.arm.linux.org.uk>
+ <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
+ <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
+ <4F15692D.4070100@ti.com>
+ <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
+ <20120117133918.GE11475@arm.com>
+ <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+ <20120117162720.GG11475@arm.com>
+ <CAMQu2gyCcGYk0tC_g2R9+OBYCvwupcjuUkRC5JxJ7maAVTs1YA@mail.gmail.com>
+ <alpine.LFD.2.02.1201171425060.2722@xanadu.home>
+ <CAMQu2gwjOuGadqsGqcpHvdH-Jhhj6cchyoZJMMsOQ20SXsKDOw@mail.gmail.com>
+ <alpine.LFD.2.02.1201171536470.2722@xanadu.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="Boundary_(ID_1GJymua0QOYkI3s9ssk3UQ)"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40353 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751550Ab2AQUsb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2012 15:48:31 -0500
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gyjGYooWih=cK72VYEe8X_bKyOi3_eHec7cWi37CHBoJQ@mail.gmail.com>
+Received: from relais.videotron.ca ([24.201.245.36]:60003 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755118Ab2AQU54 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Jan 2012 15:57:56 -0500
+Received: from xanadu.home ([66.130.28.92]) by VL-VM-MR002.ip.videotron.ca
+ (Oracle Communications Messaging Exchange Server 7u4-22.01 64bit (built Apr 21
+ 2011)) with ESMTP id <0LXY00E8NN9WKO10@VL-VM-MR002.ip.videotron.ca> for
+ linux-omap@vger.kernel.org; Tue, 17 Jan 2012 15:51:32 -0500 (EST)
+In-reply-to: <alpine.LFD.2.02.1201171536470.2722@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-On Tue, Jan 17, 2012 at 09:11:37PM +0100, Shilimkar, Santosh wrote:
-> On Tue, Jan 17, 2012 at 8:47 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Tue, Jan 17, 2012 at 04:27:21PM +0000, Catalin Marinas wrote:
-> >> Anyway, the first step is this API provided by the secure firmware=
-=2E
-> >> Since such API may need to be called before the MMU is initialised=
-,
-> >> Linux would need to have knowledge of the platform type early on. =
-Having
-> >> some platform hook (asm macro) to call early on wouldn't work with=
- the
-> >> single zImage configuration. Stack space is not an issue as we alr=
-eady
-> >> have one for ARMv7 for D-cache flushing (XIP kernels would work bu=
-t they
-> >> aren't that many).
-> >
-> > It _is_ a problem. =A0How much stack space would these undefined pl=
-atform
-> > specific functions require? =A016 words? =A032 words? =A0A page? =A0=
-Where does
-> > this memory come from? =A0The .data section, or are we going to stu=
-ff it
-> > into what is supposed to be the read-only text section?
->=20
-> Stack requirement is limited to saving and restoring the processor
-> registers. There is no additional need. If this is an issue, we can
-> also use SRAM as a stack for this operation.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-How do you know that's all that would be required?
+--Boundary_(ID_1GJymua0QOYkI3s9ssk3UQ)
+Content-type: TEXT/PLAIN; charset=ISO-8859-1
+Content-transfer-encoding: 8BIT
 
-Let's look at another secure monitor API implementation in the kernel.
-MSM has one - arch/arm/mach-msm/scm.c.  This requires parameters passed
-through memory - a command buffer consisting of at least four words in
-memory, followed by a response buffer of at least three words.
+On Tue, 17 Jan 2012, Nicolas Pitre wrote:
 
-So where would this be placed if not on the stack?  Pick some random
-address and hope that there's some memory there?
+> On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
+> 
+> > On Tue, Jan 17, 2012 at 8:39 PM, Nicolas Pitre <nico@fluxnic.net> wrote:
+> > > On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
+> > >
+> > >> How about allowing platform hooks for single SOC builds. I mean having
+> > >> this code under !single_zImage or something like that. That way we don't
+> > >> impact the single zImage efforts and also allow socs to have all those
+> > >> critical, vital bits enabled for the SOC specific builds.
+> > >
+> > > Absolutely not!  Because if we start doing that, people will get lazy
+> > > and no platform will ever work in a multi-SOC kernel.
+> > >
+> > > If your SOC require some fancy setup that is not shared by other
+> > > platforms then please abstract that into the bootloader, or make sure it
+> > > can be deferred later on.
+> > >
+> > There is nothing fancy here. It's an ARM security architecture feature which
+> > OMAP implements. Have given enough reason about boot-loaders issues.
+> 
+> I was not convinced by those reasons. Just push harder on the bootloader 
+> side.  There is _no_ reason for the bootloader not to take care of this 
+> very platform specific issue.  You can even do it into a standalone 
+> uImage that returns to u-Boot after it is done with its magic.
 
-This is what I'm saying: while we may know what the requirement is for
-OMAP, that's not what it is for other SoCs.  Every SoC has different
-requirements for this, and so we have _no_ idea what so ever how much
-stack space would actually be required.  And if we don't know that, we
-have a real chance of having some implementation overflow the stack,
-thereby overwriting something (eg, maybe your DT data, maybe your
-initramfs image) which would be extremely detrimental.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Alternatively, you may leverage all the infrastructure that was 
+implemented to support CPU offlining i.e. the creation of a 1:1 mapping 
+needed to disable the MMU and so on.  That should be possible for you to 
+just have the MMU turned off, then call the secure mode to turn on L2, 
+then restore MMU and normal operation of the kernel.  This can be 
+accomplished later during boot rather than right at the beginning.
+
+
+Nicolas
+
+--Boundary_(ID_1GJymua0QOYkI3s9ssk3UQ)--
