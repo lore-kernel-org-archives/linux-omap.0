@@ -1,100 +1,85 @@
-From: Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 2/3] i2c-omap: use usleep_range(), get rid out of jiffies
-Date: Tue, 17 Jan 2012 16:52:36 +0400
-Message-ID: <1326804756-17703-1-git-send-email-dmitry.antipov@linaro.org>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: [PATCH 5/6] OMAP: 4430SDP/Panda: add HDMI HPD gpio
+Date: Tue, 17 Jan 2012 14:49:01 +0200
+Message-ID: <1326804542-22285-6-git-send-email-tomi.valkeinen@ti.com>
+References: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:42880 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752767Ab2AQMua (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Jan 2012 07:50:30 -0500
+In-Reply-To: <1326804542-22285-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, mythripk@ti.com
+Cc: archit@ti.com, x0132446@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Use usleep_range() with return value to implement time-bounded
-wait-for hardware loop where delay is applicable; use ktime
-instead of jiffies for a busy-wait loop.
+Both Panda and 4430SDP use GPIO 64 as HDMI hot-plug-detect. Configure
+this GPIO in the board files.
 
-Signed-off-by: Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |   23 +++++++++++------------
- 1 files changed, 11 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
+ arch/arm/mach-omap2/board-omap4panda.c |    3 +++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index fa23faa..401a622 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -49,8 +49,8 @@
- #define OMAP_I2C_REV_ON_3430		0x3C
- #define OMAP_I2C_REV_ON_3530_4430	0x40
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 5dcc8df..a776c26 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -54,6 +54,7 @@
+ #define OMAP4_SFH7741_ENABLE_GPIO		188
+ #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+ #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
++#define HDMI_GPIO_HPD  63 /* Hotplug detect */
+ #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+ #define DLP_POWER_ON_GPIO	40
  
--/* timeout waiting for the controller to respond */
--#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-+/* timeout waiting for the controller to respond, in usecs */
-+#define OMAP_I2C_TIMEOUT USEC_PER_SEC
+@@ -598,6 +599,7 @@ static void __init omap_sfh7741prox_init(void)
+ static struct gpio sdp4430_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
++	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
+ };
  
- /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
- enum {
-@@ -333,16 +333,16 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, SYSC_SOFTRESET_MASK);
- 		/* For some reason we need to set the EN bit before the
- 		 * reset done bit gets set. */
--		timeout = jiffies + OMAP_I2C_TIMEOUT;
-+		timeout = 0;
- 		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 		while (!(omap_i2c_read_reg(dev, OMAP_I2C_SYSS_REG) &
- 			 SYSS_RESETDONE_MASK)) {
--			if (time_after(jiffies, timeout)) {
-+			if (timeout > OMAP_I2C_TIMEOUT) {
- 				dev_warn(dev->dev, "timeout waiting "
- 						"for controller reset\n");
- 				return -ETIMEDOUT;
- 			}
--			msleep(1);
-+			timeout += usleep_range(1000, 2000);
- 		}
+ static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
+@@ -836,6 +838,7 @@ static void omap_4430sdp_display_init(void)
  
- 		/* SYSC register is cleared by the reset; rewrite it */
-@@ -498,15 +498,14 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-  */
- static int omap_i2c_wait_for_bb(struct omap_i2c_dev *dev)
- {
--	unsigned long timeout;
-+	unsigned long timeout = 0;
+ 	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
+ 	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
++	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+ }
  
--	timeout = jiffies + OMAP_I2C_TIMEOUT;
- 	while (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG) & OMAP_I2C_STAT_BB) {
--		if (time_after(jiffies, timeout)) {
-+		if (timeout > OMAP_I2C_TIMEOUT) {
- 			dev_warn(dev->dev, "timeout waiting for bus ready\n");
- 			return -ETIMEDOUT;
- 		}
--		msleep(1);
-+		timeout += usleep_range(1000, 2000);
- 	}
+ #ifdef CONFIG_OMAP_MUX
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 06a7075..b22a288 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -53,6 +53,7 @@
+ #define GPIO_WIFI_IRQ		53
+ #define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+ #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
++#define HDMI_GPIO_HPD  63 /* Hotplug detect */
  
- 	return 0;
-@@ -564,13 +563,13 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 * Don't write stt and stp together on some hardware.
- 	 */
- 	if (dev->b_hw && stop) {
--		unsigned long delay = jiffies + OMAP_I2C_TIMEOUT;
-+		ktime_t start = ktime_get();
- 		u16 con = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
- 		while (con & OMAP_I2C_CON_STT) {
- 			con = omap_i2c_read_reg(dev, OMAP_I2C_CON_REG);
+ /* wl127x BT, FM, GPS connectivity chip */
+ static int wl1271_gpios[] = {46, -1, -1};
+@@ -481,6 +482,7 @@ int __init omap4_panda_dvi_init(void)
+ static struct gpio panda_hdmi_gpios[] = {
+ 	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
++	{ HDMI_GPIO_HPD, GPIOF_DIR_IN, "hdmi_gpio_hpd" },
+ };
  
- 			/* Let the user know if i2c is in a bad state */
--			if (time_after(jiffies, delay)) {
-+			if (ktime_us_delta(ktime_get(), start) > OMAP_I2C_TIMEOUT) {
- 				dev_err(dev->dev, "controller timed out "
- 				"waiting for start condition to finish\n");
- 				return -ETIMEDOUT;
-@@ -588,7 +587,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 * into arbitration and we're currently unable to recover from it.
- 	 */
- 	r = wait_for_completion_timeout(&dev->cmd_complete,
--					OMAP_I2C_TIMEOUT);
-+					usecs_to_jiffies(OMAP_I2C_TIMEOUT));
- 	dev->buf_len = 0;
- 	if (r < 0)
- 		return r;
+ static int omap4_panda_panel_enable_hdmi(struct omap_dss_device *dssdev)
+@@ -552,6 +554,7 @@ void omap4_panda_display_init(void)
+ 
+ 	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
+ 	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
++	omap_mux_init_gpio(HDMI_GPIO_HPD, OMAP_PIN_INPUT_PULLDOWN);
+ }
+ 
+ static void __init omap4_panda_init(void)
 -- 
-1.7.7.5
+1.7.4.1
+
