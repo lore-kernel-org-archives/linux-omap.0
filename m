@@ -1,69 +1,77 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] arm/dts: Add support for TI AM3517/05 EVM board
-Date: Wed, 18 Jan 2012 12:29:46 +0530
-Message-ID: <1326869986-18517-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: DSS2/PM on 3.2 broken?
+Date: Wed, 18 Jan 2012 09:13:59 +0200
+Message-ID: <1326870839.1954.23.camel@deskari>
+References: <WC20120109124643.880164@terrafix.co.uk>
+	 <20120110080849.5a242adf@notabene.brown>
+	 <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
+	 <20120112095940.0a54413e@notabene.brown>
+	 <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
+	 <20120113222045.37f9b4ec@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-4MxNCEe5wbxksWRKisZg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38302 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752059Ab2ARG74 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jan 2012 01:59:56 -0500
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:54838 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753852Ab2ARHOH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jan 2012 02:14:07 -0500
+Received: by lahl5 with SMTP id l5so1830815lah.21
+        for <linux-omap@vger.kernel.org>; Tue, 17 Jan 2012 23:14:03 -0800 (PST)
+In-Reply-To: <20120113222045.37f9b4ec@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
+To: NeilBrown <neilb@suse.de>
+Cc: Paul Walmsley <paul@pwsan.com>, Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
 
-Add AM3517 EVM (AM3517/05) DTS file to use the omap3.dtsi SoC file,
-along with memory node and basic i2c information.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/boot/dts/am3517-evm.dts |   32 ++++++++++++++++++++++++++++++++
- 1 files changed, 32 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/am3517-evm.dts
+--=-4MxNCEe5wbxksWRKisZg
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/boot/dts/am3517-evm.dts b/arch/arm/boot/dts/am3517-evm.dts
-new file mode 100644
-index 0000000..474f760
---- /dev/null
-+++ b/arch/arm/boot/dts/am3517-evm.dts
-@@ -0,0 +1,32 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	model = "TI AM3517 EVM (AM3517/05)";
-+	compatible = "ti,am3517-evm", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
-+};
-+
-+&i2c1 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+};
---
-1.7.0.4
+On Fri, 2012-01-13 at 22:20 +1100, NeilBrown wrote:
+> Having CPUIDLE makes the DSS2 problem worse: lots of=20
+>=20
+> [   21.085113] omapdss DISPC error: SYNC_LOST on channel lcd,
+> restarting the output with video overlays disabled
+>=20
+> messages whenever the CPU isn't busy.
+
+I'm not sure if it is the case here, but DSS has restrictions about the
+max DSS clocks on different OPPs. For example, on OMAP4430 LCD clock
+maximum is 186MHz at OPP100, and 93MHz at OPP50. So it's a quite big
+drop, causing problems with all but the rather small displays.
+
+And the DSS driver doesn't have any support to handle this at the
+moment, as there isn't support in the PM framework to do this. I think
+the only way to handle this at the moment is for the DSS driver to set
+an arbitrarily high constraint on, say, mem throughput, and hope that it
+keeps the OMAP in the required OPP.
+
+ Tomi
+
+
+--=-4MxNCEe5wbxksWRKisZg
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPFnE3AAoJEPo9qoy8lh71ho0P/0ScC1UhhUBIFnCkuyqw8Pk5
+xWrHxTKOjl9Xm9SHrfbe1S5Zf4QxLf9zwjG+IAQ0wiDD41MYA2kBJpCx5RsIbrxt
+N1zkf1c46r/C8GojMSkunYqe+iYrjXwiqrsvkH5/ExL/YNtJYL1K7iXOzaDQkGIu
+lGA1UqUVkTvcUdZD9Yq2/CpRG4Xu5xAhJX6rRaUm6hh8XXhQbdceGdv6pU69uvid
+iZuN0ce/VHZh3A/Za6aqrmuIr77idqG3PD4+FUNUkXWnjNngucXGYwN14YKMdK/w
+WcXvhfJC+JnxrwkOiJGunu/8defdOf1VpzI3+2jIHLF1litPK5OU1neEM/HnJ+nk
+rIfC2KZwG7njUPVFkEChmcfB5SPIv3zgB3oVSz28K+5jeTfvekwxcIbQrLVgcoIS
+68DAInpzg0tnpUHCd4dtnZtAAsqkXcwwsLGehVYAFfykV9LtVr5AhjgLI/giPkAz
+QpWqHzlLqkW6OEMunTYMivpesyUTktGwE6kYGm9Js+MiW8DTSBvvyF5CCe01mYK/
+iuHee7e/KE5YLPF7UKbe/LuUZR2OMChYTrYlp2yEDmgHDVPbVMCjdE6RKh2AWi6A
+Kv6ApcJnF0oMEvjg8Hsp7lsAlYBKEigQePjT4XJvkB2mqlBi2kv4t17sF78nUPFF
+usNzVyKwJ3oKjXsDYbmr
+=uxbL
+-----END PGP SIGNATURE-----
+
+--=-4MxNCEe5wbxksWRKisZg--
 
