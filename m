@@ -1,94 +1,54 @@
-From: "AnilKumar, Chimata" <anilkumar@ti.com>
-Subject: RE: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Wed, 18 Jan 2012 07:51:36 +0000
-Message-ID: <331ABD5ECB02734CA317220B2BBEABC13177D92D@DBDE01.ent.ti.com>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
-	<331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
- <20120117154702.d009df12.akpm@linux-foundation.org>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: OMAP3 DSS2 - VENC timings
+Date: Wed, 18 Jan 2012 07:59:02 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317A950E@DBDE01.ent.ti.com>
+References: <4F1467B5.80600@mlbassoc.com> <1326872303.1954.28.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120117154702.d009df12.akpm@linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:41099 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755950Ab2ARH7J convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2012 02:59:09 -0500
+In-Reply-To: <1326872303.1954.28.camel@deskari>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "arnd@arndb.de" <arnd@arndb.de>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Andrew,
-
-Thanks for reviewing the patch
-
-On Wed, Jan 18, 2012 at 05:17:02, Andrew Morton wrote:
-> On Tue, 17 Jan 2012 07:32:47 +0000
-> "AnilKumar, Chimata" <anilkumar@ti.com> wrote:
-> 
-> > Hi All,
+On Wed, Jan 18, 2012 at 13:08:23, Valkeinen, Tomi wrote:
+> On Mon, 2012-01-16 at 11:08 -0700, Gary Thomas wrote:
+> > I'm running a frame buffer console on a TV device via the VENC.
+> > The video timings don't see to be quite right as Tux is about
+> > 1/2 off the screen - both directions, i.e. his head and right
+> > side have been cut off as they are outside the viewable area.
+> > Also, when I send data to the device (via /dev/tty1) which has
+> > 90x35 characters, I lose 4 characters on each end of every line.
 > > 
-> > Recalling the patch, provide the comments if there are any if not please include
-> > this patch to v3.3 kernel.
+
+I am not sure whether this applies here with your issue, but if I remember
+correctly, during initial days of development we had similar issue where, corners of the display cuts-off. The conclusion was, analog TV's crops the ~5-10% of the input image (depends on TV). I don't quite remember further details on this...
+
+
+Thanks,
+Vaibhav
+
+> > Is there something I can do about this?  I've looked at the
+> > timings in drivers/video/omap2/dss/venc.c
 > 
-> The patch is all mangled by someone's email client.  Wordwrapping, mime
-> crap which my MUA can't decrypt, etc.
-
-My bad, in a hurry I have sent a mail by doing "reply to all" that makes
-all this non-sense will not repeated again.
-Thanks for your patience here.
-
-...snip...
-
+> I don't know much about analog TV, but my understanding is that there's
+> always overscanning going on. You just have to size and position the
+> overlay so that it is visible on your TV.
 > 
-> A pet peeve which I haven't told anyone about.  If you've cc'ed someone
-> on a patch then I want to cc them on the patch too.  That means I have
-> to add their Cc: lines to the changelog.  But such Cc: lines include
-> their real names.  By omitting their real names in the above fashion,
-> you cause extra hassle for me.  Ideally, you should add their Cc: to
-> the changelog as well as to the mail headers, to give thsoe people the
-> best chance of seeing what is happening with the patch.
+> > Also, how can I select NTSC vs PAL setups via the command line?
+> > I have only the one video device VENC.
 > 
-
-Above comment applies here as well.
-
-> >
-> > ..
-> >
-> > +static ssize_t lis3lv02d_range_show(struct device *dev,
-> > +			       struct device_attribute *attr, char *buf)
-> > +{
-> > +	lis3lv02d_sysfs_poweron(&lis3_dev);
-> > +	return sprintf(buf, "%d\n", lis3_dev.g_range);
-> > +}
+> Documentation/arm/OMAP/DSS says you can echo "pal" or "ntsc" to
+> sys/devices/platform/omapdss/display?/timings file.
 > 
-> Are these interfaces documented anywhere?  If so, please update that
-> documentation.  If not, why not ;)
-
-Yes, these interfaces are documented at
-"Documentation/misc-devices/lis3lv02d" but range is not included
-there, which is added in this patch. Will be updated and send it
-as a separate patch.
-
+>  Tomi
 > 
-> > @@ -809,15 +881,33 @@ static ssize_t lis3lv02d_rate_set(struct device *dev,
-> >  	return count;
-> >  }
-> >  
-> > +static ssize_t lis3lv02d_range_set(struct device *dev,
-> > +				struct device_attribute *attr, const char *buf,
-> > +				size_t count)
-> > +{
-> > +	unsigned long range;
-> > +
-> > +	if (strict_strtoul(buf, 0, &range))
-> 
-> checkpatch would have told you that strict_strtoul() is deprecated. 
-> Please always use checkpatch.
 > 
 
-Somehow I missed this, I will update with "kstrtoul". I have to update
-the same API in other set function.
-
-> 
-
-Thanks
-AnilKumar
