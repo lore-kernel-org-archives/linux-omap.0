@@ -1,127 +1,118 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 5/6] OMAPDSS: DISPC: move fifo threhold calc to dispc.c
-Date: Wed, 18 Jan 2012 10:10:12 +0200
-Message-ID: <1326874212.1954.30.camel@deskari>
-References: <1326455193-19716-1-git-send-email-tomi.valkeinen@ti.com>
-	 <1326455193-19716-6-git-send-email-tomi.valkeinen@ti.com>
-	 <4F108D7A.4010802@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
+Date: Wed, 18 Jan 2012 09:43:19 +0100
+Message-ID: <CAMQu2gw3jmcmNU23g14n9=d+ikNvZjq7A6ePAZn+pQ2U9ce1pw@mail.gmail.com>
+References: <20120116105949.GG16726@n2100.arm.linux.org.uk>
+ <CAMQu2gyBVOyWSCT39jP6xEtoNKrUCuaj_QTD+1EVhXgVc_H2HA@mail.gmail.com>
+ <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
+ <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
+ <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
+ <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+ <20120117162720.GG11475@arm.com> <CAMQu2gyCcGYk0tC_g2R9+OBYCvwupcjuUkRC5JxJ7maAVTs1YA@mail.gmail.com>
+ <alpine.LFD.2.02.1201171425060.2722@xanadu.home> <CAMQu2gwjOuGadqsGqcpHvdH-Jhhj6cchyoZJMMsOQ20SXsKDOw@mail.gmail.com>
+ <alpine.LFD.2.02.1201171536470.2722@xanadu.home> <CAMQu2gzJHvTSbMhzwLx22PSh190Nun+x=6+NZpWJPz4p3BAMJA@mail.gmail.com>
+ <alpine.LFD.2.02.1201171601200.2722@xanadu.home>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-GtbcouVYSfh45lX/O0nz"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:43853 "EHLO
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:36132 "EHLO
 	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753524Ab2ARIKR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jan 2012 03:10:17 -0500
-In-Reply-To: <4F108D7A.4010802@ti.com>
+	by vger.kernel.org with ESMTP id S1756075Ab2ARInp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jan 2012 03:43:45 -0500
+Received: by qcsr22 with SMTP id r22so1508114qcs.15
+        for <linux-omap@vger.kernel.org>; Wed, 18 Jan 2012 00:43:43 -0800 (PST)
+In-Reply-To: <alpine.LFD.2.02.1201171601200.2722@xanadu.home>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit <a0393947@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com, rob@ti.com
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
+On Tue, Jan 17, 2012 at 10:02 PM, Nicolas Pitre <nico@fluxnic.net> wrot=
+e:
+> On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
+>
+>> On Tue, Jan 17, 2012 at 9:45 PM, Nicolas Pitre <nico@fluxnic.net> wr=
+ote:
+>> > On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
+>> >
+>> >> On Tue, Jan 17, 2012 at 8:39 PM, Nicolas Pitre <nico@fluxnic.net>=
+ wrote:
+>> >> > On Tue, 17 Jan 2012, Shilimkar, Santosh wrote:
+>> >> >
+>> >> >> How about allowing platform hooks for single SOC builds. I mea=
+n having
+>> >> >> this code under !single_zImage or something like that. That wa=
+y we don't
+>> >> >> impact the single zImage efforts and also allow socs to have a=
+ll those
+>> >> >> critical, vital bits enabled for the SOC specific builds.
+>> >> >
+>> >> > Absolutely not! =A0Because if we start doing that, people will =
+get lazy
+>> >> > and no platform will ever work in a multi-SOC kernel.
+>> >> >
+>> >> > If your SOC require some fancy setup that is not shared by othe=
+r
+>> >> > platforms then please abstract that into the bootloader, or mak=
+e sure it
+>> >> > can be deferred later on.
+>> >> >
+>> >> There is nothing fancy here. It's an ARM security architecture fe=
+ature which
+>> >> OMAP implements. Have given enough reason about boot-loaders issu=
+es.
+>> >
+>> > I was not convinced by those reasons. Just push harder on the boot=
+loader
+>> > side. =A0There is _no_ reason for the bootloader not to take care =
+of this
+>> > very platform specific issue. =A0You can even do it into a standal=
+one
+>> > uImage that returns to u-Boot after it is done with its magic.
+>> >
+>> >> Is OMAP getting beaten up here just because it uses ARM security
+>> >> feature and implements it's mechanics?
+>> >
+>> > I don't care if this is OMAP, UX500 or i.MX. =A0There is a line to=
+ be
+>> > drawn and this is just too bad if you are trying to cross it.
+>> >
+>> Well I was trying to get a solution for a genuine problem.
+>> Let's take an example.
+>>
+>> #ifdef CONFIG_ARM_ERRATA_742230
+>> =A0 =A0 =A0 =A0 cmp =A0 =A0 r6, #0x22 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 @ only present up to r2p2
+>> =A0 =A0 =A0 =A0 mrcle =A0 p15, 0, r10, c15, c0, 1 =A0 =A0 =A0 =A0 @ =
+read diagnostic register
+>> =A0 =A0 =A0 =A0 orrle =A0 r10, r10, #1 << 4 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 @ set bit #4
+>> =A0 =A0 =A0 =A0 mcrle =A0 p15, 0, r10, c15, c0, 1 =A0 =A0 =A0 =A0 @ =
+write diagnostic register
+>> #endif
+>>
+>> The SoC's which doesn't have security restriction and the kernel
+>> is in secure mode, above errata is applied in it's right place. Befo=
+re
+>> MMU is enabled. There are many bits like this which are patched
+>> in kernel.
+>>
+>> On OMAP, all these can't be set-up in kernel since kernel is
+>> in non-secure mode. To set such bit's we need to call some
+>> pre-defined security calls.
+>
+> Absolutely. =A0Just don't do it in the early kernel boot code where i=
+t is
+> not convenient to do so.
+>
+Got it.
 
---=-GtbcouVYSfh45lX/O0nz
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sat, 2012-01-14 at 01:30 +0530, Archit wrote:
-> Hi,
->=20
-> On Friday 13 January 2012 05:16 PM, Tomi Valkeinen wrote:
-> > Move fifo threshold calculation into dispc.c, as the thresholds are
-> > really dispc internal thing.
-> >
-> > Signed-off-by: Tomi Valkeinen<tomi.valkeinen@ti.com>
->=20
-> <snip>
->=20
-> > diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/ds=
-i.c
-> > index 511ae2a..1cbb7a5 100644
-> > --- a/drivers/video/omap2/dss/dsi.c
-> > +++ b/drivers/video/omap2/dss/dsi.c
-> > @@ -4524,14 +4524,6 @@ int omapdss_dsi_enable_te(struct omap_dss_device=
- *dssdev, bool enable)
-> >   }
-> >   EXPORT_SYMBOL(omapdss_dsi_enable_te);
-> >
-> > -void dsi_get_overlay_fifo_thresholds(enum omap_plane plane,
-> > -		u32 fifo_size, u32 burst_size,
-> > -		u32 *fifo_low, u32 *fifo_high)
-> > -{
-> > -	*fifo_high =3D fifo_size - burst_size;
-> > -	*fifo_low =3D fifo_size - burst_size * 2;
-> > -}
->=20
-> We are removing the special treatment for overlays connected to DSI done=
-=20
-> before. Won't this cause the issues you saw with DSI in OMAP3?
-
-I added a FEAT_OMAP3_DSI_FIFO_BUG flag for OMAP3s, and changed the
-dispc's fifo config function to:
-
-void dispc_ovl_compute_fifo_thresholds(enum omap_plane plane,
-		u32 *fifo_low, u32 *fifo_high, bool use_fifomerge)
-{
-	/*
-	 * All sizes are in bytes. Both the buffer and burst are made of
-	 * buffer_units, and the fifo thresholds must be buffer_unit aligned.
-	 */
-
-	unsigned buf_unit =3D dss_feat_get_buffer_size_unit();
-	unsigned ovl_fifo_size, total_fifo_size, burst_size;
-	int i;
-
-	burst_size =3D dispc_ovl_get_burst_size(plane);
-	ovl_fifo_size =3D dispc_ovl_get_fifo_size(plane);
-
-	if (use_fifomerge) {
-		total_fifo_size =3D 0;
-		for (i =3D 0; i < omap_dss_get_num_overlays(); ++i)
-			total_fifo_size +=3D dispc_ovl_get_fifo_size(i);
-	} else {
-		total_fifo_size =3D ovl_fifo_size;
-	}
-
-	/*
-	 * We use the same low threshold for both fifomerge and non-fifomerge
-	 * cases, but for fifomerge we calculate the high threshold using the
-	 * combined fifo size
-	 */
-
-	if (dss_has_feature(FEAT_OMAP3_DSI_FIFO_BUG)) {
-		*fifo_low =3D ovl_fifo_size - burst_size * 2;
-		*fifo_high =3D total_fifo_size - burst_size;
-	} else {
-		*fifo_low =3D ovl_fifo_size - burst_size;
-		*fifo_high =3D total_fifo_size - buf_unit;
-	}
-}
-
- Tomi
-
-
---=-GtbcouVYSfh45lX/O0nz
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPFn5kAAoJEPo9qoy8lh71icwQAI+xeggbVkR1Dfi45G78cWnW
-713HwMbxqDmslGc+O3mL66rVYrXBJPDNuB4tXIZkArBxZUwFBKK6mZJ8T3sQtdVO
-2gAY3jEWs+oddFUkeka3X7TE7j3ViL0cmFlcZfClo5pSVtVa09WrN8K/JvFtp09+
-8KBxvvvAnV7AqphPAk8+MOTdol5klWOg6IqFJ8srQ1xzjc1aXnemvYL2InSEEq5w
-65e9hI3qhqUcnjCJ4mOu4uvJcJOEchqkdjjssKsvr40XyN24zz3lVwLcqVywwARA
-X5lE8BsrAu9bGdsqa2hTiuFNxdY92SDW35fx1jVWMJ60BOce6KSS1/GOxe9bfCDC
-P+4AyYJg9hcaldyKmy3kqn2AB4yeY2K5xzqKwaWx3Xyv+ISVUy8LZopf94eQLiqt
-nfWRKWL5aSR3szcOFN4vT86vc83svGm61rNSctbsaGAaV5Jpf8kwRiACuPm7qtag
-k4vLmw33wd8JGfzpodLxVyIY2tOiKiXnMBN0Ci7q05hmjma34vyPK0z5Lxx3ufTP
-6ZeFTQHj73CvSt06aaKu0t7Fy90KMNUQoPmZLAF0s0UeUzn4nbhNa0nwL9bLL4ut
-cPD0G2VQR4KXYjf64uO0iG5Ax6kjGSREYLMmbV72tpnq7wMISZpCFZ/TKKwLxPwZ
-lxcQ3Phah7V+LVF0SSBG
-=jX0F
------END PGP SIGNATURE-----
-
---=-GtbcouVYSfh45lX/O0nz--
-
+Regards
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
