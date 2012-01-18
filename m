@@ -1,89 +1,106 @@
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH 1/2] arm:omap2:board-generic: Add DT support for AM33xx
- devices
-Date: Wed, 18 Jan 2012 13:58:28 -0700
-Message-ID: <20120118205828.GM4223@ponder.secretlab.ca>
-References: <1326870839-19951-1-git-send-email-hvaibhav@ti.com>
+From: Andi <andi.shyti@gmail.com>
+Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
+Date: Wed, 18 Jan 2012 22:36:37 +0100
+Message-ID: <20120118213635.GB3401@gmail.com>
+References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
+ <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
+ <201201181403.47806.arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:45595 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757334Ab2ARU6b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2012 15:58:31 -0500
-Received: by iagf6 with SMTP id f6so6541888iag.19
-        for <linux-omap@vger.kernel.org>; Wed, 18 Jan 2012 12:58:30 -0800 (PST)
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1326870839-19951-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <201201181403.47806.arnd@arndb.de>
+Sender: linux-input-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Jan 18, 2012 at 12:43:58PM +0530, Vaibhav Hiremath wrote:
-> Although we consider am33xx device under omap34xx family of devices,
-> there is indeed difference between them, for example,
+Hi Arnd,
+
+ 
+What do you mean with "kernel-wide policy for accelerometer drivers"?
+As far as I know, accelerometer drivers are written between the i2c driver and the
+input driver.
+The input driver provides already some accelerometer specific event types, ABS_X, ABS_Y, ABS_Z,
+in your opinion isn't it enough?
+If you mean something like collecting common properties like g range or frequency or whatever in a
+standard interface, then I think that accelerometers are quite different as devices and sometimes
+it could be difficult to arrange a common interface.
+
+Andi
+
+
+On Wed, Jan 18, 2012 at 02:03:47PM +0000, Arnd Bergmann wrote:
+> On Tuesday 17 January 2012, AnilKumar, Chimata wrote:
+> > Hi All,
+> > 
+> > Recalling the patch, provide the comments if there are any if not please include
+> > this patch to v3.3 kernel.
 > 
->       - Initial required mapping (->map_io)
->       - Early init (->init_early)
-> 	Here, the whole sequence/data is different than omap3,
-> 	For example, clock/hwmod/power/voltage data.
->       - clock event/source timer (name and instances)
+> As Mark and Greg said, 3.4 would be appropriate.
 > 
-> So, this patch adds seperate machine descriptor for AM33XX family
-> of devices in board-generic.c file.
+> > +static ssize_t lis3lv02d_range_set(struct device *dev,
+> > +				struct device_attribute *attr, const char *buf,
+> > +				size_t count)
+> > +{
+> > +	unsigned long range;
+> > +
+> > +	if (strict_strtoul(buf, 0, &range))
+> > +		return -EINVAL;
+> > +
+> > +	lis3_dev.g_range = range;
+> > +	lis3lv02d_update_g_range(&lis3_dev);
+> > +
+> > +	return count;
+> > +}
+> > +
+> >  static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
+> >  static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
+> >  static DEVICE_ATTR(rate, S_IRUGO | S_IWUSR, lis3lv02d_rate_show,
+> >  					    lis3lv02d_rate_set);
+> > +static DEVICE_ATTR(range, S_IRUGO | S_IWUSR, lis3lv02d_range_show,
+> > +					    lis3lv02d_range_set);
 > 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> CC: Benoit Cousson <b-cousson@ti.com>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
-> Tested it on AM335x-EVM, AM37xEVM and AM3517EVM.
+> I think you need to document this new attribute in the Documentation
+> directory, unless I missed the other patch doing this.
 > 
->  arch/arm/mach-omap2/board-generic.c |   19 +++++++++++++++++++
->  1 files changed, 19 insertions(+), 0 deletions(-)
+> On a more general topic, do we have a kernel-wide policy for accelerometer
+> drivers? AFAICT, we currently have three subsystems that contain 
+> accelerometer drivers, plus a few ad-hoc ones like this, which is a
+> rather unpleasant situation. What I found are these:
 > 
-> diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> index f7b4b24..2faecc8 100644
-> --- a/arch/arm/mach-omap2/board-generic.c
-> +++ b/arch/arm/mach-omap2/board-generic.c
-> @@ -106,6 +106,25 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
->  MACHINE_END
->  #endif
+> $ git grep -l accelerometer drivers/ | manual_grep
+> drivers/hwmon/applesmc.c
+>    (one hwmon sysfs attribute for x/y/z)
+> drivers/input/misc/adxl34x.c
+>    (lots of sysfs attributes, input_report_key)
+> drivers/input/misc/cma3000_d0x.c
+>    (input_report_abs)
+> drivers/input/misc/kxtj9.c
+>    (input_report_abs, plus one aux sysfs attribute)
+> drivers/macintosh/ams/ams-core.c
+>    (one sysfs attribute for x/y/z)
+> drivers/misc/lis3lv02d/
+>    (multiple sysfs attributes)
+> drivers/platform/x86/hdaps.c
+>    (multiple sysfs attributes, only x/y)
+> drivers/platform/x86/hp_accel.c
+>    (hooks into drivers/misc/lis3lv02d/)
+> drivers/staging/iio/accel/kxsd9.c
+>    (iio)
+> drivers/staging/iio/accel/sca3000_core.c
+>    (iio plus extra attributes)
 > 
-> +#if defined(CONFIG_SOC_OMAPAM33XX)
-> +static const char *am33xx_boards_compat[] __initdata = {
-> +	"ti,am33xx",
-
-Don't forget to add the new compatible values to
-Documentation/device-tree/bindings.
-
-> +	NULL,
-> +};
-> +
-> +DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
-> +	.atag_offset	= 0x100,
-
-Unneeded for DT booting.
-
-Otherwise, you can add:
-
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
-
-> +	.reserve	= omap_reserve,
-> +	.map_io		= am33xx_map_io,
-> +	.init_early	= am33xx_init_early,
-> +	.init_irq	= omap_init_irq,
-> +	.handle_irq	= omap3_intc_handle_irq,
-> +	.init_machine	= omap_generic_init,
-> +	.timer		= &omap3_am33xx_timer,
-> +	.dt_compat	= am33xx_boards_compat,
-> +MACHINE_END
-> +#endif
-> +
->  #if defined(CONFIG_ARCH_OMAP4)
->  static const char *omap4_boards_compat[] __initdata = {
->  	"ti,omap4",
+> While I'm not blaming you for the current situation, but I think the
+> situation is no longer sustainable and we need to decide on one place
+> and interface for these to go in the long run so we don't grow even
+> more nonstandard interfaces.
+> 
+> Any opinions where they should live? input, iio or a new subsystem?
+> 
+> 	Arnd
 > --
-> 1.7.0.4
-> 
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
