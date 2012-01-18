@@ -1,84 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Wed, 18 Jan 2012 14:03:47 +0000
-Message-ID: <201201181403.47806.arnd@arndb.de>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com> <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH 1/5] arm:omap1/2/3/4:Convert 32k-Sync clocksource
+	driver to platform_driver
+Date: Wed, 18 Jan 2012 14:11:47 +0000
+Message-ID: <20120118141147.GN16726@n2100.arm.linux.org.uk>
+References: <1326886086-27313-1-git-send-email-hvaibhav@ti.com> <1326886086-27313-2-git-send-email-hvaibhav@ti.com> <20120118115952.GM16726@n2100.arm.linux.org.uk> <79CD15C6BA57404B839C016229A409A8317A9AA2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
-Sender: linux-input-owner@vger.kernel.org
-To: "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41661 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757584Ab2AROMG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2012 09:12:06 -0500
+Content-Disposition: inline
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8317A9AA2@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "johnstul@us.ibm.com" <johnstul@us.ibm.com>, "Balbi, Felipe" <balbi@ti.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tuesday 17 January 2012, AnilKumar, Chimata wrote:
-> Hi All,
+On Wed, Jan 18, 2012 at 01:34:55PM +0000, Hiremath, Vaibhav wrote:
+> On Wed, Jan 18, 2012 at 17:29:52, Russell King - ARM Linux wrote:
+> > On Wed, Jan 18, 2012 at 04:58:02PM +0530, Vaibhav Hiremath wrote:
+> > > Convert counter_32k clocksource driver to standard platform_driver
+> > > and move it drivers/clocksource/ directory.
+> > > 
+> > > Also, rename it to more generic name "omap-32k.c".
+> > 
+> > NAK.  sched_clock is supposed to be available early.  Platform device
+> > driver initialization is FAR too late.
+> > 
+> Russell,
 > 
-> Recalling the patch, provide the comments if there are any if not please include
-> this patch to v3.3 kernel.
+> Sched_clock is available very early during boot sequence. Initially gp-timer 
+> (dmtimer) will get registered as a clocksource. Please refer to the file
+> mach-omap2/timer.c
+> 
+> 32k_sync timer (omap-32k.c) will come get registered during arch_init.
+> 
+> Just FYI, the way I tested it is, I used kernel parameter 
+> "clocksourse=counter-32k", the switch from gp-timer to 32k timer
+> will happen once it gets registered.
 
-As Mark and Greg said, 3.4 would be appropriate.
+So please delete the sched_clock code from the 32k timer stuff you've
+moved to a platform driver.  It will cause sched_clock to reset to zero,
+and that's bad news.
 
-> +static ssize_t lis3lv02d_range_set(struct device *dev,
-> +				struct device_attribute *attr, const char *buf,
-> +				size_t count)
-> +{
-> +	unsigned long range;
-> +
-> +	if (strict_strtoul(buf, 0, &range))
-> +		return -EINVAL;
-> +
-> +	lis3_dev.g_range = range;
-> +	lis3lv02d_update_g_range(&lis3_dev);
-> +
-> +	return count;
-> +}
-> +
->  static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show, NULL);
->  static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show, NULL);
->  static DEVICE_ATTR(rate, S_IRUGO | S_IWUSR, lis3lv02d_rate_show,
->  					    lis3lv02d_rate_set);
-> +static DEVICE_ATTR(range, S_IRUGO | S_IWUSR, lis3lv02d_range_show,
-> +					    lis3lv02d_range_set);
-
-I think you need to document this new attribute in the Documentation
-directory, unless I missed the other patch doing this.
-
-On a more general topic, do we have a kernel-wide policy for accelerometer
-drivers? AFAICT, we currently have three subsystems that contain 
-accelerometer drivers, plus a few ad-hoc ones like this, which is a
-rather unpleasant situation. What I found are these:
-
-$ git grep -l accelerometer drivers/ | manual_grep
-drivers/hwmon/applesmc.c
-   (one hwmon sysfs attribute for x/y/z)
-drivers/input/misc/adxl34x.c
-   (lots of sysfs attributes, input_report_key)
-drivers/input/misc/cma3000_d0x.c
-   (input_report_abs)
-drivers/input/misc/kxtj9.c
-   (input_report_abs, plus one aux sysfs attribute)
-drivers/macintosh/ams/ams-core.c
-   (one sysfs attribute for x/y/z)
-drivers/misc/lis3lv02d/
-   (multiple sysfs attributes)
-drivers/platform/x86/hdaps.c
-   (multiple sysfs attributes, only x/y)
-drivers/platform/x86/hp_accel.c
-   (hooks into drivers/misc/lis3lv02d/)
-drivers/staging/iio/accel/kxsd9.c
-   (iio)
-drivers/staging/iio/accel/sca3000_core.c
-   (iio plus extra attributes)
-
-While I'm not blaming you for the current situation, but I think the
-situation is no longer sustainable and we need to decide on one place
-and interface for these to go in the long run so we don't grow even
-more nonstandard interfaces.
-
-Any opinions where they should live? input, iio or a new subsystem?
-
-	Arnd
+Only one sched_clock() should ever be registered, and that should only be
+registered very early at boot time.
