@@ -1,64 +1,97 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V5 0/3] Introducing TI's New SoC/board AM335XEVM
-Date: Wed, 18 Jan 2012 08:47:06 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317A958F@DBDE01.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1322808204-12878-1-git-send-email-hvaibhav@ti.com> <87y5up44bf.fsf@ti.com>
- <20111207211029.GL31337@atomide.com>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Wed, 18 Jan 2012 17:33:24 +0800
+Message-ID: <CACVXFVMH9WZDqs-mVjxL=1FY12uHyQAJMTCQuU5ru1wQT+YnZg@mail.gmail.com>
+References: <CAAO=S0+L2Q1YZC-pfm2Lz8jPooTeHYOMaZbtRgHYFoL_m7rvhA@mail.gmail.com>
+	<4F0B182D.7060507@us.ibm.com>
+	<20120109224945.GA23090@mudshark.cambridge.arm.com>
+	<CACVXFVMnAt_YpYNC5B6W4Vh4HvtVS3D6jRORUw0AW5a4ub5aOw@mail.gmail.com>
+	<CAMsRxfJe_MEA=anzRu6jehGcZyg49uAx44_nDQ3_FRY=WrFLoA@mail.gmail.com>
+	<CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51878 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756153Ab2ARIrP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2012 03:47:15 -0500
-In-Reply-To: <20111207211029.GL31337@atomide.com>
-Content-Language: en-US
+Received: from youngberry.canonical.com ([91.189.89.112]:49368 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757198Ab2ARJd1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2012 04:33:27 -0500
+Received: from mail-pw0-f46.google.com ([209.85.160.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1RnRtW-0004fN-4N
+	for linux-omap@vger.kernel.org; Wed, 18 Jan 2012 09:33:26 +0000
+Received: by pbaa10 with SMTP id a10so1652956pba.19
+        for <linux-omap@vger.kernel.org>; Wed, 18 Jan 2012 01:33:24 -0800 (PST)
+In-Reply-To: <CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "paul@pwsan.com" <paul@pwsan.com>
+To: eranian@gmail.com
+Cc: Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, Dec 08, 2011 at 02:40:29, Tony Lindgren wrote:
-> * Kevin Hilman <khilman@ti.com> [111206 15:52]:
-> > <hvaibhav@ti.com> writes:
-> > 
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > This patch set adds support for AM335x device having
-> > > Cortex-A8 MPU.
-> > >
-> > > Official website - http://www.ti.com/product/am3359
-> > >
-> > > AM335X is treated as another OMAP3 variant, where,
-> > > along with existing cpu class OMAP34XX, new cpu class AM33XX is created
-> > > and the respective type is AM335X, which is newly added device in
-> > > the family.
-> > > This means, cpu_is_omap34xx(), cpu_is_am33xx() and
-> > > cpu_is_am335x() checks return success for AM335X.
-> > >
-> > > Also, I have validated OMAP3 boot test with this patch-series on
-> > > OMAP3EVM.
-> > 
-> > Tony, this series looks good to me.
-> > 
-> > I've also tested it on a BeagleBone, so feel free to also add:
-> > 
-> > Tested-by: Kevin Hilman <khilman@ti.com>
-> 
-> Thanks looks good to me. We still need the machine_id update to
-> apply patches 2 and 3 in this series, so applying only the first
-> patch into soc branch for now.
-> 
-Tony,
+Hi Will and stephane,
 
-Can you also merge this patch, as machine_id for am335x-evm is already
-updated in linus/master?
+On Wed, Jan 18, 2012 at 12:18 PM, Ming Lei <ming.lei@canonical.com> wro=
+te:
+> Hi stephane & Will,
+>
+> On Tue, Jan 10, 2012 at 8:46 AM, stephane eranian
+> <eranian@googlemail.com> wrote:
+>> See the dmesg from my 3.2 kernel:
+>>
+>>
+>> [ =A0 =A00.000000] Booting Linux on physical CPU 0[ =A0 =A00.000000]
 
-Thanks,
-Vaibhav
+But if you test omap4 perf against -next kernel, pmu won't work because
+the commit[1] may put 'emu_sys_clkdm'  clock domain into HW_AUTO mode,
+so writing pmu register may not take effect.
 
-> Tony
-> 
+I have found  the similar problem on cam clock domain before[2].
+CD_EMU is very simliar with CD_CAM in the point below:
 
+	CD_EMU has no static or module wake-up dependency with any other clock
+	domain of the device.[3]
+
+So the patch[4] can make omap4 pmu work on -next tree.
+
+Shilimkar, care to comment on the patch[4]?
+
+thanks,
+--
+Ming Lei
+
+[1], commit 3c50729b3fa1cd8ca1f347e6caf1081204cf1a7c
+Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date:   Wed Jan 5 22:03:17 2011 +0530
+
+   ARM: OMAP4: PM: Initialise all the clockdomains to supported states
+
+   Initialise hardware supervised mode for all clockdomains if it's
+   supported. Initiate sleep transition for other clockdomains,
+   if they are not being used.
+
+[2], http://www.spinics.net/lists/linux-omap/msg61911.html
+
+[3], 3.6.12.3 of OMAP4 TRM
+
+[4],
+diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c
+b/arch/arm/mach-omap2/clockdomains44xx_data.c
+index 9299ac2..41d2260 100644
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -390,7 +390,7 @@ static struct clockdomain emu_sys_44xx_clkdm =3D {
+ 	.prcm_partition	  =3D OMAP4430_PRM_PARTITION,
+ 	.cm_inst	  =3D OMAP4430_PRM_EMU_CM_INST,
+ 	.clkdm_offs	  =3D OMAP4430_PRM_EMU_CM_EMU_CDOFFS,
+-	.flags		  =3D CLKDM_CAN_HWSUP,
++	.flags		  =3D CLKDM_CAN_SWSUP,
+ };
+
+ static struct clockdomain l3_dma_44xx_clkdm =3D {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
