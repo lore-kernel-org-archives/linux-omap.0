@@ -1,78 +1,71 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 2/2] arm/dts: Add support for TI AM335x EVM board
-Date: Wed, 18 Jan 2012 12:43:59 +0530
-Message-ID: <1326870839-19951-2-git-send-email-hvaibhav@ti.com>
-References: <1326870839-19951-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 1/2] arm:omap2:board-generic: Add DT support for AM33xx devices
+Date: Wed, 18 Jan 2012 12:43:58 +0530
+Message-ID: <1326870839-19951-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38900 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38898 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754668Ab2ARHO1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1754509Ab2ARHO1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 18 Jan 2012 02:14:27 -0500
-In-Reply-To: <1326870839-19951-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: devicetree-discuss@lists.ozlabs.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
 
-Add AM335x EVM DTS file to use the omap3.dtsi SoC file,
-along with memory node and i2c information.
+Although we consider am33xx device under omap34xx family of devices,
+there is indeed difference between them, for example,
+
+      - Initial required mapping (->map_io)
+      - Early init (->init_early)
+	Here, the whole sequence/data is different than omap3,
+	For example, clock/hwmod/power/voltage data.
+      - clock event/source timer (name and instances)
+
+So, this patch adds seperate machine descriptor for AM33XX family
+of devices in board-generic.c file.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
+CC: Benoit Cousson <b-cousson@ti.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/boot/dts/am335x-evm.dts |   39 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 39 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/am335x-evm.dts
+Tested it on AM335x-EVM, AM37xEVM and AM3517EVM.
 
-diff --git a/arch/arm/boot/dts/am335x-evm.dts b/arch/arm/boot/dts/am335x-evm.dts
-new file mode 100644
-index 0000000..8cc877f
---- /dev/null
-+++ b/arch/arm/boot/dts/am335x-evm.dts
-@@ -0,0 +1,39 @@
-+/*
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+/dts-v1/;
-+
-+/include/ "omap3.dtsi"
-+
-+/ {
-+	model = "TI AM335x EVM";
-+	compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3";
-+
-+	memory {
-+		device_type = "memory";
-+		reg = <0x80000000 0x10000000>; /* 256 MB */
-+	};
+ arch/arm/mach-omap2/board-generic.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index f7b4b24..2faecc8 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -106,6 +106,25 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
+ MACHINE_END
+ #endif
+
++#if defined(CONFIG_SOC_OMAPAM33XX)
++static const char *am33xx_boards_compat[] __initdata = {
++	"ti,am33xx",
++	NULL,
 +};
 +
-+&intc {
-+	/*
-+	 * AM33XX family of devices have 128 interrupts
-+	 */
-+	ti,intc-size = <128>;
-+};
++DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
++	.atag_offset	= 0x100,
++	.reserve	= omap_reserve,
++	.map_io		= am33xx_map_io,
++	.init_early	= am33xx_init_early,
++	.init_irq	= omap_init_irq,
++	.handle_irq	= omap3_intc_handle_irq,
++	.init_machine	= omap_generic_init,
++	.timer		= &omap3_am33xx_timer,
++	.dt_compat	= am33xx_boards_compat,
++MACHINE_END
++#endif
 +
-+&i2c1 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c2 {
-+	clock-frequency = <400000>;
-+};
-+
-+&i2c3 {
-+	clock-frequency = <400000>;
-+};
+ #if defined(CONFIG_ARCH_OMAP4)
+ static const char *omap4_boards_compat[] __initdata = {
+ 	"ti,omap4",
 --
 1.7.0.4
 
