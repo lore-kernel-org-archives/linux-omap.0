@@ -1,490 +1,56 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [RFC PATCH 1/5] arm:omap1/2/3/4:Convert 32k-Sync clocksource driver to platform_driver
-Date: Wed, 18 Jan 2012 16:58:02 +0530
-Message-ID: <1326886086-27313-2-git-send-email-hvaibhav@ti.com>
+Subject: [RFC PATCH 2/5] arm:omap2/3: Add idle_st bits for ST_32KSYNC timer
+Date: Wed, 18 Jan 2012 16:58:03 +0530
+Message-ID: <1326886086-27313-3-git-send-email-hvaibhav@ti.com>
 References: <1326886086-27313-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50700 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50718 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751607Ab2ARL2m (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jan 2012 06:28:42 -0500
+	id S1756020Ab2ARL3D (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Jan 2012 06:29:03 -0500
 In-Reply-To: <1326886086-27313-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: johnstul@us.ibm.com, tglx@linutronix.de, balbi@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, b-cousson@ti.com, khilman@ti.com, paul@pwsan.com, Vaibhav Hiremath <hvaibhav@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: johnstul@us.ibm.com, tglx@linutronix.de, balbi@ti.com, linux-arm-kernel@lists.infradead.org, tony@atomide.com, b-cousson@ti.com, khilman@ti.com, paul@pwsan.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Convert counter_32k clocksource driver to standard platform_driver
-and move it drivers/clocksource/ directory.
-
-Also, rename it to more generic name "omap-32k.c".
+32k counter/timer driver has been migrated to use hwmod database
+now, so add missing idle_st bit for 32K Sync timer.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/timer.c      |   17 ---
- arch/arm/plat-omap/Makefile      |    2 +-
- arch/arm/plat-omap/counter_32k.c |  154 ----------------------------
- drivers/clocksource/Makefile     |    1 +
- drivers/clocksource/omap-32k.c   |  210 ++++++++++++++++++++++++++++++++++++++
- include/linux/clocksource.h      |    1 +
- 6 files changed, 213 insertions(+), 172 deletions(-)
- delete mode 100644 arch/arm/plat-omap/counter_32k.c
- create mode 100644 drivers/clocksource/omap-32k.c
+ arch/arm/mach-omap2/prcm-common.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index bfae81b..46b81df 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -233,22 +233,6 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- 		gptimer_id, clkev.rate);
- }
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 5aa5435..29955d5 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -177,6 +177,8 @@
+ /* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
+ #define OMAP24XX_ST_GPIOS_SHIFT				2
+ #define OMAP24XX_ST_GPIOS_MASK				(1 << 2)
++#define OMAP24XX_ST_32KSYNC_SHIFT			1
++#define OMAP24XX_ST_32KSYNC_MASK			(1 << 1)
+ #define OMAP24XX_ST_GPT1_SHIFT				0
+ #define OMAP24XX_ST_GPT1_MASK				(1 << 0)
 
--/* Clocksource code */
--
--#ifdef CONFIG_OMAP_32K_TIMER
--/*
-- * When 32k-timer is enabled, don't use GPTimer for clocksource
-- * instead, just leave default clocksource which uses the 32k
-- * sync counter.  See clocksource setup in plat-omap/counter_32k.c
-- */
--
--static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
--{
--	omap_init_clocksource_32k();
--}
--
--#else
--
- static struct omap_dm_timer clksrc;
-
- /*
-@@ -307,7 +291,6 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- 		pr_err("Could not register clocksource %s\n",
- 			clocksource_gpt.name);
- }
--#endif
-
- #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
- 				clksrc_nr, clksrc_src)			\
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 9a58461..b35bb93 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -4,7 +4,7 @@
-
- # Common support
- obj-y := common.o sram.o clock.o devices.o dma.o mux.o \
--	 usb.o fb.o counter_32k.o
-+	 usb.o fb.o
- obj-m :=
- obj-n :=
- obj-  :=
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-deleted file mode 100644
-index a6cbb71..0000000
---- a/arch/arm/plat-omap/counter_32k.c
-+++ /dev/null
-@@ -1,154 +0,0 @@
--/*
-- * OMAP 32ksynctimer/counter_32k-related code
-- *
-- * Copyright (C) 2009 Texas Instruments
-- * Copyright (C) 2010 Nokia Corporation
-- * Tony Lindgren <tony@atomide.com>
-- * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * NOTE: This timer is not the same timer as the old OMAP1 MPU timer.
-- */
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/clk.h>
--#include <linux/err.h>
--#include <linux/io.h>
--#include <linux/sched.h>
--#include <linux/clocksource.h>
--
--#include <asm/sched_clock.h>
--
--#include <plat/common.h>
--#include <plat/board.h>
--
--#include <plat/clock.h>
--
--/*
-- * 32KHz clocksource ... always available, on pretty most chips except
-- * OMAP 730 and 1510.  Other timers could be used as clocksources, with
-- * higher resolution in free-running counter modes (e.g. 12 MHz xtal),
-- * but systems won't necessarily want to spend resources that way.
-- */
--static void __iomem *timer_32k_base;
--
--#define OMAP16XX_TIMER_32K_SYNCHRONIZED		0xfffbc410
--
--/*
-- * Returns current time from boot in nsecs. It's OK for this to wrap
-- * around for now, as it's just a relative time stamp.
-- */
--static DEFINE_CLOCK_DATA(cd);
--
--/*
-- * Constants generated by clocks_calc_mult_shift(m, s, 32768, NSEC_PER_SEC, 60).
-- * This gives a resolution of about 30us and a wrap period of about 36hrs.
-- */
--#define SC_MULT		4000000000u
--#define SC_SHIFT	17
--
--static inline unsigned long long notrace _omap_32k_sched_clock(void)
--{
--	u32 cyc = timer_32k_base ? __raw_readl(timer_32k_base) : 0;
--	return cyc_to_fixed_sched_clock(&cd, cyc, (u32)~0, SC_MULT, SC_SHIFT);
--}
--
--#if defined(CONFIG_OMAP_32K_TIMER) && !defined(CONFIG_OMAP_MPU_TIMER)
--unsigned long long notrace sched_clock(void)
--{
--	return _omap_32k_sched_clock();
--}
--#else
--unsigned long long notrace omap_32k_sched_clock(void)
--{
--	return _omap_32k_sched_clock();
--}
--#endif
--
--static void notrace omap_update_sched_clock(void)
--{
--	u32 cyc = timer_32k_base ? __raw_readl(timer_32k_base) : 0;
--	update_sched_clock(&cd, cyc, (u32)~0);
--}
--
--/**
-- * read_persistent_clock -  Return time from a persistent clock.
-- *
-- * Reads the time from a source which isn't disabled during PM, the
-- * 32k sync timer.  Convert the cycles elapsed since last read into
-- * nsecs and adds to a monotonically increasing timespec.
-- */
--static struct timespec persistent_ts;
--static cycles_t cycles, last_cycles;
--static unsigned int persistent_mult, persistent_shift;
--void read_persistent_clock(struct timespec *ts)
--{
--	unsigned long long nsecs;
--	cycles_t delta;
--	struct timespec *tsp = &persistent_ts;
--
--	last_cycles = cycles;
--	cycles = timer_32k_base ? __raw_readl(timer_32k_base) : 0;
--	delta = cycles - last_cycles;
--
--	nsecs = clocksource_cyc2ns(delta, persistent_mult, persistent_shift);
--
--	timespec_add_ns(tsp, nsecs);
--	*ts = *tsp;
--}
--
--int __init omap_init_clocksource_32k(void)
--{
--	static char err[] __initdata = KERN_ERR
--			"%s: can't register clocksource!\n";
--
--	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
--		u32 pbase;
--		unsigned long size = SZ_4K;
--		void __iomem *base;
--		struct clk *sync_32k_ick;
--
--		if (cpu_is_omap16xx()) {
--			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
--			size = SZ_1K;
--		} else if (cpu_is_omap2420())
--			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap2430())
--			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap34xx())
--			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap44xx())
--			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
--		else
--			return -ENODEV;
--
--		/* For this to work we must have a static mapping in io.c for this area */
--		base = ioremap(pbase, size);
--		if (!base)
--			return -ENODEV;
--
--		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
--		if (!IS_ERR(sync_32k_ick))
--			clk_enable(sync_32k_ick);
--
--		timer_32k_base = base;
--
--		/*
--		 * 120000 rough estimate from the calculations in
--		 * __clocksource_updatefreq_scale.
--		 */
--		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
--				32768, NSEC_PER_SEC, 120000);
--
--		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
--					  clocksource_mmio_readl_up))
--			printk(err, "32k_counter");
--
--		init_fixed_sched_clock(&cd, omap_update_sched_clock, 32,
--				       32768, SC_MULT, SC_SHIFT);
--	}
--	return 0;
--}
-diff --git a/drivers/clocksource/Makefile b/drivers/clocksource/Makefile
-index 8d81a1d..0f5d5d2 100644
---- a/drivers/clocksource/Makefile
-+++ b/drivers/clocksource/Makefile
-@@ -9,4 +9,5 @@ obj-$(CONFIG_SH_TIMER_TMU)	+= sh_tmu.o
- obj-$(CONFIG_CLKBLD_I8253)	+= i8253.o
- obj-$(CONFIG_CLKSRC_MMIO)	+= mmio.o
- obj-$(CONFIG_DW_APB_TIMER)	+= dw_apb_timer.o
-+obj-$(CONFIG_OMAP_32K_TIMER)	+= omap-32k.o
- obj-$(CONFIG_CLKSRC_DBX500_PRCMU)	+= clksrc-dbx500-prcmu.o
-\ No newline at end of file
-diff --git a/drivers/clocksource/omap-32k.c b/drivers/clocksource/omap-32k.c
-new file mode 100644
-index 0000000..f6d579e
---- /dev/null
-+++ b/drivers/clocksource/omap-32k.c
-@@ -0,0 +1,210 @@
-+/*
-+ * omap-32k.c -- OMAP 32k Sync Timer Clocksource Driver
-+ *
-+ * Copyright (C) 2005-2010 Tony Lindgren <t...@atomide.com>
-+ * Copyright (C) 2010 Nokia Corporation
-+ * Copyright (C) 2010 Felipe Balbi <m...@felipebalbi.com>
-+ * Copyright (C) 2009-2010 Texas Instruments
-+ * Added OMAP4 support - Santosh Shilimkar <santosh.shilim...@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/time.h>
-+#include <linux/clocksource.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/err.h>
-+#include <linux/module.h>
-+
-+struct omap_counter_32k_device {
-+	struct timespec		persistent_ts;
-+	struct clocksource	cs;
-+	cycles_t		cycles;
-+	cycles_t		last_cycles;
-+
-+	struct device		*dev;
-+	void __iomem		*base;
-+};
-+
-+#define to_omap_32k(cs)	(container_of(cs, struct omap_counter_32k_device, cs))
-+
-+static struct omap_counter_32k_device	*cs;
-+
-+static inline u32 omap_counter_32k_readl(const void __iomem *base,
-+		unsigned offset)
-+{
-+	return __raw_readl(base + offset);
-+}
-+
-+static cycle_t omap_counter_32k_read(struct clocksource *cs)
-+{
-+	struct omap_counter_32k_device  *omap = to_omap_32k(cs);
-+
-+	return omap_counter_32k_readl(omap->base, 0x10);
-+}
-+
-+/*
-+ * Returns current time from boot in nsecs. It's OK for this to wrap
-+ * around for now, as it's just a relative time stamp.
-+ *
-+ * NOTE: There is common sched_clock() function in mach-omap2/timer.c
-+ *       file from where this function will be called.
-+ *       Return 0, means the device doesn't have 32k-sync timer and
-+ *       execution will fallback to gp-timer.
-+ */
-+unsigned long long sched_clock_32k(void)
-+{
-+	struct omap_counter_32k_device  *omap = cs;
-+
-+	if (!omap)
-+		return 0;
-+
-+	return clocksource_cyc2ns(omap->cs.read(&omap->cs),
-+			omap->cs.mult, omap->cs.shift);
-+}
-+
-+/**
-+ * read_persistent_clock -  Return time from a persistent clock.
-+ *
-+ * Reads the time from a source which isn't disabled during PM, the
-+ * 32k sync timer.  Convert the cycles elapsed since last read into
-+ * nsecs and adds to a monotonically increasing timespec.
-+ */
-+void read_persistent_clock(struct timespec *ts)
-+{
-+	cycles_t delta;
-+	struct timespec *tsp;
-+	unsigned long long nsecs;
-+	struct omap_counter_32k_device  *omap = cs;
-+
-+	if (!omap) {
-+		ts->tv_sec = 0;
-+		ts->tv_nsec = 0;
-+		return;
-+	}
-+	tsp = &omap->persistent_ts;
-+
-+	omap->last_cycles = omap->cycles;
-+	omap->cycles = omap->cs.read(&omap->cs);
-+	delta = omap->cycles - omap->last_cycles;
-+
-+	nsecs = clocksource_cyc2ns(delta,
-+			omap->cs.mult, omap->cs.shift);
-+
-+	timespec_add_ns(tsp, nsecs);
-+	*ts = *tsp;
-+}
-+
-+static int __init omap_counter_32k_probe(struct platform_device *pdev)
-+{
-+	int ret;
-+	void __iomem *base;
-+	struct resource *res;
-+	struct omap_counter_32k_device *omap;
-+
-+	omap = kzalloc(sizeof(*omap), GFP_KERNEL);
-+	if (!omap) {
-+		dev_dbg(&pdev->dev, "unable to allocate memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		dev_dbg(&pdev->dev, "couldn't get resource\n");
-+		ret = -ENODEV;
-+		goto err0;
-+	}
-+
-+	base = ioremap(res->start, resource_size(res));
-+	if (!base) {
-+		dev_dbg(&pdev->dev, "ioremap failed\n");
-+		ret = -ENOMEM;
-+		goto err0;
-+	}
-+
-+	pm_runtime_enable(&pdev->dev);
-+	ret = pm_runtime_get(&pdev->dev);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "unable to enable runtime pm\n");
-+		goto err1;
-+	}
-+
-+	omap->base      = base;
-+	omap->dev       = &pdev->dev;
-+
-+	omap->cs.name   = "counter-32k";
-+	omap->cs.rating = 250;
-+	omap->cs.read   = omap_counter_32k_read;
-+	omap->cs.mask   = CLOCKSOURCE_MASK(32);
-+	omap->cs.flags  = CLOCK_SOURCE_IS_CONTINUOUS;
-+
-+	platform_set_drvdata(pdev, omap);
-+
-+	ret = clocksource_register_hz(&omap->cs, 32768);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "failed to register clocksource\n");
-+		goto err2;
-+	}
-+
-+	cs = omap;
-+	return 0;
-+
-+err2:
-+	pm_runtime_put(&pdev->dev);
-+err1:
-+	iounmap(base);
-+err0:
-+	kfree(omap);
-+	return ret;
-+}
-+
-+static int __exit omap_counter_32k_remove(struct platform_device *pdev)
-+{
-+	struct omap_counter_32k_device  *omap = platform_get_drvdata(pdev);
-+
-+	clocksource_unregister(&omap->cs);
-+	pm_runtime_put(&pdev->dev);
-+	iounmap(omap->base);
-+	kfree(omap);
-+	platform_set_drvdata(pdev, NULL);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver omap_counter_32k_driver = {
-+	.remove		= __exit_p(omap_counter_32k_remove),
-+	.driver		= {
-+		.name	= "omap-counter-32k",
-+	},
-+};
-+
-+static int __init omap_counter_32k_init(void)
-+{
-+	return platform_driver_probe(&omap_counter_32k_driver,
-+			omap_counter_32k_probe);
-+}
-+arch_initcall(omap_counter_32k_init);
-+
-+static void __exit omap_counter_32k_exit(void)
-+{
-+	platform_driver_unregister(&omap_counter_32k_driver);
-+}
-+module_exit(omap_counter_32k_exit);
-+
-+MODULE_AUTHOR("Felipe Balbi <balbi@ti.com>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-index c86c940..67f6067 100644
---- a/include/linux/clocksource.h
-+++ b/include/linux/clocksource.h
-@@ -349,5 +349,6 @@ extern int clocksource_mmio_init(void __iomem *, const char *,
- 	unsigned long, int, unsigned, cycle_t (*)(struct clocksource *));
-
- extern int clocksource_i8253_init(void);
-+extern unsigned long long sched_clock_32k(void);
-
- #endif /* _LINUX_CLOCKSOURCE_H */
+@@ -307,6 +309,8 @@
+ #define OMAP3430_ST_SR1_MASK				(1 << 6)
+ #define OMAP3430_ST_GPIO1_SHIFT				3
+ #define OMAP3430_ST_GPIO1_MASK				(1 << 3)
++#define OMAP3430_ST_32KSYNC_SHIFT			2
++#define OMAP3430_ST_32KSYNC_MASK			(1 << 2)
+ #define OMAP3430_ST_GPT12_SHIFT				1
+ #define OMAP3430_ST_GPT12_MASK				(1 << 1)
+ #define OMAP3430_ST_GPT1_SHIFT				0
 --
 1.7.0.4
 
