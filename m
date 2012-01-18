@@ -1,101 +1,43 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Wed, 18 Jan 2012 16:47:41 +0000
-Message-ID: <b659db7b-2ef1-49b8-9752-a0601226cc6e@email.android.com>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com> <331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com> <201201181403.47806.arnd@arndb.de>
+Date: Wed, 18 Jan 2012 17:11:15 +0000
+Message-ID: <201201181711.15751.arnd@arndb.de>
+References: <1324617892-14576-1-git-send-email-anilkumar@ti.com> <201201181403.47806.arnd@arndb.de> <b659db7b-2ef1-49b8-9752-a0601226cc6e@email.android.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <201201181403.47806.arnd@arndb.de>
+In-Reply-To: <b659db7b-2ef1-49b8-9752-a0601226cc6e@email.android.com>
 Sender: linux-input-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, "AnilKumar, Chimata" <anilkumar@ti.com>
-Cc: "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+To: Jonathan Cameron <jic23@cam.ac.uk>, linux-input@vger.kernel.org
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
+On Wednesday 18 January 2012, Jonathan Cameron wrote:
+> Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> >Any opinions where they should live? input, iio or a new subsystem?
+> >
+> Personal thought is that straight 3d devices very directed at input
+> should go there. Iio has a few wrinkles left for the in kernel
+> interfaces needed for a bridge to input. For starters the pull 
+> and push data interfaces have not merged yet (in staging) and we
+> have not started on in kernel acess to non data events yet(thresholds).
+> Still happy to take them when we can support usecases fully. 
 
+Ok, thanks for the information, sounds all reasonable. I think we
+can definitely say no to new accelerometer drivers in drivers/misc
+then and refer them to iio and input.
 
-Arnd Bergmann <arnd@arndb.de> wrote:
+In case of lis33ldlh, I would like to see it move out at some point
+once the necessary parts of iio have graduated out of staging.
+Hopefully it won't be a large amount of work to convert it to
+a different internal API.
 
->On Tuesday 17 January 2012, AnilKumar, Chimata wrote:
->> Hi All,
->> 
->> Recalling the patch, provide the comments if there are any if not
->please include
->> this patch to v3.3 kernel.
->
->As Mark and Greg said, 3.4 would be appropriate.
->
->> +static ssize_t lis3lv02d_range_set(struct device *dev,
->> +				struct device_attribute *attr, const char *buf,
->> +				size_t count)
->> +{
->> +	unsigned long range;
->> +
->> +	if (strict_strtoul(buf, 0, &range))
->> +		return -EINVAL;
->> +
->> +	lis3_dev.g_range = range;
->> +	lis3lv02d_update_g_range(&lis3_dev);
->> +
->> +	return count;
->> +}
->> +
->>  static DEVICE_ATTR(selftest, S_IRUSR, lis3lv02d_selftest_show,
->NULL);
->>  static DEVICE_ATTR(position, S_IRUGO, lis3lv02d_position_show,
->NULL);
->>  static DEVICE_ATTR(rate, S_IRUGO | S_IWUSR, lis3lv02d_rate_show,
->>  					    lis3lv02d_rate_set);
->> +static DEVICE_ATTR(range, S_IRUGO | S_IWUSR, lis3lv02d_range_show,
->> +					    lis3lv02d_range_set);
->
->I think you need to document this new attribute in the Documentation
->directory, unless I missed the other patch doing this.
->
->On a more general topic, do we have a kernel-wide policy for
->accelerometer
->drivers? AFAICT, we currently have three subsystems that contain 
->accelerometer drivers, plus a few ad-hoc ones like this, which is a
->rather unpleasant situation. What I found are these:
->
->$ git grep -l accelerometer drivers/ | manual_grep
->drivers/hwmon/applesmc.c
->   (one hwmon sysfs attribute for x/y/z)
->drivers/input/misc/adxl34x.c
->   (lots of sysfs attributes, input_report_key)
->drivers/input/misc/cma3000_d0x.c
->   (input_report_abs)
->drivers/input/misc/kxtj9.c
->   (input_report_abs, plus one aux sysfs attribute)
->drivers/macintosh/ams/ams-core.c
->   (one sysfs attribute for x/y/z)
->drivers/misc/lis3lv02d/
->   (multiple sysfs attributes)
->drivers/platform/x86/hdaps.c
->   (multiple sysfs attributes, only x/y)
->drivers/platform/x86/hp_accel.c
->   (hooks into drivers/misc/lis3lv02d/)
->drivers/staging/iio/accel/kxsd9.c
->   (iio)
->drivers/staging/iio/accel/sca3000_core.c
->   (iio plus extra attributes)
->
-For what it is worth there are a total of nine iio acceleration drivers. Some are special purpose though.
->While I'm not blaming you for the current situation, but I think the
->situation is no longer sustainable and we need to decide on one place
->and interface for these to go in the long run so we don't grow even
->more nonstandard interfaces.
->
->Any opinions where they should live? input, iio or a new subsystem?
->
-Personal thought is that straight 3d devices very directed at input should go there. Iio has a few wrinkles left for the in kernel interfaces needed for a bridge to input. For starters the pull and push data interfaces have not merged yet (in staging) and we have not started on in kernel acess to non data events yet(thresholds).  Still happy to take them when we can support usecases fully. 
-Of course any help getting there would be most welcome!
+AnilKumar, what are the existing users of the driver? Is it still
+possible to convert them to use iio without causing problems for
+people that rely on this driver, or do we have to keep supporting the
+current interface?
 
-Jonathan
-
->	Arnd
-
--- 
-Sent from my Android phone with K-9 Mail. Please excuse my brevity.
+	Arnd
