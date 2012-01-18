@@ -1,74 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP3 DSS2 - VENC timings
-Date: Wed, 18 Jan 2012 09:38:23 +0200
-Message-ID: <1326872303.1954.28.camel@deskari>
-References: <4F1467B5.80600@mlbassoc.com>
+From: "AnilKumar, Chimata" <anilkumar@ti.com>
+Subject: RE: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
+Date: Wed, 18 Jan 2012 07:51:36 +0000
+Message-ID: <331ABD5ECB02734CA317220B2BBEABC13177D92D@DBDE01.ent.ti.com>
+References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
+	<331ABD5ECB02734CA317220B2BBEABC13177CDA4@DBDE01.ent.ti.com>
+ <20120117154702.d009df12.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-DZVxjZUfd8tO0VnxU4NC"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:56036 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753005Ab2ARHi3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jan 2012 02:38:29 -0500
-Received: by mail-lpp01m010-f47.google.com with SMTP id i14so2669530lam.6
-        for <linux-omap@vger.kernel.org>; Tue, 17 Jan 2012 23:38:28 -0800 (PST)
-In-Reply-To: <4F1467B5.80600@mlbassoc.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120117154702.d009df12.akpm@linux-foundation.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "arnd@arndb.de" <arnd@arndb.de>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-omap@vger.kernel.org
 
+Hi Andrew,
 
---=-DZVxjZUfd8tO0VnxU4NC
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks for reviewing the patch
 
-On Mon, 2012-01-16 at 11:08 -0700, Gary Thomas wrote:
-> I'm running a frame buffer console on a TV device via the VENC.
-> The video timings don't see to be quite right as Tux is about
-> 1/2 off the screen - both directions, i.e. his head and right
-> side have been cut off as they are outside the viewable area.
-> Also, when I send data to the device (via /dev/tty1) which has
-> 90x35 characters, I lose 4 characters on each end of every line.
->=20
-> Is there something I can do about this?  I've looked at the
-> timings in drivers/video/omap2/dss/venc.c
+On Wed, Jan 18, 2012 at 05:17:02, Andrew Morton wrote:
+> On Tue, 17 Jan 2012 07:32:47 +0000
+> "AnilKumar, Chimata" <anilkumar@ti.com> wrote:
+> 
+> > Hi All,
+> > 
+> > Recalling the patch, provide the comments if there are any if not please include
+> > this patch to v3.3 kernel.
+> 
+> The patch is all mangled by someone's email client.  Wordwrapping, mime
+> crap which my MUA can't decrypt, etc.
 
-I don't know much about analog TV, but my understanding is that there's
-always overscanning going on. You just have to size and position the
-overlay so that it is visible on your TV.
+My bad, in a hurry I have sent a mail by doing "reply to all" that makes
+all this non-sense will not repeated again.
+Thanks for your patience here.
 
-> Also, how can I select NTSC vs PAL setups via the command line?
-> I have only the one video device VENC.
+...snip...
 
-Documentation/arm/OMAP/DSS says you can echo "pal" or "ntsc" to
-sys/devices/platform/omapdss/display?/timings file.
+> 
+> A pet peeve which I haven't told anyone about.  If you've cc'ed someone
+> on a patch then I want to cc them on the patch too.  That means I have
+> to add their Cc: lines to the changelog.  But such Cc: lines include
+> their real names.  By omitting their real names in the above fashion,
+> you cause extra hassle for me.  Ideally, you should add their Cc: to
+> the changelog as well as to the mail headers, to give thsoe people the
+> best chance of seeing what is happening with the patch.
+> 
 
- Tomi
+Above comment applies here as well.
 
+> >
+> > ..
+> >
+> > +static ssize_t lis3lv02d_range_show(struct device *dev,
+> > +			       struct device_attribute *attr, char *buf)
+> > +{
+> > +	lis3lv02d_sysfs_poweron(&lis3_dev);
+> > +	return sprintf(buf, "%d\n", lis3_dev.g_range);
+> > +}
+> 
+> Are these interfaces documented anywhere?  If so, please update that
+> documentation.  If not, why not ;)
 
---=-DZVxjZUfd8tO0VnxU4NC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+Yes, these interfaces are documented at
+"Documentation/misc-devices/lis3lv02d" but range is not included
+there, which is added in this patch. Will be updated and send it
+as a separate patch.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> 
+> > @@ -809,15 +881,33 @@ static ssize_t lis3lv02d_rate_set(struct device *dev,
+> >  	return count;
+> >  }
+> >  
+> > +static ssize_t lis3lv02d_range_set(struct device *dev,
+> > +				struct device_attribute *attr, const char *buf,
+> > +				size_t count)
+> > +{
+> > +	unsigned long range;
+> > +
+> > +	if (strict_strtoul(buf, 0, &range))
+> 
+> checkpatch would have told you that strict_strtoul() is deprecated. 
+> Please always use checkpatch.
+> 
 
-iQIcBAABAgAGBQJPFnbvAAoJEPo9qoy8lh710AIP/1SCiLcE9tppJbIyXgNMz3LI
-ugF4glc/k1J8+LFdL/o+yQvc1dAf1BHvMH6wj6f5BuGsUfDdIDlgz4GoDhN3oxpB
-0mJSGemZO9Jrd4WBNawveK2BQTuU6MYggo3YoNA/AyqEUFRiG+7Hr53Qp0XZuTeR
-LsptRQOgqpgcvkSXzr4cRjRcULQn0DYOjiCPkroCS40PY4yzpmeTOhA2i9S/tVx1
-rlAN9VdafZOs8XzLbXb2rnTHbMGXqKtMRdvPfPaXjwKYuiF1X+bWPxKpZMeflZWS
-3GMAS64NJ7gKLjXu0+kXf6T20psJv2T/NwaTKAaq52cYD04ugMKALAkkoRaH+QmP
-4FM4rMNTtc0NQs/m5cW5489VQLf/fDswnOh1L0jOBwETVRONN+B7uL/aFyJrOU3Z
-IgOMwqB4CSZtzJirxZwfRWvsc43/l4Y09uZ4IBBVvumpZrQBPV1USeqhpbswt5SF
-raqkoj5+7hg24RPfPjbVsGAkGQMxNpL7Af+duJ7yv2Sx7WTRRXyzx4OybV/2raWj
-fZ3NtiU4fdF00Hh1aMTyCo6Kjg4phe8Gzm3+YJ3uo5g+jmSzMjc6E72Lm3bI98ft
-v+ZzDkJQc+t3A4HIiwuW2VRyhbvF4vtet1ZzOjNhmD/zCYYnNJt0xjzO0C4mQsrp
-8NYYDSanhuwSF6Wr73F/
-=FGuW
------END PGP SIGNATURE-----
+Somehow I missed this, I will update with "kstrtoul". I have to update
+the same API in other set function.
 
---=-DZVxjZUfd8tO0VnxU4NC--
+> 
 
+Thanks
+AnilKumar
