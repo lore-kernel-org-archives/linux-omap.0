@@ -1,65 +1,30 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Wed, 18 Jan 2012 13:42:20 +0200
-Message-ID: <1326886940.1999.5.camel@lappy>
-References: <WC20120109124643.880164@terrafix.co.uk>
-	 <20120110080849.5a242adf@notabene.brown>
-	 <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
-	 <20120112095940.0a54413e@notabene.brown>
-	 <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
-	 <20120113222045.37f9b4ec@notabene.brown> <1326870839.1954.23.camel@deskari>
-	 <20120118221538.342b4782@notabene.brown>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC PATCH 1/5] arm:omap1/2/3/4:Convert 32k-Sync clocksource
+	driver to platform_driver
+Date: Wed, 18 Jan 2012 11:59:52 +0000
+Message-ID: <20120118115952.GM16726@n2100.arm.linux.org.uk>
+References: <1326886086-27313-1-git-send-email-hvaibhav@ti.com> <1326886086-27313-2-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:59599 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756047Ab2ARLnG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Jan 2012 06:43:06 -0500
-Received: by lahe6 with SMTP id e6so1040455lah.41
-        for <linux-omap@vger.kernel.org>; Wed, 18 Jan 2012 03:42:24 -0800 (PST)
-In-Reply-To: <20120118221538.342b4782@notabene.brown>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45358 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab2ARMAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Jan 2012 07:00:10 -0500
+Content-Disposition: inline
+In-Reply-To: <1326886086-27313-2-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Paul Walmsley <paul@pwsan.com>, Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, johnstul@us.ibm.com, balbi@ti.com, tglx@linutronix.de, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On Wed, 2012-01-18 at 22:15 +1100, NeilBrown wrote:
-> On Wed, 18 Jan 2012 09:13:59 +0200 Tomi Valkeinen <tomi.valkeinen@ti.com>
-> wrote:
+On Wed, Jan 18, 2012 at 04:58:02PM +0530, Vaibhav Hiremath wrote:
+> Convert counter_32k clocksource driver to standard platform_driver
+> and move it drivers/clocksource/ directory.
 > 
-> > On Fri, 2012-01-13 at 22:20 +1100, NeilBrown wrote:
-> > > Having CPUIDLE makes the DSS2 problem worse: lots of 
-> > > 
-> > > [   21.085113] omapdss DISPC error: SYNC_LOST on channel lcd,
-> > > restarting the output with video overlays disabled
-> > > 
-> > > messages whenever the CPU isn't busy.
-> > 
-> > I'm not sure if it is the case here, but DSS has restrictions about the
-> > max DSS clocks on different OPPs. For example, on OMAP4430 LCD clock
-> > maximum is 186MHz at OPP100, and 93MHz at OPP50. So it's a quite big
-> > drop, causing problems with all but the rather small displays.
-> > 
-> > And the DSS driver doesn't have any support to handle this at the
-> > moment, as there isn't support in the PM framework to do this. I think
-> > the only way to handle this at the moment is for the DSS driver to set
-> > an arbitrarily high constraint on, say, mem throughput, and hope that it
-> > keeps the OMAP in the required OPP.
-> > 
-> >  Tomi
-> > 
-> 
-> This LCD panel on this device sets:
->    .pixel_clock	= 22000,
-> in the "struct omap_video_timings" so I'm guessing that is 22MHz?
+> Also, rename it to more generic name "omap-32k.c".
 
-No, that's the pixel clock. There are probably limitations on the pix
-clock also, but usually the problem is the functional clocks, which need
-to be n x pck, where n depends on the needs for scaling.
+NAK.  sched_clock is supposed to be available early.  Platform device
+driver initialization is FAR too late.
 
- Tomi
-
-
+Note that some of the code you're moving has changed in current kernels.
