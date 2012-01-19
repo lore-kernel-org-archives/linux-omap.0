@@ -1,280 +1,113 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 3/3] ARM: OMAP2+: hwmod data: Add 32k-sync timer data to hwmod database
-Date: Thu, 19 Jan 2012 19:58:24 +0530
-Message-ID: <1326983304-14619-4-git-send-email-hvaibhav@ti.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: DSS2/PM on 3.2 broken?
+Date: Thu, 19 Jan 2012 16:52:11 +0200
+Message-ID: <1326984731.7926.27.camel@lappy>
+References: <20120113222045.37f9b4ec@notabene.brown>
+	 <1326870839.1954.23.camel@deskari> <20120118221538.342b4782@notabene.brown>
+	 <1326886940.1999.5.camel@lappy> <20120119073032.74cc0992@notabene.brown>
+	 <WC20120119101721.07072A@terrafix.co.uk> <1326969658.1935.24.camel@deskari>
+	 <WC20120119112911.670749@terrafix.co.uk> <1326973019.7926.7.camel@lappy>
+	 <WC20120119122128.020787@terrafix.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-EzUU0WGOvqdDaWQuFtvq"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51285 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753122Ab2ASOeV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:34:21 -0500
-In-Reply-To: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35598 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753300Ab2ASOwS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jan 2012 09:52:18 -0500
+Received: by laam7 with SMTP id m7so6002laa.1
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 06:52:15 -0800 (PST)
+In-Reply-To: <WC20120119122128.020787@terrafix.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, johnstul@us.ibm.com, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+To: Joe Woodward <jw@terrafix.co.uk>
+Cc: khilman@ti.com, NeilBrown <neilb@suse.de>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
 
-Add 32k-sync timer hwmod data to omap2 & 3 hwmod table
-and also enable existing hwmod data for omap4 (was disabled before).
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |   53 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |   52 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   51 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
- 4 files changed, 157 insertions(+), 1 deletions(-)
+--=-EzUU0WGOvqdDaWQuFtvq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index a5409ce..2091a5c 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -54,6 +54,7 @@ static struct omap_hwmod omap2420_gpio4_hwmod;
- static struct omap_hwmod omap2420_dma_system_hwmod;
- static struct omap_hwmod omap2420_mcspi1_hwmod;
- static struct omap_hwmod omap2420_mcspi2_hwmod;
-+static struct omap_hwmod omap2420_counter_32k_hwmod;
- 
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
-@@ -1513,6 +1514,55 @@ static struct omap_hwmod omap2420_mcbsp2_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap2420_mcbsp2_slaves),
- };
- 
-+/*
-+ * '32K sync counter' class
-+ * 32-bit ordinary counter, clocked by the falling edge of the 32 khz clock
-+ */
-+static struct omap_hwmod_class omap2420_counter_hwmod_class = {
-+	.name = "counter",
-+};
-+
-+/* counter_32k */
-+static struct omap_hwmod_addr_space omap2420_counter_32k_addrs[] = {
-+	{
-+		.pa_start	= 0x48004000,
-+		.pa_end		= 0x48004000 + SZ_4K,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+/* l4_wkup -> counter_32k */
-+static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
-+	.master		= &omap2420_l4_wkup_hwmod,
-+	.slave		= &omap2420_counter_32k_hwmod,
-+	.clk		= "l4_ck",
-+	.addr		= omap2420_counter_32k_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* counter_32k slave ports */
-+static struct omap_hwmod_ocp_if *omap2420_counter_32k_slaves[] = {
-+	&omap2420_l4_wkup__counter_32k,
-+};
-+
-+static struct omap_hwmod omap2420_counter_32k_hwmod = {
-+	.name		= "counter_32k",
-+	.class		= &omap2420_counter_hwmod_class,
-+	.main_clk	= "sync_32k_ick",
-+	.prcm = {
-+		.omap2	= {
-+			.module_offs		= WKUP_MOD,
-+			.prcm_reg_id		= 1,
-+			.module_bit		= OMAP24XX_ST_32KSYNC_SHIFT,
-+			.idlest_reg_id		= 1,
-+			.idlest_idle_bit	= OMAP24XX_ST_32KSYNC_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2420_counter_32k_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_counter_32k_slaves),
-+};
-+
- static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	&omap2420_l3_main_hwmod,
- 	&omap2420_l4_core_hwmod,
-@@ -1565,6 +1615,9 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
- 	/* mcspi class */
- 	&omap2420_mcspi1_hwmod,
- 	&omap2420_mcspi2_hwmod,
-+
-+	/* 32k sync timer */
-+	&omap2420_counter_32k_hwmod,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index c4f56cb..f7cc4bb 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -64,6 +64,7 @@ static struct omap_hwmod omap2430_mcspi2_hwmod;
- static struct omap_hwmod omap2430_mcspi3_hwmod;
- static struct omap_hwmod omap2430_mmc1_hwmod;
- static struct omap_hwmod omap2430_mmc2_hwmod;
-+static struct omap_hwmod omap2430_counter_32k_hwmod;
- 
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
-@@ -2001,6 +2002,55 @@ static struct omap_hwmod omap2430_mmc2_hwmod = {
- 	.class		= &omap2430_mmc_class,
- };
- 
-+/*
-+ * '32K sync counter' class
-+ * 32-bit ordinary counter, clocked by the falling edge of the 32 khz clock
-+ */
-+static struct omap_hwmod_class omap2430_counter_hwmod_class = {
-+	.name = "counter",
-+};
-+
-+/* counter_32k */
-+static struct omap_hwmod_addr_space omap2430_counter_32k_addrs[] = {
-+	{
-+		.pa_start	= 0x49020000,
-+		.pa_end		= 0x49020000 + SZ_4K,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+/* l4_wkup -> counter_32k */
-+static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
-+	.master		= &omap2430_l4_wkup_hwmod,
-+	.slave		= &omap2430_counter_32k_hwmod,
-+	.clk		= "l4_ck",
-+	.addr		= omap2430_counter_32k_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* counter_32k slave ports */
-+static struct omap_hwmod_ocp_if *omap2430_counter_32k_slaves[] = {
-+	&omap2430_l4_wkup__counter_32k,
-+};
-+
-+static struct omap_hwmod omap2430_counter_32k_hwmod = {
-+	.name		= "counter_32k",
-+	.class		= &omap2430_counter_hwmod_class,
-+	.main_clk	= "sync_32k_ick",
-+	.prcm		= {
-+		.omap2	= {
-+			.module_offs		= WKUP_MOD,
-+			.prcm_reg_id		= 1,
-+			.module_bit		= OMAP24XX_ST_32KSYNC_SHIFT,
-+			.idlest_reg_id		= 1,
-+			.idlest_idle_bit	= OMAP24XX_ST_32KSYNC_SHIFT,
-+		},
-+	},
-+	.slaves		= omap2430_counter_32k_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_counter_32k_slaves),
-+};
-+
- static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	&omap2430_l3_main_hwmod,
- 	&omap2430_l4_core_hwmod,
-@@ -2064,6 +2114,8 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
- 	/* usbotg class*/
- 	&omap2430_usbhsotg_hwmod,
- 
-+	/* 32k sync timer */
-+	&omap2430_counter_32k_hwmod,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 5324e8d..19a3591 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -86,6 +86,7 @@ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
- static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
- static struct omap_hwmod omap3xxx_usb_host_hs_hwmod;
- static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod;
-+static struct omap_hwmod omap3xxx_counter_32k_hwmod;
- 
- /* L3 -> L4_CORE interface */
- static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
-@@ -3498,6 +3499,55 @@ static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_usb_tll_hs_slaves),
- };
- 
-+/*
-+ * '32K sync counter' class
-+ * 32-bit ordinary counter, clocked by the falling edge of the 32 khz clock
-+ */
-+static struct omap_hwmod_class omap3xxx_counter_hwmod_class = {
-+	.name = "counter",
-+};
-+
-+/* counter_32k */
-+static struct omap_hwmod_addr_space omap3xxx_counter_32k_addrs[] = {
-+	{
-+		.pa_start	= 0x48320000,
-+		.pa_end		= 0x48320000 + SZ_4K,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+/* l4_wkup -> counter_32k */
-+static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__counter_32k = {
-+	.master		= &omap3xxx_l4_wkup_hwmod,
-+	.slave		= &omap3xxx_counter_32k_hwmod,
-+	.clk		= "wkup_l4_ick",
-+	.addr		= omap3xxx_counter_32k_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* counter_32k slave ports */
-+static struct omap_hwmod_ocp_if *omap3xxx_counter_32k_slaves[] = {
-+	&omap3xxx_l4_wkup__counter_32k,
-+};
-+
-+static struct omap_hwmod omap3xxx_counter_32k_hwmod = {
-+	.name		= "counter_32k",
-+	.class		= &omap3xxx_counter_hwmod_class,
-+	.main_clk	= "omap_32ksync_ick",
-+	.prcm		= {
-+		.omap2	= {
-+			.module_offs		= WKUP_MOD,
-+			.prcm_reg_id		= 1,
-+			.module_bit		= OMAP3430_ST_32KSYNC_SHIFT,
-+			.idlest_reg_id		= 1,
-+			.idlest_idle_bit	= OMAP3430_ST_32KSYNC_SHIFT,
-+		},
-+	},
-+	.slaves		= omap3xxx_counter_32k_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap3xxx_counter_32k_slaves),
-+};
-+
- static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap3xxx_l3_main_hwmod,
- 	&omap3xxx_l4_core_hwmod,
-@@ -3561,6 +3611,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
- 	&omap34xx_mcspi3,
- 	&omap34xx_mcspi4,
- 
-+	&omap3xxx_counter_32k_hwmod,
- 	NULL,
- };
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index f9f1510..cd60b13 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -5510,7 +5510,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_bandgap_hwmod,
- 
- 	/* counter class */
--/*	&omap44xx_counter_32k_hwmod, */
-+	&omap44xx_counter_32k_hwmod,
- 
- 	/* dma class */
- 	&omap44xx_dma_system_hwmod,
--- 
-1.7.0.4
+On Thu, 2012-01-19 at 12:21 +0000, Joe Woodward wrote:
+
+> If I do (either from the console or via a button press on the screen) the=
+n I never get a SYNC_LOST.
+>   echo 0 > /sys/devices/omapdss/display0/enabled
+>   echo 1 > /sys/devices/omapdss/display0/enabled
+>=20
+> Just trying to think of some ideas that may be affecting the DSS...
+>   - Could it to be to do with the GPIO being used as a wake source (i.e. =
+does the GPIO driver do runtime_pm properly?)?
+>   - Could it to be to do with the UART as it seems to fix itself whenever=
+ a character is pressed?
+>   - Could it to be to do with the ordering in which drivers are resumed?
+
+Well, none of these sound probable to me. I don't see any connection
+with GPIOs or UART as such with DSS (I mean something that could cause
+sync losts).
+
+The only thing that I can see affecting DSS via GPIO/UART is indirectly
+via PM, with voltages or clocks. But if DSS responds in some way, I
+presume the voltages are ok. And your clocks should be low enough to
+work with lower OPPs also. So I'm quite out of ideas.
+
+Of course there could be a problem in the omapdss when it returns its
+registers. But it wouldn't explain why the synclosts end if you press a
+key in the console.
+
+> Is the SYNC_LOST normally due to a lack of memory bandwidth? If so, it is=
+ possible to find out what the kernel is doing during the resume?
+
+No. That should cause fifo underflows. I don't know the exact reasons
+for sync_lost, but I think it generally means that the DSS sub-modules
+lose sync with each other. Mostly this is due to clock config, but can
+be cause also by other (wrong) configuration which makes a DSS
+sub-module behave somehow wrong (or halt totally).
+
+> And before looking at this too much more, is the changing of the pm_runti=
+me_put to the _sync versions the correct fix?
+
+Well. I think it's a correct fix, in functional sense. However, I would
+like to use non-sync versions normally, but that's just for performance
+optimization.
+
+> Sorry for so many questions, but I'm interested in getting this fixed as =
+it's the only thing stopping me from switching to 3.2 from 3.0!
+
+The only idea I have currently is to add/enable debug prints which show
+information about PM changing its states, so we could see if something
+actually changes at the moment you press a key in the console.
+
+What kind of setup did you have again? I wonder if I could reproduce it
+easily with overo/beagle (it was omap3, wasn't it?)?
+
+ Tomi
+
+
+--=-EzUU0WGOvqdDaWQuFtvq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPGC4bAAoJEPo9qoy8lh710TMQAJj++W6jiZXuZueigKq4oGeN
+R7u93Fjy+6wXMz+4hKn5c/ALot1oBbmvyUDjt2LdRETLdi4BDDdmf2YCx4LXhUtL
+BtXccoUX0/q6XxZKwfT7lpaqAa0hx9I6MW38soV0LBRb9uZO7usGKDz6VK7HvpCb
+WCj3r4mME3E1T+Z0n4dfDnA1n0QMpdOBzRx6eSFdmHxmjF4NTJv0H5tzpQr9KGXz
+fdp9qNO+ZJC4nmxpLpA2g3rEHvFv80YKiGW1jwy7iHgfleplKTAcKi0CCT+3KeXN
+1nj/kNbXdGX0PXQ5Du67WK4lD3PkeFNYILJ/lgO6j/uPn+xL0sUaQEEO2cqBp3e6
+Hc4qRFZ454lrCn2QHtgvgSH5oeNHxGLIhUKlhf/1aVD2qAN5v2FnYY4Tz2X4tRlZ
+tGjCy2NQIZ5GhfsMhUa83APA64Zp4CIS0FQZvtZ5tei9z+ar58MCYhSDnsxKWxQ9
+ARkqd4fEL9soeDEq1H35BMEEUIGbgiN3yUq2aqwSaQYlYXsQBVndLEpG3v0Zjyab
+kMzYmz77YQZNStrulB002TC6allo+Q+ocnJwIO3j1th5nw8azbZkkFxLFPtZAC45
+teog5F2XRPIbXG/N3be5VZUxDd679v4cF0E1uvLto4VP0L4f7dXKL9dOcZfz7ch6
+2DMmJco34ewgbrIXLEeI
+=n/0k
+-----END PGP SIGNATURE-----
+
+--=-EzUU0WGOvqdDaWQuFtvq--
 
