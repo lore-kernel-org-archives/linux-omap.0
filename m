@@ -1,144 +1,57 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Thu, 19 Jan 2012 21:51:57 +0800
-Message-ID: <CACVXFVPDdyKf5TffT4OMt+tKeB09TU2RcvcyBV45hAK0qw+GEg@mail.gmail.com>
-References: <CAAO=S0+L2Q1YZC-pfm2Lz8jPooTeHYOMaZbtRgHYFoL_m7rvhA@mail.gmail.com>
-	<4F0B182D.7060507@us.ibm.com>
-	<20120109224945.GA23090@mudshark.cambridge.arm.com>
-	<CACVXFVMnAt_YpYNC5B6W4Vh4HvtVS3D6jRORUw0AW5a4ub5aOw@mail.gmail.com>
-	<CAMsRxfJe_MEA=anzRu6jehGcZyg49uAx44_nDQ3_FRY=WrFLoA@mail.gmail.com>
-	<CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
-	<CAMsRxfLtLnMiP0ZGr6rNLv-UeLUwOSJ=7do2nezOU5OkOA+MbQ@mail.gmail.com>
-	<CACVXFVMbrQGi4Sg9TUPP5Bcc5kzFoX74n=ii4QrDRudbuDHOGg@mail.gmail.com>
-	<CAMsRxfJmHkZw2f0A+4FsStJpXk_vrxvDduRcRGkcWpqp8a9m_w@mail.gmail.com>
-	<CACVXFVOQNDRs=c8A2YC+WvYAHs5Abbz-QUEe1VJqrj2esFO11g@mail.gmail.com>
-	<CAMsRxf+e38jRcyxESLhYDZ3OL910AQdapZD9P8vWDXfUE34DAA@mail.gmail.com>
-	<CACVXFVPnhSy_DbdK+ro8G78QjL2s6fBBq1Dvq-pmxJ20qA-ymA@mail.gmail.com>
-	<CAMsRxfJ2VrfFZevkxoZzSD5fZn1CErF68y0ny+MZi5r___ERJA@mail.gmail.com>
-	<CACVXFVNixEUKmDf2iYtdJVThkYg3UeZEurbFhrod5NZhDyKRpw@mail.gmail.com>
-	<CACVXFVNfc8fKe=6LVruj387-vQ85WHL7tAgZUT=9h6AQUM0X0Q@mail.gmail.com>
-	<CAMsRxfLcO0eM8mkKUZcR8X6SG-MMRFasRK7hQCT-3-NuKN_+1g@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
+Date: Thu, 19 Jan 2012 14:26:45 +0000
+Message-ID: <201201191426.45923.arnd@arndb.de>
+References: <1324617892-14576-1-git-send-email-anilkumar@ti.com> <201201181403.47806.arnd@arndb.de> <20120118213635.GB3401@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:55300 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751437Ab2ASNwA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jan 2012 08:52:00 -0500
-Received: from mail-pz0-f46.google.com ([209.85.210.46])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1RnsPH-00018z-9J
-	for linux-omap@vger.kernel.org; Thu, 19 Jan 2012 13:51:59 +0000
-Received: by dake40 with SMTP id e40so1874220dak.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 05:51:57 -0800 (PST)
-In-Reply-To: <CAMsRxfLcO0eM8mkKUZcR8X6SG-MMRFasRK7hQCT-3-NuKN_+1g@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20120118213635.GB3401@gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Andi <andi.shyti@gmail.com>
+Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
 List-Id: linux-omap@vger.kernel.org
-To: eranian@gmail.com
-Cc: Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-Hi,
+On Wednesday 18 January 2012, Andi wrote:
+> What do you mean with "kernel-wide policy for accelerometer drivers"?
+> As far as I know, accelerometer drivers are written between the i2c driver and the
+> input driver.
+> The input driver provides already some accelerometer specific event types, ABS_X, ABS_Y, ABS_Z,
+> in your opinion isn't it enough?
+> If you mean something like collecting common properties like g range or frequency or whatever in a
+> standard interface, then I think that accelerometers are quite different as devices and sometimes
+> it could be difficult to arrange a common interface.
 
-On Thu, Jan 19, 2012 at 9:32 PM, stephane eranian
-<eranian@googlemail.com> wrote:
-> On Thu, Jan 19, 2012 at 2:26 PM, Ming Lei <ming.lei@canonical.com> wr=
-ote:
->> Hi,
->>
->> On Thu, Jan 19, 2012 at 9:14 PM, Ming Lei <ming.lei@canonical.com> w=
-rote:
->>> On Thu, Jan 19, 2012 at 8:51 PM, stephane eranian
->>> <eranian@googlemail.com> wrote:
->>>> On Thu, Jan 19, 2012 at 1:45 PM, Ming Lei <ming.lei@canonical.com>=
- wrote:
->>>>> Hi,
->>>>>
->>>>> On Thu, Jan 19, 2012 at 7:34 PM, stephane eranian
->>>>> <eranian@googlemail.com> wrote:
->>>>>> Hi,
->>>>>>
->>>>>> Ok some update on this.
->>>>>> With your .config file + 3.2.0 (Linus) + patch 3, 4, 5, 6, I get=
- a kernel that
->>>>>
->>>>> You forget patch 1 and patch 2?
->>>>>
->>>> They are already in 3.2.0. Unless I am mistaken.
->>>
->>> Sorry, I just found that they have been merged to 3.2.
->>
->> After a double check, the two patches are not merged to 3.2, but hav=
-e
->> been merged to the latest linus tree and can be seen in 3.3-rc1.
->>
->> Also the commit 3c50729b(ARM: OMAP4: PM: Initialise all the clockdom=
-ains
->> to supported states) has been merged to linus tree too.
->>
->> So if you just tested the latest linus tree simply, you need to appl=
-y
->> the patch[1]
->> (I have mentioned the problem in the thread.)
->>
->
-> Changing LMO, u-boot.bin did not help. Even with perf top I get no
-> interrupts.
->
-> My Linus tree is at commit fa1952b:
->
-> [6] 11891e1 arm: omap4: pmu: support runtime pm
-> [5] 25fab8a arm: omap4: support pmu
-> [4] fddef77 arm: omap4: create pmu device via hwmod
->
-> fa1952b ARM: OMAP4: hwmod data: Add support for the debug modules
+The problem is that we have some drivers using the input subsystem, some
+drivers using the iio subsystem and some drivers using none of these but
+interfacing with user space using some homegrown method, see my list:
 
-Sorry, there is no commit fa1952b in linus[1] tree at all, so you are
-not testing
-linus tree...
+> > $ git grep -l accelerometer drivers/ | manual_grep
+> > drivers/hwmon/applesmc.c
+> >    (one hwmon sysfs attribute for x/y/z)
+> > drivers/input/misc/adxl34x.c
+> >    (lots of sysfs attributes, input_report_key)
+> > drivers/input/misc/cma3000_d0x.c
+> >    (input_report_abs)
+> > drivers/input/misc/kxtj9.c
+> >    (input_report_abs, plus one aux sysfs attribute)
+> > drivers/macintosh/ams/ams-core.c
+> >    (one sysfs attribute for x/y/z)
+> > drivers/misc/lis3lv02d/
+> >    (multiple sysfs attributes)
+> > drivers/platform/x86/hdaps.c
+> >    (multiple sysfs attributes, only x/y)
+> > drivers/platform/x86/hp_accel.c
+> >    (hooks into drivers/misc/lis3lv02d/)
+> > drivers/staging/iio/accel/kxsd9.c
+> >    (iio)
+> > drivers/staging/iio/accel/sca3000_core.c
+> >    (iio plus extra attributes)
 
-If you'd like to follow my instructions, I can help you further.
+If all drivers were using the input subsystem in the way you describe,
+that would be a good solution, but right now the majority of the
+drivers don't do this.
 
-> ccb19d2 Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net
-> c3b5003 tg3: Fix single-vector MSI-X code
->
-> I think [1] had conflicts when applying it to the tree.
-
-It is only one line(one character) change, you can do it manually.
-
->
->> thanks,
->> --
->> Ming Lei
->>
->> [1],
->> diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c
->> b/arch/arm/mach-omap2/clockdomains44xx_data.c
->> index 9299ac2..41d2260 100644
->> --- a/arch/arm/mach-omap2/clockdomains44xx_data.c
->> +++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
->> @@ -390,7 +390,7 @@ static struct clockdomain emu_sys_44xx_clkdm =3D=
- {
->> =A0 =A0 =A0 .prcm_partition =A0 =3D OMAP4430_PRM_PARTITION,
->> =A0 =A0 =A0 .cm_inst =A0 =A0 =A0 =A0 =A0=3D OMAP4430_PRM_EMU_CM_INST=
-,
->> =A0 =A0 =A0 .clkdm_offs =A0 =A0 =A0 =3D OMAP4430_PRM_EMU_CM_EMU_CDOF=
-=46S,
->> - =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0 =A0=3D CLKDM_CAN_HWSUP,
->> + =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0 =A0=3D CLKDM_CAN_SWSUP,
->> =A0};
->>
-
-[1], http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=3D=
-summary
-
-thanks,
---
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Arnd
