@@ -1,31 +1,45 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Thu, 19 Jan 2012 17:29:33 +0000
-Message-ID: <20120119172933.GI3178@opensource.wolfsonmicro.com>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com>
- <201201181711.15751.arnd@arndb.de>
- <331ABD5ECB02734CA317220B2BBEABC13177DFF6@DBDE01.ent.ti.com>
- <201201191710.45862.arnd@arndb.de>
+From: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH RFC] I2C : OMAP : make omap_i2c_unidle/idle functions depend on CONFIG_PM_RUNTIME
+Date: Thu, 19 Jan 2012 11:08:24 -0800
+Message-ID: <87d3afwlw7.fsf@ti.com>
+References: <1326270657-15309-1-git-send-email-shubhrajyoti@ti.com>
+	<877h0x3mxh.fsf@ti.com> <4F0E84B9.8050805@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201201191710.45862.arnd@arndb.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, Jonathan Cameron <jic23@cam.ac.uk>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4F0E84B9.8050805-l0cyMroinI0@public.gmane.org> (shubhrajyoti-l0cyMroinI0@public.gmane.org's message of "Thu,
+	12 Jan 2012 12:29:05 +0530")
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 19, 2012 at 05:10:45PM +0000, Arnd Bergmann wrote:
+Shubhrajyoti <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
 
-> Having custom user interfaces inside an input driver however is very
-> bad. I'm sure that other accelerometers will have the same requirements
-> regarding polling frequency and enable/disable in android as well as
-> anytwhere else and it should absolutely not be handled by a user space
-> HAL but instead inside of the kernel, using a common method for all
-> available drivers.
+> On Thursday 12 January 2012 03:46 AM, Kevin Hilman wrote:
+>> Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org> writes:
+>>
+>>> The functions omap_i2c_unidle/idle are called from omap_i2c_runtime_resume
+>>> and omap_i2c_runtime_suspend which is compiled for CONFIG_PM_RUNTIME.
+>>> Make the omap_i2c_unidle/idle also depend on CONFIG_PM_RUNTIME flag.
+>> I probably should've done this when I initially cleaned up the
+>> callbacks, but since you're doing it...
+>>
+>> rather than move the functions within the file, just remove the
+>> functions and move the code into the runtime callbacks.
+> That may break the modularity of the code since the
+>
+> omap_i2c_unidle is responsible for restore. I would have preferred to keep it separate.
 
-The polling frequency thing isn't even accelerometer specific, there's a
-general need for this on a wide range of other things like touchscreens
-(where controlling the sample rate is interesting for power, there are
-widely varying requirements depending on what the screen is doing).
+> Do you think  I could  rename   omap_i2c_unidle to 
+> omap_i2c_restore instead ?
+
+that doesn't help: It does restore and (re)enable interrupts.
+
+> However don't feel strongly about it either dif you still feel that it should be moved into runtime 
+> callbacks directly I am ok.
+
+Yes, just move it into the runtime callbacks as it's the only place they
+are used.
+
+Kevin
