@@ -1,194 +1,280 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP2+: 32k-counter: Use hwmod lookup to check presence of 32k timer
-Date: Thu, 19 Jan 2012 19:58:22 +0530
-Message-ID: <1326983304-14619-2-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 3/3] ARM: OMAP2+: hwmod data: Add 32k-sync timer data to hwmod database
+Date: Thu, 19 Jan 2012 19:58:24 +0530
+Message-ID: <1326983304-14619-4-git-send-email-hvaibhav@ti.com>
 References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51274 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51285 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753348Ab2ASOeN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:34:13 -0500
+	id S1753122Ab2ASOeV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jan 2012 09:34:21 -0500
 In-Reply-To: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, johnstul@us.ibm.com, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, johnstul@us.ibm.com, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-OMAP device has 32k-sync timer which is currently used as a
-clocksource in the kernel (omap2plus_defconfig).
-The current implementation uses compile time selection between
-gp-timer and 32k-sync timer, which breaks multi-omap build for
-the devices like AM33xx, where 32k-sync timer is not available.
-
-So use hwmod database lookup mechanism, through which at run-time
-we can identify availability of 32k-sync timer on the device,
-else fall back to gp-timer.
+Add 32k-sync timer hwmod data to omap2 & 3 hwmod table
+and also enable existing hwmod data for omap4 (was disabled before).
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
- arch/arm/mach-omap2/timer.c      |   27 +++++-------
- arch/arm/plat-omap/counter_32k.c |   83 +++++++++++++++++++------------------
- 2 files changed, 54 insertions(+), 56 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   53 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   52 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   51 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ 4 files changed, 157 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/timer.c b/arch/arm/mach-omap2/timer.c
-index 6eeff0e..b978b39 100644
---- a/arch/arm/mach-omap2/timer.c
-+++ b/arch/arm/mach-omap2/timer.c
-@@ -234,21 +234,6 @@ static void __init omap2_gp_clockevent_init(int gptimer_id,
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+index a5409ce..2091a5c 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
+@@ -54,6 +54,7 @@ static struct omap_hwmod omap2420_gpio4_hwmod;
+ static struct omap_hwmod omap2420_dma_system_hwmod;
+ static struct omap_hwmod omap2420_mcspi1_hwmod;
+ static struct omap_hwmod omap2420_mcspi2_hwmod;
++static struct omap_hwmod omap2420_counter_32k_hwmod;
  
- /* Clocksource code */
--
--#ifdef CONFIG_OMAP_32K_TIMER
--/*
-- * When 32k-timer is enabled, don't use GPTimer for clocksource
-- * instead, just leave default clocksource which uses the 32k
-- * sync counter.  See clocksource setup in plat-omap/counter_32k.c
-- */
--
--static void __init omap2_gp_clocksource_init(int unused, const char *dummy)
--{
--	omap_init_clocksource_32k();
--}
--
--#else
--
- static struct omap_dm_timer clksrc;
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap2420_l3_main__l4_core = {
+@@ -1513,6 +1514,55 @@ static struct omap_hwmod omap2420_mcbsp2_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap2420_mcbsp2_slaves),
+ };
  
- /*
-@@ -281,6 +266,17 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- {
- 	int res;
- 
-+	/*
-+	 * First check for availability for 32k-sync timer.
-+	 *
-+	 * Return non-zero, means the device doesn't have 32k-sync timer and
-+	 * execution will fallback to gp-timer.
-+	 */
-+	res = omap_init_clocksource_32k();
-+	if (!res)
-+		return;
++/*
++ * '32K sync counter' class
++ * 32-bit ordinary counter, clocked by the falling edge of the 32 khz clock
++ */
++static struct omap_hwmod_class omap2420_counter_hwmod_class = {
++	.name = "counter",
++};
 +
-+	/* Fall back to gp-timer code */
- 	res = omap_dm_timer_init_one(&clksrc, gptimer_id, fck_source);
- 	BUG_ON(res);
- 
-@@ -295,7 +291,6 @@ static void __init omap2_gp_clocksource_init(int gptimer_id,
- 		pr_err("Could not register clocksource %s\n",
- 			clocksource_gpt.name);
- }
--#endif
- 
- #define OMAP_SYS_TIMER_INIT(name, clkev_nr, clkev_src,			\
- 				clksrc_nr, clksrc_src)			\
-diff --git a/arch/arm/plat-omap/counter_32k.c b/arch/arm/plat-omap/counter_32k.c
-index 5f0f229..8504bea 100644
---- a/arch/arm/plat-omap/counter_32k.c
-+++ b/arch/arm/plat-omap/counter_32k.c
-@@ -69,52 +69,55 @@ void read_persistent_clock(struct timespec *ts)
- 
- int __init omap_init_clocksource_32k(void)
- {
--	static char err[] __initdata = KERN_ERR
--			"%s: can't register clocksource!\n";
--
--	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
--		u32 pbase;
--		unsigned long size = SZ_4K;
--		void __iomem *base;
--		struct clk *sync_32k_ick;
--
--		if (cpu_is_omap16xx()) {
--			pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
--			size = SZ_1K;
--		} else if (cpu_is_omap2420())
--			pbase = OMAP2420_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap2430())
--			pbase = OMAP2430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap34xx())
--			pbase = OMAP3430_32KSYNCT_BASE + 0x10;
--		else if (cpu_is_omap44xx())
--			pbase = OMAP4430_32KSYNCT_BASE + 0x10;
--		else
-+	u32 pbase;
-+	unsigned long size = SZ_4K;
-+	void __iomem *base;
-+	struct clk *sync_32k_ick;
++/* counter_32k */
++static struct omap_hwmod_addr_space omap2420_counter_32k_addrs[] = {
++	{
++		.pa_start	= 0x48004000,
++		.pa_end		= 0x48004000 + SZ_4K,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
 +
-+	if (cpu_is_omap16xx()) {
-+		pbase = OMAP16XX_TIMER_32K_SYNCHRONIZED;
-+		size = SZ_1K;
-+	} else if (cpu_class_is_omap2()) {
-+		struct omap_hwmod *oh;
-+		const char *oh_name = "counter_32k";
++/* l4_wkup -> counter_32k */
++static struct omap_hwmod_ocp_if omap2420_l4_wkup__counter_32k = {
++	.master		= &omap2420_l4_wkup_hwmod,
++	.slave		= &omap2420_counter_32k_hwmod,
++	.clk		= "l4_ck",
++	.addr		= omap2420_counter_32k_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
 +
-+		oh = omap_hwmod_lookup(oh_name);
-+		if (!oh || oh->slaves_cnt == 0) {
-+			pr_err("Could not lookup %s hwmod\n", oh_name);
- 			return -ENODEV;
-+		}
-+		pbase = oh->slaves[0]->addr->pa_start + 0x10;
-+	} else {
-+		return -ENODEV;
-+	}
- 
--		/* For this to work we must have a static mapping in io.c for this area */
--		base = ioremap(pbase, size);
--		if (!base)
--			return -ENODEV;
-+	/*
-+	 * For this to work we must have a static mapping in io.c
-+	 * for this area
-+	 */
-+	base = ioremap(pbase, size);
-+	if (!base)
-+		return -ENODEV;
- 
--		sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
--		if (!IS_ERR(sync_32k_ick))
--			clk_enable(sync_32k_ick);
-+	sync_32k_ick = clk_get(NULL, "omap_32ksync_ick");
-+	if (!IS_ERR(sync_32k_ick))
-+		clk_enable(sync_32k_ick);
- 
--		timer_32k_base = base;
-+	timer_32k_base = base;
- 
--		/*
--		 * 120000 rough estimate from the calculations in
--		 * __clocksource_updatefreq_scale.
--		 */
--		clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
--				32768, NSEC_PER_SEC, 120000);
-+	/*
-+	 * 120000 rough estimate from the calculations in
-+	 * __clocksource_updatefreq_scale.
-+	 */
-+	clocks_calc_mult_shift(&persistent_mult, &persistent_shift,
-+			32768, NSEC_PER_SEC, 120000);
- 
--		if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
--					  clocksource_mmio_readl_up))
--			printk(err, "32k_counter");
-+	if (clocksource_mmio_init(base, "32k_counter", 32768, 250, 32,
-+				clocksource_mmio_readl_up))
-+		printk(KERN_ERR "%s: can't register clocksource!\n",
-+				"32k_counter");
++/* counter_32k slave ports */
++static struct omap_hwmod_ocp_if *omap2420_counter_32k_slaves[] = {
++	&omap2420_l4_wkup__counter_32k,
++};
 +
-+	setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
++static struct omap_hwmod omap2420_counter_32k_hwmod = {
++	.name		= "counter_32k",
++	.class		= &omap2420_counter_hwmod_class,
++	.main_clk	= "sync_32k_ick",
++	.prcm = {
++		.omap2	= {
++			.module_offs		= WKUP_MOD,
++			.prcm_reg_id		= 1,
++			.module_bit		= OMAP24XX_ST_32KSYNC_SHIFT,
++			.idlest_reg_id		= 1,
++			.idlest_idle_bit	= OMAP24XX_ST_32KSYNC_SHIFT,
++		},
++	},
++	.slaves		= omap2420_counter_32k_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2420_counter_32k_slaves),
++};
++
+ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	&omap2420_l3_main_hwmod,
+ 	&omap2420_l4_core_hwmod,
+@@ -1565,6 +1615,9 @@ static __initdata struct omap_hwmod *omap2420_hwmods[] = {
+ 	/* mcspi class */
+ 	&omap2420_mcspi1_hwmod,
+ 	&omap2420_mcspi2_hwmod,
++
++	/* 32k sync timer */
++	&omap2420_counter_32k_hwmod,
+ 	NULL,
+ };
  
--		setup_sched_clock(omap_32k_read_sched_clock, 32, 32768);
--	}
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+index c4f56cb..f7cc4bb 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
+@@ -64,6 +64,7 @@ static struct omap_hwmod omap2430_mcspi2_hwmod;
+ static struct omap_hwmod omap2430_mcspi3_hwmod;
+ static struct omap_hwmod omap2430_mmc1_hwmod;
+ static struct omap_hwmod omap2430_mmc2_hwmod;
++static struct omap_hwmod omap2430_counter_32k_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap2430_l3_main__l4_core = {
+@@ -2001,6 +2002,55 @@ static struct omap_hwmod omap2430_mmc2_hwmod = {
+ 	.class		= &omap2430_mmc_class,
+ };
+ 
++/*
++ * '32K sync counter' class
++ * 32-bit ordinary counter, clocked by the falling edge of the 32 khz clock
++ */
++static struct omap_hwmod_class omap2430_counter_hwmod_class = {
++	.name = "counter",
++};
++
++/* counter_32k */
++static struct omap_hwmod_addr_space omap2430_counter_32k_addrs[] = {
++	{
++		.pa_start	= 0x49020000,
++		.pa_end		= 0x49020000 + SZ_4K,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* l4_wkup -> counter_32k */
++static struct omap_hwmod_ocp_if omap2430_l4_wkup__counter_32k = {
++	.master		= &omap2430_l4_wkup_hwmod,
++	.slave		= &omap2430_counter_32k_hwmod,
++	.clk		= "l4_ck",
++	.addr		= omap2430_counter_32k_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* counter_32k slave ports */
++static struct omap_hwmod_ocp_if *omap2430_counter_32k_slaves[] = {
++	&omap2430_l4_wkup__counter_32k,
++};
++
++static struct omap_hwmod omap2430_counter_32k_hwmod = {
++	.name		= "counter_32k",
++	.class		= &omap2430_counter_hwmod_class,
++	.main_clk	= "sync_32k_ick",
++	.prcm		= {
++		.omap2	= {
++			.module_offs		= WKUP_MOD,
++			.prcm_reg_id		= 1,
++			.module_bit		= OMAP24XX_ST_32KSYNC_SHIFT,
++			.idlest_reg_id		= 1,
++			.idlest_idle_bit	= OMAP24XX_ST_32KSYNC_SHIFT,
++		},
++	},
++	.slaves		= omap2430_counter_32k_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap2430_counter_32k_slaves),
++};
++
+ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	&omap2430_l3_main_hwmod,
+ 	&omap2430_l4_core_hwmod,
+@@ -2064,6 +2114,8 @@ static __initdata struct omap_hwmod *omap2430_hwmods[] = {
+ 	/* usbotg class*/
+ 	&omap2430_usbhsotg_hwmod,
+ 
++	/* 32k sync timer */
++	&omap2430_counter_32k_hwmod,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index 5324e8d..19a3591 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -86,6 +86,7 @@ static struct omap_hwmod omap3xxx_mcbsp2_sidetone_hwmod;
+ static struct omap_hwmod omap3xxx_mcbsp3_sidetone_hwmod;
+ static struct omap_hwmod omap3xxx_usb_host_hs_hwmod;
+ static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod;
++static struct omap_hwmod omap3xxx_counter_32k_hwmod;
+ 
+ /* L3 -> L4_CORE interface */
+ static struct omap_hwmod_ocp_if omap3xxx_l3_main__l4_core = {
+@@ -3498,6 +3499,55 @@ static struct omap_hwmod omap3xxx_usb_tll_hs_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap3xxx_usb_tll_hs_slaves),
+ };
+ 
++/*
++ * '32K sync counter' class
++ * 32-bit ordinary counter, clocked by the falling edge of the 32 khz clock
++ */
++static struct omap_hwmod_class omap3xxx_counter_hwmod_class = {
++	.name = "counter",
++};
++
++/* counter_32k */
++static struct omap_hwmod_addr_space omap3xxx_counter_32k_addrs[] = {
++	{
++		.pa_start	= 0x48320000,
++		.pa_end		= 0x48320000 + SZ_4K,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* l4_wkup -> counter_32k */
++static struct omap_hwmod_ocp_if omap3xxx_l4_wkup__counter_32k = {
++	.master		= &omap3xxx_l4_wkup_hwmod,
++	.slave		= &omap3xxx_counter_32k_hwmod,
++	.clk		= "wkup_l4_ick",
++	.addr		= omap3xxx_counter_32k_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* counter_32k slave ports */
++static struct omap_hwmod_ocp_if *omap3xxx_counter_32k_slaves[] = {
++	&omap3xxx_l4_wkup__counter_32k,
++};
++
++static struct omap_hwmod omap3xxx_counter_32k_hwmod = {
++	.name		= "counter_32k",
++	.class		= &omap3xxx_counter_hwmod_class,
++	.main_clk	= "omap_32ksync_ick",
++	.prcm		= {
++		.omap2	= {
++			.module_offs		= WKUP_MOD,
++			.prcm_reg_id		= 1,
++			.module_bit		= OMAP3430_ST_32KSYNC_SHIFT,
++			.idlest_reg_id		= 1,
++			.idlest_idle_bit	= OMAP3430_ST_32KSYNC_SHIFT,
++		},
++	},
++	.slaves		= omap3xxx_counter_32k_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap3xxx_counter_32k_slaves),
++};
++
+ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap3xxx_l3_main_hwmod,
+ 	&omap3xxx_l4_core_hwmod,
+@@ -3561,6 +3611,7 @@ static __initdata struct omap_hwmod *omap3xxx_hwmods[] = {
+ 	&omap34xx_mcspi3,
+ 	&omap34xx_mcspi4,
+ 
++	&omap3xxx_counter_32k_hwmod,
+ 	NULL,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index f9f1510..cd60b13 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -5510,7 +5510,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_bandgap_hwmod,
+ 
+ 	/* counter class */
+-/*	&omap44xx_counter_32k_hwmod, */
++	&omap44xx_counter_32k_hwmod,
+ 
+ 	/* dma class */
+ 	&omap44xx_dma_system_hwmod,
 -- 
 1.7.0.4
 
