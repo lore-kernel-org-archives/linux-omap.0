@@ -1,107 +1,185 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 19 Jan 2012 12:21:28 +0000
-Message-ID: <WC20120119122128.020787@terrafix.co.uk>
-References: <20120113222045.37f9b4ec@notabene.brown> <1326870839.1954.23.camel@deskari> <20120118221538.342b4782@notabene.brown> <1326886940.1999.5.camel@lappy> <20120119073032.74cc0992@notabene.brown> <WC20120119101721.07072A@terrafix.co.uk> <1326969658.1935.24.camel@deskari> <WC20120119112911.670749@terrafix.co.uk> <1326973019.7926.7.camel@lappy>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Thu, 19 Jan 2012 20:45:04 +0800
+Message-ID: <CACVXFVPnhSy_DbdK+ro8G78QjL2s6fBBq1Dvq-pmxJ20qA-ymA@mail.gmail.com>
+References: <CAAO=S0+L2Q1YZC-pfm2Lz8jPooTeHYOMaZbtRgHYFoL_m7rvhA@mail.gmail.com>
+	<4F0B182D.7060507@us.ibm.com>
+	<20120109224945.GA23090@mudshark.cambridge.arm.com>
+	<CACVXFVMnAt_YpYNC5B6W4Vh4HvtVS3D6jRORUw0AW5a4ub5aOw@mail.gmail.com>
+	<CAMsRxfJe_MEA=anzRu6jehGcZyg49uAx44_nDQ3_FRY=WrFLoA@mail.gmail.com>
+	<CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
+	<CAMsRxfLtLnMiP0ZGr6rNLv-UeLUwOSJ=7do2nezOU5OkOA+MbQ@mail.gmail.com>
+	<CACVXFVMbrQGi4Sg9TUPP5Bcc5kzFoX74n=ii4QrDRudbuDHOGg@mail.gmail.com>
+	<CAMsRxfJmHkZw2f0A+4FsStJpXk_vrxvDduRcRGkcWpqp8a9m_w@mail.gmail.com>
+	<CACVXFVOQNDRs=c8A2YC+WvYAHs5Abbz-QUEe1VJqrj2esFO11g@mail.gmail.com>
+	<CAMsRxf+e38jRcyxESLhYDZ3OL910AQdapZD9P8vWDXfUE34DAA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:33726 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1750807Ab2ASMVp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 07:21:45 -0500
-In-Reply-To: <1326973019.7926.7.camel@lappy>
+Received: from youngberry.canonical.com ([91.189.89.112]:54958 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335Ab2ASMpI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jan 2012 07:45:08 -0500
+Received: from mail-pw0-f46.google.com ([209.85.160.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1RnrMY-0006y7-LV
+	for linux-omap@vger.kernel.org; Thu, 19 Jan 2012 12:45:06 +0000
+Received: by pbaa10 with SMTP id a10so15453pba.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 04:45:04 -0800 (PST)
+In-Reply-To: <CAMsRxf+e38jRcyxESLhYDZ3OL910AQdapZD9P8vWDXfUE34DAA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: NeilBrown <neilb@suse.de>, Paul Walmsley <paul@pwsan.com>, khilman@ti.com, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
+To: eranian@gmail.com
+Cc: Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
 
+Hi,
 
+On Thu, Jan 19, 2012 at 7:34 PM, stephane eranian
+<eranian@googlemail.com> wrote:
+> Hi,
+>
+> Ok some update on this.
+> With your .config file + 3.2.0 (Linus) + patch 3, 4, 5, 6, I get a ke=
+rnel that
 
------Original Message-----
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: NeilBrown <neilb@suse.de>, Paul Walmsley <paul@pwsan.com>, khilman@ti.com, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
-Date: Thu, 19 Jan 2012 13:36:59 +0200
-Subject: Re: DSS2/PM on 3.2 broken?
+You forget patch 1 and patch 2?
 
-> On Thu, 2012-01-19 at 11:29 +0000, Joe Woodward wrote:
-> > ... (apologies for awful formatting of the previous mail) ...
-> >  
-> > > Well, I don't see how UART could directly affect DSS. The thing
-> that
-> > > comes to my mind is that typing a char in the console causes a
-> change
-> > > in
-> > > the power management, which then "fixes" the DSS. But then again,
-> I'd
-> > > expect the console to go into sleep/idle state after a short while,
-> > > which should again cause sync_losts. But that's not happening...
-> > > 
-> > > Can you show the dss clocks you use (cat debugfs/omapdss/clk)?
-> > > 
-> > > It's been a while since I did anything with PM, so I don't remember
-> how
-> > > and if it can be done, but a simple test would be to lock the OMAP
-> to
-> > > always use OPP100.
-> > > 
-> > >  Tomi
-> > > 
-> > 
-> > Right,
-> > 
-> > I'm running with both CPUIDLE and CPUFREQ disabled at present so I
-> assume that means I should always be in OPP100?
-> > 
-> > The panel is 800x480 (I've added a configuration to the generic-panel
-> with the correct panel parameters), with just 1 FB device (/dev/fb0).
-> > 
-> > Clock dump is shown below:
-> > 
-> > # pwd
-> > /debug/omapdss
-> > # cat clk
-> > [   53.146057] omapdss DSS: dss_runtime_get
-> > [   53.151000] omapdss DSS: dss_runtime_put
-> > [   53.155151] omapdss DISPC: dispc_runtime_get
-> > [   53.160430] omapdss DISPC: dispc_runtime_put
-> > - DSS -
-> > dpll4_ck 432000000
-> > DSS_FCK (DSS1_ALWON_FCLK) = 432000000 / 12 * 2 = 72000000
-> > - DISPC -
-> > dispc fclk source = DSS_FCK (DSS1_ALWON_FCLK)
-> > fck             72000000
-> > - LCD1 -
-> > lcd1_clk source = DSS_FCK (DSS1_ALWON_FCLK)
-> > lck             72000000        lck div 1
-> > pck             36000000        pck div 2
-> > 
-> > 
-> > The SYNC_LOST errors sometimes don't happen, and sometimes fix
-> themselves. It does seem that whenever a character is typed in to the
-> UART the SYNC_LOST errors stop immediately.
-> 
-> Yep, the clocks are so low that they should work fine with OPP50
-> also...
+> boots. It does recognize the PMU. However, it still does not count co=
+rrectly
+> and I believe for the same reason.: no interrupts are delivered.
+>
+> I run a cycle burner program on CPU0, I watch /proc/interrupts.
+> and then I run =A0libpfm4 program that does per-cpu monitoring on CPU=
+0 and
+> print the counts every second:
 
-If I do (either from the console or via a button press on the screen) then I never get a SYNC_LOST.
-  echo 0 > /sys/devices/omapdss/display0/enabled
-  echo 1 > /sys/devices/omapdss/display0/enabled
+I just run 'perf top', then watch output of '/proc/interrupts' in
+another terminal. I am sure I can see perf is OK and interrupts are
+generated on my pandaboard.
 
-Just trying to think of some ideas that may be affecting the DSS...
-  - Could it to be to do with the GPIO being used as a wake source (i.e. does the GPIO driver do runtime_pm properly?)?
-  - Could it to be to do with the UART as it seems to fix itself whenever a character is pressed?
-  - Could it to be to do with the ordering in which drivers are resumed?
-
-Is the SYNC_LOST normally due to a lack of memory bandwidth? If so, it is possible to find out what the kernel is doing during the resume?
-
-And before looking at this too much more, is the changing of the pm_runtime_put to the _sync versions the correct fix?
-
-Sorry for so many questions, but I'm interested in getting this fixed as it's the only thing stopping me from switching to 3.2 from 3.0!
-
-Cheers,
-Joe
-
-
+>
+> $ sudo ./syst_count -d 10 -p -c 0 -e cpu_cycles
+> <press CTRL-C to quit before 10s time limit>
+> # 1s -----
+> CPU0 =A0 G0 =A01008129147 =A0 =A0 =A0 =A0 =A0 cpu_cycles (scaling 0.0=
+0%,
+> ena=3D1000152588, run=3D1000152588)
+> # 2s -----
+> CPU0 =A0 G0 =A02016240766 =A0 =A0 =A0 =A0 =A0 cpu_cycles (scaling 0.0=
+0%,
+> ena=3D2000335693, run=3D2000335693)
+> # 3s -----
+> CPU0 =A0 G0 =A03024249265 =A0 =A0 =A0 =A0 =A0 cpu_cycles (scaling 0.0=
+0%,
+> ena=3D3000427245, run=3D3000427245)
+> # 4s -----
+> CPU0 =A0 G0 =A04072779364 =A0 =A0 =A0 =A0 =A0 cpu_cycles (scaling 0.0=
+0%,
+> ena=3D4040710449, run=3D4040710449)
+> # 5s -----
+> CPU0 =A0 G0 =A0785954705 =A0 =A0 =A0 =A0 =A0 =A0cpu_cycles (scaling 0=
+=2E00%,
+> ena=3D5040954589, run=3D5040954589)
+> # 6s -----
+> CPU0 =A0 G0 =A01803397848 =A0 =A0 =A0 =A0 =A0 cpu_cycles (scaling 0.0=
+0%,
+> ena=3D6050384520, run=3D6050384520)
+> # 7s -----
+>
+> You clearly see that after 4s you've reached the 32-bit limit of the
+> counter and then you wrap around.
+> It should show 5 billions or so cycles. Over the entire run, no
+> arm-pmu interrupt was delivered according
+> to /proc/interrupts.
+>
+> I guess you can test the same condition using perf directly, use a
+> program that burns cycles
+> for a know duration. Try < 4s and then > 4s. I use 1s vs. 10s and I
+> expect the count to be
+> 10x larger in the latter test case. If it's not then, interrupts are
+> not coming in,
+>
+>
+> On Thu, Jan 19, 2012 at 2:21 AM, Ming Lei <ming.lei@canonical.com> wr=
+ote:
+>> Hi,
+>>
+>> On Thu, Jan 19, 2012 at 5:58 AM, stephane eranian
+>> <eranian@googlemail.com> wrote:
+>>> Ming,
+>>>
+>>> Ok, so I used Linus' tree @
+>>>
+>>> It already includes patches #1 and #2. I applied 4-6.
+>>
+>> The patch #3 is missed?
+>>
+>>> Recompiled but my kernel does not boot, I don't see
+>>> anything on the serial console. Could be a broken
+>>
+>> I don't think that the patches can cause your non boot, you
+>> can try the linus tree kernel first, then try the patches.
+>>
+>>> .config file. Could you send me your .config for Panda?
+>>
+>> See the attachment.
+>>
+>>>
+>>> Thanks.
+>>>
+>>> On Wed, Jan 18, 2012 at 11:07 AM, Ming Lei <ming.lei@canonical.com>=
+ wrote:
+>>>> Hi,
+>>>>
+>>>> On Wed, Jan 18, 2012 at 5:54 PM, stephane eranian <eranian@googlem=
+ail.com>
+>>>>> Should I use Will's -next tree as the base instead of Linus'?
+>>>>
+>>>> Either one is OK. If you use linus tree as base, you need to apply=
+ the #1 and
+>>>> #2 patch manually.
+>>>>
+>>>>> Given that MARC is shutdown today, would you mind packing those p=
+atches
+>>>>> into a tarball and sending them to me directly?
+>>>>
+>>>> See attachment, which includes the patches from #3 to #6.
+>>>>
+>>>>>
+>>>>> When you mention Will's -next tree, are you talking about:
+>>>>> git://git.kernel.org/pub/scm/linux/kernel/git/will/linux.git for-=
+next/perf
+>>>>
+>>>> It is perf/omap4 brach, you can pick up the two patches[1][2] dire=
+ctly from
+>>>> the branch.
+>>>>
+>>>>
+>>>> thanks,
+>>>> --
+>>>> Ming Lei
+>>>>
+>>>> [1], http://git.kernel.org/?p=3Dlinux/kernel/git/will/linux.git;a=3D=
+commit;h=3D7924a3eba0766348d6d6a56cbb9873cdbcab0d8c
+>>>>
+>>>> [2], http://git.kernel.org/?p=3Dlinux/kernel/git/will/linux.git;a=3D=
+commit;h=3Dbde071f005e2dc71378aff69e86b961d8cd7922f
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
