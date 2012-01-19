@@ -1,118 +1,174 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
 Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 19 Jan 2012 12:40:58 +0200
-Message-ID: <1326969658.1935.24.camel@deskari>
-References: <20120110080849.5a242adf@notabene.brown>
-	 <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
-	 <20120112095940.0a54413e@notabene.brown>
-	 <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
-	 <20120113222045.37f9b4ec@notabene.brown> <1326870839.1954.23.camel@deskari>
-	 <20120118221538.342b4782@notabene.brown> <1326886940.1999.5.camel@lappy>
-	 <20120119073032.74cc0992@notabene.brown>
-	 <WC20120119101721.07072A@terrafix.co.uk>
+Date: Thu, 19 Jan 2012 11:29:11 +0000
+Message-ID: <WC20120119112911.670749@terrafix.co.uk>
+References: <20120112095940.0a54413e@notabene.brown> <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com> <20120113222045.37f9b4ec@notabene.brown> <1326870839.1954.23.camel@deskari> <20120118221538.342b4782@notabene.brown> <1326886940.1999.5.camel@lappy> <20120119073032.74cc0992@notabene.brown> <WC20120119101721.07072A@terrafix.co.uk> <1326969658.1935.24.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-FfqtnJyuUz8SkRUN6NDO"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:40490 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978Ab2ASKlE (ORCPT
+Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:58233 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752501Ab2ASL3e (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 05:41:04 -0500
-Received: by laah2 with SMTP id h2so3545072laa.37
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 02:41:00 -0800 (PST)
-In-Reply-To: <WC20120119101721.07072A@terrafix.co.uk>
+	Thu, 19 Jan 2012 06:29:34 -0500
+In-Reply-To: <1326969658.1935.24.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: NeilBrown <neilb@suse.de>, Paul Walmsley <paul@pwsan.com>, khilman@ti.com, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
 
+... (apologies for awful formatting of the previous mail) ...
+ 
+> Well, I don't see how UART could directly affect DSS. The thing that
+> comes to my mind is that typing a char in the console causes a change
+> in
+> the power management, which then "fixes" the DSS. But then again, I'd
+> expect the console to go into sleep/idle state after a short while,
+> which should again cause sync_losts. But that's not happening...
+> 
+> Can you show the dss clocks you use (cat debugfs/omapdss/clk)?
+> 
+> It's been a while since I did anything with PM, so I don't remember how
+> and if it can be done, but a simple test would be to lock the OMAP to
+> always use OPP100.
+> 
+>  Tomi
+> 
 
---=-FfqtnJyuUz8SkRUN6NDO
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Right,
 
-On Thu, 2012-01-19 at 10:17 +0000, Joe Woodward wrote:
-> ...snip...
-> >=20
-> >    cat /sys/kernel/debug/omapdss/clk
-> >=20
-> > is below and reports 66461538 for fck, so 66MHz?  Still safe for OPP50.
-> >=20
-> > And disabling SMART REFLEX had no obvious effect.
-> >=20
-> > If you can think of anything else I could try to explore to narrow down
-> > the source of this, I am very happy to test or examine anything you
-> > suggest.
-> >=20
-> > Thanks,
-> > NeilBrown
-> >=20
->=20
-> I'm not sure if this will give you any pointers but i'll tell you what I'=
-m fairly certain I'm seeing...
->=20
-> If I run the stock 3.2 with the changes to dss.c and dispc.c to make the =
-pm_runtime_put()'s in to pm_runtime_put_sync()'s then the DSS warnings when=
-=20
-> suspending do indeed go away.
->=20
-> I have two wake sources, one being the UART the console is on and the oth=
-er being a GPIO button.
->=20
-> I've tested the following situations:
->  - If I sleep using the console and wake by typing a character then I *ne=
-ver* get a SYNC_LOST error.
->  - If I sleep by pressing a button on the display (which does a system ("=
-echo mem > /sys/power/state") and then wake by typing a character in to the=
- console then=20
-> I *never* get a SYNC_LOST error.
->  - If I sleep by pressing a button on the display (which does a system ("=
-echo mem > /sys/power/state") and then wake by pressing a button attached t=
-o the GPIO=20
-> then I get a sequence of SYNC_LOST errors which continue at a rate of abo=
-ut one every 0.5 seconds until a type a character in to the console and the=
-n everything=20
-> settles down and starts working again.
->=20
-> So, at least from what I'm seeing, the SYNC_LOST errors seem related some=
-how to the UART, if that is indeed possible?
+I'm running with both CPUIDLE and CPUFREQ disabled at present so I assume that means I should always be in OPP100?
 
-Well, I don't see how UART could directly affect DSS. The thing that
-comes to my mind is that typing a char in the console causes a change in
-the power management, which then "fixes" the DSS. But then again, I'd
-expect the console to go into sleep/idle state after a short while,
-which should again cause sync_losts. But that's not happening...
+The panel is 800x480 (I've added a configuration to the generic-panel with the correct panel parameters), with just 1 FB device (/dev/fb0).
 
-Can you show the dss clocks you use (cat debugfs/omapdss/clk)?
+Clock dump is shown below:
 
-It's been a while since I did anything with PM, so I don't remember how
-and if it can be done, but a simple test would be to lock the OMAP to
-always use OPP100.
-
- Tomi
+# pwd
+/debug/omapdss
+# cat clk
+[   53.146057] omapdss DSS: dss_runtime_get
+[   53.151000] omapdss DSS: dss_runtime_put
+[   53.155151] omapdss DISPC: dispc_runtime_get
+[   53.160430] omapdss DISPC: dispc_runtime_put
+- DSS -
+dpll4_ck 432000000
+DSS_FCK (DSS1_ALWON_FCLK) = 432000000 / 12 * 2 = 72000000
+- DISPC -
+dispc fclk source = DSS_FCK (DSS1_ALWON_FCLK)
+fck             72000000
+- LCD1 -
+lcd1_clk source = DSS_FCK (DSS1_ALWON_FCLK)
+lck             72000000        lck div 1
+pck             36000000        pck div 2
 
 
---=-FfqtnJyuUz8SkRUN6NDO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+The SYNC_LOST errors sometimes don't happen, and sometimes fix themselves. It does seem that whenever a character is typed in to the UART the SYNC_LOST errors stop immediately.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+This is a question more for Kevin, but is there some debug/tracing I can enable within the PM framework to see a bit more of whats going on?
 
-iQIcBAABAgAGBQJPF/M5AAoJEPo9qoy8lh71oagP+wQ+t9lFAntYU1zl8pCbgVsS
-BU2UEXicEEE31q0mLHhJzH1b13dOM72sV2d/QhGMLzXw4BS3JsecfEYkRMJP3FIG
-8ZYx14Im+/nEf4poagbbaO2HgK9mapzGt7ii/AoIe4z9rkb6gw1ywEXWxv+vhrjs
-XbEaXbgb3Ws1bu7bwF/hlxczGCJaPqdNJwDNZGWMXOPMFw7Tg+nilkYBOJNQBfNW
-QJ0vEDJa9OITANyf+TXcPRouOSAeLL/yGyieVSG4W/HdigPvk47+lsfDaJWttJz+
-bndMj86lCBdMhZI6FJbuqh8asJ6aL39tukrF4yNsa+Vpr6oQkiCX9TipEE0VVcx6
-Ory0kR1ZCWIFIUCUXj6Cvd6qCeLB9G1lJxLd0K0Tm50KX6oRrF5/iJqqAMjTDKGb
-KHrttXFV43F4tpDiZDISlIk0D0WPf3WI2/8HtCnIONA/T6hcEia51RVvAiba/8/a
-G50n/CC7uka3bBvP9svI+JYEm5yIftLPDUD/LmyMNNbJj5To1jmmVwqtMXVMNUNJ
-LBb5SfC40iVToyNLpQJQOkhfkS0H0PIMLSw7KWshMsnBfNk7lguSR7OtwouNrNoy
-RdPlnAQWZ1J77P9/Gxk2ZwvKQVNIwCytxgJ/fG/3Yx6+nEBpK6yABmnCDXTH2Hwg
-uhJy+PqaZPGCkAlyHpK/
-=EMSi
------END PGP SIGNATURE-----
+I've added some more traces below...
 
---=-FfqtnJyuUz8SkRUN6NDO--
+Trace with no errors:
+[   91.806427] PM: Syncing filesystems ... done.
+[   91.811370] PM: Preparing system for mem sleep
+[   91.816986] Freezing user space processes ... (elapsed 0.02 seconds) done.
+[   91.846221] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[   91.877441] PM: Entering mem sleep
+[   91.881317] Suspending console(s) (use no_console_suspend to debug)
+[   92.001068] omapdss CORE: suspend 2
+[   92.184600] omapdss DISPC: dispc_runtime_put
+[   92.184631] omapdss DISPC: dispc_save_context
+[   92.184692] omapdss DISPC: context saved, ctx_loss_count 0
+[   92.184722] omapdss DSS: dss_runtime_put
+[   92.184753] omapdss DSS: dss_runtime_put
+[   92.184783] omapdss DSS: dss_save_context
+[   92.184783] omapdss DSS: context saved
+[   92.185485] PM: suspend of devices complete after 297.088 msecs
+[   92.186401] PM: late suspend of devices complete after 0.885 msecs
+[   94.111755] Successfully put all powerdomains to target state
+[   94.112518] PM: early resume of devices complete after 0.549 msecs
+[   94.113555] omapdss CORE: resume
+[   94.114135] omapdss DSS: dss_runtime_get
+[   94.114166] omapdss DSS: dss_restore_context
+[   94.114196] omapdss DSS: context restored
+[   94.114196] omapdss DISPC: dispc_runtime_get
+[   94.114227] omapdss DSS: dss_runtime_get
+[   94.114257] omapdss DISPC: dispc_restore_context
+[   94.114288] omapdss DISPC: onoff 0 rf 0 ieo 0 ipc 0 ihs 1 ivs 1 acbi 0 acb 0
+[   94.114318] omapdss DSS: dispc clock info found from cache.
+[   94.114318] omapdss DSS: dpll4_m4 = 432000000
+[   94.114349] omapdss DSS: fck = 72000000 (12)
+[   94.114379] omapdss DISPC: lck = 72000000 (1)
+[   94.114379] omapdss DISPC: pck = 36000000 (2)
+[   94.114410] omapdss DISPC: channel 0 xres 800 yres 480
+[   94.114440] omapdss DISPC: pck 36000
+[   94.114440] omapdss DISPC: hsw 10 hfp 164 hbp 89 vsw 10 vfp 10 vbp 23
+[   94.114471] omapdss DISPC: hsync 33866Hz, vsync 64Hz
+[   94.698455] PM: resume of devices complete after 585.082 msecs
+[   94.847900] PM: Finishing wakeup.
+[   94.851409] Restarting tasks ... done.
+
+Trace with SYNC_LOST errors:
+[  106.635437] PM: Syncing filesystems ... done.
+[  106.640563] PM: Preparing system for mem sleep
+[  106.646118] Freezing user space processes ... (elapsed 0.02 seconds) done.
+[  106.677703] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) done.
+[  106.708923] PM: Entering mem sleep
+[  106.712768] Suspending console(s) (use no_console_suspend to debug)
+[  106.832672] omapdss CORE: suspend 2
+[  107.011260] omapdss DISPC: dispc_runtime_put
+[  107.011291] omapdss DISPC: dispc_save_context
+[  107.011352] omapdss DISPC: context saved, ctx_loss_count 0
+[  107.011383] omapdss DSS: dss_runtime_put
+[  107.011413] omapdss DSS: dss_runtime_put
+[  107.011444] omapdss DSS: dss_save_context
+[  107.011444] omapdss DSS: context saved
+[  107.012145] PM: suspend of devices complete after 292.266 msecs
+[  107.013061] PM: late suspend of devices complete after 0.885 msecs
+[  107.716400] Successfully put all powerdomains to target state
+[  107.717102] PM: early resume of devices complete after 0.488 msecs
+[  107.718139] omapdss CORE: resume
+[  107.718780] omapdss DSS: dss_runtime_get
+[  107.718811] omapdss DSS: dss_restore_context
+[  107.718841] omapdss DSS: context restored
+[  107.718872] omapdss DISPC: dispc_runtime_get
+[  107.718872] omapdss DSS: dss_runtime_get
+[  107.718902] omapdss DISPC: dispc_restore_context
+[  107.718933] omapdss DISPC: onoff 0 rf 0 ieo 0 ipc 0 ihs 1 ivs 1 acbi 0 acb 0
+[  107.718963] omapdss DSS: dispc clock info found from cache.
+[  107.718963] omapdss DSS: dpll4_m4 = 432000000
+[  107.718994] omapdss DSS: fck = 72000000 (12)
+[  107.719024] omapdss DISPC: lck = 72000000 (1)
+[  107.719024] omapdss DISPC: pck = 36000000 (2)
+[  107.719055] omapdss DISPC: channel 0 xres 800 yres 480
+[  107.719085] omapdss DISPC: pck 36000
+[  107.719085] omapdss DISPC: hsw 10 hfp 164 hbp 89 vsw 10 vfp 10 vbp 23
+[  107.719116] omapdss DISPC: hsync 33866Hz, vsync 64Hz
+[  108.307922] PM: resume of devices complete after 589.996 msecs
+[  108.457397] PM: Finishing wakeup.
+[  108.460876] Restarting tasks ... done.
+[  108.597045] DISPC IRQ: 0x40a2: SYNC_LOST
+[  108.601470] omapdss DISPC: dispc_runtime_get
+[  108.606872] omapdss DISPC error: SYNC_LOST on channel lcd, restarting the output with video overlays disabled
+[  108.802520] omapdss DISPC: dispc_runtime_put
+[  108.807037] omapdss DSS: dss_runtime_put
+[  108.812103] omapdss DISPC: dispc_enable_plane 1, 0
+[  108.817596] omapdss DISPC: dispc_enable_plane 2, 0
+[  108.873352] omapdss DSS: dss_runtime_get
+[  108.877502] omapdss DISPC: dispc_runtime_get
+[  108.882568] omapdss DISPC: onoff 0 rf 0 ieo 0 ipc 0 ihs 1 ivs 1 acbi 0 acb 0
+[  108.890411] omapdss DSS: dispc clock info found from cache.
+[  108.896789] omapdss DSS: dpll4_m4 = 432000000
+[  108.901733] omapdss DSS: fck = 72000000 (12)
+[  108.906250] omapdss DISPC: lck = 72000000 (1)
+[  108.911407] omapdss DISPC: pck = 36000000 (2)
+[  108.916015] omapdss DISPC: channel 0 xres 800 yres 480
+[  108.922027] omapdss DISPC: pck 36000
+[  108.926116] omapdss DISPC: hsw 10 hfp 164 hbp 89 vsw 10 vfp 10 vbp 23
+[  108.933288] omapdss DISPC: hsync 33866Hz, vsync 64Hz
+[  108.940887] omapdss DISPC: dispc_runtime_put
+
+Thanks,
+Joe
+
 
