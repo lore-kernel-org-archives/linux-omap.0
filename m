@@ -1,104 +1,56 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/2] arm:omap2:board-generic: Add DT support for AM33xx
- devices
-Date: Thu, 19 Jan 2012 08:10:43 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317AAA52@DBDE01.ent.ti.com>
-References: <1326870839-19951-1-git-send-email-hvaibhav@ti.com>
- <20120118205828.GM4223@ponder.secretlab.ca>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: DSS2/PM on 3.2 broken?
+Date: Thu, 19 Jan 2012 10:17:21 +0000
+Message-ID: <WC20120119101721.07072A@terrafix.co.uk>
+References: <20120110080849.5a242adf@notabene.brown> <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com> <20120112095940.0a54413e@notabene.brown> <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com> <20120113222045.37f9b4ec@notabene.brown> <1326870839.1954.23.camel@deskari> <20120118221538.342b4782@notabene.brown> <1326886940.1999.5.camel@lappy> <20120119073032.74cc0992@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120118205828.GM4223-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.keele.netcentral.co.uk ([212.57.235.197]:41721 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752492Ab2ASKRi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jan 2012 05:17:38 -0500
+In-Reply-To: <20120119073032.74cc0992@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, khilman@ti.com, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
 
-On Thu, Jan 19, 2012 at 02:28:28, Grant Likely wrote:
-> On Wed, Jan 18, 2012 at 12:43:58PM +0530, Vaibhav Hiremath wrote:
-> > Although we consider am33xx device under omap34xx family of devices,
-> > there is indeed difference between them, for example,
-> > 
-> >       - Initial required mapping (->map_io)
-> >       - Early init (->init_early)
-> > 	Here, the whole sequence/data is different than omap3,
-> > 	For example, clock/hwmod/power/voltage data.
-> >       - clock event/source timer (name and instances)
-> > 
-> > So, this patch adds seperate machine descriptor for AM33XX family
-> > of devices in board-generic.c file.
-> > 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-> > CC: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> > Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> > ---
-> > Tested it on AM335x-EVM, AM37xEVM and AM3517EVM.
-> > 
-> >  arch/arm/mach-omap2/board-generic.c |   19 +++++++++++++++++++
-> >  1 files changed, 19 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-> > index f7b4b24..2faecc8 100644
-> > --- a/arch/arm/mach-omap2/board-generic.c
-> > +++ b/arch/arm/mach-omap2/board-generic.c
-> > @@ -106,6 +106,25 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
-> >  MACHINE_END
-> >  #endif
-> > 
-> > +#if defined(CONFIG_SOC_OMAPAM33XX)
-> > +static const char *am33xx_boards_compat[] __initdata = {
-> > +	"ti,am33xx",
+...snip...
 > 
-> Don't forget to add the new compatible values to
-> Documentation/device-tree/bindings.
+>    cat /sys/kernel/debug/omapdss/clk
 > 
-Thanks for pointing me to this. I will send separate patch updating 
-Documentation/devicetree/bindings file for this.
-
-> > +	NULL,
-> > +};
-> > +
-> > +DT_MACHINE_START(AM33XX_DT, "Generic AM33XX (Flattened Device Tree)")
-> > +	.atag_offset	= 0x100,
+> is below and reports 66461538 for fck, so 66MHz?  Still safe for OPP50.
 > 
-> Unneeded for DT booting.
+> And disabling SMART REFLEX had no obvious effect.
 > 
-> Otherwise, you can add:
+> If you can think of anything else I could try to explore to narrow down
+> the source of this, I am very happy to test or examine anything you
+> suggest.
 > 
-> Acked-by: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+> Thanks,
+> NeilBrown
 > 
 
-Thanks for review and ack.
+I'm not sure if this will give you any pointers but i'll tell you what I'm fairly certain I'm seeing...
 
-Thanks,
-Vaibhav
+If I run the stock 3.2 with the changes to dss.c and dispc.c to make the pm_runtime_put()'s in to pm_runtime_put_sync()'s then the DSS warnings when 
+suspending do indeed go away.
 
-> > +	.reserve	= omap_reserve,
-> > +	.map_io		= am33xx_map_io,
-> > +	.init_early	= am33xx_init_early,
-> > +	.init_irq	= omap_init_irq,
-> > +	.handle_irq	= omap3_intc_handle_irq,
-> > +	.init_machine	= omap_generic_init,
-> > +	.timer		= &omap3_am33xx_timer,
-> > +	.dt_compat	= am33xx_boards_compat,
-> > +MACHINE_END
-> > +#endif
-> > +
-> >  #if defined(CONFIG_ARCH_OMAP4)
-> >  static const char *omap4_boards_compat[] __initdata = {
-> >  	"ti,omap4",
-> > --
-> > 1.7.0.4
-> > 
-> 
+I have two wake sources, one being the UART the console is on and the other being a GPIO button.
+
+I've tested the following situations:
+ - If I sleep using the console and wake by typing a character then I *never* get a SYNC_LOST error.
+ - If I sleep by pressing a button on the display (which does a system ("echo mem > /sys/power/state") and then wake by typing a character in to the console then 
+I *never* get a SYNC_LOST error.
+ - If I sleep by pressing a button on the display (which does a system ("echo mem > /sys/power/state") and then wake by pressing a button attached to the GPIO 
+then I get a sequence of SYNC_LOST errors which continue at a rate of about one every 0.5 seconds until a type a character in to the console and then everything 
+settles down and starts working again.
+
+So, at least from what I'm seeing, the SYNC_LOST errors seem related somehow to the UART, if that is indeed possible?
+
+Cheers,
+Joe
+
+
