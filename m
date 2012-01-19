@@ -1,57 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] lis3lv02d: Add STMicroelectronics lis33ldlh digital
-Date: Thu, 19 Jan 2012 14:26:45 +0000
-Message-ID: <201201191426.45923.arnd@arndb.de>
-References: <1324617892-14576-1-git-send-email-anilkumar@ti.com> <201201181403.47806.arnd@arndb.de> <20120118213635.GB3401@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20120118213635.GB3401@gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Andi <andi.shyti@gmail.com>
-Cc: "AnilKumar, Chimata" <anilkumar@ti.com>, "greg@kroah.com" <greg@kroah.com>, "eric.piel@tremplin-utc.net" <eric.piel@tremplin-utc.net>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nori, Sekhar" <nsekhar@ti.com>, Jonathan Cameron <jic23@cam.ac.uk>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, lm-sensors@lm-sensors.org, linux-input@vger.kernel.org, Jean Delvare <khali@linux-fr.org>
+From: Aneesh V <aneesh@ti.com>
+Subject: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF and DDR
+Date: Thu, 19 Jan 2012 19:58:38 +0530
+Message-ID: <1326983321-319-1-git-send-email-aneesh@ti.com>
+References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:48297 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751800Ab2ASO3N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jan 2012 09:29:13 -0500
+Received: by yhgm50 with SMTP id m50so2903341yhg.25
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 06:29:06 -0800 (PST)
+In-Reply-To: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Aneesh V <aneesh@ti.com>
 
-On Wednesday 18 January 2012, Andi wrote:
-> What do you mean with "kernel-wide policy for accelerometer drivers"?
-> As far as I know, accelerometer drivers are written between the i2c driver and the
-> input driver.
-> The input driver provides already some accelerometer specific event types, ABS_X, ABS_Y, ABS_Z,
-> in your opinion isn't it enough?
-> If you mean something like collecting common properties like g range or frequency or whatever in a
-> standard interface, then I think that accelerometers are quite different as devices and sometimes
-> it could be difficult to arrange a common interface.
+This is an RFC to add new device tree bindings for DDR memories and
+EMIF - TI's DDR SDRAM controller. 
 
-The problem is that we have some drivers using the input subsystem, some
-drivers using the iio subsystem and some drivers using none of these but
-interfacing with user space using some homegrown method, see my list:
+The first patch adds bindings for DDR memories. Currently,
+we have added properties for only DDR3 and LPDDR2 memories.
+However, the binding can be easily extended to describe
+other types such as DDR2 in the future.
 
-> > $ git grep -l accelerometer drivers/ | manual_grep
-> > drivers/hwmon/applesmc.c
-> >    (one hwmon sysfs attribute for x/y/z)
-> > drivers/input/misc/adxl34x.c
-> >    (lots of sysfs attributes, input_report_key)
-> > drivers/input/misc/cma3000_d0x.c
-> >    (input_report_abs)
-> > drivers/input/misc/kxtj9.c
-> >    (input_report_abs, plus one aux sysfs attribute)
-> > drivers/macintosh/ams/ams-core.c
-> >    (one sysfs attribute for x/y/z)
-> > drivers/misc/lis3lv02d/
-> >    (multiple sysfs attributes)
-> > drivers/platform/x86/hdaps.c
-> >    (multiple sysfs attributes, only x/y)
-> > drivers/platform/x86/hp_accel.c
-> >    (hooks into drivers/misc/lis3lv02d/)
-> > drivers/staging/iio/accel/kxsd9.c
-> >    (iio)
-> > drivers/staging/iio/accel/sca3000_core.c
-> >    (iio plus extra attributes)
+The second patch provides the bindings for the EMIF controller.
 
-If all drivers were using the input subsystem in the way you describe,
-that would be a good solution, but right now the majority of the
-drivers don't do this.
+The final patch provides DT data for EMIF controller instances
+in OMAP4 and LPDDR2 memories attached to them on various boards.
 
-	Arnd
+Thanks to Rajendra for answering my numerous queries on device tree.
+
+This is a re-post of the RFC that was posted to devicetree-discuss ml,
+now sent to a larger audience and looping out an internal list.
+Please ignore the previous version.
+
+Aneesh V (3):
+  dt: device tree bindings for DDR memories
+  dt: device tree bindings for TI's EMIF sdram controller
+  arm/dts: EMIF and lpddr2 device tree data for OMAP4 boards
+
+ Documentation/devicetree/bindings/ddr/ddr.txt      |  114 ++++++++++++++++++++
+ .../devicetree/bindings/ddr/ddr_timings.txt        |   62 +++++++++++
+ .../bindings/memory-controllers/ti/emif.txt        |   64 +++++++++++
+ arch/arm/boot/dts/omap-common-devices.dtsi         |   63 +++++++++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   13 +++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   13 +++
+ arch/arm/boot/dts/omap4.dtsi                       |   19 ++++
+ 7 files changed, 348 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/ddr/ddr.txt
+ create mode 100644 Documentation/devicetree/bindings/ddr/ddr_timings.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ create mode 100644 arch/arm/boot/dts/omap-common-devices.dtsi
+
