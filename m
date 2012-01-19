@@ -1,104 +1,60 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 19 Jan 2012 11:24:56 -0800
-Message-ID: <87r4yvv6k7.fsf@ti.com>
-References: <WC20120109124643.880164@terrafix.co.uk>
-	<1326386551.1896.41.camel@deskari> <87obu8sfx3.fsf@ti.com>
-	<1326432554.1700.6.camel@lappyti> <87zkdrpfha.fsf@ti.com>
-	<1326712308.1875.18.camel@deskari>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: [RFC v2 PATCH 0/3] dt: device tree bindings and data for EMIF and DDR
+Date: Thu, 19 Jan 2012 11:26:55 -0800
+Message-ID: <CAOesGMgrfZpGhKx1yHir6WEELm5ntG5GJD3YccOvVO+HhZc6NQ@mail.gmail.com>
+References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
+	<4EEFC23A.30201@gmail.com>
+	<20111219233559.GW6464@atomide.com>
+	<4EF0671B.7090508@ti.com>
+	<4EF0824A.9060208@ti.com>
+	<4EF096C9.1070808@ti.com>
+	<4F09D10B.7010807@ti.com>
+	<CAOesGMjFmM=gXddvFzW+BYqOedySjPVZ6hjwsF-F40Wr9BvSLg@mail.gmail.com>
+	<4F1087C9.6030908@ti.com>
+	<CAJOA=zNuVQ9zjhmA5Uc=ksOM2Q7AE4g9ddPDJ3e+QPnUfui4wA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:44505 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932675Ab2ASTY7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 14:24:59 -0500
-Received: by mail-iy0-f174.google.com with SMTP id f6so296061iag.19
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 11:24:58 -0800 (PST)
-In-Reply-To: <1326712308.1875.18.camel@deskari> (Tomi Valkeinen's message of
-	"Mon, 16 Jan 2012 13:11:48 +0200")
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:64057 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932652Ab2AST04 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jan 2012 14:26:56 -0500
+Received: by ghbg16 with SMTP id g16so208347ghb.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 11:26:56 -0800 (PST)
+In-Reply-To: <CAJOA=zNuVQ9zjhmA5Uc=ksOM2Q7AE4g9ddPDJ3e+QPnUfui4wA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: "Turquette, Mike" <mturquette@ti.com>
+Cc: Aneesh V <aneesh@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Rob Herring <robherring2@gmail.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
+Hi,
 
-> On Fri, 2012-01-13 at 11:30 -0800, Kevin Hilman wrote:
->> Tomi Valkeinen <tomi.valkeinen@ti.com> writes:
->
->> > pm_runtime_put() is called inside omapdss driver's .suspend callback. So
->> > I guess that means the system suspend has started. However, the logs
->> > show that the runtime_suspend callback _is_ being called before the
->> > system suspend is finished, so the workqueue can't be frozen...
->> 
->> ...or there are other ways that the runtime_suspend callback is called.
->> 
->> In order to ensure that devices are properly idled for system-wide
->> suspend, The OMAP PM domain layer will call the drivers
->> ->runtime_suspend callback during "late" suspend (using the PM domain's
->> _noirq callbacks.)
->> 
->> This is there so that even when runtime PM has been disabled (via
->> userspace, or pm_runtime_forbid() calls) the driver can still be
->> properly idled before suspend.
->> 
->> In your case, I suspect you're seeing the driver's ->runtime_suspend
->> callback called during late suspend, not by the PM workqueue.
->
-> Ok, that explains the invocation of the callbacks.
->
->> I don't understand DSS enough to make sense of the logs you sent, so not
->> sure how to be of more help.
->
-> Well, I think I can summarize the situation:
->
-> Normally, when the user wants to turn a display off, the panel drivers
-> call DSS functions to disable the corresponding output, leading to
-> pm_runtime_put() calls.
->
-> In system suspend case, the suspend callback initiates the turning off
-> of the displays, which again leads to pm_runtime_put() calls.
->
-> Now, you already said using pm_runtime_put_sync version is the correct
-> way when suspending. But to use that I need to either always use
-> pm_runtime_put_sync, or add an extra boolean which marks that we're
-> suspending, and pass that around, or make it a DSS global variable.
+On Mon, Jan 16, 2012 at 11:15 AM, Turquette, Mike <mturquette@ti.com> w=
+rote:
 
-I'm not sure why can't you use the sync version just in the suspend
-callback?
+> And delaying DVFS (at least for the parts affecting mem) until
+> userspace is loaded doesn't seem great to me either. =A0We're basical=
+ly
+> pushing back feature readiness (with respect to boot sequence) in the
+> name of organizing data in a pretty way... but it's not a pretty
+> solution since the data will have to be "split" as shown above.
 
-> Both of those options sound a bit ugly to me. So my two questions are,
->
-> 1) Is there something funny with the DSS architecture to have a problem
-> like this? I tried to grep around, but I didn't see any other driver
-> doing something like that (but I could've missed it).
->
-> 2) why can't the PM framework handle this, by directing the
-> pm_runtime_put calls to the _sync version when suspending. Somehow it
-> feels strange to me that the driver needs to care about that.
+Ok, so let's put the JEDEC SPD data in the device tree then. But I
+fail to see how that changes the "split"? There's still two sources of
+configuration, one from firmware used at boot and one from a data
+structure that the kernel uses.
 
-This has been a big debate with the runtime PM framework in general.
-Some of us have argued that system PM and runtime PM should be more
-unified, and that runtime PM calls should work "normally" from system
-suspend.  After all, system suspend could be considered simply a forced
-idle/quiecient state state where all the runtime callbacks kick in to
-idle the system.  However those of us arguing for that lost the battle
-with the PM core maintainers, and system PM and runtime PM have to be
-managed separately.
-
-I've "worked around" that by using the PM domain level calls to ensure
-runtime PM callbacks are called on system suspend, but the side effect
-is the complications you've run into.
-
-So for now, if you use runtime PM in your system PM you have to use the
-sync versions.  For most drivers I've dealt with, that means just using
-sync version in the suspend callback is required, but maybe the
-interaction of the various DSS subblocks means you need the sync version
-everywhere.
-
-Kevin
+I do think sticking to an existing well-defined data structure such as
+SPD data is to be preferred over doing an open-coded new binding. This
+way, some platforms that might or might not have SPD in hardware can
+use the same code paths (i.e. a board that has memory on a DIMM
+instead of soldered down, or that uses soldered-down SPD).
 
 
-
+-Olof
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
