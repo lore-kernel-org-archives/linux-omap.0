@@ -1,65 +1,62 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 19 Jan 2012 11:37:39 -0800
-Message-ID: <87y5t3trek.fsf@ti.com>
-References: <20120113222045.37f9b4ec@notabene.brown>
-	<1326870839.1954.23.camel@deskari>
-	<20120118221538.342b4782@notabene.brown>
-	<1326886940.1999.5.camel@lappy>
-	<20120119073032.74cc0992@notabene.brown>
-	<WC20120119101721.07072A@terrafix.co.uk>
-	<1326969658.1935.24.camel@deskari>
-	<WC20120119112911.670749@terrafix.co.uk>
-	<1326973019.7926.7.camel@lappy>
-	<WC20120119122128.020787@terrafix.co.uk>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [RFC v3 PATCH 1/3] dt: device tree bindings for DDR memories
+Date: Fri, 20 Jan 2012 02:26:38 +0530
+Message-ID: <4F188386.3080507@ti.com>
+References: <1326983521-373-1-git-send-email-aneesh@ti.com>	<1326983521-373-2-git-send-email-aneesh@ti.com> <CAOesGMikm8szKR_yyeV-4NbnknCLG3z9N_sj+zydyu+cosj-Tg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35050 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932675Ab2ASTho (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:44703 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932718Ab2ASU4t (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 14:37:44 -0500
-Received: by yenl9 with SMTP id l9so239580yen.35
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 11:37:43 -0800 (PST)
-In-Reply-To: <WC20120119122128.020787@terrafix.co.uk> (Joe Woodward's message
-	of "Thu, 19 Jan 2012 12:21:28 +0000")
+	Thu, 19 Jan 2012 15:56:49 -0500
+Received: by ggnv2 with SMTP id v2so316374ggn.26
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 12:56:47 -0800 (PST)
+In-Reply-To: <CAOesGMikm8szKR_yyeV-4NbnknCLG3z9N_sj+zydyu+cosj-Tg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, NeilBrown <neilb@suse.de>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
+To: Olof Johansson <olof@lixom.net>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-"Joe Woodward" <jw@terrafix.co.uk> writes:
+Hi Olof,
 
-[...]
-
-> If I do (either from the console or via a button press on the screen)
-> then I never get a SYNC_LOST.
+On Friday 20 January 2012 01:01 AM, Olof Johansson wrote:
+> Hi,
 >
->   echo 0 > /sys/devices/omapdss/display0/enabled
->   echo 1 > /sys/devices/omapdss/display0/enabled
+> Sorry for the delay in responding, I know you pinged me about it yesterday.
 >
-> Just trying to think of some ideas that may be affecting the DSS...
->   - Could it to be to do with the GPIO being used as a wake source (i.e. does the GPIO driver do runtime_pm properly?)?
->   - Could it to be to do with the UART as it seems to fix itself whenever a character is pressed?
->   - Could it to be to do with the ordering in which drivers are resumed?
+> On Thu, Jan 19, 2012 at 6:31 AM, Aneesh V<aneesh@ti.com>  wrote:
+>> device tree bindings for LPDDR2 SDRAM memories compliant
+>> to JESD209-2 standard.
+>>
+>> The 'lpddr2' binding in-turn uses another binding 'lpddr2-timings'
+>> for specifying the AC timing parameters of the memory device at
+>> different speed-bins.
+>
+> As I just commented on the thread with Mike, I think we would be
+> better off sticking to embedding a standard JEDEC SPD structure in the
+> device tree. It's not large (128-256 bytes depending on memory type),
+> and it's clearly defined and used all over the industry.
+>
+> It also has the benefit of reusing parsing code if you ever end up
+> with a system that uses DIMMs for memory, thus needing to parse the
+> SPD on said modules.
 
-Here's my guess/hunch as to why the UART wakeup helps and GPIO doesn't.
+I did mention in the previous thread why SPD doesn't work for us ([1] 
+and [2]). Let me repeat the key points here.
 
-The UART's are idled using timeouts, so after any activity (including a
-wakeup) the UART timeout will not alow the UARTs to idle (and thus the
-system to hit low power states) for a given timeout period.
+1. I couldn't find an SPD addendum for LPDDR2 from the JEDEC website.
+2. This seems to indicate that SPD is not used for LPDDR2 devices.
+3. I tried to see if I can fit the DDR3 or DDR2 SPD for our needs. But
+some of the AC timing parameters needed by our controller are not
+available in those layouts.
 
-I don't know what DSS does on wakeup, but presumably it has a burst of
-activity to do right away.  Because of the UART timeout, the DSS
-probably completes its "burst" of activity before the system ever idles
-to a low power state.
+I don't see any option other than defining a new binding for LPDDR2.
 
-With a GPIO wakeup, the system can (re)idle and possibly hit low power
-states immediately after the wakeup.
+br,
+Aneesh
 
-If that is the case, that suggests that the DSS probably needs a
-constraint someplace to prevent this from happening, at least during
-this "burst" period.
-
-Kevin
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg61250.html
+[2] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg60473.html
