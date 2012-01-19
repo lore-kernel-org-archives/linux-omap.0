@@ -1,103 +1,193 @@
 From: Aneesh V <aneesh@ti.com>
-Subject: [PATCH 2/3] dt: device tree bindings for TI's EMIF sdram controller
-Date: Thu, 19 Jan 2012 19:58:40 +0530
-Message-ID: <1326983321-319-3-git-send-email-aneesh@ti.com>
+Subject: [PATCH 3/3] arm/dts: EMIF and lpddr2 device tree data for OMAP4 boards
+Date: Thu, 19 Jan 2012 19:58:41 +0530
+Message-ID: <1326983321-319-4-git-send-email-aneesh@ti.com>
 References: <1324303533-17458-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:32776 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751800Ab2ASO3X (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:44333 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751800Ab2ASO3b (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:29:23 -0500
-Received: by mail-yx0-f175.google.com with SMTP id r5so2949477yen.20
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 06:29:22 -0800 (PST)
+	Thu, 19 Jan 2012 09:29:31 -0500
+Received: by ghbg21 with SMTP id g21so1877836ghb.23
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 06:29:29 -0800 (PST)
 In-Reply-To: <1324303533-17458-1-git-send-email-aneesh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Aneesh V <aneesh@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-EMIF - External Memory Interface - is an SDRAM controller used in
-TI SoCs. EMIF supports, based on the IP revision, one or more of
-DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
-of the EMIF IP and memory parts attached to it.
+Device tree data for the EMIF sdram controllers in OMAP4
+and DDR memories attached to OMAP4 boards.
 
 Cc: Rajendra Nayak <rnayak@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
 Signed-off-by: Aneesh V <aneesh@ti.com>
 ---
- .../bindings/memory-controllers/ti/emif.txt        |   62 ++++++++++++++++++++
- 1 files changed, 62 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ arch/arm/boot/dts/elpida_ecb240abacn.dtsi |   64 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/omap4-panda.dts         |   13 ++++++
+ arch/arm/boot/dts/omap4-sdp.dts           |   13 ++++++
+ arch/arm/boot/dts/omap4.dtsi              |   19 +++++++++
+ 4 files changed, 109 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
 
-diff --git a/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+diff --git a/arch/arm/boot/dts/elpida_ecb240abacn.dtsi b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
 new file mode 100644
-index 0000000..0b166e0
+index 0000000..437eaff
 --- /dev/null
-+++ b/Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
-@@ -0,0 +1,62 @@
-+* EMIF family of TI SDRAM controllers
++++ b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+@@ -0,0 +1,64 @@
++/*
++ * Common devices used in different OMAP boards
++ */
 +
-+EMIF - External Memory Interface - is an SDRAM controller used in
-+TI SoCs. EMIF supports, based on the IP revision, one or more of
-+DDR2/DDR3/LPDDR2 protocols. This binding describes a given instance
-+of the EMIF IP and memory parts attached to it.
++/ {
++	elpida_ECB240ABACN: lpddr2 {
++		compatible 	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
++		density		= <2048>;
++		io-width	= <32>;
 +
-+Required properties:
-+- compatible	: One or more of "ti,emif-lpddr22", "ti,emif-lpddr23", and
-+  "ti,emif-lpddr2"
++		tRPab-min-tck	= <3>;
++		tRCD-min-tck	= <3>;
++		tWR-min-tck	= <3>;
++		tRASmin-min-tck	= <3>;
++		tRRD-min-tck	= <2>;
++		tWTR-min-tck	= <2>;
++		tXP-min-tck	= <2>;
++		tRTP-min-tck	= <2>;
++		tCKE-min-tck	= <3>;
++		tCKESR-min-tck	= <3>;
++		tFAW-min-tck	= <8>;
 +
-+  "ti,emif-lpddr22" should be listed of the EMIF controller on this SoC
-+  supports DDR2 memories
++		timings_elpida_ECB240ABACN_400mhz: lpddr2-timings@0 {
++			compatible 	= "jedec,lpddr2-timings";
++			min-freq	= <10000000>;
++			max-freq	= <400000000>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <7500>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max 	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++		};
 +
-+  "ti,emif-lpddr23" should be listed of the EMIF controller on this SoC
-+  supports DDR3 memories
-+
-+  "ti,emif-lpddr2" should be listed of the EMIF controller on this SoC
-+  supports LPDDR2 memories
-+
-+- ti,hwmods	: For TI hwmods processing and omap device creation
-+  the value shall be "emif<n>" where <n> is the number of the EMIF
-+  instance with base 1.
-+
-+- phy-type	: <u32> indicating the DDR phy type. Following are the
-+  allowed values
-+  <1>	: Attila PHY
-+  <2>	: Intelli PHY
-+
-+- lpddr2-handle	: phandle to a "lpddr2" node representing the memory part
-+  attached to this EMIF instance.
-+
-+Optional properties:
-+- cs1-used		: Have this property if CS1 of this EMIF
-+  instance has a memory part attached to it. If there is a memory
-+  part attached to CS1, it should be the same type as the one on CS0,
-+  so there is no need to give the details of this memory part.
-+
-+- cal-resistor-per-cs	: Have this property if the board has one
-+  calibration resistor per chip-select.
-+
-+- hw-caps-read-idle-ctrl: Have this property if the controller
-+  supports read idle window programming
-+
-+- hw-caps-ll-interface	: Have this property if the controller
-+  has a low latency interface and corresponding interrupt events
-+
-+- hw-caps-temp-alert	: Have this property if the controller
-+  has capability for generating SDRAM temperature alerts
-+
-+Example:
-+
-+emif1: emif@0x4c000000 {
-+	compatible	= "ti,emif-lpddr2";
-+	ti,hwmods	= "emif2";
-+	phy-type	= <1>;
-+	lpddr2-handle	= <&elpida_ECB240ABACN>;
-+	cs1-used;
-+	hw-caps-read-idle-ctrl;
-+	hw-caps-ll-interface;
-+	hw-caps-temp-alert;
++		timings_elpida_ECB240ABACN_200mhz: lpddr2-timings@1 {
++			min-freq	= <10000000>;
++			max-freq	= <200000000>;
++			tRPab		= <21000>;
++			tRCD		= <18000>;
++			tWR		= <15000>;
++			tRAS-min	= <42000>;
++			tRRD		= <10000>;
++			tWTR		= <10000>;
++			tXP		= <7500>;
++			tRTP		= <7500>;
++			tCKESR		= <15000>;
++			tDQSCK-max 	= <5500>;
++			tFAW		= <50000>;
++			tZQCS		= <90000>;
++			tZQCL		= <360000>;
++			tZQinit		= <1000000>;
++			tRAS-max-ns	= <70000>;
++		};
++	};
 +};
+diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
+index c702657..b4f3904 100644
+--- a/arch/arm/boot/dts/omap4-panda.dts
++++ b/arch/arm/boot/dts/omap4-panda.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ /include/ "omap4.dtsi"
++/include/ "elpida_ecb240abacn.dtsi"
+ 
+ / {
+ 	model = "TI OMAP4 PandaBoard";
+@@ -26,4 +27,16 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
++
++	ocp {
++		emif1: emif@0x4c000000 {
++			cs1-used;
++			lpddr2-handle = <&elpida_ECB240ABACN>;
++		};
++
++		emif2: emif@0x4d000000 {
++			cs1-used;
++			lpddr2-handle = <&elpida_ECB240ABACN>;
++		};
++	};
+ };
+diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
+index 066e28c..7959a02 100644
+--- a/arch/arm/boot/dts/omap4-sdp.dts
++++ b/arch/arm/boot/dts/omap4-sdp.dts
+@@ -8,6 +8,7 @@
+ /dts-v1/;
+ 
+ /include/ "omap4.dtsi"
++/include/ "elpida_ecb240abacn.dtsi"
+ 
+ / {
+ 	model = "TI OMAP4 SDP board";
+@@ -26,4 +27,16 @@
+ 		device_type = "memory";
+ 		reg = <0x80000000 0x40000000>; /* 1 GB */
+ 	};
++
++	ocp {
++		emif1: emif@0x4c000000 {
++			cs1-used;
++			lpddr2-handle = <&elpida_ECB240ABACN>;
++		};
++
++		emif2: emif@0x4d000000 {
++			cs1-used;
++			lpddr2-handle = <&elpida_ECB240ABACN>;
++		};
++	};
+ };
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index e8fe75f..6399a11 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -127,5 +127,24 @@
+ 			ti,hwmods = "uart4";
+ 			clock-frequency = <48000000>;
+ 		};
++
++		emif1: emif@0x4c000000 {
++			compatible	= "ti,emif-lpddr2";
++			ti,hwmods	= "emif1";
++			phy-type	= "phy-type-omap4";
++			hw-caps-read-idle-ctrl;
++			hw-caps-ll-interface;
++			hw-caps-temp-alert;
++		};
++
++		emif2: emif@0x4d000000 {
++			compatible	= "ti,emif-lpddr2";
++			ti,hwmods	= "emif2";
++			phy-type	= <1>;
++			hw-caps-read-idle-ctrl;
++			hw-caps-ll-interface;
++			hw-caps-temp-alert;
++		};
++
+ 	};
+ };
 -- 
 1.7.1
 
