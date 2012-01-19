@@ -1,55 +1,62 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 2/3] ARM: OMAP2/3: Add idle_st bits for ST_32KSYNC timer to prcm-common header
-Date: Thu, 19 Jan 2012 19:58:23 +0530
-Message-ID: <1326983304-14619-3-git-send-email-hvaibhav@ti.com>
-References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH 0/3] ARM: OMAP1/2+: 32k-timer: Add hwmod lookup for 32k-timer
+Date: Thu, 19 Jan 2012 19:58:21 +0530
+Message-ID: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51258 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753314Ab2ASOeG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:34:06 -0500
-In-Reply-To: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57554 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290Ab2ASOeF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jan 2012 09:34:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, johnstul@us.ibm.com, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, johnstul@us.ibm.com, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Add missing idle_st bit for 32k-sync timer into the prcm-common
-header file, required for hwmod data.
+This patch series cleans up the existing 32k-sync timer implementation
+without any major code change and adds hwmod lookup for omap2+ devices,
+if lookup fails then fall back to gp-timer.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/prcm-common.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+With this, we should be able to support multi-omap boot
+including devices with/without 32k-sync timer.
+For example, AM33xx device doesn't have 32k-sync timer available,
+which breaks multi-omap boot.
 
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 5aa5435..29955d5 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -177,6 +177,8 @@
- /* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
- #define OMAP24XX_ST_GPIOS_SHIFT				2
- #define OMAP24XX_ST_GPIOS_MASK				(1 << 2)
-+#define OMAP24XX_ST_32KSYNC_SHIFT			1
-+#define OMAP24XX_ST_32KSYNC_MASK			(1 << 1)
- #define OMAP24XX_ST_GPT1_SHIFT				0
- #define OMAP24XX_ST_GPT1_MASK				(1 << 0)
- 
-@@ -307,6 +309,8 @@
- #define OMAP3430_ST_SR1_MASK				(1 << 6)
- #define OMAP3430_ST_GPIO1_SHIFT				3
- #define OMAP3430_ST_GPIO1_MASK				(1 << 3)
-+#define OMAP3430_ST_32KSYNC_SHIFT			2
-+#define OMAP3430_ST_32KSYNC_MASK			(1 << 2)
- #define OMAP3430_ST_GPT12_SHIFT				1
- #define OMAP3430_ST_GPT12_MASK				(1 << 1)
- #define OMAP3430_ST_GPT1_SHIFT				0
--- 
-1.7.0.4
+This patch-series has been boot tested on AM37xEVM platform, it
+would be helpful if somebody help me to validate it on OMAP2
+platform.
+
+Background:
+==========
+In 2010 timeframe 'Fillipe Balbi' had submitted first version
+of 32k-sync timer cleanup patches, but it did not made its way
+to the mainline.
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg37403.html
+
+Yesterday I had submitted the RFC version patch-series, which was
+built on top of earlier cleanup patches from 'Fillipe Balbi'.
+
+http://www.spinics.net/lists/linux-omap/msg63004.html
+
+Based on comments (Thanks to Russell, Marc and Tony) from community
+it was clear that, arch_init is not the correct way here.
+
+
+Vaibhav Hiremath (3):
+  ARM: OMAP2+: 32k-counter: Use hwmod lookup to check presence of 32k
+    timer
+  ARM: OMAP2/3: Add idle_st bits for ST_32KSYNC timer to prcm-common
+    header
+  ARM: OMAP2+: hwmod data: Add 32k-sync timer data to hwmod database
+
+ arch/arm/mach-omap2/omap_hwmod_2420_data.c |   53 ++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2430_data.c |   52 +++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   51 +++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    2 +-
+ arch/arm/mach-omap2/prcm-common.h          |    4 +
+ arch/arm/mach-omap2/timer.c                |   27 ++++-----
+ arch/arm/plat-omap/counter_32k.c           |   83 ++++++++++++++-------------
+ 7 files changed, 215 insertions(+), 57 deletions(-)
 
