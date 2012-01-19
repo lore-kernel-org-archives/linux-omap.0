@@ -1,113 +1,157 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Thu, 19 Jan 2012 16:52:11 +0200
-Message-ID: <1326984731.7926.27.camel@lappy>
-References: <20120113222045.37f9b4ec@notabene.brown>
-	 <1326870839.1954.23.camel@deskari> <20120118221538.342b4782@notabene.brown>
-	 <1326886940.1999.5.camel@lappy> <20120119073032.74cc0992@notabene.brown>
-	 <WC20120119101721.07072A@terrafix.co.uk> <1326969658.1935.24.camel@deskari>
-	 <WC20120119112911.670749@terrafix.co.uk> <1326973019.7926.7.camel@lappy>
-	 <WC20120119122128.020787@terrafix.co.uk>
+From: stephane eranian <eranian@googlemail.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Thu, 19 Jan 2012 18:07:01 +0100
+Message-ID: <CAMsRxfJK9kcFkV=itJHpzuOXoZQkmjj1wh8Y789D3iOVstPMyQ@mail.gmail.com>
+References: <CAAO=S0+L2Q1YZC-pfm2Lz8jPooTeHYOMaZbtRgHYFoL_m7rvhA@mail.gmail.com>
+	<4F0B182D.7060507@us.ibm.com>
+	<20120109224945.GA23090@mudshark.cambridge.arm.com>
+	<CACVXFVMnAt_YpYNC5B6W4Vh4HvtVS3D6jRORUw0AW5a4ub5aOw@mail.gmail.com>
+	<CAMsRxfJe_MEA=anzRu6jehGcZyg49uAx44_nDQ3_FRY=WrFLoA@mail.gmail.com>
+	<CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
+	<CAMsRxfLtLnMiP0ZGr6rNLv-UeLUwOSJ=7do2nezOU5OkOA+MbQ@mail.gmail.com>
+	<CACVXFVMbrQGi4Sg9TUPP5Bcc5kzFoX74n=ii4QrDRudbuDHOGg@mail.gmail.com>
+	<CAMsRxfJmHkZw2f0A+4FsStJpXk_vrxvDduRcRGkcWpqp8a9m_w@mail.gmail.com>
+	<CACVXFVOQNDRs=c8A2YC+WvYAHs5Abbz-QUEe1VJqrj2esFO11g@mail.gmail.com>
+	<CAMsRxf+e38jRcyxESLhYDZ3OL910AQdapZD9P8vWDXfUE34DAA@mail.gmail.com>
+	<CACVXFVPnhSy_DbdK+ro8G78QjL2s6fBBq1Dvq-pmxJ20qA-ymA@mail.gmail.com>
+	<CAMsRxfJ2VrfFZevkxoZzSD5fZn1CErF68y0ny+MZi5r___ERJA@mail.gmail.com>
+	<CACVXFVNixEUKmDf2iYtdJVThkYg3UeZEurbFhrod5NZhDyKRpw@mail.gmail.com>
+	<CACVXFVNfc8fKe=6LVruj387-vQ85WHL7tAgZUT=9h6AQUM0X0Q@mail.gmail.com>
+	<CAMsRxfLcO0eM8mkKUZcR8X6SG-MMRFasRK7hQCT-3-NuKN_+1g@mail.gmail.com>
+	<CACVXFVPDdyKf5TffT4OMt+tKeB09TU2RcvcyBV45hAK0qw+GEg@mail.gmail.com>
+Reply-To: eranian@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-EzUU0WGOvqdDaWQuFtvq"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35598 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753300Ab2ASOwS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:52:18 -0500
-Received: by laam7 with SMTP id m7so6002laa.1
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 06:52:15 -0800 (PST)
-In-Reply-To: <WC20120119122128.020787@terrafix.co.uk>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:53245 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847Ab2ASRHC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Jan 2012 12:07:02 -0500
+Received: by vcbfo1 with SMTP id fo1so114322vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 09:07:01 -0800 (PST)
+In-Reply-To: <CACVXFVPDdyKf5TffT4OMt+tKeB09TU2RcvcyBV45hAK0qw+GEg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>
-Cc: khilman@ti.com, NeilBrown <neilb@suse.de>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, govindraj.r@ti.com, linux-omap@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
+
+Just did a fresh clone of Linus' tree:
+
+$ git log --oneline | fgrep 'allow platform specific'
+e0516a6 arm: pmu: allow platform specific irq enable/disable handling
+
+$ git log --oneline | fgrep 'cross trigger'
+14eec97 arm: introduce cross trigger interface helpers
+
+Unless you were referring to a different pair of patches.
 
 
---=-EzUU0WGOvqdDaWQuFtvq
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2012-01-19 at 12:21 +0000, Joe Woodward wrote:
-
-> If I do (either from the console or via a button press on the screen) the=
-n I never get a SYNC_LOST.
->   echo 0 > /sys/devices/omapdss/display0/enabled
->   echo 1 > /sys/devices/omapdss/display0/enabled
->=20
-> Just trying to think of some ideas that may be affecting the DSS...
->   - Could it to be to do with the GPIO being used as a wake source (i.e. =
-does the GPIO driver do runtime_pm properly?)?
->   - Could it to be to do with the UART as it seems to fix itself whenever=
- a character is pressed?
->   - Could it to be to do with the ordering in which drivers are resumed?
-
-Well, none of these sound probable to me. I don't see any connection
-with GPIOs or UART as such with DSS (I mean something that could cause
-sync losts).
-
-The only thing that I can see affecting DSS via GPIO/UART is indirectly
-via PM, with voltages or clocks. But if DSS responds in some way, I
-presume the voltages are ok. And your clocks should be low enough to
-work with lower OPPs also. So I'm quite out of ideas.
-
-Of course there could be a problem in the omapdss when it returns its
-registers. But it wouldn't explain why the synclosts end if you press a
-key in the console.
-
-> Is the SYNC_LOST normally due to a lack of memory bandwidth? If so, it is=
- possible to find out what the kernel is doing during the resume?
-
-No. That should cause fifo underflows. I don't know the exact reasons
-for sync_lost, but I think it generally means that the DSS sub-modules
-lose sync with each other. Mostly this is due to clock config, but can
-be cause also by other (wrong) configuration which makes a DSS
-sub-module behave somehow wrong (or halt totally).
-
-> And before looking at this too much more, is the changing of the pm_runti=
-me_put to the _sync versions the correct fix?
-
-Well. I think it's a correct fix, in functional sense. However, I would
-like to use non-sync versions normally, but that's just for performance
-optimization.
-
-> Sorry for so many questions, but I'm interested in getting this fixed as =
-it's the only thing stopping me from switching to 3.2 from 3.0!
-
-The only idea I have currently is to add/enable debug prints which show
-information about PM changing its states, so we could see if something
-actually changes at the moment you press a key in the console.
-
-What kind of setup did you have again? I wonder if I could reproduce it
-easily with overo/beagle (it was omap3, wasn't it?)?
-
- Tomi
-
-
---=-EzUU0WGOvqdDaWQuFtvq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPGC4bAAoJEPo9qoy8lh710TMQAJj++W6jiZXuZueigKq4oGeN
-R7u93Fjy+6wXMz+4hKn5c/ALot1oBbmvyUDjt2LdRETLdi4BDDdmf2YCx4LXhUtL
-BtXccoUX0/q6XxZKwfT7lpaqAa0hx9I6MW38soV0LBRb9uZO7usGKDz6VK7HvpCb
-WCj3r4mME3E1T+Z0n4dfDnA1n0QMpdOBzRx6eSFdmHxmjF4NTJv0H5tzpQr9KGXz
-fdp9qNO+ZJC4nmxpLpA2g3rEHvFv80YKiGW1jwy7iHgfleplKTAcKi0CCT+3KeXN
-1nj/kNbXdGX0PXQ5Du67WK4lD3PkeFNYILJ/lgO6j/uPn+xL0sUaQEEO2cqBp3e6
-Hc4qRFZ454lrCn2QHtgvgSH5oeNHxGLIhUKlhf/1aVD2qAN5v2FnYY4Tz2X4tRlZ
-tGjCy2NQIZ5GhfsMhUa83APA64Zp4CIS0FQZvtZ5tei9z+ar58MCYhSDnsxKWxQ9
-ARkqd4fEL9soeDEq1H35BMEEUIGbgiN3yUq2aqwSaQYlYXsQBVndLEpG3v0Zjyab
-kMzYmz77YQZNStrulB002TC6allo+Q+ocnJwIO3j1th5nw8azbZkkFxLFPtZAC45
-teog5F2XRPIbXG/N3be5VZUxDd679v4cF0E1uvLto4VP0L4f7dXKL9dOcZfz7ch6
-2DMmJco34ewgbrIXLEeI
-=n/0k
------END PGP SIGNATURE-----
-
---=-EzUU0WGOvqdDaWQuFtvq--
-
+On Thu, Jan 19, 2012 at 2:51 PM, Ming Lei <ming.lei@canonical.com> wrot=
+e:
+> Hi,
+>
+> On Thu, Jan 19, 2012 at 9:32 PM, stephane eranian
+> <eranian@googlemail.com> wrote:
+>> On Thu, Jan 19, 2012 at 2:26 PM, Ming Lei <ming.lei@canonical.com> w=
+rote:
+>>> Hi,
+>>>
+>>> On Thu, Jan 19, 2012 at 9:14 PM, Ming Lei <ming.lei@canonical.com> =
+wrote:
+>>>> On Thu, Jan 19, 2012 at 8:51 PM, stephane eranian
+>>>> <eranian@googlemail.com> wrote:
+>>>>> On Thu, Jan 19, 2012 at 1:45 PM, Ming Lei <ming.lei@canonical.com=
+> wrote:
+>>>>>> Hi,
+>>>>>>
+>>>>>> On Thu, Jan 19, 2012 at 7:34 PM, stephane eranian
+>>>>>> <eranian@googlemail.com> wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> Ok some update on this.
+>>>>>>> With your .config file + 3.2.0 (Linus) + patch 3, 4, 5, 6, I ge=
+t a kernel that
+>>>>>>
+>>>>>> You forget patch 1 and patch 2?
+>>>>>>
+>>>>> They are already in 3.2.0. Unless I am mistaken.
+>>>>
+>>>> Sorry, I just found that they have been merged to 3.2.
+>>>
+>>> After a double check, the two patches are not merged to 3.2, but ha=
+ve
+>>> been merged to the latest linus tree and can be seen in 3.3-rc1.
+>>>
+>>> Also the commit 3c50729b(ARM: OMAP4: PM: Initialise all the clockdo=
+mains
+>>> to supported states) has been merged to linus tree too.
+>>>
+>>> So if you just tested the latest linus tree simply, you need to app=
+ly
+>>> the patch[1]
+>>> (I have mentioned the problem in the thread.)
+>>>
+>>
+>> Changing LMO, u-boot.bin did not help. Even with perf top I get no
+>> interrupts.
+>>
+>> My Linus tree is at commit fa1952b:
+>>
+>> [6] 11891e1 arm: omap4: pmu: support runtime pm
+>> [5] 25fab8a arm: omap4: support pmu
+>> [4] fddef77 arm: omap4: create pmu device via hwmod
+>>
+>> fa1952b ARM: OMAP4: hwmod data: Add support for the debug modules
+>
+> Sorry, there is no commit fa1952b in linus[1] tree at all, so you are
+> not testing
+> linus tree...
+>
+> If you'd like to follow my instructions, I can help you further.
+>
+>> ccb19d2 Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/ne=
+t
+>> c3b5003 tg3: Fix single-vector MSI-X code
+>>
+>> I think [1] had conflicts when applying it to the tree.
+>
+> It is only one line(one character) change, you can do it manually.
+>
+>>
+>>> thanks,
+>>> --
+>>> Ming Lei
+>>>
+>>> [1],
+>>> diff --git a/arch/arm/mach-omap2/clockdomains44xx_data.c
+>>> b/arch/arm/mach-omap2/clockdomains44xx_data.c
+>>> index 9299ac2..41d2260 100644
+>>> --- a/arch/arm/mach-omap2/clockdomains44xx_data.c
+>>> +++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+>>> @@ -390,7 +390,7 @@ static struct clockdomain emu_sys_44xx_clkdm =3D=
+ {
+>>> =C2=A0 =C2=A0 =C2=A0 .prcm_partition =C2=A0 =3D OMAP4430_PRM_PARTIT=
+ION,
+>>> =C2=A0 =C2=A0 =C2=A0 .cm_inst =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D=
+ OMAP4430_PRM_EMU_CM_INST,
+>>> =C2=A0 =C2=A0 =C2=A0 .clkdm_offs =C2=A0 =C2=A0 =C2=A0 =3D OMAP4430_=
+PRM_EMU_CM_EMU_CDOFFS,
+>>> - =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0=3D CLKDM_CAN_HWSUP,
+>>> + =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0=3D CLKDM_CAN_SWSUP,
+>>> =C2=A0};
+>>>
+>
+> [1], http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux.git;a=
+=3Dsummary
+>
+> thanks,
+> --
+> Ming Lei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
