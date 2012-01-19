@@ -1,198 +1,55 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: [RFC v3 PATCH 3/3] arm/dts: EMIF and lpddr2 device tree data for OMAP4 boards
-Date: Thu, 19 Jan 2012 20:02:01 +0530
-Message-ID: <1326983521-373-4-git-send-email-aneesh@ti.com>
-References: <1326983521-373-1-git-send-email-aneesh@ti.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/3] ARM: OMAP2/3: Add idle_st bits for ST_32KSYNC timer to prcm-common header
+Date: Thu, 19 Jan 2012 19:58:23 +0530
+Message-ID: <1326983304-14619-3-git-send-email-hvaibhav@ti.com>
+References: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:33517 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753259Ab2ASOcg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:32:36 -0500
-Received: by mail-yw0-f54.google.com with SMTP id s35so2080844yhf.41
-        for <linux-omap@vger.kernel.org>; Thu, 19 Jan 2012 06:32:35 -0800 (PST)
-In-Reply-To: <1326983521-373-1-git-send-email-aneesh@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51258 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753314Ab2ASOeG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Jan 2012 09:34:06 -0500
+In-Reply-To: <1326983304-14619-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Aneesh V <aneesh@ti.com>, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>, Olof Johansson <olof@lixom.net>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, marc.zyngier@arm.com, johnstul@us.ibm.com, Vaibhav Hiremath <hvaibhav@ti.com>, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Device tree data for the EMIF sdram controllers in OMAP4
-and LPDDR memory devices attached to OMAP4 boards.
+Add missing idle_st bit for 32k-sync timer into the prcm-common
+header file, required for hwmod data.
 
-Cc: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Olof Johansson <olof@lixom.net>
-Signed-off-by: Aneesh V <aneesh@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 ---
-Changes in RFC v3:
-* Fixed review comments from RFC v2
----
- arch/arm/boot/dts/elpida_ecb240abacn.dtsi |   65 +++++++++++++++++++++++++++++
- arch/arm/boot/dts/omap4-panda.dts         |   13 ++++++
- arch/arm/boot/dts/omap4-sdp.dts           |   13 ++++++
- arch/arm/boot/dts/omap4.dtsi              |   19 ++++++++
- 4 files changed, 110 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+ arch/arm/mach-omap2/prcm-common.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/boot/dts/elpida_ecb240abacn.dtsi b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
-new file mode 100644
-index 0000000..2384233
---- /dev/null
-+++ b/arch/arm/boot/dts/elpida_ecb240abacn.dtsi
-@@ -0,0 +1,65 @@
-+/*
-+ * Common devices used in different OMAP boards
-+ */
-+
-+/ {
-+	elpida_ECB240ABACN: lpddr2 {
-+		compatible 	= "Elpida,ECB240ABACN","jedec,lpddr2-s4";
-+		density		= <2048>;
-+		io-width	= <32>;
-+
-+		tRPab-min-tck	= <3>;
-+		tRCD-min-tck	= <3>;
-+		tWR-min-tck	= <3>;
-+		tRASmin-min-tck	= <3>;
-+		tRRD-min-tck	= <2>;
-+		tWTR-min-tck	= <2>;
-+		tXP-min-tck	= <2>;
-+		tRTP-min-tck	= <2>;
-+		tCKE-min-tck	= <3>;
-+		tCKESR-min-tck	= <3>;
-+		tFAW-min-tck	= <8>;
-+
-+		timings_elpida_ECB240ABACN_400mhz: lpddr2-timings@0 {
-+			compatible 	= "jedec,lpddr2-timings";
-+			min-freq	= <10000000>;
-+			max-freq	= <400000000>;
-+			tRPab		= <21000>;
-+			tRCD		= <18000>;
-+			tWR		= <15000>;
-+			tRAS-min	= <42000>;
-+			tRRD		= <10000>;
-+			tWTR		= <7500>;
-+			tXP		= <7500>;
-+			tRTP		= <7500>;
-+			tCKESR		= <15000>;
-+			tDQSCK-max 	= <5500>;
-+			tFAW		= <50000>;
-+			tZQCS		= <90000>;
-+			tZQCL		= <360000>;
-+			tZQinit		= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+		};
-+
-+		timings_elpida_ECB240ABACN_200mhz: lpddr2-timings@1 {
-+			compatible 	= "jedec,lpddr2-timings";
-+			min-freq	= <10000000>;
-+			max-freq	= <200000000>;
-+			tRPab		= <21000>;
-+			tRCD		= <18000>;
-+			tWR		= <15000>;
-+			tRAS-min	= <42000>;
-+			tRRD		= <10000>;
-+			tWTR		= <10000>;
-+			tXP		= <7500>;
-+			tRTP		= <7500>;
-+			tCKESR		= <15000>;
-+			tDQSCK-max 	= <5500>;
-+			tFAW		= <50000>;
-+			tZQCS		= <90000>;
-+			tZQCL		= <360000>;
-+			tZQinit		= <1000000>;
-+			tRAS-max-ns	= <70000>;
-+		};
-+	};
-+};
-diff --git a/arch/arm/boot/dts/omap4-panda.dts b/arch/arm/boot/dts/omap4-panda.dts
-index c702657..9b46802 100644
---- a/arch/arm/boot/dts/omap4-panda.dts
-+++ b/arch/arm/boot/dts/omap4-panda.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
+diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+index 5aa5435..29955d5 100644
+--- a/arch/arm/mach-omap2/prcm-common.h
++++ b/arch/arm/mach-omap2/prcm-common.h
+@@ -177,6 +177,8 @@
+ /* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
+ #define OMAP24XX_ST_GPIOS_SHIFT				2
+ #define OMAP24XX_ST_GPIOS_MASK				(1 << 2)
++#define OMAP24XX_ST_32KSYNC_SHIFT			1
++#define OMAP24XX_ST_32KSYNC_MASK			(1 << 1)
+ #define OMAP24XX_ST_GPT1_SHIFT				0
+ #define OMAP24XX_ST_GPT1_MASK				(1 << 0)
  
- /include/ "omap4.dtsi"
-+/include/ "elpida_ecb240abacn.dtsi"
- 
- / {
- 	model = "TI OMAP4 PandaBoard";
-@@ -26,4 +27,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
-+
-+	ocp {
-+		emif1: emif@0x4c000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 066e28c..896d682 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -8,6 +8,7 @@
- /dts-v1/;
- 
- /include/ "omap4.dtsi"
-+/include/ "elpida_ecb240abacn.dtsi"
- 
- / {
- 	model = "TI OMAP4 SDP board";
-@@ -26,4 +27,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
-+
-+	ocp {
-+		emif1: emif@0x4c000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			cs1-used;
-+			device-handle = <&elpida_ECB240ABACN>;
-+		};
-+	};
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index e8fe75f..bd57229 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -127,5 +127,24 @@
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
- 		};
-+
-+		emif1: emif@0x4c000000 {
-+			compatible	= "ti,emif-4d";
-+			ti,hwmods	= "emif1";
-+			phy-type	= <1>;
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
-+
-+		emif2: emif@0x4d000000 {
-+			compatible	= "ti,emif-4d";
-+			ti,hwmods	= "emif2";
-+			phy-type	= <1>;
-+			hw-caps-read-idle-ctrl;
-+			hw-caps-ll-interface;
-+			hw-caps-temp-alert;
-+		};
-+
- 	};
- };
+@@ -307,6 +309,8 @@
+ #define OMAP3430_ST_SR1_MASK				(1 << 6)
+ #define OMAP3430_ST_GPIO1_SHIFT				3
+ #define OMAP3430_ST_GPIO1_MASK				(1 << 3)
++#define OMAP3430_ST_32KSYNC_SHIFT			2
++#define OMAP3430_ST_32KSYNC_MASK			(1 << 2)
+ #define OMAP3430_ST_GPT12_SHIFT				1
+ #define OMAP3430_ST_GPT12_MASK				(1 << 1)
+ #define OMAP3430_ST_GPT1_SHIFT				0
 -- 
-1.7.1
+1.7.0.4
 
