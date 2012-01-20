@@ -1,55 +1,67 @@
 From: Govindraj <govindraj.ti@gmail.com>
 Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
-Date: Fri, 20 Jan 2012 16:51:33 +0530
-Message-ID: <CAAL8m4zN7iRAWcV32+z+MrFcgaOnk_r-npA9uLLS+S7w1O2LYg@mail.gmail.com>
-References: <1327055619.1921.57.camel@deskari> <CAAL8m4xNj=-=tz7Fkv_MQzvQy5iNj9n10=00KAi0=ixtQ1GVVA@mail.gmail.com>
- <1327057644.1921.59.camel@deskari>
+Date: Fri, 20 Jan 2012 17:26:45 +0530
+Message-ID: <CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
+References: <1327055619.1921.57.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:61363 "EHLO
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:58120 "EHLO
 	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751733Ab2ATLVz (ORCPT
+	by vger.kernel.org with ESMTP id S1750950Ab2ATL5H (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jan 2012 06:21:55 -0500
-Received: by lahc1 with SMTP id c1so251741lah.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 03:21:54 -0800 (PST)
-In-Reply-To: <1327057644.1921.59.camel@deskari>
+	Fri, 20 Jan 2012 06:57:07 -0500
+Received: by lahc1 with SMTP id c1so270695lah.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 03:57:06 -0800 (PST)
+In-Reply-To: <1327055619.1921.57.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>, Rajendra Nayak <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>
 
-On Fri, Jan 20, 2012 at 4:37 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> On Fri, 2012-01-20 at 16:19 +0530, Govindraj wrote:
->> On Fri, Jan 20, 2012 at 4:03 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
->> > Hi,
->> >
->> > I'm testing v3.3-rc1 on OMAP3 overo, and I'm having problems probably
->> > related to PM.
->> >
->> > First, when I boot up, the console (via USB serial) is very laggy, it
->> > often takes many seconds until the key pressed appears so it's more or
->> > less unusable.
->>
->> can you try enabling CONFIG_CPU_IDLE ?
+On Fri, Jan 20, 2012 at 4:03 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> Hi,
 >
-> Enabling CPU_IDLE does remove the problems. I don't know what it's
-> supposed to do, but it seems to keep the MPU and DSS in ON state all the
-> time, so the problem disappears.
+> I'm testing v3.3-rc1 on OMAP3 overo, and I'm having problems probably
+> related to PM.
+>
+> First, when I boot up, the console (via USB serial) is very laggy, it
+> often takes many seconds until the key pressed appears so it's more or
+> less unusable.
+>
+> Second, I compile DSS as modules, and don't load them. Looking at
+> debugfs/pm_debug/time, I can see that both RET and ON for dss_pwrdm are
+> increasing. What is making DSS powerdomain switch back and forth?
+>
+> Third, when I load the DSS modules, I see only ON state increasing for
+> dss_pwrdm, as it should be. However, I'm getting constant stream of sync
+> losts from DSS, and the display doesn't basically work at all.
+>
+> I can see MPU pwrdm going into RET a lot, and if I do "while true; do
+> echo foo; done", which I presume basically prevents RET for MPU, the
+> display becomes stable.
+>
+> This sounds a bit like the problem reported by Joe (DSS2/PM on 3.2
+> broken?), although this is happening all the time. In this case, as in
+> Joe's, the DSS fck is well below 96MHz, which is the limit on OMAP3 for
+> DSS fclk on OPP2. And I'm not aware of any other constraints for DSS
+> (well, memory throughput, but that should cause fifo underflows).
+>
+> Is there a way to lock the OPP to the full power OPP?
+>
 
-3.3-rc1 has uart runtime patches merged we have removed uart dependency
-for system to enter low powers states and used pm_qos calls,
-but pm_qos api's seem do get activated only by enabling  config_cpu_idle.
+btw,
 
-Question to kevin/Paul,
+I think enabling cpu_idle and performance governor to should ensure that.
 
-Shouldn't system be doing wfi if cpu_idle is not enabled ?
+However enabling performance governor boot fails.
 
-since we are mapping omap3_pm_idle to pm_idle thread
-system enters low power states even if config_cpu_idle is not enabled.
-Is this expected behavior?
+failure logs as in here [1]. I was using latest mainline and beagle -XM
 
 --
 Thanks,
 Govindraj.R
+
+[1]:
+
+http://pastebin.com/9ZfB2V6B
