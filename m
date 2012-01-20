@@ -1,7 +1,7 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [PATCH 13/31] ARM: amba: nomadik: get rid of NO_IRQ initializers
-Date: Fri, 20 Jan 2012 09:26:48 +0000
-Message-ID: <E1RoAkC-0005F9-GQ@rmk-PC.arm.linux.org.uk>
+Subject: [PATCH 14/31] ARM: amba: netx: get rid of NO_IRQ initializers
+Date: Fri, 20 Jan 2012 09:27:08 +0000
+Message-ID: <E1RoAkW-0005FD-UH@rmk-PC.arm.linux.org.uk>
 References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -10,34 +10,26 @@ In-Reply-To: <20120120092207.GD1068@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-mmc-owner@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, STEricsson <STEricsson_nomadik_linux@list.st.com>
-Cc: Alessandro Rubini <rubini@unipv.it>, Linus Walleij <linus.walleij@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-nomadik/board-nhk8815.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-netx/fb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-nomadik/board-nhk8815.c b/arch/arm/mach-nomadik/board-nhk8815.c
-index 7c878bf..721e51c 100644
---- a/arch/arm/mach-nomadik/board-nhk8815.c
-+++ b/arch/arm/mach-nomadik/board-nhk8815.c
-@@ -191,13 +191,13 @@ static void __init nhk8815_onenand_init(void)
- static struct amba_device uart0_device = {
- 	.dev = { .init_name = "uart0" },
- 	__MEM_4K_RESOURCE(NOMADIK_UART0_BASE),
--	.irq = {IRQ_UART0, NO_IRQ},
-+	.irq = {IRQ_UART0},
+diff --git a/arch/arm/mach-netx/fb.c b/arch/arm/mach-netx/fb.c
+index b991323..eda856c 100644
+--- a/arch/arm/mach-netx/fb.c
++++ b/arch/arm/mach-netx/fb.c
+@@ -102,7 +102,7 @@ static struct amba_device fb_device = {
+ 		.end	= 0x00104fff,
+ 		.flags	= IORESOURCE_MEM,
+ 	},
+-	.irq		= { NETX_IRQ_LCD, NO_IRQ },
++	.irq		= { NETX_IRQ_LCD },
  };
  
- static struct amba_device uart1_device = {
- 	.dev = { .init_name = "uart1" },
- 	__MEM_4K_RESOURCE(NOMADIK_UART1_BASE),
--	.irq = {IRQ_UART1, NO_IRQ},
-+	.irq = {IRQ_UART1},
- };
- 
- static struct amba_device *amba_devs[] __initdata = {
+ int netx_fb_init(struct clcd_board *board, struct clcd_panel *panel)
 -- 
 1.7.4.4
 
