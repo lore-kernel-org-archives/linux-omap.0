@@ -1,70 +1,50 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
-Date: Fri, 20 Jan 2012 13:34:44 +0100
-Message-ID: <CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
-References: <1327055619.1921.57.camel@deskari>
-	<CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
-	<1327060886.1921.63.camel@deskari>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 05/31] ARM: amba: mxs: convert to use amba_device_alloc
+Date: Fri, 20 Jan 2012 12:39:23 +0000
+Message-ID: <20120120123923.GP16726@n2100.arm.linux.org.uk>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
+ <E1RoAhZ-0005EY-BZ@rmk-PC.arm.linux.org.uk>
+ <20120120122535.GA25917@S2101-09.ap.freescale.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:36144 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751911Ab2ATMep convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jan 2012 07:34:45 -0500
-Received: by vcbfo1 with SMTP id fo1so308083vcb.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 04:34:44 -0800 (PST)
-In-Reply-To: <1327060886.1921.63.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20120120122535.GA25917@S2101-09.ap.freescale.net>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: linux-samsung-soc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>, STEricsson <STEricsson_nomadik_linux@list.st.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>
 
-Tomi,
+On Fri, Jan 20, 2012 at 08:25:39PM +0800, Shawn Guo wrote:
+> On Fri, Jan 20, 2012 at 09:24:05AM +0000, Russell King - ARM Linux wrote:
+> > Convert MXS to use the new amba_device_alloc APIs.
+> > 
+> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > ---
+> >  arch/arm/mach-mxs/devices.c |    8 +++++---
+> >  1 files changed, 5 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-mxs/devices.c b/arch/arm/mach-mxs/devices.c
+> > index fe3e847..052d8dd 100644
+> > --- a/arch/arm/mach-mxs/devices.c
+> > +++ b/arch/arm/mach-mxs/devices.c
+> > @@ -77,16 +77,18 @@ struct platform_device *__init mxs_add_platform_device_dmamask(
+> >  
+> >  int __init mxs_add_amba_device(const struct amba_device *dev)
+> >  {
+> > -	struct amba_device *adev = kmalloc(sizeof(*adev), GFP_KERNEL);
+> > +	struct amba_device *adev = amba_device_alloc(dev->init_name,
+> 
+> The 'dev->init_name' needs to be 'dev->dev.init_name'.  Otherwise, we
+> see the compile error below.
 
-On Fri, Jan 20, 2012 at 1:01 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
- wrote:
-> On Fri, 2012-01-20 at 17:26 +0530, Govindraj wrote:
->> On Fri, Jan 20, 2012 at 4:03 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
-om> wrote:
->
->> > Is there a way to lock the OPP to the full power OPP?
->> >
->>
->> btw,
->>
->> I think enabling cpu_idle and performance governor to should ensure =
-that.
->>
->> However enabling performance governor boot fails.
->
-> I thought so too, and tried it but got the same crash as you.
->
-> However, I'd imagine that if I don't enable CPU idle or the governors=
-,
-> the board would stay in full power mode always. But this doesn't seem=
- to
-> be the case.
->
-> Then again, I don't see how CPU power management could affect the DSS
-> directly. So it's probably something like: cpu goes to RET -> somethi=
-ng
-> else is allowed go to lower power state (L3?) -> DSS breaks.
-It is probably related to the CORE state. Can you check if CORE goes
-to low power mode when CPU_IDLE is enabled?
-To prevent the CORE from going into a too-low power mode you need to
-request a PM QoS constraint, as Govindraj explained here above.
-
-Hope this helps!
-
-Jean
-
->
-> =A0Tomi
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Good catch, fixed, and ack added, thanks.
