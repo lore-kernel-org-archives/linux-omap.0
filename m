@@ -1,104 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
 Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
-Date: Fri, 20 Jan 2012 14:40:56 +0200
-Message-ID: <1327063256.1921.68.camel@deskari>
-References: <1327055619.1921.57.camel@deskari>
-	 <CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
-	 <1327060886.1921.63.camel@deskari>
-	 <CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
+Date: Fri, 20 Jan 2012 18:14:44 +0530
+Message-ID: <CAAL8m4xoT72T+3gtOEGdJOuUna04hDGS=xUuoRX4_EPNrT23pQ@mail.gmail.com>
+References: <1327055619.1921.57.camel@deskari> <CAAL8m4xNj=-=tz7Fkv_MQzvQy5iNj9n10=00KAi0=ixtQ1GVVA@mail.gmail.com>
+ <1327057644.1921.59.camel@deskari> <CAAL8m4zN7iRAWcV32+z+MrFcgaOnk_r-npA9uLLS+S7w1O2LYg@mail.gmail.com>
+ <CAORVsuXGf4Cvxnsbw1yRoRmWiX+M4CZMU2Wpnj4PF=k2i4u-aw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-EfGgdiQck9E/B33M74iS"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:54310 "HELO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750950Ab2ATMlB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jan 2012 07:41:01 -0500
-Received: by mail-lpp01m010-f42.google.com with SMTP id m7so817644laa.1
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 04:40:59 -0800 (PST)
-In-Reply-To: <CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:53316 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750950Ab2ATMpH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Jan 2012 07:45:07 -0500
+Received: by lahc1 with SMTP id c1so295729lah.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 04:45:05 -0800 (PST)
+In-Reply-To: <CAORVsuXGf4Cvxnsbw1yRoRmWiX+M4CZMU2Wpnj4PF=k2i4u-aw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: Govindraj <govindraj.ti@gmail.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>, Rajendra Nayak <rnayak@ti.com>
+
+On Fri, Jan 20, 2012 at 6:02 PM, Jean Pihet <jean.pihet@newoldbits.com>=
+ wrote:
+> Govindraj,
+>
+> On Fri, Jan 20, 2012 at 12:21 PM, Govindraj <govindraj.ti@gmail.com> =
+wrote:
+>> On Fri, Jan 20, 2012 at 4:37 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
+om> wrote:
+>>> On Fri, 2012-01-20 at 16:19 +0530, Govindraj wrote:
+>>>> On Fri, Jan 20, 2012 at 4:03 PM, Tomi Valkeinen <tomi.valkeinen@ti=
+=2Ecom> wrote:
+>>>> > Hi,
+>>>> >
+>>>> > I'm testing v3.3-rc1 on OMAP3 overo, and I'm having problems pro=
+bably
+>>>> > related to PM.
+>>>> >
+>>>> > First, when I boot up, the console (via USB serial) is very lagg=
+y, it
+>>>> > often takes many seconds until the key pressed appears so it's m=
+ore or
+>>>> > less unusable.
+>>>>
+>>>> can you try enabling CONFIG_CPU_IDLE ?
+>>>
+>>> Enabling CPU_IDLE does remove the problems. I don't know what it's
+>>> supposed to do, but it seems to keep the MPU and DSS in ON state al=
+l the
+>>> time, so the problem disappears.
+>>
+>> 3.3-rc1 has uart runtime patches merged we have removed uart depende=
+ncy
+>> for system to enter low powers states and used pm_qos calls,
+>> but pm_qos api's seem do get activated only by enabling =A0config_cp=
+u_idle.
+>>
+>> Question to kevin/Paul,
+>>
+>> Shouldn't system be doing wfi if cpu_idle is not enabled ?
+>>
+>> since we are mapping omap3_pm_idle to pm_idle thread
+>> system enters low power states even if config_cpu_idle is not enable=
+d.
+>> Is this expected behavior?
+
+> Yes the wfi instruction gets executed in all cases.
+> However with CPU_IDLE enabled a valid C-state is selected, depending
+> on the requested PM QoS constraints. Then the MPU and CORE next power
+> states are programmed accordingly.
+>
+
+okay, but if cpuidle is not selected shouldn't it prevent system from g=
+oing
+to low power state.
 
 
---=-EfGgdiQck9E/B33M74iS
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2012-01-20 at 13:34 +0100, Jean Pihet wrote:
-> Tomi,
->=20
-> On Fri, Jan 20, 2012 at 1:01 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
-> > On Fri, 2012-01-20 at 17:26 +0530, Govindraj wrote:
-> >> On Fri, Jan 20, 2012 at 4:03 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
-> >
-> >> > Is there a way to lock the OPP to the full power OPP?
-> >> >
-> >>
-> >> btw,
-> >>
-> >> I think enabling cpu_idle and performance governor to should ensure th=
-at.
-> >>
-> >> However enabling performance governor boot fails.
-> >
-> > I thought so too, and tried it but got the same crash as you.
-> >
-> > However, I'd imagine that if I don't enable CPU idle or the governors,
-> > the board would stay in full power mode always. But this doesn't seem t=
-o
-> > be the case.
-> >
-> > Then again, I don't see how CPU power management could affect the DSS
-> > directly. So it's probably something like: cpu goes to RET -> something
-> > else is allowed go to lower power state (L3?) -> DSS breaks.
-> It is probably related to the CORE state. Can you check if CORE goes
-> to low power mode when CPU_IDLE is enabled?
-
-This is without CPU_IDLE, i.e. when I'm having problems:
-
-# cat /debug/pm_debug/count |grep -i core
-core_pwrdm
-(ON),OFF:0,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2=
--OFF:0
-
-According to that, core is always on.
-
-> To prevent the CORE from going into a too-low power mode you need to
-> request a PM QoS constraint, as Govindraj explained here above.
-
-What different power modes there are? With the clock configs I'm using
-(small display, low clock rates), both OPP100 and OPP50 should work
-fine.
-
- Tomi
-
-
---=-EfGgdiQck9E/B33M74iS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPGWDYAAoJEPo9qoy8lh71WhwP/jPWglPYbOdSes+0tR6gLSqH
-qvgEiJWeAWNOA4YJ5XQxYb3q9YtDjZ1pGUreewzbMX7fzIbXq4tKsPsT7OuRMFSX
-PoBD9FhHyTcyHQmmMbtz+MOdUbZPvKjPNOiLMIGL2NFhJ1j2GDSerqjQg+Wt4Cql
-KJH1WFgmztvZUW5nMXmcpG1Gx0t/qy7iaCeXuNUWmteOq1hNt91p1K1zpgFmFh3M
-P8kgfBwW3jl7/60iiaoB5VJlkRuRxXcKlRRMyIKjTWjBdlj4+nB5xIQLHjbbio1S
-9vn9nrxn9pSZHigmpM44r+KKzloUz70uokLIXLDyNM5fUmNiDD0b/+S36TekPRlx
-VvF4RyPW+mfJpSEh8UFVPsVBJVHJiINsWsExaxq+ttvqKCQHZ+5K5NWDzZC1uVzP
-Zi+Qz5VbQ4RI6hKimLhLvpSap7Bi59mj/xESB+fP/JwwTjdORBJ8G1Vzg4yoDC7E
-sVf997F49cy8eEip1snwhwox5207akz16AptS1MVQWHdRDvmE9mUH4ktQ9V9kOGC
-vzsoxn/ItUHFdorxaL7KFJ6Y1LFMOAifjWB16cZmpag0mp+s57O3N1AK+J2h8BWW
-W61JHiQTCYfkgKK5qOpKev8SoYz1YVrauQ17vve+ESbuy4PpVXwIECcjpukmlFva
-LxNcun/WwxRkyBnvNXq5
-=IBbT
------END PGP SIGNATURE-----
-
---=-EfGgdiQck9E/B33M74iS--
-
+--
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
