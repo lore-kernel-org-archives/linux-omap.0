@@ -1,50 +1,27 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: GPMC: fix device size setup
-Date: Fri, 20 Jan 2012 17:02:31 +0100
-Message-ID: <4F199017.80506@visionsystems.de>
-Reply-To: yegor_sub1@visionsystems.de
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: RE: [PATCH 24/31] ARM: amba: ep93xx: use common amba device
+ initializers
+Date: Fri, 20 Jan 2012 10:56:59 -0600
+Message-ID: <ADE657CA350FB648AAC2C43247A983F001F3F9D0681B@AUSP01VMBX24.collaborationhost.net>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
+ <E1RoAnm-0005Fu-Pc@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.visionsystems.de ([62.145.30.242]:52424 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649Ab2ATQ0r (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jan 2012 11:26:47 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <E1RoAnm-0005Fu-Pc@rmk-PC.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-mmc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>
+Cc: Ryan Mallon <rmallon@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>
 
-following statement can only change device size from 8-bit(0) to 16-bit(1),
-but not vice versa:
+On Friday, January 20, 2012 2:31 AM, Russell King wrote:
+>
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/mach-ep93xx/core.c |   46 +++++-------------------------------------
+>  1 files changed, 6 insertions(+), 40 deletions(-)
 
-regval |= GPMC_CONFIG1_DEVICESIZE(wval);
-
-so as this field has 1 reserved bit, that could be used in future,
-just clear both bits and then OR with the desired value
-
-Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
----
- arch/arm/mach-omap2/gpmc.c |    6 ++++++
- 1 file changed, 6 insertions(+)
-
-Index: b/arch/arm/mach-omap2/gpmc.c
-===================================================================
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -528,7 +528,13 @@
- 
- 	case GPMC_CONFIG_DEV_SIZE:
- 		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
-+
-+		/* clear 2 target bits */
-+		regval &= ~GPMC_CONFIG1_DEVICESIZE(3);
-+
-+		/* set the proper value */
- 		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
-+
- 		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
- 		break;
- 
+Acked-by: H Hartley Sweeten <hsweeten@visionengravers.com>
 
