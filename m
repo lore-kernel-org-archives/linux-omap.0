@@ -1,141 +1,82 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: OMAP4 hwmod problem when unloading omapdss
-Date: Fri, 20 Jan 2012 12:09:53 +0200
-Message-ID: <1327054193.1921.37.camel@deskari>
+Subject: PM(?) problems on v3.3-rc1 on OMAP3
+Date: Fri, 20 Jan 2012 12:33:39 +0200
+Message-ID: <1327055619.1921.57.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-r1EtqoqShXbEGhy5VZ7Q"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-5G9oEp1MNrBNatn65pZK"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:36407 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752447Ab2ATKJ6 (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:38875 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750736Ab2ATKdo (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jan 2012 05:09:58 -0500
-Received: by mail-lpp01m010-f45.google.com with SMTP id j13so245998lah.4
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 02:09:56 -0800 (PST)
+	Fri, 20 Jan 2012 05:33:44 -0500
+Received: by mail-lpp01m010-f43.google.com with SMTP id o2so413598lag.16
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 02:33:42 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: linux-omap mailing list <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com
+Cc: linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>
 
 
---=-r1EtqoqShXbEGhy5VZ7Q
+--=-5G9oEp1MNrBNatn65pZK
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Benoit,
+Hi,
 
-I see the below WARNING on v3.3-rc1, running on OMAP4460 Panda, when I
-unload the DSS modules. This didn't happen on v3.2, or linux-next from a
-few weeks ago.
+I'm testing v3.3-rc1 on OMAP3 overo, and I'm having problems probably
+related to PM.
+
+First, when I boot up, the console (via USB serial) is very laggy, it
+often takes many seconds until the key pressed appears so it's more or
+less unusable.
+
+Second, I compile DSS as modules, and don't load them. Looking at
+debugfs/pm_debug/time, I can see that both RET and ON for dss_pwrdm are
+increasing. What is making DSS powerdomain switch back and forth?
+
+Third, when I load the DSS modules, I see only ON state increasing for
+dss_pwrdm, as it should be. However, I'm getting constant stream of sync
+losts from DSS, and the display doesn't basically work at all.
+
+I can see MPU pwrdm going into RET a lot, and if I do "while true; do
+echo foo; done", which I presume basically prevents RET for MPU, the
+display becomes stable.
+
+This sounds a bit like the problem reported by Joe (DSS2/PM on 3.2
+broken?), although this is happening all the time. In this case, as in
+Joe's, the DSS fck is well below 96MHz, which is the limit on OMAP3 for
+DSS fclk on OPP2. And I'm not aware of any other constraints for DSS
+(well, memory throughput, but that should cause fifo underflows).
+
+Is there a way to lock the OPP to the full power OPP?
+
+Is there a way to see the OPP being used?
 
  Tomi
 
 
-[   29.667572] ------------[ cut here ]------------
-[   29.667572] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1604 _idle+0x16=
-4/0x17c()
-[   29.674774] omap_hwmod: dss_hdmi: idle state can only be entered from en=
-abled state
-[   29.688293] Modules linked in: cfbimgblt cfbfillrect cfbcopyarea omapdss=
-(-) [last unloaded: panel
-_dvi]
-[   29.693084] [<c001b614>] (unwind_backtrace+0x0/0xf0) from [<c0041d70>] (=
-warn_slowpath_common+0x4c
-/0x64)
-[   29.703918] [<c0041d70>] (warn_slowpath_common+0x4c/0x64) from [<c0041e1=
-c>] (warn_slowpath_fmt+0x
-30/0x40)
-[   29.717987] [<c0041e1c>] (warn_slowpath_fmt+0x30/0x40) from [<c0027fdc>]=
- (_idle+0x164/0x17c)
-[   29.724670] [<c0027fdc>] (_idle+0x164/0x17c) from [<c0028850>] (omap_hwm=
-od_idle+0x24/0x40)
-[   29.729461] [<c0028850>] (omap_hwmod_idle+0x24/0x40) from [<c003b670>] (=
-omap_device_idle_hwmods+0
-x24/0x3c)
-[   29.745086] [<c003b670>] (omap_device_idle_hwmods+0x24/0x3c) from [<c003=
-b860>] (_omap_device_deac
-tivate+0x9c/0x138)
-[   29.745086] [<c003b860>] (_omap_device_deactivate+0x9c/0x138) from [<c00=
-3c270>] (omap_device_idle
-+0x28/0x54)
-[   29.745086] [<c003c270>] (omap_device_idle+0x28/0x54) from [<c003c2b8>] =
-(_od_runtime_suspend+0x1c
-/0x24)
-[   29.776672] [<c003c2b8>] (_od_runtime_suspend+0x1c/0x24) from [<c02b5a68=
->] (__rpm_callback+0x70/0
-x98)
-[   29.786346] [<c02b5a68>] (__rpm_callback+0x70/0x98) from [<c02b5f08>] (r=
-pm_suspend+0x240/0x6c0)
-[   29.786346] [<c02b5f08>] (rpm_suspend+0x240/0x6c0) from [<c02b734c>] (__=
-pm_runtime_suspend+0x5c/0
-x74)
-[   29.799774] [<c02b734c>] (__pm_runtime_suspend+0x5c/0x74) from [<c02b2ec=
-4>] (pm_generic_runtime_i
-dle+0x44/0x4c)
-[   29.807586] [<c02b2ec4>] (pm_generic_runtime_idle+0x44/0x4c) from [<c02b=
-5a68>] (__rpm_callback+0x
-70/0x98)
-[   29.807586] [<c02b5a68>] (__rpm_callback+0x70/0x98) from [<c02b64fc>] (r=
-pm_idle+0x100/0x228)
-[   29.831085] [<c02b64fc>] (rpm_idle+0x100/0x228) from [<c02b66f4>] (__pm_=
-runtime_idle+0x5c/0x74)
-[   29.843658] [<c02b66f4>] (__pm_runtime_idle+0x5c/0x74) from [<c02ae6a4>]=
- (__device_release_driver
-+0x50/0xc0)
-[   29.846649] [<c02ae6a4>] (__device_release_driver+0x50/0xc0) from [<c02a=
-ed0c>] (driver_detach+0xb
-4/0xb8)
-[   29.863891] [<c02aed0c>] (driver_detach+0xb4/0xb8) from [<c02ae580>] (bu=
-s_remove_driver+0x7c/0xc0
-)
-[   29.870086] [<c02ae580>] (bus_remove_driver+0x7c/0xc0) from [<bf0000f0>]=
- (omap_dss_remove+0x14/0x
-6c [omapdss])
-[   29.877929] [<bf0000f0>] (omap_dss_remove+0x14/0x6c [omapdss]) from [<c0=
-2afe60>] (platform_drv_re
-move+0x18/0x1c)
-[   29.893463] [<c02afe60>] (platform_drv_remove+0x18/0x1c) from [<c02ae6c4=
->] (__device_release_driv
-er+0x70/0xc0)
-[   29.901489] [<c02ae6c4>] (__device_release_driver+0x70/0xc0) from [<c02a=
-ed0c>] (driver_detach+0xb
-4/0xb8)
-[   29.901489] [<c02aed0c>] (driver_detach+0xb4/0xb8) from [<c02ae580>] (bu=
-s_remove_driver+0x7c/0xc0
-)
-[   29.924499] [<c02ae580>] (bus_remove_driver+0x7c/0xc0) from [<bf020e98>]=
- (omap_dss_exit+0x48/0x58
- [omapdss])
-[   29.932586] [<bf020e98>] (omap_dss_exit+0x48/0x58 [omapdss]) from [<c009=
-8f54>] (sys_delete_module
-+0x164/0x254)
-[   29.940399] [<c0098f54>] (sys_delete_module+0x164/0x254) from [<c0013c80=
->] (ret_fast_syscall+0x0/
-0x3c)
-[   29.955139] ---[ end trace 52be023ca95d7e20 ]---
-
-
---=-r1EtqoqShXbEGhy5VZ7Q
+--=-5G9oEp1MNrBNatn65pZK
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPGT1xAAoJEPo9qoy8lh71AOgQAJdqX5bSMQoqyI1jZ5brI5Mb
-L+NkBfXA6Xrkk1cYqG9/YzrGL0wTf5boBaerui94oL+poJn8u12mZlcQJz+RToGA
-tLSjAv73cxph59dQ0tFKHtLlEAGK8vnzyZ31HFVLi1V8F15lsnsq3O3SJVyox0nc
-4WDG7SJHOZo8yUutR8cmfewHc7vUok4ppqWYn5VB1pwrbs9Msvoxu38iLWPefg/+
-fkXsZfm8m7UXL1CnMat7WVnwQJLHVgRdjXKVHpL9sIDB3iDEvVmBjSFOTKDNDiNV
-QMGJ2JaIysXLaMTwEPDIoFpp1FKBBUmv+i6f6BPVa3tzVxrmJ5QbB2gOqwm83xKV
-NXSW+W94wcgL1XkG6kvZb1co1WlWjgVcKa38yv0OicU1/3eB+oZ1ch2OInCB3NUr
-Ib6YmiuF0qS/YqMoXfKRKfb9pBSPCmzH2cXlYMWtlCzExOnN1zKAEdqdjFYR+L84
-o2Nz95dVIkLfhk08c4F/CYDX0MtdvRkFTvs3BeuyZg18L93bQ8ah9LVq6NnGbyfG
-6ol4vD+H4cG4YJC+70SpytlKN7ZRx9XJ8wj/+n/sxpcjD+30FZVGIN7lel1heFdO
-NOPHVkxtbTCzzRp2Kmf5sHpkSbLcACUYOsM/Cm/1gud14sk3V1rlZFlgLOlmsG+u
-zI8shv5maOVPbaXnRvkY
-=Iwp+
+iQIcBAABAgAGBQJPGUMDAAoJEPo9qoy8lh71d08QAJfSN65W8m3x3n1WbWEuSCzu
+pRU5CCToOdvzYDF7n7q05xCV/3p196LnSPrYpp/jrELH5reSDkxQuN2BMBnMID6G
+UVxgdp8j5rKrtvL0eelmV3c/WackKebfaI34u4XBfrrCbyL0TDnxtYyVFUs20I2m
+Reb+/wuwi0gEsZ+IxFegXeJzPPyhbp24G1/u81ESt9St2tGBb/u6NVkSKB+wQIY2
+wdAQd9wPAbKIZ66fmmGB3BhcFy/+pSyH7/zM36L3VvVykJhBG5C1yRf4XiYoLK53
+ExWaASkdCF0Eobrp9JAs15WB5haEsXmwo4YVJJFo0uOXg7JS+oIkjzY1pgidrmmc
+BWT8M8WQvwUHnMdzJKRL9HuxJrLbqkfzKV6CT1LZ2zgM/KmDdsPCkuRxGsBTPK1b
+fAc+Bmxy6g3XsG/zP+iRWvtgIMZnqh0I7zy75vOqmfhjT5oNbeu3pcqJgIBmq34H
+nF1Dkv9EkJfZEiM3AYMPwJSiaG1VjqVCZF1g/0ma7GSxKCEic8YFcwsMV7ooRqRW
+4eni5pZ4ZzEt+Jzb+bJsZDHyNpeifj2eCkmUcBgZ5UD8Bby8vUAX+RuZ+5nfT5Rl
+0VhSGzuXD0w5oVVKeveXX2GCUEqgI1ClgMmzhm7+lNAeKIWhv2hlAVLl7z6y1fMf
+QWZYZLXQ34W5R15Lesnn
+=JOJC
 -----END PGP SIGNATURE-----
 
---=-r1EtqoqShXbEGhy5VZ7Q--
+--=-5G9oEp1MNrBNatn65pZK--
 
