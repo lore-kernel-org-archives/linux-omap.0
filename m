@@ -1,64 +1,57 @@
-From: "Palande, Ameya" <ameya.palande@ti.com>
-Subject: Re: [PATCH] OMAP4: Clock: Force a DPLL clkdm/pwrdm ON before a relock
-Date: Fri, 20 Jan 2012 11:53:11 -0800
-Message-ID: <CAHFNHeWH24iSwumFKwjB+8Tx=+t-XbWjO5YqzH2R9ta0FZWvAQ@mail.gmail.com>
-References: <1327000976-30912-1-git-send-email-ameya.palande@ti.com>
+From: Colin Cross <ccross@android.com>
+Subject: Re: [PATCH 0/3] coupled cpuidle state support
+Date: Fri, 20 Jan 2012 12:40:03 -0800
+Message-ID: <CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+	<4F1929E9.7070707@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:36732 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755662Ab2ATTxM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Jan 2012 14:53:12 -0500
-Received: by mail-tul01m020-f177.google.com with SMTP id uz6so1667544obc.22
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 11:53:11 -0800 (PST)
-In-Reply-To: <1327000976-30912-1-git-send-email-ameya.palande@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <4F1929E9.7070707@linaro.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: rnayak@ti.com, ameya.palande@ti.com, nm@ti.com
 
-Any update on this?
+On Fri, Jan 20, 2012 at 12:46 AM, Daniel Lezcano
+<daniel.lezcano@linaro.org> wrote:
+> Hi Colin,
+>
+> this patchset could be interesting to resolve in a generic way the cpu
+> dependencies.
+> What is the status of this patchset ?
 
-On Thu, Jan 19, 2012 at 11:22 AM, Ameya Palande <ameya.palande@ti.com> =
-wrote:
-> From: Rajendra Nayak <rnayak@ti.com>
->
-> All DPLLs except USB are in ALWON powerdomain. Make sure the
-> clkdm/pwrdm for USB DPLL (l3init) is turned on before attempting
-> a DPLL relock. So, mark the database accordingly.
->
-> Without this fix, it was seen that DPLL relock fails while testing
-> relock in a loop of USB DPLL.
->
-> CC: Nishanth Menon <nm@ti.com>
-> Tested-by: Ameya Palande <ameya.palande@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A01 +
-> =A01 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-oma=
-p2/clock44xx_data.c
-> index 08e86d7..9519374 100644
-> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> @@ -974,6 +974,7 @@ static struct clk dpll_usb_ck =3D {
-> =A0 =A0 =A0 =A0.recalc =A0 =A0 =A0 =A0 =3D &omap3_dpll_recalc,
-> =A0 =A0 =A0 =A0.round_rate =A0 =A0 =3D &omap2_dpll_round_rate,
-> =A0 =A0 =A0 =A0.set_rate =A0 =A0 =A0 =3D &omap3_noncore_dpll_set_rate=
-,
-> + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "l3_init_clkdm",
-> =A0};
->
-> =A0static struct clk dpll_usb_clkdcoldo_ck =3D {
-> --
-> 1.7.4.1
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I can't do much with it right now, because I don't have any devices
+that can do SMP idle with a v3.2 kernel.  I've started working on an
+updated version that avoids the spinlock, but it might be a while
+before I can test and post it.  I'm mostly looking for feedback on the
+approach taken in this patch, and whether it will be useful for other
+SoCs besides Tegra and OMAP4.
+
+> Did you have the opportunity to measure the power consumption with and
+> without this patchset ?
+
+Power consumption will be very dependent on the specific SoC in
+question.  The most important factors are the power savings of the
+independent cpuidle state (normally WFI) vs. the hotplug state
+(normally 1 cpu in OFF), and the workload being tested.
+
+On a very idle system, these patches result in the same total power as
+hotplugging one cpu and letting the other idle normally.  On a 25%
+busy system, you might see a slight increase in power, as the best
+independent cpuidle state might be WFI, vs 1 cpu in OFF mode in
+hotplug.  On OMAP4, that difference is small, on the order of 10 mW.
+Once you hit the threshold where a hotplug governor would have
+hotplugged in the second cpu (lets say 40%), the savings from these
+patches are enormous, as you can hit the lowest power state up to 60%
+of the time, where the hotplug solution would never be going below WFI
+on both cpus.  On OMAP4, that can be well over 100 mW.
