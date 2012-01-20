@@ -1,61 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] i2c: OMAP: Fix OMAP1 build error
-Date: Fri, 20 Jan 2012 08:22:46 -0800
-Message-ID: <20120120162245.GN22818@atomide.com>
-References: <4F198E58.4070509@ti.com>
+Subject: Re: GPMC: fix device size setup
+Date: Fri, 20 Jan 2012 08:25:47 -0800
+Message-ID: <20120120162546.GO22818@atomide.com>
+References: <4F199017.80506@visionsystems.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:32132 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:36528 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753577Ab2ATQWv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jan 2012 11:22:51 -0500
+	with ESMTP id S1754016Ab2ATQZs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jan 2012 11:25:48 -0500
 Content-Disposition: inline
-In-Reply-To: <4F198E58.4070509@ti.com>
+In-Reply-To: <4F199017.80506@visionsystems.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Ben Dooks <ben-linux@fluff.org>, linux-omap <linux-omap@vger.kernel.org>
+To: Yegor Yefremov <yegor_sub1@visionsystems.de>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Cousson, Benoit <b-cousson@ti.com> [120120 07:22]:
-> CONFIG_OF is not defined for OMAP1 yet and thus the omap1_defconfig build
-> generate an error for 3.3-rc1.
+* Yegor Yefremov <yegor_sub1@visionsystems.de> [120120 07:29]:
+> following statement can only change device size from 8-bit(0) to 16-bit(1),
+> but not vice versa:
 > 
-> drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_probe':
-> drivers/i2c/busses/i2c-omap.c:1021:26: error: 'omap_i2c_of_match' undeclared (first use in this function)
-> drivers/i2c/busses/i2c-omap.c:1021:26: note: each undeclared identifier is reported only once for each function it appears in
+> regval |= GPMC_CONFIG1_DEVICESIZE(wval);
 > 
-> Wrap omap_i2c_of_match with of_match_ptr() to prevent compilation error in case of OMAP1 build.
-> 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Ben Dooks <ben-linux@fluff.org>
+> so as this field has 1 reserved bit, that could be used in future,
+> just clear both bits and then OR with the desired value
 
-Thanks, Ben care to ack this one? I'd like to apply it into
-my fixes branch so I can compile and boot test all the
-following fixes without having to apply this fix every
-time I compile ;)
+Looks like a valid fix to me. Care to repost it with linux-arm-kernel
+mailing list also Cc'd so I can apply it into my fixes branch?
 
-Regards,
+Thanks,
 
 Tony
-
+ 
+> Signed-off-by: Yegor Yefremov <yegorslists@googlemail.com>
 > ---
->  drivers/i2c/busses/i2c-omap.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/gpmc.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index f713eac..801df60 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -1018,7 +1018,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  		goto err_release_region;
->  	}
+> Index: b/arch/arm/mach-omap2/gpmc.c
+> ===================================================================
+> --- a/arch/arm/mach-omap2/gpmc.c
+> +++ b/arch/arm/mach-omap2/gpmc.c
+> @@ -528,7 +528,13 @@
 >  
-> -	match = of_match_device(omap_i2c_of_match, &pdev->dev);
-> +	match = of_match_device(of_match_ptr(omap_i2c_of_match), &pdev->dev);
->  	if (match) {
->  		u32 freq = 100000; /* default to 100000 Hz */
+>  	case GPMC_CONFIG_DEV_SIZE:
+>  		regval  = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +
+> +		/* clear 2 target bits */
+> +		regval &= ~GPMC_CONFIG1_DEVICESIZE(3);
+> +
+> +		/* set the proper value */
+>  		regval |= GPMC_CONFIG1_DEVICESIZE(wval);
+> +
+>  		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1, regval);
+>  		break;
 >  
-> -- 
-> 1.7.0.4
 > 
