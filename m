@@ -1,70 +1,39 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 4/5] ARM : OMAP : serial : Make context_loss_cnt signed
-Date: Fri, 20 Jan 2012 14:22:23 +0530
-Message-ID: <CAAL8m4zEs4H6o3svnkRVG8ejChD-kshF40XKrGfA_ERH--5Oyw@mail.gmail.com>
-References: <1326709360-26020-1-git-send-email-shubhrajyoti@ti.com> <1326709360-26020-5-git-send-email-shubhrajyoti@ti.com>
+From: "Joe Woodward" <jw@terrafix.co.uk>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by
+	uBoot)?
+Date: Fri, 20 Jan 2012 08:57:11 +0000
+Message-ID: <WC20120120085711.330803@terrafix.co.uk>
+References: <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com> <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com> <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com> <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1326709360-26020-5-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:46911 "EHLO
+	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751953Ab2ATI5l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Jan 2012 03:57:41 -0500
+In-Reply-To: <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: Aneesh V <aneesh@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Jan 16, 2012 at 3:52 PM, Shubhrajyoti D <shubhrajyoti@ti.com> w=
-rote:
-> get_context_loss_count returns an int however it is stored in
-> unsigned integer context_loss_cnt . This patch tries to make
-> context_loss_cnt int. So that in case of errors(which may be negative=
-)
-> the value is not interpreted wrongly.
->
+> 
+> So I re-iterate that we need to have solution to this problem.
+> 
 
-This change should be part [1] patch of itself
+... I don't want to be a pain, but it seems to me that this dicussion didn't reach a full conclussion?
 
-[1]:
+I think it was left with the open options being:
+1) Leave the L2/outer cache enabled in the bootloader (not ideal and may cause problems with future devices)
+2) Turn the L2/outer cache on for OMAP3 later in the kernel boot when the device is known
 
-[PATCH 5/5] OMAP : serial : Check for error in get_context_loss_count
+Is there any concensus?
 
---
-Thanks,
-Govindraj.R
+Cheers,
+Joe
+
+> Regards
+> Santosh
 
 
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
-> =A0arch/arm/plat-omap/include/plat/omap-serial.h | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/plat/omap-serial.h b/arch/arm=
-/plat-omap/include/plat/omap-serial.h
-> index 9ff4444..b7fb6dc 100644
-> --- a/arch/arm/plat-omap/include/plat/omap-serial.h
-> +++ b/arch/arm/plat-omap/include/plat/omap-serial.h
-> @@ -128,7 +128,7 @@ struct uart_omap_port {
-> =A0 =A0 =A0 =A0unsigned char =A0 =A0 =A0 =A0 =A0 msr_saved_flags;
-> =A0 =A0 =A0 =A0char =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0name[20];
-> =A0 =A0 =A0 =A0unsigned long =A0 =A0 =A0 =A0 =A0 port_activity;
-> - =A0 =A0 =A0 u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 context_los=
-s_cnt;
-> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 context_los=
-s_cnt;
-> =A0 =A0 =A0 =A0u32 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 errata;
-> =A0 =A0 =A0 =A0u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0wakeups_=
-enabled;
->
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
