@@ -1,104 +1,140 @@
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Fri, 20 Jan 2012 09:46:33 +0100
-Message-ID: <4F1929E9.7070707@linaro.org>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCH 3/5] omap-serial: Fix the error handling in the
+ omap_serial probe
+Date: Fri, 20 Jan 2012 14:19:17 +0530
+Message-ID: <CAAL8m4xVOiGjOHvf=Uy4m9QbqxO21pFeB2HcC_zGijj-+VF_jw@mail.gmail.com>
+References: <1326709360-26020-1-git-send-email-shubhrajyoti@ti.com> <1326709360-26020-4-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:33392 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207Ab2ATIqj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jan 2012 03:46:39 -0500
-In-Reply-To: <1324426147-16735-1-git-send-email-ccross@android.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <1326709360-26020-4-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@android.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@lists.linux-foundation.org, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Amit Kucheria <amit.kucheria@linaro.org>, Arjan van de Ven <arjan@linux.intel.com>, Trinabh Gupta <g.trinabh@gmail.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 
-On 12/21/2011 01:09 AM, Colin Cross wrote:
-> On some ARM SMP SoCs (OMAP4460, Tegra 2, and probably more), the
-> cpus cannot be independently powered down, either due to
-> sequencing restrictions (on Tegra 2, cpu 0 must be the last to
-> power down), or due to HW bugs (on OMAP4460, a cpu powering up
-> will corrupt the gic state unless the other cpu runs a work
-> around).  Each cpu has a power state that it can enter without
-> coordinating with the other cpu (usually Wait For Interrupt, or
-> WFI), and one or more "coupled" power states that affect blocks
-> shared between the cpus (L2 cache, interrupt controller, and
-> sometimes the whole SoC).  Entering a coupled power state must
-> be tightly controlled on both cpus.
+On Mon, Jan 16, 2012 at 3:52 PM, Shubhrajyoti D <shubhrajyoti@ti.com> w=
+rote:
+> The patch does the following
 >
-> The easiest solution to implementing coupled cpu power states is
-> to hotplug all but one cpu whenever possible, usually using a
-> cpufreq governor that looks at cpu load to determine when to
-> enable the secondary cpus.  This causes problems, as hotplug is an
-> expensive operation, so the number of hotplug transitions must be
-> minimized, leading to very slow response to loads, often on the
-> order of seconds.
+> - The pm_runtime_disable is called in the remove not in the error
+> =A0case of probe.The patch calls the pm_runtime_disable in the error
+> =A0case.
+> - The =A0up is not freed in the error path. Fix the memory leak by ca=
+lling
+> =A0kfree in the error path.
+> - Also the iounmap is not called fix the same by calling iounmap in t=
+he
+> =A0error case of probe and remove .
+> - Make the name of the error tags more meaningful.
 >
-> This patch series implements an alternative solution, where each
-> cpu will wait in the WFI state until all cpus are ready to enter
-> a coupled state, at which point the coupled state function will
-> be called on all cpus at approximately the same time.
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> =A0drivers/tty/serial/omap-serial.c | =A0 27 +++++++++++++++++-------=
+---
+> =A01 files changed, 17 insertions(+), 10 deletions(-)
 >
-> Once all cpus are ready to enter idle, they are woken by an smp
-> cross call.  At this point, there is a chance that one of the
-> cpus will find work to do, and choose not to enter suspend.  A
-> final pass is needed to guarantee that all cpus will call the
-> power state enter function at the same time.  During this pass,
-> each cpu will increment the ready counter, and continue once the
-> ready counter matches the number of online coupled cpus.  If any
-> cpu exits idle, the other cpus will decrement their counter and
-> retry.
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
+ap-serial.c
+> index 1c24269..8c6f137 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1369,14 +1369,14 @@ static int serial_omap_probe(struct platform_=
+device *pdev)
 >
-> To use coupled cpuidle states, a cpuidle driver must:
+> =A0 =A0 =A0 =A0dma_rx =3D platform_get_resource_byname(pdev, IORESOUR=
+CE_DMA, "rx");
+> =A0 =A0 =A0 =A0if (!dma_rx) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENXIO;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto do_release_region;
+> =A0 =A0 =A0 =A0}
 >
->     Set struct cpuidle_device.coupled_cpus to the mask of all
->     coupled cpus, usually the same as cpu_possible_mask if all cpus
->     are part of the same cluster.  The coupled_cpus mask must be
->     set in the struct cpuidle_device for each cpu.
+> =A0 =A0 =A0 =A0dma_tx =3D platform_get_resource_byname(pdev, IORESOUR=
+CE_DMA, "tx");
+> =A0 =A0 =A0 =A0if (!dma_tx) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENXIO;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto do_release_region;
+> =A0 =A0 =A0 =A0}
 >
->     Set struct cpuidle_device.safe_state to a state that is not a
->     coupled state.  This is usually WFI.
+> =A0 =A0 =A0 =A0up =3D kzalloc(sizeof(*up), GFP_KERNEL);
+> @@ -1403,7 +1403,7 @@ static int serial_omap_probe(struct platform_de=
+vice *pdev)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "failed to get ali=
+as/pdev id, errno %d\n",
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0up->port.line);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -ENODEV;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_port_line;
+> =A0 =A0 =A0 =A0}
 >
->     Set CPUIDLE_FLAG_COUPLED in struct cpuidle_state.flags for each
->     state that affects multiple cpus.
+> =A0 =A0 =A0 =A0sprintf(up->name, "OMAP UART%d", up->port.line);
+> @@ -1412,7 +1412,7 @@ static int serial_omap_probe(struct platform_de=
+vice *pdev)
+> =A0 =A0 =A0 =A0if (!up->port.membase) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(&pdev->dev, "can't ioremap UAR=
+T\n");
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -ENOMEM;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_ioremap;
+> =A0 =A0 =A0 =A0}
 >
->     Provide a struct cpuidle_state.enter function for each state
->     that affects multiple cpus.  This function is guaranteed to be
->     called on all cpus at approximately the same time.  The driver
->     should ensure that the cpus all abort together if any cpu tries
->     to abort once the function is called.
+> =A0 =A0 =A0 =A0up->port.flags =3D omap_up_info->flags;
+> @@ -1458,16 +1458,22 @@ static int serial_omap_probe(struct platform_=
+device *pdev)
 >
-> This series was functionally tested on v3.0, but has only been
-> compile-tested on v3.2 after the removal of per-cpu state fields.
+> =A0 =A0 =A0 =A0ret =3D uart_add_one_port(&serial_omap_reg, &up->port)=
+;
+> =A0 =A0 =A0 =A0if (ret !=3D 0)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto do_release_region;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_add_port;
+>
+> =A0 =A0 =A0 =A0pm_runtime_put(&pdev->dev);
+> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, up);
+> =A0 =A0 =A0 =A0return 0;
+> -err:
+> - =A0 =A0 =A0 dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdev->i=
+d, __func__, ret);
+> +
+> +err_add_port:
+> + =A0 =A0 =A0 pm_runtime_disable(&pdev->dev);
+> + =A0 =A0 =A0 iounmap(up->port.membase);
+> +err_ioremap:
+> +err_port_line:
+> + =A0 =A0 =A0 kfree(up);
+> =A0do_release_region:
+> =A0 =A0 =A0 =A0release_mem_region(mem->start, resource_size(mem));
+> + =A0 =A0 =A0 dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdev->i=
+d, __func__, ret);
+> =A0 =A0 =A0 =A0return ret;
+> =A0}
+>
+> @@ -1476,6 +1482,7 @@ static int serial_omap_remove(struct platform_d=
+evice *dev)
+> =A0 =A0 =A0 =A0struct uart_omap_port *up =3D platform_get_drvdata(dev=
+);
+>
+> =A0 =A0 =A0 =A0if (up) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 iounmap(up->port.membase);
 
-Hi Colin,
+you can build omap-serial as module insmod and rmmod
+the module and test this patch.
 
-this patchset could be interesting to resolve in a generic way the cpu=20
-dependencies.
-What is the status of this patchset ?
-
-Did you have the opportunity to measure the power consumption with and=20
-without this patchset ?
-
-Thanks
--- Daniel
-
---=20
-  <http://www.linaro.org/>  Linaro.org =E2=94=82 Open source software f=
-or ARM SoCs
-
-=46ollow Linaro:<http://www.facebook.com/pages/Linaro>  Facebook |
-<http://twitter.com/#!/linaroorg>  Twitter |
-<http://www.linaro.org/linaro-blog/>  Blog
-
+This can be done on zoom board which uses a non-omap uart
+as console.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+Thanks,
+Govindraj.R
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
