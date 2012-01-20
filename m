@@ -1,118 +1,92 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 3/5] omap-serial: Fix the error handling in the omap_serial
- probe
-Date: Fri, 20 Jan 2012 15:05:06 +0530
-Message-ID: <4F19354A.4040707@ti.com>
-References: <1326709360-26020-1-git-send-email-shubhrajyoti@ti.com> <1326709360-26020-4-git-send-email-shubhrajyoti@ti.com> <CAAL8m4xVOiGjOHvf=Uy4m9QbqxO21pFeB2HcC_zGijj-+VF_jw@mail.gmail.com>
+From: Viresh Kumar <viresh.kumar@st.com>
+Subject: Re: [PATCH 30/31] ARM: amba: spear: use common amba device initializers
+Date: Fri, 20 Jan 2012 15:08:32 +0530
+Message-ID: <4F193618.7070407@st.com>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk> <E1RoApj-0005GI-HJ@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAL8m4xVOiGjOHvf=Uy4m9QbqxO21pFeB2HcC_zGijj-+VF_jw@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <E1RoApj-0005GI-HJ@rmk-PC.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 20 January 2012 02:19 PM, Govindraj wrote:
-> On Mon, Jan 16, 2012 at 3:52 PM, Shubhrajyoti D <shubhrajyoti@ti.com> wrote:
->> The patch does the following
->>
->> - The pm_runtime_disable is called in the remove not in the error
->>  case of probe.The patch calls the pm_runtime_disable in the error
->>  case.
->> - The  up is not freed in the error path. Fix the memory leak by calling
->>  kfree in the error path.
->> - Also the iounmap is not called fix the same by calling iounmap in the
->>  error case of probe and remove .
->> - Make the name of the error tags more meaningful.
->>
->> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
->> ---
->>  drivers/tty/serial/omap-serial.c |   27 +++++++++++++++++----------
->>  1 files changed, 17 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
->> index 1c24269..8c6f137 100644
->> --- a/drivers/tty/serial/omap-serial.c
->> +++ b/drivers/tty/serial/omap-serial.c
->> @@ -1369,14 +1369,14 @@ static int serial_omap_probe(struct platform_device *pdev)
->>
->>        dma_rx = platform_get_resource_byname(pdev, IORESOURCE_DMA, "rx");
->>        if (!dma_rx) {
->> -               ret = -EINVAL;
->> -               goto err;
->> +               ret = -ENXIO;
->> +               goto do_release_region;
->>        }
->>
->>        dma_tx = platform_get_resource_byname(pdev, IORESOURCE_DMA, "tx");
->>        if (!dma_tx) {
->> -               ret = -EINVAL;
->> -               goto err;
->> +               ret = -ENXIO;
->> +               goto do_release_region;
->>        }
->>
->>        up = kzalloc(sizeof(*up), GFP_KERNEL);
->> @@ -1403,7 +1403,7 @@ static int serial_omap_probe(struct platform_device *pdev)
->>                dev_err(&pdev->dev, "failed to get alias/pdev id, errno %d\n",
->>                                                                up->port.line);
->>                ret = -ENODEV;
->> -               goto err;
->> +               goto err_port_line;
->>        }
->>
->>        sprintf(up->name, "OMAP UART%d", up->port.line);
->> @@ -1412,7 +1412,7 @@ static int serial_omap_probe(struct platform_device *pdev)
->>        if (!up->port.membase) {
->>                dev_err(&pdev->dev, "can't ioremap UART\n");
->>                ret = -ENOMEM;
->> -               goto err;
->> +               goto err_ioremap;
->>        }
->>
->>        up->port.flags = omap_up_info->flags;
->> @@ -1458,16 +1458,22 @@ static int serial_omap_probe(struct platform_device *pdev)
->>
->>        ret = uart_add_one_port(&serial_omap_reg, &up->port);
->>        if (ret != 0)
->> -               goto do_release_region;
->> +               goto err_add_port;
->>
->>        pm_runtime_put(&pdev->dev);
->>        platform_set_drvdata(pdev, up);
->>        return 0;
->> -err:
->> -       dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
->> -                               pdev->id, __func__, ret);
->> +
->> +err_add_port:
->> +       pm_runtime_disable(&pdev->dev);
->> +       iounmap(up->port.membase);
->> +err_ioremap:
->> +err_port_line:
->> +       kfree(up);
->>  do_release_region:
->>        release_mem_region(mem->start, resource_size(mem));
->> +       dev_err(&pdev->dev, "[UART%d]: failure [%s]: %d\n",
->> +                               pdev->id, __func__, ret);
->>        return ret;
->>  }
->>
->> @@ -1476,6 +1482,7 @@ static int serial_omap_remove(struct platform_device *dev)
->>        struct uart_omap_port *up = platform_get_drvdata(dev);
->>
->>        if (up) {
->> +               iounmap(up->port.membase);
-> you can build omap-serial as module insmod and rmmod
-> the module and test this patch.
->
-> This can be done on zoom board which uses a non-omap uart
-> as console.
+On 1/20/2012 3:02 PM, Russell King - ARM Linux wrote:
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/mach-spear3xx/spear300.c |   14 ++------------
+>  arch/arm/mach-spear3xx/spear3xx.c |   27 ++++-----------------------
+>  2 files changed, 6 insertions(+), 35 deletions(-)
+> 
+> diff --git a/arch/arm/mach-spear3xx/spear300.c b/arch/arm/mach-spear3xx/spear300.c
+> index 6fdeec9..9da50e281 100644
+> --- a/arch/arm/mach-spear3xx/spear300.c
+> +++ b/arch/arm/mach-spear3xx/spear300.c
+> @@ -430,18 +430,8 @@ static struct pl061_platform_data gpio1_plat_data = {
+>  	.irq_base	= SPEAR300_GPIO1_INT_BASE,
+>  };
+>  
+> -struct amba_device spear300_gpio1_device = {
+> -	.dev = {
+> -		.init_name = "gpio1",
+> -		.platform_data = &gpio1_plat_data,
+> -	},
+> -	.res = {
+> -		.start = SPEAR300_GPIO_BASE,
+> -		.end = SPEAR300_GPIO_BASE + SZ_4K - 1,
+> -		.flags = IORESOURCE_MEM,
+> -	},
+> -	.irq = {SPEAR300_VIRQ_GPIO1},
+> -};
+> +AMBA_APB_DEVICE(spear300_gpio1, "gpio1", 0, SPEAR300_GPIO_BASE,
+> +	{SPEAR300_VIRQ_GPIO1}, &gpio1_plat_data);
+>  
+>  /* spear300 routines */
+>  void __init spear300_init(struct pmx_mode *pmx_mode, struct pmx_dev **pmx_devs,
+> diff --git a/arch/arm/mach-spear3xx/spear3xx.c b/arch/arm/mach-spear3xx/spear3xx.c
+> index bc4f1c6..b1733c3 100644
+> --- a/arch/arm/mach-spear3xx/spear3xx.c
+> +++ b/arch/arm/mach-spear3xx/spear3xx.c
+> @@ -28,31 +28,12 @@ static struct pl061_platform_data gpio_plat_data = {
+>  	.irq_base	= SPEAR3XX_GPIO_INT_BASE,
+>  };
+>  
+> -struct amba_device spear3xx_gpio_device = {
+> -	.dev = {
+> -		.init_name = "gpio",
+> -		.platform_data = &gpio_plat_data,
+> -	},
+> -	.res = {
+> -		.start = SPEAR3XX_ICM3_GPIO_BASE,
+> -		.end = SPEAR3XX_ICM3_GPIO_BASE + SZ_4K - 1,
+> -		.flags = IORESOURCE_MEM,
+> -	},
+> -	.irq = {SPEAR3XX_IRQ_BASIC_GPIO},
+> -};
+> +AMBA_APB_DEVICE(spear3xx_gpio, "gpio", 0, SPEAR3XX_ICM3_GPIO_BASE,
+> +	{SPEAR3XX_IRQ_BASIC_GPIO}, &gpio_plat_data);
+>  
+>  /* uart device registration */
+> -struct amba_device spear3xx_uart_device = {
+> -	.dev = {
+> -		.init_name = "uart",
+> -	},
+> -	.res = {
+> -		.start = SPEAR3XX_ICM1_UART_BASE,
+> -		.end = SPEAR3XX_ICM1_UART_BASE + SZ_4K - 1,
+> -		.flags = IORESOURCE_MEM,
+> -	},
+> -	.irq = {SPEAR3XX_IRQ_UART},
+> -};
+> +AMBA_APB_DEVICE(spear3xx_uart, "uart", 0, SPEAR3XX_ICM1_UART_BASE,
+> +	{SPEAR3XX_IRQ_UART}, NULL);
+>  
+>  /* Do spear3xx familiy common initialization part here */
+>  void __init spear3xx_init(void)
 
-Yes will do that and post another version.
-> --
-> Thanks,
-> Govindraj.R
+Acked-by: Viresh Kumar <viresh.kumar@st.com>
 
+-- 
+viresh
