@@ -1,65 +1,56 @@
-From: Srinidhi KASAGAR <srinidhi.kasagar@stericsson.com>
-Subject: Re: [PATCH 03/31] ARM: amba: ux500: convert to use
- amba_device_alloc
-Date: Sat, 21 Jan 2012 21:51:58 +0530
-Message-ID: <20120121162157.GB26323@bnru02>
-References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
- <E1RoAgu-0005EQ-Fo@rmk-PC.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/2] tty: serial: OMAP: work around broken driver, IP
+ block
+Date: Sat, 21 Jan 2012 13:31:34 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201211323410.28153@utopia.booyaka.com>
+References: <20120121071934.18707.64258.stgit@dusk> <20120121125522.GA19027@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E1RoAgu-0005EQ-Fo@rmk-PC.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, STEricsson_nomadik_linux@list.st.com, linus.walleij@stericsson.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120121125522.GA19027@kroah.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Govindraj Raja <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, alan@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 20, 2012 at 10:23:24 +0100, Russell King - ARM Linux wrote:
-> Convert ux500 to use the new amba_device_alloc APIs.
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+On Sat, 21 Jan 2012, Greg KH wrote:
 
-Acked-by: srinidhi kasagar <srinidhi.kasagar@stericsson.com>
+> On Sat, Jan 21, 2012 at 12:27:37AM -0700, Paul Walmsley wrote:
+> > [ This series is targeted for merging during v3.3-rc ]
+> > 
+> > On v3.3-rc1, the OMAP serial console doesn't behave properly when
+> > power management is enabled (the default with omap2plus_defconfig).
+> > This seems to be due to a combination of a silicon bug in the UART IP
+> > block and broken FIFO settings in the OMAP serial driver.
+> > 
+> > This patch series attempts to work around these problems.  The workarounds
+> > are not perfect; see the patch descriptions for more details.
+> > 
+> > Tested on OMAP3530 BeagleBoard.  This series will need to be tested on
+> > OMAP2 and OMAP4 before it is ready to merge.
+> 
+> Who is going to do that testing?
 
-> ---
->  arch/arm/mach-ux500/devices-common.c |   12 +++---------
->  1 files changed, 3 insertions(+), 9 deletions(-)
-> 
-> diff --git a/arch/arm/mach-ux500/devices-common.c b/arch/arm/mach-ux500/devices-common.c
-> index c563e54..e8c34fa 100644
-> --- a/arch/arm/mach-ux500/devices-common.c
-> +++ b/arch/arm/mach-ux500/devices-common.c
-> @@ -26,16 +26,10 @@ dbx500_add_amba_device(const char *name, resource_size_t base,
->  	struct amba_device *dev;
->  	int ret;
->  
-> -	dev = kzalloc(sizeof *dev, GFP_KERNEL);
-> +	dev = amba_device_alloc(name, base, SZ_4K);
->  	if (!dev)
->  		return ERR_PTR(-ENOMEM);
->  
-> -	dev->dev.init_name = name;
-> -
-> -	dev->res.start = base;
-> -	dev->res.end = base + SZ_4K - 1;
-> -	dev->res.flags = IORESOURCE_MEM;
-> -
->  	dev->dma_mask = DMA_BIT_MASK(32);
->  	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
->  
-> @@ -46,9 +40,9 @@ dbx500_add_amba_device(const char *name, resource_size_t base,
->  
->  	dev->dev.platform_data = pdata;
->  
-> -	ret = amba_device_register(dev, &iomem_resource);
-> +	ret = amba_device_add(dev, &iomem_resource);
->  	if (ret) {
-> -		kfree(dev);
-> +		amba_device_put(dev);
->  		return ERR_PTR(ret);
->  	}
->  
-> -- 
-> 1.7.4.4
-> 
+I will do it, although I do cling to the hope that others will help.
+
+> When?  
+
+I'll do it within the next two or three days, unless others beat me to it.
+
+> Why isn't it done already?
+
+That's always the question about testing, isn't it?
+
+In fact, now that you mention it, why haven't these patches been tested 
+yet on every possible combination of OMAP SoC and console UART?  
+Unbelievable, how negligent people are.
+
+> I guess this means I can ignore them for now, right?
+
+Yes.  I'll follow up with a pull request (or revisions) after I've tested 
+them on some OMAP2 and OMAP4 boards.
+
+
+regards
+
+- Paul
