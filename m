@@ -1,90 +1,103 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [RFC v3 PATCH 1/3] dt: device tree bindings for DDR memories
-Date: Fri, 20 Jan 2012 23:28:02 -0800
-Message-ID: <CAOesGMg01SvP1koV8GTJgeMATROZ0oP5BQSDqtmge_UZXvwZLQ@mail.gmail.com>
-References: <1326983521-373-1-git-send-email-aneesh@ti.com>
-	<1326983521-373-2-git-send-email-aneesh@ti.com>
-	<CAOesGMikm8szKR_yyeV-4NbnknCLG3z9N_sj+zydyu+cosj-Tg@mail.gmail.com>
-	<4F188386.3080507@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 1/2] tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA mode
+Date: Sat, 21 Jan 2012 00:27:40 -0700
+Message-ID: <20120121072737.18707.77811.stgit@dusk>
+References: <20120121071934.18707.64258.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:45988 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049Ab2AUH2D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jan 2012 02:28:03 -0500
-Received: by yenm6 with SMTP id m6so656811yen.19
-        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 23:28:02 -0800 (PST)
-In-Reply-To: <4F188386.3080507@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120121071934.18707.64258.stgit@dusk>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Govindraj Raja <govindraj.r@ti.com>, Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, alan@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Benoit Cousson <b-cousson@ti.com>
 
-On Thu, Jan 19, 2012 at 12:56 PM, Aneesh V <aneesh@ti.com> wrote:
-> Hi Olof,
->
->
-> On Friday 20 January 2012 01:01 AM, Olof Johansson wrote:
->>
->> Hi,
->>
->> Sorry for the delay in responding, I know you pinged me about it
->> yesterday.
->>
->> On Thu, Jan 19, 2012 at 6:31 AM, Aneesh V<aneesh@ti.com> =A0wrote:
->>>
->>> device tree bindings for LPDDR2 SDRAM memories compliant
->>> to JESD209-2 standard.
->>>
->>> The 'lpddr2' binding in-turn uses another binding 'lpddr2-timings'
->>> for specifying the AC timing parameters of the memory device at
->>> different speed-bins.
->>
->>
->> As I just commented on the thread with Mike, I think we would be
->> better off sticking to embedding a standard JEDEC SPD structure in t=
-he
->> device tree. It's not large (128-256 bytes depending on memory type)=
-,
->> and it's clearly defined and used all over the industry.
->>
->> It also has the benefit of reusing parsing code if you ever end up
->> with a system that uses DIMMs for memory, thus needing to parse the
->> SPD on said modules.
->
->
-> I did mention in the previous thread why SPD doesn't work for us ([1]=
- and
-> [2]). Let me repeat the key points here.
+Ensure FIFO levels are set correctly in non-DMA mode (the default).
+This patch will cause a receive FIFO threshold interrupt to be raised when
+there is at least one byte in the RX FIFO.  It will also cause a transmit
+FIFO threshold interrupt when there is only one byte remaining in the TX
+FIFO.
 
-Ah, sorry. Missed it in the chain of replies.
+These changes fix the receive interrupt problem and part of the
+transmit interrupt problem.  A separate set of issues must be worked
+around for the transmit path to have a basic level of functionality; a
+subsequent patch will address these.
 
-> 1. I couldn't find an SPD addendum for LPDDR2 from the JEDEC website.
-> 2. This seems to indicate that SPD is not used for LPDDR2 devices.
+DMA operation is unaffected by this patch.
 
-Bummer. I'm guessing most applications where LPDDR* is used won't be
-suitable for modular memory, so there's not the same need for SPD.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Govindraj Raja <govindraj.r@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ drivers/tty/serial/omap-serial.c |   35 +++++++++++++++++++++++++++++++----
+ 1 files changed, 31 insertions(+), 4 deletions(-)
 
-> 3. I tried to see if I can fit the DDR3 or DDR2 SPD for our needs. Bu=
-t
-> some of the AC timing parameters needed by our controller are not
-> available in those layouts.
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index d192dcb..9de7d71 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -46,6 +46,18 @@
+ 
+ #define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
+ 
++/* SCR register bitmasks */
++#define OMAP_UART_SCR_RX_TRIG_GRANU1_MASK		(1 << 7)
++#define OMAP_UART_SCR_TX_TRIG_GRANU1_MASK		(1 << 6)
++
++/* FCR register bitmasks */
++#define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT		6
++#define OMAP_UART_FCR_RX_FIFO_TRIG_MASK			(0x3 << 6)
++#define OMAP_UART_FCR_TX_FIFO_TRIG_SHIFT		4
++
++/* TLR register bitmasks */
++#define OMAP_UART_TLR_TX_FIFO_TRIG_DMA_SHIFT		0
++
+ static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
+ 
+ /* Forward declaration of functions */
+@@ -694,6 +706,7 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	unsigned char efr = 0;
+ 	unsigned long flags = 0;
+ 	unsigned int baud, quot;
++	u32 tlr;
+ 
+ 	switch (termios->c_cflag & CSIZE) {
+ 	case CS5:
+@@ -811,14 +824,28 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
+ 	up->mcr = serial_in(up, UART_MCR);
+ 	serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+ 	/* FIFO ENABLE, DMA MODE */
+-	serial_out(up, UART_FCR, up->fcr);
+-	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
++
++	up->scr |= OMAP_UART_SCR_TX_TRIG_GRANU1_MASK;
++	up->scr |= OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
+ 
+ 	if (up->use_dma) {
+-		serial_out(up, UART_TI752_TLR, 0);
+-		up->scr |= (UART_FCR_TRIGGER_4 | UART_FCR_TRIGGER_8);
++		tlr = 0;
++	} else {
++		up->scr &= ~OMAP_UART_SCR_TX_EMPTY;
++
++		/* Set receive FIFO threshold to 1 */
++		up->fcr &= ~OMAP_UART_FCR_RX_FIFO_TRIG_MASK;
++		up->fcr |= (0x1 << OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT);
++
++		/* Set TX FIFO threshold to "63" (actually 1) */
++		up->fcr |= (0x3 << OMAP_UART_FCR_TX_FIFO_TRIG_SHIFT);
++		tlr = (0xf << OMAP_UART_TLR_TX_FIFO_TRIG_DMA_SHIFT);
+ 	}
+ 
++	serial_out(up, UART_TI752_TLR, tlr);
++	serial_out(up, UART_FCR, up->fcr);
++	serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
++
+ 	serial_out(up, UART_OMAP_SCR, up->scr);
+ 
+ 	serial_out(up, UART_EFR, up->efr);
 
-Are those properties of the memory, or a combination of memory and
-board properties? I think it still makes sense for the memories that
-do have it to use the SPD format and extend with additional
-properties, at least if it's only a few additional properties needed.
 
-> I don't see any option other than defining a new binding for LPDDR2.
-
-Yeah, agreed.
-
-
--Olof
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
