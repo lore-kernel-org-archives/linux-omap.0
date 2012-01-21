@@ -1,115 +1,84 @@
-From: Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
-Subject: RE: [PATCH 00/31] Clean up amba/primecell bus support
-Date: Sat, 21 Jan 2012 09:59:57 +0900
-Message-ID: <010301ccd7d7$fec781d0$fc568570$%kim@samsung.com>
-References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
+From: Ming Lei <ming.lei@canonical.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Sat, 21 Jan 2012 11:25:26 +0800
+Message-ID: <CACVXFVMgk7ykSX3GjzCNvUU0zMzNvGGuZMBpxBf7NRVk9EM7ig@mail.gmail.com>
+References: <CAAO=S0+L2Q1YZC-pfm2Lz8jPooTeHYOMaZbtRgHYFoL_m7rvhA@mail.gmail.com>
+	<4F0B182D.7060507@us.ibm.com>
+	<20120109224945.GA23090@mudshark.cambridge.arm.com>
+	<CACVXFVMnAt_YpYNC5B6W4Vh4HvtVS3D6jRORUw0AW5a4ub5aOw@mail.gmail.com>
+	<CAMsRxfJe_MEA=anzRu6jehGcZyg49uAx44_nDQ3_FRY=WrFLoA@mail.gmail.com>
+	<CACVXFVNXJ2vZM-dAxQPQ5LSOuvv5yvOrnytOB9PxURtkaSCP8w@mail.gmail.com>
+	<CAMsRxfLtLnMiP0ZGr6rNLv-UeLUwOSJ=7do2nezOU5OkOA+MbQ@mail.gmail.com>
+	<CACVXFVMbrQGi4Sg9TUPP5Bcc5kzFoX74n=ii4QrDRudbuDHOGg@mail.gmail.com>
+	<CAMsRxfJmHkZw2f0A+4FsStJpXk_vrxvDduRcRGkcWpqp8a9m_w@mail.gmail.com>
+	<CACVXFVOQNDRs=c8A2YC+WvYAHs5Abbz-QUEe1VJqrj2esFO11g@mail.gmail.com>
+	<CAMsRxf+e38jRcyxESLhYDZ3OL910AQdapZD9P8vWDXfUE34DAA@mail.gmail.com>
+	<CACVXFVPnhSy_DbdK+ro8G78QjL2s6fBBq1Dvq-pmxJ20qA-ymA@mail.gmail.com>
+	<CAMsRxfJ2VrfFZevkxoZzSD5fZn1CErF68y0ny+MZi5r___ERJA@mail.gmail.com>
+	<CACVXFVNixEUKmDf2iYtdJVThkYg3UeZEurbFhrod5NZhDyKRpw@mail.gmail.com>
+	<CACVXFVNfc8fKe=6LVruj387-vQ85WHL7tAgZUT=9h6AQUM0X0Q@mail.gmail.com>
+	<CAMsRxfLcO0eM8mkKUZcR8X6SG-MMRFasRK7hQCT-3-NuKN_+1g@mail.gmail.com>
+	<CACVXFVPDdyKf5TffT4OMt+tKeB09TU2RcvcyBV45hAK0qw+GEg@mail.gmail.com>
+	<CAMsRxfJK9kcFkV=itJHpzuOXoZQkmjj1wh8Y789D3iOVstPMyQ@mail.gmail.com>
+	<CAMsRxfKPm0dEaKDeSZQ=6jkpo4MeS=0XF6TsCj+BV54WbW_LtA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-reply-to: <20120120092207.GD1068-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Content-language: ko
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: 'Russell King - ARM Linux' <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'STEricsson' <STEricsson_nomadik_linux-nkJGhpqTU55BDgjK7y7TUQ@public.gmane.org>
-Cc: 'Viresh Kumar' <viresh.kumar-qxv4g6HH51o@public.gmane.org>, 'Rajeev Kumar' <rajeev-dlh.kumar-qxv4g6HH51o@public.gmane.org>, 'Linus Walleij' <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, 'Scott Branden' <sbranden-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Srinidhi Kasagar' <srinidhi.kasagar-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, 'Ryan Mallon' <rmallon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, 'Rob Herring' <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, 'Hartley Sweeten' <hsweeten-3FF4nKcrg1dE2c76skzGb0EOCMrvLtNR@public.gmane.org>, 'Jiandong Zheng' <jdzheng-dY08KVG/lbpWk0Htik3J/w@public.gmane.org>, 'Chris Ball' <cjb-2X9k7bc8m7Mdnm+yROfE0A@public.gmane.org>, 'Sascha Hauer' <kernel-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, 'Alessandro Rubini' <rubini-9wsNiZum9E8@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:34490 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754898Ab2AUDZc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Jan 2012 22:25:32 -0500
+Received: from mail-pz0-f46.google.com ([209.85.210.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1RoRa4-0005WD-Em
+	for linux-omap@vger.kernel.org; Sat, 21 Jan 2012 03:25:28 +0000
+Received: by dake40 with SMTP id e40so668414dak.19
+        for <linux-omap@vger.kernel.org>; Fri, 20 Jan 2012 19:25:26 -0800 (PST)
+In-Reply-To: <CAMsRxfKPm0dEaKDeSZQ=6jkpo4MeS=0XF6TsCj+BV54WbW_LtA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: eranian@gmail.com
+Cc: Will Deacon <will.deacon@arm.com>, Maynard Johnson <maynardj@us.ibm.com>, Lik Lik <lik88888@gmail.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Cousson, Benoit" <b-cousson@ti.com>
 
-Russell King - ARM Linux wrote:
-> 
-> This patch set cleans up the AMBA/Primecell bus support.  Contained
-> within this set are:
-> 
-> 1. Patches 1-5 - Allocation APIs
->    It seems several places in the kernel want to allocate and register
->    amba_device structures.  Let's make this official, and common code.
->    So we introduce amba_device_alloc(), amba_device_add(), and
->    amba_device_put() APIs, which provide the necessary support safely
->    for this.
-> 
->    Convert the DT, ux500, Integrator/AP and mxs code to use these APIs
->    rather than their private version.
-> 
-> 2. Patches 6-17 - NO_IRQ cleanup
->    Making IRQ number 0 mean 'no irq' for the AMBA drivers and bus layer.
->    We get rid of NO_IRQ initializers in this across various platforms,
->    and make the bus layer warn if '-1' is passed in a device as an IRQ.
->    This prevents new occurances of NO_IRQ initializers for this bus type
->    going by unspotted.
-> 
-> 3. Patches 18-31 - static initializers
->    Provide a standardized set of initializers for statically declared
->    AMBA devices.  We provide two - one for the simpler APB devices,
->    and one for AHB devices.  The major difference between these two is
->    the setting of the DMA mask - APB peripherals do not have DMA
->    capability themselves.
-> 
-> While updating (3), I came across new additions in Spear3xx and the
-> Samsung directories which added AMBA devices, which are declared
-> globally.  The Spear3xx devices are used in other files, so that's
-> fine.
-> 
-> Samsung devices don't seem to be - and that needs fixing (did someone
-> not run checkpatch or sparse on these changes?)  Please send fixes.
-> 
-Yeah, you're right. They in Samsung directories are not used anywhere else. So statically declaration can be used.
-As a note, I always run checkpatch but sparse before applying but unfortunately, checkpatch didn't complain about that.
+On Fri, Jan 20, 2012 at 9:47 PM, stephane eranian
+<eranian@googlemail.com> wrote:
+> Started afresh from:
+>
+> 90a4c0f uml: fix compile for x86-64
+>
+> And added 3, 4, 5, 6:
+> 603c316 arm: omap4: pmu: support runtime pm
+> 4899fbd arm: omap4: support pmu
+> d737bb1 arm: omap4: create pmu device via hwmod
+> 4e0259e arm: omap4: hwmod: introduce emu hwmod
+>
+> Still no interrupts firing. I am using your .config file.
+>
+> My HW:
+> CPU implementer : 0x41
+> CPU architecture: 7
+> CPU variant =A0 =A0 : 0x1
+> CPU part =A0 =A0 =A0 =A0: 0xc09
+> CPU revision =A0 =A0: 2
+>
+> Hardware =A0 =A0 =A0 =A0: OMAP4 Panda board
+> Revision =A0 =A0 =A0 =A0: 0020
+>
+> There must be something I am missing here.
 
-Let me check where fixes are needed in Samsung directories then send it.
+Have you applied the patch in link[1]?
 
-Thanks.
 
-Best regards,
-Kgene.
+thanks,
 --
-Kukjin Kim <kgene.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
+Ming Lei
 
-> Acks for these patches are welcome.
-> 
->  arch/arm/mach-bcmring/core.c                   |   23 +-----
->  arch/arm/mach-ep93xx/core.c                    |   46 ++---------
->  arch/arm/mach-exynos/dma.c                     |   38 ++-------
->  arch/arm/mach-integrator/core.c                |   70 +++-------------
->  arch/arm/mach-integrator/impd1.c               |    9 +--
->  arch/arm/mach-integrator/integrator_cp.c       |   49 ++---------
->  arch/arm/mach-lpc32xx/phy3250.c                |   32 +------
->  arch/arm/mach-mxs/devices.c                    |    8 +-
->  arch/arm/mach-mxs/devices/amba-duart.c         |    2 +-
->  arch/arm/mach-netx/fb.c                        |   13 +---
->  arch/arm/mach-nomadik/board-nhk8815.c          |   17 +---
->  arch/arm/mach-nomadik/cpu-8815.c               |    9 +--
->  arch/arm/mach-omap2/emu.c                      |   26 +------
->  arch/arm/mach-realview/core.h                  |   20 +----
->  arch/arm/mach-realview/realview_eb.c           |   78 +++++++++---------
->  arch/arm/mach-realview/realview_pb1176.c       |   78 +++++++++---------
->  arch/arm/mach-realview/realview_pb11mp.c       |   78 +++++++++---------
->  arch/arm/mach-realview/realview_pba8.c         |   78 +++++++++---------
->  arch/arm/mach-realview/realview_pbx.c          |   78 +++++++++---------
->  arch/arm/mach-s5p64x0/dma.c                    |   22 +----
->  arch/arm/mach-s5pc100/dma.c                    |   38 ++-------
->  arch/arm/mach-s5pv210/dma.c                    |   38 ++-------
->  arch/arm/mach-spear3xx/spear300.c              |   14 +---
->  arch/arm/mach-spear3xx/spear3xx.c              |   27 +-----
->  arch/arm/mach-spear6xx/spear6xx.c              |   10 +-
->  arch/arm/mach-u300/core.c                      |   85 ++++----------------
->  arch/arm/mach-ux500/devices-common.c           |   13 +--
->  arch/arm/mach-versatile/core.c                 |   70 ++++++++--------
->  arch/arm/mach-versatile/core.h                 |   20 +----
->  arch/arm/mach-versatile/versatile_pb.c         |   18 ++--
->  arch/arm/mach-vexpress/core.h                  |   17 ----
->  arch/arm/mach-vexpress/ct-ca9x4.c              |    8 +-
->  arch/arm/mach-vexpress/include/mach/ct-ca9x4.h |    2 +-
->  arch/arm/mach-vexpress/v2m.c                   |   20 ++--
->  drivers/amba/bus.c                             |  105 ++++++++++++++++++------
->  drivers/mmc/host/mmci.c                        |    2 +-
->  drivers/of/platform.c                          |    6 +-
->  include/linux/amba/bus.h                       |   36 ++++++++
->  38 files changed, 488 insertions(+), 815 deletions(-)
+[1], http://marc.info/?l=3Dlinux-arm-kernel&m=3D132697975416659&w=3D2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
