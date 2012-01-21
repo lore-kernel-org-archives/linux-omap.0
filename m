@@ -1,59 +1,117 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
-Date: Sat, 21 Jan 2012 13:47:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201211344240.28153@utopia.booyaka.com>
-References: <1327055619.1921.57.camel@deskari>  <alpine.DEB.2.00.1201210042030.28153@utopia.booyaka.com> <1327161427.1863.5.camel@lappy>
+Subject: [PATCH 3/8] ARM: OMAP2+: hwmod data: add HDQ/1-wire hwmod shared data
+Date: Sat, 21 Jan 2012 16:59:33 -0700
+Message-ID: <20120121235932.17619.51239.stgit@dusk>
+References: <20120121235333.17619.56725.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41111 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751144Ab2AUUrm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jan 2012 15:47:42 -0500
-In-Reply-To: <1327161427.1863.5.camel@lappy>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120121235333.17619.56725.stgit@dusk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: NeilBrown <neilb@suse.de>
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>
 
-On Sat, 21 Jan 2012, Tomi Valkeinen wrote:
+Much of the HDQ1W integration data is common between multiple generations
+of OMAP SoCs, so rather than make several copies, we add it once into
+files which are compiled for multiple SoCs.
 
-> On Sat, 2012-01-21 at 00:47 -0700, Paul Walmsley wrote:
-> > On Fri, 20 Jan 2012, Tomi Valkeinen wrote:
-> > 
-> > > Third, when I load the DSS modules, I see only ON state increasing for
-> > > dss_pwrdm, as it should be. However, I'm getting constant stream of sync
-> > > losts from DSS, and the display doesn't basically work at all.
-> > > 
-> > > I can see MPU pwrdm going into RET a lot, and if I do "while true; do
-> > > echo foo; done", which I presume basically prevents RET for MPU, the
-> > > display becomes stable.
-> > 
-> > If this particular problem persists after you apply the patch set that I 
-> > sent earlier, it suggests that something in the DSS is sensitive to the 
-> > amount of time it takes the MPU to wake up and service an interrupt when 
-> > the MPU powerdomain is in a low-power state.  Total guess, but perhaps  
-> > omap_dispc_irq_handler() is getting called after each frame and needs to 
-> > run within a certain bounded time when that happens?
-> 
-> No. After the DSS has been configured and started (by the MPU), it runs
-> by itself, reading the pixels from the memory displaying them on the
-> screen. Only when the user wants to change the configs or the frame, the
-> MPU does something. And interrupts are only needed to handle the
-> changing of configs or frame data using VSYNCs as the interval. The user
-> probably doesn't like it if the VSYNC irq is handled a few seconds
-> later, but the DSS HW doesn't care, and functions normally.
-> 
-> In this case something is affecting the DSS (clocks? powers?), or the
-> memory, or the process of reading the pixels. I really don't see the MPU
-> or IRQs affecting this problem, except indirectly.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: NeilBrown <neilb@suse.de>
+---
+ .../omap_hwmod_2xxx_3xxx_interconnect_data.c       |    9 ++++++++
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   22 ++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_common_data.h       |    4 ++++
+ 3 files changed, 35 insertions(+), 0 deletions(-)
 
-Okay, thanks for the quick response.  
-
-Would you expect to see these "sync lost" messages if the DSS FIFO(s) are 
-underflowing?  Or would that return a different error?  Am wondering if 
-CORE may be entering some low power state, so DSS FIFO refill may be 
-taking too long.
-
-
-- Paul
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
+index 04637fa..cbb4ef6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_interconnect_data.c
+@@ -171,3 +171,12 @@ struct omap_hwmod_addr_space omap2_mcbsp1_addrs[] = {
+ 	},
+ 	{ }
+ };
++
++struct omap_hwmod_addr_space omap2_hdq1w_addr_space[] = {
++	{
++		.pa_start       = 0x480b2000,
++		.pa_end         = 0x480b2fff,
++		.flags          = ADDR_TYPE_RT,
++	},
++	{ }
++};
+diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+index c11273d..e4cdd74 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
+@@ -2,6 +2,7 @@
+  * omap_hwmod_2xxx_3xxx_ipblock_data.c - common IP block data for OMAP2/3
+  *
+  * Copyright (C) 2011 Nokia Corporation
++ * Copyright (C) 2012 Texas Instruments, Inc.
+  * Paul Walmsley
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -12,6 +13,7 @@
+ #include <plat/serial.h>
+ #include <plat/dma.h>
+ #include <plat/common.h>
++#include <plat/hdq1w.h>
+ 
+ #include <mach/irqs.h>
+ 
+@@ -323,3 +325,23 @@ struct omap_hwmod_irq_info omap2_mcspi2_mpu_irqs[] = {
+ 	{ .irq = -1 }
+ };
+ 
++struct omap_hwmod_class_sysconfig omap2_hdq1w_sysc = {
++	.rev_offs	= 0x0,
++	.sysc_offs	= 0x14,
++	.syss_offs	= 0x18,
++	.sysc_flags	= (SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE |
++			   SYSS_HAS_RESET_STATUS),
++	.sysc_fields    = &omap_hwmod_sysc_type1,
++};
++
++struct omap_hwmod_class omap2_hdq1w_class = {
++	.name	= "hdq1w",
++	.sysc	= &omap2_hdq1w_sysc,
++	.reset	= &omap_hdq1w_reset,
++};
++
++struct omap_hwmod_irq_info omap2_hdq1w_mpu_irqs[] = {
++	{ .irq = 58, },
++	{ .irq = -1 }
++};
++
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.h b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+index ad5d8f0..a5fc96a 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.h
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.h
+@@ -50,6 +50,7 @@ extern struct omap_hwmod_addr_space omap2430_mcspi3_addr_space[];
+ extern struct omap_hwmod_addr_space omap2_dma_system_addrs[];
+ extern struct omap_hwmod_addr_space omap2_mailbox_addrs[];
+ extern struct omap_hwmod_addr_space omap2_mcbsp1_addrs[];
++extern struct omap_hwmod_addr_space omap2_hdq1w_addr_space[];
+ 
+ /* Common IP block data across OMAP2xxx */
+ extern struct omap_hwmod_irq_info omap2xxx_timer12_mpu_irqs[];
+@@ -94,6 +95,7 @@ extern struct omap_hwmod_irq_info omap2_gpio4_irqs[];
+ extern struct omap_hwmod_irq_info omap2_dma_system_irqs[];
+ extern struct omap_hwmod_irq_info omap2_mcspi1_mpu_irqs[];
+ extern struct omap_hwmod_irq_info omap2_mcspi2_mpu_irqs[];
++extern struct omap_hwmod_irq_info omap2_hdq1w_mpu_irqs[];
+ 
+ /* OMAP hwmod classes - forward declarations */
+ extern struct omap_hwmod_class l3_hwmod_class;
+@@ -105,6 +107,8 @@ extern struct omap_hwmod_class omap2_dss_hwmod_class;
+ extern struct omap_hwmod_class omap2_dispc_hwmod_class;
+ extern struct omap_hwmod_class omap2_rfbi_hwmod_class;
+ extern struct omap_hwmod_class omap2_venc_hwmod_class;
++extern struct omap_hwmod_class_sysconfig omap2_hdq1w_sysc;
++extern struct omap_hwmod_class omap2_hdq1w_class;
+ 
+ extern struct omap_hwmod_class omap2xxx_timer_hwmod_class;
+ extern struct omap_hwmod_class omap2xxx_wd_timer_hwmod_class;
