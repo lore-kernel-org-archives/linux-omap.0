@@ -1,143 +1,136 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 6/8] ARM: OMAP4: hwmod data: add HDQ/1-wire hwmod
-Date: Sat, 21 Jan 2012 16:59:34 -0700
-Message-ID: <20120121235934.17619.74939.stgit@dusk>
+Subject: [PATCH 7/8] ARM: OMAP2+: HDQ1W: use omap_device
+Date: Sat, 21 Jan 2012 16:59:35 -0700
+Message-ID: <20120121235934.17619.61644.stgit@dusk>
 References: <20120121235333.17619.56725.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20120121235333.17619.56725.stgit@dusk>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+Cc: NeilBrown <neilb@suse.de>
 List-Id: linux-omap@vger.kernel.org
 
-Add the hwmod data for the HDQ/1-wire hwmod ('hdq1w').  The scripts hav=
-e been
-updated.
+Convert the old-style device registration code for HDQ1W to use
+omap_device.  This will allow the driver to be converted to use PM
+runtime and to take advantage of the OMAP IP block management
+infrastructure (hwmod, PM, etc.).
+
+A side benefit of this conversion is that it also makes the HDQ device
+available on OMAP2420.  The previous code only enabled it on 2430 and
+3430.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: NeilBrown <neilb@suse.de>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   74 ++++++++++++++++++++=
-++++++++
- 1 files changed, 73 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/devices.c |   37 -------------------------------------
+ arch/arm/mach-omap2/hdq1w.c   |   26 ++++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+), 37 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index f9f1510..0f79ec8 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1,7 +1,7 @@
- /*
-  * Hardware modules present on the OMAP44xx chips
-  *
-- * Copyright (C) 2009-2011 Texas Instruments, Inc.
-+ * Copyright (C) 2009-2012 Texas Instruments, Inc.
-  * Copyright (C) 2009-2010 Nokia Corporation
-  *
-  * Paul Walmsley
-@@ -31,6 +31,7 @@
- #include <plat/i2c.h>
- #include <plat/dmtimer.h>
- #include <plat/common.h>
-+#include <plat/hdq1w.h>
-=20
- #include "omap_hwmod_common_data.h"
-=20
-@@ -72,6 +73,7 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod;
- static struct omap_hwmod omap44xx_usb_otg_hs_hwmod;
- static struct omap_hwmod omap44xx_usb_host_hs_hwmod;
- static struct omap_hwmod omap44xx_usb_tll_hs_hwmod;
-+static struct omap_hwmod omap44xx_hdq1w_hwmod;
-=20
- /*
-  * Interconnects omap_hwmod structures
-@@ -2157,6 +2159,73 @@ static struct omap_hwmod omap44xx_gpio6_hwmod =3D=
- {
- };
-=20
- /*
-+ * 'hdq1w' class
-+ * hdq / 1-wire serial interface controller
-+ */
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 0b510ad0..cf68525 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -650,42 +650,6 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
+ 
+ #endif
+ 
+-/*-------------------------------------------------------------------------*/
+-
+-#if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
+-#if defined(CONFIG_SOC_OMAP2430) || defined(CONFIG_SOC_OMAP3430)
+-#define OMAP_HDQ_BASE	0x480B2000
+-#endif
+-static struct resource omap_hdq_resources[] = {
+-	{
+-		.start		= OMAP_HDQ_BASE,
+-		.end		= OMAP_HDQ_BASE + 0x1C,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= INT_24XX_HDQ_IRQ,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-};
+-static struct platform_device omap_hdq_dev = {
+-	.name = "omap_hdq",
+-	.id = 0,
+-	.dev = {
+-		.platform_data = NULL,
+-	},
+-	.num_resources	= ARRAY_SIZE(omap_hdq_resources),
+-	.resource	= omap_hdq_resources,
+-};
+-static inline void omap_hdq_init(void)
+-{
+-	(void) platform_device_register(&omap_hdq_dev);
+-}
+-#else
+-static inline void omap_hdq_init(void) {}
+-#endif
+-
+-/*---------------------------------------------------------------------------*/
+-
+ #if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
+ 	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
+ #if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
+@@ -726,7 +690,6 @@ static int __init omap2_init_devices(void)
+ 	omap_init_mbox();
+ 	omap_init_mcspi();
+ 	omap_init_pmu();
+-	omap_hdq_init();
+ 	omap_init_sti();
+ 	omap_init_sham();
+ 	omap_init_aes();
+diff --git a/arch/arm/mach-omap2/hdq1w.c b/arch/arm/mach-omap2/hdq1w.c
+index 15849ce..c917317 100644
+--- a/arch/arm/mach-omap2/hdq1w.c
++++ b/arch/arm/mach-omap2/hdq1w.c
+@@ -22,7 +22,13 @@
+  * 02110-1301 USA
+  */
+ 
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
 +
-+static struct omap_hwmod_class_sysconfig omap44xx_hdq1w_sysc =3D {
-+	.rev_offs	=3D 0x0000,
-+	.sysc_offs	=3D 0x0014,
-+	.syss_offs	=3D 0x0018,
-+	.sysc_flags	=3D (SYSC_HAS_AUTOIDLE | SYSC_HAS_SOFTRESET |
-+			   SYSS_HAS_RESET_STATUS),
-+	.sysc_fields	=3D &omap_hwmod_sysc_type1,
-+};
+ #include <plat/omap_hwmod.h>
++#include <plat/omap_device.h>
+ #include <plat/hdq1w.h>
+ 
+ #include "common.h"
+@@ -70,3 +76,23 @@ int omap_hdq1w_reset(struct omap_hwmod *oh)
+ 
+ 	return 0;
+ }
 +
-+static struct omap_hwmod_class omap44xx_hdq1w_hwmod_class =3D {
-+	.name	=3D "hdq1w",
-+	.sysc	=3D &omap44xx_hdq1w_sysc,
-+	.reset	=3D &omap_hdq1w_reset,
-+};
++static int __init omap_init_hdq(void)
++{
++	int id = -1;
++	struct platform_device *pdev;
++	struct omap_hwmod *oh;
++	char *oh_name = "hdq1w";
++	char *devname = "omap_hdq";
 +
-+/* hdq1w */
-+static struct omap_hwmod omap44xx_hdq1w_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_hdq1w_irqs[] =3D {
-+	{ .irq =3D 58 + OMAP44XX_IRQ_GIC_START },
-+	{ .irq =3D -1 }
-+};
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh)
++		return 0;
 +
-+static struct omap_hwmod_addr_space omap44xx_hdq1w_addrs[] =3D {
-+	{
-+		.pa_start	=3D 0x480b2000,
-+		.pa_end		=3D 0x480b201f,
-+		.flags		=3D ADDR_TYPE_RT
-+	},
-+	{ }
-+};
++	pdev = omap_device_build(devname, id, oh, NULL, 0, NULL, 0, 0);
++	WARN(IS_ERR(pdev), "Can't build omap_device for %s:%s.\n",
++	     devname, oh->name);
 +
-+/* l4_per -> hdq1w */
-+static struct omap_hwmod_ocp_if omap44xx_l4_per__hdq1w =3D {
-+	.master		=3D &omap44xx_l4_per_hwmod,
-+	.slave		=3D &omap44xx_hdq1w_hwmod,
-+	.clk		=3D "l4_div_ck",
-+	.addr		=3D omap44xx_hdq1w_addrs,
-+	.user		=3D OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* hdq1w slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_hdq1w_slaves[] =3D {
-+	&omap44xx_l4_per__hdq1w,
-+};
-+
-+static struct omap_hwmod omap44xx_hdq1w_hwmod =3D {
-+	.name		=3D "hdq1w",
-+	.class		=3D &omap44xx_hdq1w_hwmod_class,
-+	.clkdm_name	=3D "l4_per_clkdm",
-+	.mpu_irqs	=3D omap44xx_hdq1w_irqs,
-+	.main_clk	=3D "func_12m_fclk",
-+	.prcm =3D {
-+		.omap4 =3D {
-+			.clkctrl_offs =3D OMAP4_CM_L4PER_HDQ1W_CLKCTRL_OFFSET,
-+			.context_offs =3D OMAP4_RM_L4PER_HDQ1W_CONTEXT_OFFSET,
-+			.modulemode   =3D MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.slaves		=3D omap44xx_hdq1w_slaves,
-+	.slaves_cnt	=3D ARRAY_SIZE(omap44xx_hdq1w_slaves),
-+};
-+
-+/*
-  * 'hsi' class
-  * mipi high-speed synchronous serial interface (multichannel and full=
--duplex
-  * serial if)
-@@ -5539,6 +5608,9 @@ static __initdata struct omap_hwmod *omap44xx_hwm=
-ods[] =3D {
- 	&omap44xx_gpio5_hwmod,
- 	&omap44xx_gpio6_hwmod,
-=20
-+	/* hdq1w class */
-+	&omap44xx_hdq1w_hwmod,
-+
- 	/* hsi class */
- /*	&omap44xx_hsi_hwmod, */
-=20
++	return 0;
++}
++arch_initcall(omap_init_hdq);
