@@ -1,93 +1,103 @@
-From: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>
+From: NeilBrown <neilb@suse.de>
 Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
-Date: Sun, 22 Jan 2012 13:11:22 +0200
-Message-ID: <CAP16Ss=jRTmfp+EmuiUUFP6J23fYJiQQEYnfCcKB9rp+kOy9BQ@mail.gmail.com>
+Date: Sun, 22 Jan 2012 22:11:32 +1100
+Message-ID: <20120122221132.32bd4d44@notabene.brown>
 References: <1327055619.1921.57.camel@deskari>
-	<alpine.DEB.2.00.1201210042030.28153@utopia.booyaka.com>
-	<1327161427.1863.5.camel@lappy>
-	<alpine.DEB.2.00.1201211344240.28153@utopia.booyaka.com>
+	<CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
+	<1327060886.1921.63.camel@deskari>
+	<CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
+	<1327063256.1921.68.camel@deskari>
+	<CAORVsuVGT1AaMzo0r6T4vWe7zz7Uk=o-DydAcGdMzE+utDoUww@mail.gmail.com>
+	<1327071609.1921.82.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/8.W._=263HEx73BuR3_RmJz"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:34517 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751605Ab2AVLLY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Jan 2012 06:11:24 -0500
-Received: by mail-qy0-f180.google.com with SMTP id p15so1428402qcs.39
-        for <linux-omap@vger.kernel.org>; Sun, 22 Jan 2012 03:11:23 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1201211344240.28153@utopia.booyaka.com>
+Received: from cantor2.suse.de ([195.135.220.15]:46884 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751804Ab2AVLLw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Jan 2012 06:11:52 -0500
+In-Reply-To: <1327071609.1921.82.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, NeilBrown <neilb@suse.de>, Joe Woodward <jw@terrafix.co.uk>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, Govindraj <govindraj.ti@gmail.com>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, Joe Woodward <jw@terrafix.co.uk>
 
-On Sat, Jan 21, 2012 at 10:47 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Sat, 21 Jan 2012, Tomi Valkeinen wrote:
->
->> On Sat, 2012-01-21 at 00:47 -0700, Paul Walmsley wrote:
->> > On Fri, 20 Jan 2012, Tomi Valkeinen wrote:
->> >
->> > > Third, when I load the DSS modules, I see only ON state increasi=
-ng for
->> > > dss_pwrdm, as it should be. However, I'm getting constant stream=
- of sync
->> > > losts from DSS, and the display doesn't basically work at all.
->> > >
->> > > I can see MPU pwrdm going into RET a lot, and if I do "while tru=
-e; do
->> > > echo foo; done", which I presume basically prevents RET for MPU,=
- the
->> > > display becomes stable.
->> >
->> > If this particular problem persists after you apply the patch set =
-that I
->> > sent earlier, it suggests that something in the DSS is sensitive t=
-o the
->> > amount of time it takes the MPU to wake up and service an interrup=
-t when
->> > the MPU powerdomain is in a low-power state. =A0Total guess, but p=
-erhaps
->> > omap_dispc_irq_handler() is getting called after each frame and ne=
-eds to
->> > run within a certain bounded time when that happens?
->>
->> No. After the DSS has been configured and started (by the MPU), it r=
-uns
->> by itself, reading the pixels from the memory displaying them on the
->> screen. Only when the user wants to change the configs or the frame,=
- the
->> MPU does something. And interrupts are only needed to handle the
->> changing of configs or frame data using VSYNCs as the interval. The =
-user
->> probably doesn't like it if the VSYNC irq is handled a few seconds
->> later, but the DSS HW doesn't care, and functions normally.
->>
->> In this case something is affecting the DSS (clocks? powers?), or th=
-e
->> memory, or the process of reading the pixels. I really don't see the=
- MPU
->> or IRQs affecting this problem, except indirectly.
->
-> Okay, thanks for the quick response.
->
-> Would you expect to see these "sync lost" messages if the DSS FIFO(s)=
- are
-> underflowing? =A0Or would that return a different error? =A0Am wonder=
-ing if
-> CORE may be entering some low power state, so DSS FIFO refill may be
-> taking too long.
+--Sig_/8.W._=263HEx73BuR3_RmJz
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I would expect to see FIFO_UNDERFLOW errors. Then again, I have to
-admit I'm not totally sure what SYNC LOST error means. My
-understanding is that it's about DSS internal timings and fifos, for
-example when DSS is scaling the image and if the scaler cannot get
-pixels fast enough from the preceding HW block.
+On Fri, 20 Jan 2012 17:00:09 +0200 Tomi Valkeinen <tomi.valkeinen@ti.com>
+wrote:
 
- Tomi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> Hmm, So CPU_IDLE is also about other power domains than mpu? What does
+> it do? The CONFIG_CPU_IDLE help text doesn't say much.
+
+On OMAP3x, CPU_IDLE is about the MPU and CORE power domains .. and about PER
+to some extent I think.
+
+Different CPU_IDLE states put one or both of MPU and CORE into lower power
+states (RET or OFF).  If a domain is turned off, then the code restores stu=
+ff
+afterwards.
+
+But CPU_IDLE also does stuff with clocks, and I think this is where the iss=
+ue
+is.
+
+I modified my kernel to refuse any CPU_IDLE state where MPU or CORE were
+anything but ON - so only C1 and C2 were allowed.
+I still had problems with DSS SYNC.
+
+I then modified the C2 state so that it didn't allow the clocks to
+auto-idle.  This is the main difference between C1 and C2 I think.
+
+i.e. in omap3_enter_idle() in cpuidle34xx.c, I enforced the
+
+		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
+		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
+
+and=20
+
+		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
+		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
+
+loops for C1 - they are normally only active for C1.
+
+This allowed DSS to work fine.  It also removed my issues with HDQ.
+
+This code disables the auto-idling of some clocks ... not entirely sure of
+the details.
+
+So it seems that it isn't a low power state but rather some clock being
+allowed to turn off which is the problem.
+
+I guess I could selective try denying idle on each clock domain until I find
+the one that is the problem..
+
+NeilBrown
+
+--Sig_/8.W._=263HEx73BuR3_RmJz
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBTxvu5Dnsnt1WYoG5AQKzoRAAlmQEvjhCqv+y6ctGAbyh+3vRQ/DChGww
+warCh0+tffjdxwRb4/VrMgajiBiZ4I6beq69kb7UjZ3vhqB2yJSCRRSFx1jBm0IX
+rcQRCMHmLdL15ORwieoS4A+z5KViDbf62BhOWHwS7z8xpFOruSmemmAH2kI74SuU
+o7wPkZdQsgYBnjPNFlG5Aqg7qqBtF+bTjykvk5SwVICHqW4v4T54yRZWHMPtnRzy
+rP1KPuoq6uMrHVN/Gfg5O+2+p2V4VIvaRgJMcKyGQwC3gLvCgIbMExmt++7E0RTE
+2rM2IdsYdh9xu6Cr3+FzAq96M8MeHSdaIiYV6eLqRQEOpK7bl5ZGdZAnfW1xt6EU
+Bhe1d3oYKyjZKlAMCNlXFtC7HDeEV1qMFMjXTVCZZJ58ACHW8HmhNMbtcXOquE2l
+OMWEqyo+OAz/0Ka00/UZgfOFj1bBVFH3LoesGkopKUnKuDycoW3YN7l6gA4MeIf8
+WOqikZJR74y/5TB7gAx7DlTPkgJY3nfaCI1Iy7kJ/Dt/VkhZJWqVvYH5UktLxogr
+eFefT5xgGU7siWI/PcDe5RDEdG7s68HauB/w3jJxSMtyFBQBgVN8LzOKmBgtgktp
+Y0N9AVd/RVDTHCDt3bzhAt0LcuUilO+dwjrdSNfV7DCgh37zEAHKUXNiUdnE5Jop
+v2TrWPwKfjg=
+=rMSW
+-----END PGP SIGNATURE-----
+
+--Sig_/8.W._=263HEx73BuR3_RmJz--
