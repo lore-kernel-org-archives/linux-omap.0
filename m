@@ -1,32 +1,65 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 6/8] ARM: OMAP4: hwmod data: add HDQ/1-wire hwmod
-Date: Sat, 21 Jan 2012 20:47:59 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201212046380.26641@utopia.booyaka.com>
-References: <20120121235333.17619.56725.stgit@dusk> <20120121235934.17619.74939.stgit@dusk>
+Subject: [PATCH 3/3] ARM: OMAP: I2C: fix compilation when !CONFIG_OF
+Date: Sun, 22 Jan 2012 04:02:33 -0700
+Message-ID: <20120122110232.6508.68451.stgit@dusk>
+References: <20120122105942.6508.82335.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:55060 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:46341 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751949Ab2AVDsB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jan 2012 22:48:01 -0500
-In-Reply-To: <20120121235934.17619.74939.stgit@dusk>
+	with ESMTP id S1751825Ab2AVLDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2012 06:03:21 -0500
+In-Reply-To: <20120122105942.6508.82335.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>
 
-Hi
+Commit 6145197be6cc0583fa1a2f4ec1079d366137061e ("i2c: OMAP: Add DT
+support for i2c controller") breaks compilation when CONFIG_OF is not
+defined:
 
-On Sat, 21 Jan 2012, Paul Walmsley wrote:
+  CC      drivers/i2c/busses/i2c-omap.o
+drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_probe':
+drivers/i2c/busses/i2c-omap.c:1021:26: error: 'omap_i2c_of_match' undeclared (first use in this function)
+drivers/i2c/busses/i2c-omap.c:1021:26: note: each undeclared identifier is reported only once for each function it appears in
 
-> Add the hwmod data for the HDQ/1-wire hwmod ('hdq1w').  The scripts have 
-> been updated.
+Fix this by avoiding of_*() functions when !CONFIG_OF.
 
-just a quick note, I've dropped this patch from the series.  The HDQ 
-driver does byte-width accesses, which breaks pretty badly on OMAP4.  A 
-patch to fix this will be sent separately, and once that is merged, we'll 
-deal with adding the OMAP4 data.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index f713eac..1008e96 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -989,7 +989,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	struct resource		*mem, *irq, *ioarea;
+ 	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	struct device_node	*node = pdev->dev.of_node;
+-	const struct of_device_id *match;
++	const struct of_device_id *match = NULL;
+ 	irq_handler_t isr;
+ 	int r;
+ 
+@@ -1018,7 +1018,9 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_release_region;
+ 	}
+ 
++#ifdef CONFIG_OF
+ 	match = of_match_device(omap_i2c_of_match, &pdev->dev);
++#endif
+ 	if (match) {
+ 		u32 freq = 100000; /* default to 100000 Hz */
+ 
 
 
-- Paul
