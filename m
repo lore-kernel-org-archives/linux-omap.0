@@ -1,38 +1,80 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] tty: serial: OMAP: work around broken driver, IP
- block
-Date: Sun, 22 Jan 2012 07:04:10 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201220609290.26641@utopia.booyaka.com>
-References: <20120121071934.18707.64258.stgit@dusk>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 3/3] ARM: OMAP: I2C: fix compilation when !CONFIG_OF
+Date: Sun, 22 Jan 2012 09:40:27 -0600
+Message-ID: <4F1C2DEB.50209@gmail.com>
+References: <20120122105942.6508.82335.stgit@dusk> <20120122110232.6508.68451.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120121071934.18707.64258.stgit@dusk>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, alan@linux.intel.com, greg@kroah.com
-Cc: Govindraj Raja <govindraj.raja@ti.com>, Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:51561 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751738Ab2AVPkd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Jan 2012 10:40:33 -0500
+Received: by obcva7 with SMTP id va7so2243159obc.19
+        for <linux-omap@vger.kernel.org>; Sun, 22 Jan 2012 07:40:32 -0800 (PST)
+In-Reply-To: <20120122110232.6508.68451.stgit@dusk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@secretlab.ca>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>, Rob Herring <rob.herring@calxeda.com>
 
-On Sat, 21 Jan 2012, Paul Walmsley wrote:
-
-> [ This series is targeted for merging during v3.3-rc ]
+On 01/22/2012 05:02 AM, Paul Walmsley wrote:
+> Commit 6145197be6cc0583fa1a2f4ec1079d366137061e ("i2c: OMAP: Add DT
+> support for i2c controller") breaks compilation when CONFIG_OF is not
+> defined:
 > 
-> On v3.3-rc1, the OMAP serial console doesn't behave properly when
-> power management is enabled (the default with omap2plus_defconfig).
-> This seems to be due to a combination of a silicon bug in the UART IP
-> block and broken FIFO settings in the OMAP serial driver.
+>   CC      drivers/i2c/busses/i2c-omap.o
+> drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_probe':
+> drivers/i2c/busses/i2c-omap.c:1021:26: error: 'omap_i2c_of_match' undeclared (first use in this function)
+> drivers/i2c/busses/i2c-omap.c:1021:26: note: each undeclared identifier is reported only once for each function it appears in
 > 
-> This patch series attempts to work around these problems.  The workarounds
-> are not perfect; see the patch descriptions for more details.
+> Fix this by avoiding of_*() functions when !CONFIG_OF.
 > 
-> Tested on OMAP3530 BeagleBoard.  This series will need to be tested on
-> OMAP2 and OMAP4 before it is ready to merge.
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index f713eac..1008e96 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -989,7 +989,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	struct resource		*mem, *irq, *ioarea;
+>  	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+>  	struct device_node	*node = pdev->dev.of_node;
+> -	const struct of_device_id *match;
+> +	const struct of_device_id *match = NULL;
+>  	irq_handler_t isr;
+>  	int r;
+>  
+> @@ -1018,7 +1018,9 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_release_region;
+>  	}
+>  
+> +#ifdef CONFIG_OF
+>  	match = of_match_device(omap_i2c_of_match, &pdev->dev);
+> +#endif
 
-Just did a quick test on an OMAP4430 ES2 Pandaboard and the 
-(OMAP2420-based) N800.  This series has no obvious effect on either N800 
-or OMAP4430 Pandaboard, aside from the expected increase in interrupts in 
-the non-CPUIdle case.  Probably this is due to the relative immaturity of 
-the PM code on those two chip families.
+How about an empty function for of_match_device instead to avoid the ifdef.
 
+Rob
 
-- Paul
+>  	if (match) {
+>  		u32 freq = 100000; /* default to 100000 Hz */
+>  
+> 
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
