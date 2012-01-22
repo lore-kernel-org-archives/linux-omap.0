@@ -1,45 +1,32 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: DSS2/PM on 3.2 broken?
-Date: Sat, 21 Jan 2012 17:07:18 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201211704430.26641@utopia.booyaka.com>
-References: <WC20120109124643.880164@terrafix.co.uk> <20120110080849.5a242adf@notabene.brown> <alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com> <20120112095940.0a54413e@notabene.brown> <alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
- <20120113222045.37f9b4ec@notabene.brown> <alpine.DEB.2.00.1201130423280.3659@utopia.booyaka.com> <20120114100915.01c96727@notabene.brown> <20120118082410.48262777@notabene.brown>
+Subject: Re: [PATCH 6/8] ARM: OMAP4: hwmod data: add HDQ/1-wire hwmod
+Date: Sat, 21 Jan 2012 20:47:59 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201212046380.26641@utopia.booyaka.com>
+References: <20120121235333.17619.56725.stgit@dusk> <20120121235934.17619.74939.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60824 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:55060 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216Ab2AVAHV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jan 2012 19:07:21 -0500
-In-Reply-To: <20120118082410.48262777@notabene.brown>
+	with ESMTP id S1751949Ab2AVDsB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Jan 2012 22:48:01 -0500
+In-Reply-To: <20120121235934.17619.74939.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, t-kristo@ti.com, govindraj.raja@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?ISO-8859-15?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>
 
-On Wed, 18 Jan 2012, NeilBrown wrote:
+Hi
 
-> Oh - another thing.
-> Sometimes during early boot I get:
-> 
-> [    0.158447] omap_hwmod: usbtll_fck: missing clockdomain for usbtll_fck.
-> [    0.176879] omap_hwmod: hdq: softreset failed (waited 10000 usec)
+On Sat, 21 Jan 2012, Paul Walmsley wrote:
 
-This latter bug just got fixed, it's updated in the new HDQ series that I 
-sent out:
+> Add the hwmod data for the HDQ/1-wire hwmod ('hdq1w').  The scripts have 
+> been updated.
 
-http://marc.info/?l=linux-omap&m=132719073710874&w=2
-
-BTW, if you could give that a spin for us at some point, it would be 
-greatly appreciated; I don't think I have a board with a 1-wire device on 
-it (at least, not that I know of).
-
-> At the same time the UART seem to hiccup and my USB-Serial port loses track
-> and doesn't see any more characters until I close and re-open.
-> 
-> Could that be related?  Any idea what it means?
-
-It shouldn't be related.
+just a quick note, I've dropped this patch from the series.  The HDQ 
+driver does byte-width accesses, which breaks pretty badly on OMAP4.  A 
+patch to fix this will be sent separately, and once that is merged, we'll 
+deal with adding the OMAP4 data.
 
 
 - Paul
