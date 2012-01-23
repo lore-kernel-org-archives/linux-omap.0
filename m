@@ -1,85 +1,138 @@
 From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: omap-serial RX DMA polling?
-Date: Mon, 23 Jan 2012 15:30:01 +0530
-Message-ID: <CAAL8m4wcSfhjxg0Lyo-W7DQ85rikb6asRds95hwQQNTDXe2YKQ@mail.gmail.com>
-References: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com>
+Subject: Re: [PATCH 1/2] tty: serial: OMAP: ensure FIFO levels are set
+ correctly in non-DMA mode
+Date: Mon, 23 Jan 2012 15:51:54 +0530
+Message-ID: <CAAL8m4xHzdESmWy8eKwX5-Zb1z8FSRzBxF67bkf=N3JjCL9rBg@mail.gmail.com>
+References: <20120121071934.18707.64258.stgit@dusk> <20120121072737.18707.77811.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120121072737.18707.77811.stgit@dusk>
+Sender: linux-serial-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: khilman@ti.com, govindraj.raja@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Govindraj Raja <govindraj.r@ti.com>, Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, alan@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Jan 23, 2012 at 6:03 AM, Paul Walmsley <paul@pwsan.com> wrote:
+On Sat, Jan 21, 2012 at 12:57 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> Ensure FIFO levels are set correctly in non-DMA mode (the default).
+> This patch will cause a receive FIFO threshold interrupt to be raised=
+ when
+> there is at least one byte in the RX FIFO. =A0It will also cause a tr=
+ansmit
+> FIFO threshold interrupt when there is only one byte remaining in the=
+ TX
+> FIFO.
 >
-> Hello Govindraj
+> These changes fix the receive interrupt problem and part of the
+> transmit interrupt problem. =A0A separate set of issues must be worke=
+d
+> around for the transmit path to have a basic level of functionality; =
+a
+> subsequent patch will address these.
 >
-> while trying to track down some of the serial-related PM issues in
-> v3.3-rc1, I noticed that the omap-serial.c driver sets a 1 microsecond
-> polling timer when DMA is enabled (uart_dma.rx_timer) (!) =A0This seems
-> quite broken from both the DMA and PM points of view.
+> DMA operation is unaffected by this patch.
 >
-
-Poll rate is used for doing tty_insert_flip_string for pushing data to
-user space
-to keep faster response to any client device over uart, some Bt chips
-expect faster
-response when data on uart arrives and packet should be pushed out immediat=
-ely.
-
-
-> From a DMA point of view, the DMA transfer should automatically start
-> when there is data to transfer, and stop when there is no data left, based
-> on the DMA request lines. =A0So timer-driven polling should not be needed=
- at
-> all.
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Cc: Govindraj Raja <govindraj.r@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> ---
+> =A0drivers/tty/serial/omap-serial.c | =A0 35 ++++++++++++++++++++++++=
++++++++----
+> =A01 files changed, 31 insertions(+), 4 deletions(-)
 >
-
-its for tty_insert pushing data to tty stack.
-
-
-> From a PM point of view, this short timer will effectively prevent the MPU
-> from going into a low-power state whenever there is data in the FIFO.
-> This will more than erase any energy consumption or CPU efficiency
-> benefits of doing DMA. =A0Interrupt-driven PIO should be much more effici=
-ent
-> than this, since at least the MPU can enter a low-power state while
-> waiting for the FIFO to fill.
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
+ap-serial.c
+> index d192dcb..9de7d71 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -46,6 +46,18 @@
 >
+> =A0#define DEFAULT_CLK_SPEED 48000000 /* 48Mhz*/
+>
+> +/* SCR register bitmasks */
+> +#define OMAP_UART_SCR_RX_TRIG_GRANU1_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+(1 << 7)
+> +#define OMAP_UART_SCR_TX_TRIG_GRANU1_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+(1 << 6)
+> +
+> +/* FCR register bitmasks */
+> +#define OMAP_UART_FCR_RX_FIFO_TRIG_SHIFT =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ 6
+> +#define OMAP_UART_FCR_RX_FIFO_TRIG_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0(0x3 << 6)
+> +#define OMAP_UART_FCR_TX_FIFO_TRIG_SHIFT =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ 4
+> +
+> +/* TLR register bitmasks */
+> +#define OMAP_UART_TLR_TX_FIFO_TRIG_DMA_SHIFT =A0 =A0 =A0 =A0 =A0 0
+> +
+> =A0static struct uart_omap_port *ui[OMAP_MAX_HSUART_PORTS];
+>
+> =A0/* Forward declaration of functions */
+> @@ -694,6 +706,7 @@ serial_omap_set_termios(struct uart_port *port, s=
+truct ktermios *termios,
+> =A0 =A0 =A0 =A0unsigned char efr =3D 0;
+> =A0 =A0 =A0 =A0unsigned long flags =3D 0;
+> =A0 =A0 =A0 =A0unsigned int baud, quot;
+> + =A0 =A0 =A0 u32 tlr;
+>
+> =A0 =A0 =A0 =A0switch (termios->c_cflag & CSIZE) {
+> =A0 =A0 =A0 =A0case CS5:
+> @@ -811,14 +824,28 @@ serial_omap_set_termios(struct uart_port *port,=
+ struct ktermios *termios,
+> =A0 =A0 =A0 =A0up->mcr =3D serial_in(up, UART_MCR);
+> =A0 =A0 =A0 =A0serial_out(up, UART_MCR, up->mcr | UART_MCR_TCRTLR);
+> =A0 =A0 =A0 =A0/* FIFO ENABLE, DMA MODE */
+> - =A0 =A0 =A0 serial_out(up, UART_FCR, up->fcr);
+> - =A0 =A0 =A0 serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+> +
+> + =A0 =A0 =A0 up->scr |=3D OMAP_UART_SCR_TX_TRIG_GRANU1_MASK;
+> + =A0 =A0 =A0 up->scr |=3D OMAP_UART_SCR_RX_TRIG_GRANU1_MASK;
+>
+> =A0 =A0 =A0 =A0if (up->use_dma) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 serial_out(up, UART_TI752_TLR, 0);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->scr |=3D (UART_FCR_TRIGGER_4 | UART=
+_FCR_TRIGGER_8);
 
-yes we maintain 3 secs timeout period and keep uart active in DMA case.
-since rx is asynchronous we cant afford to stop and start dma every time af=
-ter
-x bytes after every rx data completion call back.
+Any reasons for removing scr config for dma mode ?
 
 
-> So basically, the broken timeout calculations used in the interrupt-driven
-> PIO mode (which set a 1 microsecond PM QoS constraint), plus the 1
-> microsecond polling timer used in DMA mode, mean that this driver is
-> pretty bad from a PM perspective.
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tlr =3D 0;
+> + =A0 =A0 =A0 } else {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->scr &=3D ~OMAP_UART_SCR_TX_EMPTY;
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Set receive FIFO threshold to 1 */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->fcr &=3D ~OMAP_UART_FCR_RX_FIFO_TRI=
+G_MASK;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->fcr |=3D (0x1 << OMAP_UART_FCR_RX_F=
+IFO_TRIG_SHIFT);
+> +
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Set TX FIFO threshold to "63" (actua=
+lly 1) */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 up->fcr |=3D (0x3 << OMAP_UART_FCR_TX_F=
+IFO_TRIG_SHIFT);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tlr =3D (0xf << OMAP_UART_TLR_TX_FIFO_T=
+RIG_DMA_SHIFT);
+> =A0 =A0 =A0 =A0}
 >
-> I sent some patches to fix the interrupt-driven PIO receive part of the
-> problem, which you've probably seen. =A0But I'm hoping that you can descr=
-ibe
-> further why the driver needs this RX DMA polling timer? =A0Shouldn't it be
-> unnecessary? =A0If it's truly unavoidable, then we should presumably not
-> even bother with RX DMA at all.
+> + =A0 =A0 =A0 serial_out(up, UART_TI752_TLR, tlr);
+> + =A0 =A0 =A0 serial_out(up, UART_FCR, up->fcr);
+> + =A0 =A0 =A0 serial_out(up, UART_LCR, UART_LCR_CONF_MODE_B);
+> +
+> =A0 =A0 =A0 =A0serial_out(up, UART_OMAP_SCR, up->scr);
+>
+> =A0 =A0 =A0 =A0serial_out(up, UART_EFR, up->efr);
 >
 >
->
-> =A0- Paul
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-serial" in
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-serial"=
+ in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
