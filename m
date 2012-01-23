@@ -1,76 +1,50 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] W1: OMAP HDQ1W: use 32-bit register accesses
-Date: Sun, 22 Jan 2012 13:26:23 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201221319270.26641@utopia.booyaka.com>
+Subject: omap-serial RX DMA polling?
+Date: Sun, 22 Jan 2012 17:33:07 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49528 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:48425 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437Ab2AVU0Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2012 15:26:24 -0500
+	with ESMTP id S1752527Ab2AWAdI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Jan 2012 19:33:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, neilb@suse.de
+To: govindraj.raja@ti.com
+Cc: khilman@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
 
-HDQ/1-wire registers are 32 bits long, even if the register contents
-fit into 8 bits, so accesses must be 32-bit aligned.  Evidently the
-OMAP2/3 interconnects allowed the driver to get away with 8 bit accesses,
-but the OMAP4 puts a stop to that:
+Hello Govindraj
 
-[    1.488800] Driver for 1-wire Dallas network protocol.
-[    1.495025] Bad mode in data abort handler detected
-[    1.500122] Internal error: Oops - bad mode: 0 [#1] SMP
-[    1.505615] Modules linked in:
-[    1.508819] CPU: 0    Not tainted  (3.3.0-rc1-00008-g45030e9 #992)
-[    1.515289] PC is at 0xffff0018
-[    1.518615] LR is at omap_hdq_probe+0xd4/0x2cc
+while trying to track down some of the serial-related PM issues in 
+v3.3-rc1, I noticed that the omap-serial.c driver sets a 1 microsecond 
+polling timer when DMA is enabled (uart_dma.rx_timer) (!)  This seems 
+quite broken from both the DMA and PM points of view.
 
-The OMAP4430 ES2 Rev X TRM does warn about this restriction in section 
-23.2.6.2 "HDQ/1-Wire Registers".
+>From a DMA point of view, the DMA transfer should automatically start 
+when there is data to transfer, and stop when there is no data left, based 
+on the DMA request lines.  So timer-driven polling should not be needed at 
+all.
 
-Fixes the crash on OMAP4430 ES2 Pandaboard.  Tested also on OMAP34xx and 
-OMAP2420; it seems to work fine on those chips, although due to the lack 
-of boards with HDQ/1-wire devices here, a more indepth test was not 
-possible.
+>From a PM point of view, this short timer will effectively prevent the MPU 
+from going into a low-power state whenever there is data in the FIFO.  
+This will more than erase any energy consumption or CPU efficiency 
+benefits of doing DMA.  Interrupt-driven PIO should be much more efficient 
+than this, since at least the MPU can enter a low-power state while 
+waiting for the FIFO to fill.
 
----
-Intended for the v3.4 merge window.
+So basically, the broken timeout calculations used in the interrupt-driven 
+PIO mode (which set a 1 microsecond PM QoS constraint), plus the 1 
+microsecond polling timer used in DMA mode, mean that this driver is 
+pretty bad from a PM perspective.
 
- drivers/w1/masters/omap_hdq.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+I sent some patches to fix the interrupt-driven PIO receive part of the 
+problem, which you've probably seen.  But I'm hoping that you can describe 
+further why the driver needs this RX DMA polling timer?  Shouldn't it be 
+unnecessary?  If it's truly unavoidable, then we should presumably not 
+even bother with RX DMA at all.
 
-diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-index 63e3eda..291897c 100644
---- a/drivers/w1/masters/omap_hdq.c
-+++ b/drivers/w1/masters/omap_hdq.c
-@@ -100,20 +100,20 @@ static struct w1_bus_master omap_w1_master = {
- /* HDQ register I/O routines */
- static inline u8 hdq_reg_in(struct hdq_data *hdq_data, u32 offset)
- {
--	return __raw_readb(hdq_data->hdq_base + offset);
-+	return __raw_readl(hdq_data->hdq_base + offset);
- }
- 
- static inline void hdq_reg_out(struct hdq_data *hdq_data, u32 offset, u8 val)
- {
--	__raw_writeb(val, hdq_data->hdq_base + offset);
-+	__raw_writel(val, hdq_data->hdq_base + offset);
- }
- 
- static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
- 			u8 val, u8 mask)
- {
--	u8 new_val = (__raw_readb(hdq_data->hdq_base + offset) & ~mask)
-+	u8 new_val = (__raw_readl(hdq_data->hdq_base + offset) & ~mask)
- 			| (val & mask);
--	__raw_writeb(new_val, hdq_data->hdq_base + offset);
-+	__raw_writel(new_val, hdq_data->hdq_base + offset);
- 
- 	return new_val;
- }
--- 
-1.7.8.3
 
+
+ - Paul
