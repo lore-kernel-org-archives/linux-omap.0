@@ -1,141 +1,124 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/3] ARM: OMAP: HWMOD: split omap2/3 dispc hwmod class
-Date: Mon, 23 Jan 2012 14:15:28 +0200
-Message-ID: <1327320930-14550-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 3/3] OMAPDSS: use sync versions of pm_runtime_put
+Date: Mon, 23 Jan 2012 14:15:30 +0200
+Message-ID: <1327320930-14550-4-git-send-email-tomi.valkeinen@ti.com>
 References: <1327320930-14550-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:52599 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750852Ab2AWMPs (ORCPT
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:54914 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752194Ab2AWMPw (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Jan 2012 07:15:48 -0500
+	Mon, 23 Jan 2012 07:15:52 -0500
 In-Reply-To: <1327320930-14550-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, paul@pwsan.com
 Cc: archit@ti.com, neilb@suse.de, jean.pihet@newoldbits.com, khilman@ti.com, jw@terrafix.co.uk, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Currently OMAP2 and 3 share the same omap_hwmod_class and
-omap_hwmod_class_sysconfig for dispc. However, OMAP3 has sysconfig
-bits that OMAP2 doesn't have, so we need to split those structs into
-OMAP2 and OMAP3 specific versions.
+omapdss doesn't work properly on system suspend. The problem seems to be
+the fact that omapdss uses pm_runtime_put() functions when turning off
+the hardware, and when system suspend is in process only sync versions
+are allowed.
 
-This patch only splits the structs, without changing the contents.
+Using non-sync versions normally and sync versions when suspending would
+need rather ugly hacks to convey the information of
+suspending/not-suspending to different functions. Optimally the driver
+wouldn't even need to care about this, and the PM layer would handle
+syncing when suspend is in process.
+
+This patch changes all omapdss's pm_runtime_put calls to
+pm_runtime_put_sync. This fixes the suspend problem, and probably the
+performance penalty of always using sync versions is negligible.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   21 ------------------
- arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   22 +++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   23 +++++++++++++++++++-
- 3 files changed, 44 insertions(+), 22 deletions(-)
+ drivers/video/omap2/dss/dispc.c |    2 +-
+ drivers/video/omap2/dss/dsi.c   |    2 +-
+ drivers/video/omap2/dss/dss.c   |    2 +-
+ drivers/video/omap2/dss/hdmi.c  |    2 +-
+ drivers/video/omap2/dss/rfbi.c  |    2 +-
+ drivers/video/omap2/dss/venc.c  |    2 +-
+ 6 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-index c11273d..f08e442 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c
-@@ -56,27 +56,6 @@ struct omap_hwmod_class omap2_dss_hwmod_class = {
- };
+diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+index a5ec7f3..e1626a1 100644
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -401,7 +401,7 @@ void dispc_runtime_put(void)
  
- /*
-- * 'dispc' class
-- * display controller
-- */
--
--static struct omap_hwmod_class_sysconfig omap2_dispc_sysc = {
--	.rev_offs	= 0x0000,
--	.sysc_offs	= 0x0010,
--	.syss_offs	= 0x0014,
--	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
--			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
--	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
--			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
--	.sysc_fields	= &omap_hwmod_sysc_type1,
--};
--
--struct omap_hwmod_class omap2_dispc_hwmod_class = {
--	.name	= "dispc",
--	.sysc	= &omap2_dispc_sysc,
--};
--
--/*
-  * 'rfbi' class
-  * remote frame buffer interface
-  */
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-index 177dee2..2a67297 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c
-@@ -28,6 +28,28 @@ struct omap_hwmod_dma_info omap2xxx_dss_sdma_chs[] = {
- 	{ .name = "dispc", .dma_req = 5 },
- 	{ .dma_req = -1 }
- };
-+
-+/*
-+ * 'dispc' class
-+ * display controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap2_dispc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+struct omap_hwmod_class omap2_dispc_hwmod_class = {
-+	.name	= "dispc",
-+	.sysc	= &omap2_dispc_sysc,
-+};
-+
- /* OMAP2xxx Timer Common */
- static struct omap_hwmod_class_sysconfig omap2xxx_timer_sysc = {
- 	.rev_offs	= 0x0000,
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 5324e8d..c965309 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1480,6 +1480,27 @@ static struct omap_hwmod omap3xxx_dss_core_hwmod = {
- 	.masters_cnt	= ARRAY_SIZE(omap3xxx_dss_masters),
- };
+ 	DSSDBG("dispc_runtime_put\n");
  
-+/*
-+ * 'dispc' class
-+ * display controller
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap3_dispc_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.syss_offs	= 0x0014,
-+	.sysc_flags	= (SYSC_HAS_SIDLEMODE | SYSC_HAS_MIDLEMODE |
-+			   SYSC_HAS_SOFTRESET | SYSC_HAS_AUTOIDLE),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type1,
-+};
-+
-+static struct omap_hwmod_class omap3_dispc_hwmod_class = {
-+	.name	= "dispc",
-+	.sysc	= &omap3_dispc_sysc,
-+};
-+
- /* l4_core -> dss_dispc */
- static struct omap_hwmod_ocp_if omap3xxx_l4_core__dss_dispc = {
- 	.master		= &omap3xxx_l4_core_hwmod,
-@@ -1503,7 +1524,7 @@ static struct omap_hwmod_ocp_if *omap3xxx_dss_dispc_slaves[] = {
+-	r = pm_runtime_put(&dispc.pdev->dev);
++	r = pm_runtime_put_sync(&dispc.pdev->dev);
+ 	WARN_ON(r < 0);
+ }
  
- static struct omap_hwmod omap3xxx_dss_dispc_hwmod = {
- 	.name		= "dss_dispc",
--	.class		= &omap2_dispc_hwmod_class,
-+	.class		= &omap3_dispc_hwmod_class,
- 	.mpu_irqs	= omap2_dispc_irqs,
- 	.main_clk	= "dss1_alwon_fck",
- 	.prcm		= {
+diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss/dsi.c
+index d4d676c..52f36ec 100644
+--- a/drivers/video/omap2/dss/dsi.c
++++ b/drivers/video/omap2/dss/dsi.c
+@@ -1079,7 +1079,7 @@ void dsi_runtime_put(struct platform_device *dsidev)
+ 
+ 	DSSDBG("dsi_runtime_put\n");
+ 
+-	r = pm_runtime_put(&dsi->pdev->dev);
++	r = pm_runtime_put_sync(&dsi->pdev->dev);
+ 	WARN_ON(r < 0);
+ }
+ 
+diff --git a/drivers/video/omap2/dss/dss.c b/drivers/video/omap2/dss/dss.c
+index 1703345..77c2b5a 100644
+--- a/drivers/video/omap2/dss/dss.c
++++ b/drivers/video/omap2/dss/dss.c
+@@ -720,7 +720,7 @@ void dss_runtime_put(void)
+ 
+ 	DSSDBG("dss_runtime_put\n");
+ 
+-	r = pm_runtime_put(&dss.pdev->dev);
++	r = pm_runtime_put_sync(&dss.pdev->dev);
+ 	WARN_ON(r < 0);
+ }
+ 
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index b4c270e..c39f9c3 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -176,7 +176,7 @@ static void hdmi_runtime_put(void)
+ 
+ 	DSSDBG("hdmi_runtime_put\n");
+ 
+-	r = pm_runtime_put(&hdmi.pdev->dev);
++	r = pm_runtime_put_sync(&hdmi.pdev->dev);
+ 	WARN_ON(r < 0);
+ }
+ 
+diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+index 814bb95..55f3980 100644
+--- a/drivers/video/omap2/dss/rfbi.c
++++ b/drivers/video/omap2/dss/rfbi.c
+@@ -140,7 +140,7 @@ static void rfbi_runtime_put(void)
+ 
+ 	DSSDBG("rfbi_runtime_put\n");
+ 
+-	r = pm_runtime_put(&rfbi.pdev->dev);
++	r = pm_runtime_put_sync(&rfbi.pdev->dev);
+ 	WARN_ON(r < 0);
+ }
+ 
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
+index b3e9f90..5c3d0f9 100644
+--- a/drivers/video/omap2/dss/venc.c
++++ b/drivers/video/omap2/dss/venc.c
+@@ -401,7 +401,7 @@ static void venc_runtime_put(void)
+ 
+ 	DSSDBG("venc_runtime_put\n");
+ 
+-	r = pm_runtime_put(&venc.pdev->dev);
++	r = pm_runtime_put_sync(&venc.pdev->dev);
+ 	WARN_ON(r < 0);
+ }
+ 
 -- 
 1.7.4.1
 
