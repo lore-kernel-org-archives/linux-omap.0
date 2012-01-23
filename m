@@ -1,117 +1,90 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to
- existing prm code
-Date: Mon, 23 Jan 2012 08:53:58 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317AF316@DBDE01.ent.ti.com>
-References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
-	<1326017894-7632-4-git-send-email-hvaibhav@ti.com> <87zkdvpgz1.fsf@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] arm/dts: omap3-evm: Add i2c and twl4030 support
+Date: Mon, 23 Jan 2012 09:56:51 +0100
+Message-ID: <4F1D20D3.4080307@ti.com>
+References: <1326869739-27652-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A8317AF2E2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44489 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:44781 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752384Ab2AWIyD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2012 03:54:03 -0500
-Content-Language: en-US
+	with ESMTP id S1752661Ab2AWI5C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2012 03:57:02 -0500
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8317AF2E2@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Jan 11, 2012 at 21:48:25, Hiremath, Vaibhav wrote:
-> On Tue, Jan 10, 2012 at 23:39:22, Hilman, Kevin wrote:
-> > Vaibhav Hiremath <hvaibhav@ti.com> writes:
-> > 
-> > > AM33XX PRM module (L4_WK domain) will be treated as another seperate
-> > > partition in _prm_bases[] table.
-> > >
-> > > Also, since cpu_is_omap34xx check is true for am33xx family of
-> > > devices, we must check cpu_is_am33xx fisrt, in order to follow
-> > > omap4 execution path.
-> > 
-> > Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
-> 
-> Yeah sure...
-> 
-> Kevin,
-> As mentioned before, the main idea behind bringing am33xx under omap34xx
-> was mainly due to "cortex-A8 family of devices".
-> 
-> It has been discussed and aligned long time back, so
-> please refer to the thread -
-> 
-> http://www.spinics.net/lists/linux-omap/msg41046.html
-> Multiple versions of -
-> http://www.spinics.net/lists/linux-omap/msg45505.html
-> 
-> Thanks,
-> Vaibhav
-> 
-> > These AM3xxx devices make my brain hurt.
-> > 
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > Cc: Kevin Hilman <khilman@ti.com>
-> > > Cc: Rajendra Nayak <rnayak@ti.com>
-> > 
-> > [...]
-> > 
-> > > diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
-> > > index 3d9894f..fcc4123 100644
-> > > --- a/arch/arm/mach-omap2/prminst44xx.c
-> > > +++ b/arch/arm/mach-omap2/prminst44xx.c
-> > > @@ -19,6 +19,7 @@
-> > >  #include "common.h"
-> > >
-> > >  #include "prm44xx.h"
-> > > +#include "prm33xx.h"
-> > >  #include "prminst44xx.h"
-> > >  #include "prm-regbits-44xx.h"
-> > >  #include "prcm44xx.h"
-> > > @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
-> > >  	[OMAP4430_CM2_PARTITION]		= 0,
-> > >  	[OMAP4430_SCRM_PARTITION]		= 0,
-> > >  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
-> > > +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
-> > >  };
-> > 
-> > I'm not crazy about just extending the "normal" OMAP4 table.  
-> 
-> If it is required then yes (with proper comment).
-> 
-> > That would
-> > imply that with each OMAP4 derivatve we keep extending this table.
-> > 
-> 
-> I would say anyway we will end up adding
-> Cpu_is_xxx everywhere as we add new table for derivatives.
-> 
-> > Instead, how about rename this to one to omap44xx_prm_bases[], then
-> > create a new one called am33xx_prm_bases[].  Then, at init time, assing
-> > _prm_bases to the right one based on cpu_is_.
-> > 
-> 
-> Just wanted to avoid cpu_is_xxxx check here. Will specific comment wouldn't
-> help here (I have clearly mentioned in patch description), may be in c file
-> it is required?
-> OR 
-> you want to be clearly separate table for code readability.
-> 
+Hi Vaibhav,
 
-Kevin,
+On 1/23/2012 9:49 AM, Hiremath, Vaibhav wrote:
+> On Wed, Jan 18, 2012 at 12:25:39, Hiremath, Vaibhav wrote:
+>> Add support for TWL4030, which is interfaced on i2c1 bus.
+>> Also add clock frequencies for other i2c instances(2&  3)
+>> required for client-device exist on OMAP3EVM board.
+>>
+>> Signed-off-by: Vaibhav Hiremath<hvaibhav@ti.com>
+>> Cc: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Grant Likely<grant.likely@secretlab.ca>
+>> Cc: Tony Lindgren<tony@atomide.com>
+>> ---
+>>   arch/arm/boot/dts/omap3-evm.dts |   28 ++++++++++++++++++++++++++++
+>>   1 files changed, 28 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+>> index 2eee16e..530bdc0 100644
+>> --- a/arch/arm/boot/dts/omap3-evm.dts
+>> +++ b/arch/arm/boot/dts/omap3-evm.dts
+>> @@ -18,3 +18,31 @@
+>>   		reg =<0x80000000 0x10000000>; /* 256 MB */
+>>   	};
+>>   };
+>> +
+>> +&i2c1 {
+>> +	clock-frequency =<2600000>;
+>> +
+>> +	twl: twl@48 {
+>> +		reg =<0x48>;
+>> +		interrupts =<7>; /* SYS_NIRQ cascaded to intc */
+>> +		interrupt-parent =<&intc>;
+>> +	};
+>> +};
+>> +
+>> +/include/ "twl4030.dtsi"
+>> +
+>> +&i2c2 {
+>> +	clock-frequency =<400000>;
+>> +};
+>> +
+>> +&i2c3 {
+>> +	clock-frequency =<400000>;
+>> +
+>> +	/*
+>> +	 * TVP5146 Video decoder-in for analog input support.
+>> +	 */
+>> +	tvp5146@5C {
+>> +		compatible = "ti,tvp5146m2";
+>> +		reg =<0x5C>;
 
-Any comments on this? Should I stick to what is implemented now?
+Minor nit: Use lower case for hexa value.
 
-Thanks,
-Vaibhav
+>> +	};
+>> +};
+>> --
+>> 1.7.0.4
+>>
+>>
+>
+> Benoit,
+>
+> Can this (and also AM3517 DT support patch) be merged to your
+> next pull request?
 
+Yes, assuming that Grant/Rob will ack it, I can take it.
 
-> Thanks,
-> Vaibhav
-> 
-> > Kevin
-> > 
-> > 
-> 
-> 
+Regards,
+Benoit
+
 
