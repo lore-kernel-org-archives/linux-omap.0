@@ -1,82 +1,152 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: [PATCH] W1: OMAP HDQ1W: use 32-bit register accesses
-Date: Mon, 23 Jan 2012 18:07:53 +0300
-Message-ID: <20120123150753.GA21395@ioremap.net>
-References: <alpine.DEB.2.00.1201221319270.26641@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/2] omap2+: add drm device
+Date: Mon, 23 Jan 2012 18:24:31 +0100
+Message-ID: <4F1D97CF.60306@ti.com>
+References: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1201221319270.26641@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, neilb@suse.de
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45888 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750963Ab2AWRYj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2012 12:24:39 -0500
+In-Reply-To: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org, Greg KH <greg@kroah.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-Hi Paul
+Hi Rob,
 
-Patchset looks good, feel free to add my ack
+On 1/13/2012 9:41 PM, Rob Clark wrote:
+> From: Rob Clark<rob@ti.com>
 
-On Sun, Jan 22, 2012 at 01:26:23PM -0700, Paul Walmsley (paul@pwsan.com) wrote:
-> 
-> HDQ/1-wire registers are 32 bits long, even if the register contents
-> fit into 8 bits, so accesses must be 32-bit aligned.  Evidently the
-> OMAP2/3 interconnects allowed the driver to get away with 8 bit accesses,
-> but the OMAP4 puts a stop to that:
-> 
-> [    1.488800] Driver for 1-wire Dallas network protocol.
-> [    1.495025] Bad mode in data abort handler detected
-> [    1.500122] Internal error: Oops - bad mode: 0 [#1] SMP
-> [    1.505615] Modules linked in:
-> [    1.508819] CPU: 0    Not tainted  (3.3.0-rc1-00008-g45030e9 #992)
-> [    1.515289] PC is at 0xffff0018
-> [    1.518615] LR is at omap_hdq_probe+0xd4/0x2cc
-> 
-> The OMAP4430 ES2 Rev X TRM does warn about this restriction in section 
-> 23.2.6.2 "HDQ/1-Wire Registers".
-> 
-> Fixes the crash on OMAP4430 ES2 Pandaboard.  Tested also on OMAP34xx and 
-> OMAP2420; it seems to work fine on those chips, although due to the lack 
-> of boards with HDQ/1-wire devices here, a more indepth test was not 
-> possible.
-> 
-> ---
-> Intended for the v3.4 merge window.
-> 
->  drivers/w1/masters/omap_hdq.c |    8 ++++----
->  1 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
-> index 63e3eda..291897c 100644
-> --- a/drivers/w1/masters/omap_hdq.c
-> +++ b/drivers/w1/masters/omap_hdq.c
-> @@ -100,20 +100,20 @@ static struct w1_bus_master omap_w1_master = {
->  /* HDQ register I/O routines */
->  static inline u8 hdq_reg_in(struct hdq_data *hdq_data, u32 offset)
->  {
-> -	return __raw_readb(hdq_data->hdq_base + offset);
-> +	return __raw_readl(hdq_data->hdq_base + offset);
->  }
->  
->  static inline void hdq_reg_out(struct hdq_data *hdq_data, u32 offset, u8 val)
->  {
-> -	__raw_writeb(val, hdq_data->hdq_base + offset);
-> +	__raw_writel(val, hdq_data->hdq_base + offset);
->  }
->  
->  static inline u8 hdq_reg_merge(struct hdq_data *hdq_data, u32 offset,
->  			u8 val, u8 mask)
->  {
-> -	u8 new_val = (__raw_readb(hdq_data->hdq_base + offset) & ~mask)
-> +	u8 new_val = (__raw_readl(hdq_data->hdq_base + offset) & ~mask)
->  			| (val & mask);
-> -	__raw_writeb(new_val, hdq_data->hdq_base + offset);
-> +	__raw_writel(new_val, hdq_data->hdq_base + offset);
->  
->  	return new_val;
->  }
-> -- 
-> 1.7.8.3
+[...]
 
--- 
-	Evgeniy Polyakov
+> +static int __init omap_init_gpu(void)
+
+Why is the function to init drm device is named gpu?
+
+> +{
+> +	struct omap_hwmod *oh = NULL;
+> +
+> +	/* lookup and populate the DMM information, if present - OMAP4+ */
+> +	oh = omap_hwmod_lookup("dmm");
+> +
+> +	if (oh) {
+> +		dmm_platdata.base = omap_hwmod_get_mpu_rt_va(oh);
+> +		dmm_platdata.irq = oh->mpu_irqs[0].irq;
+
+These are internal hwmod attributes that should not be retrieved here. 
+They are included in the device resources and this is up to the driver 
+to get them using the platform_get_resource.
+
+> +
+> +		if (dmm_platdata.base)
+> +			omapdrm_platdata.dmm_pdata =&dmm_platdata;
+
+pdata is supposed to be used for storing board level information, and we 
+are in the process of removing all of them for device tree adaptation. 
+So you should not use that at all in this case if this is not strictly 
+needed.
+
+> +	}
+> +
+> +	return platform_device_register(&omap_drm_device);
+
+This is not the proper way to init a device nowadays.
+
+If you want to take advantage of the pm functionality, you should create 
+an omap_device.
+Please have a look at the other OMAP devices creation code (GPIO, UART...).
+
+> +}
+> +
+> +arch_initcall(omap_init_gpu);
+> +
+> +void omapdrm_reserve_vram(void)
+> +{
+> +#ifdef CONFIG_CMA
+> +	/*
+> +	 * Create private 32MiB contiguous memory area for omapdrm.0 device
+> +	 * TODO revisit size.. if uc/wc buffers are allocated from CMA pages
+> +	 * then the amount of memory we need goes up..
+> +	 */
+> +	dma_declare_contiguous(&omap_drm_device.dev, 32 * SZ_1M, 0, 0);
+> +#else
+> +#  warning "CMA is not enabled, there may be limitations about scanout buffer allocations on OMAP3 and earlier"
+> +#endif
+> +}
+> +
+> +#endif
+> diff --git a/arch/arm/plat-omap/include/plat/drm.h b/arch/arm/plat-omap/include/plat/drm.h
+> new file mode 100644
+> index 0000000..e29be29
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/plat/drm.h
+
+Ideally, platform data should not exist anymore in a device tree world, 
+but meanwhile there is a directory to store them:
+include/linux/platform_data
+
+> @@ -0,0 +1,70 @@
+> +/*
+> + * DRM/KMS device registration for TI OMAP platforms
+> + *
+> + * Copyright (C) 2012 Texas Instruments
+> + * Author: Rob Clark<rob.clark@linaro.org>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program.  If not, see<http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#ifndef __PLAT_OMAP_DRM_H__
+> +#define __PLAT_OMAP_DRM_H__
+> +
+> +/*
+> + * Optional platform data to configure the default configuration of which
+> + * pipes/overlays/CRTCs are used.. if this is not provided, then instead the
+> + * first CONFIG_DRM_OMAP_NUM_CRTCS are used, and they are each connected to
+> + * one manager, with priority given to managers that are connected to
+> + * detected devices.  Remaining overlays are used as video planes.  This
+> + * should be a good default behavior for most cases, but yet there still
+> + * might be times when you wish to do something different.
+> + */
+> +struct omap_kms_platform_data {
+> +	/* overlays to use as CRTCs: */
+> +	int ovl_cnt;
+> +	const int *ovl_ids;
+> +
+> +	/* overlays to use as video planes: */
+> +	int pln_cnt;
+> +	const int *pln_ids;
+> +
+> +	int mgr_cnt;
+> +	const int *mgr_ids;
+> +
+> +	int dev_cnt;
+> +	const char **dev_names;
+> +};
+> +
+> +struct omap_drm_platform_data {
+> +	struct omap_kms_platform_data *kms_pdata;
+> +	struct omap_dmm_platform_data *dmm_pdata;
+> +};
+
+Since the dmm_platform_data should not exist in theory, it should not be 
+used by this structure either.
+
+Where is the driver that will use these devices?
+
+Regards,
+Benoit
