@@ -1,61 +1,106 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: omap-serial RX DMA polling?
-Date: Mon, 23 Jan 2012 03:47:23 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201230304310.29673@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com> <CAAL8m4wcSfhjxg0Lyo-W7DQ85rikb6asRds95hwQQNTDXe2YKQ@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
+Date: Mon, 23 Jan 2012 12:48:36 +0200
+Message-ID: <1327315716.1916.34.camel@deskari>
+References: <1327055619.1921.57.camel@deskari>
+	 <CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
+	 <1327060886.1921.63.camel@deskari>
+	 <CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
+	 <1327063256.1921.68.camel@deskari>
+	 <CAORVsuVGT1AaMzo0r6T4vWe7zz7Uk=o-DydAcGdMzE+utDoUww@mail.gmail.com>
+	 <1327071609.1921.82.camel@deskari> <20120122221132.32bd4d44@notabene.brown>
+	 <1327308790.1916.30.camel@deskari>
+	 <alpine.DEB.2.00.1201230154430.29673@utopia.booyaka.com>
+	 <1327310656.1916.31.camel@deskari>
+	 <alpine.DEB.2.00.1201230229220.29673@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-781067979-1327315643=:29673"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-wRtsNBMLEepyKlN8IFLp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36277 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752844Ab2AWKrY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Jan 2012 05:47:24 -0500
-In-Reply-To: <CAAL8m4wcSfhjxg0Lyo-W7DQ85rikb6asRds95hwQQNTDXe2YKQ@mail.gmail.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:39974 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753008Ab2AWKsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Jan 2012 05:48:42 -0500
+Received: by lags15 with SMTP id s15so1563188lag.20
+        for <linux-omap@vger.kernel.org>; Mon, 23 Jan 2012 02:48:39 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1201230229220.29673@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: govindraj.raja@ti.com, khilman@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: NeilBrown <neilb@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, Govindraj <govindraj.ti@gmail.com>, Kevin Hilman <khilman@ti.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, Joe Woodward <jw@terrafix.co.uk>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
---155748971-781067979-1327315643=:29673
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+--=-wRtsNBMLEepyKlN8IFLp
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 23 Jan 2012, Govindraj wrote:
-
-> On Mon, Jan 23, 2012 at 6:03 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> >
-> > while trying to track down some of the serial-related PM issues in
-> > v3.3-rc1, I noticed that the omap-serial.c driver sets a 1 microsecond
-> > polling timer when DMA is enabled (uart_dma.rx_timer) (!) =A0This seems
-> > quite broken from both the DMA and PM points of view.
+On Mon, 2012-01-23 at 02:31 -0700, Paul Walmsley wrote:
+> On Mon, 23 Jan 2012, Tomi Valkeinen wrote:
 >=20
-> Poll rate is used for doing tty_insert_flip_string for pushing data to=20
-> user space to keep faster response to any client device over uart, some=
+> > On Mon, 2012-01-23 at 02:04 -0700, Paul Walmsley wrote:
+> > > On Mon, 23 Jan 2012, Tomi Valkeinen wrote:
+> > >=20
+> > > > Then I noticed that the DISPC's ENWAKEUP is not set. Setting ENWAKE=
+UP
+> > > > (with SIDLEMODE/IDLEMODE in smart mode) also removes the problem.
+> > >=20
+> > > Sounds like you've nailed it.
+> > >=20
+> > > What is perplexing is that the hwmod code should be setting this by=
 =20
-> Bt chips expect faster response when data on uart arrives and packet=20
-> should be pushed out immediately.
-
-Hmm.  Let's say that the BT transceiver uses the fastest transmission rate=
+> > > default in omap_hwmod.c:_enable_sysc().  I wonder why that is not=20
+> > > happening.
+> >=20
+> > It seems the omap2_dispc_sysc is missing SYSC_HAS_ENAWAKEUP. I wonder i=
+f
+> > that's a mistake or by purpose...
+>=20
+> That's almost certainly a mistake.  It's documented in the 34xx vZR TRM=
 =20
-supported by the OMAP UARTs -- 3,686,400 bits per second, according to=20
-Table 17-1 in the 34xx TRM vZR.  So the RX poll timer would go off about=20
-~2.7 times per input character[1].  That seems like overkill...
+> and so far I don't know of any reason for omitting any of those bits.
+>=20
+> I just searched my linux-omap folder for the original patch for this.  It=
+=20
+> seems to be
+>=20
+> Date: Mon, 3 Jan 2011 18:20:53 +0530
+> From: Guruswamy Senthilvadivu <svadivu@ti.com>
+> Subject: [PATCH v3 01/17] OMAP2420: hwmod data: add DSS DISPC RFBI VENC
+>=20
+> and it was missing in that patch.  Guess I missed it when I reviewed this=
+=20
+> patch.  Sigh...
+>=20
+> Want to spin a quick patch for v3.3-rc1 to add it?
 
-For minimum receive latency, how about calling tty_insert_flip_string()=20
-from the RX DMA callback, and using a smaller transfer count?  Or even=20
-better, use PIO for the receive path and set the RX FIFO threshold to 1?
+I think there are other bits missing also. CLOCKACTIVITY is missing for
+DISPC. And DSI doesn't have any SYSC flags defined... I'll try to go
+through them all.
 
-No poll timer should be needed in either case.
+ Tomi
 
 
-- Paul
+--=-wRtsNBMLEepyKlN8IFLp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-1. At 10 line bits per character (start + byte + stop), each character=20
-should take about 2.7 microseconds to transfer (the reciprocal of (3 686=20
-400 line bits per second / 10 line bits per character / 1 000 000=20
-microseconds per second)).
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
---155748971-781067979-1327315643=:29673--
+iQIcBAABAgAGBQJPHTsEAAoJEPo9qoy8lh71oNcP/iGWulrhTxf20ERazG50nwP9
+W9JQfyFDf8MzuytMoPSpypI87oRPJfL/tgw0ajVq8xJq258+QGpYfRUxwEY/8BOs
+gb5lc6fHW+z8fexKfl4mkNXE23Q2eD6mg3mfv/MeOOv1IezTJa2v1lF1U1aSh4y8
+fjqvh3/OYBfyBl3qf3YW0aTa57W0okY8wz+bqS/Yrfsufq/DAuEvPb84uoJaVpyL
+9IsJmq15te4T32fXFMVM6h8rH9BLOakB7kEh/HRdGXnKq7x+2Ceg71AisCBnqWDV
+Z1cEDe4GJqdJDRjEQjGkrOvukphKOCxFIQS+laCXM6640rS9uT9efKr76geQZV4j
+BASkjj8F5OMXhW3OKGJ8VxCH8a6hwi2DZYgwDt1N/jlSRGfx0iTNGUKFH7BnqVoS
+VBFz1S/I3KL9yWuxt7Or/zN1nvEOBl6UQhmtLrzbajEu/o5QiCSZs1njO6StZBMj
+x4v04Uj3a1YZCaCUK2L38gu2GC/zD5YfwuHevJJkkyTEIzjMI+8UWWUSUtZL2HiQ
+3xdR3A5/Y7hkepviDAk0FFTG7qhhGzDzwHT4M3XP2XRLdLQUDBl3tUYeAbzfe7Ra
+6uRlDYw9CCrmCubDgkkhfUEnvXMrneuArawG7TwkMCqXmtKu6lr1zWbFFxdHJp+2
+swL/roF1D+kP1sQ8jOXr
+=8xZY
+-----END PGP SIGNATURE-----
+
+--=-wRtsNBMLEepyKlN8IFLp--
+
