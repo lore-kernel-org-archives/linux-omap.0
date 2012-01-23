@@ -1,46 +1,43 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH 4/5] staging: tidspbridge: silence the compiler
-Date: Mon, 23 Jan 2012 22:09:47 +0200
-Message-ID: <1ceb6f764f01fce26243d899d899f84ad26e4bd4.1327348286.git.vjaquez@igalia.com>
-References: <cover.1327348286.git.vjaquez@igalia.com>
+Subject: [PATCH 0/5] staging: tidspbridge: clean up drv_interface.c
+Date: Mon, 23 Jan 2012 22:09:43 +0200
+Message-ID: <cover.1327348286.git.vjaquez@igalia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1327348286.git.vjaquez@igalia.com>
-In-Reply-To: <cover.1327348286.git.vjaquez@igalia.com>
-References: <cover.1327348286.git.vjaquez@igalia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Armando Uribe <x0095078@ti.com>
 Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Silence the warning when compiling drv_interface.c
+I'm trying to learn how to contribute to the kernel and dsp/bridge is
+a module that I have used for a while.
 
-Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
----
- drivers/staging/tidspbridge/rmgr/drv_interface.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+These patches are the result of this first effort. It is a clean up of
+the file drv_interface.c which is the entry point of the kernel
+module.
 
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers=
-/staging/tidspbridge/rmgr/drv_interface.c
-index c7015f5..3bbe443 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -273,8 +273,9 @@ static int bridge_mmap(struct file *filp, struct vm=
-_area_struct *vma)
- 	vma->vm_page_prot =3D pgprot_noncached(vma->vm_page_prot);
-=20
- 	dev_dbg(bridge, "%s: vm filp %p offset %x start %lx end %lx page_prot=
- "
--		"%lx flags %lx\n", __func__, filp, offset,
--		vma->vm_start, vma->vm_end, vma->vm_page_prot, vma->vm_flags);
-+		"%ulx flags %lx\n", __func__, filp, offset,
-+		vma->vm_start, vma->vm_end, vma->vm_page_prot,
-+		vma->vm_flags);
-=20
- 	status =3D remap_pfn_range(vma, vma->vm_start, vma->vm_pgoff,
- 				 vma->vm_end - vma->vm_start,
+I would like to have some review in order to know if I could keep
+moving in this direction.
+
+Thanks
+
+vmjl
+
+V=C3=ADctor Manuel J=C3=A1quez Leal (5):
+  staging: tidspbridge: more readable code
+  staging: tidspbridge: remove unused header
+  staging: tidspbridge: Lindent to drv_interface.c
+  staging: tidspbridge: silence the compiler
+  staging: tidspbridge: remove header inclusions
+
+ drivers/staging/tidspbridge/rmgr/drv_interface.c |  352 +++++++++++---=
+--------
+ drivers/staging/tidspbridge/rmgr/drv_interface.h |   28 --
+ 2 files changed, 171 insertions(+), 209 deletions(-)
+ delete mode 100644 drivers/staging/tidspbridge/rmgr/drv_interface.h
+
 --=20
 1.7.8.3
