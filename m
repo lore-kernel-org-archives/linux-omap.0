@@ -1,120 +1,83 @@
-From: Govindraj <govindraj.ti@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: omap-serial RX DMA polling?
-Date: Tue, 24 Jan 2012 12:10:18 +0530
-Message-ID: <CAAL8m4zE6wD67GCeVe9BOBZ=5yrCkrXUUu26y2GAXrdiDD3R8g@mail.gmail.com>
-References: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com>
- <CAAL8m4wcSfhjxg0Lyo-W7DQ85rikb6asRds95hwQQNTDXe2YKQ@mail.gmail.com>
- <alpine.DEB.2.00.1201230304310.29673@utopia.booyaka.com> <CAAL8m4wBuFQYkyFUwNWrUZTBWuQHggy=y3Oi=6DBHNB_rqU9tA@mail.gmail.com>
- <alpine.DEB.2.00.1201231228310.29673@utopia.booyaka.com>
+Date: Tue, 24 Jan 2012 00:58:57 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201240010100.29673@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com> <CAAL8m4wcSfhjxg0Lyo-W7DQ85rikb6asRds95hwQQNTDXe2YKQ@mail.gmail.com> <alpine.DEB.2.00.1201230304310.29673@utopia.booyaka.com> <CAAL8m4wBuFQYkyFUwNWrUZTBWuQHggy=y3Oi=6DBHNB_rqU9tA@mail.gmail.com>
+ <alpine.DEB.2.00.1201231228310.29673@utopia.booyaka.com> <CAAL8m4zE6wD67GCeVe9BOBZ=5yrCkrXUUu26y2GAXrdiDD3R8g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-798370090-1327391937=:29673"
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.1201231228310.29673@utopia.booyaka.com>
+In-Reply-To: <CAAL8m4zE6wD67GCeVe9BOBZ=5yrCkrXUUu26y2GAXrdiDD3R8g@mail.gmail.com>
 Sender: linux-serial-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
+To: Govindraj <govindraj.ti@gmail.com>
 Cc: govindraj.raja@ti.com, khilman@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 24, 2012 at 1:18 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Mon, 23 Jan 2012, Govindraj wrote:
->
->> On Mon, Jan 23, 2012 at 4:17 PM, Paul Walmsley <paul@pwsan.com> wrot=
-e:
->> > On Mon, 23 Jan 2012, Govindraj wrote:
->> >
->> >> On Mon, Jan 23, 2012 at 6:03 AM, Paul Walmsley <paul@pwsan.com> w=
-rote:
->> >> >
->> >> > while trying to track down some of the serial-related PM issues=
- in
->> >> > v3.3-rc1, I noticed that the omap-serial.c driver sets a 1 micr=
-osecond
->> >> > polling timer when DMA is enabled (uart_dma.rx_timer) (!) =A0Th=
-is seems
->> >> > quite broken from both the DMA and PM points of view.
->> >>
->> >> Poll rate is used for doing tty_insert_flip_string for pushing da=
-ta to
->> >> user space to keep faster response to any client device over uart=
-, some
->> >> Bt chips expect faster response when data on uart arrives and pac=
-ket
->> >> should be pushed out immediately.
->> >
->> > Hmm. =A0Let's say that the BT transceiver uses the fastest transmi=
-ssion rate
->> > supported by the OMAP UARTs -- 3,686,400 bits per second, accordin=
-g to
->> > Table 17-1 in the 34xx TRM vZR. =A0So the RX poll timer would go o=
-ff about
->> > ~2.7 times per input character[1]. =A0That seems like overkill...
->>
->> Yes correct, Looks like the poll rate is to aggressive
->> it should be calculated based on baud rate provided from user apace
->> in termios function.
->>
->> I had a patch to do the same in termios but,
->> if you have something similar you can post out as I am currently bus=
-y with
->> some other activities and may take more time.
->>
->> > For minimum receive latency, how about calling tty_insert_flip_str=
-ing()
->> > from the RX DMA callback, and using a smaller transfer count? =A0O=
-r even
->> > better, use PIO for the receive path and set the RX FIFO threshold=
- to 1?
->> >
->> > No poll timer should be needed in either case.
->>
->> I remember doing similar excercise with BT + uart on zoom board
->> but performance numbers where impacted.
->>
->> I made buffer size as 1 byte and removed polling function and got rx=
-_callback
->> for every byte completion and pushed same to tty layer.
->>
->> BT FTP throughput got impacted a lot.
->
-> The point is that if you want tty_insert_flip_string() to be called a=
-fter
-> every character is received, there seems little point in using RX DMA=
-=2E
-> It should be less efficient than PIO. =A0And the current way that it =
-is used
-> is pointless from a power management point of view.
->
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Yes, Its between power and performance, current way gives a better
-response for most devices. (specially while downloading the firmware fo=
-r
-external chip initialization and other use cases)
+--155748971-798370090-1327391937=:29673
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-> In general, RX DMA would seem to be inappropriate for a latency-sensi=
-tive
-> application, unless the application can somehow communicate how many =
-bytes
-> it's expecting so the driver can adjust its DMA transfer size.
->
+On Tue, 24 Jan 2012, Govindraj wrote:
 
-Yes I had done that long time back, gives a little edge for
-throughput(probably even PM
-but haven't checked though) but many users of driver are hesitant to
-modify their user space
-apps to pass buffer size (modify the bt stack or the gps stack) and
-sometimes even those
-stacks are unaware of incoming sizes.
+> On Tue, Jan 24, 2012 at 1:18 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> > On Mon, 23 Jan 2012, Govindraj wrote:
+> >> On Mon, Jan 23, 2012 at 4:17 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >
+> > The point is that if you want tty_insert_flip_string() to be called aft=
+er
+> > every character is received, there seems little point in using RX DMA.
+> > It should be less efficient than PIO. =A0And the current way that it is=
+ used
+> > is pointless from a power management point of view.
+>=20
+> Yes, Its between power and performance, current way gives a better
+> response for most devices
 
-Many expect to work as is when hooked up to the user space stack withou=
-t
-any changes.
+That seems rather unlikely.  And I don't agree that there is a balance to=
+=20
+be struck in this case.  Compared to a correctly-working RX PIO path, the=
+=20
+RX DMA in the current driver is likely to be much worse in energy=20
+consumption, and to be equal at best in receive latency.
 
---
-Thanks,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In a correctly-working RX PIO path, the driver is going to receive an=20
+interrupt the moment the data is ready to be transferred from the FIFO. =20
+The driver doesn't have to wait for a polling timer to fire and execute. =
+=20
+Nor does the ISR have to compete with a 1 microsecond polling timer for=20
+the CPU.
+
+And I doubt that an accurate comparison could have been made between the=20
+PIO and DMA RX paths.  In the current driver, the PIO RX FIFO threshold=20
+was set to 16 bytes, while the DMA RX FIFO threshold in the DMA path was=20
+set to 1 byte.  So I'm hardly surprised that the RX DMA path looked good=20
+under those circumstances.  The current driver is sufficiently broken that=
+=20
+any benchmarks based on it are suspect.  And in many cases, the way that=20
+the driver works around its problems is by effectively disabling system=20
+power management.
+
+> (specially while downloading the firmware for external chip=20
+> initialization and other use cases)
+
+Downloading firmware to an external chip uses the transmit path, not the=20
+receive path.  So that is an orthogonal case.
+
+In terms of transmit, it's hardly surprising that the TX DMA path would=20
+outperform the driver's current TX PIO path.  For one thing, the FIFO=20
+handling in the current TX PIO path is broken.  The driver doesn't even=20
+use 75% of the TX FIFO.  Also, the transmission of a large block of data=20
+is not sensitive to MPU wakeup latency the same way that RX DMA is.  A=20
+large block of data can be queued to be transmitted, and the MPU doesn't=20
+need to wake up again until the SDMA has finished handing off that data to=
+=20
+the UART FIFO.  At that point the kernel has plenty of time to prepare the=
+=20
+next buffer.
+
+
+- Paul
+--155748971-798370090-1327391937=:29673--
