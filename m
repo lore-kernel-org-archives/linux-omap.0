@@ -1,65 +1,57 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb: drop superfluous pm_runtime calls around
- musb_shutdown
-Date: Tue, 24 Jan 2012 11:52:46 +0200
-Message-ID: <20120124095244.GB27414@legolas.emea.dhcp.ti.com>
-References: <1326374498-22968-1-git-send-email-notasas@gmail.com>
-Reply-To: balbi@ti.com
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: clock: fix mult and div mask for USB_DPLL
+Date: Tue, 24 Jan 2012 10:53:14 +0100
+Message-ID: <4F1E7F8A.4010805@ti.com>
+References: <1326929954-3912-1-git-send-email-ameya.palande@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="W7pZbPQLbZqmHLZM"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58152 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755734Ab2AXJww (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 04:52:52 -0500
-Content-Disposition: inline
-In-Reply-To: <1326374498-22968-1-git-send-email-notasas@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37286 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755677Ab2AXJxS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jan 2012 04:53:18 -0500
+In-Reply-To: <1326929954-3912-1-git-send-email-ameya.palande@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
+To: Ameya Palande <ameya.palande@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, "Turquette, Mike" <mturquette@ti.com>
 
++ Mike
 
---W7pZbPQLbZqmHLZM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 1/19/2012 12:39 AM, Ameya Palande wrote:
+> Signed-off-by: Ameya Palande<ameya.palande@ti.com>
 
-On Thu, Jan 12, 2012 at 03:21:38PM +0200, Grazvydas Ignotas wrote:
-> Since commit 4f9edd2d7e8d "usb: musb: Fix the crash issue during reboot"
-> musb_shutdown() does pm_runtime_get_sync/pm_runtime_put by itself, so
-> this no longer needs to be done by the caller. Also, musb_exit_debugfs()
-> doesn't access the device, so just drop those runtime_pm calls.
->=20
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Assuming that you will re-send with Kevin's comment taken into account, 
+the fix is indeed very valid.
 
-applied, thanks
+Acked-by: Benoit Cousson <b-cousson@ti.com>
 
---=20
-balbi
+> ---
+>   arch/arm/mach-omap2/clock44xx_data.c |    4 ++--
+>   1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+> index 08e86d7..053cc15 100644
+> --- a/arch/arm/mach-omap2/clock44xx_data.c
+> +++ b/arch/arm/mach-omap2/clock44xx_data.c
+> @@ -953,8 +953,8 @@ static struct dpll_data dpll_usb_dd = {
+>   	.modes		= (1<<  DPLL_LOW_POWER_BYPASS) | (1<<  DPLL_LOCKED),
+>   	.autoidle_reg	= OMAP4430_CM_AUTOIDLE_DPLL_USB,
+>   	.idlest_reg	= OMAP4430_CM_IDLEST_DPLL_USB,
+> -	.mult_mask	= OMAP4430_DPLL_MULT_MASK,
+> -	.div1_mask	= OMAP4430_DPLL_DIV_MASK,
+> +	.mult_mask	= OMAP4430_DPLL_MULT_USB_MASK,
+> +	.div1_mask	= OMAP4430_DPLL_DIV_0_7_MASK,
 
---W7pZbPQLbZqmHLZM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+We were wrongly assuming that all DPLLs were using the same mask, which 
+cannot be the case for the USB DPLL since that one has a higher max 
+multiplier and max divider than the other ones (4095/256 instead of 
+2047/128).
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+For Mike and Paul,
 
-iQIcBAEBAgAGBQJPHn9sAAoJEIaOsuA1yqREg/oP/i5BktkUerOHZy0qME3uT3P7
-WxU/fS8vdJc8lFurOUWDhnQdFJZTRtSM+tkTySWqCl/R0AHKByniMAtWZ5wBo3Jq
-mPP4mH/zbYcFZp68tNQQoj9eagiu4Amg66QynDjRvVoA+mmmRiHhFYXWfQgZKYI8
-J9C9UozECqJ3W8BsprH5jbWG6f30YPiFCjJAS/XPp9vYbJ2hvGPOkXjBOQDjEcbP
-PZjtc3tuSDlPZbE9+P3MDrXPmjK5bgEFs1ziIGQ16LfcVAAnwK9ZltDyFwQ6pwq4
-8ouaR13l18zQDSA1OrsWQHPcN38+aNv92C9OPAWh+ieYQH2yQa/EP9cZg96jkCmf
-jVOX1BSCWchvbAuwhrnaRKfwyZ9mM4JxGn8AHIQpuon9Vr1V7tyiKFJTD2tv5GZ2
-Q+vsq+iy1eMv3zlCgPBdeGR6AN9CZQbpGT8AkmssJ0s18bKEL4pVxMMz62aAH6f8
-Wx9JqBJ+0b4PN2yah7iaIdp6hDUdz4oJfKZea0QnG2pvQziuI5V30l/CYElO5fIW
-IXWhzHfG2tPUxmCXNFf/XJyalT5nsBIkBggWlyh4IWjbDsATouQpYAp832kKK7Vh
-6g0Fk1nCmoY2IJS6Z15y7dwhQt14/m3t8dxg3DrPO0JhknF8cGe6ZNPPHFDapKC/
-s5As+zQXevbKggXIoHnA
-=igPF
------END PGP SIGNATURE-----
+It is indeed a bug in the clock generator script.
 
---W7pZbPQLbZqmHLZM--
+Regards,
+Benoit
