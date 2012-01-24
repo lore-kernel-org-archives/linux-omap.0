@@ -1,87 +1,89 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 - resend 05/13] OMAP4: 4430sdp: Register platform device for OMAP4 audio
-Date: Tue, 24 Jan 2012 13:52:22 +0200
-Message-ID: <1327405950-6676-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 - resend 09/13] ASoC: omap-abe-twl6040: DAI link selection based on platform data
+Date: Tue, 24 Jan 2012 13:52:26 +0200
+Message-ID: <1327405950-6676-10-git-send-email-peter.ujfalusi@ti.com>
 References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59181 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756403Ab2AXLw4 (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:50867 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756427Ab2AXLxD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 06:52:56 -0500
-Received: by lahl5 with SMTP id l5so453910lah.17
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:52:54 -0800 (PST)
+	Tue, 24 Jan 2012 06:53:03 -0500
+Received: by mail-lpp01m010-f46.google.com with SMTP id c1so2926488lah.5
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:53:01 -0800 (PST)
 In-Reply-To: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-To avoid breakage in audio support with the coming change
-in ASoC machine driver (conversion to platfrom device).
+We can have machines without DMIC connected. In this case there is
+no need to create amother (unusable) capture PCM on the card.
+The existence of the DMIC connection can be checked via
+pdata->has_dmic.
+Select the correct dai_link structure for the card based on
+pdata->has_dmic.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+), 0 deletions(-)
+ sound/soc/omap/omap-abe-twl6040.c |   25 ++++++++++++++++++++++---
+ 1 files changed, 22 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 39fba9d..7eaeb08 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -41,6 +41,7 @@
- #include <video/omap-panel-nokia-dsi.h>
- #include <video/omap-panel-picodlp.h>
- #include <linux/wl12xx.h>
-+#include <linux/platform_data/omap-abe-twl6040.h>
+diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
+index d95bd82..7ad5b25 100644
+--- a/sound/soc/omap/omap-abe-twl6040.c
++++ b/sound/soc/omap/omap-abe-twl6040.c
+@@ -212,7 +212,7 @@ static int omapabe_dmic_init(struct snd_soc_pcm_runtime *rtd)
+ }
  
- #include "mux.h"
- #include "hsmmc.h"
-@@ -377,12 +378,40 @@ static struct platform_device sdp4430_dmic_codec = {
- 	.id	= -1,
+ /* Digital audio interface glue - connects codec <--> CPU */
+-static struct snd_soc_dai_link sdp4430_dai[] = {
++static struct snd_soc_dai_link twl6040_dmic_dai[] = {
+ 	{
+ 		.name = "TWL6040",
+ 		.stream_name = "TWL6040",
+@@ -235,11 +235,22 @@ static struct snd_soc_dai_link sdp4430_dai[] = {
+ 	},
  };
  
-+static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
-+	.card_name = "SDP4430",
-+	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+	.has_ep		= 1,
-+	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+	.has_vibra	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+
-+	.has_dmic	= 1,
-+	.has_hsmic	= 1,
-+	.has_mainmic	= 1,
-+	.has_submic	= 1,
-+	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
-+
-+	.jack_detection = 1,
-+	/* MCLK input is 38.4MHz */
-+	.mclk_freq	= 38400000,
-+};
-+
-+static struct platform_device sdp4430_abe_audio = {
-+	.name		= "omap-abe-twl6040",
-+	.id		= -1,
-+	.dev = {
-+		.platform_data = &sdp4430_abe_audio_data,
++static struct snd_soc_dai_link twl6040_only_dai[] = {
++	{
++		.name = "TWL6040",
++		.stream_name = "TWL6040",
++		.cpu_dai_name = "omap-mcpdm",
++		.codec_dai_name = "twl6040-legacy",
++		.platform_name = "omap-pcm-audio",
++		.codec_name = "twl6040-codec",
++		.init = omapabe_twl6040_init,
++		.ops = &omapabe_ops,
 +	},
 +};
 +
- static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_gpio_keys_device,
- 	&sdp4430_leds_gpio,
- 	&sdp4430_leds_pwm,
- 	&sdp4430_vbat,
- 	&sdp4430_dmic_codec,
-+	&sdp4430_abe_audio,
- };
+ /* Audio machine driver */
+ static struct snd_soc_card omapabe_card = {
+ 	.owner = THIS_MODULE,
+-	.dai_link = sdp4430_dai,
+-	.num_links = ARRAY_SIZE(sdp4430_dai),
  
- static struct omap_musb_board_data musb_board_data = {
+ 	.dapm_widgets = twl6040_dapm_widgets,
+ 	.num_dapm_widgets = ARRAY_SIZE(twl6040_dapm_widgets),
+@@ -267,6 +278,14 @@ static __devinit int omapabe_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
++	if (pdata->has_dmic) {
++		card->dai_link = twl6040_dmic_dai;
++		card->num_links = ARRAY_SIZE(twl6040_dmic_dai);
++	} else {
++		card->dai_link = twl6040_only_dai;
++		card->num_links = ARRAY_SIZE(twl6040_only_dai);
++	}
++
+ 	ret = snd_soc_register_card(card);
+ 	if (ret)
+ 		dev_err(&pdev->dev, "snd_soc_register_card() failed: %d\n",
 -- 
 1.7.8.3
 
