@@ -1,85 +1,63 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb: fix shutdown while usb gadget is in use
-Date: Tue, 24 Jan 2012 11:10:56 +0200
-Message-ID: <20120124091054.GM27414@legolas.emea.dhcp.ti.com>
-References: <1326374565-23042-1-git-send-email-notasas@gmail.com>
-Reply-To: balbi@ti.com
+From: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCH RFC 1/2] watchdog : omap_wdt : Implement
+ WDIOC_GETBOOTSTATUS for omap3+
+Date: Tue, 24 Jan 2012 10:33:18 +0100
+Message-ID: <20120124093318.GA2609@pengutronix.de>
+References: <1327317188-14782-1-git-send-email-shubhrajyoti@ti.com>
+ <1327317188-14782-2-git-send-email-shubhrajyoti@ti.com>
+ <B5906170F1614E41A8A28DE3B8D12143317901B9@DBDE01.ent.ti.com>
+ <CAM=Q2ctL_Z5P6=NwAWBHD2bR=xqHMCF15g6v0Ap=hJMPdgXwyQ@mail.gmail.com>
+ <B5906170F1614E41A8A28DE3B8D12143317902D6@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DheUW4aQn8WJk6WR"
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39213 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754633Ab2AXJLB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 04:11:01 -0500
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50072 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753929Ab2AXJdW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jan 2012 04:33:22 -0500
 Content-Disposition: inline
-In-Reply-To: <1326374565-23042-1-git-send-email-notasas@gmail.com>
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143317902D6@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Datta, Shubhrajyoti" <shubhrajyoti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-watchdog@vger.kernel.org" <linux-watchdog@vger.kernel.org>
 
 
---DheUW4aQn8WJk6WR
+--Qxx1br4bt0+wmkIi
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jan 12, 2012 at 03:22:45PM +0200, Grazvydas Ignotas wrote:
-> If we shutdown without stopping the gadget first or removing the cable,
-> gadget manages to configure itself again:
->=20
-> root@pandora /root# poweroff
-> The system is going down NOW!
-> Requesting system poweroff
-> [   47.714385] musb-hm halted.
-> [   48.120697]  gadget: suspend
-> [   48.123748]  gadget: reset config
-> [   48.127227]  gadget: ecm deactivated
-> [   48.130981] usb0: gether_disconnect
-> [   48.281799]  gadget: high-speed config #1: CDC Ethernet (ECM)
-> [   48.287872]  gadget: init ecm
-> [   48.290985]  gadget: notify connect false
-> [   48.295288]  gadget: notify speed 425984000
->=20
-> This is not only unwanted, it's also happening on half-unitialized
-> state, after musb_shutdown() has returned, which sometimes causes
-> hardware to fail to work after reboot. Let's better properly stop
-> gadget on shutdown too.
->=20
-> This patch moves musb_gadget_cleanup out of musb_free(), which has 2
-> callsites: probe error path and musb_remove. On probe error path it was
-> superflous since musb_gadget_cleanup is called explicitly there, and
-> musb_remove() calls musb_shutdown(), so cleanup will get called as before.
->=20
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> Just returning the register content does not help much and looking at oth=
+er
+> implementations, like Blackfin, I am guessing this IOCTL is supposed to g=
+ive
+> a yes/no sort of result.
 
-applied, thanks
+It needs to return WDIOF_* flags as defined in include/linux/watchdog.h.
+Check also Documentation/watchdog/watchdog-api.txt for further info.
+Yes, not all drivers follow this style, sadly.
+
+Regards,
+
+   Wolfram
 
 --=20
-balbi
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
---DheUW4aQn8WJk6WR
+--Qxx1br4bt0+wmkIi
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
+Content-Disposition: inline
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPHnWdAAoJEIaOsuA1yqREiz0P/17MZIoV7Fei2I43q4/QsL6y
-rjNjKXURAbTmziwOvz9ZhWRXYNan+++ecbk9ilKssYZM5wHm21Hp7VZMrtXxjggH
-P8FL0QYZOYg0h6UjvZPE7KXadCLpip9+ZPsHAFxsAUh4Sjmpsp8pe36fqcVYKa/x
-+qLntNOEsyikStvpscE04RFNhJWYZW6wTxO4uSn/Ca7Xx4k0G3vV+25h+dV6ukUQ
-sJnijHADZAhUBi7hddrpO4rhFeu+Vf9Q6Y8S8GK8dqgSR2Bc261yNrc3jZgrXGOK
-OJvuoRg4gQOZDXGFMJ4K/av7oYBxDX+YMVppu/atSnr+fRtgKPggkZmIWu4Bz7ZX
-LipC1mDdn6TfoBZLRgd6UvMrC8rC7rmwdEx61aWDeUMp9V5/SwM9fR0qcD7HYERN
-+y4JaihTGPHHdqDP9Ido/6RLTxJycC/ojZsCj7KLuafvCbLVoe3DH/72IfzVgt+7
-UqYr+P8r/0N85YB+FtHr1yGPXwwUPX56dxr9v7Z9qO///1zARdTFTPmROGSGeWQl
-NNLPqhKPioThj951aeJ75na0YAGhpnx1tqqMmAN3uGF9wx4XAJPpzWXPwnhXqc9w
-ytzMxbVvYtc/Vi8YP2JCi7rLiHdQeih7aYUTsneII9xwbKYZNu/fJllnfVS2dJxk
-oPkV44vSWD63bCMkfsV3
-=7gh3
+iEYEARECAAYFAk8eet4ACgkQD27XaX1/VRvemQCfdyCWZpduV2MQDzuGG5EzjvDo
+niAAnigt6+3lL3UGKmLUTrEvbahfjJj8
+=SE2R
 -----END PGP SIGNATURE-----
 
---DheUW4aQn8WJk6WR--
+--Qxx1br4bt0+wmkIi--
