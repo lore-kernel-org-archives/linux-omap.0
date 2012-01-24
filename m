@@ -1,15 +1,15 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 03/16] OMAPDSS: Remove video SRAM support
-Date: Tue, 24 Jan 2012 12:00:18 +0200
-Message-ID: <1327399231-20826-4-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 04/16] OMAPFB: Remove video SRAM support (old omapfb)
+Date: Tue, 24 Jan 2012 12:00:19 +0200
+Message-ID: <1327399231-20826-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:38401 "HELO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755824Ab2AXKAv (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:39741 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755824Ab2AXKAy (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 05:00:51 -0500
+	Tue, 24 Jan 2012 05:00:54 -0500
 In-Reply-To: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,218 +20,119 @@ OMAP SRAM can be used as video memory on OMAP1 and 2. However, there
 usually is very little SRAM available, thus limiting its use, and no
 board supported by the kernel currently uses it.
 
-This patch removes the use of SRAM as video ram for the omapdss driver
-to simplify memory handling.
+This patch removes the use of SRAM as video ram for the old omapfb
+driver to simplify memory handling.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- arch/arm/plat-omap/include/plat/vram.h    |   21 +------
- drivers/video/omap2/dss/dispc.c           |    1 -
- drivers/video/omap2/omapfb/omapfb-ioctl.c |    2 +-
- drivers/video/omap2/omapfb/omapfb-main.c  |    4 +-
- drivers/video/omap2/vram.c                |   99 ++---------------------------
- 5 files changed, 9 insertions(+), 118 deletions(-)
+ arch/arm/plat-omap/fb.c          |  172 --------------------------------------
+ arch/arm/plat-omap/fb.h          |   10 --
+ drivers/video/omap/omapfb_main.c |    2 +-
+ 3 files changed, 1 insertions(+), 183 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/fb.h
 
-diff --git a/arch/arm/plat-omap/include/plat/vram.h b/arch/arm/plat-omap/include/plat/vram.h
-index 0aa4ecd..4d65b7d 100644
---- a/arch/arm/plat-omap/include/plat/vram.h
-+++ b/arch/arm/plat-omap/include/plat/vram.h
-@@ -23,40 +23,21 @@
+diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
+index c9e5d72..15d4d16 100644
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -34,9 +34,6 @@
+ #include <asm/mach/map.h>
  
- #include <linux/types.h>
- 
--#define OMAP_VRAM_MEMTYPE_SDRAM		0
--#define OMAP_VRAM_MEMTYPE_SRAM		1
--#define OMAP_VRAM_MEMTYPE_MAX		1
+ #include <plat/board.h>
+-#include <plat/sram.h>
 -
- extern int omap_vram_add_region(unsigned long paddr, size_t size);
- extern int omap_vram_free(unsigned long paddr, size_t size);
--extern int omap_vram_alloc(int mtype, size_t size, unsigned long *paddr);
-+extern int omap_vram_alloc(size_t size, unsigned long *paddr);
- extern int omap_vram_reserve(unsigned long paddr, size_t size);
- extern void omap_vram_get_info(unsigned long *vram, unsigned long *free_vram,
- 		unsigned long *largest_free_block);
+-#include "fb.h"
  
- #ifdef CONFIG_OMAP2_VRAM
- extern void omap_vram_set_sdram_vram(u32 size, u32 start);
--extern void omap_vram_set_sram_vram(u32 size, u32 start);
+ #if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
  
- extern void omap_vram_reserve_sdram_memblock(void);
--extern unsigned long omap_vram_reserve_sram(unsigned long sram_pstart,
--					    unsigned long sram_vstart,
--					    unsigned long sram_size,
--					    unsigned long pstart_avail,
--					    unsigned long size_avail);
- #else
- static inline void omap_vram_set_sdram_vram(u32 size, u32 start) { }
--static inline void omap_vram_set_sram_vram(u32 size, u32 start) { }
+@@ -74,24 +71,6 @@ static inline int range_included(unsigned long start1, unsigned long size1,
+ 	return start1 >= start2 && start1 + size1 <= start2 + size2;
+ }
  
- static inline void omap_vram_reserve_sdram_memblock(void) { }
--static inline unsigned long omap_vram_reserve_sram(unsigned long sram_pstart,
--					    unsigned long sram_vstart,
--					    unsigned long sram_size,
--					    unsigned long pstart_avail,
--					    unsigned long size_avail)
+-
+-/* Check if there is an overlapping region. */
+-static int fbmem_region_reserved(unsigned long start, size_t size)
 -{
+-	struct omapfb_mem_region *rg;
+-	int i;
+-
+-	rg = &omapfb_config.mem_desc.region[0];
+-	for (i = 0; i < OMAPFB_PLANE_NUM; i++, rg++) {
+-		if (!rg->paddr)
+-			/* Empty slot. */
+-			continue;
+-		if (ranges_overlap(start, size, rg->paddr, rg->size))
+-			return 1;
+-	}
 -	return 0;
 -}
- #endif
- 
- #endif
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index a5ec7f3..b82789e 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -37,7 +37,6 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- 
--#include <plat/sram.h>
- #include <plat/clock.h>
- 
- #include <video/omapdss.h>
-diff --git a/drivers/video/omap2/omapfb/omapfb-ioctl.c b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-index 16ba619..6a09ef8 100644
---- a/drivers/video/omap2/omapfb/omapfb-ioctl.c
-+++ b/drivers/video/omap2/omapfb/omapfb-ioctl.c
-@@ -215,7 +215,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
- 	int r = 0, i;
- 	size_t size;
- 
--	if (mi->type > OMAPFB_MEMTYPE_MAX)
-+	if (mi->type != OMAPFB_MEMTYPE_SDRAM)
- 		return -EINVAL;
- 
- 	size = PAGE_ALIGN(mi->size);
-diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
-index ce15831..17e7320b 100644
---- a/drivers/video/omap2/omapfb/omapfb-main.c
-+++ b/drivers/video/omap2/omapfb/omapfb-main.c
-@@ -1399,7 +1399,7 @@ static int omapfb_alloc_fbmem(struct fb_info *fbi, unsigned long size,
- 
- 	if (!paddr) {
- 		DBG("allocating %lu bytes for fb %d\n", size, ofbi->id);
--		r = omap_vram_alloc(OMAP_VRAM_MEMTYPE_SDRAM, size, &paddr);
-+		r = omap_vram_alloc(size, &paddr);
- 	} else {
- 		DBG("reserving %lu bytes at %lx for fb %d\n", size, paddr,
- 				ofbi->id);
-@@ -1669,7 +1669,7 @@ int omapfb_realloc_fbmem(struct fb_info *fbi, unsigned long size, int type)
- 	int old_type = rg->type;
- 	int r;
- 
--	if (type > OMAPFB_MEMTYPE_MAX)
-+	if (type != OMAPFB_MEMTYPE_SDRAM)
- 		return -EINVAL;
- 
- 	size = PAGE_ALIGN(size);
-diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
-index 9441e2e..87e421e 100644
---- a/drivers/video/omap2/vram.c
-+++ b/drivers/video/omap2/vram.c
-@@ -33,7 +33,6 @@
- 
- #include <asm/setup.h>
- 
--#include <plat/sram.h>
- #include <plat/vram.h>
- #include <plat/dma.h>
- 
-@@ -43,10 +42,6 @@
- #define DBG(format, ...)
- #endif
- 
--#define OMAP2_SRAM_START		0x40200000
--/* Maximum size, in reality this is smaller if SRAM is partially locked. */
--#define OMAP2_SRAM_SIZE			0xa0000		/* 640k */
 -
- /* postponed regions are used to temporarily store region information at boot
-  * time when we cannot yet allocate the region list */
- #define MAX_POSTPONED_REGIONS 10
-@@ -74,15 +69,6 @@ struct vram_region {
- static DEFINE_MUTEX(region_mutex);
- static LIST_HEAD(region_list);
+ /*
+  * Get the region_idx`th region from board config/ATAG and convert it to
+  * our internal format.
+@@ -119,60 +98,6 @@ static int __init get_fbmem_region(int region_idx, struct omapfb_mem_region *rg)
+ 	return 0;
+ }
  
--static inline int region_mem_type(unsigned long paddr)
+-static int set_fbmem_region_type(struct omapfb_mem_region *rg, int mem_type,
+-				  unsigned long mem_start,
+-				  unsigned long mem_size)
 -{
--	if (paddr >= OMAP2_SRAM_START &&
--	    paddr < OMAP2_SRAM_START + OMAP2_SRAM_SIZE)
--		return OMAP_VRAM_MEMTYPE_SRAM;
--	else
--		return OMAP_VRAM_MEMTYPE_SDRAM;
+-	/*
+-	 * Check if the configuration specifies the type explicitly.
+-	 * type = 0 && paddr = 0, a default don't care case maps to
+-	 * the SDRAM type.
+-	 */
+-	if (rg->type || !rg->paddr)
+-		return 0;
+-	if (ranges_overlap(rg->paddr, rg->size, mem_start, mem_size)) {
+-		rg->type = mem_type;
+-		return 0;
+-	}
+-	/* Can't determine it. */
+-	return -1;
 -}
 -
- static struct vram_region *omap_vram_create_region(unsigned long paddr,
- 		unsigned pages)
- {
-@@ -212,9 +198,6 @@ static int _omap_vram_reserve(unsigned long paddr, unsigned pages)
- 
- 		DBG("checking region %lx %d\n", rm->paddr, rm->pages);
- 
--		if (region_mem_type(rm->paddr) != region_mem_type(paddr))
--			continue;
+-static int check_fbmem_region(int region_idx, struct omapfb_mem_region *rg,
+-			      unsigned long start_avail, unsigned size_avail)
+-{
+-	unsigned long	paddr = rg->paddr;
+-	size_t		size = rg->size;
 -
- 		start = rm->paddr;
- 		end = start + (rm->pages << PAGE_SHIFT) - 1;
- 		if (start > paddr || end < paddr + size - 1)
-@@ -320,7 +303,7 @@ err:
- 	return r;
- }
- 
--static int _omap_vram_alloc(int mtype, unsigned pages, unsigned long *paddr)
-+static int _omap_vram_alloc(unsigned pages, unsigned long *paddr)
- {
- 	struct vram_region *rm;
- 	struct vram_alloc *alloc;
-@@ -330,9 +313,6 @@ static int _omap_vram_alloc(int mtype, unsigned pages, unsigned long *paddr)
- 
- 		DBG("checking region %lx %d\n", rm->paddr, rm->pages);
- 
--		if (region_mem_type(rm->paddr) != mtype)
--			continue;
+-	if (rg->type > OMAPFB_MEMTYPE_MAX) {
+-		printk(KERN_ERR
+-			"Invalid start address for FB region %d\n", region_idx);
+-		return -EINVAL;
+-	}
 -
- 		start = rm->paddr;
- 
- 		list_for_each_entry(alloc, &rm->alloc_list, list) {
-@@ -365,21 +345,21 @@ found:
- 	return -ENOMEM;
- }
- 
--int omap_vram_alloc(int mtype, size_t size, unsigned long *paddr)
-+int omap_vram_alloc(size_t size, unsigned long *paddr)
- {
- 	unsigned pages;
- 	int r;
- 
--	BUG_ON(mtype > OMAP_VRAM_MEMTYPE_MAX || !size);
-+	BUG_ON(!size);
- 
--	DBG("alloc mem type %d size %d\n", mtype, size);
-+	DBG("alloc mem size %d\n", size);
- 
- 	size = PAGE_ALIGN(size);
- 	pages = size >> PAGE_SHIFT;
- 
- 	mutex_lock(&region_mutex);
- 
--	r = _omap_vram_alloc(mtype, pages, paddr);
-+	r = _omap_vram_alloc(pages, paddr);
- 
- 	mutex_unlock(&region_mutex);
- 
-@@ -501,10 +481,6 @@ arch_initcall(omap_vram_init);
- /* boottime vram alloc stuff */
- 
- /* set from board file */
--static u32 omap_vram_sram_start __initdata;
--static u32 omap_vram_sram_size __initdata;
+-	if (!rg->size) {
+-		printk(KERN_ERR "Zero size for FB region %d\n", region_idx);
+-		return -EINVAL;
+-	}
 -
--/* set from board file */
- static u32 omap_vram_sdram_start __initdata;
- static u32 omap_vram_sdram_size __initdata;
- 
-@@ -587,73 +563,8 @@ void __init omap_vram_reserve_sdram_memblock(void)
- 	pr_info("Reserving %u bytes SDRAM for VRAM\n", size);
+-	if (!paddr)
+-		/* Allocate this dynamically, leave paddr 0 for now. */
+-		return 0;
+-
+-	/*
+-	 * Fixed region for the given RAM range. Check if it's already
+-	 * reserved by the FB code or someone else.
+-	 */
+-	if (fbmem_region_reserved(paddr, size) ||
+-	    !range_included(paddr, size, start_avail, size_avail)) {
+-		printk(KERN_ERR "Trying to use reserved memory "
+-			"for FB region %d\n", region_idx);
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ static int valid_sdram(unsigned long addr, unsigned long size)
+ {
+ 	return memblock_is_region_memory(addr, size);
+@@ -250,85 +175,6 @@ void __init omapfb_reserve_sdram_memblock(void)
+ 			 reserved);
  }
  
 -/*
@@ -244,66 +145,137 @@ index 9441e2e..87e421e 100644
 - * this point, since the driver built as a module would have problem with
 - * freeing / reallocating the regions.
 - */
--unsigned long __init omap_vram_reserve_sram(unsigned long sram_pstart,
+-unsigned long __init omapfb_reserve_sram(unsigned long sram_pstart,
 -				  unsigned long sram_vstart,
 -				  unsigned long sram_size,
 -				  unsigned long pstart_avail,
 -				  unsigned long size_avail)
 -{
+-	struct omapfb_mem_region	rg;
 -	unsigned long			pend_avail;
 -	unsigned long			reserved;
--	u32 paddr;
--	u32 size;
+-	int				i;
 -
--	paddr = omap_vram_sram_start;
--	size = omap_vram_sram_size;
--
--	if (!size)
+-	if (config_invalid)
 -		return 0;
 -
 -	reserved = 0;
 -	pend_avail = pstart_avail + size_avail;
--
--	if (!paddr) {
--		/* Dynamic allocation */
--		if ((size_avail & PAGE_MASK) < size) {
--			pr_err("Not enough SRAM for VRAM\n");
+-	for (i = 0; ; i++) {
+-		if (get_fbmem_region(i, &rg) < 0)
+-			break;
+-		if (i == OMAPFB_PLANE_NUM) {
+-			printk(KERN_ERR
+-				"Extraneous FB mem configuration entries\n");
+-			config_invalid = 1;
 -			return 0;
 -		}
--		size_avail = (size_avail - size) & PAGE_MASK;
--		paddr = pstart_avail + size_avail;
+-
+-		/* Check if it's our memory type. */
+-		if (set_fbmem_region_type(&rg, OMAPFB_MEMTYPE_SRAM,
+-				          sram_pstart, sram_size) < 0 ||
+-		    (rg.type != OMAPFB_MEMTYPE_SRAM))
+-			continue;
+-		BUG_ON(omapfb_config.mem_desc.region[i].size);
+-
+-		if (check_fbmem_region(i, &rg, pstart_avail, size_avail) < 0) {
+-			config_invalid = 1;
+-			return 0;
+-		}
+-
+-		if (!rg.paddr) {
+-			/* Dynamic allocation */
+-			if ((size_avail & PAGE_MASK) < rg.size) {
+-				printk("Not enough SRAM for FB region %d\n",
+-					i);
+-				config_invalid = 1;
+-				return 0;
+-			}
+-			size_avail = (size_avail - rg.size) & PAGE_MASK;
+-			rg.paddr = pstart_avail + size_avail;
+-		}
+-		/* Reserve everything above the start of the region. */
+-		if (pend_avail - rg.paddr > reserved)
+-			reserved = pend_avail - rg.paddr;
+-		size_avail = pend_avail - reserved - pstart_avail;
+-
+-		/*
+-		 * We have a kernel mapping for this already, so the
+-		 * driver won't have to make one.
+-		 */
+-		rg.vaddr = (void *)(sram_vstart + rg.paddr - sram_pstart);
+-		omapfb_config.mem_desc.region[i] = rg;
+-		configured_regions++;
 -	}
--
--	if (paddr < sram_pstart ||
--			paddr + size > sram_pstart + sram_size) {
--		pr_err("Illegal SRAM region for VRAM\n");
--		return 0;
--	}
--
--	/* Reserve everything above the start of the region. */
--	if (pend_avail - paddr > reserved)
--		reserved = pend_avail - paddr;
--	size_avail = pend_avail - reserved - pstart_avail;
--
--	omap_vram_add_region(paddr, size);
--
+-	omapfb_config.mem_desc.region_cnt = i;
 -	if (reserved)
--		pr_info("Reserving %lu bytes SRAM for VRAM\n", reserved);
--
+-		pr_info("Reserving %lu bytes SRAM for frame buffer\n",
+-			 reserved);
 -	return reserved;
 -}
 -
- void __init omap_vram_set_sdram_vram(u32 size, u32 start)
+ void omapfb_set_ctrl_platform_data(void *data)
  {
- 	omap_vram_sdram_start = start;
- 	omap_vram_sdram_size = size;
+ 	omapfb_config.ctrl_platform_data = data;
+@@ -390,15 +236,6 @@ void omapfb_reserve_sdram_memblock(void)
+ {
  }
--
--void __init omap_vram_set_sram_vram(u32 size, u32 start)
+ 
+-unsigned long __init omapfb_reserve_sram(unsigned long sram_pstart,
+-				  unsigned long sram_vstart,
+-				  unsigned long sram_size,
+-				  unsigned long start_avail,
+-				  unsigned long size_avail)
 -{
--	omap_vram_sram_start = start;
--	omap_vram_sram_size = size;
+-	return 0;
 -}
+-
+ #else
+ 
+ void omapfb_set_platform_data(struct omapfb_platform_data *data)
+@@ -409,13 +246,4 @@ void omapfb_reserve_sdram_memblock(void)
+ {
+ }
+ 
+-unsigned long __init omapfb_reserve_sram(unsigned long sram_pstart,
+-				  unsigned long sram_vstart,
+-				  unsigned long sram_size,
+-				  unsigned long start_avail,
+-				  unsigned long size_avail)
+-{
+-	return 0;
+-}
+-
+ #endif
+diff --git a/arch/arm/plat-omap/fb.h b/arch/arm/plat-omap/fb.h
+deleted file mode 100644
+index d765d0b..0000000
+--- a/arch/arm/plat-omap/fb.h
++++ /dev/null
+@@ -1,10 +0,0 @@
+-#ifndef __PLAT_OMAP_FB_H__
+-#define __PLAT_OMAP_FB_H__
+-
+-extern unsigned long omapfb_reserve_sram(unsigned long sram_pstart,
+-					 unsigned long sram_vstart,
+-					 unsigned long sram_size,
+-					 unsigned long pstart_avail,
+-					 unsigned long size_avail);
+-
+-#endif /* __PLAT_OMAP_FB_H__ */
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index 73924bc..aaf0990 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -867,7 +867,7 @@ static int omapfb_setup_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
+ 
+ 	if (fbdev->ctrl->setup_mem == NULL)
+ 		return -ENODEV;
+-	if (mi->type > OMAPFB_MEMTYPE_MAX)
++	if (mi->type != OMAPFB_MEMTYPE_SDRAM)
+ 		return -EINVAL;
+ 
+ 	size = PAGE_ALIGN(mi->size);
 -- 
 1.7.4.1
 
