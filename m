@@ -1,66 +1,107 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] omap2430 musb: Make musb_otg_notification non-blocking
-Date: Tue, 24 Jan 2012 10:56:12 +0200
-Message-ID: <20120124085610.GI27414@legolas.emea.dhcp.ti.com>
-References: <20111230123628.76720567@notabene.brown>
-Reply-To: balbi@ti.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: omap-serial RX DMA polling?
+Date: Tue, 24 Jan 2012 09:00:21 +0000
+Message-ID: <20120124090021.GQ16726@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.00.1201221718190.26641@utopia.booyaka.com> <CAAL8m4wcSfhjxg0Lyo-W7DQ85rikb6asRds95hwQQNTDXe2YKQ@mail.gmail.com> <alpine.DEB.2.00.1201230304310.29673@utopia.booyaka.com> <CAAL8m4wBuFQYkyFUwNWrUZTBWuQHggy=y3Oi=6DBHNB_rqU9tA@mail.gmail.com> <alpine.DEB.2.00.1201231228310.29673@utopia.booyaka.com> <CAAL8m4zE6wD67GCeVe9BOBZ=5yrCkrXUUu26y2GAXrdiDD3R8g@mail.gmail.com> <alpine.DEB.2.00.1201240010100.29673@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="dCSxeJc5W8HZXZrD"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:35723 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755211Ab2AXI4Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 03:56:16 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51817 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754667Ab2AXJAi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jan 2012 04:00:38 -0500
 Content-Disposition: inline
-In-Reply-To: <20111230123628.76720567@notabene.brown>
+In-Reply-To: <alpine.DEB.2.00.1201240010100.29673@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Felipe Balbi <balbi@ti.com>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, khilman@ti.com, govindraj.raja@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
 
-
---dCSxeJc5W8HZXZrD
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Dec 30, 2011 at 12:36:28PM +1100, NeilBrown wrote:
+On Tue, Jan 24, 2012 at 12:58:57AM -0700, Paul Walmsley wrote:
+> On Tue, 24 Jan 2012, Govindraj wrote:
 >=20
+> > On Tue, Jan 24, 2012 at 1:18 AM, Paul Walmsley <paul@pwsan.com> wro=
+te:
+> > > On Mon, 23 Jan 2012, Govindraj wrote:
+> > >> On Mon, Jan 23, 2012 at 4:17 PM, Paul Walmsley <paul@pwsan.com> =
+wrote:
+> > >
+> > > The point is that if you want tty_insert_flip_string() to be call=
+ed after
+> > > every character is received, there seems little point in using RX=
+ DMA.
+> > > It should be less efficient than PIO. =A0And the current way that=
+ it is used
+> > > is pointless from a power management point of view.
+> >=20
+> > Yes, Its between power and performance, current way gives a better
+> > response for most devices
 >=20
-> This callback is on an 'atomic notificaitons' queue but is written
-> as a blocking notifier.
+> That seems rather unlikely.  And I don't agree that there is a balanc=
+e to=20
+> be struck in this case.  Compared to a correctly-working RX PIO path,=
+ the=20
+> RX DMA in the current driver is likely to be much worse in energy=20
+> consumption, and to be equal at best in receive latency.
 >=20
-> Convert to use a work-queue to run from non-atomic context.
->=20
-> Signed-off-by: NeilBrown <neilb@suse.de>
+> In a correctly-working RX PIO path, the driver is going to receive an=
+=20
+> interrupt the moment the data is ready to be transferred from the FIF=
+O. =20
 
-doesn't apply.
+That's hellishly inefficient.  In a correctly working RX PIO path with
+=46IFO, this is how most hardware is designed to work:
 
---=20
-balbi
+- The UART receives a character.  It places it into its FIFO, and it st=
+arts
+  a timer based on the bit rate.
+- If another character is being received, this will be received and pla=
+ced
+  into the FIFO.  The timer is restarted.  This continues until the FIF=
+O
+  hits the watermark level which raises the receive interrupt.
+- If no character is received, the timer eventually expires and a
+  receive timeout interrupt is raised instead.
 
---dCSxeJc5W8HZXZrD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Generally, what you want for transmit is to wait for the TX FIFO to
+drain to maybe half full, and then reload it until it is completely
+full.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+=46or the RX FIFO, you want to set the watermark such that you get a
+decent number of bytes in there before the receive interrupt is
+raised, but not soo many that an overrun is likely.
 
-iQIcBAEBAgAGBQJPHnIqAAoJEIaOsuA1yqREiCAP/2zmxX9MIHpJjbBnFxrjxSm8
-zdMIaCiap21N7CTE5+x9rgnSwD66utQKZYhkSU0KPcLlAOGGVLgomZV7aLlU3qqj
-r5zRJuKxmgxfXcQSV1bEBGJnyO7W56wwe/Ks2PRpUTxGHYjx3fqWW4jWpfuxunaL
-w/VBdpkJuf7ZeE36UNbhOoGN9Lb9AE54vMHmqdOn3IrWONSVYdQkKB5xtfitBtzJ
-plXK2Ux/MWbeJfFiYR5sExbWUsG9HVyUCh8FNRR4SDdw5k3SVDZoNqAru5rg8ULx
-N4s130P1efVF7h+XioHTnDccUuHHoJb/N6wweDg7p/NsWa9RrDz9FPdf3WtWu1fB
-/N9eugX3xVtUBICmSnOrxkArX2f/Dqy9XNAAfUPqPPwB5clwEqlVGxF4aC8isXVT
-9YiaxFdO2gSobyDiauk4R+K8yj9Yo23ic8fCb8GH52FFSkqVEpNH47DDS4DH6ztZ
-+po5ysspmpzOr+w2B4cbTWVeYKeLhms+delMcyhDrVccNur1HvUaqhKKxL+7c4X9
-WPYeXAVo6/6MER+wnF3JPGblRJ//2Dh1b1I6WBpX/ci4R6D6KvSrOl5y5ow36kDM
-6UGLum+NANAXnbUvIESkgCtTBVetLdV1ID+jdwLb0FfWwjjU+xJCcD/aV3XODNsl
-d8m4AkcGFb73tn/CClqA
-=ph3r
------END PGP SIGNATURE-----
+One of the point of having FIFOs is that they batch up the transmit and
+receive activity to make it more efficient at servicing the UART.
 
---dCSxeJc5W8HZXZrD--
+Setting the FIFO levels to one character virtually negates the point
+of having FIFOs - there is no point setting the TX FIFO to raise an
+interrupt when there's one character space left.  As has already been
+reported, this just puts the interrupt rate up, and means you waste a
+lot more CPU (or bus) time servicing the transmit path.
+
+As for RX DMA vs RX PIO, that depends on the UART (I don't know how
+OMAPs UARTs behave.)  To sanely use RX DMA, you need the UART to raise
+the RX timeout interrupt after characters have been offloaded by the
+RX DMA.  Lets saying that RX FIFO is 32 bytes deep, and it's set to
+raise the RX DMA request at 16 bytes full.  If you program the DMA
+controller to burst 16 bytes off the RX FIFO, you'll empty it and
+it'll never raise the RX timeout interrupt.  So you'll need to know
+how many characters you're expecting.
+
+If on the other hand you burst 8 bytes off the RX FIFO, you'll leave
+8 bytes in the FIFO.  If the UART works properly, it will raise an
+RX timeout interrupt after N bit periods where the RX line is inactive.
+
+What that means is that during a burst of RX activity, your DMA takes
+the strain of receiving characters, and you process those characters
+when either the RX buffer becomes full or when there's a pause in
+reception.  This gives good efficiency during bursts while maintaining
+interactivity - to the same levels as that expected by RX PIO using
+the FIFO.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
