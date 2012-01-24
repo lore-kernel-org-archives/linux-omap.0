@@ -1,108 +1,86 @@
-From: NeilBrown <neilb@suse.de>
-Subject: OMAP HDQ: was Re: DSS2/PM on 3.2 broken?
-Date: Tue, 24 Jan 2012 21:37:05 +1100
-Message-ID: <20120124213705.49f042bf@notabene.brown>
-References: <WC20120109124643.880164@terrafix.co.uk>
-	<20120110080849.5a242adf@notabene.brown>
-	<alpine.DEB.2.00.1201110632100.31702@utopia.booyaka.com>
-	<20120112095940.0a54413e@notabene.brown>
-	<alpine.DEB.2.00.1201130253070.3659@utopia.booyaka.com>
-	<20120113222045.37f9b4ec@notabene.brown>
-	<alpine.DEB.2.00.1201130423280.3659@utopia.booyaka.com>
-	<20120114100915.01c96727@notabene.brown>
-	<20120118082410.48262777@notabene.brown>
-	<alpine.DEB.2.00.1201211704430.26641@utopia.booyaka.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
+Date: Tue, 24 Jan 2012 12:39:55 +0200
+Message-ID: <1327401595.1838.13.camel@deskari>
+References: <1327055619.1921.57.camel@deskari>
+	 <CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
+	 <1327060886.1921.63.camel@deskari>
+	 <CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
+	 <1327063256.1921.68.camel@deskari>
+	 <CAORVsuVGT1AaMzo0r6T4vWe7zz7Uk=o-DydAcGdMzE+utDoUww@mail.gmail.com>
+	 <1327071609.1921.82.camel@deskari> <20120122221132.32bd4d44@notabene.brown>
+	 <1327308790.1916.30.camel@deskari>
+	 <alpine.DEB.2.00.1201230154430.29673@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/mp/yL1Cw2_2__6nuyz+g4Tj"; protocol="application/pgp-signature"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-o2+JXth9JDGiIDrYhzsH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:40039 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754007Ab2AXKhT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 05:37:19 -0500
-In-Reply-To: <alpine.DEB.2.00.1201211704430.26641@utopia.booyaka.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53697 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755654Ab2AXKkB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jan 2012 05:40:01 -0500
+Received: by mail-lpp01m010-f45.google.com with SMTP id o5so798120lah.4
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 02:40:00 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1201230154430.29673@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, khilman@ti.com, t-kristo@ti.com, govindraj.raja@ti.com, linux-omap@vger.kernel.org
+Cc: NeilBrown <neilb@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, Govindraj <govindraj.ti@gmail.com>, Kevin Hilman <khilman@ti.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, Joe Woodward <jw@terrafix.co.uk>
 
---Sig_/mp/yL1Cw2_2__6nuyz+g4Tj
-Content-Type: text/plain; charset=US-ASCII
+
+--=-o2+JXth9JDGiIDrYhzsH
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, 21 Jan 2012 17:07:18 -0700 (MST) Paul Walmsley <paul@pwsan.com> wro=
-te:
-
-> On Wed, 18 Jan 2012, NeilBrown wrote:
+On Mon, 2012-01-23 at 02:04 -0700, Paul Walmsley wrote:
+> On Mon, 23 Jan 2012, Tomi Valkeinen wrote:
 >=20
-> > Oh - another thing.
-> > Sometimes during early boot I get:
-> >=20
-> > [    0.158447] omap_hwmod: usbtll_fck: missing clockdomain for usbtll_f=
-ck.
-> > [    0.176879] omap_hwmod: hdq: softreset failed (waited 10000 usec)
+> > Then I noticed that the DISPC's ENWAKEUP is not set. Setting ENWAKEUP
+> > (with SIDLEMODE/IDLEMODE in smart mode) also removes the problem.
 >=20
-> This latter bug just got fixed, it's updated in the new HDQ series that I=
-=20
-> sent out:
->=20
-> http://marc.info/?l=3Dlinux-omap&m=3D132719073710874&w=3D2
->=20
-> BTW, if you could give that a spin for us at some point, it would be=20
-> greatly appreciated; I don't think I have a board with a 1-wire device on=
-=20
-> it (at least, not that I know of).
+> Sounds like you've nailed it.
 
-Yes, the patch series seems to work OK - at least it doesn't break anything:
-I can still access my battery charge meter.
+By the way, there's still something funny with DSS powerdomain. As I
+said in the original post:
 
-It doesn't fix the problem I am having where HDQ gets confused when CPUIDLE
-kicks in, but I think I might have a handle on that now.
+> Second, I compile DSS as modules, and don't load them. Looking at
+> debugfs/pm_debug/time, I can see that both RET and ON for dss_pwrdm are
+> increasing. What is making DSS powerdomain switch back and forth?
 
-Unlike other modules, HDQ doesn't have SIDLEMODE.
-According to 18.4.5 (AM/DM37x Multimedia Device Silicon Revision) it acts as
-though SIDLEMODE were set to SIDLE_FORCE so if the clock-domain trys to
-switch off, HDQ lets it.
+I can see the above also after I've loaded and then unloaded the DSS
+modules.
 
-Normally UART has SIDLEMODE set to SIDLE_NO so that keeps the necessary clo=
-ck
-domain active.  But if I let the UARTs sleep, SIDLEMODE changes to
-SIDLE_SMART which can allow the clockdomain to be stopped, which affects HD=
-Q.
+There seems to be usecount of one for dss_pwrdm (pm_debug/count shows
+dss_clkdm->dss_pwrdm (1)) and usecount of 4 for dss_ick.
 
-However I'm not sure how PRCM.CM_AUTOIDLE1_CORE fits into this. if AUTO_HDQ
-is clear - which it is by default and I cannot see code that changes it -
-then the clock for HDQ should be independent of .... something.
+Any ideas? I remember somebody (Benoit?) saying that the
+hwmod/omap_device code keeps ick allocated, but even so I'd presume that
+DSS stays in RET is it's not used.
 
-I definitely see behaviour that looks like the HDQ clock stopping
-when the UART allows SIDLE_SMART or when I explicitly deny idling of the
-clockdomains.
+ Tomi
 
-Should there be special handling of HDQ because it doesn't have SIDLEMODE??
 
-Thanks,
-NeilBrown
-
---Sig_/mp/yL1Cw2_2__6nuyz+g4Tj
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+--=-o2+JXth9JDGiIDrYhzsH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIVAwUBTx6J0Tnsnt1WYoG5AQIooQ//fbmcVhcScK23WiRiU5kcJba6W98sp+Jc
-DcC/7Q70Ze/+KjxE07qHJCi/3ZTu4+epp7eIagZeTJ5OtyYKJFsykA/c9vUx2HWx
-TJ4bEvSFdHl+997wulwfd5Q1EK53LSvpWssCZ34BlQWujOG9zh96k+sB0px0pRdk
-Nu8dp7+YSMK69wOd8Dxp2WrXsha4roFdZeVeMDXML3wm15hGTde+bc89pf7br8Ks
-/T1rRy2yI8LWH4LFOUxiJc3bjIP7wCEQs0J94pd+IR9e8dxDyF/YAuHXwYJFRVQO
-zRTcE/3MXq1Cq5kHHXKpe9EkBpuDz3ozWcF9aJroOC3xVlA11LG4MPjW5y5YDE78
-l7naqV4SnoMAzNXiiyZRxqB9RGVGEdmHQQWTSMzR3t9E/6+BanXADoCIBkJmAnH0
-xM171osJ1Kg9ogOlFRzG4URL7Kt83zpGBUsydQt0SGF/1VY0kWzzmfJW7HJJok8p
-Vu69GQ6J8htwnkzSFxkNPmFg0dK2Rf2w4tb/BfZTeOCxSIFLfC6tXfnWqrtRt1fK
-zn/f08xEYwvrDF3n89maNe47R4QF/cllKHs5Ndth/u7Cupo8UyWCB5nsPKmxSK7J
-rvumqCnC7NtlPPOzTdhfMZK9Fw6M1fzL54oMM5TZLCccsuzf4HSPDJaHl0ezLpkz
-m85babv3TzA=
-=M8X4
+iQIcBAABAgAGBQJPHop7AAoJEPo9qoy8lh71uUIQAIDbxNZaRe1eQa2Oqy/hK46k
+LEugtZjlv7B0p9IvEUmmpWnEpURVqZ3pxHUauQ7wVTP50TNB+3F52DFiTRgVNe7b
+U9QrV0LyzHAJB/OsCbvLkh08Qqzk/xFR4A6vFAWuEo1hOANBMGxbHp/PYVjZgJ6I
+9RInaYF1R7z6uwpvaUPlFx5V5z+cwoJTHjX7JgwLtPWZs0A6BuPur0MsYl5LQjAJ
+97HGoUxMlAYGnzk90trRV0yFkeaqcoX78OJ/e/zijJ7d5tiHo4+HeMcNpRjFv2+p
+WCUnQfXgfRvNBZwIxXnErrQ1i1KKXBcVIjBLbZHcT7LxTxv9ZXKmo+0djdRiIzMt
+Sa7h/PcbmuXHO1PP6ljPsXCEKz9kTa6J+yAimjLiDs01ijCKvhr/9gldFmX3wPym
+/u5C8dpcIJfdYwn1OJ4GPg359h5nm4f40OHz2j2KF2mVfZ1PPE/jOI4Fn7ZZpS4r
+xfu8zoTpIHbkMIVluKJjCbFJ7L2wIC0Z1jMkGoczXaZMEwIQQFvCk0eRb2iXxTSy
+vKkFK0Fnlld9hihvii7vVH8pACAy0WREBD7xcbkzcZ0Q1jLffdCYIST8sqPRm8jR
+Q+Lteotaa3lj25hDICsrpjk7RG76D4iYg9PYVyY+lo6kweYr+rH9LwC1agkYvU+n
+9vlxDMBJIqnJ0IJ03k8g
+=CaE2
 -----END PGP SIGNATURE-----
 
---Sig_/mp/yL1Cw2_2__6nuyz+g4Tj--
+--=-o2+JXth9JDGiIDrYhzsH--
+
