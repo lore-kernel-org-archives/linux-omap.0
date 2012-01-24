@@ -1,73 +1,85 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the
-	suspend is not implemented
-Date: Tue, 24 Jan 2012 09:06:30 +0000
-Message-ID: <20120124090630.GR16726@n2100.arm.linux.org.uk>
-References: <1327306361-9803-1-git-send-email-shubhrajyoti@ti.com> <1327306361-9803-3-git-send-email-shubhrajyoti@ti.com> <CAN8TOE8i-g_QTsidqDW=TRfZMQ8u93+iP8V7rr4paek=7xZ7UA@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: musb: fix shutdown while usb gadget is in use
+Date: Tue, 24 Jan 2012 11:10:56 +0200
+Message-ID: <20120124091054.GM27414@legolas.emea.dhcp.ti.com>
+References: <1326374565-23042-1-git-send-email-notasas@gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DheUW4aQn8WJk6WR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38686 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364Ab2AXJGp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jan 2012 04:06:45 -0500
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:39213 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754633Ab2AXJLB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jan 2012 04:11:01 -0500
 Content-Disposition: inline
-In-Reply-To: <CAN8TOE8i-g_QTsidqDW=TRfZMQ8u93+iP8V7rr4paek=7xZ7UA@mail.gmail.com>
+In-Reply-To: <1326374565-23042-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Norris <computersforpeace@gmail.com>
-Cc: Shubhrajyoti D <shubhrajyoti@ti.com>, David Woodhouse <dwmw2@infradead.org>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Artem Bityutskiy <dedekind1@gmail.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Hema HK <hemahk@ti.com>
 
-On Tue, Jan 24, 2012 at 12:09:04AM -0800, Brian Norris wrote:
-> Hi,
->=20
-> On Mon, Jan 23, 2012 at 12:12 AM, Shubhrajyoti D <shubhrajyoti@ti.com=
-> wrote:
-> ...
-> > =A0include/linux/mtd/mtd.h | =A0 =A06 +++---
-> > =A01 files changed, 3 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
-> > index 1a81fde..c717bb6 100644
-> > --- a/include/linux/mtd/mtd.h
-> > +++ b/include/linux/mtd/mtd.h
-> > @@ -427,9 +427,9 @@ static inline int mtd_is_locked(struct mtd_info=
- *mtd, loff_t ofs, uint64_t len)
-> >
-> > =A0static inline int mtd_suspend(struct mtd_info *mtd)
-> > =A0{
-> > - =A0 =A0 =A0 if (!mtd->suspend)
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EOPNOTSUPP;
-> > - =A0 =A0 =A0 return mtd->suspend(mtd);
-> > + =A0 =A0 =A0 if (mtd->suspend)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return mtd->suspend(mtd);
-> > + =A0 =A0 =A0 return 0;
-> > =A0}
-> >
-> > =A0static inline void mtd_resume(struct mtd_info *mtd)
->=20
-> I believe this fix is already accounted for in Artem Bityutskiy's
-> l2-mtd-2.6 repository as:
->=20
-> commit 091a7fe219ee8d3e76be9e02221433af10c6f574
-> mtd: fix MTD suspend
-> (http://git.infradead.org/users/dedekind/l2-mtd-2.6.git/commit/091a7f=
-e219ee8d3e76be9e02221433af10c6f574)
->=20
-> However, the bug made it into the 3.3 merge window, so shouldn't this
-> bugfix be sent upstream immediately?
 
-David is the MTD maintainer, and Artem just helps out.  I believe Artem
-is waiting for David to finish travelling before asking David (last see=
-n
-at Hong Kong airport) to pull these fixes.  David in turn will pass the=
-m
-onto Linus.  Plus, Linus only started adding to -rc1 yesterday, so its =
-a
-little early to expect this to be fixed.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--DheUW4aQn8WJk6WR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Jan 12, 2012 at 03:22:45PM +0200, Grazvydas Ignotas wrote:
+> If we shutdown without stopping the gadget first or removing the cable,
+> gadget manages to configure itself again:
+>=20
+> root@pandora /root# poweroff
+> The system is going down NOW!
+> Requesting system poweroff
+> [   47.714385] musb-hm halted.
+> [   48.120697]  gadget: suspend
+> [   48.123748]  gadget: reset config
+> [   48.127227]  gadget: ecm deactivated
+> [   48.130981] usb0: gether_disconnect
+> [   48.281799]  gadget: high-speed config #1: CDC Ethernet (ECM)
+> [   48.287872]  gadget: init ecm
+> [   48.290985]  gadget: notify connect false
+> [   48.295288]  gadget: notify speed 425984000
+>=20
+> This is not only unwanted, it's also happening on half-unitialized
+> state, after musb_shutdown() has returned, which sometimes causes
+> hardware to fail to work after reboot. Let's better properly stop
+> gadget on shutdown too.
+>=20
+> This patch moves musb_gadget_cleanup out of musb_free(), which has 2
+> callsites: probe error path and musb_remove. On probe error path it was
+> superflous since musb_gadget_cleanup is called explicitly there, and
+> musb_remove() calls musb_shutdown(), so cleanup will get called as before.
+>=20
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+
+applied, thanks
+
+--=20
+balbi
+
+--DheUW4aQn8WJk6WR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPHnWdAAoJEIaOsuA1yqREiz0P/17MZIoV7Fei2I43q4/QsL6y
+rjNjKXURAbTmziwOvz9ZhWRXYNan+++ecbk9ilKssYZM5wHm21Hp7VZMrtXxjggH
+P8FL0QYZOYg0h6UjvZPE7KXadCLpip9+ZPsHAFxsAUh4Sjmpsp8pe36fqcVYKa/x
++qLntNOEsyikStvpscE04RFNhJWYZW6wTxO4uSn/Ca7Xx4k0G3vV+25h+dV6ukUQ
+sJnijHADZAhUBi7hddrpO4rhFeu+Vf9Q6Y8S8GK8dqgSR2Bc261yNrc3jZgrXGOK
+OJvuoRg4gQOZDXGFMJ4K/av7oYBxDX+YMVppu/atSnr+fRtgKPggkZmIWu4Bz7ZX
+LipC1mDdn6TfoBZLRgd6UvMrC8rC7rmwdEx61aWDeUMp9V5/SwM9fR0qcD7HYERN
++y4JaihTGPHHdqDP9Ido/6RLTxJycC/ojZsCj7KLuafvCbLVoe3DH/72IfzVgt+7
+UqYr+P8r/0N85YB+FtHr1yGPXwwUPX56dxr9v7Z9qO///1zARdTFTPmROGSGeWQl
+NNLPqhKPioThj951aeJ75na0YAGhpnx1tqqMmAN3uGF9wx4XAJPpzWXPwnhXqc9w
+ytzMxbVvYtc/Vi8YP2JCi7rLiHdQeih7aYUTsneII9xwbKYZNu/fJllnfVS2dJxk
+oPkV44vSWD63bCMkfsV3
+=7gh3
+-----END PGP SIGNATURE-----
+
+--DheUW4aQn8WJk6WR--
