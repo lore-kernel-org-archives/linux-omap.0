@@ -1,41 +1,47 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: ARM/ARM-SoC plans for v3.4 merge window
-Date: Tue, 24 Jan 2012 11:45:43 +0000
-Message-ID: <20120124114543.GG19798@mudshark.cambridge.arm.com>
-References: <20120123114902.GY1068@n2100.arm.linux.org.uk>
- <20120124095009.GS16726@n2100.arm.linux.org.uk>
- <20120124105645.GE19798@mudshark.cambridge.arm.com>
- <20120124112745.GT16726@n2100.arm.linux.org.uk>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 0/9] usb: gadget: generic map/unmap routines
+Date: Tue, 24 Jan 2012 13:45:21 +0200
+Message-ID: <1327405543-27589-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120124112745.GT16726@n2100.arm.linux.org.uk>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jan 24, 2012 at 11:27:45AM +0000, Russell King - ARM Linux wrote:
-> On Tue, Jan 24, 2012 at 10:56:45AM +0000, Will Deacon wrote:
-> > I took a look at your amba branch, but all I can see in there is:
-> > 
-> > 6cfa627 ARM: 7079/1: spi: Fix builderror in spi-pl022.c
-> > 1c3be36 PM: add runtime PM support to MMCI
-> > 92b97f0 PM: add runtime PM support to core Primecell driver
-> > 
-> > which don't seem to touch Versatile or Realview. Am I looking in the wrong
-> > place?
-> 
-> Erm, I don't think you're looking at the right branch - especially as
-> all the commits start "ARM: amba:".  They were sent out to the mailing
-> list on 20th Jan as a set of 31 patches (latest first):
+Hi all,
 
-[...]
+here's a rebased version of generic map/unmap patchset.
 
-Indeed, the amba branch I was looking at no longer exists on your server and
-a git prune removed it. I'll take a look at the guys in devel-3.3 instead.
+Also available on generic-map-unmap branch of my tree, some
+of the patches have been tested before and already have a
+Tested-by tag.
 
-Thanks,
+Felipe Balbi (9):
+  usb: gadget: add generic map/unmap request utilities
+  usb: dwc3: gadget: use generic map/unmap routines
+  usb: gadget: langwell: use generic map/unmap functions
+  usb: renesas: gadget: use generic map/unmap routines
+  usb: gadget: amd5536: use generic map/unmap routines
+  usb: gadget: r8a66597: use generic map/unmap routines
+  usb: gadget: net2272: use generic map/umap routines
+  usb: gadget: net2280: use generic map/unmap routines
+  usb: gadget: goku: use generic map/unmap routines
 
-Will
+ drivers/usb/dwc3/core.h                |    2 -
+ drivers/usb/dwc3/ep0.c                 |   16 +++++-
+ drivers/usb/dwc3/gadget.c              |   93 ++++++--------------------------
+ drivers/usb/dwc3/gadget.h              |    2 -
+ drivers/usb/gadget/amd5536udc.c        |   33 ++---------
+ drivers/usb/gadget/goku_udc.c          |   18 +++----
+ drivers/usb/gadget/langwell_udc.c      |   45 +++-------------
+ drivers/usb/gadget/net2272.c           |   18 +++----
+ drivers/usb/gadget/net2280.c           |   19 +++----
+ drivers/usb/gadget/r8a66597-udc.c      |   10 +---
+ drivers/usb/gadget/udc-core.c          |   52 ++++++++++++++++++
+ drivers/usb/renesas_usbhs/mod_gadget.c |   73 ++++++-------------------
+ include/linux/usb/gadget.h             |   10 ++++
+ 13 files changed, 149 insertions(+), 242 deletions(-)
+
+-- 
+1.7.8.2
