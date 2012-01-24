@@ -1,88 +1,75 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 - resend 04/13] include: platform_data: Platform data header for OMAP4 ASoC audio
-Date: Tue, 24 Jan 2012 13:52:21 +0200
-Message-ID: <1327405950-6676-5-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 - resend 02/13] ASoC: OMAP4: Rename the sdp4430 machine driver
+Date: Tue, 24 Jan 2012 13:52:19 +0200
+Message-ID: <1327405950-6676-3-git-send-email-peter.ujfalusi@ti.com>
 References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:44920 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756411Ab2AXLwx (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56263 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756397Ab2AXLwt (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 06:52:53 -0500
-Received: by mail-lpp01m010-f45.google.com with SMTP id o5so840998lah.4
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:52:52 -0800 (PST)
+	Tue, 24 Jan 2012 06:52:49 -0500
+Received: by mail-lpp01m010-f49.google.com with SMTP id r15so818376lag.8
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:52:48 -0800 (PST)
 In-Reply-To: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
 Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Include file to be used with the upcoming ASoC machine driver
-for OMAP platform using ABE with twl6040 codec.
+The same machine driver will support other boards
+with similar audio configuration (OMAP4, ABE, twl6040).
+Rename the driver to have more generic name.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- include/linux/platform_data/omap-abe-twl6040.h |   49 ++++++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/platform_data/omap-abe-twl6040.h
+ sound/soc/omap/Kconfig                           |    2 +-
+ sound/soc/omap/Makefile                          |    4 ++--
+ sound/soc/omap/{sdp4430.c => omap-abe-twl6040.c} |    0
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+ rename sound/soc/omap/{sdp4430.c => omap-abe-twl6040.c} (100%)
 
-diff --git a/include/linux/platform_data/omap-abe-twl6040.h b/include/linux/platform_data/omap-abe-twl6040.h
-new file mode 100644
-index 0000000..5d298ac
---- /dev/null
-+++ b/include/linux/platform_data/omap-abe-twl6040.h
-@@ -0,0 +1,49 @@
-+/**
-+ * omap-abe-twl6040.h - ASoC machine driver OMAP4+ devices, header.
-+ *
-+ * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com
-+ * All rights reserved.
-+ *
-+ * Author: Peter Ujfalusi <peter.ujfalusi@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef _OMAP_ABE_TWL6040_H_
-+#define _OMAP_ABE_TWL6040_H_
-+
-+/* To select if only one channel is connected in a stereo port */
-+#define ABE_TWL6040_LEFT	(1 << 0)
-+#define ABE_TWL6040_RIGHT	(1 << 1)
-+
-+struct omap_abe_twl6040_data {
-+	char *card_name;
-+	/* Feature flags for connected audio pins */
-+	u8	has_hs;
-+	u8	has_hf;
-+	bool	has_ep;
-+	u8	has_aux;
-+	u8	has_vibra;
-+	bool	has_dmic;
-+	bool	has_hsmic;
-+	bool	has_mainmic;
-+	bool	has_submic;
-+	u8	has_afm;
-+	/* Other features */
-+	bool	jack_detection;	/* board can detect jack events */
-+	int	mclk_freq;	/* MCLK frequency speed for twl6040 */
-+};
-+
-+#endif /* _OMAP_ABE_TWL6040_H_ */
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index fb1bf25..4eae929 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -97,7 +97,7 @@ config SND_OMAP_SOC_SDP3430
+ 	  Say Y if you want to add support for SoC audio on Texas Instruments
+ 	  SDP3430.
+ 
+-config SND_OMAP_SOC_SDP4430
++config SND_OMAP_SOC_OMAP_ABE_TWL6040
+ 	tristate "SoC Audio support for Texas Instruments SDP4430"
+ 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
+ 	select SND_OMAP_SOC_DMIC
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 1fd723f..123ac18 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -20,7 +20,7 @@ snd-soc-overo-objs := overo.o
+ snd-soc-omap3evm-objs := omap3evm.o
+ snd-soc-am3517evm-objs := am3517evm.o
+ snd-soc-sdp3430-objs := sdp3430.o
+-snd-soc-sdp4430-objs := sdp4430.o
++snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
+ snd-soc-omap3pandora-objs := omap3pandora.o
+ snd-soc-omap3beagle-objs := omap3beagle.o
+ snd-soc-zoom2-objs := zoom2.o
+@@ -36,7 +36,7 @@ obj-$(CONFIG_SND_OMAP_SOC_OMAP2EVM) += snd-soc-omap2evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3EVM) += snd-soc-omap3evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+-obj-$(CONFIG_SND_OMAP_SOC_SDP4430) += snd-soc-sdp4430.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
+ obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
+diff --git a/sound/soc/omap/sdp4430.c b/sound/soc/omap/omap-abe-twl6040.c
+similarity index 100%
+rename from sound/soc/omap/sdp4430.c
+rename to sound/soc/omap/omap-abe-twl6040.c
 -- 
 1.7.8.3
 
