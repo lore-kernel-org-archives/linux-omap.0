@@ -1,104 +1,101 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 - resend 08/13] ASoC: omap-abe-twl6040: Add complete DAPM routing
-Date: Tue, 24 Jan 2012 13:52:25 +0200
-Message-ID: <1327405950-6676-9-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 - resend 10/13] ASoC: omap-abe-twl6040: Configure card according to platform data
+Date: Tue, 24 Jan 2012 13:52:27 +0200
+Message-ID: <1327405950-6676-11-git-send-email-peter.ujfalusi@ti.com>
 References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:51249 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756392Ab2AXLxC (ORCPT
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40407 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756353Ab2AXLxE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 06:53:02 -0500
-Received: by lagz14 with SMTP id z14so1466221lag.21
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:52:59 -0800 (PST)
+	Tue, 24 Jan 2012 06:53:04 -0500
+Received: by mail-lpp01m010-f43.google.com with SMTP id o2so4904686lag.30
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:53:03 -0800 (PST)
 In-Reply-To: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
 Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-SDP4430 is a reference platform, and as such it has all possible
-audio routing implemented.
-Correct the DAPM routing to be complete.
+Disable the not connected pins on the board based on the
+received platform data.
+DO not register the jack function on boards, which does not have
+means to detect it (jack is always connected).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 ---
- sound/soc/omap/omap-abe-twl6040.c |   46 ++++++++++++++++++++++--------------
- 1 files changed, 28 insertions(+), 18 deletions(-)
+ sound/soc/omap/omap-abe-twl6040.c |   44 ++++++++++++++++++++++++++----------
+ 1 files changed, 32 insertions(+), 12 deletions(-)
 
 diff --git a/sound/soc/omap/omap-abe-twl6040.c b/sound/soc/omap/omap-abe-twl6040.c
-index 3b8d571..d95bd82 100644
+index 7ad5b25..91ea873 100644
 --- a/sound/soc/omap/omap-abe-twl6040.c
 +++ b/sound/soc/omap/omap-abe-twl6040.c
-@@ -113,38 +113,48 @@ static struct snd_soc_jack_pin hs_jack_pins[] = {
- 
- /* SDP4430 machine DAPM */
- static const struct snd_soc_dapm_widget twl6040_dapm_widgets[] = {
--	SND_SOC_DAPM_MIC("Ext Mic", NULL),
--	SND_SOC_DAPM_SPK("Ext Spk", NULL),
--	SND_SOC_DAPM_MIC("Headset Mic", NULL),
-+	/* Outputs */
- 	SND_SOC_DAPM_HP("Headset Stereophone", NULL),
- 	SND_SOC_DAPM_SPK("Earphone Spk", NULL),
--	SND_SOC_DAPM_INPUT("FM Stereo In"),
-+	SND_SOC_DAPM_SPK("Ext Spk", NULL),
-+	SND_SOC_DAPM_LINE("Line Out", NULL),
-+	SND_SOC_DAPM_SPK("Vibrator", NULL),
-+
-+	/* Inputs */
-+	SND_SOC_DAPM_MIC("Headset Mic", NULL),
-+	SND_SOC_DAPM_MIC("Main Handset Mic", NULL),
-+	SND_SOC_DAPM_MIC("Sub Handset Mic", NULL),
-+	SND_SOC_DAPM_LINE("Line In", NULL),
+@@ -157,10 +157,32 @@ static const struct snd_soc_dapm_route audio_map[] = {
+ 	{"AFMR", NULL, "Line In"},
  };
  
- static const struct snd_soc_dapm_route audio_map[] = {
--	/* External Mics: MAINMIC, SUBMIC with bias*/
--	{"MAINMIC", NULL, "Ext Mic"},
--	{"SUBMIC", NULL, "Ext Mic"},
--	{"Ext Mic", NULL, "Main Mic Bias"},
-+	/* Routings for outputs */
-+	{"Headset Stereophone", NULL, "HSOL"},
-+	{"Headset Stereophone", NULL, "HSOR"},
++static inline void twl6040_disconnect_pin(struct snd_soc_dapm_context *dapm,
++					  int connected, char *pin)
++{
++	if (!connected)
++		snd_soc_dapm_disable_pin(dapm, pin);
++}
 +
-+	{"Earphone Spk", NULL, "EP"},
- 
--	/* External Speakers: HFL, HFR */
- 	{"Ext Spk", NULL, "HFL"},
- 	{"Ext Spk", NULL, "HFR"},
- 
--	/* Headset Mic: HSMIC with bias */
-+	{"Line Out", NULL, "AUXL"},
-+	{"Line Out", NULL, "AUXR"},
-+
-+	{"Vibrator", NULL, "VIBRAL"},
-+	{"Vibrator", NULL, "VIBRAR"},
-+
-+	/* Routings for inputs */
- 	{"HSMIC", NULL, "Headset Mic"},
- 	{"Headset Mic", NULL, "Headset Mic Bias"},
- 
--	/* Headset Stereophone (Headphone): HSOL, HSOR */
--	{"Headset Stereophone", NULL, "HSOL"},
--	{"Headset Stereophone", NULL, "HSOR"},
-+	{"MAINMIC", NULL, "Main Handset Mic"},
-+	{"Main Handset Mic", NULL, "Main Mic Bias"},
- 
--	/* Earphone speaker */
--	{"Earphone Spk", NULL, "EP"},
-+	{"SUBMIC", NULL, "Sub Handset Mic"},
-+	{"Sub Handset Mic", NULL, "Main Mic Bias"},
- 
--	/* Aux/FM Stereo In: AFML, AFMR */
--	{"AFML", NULL, "FM Stereo In"},
--	{"AFMR", NULL, "FM Stereo In"},
-+	{"AFML", NULL, "Line In"},
-+	{"AFMR", NULL, "Line In"},
- };
- 
  static int omapabe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
+ {
+ 	struct snd_soc_codec *codec = rtd->codec;
+-	int ret, hs_trim;
++	struct snd_soc_card *card = codec->card;
++	struct snd_soc_dapm_context *dapm = &codec->dapm;
++	struct omap_abe_twl6040_data *pdata = dev_get_platdata(card->dev);
++	int hs_trim;
++	int ret = 0;
++
++	/* Disable not connected paths if not used */
++	twl6040_disconnect_pin(dapm, pdata->has_hs, "Headset Stereophone");
++	twl6040_disconnect_pin(dapm, pdata->has_hf, "Ext Spk");
++	twl6040_disconnect_pin(dapm, pdata->has_ep, "Earphone Spk");
++	twl6040_disconnect_pin(dapm, pdata->has_aux, "Line Out");
++	twl6040_disconnect_pin(dapm, pdata->has_vibra, "Vinrator");
++	twl6040_disconnect_pin(dapm, pdata->has_hsmic, "Headset Mic");
++	twl6040_disconnect_pin(dapm, pdata->has_mainmic, "Main Handset Mic");
++	twl6040_disconnect_pin(dapm, pdata->has_submic, "Sub Handset Mic");
++	twl6040_disconnect_pin(dapm, pdata->has_afm, "Line In");
+ 
+ 	/*
+ 	 * Configure McPDM offset cancellation based on the HSOTRIM value from
+@@ -170,19 +192,17 @@ static int omapabe_twl6040_init(struct snd_soc_pcm_runtime *rtd)
+ 	omap_mcpdm_configure_dn_offsets(rtd, TWL6040_HSF_TRIM_LEFT(hs_trim),
+ 					TWL6040_HSF_TRIM_RIGHT(hs_trim));
+ 
+-	/* Headset jack detection */
+-	ret = snd_soc_jack_new(codec, "Headset Jack",
+-				SND_JACK_HEADSET, &hs_jack);
+-	if (ret)
+-		return ret;
+-
+-	ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
+-				hs_jack_pins);
++	/* Headset jack detection only if it is supported */
++	if (pdata->jack_detection) {
++		ret = snd_soc_jack_new(codec, "Headset Jack",
++					SND_JACK_HEADSET, &hs_jack);
++		if (ret)
++			return ret;
+ 
+-	if (machine_is_omap_4430sdp())
++		ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
++					hs_jack_pins);
+ 		twl6040_hs_jack_detect(codec, &hs_jack, SND_JACK_HEADSET);
+-	else
+-		snd_soc_jack_report(&hs_jack, SND_JACK_HEADSET, SND_JACK_HEADSET);
++	}
+ 
+ 	return ret;
+ }
 -- 
 1.7.8.3
 
