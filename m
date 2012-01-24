@@ -1,86 +1,41 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: PM(?) problems on v3.3-rc1 on OMAP3
-Date: Tue, 24 Jan 2012 12:39:55 +0200
-Message-ID: <1327401595.1838.13.camel@deskari>
-References: <1327055619.1921.57.camel@deskari>
-	 <CAAL8m4zYQmKAnzjfP2eQUyO3hJ3pig2H_jenC_WAWAogQ1JTbw@mail.gmail.com>
-	 <1327060886.1921.63.camel@deskari>
-	 <CAORVsuVenz_fUPp3o_x+xrN3JJXDUyreMNvqjCPGzLrQf71EnQ@mail.gmail.com>
-	 <1327063256.1921.68.camel@deskari>
-	 <CAORVsuVGT1AaMzo0r6T4vWe7zz7Uk=o-DydAcGdMzE+utDoUww@mail.gmail.com>
-	 <1327071609.1921.82.camel@deskari> <20120122221132.32bd4d44@notabene.brown>
-	 <1327308790.1916.30.camel@deskari>
-	 <alpine.DEB.2.00.1201230154430.29673@utopia.booyaka.com>
+Subject: [PATCH 0/3]: ARM: OMAP2/3: HWMOD fixes for DSS
+Date: Tue, 24 Jan 2012 12:45:17 +0200
+Message-ID: <1327401920-5617-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-o2+JXth9JDGiIDrYhzsH"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:53697 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755654Ab2AXKkB (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:32890 "HELO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755634Ab2AXKpc (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 05:40:01 -0500
-Received: by mail-lpp01m010-f45.google.com with SMTP id o5so798120lah.4
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 02:40:00 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1201230154430.29673@utopia.booyaka.com>
+	Tue, 24 Jan 2012 05:45:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: NeilBrown <neilb@suse.de>, Jean Pihet <jean.pihet@newoldbits.com>, Govindraj <govindraj.ti@gmail.com>, Kevin Hilman <khilman@ti.com>, t-kristo@ti.com, linux-omap mailing list <linux-omap@vger.kernel.org>, Joe Woodward <jw@terrafix.co.uk>
+To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, paul@pwsan.com
+Cc: archit@ti.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
+There are some sysconfig flags missing for OMAP2/3 DSS hwmods. This series adds
+those.
 
---=-o2+JXth9JDGiIDrYhzsH
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+This series is based on the earlier series "[PATCH 0/3] OMAP: DSS PM fixes",
+but is sent separately here as the first series is inteded to go into the next
+rc, and this can be left to next merge window.
 
-On Mon, 2012-01-23 at 02:04 -0700, Paul Walmsley wrote:
-> On Mon, 23 Jan 2012, Tomi Valkeinen wrote:
->=20
-> > Then I noticed that the DISPC's ENWAKEUP is not set. Setting ENWAKEUP
-> > (with SIDLEMODE/IDLEMODE in smart mode) also removes the problem.
->=20
-> Sounds like you've nailed it.
-
-By the way, there's still something funny with DSS powerdomain. As I
-said in the original post:
-
-> Second, I compile DSS as modules, and don't load them. Looking at
-> debugfs/pm_debug/time, I can see that both RET and ON for dss_pwrdm are
-> increasing. What is making DSS powerdomain switch back and forth?
-
-I can see the above also after I've loaded and then unloaded the DSS
-modules.
-
-There seems to be usecount of one for dss_pwrdm (pm_debug/count shows
-dss_clkdm->dss_pwrdm (1)) and usecount of 4 for dss_ick.
-
-Any ideas? I remember somebody (Benoit?) saying that the
-hwmod/omap_device code keeps ick allocated, but even so I'd presume that
-DSS stays in RET is it's not used.
+Tested on OMAP3 Overo. I don't have OMAP3 DSI or RFBI boards, so I haven't been
+able to test those.
 
  Tomi
 
+Tomi Valkeinen (3):
+  ARM: OMAP2/3: HWMOD: Add missing flags for dispc class
+  ARM: OMAP2/3: HWMOD: Add missing flag for rfbi class
+  ARM: OMAP3: HWMOD: Add omap_hwmod_class_sysconfig for dsi
 
---=-o2+JXth9JDGiIDrYhzsH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |    2 +-
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |    3 ++-
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   15 ++++++++++++++-
+ 3 files changed, 17 insertions(+), 3 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPHop7AAoJEPo9qoy8lh71uUIQAIDbxNZaRe1eQa2Oqy/hK46k
-LEugtZjlv7B0p9IvEUmmpWnEpURVqZ3pxHUauQ7wVTP50TNB+3F52DFiTRgVNe7b
-U9QrV0LyzHAJB/OsCbvLkh08Qqzk/xFR4A6vFAWuEo1hOANBMGxbHp/PYVjZgJ6I
-9RInaYF1R7z6uwpvaUPlFx5V5z+cwoJTHjX7JgwLtPWZs0A6BuPur0MsYl5LQjAJ
-97HGoUxMlAYGnzk90trRV0yFkeaqcoX78OJ/e/zijJ7d5tiHo4+HeMcNpRjFv2+p
-WCUnQfXgfRvNBZwIxXnErrQ1i1KKXBcVIjBLbZHcT7LxTxv9ZXKmo+0djdRiIzMt
-Sa7h/PcbmuXHO1PP6ljPsXCEKz9kTa6J+yAimjLiDs01ijCKvhr/9gldFmX3wPym
-/u5C8dpcIJfdYwn1OJ4GPg359h5nm4f40OHz2j2KF2mVfZ1PPE/jOI4Fn7ZZpS4r
-xfu8zoTpIHbkMIVluKJjCbFJ7L2wIC0Z1jMkGoczXaZMEwIQQFvCk0eRb2iXxTSy
-vKkFK0Fnlld9hihvii7vVH8pACAy0WREBD7xcbkzcZ0Q1jLffdCYIST8sqPRm8jR
-Q+Lteotaa3lj25hDICsrpjk7RG76D4iYg9PYVyY+lo6kweYr+rH9LwC1agkYvU+n
-9vlxDMBJIqnJ0IJ03k8g
-=CaE2
------END PGP SIGNATURE-----
-
---=-o2+JXth9JDGiIDrYhzsH--
+-- 
+1.7.4.1
 
