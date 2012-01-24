@@ -1,75 +1,87 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v4 - resend 02/13] ASoC: OMAP4: Rename the sdp4430 machine driver
-Date: Tue, 24 Jan 2012 13:52:19 +0200
-Message-ID: <1327405950-6676-3-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v4 - resend 05/13] OMAP4: 4430sdp: Register platform device for OMAP4 audio
+Date: Tue, 24 Jan 2012 13:52:22 +0200
+Message-ID: <1327405950-6676-6-git-send-email-peter.ujfalusi@ti.com>
 References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:56263 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756397Ab2AXLwt (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59181 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756403Ab2AXLw4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 06:52:49 -0500
-Received: by mail-lpp01m010-f49.google.com with SMTP id r15so818376lag.8
-        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:52:48 -0800 (PST)
+	Tue, 24 Jan 2012 06:52:56 -0500
+Received: by lahl5 with SMTP id l5so453910lah.17
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 03:52:54 -0800 (PST)
 In-Reply-To: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-The same machine driver will support other boards
-with similar audio configuration (OMAP4, ABE, twl6040).
-Rename the driver to have more generic name.
+To avoid breakage in audio support with the coming change
+in ASoC machine driver (conversion to platfrom device).
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- sound/soc/omap/Kconfig                           |    2 +-
- sound/soc/omap/Makefile                          |    4 ++--
- sound/soc/omap/{sdp4430.c => omap-abe-twl6040.c} |    0
- 3 files changed, 3 insertions(+), 3 deletions(-)
- rename sound/soc/omap/{sdp4430.c => omap-abe-twl6040.c} (100%)
+ arch/arm/mach-omap2/board-4430sdp.c |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index fb1bf25..4eae929 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -97,7 +97,7 @@ config SND_OMAP_SOC_SDP3430
- 	  Say Y if you want to add support for SoC audio on Texas Instruments
- 	  SDP3430.
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 39fba9d..7eaeb08 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -41,6 +41,7 @@
+ #include <video/omap-panel-nokia-dsi.h>
+ #include <video/omap-panel-picodlp.h>
+ #include <linux/wl12xx.h>
++#include <linux/platform_data/omap-abe-twl6040.h>
  
--config SND_OMAP_SOC_SDP4430
-+config SND_OMAP_SOC_OMAP_ABE_TWL6040
- 	tristate "SoC Audio support for Texas Instruments SDP4430"
- 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_4430SDP
- 	select SND_OMAP_SOC_DMIC
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 1fd723f..123ac18 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -20,7 +20,7 @@ snd-soc-overo-objs := overo.o
- snd-soc-omap3evm-objs := omap3evm.o
- snd-soc-am3517evm-objs := am3517evm.o
- snd-soc-sdp3430-objs := sdp3430.o
--snd-soc-sdp4430-objs := sdp4430.o
-+snd-soc-omap-abe-twl6040-objs := omap-abe-twl6040.o
- snd-soc-omap3pandora-objs := omap3pandora.o
- snd-soc-omap3beagle-objs := omap3beagle.o
- snd-soc-zoom2-objs := zoom2.o
-@@ -36,7 +36,7 @@ obj-$(CONFIG_SND_OMAP_SOC_OMAP2EVM) += snd-soc-omap2evm.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3EVM) += snd-soc-omap3evm.o
- obj-$(CONFIG_SND_OMAP_SOC_AM3517EVM) += snd-soc-am3517evm.o
- obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
--obj-$(CONFIG_SND_OMAP_SOC_SDP4430) += snd-soc-sdp4430.o
-+obj-$(CONFIG_SND_OMAP_SOC_OMAP_ABE_TWL6040) += snd-soc-omap-abe-twl6040.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
- obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
-diff --git a/sound/soc/omap/sdp4430.c b/sound/soc/omap/omap-abe-twl6040.c
-similarity index 100%
-rename from sound/soc/omap/sdp4430.c
-rename to sound/soc/omap/omap-abe-twl6040.c
+ #include "mux.h"
+ #include "hsmmc.h"
+@@ -377,12 +378,40 @@ static struct platform_device sdp4430_dmic_codec = {
+ 	.id	= -1,
+ };
+ 
++static struct omap_abe_twl6040_data sdp4430_abe_audio_data = {
++	.card_name = "SDP4430",
++	.has_hs		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_hf		= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_ep		= 1,
++	.has_aux	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++	.has_vibra	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++
++	.has_dmic	= 1,
++	.has_hsmic	= 1,
++	.has_mainmic	= 1,
++	.has_submic	= 1,
++	.has_afm	= ABE_TWL6040_LEFT | ABE_TWL6040_RIGHT,
++
++	.jack_detection = 1,
++	/* MCLK input is 38.4MHz */
++	.mclk_freq	= 38400000,
++};
++
++static struct platform_device sdp4430_abe_audio = {
++	.name		= "omap-abe-twl6040",
++	.id		= -1,
++	.dev = {
++		.platform_data = &sdp4430_abe_audio_data,
++	},
++};
++
+ static struct platform_device *sdp4430_devices[] __initdata = {
+ 	&sdp4430_gpio_keys_device,
+ 	&sdp4430_leds_gpio,
+ 	&sdp4430_leds_pwm,
+ 	&sdp4430_vbat,
+ 	&sdp4430_dmic_codec,
++	&sdp4430_abe_audio,
+ };
+ 
+ static struct omap_musb_board_data musb_board_data = {
 -- 
 1.7.8.3
 
