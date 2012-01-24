@@ -1,69 +1,29 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: Linux 3.3-1 out - merge window closed
-Date: Tue, 24 Jan 2012 20:57:56 +0200
-Message-ID: <1327431476.10335.69.camel@groo>
-References: <CA+55aFwWEhobGDzkuRoXaS37y3tMU41ExhiR+vCa68cUNRehKg@mail.gmail.com>
-	 <1327331183.10335.26.camel@groo>
-	 <CACRpkdYcBjhRo=NcfDbxJrNn6QtpV1LWdeuiy1yGPosocngV-A@mail.gmail.com>
+From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
+ amba_device initializer
+Date: Tue, 24 Jan 2012 22:23:11 +0100
+Message-ID: <4F1F213F.9070106@stericsson.com>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk> <E1RoAmo-0005Ff-DW@rmk-PC.arm.linux.org.uk> <20120124160044.GM19798@mudshark.cambridge.arm.com> <20120124162328.GA8517@n2100.arm.linux.org.uk> <20120124172600.GO19798@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdYcBjhRo=NcfDbxJrNn6QtpV1LWdeuiy1yGPosocngV-A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Linus Walleij <linus.walleij@linaro.org>
-Cc: ext Linus Torvalds <torvalds@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "peter_henn@gmx.de" <peter_henn@gmx.de>, "sjur.brandeland@stericsson.com" <sjur.brandeland@stericsson.com>, "govindraj.ti@gmail.com" <govindraj.ti@gmail.com>, "pawel.szyszuk@stericsson.com" <pawel.szyszuk@stericsson.com>, Sebastian Reichel <sre@debian.org>, artem.bityutskiy@linux.intel.com, Andras Domokos <andras.domokos@nokia.com>, ext Shubhrajyoti <shubhrajyoti@ti.com>, ext Alan Cox <alan@lxorguk.ukuu.org.uk>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+In-Reply-To: <20120124172600.GO19798@mudshark.cambridge.arm.com>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On 01/24/2012 06:26 PM, Will Deacon wrote:
+>
+> Right. I took a quick look at the TRM for the PB1176, and I think we do have
+> an interrupt for GPIO0, it's just on the other GIC. This patch should do the
+> trick, but I'm not sure what I can do to tickle the GPIO stuff anyway:
 
-On Mon, 2012-01-23 at 20:43 +0100, ext Linus Walleij wrote:
-> On Mon, Jan 23, 2012 at 4:06 PM, Carlos Chinea <carlos.chinea@nokia.com> wrote:
-> > Hi Linus,
-> >
-> > On Thu, 2012-01-19 at 15:58 -0800, ext Linus Torvalds wrote:
-> >> So the subject says it all. It's been two weeks(+a day), and 3.3-rc1 is now out.
-> >>
-> >> There are a couple of trees I haven't merged on purpose, and there may
-> >> be a few trees I overlooked by mistake. The "on purpose" ones were
-> >> things that looked unfamiliar and I felt I didn't have the bandwidth
-> >> to check. The "mistake" ones would just be things I missed due to
-> >> being busy.
-> >>
-> >
-> > Is the HSI framework pull on the "on purpose" list ?
-> >
-> > https://lkml.org/lkml/2012/1/13/116
-> >
-> > Several people have shown interest for this to be integrated in the
-> > kernel to help development.The framework is already in use in Nokia
-> > products like N9.
-> 
-> We (ST-Ericsson) also use this framework and we have a driver
-> for it in the works and submitted to the list at one time I think.
-> I am sorry if I have not ACK:ed all patches but I have my ack on
-> the big one.
-> 
-> That said I suspect it mightn't have been pulled because
-> Torvalds cannot verify who you are, and/or that there is no signed
-> tag on it? GPG keys are getting mandatory, though it's sad if it's
-> becoming a barrier to entry.
-> 
+For a simple test just insert/remove the MMC card and see it
+add/remove the card (appear in console, and /proc/interrupts)
 
-There is a signed tag (hsi_for_3.3), but said it so is true that my key
-was signed only by one person. Today I've managed to meet Artem
-Bityutskiy and he has now also signed the key. However, It is my
-understanding that's not enough :(
+Or do you mean tickle GPIO0? That is more tricky I think...
 
-I guess there is also the issue of the Reviewed and Acked tags.
-Currently the commits only have your Acked for the framework.
->From this
- 
-https://lkml.org/lkml/2011/6/14/112
-
-I guess I can add also Alan Cox Acked-by tag to patch set, but I have
-forgotten to add it to the commit logs :(
-
-
-Br,
-Carlos Chinea
+Yours,
+Linus Walleij
