@@ -1,102 +1,93 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 11/16] OMAPFB: Move old omapfb private structs to a private include file
-Date: Tue, 24 Jan 2012 12:00:26 +0200
-Message-ID: <1327399231-20826-12-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 10/16] OMAPFB: remove unused fb_format_to_dss_mode()
+Date: Tue, 24 Jan 2012 12:00:25 +0200
+Message-ID: <1327399231-20826-11-git-send-email-tomi.valkeinen@ti.com>
 References: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:49905 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755883Ab2AXKBH (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:59426 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755933Ab2AXKBE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 05:01:07 -0500
+	Tue, 24 Jan 2012 05:01:04 -0500
 In-Reply-To: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 Cc: archit@ti.com, tony@atomide.com, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-include/linux/omapfb.h contains structs that are used only by the
-omapfb driver. Move the structs into drivers/video/omap/omapfb.h.
+fb_format_to_dss_mode() function is no longer used, so remove it.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 ---
- drivers/video/omap/omapfb.h |   25 +++++++++++++++++++++++++
- include/linux/omapfb.h      |   25 -------------------------
- 2 files changed, 25 insertions(+), 25 deletions(-)
+ drivers/video/omap2/omapfb/omapfb-main.c |   54 ------------------------------
+ 1 files changed, 0 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/video/omap/omapfb.h b/drivers/video/omap/omapfb.h
-index 3a5ab13..07fe498 100644
---- a/drivers/video/omap/omapfb.h
-+++ b/drivers/video/omap/omapfb.h
-@@ -47,6 +47,31 @@
+diff --git a/drivers/video/omap2/omapfb/omapfb-main.c b/drivers/video/omap2/omapfb/omapfb-main.c
+index 4c28d57..b00db40 100644
+--- a/drivers/video/omap2/omapfb/omapfb-main.c
++++ b/drivers/video/omap2/omapfb/omapfb-main.c
+@@ -1487,60 +1487,6 @@ static int omapfb_alloc_fbmem_display(struct fb_info *fbi, unsigned long size,
+ 	return omapfb_alloc_fbmem(fbi, size, paddr);
+ }
  
- struct omapfb_device;
- 
-+#ifdef CONFIG_ARCH_OMAP1
-+#define OMAPFB_PLANE_NUM		1
-+#else
-+#define OMAPFB_PLANE_NUM		3
-+#endif
-+
-+struct omapfb_mem_region {
-+	u32		paddr;
-+	void __iomem	*vaddr;
-+	unsigned long	size;
-+	u8		type;		/* OMAPFB_PLANE_MEM_* */
-+	enum omapfb_color_format format;/* OMAPFB_COLOR_* */
-+	unsigned	format_used:1;	/* Must be set when format is set.
-+					 * Needed b/c of the badly chosen 0
-+					 * base for OMAPFB_COLOR_* values
-+					 */
-+	unsigned	alloc:1;	/* allocated by the driver */
-+	unsigned	map:1;		/* kernel mapped by the driver */
-+};
-+
-+struct omapfb_mem_desc {
-+	int				region_cnt;
-+	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
-+};
-+
- struct lcd_panel {
- 	const char	*name;
- 	int		config;		/* TFT/STN, signal inversion */
-diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
-index 03f5255..7a8e0ea 100644
---- a/include/linux/omapfb.h
-+++ b/include/linux/omapfb.h
-@@ -222,31 +222,6 @@ struct omapfb_display_info {
- 
- #include <plat/board.h>
- 
--#ifdef CONFIG_ARCH_OMAP1
--#define OMAPFB_PLANE_NUM		1
--#else
--#define OMAPFB_PLANE_NUM		3
--#endif
+-static enum omap_color_mode fb_format_to_dss_mode(enum omapfb_color_format fmt)
+-{
+-	enum omap_color_mode mode;
 -
--struct omapfb_mem_region {
--	u32		paddr;
--	void __iomem	*vaddr;
--	unsigned long	size;
--	u8		type;		/* OMAPFB_PLANE_MEM_* */
--	enum omapfb_color_format format;/* OMAPFB_COLOR_* */
--	unsigned	format_used:1;	/* Must be set when format is set.
--					 * Needed b/c of the badly chosen 0
--					 * base for OMAPFB_COLOR_* values
--					 */
--	unsigned	alloc:1;	/* allocated by the driver */
--	unsigned	map:1;		/* kernel mapped by the driver */
--};
+-	switch (fmt) {
+-	case OMAPFB_COLOR_RGB565:
+-		mode = OMAP_DSS_COLOR_RGB16;
+-		break;
+-	case OMAPFB_COLOR_YUV422:
+-		mode = OMAP_DSS_COLOR_YUV2;
+-		break;
+-	case OMAPFB_COLOR_CLUT_8BPP:
+-		mode = OMAP_DSS_COLOR_CLUT8;
+-		break;
+-	case OMAPFB_COLOR_CLUT_4BPP:
+-		mode = OMAP_DSS_COLOR_CLUT4;
+-		break;
+-	case OMAPFB_COLOR_CLUT_2BPP:
+-		mode = OMAP_DSS_COLOR_CLUT2;
+-		break;
+-	case OMAPFB_COLOR_CLUT_1BPP:
+-		mode = OMAP_DSS_COLOR_CLUT1;
+-		break;
+-	case OMAPFB_COLOR_RGB444:
+-		mode = OMAP_DSS_COLOR_RGB12U;
+-		break;
+-	case OMAPFB_COLOR_YUY422:
+-		mode = OMAP_DSS_COLOR_UYVY;
+-		break;
+-	case OMAPFB_COLOR_ARGB16:
+-		mode = OMAP_DSS_COLOR_ARGB16;
+-		break;
+-	case OMAPFB_COLOR_RGB24U:
+-		mode = OMAP_DSS_COLOR_RGB24U;
+-		break;
+-	case OMAPFB_COLOR_RGB24P:
+-		mode = OMAP_DSS_COLOR_RGB24P;
+-		break;
+-	case OMAPFB_COLOR_ARGB32:
+-		mode = OMAP_DSS_COLOR_ARGB32;
+-		break;
+-	case OMAPFB_COLOR_RGBA32:
+-		mode = OMAP_DSS_COLOR_RGBA32;
+-		break;
+-	case OMAPFB_COLOR_RGBX32:
+-		mode = OMAP_DSS_COLOR_RGBX32;
+-		break;
+-	default:
+-		mode = -EINVAL;
+-	}
 -
--struct omapfb_mem_desc {
--	int				region_cnt;
--	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
--};
+-	return mode;
+-}
 -
- struct omapfb_platform_data {
- 	struct omap_lcd_config		lcd;
- };
+ static int omapfb_parse_vram_param(const char *param, int max_entries,
+ 		unsigned long *sizes, unsigned long *paddrs)
+ {
 -- 
 1.7.4.1
 
