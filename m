@@ -1,45 +1,34 @@
-From: Danny Kukawka <danny.kukawka@bisect.de>
-Subject: [PATCH] fix NULL pointer dereference in DSS2 VENC sysfs debug attr on OMAP4
-Date: Tue, 24 Jan 2012 16:44:42 +0100
-Message-ID: <1327419882-13578-1-git-send-email-danny.kukawka@bisect.de>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 22/31] ARM: amba: integrator: use common amba device
+ initializers
+Date: Tue, 24 Jan 2012 16:13:33 +0000
+Message-ID: <20120124161332.GN19798@mudshark.cambridge.arm.com>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
+ <E1RoAn8-0005Fk-Hc@rmk-PC.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:54516 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753888Ab2AXQHR (ORCPT
+Received: from cam-admin0.cambridge.arm.com ([217.140.96.50]:44448 "EHLO
+	cam-admin0.cambridge.arm.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754684Ab2AXQNw (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 11:07:17 -0500
+	Tue, 24 Jan 2012 11:13:52 -0500
+Content-Disposition: inline
+In-Reply-To: <E1RoAn8-0005Fk-Hc@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>
 
-Commit ba02fa37de80bea10d706f39f076dd848348320a disabled the
-venc driver registration on OMAP4. Since the driver never gets
-probed/initialised your get a dereferenceed NULL pointer if you
-try to get info from /sys/kernel/debug/omapdss/venc
+On Fri, Jan 20, 2012 at 09:29:50AM +0000, Russell King - ARM Linux wrote:
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> ---
+>  arch/arm/mach-integrator/core.c          |   70 ++++++------------------------
+>  arch/arm/mach-integrator/integrator_cp.c |   49 ++++-----------------
+>  2 files changed, 22 insertions(+), 97 deletions(-)
 
-Return info message about disabled venc if venc_dump_regs() gets called.
+Seems happy enough on my Integrator-CP w/ 1136 core tile.
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
----
- drivers/video/omap2/dss/venc.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+Tested-by: Will Deacon <will.deacon@arm.com>
 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index b3e9f90..82865be 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -699,6 +699,11 @@ void venc_dump_regs(struct seq_file *s)
- {
- #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, venc_read_reg(r))
- 
-+	if (cpu_is_omap44xx()) {
-+		seq_printf(s, "VENC currently disabled on OMAP44xx\n");
-+		return;
-+	}
-+
- 	if (venc_runtime_get())
- 		return;
- 
--- 
-1.7.7.3
-
+Will
