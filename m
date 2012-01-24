@@ -1,122 +1,93 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 1/9] usb: gadget: add generic map/unmap request utilities
-Date: Tue, 24 Jan 2012 13:45:22 +0200
-Message-ID: <1327405543-27589-2-git-send-email-balbi@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH 3/9] usb: gadget: langwell: use generic map/unmap functions
+Date: Tue, 24 Jan 2012 13:45:24 +0200
+Message-ID: <1327405543-27589-4-git-send-email-balbi@ti.com>
 References: <1327405543-27589-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1327405543-27589-1-git-send-email-balbi-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Thomas Dahlmann <dahlmann.thomas-KvP5wT2u2U0@public.gmane.org>, Kuninori Morimoto <kuninori.morimoto.gx-zM6kxYcvzFBBDgjK7y7TUQ@public.gmane.org>, "open list:DESIGNWARE USB3 D..." <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:AMD GEODE CS5536..." <linux-geode-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1327405543-27589-1-git-send-email-balbi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux USB Mailing List <linux-usb@vger.kernel.org>
+Cc: Felipe Balbi <balbi@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-such utilities are currently duplicated on all UDC
-drivers basically with the same structure. Let's group
-all implementations into one generic implementation
-and get rid of that duplication.
+those routines have everything we need to map/unmap
+USB requests and it's better to use them.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/usb/gadget/udc-core.c |   52 +++++++++++++++++++++++++++++++++++++++++
- include/linux/usb/gadget.h    |   10 ++++++++
- 2 files changed, 62 insertions(+), 0 deletions(-)
+ drivers/usb/gadget/langwell_udc.c |   45 +++++-------------------------------
+ 1 files changed, 7 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/usb/gadget/udc-core.c b/drivers/usb/gadget/udc-core.c
-index 0b0d12c..56da49f 100644
---- a/drivers/usb/gadget/udc-core.c
-+++ b/drivers/usb/gadget/udc-core.c
-@@ -22,6 +22,7 @@
- #include <linux/device.h>
- #include <linux/list.h>
- #include <linux/err.h>
-+#include <linux/dma-mapping.h>
+diff --git a/drivers/usb/gadget/langwell_udc.c b/drivers/usb/gadget/langwell_udc.c
+index fa0fcc1..fe7fbe3 100644
+--- a/drivers/usb/gadget/langwell_udc.c
++++ b/drivers/usb/gadget/langwell_udc.c
+@@ -406,16 +406,7 @@ static void done(struct langwell_ep *ep, struct langwell_request *req,
+ 		dma_pool_free(dev->dtd_pool, curr_dtd, curr_dtd->dtd_dma);
+ 	}
  
- #include <linux/usb/ch9.h>
- #include <linux/usb/gadget.h>
-@@ -49,6 +50,57 @@ static DEFINE_MUTEX(udc_lock);
+-	if (req->mapped) {
+-		dma_unmap_single(&dev->pdev->dev,
+-			req->req.dma, req->req.length,
+-			is_in(ep) ? PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
+-		req->req.dma = DMA_ADDR_INVALID;
+-		req->mapped = 0;
+-	} else
+-		dma_sync_single_for_cpu(&dev->pdev->dev, req->req.dma,
+-				req->req.length,
+-				is_in(ep) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
++	usb_gadget_unmap_request(&dev->gadget, &req->req, is_in(ep));
  
- /* ------------------------------------------------------------------------- */
+ 	if (status != -ESHUTDOWN)
+ 		dev_dbg(&dev->pdev->dev,
+@@ -754,7 +745,8 @@ static int langwell_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
+ 	struct langwell_ep	*ep;
+ 	struct langwell_udc	*dev;
+ 	unsigned long		flags;
+-	int			is_iso = 0, zlflag = 0;
++	int			is_iso = 0;
++	int			ret;
  
-+int usb_gadget_map_request(struct usb_gadget *gadget,
-+		struct usb_request *req, int is_in)
-+{
-+	if (req->length == 0)
-+		return 0;
-+
-+	if (req->num_sgs) {
-+		int     mapped;
-+
-+		mapped = dma_map_sg(&gadget->dev, req->sg, req->num_sgs,
-+				is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-+		if (mapped == 0) {
-+			dev_err(&gadget->dev, "failed to map SGs\n");
-+			return -EFAULT;
-+		}
-+
-+		req->num_mapped_sgs = mapped;
-+	} else {
-+		req->dma = dma_map_single(&gadget->dev, req->buf, req->length,
-+				is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-+
-+		if (dma_mapping_error(&gadget->dev, req->dma)) {
-+			dev_err(&gadget->dev, "failed to map buffer\n");
-+			return -EFAULT;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(usb_gadget_map_request);
-+
-+void usb_gadget_unmap_request(struct usb_gadget *gadget,
-+		struct usb_request *req, int is_in)
-+{
-+	if (req->length == 0)
-+		return;
-+
-+	if (req->num_mapped_sgs) {
-+		dma_unmap_sg(&gadget->dev, req->sg, req->num_mapped_sgs,
-+				is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-+
-+		req->num_mapped_sgs = 0;
-+	} else {
-+		dma_unmap_single(&gadget->dev, req->dma, req->length,
-+				is_in ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(usb_gadget_unmap_request);
-+
-+/* ------------------------------------------------------------------------- */
-+
- /**
-  * usb_gadget_start - tells usb device controller to start up
-  * @gadget: The gadget we want to get started
-diff --git a/include/linux/usb/gadget.h b/include/linux/usb/gadget.h
-index da653b5..9517466 100644
---- a/include/linux/usb/gadget.h
-+++ b/include/linux/usb/gadget.h
-@@ -950,6 +950,16 @@ static inline void usb_free_descriptors(struct usb_descriptor_header **v)
+ 	/* always require a cpu-view buffer */
+ 	req = container_of(_req, struct langwell_request, req);
+@@ -781,33 +773,10 @@ static int langwell_ep_queue(struct usb_ep *_ep, struct usb_request *_req,
+ 	if (unlikely(!dev->driver || dev->gadget.speed == USB_SPEED_UNKNOWN))
+ 		return -ESHUTDOWN;
  
- /*-------------------------------------------------------------------------*/
+-	/* set up dma mapping in case the caller didn't */
+-	if (_req->dma == DMA_ADDR_INVALID) {
+-		/* WORKAROUND: WARN_ON(size == 0) */
+-		if (_req->length == 0) {
+-			dev_vdbg(&dev->pdev->dev, "req->length: 0->1\n");
+-			zlflag = 1;
+-			_req->length++;
+-		}
+-
+-		_req->dma = dma_map_single(&dev->pdev->dev,
+-				_req->buf, _req->length,
+-				is_in(ep) ? DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-		if (zlflag && (_req->length == 1)) {
+-			dev_vdbg(&dev->pdev->dev, "req->length: 1->0\n");
+-			zlflag = 0;
+-			_req->length = 0;
+-		}
+-
+-		req->mapped = 1;
+-		dev_vdbg(&dev->pdev->dev, "req->mapped = 1\n");
+-	} else {
+-		dma_sync_single_for_device(&dev->pdev->dev,
+-				_req->dma, _req->length,
+-				is_in(ep) ?  DMA_TO_DEVICE : DMA_FROM_DEVICE);
+-		req->mapped = 0;
+-		dev_vdbg(&dev->pdev->dev, "req->mapped = 0\n");
+-	}
++	/* set up dma mapping */
++	ret = usb_gadget_map_request(&dev->gadget, &req->req, is_in(ep));
++	if (ret)
++		return ret;
  
-+/* utility to simplify map/unmap of usb_requests to/from DMA */
-+
-+extern int usb_gadget_map_request(struct usb_gadget *gadget,
-+		struct usb_request *req, int is_in);
-+
-+extern void usb_gadget_unmap_request(struct usb_gadget *gadget,
-+		struct usb_request *req, int is_in);
-+
-+/*-------------------------------------------------------------------------*/
-+
- /* utility wrapping a simple endpoint selection policy */
- 
- extern struct usb_ep *usb_ep_autoconfig(struct usb_gadget *,
+ 	dev_dbg(&dev->pdev->dev,
+ 			"%s queue req %p, len %u, buf %p, dma 0x%08x\n",
 -- 
 1.7.8.2
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
