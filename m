@@ -1,29 +1,51 @@
-From: Linus Walleij <linus.walleij@stericsson.com>
-Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
- amba_device initializer
-Date: Tue, 24 Jan 2012 22:23:11 +0100
-Message-ID: <4F1F213F.9070106@stericsson.com>
-References: <20120120092207.GD1068@n2100.arm.linux.org.uk> <E1RoAmo-0005Ff-DW@rmk-PC.arm.linux.org.uk> <20120124160044.GM19798@mudshark.cambridge.arm.com> <20120124162328.GA8517@n2100.arm.linux.org.uk> <20120124172600.GO19798@mudshark.cambridge.arm.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] tidspbridge: Rename module from bridgedriver to tidspbridge
+Date: Tue, 24 Jan 2012 13:25:05 -0800
+Message-ID: <1327440305.1798.28.camel@joe2Laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-In-Reply-To: <20120124172600.GO19798@mudshark.cambridge.arm.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson_nomadik_linux <STEricsson_nomadik_linux@list.st.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from perches-mx.perches.com ([206.117.179.246]:36697 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757565Ab2AXVZW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jan 2012 16:25:22 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: devel@driverdev.osuosl.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 01/24/2012 06:26 PM, Will Deacon wrote:
->
-> Right. I took a quick look at the TRM for the PB1176, and I think we do have
-> an interrupt for GPIO0, it's just on the other GIC. This patch should do the
-> trick, but I'm not sure what I can do to tickle the GPIO stuff anyway:
+tidspbridge when built as a module is named bridgedriver.
 
-For a simple test just insert/remove the MMC card and see it
-add/remove the card (appear in console, and /proc/interrupts)
+bridgedriver is not a particularly good module name.
 
-Or do you mean tickle GPIO0? That is more tricky I think...
+tidspbridge is what the source is named.  That seems
+a more appropriate module name too as it describes
+the hardware function better.
 
-Yours,
-Linus Walleij
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/staging/tidspbridge/Makefile |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/tidspbridge/Makefile b/drivers/staging/tidspbridge/Makefile
+index fd6a276..8c8c92a 100644
+--- a/drivers/staging/tidspbridge/Makefile
++++ b/drivers/staging/tidspbridge/Makefile
+@@ -1,4 +1,4 @@
+-obj-$(CONFIG_TIDSPBRIDGE)	+= bridgedriver.o
++obj-$(CONFIG_TIDSPBRIDGE)	+= tidspbridge.o
+ 
+ libgen = gen/gh.o gen/uuidutil.o
+ libcore = core/chnl_sm.o core/msg_sm.o core/io_sm.o core/tiomap3430.o \
+@@ -13,7 +13,7 @@ libdload = dynload/cload.o dynload/getsection.o dynload/reloc.o \
+ 		 dynload/tramp.o
+ libhw = hw/hw_mmu.o
+ 
+-bridgedriver-y := $(libgen) $(libservices) $(libcore) $(libpmgr) $(librmgr) \
++tidspbridge-y := $(libgen) $(libservices) $(libcore) $(libpmgr) $(librmgr) \
+ 			$(libdload) $(libhw)
+ 
+ #Machine dependent
+
+
