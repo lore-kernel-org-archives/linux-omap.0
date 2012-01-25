@@ -1,16 +1,16 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 16/21] OMAP3+: SR: introduce class private data per voltage domain
-Date: Wed, 25 Jan 2012 16:16:18 +0100
-Message-ID: <1327504583-13408-17-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 14/21] OMAP3+: SR: introduce notifier_control
+Date: Wed, 25 Jan 2012 16:16:16 +0100
+Message-ID: <1327504583-13408-15-git-send-email-j-pihet@ti.com>
 References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:53734 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753200Ab2AYPRK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:17:10 -0500
+	with ESMTP id S1753200Ab2AYPRH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:17:07 -0500
 Received: by mail-we0-f174.google.com with SMTP id b13so3871040wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:17:10 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:17:06 -0800 (PST)
 In-Reply-To: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,175 +19,135 @@ Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j
 
 From: Nishanth Menon <nm@ti.com>
 
-Introduce private data for class drivers to operate on per
-voltage domain. This removes the necessity for drivers such
-as SmartReflex AVS Class 1.5 drivers from maintaining
-a special lookup table which does not scale when number of
-voltage domains change depending on silicon. It also makes
-the life of such class drivers to be faster without having
-to do a double lookup to get to their voltage domain specific
-private data
+We need some mechanism from class drivers to control when notifiers
+should be triggered and when not, currently we have none, which makes
+Class driver usage of the interrupt events almost impossible.
 
-Change-Id: Icfcd7b229e56cfc1179d2aad1dbf09bb503e292a
+We also ensure that disable/enable or irq is always guarenteed to be
+paired. The need to do this is because of the mixture of interrupt based
+and polling based operations that is implemented as the most optimal
+strategy for various SmartReflex AVS class
+
+Introduce an SmartReflex driver API for doing the same. This is useful
+for SmartReflex AVS class 1.5 or 2 drivers.
+
+Change-Id: Id5187a7631d4743c928ad20da31919e6fd71ce2e
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex-class3.c |   10 +++++++---
- arch/arm/mach-omap2/smartreflex.c        |   23 +++++++++++++----------
- arch/arm/mach-omap2/smartreflex.h        |   16 ++++++++++------
- 3 files changed, 30 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   65 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex.h |    8 ++++
+ 2 files changed, 73 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
-index 955566e..9dcda93 100644
---- a/arch/arm/mach-omap2/smartreflex-class3.c
-+++ b/arch/arm/mach-omap2/smartreflex-class3.c
-@@ -13,7 +13,8 @@
- 
- #include "smartreflex.h"
- 
--static int sr_class3_enable(struct voltagedomain *voltdm)
-+static int sr_class3_enable(struct voltagedomain *voltdm,
-+			    void *voltdm_cdata)
- {
- 	unsigned long volt = voltdm_get_voltage(voltdm);
- 
-@@ -27,7 +28,9 @@ static int sr_class3_enable(struct voltagedomain *voltdm)
- 	return sr_enable(voltdm, volt);
- }
- 
--static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
-+static int sr_class3_disable(struct voltagedomain *voltdm,
-+			     void *voltdm_cdata,
-+			     int is_volt_reset)
- {
- 	sr_disable_errgen(voltdm);
- 	omap_vp_disable(voltdm);
-@@ -38,7 +41,8 @@ static int sr_class3_disable(struct voltagedomain *voltdm, int is_volt_reset)
- 	return 0;
- }
- 
--static int sr_class3_configure(struct voltagedomain *voltdm)
-+static int sr_class3_configure(struct voltagedomain *voltdm,
-+			       void *voltdm_cdata)
- {
- 	return sr_configure_errgen(voltdm);
- }
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 6971b94..65e1a7c 100644
+index 8380201..a24a228 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -56,6 +56,8 @@ struct omap_sr {
+@@ -50,6 +50,7 @@ struct omap_sr {
+ 	u32				senp_mod;
+ 	u32				senn_mod;
+ 	unsigned int			irq;
++	bool				irq_enabled;
+ 	void __iomem			*base;
+ 	struct platform_device		*pdev;
  	struct list_head		node;
- 	struct omap_sr_nvalue_table	*nvalue_table;
- 	struct voltagedomain		*voltdm;
-+	/* Managed by class driver as needed */
-+	void				*voltdm_cdata;
- 	struct dentry			*dbg_dir;
- };
- 
-@@ -224,8 +226,8 @@ static irqreturn_t sr_interrupt(int irq, void *data)
- 		sr_info->irq_enabled = false;
- 	} else {
- 		/* If the caller reports inability to handle, disable as well */
--		if (sr_class->notify &&
--		    sr_class->notify(sr_info->voltdm, value)) {
-+		if (sr_class->notify && sr_class->notify(sr_info->voltdm,
-+						sr_info->voltdm_cdata, value)) {
- 			dev_err(&sr_info->pdev->dev, "%s: Callback cant handle!"
- 				"status=0x%08x. Disabling to prevent spam!!\n",
- 				__func__, status);
-@@ -311,13 +313,14 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
- 	}
- 
- 	if (sr_class->init &&
--	    sr_class->init(sr->voltdm, sr_class->class_priv_data)) {
-+	    sr_class->init(sr->voltdm, &sr->voltdm_cdata,
-+			   sr_class->class_priv_data)) {
- 		dev_err(&sr->pdev->dev,
- 			"%s: SRClass initialization failed\n", __func__);
- 		return;
- 	}
- 
--	if (!sr_class->enable(sr->voltdm))
-+	if (!sr_class->enable(sr->voltdm, sr->voltdm_cdata))
- 		sr->autocomp_active = true;
- }
- 
-@@ -331,9 +334,9 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
- 	}
- 
- 	if (sr->autocomp_active) {
--		sr_class->disable(sr->voltdm, 1);
-+		sr_class->disable(sr->voltdm, sr->voltdm_cdata, 1);
- 		if (sr_class->deinit &&
--		    sr_class->deinit(sr->voltdm,
-+		    sr_class->deinit(sr->voltdm, &sr->voltdm_cdata,
- 			    sr_class->class_priv_data)) {
- 			dev_err(&sr->pdev->dev,
- 				"%s: SR[%d]Class deinitialization failed\n",
-@@ -736,7 +739,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 		return 0;
- 
- 	/* Configure SR */
--	ret = sr_class->configure(voltdm);
-+	ret = sr_class->configure(voltdm, sr->voltdm_cdata);
- 	if (ret)
- 		return ret;
- 
-@@ -911,7 +914,7 @@ void omap_sr_enable(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
--	sr_class->enable(voltdm);
-+	sr_class->enable(voltdm, sr->voltdm_cdata);
+@@ -765,6 +766,70 @@ void sr_disable(struct voltagedomain *voltdm)
  }
  
  /**
-@@ -944,7 +947,7 @@ void omap_sr_disable(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
--	sr_class->disable(voltdm, 0);
-+	sr_class->disable(voltdm, sr->voltdm_cdata, 0);
- }
- 
- /**
-@@ -977,7 +980,7 @@ void omap_sr_disable_reset_volt(struct voltagedomain *voltdm)
- 		return;
- 	}
- 
--	sr_class->disable(voltdm, 1);
-+	sr_class->disable(voltdm, sr->voltdm_cdata, 1);
- }
- 
- /**
++ * sr_notifier_control() - control the notifier mechanism
++ * @voltdm:	VDD pointer to which the SR module to be configured belongs to.
++ * @enable:	true to enable notifiers and false to disable the same
++ *
++ * SR modules allow an MCU interrupt mechanism that vary based on the IP
++ * revision, we allow the system to generate interrupt if the class driver
++ * has capability to handle the same. it is upto the class driver to ensure
++ * the proper sequencing and handling for a clean implementation. returns
++ * 0 if all goes fine, else returns failure results
++ */
++int sr_notifier_control(struct voltagedomain *voltdm, bool enable)
++{
++	struct omap_sr *sr = _sr_lookup(voltdm);
++	u32 value = 0;
++
++	if (!sr) {
++		pr_warning("%s: sr corresponding to domain not found\n",
++				__func__);
++		return -EINVAL;
++	}
++	if (!sr->autocomp_active)
++		return -EINVAL;
++
++	/* If I could never register an ISR, why bother?? */
++	if (!(sr_class && sr_class->notify && sr_class->notify_flags &&
++			sr->irq)) {
++		dev_warn(&sr->pdev->dev,
++			"%s: unable to setup IRQ without handling mechanism\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	switch (sr->ip_type) {
++	case SR_TYPE_V1:
++		value = notifier_to_irqen_v1(sr_class->notify_flags);
++		sr_modify_reg(sr, ERRCONFIG_V1, value,
++				(enable) ? value : 0);
++		break;
++	case SR_TYPE_V2:
++		value = notifier_to_irqen_v2(sr_class->notify_flags);
++		sr_write_reg(sr, (enable) ? IRQENABLE_SET : IRQENABLE_CLR,
++				value);
++		break;
++	default:
++		 dev_warn(&sr->pdev->dev, "%s: unknown type of sr??\n",
++				 __func__);
++		return -EINVAL;
++	}
++
++	if (!enable)
++		sr_write_reg(sr, IRQSTATUS, value);
++
++	if (enable != sr->irq_enabled) {
++		if (enable)
++			enable_irq(sr->irq);
++		else
++			disable_irq(sr->irq);
++		sr->irq_enabled = enable;
++	}
++
++	return 0;
++}
++
++/**
+  * sr_register_class() - API to register a smartreflex class parameters.
+  * @class_data:	The structure containing various sr class specific data.
+  *
 diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 8660049..0e4553fc 100644
+index da00f8c..8660049 100644
 --- a/arch/arm/mach-omap2/smartreflex.h
 +++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -195,12 +195,16 @@ struct omap_smartreflex_dev_attr {
-  * @class_priv_data:	Class specific private data (optional)
-  */
- struct omap_sr_class_data {
--	int (*enable)(struct voltagedomain *voltdm);
--	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
--	int (*init)(struct voltagedomain *voltdm, void *class_priv_data);
--	int (*deinit)(struct voltagedomain *voltdm, void *class_priv_data);
--	int (*configure)(struct voltagedomain *voltdm);
--	int (*notify)(struct voltagedomain *voltdm, u32 status);
-+	int (*enable)(struct voltagedomain *voltdm, void *voltdm_cdata);
-+	int (*disable)(struct voltagedomain *voltdm, void *voltdm_cdata,
-+		       int is_volt_reset);
-+	int (*init)(struct voltagedomain *voltdm, void **voltdm_cdata,
-+		    void *class_priv_data);
-+	int (*deinit)(struct voltagedomain *voltdm, void **voltdm_cdata,
-+		      void *class_priv_data);
-+	int (*configure)(struct voltagedomain *voltdm, void *voltdm_cdata);
-+	int (*notify)(struct voltagedomain *voltdm, void *voltdm_cdata,
-+		      u32 status);
- 	u8 notify_flags;
- 	u8 class_type;
- 	void *class_priv_data;
+@@ -251,6 +251,7 @@ void omap_sr_register_pmic(struct omap_sr_pmic_data *pmic_data);
+ /* Smartreflex driver hooks to be called from Smartreflex class driver */
+ int sr_enable(struct voltagedomain *voltdm, unsigned long volt);
+ void sr_disable(struct voltagedomain *voltdm);
++int sr_notifier_control(struct voltagedomain *voltdm, bool enable);
+ int sr_configure_errgen(struct voltagedomain *voltdm);
+ int sr_disable_errgen(struct voltagedomain *voltdm);
+ int sr_configure_minmax(struct voltagedomain *voltdm);
+@@ -260,6 +261,13 @@ int sr_register_class(struct omap_sr_class_data *class_data);
+ #else
+ static inline void omap_sr_enable(struct voltagedomain *voltdm) {}
+ static inline void omap_sr_disable(struct voltagedomain *voltdm) {}
++
++static inline int sr_notifier_control(struct voltagedomain *voltdm,
++		bool enable)
++{
++	return -EINVAL;
++}
++
+ static inline void omap_sr_disable_reset_volt(
+ 		struct voltagedomain *voltdm) {}
+ static inline void omap_sr_register_pmic(
 -- 
 1.7.5.4
 
