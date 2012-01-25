@@ -1,280 +1,120 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: How do I get slimbus hwmod information?
-Date: Wed, 25 Jan 2012 12:46:50 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201251239150.5324@utopia.booyaka.com>
-References: <20120105004503.GA4650@plastictigers.com>
+From: Orjan Friberg <of@flatfrog.com>
+Subject: CONFIG_PREEMPT and JFFS2 oops
+Date: Wed, 25 Jan 2012 21:12:03 +0100
+Message-ID: <4F206213.9070704@flatfrog.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-824831313-1327520810=:5324"
+Content-Type: multipart/mixed;
+	boundary="------------010702000403040806060201"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42303 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab2AYTqv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 14:46:51 -0500
-In-Reply-To: <20120105004503.GA4650@plastictigers.com>
+Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:51451
+	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751072Ab2AYURf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jan 2012 15:17:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Marc Butler <marc@plastictigers.com>
-Cc: linux-omap@vger.kernel.org, b-cousson@ti.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+--------------010702000403040806060201
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 
---155748971-824831313-1327520810=:5324
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Hi,
 
-cc Beno=EEt
+With CONFIG_PREEMPT=y and hammering away on two different JFFS2 
+partitions on a NAND flash I get an oops within ~10 seconds.  This is on 
+a BeagleBoard xM (rev A2, with NAND).
 
-Hi
-
-sorry for the delay, just caught this during a list sweep.  The maintainer=
-=20
-of the OMAP4 hwmod data is Beno=EEt, so I'd suggest cc'ing him for OMAP4=20
-hwmod data requests.
-
-On Wed, 4 Jan 2012, Marc Butler wrote:
-
-> Currently omap_hwmod_44xx_data.c has slimbus1/slimbus2 included in the
-> list of excluded IPs.
->=20
-> Is it possible to get a version of omap_hwmod_44xx_data.c generated
-> with slimbus1/2 included?=20
-
-A good starting point is included below.
-
-> I want this as I am currently working on a driver for the slimbus
-> modules, based on the SLIMbus RFC patch posted last year.=20
-
-That sounds really great!
-
-> I am concerned that I do not understand how the pieces for such a
-> driver should be put together: should such a driver be built from the
-> ground up with hwmod interfaces, or should they be added in as the
-> driver stabilizes?
-
-The driver shouldn't have any hwmod code in it.  Any=20
-omap_device/omap_hwmod code that's needed should go into an appropriate=20
-file in arch/arm/mach-omap2.  The device resource metadata will flow=20
-through the existing Linux resource system.  Also, currently we are using=
-=20
-the pm_runtime*() calls as the way to interface with the=20
-omap_hwmod/omap_device enable/idle code, so your driver should be written=
-=20
-using those.
+I've boiled it down to whether CONFIG_PREEMPT (bug happens) or
+CONFIG_PREEMPT_VOLUNTARY (bug doesn't happen) is selected.  Of course,
+changing that affects a other things like inline spinlocking.  Turning 
+on CONFIG_DEBUG_SPINLOCK reveals nothing.
 
 
-- Paul
+By changing this option, I've made the bug go away in a 2.6.32 and
+2.6.37 setup where it previously happened, and I've made it appear in a
+2.6.39 setup where it previously didn't happen.
 
 
-diff --git a/outputs/omap4430/2.0/omap_hwmod_44xx_data.c b/outputs/omap4430=
-/2.0/omap_hwmod_44xx_data.c
-index 308e620..3d8b0cb 100644
---- a/outputs/omap4430/2.0/omap_hwmod_44xx_data.c
-+++ b/outputs/omap4430/2.0/omap_hwmod_44xx_data.c
-@@ -711,8 +711,6 @@ static struct omap_hwmod omap44xx_mpu_private_hwmod =3D=
- {
-  *  prm
-  *  scrm
-  *  sl2if
-- *  slimbus1
-- *  slimbus2
-  *  usb_host_fs
-  *  usb_host_hs
-  *  usb_phy_cm
-@@ -4066,6 +4064,181 @@ static struct omap_hwmod omap44xx_mpu_hwmod =3D {
- };
-=20
- /*
-+ * 'slimbus' class
-+ * bidirectional, multi-drop, multi-channel two-line serial interface betw=
-een
-+ * the device and external components
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_slimbus_sysc =3D {
-+=09.rev_offs=09=3D 0x0000,
-+=09.sysc_offs=09=3D 0x0010,
-+=09.sysc_flags=09=3D (SYSC_HAS_RESET_STATUS | SYSC_HAS_SIDLEMODE |
-+=09=09=09   SYSC_HAS_SOFTRESET),
-+=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+=09=09=09   SIDLE_SMART_WKUP),
-+=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class omap44xx_slimbus_hwmod_class =3D {
-+=09.name=09=3D "slimbus",
-+=09.sysc=09=3D &omap44xx_slimbus_sysc,
-+};
-+
-+/* slimbus1 */
-+static struct omap_hwmod omap44xx_slimbus1_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_slimbus1_irqs[] =3D {
-+=09{ .irq =3D 97 + OMAP44XX_IRQ_GIC_START },
-+=09{ .irq =3D -1 }
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_slimbus1_sdma_reqs[] =3D {
-+=09{ .name =3D "tx0", .dma_req =3D 84 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "tx1", .dma_req =3D 85 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "tx2", .dma_req =3D 86 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "tx3", .dma_req =3D 87 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx0", .dma_req =3D 88 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx1", .dma_req =3D 89 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx2", .dma_req =3D 90 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx3", .dma_req =3D 91 + OMAP44XX_DMA_REQ_START },
-+=09{ .dma_req =3D -1 }
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_slimbus1_addrs[] =3D {
-+=09{
-+=09=09.pa_start=09=3D 0x4012c000,
-+=09=09.pa_end=09=09=3D 0x4012c3ff,
-+=09=09.flags=09=09=3D ADDR_TYPE_RT
-+=09},
-+=09{ }
-+};
-+
-+/* l4_abe -> slimbus1 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_abe__slimbus1 =3D {
-+=09.master=09=09=3D &omap44xx_l4_abe_hwmod,
-+=09.slave=09=09=3D &omap44xx_slimbus1_hwmod,
-+=09.clk=09=09=3D "ocp_abe_iclk",
-+=09.addr=09=09=3D omap44xx_slimbus1_addrs,
-+=09.user=09=09=3D OCP_USER_MPU,
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_slimbus1_dma_addrs[] =3D {
-+=09{
-+=09=09.pa_start=09=3D 0x4902c000,
-+=09=09.pa_end=09=09=3D 0x4902c3ff,
-+=09=09.flags=09=09=3D ADDR_TYPE_RT
-+=09},
-+=09{ }
-+};
-+
-+/* l4_abe -> slimbus1 (dma) */
-+static struct omap_hwmod_ocp_if omap44xx_l4_abe__slimbus1_dma =3D {
-+=09.master=09=09=3D &omap44xx_l4_abe_hwmod,
-+=09.slave=09=09=3D &omap44xx_slimbus1_hwmod,
-+=09.clk=09=09=3D "ocp_abe_iclk",
-+=09.addr=09=09=3D omap44xx_slimbus1_dma_addrs,
-+=09.user=09=09=3D OCP_USER_SDMA,
-+};
-+
-+/* slimbus1 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_slimbus1_slaves[] =3D {
-+=09&omap44xx_l4_abe__slimbus1,
-+=09&omap44xx_l4_abe__slimbus1_dma,
-+};
-+
-+static struct omap_hwmod_opt_clk slimbus1_opt_clks[] =3D {
-+=09{ .role =3D "fclk_1", .clk =3D "slimbus1_fclk_1" },
-+=09{ .role =3D "fclk_0", .clk =3D "slimbus1_fclk_0" },
-+=09{ .role =3D "fclk_2", .clk =3D "slimbus1_fclk_2" },
-+=09{ .role =3D "slimbus_clk", .clk =3D "slimbus1_slimbus_clk" },
-+};
-+
-+static struct omap_hwmod omap44xx_slimbus1_hwmod =3D {
-+=09.name=09=09=3D "slimbus1",
-+=09.class=09=09=3D &omap44xx_slimbus_hwmod_class,
-+=09.clkdm_name=09=3D "abe_clkdm",
-+=09.mpu_irqs=09=3D omap44xx_slimbus1_irqs,
-+=09.sdma_reqs=09=3D omap44xx_slimbus1_sdma_reqs,
-+=09.prcm =3D {
-+=09=09.omap4 =3D {
-+=09=09=09.clkctrl_offs =3D OMAP4_CM1_ABE_SLIMBUS_CLKCTRL_OFFSET,
-+=09=09=09.context_offs =3D OMAP4_RM_ABE_SLIMBUS_CONTEXT_OFFSET,
-+=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-+=09=09},
-+=09},
-+=09.opt_clks=09=3D slimbus1_opt_clks,
-+=09.opt_clks_cnt=09=3D ARRAY_SIZE(slimbus1_opt_clks),
-+=09.slaves=09=09=3D omap44xx_slimbus1_slaves,
-+=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_slimbus1_slaves),
-+};
-+
-+/* slimbus2 */
-+static struct omap_hwmod omap44xx_slimbus2_hwmod;
-+static struct omap_hwmod_irq_info omap44xx_slimbus2_irqs[] =3D {
-+=09{ .irq =3D 98 + OMAP44XX_IRQ_GIC_START },
-+=09{ .irq =3D -1 }
-+};
-+
-+static struct omap_hwmod_dma_info omap44xx_slimbus2_sdma_reqs[] =3D {
-+=09{ .name =3D "tx0", .dma_req =3D 92 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "tx1", .dma_req =3D 93 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "tx2", .dma_req =3D 94 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "tx3", .dma_req =3D 95 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx0", .dma_req =3D 96 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx1", .dma_req =3D 97 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx2", .dma_req =3D 98 + OMAP44XX_DMA_REQ_START },
-+=09{ .name =3D "rx3", .dma_req =3D 99 + OMAP44XX_DMA_REQ_START },
-+=09{ .dma_req =3D -1 }
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_slimbus2_addrs[] =3D {
-+=09{
-+=09=09.pa_start=09=3D 0x48076000,
-+=09=09.pa_end=09=09=3D 0x480763ff,
-+=09=09.flags=09=09=3D ADDR_TYPE_RT
-+=09},
-+=09{ }
-+};
-+
-+/* l4_per -> slimbus2 */
-+static struct omap_hwmod_ocp_if omap44xx_l4_per__slimbus2 =3D {
-+=09.master=09=09=3D &omap44xx_l4_per_hwmod,
-+=09.slave=09=09=3D &omap44xx_slimbus2_hwmod,
-+=09.clk=09=09=3D "l4_div_ck",
-+=09.addr=09=09=3D omap44xx_slimbus2_addrs,
-+=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* slimbus2 slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_slimbus2_slaves[] =3D {
-+=09&omap44xx_l4_per__slimbus2,
-+};
-+
-+static struct omap_hwmod_opt_clk slimbus2_opt_clks[] =3D {
-+=09{ .role =3D "fclk_1", .clk =3D "slimbus2_fclk_1" },
-+=09{ .role =3D "fclk_0", .clk =3D "slimbus2_fclk_0" },
-+=09{ .role =3D "slimbus_clk", .clk =3D "slimbus2_slimbus_clk" },
-+};
-+
-+static struct omap_hwmod omap44xx_slimbus2_hwmod =3D {
-+=09.name=09=09=3D "slimbus2",
-+=09.class=09=09=3D &omap44xx_slimbus_hwmod_class,
-+=09.clkdm_name=09=3D "l4_per_clkdm",
-+=09.mpu_irqs=09=3D omap44xx_slimbus2_irqs,
-+=09.sdma_reqs=09=3D omap44xx_slimbus2_sdma_reqs,
-+=09.prcm =3D {
-+=09=09.omap4 =3D {
-+=09=09=09.clkctrl_offs =3D OMAP4_CM_L4PER_SLIMBUS2_CLKCTRL_OFFSET,
-+=09=09=09.context_offs =3D OMAP4_RM_L4PER_SLIMBUS2_CONTEXT_OFFSET,
-+=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-+=09=09},
-+=09},
-+=09.opt_clks=09=3D slimbus2_opt_clks,
-+=09.opt_clks_cnt=09=3D ARRAY_SIZE(slimbus2_opt_clks),
-+=09.slaves=09=09=3D omap44xx_slimbus2_slaves,
-+=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_slimbus2_slaves),
-+};
-+
-+/*
-  * 'smartreflex' class
-  * smartreflex module (monitor silicon performance and outputs a measure o=
-f
-  * performance error)
-@@ -5504,6 +5677,10 @@ static __initdata struct omap_hwmod *omap44xx_hwmods=
-[] =3D {
- =09/* mpu class */
- =09&omap44xx_mpu_hwmod,
-=20
-+=09/* slimbus class */
-+=09&omap44xx_slimbus1_hwmod,
-+=09&omap44xx_slimbus2_hwmod,
-+
- =09/* smartreflex class */
- =09&omap44xx_smartreflex_core_hwmod,
- =09&omap44xx_smartreflex_iva_hwmod,
---155748971-824831313-1327520810=:5324--
+Pointers on what to look at next are appreciated.  (I've posted this on 
+the mtd-utils mailing list too.)  More details below.
+
+
+Thanks,
+Orjan
+
+
+The setup is simply two JFFS2-formatted partitions, and launching a
+
+   while :; do dd if=/dev/zero of=file bs=800 count=1; done
+
+on each of them.  Sometimes the oops trace originates from the garbage 
+collector, sometimes the result is a JFFS2 decompress error.
+
+
+-- 
+Orjan Friberg
+FlatFrog Laboratories AB
+
+--------------010702000403040806060201
+Content-Type: text/plain; name="jffs2_oops"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="jffs2_oops"
+
+[   81.200805] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[   81.217529] pgd = ce13c000
+[   81.220855] [00000000] *pgd=8e172031, *pte=00000000, *ppte=00000000
+[   81.236480] Internal error: Oops: 17 [#1] PREEMPT
+[   81.241210] last sysfs file: /sys/kernel/uevent_seqnum
+[   81.246368] Modules linked in: ftdi_sio usbserial
+[   81.251129] CPU: 0    Not tainted  (2.6.32 #6)
+[   81.255584] PC is at crc32_le+0x6c/0xf4
+[   81.259460] LR is at jffs2_write_inode_range+0x2a0/0x420
+[   81.264801] pc : [<c0211f28>]    lr : [<c01ae930>]    psr: 20000013
+[   81.264801] sp : ce24bcd0  ip : 00000001  fp : ce11f840
+[   81.276336] r10: 0000000c  r9 : ce5231d0  r8 : fffffffc
+[   81.281585] r7 : 00000002  r6 : 00000000  r5 : c03fcf9c  r4 : 00000000
+[   81.288146] r3 : 00000000  r2 : 00000008  r1 : 00000000  r0 : 00000000
+[   81.294677] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[   81.301849] Control: 10c5387d  Table: 8e13c019  DAC: 00000015
+[   81.307617] Process dd (pid: 5270, stack limit = 0xce24a2f0)
+[   81.313323] Stack: (0xce24bcd0 to 0xce24c000)
+[   81.317687] bcc0:                                     00000000 00000002 00000003 00000000
+[   81.325897] bce0: 00000000 c01ae930 ce24bd1c ce24bd18 00000000 00000008 00000000 00000000
+[   81.334136] bd00: 00000000 00000002 cdca7000 ce1a8800 00000000 00000000 00000008 00000320
+[   81.342346] bd20: 0001326c 00000000 00000320 00000000 ce11f840 ce523208 00000000 c07754e0
+[   81.350555] bd40: 00000320 00000000 ce1a8800 c01a8ac4 00000000 00000320 ce24bd74 ffffffff
+[   81.358764] bd60: 00000000 00000320 00000000 00000000 00000320 00000000 00000320 00000320
+[   81.367004] bd80: 00000000 00000000 00000000 00000320 00000000 00000000 ce5232b0 c0097d1c
+[   81.375213] bda0: 00000320 00000320 c07754e0 ce523208 ce24a000 cebf4140 ce5232b0 00001000
+[   81.383422] bdc0: 00000000 c03efe38 ce24bf40 00000001 00000000 00000320 ce523208 c07754e0
+[   81.391632] bde0: 00000320 00000320 00000000 00000320 ce523208 00000000 00000000 00000000
+[   81.399871] be00: 00000000 c009846c 00000000 00000000 ce24bf00 00000320 00000000 00000000
+[   81.408081] be20: 00000002 ce24bf00 ce24bf40 ce24beb0 cebf4140 ce5232b0 00000320 00000001
+[   81.416290] be40: ce24a000 ce523278 000ad008 c03dd658 22222222 00000320 22222222 ce523278
+[   81.424530] be60: ce24bf40 ce24beb0 00000001 00000000 cebf4140 00000000 000ad008 c009851c
+[   81.432739] be80: ce24beb0 ce24bf40 00000000 00000000 ce24beb0 cebf4140 ce24bf80 ce24a000
+[   81.440948] bea0: 000aad28 c00bf584 00000000 00000000 00020242 ce1ae000 00000000 00000001
+[   81.449157] bec0: ffffffff cebf4140 00000000 00000000 00000000 00000000 ce12d6c0 00020241
+[   81.457397] bee0: 00000000 00000000 00000200 ce12d6c0 c0077028 ce24bef4 ce24bef4 00000004
+[   81.465606] bf00: 00000000 00000000 000aad28 00000300 00000000 00000000 00000320 00100073
+[   81.473815] bf20: 000ad000 ce24a000 000ce000 00000000 00000002 ceb450e0 ce4b0618 00000001
+[   81.482025] bf40: 000ad008 00000320 cebf4140 000ad008 ce24bf80 00000320 00000320 c00c01c8
+[   81.490264] bf60: cebf4140 000ad008 00000000 00000000 cebf4140 00000320 000ad008 c00c036c
+[   81.498474] bf80: 00000000 00000000 00000320 00000000 00000320 00000001 000ad008 00000004
+[   81.506683] bfa0: c00390c4 c0038f40 00000320 00000001 00000001 000ad008 00000320 000acd34
+[   81.514923] bfc0: 00000320 00000001 000ad008 00000004 00000320 000ad008 000aad28 000ad008
+[   81.523132] bfe0: 4001e3e0 bece4b60 00010e34 40188abc 60000010 00000001 00000000 00000000
+[   81.531372] [<c0211f28>] (crc32_le+0x6c/0xf4) from [<c01ae930>] (jffs2_write_inode_range+0x2a0/0x420)
+[   81.540618] [<c01ae930>] (jffs2_write_inode_range+0x2a0/0x420) from [<c01a8ac4>] (jffs2_write_end+0x190/0x2d4)
+[   81.550689] [<c01a8ac4>] (jffs2_write_end+0x190/0x2d4) from [<c0097d1c>] (generic_file_buffered_write+0x180/0x264)
+[   81.561096] [<c0097d1c>] (generic_file_buffered_write+0x180/0x264) from [<c009846c>] (__generic_file_aio_write+0x468/0x4b0)
+[   81.572265] [<c009846c>] (__generic_file_aio_write+0x468/0x4b0) from [<c009851c>] (generic_file_aio_write+0x68/0xc4)
+[   81.582855] [<c009851c>] (generic_file_aio_write+0x68/0xc4) from [<c00bf584>] (do_sync_write+0xac/0xfc)
+[   81.592285] [<c00bf584>] (do_sync_write+0xac/0xfc) from [<c00c01c8>] (vfs_write+0xac/0x1a4)
+[   81.600677] [<c00c01c8>] (vfs_write+0xac/0x1a4) from [<c00c036c>] (sys_write+0x3c/0x68)
+[   81.608734] [<c00c036c>] (sys_write+0x3c/0x68) from [<c0038f40>] (ret_fast_syscall+0x0/0x2c)
+[   81.617218] Code: e2448004 e3a01000 e1a0c007 ea00000e (e7942001) 
+[   82.040069] ---[ end trace 6a60d817de90299e ]---
+
+--------------010702000403040806060201--
