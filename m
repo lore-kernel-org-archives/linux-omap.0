@@ -1,73 +1,77 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 00/21] OMAP3+: SR: bugfixes
-Date: Wed, 25 Jan 2012 16:16:02 +0100
-Message-ID: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 02/21] arch/arm/mach-omap2/smartreflex.c: add missing error-handling code
+Date: Wed, 25 Jan 2012 16:16:04 +0100
+Message-ID: <1327504583-13408-3-git-send-email-j-pihet@ti.com>
+References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:38092 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab2AYPQl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:16:41 -0500
-Received: by wics10 with SMTP id s10so3853554wic.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:16:40 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:34423 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab2AYPQp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:16:45 -0500
+Received: by wgbed3 with SMTP id ed3so5390421wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:16:44 -0800 (PST)
+In-Reply-To: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Julia Lawall <julia@diku.dk>, Jean Pihet <j-pihet@ti.com>
 
-Integrate the latest SmartReflex bufixes from Felipe Balbi [1] and
-Nishant Menon [2].
+From: Julia Lawall <julia@diku.dk>
 
-Based on latest master branch of the mainline git tree (3.3.0-rc1) [3], commit
-f8275f9694b8adf9f3498e747ea4c3e8b984499b.
+At this point, the ioremap has taken place, so the error handling code at
+the label err_iounmap should be used rather than returning directly.
 
-[1] http://marc.info/?l=linux-omap&m=132134699423547&w=2
-[2] https://github.com/nmenon/linux-omap-ti-pm/commits/linux-omap-3.0
-[3] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=shortlog
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
+// <smpl>
+@r@
+identifier x;
+@@
 
-Colin Cross (1):
-  ARM: omap2+: smartreflex: move smartreflex suspend to suspend_noirq
+kfree(x)
 
-Felipe Balbi (4):
-  arm: omap: smartreflex: add missing platform_set_drvdata()
-  arm: omap: smartreflex: move late_initcall() closer to its argument
-  arm: omap: smartreflex: clean ups all over
-  arm: omap: smartreflex: micro-optimization for sanity check
+@@
+identifier r.x;
+expression E1!=0,E2,E3,E4;
+statement S;
+@@
 
-Julia Lawall (1):
-  arch/arm/mach-omap2/smartreflex.c: add missing error-handling code
+(
+if (<+...x...+>) S
+|
+if (...) { ... when != kfree(x)
+               when != if (...) { ... kfree(x); ... }
+               when != x = E3
+* return E1;
+}
+... when != x = E2
+if (...) { ... when != x = E4
+ kfree(x); ... return ...; }
+)
+// </smpl>
 
-Nishanth Menon (14):
-  OMAP3+: PM: SR: add suspend/resume handlers
-  Revert "OMAP3+: PM: SR: add suspend/resume handlers"
-  OMAP3+: Smartreflex: fix err interrupt disable sequence
-  OMAP3+: PM: SR/Class3: disable errorgen before disable VP
-  OMAP3+: Smartreflex: Add a shutdown hook
-  OMAP3+: Smartreflex: Fix status masking in ERRCONFIG register
-  OMAP3+: Smartreflex: clear ERRCONFIG_VPBOUNDINTST only on a need
-  OMAP3: hwmod: add SmartReflex IRQs
-  OMAP3+: SR: introduce class init,deinit and priv data
-  OMAP3+: SR: introduce notifiers flags
-  OMAP3+: SR: introduce notifier_control
-  OMAP3+: SR: disable spamming interrupts
-  OMAP3+: SR: introduce class private data per voltage domain
-  OMAP3430: SR: class3: restrict CPU to run on
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Shweta Gulati (1):
-  OMAP3+: SR Layer Cleanup [V4]
-
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   31 ++-
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   19 +-
- arch/arm/mach-omap2/smartreflex-class3.c     |   16 +-
- arch/arm/mach-omap2/smartreflex.c            |  408 ++++++++++++++++++++++----
- arch/arm/mach-omap2/smartreflex.h            |   42 +++-
- arch/arm/mach-omap2/sr_device.c              |   11 +-
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 -
- 7 files changed, 449 insertions(+), 80 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 9dd9345..7e755bb 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -897,7 +897,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		ret = sr_late_init(sr_info);
+ 		if (ret) {
+ 			pr_warning("%s: Error in SR late init\n", __func__);
+-			return ret;
++			goto err_iounmap;
+ 		}
+ 	}
+ 
 -- 
 1.7.5.4
 
