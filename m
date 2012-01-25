@@ -1,59 +1,51 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 04/21] ARM: omap2+: smartreflex: move smartreflex suspend to suspend_noirq
-Date: Wed, 25 Jan 2012 16:16:06 +0100
-Message-ID: <1327504583-13408-5-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 06/21] OMAP3+: Smartreflex: fix err interrupt disable sequence
+Date: Wed, 25 Jan 2012 16:16:08 +0100
+Message-ID: <1327504583-13408-7-git-send-email-j-pihet@ti.com>
 References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:53734 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216Ab2AYPQv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:16:51 -0500
-Received: by mail-we0-f174.google.com with SMTP id b13so3871040wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:16:50 -0800 (PST)
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:38092 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253Ab2AYPQy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:16:54 -0500
+Received: by mail-wi0-f174.google.com with SMTP id s10so3853554wic.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:16:53 -0800 (PST)
 In-Reply-To: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Colin Cross <ccross@android.com>, Jean Pihet <j-pihet@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-From: Colin Cross <ccross@android.com>
+From: Nishanth Menon <nm@ti.com>
 
-Running without smartreflex for any significant time (on the order
-of seconds) is unsafe and can cause thermal runaway.  Move
-smartreflex suspend into suspend_noirq, so it happens as late as
-possible.  This prevents hangs that occur in a driver suspend
-handler from running without smartreflex enabled.  It will also
-reduce power used during suspend and resume, as the voltages will
-be lowered.
+sr_modify_mask takes mask, value as parameters, the usage
+currently is value, mask which is wrong, as a result
+vpboundint_st which was supposed to have been disabled,
+does not get disabled.
 
-May also indirectly fix imprecise external aborts seen during
-suspend, which could be caused by calls to sr_disable racing
-from calls to dvfs_scale and omap_sr_disable.
-
-Change-Id: Ia3c1e707bb1022ec102f506dc3ad48906e8890da
-Signed-off-by: Colin Cross <ccross@android.com>
+Change-Id: Id59aea06bc7e980345ae2d522592b2abc1feeede
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index fca8df69..95fd228 100644
+index 7e755bb..ee224df 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -1095,7 +1095,10 @@ static int omap_sr_resume(struct device *dev)
+@@ -447,8 +447,8 @@ int sr_configure_errgen(struct voltagedomain *voltdm)
+ 		sr_errconfig);
+ 
+ 	/* Enabling the interrupts if the ERROR module is used */
+-	sr_modify_reg(sr, errconfig_offs,
+-		vpboundint_en, (vpboundint_en | vpboundint_st));
++	sr_modify_reg(sr, errconfig_offs, (vpboundint_en | vpboundint_st),
++		      vpboundint_en);
+ 
  	return 0;
  }
- 
--static SIMPLE_DEV_PM_OPS(omap_sr_dev_pm_ops, omap_sr_suspend, omap_sr_resume);
-+const static struct dev_pm_ops omap_sr_dev_pm_ops = {
-+	.suspend_noirq = omap_sr_suspend,
-+	.resume_noirq = omap_sr_resume,
-+};
- 
- static struct platform_driver smartreflex_driver = {
- 	.remove         = omap_sr_remove,
 -- 
 1.7.5.4
 
