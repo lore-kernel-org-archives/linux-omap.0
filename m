@@ -1,43 +1,43 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 05/21] Revert "OMAP3+: PM: SR: add suspend/resume handlers"
-Date: Wed, 25 Jan 2012 10:49:42 -0800
-Message-ID: <87zkdbehx5.fsf@ti.com>
-References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
-	<1327504583-13408-6-git-send-email-j-pihet@ti.com>
-	<4F2041B1.6060907@ti.com>
-	<CAORVsuWu-pzTWzYp2=gqqPzRJQ1eBLu=12uNyEbVSZp407WUnA@mail.gmail.com>
-	<4F204916.7050504@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/3] OMAP: DSS PM fixes
+Date: Wed, 25 Jan 2012 11:55:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201251154360.5324@utopia.booyaka.com>
+References: <1327320930-14550-1-git-send-email-tomi.valkeinen@ti.com> <1327478645.1858.17.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:58050 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751182Ab2AYStp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jan 2012 13:49:45 -0500
-Received: by mail-vw0-f54.google.com with SMTP id fa15so2899976vbb.27
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 10:49:44 -0800 (PST)
-In-Reply-To: <4F204916.7050504@ti.com> (Benoit Cousson's message of "Wed, 25
-	Jan 2012 19:25:26 +0100")
+Received: from utopia.booyaka.com ([72.9.107.138]:44561 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372Ab2AYSze (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 13:55:34 -0500
+In-Reply-To: <1327478645.1858.17.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, archit@ti.com, neilb@suse.de, jean.pihet@newoldbits.com, khilman@ti.com, jw@terrafix.co.uk, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+Hi Tomi,
 
-> On 1/25/2012 7:13 PM, Jean Pihet wrote:
+sorry about the delay,
 
-[...]
+On Wed, 25 Jan 2012, Tomi Valkeinen wrote:
 
->>>
->>> I guess that path #3 and #5 should just be removed.
->> I am ok with both options (keeping or removing the 2 commits), please
->> let me know what you prefer.
->
-> I guess that removing both is the only acceptable solution
-> anyway. 
+> On Mon, 2012-01-23 at 14:15 +0200, Tomi Valkeinen wrote:
+> > Here are two fixes to get DSS work better with PM on OMAP3.
 
-Yes, please remove them both.
+...
 
-Kevin
+> > The two fixes are independent, so either I can take them through dss tree (with
+> > appropriate Acks), or the hwmod patches can go through some other tree.
+> 
+> Ping. Sorry to be hurrying with this, but I'd like to get these into the
+> next rc. Can you ack these (perhaps the first two patches?) or do you
+> want to take them through your tree?
+
+I'll take the two hwmod data changes through my tree here & will plan to 
+send a pull request today.
+
+
+regards
+
+- Paul
