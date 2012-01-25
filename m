@@ -1,114 +1,48 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH] omap2430 musb: Make musb_otg_notification non-blocking
-Date: Wed, 25 Jan 2012 11:59:54 +1100
-Message-ID: <20120125115954.473de6e7@notabene.brown>
-References: <20111230123628.76720567@notabene.brown>
-	<20120124085610.GI27414@legolas.emea.dhcp.ti.com>
+From: Ameya Palande <ameya.palande@ti.com>
+Subject: [PATCH] ARM: OMAP4: clock: fix mult and div mask for USB_DPLL
+Date: Tue, 24 Jan 2012 17:35:15 -0800
+Message-ID: <1327455315-19464-1-git-send-email-ameya.palande@ti.com>
+References: <4F1E7F8A.4010805@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/2vGKe/YQAQIZajcdkHggKgi"; protocol="application/pgp-signature"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59634 "EHLO mx2.suse.de"
+Received: from bear.ext.ti.com ([192.94.94.41]:47695 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755138Ab2AYBAJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Jan 2012 20:00:09 -0500
-In-Reply-To: <20120124085610.GI27414@legolas.emea.dhcp.ti.com>
+	id S1755323Ab2AYBfX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Jan 2012 20:35:23 -0500
+In-Reply-To: <4F1E7F8A.4010805@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: b-cousson@ti.com
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, paul@pwsan.com, mturquette@ti.com, linux-arm-kernel@lists.infradead.org, ameya.palande@ti.com
 
---Sig_/2vGKe/YQAQIZajcdkHggKgi
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+According to OMAP4 TRM Table 3-1183, CM_CLKSEL_DPLL_USB register defines
+following fields for multiplication and division factors:
 
-On Tue, 24 Jan 2012 10:56:12 +0200 Felipe Balbi <balbi@ti.com> wrote:
+DPLL_MULT (bits 19:8) DPLL multiplier factor (2 to 4095)
+DPLL_DIV (bits 7:0) DPLL divider factor (0 to 255)
 
-> On Fri, Dec 30, 2011 at 12:36:28PM +1100, NeilBrown wrote:
-> >=20
-> >=20
-> > This callback is on an 'atomic notificaitons' queue but is written
-> > as a blocking notifier.
-> >=20
-> > Convert to use a work-queue to run from non-atomic context.
-> >=20
-> > Signed-off-by: NeilBrown <neilb@suse.de>
->=20
-> doesn't apply.
->=20
+Acked-by: Benoit Cousson <b-cousson@ti.com>
+Signed-off-by: Ameya Palande <ameya.palande@ti.com>
+---
+ arch/arm/mach-omap2/clock44xx_data.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-It did 1 month ago when I sent it :-)
+diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap2/clock44xx_data.c
+index 08e86d7..053cc15 100644
+--- a/arch/arm/mach-omap2/clock44xx_data.c
++++ b/arch/arm/mach-omap2/clock44xx_data.c
+@@ -953,8 +953,8 @@ static struct dpll_data dpll_usb_dd = {
+ 	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+ 	.autoidle_reg	= OMAP4430_CM_AUTOIDLE_DPLL_USB,
+ 	.idlest_reg	= OMAP4430_CM_IDLEST_DPLL_USB,
+-	.mult_mask	= OMAP4430_DPLL_MULT_MASK,
+-	.div1_mask	= OMAP4430_DPLL_DIV_MASK,
++	.mult_mask	= OMAP4430_DPLL_MULT_USB_MASK,
++	.div1_mask	= OMAP4430_DPLL_DIV_0_7_MASK,
+ 	.enable_mask	= OMAP4430_DPLL_EN_MASK,
+ 	.autoidle_mask	= OMAP4430_AUTO_DPLL_MODE_MASK,
+ 	.idlest_mask	= OMAP4430_ST_DPLL_CLK_MASK,
+-- 
+1.7.4.1
 
-It seems that commit 712d8efafbbcbe617f9ad706f6ca1ffea4bbf2e8
-fixed the same problem already.
-
-The following patch adds a few little bits
-
-Thanks,
-NeilBrown
-
-
-
-musb/omap2430 minor cleanups.
-
-1/ remove incorrect comment (it is a non-blocking notifier)
-2/ Use correct symbolic return value for notifier
-3/ Make sure otg_notifier_work is cancelled before module exit.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index c27bbbf..df719ea 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -222,7 +222,6 @@ static inline void omap2430_low_level_init(struct musb =
-*musb)
- 	musb_writel(musb->mregs, OTG_FORCESTDBY, l);
- }
-=20
--/* blocking notifier support */
- static int musb_otg_notifications(struct notifier_block *nb,
- 		unsigned long event, void *unused)
- {
-@@ -231,7 +230,7 @@ static int musb_otg_notifications(struct notifier_block=
- *nb,
- 	musb->xceiv_event =3D event;
- 	schedule_work(&musb->otg_notifier_work);
-=20
--	return 0;
-+	return NOTIFY_OK;
- }
-=20
- static void musb_otg_notifier_work(struct work_struct *data_notifier_work)
-@@ -386,6 +385,7 @@ static void omap2430_musb_disable(struct musb *musb)
- static int omap2430_musb_exit(struct musb *musb)
- {
- 	del_timer_sync(&musb_idle_timer);
-+	cancel_work_sync(&musb->otg_notifier_work);
-=20
- 	omap2430_low_level_exit(musb);
- 	otg_put_transceiver(musb->xceiv);
-
---Sig_/2vGKe/YQAQIZajcdkHggKgi
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBTx9UCjnsnt1WYoG5AQLEyg//crPyyW+bub8OBwMHHOWSalIp6MUSqE1K
-5Dxp6zcIA5P8gqUgDp2TnndqrnauMYvbWGPs5+lwX7c5Fo39IiDdikZy9grJHYmX
-UkzU93DtNg7lLOd2EIAOBACP72XMvl34aXJvEUcp4xtfB8fDr1E31kuxbTSIyclm
-I2eGqRcq/jl638duFxAH0ko/h7tpSlj0UvlZ34vZC/sCh7z0wiaFI59a6bMTfttF
-vZf6T9PAp1EkTlwHUNq3BDx/WVte8+/ycJJMM7WhGdRDVKHBZE2uTD9ba0toSb52
-lbbuk10Xl5y8aJaVzG1GLzZVzSiq11yDF6sAV8cNkAX28oJN9BNoxMiHzagvm9g2
-g/YcNsUkpOwekrTpj6uXxOBYdMCHJd/0iHwDn5Y4bjOJE3RM66vhN9tOH24An5A5
-agnhmRPIiIvx5jfKV0RkNVre2ejbdgkeVvPT+y5pbY8cytKfw/yxcOiUCSqdj3/y
-ECjPm/YR6vGMocynXNC1VNjnx87S+5lIMqLT7LLXPeSl9aX//Skb3/6saRrNRd83
-e9Mb/nf3ZEw2fJEbsmrEv6CwziW3B4EDl+BexEFj7Cem1NoeQ7xijURcZUy6aChp
-UgoN0lmLnx9fgpXkmriCSsz7RNja5Q3pH0uNdfKfT7O61lDI7hCbyZsM8N1OojSg
-7gFp5tG4Dj4=
-=eIyT
------END PGP SIGNATURE-----
-
---Sig_/2vGKe/YQAQIZajcdkHggKgi--
