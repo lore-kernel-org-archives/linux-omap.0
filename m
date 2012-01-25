@@ -1,68 +1,52 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
-	amba_device initializer
-Date: Wed, 25 Jan 2012 11:06:47 +0000
-Message-ID: <20120125110647.GV16726@n2100.arm.linux.org.uk>
-References: <20120120092207.GD1068@n2100.arm.linux.org.uk> <E1RoAmo-0005Ff-DW@rmk-PC.arm.linux.org.uk> <20120124160044.GM19798@mudshark.cambridge.arm.com> <20120124162328.GA8517@n2100.arm.linux.org.uk> <20120124172600.GO19798@mudshark.cambridge.arm.com> <20120124214531.GB8517@n2100.arm.linux.org.uk> <20120125095800.GC21709@mudshark.cambridge.arm.com> <20120125102202.GU16726@n2100.arm.linux.org.uk> <20120125103906.GE21709@mudshark.cambridge.arm.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [alsa-devel] [PATCH v4 - resend 00/13] OMAP4: ASoC: Support for
+ PandaBoard family
+Date: Wed, 25 Jan 2012 13:11:48 +0200
+Message-ID: <4F1FE374.1010202@ti.com>
+References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com> <CAJe_Zhfn3urdXfRgAKvdW2_ECYGbNO0b2BuZnCZxrGcL4_sVSg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120125103906.GE21709@mudshark.cambridge.arm.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:49522 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751180Ab2AYLLw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jan 2012 06:11:52 -0500
+Received: by mail-lpp01m010-f50.google.com with SMTP id m13so2405921lah.23
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 03:11:51 -0800 (PST)
+In-Reply-To: <CAJe_Zhfn3urdXfRgAKvdW2_ECYGbNO0b2BuZnCZxrGcL4_sVSg@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jassi Brar <jaswinder.singh@linaro.org>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jan 25, 2012 at 10:39:06AM +0000, Will Deacon wrote:
-> On Wed, Jan 25, 2012 at 10:22:02AM +0000, Russell King - ARM Linux wrote:
-> > On Wed, Jan 25, 2012 at 09:58:00AM +0000, Will Deacon wrote:
-> > > Sure. Which branch shall I take it against (before or after your amba
-> > > changes)?
-> > 
-> > If it's before them, we can think about putting it in as a fix during
-> > this -rc independently of the rest of the changes.  If it's after,
-> > then it'll probably add a conflict.
-> > 
-> > So, it'll be much easier to have it before, and I'll update what's
-> > necessary in the amba branch.
-> 
-> Okey doke, I've submitted it as 7300/1 against 3.3-rc1.
+On 01/25/2012 12:50 PM, Jassi Brar wrote:
+> Hi Peter,
+>    I tried the patchset on my 4430 Panda. Playback works ok, but not =
+Capture.
+> All is get is a hiss.
+>   Is capture supposed to work ? If yes, any amixer settings that need
+> to be done?
 
-Right, so with the stack of amba patches on top, it looks like this,
-which to me looks sane.  I haven't build-tested it though.
+Thanks for testing the series.
 
-diff --git a/arch/arm/mach-realview/include/mach/irqs-pb1176.h b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
-index 5c3c625..708f841 100644
---- a/arch/arm/mach-realview/include/mach/irqs-pb1176.h
-+++ b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
-@@ -40,6 +40,7 @@
- #define IRQ_DC1176_L2CC		(IRQ_DC1176_GIC_START + 13)
- #define IRQ_DC1176_RTC		(IRQ_DC1176_GIC_START + 14)
- #define IRQ_DC1176_CLCD		(IRQ_DC1176_GIC_START + 15)	/* CLCD controller */
-+#define IRQ_DC1176_GPIO0	(IRQ_DC1176_GIC_START + 16)
- #define IRQ_DC1176_SSP		(IRQ_DC1176_GIC_START + 17)	/* SSP port */
- #define IRQ_DC1176_UART0	(IRQ_DC1176_GIC_START + 18)	/* UART 0 on development chip */
- #define IRQ_DC1176_UART1	(IRQ_DC1176_GIC_START + 19)	/* UART 1 on development chip */
-@@ -73,7 +74,6 @@
- #define IRQ_PB1176_DMAC		(IRQ_PB1176_GIC_START + 24)	/* DMA controller */
- #define IRQ_PB1176_RTC		(IRQ_PB1176_GIC_START + 25)	/* Real Time Clock */
- 
--#define IRQ_PB1176_GPIO0	-1
- #define IRQ_PB1176_SCTL		-1
- 
- #define NR_GIC_PB1176		2
-diff --git a/arch/arm/mach-realview/realview_pb1176.c b/arch/arm/mach-realview/realview_pb1176.c
-index 1b6e60c..b1d7caf 100644
---- a/arch/arm/mach-realview/realview_pb1176.c
-+++ b/arch/arm/mach-realview/realview_pb1176.c
-@@ -143,7 +143,7 @@ static struct pl022_ssp_controller ssp0_plat_data = {
- #define PB1176_CLCD_IRQ	{ IRQ_DC1176_CLCD }
- #define SCTL_IRQ	{ }
- #define PB1176_WATCHDOG_IRQ	{ IRQ_DC1176_WATCHDOG }
--#define PB1176_GPIO0_IRQ	{ IRQ_PB1176_GPIO0 }
-+#define PB1176_GPIO0_IRQ	{ IRQ_DC1176_GPIO0 }
- #define GPIO1_IRQ	{ IRQ_PB1176_GPIO1 }
- #define PB1176_RTC_IRQ	{ IRQ_DC1176_RTC }
- #define SCI_IRQ		{ IRQ_PB1176_SCI }
+I do not have Panda on my own, but the capture depends on Panda version=
+:
+PandaBoard (4430): You record from HSMIC
+PandaBoardES (4460): You record from AFML (line in).
 
+Can you try:
+amixer sset 'Analog Left' 'Headset Mic'
+amixer sset 'Analog Right' 'Headset Mic'
+Or
+amixer sset 'Analog Left' 'Aux/FM Left'
+amixer sset 'Analog Right' 'Aux/FM Right'
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
