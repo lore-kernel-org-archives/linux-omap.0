@@ -1,7 +1,7 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
+From: Rob Clark <rob.clark@linaro.org>
 Subject: Re: [PATCH 1/2] omap2+: add drm device
-Date: Wed, 25 Jan 2012 04:17:54 +0200
-Message-ID: <CAMP44s0fWAFmamBxAebtdeh7qxX47MY0y6s1h0os9g1iGNTYtQ@mail.gmail.com>
+Date: Tue, 24 Jan 2012 20:32:31 -0600
+Message-ID: <CAF6AEGs_PjK8fY4FUwTSmigrHXzqG0X-g=DEg-YwzpvTe7ai3w@mail.gmail.com>
 References: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 	<CAMP44s36cE_dBQcyDnboUgbUCtjgMnLnZq8c+0qB8GfH9Tq8aA@mail.gmail.com>
 	<CAF6AEGvdLsg33yGqTQQ7EWJh_4+rGSPbCZmSSYCib1cSS2pqWg@mail.gmail.com>
@@ -13,51 +13,89 @@ References: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 	<CAF6AEGv2pDDdAJrWAifCOC7=nHa+-48Fdq+Q5Kv3wHHFj_c8Nw@mail.gmail.com>
 	<CAMP44s2AaSbdRCNQidjp9boRvGLe5-fTUSLB7br106qzCdRA6A@mail.gmail.com>
 	<CAN_cFWNCr+GKdDHsx4g+S8VHg37137F8Eiu-TKvgK9EGfoVF_A@mail.gmail.com>
+	<CAMP44s0fWAFmamBxAebtdeh7qxX47MY0y6s1h0os9g1iGNTYtQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org>
-In-Reply-To: <CAN_cFWNCr+GKdDHsx4g+S8VHg37137F8Eiu-TKvgK9EGfoVF_A@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
-	<mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Sender: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-Errors-To: dri-devel-bounces+sf-dri-devel=m.gmane.org@lists.freedesktop.org
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:64180 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751999Ab2AYCcc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Jan 2012 21:32:32 -0500
+Received: by vbbfc26 with SMTP id fc26so1782284vbb.19
+        for <linux-omap@vger.kernel.org>; Tue, 24 Jan 2012 18:32:32 -0800 (PST)
+In-Reply-To: <CAMP44s0fWAFmamBxAebtdeh7qxX47MY0y6s1h0os9g1iGNTYtQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg KH <greg@kroah.com>, linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org
 
-T24gVHVlLCBKYW4gMjQsIDIwMTIgYXQgNTo1NCBQTSwgUm9iIENsYXJrIDxyb2IuY2xhcmtAbGlu
-YXJvLm9yZz4gd3JvdGU6Cj4gT24gVHVlLCBKYW4gMjQsIDIwMTIgYXQgOTozMyBBTSwgRmVsaXBl
-IENvbnRyZXJhcwo+IDxmZWxpcGUuY29udHJlcmFzQGdtYWlsLmNvbT4gd3JvdGU6Cj4+IE9uIE1v
-biwgSmFuIDE2LCAyMDEyIGF0IDExOjI0IFBNLCBSb2IgQ2xhcmsgPHJvYi5jbGFya0BsaW5hcm8u
-b3JnPiB3cm90ZToKPj4+IE9uIE1vbiwgSmFuIDE2LCAyMDEyIGF0IDI6MzcgUE0sIEZlbGlwZSBD
-b250cmVyYXMKPj4+IDxmZWxpcGUuY29udHJlcmFzQGdtYWlsLmNvbT4gd3JvdGU6Cj4+Pj4gT24g
-TW9uLCBKYW4gMTYsIDIwMTIgYXQgNzowMSBQTSwgUm9iIENsYXJrIDxyb2IuY2xhcmtAbGluYXJv
-Lm9yZz4gd3JvdGU6Cj4+Pj4+IE9uIE1vbiwgSmFuIDE2LCAyMDEyIGF0IDEwOjU5IEFNLCBGZWxp
-cGUgQ29udHJlcmFzCj4+Pj4+IDxmZWxpcGUuY29udHJlcmFzQGdtYWlsLmNvbT4gd3JvdGU6Cj4+
-Pj4+PiAjaWYgZGVmaW5lZChDT05GSUdfRFJNX09NQVApIHx8IGRlZmluZWQoQ09ORklHX0RSTV9P
-TUFQX01PRFVMRSkKPj4+Pj4+IGV4dGVybiB2b2lkIG9tYXBkcm1fcmVzZXJ2ZV92cmFtKHZvaWQp
-Owo+Pj4+Pj4gI2Vsc2UKPj4+Pj4+IHN0YXRpYyBpbmxpbmUgdm9pZCBvbWFwZHJtX3Jlc2VydmVf
-dnJhbSh2b2lkKSB7IH0KPj4+Pj4+ICNlbmRpZgo+Pj4+Pj4KPj4+Pj4+IExpa2UgaG93IGl0J3Mg
-ZG9uZSB3aXRoIERTUCBzdHVmZi4KPj4+Pj4KPj4+Pj4gcmlnaHQsIGJ1dCB0aGVuIHlvdSdkIG1p
-c3MgdGhlIG9tYXBkcm1fcmVzZXJ2ZV92cmFtKCkgY2FsbCBhdCBzdGFydHVwLi4KPj4+Pgo+Pj4+
-IFdoeT8KPj4+Cj4+PiBJIGd1ZXNzIGRybS5vIGlzIGVuZGluZyB1cCBpbiBhIG1vZHVsZSwgYnV0
-IHRoZSBjb2RlIHRoYXQgY2FsbHMgdGhhdAo+Pj4gKGluIGNvbW1vbi5jKSBpcyBub3QgaW4gYSBt
-b2R1bGUsIHNvIHlvdSBnZXQgYW4gdW5yZXNvbHZlZCBzeW1ib2wgYXQKPj4+IGxpbmsKPj4KPj4g
-UmlnaHQuLi4gQnV0IHRoYXQgY29kZSBjYW4gYmUgbW92ZWQgYXMgd2VsbC4gSnVzdCBsaWtlIHdp
-dGggdGhlIGJyaWRnZS4KPgo+IEhtbSwgbG9va3MgbGlrZSBmb3IgZHNwIGJyaWRnZSB0aGUgbWVt
-b3J5IHJlc2VydmF0aW9uIGlzIG1vdmVkIHRvCj4gZGV2aWNlcy5jLiDCoEFsdGhvdWdoIEknbSBu
-b3QgZW50aXJlbHkgc3VyZSBob3cgdGhhdCBpcyBiZXR0ZXIuLi4gYW5kCj4gdGhlcmUgaXMgcHJl
-Y2VkZW50IGZvciBib3RoIGFwcHJvYWNoZXMsIGllLiBvbWFwZmIgd29ya3MgbGlrZSBvbWFwZHJt
-LAo+IGFuZCB0aWRzcGJyaWRnZSB3b3JrcyBhcyB5b3Ugc3VnZ2VzdC4KPgo+IHNlZW1zIGEgYml0
-IGJpa2VzaGVkJ2lzaCB0byBtZQoKSSB3aWxsIHNlbmQgYSBwYXRjaCB0byBmaXggb21hcGZiLCBw
-ZXJoYXBzIGFmdGVyIHRoYXQgaXQgd2lsbCBiZSBhIGJpdAptb3JlIGNsZWFyIGhvdyBpdCBzaG91
-bGQgYmUgZG9uZSA6KSAoaWYgaXQgZ2V0cyBhY2NlcHRlZCkKCi0tIApGZWxpcGUgQ29udHJlcmFz
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
-bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Tue, Jan 24, 2012 at 8:17 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Tue, Jan 24, 2012 at 5:54 PM, Rob Clark <rob.clark@linaro.org> wro=
+te:
+>> On Tue, Jan 24, 2012 at 9:33 AM, Felipe Contreras
+>> <felipe.contreras@gmail.com> wrote:
+>>> On Mon, Jan 16, 2012 at 11:24 PM, Rob Clark <rob.clark@linaro.org> =
+wrote:
+>>>> On Mon, Jan 16, 2012 at 2:37 PM, Felipe Contreras
+>>>> <felipe.contreras@gmail.com> wrote:
+>>>>> On Mon, Jan 16, 2012 at 7:01 PM, Rob Clark <rob.clark@linaro.org>=
+ wrote:
+>>>>>> On Mon, Jan 16, 2012 at 10:59 AM, Felipe Contreras
+>>>>>> <felipe.contreras@gmail.com> wrote:
+>>>>>>> #if defined(CONFIG_DRM_OMAP) || defined(CONFIG_DRM_OMAP_MODULE)
+>>>>>>> extern void omapdrm_reserve_vram(void);
+>>>>>>> #else
+>>>>>>> static inline void omapdrm_reserve_vram(void) { }
+>>>>>>> #endif
+>>>>>>>
+>>>>>>> Like how it's done with DSP stuff.
+>>>>>>
+>>>>>> right, but then you'd miss the omapdrm_reserve_vram() call at st=
+artup..
+>>>>>
+>>>>> Why?
+>>>>
+>>>> I guess drm.o is ending up in a module, but the code that calls th=
+at
+>>>> (in common.c) is not in a module, so you get an unresolved symbol =
+at
+>>>> link
+>>>
+>>> Right... But that code can be moved as well. Just like with the bri=
+dge.
+>>
+>> Hmm, looks like for dsp bridge the memory reservation is moved to
+>> devices.c. =A0Although I'm not entirely sure how that is better... a=
+nd
+>> there is precedent for both approaches, ie. omapfb works like omapdr=
+m,
+>> and tidspbridge works as you suggest.
+>>
+>> seems a bit bikeshed'ish to me
+>
+> I will send a patch to fix omapfb, perhaps after that it will be a bi=
+t
+> more clear how it should be done :) (if it gets accepted)
+
+ok, but the thing I don't like is it splits up the drm device setup
+from the omapdrm_reserve_vram() part (and similarly for omapfb),
+
+but if this is the consensus of how it should be done, well.. when in
+Rome, and all that
+
+BR,
+-R
+
+> --
+> Felipe Contreras
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
