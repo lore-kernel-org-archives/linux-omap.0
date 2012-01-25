@@ -1,16 +1,16 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 12/21] OMAP3+: SR: introduce class init,deinit and priv data
-Date: Wed, 25 Jan 2012 16:16:14 +0100
-Message-ID: <1327504583-13408-13-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 15/21] OMAP3+: SR: disable spamming interrupts
+Date: Wed, 25 Jan 2012 16:16:17 +0100
+Message-ID: <1327504583-13408-16-git-send-email-j-pihet@ti.com>
 References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ww0-f44.google.com ([74.125.82.44]:34423 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440Ab2AYPRE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:17:04 -0500
+	with ESMTP id S1753649Ab2AYPRJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:17:09 -0500
 Received: by mail-ww0-f44.google.com with SMTP id ed3so5390421wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:17:03 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:17:08 -0800 (PST)
 In-Reply-To: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,92 +19,57 @@ Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j
 
 From: Nishanth Menon <nm@ti.com>
 
-Certain class drivers such as class 1.5 drivers, will need specific
-notification that they have to be inited up or deinited independent
-of smart reflex operation. They also may need private data to be
-used for operations of their own, provide the same.
-This allows the class driver to initialize it's internal data structures
-on a need basis in preparation for the specific domain's autocomp usage.
-The resultant operation is as follows:
-when autocomp is set to 1 -> class drivers' init is called
-The existing enable/disable is still used as before by the SmartReflex
-core driver to enable disable the class operation.
-When autocomp is set to 0 -> class drivers' deinit is called, signaling
-the end of usage for that domain.
+At times with bad SR configurations, especially during silicon bring-ups,
+we could get continuous spurious interrupts which end up hanging the
+platform in the form of an ISR call for status bits that are
+automatically enabled by the hardware without any software clearing
+option.
 
-Change-Id: Ie6a4b163d52af4931a4506ed7a3a6b752173a674
+If we detect scenarios where ISR was called without the corresponding
+notification bit being set, instead of hanging up the system,
+we will disable interrupt after noting the event in the system log
+to try and keep system sanity and allow developer to debug and fix
+the condition.
+
+Change-Id: I2eeb25ef18e4465f41b2462d13bfd60e1b1e8d7c
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   15 +++++++++++++++
- arch/arm/mach-omap2/smartreflex.h |    6 ++++++
- 2 files changed, 21 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   21 +++++++++++++++++++--
+ 1 files changed, 19 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 6dea30d..5fd9cb1 100644
+index a24a228..6971b94 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -218,6 +218,13 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
- 		return;
+@@ -215,8 +215,25 @@ static irqreturn_t sr_interrupt(int irq, void *data)
+ 		value = irqstat_to_notifier_v2(status);
  	}
  
-+	if (sr_class->init &&
-+	    sr_class->init(sr->voltdm, sr_class->class_priv_data)) {
-+		dev_err(&sr->pdev->dev,
-+			"%s: SRClass initialization failed\n", __func__);
-+		return;
-+	}
-+
- 	if (!sr_class->enable(sr->voltdm))
- 		sr->autocomp_active = true;
- }
-@@ -233,6 +240,14 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
- 
- 	if (sr->autocomp_active) {
- 		sr_class->disable(sr->voltdm, 1);
-+		if (sr_class->deinit &&
-+		    sr_class->deinit(sr->voltdm,
-+			    sr_class->class_priv_data)) {
-+			dev_err(&sr->pdev->dev,
-+				"%s: SR[%d]Class deinitialization failed\n",
-+				__func__, sr->srid);
+-	if (sr_class->notify)
+-		sr_class->notify(sr_info->voltdm, value);
++	/* Attempt some resemblance of recovery! */
++	if (!value) {
++		dev_err(&sr_info->pdev->dev, "%s: Spurious interrupt!"
++			"status = 0x%08x. Disabling to prevent spamming!!\n",
++			__func__, status);
++		disable_irq_nosync(sr_info->irq);
++		sr_info->irq_enabled = false;
++	} else {
++		/* If the caller reports inability to handle, disable as well */
++		if (sr_class->notify &&
++		    sr_class->notify(sr_info->voltdm, value)) {
++			dev_err(&sr_info->pdev->dev, "%s: Callback cant handle!"
++				"status=0x%08x. Disabling to prevent spam!!\n",
++				__func__, status);
++			disable_irq_nosync(sr_info->irq);
++			sr_info->irq_enabled = false;
 +		}
 +
- 		sr->autocomp_active = false;
- 	}
- }
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 5809141..dd5b21e 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -177,6 +177,8 @@ struct omap_smartreflex_dev_attr {
-  *
-  * @enable:		API to enable a particular class smaartreflex.
-  * @disable:		API to disable a particular class smartreflex.
-+ * @init:		API to do class specific initialization (optional)
-+ * @deinit:		API to do class specific deinitialization (optional)
-  * @configure:		API to configure a particular class smartreflex.
-  * @notify:		API to notify the class driver about an event in SR.
-  *			Not needed for class3.
-@@ -184,14 +186,18 @@ struct omap_smartreflex_dev_attr {
-  * @class_type:		specify which smartreflex class.
-  *			Can be used by the SR driver to take any class
-  *			based decisions.
-+ * @class_priv_data:	Class specific private data (optional)
-  */
- struct omap_sr_class_data {
- 	int (*enable)(struct voltagedomain *voltdm);
- 	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
-+	int (*init)(struct voltagedomain *voltdm, void *class_priv_data);
-+	int (*deinit)(struct voltagedomain *voltdm, void *class_priv_data);
- 	int (*configure)(struct voltagedomain *voltdm);
- 	int (*notify)(struct voltagedomain *voltdm, u32 status);
- 	u8 notify_flags;
- 	u8 class_type;
-+	void *class_priv_data;
- };
++	}
  
- /**
+ 	return IRQ_HANDLED;
+ }
 -- 
 1.7.5.4
 
