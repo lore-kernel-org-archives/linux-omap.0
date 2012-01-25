@@ -1,86 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] fix NULL pointer dereference in DSS2 VENC sysfs debug
- attr on OMAP4
-Date: Wed, 25 Jan 2012 12:49:53 +0200
-Message-ID: <1327488593.1858.22.camel@deskari>
-References: <1327419882-13578-1-git-send-email-danny.kukawka@bisect.de>
+From: Jassi Brar <jaswinder.singh@linaro.org>
+Subject: Re: [alsa-devel] [PATCH v4 - resend 00/13] OMAP4: ASoC: Support for
+ PandaBoard family
+Date: Wed, 25 Jan 2012 16:20:31 +0530
+Message-ID: <CAJe_Zhfn3urdXfRgAKvdW2_ECYGbNO0b2BuZnCZxrGcL4_sVSg@mail.gmail.com>
+References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-KmMn3KwoIS7xzRTTbZFH"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:59329 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751903Ab2AYKuA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jan 2012 05:50:00 -0500
-In-Reply-To: <1327419882-13578-1-git-send-email-danny.kukawka@bisect.de>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:41806 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151Ab2AYKud (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 05:50:33 -0500
+Received: by werb13 with SMTP id b13so3671412wer.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 02:50:32 -0800 (PST)
+In-Reply-To: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Danny Kukawka <danny.kukawka@bisect.de>
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 
+On 24 January 2012 17:22, Peter Ujfalusi <peter.ujfalusi@ti.com> wrote:
+> Hello,
+>
+> the following series will add ASoC support for PandaBoards.
+> PandaBoards have different audio routings compared to SDP4430/Blaze boards, but
+> the differences not that big to justify a new ASoC machine driver.
+>
+> The v3 series did not made it to 3.3 kernel.
+> This set contains all the patches needed to enable the audio support on the
+> PandaBoard family.
+> The machine driver has been converted to a generic OMAP4 driver which can
+> support wide range of machines using OMAP4 with twl6040 codec.
+>
+> I have remove the hardcoded MCLK clock frequency use in the machine driver
+> (there can be devices with different MCLK configuration). This changed
+> patch 04, 05, and 12. Since this does not affect the functionality I kept the
+> acks for these patches. Patch 11 did not existed in the v3 series.
+>
+Hi Peter,
+   I tried the patchset on my 4430 Panda. Playback works ok, but not Capture.
+All is get is a hiss.
+  Is capture supposed to work ? If yes, any amixer settings that need
+to be done?
 
---=-KmMn3KwoIS7xzRTTbZFH
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2012-01-24 at 16:44 +0100, Danny Kukawka wrote:
-> Commit ba02fa37de80bea10d706f39f076dd848348320a disabled the
-> venc driver registration on OMAP4. Since the driver never gets
-> probed/initialised your get a dereferenceed NULL pointer if you
-> try to get info from /sys/kernel/debug/omapdss/venc
->=20
-> Return info message about disabled venc if venc_dump_regs() gets called.
->=20
-> Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
-> ---
->  drivers/video/omap2/dss/venc.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/ven=
-c.c
-> index b3e9f90..82865be 100644
-> --- a/drivers/video/omap2/dss/venc.c
-> +++ b/drivers/video/omap2/dss/venc.c
-> @@ -699,6 +699,11 @@ void venc_dump_regs(struct seq_file *s)
->  {
->  #define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, venc_read_reg(r))
-> =20
-> +	if (cpu_is_omap44xx()) {
-> +		seq_printf(s, "VENC currently disabled on OMAP44xx\n");
-> +		return;
-> +	}
-> +
->  	if (venc_runtime_get())
->  		return;
-> =20
-
-Thanks. A bit hacky, but so is the whole omap4/venc problem. I'll apply
-to dss tree.
-
- Tomi
-
-
---=-KmMn3KwoIS7xzRTTbZFH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPH95RAAoJEPo9qoy8lh71FysP/2OIsyMeX7pf+o/atOdqgDqz
-QNnSuJyZKqt+7Ld2LQdSCj/auJr72gTlTt9PQfHUqBPjYtbAtUIl3eWGHLTL6qDS
-vvnyW+jGNODiMG8RpFGB+7F+SsSZ8iyjXLk32WAQquerxLNEhNnwyLp21B0A7PmI
-wT4prZFYLjstx1DqwYQo6jmlXcdn6U3/LAdoq8FLN27qd6MwN2Bv+EUaE/fMUyUp
-FDShqjV6cvywbVTe/sT63OjCns9p5L8MEab9z4/UuywqCv31ET37zQDTegfzLBSi
-5kLTmDri8l4lJlIcxyDVb3b3IlLbsUv/ke92chlqTHT82hVgOscZYFLw9neM9HwY
-AhOsYa8jQqC3ItzgNZpUf1okfI2BfYBy4CMDzqzYszsWaWQ41PUVFJGMunamI/XS
-pueAUX8gr7aCaMUgdKwQD7Zw+X57Rn0fSnXAFp95RN2Vh9XfP0qToeYlZ11CpQcb
-cMereSe0OddKRvLlTRmlLAE3ea83pLgEfgpHXxf3j9Kf51e2yWeFIwqZ1l8sHTuO
-LX9nzzxJMFa51ivZucLu6Y/jjTWD3EpDrh0snsSaAGBrTPFMFoutwqF/Ze3VwzgB
-Z/NMPKSrT3oEPb/IpmuKA+BQ0CgnDbFNsKPaygmgWqtUmkdzPhK/xrlx9U8aJn5t
-6u8FH2IuiJYImxQh1a0s
-=Y2zd
------END PGP SIGNATURE-----
-
---=-KmMn3KwoIS7xzRTTbZFH--
-
+Thanks,
+-Jassi
