@@ -1,82 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP4: Clock: Force a DPLL clkdm/pwrdm ON before a
- relock
-Date: Wed, 25 Jan 2012 12:05:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201251205220.5324@utopia.booyaka.com>
-References: <1327000976-30912-1-git-send-email-ameya.palande@ti.com> <CAHFNHeWH24iSwumFKwjB+8Tx=+t-XbWjO5YqzH2R9ta0FZWvAQ@mail.gmail.com> <CAHFNHeVXNNnZc=kLV2zrur6D3uVd5SKwog57ZEUMbWZbQo9mBA@mail.gmail.com>
+Subject: Re: [RFC PATCH] OMAP: UART: Enable tx wakeup bit in wer
+Date: Wed, 25 Jan 2012 12:14:46 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201251209430.5324@utopia.booyaka.com>
+References: <1327412249-31575-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-666841224-1327518345=:5324"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40553 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:44356 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751200Ab2AYTFq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 14:05:46 -0500
-In-Reply-To: <CAHFNHeVXNNnZc=kLV2zrur6D3uVd5SKwog57ZEUMbWZbQo9mBA@mail.gmail.com>
+	with ESMTP id S1751470Ab2AYTOr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 14:14:47 -0500
+In-Reply-To: <1327412249-31575-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Palande, Ameya" <ameya.palande@ti.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Partha Basak <p-basak2@ti.com>, linux-arm-kernel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-666841224-1327518345=:5324
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+cc'ing linux-arm-kernel also
 
 Hi
 
-On Tue, 24 Jan 2012, Palande, Ameya wrote:
+some comments
 
-> Any update on this?
+On Tue, 24 Jan 2012, Govindraj.R wrote:
 
-Looks good to me, but have the scripts been updated?
+> From: "Govindraj.R" <govindraj.raja@ti.com>
+> 
+> On omap3630 onwards uart wer reg has bit 7
+> for tx wakeup enable.
+> 
+> Without this bit set some uart sluggishness might be seen
+> while printing data on console, response is better when
+> enabling this bit.
+> Tested with Beagle XM (OMAP3630)
+> 
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> ---
+> But on omap3430 the bit is not available.
 
-Also could you please cc linux-arm-kernel@lists.infradead.org?
+Well that's good news that it exists on 36xx+ at least.
+ 
+But please make a few changes.
 
-- Paul
+This shouldn't set this bit on UARTs that don't support it.  It should 
+only be set if a hwmod dev_attr flag was set to indicate the presence of 
+this feature.  Using a flag is also important since it will allow us to 
+disable the workaround that we'll need for earlier OMAPs.
 
->=20
-> On Fri, Jan 20, 2012 at 11:53 AM, Palande, Ameya <ameya.palande@ti.com> w=
-rote:
-> > Any update on this?
-> >
-> > On Thu, Jan 19, 2012 at 11:22 AM, Ameya Palande <ameya.palande@ti.com> =
-wrote:
-> >> From: Rajendra Nayak <rnayak@ti.com>
-> >>
-> >> All DPLLs except USB are in ALWON powerdomain. Make sure the
-> >> clkdm/pwrdm for USB DPLL (l3init) is turned on before attempting
-> >> a DPLL relock. So, mark the database accordingly.
-> >>
-> >> Without this fix, it was seen that DPLL relock fails while testing
-> >> relock in a loop of USB DPLL.
-> >>
-> >> CC: Nishanth Menon <nm@ti.com>
-> >> Tested-by: Ameya Palande <ameya.palande@ti.com>
-> >> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> >> ---
-> >> =A0arch/arm/mach-omap2/clock44xx_data.c | =A0 =A01 +
-> >> =A01 files changed, 1 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/clock44xx_data.c b/arch/arm/mach-omap=
-2/clock44xx_data.c
-> >> index 08e86d7..9519374 100644
-> >> --- a/arch/arm/mach-omap2/clock44xx_data.c
-> >> +++ b/arch/arm/mach-omap2/clock44xx_data.c
-> >> @@ -974,6 +974,7 @@ static struct clk dpll_usb_ck =3D {
-> >> =A0 =A0 =A0 =A0.recalc =A0 =A0 =A0 =A0 =3D &omap3_dpll_recalc,
-> >> =A0 =A0 =A0 =A0.round_rate =A0 =A0 =3D &omap2_dpll_round_rate,
-> >> =A0 =A0 =A0 =A0.set_rate =A0 =A0 =A0 =3D &omap3_noncore_dpll_set_rate,
-> >> + =A0 =A0 =A0 .clkdm_name =A0 =A0 =3D "l3_init_clkdm",
-> >> =A0};
-> >>
-> >> =A0static struct clk dpll_usb_clkdcoldo_ck =3D {
-> >> --
-> >> 1.7.4.1
-> >>
->=20
+Also, I assume that this does not fix the RX sluggishness due to the 
+missing RX timeout wakeup?
+
+Also, this assignment should be using symbolic macros rather than raw 
+bits.
 
 
 - Paul
---155748971-666841224-1327518345=:5324--
