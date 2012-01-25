@@ -1,96 +1,64 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: [RFC/PATCH] usb: dwc3: omap: convert pdata to of property
-Date: Wed, 25 Jan 2012 11:11:03 +0200
-Message-ID: <1327482663-8652-1-git-send-email-balbi@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
+ amba_device initializer
+Date: Wed, 25 Jan 2012 09:58:00 +0000
+Message-ID: <20120125095800.GC21709@mudshark.cambridge.arm.com>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk>
+ <E1RoAmo-0005Ff-DW@rmk-PC.arm.linux.org.uk>
+ <20120124160044.GM19798@mudshark.cambridge.arm.com>
+ <20120124162328.GA8517@n2100.arm.linux.org.uk>
+ <20120124172600.GO19798@mudshark.cambridge.arm.com>
+ <20120124214531.GB8517@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:45903 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752465Ab2AYJLL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jan 2012 04:11:11 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120124214531.GB8517@n2100.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>
 List-Id: linux-omap@vger.kernel.org
-To: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Felipe Balbi <balbi@ti.com>
 
-Convert our platform_data usage to OF property,
-keep the legacy pdata for a while until the complete
-conversion is done.
+On Tue, Jan 24, 2012 at 09:45:31PM +0000, Russell King - ARM Linux wrote:
+> On Tue, Jan 24, 2012 at 05:26:00PM +0000, Will Deacon wrote:
+> > diff --git a/arch/arm/mach-realview/include/mach/irqs-pb1176.h b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
+> > index 5c3c625..708f841 100644
+> > --- a/arch/arm/mach-realview/include/mach/irqs-pb1176.h
+> > +++ b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
+> > @@ -40,6 +40,7 @@
+> >  #define IRQ_DC1176_L2CC                (IRQ_DC1176_GIC_START + 13)
+> >  #define IRQ_DC1176_RTC         (IRQ_DC1176_GIC_START + 14)
+> >  #define IRQ_DC1176_CLCD                (IRQ_DC1176_GIC_START + 15)     /* CLCD controller */
+> > +#define IRQ_DC1176_GPIO0       (IRQ_DC1176_GIC_START + 16)
+> >  #define IRQ_DC1176_SSP         (IRQ_DC1176_GIC_START + 17)     /* SSP port */
+> >  #define IRQ_DC1176_UART0       (IRQ_DC1176_GIC_START + 18)     /* UART 0 on development chip */
+> >  #define IRQ_DC1176_UART1       (IRQ_DC1176_GIC_START + 19)     /* UART 1 on development chip */
+> > @@ -73,7 +74,6 @@
+> >  #define IRQ_PB1176_DMAC                (IRQ_PB1176_GIC_START + 24)     /* DMA controller */
+> >  #define IRQ_PB1176_RTC         (IRQ_PB1176_GIC_START + 25)     /* Real Time Clock */
+> >  
+> > -#define IRQ_PB1176_GPIO0       -1
+> >  #define IRQ_PB1176_SCTL                -1
+> >  
+> >  #define NR_GIC_PB1176          2
+> > diff --git a/arch/arm/mach-realview/realview_pb1176.c b/arch/arm/mach-realview/realview_pb1176.c
+> > index 1b6e60c..b1d7caf 100644
+> > --- a/arch/arm/mach-realview/realview_pb1176.c
+> > +++ b/arch/arm/mach-realview/realview_pb1176.c
+> > @@ -143,7 +143,7 @@ static struct pl022_ssp_controller ssp0_plat_data = {
+> >  #define PB1176_CLCD_IRQ        { IRQ_DC1176_CLCD }
+> >  #define SCTL_IRQ       { }
+> >  #define PB1176_WATCHDOG_IRQ    { IRQ_DC1176_WATCHDOG }
+> > -#define PB1176_GPIO0_IRQ       { IRQ_PB1176_GPIO0 }
+> > +#define PB1176_GPIO0_IRQ       { IRQ_DC1176_GPIO0 }
+> >  #define GPIO1_IRQ      { IRQ_PB1176_GPIO1 }
+> >  #define PB1176_RTC_IRQ { IRQ_DC1176_RTC }
+> >  #define SCI_IRQ                { IRQ_PB1176_SCI }
+> 
+> I guess we should believe the TRM on this - can you put this in the patch
+> system please?
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
----
- drivers/usb/dwc3/dwc3-omap.c |   34 ++++++++++++++++++++++------------
- 1 files changed, 22 insertions(+), 12 deletions(-)
+Sure. Which branch shall I take it against (before or after your amba
+changes)?
 
-diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
-index 5809bf4..71f1ace 100644
---- a/drivers/usb/dwc3/dwc3-omap.c
-+++ b/drivers/usb/dwc3/dwc3-omap.c
-@@ -46,6 +46,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/ioport.h>
- #include <linux/io.h>
-+#include <linux/of.h>
- #include <linux/module.h>
- 
- #include "core.h"
-@@ -197,14 +198,18 @@ static irqreturn_t dwc3_omap_interrupt(int irq, void *_omap)
- static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- {
- 	struct dwc3_omap_data	*pdata = pdev->dev.platform_data;
-+	struct device_node	*node = pdev->dev.of_node;
-+
- 	struct platform_device	*dwc3;
- 	struct dwc3_omap	*omap;
- 	struct resource		*res;
- 
- 	int			devid;
-+	int			size;
- 	int			ret = -ENOMEM;
- 	int			irq;
- 
-+	const u32		*utmi_mode;
- 	u32			reg;
- 
- 	void __iomem		*base;
-@@ -269,19 +274,24 @@ static int __devinit dwc3_omap_probe(struct platform_device *pdev)
- 
- 	reg = dwc3_readl(omap->base, USBOTGSS_UTMI_OTG_STATUS);
- 
--	if (!pdata) {
--		dev_dbg(&pdev->dev, "missing platform data\n");
-+	utmi_mode = of_get_property(node, "utmi-mode", &size);
-+	if (utmi_mode && size == sizeof(*utmi_mode)) {
-+		reg |= *utmi_mode;
- 	} else {
--		switch (pdata->utmi_mode) {
--		case DWC3_OMAP_UTMI_MODE_SW:
--			reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
--			break;
--		case DWC3_OMAP_UTMI_MODE_HW:
--			reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
--			break;
--		default:
--			dev_dbg(&pdev->dev, "UNKNOWN utmi mode %d\n",
--					pdata->utmi_mode);
-+		if (!pdata) {
-+			dev_dbg(&pdev->dev, "missing platform data\n");
-+		} else {
-+			switch (pdata->utmi_mode) {
-+			case DWC3_OMAP_UTMI_MODE_SW:
-+				reg |= USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
-+				break;
-+			case DWC3_OMAP_UTMI_MODE_HW:
-+				reg &= ~USBOTGSS_UTMI_OTG_STATUS_SW_MODE;
-+				break;
-+			default:
-+				dev_dbg(&pdev->dev, "UNKNOWN utmi mode %d\n",
-+						pdata->utmi_mode);
-+			}
- 		}
- 	}
- 
--- 
-1.7.8.2
-
+Will
