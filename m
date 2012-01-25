@@ -1,65 +1,73 @@
-From: Daniel Lezcano <daniel.lezcano@free.fr>
-Subject: Re: [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 25 Jan 2012 15:04:18 +0100
-Message-ID: <4F200BE2.2070301@free.fr>
-References: <1324426147-16735-1-git-send-email-ccross@android.com> <4F1929E9.7070707@linaro.org> <CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH 00/21] OMAP3+: SR: bugfixes
+Date: Wed, 25 Jan 2012 16:16:02 +0100
+Message-ID: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:45013 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754313Ab2AYOEc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Jan 2012 09:04:32 -0500
-In-Reply-To: <CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:38092 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450Ab2AYPQl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 10:16:41 -0500
+Received: by wics10 with SMTP id s10so3853554wic.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 07:16:40 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Colin Cross <ccross@android.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@lists.linux-foundation.org, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Amit Kucheria <amit.kucheria@linaro.org>, Arjan van de Ven <arjan@linux.intel.com>, Trinabh Gupta <g.trinabh@gmail.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-On 01/20/2012 09:40 PM, Colin Cross wrote:
-> On Fri, Jan 20, 2012 at 12:46 AM, Daniel Lezcano
-> <daniel.lezcano@linaro.org>  wrote:
->> Hi Colin,
->>
->> this patchset could be interesting to resolve in a generic way the cpu
->> dependencies.
->> What is the status of this patchset ?
-> I can't do much with it right now, because I don't have any devices
-> that can do SMP idle with a v3.2 kernel.  I've started working on an
-> updated version that avoids the spinlock, but it might be a while
-> before I can test and post it.  I'm mostly looking for feedback on the
-> approach taken in this patch, and whether it will be useful for other
-> SoCs besides Tegra and OMAP4.
+Integrate the latest SmartReflex bufixes from Felipe Balbi [1] and
+Nishant Menon [2].
 
-Hi Colin,
+Based on latest master branch of the mainline git tree (3.3.0-rc1) [3], commit
+f8275f9694b8adf9f3498e747ea4c3e8b984499b.
 
-I will be happy to test your patchset. Do you have a pointer to a more 
-recent kernel ?
+[1] http://marc.info/?l=linux-omap&m=132134699423547&w=2
+[2] https://github.com/nmenon/linux-omap-ti-pm/commits/linux-omap-3.0
+[3] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=shortlog
 
 
->> Did you have the opportunity to measure the power consumption with and
->> without this patchset ?
-> Power consumption will be very dependent on the specific SoC in
-> question.  The most important factors are the power savings of the
-> independent cpuidle state (normally WFI) vs. the hotplug state
-> (normally 1 cpu in OFF), and the workload being tested.
->
-> On a very idle system, these patches result in the same total power as
-> hotplugging one cpu and letting the other idle normally.  On a 25%
-> busy system, you might see a slight increase in power, as the best
-> independent cpuidle state might be WFI, vs 1 cpu in OFF mode in
-> hotplug.  On OMAP4, that difference is small, on the order of 10 mW.
-> Once you hit the threshold where a hotplug governor would have
-> hotplugged in the second cpu (lets say 40%), the savings from these
-> patches are enormous, as you can hit the lowest power state up to 60%
-> of the time, where the hotplug solution would never be going below WFI
-> on both cpus.  On OMAP4, that can be well over 100 mW.
+Colin Cross (1):
+  ARM: omap2+: smartreflex: move smartreflex suspend to suspend_noirq
 
-Interesting.
+Felipe Balbi (4):
+  arm: omap: smartreflex: add missing platform_set_drvdata()
+  arm: omap: smartreflex: move late_initcall() closer to its argument
+  arm: omap: smartreflex: clean ups all over
+  arm: omap: smartreflex: micro-optimization for sanity check
 
+Julia Lawall (1):
+  arch/arm/mach-omap2/smartreflex.c: add missing error-handling code
 
-Thanks
+Nishanth Menon (14):
+  OMAP3+: PM: SR: add suspend/resume handlers
+  Revert "OMAP3+: PM: SR: add suspend/resume handlers"
+  OMAP3+: Smartreflex: fix err interrupt disable sequence
+  OMAP3+: PM: SR/Class3: disable errorgen before disable VP
+  OMAP3+: Smartreflex: Add a shutdown hook
+  OMAP3+: Smartreflex: Fix status masking in ERRCONFIG register
+  OMAP3+: Smartreflex: clear ERRCONFIG_VPBOUNDINTST only on a need
+  OMAP3: hwmod: add SmartReflex IRQs
+  OMAP3+: SR: introduce class init,deinit and priv data
+  OMAP3+: SR: introduce notifiers flags
+  OMAP3+: SR: introduce notifier_control
+  OMAP3+: SR: disable spamming interrupts
+  OMAP3+: SR: introduce class private data per voltage domain
+  OMAP3430: SR: class3: restrict CPU to run on
 
-   -- Daniel
+Shweta Gulati (1):
+  OMAP3+: SR Layer Cleanup [V4]
+
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c   |   31 ++-
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |   19 +-
+ arch/arm/mach-omap2/smartreflex-class3.c     |   16 +-
+ arch/arm/mach-omap2/smartreflex.c            |  408 ++++++++++++++++++++++----
+ arch/arm/mach-omap2/smartreflex.h            |   42 +++-
+ arch/arm/mach-omap2/sr_device.c              |   11 +-
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 -
+ 7 files changed, 449 insertions(+), 80 deletions(-)
+
+-- 
+1.7.5.4
 
