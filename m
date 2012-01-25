@@ -1,55 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC PATCH] OMAP: UART: Enable tx wakeup bit in wer
-Date: Wed, 25 Jan 2012 12:18:06 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201251217120.5324@utopia.booyaka.com>
-References: <1327412249-31575-1-git-send-email-govindraj.raja@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH] ARM: OMAP4: clock: fix mult and div mask for USB_DPLL
+Date: Wed, 25 Jan 2012 20:46:18 +0100
+Message-ID: <4F205C0A.1050502@ti.com>
+References: <4F1E7F8A.4010805@ti.com> <1327455315-19464-1-git-send-email-ameya.palande@ti.com> <alpine.DEB.2.00.1201251204480.5324@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <1327412249-31575-1-git-send-email-govindraj.raja@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Partha Basak <p-basak2@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41521 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751034Ab2AYTq1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 25 Jan 2012 14:46:27 -0500
+In-Reply-To: <alpine.DEB.2.00.1201251204480.5324@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Ameya Palande <ameya.palande@ti.com>, mturquette@ti.com, khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-cc'ing linux-arm-kernel also (correct address this time)
+Hi Paul,
 
-Hi
+On 1/25/2012 8:05 PM, Paul Walmsley wrote:
+> Hi
+>
+> one important question first:
+>
+> On Tue, 24 Jan 2012, Ameya Palande wrote:
+>
+>> According to OMAP4 TRM Table 3-1183, CM_CLKSEL_DPLL_USB register defines
+>> following fields for multiplication and division factors:
+>>
+>> DPLL_MULT (bits 19:8) DPLL multiplier factor (2 to 4095)
+>> DPLL_DIV (bits 7:0) DPLL divider factor (0 to 255)
+>>
+>> Acked-by: Benoit Cousson<b-cousson@ti.com>
+>> Signed-off-by: Ameya Palande<ameya.palande@ti.com>
+>
+> Have the scripts been updated?
 
-some comments
+No not yet. The easy fix I was thinking about is to replace this define 
+by the hexa value of the mask. I can extract directly from the max mult 
+and max div.
 
-On Tue, 24 Jan 2012, Govindraj.R wrote:
+Regards,
+Benoit
 
-> From: "Govindraj.R" <govindraj.raja@ti.com>
-> 
-> On omap3630 onwards uart wer reg has bit 7
-> for tx wakeup enable.
-> 
-> Without this bit set some uart sluggishness might be seen
-> while printing data on console, response is better when
-> enabling this bit.
-> Tested with Beagle XM (OMAP3630)
-> 
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
-> ---
-> But on omap3430 the bit is not available.
-
-Well that's good news that it exists on 36xx+ at least.
- 
-But please make a few changes.
-
-This shouldn't set this bit on UARTs that don't support it.  It should 
-only be set if a hwmod dev_attr flag was set to indicate the presence of 
-this feature.  Using a flag is also important since it will allow us to 
-disable the workaround that we'll need for earlier OMAPs.
-
-Also, I assume that this does not fix the RX sluggishness due to the 
-missing RX timeout wakeup?
-
-Also, this assignment should be using symbolic macros rather than raw 
-bits.
-
-
-- Paul
