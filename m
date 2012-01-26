@@ -1,35 +1,44 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: 3.3-rc1 console lag (was: Re: [PATCH v8 00/20] OMAP2+: UART: Runtime
- adaptation + cleanup)
-Date: Wed, 25 Jan 2012 18:22:26 -0600
-Message-ID: <CAB-zwWg4RS4J1YCcbfMWjLSCcV=oHqk9vaUKKKr0WjnTEuOmxQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: PM debugging in debugfs is non-functional on 24xx
+Date: Wed, 25 Jan 2012 19:12:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201251910240.11174@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Govindraj Raja <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Partha Basak <p-basak2@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:50017 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356Ab2AZCMy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 21:12:54 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com
 
-Hi,
 
-On Fri, Nov 11, 2011 at 3:57 AM, Govindraj.R <govindraj.raja@ti.com> wrote:
-> Converting uart driver to adapt to pm runtime API's.
-> Code re-org + cleanup.
-> Moving some functionality from serial.c to omap-serial.c
-...
->
-> Ensure CONFIG_OMAP_PRM is set while testing irq_chaining with uart.
-> And for pm_qos usage ensure CONFIG_CPU_IDLE is selected other wise
-> console might be sluggish.
+Hi
 
-There is console lag for omap2plus_defconfig given that
-CONFIG_CPU_IDLE is not enabled. Is the intention to force CPU_IDLE
-into the defconfig or find an alternative for the new pm_qos when cpu
-idle is disabled.
+I think this is a known issue, but the debugfs pm_debug/count file is 
+non-functional on 242x.  
 
-Seen on beagle-xm and 3.3-rc1.
+root@(none):/debug/pm_debug# cat count 
+core_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:0,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-M
+EMBANK2-OFF:0,RET-MEMBANK3-OFF:0
+mpu_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:0,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+dsp_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:0,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+gfx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:0,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
+dss_clkdm->core_pwrdm (1)
+core_l4_clkdm->core_pwrdm (27)
+core_l3_clkdm->core_pwrdm (4)
+gfx_clkdm->gfx_pwrdm (0)
+dsp_clkdm->dsp_pwrdm (0)
+iva1_clkdm->dsp_pwrdm (0)
+mpu_clkdm->mpu_pwrdm (0)
+prm_clkdm->wkup_pwrdm (0)
+cm_clkdm->core_pwrdm (0)
 
-Regards,
+That's with MPU retention enabled... so those counts are wrong.
 
-Omar
+Anyway, just hoping that someone out there is motivated to fix this -
+
+
+- Paul
