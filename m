@@ -1,66 +1,46 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
-	amba_device initializer
-Date: Thu, 26 Jan 2012 17:25:27 +0000
-Message-ID: <20120126172527.GA12731@n2100.arm.linux.org.uk>
-References: <20120120092207.GD1068@n2100.arm.linux.org.uk> <E1RoAmo-0005Ff-DW@rmk-PC.arm.linux.org.uk> <20120124160044.GM19798@mudshark.cambridge.arm.com> <20120124162328.GA8517@n2100.arm.linux.org.uk> <20120124172600.GO19798@mudshark.cambridge.arm.com> <20120124214531.GB8517@n2100.arm.linux.org.uk> <20120125095800.GC21709@mudshark.cambridge.arm.com> <20120125102202.GU16726@n2100.arm.linux.org.uk> <20120125103906.GE21709@mudshark.cambridge.arm.com> <20120125110647.GV16726@n2100.arm.linux.org.uk>
+From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
+Subject: Re: CONFIG_PREEMPT and JFFS2 oops
+Date: Thu, 26 Jan 2012 18:33:37 +0100
+Message-ID: <OFDD72D713.95FC023B-ONC1257991.005F7988-C1257991.00607681@transmode.se>
+References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com> <4F2127B8.9000005@flatfrog.com> <4F213ED8.2020500@flatfrog.com> <alpine.DEB.2.00.1201260801410.11174@utopia.booyaka.com> <OF645D734B.78418504-ONC1257991.005A101B-C1257991.005A7809@transmode.se> <alpine.DEB.2.00.1201260934190.11174@utopia.booyaka.com> <alpine.DEB.2.00.1201260936440.11174@utopia.booyaka.com> <OF4651C12F.58F763E5-ONC1257991.005C0D05-C1257991.005C4F23@transmode.se> <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120125110647.GV16726@n2100.arm.linux.org.uk>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gw1.transmode.se ([195.58.98.146]:34356 "EHLO gw1.transmode.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751445Ab2AZRdk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jan 2012 12:33:40 -0500
+In-Reply-To: <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: David Woodhouse <dwmw2@infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, linux-mtd-bounces@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Orjan Friberg <of@flatfrog.com>, Richard Purdie <rpurdie@openedhand.com>
 
-On Wed, Jan 25, 2012 at 11:06:47AM +0000, Russell King - ARM Linux wrote:
-> Right, so with the stack of amba patches on top, it looks like this,
-> which to me looks sane.  I haven't build-tested it though.
+> From: Paul Walmsley <paul@pwsan.com>
+> To: Joakim Tjernlund <joakim.tjernlund@transmode.se>
+> Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Richard Purdie <rpurdie@openedhand.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>, Orjan Friberg <of@flatfrog.com>
+> Date: 2012/01/26 18:00
+> Subject: Re: CONFIG_PREEMPT and JFFS2 oops
+> Sent by: linux-mtd-bounces@lists.infradead.org
+>
+> On Thu, 26 Jan 2012, Joakim Tjernlund wrote:
+>
+> > Still leeks:
+> > +                            best_slen = tdl;
+> > +                            best_buf = tmp_buf;
+> > +                            best = this;
+> >
+> > You just throw away best_buf here, don't you?
+>
+> You're right.  It's even worse than that.  best_buf will contain the data
+> from the last compressor used.  And it will be prematurely freed.  Here's
+> a fixed version.
+>
+> Time for breakfast.
 
-Will,
+hmm, that memcpy is costly. Just swap tmp_buf and best_buf instead?
 
-Did you see this?  Any comment?
+Time to go home :)
 
-Thanks.
+ Jocke
 
-> 
-> diff --git a/arch/arm/mach-realview/include/mach/irqs-pb1176.h b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
-> index 5c3c625..708f841 100644
-> --- a/arch/arm/mach-realview/include/mach/irqs-pb1176.h
-> +++ b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
-> @@ -40,6 +40,7 @@
->  #define IRQ_DC1176_L2CC		(IRQ_DC1176_GIC_START + 13)
->  #define IRQ_DC1176_RTC		(IRQ_DC1176_GIC_START + 14)
->  #define IRQ_DC1176_CLCD		(IRQ_DC1176_GIC_START + 15)	/* CLCD controller */
-> +#define IRQ_DC1176_GPIO0	(IRQ_DC1176_GIC_START + 16)
->  #define IRQ_DC1176_SSP		(IRQ_DC1176_GIC_START + 17)	/* SSP port */
->  #define IRQ_DC1176_UART0	(IRQ_DC1176_GIC_START + 18)	/* UART 0 on development chip */
->  #define IRQ_DC1176_UART1	(IRQ_DC1176_GIC_START + 19)	/* UART 1 on development chip */
-> @@ -73,7 +74,6 @@
->  #define IRQ_PB1176_DMAC		(IRQ_PB1176_GIC_START + 24)	/* DMA controller */
->  #define IRQ_PB1176_RTC		(IRQ_PB1176_GIC_START + 25)	/* Real Time Clock */
->  
-> -#define IRQ_PB1176_GPIO0	-1
->  #define IRQ_PB1176_SCTL		-1
->  
->  #define NR_GIC_PB1176		2
-> diff --git a/arch/arm/mach-realview/realview_pb1176.c b/arch/arm/mach-realview/realview_pb1176.c
-> index 1b6e60c..b1d7caf 100644
-> --- a/arch/arm/mach-realview/realview_pb1176.c
-> +++ b/arch/arm/mach-realview/realview_pb1176.c
-> @@ -143,7 +143,7 @@ static struct pl022_ssp_controller ssp0_plat_data = {
->  #define PB1176_CLCD_IRQ	{ IRQ_DC1176_CLCD }
->  #define SCTL_IRQ	{ }
->  #define PB1176_WATCHDOG_IRQ	{ IRQ_DC1176_WATCHDOG }
-> -#define PB1176_GPIO0_IRQ	{ IRQ_PB1176_GPIO0 }
-> +#define PB1176_GPIO0_IRQ	{ IRQ_DC1176_GPIO0 }
->  #define GPIO1_IRQ	{ IRQ_PB1176_GPIO1 }
->  #define PB1176_RTC_IRQ	{ IRQ_DC1176_RTC }
->  #define SCI_IRQ		{ IRQ_PB1176_SCI }
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
