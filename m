@@ -1,76 +1,44 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] usb: musb: make modules behave better
-Date: Thu, 26 Jan 2012 13:22:43 +0200
-Message-ID: <20120126112242.GN15110@legolas.emea.dhcp.ti.com>
-References: <1327574749-18552-1-git-send-email-balbi@ti.com>
- <4F21371F.7010403@gmail.com>
-Reply-To: balbi@ti.com
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH 08/21] OMAP3+: Smartreflex: Add a shutdown hook
+Date: Thu, 26 Jan 2012 15:21:41 +0400
+Message-ID: <4F213745.3040807@ru.mvista.com>
+References: <1327504583-13408-1-git-send-email-j-pihet@ti.com> <1327504583-13408-9-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="xexMVKTdXPhpRiVT"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57747 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751386Ab2AZLWt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jan 2012 06:22:49 -0500
-Content-Disposition: inline
-In-Reply-To: <4F21371F.7010403@gmail.com>
+Received: from mail.dev.rtsoft.ru ([213.79.90.226]:53362 "HELO
+	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752744Ab2AZLWu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 06:22:50 -0500
+In-Reply-To: <1327504583-13408-9-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, davinci-linux-open-source@linux.davincidsp.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
+Hello.
 
---xexMVKTdXPhpRiVT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 25-01-2012 19:16, Jean Pihet wrote:
 
-Hi,
+> From: Nishanth Menon<nm@ti.com>
 
-On Thu, Jan 26, 2012 at 12:21:03PM +0100, Tasslehoff Kjappfot wrote:
-> On 01/26/2012 11:45 AM, Felipe Balbi wrote:
-> >There's really no point in doing all that
-> >initcall trickery when we can safely let
-> >udev handle module probing for us.
-> >
-> >Remove all of that trickery, by moving everybody
-> >to module_init() and making proper use of
-> >platform_device_register() rather than
-> >platform_device_probe().
-> >
-> >Signed-off-by: Felipe Balbi<balbi@ti.com>
-> >---
-> >
->=20
-> Tested-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+> Since OMAP's VP and PRM modules do not get reset by warm reset,
+> we should ensure that proper shutdown procedure is followed prior
+> to allowing the kernel to reboot back up.
+>
+> Without this patch, Smartreflex module might be left active or
+> system might be caught in an indeterminate sequence when reboot
+> is triggered, leaving the next reboot behavior to be unpredictable.
 
-Thanks, I have added this line to the commit.
+> Change-Id: I7f8c66cc45f8785394cce1fdde3cfda15ecc1fbc
 
---=20
-balbi
+    This line has no place in the upstream patch, please remove it.
 
---xexMVKTdXPhpRiVT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> Signed-off-by: Nishanth Menon<nm@ti.com>
+> Signed-off-by: Jean Pihet<j-pihet@ti.com>
+> ---
+>   arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++++++++++++
+>   1 files changed, 24 insertions(+), 0 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPITeCAAoJEIaOsuA1yqRE6dsQAIE4GFnLPNTiOtAqqTRLgMPd
-x5NYFpk7Zw9naUxd/g1LK887RUh/PoTFpd8L/r3uXkMejuxr1bwfFw/ikYxtzWcw
-XdU2m3dk9wC5u5hKEqE1WwwVqPQQsKpKFV8rrvk8Xn4m/8UY2+2TPpwySGhk/aNc
-y3GziFY4HeR7jGiT1LC/mQdyGAN6vYU2XFjII1xQVZiAYqEmYQLiWgFmB7vbSbmU
-XVwTastYbEv7vLbrL0seGgD/mHt1xM5rYCsGQvBgq6oS+WEnnHE9Pg7KfIp7RgWl
-2A52TXIbNyYuF5cQ4N2tpB6MarPV/09FEytwmBOLWOsMBF/XsgDHa0o2BPiZjgem
-bvjAjwWc0y7GrmHu+o3BOoO79l+oVuSzKdymYCqhFu2+nRtr/AxnkM/Svb1c+XFn
-i5k7GV3lU3SJzTZAG3D1t3ZQbapIUCyM0D27mV6wcDQ+owve+SVl3HwSQH07kqgx
-1YJ02xsCt0owWoyo4P9x2TyjSw3xHoY+WiiW0mLuxwFwSQUoiRGK414nEiXxZ4kk
-sI8undTVrR3zIOvjVolOb+SARz66B91cyCryLIyMezbOzYwPutiEpDnJ+oDXhS3S
-bcAYOHISNCFVH9163vAw4KnHu/XxIX4TW48xtBQ9MecKn0MoqmQu9sxZYyXK/cW5
-avxx/Kz9u7/jSgqCx79k
-=q7Hi
------END PGP SIGNATURE-----
-
---xexMVKTdXPhpRiVT--
+WBR, Sergei
