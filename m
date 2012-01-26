@@ -1,80 +1,103 @@
-From: Orjan Friberg <of@flatfrog.com>
-Subject: Re: CONFIG_PREEMPT and JFFS2 oops
-Date: Thu, 26 Jan 2012 11:15:20 +0100
-Message-ID: <4F2127B8.9000005@flatfrog.com>
-References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: Re: No console output (omap-3.2 branch)
+Date: Thu, 26 Jan 2012 11:27:01 +0100
+Message-ID: <CAAfyv36-WvcZS=rSwyutuXjh-CKZdBSR=5zZ4d0zN6FBXOFttw@mail.gmail.com>
+References: <jbvod7$rj2$1@dough.gmane.org>
+	<4F207EFE.1010902@yahoo.com>
+	<jfr8vc$i8f$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:32818
-	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751650Ab2AZKP1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jan 2012 05:15:27 -0500
-In-Reply-To: <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:48212 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab2AZK1C convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 05:27:02 -0500
+Received: by vcbgb30 with SMTP id gb30so259864vcb.19
+        for <linux-omap@vger.kernel.org>; Thu, 26 Jan 2012 02:27:01 -0800 (PST)
+In-Reply-To: <jfr8vc$i8f$1@dough.gmane.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andre Puschmann <andre.puschmann@tu-ilmenau.de>
+Cc: linux-omap@vger.kernel.org
 
-On 01/25/2012 10:18 PM, Paul Walmsley wrote:
-> - If your oopses are consistently in the same places, add some debugging
->    to that code to determine which line is actually causing the oops.
-
-(CC:d linux-mtd.)
-
-They are semi-consistent I'd say.  The oops trace I posted is by far the 
-most common.
-
->    problem to mysteriously disappear.  Doing this analysis should provide a
->    good clue as to where to look next.  I personally would be rather
->    suspicious of that
+On Thu, Jan 26, 2012 at 11:13 AM, Andre Puschmann
+<andre.puschmann@tu-ilmenau.de> wrote:
+> On 01/25/2012 11:15 PM, Frank Agius wrote:
+>> On 12/10/2011 8:55 AM, Andre Puschmann wrote:
+>>> Hi list, Steve,
+>>>
+>>> I am trying to boot a kernel I built (using omap2plus_defconfig) ba=
+sed
+>>> on Steve's omap-3.2 branch without much success.
+>>>
+>>> I don't get any console output after Uboot finished uncompressing t=
+he
+>>> kernel. Is there anything I need to configure? The kernel image bas=
+ed on
+>>> Tony's tree boots fine on the same hardware (Gumstix Overo Tide)
+>>> (despite having MMC issues as mentioned earlier).
+>>
+>> I ran into the same problem you described. Steve's tree has some pat=
+ches
+>> that are not in mainline 3.2. =C2=A0I tracked the hang down to one o=
+f those
+>> patches that added support for 720Mhz capable hardware. =C2=A0The
+>> kernel reads the status register and determines that the CPU can sup=
+port
+>> 720Mhz (omap3_check_features). =C2=A0From what I can tell, the check=
+ is done
+>> correctly (variable status in omap3_check_features is set to 0x08, w=
+hich
+>> looks like the right bit for 720Mhz support). =C2=A0Since the kernel=
+ thinks
+>> that 720Mhz is supported, it calls omap3_opp_enable_720Mhz (file
+>> opp3xx_data.c). =C2=A0The kernel dies silently when it calls the opp=
+ enable
+>> for 720Mhz, at or near line 178:
+>>
+>> 176 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pdev =3D=
+ &oh_mpu->od->pdev;
+>> 177
+>> 178 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 r =3D op=
+p_enable(&pdev->dev, 720000000);
+>>
+>> That's as far as I can take the debug. =C2=A0I'm going to disable th=
+e check
+>> for 720Mhz in my local tree until this can get sorted out.
 >
-> 		ri->data_crc = cpu_to_je32(crc32(0, comprbuf, cdatalen));
+Could this be related to same problem? :
+http://marc.info/?l=3Dlinux-omap&m=3D132756359017621&w=3D2
+> Just wanted to mention that the bug is still present here, too.
+> Interestingly, the same code seems to work in the omap-3.0pm tree and
+> the kernel boots fine. So disabling 720MHz support might just hide th=
+e
+> real cause.
 >
->    in jffs2_write_inode_range().
+> -Andre
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
 
-That is indeed the place where crc32 is called from .  I'll see it I can 
-track the use of comprbuf.
+marek
 
-> - Try turning on JFFS2 debugging and seeing if you can reproduce it.
->    The output might provide a clue as to where the problem would be.
+--=20
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+=46reelance Developer
 
-Here are two examples (immediately preceding the oops):
-
-jffs2_reserve_space(): Requested 0x30 bytes
-jffs2_reserve_space(): alloc sem got
-[JFFS2 DBG] (1189) jffs2_do_reserve_space: minsize=48 , jeb->free=46852 
-,summary->size=16586 , sumsize=29
-jffs2_do_reserve_space(): Giving 0x75f4 bytes at 0x3d48fc
-jffs2_write_dirent(ino #1, name at *0xdea7b93c "file1"->ino #111, 
-name_crc 0x58c597f8)
-
-
-jffs2_write_begin()
-jffs2_read_inode_range: ino #12, range 0x00000000-0x00001000
-Filling non-frag hole from 0-4096
-end write_begin(). pg->flags 9
-jffs2_write_end(): ino #12, page at 0x0, range 0-800, flags d
-jffs2_write_inode_range(): Ino #12, ofs 0x0, len 0x320
-jffs2_reserve_space(): Requested 0xc4 bytes
-jffs2_reserve_space(): alloc sem got
-[JFFS2 DBG] (1454) jffs2_do_reserve_space: minsize=196 , 
-jeb->free=123148 ,summary->size=1567 , sumsize=18
-jffs2_do_reserve_space(): Giving 0x1dab0 bytes at 0xf941ef4
-calling deflate with avail_in 788, avail_out 788
-deflate returned with avail_in 0, avail_out 428, total_in 788, total_out 360
-calling deflate with avail_in 12, avail_out 428
-deflate returned with avail_in 0, avail_out 414, total_in 800, total_out 374
-zlib compressed 800 bytes into 380
-
-
-I'll take a look at what jffs2_do_reserve_space is up to.
-
-
-Thanks.
-
--- 
-Orjan Friberg
-FlatFrog Laboratories AB
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
