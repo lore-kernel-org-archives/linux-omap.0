@@ -1,214 +1,66 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: CONFIG_PREEMPT and JFFS2 oops
-Date: Thu, 26 Jan 2012 09:57:20 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
-References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com> <4F2127B8.9000005@flatfrog.com> <4F213ED8.2020500@flatfrog.com> <alpine.DEB.2.00.1201260801410.11174@utopia.booyaka.com>
- <OF645D734B.78418504-ONC1257991.005A101B-C1257991.005A7809@transmode.se> <alpine.DEB.2.00.1201260934190.11174@utopia.booyaka.com> <alpine.DEB.2.00.1201260936440.11174@utopia.booyaka.com>
- <OF4651C12F.58F763E5-ONC1257991.005C0D05-C1257991.005C4F23@transmode.se>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
+	amba_device initializer
+Date: Thu, 26 Jan 2012 17:25:27 +0000
+Message-ID: <20120126172527.GA12731@n2100.arm.linux.org.uk>
+References: <20120120092207.GD1068@n2100.arm.linux.org.uk> <E1RoAmo-0005Ff-DW@rmk-PC.arm.linux.org.uk> <20120124160044.GM19798@mudshark.cambridge.arm.com> <20120124162328.GA8517@n2100.arm.linux.org.uk> <20120124172600.GO19798@mudshark.cambridge.arm.com> <20120124214531.GB8517@n2100.arm.linux.org.uk> <20120125095800.GC21709@mudshark.cambridge.arm.com> <20120125102202.GU16726@n2100.arm.linux.org.uk> <20120125103906.GE21709@mudshark.cambridge.arm.com> <20120125110647.GV16726@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49663 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab2AZQ5V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 11:57:21 -0500
-In-Reply-To: <OF4651C12F.58F763E5-ONC1257991.005C0D05-C1257991.005C4F23@transmode.se>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-samsung-soc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120125110647.GV16726@n2100.arm.linux.org.uk>
+Sender: linux-samsung-soc-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joakim Tjernlund <joakim.tjernlund@transmode.se>
-Cc: David Woodhouse <dwmw2@infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Orjan Friberg <of@flatfrog.com>, Richard Purdie <rpurdie@openedhand.com>
 
-On Thu, 26 Jan 2012, Joakim Tjernlund wrote:
+On Wed, Jan 25, 2012 at 11:06:47AM +0000, Russell King - ARM Linux wrote:
+> Right, so with the stack of amba patches on top, it looks like this,
+> which to me looks sane.  I haven't build-tested it though.
 
-> Still leeks:
-> +		 		 		 		 best_slen = tdl;
-> +		 		 		 		 best_buf = tmp_buf;
-> +		 		 		 		 best = this;
+Will,
+
+Did you see this?  Any comment?
+
+Thanks.
+
 > 
-> You just throw away best_buf here, don't you?
-
-You're right.  It's even worse than that.  best_buf will contain the data 
-from the last compressor used.  And it will be prematurely freed.  Here's 
-a fixed version.
-
-Time for breakfast.
-
-
-- Paul
-
-From: Paul Walmsley <paul@pwsan.com>
-Date: Thu, 26 Jan 2012 08:12:09 -0700
-Subject: [PATCH v4] fs: jffs2: compression: fix some (but not all) races 
-in jffs2_compress()
-
-There is a nasty race in jffs2_compress() when JFFS2_COMPR_MODE_SIZE
-or JFFS2_COMPR_MODE_FAVOURLZO is selected and multiple jffs2
-filesystems are in use.  The compressor buffer is shared among all
-users of the compressor, and the buffer is freed and allocated without
-holding any lock.  This could result in NULL pointer dereferences, or,
-worse, corrupted data.
-
-There doesn't appear to be any point in having a compression buffer
-shared by all users of the compressor.  So remove this, and instead
-use a buffer that is local to the jffs2_compress() call.  This
-simplifies the locking in this function considerably.
-
-There's at least one race left in this function, between it and
-jffs2_unregister_compressor().  That's left for someone else to fix.
-Until then, it is suggested that compressors should not be registered
-or unregistered while any JFFS2 filesystems are mounted.
-
-This patch is COMPLETELY UNTESTED.  It could easily DESTROY THE
-FILESYSTEM and CORRUPT DATA, so don't use it unless it's been tested
-thoroughly and the code has been reviewed by JFFS2 experts.
-
-This patch was developed in collaboration with Orjan Friberg
-<of@flatfrog.com> and Joakim Tjernlund <joakim.tjernlund@transmode.se>.
-
-Not-signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Orjan Friberg <of@flatfrog.com>
-Cc: Joakim Tjernlund <joakim.tjernlund@transmode.se>
-Cc: Richard Purdie <rpurdie@openedhand.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
----
- fs/jffs2/compr.c |   74 ++++++++++++++++++++++++-----------------------------
- fs/jffs2/compr.h |    2 -
- 2 files changed, 34 insertions(+), 42 deletions(-)
-
-diff --git a/fs/jffs2/compr.c b/fs/jffs2/compr.c
-index 5b6c9d1..77e5091 100644
---- a/fs/jffs2/compr.c
-+++ b/fs/jffs2/compr.c
-@@ -142,6 +142,9 @@ static int jffs2_selected_compress(u8 compr, unsigned char *data_in,
-  * If the cdata buffer isn't large enough to hold all the uncompressed data,
-  * jffs2_compress should compress as much as will fit, and should set
-  * *datalen accordingly to show the amount of data which were compressed.
-+ *
-+ * Caller must call jffs2_free_comprbuf() after it is done with
-+ * @cpage_out.
-  */
- uint16_t jffs2_compress(struct jffs2_sb_info *c, struct jffs2_inode_info *f,
- 			unsigned char *data_in, unsigned char **cpage_out,
-@@ -150,9 +153,9 @@ uint16_t jffs2_compress(struct jffs2_sb_info *c, struct jffs2_inode_info *f,
- 	int ret = JFFS2_COMPR_NONE;
- 	int mode, compr_ret;
- 	struct jffs2_compressor *this, *best=NULL;
--	unsigned char *output_buf = NULL, *tmp_buf;
--	uint32_t orig_slen, orig_dlen;
-+	unsigned char *output_buf = NULL, *tmp_buf, *best_buf;
- 	uint32_t best_slen=0, best_dlen=0;
-+	uint32_t tdl, tcdl;
- 
- 	if (c->mount_opts.override_compr)
- 		mode = c->mount_opts.compr;
-@@ -168,56 +171,49 @@ uint16_t jffs2_compress(struct jffs2_sb_info *c, struct jffs2_inode_info *f,
- 		break;
- 	case JFFS2_COMPR_MODE_SIZE:
- 	case JFFS2_COMPR_MODE_FAVOURLZO:
--		orig_slen = *datalen;
--		orig_dlen = *cdatalen;
-+		tmp_buf = kmalloc(*datalen, GFP_KERNEL);
-+		if (!tmp_buf) {
-+			pr_warn("JFFS2: No memory for compressor allocation. (%d bytes)\n", *datalen);
-+			break;
-+		}
-+		best_buf = kmalloc(*datalen, GFP_KERNEL);
-+		if (!best_buf) {
-+			pr_warn("JFFS2: No memory for compressor allocation. (%d bytes)\n", *datalen);
-+			kfree(tmp_buf);
-+			break;
-+		}
- 		spin_lock(&jffs2_compressor_list_lock);
- 		list_for_each_entry(this, &jffs2_compressor_list, list) {
- 			/* Skip decompress-only backwards-compatibility and disabled modules */
- 			if ((!this->compress)||(this->disabled))
- 				continue;
--			/* Allocating memory for output buffer if necessary */
--			if ((this->compr_buf_size < orig_slen) && (this->compr_buf)) {
--				spin_unlock(&jffs2_compressor_list_lock);
--				kfree(this->compr_buf);
--				spin_lock(&jffs2_compressor_list_lock);
--				this->compr_buf_size=0;
--				this->compr_buf=NULL;
--			}
--			if (!this->compr_buf) {
--				spin_unlock(&jffs2_compressor_list_lock);
--				tmp_buf = kmalloc(orig_slen, GFP_KERNEL);
--				spin_lock(&jffs2_compressor_list_lock);
--				if (!tmp_buf) {
--					printk(KERN_WARNING "JFFS2: No memory for compressor allocation. (%d bytes)\n", orig_slen);
--					continue;
--				}
--				else {
--					this->compr_buf = tmp_buf;
--					this->compr_buf_size = orig_slen;
--				}
--			}
- 			this->usecount++;
-+			/*
-+			 * XXX This spin_unlock() will cause a race with
-+			 * anything that modifies jffs2_compressor_list,
-+			 * particularly jffs2_unregister_compressor()
-+			 */
- 			spin_unlock(&jffs2_compressor_list_lock);
--			*datalen  = orig_slen;
--			*cdatalen = orig_dlen;
--			compr_ret = this->compress(data_in, this->compr_buf, datalen, cdatalen);
-+			tdl = *datalen;
-+			tcdl = *cdatalen;
-+			compr_ret = this->compress(data_in, tmp_buf, &tdl, &tcdl);
- 			spin_lock(&jffs2_compressor_list_lock);
- 			this->usecount--;
--			if (!compr_ret) {
--				if (((!best_dlen) || jffs2_is_best_compression(this, best, *cdatalen, best_dlen))
--						&& (*cdatalen < *datalen)) {
--					best_dlen = *cdatalen;
--					best_slen = *datalen;
--					best = this;
--				}
-+			if (compr_ret)
-+				continue;
-+			if ((!best_dlen || jffs2_is_best_compression(this, best, tcdl, best_dlen))
-+			    && (tcdl < tdl)) {
-+				best_dlen = tcdl;
-+				best_slen = tdl;
-+				memcpy(best_buf, tmp_buf, tcdl);
-+				best = this;
- 			}
- 		}
-+		kfree(tmp_buf);
- 		if (best_dlen) {
- 			*cdatalen = best_dlen;
- 			*datalen  = best_slen;
--			output_buf = best->compr_buf;
--			best->compr_buf = NULL;
--			best->compr_buf_size = 0;
-+			output_buf = best_buf;
- 			best->stat_compr_blocks++;
- 			best->stat_compr_orig_size += best_slen;
- 			best->stat_compr_new_size  += best_dlen;
-@@ -302,8 +298,6 @@ int jffs2_register_compressor(struct jffs2_compressor *comp)
- 		printk(KERN_WARNING "NULL compressor name at registering JFFS2 compressor. Failed.\n");
- 		return -1;
- 	}
--	comp->compr_buf_size=0;
--	comp->compr_buf=NULL;
- 	comp->usecount=0;
- 	comp->stat_compr_orig_size=0;
- 	comp->stat_compr_new_size=0;
-diff --git a/fs/jffs2/compr.h b/fs/jffs2/compr.h
-index 5e91d57..fef088a 100644
---- a/fs/jffs2/compr.h
-+++ b/fs/jffs2/compr.h
-@@ -56,8 +56,6 @@ struct jffs2_compressor {
- 			  uint32_t cdatalen, uint32_t datalen);
- 	int usecount;
- 	int disabled;		/* if set the compressor won't compress */
--	unsigned char *compr_buf;	/* used by size compr. mode */
--	uint32_t compr_buf_size;	/* used by size compr. mode */
- 	uint32_t stat_compr_orig_size;
- 	uint32_t stat_compr_new_size;
- 	uint32_t stat_compr_blocks;
--- 
-1.7.8.3
-
+> diff --git a/arch/arm/mach-realview/include/mach/irqs-pb1176.h b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
+> index 5c3c625..708f841 100644
+> --- a/arch/arm/mach-realview/include/mach/irqs-pb1176.h
+> +++ b/arch/arm/mach-realview/include/mach/irqs-pb1176.h
+> @@ -40,6 +40,7 @@
+>  #define IRQ_DC1176_L2CC		(IRQ_DC1176_GIC_START + 13)
+>  #define IRQ_DC1176_RTC		(IRQ_DC1176_GIC_START + 14)
+>  #define IRQ_DC1176_CLCD		(IRQ_DC1176_GIC_START + 15)	/* CLCD controller */
+> +#define IRQ_DC1176_GPIO0	(IRQ_DC1176_GIC_START + 16)
+>  #define IRQ_DC1176_SSP		(IRQ_DC1176_GIC_START + 17)	/* SSP port */
+>  #define IRQ_DC1176_UART0	(IRQ_DC1176_GIC_START + 18)	/* UART 0 on development chip */
+>  #define IRQ_DC1176_UART1	(IRQ_DC1176_GIC_START + 19)	/* UART 1 on development chip */
+> @@ -73,7 +74,6 @@
+>  #define IRQ_PB1176_DMAC		(IRQ_PB1176_GIC_START + 24)	/* DMA controller */
+>  #define IRQ_PB1176_RTC		(IRQ_PB1176_GIC_START + 25)	/* Real Time Clock */
+>  
+> -#define IRQ_PB1176_GPIO0	-1
+>  #define IRQ_PB1176_SCTL		-1
+>  
+>  #define NR_GIC_PB1176		2
+> diff --git a/arch/arm/mach-realview/realview_pb1176.c b/arch/arm/mach-realview/realview_pb1176.c
+> index 1b6e60c..b1d7caf 100644
+> --- a/arch/arm/mach-realview/realview_pb1176.c
+> +++ b/arch/arm/mach-realview/realview_pb1176.c
+> @@ -143,7 +143,7 @@ static struct pl022_ssp_controller ssp0_plat_data = {
+>  #define PB1176_CLCD_IRQ	{ IRQ_DC1176_CLCD }
+>  #define SCTL_IRQ	{ }
+>  #define PB1176_WATCHDOG_IRQ	{ IRQ_DC1176_WATCHDOG }
+> -#define PB1176_GPIO0_IRQ	{ IRQ_PB1176_GPIO0 }
+> +#define PB1176_GPIO0_IRQ	{ IRQ_DC1176_GPIO0 }
+>  #define GPIO1_IRQ	{ IRQ_PB1176_GPIO1 }
+>  #define PB1176_RTC_IRQ	{ IRQ_DC1176_RTC }
+>  #define SCI_IRQ		{ IRQ_PB1176_SCI }
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
