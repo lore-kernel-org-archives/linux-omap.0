@@ -1,64 +1,49 @@
-From: Greg KH <gregkh@suse.de>
+From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
  in non-DMA" added to tty tree
-Date: Thu, 26 Jan 2012 11:16:04 -0800
-Message-ID: <20120126191604.GA15516@suse.de>
-References: <13274430881471@kroah.org>
- <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
- <20120126042155.GA3185@suse.de>
- <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
+Date: Thu, 26 Jan 2012 12:34:50 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
+References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: govindraj.raja@ti.com, khilman@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:50029 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753743Ab2AZTew (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 14:34:52 -0500
+In-Reply-To: <20120126191604.GA15516@suse.de>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <gregkh@suse.de>
+Cc: khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Jan 25, 2012 at 09:31:53PM -0700, Paul Walmsley wrote:
-> On Wed, 25 Jan 2012, Greg KH wrote:
-> 
-> > On Wed, Jan 25, 2012 at 08:02:09PM -0700, Paul Walmsley wrote:
-> > > On Tue, 24 Jan 2012, gregkh@suse.de wrote:
-> > > > 
-> > > > This is a note to let you know that I've just added the patch titled
-> > > > 
-> > > >     tty: serial: OMAP: ensure FIFO levels are set correctly in non-DMA
-> > > > 
-> > > > to my tty git tree which can be found at
-> > > >     git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
-> > > > in the tty-linus branch.
-> > > 
-> > > If it's not too late, I was wondering if you could drop this patch and the 
-> > > subsequent one ("tty: serial: OMAP: transmit FIFO threshold interrupts 
-> > > don't wake the"), in favor of the second version of this series that was 
-> > > just posted at
-> > > 
-> > >    http://marc.info/?l=linux-arm-kernel&m=132754676814391&w=2
-> > > 
-> > > If it is too late, we'll deal with it in 3.4.
-> > 
-> > What is wrong with the patches that I applied?
-> 
-> A new workaround is used that reduces the number of interrupts to normal.  
-> The commit messages are improved since we have a better idea of what was 
-> wrong.  There is also a new patch (patch 3) for a power management 
-> regression in the driver.
->  
-> > How about a fix-up patch on top of what I have applied instead of whole 
-> > new ones?
-> 
-> That's fine, if that's your preference.  It will be several patches, 
-> though.  And about 75% of the previous series would be reverted, since a 
-> different workaround would be used.
-> 
-> Let me know if that is indeed what you'd like.
+On Thu, 26 Jan 2012, Greg KH wrote:
 
-Ok, I've just reverted both of these patches for now, please send new
-ones when you have them.
+> Ok, I've just reverted both of these patches for now, please send new
+> ones when you have them.
 
-thanks,
+Thanks.  A pull request is at the bottom of this message.  The patches 
+are also available from the mailing list archives here:
 
-greg k-h
+http://marc.info/?l=linux-arm-kernel&m=132754676014389&w=2
+http://marc.info/?l=linux-arm-kernel&m=132754677914395&w=2
+http://marc.info/?l=linux-arm-kernel&m=132754676014388&w=2
+
+
+- Paul
+
+The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
+
+  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
+
+are available in the git repository at:
+  git://git.pwsan.com/linux-2.6 omap_serial_fixes_3.3rc
+
+Paul Walmsley (3):
+      tty: serial: OMAP: use a 1-byte RX FIFO threshold in PIO mode
+      tty: serial: OMAP: block idle while the UART is transferring data in PIO mode
+      tty: serial: OMAP: wakeup latency constraint is in microseconds, not milliseconds
+
+ arch/arm/mach-omap2/serial.c     |    8 ++++----
+ drivers/tty/serial/omap-serial.c |   30 +++++++++++++++++++++++++-----
+ 2 files changed, 29 insertions(+), 9 deletions(-)
