@@ -1,38 +1,52 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Subject: Re: [PATCH 17/21] OMAP3430: SR: class3: restrict CPU to run on
-Date: Thu, 26 Jan 2012 15:33:05 +0400
-Message-ID: <4F2139F1.6060908@ru.mvista.com>
-References: <1327504583-13408-1-git-send-email-j-pihet@ti.com> <1327504583-13408-18-git-send-email-j-pihet@ti.com>
+From: Orjan Friberg <of@flatfrog.com>
+Subject: Re: CONFIG_PREEMPT and JFFS2 oops
+Date: Thu, 26 Jan 2012 12:54:00 +0100
+Message-ID: <4F213ED8.2020500@flatfrog.com>
+References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com> <4F2127B8.9000005@flatfrog.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.dev.rtsoft.ru ([213.79.90.226]:35174 "HELO
-	mail.dev.rtsoft.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751047Ab2AZLeO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 06:34:14 -0500
-In-Reply-To: <1327504583-13408-18-git-send-email-j-pihet@ti.com>
+Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:14801
+	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751667Ab2AZLyD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jan 2012 06:54:03 -0500
+In-Reply-To: <4F2127B8.9000005@flatfrog.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello.
+On 01/26/2012 11:15 AM, Orjan Friberg wrote:
+>>     problem to mysteriously disappear.  Doing this analysis should provide a
+>>     good clue as to where to look next.  I personally would be rather
+>>     suspicious of that
+>>
+>> 		ri->data_crc = cpu_to_je32(crc32(0, comprbuf, cdatalen));
+>>
+>>     in jffs2_write_inode_range().
+>
+> That is indeed the place where crc32 is called from .  I'll see it I can
+> track the use of comprbuf.
 
-On 25-01-2012 19:16, Jean Pihet wrote:
+Ok, so comprbuf comes from jffs2_compress and becomes NULL for some 
+reason (hence the oops).
 
-> From: Nishanth Menon<nm@ti.com>
+Initially I had CMODE_FAVOUR_LZO.  With that, things only worked with 
+PREEMPT_NONE.  However, when changing to CMODE_PRIORITY or CMODE_NONE 
+things do seem to work *with* PREEMPT.
 
-> Use SmartReflex AVS Class3 initialization only for OMAP343x family of
-> processors.
+For what it's worth (with PREEMPT on):
 
-> Change-Id: I660326bf265541ba4e0feb52853ff6cb9b293aed
+CMODE_FAVOUR_LZO with LZO disabled oopses.
+CMODE_FAVOUR_LZO with only ZLIB enabled oopses.
+CMODE_FAVOUR_LZO with ZLIB/LZO/RTIME/RUBIN disabled does not oops.
 
-    All patchjes from Nishanth Menon seem to contain this line. Please remove 
-it...
+Thus, the bug seems to be in the *selection* of compression algorithm 
+(when there is at least one algoritm in the list), rather than in the 
+specific compression algorithms themselves.
 
-> Signed-off-by: Nishanth Menon<nm@ti.com>
-> Signed-off-by: Jean Pihet<j-pihet@ti.com>
 
-WBR, Sergei
-
+-- 
+Orjan Friberg
+FlatFrog Laboratories AB
