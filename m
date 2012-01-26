@@ -1,41 +1,34 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Wed, 25 Jan 2012 20:02:09 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
-References: <13274430881471@kroah.org>
+Subject: Re: CONFIG_PREEMPT and JFFS2 oops
+Date: Wed, 25 Jan 2012 20:44:42 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201252043590.11174@utopia.booyaka.com>
+References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com> <alpine.DEB.2.00.1201251418310.5324@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <13274430881471@kroah.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: gregkh@suse.de
-Cc: govindraj.r@ti.com, khilman@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42848 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751607Ab2AZDon (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Jan 2012 22:44:43 -0500
+In-Reply-To: <alpine.DEB.2.00.1201251418310.5324@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Orjan Friberg <of@flatfrog.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-cc lists
+On Wed, 25 Jan 2012, Paul Walmsley wrote:
 
-Hi Greg
-
-On Tue, 24 Jan 2012, gregkh@suse.de wrote:
+> On Wed, 25 Jan 2012, Paul Walmsley wrote:
 > 
-> This is a note to let you know that I've just added the patch titled
+> > - Try changing all the spin_lock() calls to spin_lock_irqsave() and all 
+> >   the spin_unlock() calls to spin_unlock_irqrestore() to see if the 
+> >   preemption count is being prematurely decremented
 > 
->     tty: serial: OMAP: ensure FIFO levels are set correctly in non-DMA
-> 
-> to my tty git tree which can be found at
->     git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
-> in the tty-linus branch.
+> Just to clarify, I mean in the jffs2 code, not the entire kernel.
 
-If it's not too late, I was wondering if you could drop this patch and the 
-subsequent one ("tty: serial: OMAP: transmit FIFO threshold interrupts 
-don't wake the"), in favor of the second version of this series that was 
-just posted at
+... and it just occurred to me that this is a waste of time -- that change 
+shouldn't affect the preemption count.  So, please ignore that suggestion.  
+Sorry about that.
 
-   http://marc.info/?l=linux-arm-kernel&m=132754676814391&w=2
-
-If it is too late, we'll deal with it in 3.4.
-
-thanks,
 
 - Paul
