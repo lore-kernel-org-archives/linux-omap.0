@@ -1,41 +1,64 @@
-From: Orjan Friberg <of@flatfrog.com>
-Subject: Re: CONFIG_PREEMPT and JFFS2 oops
-Date: Thu, 26 Jan 2012 18:54:49 +0100
-Message-ID: <4F219369.3040208@flatfrog.com>
-References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com> <4F2127B8.9000005@flatfrog.com> <4F213ED8.2020500@flatfrog.com> <alpine.DEB.2.00.1201260801410.11174@utopia.booyaka.com> <OF645D734B.78418504-ONC1257991.005A101B-C1257991.005A7809@transmode.se> <alpine.DEB.2.00.1201260934190.11174@utopia.booyaka.com> <alpine.DEB.2.00.1201260936440.11174@utopia.booyaka.com> <OF4651C12F.58F763E5-ONC1257991.005C0D05-C1257991.005C4F23@transmode.se> <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Thu, 26 Jan 2012 11:16:04 -0800
+Message-ID: <20120126191604.GA15516@suse.de>
+References: <13274430881471@kroah.org>
+ <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
+ <20120126042155.GA3185@suse.de>
+ <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:6928
-	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751445Ab2AZRyx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Jan 2012 12:54:53 -0500
-In-Reply-To: <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-serial-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: Joakim Tjernlund <joakim.tjernlund@transmode.se>, David Woodhouse <dwmw2@infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@openedhand.com>
+Cc: govindraj.raja@ti.com, khilman@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-On 01/26/2012 05:57 PM, Paul Walmsley wrote:
->>
->> You just throw away best_buf here, don't you?
->
-> You're right.  It's even worse than that.  best_buf will contain the data
-> from the last compressor used.  And it will be prematurely freed.  Here's
-> a fixed version.
+On Wed, Jan 25, 2012 at 09:31:53PM -0700, Paul Walmsley wrote:
+> On Wed, 25 Jan 2012, Greg KH wrote:
+> 
+> > On Wed, Jan 25, 2012 at 08:02:09PM -0700, Paul Walmsley wrote:
+> > > On Tue, 24 Jan 2012, gregkh@suse.de wrote:
+> > > > 
+> > > > This is a note to let you know that I've just added the patch titled
+> > > > 
+> > > >     tty: serial: OMAP: ensure FIFO levels are set correctly in non-DMA
+> > > > 
+> > > > to my tty git tree which can be found at
+> > > >     git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
+> > > > in the tty-linus branch.
+> > > 
+> > > If it's not too late, I was wondering if you could drop this patch and the 
+> > > subsequent one ("tty: serial: OMAP: transmit FIFO threshold interrupts 
+> > > don't wake the"), in favor of the second version of this series that was 
+> > > just posted at
+> > > 
+> > >    http://marc.info/?l=linux-arm-kernel&m=132754676814391&w=2
+> > > 
+> > > If it is too late, we'll deal with it in 3.4.
+> > 
+> > What is wrong with the patches that I applied?
+> 
+> A new workaround is used that reduces the number of interrupts to normal.  
+> The commit messages are improved since we have a better idea of what was 
+> wrong.  There is also a new patch (patch 3) for a power management 
+> regression in the driver.
+>  
+> > How about a fix-up patch on top of what I have applied instead of whole 
+> > new ones?
+> 
+> That's fine, if that's your preference.  It will be several patches, 
+> though.  And about 75% of the previous series would be reverted, since a 
+> different workaround would be used.
+> 
+> Let me know if that is indeed what you'd like.
 
-I've tested this version for a while now with the same result as before.
+Ok, I've just reverted both of these patches for now, please send new
+ones when you have them.
 
-No oopses, no spinlock violations.  I copied a 2MB file from the SD/MMC 
-partition to the two JFFS2 partitions and md5summ'ed it a bunch of 
-times.  After that I unmounted and remounted both partitions.
+thanks,
 
-I do see a steady memory usage increase when doing continuous testing, 
-but whether that's normal I don't know.  I see at least some of it being 
-reclaimed when unmounting the JFFS2 partitions (grep jffs2 /proc/slabinfo).
-
--- 
-Orjan Friberg
-FlatFrog Laboratories AB
+greg k-h
