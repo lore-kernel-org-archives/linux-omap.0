@@ -1,54 +1,40 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 05/21] Revert "OMAP3+: PM: SR: add suspend/resume handlers"
-Date: Thu, 26 Jan 2012 08:31:57 +0100
-Message-ID: <CAORVsuUXnA1vQSPDAr6U6T29cHjizpR=N18UtawJRBYU_zDXBw@mail.gmail.com>
-References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
-	<1327504583-13408-6-git-send-email-j-pihet@ti.com>
-	<4F2041B1.6060907@ti.com>
-	<CAORVsuWu-pzTWzYp2=gqqPzRJQ1eBLu=12uNyEbVSZp407WUnA@mail.gmail.com>
-	<4F204916.7050504@ti.com>
-	<87zkdbehx5.fsf@ti.com>
-	<CAOMWX4eju6Zm5=DOyXkmRYjEvdnx+bGyNouEB01oG=zQPdyfyQ@mail.gmail.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: booting kenrel 3.2.1 on Pandaboard
+Date: Thu, 26 Jan 2012 08:36:50 +0100
+Message-ID: <CAAfyv36o-Gnc9t9wMystSxkEkZeUt0ks=gxFuPRLvwg8Lp0ErQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:45174 "EHLO
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:50751 "EHLO
 	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242Ab2AZHb6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 02:31:58 -0500
-Received: by vcbgb30 with SMTP id gb30so189736vcb.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 23:31:57 -0800 (PST)
-In-Reply-To: <CAOMWX4eju6Zm5=DOyXkmRYjEvdnx+bGyNouEB01oG=zQPdyfyQ@mail.gmail.com>
+	with ESMTP id S1751601Ab2AZHgv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 02:36:51 -0500
+Received: by vcbgb30 with SMTP id gb30so191261vcb.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 23:36:50 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi Nishant,
+Hi,
 
-On Wed, Jan 25, 2012 at 10:29 PM, Menon, Nishanth <nm@ti.com> wrote:
-> On Wed, Jan 25, 2012 at 12:49, Kevin Hilman <khilman@ti.com> wrote:
->> "Cousson, Benoit" <b-cousson@ti.com> writes:
->>
->>> On 1/25/2012 7:13 PM, Jean Pihet wrote:
->>
->> [...]
->>
->>>>>
->>>>> I guess that path #3 and #5 should just be removed.
->>>> I am ok with both options (keeping or removing the 2 commits), please
->>>> let me know what you prefer.
->>>
->>> I guess that removing both is the only acceptable solution
->>> anyway.
->>
->> Yes, please remove them both.
-> Also, please drop Change-IDs as well.. :)
-Done in the next revision!
+just want to ask if anybody try to boot 3.2.1 stable kernel on Pandaboard.
+I try yesterday but last message which I seen was uncompressing linux
+.... (also with enabled CONFIG_LL).
+Use codesourcery 2009q1 + config from here:
+http://elinux.org/images/7/71/Config.3.2.2
 
-Thanks for looking!
-Jean
+Thanks,
 
->
-> Regards,
-> Nishanth Menon
+marek
+
+-- 
+as simple and primitive as possible
+-------------------------------------------------
+Marek Belisko - OPEN-NANDRA
+Freelance Developer
+
+Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
+Tel: +421 915 052 184
+skype: marekwhite
+twitter: #opennandra
+web: http://open-nandra.com
