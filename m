@@ -1,67 +1,54 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Wed, 25 Jan 2012 21:31:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
-References: <13274430881471@kroah.org>
- <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
- <20120126042155.GA3185@suse.de>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 05/21] Revert "OMAP3+: PM: SR: add suspend/resume handlers"
+Date: Thu, 26 Jan 2012 08:31:57 +0100
+Message-ID: <CAORVsuUXnA1vQSPDAr6U6T29cHjizpR=N18UtawJRBYU_zDXBw@mail.gmail.com>
+References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
+	<1327504583-13408-6-git-send-email-j-pihet@ti.com>
+	<4F2041B1.6060907@ti.com>
+	<CAORVsuWu-pzTWzYp2=gqqPzRJQ1eBLu=12uNyEbVSZp407WUnA@mail.gmail.com>
+	<4F204916.7050504@ti.com>
+	<87zkdbehx5.fsf@ti.com>
+	<CAOMWX4eju6Zm5=DOyXkmRYjEvdnx+bGyNouEB01oG=zQPdyfyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120126042155.GA3185@suse.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Greg KH <gregkh@suse.de>
-Cc: khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:45174 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751242Ab2AZHb6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 02:31:58 -0500
+Received: by vcbgb30 with SMTP id gb30so189736vcb.19
+        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 23:31:57 -0800 (PST)
+In-Reply-To: <CAOMWX4eju6Zm5=DOyXkmRYjEvdnx+bGyNouEB01oG=zQPdyfyQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>, Kevin Hilman <khilman@ti.com>
 
-On Wed, 25 Jan 2012, Greg KH wrote:
+Hi Nishant,
 
-> On Wed, Jan 25, 2012 at 08:02:09PM -0700, Paul Walmsley wrote:
-> > On Tue, 24 Jan 2012, gregkh@suse.de wrote:
-> > > 
-> > > This is a note to let you know that I've just added the patch titled
-> > > 
-> > >     tty: serial: OMAP: ensure FIFO levels are set correctly in non-DMA
-> > > 
-> > > to my tty git tree which can be found at
-> > >     git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
-> > > in the tty-linus branch.
-> > 
-> > If it's not too late, I was wondering if you could drop this patch and the 
-> > subsequent one ("tty: serial: OMAP: transmit FIFO threshold interrupts 
-> > don't wake the"), in favor of the second version of this series that was 
-> > just posted at
-> > 
-> >    http://marc.info/?l=linux-arm-kernel&m=132754676814391&w=2
-> > 
-> > If it is too late, we'll deal with it in 3.4.
-> 
-> What is wrong with the patches that I applied?
+On Wed, Jan 25, 2012 at 10:29 PM, Menon, Nishanth <nm@ti.com> wrote:
+> On Wed, Jan 25, 2012 at 12:49, Kevin Hilman <khilman@ti.com> wrote:
+>> "Cousson, Benoit" <b-cousson@ti.com> writes:
+>>
+>>> On 1/25/2012 7:13 PM, Jean Pihet wrote:
+>>
+>> [...]
+>>
+>>>>>
+>>>>> I guess that path #3 and #5 should just be removed.
+>>>> I am ok with both options (keeping or removing the 2 commits), please
+>>>> let me know what you prefer.
+>>>
+>>> I guess that removing both is the only acceptable solution
+>>> anyway.
+>>
+>> Yes, please remove them both.
+> Also, please drop Change-IDs as well.. :)
+Done in the next revision!
 
-A new workaround is used that reduces the number of interrupts to normal.  
-The commit messages are improved since we have a better idea of what was 
-wrong.  There is also a new patch (patch 3) for a power management 
-regression in the driver.
- 
-> How about a fix-up patch on top of what I have applied instead of whole 
-> new ones?
+Thanks for looking!
+Jean
 
-That's fine, if that's your preference.  It will be several patches, 
-though.  And about 75% of the previous series would be reverted, since a 
-different workaround would be used.
-
-Let me know if that is indeed what you'd like.
-
-regards
-
-- Paul
+>
+> Regards,
+> Nishanth Menon
