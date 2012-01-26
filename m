@@ -1,20 +1,41 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 21/31] ARM: amba: realview: get rid of private platform
-	amba_device initializer
-Date: Thu, 26 Jan 2012 17:41:38 +0000
-Message-ID: <20120126174138.GB12731@n2100.arm.linux.org.uk>
-References: <20120124160044.GM19798@mudshark.cambridge.arm.com> <20120124162328.GA8517@n2100.arm.linux.org.uk> <20120124172600.GO19798@mudshark.cambridge.arm.com> <20120124214531.GB8517@n2100.arm.linux.org.uk> <20120125095800.GC21709@mudshark.cambridge.arm.com> <20120125102202.GU16726@n2100.arm.linux.org.uk> <20120125103906.GE21709@mudshark.cambridge.arm.com> <20120125110647.GV16726@n2100.arm.linux.org.uk> <20120126172527.GA12731@n2100.arm.linux.org.uk> <20120126173720.GA5536@mudshark.cambridge.arm.com>
+From: Orjan Friberg <of@flatfrog.com>
+Subject: Re: CONFIG_PREEMPT and JFFS2 oops
+Date: Thu, 26 Jan 2012 18:54:49 +0100
+Message-ID: <4F219369.3040208@flatfrog.com>
+References: <4F206213.9070704@flatfrog.com> <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com> <4F2127B8.9000005@flatfrog.com> <4F213ED8.2020500@flatfrog.com> <alpine.DEB.2.00.1201260801410.11174@utopia.booyaka.com> <OF645D734B.78418504-ONC1257991.005A101B-C1257991.005A7809@transmode.se> <alpine.DEB.2.00.1201260934190.11174@utopia.booyaka.com> <alpine.DEB.2.00.1201260936440.11174@utopia.booyaka.com> <OF4651C12F.58F763E5-ONC1257991.005C0D05-C1257991.005C4F23@transmode.se> <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-samsung-soc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120126173720.GA5536@mudshark.cambridge.arm.com>
-Sender: linux-samsung-soc-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: "linux-samsung-soc@vger.kernel.org" <linux-samsung-soc@vger.kernel.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, STEricsson <STEricsson_nomadik_linux@list.st.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:6928
+	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751445Ab2AZRyx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jan 2012 12:54:53 -0500
+In-Reply-To: <alpine.DEB.2.00.1201260953550.32667@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Joakim Tjernlund <joakim.tjernlund@transmode.se>, David Woodhouse <dwmw2@infradead.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@openedhand.com>
 
-On Thu, Jan 26, 2012 at 05:37:21PM +0000, Will Deacon wrote:
-> Acked-by: Will Deacon <will.deacon@arm.com>
+On 01/26/2012 05:57 PM, Paul Walmsley wrote:
+>>
+>> You just throw away best_buf here, don't you?
+>
+> You're right.  It's even worse than that.  best_buf will contain the data
+> from the last compressor used.  And it will be prematurely freed.  Here's
+> a fixed version.
 
-Thanks, I'll add that to patch 21 with the fix.
+I've tested this version for a while now with the same result as before.
+
+No oopses, no spinlock violations.  I copied a 2MB file from the SD/MMC 
+partition to the two JFFS2 partitions and md5summ'ed it a bunch of 
+times.  After that I unmounted and remounted both partitions.
+
+I do see a steady memory usage increase when doing continuous testing, 
+but whether that's normal I don't know.  I see at least some of it being 
+reclaimed when unmounting the JFFS2 partitions (grep jffs2 /proc/slabinfo).
+
+-- 
+Orjan Friberg
+FlatFrog Laboratories AB
