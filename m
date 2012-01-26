@@ -1,59 +1,76 @@
-From: Joakim Tjernlund <joakim.tjernlund@transmode.se>
-Subject: Re: CONFIG_PREEMPT and JFFS2 oops
-Date: Thu, 26 Jan 2012 12:19:52 +0100
-Message-ID: <OFC79FBFFE.8722488C-ONC1257991.003E14E3-C1257991.003E3E9C@transmode.se>
-References: <4F206213.9070704@flatfrog.com>
- <alpine.DEB.2.00.1201251351500.5324@utopia.booyaka.com>
- <4F2127B8.9000005@flatfrog.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] usb: musb: make modules behave better
+Date: Thu, 26 Jan 2012 13:22:43 +0200
+Message-ID: <20120126112242.GN15110@legolas.emea.dhcp.ti.com>
+References: <1327574749-18552-1-git-send-email-balbi@ti.com>
+ <4F21371F.7010403@gmail.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <4F2127B8.9000005@flatfrog.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
- <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Orjan Friberg <of@flatfrog.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xexMVKTdXPhpRiVT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:57747 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751386Ab2AZLWt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jan 2012 06:22:49 -0500
+Content-Disposition: inline
+In-Reply-To: <4F21371F.7010403@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Cc: Felipe Balbi <balbi@ti.com>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, davinci-linux-open-source@linux.davincidsp.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
->
-> On 01/25/2012 10:18 PM, Paul Walmsley wrote:
-> > - If your oopses are consistently in the same places, add some debugging
-> >    to that code to determine which line is actually causing the oops.
->
-> (CC:d linux-mtd.)
->
-> They are semi-consistent I'd say.  The oops trace I posted is by far the
-> most common.
->
-> >    problem to mysteriously disappear.  Doing this analysis should provide a
-> >    good clue as to where to look next.  I personally would be rather
-> >    suspicious of that
+
+--xexMVKTdXPhpRiVT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Thu, Jan 26, 2012 at 12:21:03PM +0100, Tasslehoff Kjappfot wrote:
+> On 01/26/2012 11:45 AM, Felipe Balbi wrote:
+> >There's really no point in doing all that
+> >initcall trickery when we can safely let
+> >udev handle module probing for us.
 > >
-> >       ri->data_crc = cpu_to_je32(crc32(0, comprbuf, cdatalen));
+> >Remove all of that trickery, by moving everybody
+> >to module_init() and making proper use of
+> >platform_device_register() rather than
+> >platform_device_probe().
 > >
-> >    in jffs2_write_inode_range().
->
-> That is indeed the place where crc32 is called from .  I'll see it I can
-> track the use of comprbuf.
->
-> > - Try turning on JFFS2 debugging and seeing if you can reproduce it.
-> >    The output might provide a clue as to where the problem would be.
->
+> >Signed-off-by: Felipe Balbi<balbi@ti.com>
+> >---
+> >
+>=20
+> Tested-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
 
-I would also turn off SUMMARY in JFFS2, I tried it long ago and it didn't make
-much of a difference.
+Thanks, I have added this line to the commit.
 
- Jocke
+--=20
+balbi
 
+--xexMVKTdXPhpRiVT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPITeCAAoJEIaOsuA1yqRE6dsQAIE4GFnLPNTiOtAqqTRLgMPd
+x5NYFpk7Zw9naUxd/g1LK887RUh/PoTFpd8L/r3uXkMejuxr1bwfFw/ikYxtzWcw
+XdU2m3dk9wC5u5hKEqE1WwwVqPQQsKpKFV8rrvk8Xn4m/8UY2+2TPpwySGhk/aNc
+y3GziFY4HeR7jGiT1LC/mQdyGAN6vYU2XFjII1xQVZiAYqEmYQLiWgFmB7vbSbmU
+XVwTastYbEv7vLbrL0seGgD/mHt1xM5rYCsGQvBgq6oS+WEnnHE9Pg7KfIp7RgWl
+2A52TXIbNyYuF5cQ4N2tpB6MarPV/09FEytwmBOLWOsMBF/XsgDHa0o2BPiZjgem
+bvjAjwWc0y7GrmHu+o3BOoO79l+oVuSzKdymYCqhFu2+nRtr/AxnkM/Svb1c+XFn
+i5k7GV3lU3SJzTZAG3D1t3ZQbapIUCyM0D27mV6wcDQ+owve+SVl3HwSQH07kqgx
+1YJ02xsCt0owWoyo4P9x2TyjSw3xHoY+WiiW0mLuxwFwSQUoiRGK414nEiXxZ4kk
+sI8undTVrR3zIOvjVolOb+SARz66B91cyCryLIyMezbOzYwPutiEpDnJ+oDXhS3S
+bcAYOHISNCFVH9163vAw4KnHu/XxIX4TW48xtBQ9MecKn0MoqmQu9sxZYyXK/cW5
+avxx/Kz9u7/jSgqCx79k
+=q7Hi
+-----END PGP SIGNATURE-----
+
+--xexMVKTdXPhpRiVT--
