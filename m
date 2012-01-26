@@ -1,40 +1,32 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: booting kenrel 3.2.1 on Pandaboard
-Date: Thu, 26 Jan 2012 08:36:50 +0100
-Message-ID: <CAAfyv36o-Gnc9t9wMystSxkEkZeUt0ks=gxFuPRLvwg8Lp0ErQ@mail.gmail.com>
+From: Orjan Friberg <of@flatfrog.com>
+Subject: Re: CONFIG_PREEMPT and JFFS2 oops
+Date: Thu, 26 Jan 2012 10:26:20 +0100
+Message-ID: <4F211C3C.3090004@flatfrog.com>
+References: <4F206213.9070704@flatfrog.com> <4F206DCE.3060609@flatfrog.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:50751 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601Ab2AZHgv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 02:36:51 -0500
-Received: by vcbgb30 with SMTP id gb30so191261vcb.19
-        for <linux-omap@vger.kernel.org>; Wed, 25 Jan 2012 23:36:50 -0800 (PST)
+Received: from hd5b91d02.k46641.sta.perspektivbredband.net ([213.185.29.2]:59603
+	"EHLO fg-dc1.flatfrog.local" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751048Ab2AZJ0X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Jan 2012 04:26:23 -0500
+In-Reply-To: <4F206DCE.3060609@flatfrog.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On 01/25/2012 10:02 PM, Orjan Friberg wrote:
+> That one-liner was boiled down from the following program, which still
+> oopses instantly:
 
-just want to ask if anybody try to boot 3.2.1 stable kernel on Pandaboard.
-I try yesterday but last message which I seen was uncompressing linux
-.... (also with enabled CONFIG_LL).
-Use codesourcery 2009q1 + config from here:
-http://elinux.org/images/7/71/Config.3.2.2
+The C program seems to work fine with CONFIG_PREEMPT_NONE=y.
 
-Thanks,
-
-marek
+If that is indeed the problem I guess it's reasonable that it worked
+better with PREEMPT_VOLUNTARY than PREEMPT because there are fewer
+preemtion points.
 
 -- 
-as simple and primitive as possible
--------------------------------------------------
-Marek Belisko - OPEN-NANDRA
-Freelance Developer
-
-Ruska Nova Ves 219 | Presov, 08005 Slovak Republic
-Tel: +421 915 052 184
-skype: marekwhite
-twitter: #opennandra
-web: http://open-nandra.com
+Orjan Friberg
+FlatFrog Laboratories AB
