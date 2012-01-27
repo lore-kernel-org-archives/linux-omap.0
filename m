@@ -1,59 +1,79 @@
-From: "Joe Woodward" <jw@terrafix.co.uk>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by
-	uBoot)?
-Date: Fri, 27 Jan 2012 11:45:52 +0000
-Message-ID: <WC20120127114552.660060@terrafix.co.uk>
-References: <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com> <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com> <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com> <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com> <WC20120120085711.330803@terrafix.co.uk>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Fri, 27 Jan 2012 12:13:11 +0000
+Message-ID: <20120127121311.GB2347@mudshark.cambridge.arm.com>
+References: <CACVXFVPnhSy_DbdK+ro8G78QjL2s6fBBq1Dvq-pmxJ20qA-ymA@mail.gmail.com>
+	<CAMsRxfJ2VrfFZevkxoZzSD5fZn1CErF68y0ny+MZi5r___ERJA@mail.gmail.com>
+	<CACVXFVNixEUKmDf2iYtdJVThkYg3UeZEurbFhrod5NZhDyKRpw@mail.gmail.com>
+	<CACVXFVNfc8fKe=6LVruj387-vQ85WHL7tAgZUT=9h6AQUM0X0Q@mail.gmail.com>
+	<CAMsRxfLcO0eM8mkKUZcR8X6SG-MMRFasRK7hQCT-3-NuKN_+1g@mail.gmail.com>
+	<CACVXFVPDdyKf5TffT4OMt+tKeB09TU2RcvcyBV45hAK0qw+GEg@mail.gmail.com>
+	<CAMsRxfJK9kcFkV=itJHpzuOXoZQkmjj1wh8Y789D3iOVstPMyQ@mail.gmail.com>
+	<CAMsRxfKPm0dEaKDeSZQ=6jkpo4MeS=0XF6TsCj+BV54WbW_LtA@mail.gmail.com>
+	<CACVXFVMgk7ykSX3GjzCNvUU0zMzNvGGuZMBpxBf7NRVk9EM7ig@mail.gmail.com>
+	<CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.keele.netcentral.co.uk ([212.57.235.197]:57570 "EHLO
-	smtp3.keele.netcentral.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754235Ab2A0Lqs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jan 2012 06:46:48 -0500
-In-Reply-To: <WC20120120085711.330803@terrafix.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <oprofile-list-bounces@lists.sourceforge.net>
+Content-Disposition: inline
+In-Reply-To: <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
+List-Post: <mailto:oprofile-list@lists.sourceforge.net>
+List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: oprofile-list-bounces@lists.sourceforge.net
+To: "eranian@gmail.com" <eranian@gmail.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Joe Woodward <jw@terrafix.co.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: Aneesh V <aneesh@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>
 
-Sorry for the shameless ping, but I'd really like to know the way forward here...
+Hi guys,
 
------Original Message-----
-From: "Joe Woodward" <jw@terrafix.co.uk>
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Catalin Marinas" <catalin.marinas@arm.com>
-Cc: "Aneesh V" <aneesh@ti.com>, "Russell King - ARM Linux" <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "linux-arm" <linux-arm-
-kernel@lists.infradead.org>
-Date: Fri, 20 Jan 2012 08:57:11 +0000
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
+On Sat, Jan 21, 2012 at 09:16:57AM +0000, stephane eranian wrote:
+> On Sat, Jan 21, 2012 at 4:25 AM, Ming Lei <ming.lei@canonical.com> wrote:
+> > On Fri, Jan 20, 2012 at 9:47 PM, stephane eranian
+> > <eranian@googlemail.com> wrote:
+> >> Started afresh from:
+> >>
+> >> 90a4c0f uml: fix compile for x86-64
+> >>
+> >> And added 3, 4, 5, 6:
+> >> 603c316 arm: omap4: pmu: support runtime pm
+> >> 4899fbd arm: omap4: support pmu
+> >> d737bb1 arm: omap4: create pmu device via hwmod
+> >> 4e0259e arm: omap4: hwmod: introduce emu hwmod
+> >>
+> >> Still no interrupts firing. I am using your .config file.
+> >>
+> >> My HW:
+> >> CPU implementer : 0x41
+> >> CPU architecture: 7
+> >> CPU variant =A0 =A0 : 0x1
+> >> CPU part =A0 =A0 =A0 =A0: 0xc09
+> >> CPU revision =A0 =A0: 2
+> >>
+> >> Hardware =A0 =A0 =A0 =A0: OMAP4 Panda board
+> >> Revision =A0 =A0 =A0 =A0: 0020
+> >>
+> >> There must be something I am missing here.
 
-> > 
-> > So I re-iterate that we need to have solution to this problem.
-> > 
-> 
-> ... I don't want to be a pain, but it seems to me that this dicussion
-> didn't reach a full conclussion?
-> 
-> I think it was left with the open options being:
-> 1) Leave the L2/outer cache enabled in the bootloader (not ideal and
-> may cause problems with future devices)
-> 2) Turn the L2/outer cache on for OMAP3 later in the kernel boot when
-> the device is known
-> 
-> Is there any concensus?
-> 
-> Cheers,
-> Joe
-> 
-> > Regards
-> > Santosh
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Did this lead anywhere in the end? It seems as though Ming Lei has a working
+setup but Stephane is unable to replicate it, despite applying the necessary
+patches and trying an updated bootloader.
 
+Drastic suggestion: Stephane, could you try a kernel *binary* from Ming Lei?
+If that works then you're probably just missing a patch. If it doesn't, then
+there must be something different between your boards.
 
+Will
+
+---------------------------------------------------------------------------=
+---
+Try before you buy =3D See our experts in action!
+The most comprehensive online learning library for Microsoft developers
+is just $99.99! Visual Studio, SharePoint, SQL - plus HTML5, CSS3, MVC3,
+Metro Style Apps, more. Free future releases when you subscribe now!
+http://p.sf.net/sfu/learndevnow-dev2
