@@ -1,168 +1,162 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 2/3] tty: serial: OMAP: block idle while the UART is
- transferring data in PIO mode
-Date: Fri, 27 Jan 2012 12:53:04 +0530
-Message-ID: <CAAL8m4yOJ3Kqam7X_-q+UWS=OKM6rOi8KQHRFqv1V=_qjSfWxw@mail.gmail.com>
-References: <20120126024903.31613.24730.stgit@dusk> <20120126025036.31613.67819.stgit@dusk>
+From: Axel Lin <axel.lin@gmail.com>
+Subject: [PATCH] video: convert drivers/video/* to use module_spi_driver()
+Date: Fri, 27 Jan 2012 16:02:54 +0800
+Message-ID: <1327651374.7772.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:48984 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751257Ab2A0HX0 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Jan 2012 02:23:26 -0500
-In-Reply-To: <20120126025036.31613.67819.stgit@dusk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Imre Deak <imre.deak@nokia.com>, Roger Quadros <roger.quadros@nokia.com>, Steve Sakoman <steve@sakoman.com>, Erik Gilling <konkers@android.com>, Gra Ignotas <notasas@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, govindraj.r@ti.com, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Alan Cox <alan@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-On Thu, Jan 26, 2012 at 8:20 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> Prevent OMAP UARTs from going idle while they are still transferring
-> data in PIO mode. =A0This works around an oversight in the OMAP UART
-> hardware present in OMAP34xx and earlier: an idle UART won't send a
-> wakeup when the TX FIFO threshold is reached. =A0This causes long del=
-ays
-> during data transmission when the MPU powerdomain enters a low-power
-> mode. =A0The MPU interrupt controller is not able to respond to
-> interrupts when it's in a low-power state, so the TX buffer is not
-> refilled until another wakeup event occurs.
->
-> This fix changes the erratum i291 DMA idle workaround. =A0Rather than
-> toggling between force-idle and no-idle, it will toggle between
-> smart-idle and no-idle. =A0The important part of the workaround is th=
-e
-> no-idle part, so this shouldn't result in any change in behavior.
->
-> This fix should work on all OMAP UARTs. =A0Future patches intended fo=
-r
-> the 3.4 merge window will make this workaround conditional on a
-> "feature" flag, and will use the OMAP36xx+ TX event wakeup support.
->
-> Thanks to Kevin Hilman <khilman@ti.com> for mentioning the erratum i2=
-91
-> workaround, which led to the development of this approach.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Govindraj.R <govindraj.raja@ti.com>
-> Cc: Greg Kroah-Hartman <gregkh@suse.de>
-> Cc: Alan Cox <alan@linux.intel.com>
-> Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+This patch converts the drivers in drivers/video/* to use the
+module_spi_driver() macro which makes the code smaller and a bit simple=
+r.
 
-Acked-by: Govindraj.R <govindraj.raja@ti.com>
-
-> ---
-> =A0arch/arm/mach-omap2/serial.c =A0 =A0 | =A0 =A08 ++++----
-> =A0drivers/tty/serial/omap-serial.c | =A0 =A07 +++++++
-> =A02 files changed, 11 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/seria=
-l.c
-> index 247d894..f590afc 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -107,18 +107,18 @@ static void omap_uart_set_noidle(struct platfor=
-m_device *pdev)
-> =A0 =A0 =A0 =A0omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDL=
-EMODE_NO);
-> =A0}
->
-> -static void omap_uart_set_forceidle(struct platform_device *pdev)
-> +static void omap_uart_set_smartidle(struct platform_device *pdev)
-> =A0{
-> =A0 =A0 =A0 =A0struct omap_device *od =3D to_omap_device(pdev);
->
-> - =A0 =A0 =A0 omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLE=
-MODE_FORCE);
-> + =A0 =A0 =A0 omap_hwmod_set_slave_idlemode(od->hwmods[0], HWMOD_IDLE=
-MODE_SMART);
-> =A0}
->
-> =A0#else
-> =A0static void omap_uart_enable_wakeup(struct platform_device *pdev, =
-bool enable)
-> =A0{}
-> =A0static void omap_uart_set_noidle(struct platform_device *pdev) {}
-> -static void omap_uart_set_forceidle(struct platform_device *pdev) {}
-> +static void omap_uart_set_smartidle(struct platform_device *pdev) {}
-> =A0#endif /* CONFIG_PM */
->
-> =A0#ifdef CONFIG_OMAP_MUX
-> @@ -349,7 +349,7 @@ void __init omap_serial_init_port(struct omap_boa=
-rd_data *bdata,
-> =A0 =A0 =A0 =A0omap_up.uartclk =3D OMAP24XX_BASE_BAUD * 16;
-> =A0 =A0 =A0 =A0omap_up.flags =3D UPF_BOOT_AUTOCONF;
-> =A0 =A0 =A0 =A0omap_up.get_context_loss_count =3D omap_pm_get_dev_con=
-text_loss_count;
-> - =A0 =A0 =A0 omap_up.set_forceidle =3D omap_uart_set_forceidle;
-> + =A0 =A0 =A0 omap_up.set_forceidle =3D omap_uart_set_smartidle;
-> =A0 =A0 =A0 =A0omap_up.set_noidle =3D omap_uart_set_noidle;
-> =A0 =A0 =A0 =A0omap_up.enable_wakeup =3D omap_uart_enable_wakeup;
-> =A0 =A0 =A0 =A0omap_up.dma_rx_buf_size =3D info->dma_rx_buf_size;
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
-ap-serial.c
-> index c9c9ba2..11fa156 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -136,6 +136,7 @@ static void serial_omap_enable_ms(struct uart_por=
-t *port)
-> =A0static void serial_omap_stop_tx(struct uart_port *port)
-> =A0{
-> =A0 =A0 =A0 =A0struct uart_omap_port *up =3D (struct uart_omap_port *=
-)port;
-> + =A0 =A0 =A0 struct omap_uart_port_info *pdata =3D up->pdev->dev.pla=
-tform_data;
->
-> =A0 =A0 =A0 =A0if (up->use_dma &&
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0up->uart_dma.tx_dma_channel !=3D OMAP_=
-UART_DMA_CH_FREE) {
-> @@ -158,6 +159,9 @@ static void serial_omap_stop_tx(struct uart_port =
-*port)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0serial_out(up, UART_IER, up->ier);
-> =A0 =A0 =A0 =A0}
->
-> + =A0 =A0 =A0 if (!up->use_dma && pdata->set_forceidle)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->set_forceidle(up->pdev);
-> +
-> =A0 =A0 =A0 =A0pm_runtime_mark_last_busy(&up->pdev->dev);
-> =A0 =A0 =A0 =A0pm_runtime_put_autosuspend(&up->pdev->dev);
-> =A0}
-> @@ -286,6 +290,7 @@ static inline void serial_omap_enable_ier_thri(st=
-ruct uart_omap_port *up)
-> =A0static void serial_omap_start_tx(struct uart_port *port)
-> =A0{
-> =A0 =A0 =A0 =A0struct uart_omap_port *up =3D (struct uart_omap_port *=
-)port;
-> + =A0 =A0 =A0 struct omap_uart_port_info *pdata =3D up->pdev->dev.pla=
-tform_data;
-> =A0 =A0 =A0 =A0struct circ_buf *xmit;
-> =A0 =A0 =A0 =A0unsigned int start;
-> =A0 =A0 =A0 =A0int ret =3D 0;
-> @@ -293,6 +298,8 @@ static void serial_omap_start_tx(struct uart_port=
- *port)
-> =A0 =A0 =A0 =A0if (!up->use_dma) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_get_sync(&up->pdev->dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0serial_omap_enable_ier_thri(up);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (pdata->set_noidle)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdata->set_noidle(up->p=
-dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_mark_last_busy(&up->pdev->d=
-ev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pm_runtime_put_autosuspend(&up->pdev->=
-dev);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Axel Lin <axel.lin@gmail.com>
+Cc: Imre Deak <imre.deak@nokia.com>
+Cc: Roger Quadros <roger.quadros@nokia.com>
+Cc: Steve Sakoman <steve@sakoman.com>
+Cc: Erik Gilling <konkers@android.com>
+Cc: Gra=C5=BEvydas Ignotas <notasas@gmail.com>
+---
+ drivers/video/omap/lcd_mipid.c                     |   14 +-----------=
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/video/omap2/displays/panel-acx565akm.c     |   13 +-----------=
+-
+ .../omap2/displays/panel-lgphilips-lb035q02.c      |   12 +-----------
+ .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   12 +-----------
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |   13 +-----------=
+-
+ 5 files changed, 5 insertions(+), 59 deletions(-)
+
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mi=
+pid.c
+index 8d546dd..e3880c4 100644
+--- a/drivers/video/omap/lcd_mipid.c
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -609,19 +609,7 @@ static struct spi_driver mipid_spi_driver =3D {
+ 	.remove	=3D __devexit_p(mipid_spi_remove),
+ };
+=20
+-static int __init mipid_drv_init(void)
+-{
+-	spi_register_driver(&mipid_spi_driver);
+-
+-	return 0;
+-}
+-module_init(mipid_drv_init);
+-
+-static void __exit mipid_drv_cleanup(void)
+-{
+-	spi_unregister_driver(&mipid_spi_driver);
+-}
+-module_exit(mipid_drv_cleanup);
++module_spi_driver(mipid_spi_driver);
+=20
+ MODULE_DESCRIPTION("MIPI display driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/v=
+ideo/omap2/displays/panel-acx565akm.c
+index 51a87e1..d26f37a 100644
+--- a/drivers/video/omap2/displays/panel-acx565akm.c
++++ b/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -809,18 +809,7 @@ static struct spi_driver acx565akm_spi_driver =3D =
+{
+ 	.remove	=3D __devexit_p(acx565akm_spi_remove),
+ };
+=20
+-static int __init acx565akm_init(void)
+-{
+-	return spi_register_driver(&acx565akm_spi_driver);
+-}
+-
+-static void __exit acx565akm_exit(void)
+-{
+-	spi_unregister_driver(&acx565akm_spi_driver);
+-}
+-
+-module_init(acx565akm_init);
+-module_exit(acx565akm_exit);
++module_spi_driver(acx565akm_spi_driver);
+=20
+ MODULE_AUTHOR("Nokia Corporation");
+ MODULE_DESCRIPTION("acx565akm LCD Driver");
+diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/=
+drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+index e0eb35b..0841cc2 100644
+--- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
++++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+@@ -264,16 +264,6 @@ static struct spi_driver lb035q02_spi_driver =3D {
+ 	.remove		=3D __devexit_p(lb035q02_panel_spi_remove),
+ };
+=20
+-static int __init lb035q02_panel_drv_init(void)
+-{
+-	return spi_register_driver(&lb035q02_spi_driver);
+-}
+-
+-static void __exit lb035q02_panel_drv_exit(void)
+-{
+-	spi_unregister_driver(&lb035q02_spi_driver);
+-}
++module_spi_driver(lb035q02_spi_driver);
+=20
+-module_init(lb035q02_panel_drv_init);
+-module_exit(lb035q02_panel_drv_exit);
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/=
+drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+index 0eb31ca..8b38b39 100644
+--- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
++++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+@@ -350,18 +350,8 @@ static struct spi_driver nec_8048_spi_driver =3D {
+ 	},
+ };
+=20
+-static int __init nec_8048_lcd_init(void)
+-{
+-	return spi_register_driver(&nec_8048_spi_driver);
+-}
+-
+-static void __exit nec_8048_lcd_exit(void)
+-{
+-	return spi_unregister_driver(&nec_8048_spi_driver);
+-}
++module_spi_driver(nec_8048_spi_driver);
+=20
+-module_init(nec_8048_lcd_init);
+-module_exit(nec_8048_lcd_exit);
+ MODULE_AUTHOR("Erik Gilling <konkers@android.com>");
+ MODULE_DESCRIPTION("NEC-nl8048hl11-01b Driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/driv=
+ers/video/omap2/displays/panel-tpo-td043mtea1.c
+index e6649aa..1d6b7fb 100644
+--- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+@@ -518,18 +518,7 @@ static struct spi_driver tpo_td043_spi_driver =3D =
+{
+ 	.remove	=3D __devexit_p(tpo_td043_spi_remove),
+ };
+=20
+-static int __init tpo_td043_init(void)
+-{
+-	return spi_register_driver(&tpo_td043_spi_driver);
+-}
+-
+-static void __exit tpo_td043_exit(void)
+-{
+-	spi_unregister_driver(&tpo_td043_spi_driver);
+-}
+-
+-module_init(tpo_td043_init);
+-module_exit(tpo_td043_exit);
++module_spi_driver(tpo_td043_spi_driver);
+=20
+ MODULE_AUTHOR("Gra=C5=BEvydas Ignotas <notasas@gmail.com>");
+ MODULE_DESCRIPTION("TPO TD043MTEA1 LCD Driver");
+--=20
+1.7.5.4
