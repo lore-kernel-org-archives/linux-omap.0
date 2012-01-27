@@ -1,102 +1,88 @@
-From: Stephen Warren <swarren@nvidia.com>
-Subject: RE: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
-Date: Fri, 27 Jan 2012 10:13:45 -0800
-Message-ID: <74CDBE0F657A3D45AFBB94109FB122FF178E123E7A@HQMAIL01.nvidia.com>
-References: <4F22DEF2.5000807@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL] omap fixes for v3.3-rc1
+Date: Fri, 27 Jan 2012 10:16:19 -0800
+Message-ID: <20120127181619.GB9339@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hqemgate03.nvidia.com ([216.228.121.140]:11210 "EHLO
-	hqemgate03.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134Ab2A0SNz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 13:13:55 -0500
-In-Reply-To: <4F22DEF2.5000807@ti.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:40588 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973Ab2A0SQW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 13:16:22 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Thomas Abraham <thomas.abraham@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Cousson, Benoit wrote at Friday, January 27, 2012 10:29 AM:
-> Add some basic helpers to retrieve a DMA controller device_node
-> and the DMA request line number.
-> 
-> For legacy reason another API will export the DMA request number
-> into a Linux resource of type IORESOURCE_DMA.
-> This API is usable only on system with an unique DMA controller.
+Hi Arnd & Olof,
 
-This binding looks reasonable to me; it's pretty much exactly what I
-was expecting the custom Tegra I2S binding might evolve into. A couple
-comments inline...
+Please pull omap fixes from:
 
-> diff --git a/Documentation/devicetree/bindings/dma/dma.txt
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
 
-> +* DMA client
-> +
-> +Client drivers should specify the DMA request numbers using a phandle to
-> +the controller + the DMA request number on that controller.
-> +
-> +Required properties:
-> +    - dma-request: List of pair phandle + dma-request per line
-> +    - dma-request-names: list of strings in the same order as the dma-request
-> +      in the dma-request property.
+Regards,
 
-I think property dma-request-names should be optional; some drives will
-simply request by index and hence the property won't be needed. Same as
-the common clock binding.
+Tony
 
-> diff --git a/drivers/of/dma.c b/drivers/of/dma.c
 
-> +int of_get_dma_request(struct device_node *np, int index,
-> +		       struct device_node **ctrl_np)
-> +{
-> +	int ret = -EINVAL;
-> +	struct of_phandle_args dma_spec;
-> +
-> +	ret = of_parse_phandle_with_args(np, "dma-request", "#dma-cells",
-> +					 index, &dma_spec);
-> +	if (ret) {
-> +		pr_debug("%s: can't parse dma property\n", __func__);
-> +		goto err0;
-> +	}
-> +
-> +	if (dma_spec.args_count > 0)
-> +		ret = dma_spec.args[0];
+The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
+  Linus Torvalds (1):
+        Linux 3.3-rc1
 
-Doesn't that force #dma-cells > 0? What about a DMA controller that only
-supports a single DMA request, in which case you might want #dma-cells==0?
+are available in the git repository at:
 
-Having an of_xlate for the controller would be useful here in general:
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
 
-Is a single int really enough here?
+Cousson, Benoit (1):
+      i2c: OMAP: Fix OMAP1 build error
 
-Some DMA controllers have N channels that can be used for arbitrary
-things. You may need to specify the DMA request once when allocating the
-channel, or maybe individual for each transfer if it can vary. Other
-controllers may need a special channel ID for each type of request. There
-are probably more cases I haven't thought of.
+Felipe Contreras (2):
+      ARM: OMAP2: fix omap3 touchbook kconfig warning
+      ARM: OMAP2: fix regulator warnings
 
-So in general, I think this API should return some kind of cookie that's
-meaningful to the DMA controller, and this should be provided back to
-the DMA controller with every API that might need it; channel allocation,
-DMA transfer request, etc.
+Grazvydas Ignotas (2):
+      ARM: OMAP: fix erroneous mmc2 clock change on mmc3 setup
+      ARM: OMAP: fix MMC2 loopback clock handling
 
-I suppose a controller may be able to represent that cookie in a single
-int, but perhaps not, e.g. if a binding needs #dma-cells=4 for some
-reason. Perhaps returning a void* here would be better, coupled with
-of_put_dma_request() to allow the controller to free it if required?
+Ilya Yanok (1):
+      ARM: OMAP3: hwmod data: register dss hwmods after dss_core
 
-That'd allow individual controller bindings to specify e.g. HW FIFO
-width, wrap, FIFO levels for HW flow control, ...
-(I vaguely recall that dmaengine addresses some of this already, but
-unfortunately I'm not very familiar with it yet)
+Julia Lawall (2):
+      ARM: OMAP2+: arch/arm/mach-omap2/devices.c: introduce missing kfree
+      ARM: OMAP2+: arch/arm/mach-omap2/smartreflex.c: add missing iounmap
 
-> diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+Paul Walmsley (2):
+      ARM: OMAP2+: io: fix compilation breakage on 2420-only configs
+      ARM: OMAP2/3: PRM: fix missing plat/irqs.h build breakage
 
-> +#ifdef CONFIG_OF_GPIO
+Peter Ujfalusi (1):
+      ARM: OMAP4: hwmod data: Add names for DMIC memory address space
 
-CONFIG_OF_DMA
+Tomi Valkeinen (2):
+      ARM: OMAP2+: hwmod data: split omap2/3 dispc hwmod class
+      ARM: OMAP3: hwmod data: add SYSC_HAS_ENAWAKEUP for dispc
 
--- 
-nvpublic
+Tony Lindgren (1):
+      Merge branch 'omap_fixes_a_3.3rc' of git://git.pwsan.com/linux-2.6 into fixes
 
+Vaibhav Hiremath (1):
+      ARM: OMAP2+: timer: Fix crash due to wrong arg to __omap_dm_timer_read_counter
+
+Yegor Yefremov (1):
+      ARM: OMAP2+: GPMC: fix device size setup
+
+ arch/arm/mach-omap2/Kconfig                        |   11 ++--
+ arch/arm/mach-omap2/devices.c                      |    1 +
+ arch/arm/mach-omap2/gpmc.c                         |    6 ++
+ arch/arm/mach-omap2/hsmmc.c                        |   16 +++---
+ arch/arm/mach-omap2/io.c                           |    4 +-
+ .../mach-omap2/omap_hwmod_2xxx_3xxx_ipblock_data.c |   21 --------
+ arch/arm/mach-omap2/omap_hwmod_2xxx_ipblock_data.c |   22 ++++++++
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c         |   54 +++++++++++++++++---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c         |    2 +
+ arch/arm/mach-omap2/prm2xxx_3xxx.c                 |    1 +
+ arch/arm/mach-omap2/smartreflex.c                  |    2 +-
+ arch/arm/mach-omap2/timer.c                        |    2 +-
+ drivers/i2c/busses/i2c-omap.c                      |    2 +-
+ 13 files changed, 98 insertions(+), 46 deletions(-)
