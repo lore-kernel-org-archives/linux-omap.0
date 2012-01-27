@@ -1,58 +1,86 @@
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: Re: [PATCH RFC 1/2] mtd : Prevent the NULL pointer access
-Date: Fri, 27 Jan 2012 11:08:01 -0800
-Message-ID: <CAN8TOE9a=OUcs-37RtDJE6ig-aZdFkSmfOrzL2PAyEgbQ+dJjw@mail.gmail.com>
-References: <1327306361-9803-1-git-send-email-shubhrajyoti@ti.com>
-	<1327306361-9803-2-git-send-email-shubhrajyoti@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: RFC 2: bq2415x_charger driver
+Date: Fri, 27 Jan 2012 19:22:47 +0000
+Message-ID: <20120127192247.GA19414@opensource.wolfsonmicro.com>
+References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
+ <3531484.T8K8kTguQQ@pali>
+ <20120127162455.GA18353@sirena.org.uk>
+ <9034282.U2YBGPDczd@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:64967 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab2A0TID convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 14:08:03 -0500
-Received: by werb13 with SMTP id b13so1510421wer.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jan 2012 11:08:01 -0800 (PST)
-In-Reply-To: <1327306361-9803-2-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9034282.U2YBGPDczd@pali>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Joerg Reisenweber <joerg@openmoko.org>, Sebastian Reichel <sre@debian.org>, ???????????? ???????????????? <freemangordon@abv.bg>
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Artem Bityutskiy <dedekind1@gmail.com>, David Woodhouse <dwmw2@infradead.org>
 
-On Mon, Jan 23, 2012 at 12:12 AM, Shubhrajyoti D <shubhrajyoti@ti.com> =
-wrote:
-> This patch intends to fix the null pointer access.
->
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
-> =A0drivers/mtd/mtdcore.c | =A0 =A05 +++--
-> =A01 files changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
-> index 6ae9ca0..2b3bda7 100644
-> --- a/drivers/mtd/mtdcore.c
-> +++ b/drivers/mtd/mtdcore.c
-> @@ -118,8 +118,9 @@ static void mtd_release(struct device *dev)
-> =A0static int mtd_cls_suspend(struct device *dev, pm_message_t state)
-> =A0{
-> =A0 =A0 =A0 =A0struct mtd_info *mtd =3D dev_get_drvdata(dev);
-> -
-> - =A0 =A0 =A0 return mtd_suspend(mtd);
-> + =A0 =A0 =A0 if (mtd)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return mtd_suspend(mtd);
-> + =A0 =A0 =A0 return 0;
-> =A0}
->
-> =A0static int mtd_cls_resume(struct device *dev)
 
-=46orgot this patch was here; this fix is also covered in
-l2-mtd-2.6.git, waiting for inclusion in the 3.3-rcX release cycle.
-Thanks for the work though!
+--17pEHd4RhPHOinZp
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Brian
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Jan 27, 2012 at 07:33:59PM +0100, Pali Roh=E1r wrote:
+> On Friday 27 January 2012 16:24:55 Mark Brown wrote:
+> > On Fri, Jan 27, 2012 at 03:40:43AM +0100, Pali Roh?r wrote:
+
+> > > +	struct i2c_client *client =3D to_i2c_client(bq->dev);
+
+> > You could save a bunch of code by moving all this I2C register I/O over
+> > to regmap.
+
+> regmap is not available in 2.6.28, so I cannot use it.
+
+You're submitting to mainline here...
+
+In any case, it's trivial to backport - just copy the directory and
+header back.
+
+> > > +static int bq2415x_set_weak_battery_voltage(struct bq2415x_device *b=
+q,
+> > > int mV) +{
+> > > +	int val =3D mV/100 + (mV%100 > 0 ? 1 : 0) - 34;
+
+> > This could probably be written more clearly?
+
+> How?
+
+Without the ternery operator and with more spaces, probably.
+
+> > > +		case BQ2415X_MODE_BOOST: /* Boost mode */
+> > > +			dev_info(bq->dev, "mode: Boost\n");
+
+> > Is dev_info() really appropriate for this stuff?
+
+> How can driver write info that user (or other driver) changed chip mode?
+> This should be reported in dmesg!
+
+Why does the user care?  There's an interface for querying if they want
+to know and you can generate power supply events when the mode changes.
+
+--17pEHd4RhPHOinZp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPIvmBAAoJEBus8iNuMP3d4jAP/RN7biOHnPMz+RgjcPGk/UEK
+JWfg3uxllNQTtzh34xVZ4Pk3YckQpGcHxkj5LW1nonQmBgwg9W9bs0MbsNQIsDUK
+Phrh4JstaMv78TLgfGAq5Sm76gnViqmFADYzaMjkqr5l1yE9lgUDqGGDNpqsG8BP
+3JkOeFy89fYvRjnvC5MkQC5F8HyRAYODO0lLahDwEXzh95haTkZyVrxl3V/eO8t4
+IzbOva2axS1BbmYTk4H+WfFFBgIFmujLw/tbDrhIa7sSYF92z7JkGdHvAXdJ3kGG
+x+aNpjBtrQ0AUu0D4W9HIQjuYIHmFkXOA+ovPrkTydhQdQaFUbXeRKMi66kHRfcY
+d24ETs4YBo/AfAemfKt9rHR7pVWIrnqFN5rBqf4puuddZ0UAvygoSUogceNBEz/H
+ZNnkiZo015lll0Wmpxw8iVAWcXMDqjX3JwtvUduHqgmsRSk1T0P+VWFid4Rt+wbB
+W8fNuOz3nicJyGhU1QhLDIku3g8QDg2aJTMiYxcCZMS5vP9jlJDLDu2qFr1kCNgj
+A4wLLdhBSc2kQRK/gIIyjxMO6A7nPNI708M+BnQsjviu2qGVXcfgrIsJvDN+eBmq
+A8kx3LnjTG8gC4xyVcPdsBfau9v0K8diHC4B1OnTspdtYcMlvc17XHHhWckadmFv
+Zb0zDs2r+CnOD4laVedw
+=zMnV
+-----END PGP SIGNATURE-----
+
+--17pEHd4RhPHOinZp--
