@@ -1,85 +1,33 @@
-From: Colin Cross <ccross@android.com>
-Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
-Date: Fri, 27 Jan 2012 09:32:17 -0800
-Message-ID: <CAMbhsRQYVXTZ2pX4mBrM6=SyGTqn_GY8xsW4rt_e21zerEzctA@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4F1929E9.7070707@linaro.org>
-	<CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
-	<CAKfTPtAsO8z_8AnR8zSGZ9cm_7orDNxB3r09JAFk+2jdezUVmQ@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [PATCH v4 - resend 11/13] ASoC: omap-abe-twl6040:
+ Use provided MCLK frequency from pdata
+Date: Fri, 27 Jan 2012 17:58:57 +0000
+Message-ID: <20120127175857.GA29026@sirena.org.uk>
+References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
+ <1327405950-6676-12-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:44856 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769Ab2A0RcS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 12:32:18 -0500
-Received: by iacb35 with SMTP id b35so2296087iac.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jan 2012 09:32:17 -0800 (PST)
-In-Reply-To: <CAKfTPtAsO8z_8AnR8zSGZ9cm_7orDNxB3r09JAFk+2jdezUVmQ@mail.gmail.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:44226 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957Ab2A0R7A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 12:59:00 -0500
+Content-Disposition: inline
+In-Reply-To: <1327405950-6676-12-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, linux-kernel@vger.kernel.org, Amit Kucheria <amit.kucheria@linaro.org>, linux-tegra@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, Arjan van de Ven <arjan@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Jan 27, 2012 at 12:54 AM, Vincent Guittot
-<vincent.guittot@linaro.org> wrote:
-> On 20 January 2012 21:40, Colin Cross <ccross@android.com> wrote:
->> On Fri, Jan 20, 2012 at 12:46 AM, Daniel Lezcano
->> <daniel.lezcano@linaro.org> wrote:
->>> Hi Colin,
->>>
->>> this patchset could be interesting to resolve in a generic way the =
-cpu
->>> dependencies.
->>> What is the status of this patchset ?
->>
->> I can't do much with it right now, because I don't have any devices
->> that can do SMP idle with a v3.2 kernel. =A0I've started working on =
-an
->> updated version that avoids the spinlock, but it might be a while
->> before I can test and post it. =A0I'm mostly looking for feedback on=
- the
->> approach taken in this patch, and whether it will be useful for othe=
-r
->> SoCs besides Tegra and OMAP4.
->>
->
-> Hi Colin,
->
-> In your patch, you put in safe state (WFI for most of platform) the
-> cpus that become idle and these cpus are woken up each time a new cpu
-> of the cluster becomes idle. Then, the cluster state is chosen and th=
-e
-> cpus enter the selected C-state. On ux500, we are using another
-> behavior for synchronizing =A0the cpus. The cpus are prepared to ente=
-r
-> the c-state that has been chosen by the governor and the last cpu,
-> that enters idle, chooses the final cluster state (according to cpus'
-> C-state). The main advantage of this solution is that you don't need
-> to wake other cpus to enter the C-state of a cluster. This can be
-> quite worth full when tasks mainly run on one cpu. Have you also thin=
-k
-> about such behavior when developing the coupled cpuidle driver ? It
-> could be interesting to add such behavior.
+On Tue, Jan 24, 2012 at 01:52:28PM +0200, Peter Ujfalusi wrote:
+> Avoid using hardwired configuration for MCLK frequency.
+> Different board design might use other MCLK frequency.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> ---
 
-Waking up the cpus that are in the safe state is not done just to
-choose the target state, it's done to allow the cpus to take
-themselves to the target low power state.  On ux500, are you saying
-you take the cpus directly from the safe state to a lower power state
-without ever going back to the active state?  I once implemented Tegra
-that way, and it required lots of nasty synchronization to prevent
-resetting the cpu at the same time that it was booting due to an
-interrupt, and I was later told that Tegra can't handle that sequence
-at all, although I haven't verified it yet.
+So, apparently this one isn't an actual resend!  Since you flagged the
+entire series up as a resend I didn't actually read it as I'd presumably
+already reviewed it.
 
-On platforms that can't turn the cpus off in a random order, or that
-can't take a cpu directly from the safe state to the target state,
-something like these coupled cpuidle patches are required.  On
-platforms that can, the low power modes can be implemented without
-these patches, although it is very hard to do without race conditions.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
