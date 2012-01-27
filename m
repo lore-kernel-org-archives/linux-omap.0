@@ -1,162 +1,81 @@
-From: Axel Lin <axel.lin@gmail.com>
-Subject: [PATCH] video: convert drivers/video/* to use module_spi_driver()
-Date: Fri, 27 Jan 2012 16:02:54 +0800
-Message-ID: <1327651374.7772.1.camel@phoenix>
+From: Vincent Guittot <vincent.guittot-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
+Date: Fri, 27 Jan 2012 09:54:19 +0100
+Message-ID: <CAKfTPtAsO8z_8AnR8zSGZ9cm_7orDNxB3r09JAFk+2jdezUVmQ@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+	<4F1929E9.7070707@linaro.org>
+	<CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Imre Deak <imre.deak@nokia.com>, Roger Quadros <roger.quadros@nokia.com>, Steve Sakoman <steve@sakoman.com>, Erik Gilling <konkers@android.com>, Gra Ignotas <notasas@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
+Cc: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch converts the drivers in drivers/video/* to use the
-module_spi_driver() macro which makes the code smaller and a bit simple=
-r.
+On 20 January 2012 21:40, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org> wrote:
+> On Fri, Jan 20, 2012 at 12:46 AM, Daniel Lezcano
+> <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+>> Hi Colin,
+>>
+>> this patchset could be interesting to resolve in a generic way the c=
+pu
+>> dependencies.
+>> What is the status of this patchset ?
+>
+> I can't do much with it right now, because I don't have any devices
+> that can do SMP idle with a v3.2 kernel. =A0I've started working on a=
+n
+> updated version that avoids the spinlock, but it might be a while
+> before I can test and post it. =A0I'm mostly looking for feedback on =
+the
+> approach taken in this patch, and whether it will be useful for other
+> SoCs besides Tegra and OMAP4.
+>
 
-Signed-off-by: Axel Lin <axel.lin@gmail.com>
-Cc: Imre Deak <imre.deak@nokia.com>
-Cc: Roger Quadros <roger.quadros@nokia.com>
-Cc: Steve Sakoman <steve@sakoman.com>
-Cc: Erik Gilling <konkers@android.com>
-Cc: Gra=C5=BEvydas Ignotas <notasas@gmail.com>
----
- drivers/video/omap/lcd_mipid.c                     |   14 +-----------=
---
- drivers/video/omap2/displays/panel-acx565akm.c     |   13 +-----------=
--
- .../omap2/displays/panel-lgphilips-lb035q02.c      |   12 +-----------
- .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   12 +-----------
- .../video/omap2/displays/panel-tpo-td043mtea1.c    |   13 +-----------=
--
- 5 files changed, 5 insertions(+), 59 deletions(-)
+Hi Colin,
 
-diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mi=
-pid.c
-index 8d546dd..e3880c4 100644
---- a/drivers/video/omap/lcd_mipid.c
-+++ b/drivers/video/omap/lcd_mipid.c
-@@ -609,19 +609,7 @@ static struct spi_driver mipid_spi_driver =3D {
- 	.remove	=3D __devexit_p(mipid_spi_remove),
- };
-=20
--static int __init mipid_drv_init(void)
--{
--	spi_register_driver(&mipid_spi_driver);
--
--	return 0;
--}
--module_init(mipid_drv_init);
--
--static void __exit mipid_drv_cleanup(void)
--{
--	spi_unregister_driver(&mipid_spi_driver);
--}
--module_exit(mipid_drv_cleanup);
-+module_spi_driver(mipid_spi_driver);
-=20
- MODULE_DESCRIPTION("MIPI display driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers/v=
-ideo/omap2/displays/panel-acx565akm.c
-index 51a87e1..d26f37a 100644
---- a/drivers/video/omap2/displays/panel-acx565akm.c
-+++ b/drivers/video/omap2/displays/panel-acx565akm.c
-@@ -809,18 +809,7 @@ static struct spi_driver acx565akm_spi_driver =3D =
-{
- 	.remove	=3D __devexit_p(acx565akm_spi_remove),
- };
-=20
--static int __init acx565akm_init(void)
--{
--	return spi_register_driver(&acx565akm_spi_driver);
--}
--
--static void __exit acx565akm_exit(void)
--{
--	spi_unregister_driver(&acx565akm_spi_driver);
--}
--
--module_init(acx565akm_init);
--module_exit(acx565akm_exit);
-+module_spi_driver(acx565akm_spi_driver);
-=20
- MODULE_AUTHOR("Nokia Corporation");
- MODULE_DESCRIPTION("acx565akm LCD Driver");
-diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c b/=
-drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-index e0eb35b..0841cc2 100644
---- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-+++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
-@@ -264,16 +264,6 @@ static struct spi_driver lb035q02_spi_driver =3D {
- 	.remove		=3D __devexit_p(lb035q02_panel_spi_remove),
- };
-=20
--static int __init lb035q02_panel_drv_init(void)
--{
--	return spi_register_driver(&lb035q02_spi_driver);
--}
--
--static void __exit lb035q02_panel_drv_exit(void)
--{
--	spi_unregister_driver(&lb035q02_spi_driver);
--}
-+module_spi_driver(lb035q02_spi_driver);
-=20
--module_init(lb035q02_panel_drv_init);
--module_exit(lb035q02_panel_drv_exit);
- MODULE_LICENSE("GPL");
-diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c b/=
-drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-index 0eb31ca..8b38b39 100644
---- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-+++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
-@@ -350,18 +350,8 @@ static struct spi_driver nec_8048_spi_driver =3D {
- 	},
- };
-=20
--static int __init nec_8048_lcd_init(void)
--{
--	return spi_register_driver(&nec_8048_spi_driver);
--}
--
--static void __exit nec_8048_lcd_exit(void)
--{
--	return spi_unregister_driver(&nec_8048_spi_driver);
--}
-+module_spi_driver(nec_8048_spi_driver);
-=20
--module_init(nec_8048_lcd_init);
--module_exit(nec_8048_lcd_exit);
- MODULE_AUTHOR("Erik Gilling <konkers@android.com>");
- MODULE_DESCRIPTION("NEC-nl8048hl11-01b Driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/driv=
-ers/video/omap2/displays/panel-tpo-td043mtea1.c
-index e6649aa..1d6b7fb 100644
---- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-+++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
-@@ -518,18 +518,7 @@ static struct spi_driver tpo_td043_spi_driver =3D =
-{
- 	.remove	=3D __devexit_p(tpo_td043_spi_remove),
- };
-=20
--static int __init tpo_td043_init(void)
--{
--	return spi_register_driver(&tpo_td043_spi_driver);
--}
--
--static void __exit tpo_td043_exit(void)
--{
--	spi_unregister_driver(&tpo_td043_spi_driver);
--}
--
--module_init(tpo_td043_init);
--module_exit(tpo_td043_exit);
-+module_spi_driver(tpo_td043_spi_driver);
-=20
- MODULE_AUTHOR("Gra=C5=BEvydas Ignotas <notasas@gmail.com>");
- MODULE_DESCRIPTION("TPO TD043MTEA1 LCD Driver");
---=20
-1.7.5.4
+In your patch, you put in safe state (WFI for most of platform) the
+cpus that become idle and these cpus are woken up each time a new cpu
+of the cluster becomes idle. Then, the cluster state is chosen and the
+cpus enter the selected C-state. On ux500, we are using another
+behavior for synchronizing  the cpus. The cpus are prepared to enter
+the c-state that has been chosen by the governor and the last cpu,
+that enters idle, chooses the final cluster state (according to cpus'
+C-state). The main advantage of this solution is that you don't need
+to wake other cpus to enter the C-state of a cluster. This can be
+quite worth full when tasks mainly run on one cpu. Have you also think
+about such behavior when developing the coupled cpuidle driver ? It
+could be interesting to add such behavior.
+
+Regards,
+Vincent
+
+>> Did you have the opportunity to measure the power consumption with a=
+nd
+>> without this patchset ?
+>
+> Power consumption will be very dependent on the specific SoC in
+> question. =A0The most important factors are the power savings of the
+> independent cpuidle state (normally WFI) vs. the hotplug state
+> (normally 1 cpu in OFF), and the workload being tested.
+>
+> On a very idle system, these patches result in the same total power a=
+s
+> hotplugging one cpu and letting the other idle normally. =A0On a 25%
+> busy system, you might see a slight increase in power, as the best
+> independent cpuidle state might be WFI, vs 1 cpu in OFF mode in
+> hotplug. =A0On OMAP4, that difference is small, on the order of 10 mW=
+=2E
+> Once you hit the threshold where a hotplug governor would have
+> hotplugged in the second cpu (lets say 40%), the savings from these
+> patches are enormous, as you can hit the lowest power state up to 60%
+> of the time, where the hotplug solution would never be going below WF=
+I
+> on both cpus. =A0On OMAP4, that can be well over 100 mW.
+> _______________________________________________
+> linux-pm mailing list
+> linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+> https://lists.linuxfoundation.org/mailman/listinfo/linux-pm
