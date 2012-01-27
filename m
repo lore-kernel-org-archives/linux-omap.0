@@ -1,59 +1,94 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 1/1] omap3: PM: MPU and CORE should stay awake if there
- is CAM domain ACTIVE
-Date: Fri, 27 Jan 2012 16:03:49 +0200
-Message-ID: <20120127140349.GE15297@valkosipuli.localdomain>
-References: <1327658401-28441-1-git-send-email-sakari.ailus@iki.fi>
- <CAORVsuWYvvZ_kp=9OTYMjDBibbsOSuBmkUU+u9mb_hKpL80d1Q@mail.gmail.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Fri, 27 Jan 2012 14:05:53 +0000
+Message-ID: <yw1xsjj1me9q.fsf@unicorn.mansr.com>
+References: <CAMsRxfLcO0eM8mkKUZcR8X6SG-MMRFasRK7hQCT-3-NuKN_+1g@mail.gmail.com>
+	<CACVXFVPDdyKf5TffT4OMt+tKeB09TU2RcvcyBV45hAK0qw+GEg@mail.gmail.com>
+	<CAMsRxfJK9kcFkV=itJHpzuOXoZQkmjj1wh8Y789D3iOVstPMyQ@mail.gmail.com>
+	<CAMsRxfKPm0dEaKDeSZQ=6jkpo4MeS=0XF6TsCj+BV54WbW_LtA@mail.gmail.com>
+	<CACVXFVMgk7ykSX3GjzCNvUU0zMzNvGGuZMBpxBf7NRVk9EM7ig@mail.gmail.com>
+	<CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
+	<20120127121311.GB2347@mudshark.cambridge.arm.com>
+	<yw1x1uqlnw1o.fsf@unicorn.mansr.com>
+	<20120127132826.GD2347@mudshark.cambridge.arm.com>
+	<yw1xwr8dmf56.fsf@unicorn.mansr.com>
+	<20120127135646.GE2347@mudshark.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:52380 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984Ab2A0ODy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 09:03:54 -0500
-Content-Disposition: inline
-In-Reply-To: <CAORVsuWYvvZ_kp=9OTYMjDBibbsOSuBmkUU+u9mb_hKpL80d1Q@mail.gmail.com>
+Received: from unicorn.mansr.com ([78.86.181.103]:51298 "EHLO
+	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755221Ab2A0OFy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Jan 2012 09:05:54 -0500
+In-Reply-To: <20120127135646.GE2347@mudshark.cambridge.arm.com> (Will Deacon's
+	message of "Fri, 27 Jan 2012 13:56:46 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, khilman@ti.com
+To: Will Deacon <will.deacon@arm.com>
+Cc: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "eranian@gmail.com" <eranian@gmail.com>, "Cousson, Benoit" <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Jean,
+Will Deacon <will.deacon@arm.com> writes:
 
-Thanks for you quick reply.
+> On Fri, Jan 27, 2012 at 01:47:01PM +0000, M=E5ns Rullg=E5rd wrote:
+>> Will Deacon <will.deacon@arm.com> writes:
+>>=20
+>> > Mans,
+>> >
+>> > On Fri, Jan 27, 2012 at 12:56:35PM +0000, M=E5ns Rullg=E5rd wrote:
+>> >> Will Deacon <will.deacon@arm.com> writes:
+>> >> > Did this lead anywhere in the end? It seems as though Ming Lei =
+has a working
+>> >> > setup but Stephane is unable to replicate it, despite applying =
+the necessary
+>> >> > patches and trying an updated bootloader.
+>> >>=20
+>> >> With the patches listed above plus the one in [1], I get PMU inte=
+rrupts.
+>> >> However, unless I restrict the profiled process to one CPU
+>> >> (taskset 1 perf record ...), I get a panic in armpmu_event_update=
+() with
+>> >> the 'event' argument being null when called from armv7pmu_handle_=
+irq().
+>> >>=20
+>> >> [1] http://article.gmane.org/gmane.linux.ports.arm.omap/69696
+>> >
+>> > Great, thanks for trying this out. Which version of the kernel wer=
+e you
+>> > using? I fixed a bunch of NULL pointer derefs. during the 3.2 wind=
+ow, but if
+>> > you were using an -rc kernel you have have hit one of them.
+>>=20
+>> This was with the Linaro tilt-3.2 kernel from
+>> git://git.linaro.org/landing-teams/working/ti/kernel.git, commit
+>> 73e2c294444f209d281f7cd10b52b53b087e74f1.  Maybe one of the many pat=
+ches
+>> it has on top of 3.2 is to blame.
+>
+> Perhaps, or (more likely) the interrupt affinity for the CTI isn't wo=
+rking
+> properly and the interrupt is always delivered to CPU0. I'll keep thi=
+s in
+> mind in case we get any more reports like this.
 
-On Fri, Jan 27, 2012 at 12:06:37PM +0100, Jean Pihet wrote:
-> Hi,
->=20
-> On Fri, Jan 27, 2012 at 11:00 AM, Sakari Ailus <sakari.ailus@iki.fi> =
-wrote:
-> > MPU and CORE should stay awake if there is CAM domain ACTIVE. This =
-is
-> > because that module doesn't have wake-up capability.
-> >
-> > The original patch was written by Jouni H=F6gander in 2008 and this=
- is the
-> > last part left of it which is not in upstream yet.
-> >
-> > I wonder if the approach taken in the patch is valid these days;
-> > nevertheless it seems to do the job...
-> The code in the function omap3_enter_idle_bm from
-> arch/arm/mach-omap2/cpuidle34xx.c is doing exactly the same thing: it
-> is choosing the cpuidle safe_state if the CAM power domain is active.
->=20
-> Please note that this only works if CPU_IDLE is selected, which is
-> needed to reach any decent low power mode.
+It works whichever CPU I pin it to (i.e. taskset 2 also works).
 
-I didn't have CONFIG_CPU_IDLE selected --- it works if I enable it. But
-still it should work even if it's disabled I guess.
+=46WIW, my /proc/interrupts looks like this when perf is running:
 
-Kind regards,
+           CPU0       CPU1
+ 29:   25238127    1409121       GIC  twd
+ 33:    4586197          0       GIC  arm-pmu
+ 34:          0    4744550       GIC  arm-pmu
+ 39:          0          0       GIC  TWL6030-PIH
+ 41:          0          0       GIC  l3-dbg-irq
+ 42:          0          0       GIC  l3-app-irq
+ 43:          0          0       GIC  prcm
+ 44:        141          0       GIC  DMA
+[...]
 
 --=20
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+M=E5ns Rullg=E5rd
+mans@mansr.com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
