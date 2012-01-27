@@ -1,173 +1,70 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: RFC 2: bq2415x_charger driver
-Date: Fri, 27 Jan 2012 16:24:55 +0000
-Message-ID: <20120127162455.GA18353@sirena.org.uk>
-References: <1323124541-7590-1-git-send-email-felipe.contreras@nokia.com>
- <1677656.4d3iQHNZjX@pali-elitebook>
- <3531484.T8K8kTguQQ@pali>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Fri, 27 Jan 2012 16:59:41 +0000
+Message-ID: <20120127165941.GK2347@mudshark.cambridge.arm.com>
+References: <CAMsRxfKPm0dEaKDeSZQ=6jkpo4MeS=0XF6TsCj+BV54WbW_LtA@mail.gmail.com>
+	<CACVXFVMgk7ykSX3GjzCNvUU0zMzNvGGuZMBpxBf7NRVk9EM7ig@mail.gmail.com>
+	<CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
+	<20120127121311.GB2347@mudshark.cambridge.arm.com>
+	<yw1x1uqlnw1o.fsf@unicorn.mansr.com>
+	<20120127132826.GD2347@mudshark.cambridge.arm.com>
+	<CACVXFVPHpmPX9OdeYzzWjQ-qqs=9oYbL_og-_xJA2ypYNu0nRA@mail.gmail.com>
+	<CAMsRxfJOAh1V7sMWxqCXADDB_eSAuxop1iYAGqXvLC_74Pfz1A@mail.gmail.com>
+	<20120127155454.GH2347@mudshark.cambridge.arm.com>
+	<CAMsRxfK-SFEyP5+jyXDyWSQPJ2KO_1YQM_yZdtwV0NJu+idqHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <oprofile-list-bounces@lists.sourceforge.net>
 Content-Disposition: inline
-In-Reply-To: <3531484.T8K8kTguQQ@pali>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pali Roh?r <pali.rohar@gmail.com>
-Cc: linux-main <linux-kernel@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>, Samuel Ortiz <sameo@linux.intel.com>, Aliaksei Katovich <aliaksei.katovich@nokia.com>, Vladimir Zapolskiy <vz@mleia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Anton Vorontsov <cbouatmailru@gmail.com>, Joerg Reisenweber <joerg@openmoko.org>, Sebastian Reichel <sre@debian.org>, ???????????? ???????????????? <freemangordon@abv.bg>
+In-Reply-To: <CAMsRxfK-SFEyP5+jyXDyWSQPJ2KO_1YQM_yZdtwV0NJu+idqHA@mail.gmail.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
+List-Post: <mailto:oprofile-list@lists.sourceforge.net>
+List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: oprofile-list-bounces@lists.sourceforge.net
+To: "eranian@gmail.com" <eranian@gmail.com>
+Cc: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "Cousson,
+	Benoit" <b-cousson@ti.com>, Ming Lei <ming.lei@canonical.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Jan 27, 2012 at 03:40:43AM +0100, Pali Roh?r wrote:
+On Fri, Jan 27, 2012 at 03:57:25PM +0000, stephane eranian wrote:
+> On Fri, Jan 27, 2012 at 4:54 PM, Will Deacon <will.deacon@arm.com> wrote:
+> >
+> > Ok. Note that on ARM the PMU generates a standard IRQ (i.e. not an NMI) so
+> > you may miss samples if they occur during critical kernel sections (and if
+> > you look at a profile, spin_unlock_irqrestore will be quite high).
+> >
+> But I am only running a user space noploop. So it spends 99% in user space, no
+> critical section.
 
-> +static char *bq2415x_rev_name[] = {
-> +	"1.0",
-> +	"1.1",
-> +	"1.2",
-> +	"1.3",
-> +	"1.4",
-> +	"1.5",
-> +	"1.6",
-> +	"1.7",
+and your result is almost 99% of the way there :)
 
-Looks like you can just store this as a number?
+There are also potential overheads from the PMU interrupts themselves, since
+there is a latency between overflow and taking the interrupt and then
+between there are actually reading the counter (they continue to count after
+overflow).
 
-> +struct bq2415x_device {
-> +	struct device *dev;
-> +	struct bq2415x_platform_data *platform_data;
+That said, if you see any bugs in the code please do shout!
 
-You should take a copy of the platform data so it can be marked
-initdata.
+> > A7 and A15 have the ability to filter counters based on privilege level, so
+> > you can get more accurate userspace counts there.
+> 
+> Ok, that's better. Need to update libpfm4 for A15 with priv levels then!
 
-> +static DEFINE_MUTEX(bq2415x_id_mutex);
-> +static DEFINE_MUTEX(bq2415x_timer_mutex);
-> +static DEFINE_MUTEX(bq2415x_type_mutex);
-> +static DEFINE_MUTEX(bq2415x_i2c_mutex);
+How do you handle that in libpfm4? On ARM, the event encodings remain the same,
+you just need to set some extra bits to determine which levels are included or
+excluded (you can do this with the perf tool by using the :{u,k,h} suffix on an
+event description).
 
-Why are these global?
+Will
 
-> +/* i2c read functions */
-> +
-> +static int bq2415x_i2c_read(struct bq2415x_device *bq, u8 reg)
-> +{
-> +	struct i2c_client *client = to_i2c_client(bq->dev);
-
-You could save a bunch of code by moving all this I2C register I/O over
-to regmap.
-
-> +		case BQ2415X_BOOST_MODE_ENABLE:
-> +			return bq2415x_i2c_write_bit(bq, BQ2415X_REG_CONTROL, 1, BQ2415X_BIT_OPA_MODE);
-
-Keep things under 80 columns - see CodingStyle.
-
-> +	if (client->addr == 0x6b) {
-
-> +	} else if (client->addr == 0x6a) {
-
-This looks like a switch statement.
-
-> +	switch (chip) {
-> +		case BQUNKNOWN:
-> +			return bq2415x_rev_name[8];
-
-Magic numbers ahoy...
-
-> +static int bq2415x_vender_code(struct bq2415x_device *bq)
-> +{
-> +	int ret = bq2415x_exec_command(bq, BQ2415X_VENDER_CODE);
-> +	if (ret < 0)
-> +		return 0;
-> +	else /* convert to binary */
-> +		return (ret & 0x1) + ((ret >> 1) & 0x1) * 10 + ((ret >> 2) & 0x1) * 100;
-
-Just print it as hex?
-
-> +static int bq2415x_set_weak_battery_voltage(struct bq2415x_device *bq, int mV)
-> +{
-> +	int val = mV/100 + (mV%100 > 0 ? 1 : 0) - 34;
-
-This could probably be written more clearly?
-
-> +static int bq2415x_get_charge_current_sense_voltage(struct bq2415x_device *bq)
-> +{
-> +	/* TODO */
-> +	return -ENOSYS;
-> +}
-
-Just don't provide things that aren't there, the frameworks should do
-appropriate handling.
-
-> +static enum power_supply_property bq2415x_power_supply_props[] = {
-> +	/* TODO */
-> +	POWER_SUPPLY_PROP_STATUS,
-> +	POWER_SUPPLY_PROP_MODEL_NAME,
-
-TODO?
-
-> +static int bq2415x_power_supply_set_mode(struct bq2415x_device *bq, enum bq2415x_mode mode)
-> +{
-> +	int ret = 0;
-> +
-> +	switch (mode) {
-> +
-> +		case BQ2415X_MODE_NONE: /* N/A */
-
-CodingStyle for the indentation.
-
-> +			if (mode == BQ2415X_MODE_NONE) {
-> +				dev_info(bq->dev, "mode: N/A\n");
-> +				ret = bq2415x_set_current_limit(bq, 100);
-> +			} else if (mode == BQ2415X_MODE_HOST_CHARGER) {
-> +				dev_info(bq->dev, "mode: Host/HUB charger\n");
-> +				ret = bq2415x_set_current_limit(bq, 500);
-> +			} else {
-> +				dev_info(bq->dev, "mode: Dedicated charger\n");
-> +				ret = bq2415x_set_current_limit(bq, 1800);
-> +			}
-
-This should be a switch statement.
-
-> +		case BQ2415X_MODE_BOOST: /* Boost mode */
-> +			dev_info(bq->dev, "mode: Boost\n");
-
-Is dev_info() really appropriate for this stuff?
-
-> +			break;
-> +
-> +	}
-
-No default case?
-
-> +static void bq2415x_power_supply_set_charger_type(int type, void *data)
-
-> +	if (type == 0)
-> +		bq->charger_mode = BQ2415X_MODE_NONE;
-> +	else if (type == 1)
-> +		bq->charger_mode = BQ2415X_MODE_HOST_CHARGER;
-> +	else if (type == 2)
-> +		bq->charger_mode = BQ2415X_MODE_DEDICATED_CHARGER;
-> +	else
-> +		return;
-
-Switch statement.  I never understood why this is such a common idiom...
-
-> +		switch (error) {
-> +			case 0: /* No error */
-> +				break;
-> +			case 6: /* Timer expired */
-> +				dev_info(bq->dev, "Timer expired\n");
-> +				break;
-
-Should we really be logging this at anything more than dev_dbg()?
-
-> +			case 7: /* N/A */
-> +				bq2415x_power_supply_error(bq, "Unknow error");
-> +				return;
-
-Typo: unknown.
-
-> +			case 5: /* Termal shutdown (too hot) */
-> +				bq2415x_power_supply_error(bq, "Termal shutdown (too hot)");
-
-Typo: thermal.
-
-> +static int bq2415x_power_supply_get_property(struct power_supply *psy, enum power_supply_property psp, union power_supply_propval *val)
-
-CodingStyle - wrapping (lots of this in the driver.
+------------------------------------------------------------------------------
+Try before you buy = See our experts in action!
+The most comprehensive online learning library for Microsoft developers
+is just $99.99! Visual Studio, SharePoint, SQL - plus HTML5, CSS3, MVC3,
+Metro Style Apps, more. Free future releases when you subscribe now!
+http://p.sf.net/sfu/learndevnow-dev2
