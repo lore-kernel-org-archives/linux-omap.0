@@ -1,52 +1,36 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: 3.3-rc1 console lag (was: Re: [PATCH v8 00/20] OMAP2+: UART:
- Runtime adaptation + cleanup)
-Date: Thu, 26 Jan 2012 18:14:59 -0600
-Message-ID: <CAB-zwWiGUtDT2RszF-NLHT-pFVcPiHpdSnDdLVGRkU5YdFoztQ@mail.gmail.com>
-References: <CAB-zwWg4RS4J1YCcbfMWjLSCcV=oHqk9vaUKKKr0WjnTEuOmxQ@mail.gmail.com>
- <alpine.DEB.2.00.1201252000410.11174@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: fix MMC2 loopback clock handling
+Date: Thu, 26 Jan 2012 16:16:38 -0800
+Message-ID: <20120127001638.GF29812@atomide.com>
+References: <1326378405-27632-1-git-send-email-notasas@gmail.com>
+ <4F0EFAC1.2080003@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <alpine.DEB.2.00.1201252000410.11174@utopia.booyaka.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Rajendra Nayak <rnayak@ti.com>, Partha Basak <p-basak2@ti.com>, Govindraj Raja <govindraj.raja@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-serial@vger.kernel.org, Vishwanath Sripathy <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53355 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752561Ab2A0AQl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Jan 2012 19:16:41 -0500
+Content-Disposition: inline
+In-Reply-To: <4F0EFAC1.2080003@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Paul,
+* Igor Grinberg <grinberg@compulab.co.il> [120112 06:50]:
+> On 01/12/12 16:26, Grazvydas Ignotas wrote:
+> > Currently MMC2 setup code can only enable loopback clock and
+> > relies on reset value for boards that need to have it disabled.
+> > This causes a problem with certain bootloaders that always enable
+> > that clock, resulting with unwanted bootloader dependencies.
+> > 
+> > Fix this by making it disable the clock if board data says so.
+> > 
+> > Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> 
+> Acked-by: Igor Grinberg <grinberg@compulab.co.il>
 
-On Wed, Jan 25, 2012 at 9:00 PM, Paul Walmsley <paul@pwsan.com> wrote:
-...
->> > Ensure CONFIG_OMAP_PRM is set while testing irq_chaining with uart.
->> > And for pm_qos usage ensure CONFIG_CPU_IDLE is selected other wise
->> > console might be sluggish.
->>
->> There is console lag for omap2plus_defconfig given that
->> CONFIG_CPU_IDLE is not enabled. Is the intention to force CPU_IDLE
->> into the defconfig or find an alternative for the new pm_qos when cpu
->> idle is disabled.
->>
->> Seen on beagle-xm and 3.3-rc1.
->
-> Try this
->
-> http://marc.info/?l=linux-arm-kernel&m=132754676814391&w=2
+Thanks applying into fixes.
 
-I tried the series and the console returned to normal, I can confirm
-that the following patch helps:
-
-tty: serial: OMAP: use a 1-byte RX FIFO threshold in PIO mode
-
-Thanks,
-
-Omar
+Tony
