@@ -1,73 +1,93 @@
-From: Jassi Brar <jaswinder.singh@linaro.org>
-Subject: Re: [alsa-devel] [PATCH v4 - resend 00/13] OMAP4: ASoC: Support for
- PandaBoard family
-Date: Sat, 28 Jan 2012 12:19:05 +0530
-Message-ID: <CAJe_Zhfo_Z7p4P3Lxj1OyEGWU-EMMRk35qJQ2R1Jwsey9+gOSQ@mail.gmail.com>
-References: <1327405950-6676-1-git-send-email-peter.ujfalusi@ti.com>
-	<CAJe_Zhfn3urdXfRgAKvdW2_ECYGbNO0b2BuZnCZxrGcL4_sVSg@mail.gmail.com>
-	<CAAURCh7u=3KLNKfK_YYkVJ_i8azQ=oV0ugVxYvi=thhoLdGEJQ@mail.gmail.com>
+From: <Madhusudhan.Gowda@elektrobit.com>
+Subject: RE: [GIT PULL] OMAP PM EMU fix for v3.3
+Date: Sat, 28 Jan 2012 09:58:14 +0200
+Message-ID: <AA48DD8077D5D945A49BD1782C1140F1011EBBC8@fioues08.ebgroup.elektrobit.com>
+References: <87liw8agk4.fsf@ti.com> <AA48DD8077D5D945A49BD1782C1140F1011EBBC7@fioues08.ebgroup.elektrobit.com> <20120127190239.GC9339@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:46026 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474Ab2A1GtH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Jan 2012 01:49:07 -0500
-Received: by wics10 with SMTP id s10so1915419wic.19
-        for <linux-omap@vger.kernel.org>; Fri, 27 Jan 2012 22:49:05 -0800 (PST)
-In-Reply-To: <CAAURCh7u=3KLNKfK_YYkVJ_i8azQ=oV0ugVxYvi=thhoLdGEJQ@mail.gmail.com>
+Received: from smtpgw2fi.elektrobit.com ([194.136.18.129]:48730 "EHLO
+	smtpgw1fi.elektrobit.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751788Ab2A1H6Y convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 28 Jan 2012 02:58:24 -0500
+Received: from fioumg02.ebgroup.elektrobit.com (smtpgw2fi.ebgroup.elektrobit.com [127.0.0.1])
+	by smtpgw1fi.elektrobit.com (8.13.8/8.13.8) with ESMTP id q0S7wLEd012286
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Sat, 28 Jan 2012 09:58:21 +0200
+Received: (from defang@localhost)
+	by fioumg02.ebgroup.elektrobit.com (8.13.8/8.13.8/Submit) id q0S7wG8P012282
+	for <linux-omap@vger.kernel.org>; Sat, 28 Jan 2012 09:58:16 +0200
+Content-class: urn:content-classes:message
+In-Reply-To: <20120127190239.GC9339@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guiriec, Sebastien" <s-guiriec@ti.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
+To: tony@atomide.com, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Sebastien,
+Thanks Tony
 
-On 28 January 2012 04:21, Guiriec, Sebastien <s-guiriec@ti.com> wrote:
->>>
->> Hi Peter,
->> =A0 =A0 I tried the patchset on my 4430 Panda. Playback works ok, bu=
-t not Capture.
->> All is get is a hiss.
->> =A0 =A0Is capture supposed to work ? If yes, any amixer settings tha=
-t need
->> to be done?
->
-> Hi Jassi,
->
-> With the next update the PandaBoard 4430 is working fine.
-> cpu_is_omap4430() macro is not define. We should use cpu_is_omap443x(=
-)
-> macro in order to select correctly PandaBoard and not PandaBoardES
-> board. Due to this error the heaset Mic pin is not enable so record i=
-s not
-> working (use for Panda 4430 recording).
->
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-
-> omap2/board-omap4panda.c
-> index 5f27387..6a397e9 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -580,7 +580,7 @@ void omap4_panda_display_init(void)
->
-> =A0static void omap4_panda_init_rev(void)
-> =A0{
-> - =A0 =A0 =A0 if (cpu_is_omap4430()) {
-> + =A0 =A0 =A0 if (cpu_is_omap443x()) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* PandaBoard 4430 */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* ASoC audio configuration */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0panda_abe_audio_data.card_name =3D "Pa=
-ndaBoard";
->
-Thanks, the patch make it work for Panda-4430 too.
+Hi Kevin 
+Please do the needful and pull the same.
 
-Thanks Peter for the amixer settings.
+Best Regards
+Gowda
 
-Cheers,
-Jassi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-----Original Message-----
+From: linux-arm-kernel-bounces@lists.infradead.org
+[mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Tony
+Lindgren
+Sent: 27 January 2012 21:03
+To: Gowda Madhusudhan
+Cc: Kevin Hilman; linux-omap@vger.kernel.org;
+linux-arm-kernel@lists.infradead.org
+Subject: Re: [GIT PULL] OMAP PM EMU fix for v3.3
+
+Hi,
+
+* Madhusudhan.Gowda@elektrobit.com <Madhusudhan.Gowda@elektrobit.com>
+[120127 10:25]:
+> Hi Tony,
+> 
+> Please pull the PM EMU off mode fix for v3.3
+
+It's best that Kevin queues this as it affects PM. Or it at least needs
+an ack from Kevin.
+
+Regards,
+
+Tony
+ 
+> Thanks
+> Gowda
+> 
+> The following changes since commit
+> 1c6ece3c23e58d0dbc687407d606f3560ded582a:
+> 
+>   Merge branch 'omap_fixes_a_3.3rc' of git://git.pwsan.com/linux-2.6
+> (2012-01-26 16:48:37 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://github.com/elektrobit/linux.git linux-omap-emu-fix
+> 
+> Madhusudhan Gowda (1):
+>       ARM: OMAP3 PM:Save and restore EMU context across MPU OFF
+> 
+>  arch/arm/mach-omap2/cm2xxx_3xxx.c |   16 ++++++++++++----
+>  arch/arm/mach-omap2/cm2xxx_3xxx.h |    2 ++
+>  arch/arm/mach-omap2/pm34xx.c      |    8 ++++++++
+>  3 files changed, 22 insertions(+), 4 deletions(-)
+> 
+> 
+> ----------------------------------------------------------------
+> Please note: This e-mail may contain confidential information intended
+
+> solely for the addressee. If you have received this e-mail in error, 
+> please do not disclose it to anyone, notify the sender promptly, and 
+> delete the message from your system.
+> Thank you.
+> 
