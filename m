@@ -1,143 +1,136 @@
-From: eric van tassell <evttxl@gmail.com>
-Subject: Re: Question about tracing in _pwrdm_state_switch()
-Date: Sun, 29 Jan 2012 10:38:17 -0600
-Message-ID: <CAHjCt2-9Edr7G82UukpbavX3d2o1fyN35MXMUMyj_zmOop+Yzw@mail.gmail.com>
-References: <alpine.DEB.2.00.1201290302480.27331@utopia.booyaka.com>
-	<CAHjCt28mS64GuO+PFTFF+PAkE20n2Up9XJE5Rf8zH2YvKg33vg@mail.gmail.com>
+From: stephane eranian <eranian@googlemail.com>
+Subject: Re: oprofile and ARM A9 hardware counter
+Date: Sun, 29 Jan 2012 18:36:11 +0100
+Message-ID: <CAMsRxfK5tv1DZmHH4F0BT+zVUboESiMmCkatO2NLHp03=e51fQ@mail.gmail.com>
+References: <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
+	<20120127121311.GB2347@mudshark.cambridge.arm.com>
+	<yw1x1uqlnw1o.fsf@unicorn.mansr.com>
+	<20120127132826.GD2347@mudshark.cambridge.arm.com>
+	<CACVXFVPHpmPX9OdeYzzWjQ-qqs=9oYbL_og-_xJA2ypYNu0nRA@mail.gmail.com>
+	<CAMsRxfJOAh1V7sMWxqCXADDB_eSAuxop1iYAGqXvLC_74Pfz1A@mail.gmail.com>
+	<20120127155454.GH2347@mudshark.cambridge.arm.com>
+	<CAMsRxfK-SFEyP5+jyXDyWSQPJ2KO_1YQM_yZdtwV0NJu+idqHA@mail.gmail.com>
+	<20120127165941.GK2347@mudshark.cambridge.arm.com>
+	<CAMsRxf+iv06zOCMzhYONeLaf6RvOLp38T53mR--8ESHvCXMeFQ@mail.gmail.com>
+	<20120127171009.GL2347@mudshark.cambridge.arm.com>
+	<CAMsRxfJufRMrcfGZp53ALOdEFLk+YDMvQMrHw-jR9tQ8ThE+-Q@mail.gmail.com>
+Reply-To: eranian@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:38525 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752797Ab2A2QiT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jan 2012 11:38:19 -0500
-Received: by werb13 with SMTP id b13so2792226wer.19
-        for <linux-omap@vger.kernel.org>; Sun, 29 Jan 2012 08:38:17 -0800 (PST)
-In-Reply-To: <CAHjCt28mS64GuO+PFTFF+PAkE20n2Up9XJE5Rf8zH2YvKg33vg@mail.gmail.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:55629 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162Ab2A2RgM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 29 Jan 2012 12:36:12 -0500
+Received: by vcbgb30 with SMTP id gb30so2205174vcb.19
+        for <linux-omap@vger.kernel.org>; Sun, 29 Jan 2012 09:36:11 -0800 (PST)
+In-Reply-To: <CAMsRxfJufRMrcfGZp53ALOdEFLk+YDMvQMrHw-jR9tQ8ThE+-Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: jpihet@newoldbits.com, linux-omap@vger.kernel.org, t-kristo@ti.com, khilman@ti.com, rnayak@ti.com, santosh.shilimkar@ti.com
+To: Will Deacon <will.deacon@arm.com>
+Cc: Ming Lei <ming.lei@canonical.com>, =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, "Cousson, Benoit" <b-cousson@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 
-I dont have a Lauterbach but your argument seems valid. If:=C2=A0   +
-device was in retention(CSWR) and the next state was supposed to be
-OFF   + the device did not hit off   + by the time the code shown runs
-the device is still in CSWR(say like the abe or ducati that would be
-expected not to go to ON right away)
-Then   + there is something you'd like to know about but no event will
-be generated
+Hi,
 
--evt
-On Sun, Jan 29, 2012 at 10:10 AM, eric van tassell <evttxl@gmail.com> w=
-rote:
->
-> I dont have a Lauterbach but your argument seems valid. If:
->
->    + device was in retention(CSWR) and the next state was supposed to=
- be OFF
-> + the device did not hit off
-> + by the time the code shown runs the device is still in CSWR(say lik=
-e the abe or ducati that would be expected not to go to ON right away)
->
-> Then
->
-> there is something you'd like to know about but no event will be gene=
-rated
->
-> -evt
->
-> On Sun, Jan 29, 2012 at 4:08 AM, Paul Walmsley <paul@pwsan.com> wrote=
-:
->>
->>
->> Hi Jean
->>
->> Quick question on the tracing in _pwrdm_state_switch().
->>
->> That section of the code reads:
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0state =3D pwrdm_read_pwrst(pwrdm);
->>
->> ...
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0case PWRDM_STATE_PREV:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0prev =3D pwrd=
-m_read_prev_pwrst(pwrdm);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (pwrdm->st=
-ate !=3D prev)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0pwrdm->state_counter[prev]++;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (prev =3D=3D=
- PWRDM_POWER_RET)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0_update_logic_membank_counters(pwrdm);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/*
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 * If the pow=
-er domain did not hit the desired state,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 * generate a=
- trace event with both the desired and hit states
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (state !=3D=
- prev) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0trace_state =3D (PWRDM_TRACE_STATES_FLAG |
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ((state=
- & OMAP_POWERSTATE_MASK) << 8) |
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ((prev =
-& OMAP_POWERSTATE_MASK) << 0));
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0trace_power_domain_target(pwrdm->name, trace_state,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0smp_processor_id());
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>
->> This code is called after returning from WFI. =C2=A0It appears to co=
-mpare the
->> powerdomain's current power state ('state') with the powerdomain's
->> previous power state ('prev'). =C2=A0But it appears to me that it sh=
-ould
->> instead compare the powerdomain's intended power state ('pwrdm->stat=
-e')
->> with 'prev' ? =C2=A0The rationale is that the PRCM could have brough=
-t that
->> powerdomain up to a higher power state than 'pwrdm->state' during th=
-e
->> wakeup process.
->>
->> What do you think?
->>
->>
->> - Paul
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
->
->
->
->
-> --
-> - evt
-> (Eric van Tassell)
-> twitter: evt_texelsoft
-> linked-in: linkedin.com/in/evttxl
+Ok, so I did a few more tests and there is a serious issue when sampling
+in frequency mode (the default). I noticed wrong number of samples, so
+I investigated this some more and instrumented the perf_event kernel code.
+I found some erratic timer ticks causing broken period adjustments.
+
+In fact, the problem is visible using top.
+I am running a noploop program on CPU0 and nothing else besides top.
+The noploop program  does: for(;;);. That is 100% user. On a 2-way
+system otherwise idle, I expect top to return 50% user 50% idle.
+
+Top with the commit:
+
+top - 16:19:21 up 5 min,  1 user,  load average: 0.23, 0.15, 0.07
+Tasks:  70 total,   2 running,  68 sleeping,   0 stopped,   0 zombie
+Cpu(s): 31.1%us,  2.0%sy,  0.0%ni, 66.2%id,  0.0%wa,  0.0%hi,  0.7%si,  0.0%st
+            ^^^^^^^^ That's WRONG
+
+Mem:    940292k total,    74984k used,   865308k free,     8020k buffers
+Swap:   524240k total,        0k used,   524240k free,    37420k cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+ 3770 eranian   20   0   644  160  128 R   99  0.0   0:14.21 noploop
+ 3771 eranian   20   0  2184 1052  804 R    2  0.1   0:00.32 top
+    1 root      20   0  2564 1528  952 S    0  0.2   0:01.26 init
 
 
+I removed that one liner patch from Ming. The one fiddling with the
+clockdomains:
+
+--- a/arch/arm/mach-omap2/clockdomains44xx_data.c
++++ b/arch/arm/mach-omap2/clockdomains44xx_data.c
+@@ -390,7 +390,7 @@ static struct clockdomain emu_sys_44xx_clkdm = {
+        .prcm_partition   = OMAP4430_PRM_PARTITION,
+        .cm_inst          = OMAP4430_PRM_EMU_CM_INST,
+        .clkdm_offs       = OMAP4430_PRM_EMU_CM_EMU_CDOFFS,
+-       .flags            = CLKDM_CAN_HWSUP,
++       .flags            = CLKDM_CAN_SWSUP,
 
 
---
-- evt
-(Eric van Tassell)
-twitter: evt_texelsoft
-linked-in: linkedin.com/in/evttxl
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When I rerun, the test, it now work:
+
+top - 16:02:51 up 15 min,  1 user,  load average: 1.02, 0.46, 0.21
+Tasks:  70 total,   2 running,  68 sleeping,   0 stopped,   0 zombie
+Cpu(s): 47.2%us,  1.0%sy,  0.0%ni, 50.8%id,  0.0%wa,  0.0%hi,  1.0%si,  0.0%st
+           ^^^^^^^^ close enough (in it stabilize somehow around 49%
+which is good)
+
+Mem:    940292k total,    75288k used,   865004k free,     8004k buffers
+Swap:   524240k total,        0k used,   524240k free,    37408k cached
+
+  PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+ 3771 eranian   20   0   644  160  128 R  100  0.0   0:34.44 noploop
+
+Although the patch fixes PMU interrupts, it breaks the timer tick logic somehow.
+The perf problem is related to timer tick.
+
+I am hoping that the tradeoff is not:
+     PMU interrupts but broken timer ticks
+vs.
+    No PMU interrupts but working timer ticks
+
+
+On Fri, Jan 27, 2012 at 6:16 PM, stephane eranian
+<eranian@googlemail.com> wrote:
+> On Fri, Jan 27, 2012 at 6:10 PM, Will Deacon <will.deacon@arm.com> wrote:
+>> On Fri, Jan 27, 2012 at 05:03:28PM +0000, stephane eranian wrote:
+>>> On Fri, Jan 27, 2012 at 5:59 PM, Will Deacon <will.deacon@arm.com> wrote:
+>>> > That said, if you see any bugs in the code please do shout!
+>>> >
+>>> I suspect there is something wrong, we shouldn't hit the max_rate_limit.
+>>> You may have bursts of interrupts (samples). I'll check on that this week-end.
+>>
+>> Ok, thanks. Keep in mind that you probably have variable rate clocks, which
+>> will affect the cycle counter frequency.
+>>
+> I assume it does not vary the clock if the workload is steady and just burning
+> cycles, e.g.: for(;;);
+>
+>>> >> > A7 and A15 have the ability to filter counters based on privilege level, so
+>>> >> > you can get more accurate userspace counts there.
+>>> >>
+>>> >> Ok, that's better. Need to update libpfm4 for A15 with priv levels then!
+>>> >
+>>> > How do you handle that in libpfm4? On ARM, the event encodings remain the same,
+>>> > you just need to set some extra bits to determine which levels are included or
+>>> > excluded (you can do this with the perf tool by using the :{u,k,h} suffix on an
+>>> > event description).
+>>> >
+>>> It depends what you call the encoding? If the priv level can be encoded in the
+>>> attr->config field, then that's easy. If it needs to be set somewhere else, then
+>>> we need to figure out how you encode it in the attr struct. Either in some other
+>>> bits in attr->config or use attr->config1, for instance. You tell me.
+>>
+>> The way it's done with perf is to set the exclude{user,kernel,hv} fields in
+>> the attr. The ARM perf backend then translates these into the relevant bits
+>> which get orred into the config_base before hitting the hardware.
+>>
+> Well, that's also how we do it with libpfm4 on X86. This is because
+> with perf_events,
+> the exclude_* fields have priority over what you set in the attr->config field.
+>
+>> Will
