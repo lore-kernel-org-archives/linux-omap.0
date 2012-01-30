@@ -1,79 +1,66 @@
-From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
-	<vjaquez@igalia.com>
-Subject: [PATCH v2 1/8] staging: tidspbridge: more readable code
-Date: Tue, 31 Jan 2012 00:12:17 +0100
-Message-ID: <e8d9bf9abf11b193601a2524aaf8686b21b6e5f1.1327964066.git.vjaquez@igalia.com>
-References: <cover.1327964066.git.vjaquez@igalia.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: GPIO debounce problems on 3.2
+Date: Mon, 30 Jan 2012 15:18:49 -0800
+Message-ID: <87obtkpyna.fsf@ti.com>
+References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com>
+	<87obtlrniz.fsf@ti.com>
+	<CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1327964066.git.vjaquez@igalia.com>
-In-Reply-To: <cover.1327964066.git.vjaquez@igalia.com>
-References: <cover.1327964066.git.vjaquez@igalia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Armando Uribe <x0095078@ti.com>
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:52948 "HELO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752493Ab2A3XSw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Jan 2012 18:18:52 -0500
+Received: by mail-gy0-f173.google.com with SMTP id r20so1637013ghr.18
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 15:18:51 -0800 (PST)
+In-Reply-To: <CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
+	(Grazvydas Ignotas's message of "Tue, 31 Jan 2012 00:07:59 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Uppercase function names are not pretty. Also the code flow readability=
- is
-enhanced.
+Grazvydas Ignotas <notasas@gmail.com> writes:
 
-Signed-off-by: V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>
----
- drivers/staging/tidspbridge/rmgr/drv_interface.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+> On Mon, Jan 30, 2012 at 9:36 PM, Kevin Hilman <khilman@ti.com> wrote:
+>> Grazvydas Ignotas <notasas@gmail.com> writes:
+>>
+>>> Hi,
+>>>
+>>> On 3.2 (I think some earlier versions too), with CONFIG_CPU_IDLE
+>>> enabled GPIO based buttons are not working properly on OMAP3 pandora,
+>>> button presses are almost never registered. The buttons are connected
+>>> GPIO bank4 and have hardware debounce feature enabled.
+>>>
+>>> Doing either of the following solves (or hides) the problem:
+>>> - disabling CPU_IDLE in kernel config
+>>> - disabling debounce for the buttons
+>>> - running a program spinning a loop on the CPU
+>>>
+>>> From what I can see in the code debounce clock is disabled when
+>>> entering idle, can those GPIOs work without debounce clock?
+>>
+>> Yes, the clock is only for the debounce feature, but the GPIOs are
+>> capable of wakeups and interrupts with the debounce clock disabled.
+>
+> Hmm but it doesn't work here (OMAP3530 ES2.1), /proc/interrupts
+> doesn't increase when I hit buttons unless something else is happening
+> at the same time. I wonder if I'm missing something here, does it all
+> work for you with debounce on? 
 
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers=
-/staging/tidspbridge/rmgr/drv_interface.c
-index 76cfc6e..85f6e8e 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -428,7 +428,7 @@ func_cont:
- }
-=20
- #ifdef CONFIG_PM
--static int BRIDGE_SUSPEND(struct platform_device *pdev, pm_message_t s=
-tate)
-+static int bridge_suspend(struct platform_device *pdev, pm_message_t s=
-tate)
- {
- 	u32 status;
- 	u32 command =3D PWR_EMERGENCYDEEPSLEEP;
-@@ -441,7 +441,7 @@ static int BRIDGE_SUSPEND(struct platform_device *p=
-dev, pm_message_t state)
- 	return 0;
- }
-=20
--static int BRIDGE_RESUME(struct platform_device *pdev)
-+static int bridge_resume(struct platform_device *pdev)
- {
- 	u32 status;
-=20
-@@ -453,9 +453,6 @@ static int BRIDGE_RESUME(struct platform_device *pd=
-ev)
- 	wake_up(&bridge_suspend_data.suspend_wq);
- 	return 0;
- }
--#else
--#define BRIDGE_SUSPEND NULL
--#define BRIDGE_RESUME NULL
- #endif
-=20
- static struct platform_driver bridge_driver =3D {
-@@ -464,8 +461,10 @@ static struct platform_driver bridge_driver =3D {
- 		   },
- 	.probe =3D omap34_xx_bridge_probe,
- 	.remove =3D __devexit_p(omap34_xx_bridge_remove),
--	.suspend =3D BRIDGE_SUSPEND,
--	.resume =3D BRIDGE_RESUME,
-+#ifdef CONFIG_PM
-+	.suspend =3D bridge_suspend,
-+	.resume =3D bridge_resume,
-+#endif
- };
-=20
- static int __init bridge_init(void)
---=20
-1.7.8.3
+Yes.  
+
+Specifically, I tested on a n900 which has several GPIOs in the board
+file (board-rx51.c) with debounce enabled.
+
+When I push the button (or slide the switch in this case), I see
+/proc/interrupts incrementing on an idle system with CPUidle enabled.
+
+The same GPIOs can also bring the system out of suspend (debounce clocks
+are disabled on suspend also.)
+
+Kevin
+
+
