@@ -1,225 +1,154 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/7] ARM: OMAP4: hwmod data: remove pseudo-hwmods associated
- with hardreset lines
-Date: Mon, 30 Jan 2012 03:18:15 -0700
-Message-ID: <20120130101813.10450.9839.stgit@dusk>
+Subject: [PATCH 5/7] ARM: OMAP2+: hwmod: add omap_hwmod_get_mpu_irq() and
+ omap_hwmod_get_mpu_rt_pa()
+Date: Mon, 30 Jan 2012 03:18:17 -0700
+Message-ID: <20120130101816.10450.2624.stgit@dusk>
 References: <20120130101251.10450.58423.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42193 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42208 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab2A3KSo (ORCPT
+	with ESMTP id S1751772Ab2A3KSo (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 05:18:44 -0500
 In-Reply-To: <20120130101251.10450.58423.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Remove the pseudo-hwmods associated with hardreset lines from the
-OMAP4 data file.  Future patches will convert this data to register
-hwmods by interfaces, rather than registering hwmods directly; and
-these pseudo-hwmods aren't associated with any interfaces.
-
-The hwmod code now resets processor IPs at the hwmod level, rather
-than individually.  So, for example, if the IVA device driver code
-wishes to place one of the sequencer cores into reset, while leaving
-the other active, it must do so itself by calling the appropriate PRM
-functions.
-
-This patch will cause a change in the initialization behavior of the
-DSP, IVA, and IPU.
+The timer integration code pokes around in hwmod data structures.
+Those data structures are about to change.  Define some functions for
+the timer integration code to use instead.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  101 +-------------------=
---------
- 1 files changed, 3 insertions(+), 98 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c             |   82 ++++++++++++++++++=
+++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 +
+ 2 files changed, 85 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index f9f1510..a3efb9e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -1105,11 +1105,8 @@ static struct omap_hwmod_irq_info omap44xx_dsp_i=
-rqs[] =3D {
- };
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index 4e8d332..f7bf759 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -2794,3 +2794,85 @@ int omap_hwmod_pad_route_irq(struct omap_hwmod *=
+oh, int pad_idx, int irq_idx)
 =20
- static struct omap_hwmod_rst_info omap44xx_dsp_resets[] =3D {
--	{ .name =3D "mmu_cache", .rst_shift =3D 1 },
--};
--
--static struct omap_hwmod_rst_info omap44xx_dsp_c0_resets[] =3D {
- 	{ .name =3D "dsp", .rst_shift =3D 0 },
-+	{ .name =3D "mmu_cache", .rst_shift =3D 1 },
- };
+ 	return 0;
+ }
++
++/*
++ * IP block data retrieval functions
++ */
++
++/**
++ * omap_hwmod_get_mpu_irq - return a hwmod's MPU IRQ line ID, if it on=
+ly has one
++ * @oh: struct omap_hwmod * to examine MPU IRQs on
++ *
++ * If the IP block represented by @oh only has one IRQ line, return it=
+s
++ * ID; otherwise, return -ENOENT if the IP block has no MPU IRQs, or -=
+EINVAL
++ * if @oh is null or hasn't yet been registered.
++ */
++int omap_hwmod_get_mpu_irq(struct omap_hwmod *oh)
++{
++	struct omap_hwmod_irq_info *ii;
++
++	if (!oh)
++		return -EINVAL;
++
++	if (oh->_state =3D=3D _HWMOD_STATE_UNKNOWN)
++		return -EINVAL;
++
++	if (!oh->mpu_irqs)
++		return -ENOENT;
++
++	ii =3D &oh->mpu_irqs[0];
++
++	if (ii->irq =3D=3D -1)
++		return -ENOENT;
++
++	return ii->irq;
++}
++
++/**
++ * omap_hwmod_get_mpu_rt_pa - get the register target physical start &=
+ end addrs
++ * @oh: struct omap_hwmod * to retrieve physical address information f=
+or
++ * @pa_start: ptr to a u32 to return the starting physical address of =
+the RT
++ * @pa_end: ptr to a u32 to return the ending physical address of the =
+RT
++ *
++ * For a given hwmod @oh, return the starting MPU physical address of
++ * @oh's register target address space in the u32 pointed to by
++ * @pa_start, and return the ending MPU physical address of @oh's
++ * register target address space in the u32 pointed to by @pa_end.
++ * (Device registers, particularly the OCP header registers, are
++ * expected to reside in this space.)  The previous contents of the
++ * data pointed to by @pa_start and @pa_end are ignored and
++ * overwritten.  @pa_start is usually (but not always) the same as the
++ * device's "base address."  Note that @pa_start and @pa_end are
++ * currently only guaranteed to be valid addresses for the MPU, not
++ * for other interconnect initiators.
++ *
++ * Returns 0 upon success, -EINVAL if any arguments are null or if the
++ * hwmod hasn't been registered, or -ENOENT if @oh has no MPU register
++ * target address space.
++ */
++int omap_hwmod_get_mpu_rt_pa(struct omap_hwmod *oh, u32 *pa_start, u32=
+ *pa_end)
++{
++	struct omap_hwmod_addr_space *mem;
++
++	if (!oh || !pa_start || !pa_end)
++		return -EINVAL;
++
++	if (oh->_state =3D=3D _HWMOD_STATE_UNKNOWN)
++		return -EINVAL;
++
++	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
++		return -ENOENT;
++
++	mem =3D _find_mpu_rt_addr_space(oh);
++	if (!mem) {
++		pr_debug("omap_hwmod: %s: no MPU register target found\n",
++			 oh->name);
++		return -ENOENT;
++	}
++
++	*pa_start =3D mem->pa_start;
++	*pa_end =3D mem->pa_end;
++
++	return 0;
++}
++
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index 6470101..0d95c86 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -610,6 +610,9 @@ int omap_hwmod_no_setup_reset(struct omap_hwmod *oh=
+);
 =20
- /* dsp -> iva */
-@@ -1139,21 +1136,6 @@ static struct omap_hwmod_ocp_if *omap44xx_dsp_sl=
-aves[] =3D {
- 	&omap44xx_l4_cfg__dsp,
- };
+ int omap_hwmod_pad_route_irq(struct omap_hwmod *oh, int pad_idx, int i=
+rq_idx);
 =20
--/* Pseudo hwmod for reset control purpose only */
--static struct omap_hwmod omap44xx_dsp_c0_hwmod =3D {
--	.name		=3D "dsp_c0",
--	.class		=3D &omap44xx_dsp_hwmod_class,
--	.clkdm_name	=3D "tesla_clkdm",
--	.flags		=3D HWMOD_INIT_NO_RESET,
--	.rst_lines	=3D omap44xx_dsp_c0_resets,
--	.rst_lines_cnt	=3D ARRAY_SIZE(omap44xx_dsp_c0_resets),
--	.prcm =3D {
--		.omap4 =3D {
--			.rstctrl_offs =3D OMAP4_RM_TESLA_RSTCTRL_OFFSET,
--		},
--	},
--};
--
- static struct omap_hwmod omap44xx_dsp_hwmod =3D {
- 	.name		=3D "dsp",
- 	.class		=3D &omap44xx_dsp_hwmod_class,
-@@ -2502,15 +2484,9 @@ static struct omap_hwmod_irq_info omap44xx_ipu_i=
-rqs[] =3D {
- 	{ .irq =3D -1 }
- };
-=20
--static struct omap_hwmod_rst_info omap44xx_ipu_c0_resets[] =3D {
-+static struct omap_hwmod_rst_info omap44xx_ipu_resets[] =3D {
- 	{ .name =3D "cpu0", .rst_shift =3D 0 },
--};
--
--static struct omap_hwmod_rst_info omap44xx_ipu_c1_resets[] =3D {
- 	{ .name =3D "cpu1", .rst_shift =3D 1 },
--};
--
--static struct omap_hwmod_rst_info omap44xx_ipu_resets[] =3D {
- 	{ .name =3D "mmu_cache", .rst_shift =3D 2 },
- };
-=20
-@@ -2532,36 +2508,6 @@ static struct omap_hwmod_ocp_if *omap44xx_ipu_sl=
-aves[] =3D {
- 	&omap44xx_l3_main_2__ipu,
- };
-=20
--/* Pseudo hwmod for reset control purpose only */
--static struct omap_hwmod omap44xx_ipu_c0_hwmod =3D {
--	.name		=3D "ipu_c0",
--	.class		=3D &omap44xx_ipu_hwmod_class,
--	.clkdm_name	=3D "ducati_clkdm",
--	.flags		=3D HWMOD_INIT_NO_RESET,
--	.rst_lines	=3D omap44xx_ipu_c0_resets,
--	.rst_lines_cnt	=3D ARRAY_SIZE(omap44xx_ipu_c0_resets),
--	.prcm =3D {
--		.omap4 =3D {
--			.rstctrl_offs =3D OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
--		},
--	},
--};
--
--/* Pseudo hwmod for reset control purpose only */
--static struct omap_hwmod omap44xx_ipu_c1_hwmod =3D {
--	.name		=3D "ipu_c1",
--	.class		=3D &omap44xx_ipu_hwmod_class,
--	.clkdm_name	=3D "ducati_clkdm",
--	.flags		=3D HWMOD_INIT_NO_RESET,
--	.rst_lines	=3D omap44xx_ipu_c1_resets,
--	.rst_lines_cnt	=3D ARRAY_SIZE(omap44xx_ipu_c1_resets),
--	.prcm =3D {
--		.omap4 =3D {
--			.rstctrl_offs =3D OMAP4_RM_DUCATI_RSTCTRL_OFFSET,
--		},
--	},
--};
--
- static struct omap_hwmod omap44xx_ipu_hwmod =3D {
- 	.name		=3D "ipu",
- 	.class		=3D &omap44xx_ipu_hwmod_class,
-@@ -2691,15 +2637,9 @@ static struct omap_hwmod_irq_info omap44xx_iva_i=
-rqs[] =3D {
- };
-=20
- static struct omap_hwmod_rst_info omap44xx_iva_resets[] =3D {
--	{ .name =3D "logic", .rst_shift =3D 2 },
--};
--
--static struct omap_hwmod_rst_info omap44xx_iva_seq0_resets[] =3D {
- 	{ .name =3D "seq0", .rst_shift =3D 0 },
--};
--
--static struct omap_hwmod_rst_info omap44xx_iva_seq1_resets[] =3D {
- 	{ .name =3D "seq1", .rst_shift =3D 1 },
-+	{ .name =3D "logic", .rst_shift =3D 2 },
- };
-=20
- /* iva master ports */
-@@ -2732,36 +2672,6 @@ static struct omap_hwmod_ocp_if *omap44xx_iva_sl=
-aves[] =3D {
- 	&omap44xx_l3_main_2__iva,
- };
-=20
--/* Pseudo hwmod for reset control purpose only */
--static struct omap_hwmod omap44xx_iva_seq0_hwmod =3D {
--	.name		=3D "iva_seq0",
--	.class		=3D &omap44xx_iva_hwmod_class,
--	.clkdm_name	=3D "ivahd_clkdm",
--	.flags		=3D HWMOD_INIT_NO_RESET,
--	.rst_lines	=3D omap44xx_iva_seq0_resets,
--	.rst_lines_cnt	=3D ARRAY_SIZE(omap44xx_iva_seq0_resets),
--	.prcm =3D {
--		.omap4 =3D {
--			.rstctrl_offs =3D OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
--		},
--	},
--};
--
--/* Pseudo hwmod for reset control purpose only */
--static struct omap_hwmod omap44xx_iva_seq1_hwmod =3D {
--	.name		=3D "iva_seq1",
--	.class		=3D &omap44xx_iva_hwmod_class,
--	.clkdm_name	=3D "ivahd_clkdm",
--	.flags		=3D HWMOD_INIT_NO_RESET,
--	.rst_lines	=3D omap44xx_iva_seq1_resets,
--	.rst_lines_cnt	=3D ARRAY_SIZE(omap44xx_iva_seq1_resets),
--	.prcm =3D {
--		.omap4 =3D {
--			.rstctrl_offs =3D OMAP4_RM_IVAHD_RSTCTRL_OFFSET,
--		},
--	},
--};
--
- static struct omap_hwmod omap44xx_iva_hwmod =3D {
- 	.name		=3D "iva",
- 	.class		=3D &omap44xx_iva_hwmod_class,
-@@ -5520,7 +5430,6 @@ static __initdata struct omap_hwmod *omap44xx_hwm=
-ods[] =3D {
-=20
- 	/* dsp class */
- 	&omap44xx_dsp_hwmod,
--	&omap44xx_dsp_c0_hwmod,
-=20
- 	/* dss class */
- 	&omap44xx_dss_hwmod,
-@@ -5550,16 +5459,12 @@ static __initdata struct omap_hwmod *omap44xx_h=
-wmods[] =3D {
-=20
- 	/* ipu class */
- 	&omap44xx_ipu_hwmod,
--	&omap44xx_ipu_c0_hwmod,
--	&omap44xx_ipu_c1_hwmod,
-=20
- 	/* iss class */
- /*	&omap44xx_iss_hwmod, */
-=20
- 	/* iva class */
- 	&omap44xx_iva_hwmod,
--	&omap44xx_iva_seq0_hwmod,
--	&omap44xx_iva_seq1_hwmod,
-=20
- 	/* kbd class */
- 	&omap44xx_kbd_hwmod,
++int omap_hwmod_get_mpu_irq(struct omap_hwmod *oh);
++int omap_hwmod_get_mpu_rt_pa(struct omap_hwmod *oh, u32 *pa_start, u32=
+ *pa_end);
++
+ /*
+  * Chip variant-specific hwmod init routines - XXX should be converted
+  * to use initcalls once the initial boot ordering is straightened out
 
 
 --
