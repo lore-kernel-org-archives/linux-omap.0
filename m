@@ -1,51 +1,69 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
-Date: Mon, 30 Jan 2012 16:24:28 +0530
-Message-ID: <CAMQu2gz+Wp-2cJEYnzbJKQGewA9BW_S=KUP5R5Gmf0W2z324kg@mail.gmail.com>
-References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk>
+From: Michael Hunold <hunold@linuxtv.org>
+Subject: Re: omap_hsmmc.c and MMC_CAP_SDIO_IRQ
+Date: Mon, 30 Jan 2012 12:16:37 +0100
+Message-ID: <4F267C15.7070704@linuxtv.org>
+References: <4F1EC123.8070103@linuxtv.org> <CAGDS+nnVosHsv4SUcGXCieVQG2cjW=mL7DZ7_W2p+uNhUYfPyw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:33063 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751194Ab2A3Kyt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jan 2012 05:54:49 -0500
-Received: by qcse13 with SMTP id e13so2170337qcs.4
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 02:54:48 -0800 (PST)
-In-Reply-To: <20120130094312.11027.31050.stgit@dusk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <CAGDS+nnVosHsv4SUcGXCieVQG2cjW=mL7DZ7_W2p+uNhUYfPyw@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-On Mon, Jan 30, 2012 at 3:13 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Remove some superfluous calls to pwrdm_clear_all_prev_pwrst().
-> pwrdm_pre_transition(), which appears a few lines after these calls,
-> invokes pwrdm_clear_all_prev_pwrst() on each powerdomain -- there's n=
-o
-> need to do it twice.
->
-> N.B.: some of us have observed that accesses to the previous
-> powerstate registers seem to be quite slow. =A0Although the writes
-> removed by this patch should be buffered by the write buffer, there i=
-s
-> a read to a PRM register immediately afterwards. =A0That will block t=
-he
-> OMAP3 MPU until all of those writes complete. =A0So this patch should
-> result in a minor performance improvement during idle entry.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Rajendra Nayak <rnayak@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Tero Kristo <t-kristo@ti.com>
-> ---
-Nice clean-up
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello Steve,
+
+on 01/27/2012 03:09 PM Steve Sakoman said the following:
+> On Tue, Jan 24, 2012 at 6:33 AM, Michael Hunold <hunold@linuxtv.org> wrote:
+
+> Your summary below is a pretty accurate description of the current state.
+
+Ok.
+
+> I've made an attempt at creating a patch for 3.2 that follows David
+> Vrabel's original patch series as closely as possible with the new
+> structure.
+> 
+> Unfortunately it doesn't quite work.  I've only been doing this as a
+> background task so progress is pretty slow.
+
+I understand, no problem.
+
+> The patch doesn't seem to break support for memory devices (which is
+> good since my rootfs is on an mmc device!) and I do see SDIO
+> interrupts occurring and being handled in the debug log, so it is a
+> good start:
+
+> However the SDIO device does not function properly due to multiple
+> timeout errors, so something is still not quite right.
+
+> Let me know if you would like to help with further development of the
+> patch and I will send you a copy.  It is rough enough and broken
+> enough that it probably isn't yet ready for even an RFC to these
+> lists.
+
+Yes, please send them to me. I will give them a try and let you know the
+results.
+
+As a side node: actually I'm working double tracked. I plan to use it on
+some OMAP-based board like Beagleboard or Pandaboard for a stationary
+system, running any kernel that is needed.
+
+But I'd like to use some spare N900s as well, because I can carry them
+around easily. But these are running ancient 2.6.28.1 kernels. David
+Vrabel mentioned that he originally developed his patches on the N900. I
+sent him a mail using his mail address from csr.com, but I have not
+received a reply yet.
+
+If you or anybody else has every seen his original patches for the N900
+(he did not sent them to any list as far as I know) please let me know
+as well.
+
+> Regards,
+> Steve
+
+CU
+Michael.
+
