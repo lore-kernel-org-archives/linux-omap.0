@@ -1,52 +1,52 @@
 From: =?UTF-8?q?V=C3=ADctor=20Manuel=20J=C3=A1quez=20Leal?=
 	<vjaquez@igalia.com>
-Subject: [PATCH v2 0/8] staging: tidspbridge: clean up drv_interface.c
-Date: Tue, 31 Jan 2012 00:12:16 +0100
-Message-ID: <cover.1327964066.git.vjaquez@igalia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [PATCH v2 8/8] staging: tidspbridge: use the driver name string
+Date: Tue, 31 Jan 2012 00:12:24 +0100
+Message-ID: <c68bb2140bc5a5e793b58b66b521050a2d543572.1327964066.git.vjaquez@igalia.com>
+References: <cover.1327964066.git.vjaquez@igalia.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1327964066.git.vjaquez@igalia.com>
+In-Reply-To: <cover.1327964066.git.vjaquez@igalia.com>
+References: <cover.1327964066.git.vjaquez@igalia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Armando Uribe <x0095078@ti.com>
 Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-I'm trying to learn how to contribute to the kernel and dsp/bridge is
-a module that I have used for a while.
+Instead of assign it to a global variable which is not used anymore.
+---
+ drivers/staging/tidspbridge/rmgr/drv_interface.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-These patches are the result of this first effort. It is a clean up of
-the file drv_interface.c which is the entry point of the kernel
-module.
-
-Thanks
-
-v2:
-
-* Removed changes in lines with pr_* and dbg_*, so Joe Perches could
-  apply his patches for the format string without big rebases.
-* Reviewed the modifications done by Lindent
-* Added a clean up to the function bridge_mmap()
-* Added a patch removing a unused global variable (driver_name)
-* Added a patch that removes an always-true assert
-
-vmjl
-
-V=C3=ADctor Manuel J=C3=A1quez Leal (8):
-  staging: tidspbridge: more readable code
-  staging: tidspbridge: remove unused header
-  staging: tidspbridge: Lindent to drv_interface.c
-  staging: tidspbridge: silence the compiler
-  staging: tidspbridge: remove header inclusions
-  staging: tidspbridge: remove trivial assert
-  staging: tidspbridge: clean up bridge_mmap()
-  staging: tidspbridge: use the driver name string
-
- drivers/staging/tidspbridge/rmgr/drv_interface.c |  348 ++++++++++----=
--------
- drivers/staging/tidspbridge/rmgr/drv_interface.h |   28 --
- 2 files changed, 166 insertions(+), 210 deletions(-)
- delete mode 100644 drivers/staging/tidspbridge/rmgr/drv_interface.h
-
---=20
+diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+index 5f810b6..93fc862 100644
+--- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
++++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
+@@ -52,7 +52,6 @@
+ #endif
+ 
+ /*  ----------------------------------- Globals */
+-#define DRIVER_NAME  "DspBridge"
+ #define DSPBRIDGE_VERSION	"0.3"
+ s32 dsp_debug;
+ 
+@@ -121,8 +120,6 @@ MODULE_AUTHOR("Texas Instruments");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DSPBRIDGE_VERSION);
+ 
+-static char *driver_name = DRIVER_NAME;
+-
+ /*
+  * This function is called when an application opens handle to the
+  * bridge driver.
+@@ -490,7 +487,7 @@ static int __devinit omap34_xx_bridge_probe(struct platform_device *pdev)
+ 		goto err1;
+ 
+ 	/* use 2.6 device model */
+-	err = alloc_chrdev_region(&dev, 0, 1, driver_name);
++	err = alloc_chrdev_region(&dev, 0, 1, "DspBridge");
+ 	if (err) {
+ 		pr_err("%s: Can't get major %d\n", __func__, driver_major);
+ 		goto err1;
+-- 
 1.7.8.3
