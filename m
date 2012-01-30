@@ -1,7 +1,7 @@
-From: Ming Lei <ming.lei@canonical.com>
+From: stephane eranian <eranian@googlemail.com>
 Subject: Re: oprofile and ARM A9 hardware counter
-Date: Mon, 30 Jan 2012 22:49:57 +0800
-Message-ID: <CACVXFVMDXO3DDj0mGh=+uDYfCoS_Ck1STVK0=UXjiAbtJTa=hA@mail.gmail.com>
+Date: Mon, 30 Jan 2012 17:02:06 +0100
+Message-ID: <CAMsRxfLqvPN_k7vuC3qzBjwX2ihBdPxZvmSCPZ3frWgptWXQGA@mail.gmail.com>
 References: <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
 	<20120127121311.GB2347@mudshark.cambridge.arm.com>
 	<yw1x1uqlnw1o.fsf@unicorn.mansr.com>
@@ -18,71 +18,79 @@ References: <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
 	<CACVXFVMgDpaYeaU+0LGirYzNfJb8k0wFfL=+UU5qAwYfXgWLMQ@mail.gmail.com>
 	<CAMsRxfJq1-tSQH4bv0BeNWXV9aysi9AUvywkh3e9SaamMDfZ0Q@mail.gmail.com>
 	<CAMsRxf+okps60OxQnPkqHck8pWHrkPnT6boo603pC2XEbFYoRQ@mail.gmail.com>
+	<CACVXFVMDXO3DDj0mGh=+uDYfCoS_Ck1STVK0=UXjiAbtJTa=hA@mail.gmail.com>
+Reply-To: eranian@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:39614 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027Ab2A3OuB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 09:50:01 -0500
-Received: from mail-pz0-f46.google.com ([209.85.210.46])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1RrsYR-0002qy-Em
-	for linux-omap@vger.kernel.org; Mon, 30 Jan 2012 14:49:59 +0000
-Received: by dadi2 with SMTP id i2so3606173dad.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 06:49:57 -0800 (PST)
-In-Reply-To: <CAMsRxf+okps60OxQnPkqHck8pWHrkPnT6boo603pC2XEbFYoRQ@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <oprofile-list-bounces@lists.sourceforge.net>
+In-Reply-To: <CACVXFVMDXO3DDj0mGh=+uDYfCoS_Ck1STVK0=UXjiAbtJTa=hA@mail.gmail.com>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
+List-Post: <mailto:oprofile-list@lists.sourceforge.net>
+List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: oprofile-list-bounces@lists.sourceforge.net
+To: Ming Lei <ming.lei@canonical.com>
+Cc: =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, "Cousson,
+	Benoit" <b-cousson@ti.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: eranian@gmail.com
-Cc: Will Deacon <will.deacon@arm.com>, =?ISO-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "Cousson, Benoit" <b-cousson@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 
-On Mon, Jan 30, 2012 at 9:43 PM, stephane eranian
-<eranian@googlemail.com> wrote:
-> Same results for me with 3.3.0-rc1 + 5 patches.
-
-In fact, I think the only effect of the patch is to enable pmu
-interrupt handling,
-which may cause so much difference?
-
-Also maybe you should put 'noploop' to run on CPU1 and you may observe
-a more accurate result of 'top'.
-
-On ARM, almost handling of all IRQs from gic is run on CPU0 at default,
-which may cause your issue.
-
->
->
-> top - 14:42:34 up 8 min, =A01 user, =A0load average: 0.70, 0.29, 0.15
-> Tasks: =A075 total, =A0 2 running, =A073 sleeping, =A0 0 stopped, =A0=
- 0 zombie
-> Cpu(s): 32.9%us, =A01.3%sy, =A00.0%ni, 65.8%id, =A00.0%wa, =A00.0%hi,=
- =A00.0%si, =A00.0%st
-> Mem: =A0 =A0940232k total, =A0 118520k used, =A0 821712k free, =A0 =A0=
- 8080k buffers
-> Swap: =A0 524240k total, =A0 =A0 =A0 =A00k used, =A0 524240k free, =A0=
- =A079432k cached
->
-> =A0 PID USER =A0 =A0 =A0PR =A0NI =A0VIRT =A0RES =A0SHR S %CPU %MEM =A0=
- =A0TIME+ =A0COMMAND
-> =A03868 eranian =A0 20 =A0 0 =A0 644 =A0160 =A0128 R =A0 99 =A00.0 =A0=
- 0:53.34 noploop
-> =A03870 eranian =A0 20 =A0 0 =A02284 1060 =A0804 R =A0 =A03 =A00.1 =A0=
- 0:00.63 top
-> =A0 =A0 1 root =A0 =A0 =A020 =A0 0 =A02564 1532 =A0952 S =A0 =A00 =A0=
-0.2 =A0 0:01.26 init
->
-> I am connecting to the board via ssh.
-> But the results don't look correct to me.
-
-thanks,
---
-Ming Lei
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+U2FtZSByZXN1bHQgZm9yIG1lIG9uIENQVTE6Cgp0b3AgLSAxNjoyMDoyNCB1cCAgMTo0NSwgIDEg
+dXNlciwgIGxvYWQgYXZlcmFnZTogMC4yOSwgMC4wOCwgMC4wNwpUYXNrczogIDcwIHRvdGFsLCAg
+IDIgcnVubmluZywgIDY4IHNsZWVwaW5nLCAgIDAgc3RvcHBlZCwgICAwIHpvbWJpZQpDcHUocyk6
+IDMwLjcldXMsICAyLjclc3ksICAwLjAlbmksIDY2LjclaWQsICAwLjAld2EsICAwLjAlaGksICAw
+LjAlc2ksICAwLjAlc3QKTWVtOiAgICA5NDAyMzJrIHRvdGFsLCAgIDIyODk4NGsgdXNlZCwgICA3
+MTEyNDhrIGZyZWUsICAgIDgyMjQ0ayBidWZmZXJzClN3YXA6ICAgNTI0MjQwayB0b3RhbCwgICAg
+ICAgIDBrIHVzZWQsICAgNTI0MjQwayBmcmVlLCAgICA5MTQwMGsgY2FjaGVkCgogIFBJRCBVU0VS
+ICAgICAgUFIgIE5JICBWSVJUICBSRVMgIFNIUiBTICVDUFUgJU1FTSAgICBUSU1FKyAgUCBDT01N
+QU5ECiAzOTY4IGVyYW5pYW4gICAyMCAgIDAgICA2NDQgIDE2MCAgMTI4IFIgIDEwMCAgMC4wICAg
+MDoyMS45OCAxIG5vcGxvb3AKIDM5NjkgZXJhbmlhbiAgIDIwICAgMCAgMjE4NCAxMDU2ICA4MDQg
+UiAgICAzICAwLjEgICAwOjAwLjUzIDAgdG9wCiAgIDgyIHJvb3QgICAgICAyMCAgIDAgICAgIDAg
+ICAgMCAgICAwIFMgICAgMSAgMC4wICAgMDowMS4zNSAwCmt3b3JrZXIvMDoxCgpXaXRoIDMuMy4w
+LXJjMSwgaWYgSSByZXZlcnQgdGhlIGNsb2NrZG9tYWluIHBhdGNoLCBJIGdldCB0aGUgc2FtZSBy
+ZXN1bHQuClNvIGl0IG11c3QgYmUgY29taW5nIGZyb20gc29tZXdoZXJlIGVsc2UsIGFzIHlvdSBz
+dWdnZXN0ZWQuCgpJZiB0aGUgcHJvY2Vzc29yIHdhcyBzcGVuZGluZyB0aW1lIHByb2Nlc3Npbmcg
+aW50ZXJydXB0cywgdGhlbiB0aGlzIHdvdWxkIGJlCmFjY291bnRlZCBmb3IgaW4gYXMgc3lzIHRp
+bWUuIEJ1dCB0aGF0J3Mgbm90IHdoYXQgSSBvYnNlcnZlIGhlcmUuIEl0J3MgZWl0aGVyCmlkbGUg
+b3IgdXNlci4gVGhhdCBsaW5lLCBsZWFkcyBtZSB0byBiZWxpZXZlIHRoYXQgdGhlIHByb2Nlc3Nv
+ciBjYW4gb25seSBydW4KbXkgcHJvZ3JhbSBmb3IgMzAlIG9mIHRoZSB0aW1lLiBUaGUgcmVzdCBp
+cyBzcGVudCBpZGxpbmcgZXZlbiB0aG91Z2ggbXkKcHJvZ3JhbSBpcyBub24tYmxvY2tpbmcuIEhv
+dyBjb3VsZCB0aGF0IGJlIHBvc3NpYmxlPyBQb3dlci1zYXZpbmc/CgoKT24gTW9uLCBKYW4gMzAs
+IDIwMTIgYXQgMzo0OSBQTSwgTWluZyBMZWkgPG1pbmcubGVpQGNhbm9uaWNhbC5jb20+IHdyb3Rl
+Ogo+IE9uIE1vbiwgSmFuIDMwLCAyMDEyIGF0IDk6NDMgUE0sIHN0ZXBoYW5lIGVyYW5pYW4KPiA8
+ZXJhbmlhbkBnb29nbGVtYWlsLmNvbT4gd3JvdGU6Cj4+IFNhbWUgcmVzdWx0cyBmb3IgbWUgd2l0
+aCAzLjMuMC1yYzEgKyA1IHBhdGNoZXMuCj4KPiBJbiBmYWN0LCBJIHRoaW5rIHRoZSBvbmx5IGVm
+ZmVjdCBvZiB0aGUgcGF0Y2ggaXMgdG8gZW5hYmxlIHBtdQo+IGludGVycnVwdCBoYW5kbGluZywK
+PiB3aGljaCBtYXkgY2F1c2Ugc28gbXVjaCBkaWZmZXJlbmNlPwo+Cj4gQWxzbyBtYXliZSB5b3Ug
+c2hvdWxkIHB1dCAnbm9wbG9vcCcgdG8gcnVuIG9uIENQVTEgYW5kIHlvdSBtYXkgb2JzZXJ2ZQo+
+IGEgbW9yZSBhY2N1cmF0ZSByZXN1bHQgb2YgJ3RvcCcuCj4KPiBPbiBBUk0sIGFsbW9zdCBoYW5k
+bGluZyBvZiBhbGwgSVJRcyBmcm9tIGdpYyBpcyBydW4gb24gQ1BVMCBhdCBkZWZhdWx0LAo+IHdo
+aWNoIG1heSBjYXVzZSB5b3VyIGlzc3VlLgo+Cj4+Cj4+Cj4+IHRvcCAtIDE0OjQyOjM0IHVwIDgg
+bWluLCDCoDEgdXNlciwgwqBsb2FkIGF2ZXJhZ2U6IDAuNzAsIDAuMjksIDAuMTUKPj4gVGFza3M6
+IMKgNzUgdG90YWwsIMKgIDIgcnVubmluZywgwqA3MyBzbGVlcGluZywgwqAgMCBzdG9wcGVkLCDC
+oCAwIHpvbWJpZQo+PiBDcHUocyk6IDMyLjkldXMsIMKgMS4zJXN5LCDCoDAuMCVuaSwgNjUuOCVp
+ZCwgwqAwLjAld2EsIMKgMC4wJWhpLCDCoDAuMCVzaSwgwqAwLjAlc3QKPj4gTWVtOiDCoCDCoDk0
+MDIzMmsgdG90YWwsIMKgIDExODUyMGsgdXNlZCwgwqAgODIxNzEyayBmcmVlLCDCoCDCoCA4MDgw
+ayBidWZmZXJzCj4+IFN3YXA6IMKgIDUyNDI0MGsgdG90YWwsIMKgIMKgIMKgIMKgMGsgdXNlZCwg
+wqAgNTI0MjQwayBmcmVlLCDCoCDCoDc5NDMyayBjYWNoZWQKPj4KPj4gwqAgUElEIFVTRVIgwqAg
+wqAgwqBQUiDCoE5JIMKgVklSVCDCoFJFUyDCoFNIUiBTICVDUFUgJU1FTSDCoCDCoFRJTUUrIMKg
+Q09NTUFORAo+PiDCoDM4NjggZXJhbmlhbiDCoCAyMCDCoCAwIMKgIDY0NCDCoDE2MCDCoDEyOCBS
+IMKgIDk5IMKgMC4wIMKgIDA6NTMuMzQgbm9wbG9vcAo+PiDCoDM4NzAgZXJhbmlhbiDCoCAyMCDC
+oCAwIMKgMjI4NCAxMDYwIMKgODA0IFIgwqAgwqAzIMKgMC4xIMKgIDA6MDAuNjMgdG9wCj4+IMKg
+IMKgIDEgcm9vdCDCoCDCoCDCoDIwIMKgIDAgwqAyNTY0IDE1MzIgwqA5NTIgUyDCoCDCoDAgwqAw
+LjIgwqAgMDowMS4yNiBpbml0Cj4+Cj4+IEkgYW0gY29ubmVjdGluZyB0byB0aGUgYm9hcmQgdmlh
+IHNzaC4KPj4gQnV0IHRoZSByZXN1bHRzIGRvbid0IGxvb2sgY29ycmVjdCB0byBtZS4KPgo+IHRo
+YW5rcywKPiAtLQo+IE1pbmcgTGVpCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVHJ5IGJlZm9yZSB5
+b3UgYnV5ID0gU2VlIG91ciBleHBlcnRzIGluIGFjdGlvbiEKVGhlIG1vc3QgY29tcHJlaGVuc2l2
+ZSBvbmxpbmUgbGVhcm5pbmcgbGlicmFyeSBmb3IgTWljcm9zb2Z0IGRldmVsb3BlcnMKaXMganVz
+dCAkOTkuOTkhIFZpc3VhbCBTdHVkaW8sIFNoYXJlUG9pbnQsIFNRTCAtIHBsdXMgSFRNTDUsIENT
+UzMsIE1WQzMsCk1ldHJvIFN0eWxlIEFwcHMsIG1vcmUuIEZyZWUgZnV0dXJlIHJlbGVhc2VzIHdo
+ZW4geW91IHN1YnNjcmliZSBub3chCmh0dHA6Ly9wLnNmLm5ldC9zZnUvbGVhcm5kZXZub3ctZGV2
+MgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpvcHJvZmls
+ZS1saXN0IG1haWxpbmcgbGlzdApvcHJvZmlsZS1saXN0QGxpc3RzLnNvdXJjZWZvcmdlLm5ldApo
+dHRwczovL2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9vcHJvZmlsZS1saXN0
+Cg==
