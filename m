@@ -1,104 +1,35 @@
-From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
-Subject: Re: [PATCH 3/5] staging: tidspbridge: Lindent to drv_interface.c
-Date: Mon, 30 Jan 2012 18:59:40 +0100
-Message-ID: <20120130175940.GG27022@lit.local.igalia.com>
-References: <cover.1327348286.git.vjaquez@igalia.com>
- <7103a353d393f9b8366b141a608a4370e4392c7b.1327348286.git.vjaquez@igalia.com>
- <CAB-zwWjKfakESHw4Cw8JvJ6WpELz51E_9zVtjR0bF84yhMRfMQ@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 0/3] tty: serial: OMAP: work around broken IP block, driver
+Date: Mon, 30 Jan 2012 11:13:34 -0800
+Message-ID: <87ty3drokh.fsf@ti.com>
+References: <20120126024903.31613.24730.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAB-zwWjKfakESHw4Cw8JvJ6WpELz51E_9zVtjR0bF84yhMRfMQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, Armando Uribe <x0095078@ti.com>, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:34345 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752028Ab2A3TNn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Jan 2012 14:13:43 -0500
+In-Reply-To: <20120126024903.31613.24730.stgit@dusk> (Paul Walmsley's message
+	of "Wed, 25 Jan 2012 19:50:32 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Govindraj.R" <govindraj.raja@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Alan Cox <alan@linux.intel.com>
 
-On Mon, Jan 30, 2012 at 11:25:34AM -0600, Ramirez Luna, Omar wrote:
-> 2012/1/23 V=EDctor Manuel J=E1quez Leal <vjaquez@igalia.com>:
-> > No functional changes.
-> >
-> > According to Lindent, the file drv_internface.c had some lines with=
- bad
-> > indentation.
-> >
-> > This commit is the output of Lindent.
->=20
-> Usually lindent tends to do whatever it wants, unless carefully
-> configured...
+Paul Walmsley <paul@pwsan.com> writes:
 
-Thanks Omar!
+> [ This series is targeted for merging during v3.3-rc ]
+>
+> Hi
+>
+> Here's an updated version of OMAP serial bugfix series against v3.3-rc1.
+> This revision has:
 
-I'll post a v2 of this patch set, with a couple things more and with mo=
-re
-attention on what lindent does in this one, if that's ok.
+Reviewed-by: Kevin Hilman <khilman@ti.com>
+Tested-by: Kevin Hilman <khilman@ti.com>
 
-vmjl
+Tested on 3430/n900, 3530/Overo and 4430/Panda
 
->=20
-> ...
-> > @@ -342,9 +342,10 @@ static void bridge_recover(struct work_struct =
-*work)
-> > =A0 =A0 =A0 =A0if (atomic_read(&bridge_cref)) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0INIT_COMPLETION(bridge_comp);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0while (!wait_for_completion_timeout(=
-&bridge_comp,
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 msecs_to_jiffies(REC_TIMEOUT)))
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info("%s:%d handle=
-(s) still opened\n",
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 __func__, atomic_read(&bridge_cref));
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msecs_to_jiffies
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (REC_TIMEOUT)))
->=20
-> Like here, it just split msecs_to_jiffies(REC_TIMEOUT) into 2 lines
-> making it a little harder to read.
->=20
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info("%s:%d handle=
-(s) still opened\n", __func__,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 atomi=
-c_read(&bridge_cref));
->=20
-> I remember the rule was to break lines as far to the right as
-> possible, no? Chapter 2 CodingStyle, same for the other similar
-> changes.
->=20
-> ...
-> > @@ -547,10 +548,9 @@ static int __devexit omap34_xx_bridge_remove(s=
-truct platform_device *pdev)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: Failed to retrieve the o=
-bject handle\n", __func__);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto func_cont;
-> > =A0 =A0 =A0 =A0}
-> > -
->=20
-> Blank line removed?
->=20
-> > =A0#ifdef CONFIG_TIDSPBRIDGE_DVFS
-> > =A0 =A0 =A0 =A0if (cpufreq_unregister_notifier(&iva_clk_notifier,
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 CPUFREQ_TRANSITION_NOTIFIER))
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 CPUFREQ_TRANSITION_NOTIFIER))
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: cpufreq_unregister_notif=
-ier failed for iva2_ck\n",
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
-> > =A0#endif /* #ifdef CONFIG_TIDSPBRIDGE_DVFS */
-> > --
-> > 1.7.8.3
-> >
->=20
-> Regards,
->=20
-> Omar
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+Kevin
