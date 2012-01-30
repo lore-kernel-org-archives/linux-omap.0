@@ -1,63 +1,175 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH 2/2] OMAPDSS: DISPC: Fix scaling constraints for OMAP4
-Date: Mon, 30 Jan 2012 10:54:17 +0530
-Message-ID: <1327901057-29287-1-git-send-email-archit@ti.com>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH] video: convert drivers/video/* to use module_spi_driver()
+Date: Mon, 30 Jan 2012 05:24:40 +0000
+Message-ID: <4F262998.4090207@gmx.de>
+References: <1327651374.7772.1.camel@phoenix>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46457 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751584Ab2A3FYW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jan 2012 00:24:22 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1327651374.7772.1.camel@phoenix>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Roger Quadros <roger.quadros@nokia.com>, Steve Sakoman <steve@sakoman.com>, Erik Gilling <konkers@android.com>, Gra Ignotas <notasas@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, cmahapatra@ti.com, Archit Taneja <archit@ti.com>
 
-The calculation of required DISPC_FCLK for downscaling is done by multplying the
-pixel clock with an integer factor. This isn't true for OMAP4 where the required
-clock is calculated using the exact ratio of downscaling done.
+On 01/27/2012 08:02 AM, Axel Lin wrote:
+> This patch converts the drivers in drivers/video/* to use the
+> module_spi_driver() macro which makes the code smaller and a bit simp=
+ler.
+>=20
+> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+> Cc: Imre Deak <imre.deak@nokia.com>
+> Cc: Roger Quadros <roger.quadros@nokia.com>
+> Cc: Steve Sakoman <steve@sakoman.com>
+> Cc: Erik Gilling <konkers@android.com>
+> Cc: Gra=C5=BEvydas Ignotas <notasas@gmail.com>
 
-Fix this calculation for OMAP4. Also, do a minor clean up of calc_fclk().
+Applied.
 
-Signed-off-by: Archit Taneja <archit@ti.com>
+
+Thanks,
+
+=46lorian Tobias Schandinat
+
+> ---
+>  drivers/video/omap/lcd_mipid.c                     |   14 +---------=
+----
+>  drivers/video/omap2/displays/panel-acx565akm.c     |   13 +---------=
 ---
- drivers/video/omap2/dss/dispc.c |   12 ++++++++----
- 1 files changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index 3deb982..14b1f54 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -1694,6 +1694,7 @@ static unsigned long calc_fclk(enum omap_channel channel, u16 width,
- 		u16 height, u16 out_width, u16 out_height)
+>  .../omap2/displays/panel-lgphilips-lb035q02.c      |   12 +---------=
+--
+>  .../omap2/displays/panel-nec-nl8048hl11-01b.c      |   12 +---------=
+--
+>  .../video/omap2/displays/panel-tpo-td043mtea1.c    |   13 +---------=
+---
+>  5 files changed, 5 insertions(+), 59 deletions(-)
+>=20
+> diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_=
+mipid.c
+> index 8d546dd..e3880c4 100644
+> --- a/drivers/video/omap/lcd_mipid.c
+> +++ b/drivers/video/omap/lcd_mipid.c
+> @@ -609,19 +609,7 @@ static struct spi_driver mipid_spi_driver =3D {
+>  	.remove	=3D __devexit_p(mipid_spi_remove),
+>  };
+> =20
+> -static int __init mipid_drv_init(void)
+> -{
+> -	spi_register_driver(&mipid_spi_driver);
+> -
+> -	return 0;
+> -}
+> -module_init(mipid_drv_init);
+> -
+> -static void __exit mipid_drv_cleanup(void)
+> -{
+> -	spi_unregister_driver(&mipid_spi_driver);
+> -}
+> -module_exit(mipid_drv_cleanup);
+> +module_spi_driver(mipid_spi_driver);
+> =20
+>  MODULE_DESCRIPTION("MIPI display driver");
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/video/omap2/displays/panel-acx565akm.c b/drivers=
+/video/omap2/displays/panel-acx565akm.c
+> index 51a87e1..d26f37a 100644
+> --- a/drivers/video/omap2/displays/panel-acx565akm.c
+> +++ b/drivers/video/omap2/displays/panel-acx565akm.c
+> @@ -809,18 +809,7 @@ static struct spi_driver acx565akm_spi_driver =3D=
  {
- 	unsigned int hf, vf;
-+	unsigned long pclk = dispc_mgr_pclk_rate(channel);
- 
- 	/*
- 	 * FIXME how to determine the 'A' factor
-@@ -1716,13 +1717,16 @@ static unsigned long calc_fclk(enum omap_channel channel, u16 width,
- 
- 	if (cpu_is_omap24xx()) {
- 		if (vf > 1 && hf > 1)
--			return dispc_mgr_pclk_rate(channel) * 4;
-+			return pclk * 4;
- 		else
--			return dispc_mgr_pclk_rate(channel) * 2;
-+			return pclk * 2;
- 	} else if (cpu_is_omap34xx()) {
--		return dispc_mgr_pclk_rate(channel) * vf * hf;
-+		return pclk * vf * hf;
- 	} else {
--		return dispc_mgr_pclk_rate(channel) * hf;
-+		if (hf > 1)
-+			return DIV_ROUND_UP(pclk, out_width) * width;
-+		else
-+			return pclk;
- 	}
- }
- 
--- 
-1.7.4.1
-
+>  	.remove	=3D __devexit_p(acx565akm_spi_remove),
+>  };
+> =20
+> -static int __init acx565akm_init(void)
+> -{
+> -	return spi_register_driver(&acx565akm_spi_driver);
+> -}
+> -
+> -static void __exit acx565akm_exit(void)
+> -{
+> -	spi_unregister_driver(&acx565akm_spi_driver);
+> -}
+> -
+> -module_init(acx565akm_init);
+> -module_exit(acx565akm_exit);
+> +module_spi_driver(acx565akm_spi_driver);
+> =20
+>  MODULE_AUTHOR("Nokia Corporation");
+>  MODULE_DESCRIPTION("acx565akm LCD Driver");
+> diff --git a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c =
+b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+> index e0eb35b..0841cc2 100644
+> --- a/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+> +++ b/drivers/video/omap2/displays/panel-lgphilips-lb035q02.c
+> @@ -264,16 +264,6 @@ static struct spi_driver lb035q02_spi_driver =3D=
+ {
+>  	.remove		=3D __devexit_p(lb035q02_panel_spi_remove),
+>  };
+> =20
+> -static int __init lb035q02_panel_drv_init(void)
+> -{
+> -	return spi_register_driver(&lb035q02_spi_driver);
+> -}
+> -
+> -static void __exit lb035q02_panel_drv_exit(void)
+> -{
+> -	spi_unregister_driver(&lb035q02_spi_driver);
+> -}
+> +module_spi_driver(lb035q02_spi_driver);
+> =20
+> -module_init(lb035q02_panel_drv_init);
+> -module_exit(lb035q02_panel_drv_exit);
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c =
+b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+> index 0eb31ca..8b38b39 100644
+> --- a/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+> +++ b/drivers/video/omap2/displays/panel-nec-nl8048hl11-01b.c
+> @@ -350,18 +350,8 @@ static struct spi_driver nec_8048_spi_driver =3D=
+ {
+>  	},
+>  };
+> =20
+> -static int __init nec_8048_lcd_init(void)
+> -{
+> -	return spi_register_driver(&nec_8048_spi_driver);
+> -}
+> -
+> -static void __exit nec_8048_lcd_exit(void)
+> -{
+> -	return spi_unregister_driver(&nec_8048_spi_driver);
+> -}
+> +module_spi_driver(nec_8048_spi_driver);
+> =20
+> -module_init(nec_8048_lcd_init);
+> -module_exit(nec_8048_lcd_exit);
+>  MODULE_AUTHOR("Erik Gilling <konkers@android.com>");
+>  MODULE_DESCRIPTION("NEC-nl8048hl11-01b Driver");
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/dr=
+ivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> index e6649aa..1d6b7fb 100644
+> --- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> +++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+> @@ -518,18 +518,7 @@ static struct spi_driver tpo_td043_spi_driver =3D=
+ {
+>  	.remove	=3D __devexit_p(tpo_td043_spi_remove),
+>  };
+> =20
+> -static int __init tpo_td043_init(void)
+> -{
+> -	return spi_register_driver(&tpo_td043_spi_driver);
+> -}
+> -
+> -static void __exit tpo_td043_exit(void)
+> -{
+> -	spi_unregister_driver(&tpo_td043_spi_driver);
+> -}
+> -
+> -module_init(tpo_td043_init);
+> -module_exit(tpo_td043_exit);
+> +module_spi_driver(tpo_td043_spi_driver);
+> =20
+>  MODULE_AUTHOR("Gra=C5=BEvydas Ignotas <notasas@gmail.com>");
+>  MODULE_DESCRIPTION("TPO TD043MTEA1 LCD Driver");
