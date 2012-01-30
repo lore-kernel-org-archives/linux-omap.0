@@ -1,164 +1,58 @@
-From: stephane eranian <eranian@googlemail.com>
-Subject: Re: oprofile and ARM A9 hardware counter
-Date: Mon, 30 Jan 2012 18:45:19 +0100
-Message-ID: <CAMsRxfLc-wxx9pELJSdV2DmzGHpVmWOg7SAs=jm-s=5jaNh4HQ@mail.gmail.com>
-References: <20120127171009.GL2347@mudshark.cambridge.arm.com>
-	<CAMsRxfJufRMrcfGZp53ALOdEFLk+YDMvQMrHw-jR9tQ8ThE+-Q@mail.gmail.com>
-	<CAMsRxfK5tv1DZmHH4F0BT+zVUboESiMmCkatO2NLHp03=e51fQ@mail.gmail.com>
-	<CACVXFVMgDpaYeaU+0LGirYzNfJb8k0wFfL=+UU5qAwYfXgWLMQ@mail.gmail.com>
-	<CAMsRxfJq1-tSQH4bv0BeNWXV9aysi9AUvywkh3e9SaamMDfZ0Q@mail.gmail.com>
-	<CAMsRxf+okps60OxQnPkqHck8pWHrkPnT6boo603pC2XEbFYoRQ@mail.gmail.com>
-	<CACVXFVMDXO3DDj0mGh=+uDYfCoS_Ck1STVK0=UXjiAbtJTa=hA@mail.gmail.com>
-	<CAMsRxfLqvPN_k7vuC3qzBjwX2ihBdPxZvmSCPZ3frWgptWXQGA@mail.gmail.com>
-	<yw1xsjixgolb.fsf@unicorn.mansr.com>
-	<CAMsRxfJLsnBnKBrEXOSOWUTbgfeZtVZ6nR8jt388=baL5Mn22Q@mail.gmail.com>
-	<20120130172438.GC17814@mudshark.cambridge.arm.com>
-Reply-To: eranian@gmail.com
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] tidspbridge: Rename module from bridgedriver to
+ tidspbridge
+Date: Mon, 30 Jan 2012 19:51:06 +0200
+Message-ID: <CAMP44s3atm_WYrGAVcRQLKoMzu9PpR4y5GLRw=o1CF0EZvCBfA@mail.gmail.com>
+References: <1327440305.1798.28.camel@joe2Laptop>
+ <CAB-zwWjWkxpmT2dXDV++okCKZaebVz4O8-L4OgabMEzdEu4eGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:56474 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579Ab2A3RpU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 12:45:20 -0500
-Received: by vbbfc26 with SMTP id fc26so3049082vbb.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 09:45:19 -0800 (PST)
-In-Reply-To: <20120130172438.GC17814@mudshark.cambridge.arm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAB-zwWjWkxpmT2dXDV++okCKZaebVz4O8-L4OgabMEzdEu4eGA@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Joe Perches <joe@perches.com>, devel@driverdev.osuosl.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, Ming Lei <ming.lei@canonical.com>, "Cousson, Benoit" <b-cousson@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 
-Will,
-
-There you go, no attachment, not sure the omap list
-supports this.
-
-There is something quite interesting to observe.
-
-While I run perf record -e cycles -F 100 noploop 10, I watch
-/proc/interrupts. The number of interrupts is way lower than
-expected. Therefore the number of samples is way too low:
-
-$ perf record -e cycles -F 100 noploop 10
-$ perf report -D | tail -20
-cycles stats:
-           TOTAL events:        535
-            MMAP events:         11
-            COMM events:          2
-            EXIT events:          2
-          SAMPLE events:        520
-
-The delta in /proc/interrupts on CPU1 is 520 interrupts.
-
-So looks like the frequency adjustment which is hooked off of the
-timer tick is either not called at each timer tick, the timer ticks are
-not at regular interval, or the math is wrong.
-
-If I go with the fixed period mode:
-$ perf stat -e cycles noploop 10
-noploop for 10 seconds
- Performance counter stats for 'noploop 10':
-       10079156960 cycles                    #    0.000 GHz
-      10.004547117 seconds time elapsed
-
-That means, if I want 100 samples/sec: =3D 10079156960/(10*100)=3D10079=
-157
-$ perf record -e cycles -c 10079157 noploop 10
-$ perf report -D | tail -20
-cycles stats:
-           TOTAL events:       1003
-            MMAP events:         11
-            COMM events:          2
-            EXIT events:          2
-        THROTTLE events:          1
-      UNTHROTTLE events:          1
-          SAMPLE events:        986
-
-Now, we're getting the right answer!
-
-So with the right sampling period, everything works fine.
-We need to elucidate what's going on in perf_event_task_tick().
-I have tried with my throttling fix and it did not help. We are
-not subject to throttling with such a low rate.
-
-noploop.c:
-
-#include <sys/types.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <inttypes.h>
-#include <unistd.h>
-
-void handler(int sig)
-{
-	exit(0);
-}
-
-void
-noploop(void)
-{
-	for(;;);
-}
-
-int
-main(int argc, char **argv)
-{
-	unsigned int delay;
-	delay =3D argc > 1 ? atoi(argv[1]) : 1;
-	signal(SIGALRM, handler);
-	printf("noploop for %d seconds\n", delay);
-	alarm(delay);
-	noploop();
-	return 0;
-}
-
-On Mon, Jan 30, 2012 at 6:24 PM, Will Deacon <will.deacon@arm.com> wrot=
-e:
-> On Mon, Jan 30, 2012 at 05:15:53PM +0000, stephane eranian wrote:
->> Still need to investigate why the frequency mode does
->> not yield the correct number of samples even with low frequency.
->>
->>
->> $ taskset -c 1 perf record -e cycles -F 100 noploop 10
->> $ perf report -D | tail -20
->> Aggregated stats:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0TOTAL events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0475
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 MMAP events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 11
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 COMM events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A02
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 EXIT events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A02
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 SAMPLE events: =C2=A0 =C2=A0 =C2=A0=
- =C2=A0460
->> cycles stats:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0TOTAL events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0475
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 MMAP events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 11
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 COMM events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A02
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 EXIT events: =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A02
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 SAMPLE events: =C2=A0 =C2=A0 =C2=A0=
- =C2=A0460
->>
->> 460 samples is way too low. Should be 100x10 =3D 1000 samples or clo=
-se to it.
->
-> Can you stick noploop.c somewhere (I'm lazy :) and I'll try it on one=
- of my
-> A9 boards?
->
-> Thanks,
->
-> Will
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gTW9uLCBKYW4gMzAsIDIwMTIgYXQgNzozNCBQTSwgUmFtaXJleiBMdW5hLCBPbWFyIDxvbWFy
+LnJhbWlyZXpAdGkuY29tPiB3cm90ZToKPiBPbiBUdWUsIEphbiAyNCwgMjAxMiBhdCAzOjI1IFBN
+LCBKb2UgUGVyY2hlcyA8am9lQHBlcmNoZXMuY29tPiB3cm90ZToKPj4gdGlkc3BicmlkZ2Ugd2hl
+biBidWlsdCBhcyBhIG1vZHVsZSBpcyBuYW1lZCBicmlkZ2Vkcml2ZXIuCj4+Cj4+IGJyaWRnZWRy
+aXZlciBpcyBub3QgYSBwYXJ0aWN1bGFybHkgZ29vZCBtb2R1bGUgbmFtZS4KPj4KPj4gdGlkc3Bi
+cmlkZ2UgaXMgd2hhdCB0aGUgc291cmNlIGlzIG5hbWVkLiDCoFRoYXQgc2VlbXMKPj4gYSBtb3Jl
+IGFwcHJvcHJpYXRlIG1vZHVsZSBuYW1lIHRvbyBhcyBpdCBkZXNjcmliZXMKPj4gdGhlIGhhcmR3
+YXJlIGZ1bmN0aW9uIGJldHRlci4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSm9lIFBlcmNoZXMgPGpv
+ZUBwZXJjaGVzLmNvbT4KPj4gLS0tCj4+IMKgZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL01h
+a2VmaWxlIHwgwqAgwqA0ICsrLS0KPj4gwqAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygr
+KSwgMiBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3RhZ2luZy90aWRz
+cGJyaWRnZS9NYWtlZmlsZSBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9NYWtlZmlsZQo+
+PiBpbmRleCBmZDZhMjc2Li44YzhjOTJhIDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL3N0YWdpbmcv
+dGlkc3BicmlkZ2UvTWFrZWZpbGUKPj4gKysrIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdl
+L01ha2VmaWxlCj4+IEBAIC0xLDQgKzEsNCBAQAo+PiAtb2JqLSQoQ09ORklHX1RJRFNQQlJJREdF
+KSDCoCDCoCDCoCs9IGJyaWRnZWRyaXZlci5vCj4+ICtvYmotJChDT05GSUdfVElEU1BCUklER0Up
+IMKgIMKgIMKgKz0gdGlkc3BicmlkZ2Uubwo+Pgo+PiDCoGxpYmdlbiA9IGdlbi9naC5vIGdlbi91
+dWlkdXRpbC5vCj4+IMKgbGliY29yZSA9IGNvcmUvY2hubF9zbS5vIGNvcmUvbXNnX3NtLm8gY29y
+ZS9pb19zbS5vIGNvcmUvdGlvbWFwMzQzMC5vIFwKPj4gQEAgLTEzLDcgKzEzLDcgQEAgbGliZGxv
+YWQgPSBkeW5sb2FkL2Nsb2FkLm8gZHlubG9hZC9nZXRzZWN0aW9uLm8gZHlubG9hZC9yZWxvYy5v
+IFwKPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZHlubG9hZC90cmFtcC5vCj4+IMKgbGliaHcg
+PSBody9od19tbXUubwo+Pgo+PiAtYnJpZGdlZHJpdmVyLXkgOj0gJChsaWJnZW4pICQobGlic2Vy
+dmljZXMpICQobGliY29yZSkgJChsaWJwbWdyKSAkKGxpYnJtZ3IpIFwKPj4gK3RpZHNwYnJpZGdl
+LXkgOj0gJChsaWJnZW4pICQobGlic2VydmljZXMpICQobGliY29yZSkgJChsaWJwbWdyKSAkKGxp
+YnJtZ3IpIFwKPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAkKGxpYmRsb2Fk
+KSAkKGxpYmh3KQo+Pgo+PiDCoCNNYWNoaW5lIGRlcGVuZGVudAo+Pgo+Pgo+Cj4gU291bmQgZ29v
+ZCB0byBtZSwgYW5kIHVubGVzcyB0aGVyZSBpcyBhbiBvYmplY3Rpb24sIGl0IGFsc28gZ2l2ZXMK
+PiBwbGVudHkgb2YgdGltZSBmb3IgdGhlIGNoYW5nZSB0byBiZSBub3RpY2VkLgoKWWVhaCwgSSBh
+Z3JlZS4gSSBhbHNvIGhhdmUgdGhvdWdodCBvbiBkb2luZyB0aGlzLgoKLS0gCkZlbGlwZSBDb250
+cmVyYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
+bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
+ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
+LWFybS1rZXJuZWwK
