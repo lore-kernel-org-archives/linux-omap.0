@@ -1,49 +1,76 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: Why was the gptimer_wakup from suspend removed?
-Date: Mon, 30 Jan 2012 13:36:06 -0800
-Message-ID: <87mx94rhyx.fsf@ti.com>
-References: <3D8305F5-07DF-4B04-981D-762214113CDB@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: How do I get slimbus hwmod information?
+Date: Mon, 30 Jan 2012 14:43:34 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201301429590.17726@utopia.booyaka.com>
+References: <20120105004503.GA4650@plastictigers.com> <alpine.DEB.2.00.1201251239150.5324@utopia.booyaka.com> <20120130201132.GB6332@plastictigers.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:49823 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751932Ab2A3VgK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jan 2012 16:36:10 -0500
-Received: by mail-yx0-f172.google.com with SMTP id m3so2225514yen.31
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 13:36:09 -0800 (PST)
-In-Reply-To: <3D8305F5-07DF-4B04-981D-762214113CDB@gmail.com> (Tasslehoff
-	Kjappfot's message of "Tue, 24 Jan 2012 23:45:05 +0100")
+Received: from utopia.booyaka.com ([72.9.107.138]:41304 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751975Ab2A3Vnf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 16:43:35 -0500
+In-Reply-To: <20120130201132.GB6332@plastictigers.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Marc Butler <marc@plastictigers.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, gclemson@audience.com, lrg@ti.com, peter.ujfalusi@ti.com, khilman@ti.com, mturquette@ti.com
 
-Hello,
+cc Peter, Liam, Kevin, Mike
 
-Tasslehoff Kjappfot <tasskjapp@gmail.com> writes:
+On Mon, 30 Jan 2012, Marc Butler wrote:
 
-> It was removed in:
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=98e182a26bbbf5575457622337684ef61493e864
->
-> The commit message says a bit about what was done, but not why.
+> On Wed, Jan 25, 2012 at 12:46:50PM -0700, Paul Walmsley wrote:
+> 
+> > The driver shouldn't have any hwmod code in it.  Any 
+> > omap_device/omap_hwmod code that's needed should go into an appropriate 
+> > file in arch/arm/mach-omap2.  The device resource metadata will flow 
+> > through the existing Linux resource system.  Also, currently we are using 
+> > the pm_runtime*() calls as the way to interface with the 
+> > omap_hwmod/omap_device enable/idle code, so your driver should be written 
+> > using those.
+> 
+> I believe I came to the conclusion that I need the hwmod support,
+> inorder to build out the platform_* infrastructure the driver needs,
+> to query/configure resources. The driver itself does not call hwmod
+> directly.
 
-The reason why was because the way it was implemented was a hack and was
-causing problems for some other cleanups, so we removed it.
+That sounds right.  The other thing that the omap_device/hwmod 
+infrastructure is good for is device reset and power management.  
+Device reset probably won't need any driver modifications; the driver can 
+just start under the assumption that everything has been reset to the POR 
+values documented in the TRM.  In terms of power management, your driver 
+should use the pm_runtime*() functions to play nicely with the rest of the 
+system :-)  pm_runtime*() will call into omap_device*() which will call 
+into omap_hwmod*() to ensure that clocks and other PM infrastructure are 
+appropriately disabled, enabled, etc.
 
-> I'm trying to get suspend somewhat working on my board. The board is
-> based on the beagleboard and uses the 1.8V to charge some external
-> equipment. My thought was to suspend, wake occasionally to check if
-> the charging is done, and shutdown if it is. 
+> A colleague is looking into this, and we are unclear what should be
+> done in the case where you can choose alternate muxing of the pins?
+> For instance slimbus2 module can be routed two distinct pads. Should
+> this be handled in an appropriate board_*.c?
 
-The kernel now has a way to implement exactly this.  Please have a look
-at Documentation/power/charger-manager.txt.
+Yes.  N.B., AFAIK Tony Lindgren isn't taking any more board_*.c patches 
+for mainline - the goal is to move all of that stuff to DT eventually.  
+So if you're interested in submitting to mainline (which I hope you are 
+:-) ) you might want to writethe driver to be able to use either 
+platform_data or DT data for configuration.  This might involve working on 
+DT bindings; it might be worth including Liam Girdwood <lrg@ti.com> and 
+Peter Ujfalusi <peter.ujfalusi@ti.com> on those discussions.  They would 
+also know if someone inside TI may have already written Slimbus drivers 
+that haven't yet made it to mainline, but which may have wound up in some 
+Android-related tree.
 
-> In 2.6.39 which I'm currently using, it's still there, but since it is
-> gone in 3.0 and later I'm wondering if I should not rely on it.
+One other brief note is that there are some very interesting power 
+management options that may be possible in the audio path that we may not 
+have full support for in the PM infrastructure layers.  Stuff like DPLL 
+chaining and IP blocks with externally-driven functional clocks.  I 
+believe Mike Turquette <mturquette@ti.com> may have explored this area a 
+bit, although perhaps not specifically with Slimbus. If there is any 
+interaction of these features with Slimbus (which there may not be), I'd 
+suggest pushing support for those features off to a second phase, and we 
+should probably have a group discussion about how to handle those cases 
+cleanly :-)
 
-No, you should not rely on it.  For your specific case, there is much
-better infrastructure to do exactly what you need.
 
-Kevin
+- Paul
