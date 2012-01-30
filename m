@@ -1,234 +1,125 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 7/7] ARM: OMAP2+: hwmod: split the _setup() function
-Date: Mon, 30 Jan 2012 03:18:18 -0700
-Message-ID: <20120130101818.10450.56384.stgit@dusk>
+Subject: [PATCH 1/7] ARM: OMAP2+: hwmod: control all hardreset lines attached
+ to a hwmod
+Date: Mon, 30 Jan 2012 03:18:13 -0700
+Message-ID: <20120130101810.10450.45161.stgit@dusk>
 References: <20120130101251.10450.58423.stgit@dusk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42217 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42188 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751794Ab2A3KSp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 05:18:45 -0500
+	with ESMTP id S1751202Ab2A3KSn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 05:18:43 -0500
 In-Reply-To: <20120130101251.10450.58423.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Split the interface clock setup from _setup() into
-_setup_iclk_autoidle() and split the post-setup state code from
-_setup() into _enter_postsetup_state().  Fix the existing, incorrect
-documentation for _setup(), and add documentation for the other two
-functions.  The goal is to shrink the size of the _setup() function to
-make it easier to read and maintain.
+Parts of the hwmod code test to see if a module has one and only one
+hardreset line before taking an action.  It seems more appropriate
+to control all hardreset lines associated with a hwmod, not just one.
+
+It so happens that with the current hwmod data, this will not change
+any behavior, since hwmods with hardreset lines have only one
+hardreset line associated with them, and 'pseudo-hwmods' are used to
+handle the other hardreset lines.  But future hwmod data patches to
+remove the pseudo-hwmods will change this.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod.c |  154 +++++++++++++++++++++++++++---=
---------
- 1 files changed, 111 insertions(+), 43 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod.c |   29 +++++++++++++++--------------
+ 1 files changed, 15 insertions(+), 14 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
 p_hwmod.c
-index f7bf759..41749bd 100644
+index 5192cab..0ef2710 100644
 --- a/arch/arm/mach-omap2/omap_hwmod.c
 +++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -1731,11 +1731,112 @@ static int _shutdown(struct omap_hwmod *oh)
- }
+@@ -1475,6 +1475,11 @@ static int _reset(struct omap_hwmod *oh)
 =20
- /**
-- * _setup - do initial configuration of omap_hwmod
-+ * _setup_iclk_autoidle - configure an IP block's interface clocks
-  * @oh: struct omap_hwmod *
-  *
-- * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
-- * OCP_SYSCONFIG register.  Returns 0.
-+ * Set up the module's interface clocks.  XXX This function is still m=
-ostly
-+ * a stub; implementing this properly requires iclk autoidle usecounti=
-ng in
-+ * the clock code.   No return value.
-+ */
-+static void _setup_iclk_autoidle(struct omap_hwmod *oh)
-+{
-+	int i;
-+
-+	for (i =3D 0; i < oh->slaves_cnt; i++) {
-+		struct omap_hwmod_ocp_if *os =3D oh->slaves[i];
-+		struct clk *c =3D os->_clk;
-+
-+		if (!c)
-+			continue;
-+
-+		if (os->flags & OCPIF_SWSUP_IDLE) {
-+			/* XXX omap_iclk_deny_idle(c); */
-+		} else {
-+			/* XXX omap_iclk_allow_idle(c); */
-+			clk_enable(c);
-+		}
-+	}
-+}
-+
-+
-+/**
-+ * _enter_postsetup_state - transition to the appropriate state after =
-_setup
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Place an IP block represented by @oh into a "post-setup" state --
-+ * either IDLE, ENABLED, or DISABLED.  ("post-setup" simply means that
-+ * this function is called at the end of _setup().)  The postsetup
-+ * state for an IP block can be changed by calling
-+ * omap_hwmod_enter_postsetup_state() early in the boot process,
-+ * before one of the omap_hwmod_setup*() functions are called for the
-+ * IP block.
-+ *
-+ * The IP block stays in this state until a PM runtime-based driver is
-+ * loaded for that IP block.  A post-setup state of IDLE is
-+ * appropriate for almost all IP blocks with runtime PM-enabled
-+ * drivers, since those drivers are able to enable the IP block.  A
-+ * post-setup state of ENABLED is appropriate for kernels with PM
-+ * runtime disabled.  The DISABLED state is appropriate for unusual IP
-+ * blocks such as the MPU WDTIMER on kernels without WDTIMER drivers
-+ * included, since the WDTIMER starts running on reset and will reset
-+ * the MPU if left active.
-+ *
-+ * This post-setup mechanism is deprecated.  Once all of the OMAP
-+ * drivers have been converted to use PM runtime, and all of the IP
-+ * block data and interconnect data is available to the hwmod code, it
-+ * should be possible to replace this mechanism with a "lazy reset"
-+ * arrangement.  In a "lazy reset" setup, each IP block is enabled
-+ * when the driver first probes, then all remaining IP blocks without
-+ * drivers are either shut down or enabled after the drivers have
-+ * loaded.  However, this cannot take place until the above
-+ * preconditions have been met, since otherwise the late reset code
-+ * has no way of knowing which IP blocks are in use by drivers, and
-+ * which ones are unused.
-+ *
-+ * No return value.
-+ */
-+static void _enter_postsetup_state(struct omap_hwmod *oh)
-+{
-+	u8 postsetup_state;
-+
-+	postsetup_state =3D oh->_postsetup_state;
-+	if (postsetup_state =3D=3D _HWMOD_STATE_UNKNOWN)
-+		postsetup_state =3D _HWMOD_STATE_ENABLED;
-+
+ 	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+=20
 +	/*
-+	 * XXX HWMOD_INIT_NO_IDLE does not belong in hwmod data -
-+	 * it should be set by the core code as a runtime flag during startup
++	 * XXX We're not resetting modules with hardreset lines
++	 * automatically here.  Should we do this also, or just expect
++	 * those modules to define custom reset functions?
 +	 */
-+	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
-+	    (postsetup_state =3D=3D _HWMOD_STATE_IDLE)) {
-+		oh->_int_flags |=3D _HWMOD_SKIP_ENABLE;
-+		postsetup_state =3D _HWMOD_STATE_ENABLED;
-+	}
-+
-+	if (postsetup_state =3D=3D _HWMOD_STATE_IDLE)
-+		_idle(oh);
-+	else if (postsetup_state =3D=3D _HWMOD_STATE_DISABLED)
-+		_shutdown(oh);
-+	else if (postsetup_state !=3D _HWMOD_STATE_ENABLED)
-+		WARN(1, "hwmod: %s: unknown postsetup state %d! defaulting to enable=
-d\n",
-+		     oh->name, postsetup_state);
-+}
-+
-+/**
-+ * _setup - do initial configuration of an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Configure the IP block represented by @oh.  This may include
-+ * enabling the IP block, resetting it, and placing it into a
-+ * post-setup state, depending on the type of IP block and applicable
-+ * flags.
-+ *
-+ * IP blocks are reset to prevent any previous configuration by the
-+ * bootloader or previous operating system from interfering with power
-+ * management or other parts of the system.  The reset can be avoided;=
- see
-+ * omap_hwmod_no_setup_reset().
-+ *
-+ * Returns 0.
+ 	ret =3D (oh->class->reset) ? oh->class->reset(oh) : _ocp_softreset(oh=
+);
+=20
+ 	return ret;
+@@ -1490,7 +1495,7 @@ static int _reset(struct omap_hwmod *oh)
   */
- static int _setup(struct omap_hwmod *oh, void *data)
+ static int _enable(struct omap_hwmod *oh)
  {
-@@ -1746,22 +1847,8 @@ static int _setup(struct omap_hwmod *oh, void *d=
-ata)
+-	int r;
++	int r, i;
+ 	int hwsup =3D 0;
+=20
+ 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+@@ -1522,15 +1527,15 @@ static int _enable(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
+=20
+-
+ 	/*
+-	 * If an IP contains only one HW reset line, then de-assert it in ord=
+er
++	 * If an IP contains HW reset lines, then de-assert them in order
+ 	 * to allow the module state transition. Otherwise the PRCM will retu=
+rn
+ 	 * Intransition status, and the init will failed.
+ 	 */
+-	if ((oh->_state =3D=3D _HWMOD_STATE_INITIALIZED ||
+-	     oh->_state =3D=3D _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt =3D=
+=3D 1)
+-		_deassert_hardreset(oh, oh->rst_lines[0].name);
++	if (oh->_state =3D=3D _HWMOD_STATE_INITIALIZED ||
++	    oh->_state =3D=3D _HWMOD_STATE_DISABLED)
++		for (i =3D 0; i < oh->rst_lines_cnt; i++)
++			_deassert_hardreset(oh, oh->rst_lines[i].name);
+=20
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+@@ -1677,7 +1682,7 @@ int omap_hwmod_set_ocp_autoidle(struct omap_hwmod=
+ *oh, u8 autoidle)
+  */
+ static int _shutdown(struct omap_hwmod *oh)
+ {
+-	int ret;
++	int ret, i;
+ 	u8 prev_state;
+=20
+ 	if (oh->_state !=3D _HWMOD_STATE_IDLE &&
+@@ -1718,12 +1723,8 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	}
+ 	/* XXX Should this code also force-disable the optional clocks? */
+=20
+-	/*
+-	 * If an IP contains only one HW reset line, then assert it
+-	 * after disabling the clocks and before shutting down the IP.
+-	 */
+-	if (oh->rst_lines_cnt =3D=3D 1)
+-		_assert_hardreset(oh, oh->rst_lines[0].name);
++	for (i =3D 0; i < oh->rst_lines_cnt; i++)
++		_assert_hardreset(oh, oh->rst_lines[i].name);
+=20
+ 	/* Mux pins to safe mode or use populated off mode values */
+ 	if (oh->mux)
+@@ -1776,7 +1777,7 @@ static int _setup(struct omap_hwmod *oh, void *da=
+ta)
+ 	 * reset asserted. Exit without warning because that behavior is
+ 	 * expected.
+ 	 */
+-	if ((oh->flags & HWMOD_INIT_NO_RESET) && oh->rst_lines_cnt =3D=3D 1)
++	if ((oh->flags & HWMOD_INIT_NO_RESET) && oh->rst_lines_cnt > 0)
  		return 0;
 =20
- 	/* Set iclk autoidle mode */
--	if (oh->slaves_cnt > 0) {
--		for (i =3D 0; i < oh->slaves_cnt; i++) {
--			struct omap_hwmod_ocp_if *os =3D oh->slaves[i];
--			struct clk *c =3D os->_clk;
--
--			if (!c)
--				continue;
--
--			if (os->flags & OCPIF_SWSUP_IDLE) {
--				/* XXX omap_iclk_deny_idle(c); */
--			} else {
--				/* XXX omap_iclk_allow_idle(c); */
--				clk_enable(c);
--			}
--		}
--	}
-+	if (oh->slaves_cnt > 0)
-+		_setup_iclk_autoidle(oh);
-=20
- 	oh->_state =3D _HWMOD_STATE_INITIALIZED;
-=20
-@@ -1785,27 +1872,7 @@ static int _setup(struct omap_hwmod *oh, void *d=
-ata)
- 	if (!(oh->flags & HWMOD_INIT_NO_RESET))
- 		_reset(oh);
-=20
--	postsetup_state =3D oh->_postsetup_state;
--	if (postsetup_state =3D=3D _HWMOD_STATE_UNKNOWN)
--		postsetup_state =3D _HWMOD_STATE_ENABLED;
--
--	/*
--	 * XXX HWMOD_INIT_NO_IDLE does not belong in hwmod data -
--	 * it should be set by the core code as a runtime flag during startup
--	 */
--	if ((oh->flags & HWMOD_INIT_NO_IDLE) &&
--	    (postsetup_state =3D=3D _HWMOD_STATE_IDLE)) {
--		oh->_int_flags |=3D _HWMOD_SKIP_ENABLE;
--		postsetup_state =3D _HWMOD_STATE_ENABLED;
--	}
--
--	if (postsetup_state =3D=3D _HWMOD_STATE_IDLE)
--		_idle(oh);
--	else if (postsetup_state =3D=3D _HWMOD_STATE_DISABLED)
--		_shutdown(oh);
--	else if (postsetup_state !=3D _HWMOD_STATE_ENABLED)
--		WARN(1, "hwmod: %s: unknown postsetup state %d! defaulting to enable=
-d\n",
--		     oh->name, postsetup_state);
-+	_enter_postsetup_state(oh);
-=20
- 	return 0;
- }
-@@ -2660,9 +2727,10 @@ int omap_hwmod_for_each_by_class(const char *cla=
-ssname,
-  *
-  * Sets the hwmod state that @oh will enter at the end of _setup()
-  * (called by omap_hwmod_setup_*()).  Only valid to call between
-- * calling omap_hwmod_register() and omap_hwmod_setup_*().  Returns
-- * 0 upon success or -EINVAL if there is a problem with the arguments
-- * or if the hwmod is in the wrong state.
-+ * calling omap_hwmod_register() and omap_hwmod_setup_*().  See also
-+ * the documentation for _enter_postsetup_state(), above.  Returns 0
-+ * upon success or -EINVAL if there is a problem with the arguments or
-+ * if the hwmod is in the wrong state.
-  */
- int omap_hwmod_set_postsetup_state(struct omap_hwmod *oh, u8 state)
- {
+ 	r =3D _enable(oh);
 
 
 --
