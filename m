@@ -1,7 +1,7 @@
-From: stephane eranian <eranian@googlemail.com>
+From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
 Subject: Re: oprofile and ARM A9 hardware counter
-Date: Mon, 30 Jan 2012 17:02:06 +0100
-Message-ID: <CAMsRxfLqvPN_k7vuC3qzBjwX2ihBdPxZvmSCPZ3frWgptWXQGA@mail.gmail.com>
+Date: Mon, 30 Jan 2012 16:08:32 +0000
+Message-ID: <yw1xsjixgolb.fsf@unicorn.mansr.com>
 References: <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
 	<20120127121311.GB2347@mudshark.cambridge.arm.com>
 	<yw1x1uqlnw1o.fsf@unicorn.mansr.com>
@@ -19,78 +19,64 @@ References: <CAMsRxfJWjwznJYujSvr0DfhNxtnJDVdfjXXpx34HUDBRtMvjqw@mail.gmail.com>
 	<CAMsRxfJq1-tSQH4bv0BeNWXV9aysi9AUvywkh3e9SaamMDfZ0Q@mail.gmail.com>
 	<CAMsRxf+okps60OxQnPkqHck8pWHrkPnT6boo603pC2XEbFYoRQ@mail.gmail.com>
 	<CACVXFVMDXO3DDj0mGh=+uDYfCoS_Ck1STVK0=UXjiAbtJTa=hA@mail.gmail.com>
-Reply-To: eranian@gmail.com
+	<CAMsRxfLqvPN_k7vuC3qzBjwX2ihBdPxZvmSCPZ3frWgptWXQGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <oprofile-list-bounces@lists.sourceforge.net>
-In-Reply-To: <CACVXFVMDXO3DDj0mGh=+uDYfCoS_Ck1STVK0=UXjiAbtJTa=hA@mail.gmail.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
-	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
-List-Post: <mailto:oprofile-list@lists.sourceforge.net>
-List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
-	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: oprofile-list-bounces@lists.sourceforge.net
-To: Ming Lei <ming.lei@canonical.com>
-Cc: =?UTF-8?B?TcOlbnMgUnVsbGfDpXJk?= <mans@mansr.com>, "Cousson,
-	Benoit" <b-cousson@ti.com>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from unicorn.mansr.com ([78.86.181.103]:50558 "EHLO
+	unicorn.mansr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672Ab2A3QIe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 11:08:34 -0500
+In-Reply-To: <CAMsRxfLqvPN_k7vuC3qzBjwX2ihBdPxZvmSCPZ3frWgptWXQGA@mail.gmail.com>
+	(stephane eranian's message of "Mon, 30 Jan 2012 17:02:06 +0100")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: eranian@gmail.com
+Cc: Ming Lei <ming.lei@canonical.com>, Will Deacon <will.deacon@arm.com>, =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, "Cousson, Benoit" <b-cousson@ti.com>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "santosh.shilimkar@ti.com" <santosh.shilimkar@ti.com>
 
-U2FtZSByZXN1bHQgZm9yIG1lIG9uIENQVTE6Cgp0b3AgLSAxNjoyMDoyNCB1cCAgMTo0NSwgIDEg
-dXNlciwgIGxvYWQgYXZlcmFnZTogMC4yOSwgMC4wOCwgMC4wNwpUYXNrczogIDcwIHRvdGFsLCAg
-IDIgcnVubmluZywgIDY4IHNsZWVwaW5nLCAgIDAgc3RvcHBlZCwgICAwIHpvbWJpZQpDcHUocyk6
-IDMwLjcldXMsICAyLjclc3ksICAwLjAlbmksIDY2LjclaWQsICAwLjAld2EsICAwLjAlaGksICAw
-LjAlc2ksICAwLjAlc3QKTWVtOiAgICA5NDAyMzJrIHRvdGFsLCAgIDIyODk4NGsgdXNlZCwgICA3
-MTEyNDhrIGZyZWUsICAgIDgyMjQ0ayBidWZmZXJzClN3YXA6ICAgNTI0MjQwayB0b3RhbCwgICAg
-ICAgIDBrIHVzZWQsICAgNTI0MjQwayBmcmVlLCAgICA5MTQwMGsgY2FjaGVkCgogIFBJRCBVU0VS
-ICAgICAgUFIgIE5JICBWSVJUICBSRVMgIFNIUiBTICVDUFUgJU1FTSAgICBUSU1FKyAgUCBDT01N
-QU5ECiAzOTY4IGVyYW5pYW4gICAyMCAgIDAgICA2NDQgIDE2MCAgMTI4IFIgIDEwMCAgMC4wICAg
-MDoyMS45OCAxIG5vcGxvb3AKIDM5NjkgZXJhbmlhbiAgIDIwICAgMCAgMjE4NCAxMDU2ICA4MDQg
-UiAgICAzICAwLjEgICAwOjAwLjUzIDAgdG9wCiAgIDgyIHJvb3QgICAgICAyMCAgIDAgICAgIDAg
-ICAgMCAgICAwIFMgICAgMSAgMC4wICAgMDowMS4zNSAwCmt3b3JrZXIvMDoxCgpXaXRoIDMuMy4w
-LXJjMSwgaWYgSSByZXZlcnQgdGhlIGNsb2NrZG9tYWluIHBhdGNoLCBJIGdldCB0aGUgc2FtZSBy
-ZXN1bHQuClNvIGl0IG11c3QgYmUgY29taW5nIGZyb20gc29tZXdoZXJlIGVsc2UsIGFzIHlvdSBz
-dWdnZXN0ZWQuCgpJZiB0aGUgcHJvY2Vzc29yIHdhcyBzcGVuZGluZyB0aW1lIHByb2Nlc3Npbmcg
-aW50ZXJydXB0cywgdGhlbiB0aGlzIHdvdWxkIGJlCmFjY291bnRlZCBmb3IgaW4gYXMgc3lzIHRp
-bWUuIEJ1dCB0aGF0J3Mgbm90IHdoYXQgSSBvYnNlcnZlIGhlcmUuIEl0J3MgZWl0aGVyCmlkbGUg
-b3IgdXNlci4gVGhhdCBsaW5lLCBsZWFkcyBtZSB0byBiZWxpZXZlIHRoYXQgdGhlIHByb2Nlc3Nv
-ciBjYW4gb25seSBydW4KbXkgcHJvZ3JhbSBmb3IgMzAlIG9mIHRoZSB0aW1lLiBUaGUgcmVzdCBp
-cyBzcGVudCBpZGxpbmcgZXZlbiB0aG91Z2ggbXkKcHJvZ3JhbSBpcyBub24tYmxvY2tpbmcuIEhv
-dyBjb3VsZCB0aGF0IGJlIHBvc3NpYmxlPyBQb3dlci1zYXZpbmc/CgoKT24gTW9uLCBKYW4gMzAs
-IDIwMTIgYXQgMzo0OSBQTSwgTWluZyBMZWkgPG1pbmcubGVpQGNhbm9uaWNhbC5jb20+IHdyb3Rl
-Ogo+IE9uIE1vbiwgSmFuIDMwLCAyMDEyIGF0IDk6NDMgUE0sIHN0ZXBoYW5lIGVyYW5pYW4KPiA8
-ZXJhbmlhbkBnb29nbGVtYWlsLmNvbT4gd3JvdGU6Cj4+IFNhbWUgcmVzdWx0cyBmb3IgbWUgd2l0
-aCAzLjMuMC1yYzEgKyA1IHBhdGNoZXMuCj4KPiBJbiBmYWN0LCBJIHRoaW5rIHRoZSBvbmx5IGVm
-ZmVjdCBvZiB0aGUgcGF0Y2ggaXMgdG8gZW5hYmxlIHBtdQo+IGludGVycnVwdCBoYW5kbGluZywK
-PiB3aGljaCBtYXkgY2F1c2Ugc28gbXVjaCBkaWZmZXJlbmNlPwo+Cj4gQWxzbyBtYXliZSB5b3Ug
-c2hvdWxkIHB1dCAnbm9wbG9vcCcgdG8gcnVuIG9uIENQVTEgYW5kIHlvdSBtYXkgb2JzZXJ2ZQo+
-IGEgbW9yZSBhY2N1cmF0ZSByZXN1bHQgb2YgJ3RvcCcuCj4KPiBPbiBBUk0sIGFsbW9zdCBoYW5k
-bGluZyBvZiBhbGwgSVJRcyBmcm9tIGdpYyBpcyBydW4gb24gQ1BVMCBhdCBkZWZhdWx0LAo+IHdo
-aWNoIG1heSBjYXVzZSB5b3VyIGlzc3VlLgo+Cj4+Cj4+Cj4+IHRvcCAtIDE0OjQyOjM0IHVwIDgg
-bWluLCDCoDEgdXNlciwgwqBsb2FkIGF2ZXJhZ2U6IDAuNzAsIDAuMjksIDAuMTUKPj4gVGFza3M6
-IMKgNzUgdG90YWwsIMKgIDIgcnVubmluZywgwqA3MyBzbGVlcGluZywgwqAgMCBzdG9wcGVkLCDC
-oCAwIHpvbWJpZQo+PiBDcHUocyk6IDMyLjkldXMsIMKgMS4zJXN5LCDCoDAuMCVuaSwgNjUuOCVp
-ZCwgwqAwLjAld2EsIMKgMC4wJWhpLCDCoDAuMCVzaSwgwqAwLjAlc3QKPj4gTWVtOiDCoCDCoDk0
-MDIzMmsgdG90YWwsIMKgIDExODUyMGsgdXNlZCwgwqAgODIxNzEyayBmcmVlLCDCoCDCoCA4MDgw
-ayBidWZmZXJzCj4+IFN3YXA6IMKgIDUyNDI0MGsgdG90YWwsIMKgIMKgIMKgIMKgMGsgdXNlZCwg
-wqAgNTI0MjQwayBmcmVlLCDCoCDCoDc5NDMyayBjYWNoZWQKPj4KPj4gwqAgUElEIFVTRVIgwqAg
-wqAgwqBQUiDCoE5JIMKgVklSVCDCoFJFUyDCoFNIUiBTICVDUFUgJU1FTSDCoCDCoFRJTUUrIMKg
-Q09NTUFORAo+PiDCoDM4NjggZXJhbmlhbiDCoCAyMCDCoCAwIMKgIDY0NCDCoDE2MCDCoDEyOCBS
-IMKgIDk5IMKgMC4wIMKgIDA6NTMuMzQgbm9wbG9vcAo+PiDCoDM4NzAgZXJhbmlhbiDCoCAyMCDC
-oCAwIMKgMjI4NCAxMDYwIMKgODA0IFIgwqAgwqAzIMKgMC4xIMKgIDA6MDAuNjMgdG9wCj4+IMKg
-IMKgIDEgcm9vdCDCoCDCoCDCoDIwIMKgIDAgwqAyNTY0IDE1MzIgwqA5NTIgUyDCoCDCoDAgwqAw
-LjIgwqAgMDowMS4yNiBpbml0Cj4+Cj4+IEkgYW0gY29ubmVjdGluZyB0byB0aGUgYm9hcmQgdmlh
-IHNzaC4KPj4gQnV0IHRoZSByZXN1bHRzIGRvbid0IGxvb2sgY29ycmVjdCB0byBtZS4KPgo+IHRo
-YW5rcywKPiAtLQo+IE1pbmcgTGVpCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KVHJ5IGJlZm9yZSB5
-b3UgYnV5ID0gU2VlIG91ciBleHBlcnRzIGluIGFjdGlvbiEKVGhlIG1vc3QgY29tcHJlaGVuc2l2
-ZSBvbmxpbmUgbGVhcm5pbmcgbGlicmFyeSBmb3IgTWljcm9zb2Z0IGRldmVsb3BlcnMKaXMganVz
-dCAkOTkuOTkhIFZpc3VhbCBTdHVkaW8sIFNoYXJlUG9pbnQsIFNRTCAtIHBsdXMgSFRNTDUsIENT
-UzMsIE1WQzMsCk1ldHJvIFN0eWxlIEFwcHMsIG1vcmUuIEZyZWUgZnV0dXJlIHJlbGVhc2VzIHdo
-ZW4geW91IHN1YnNjcmliZSBub3chCmh0dHA6Ly9wLnNmLm5ldC9zZnUvbGVhcm5kZXZub3ctZGV2
-MgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpvcHJvZmls
-ZS1saXN0IG1haWxpbmcgbGlzdApvcHJvZmlsZS1saXN0QGxpc3RzLnNvdXJjZWZvcmdlLm5ldApo
-dHRwczovL2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9saXN0aW5mby9vcHJvZmlsZS1saXN0
-Cg==
+stephane eranian <eranian@googlemail.com> writes:
+
+> Same result for me on CPU1:
+>
+> top - 16:20:24 up  1:45,  1 user,  load average: 0.29, 0.08, 0.07
+> Tasks:  70 total,   2 running,  68 sleeping,   0 stopped,   0 zombie
+> Cpu(s): 30.7%us,  2.7%sy,  0.0%ni, 66.7%id,  0.0%wa,  0.0%hi,  0.0%si=
+,  0.0%st
+> Mem:    940232k total,   228984k used,   711248k free,    82244k buff=
+ers
+> Swap:   524240k total,        0k used,   524240k free,    91400k cach=
+ed
+>
+>   PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  P COMMAN=
+D
+>  3968 eranian   20   0   644  160  128 R  100  0.0   0:21.98 1 noploo=
+p
+>  3969 eranian   20   0  2184 1056  804 R    3  0.1   0:00.53 0 top
+>    82 root      20   0     0    0    0 S    1  0.0   0:01.35 0
+> kworker/0:1
+>
+> With 3.3.0-rc1, if I revert the clockdomain patch, I get the same res=
+ult.
+> So it must be coming from somewhere else, as you suggested.
+>
+> If the processor was spending time processing interrupts, then this w=
+ould be
+> accounted for in as sys time. But that's not what I observe here. It'=
+s either
+> idle or user. That line, leads me to believe that the processor can o=
+nly run
+> my program for 30% of the time. The rest is spent idling even though =
+my
+> program is non-blocking. How could that be possible? Power-saving?
+
+In top, press 1 to see the statistics for the CPUs separately.
+
+--=20
+M=E5ns Rullg=E5rd
+mans@mansr.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
