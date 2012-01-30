@@ -1,96 +1,90 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: id: Add missing break statement in
- omap3xxx_check_revision
-Date: Mon, 30 Jan 2012 08:30:40 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317B7282@DBDE01.ent.ti.com>
-References: <1327305407-19914-1-git-send-email-hvaibhav@ti.com>
- <20120127002543.GG29812@atomide.com>
- <79CD15C6BA57404B839C016229A409A8317B530C@DBDE01.ent.ti.com>
+Subject: RE: [RFC PATCH 1/5] arm:omap1/2/3/4:Convert 32k-Sync clocksource
+ driver to platform_driver
+Date: Mon, 30 Jan 2012 08:49:45 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317B7306@DBDE01.ent.ti.com>
+References: <1326886086-27313-1-git-send-email-hvaibhav@ti.com>
+	 <1326886086-27313-2-git-send-email-hvaibhav@ti.com>
+ <1327535610.2141.15.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39217 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59784 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752725Ab2A3Ias convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 03:30:48 -0500
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317B530C@DBDE01.ent.ti.com>
+	id S1752725Ab2A3IuE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 03:50:04 -0500
+In-Reply-To: <1327535610.2141.15.camel@localhost>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pedanekar, Hemant" <hemantp@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: john stultz <johnstul@us.ibm.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "Balbi, Felipe" <balbi@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony@atomide.com" <tony@atomide.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-On Fri, Jan 27, 2012 at 11:02:01, Hiremath, Vaibhav wrote:
-> On Fri, Jan 27, 2012 at 05:55:43, Tony Lindgren wrote:
-> > * Vaibhav Hiremath <hvaibhav@ti.com> [120122 23:26]:
-> > > Add missing break statement in the function omap3xxx_check_revision.
-> > > 
-> > > The commit id 4390f5b2cb1f56 [ARM: OMAP: TI814X: Add cpu type macros
-> > > and detection support], removed the 'break' statement from the function
-> > > omap3xxx_check_revision(), resulting into wrong omap/cpu_revision
-> > > initialization for AM335x devices.
-> > 
-> > Looks like this is already fixed, can you please verify with
-> > v3.3-rc1?
-> > 
-> Tony,
+On Thu, Jan 26, 2012 at 05:23:30, john stultz wrote:
+> On Wed, 2012-01-18 at 16:58 +0530, Vaibhav Hiremath wrote:
+> > +/**
+> > + * read_persistent_clock -  Return time from a persistent clock.
+> > + *
+> > + * Reads the time from a source which isn't disabled during PM, the
+> > + * 32k sync timer.  Convert the cycles elapsed since last read into
+> > + * nsecs and adds to a monotonically increasing timespec.
+> > + */
+> > +void read_persistent_clock(struct timespec *ts)
+> > +{
+> > +	cycles_t delta;
+> > +	struct timespec *tsp;
+> > +	unsigned long long nsecs;
+> > +	struct omap_counter_32k_device  *omap = cs;
+> > +
+> > +	if (!omap) {
+> > +		ts->tv_sec = 0;
+> > +		ts->tv_nsec = 0;
+> > +		return;
+> > +	}
+> > +	tsp = &omap->persistent_ts;
+> > +
+> > +	omap->last_cycles = omap->cycles;
+> > +	omap->cycles = omap->cs.read(&omap->cs);
+> > +	delta = omap->cycles - omap->last_cycles;
+> > +
+> > +	nsecs = clocksource_cyc2ns(delta,
+> > +			omap->cs.mult, omap->cs.shift);
+> > +
+> > +	timespec_add_ns(tsp, nsecs);
+> > +	*ts = *tsp;
+> > +}
 > 
-> I just looked at your linux-omap/master branch and 'break' statement is missing. So this patch is still required.
-> 
-> I can still see,
-> 
-> 394                 }
-> 395                 break;
-> 396         case 0xb944:
-> 397                 omap_revision = AM335X_REV_ES1_0;
-> 398                 cpu_rev = "1.0";
-> 399         case 0xb8f2:
-> 400                 switch (rev) {
+> Hrm. So read_persistent_clock should probably be defined once per arch.
+> So I'm not sure if it makes sense to include this implementation into
+> the generic drivers/clocksource directory, as if some other arch tried
+> to include this clocksource (say if they had the same hardware) they
+> might have collisions w/ their read_persistent_clock implementation.
 > 
 > 
-Tony,
+> I'm all for being able to re-use clocksource drivers. But this is the
+> sort of thing that makes me worry we're maybe being too aggressive in
+> pushing clocksources that really are fairly arch/platform specific into
+> drivers/clocksource/
+> 
 
-Can this be merged? I can still see "break" statement missing in the latest
-linux-omap/master branch.
+John,
+
+Sorry for delayed response and thanks for your comments.
+
+Just FYI, we had already aligned on the list that, this is not going
+to work, and after discussion I have already submitted newer version
+of the omap timer cleanup code -
+
+http://marc.info/?l=linux-omap&m=132730863303625&w=2
+
 
 Thanks,
 Vaibhav
 
-> Thanks,
-> Vaibhav
+> thanks
+> -john
 > 
 > 
-> > Regards,
-> > 
-> > Tony
-> >  
-> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > Cc: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  arch/arm/mach-omap2/id.c |    1 +
-> > >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > > index 325e12e..32cf203 100644
-> > > --- a/arch/arm/mach-omap2/id.c
-> > > +++ b/arch/arm/mach-omap2/id.c
-> > > @@ -395,6 +395,7 @@ void __init omap3xxx_check_revision(void)
-> > >  	case 0xb944:
-> > >  		omap_revision = AM335X_REV_ES1_0;
-> > >  		cpu_rev = "1.0";
-> > > +		break;
-> > >  	case 0xb8f2:
-> > >  		switch (rev) {
-> > >  		case 0:
-> > > --
-> > > 1.7.0.4
-> > > 
-> > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
