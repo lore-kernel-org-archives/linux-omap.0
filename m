@@ -1,58 +1,104 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] tidspbridge: Rename module from bridgedriver to
- tidspbridge
-Date: Mon, 30 Jan 2012 19:51:06 +0200
-Message-ID: <CAMP44s3atm_WYrGAVcRQLKoMzu9PpR4y5GLRw=o1CF0EZvCBfA@mail.gmail.com>
-References: <1327440305.1798.28.camel@joe2Laptop>
- <CAB-zwWjWkxpmT2dXDV++okCKZaebVz4O8-L4OgabMEzdEu4eGA@mail.gmail.com>
+From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
+Subject: Re: [PATCH 3/5] staging: tidspbridge: Lindent to drv_interface.c
+Date: Mon, 30 Jan 2012 18:59:40 +0100
+Message-ID: <20120130175940.GG27022@lit.local.igalia.com>
+References: <cover.1327348286.git.vjaquez@igalia.com>
+ <7103a353d393f9b8366b141a608a4370e4392c7b.1327348286.git.vjaquez@igalia.com>
+ <CAB-zwWjKfakESHw4Cw8JvJ6WpELz51E_9zVtjR0bF84yhMRfMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAB-zwWjWkxpmT2dXDV++okCKZaebVz4O8-L4OgabMEzdEu4eGA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAB-zwWjKfakESHw4Cw8JvJ6WpELz51E_9zVtjR0bF84yhMRfMQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: Joe Perches <joe@perches.com>, devel@driverdev.osuosl.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, Armando Uribe <x0095078@ti.com>, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@gmail.com>, Ivan Gomez Castellanos <ivan.gomez@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-T24gTW9uLCBKYW4gMzAsIDIwMTIgYXQgNzozNCBQTSwgUmFtaXJleiBMdW5hLCBPbWFyIDxvbWFy
-LnJhbWlyZXpAdGkuY29tPiB3cm90ZToKPiBPbiBUdWUsIEphbiAyNCwgMjAxMiBhdCAzOjI1IFBN
-LCBKb2UgUGVyY2hlcyA8am9lQHBlcmNoZXMuY29tPiB3cm90ZToKPj4gdGlkc3BicmlkZ2Ugd2hl
-biBidWlsdCBhcyBhIG1vZHVsZSBpcyBuYW1lZCBicmlkZ2Vkcml2ZXIuCj4+Cj4+IGJyaWRnZWRy
-aXZlciBpcyBub3QgYSBwYXJ0aWN1bGFybHkgZ29vZCBtb2R1bGUgbmFtZS4KPj4KPj4gdGlkc3Bi
-cmlkZ2UgaXMgd2hhdCB0aGUgc291cmNlIGlzIG5hbWVkLiDCoFRoYXQgc2VlbXMKPj4gYSBtb3Jl
-IGFwcHJvcHJpYXRlIG1vZHVsZSBuYW1lIHRvbyBhcyBpdCBkZXNjcmliZXMKPj4gdGhlIGhhcmR3
-YXJlIGZ1bmN0aW9uIGJldHRlci4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSm9lIFBlcmNoZXMgPGpv
-ZUBwZXJjaGVzLmNvbT4KPj4gLS0tCj4+IMKgZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdlL01h
-a2VmaWxlIHwgwqAgwqA0ICsrLS0KPj4gwqAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygr
-KSwgMiBkZWxldGlvbnMoLSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvc3RhZ2luZy90aWRz
-cGJyaWRnZS9NYWtlZmlsZSBiL2RyaXZlcnMvc3RhZ2luZy90aWRzcGJyaWRnZS9NYWtlZmlsZQo+
-PiBpbmRleCBmZDZhMjc2Li44YzhjOTJhIDEwMDY0NAo+PiAtLS0gYS9kcml2ZXJzL3N0YWdpbmcv
-dGlkc3BicmlkZ2UvTWFrZWZpbGUKPj4gKysrIGIvZHJpdmVycy9zdGFnaW5nL3RpZHNwYnJpZGdl
-L01ha2VmaWxlCj4+IEBAIC0xLDQgKzEsNCBAQAo+PiAtb2JqLSQoQ09ORklHX1RJRFNQQlJJREdF
-KSDCoCDCoCDCoCs9IGJyaWRnZWRyaXZlci5vCj4+ICtvYmotJChDT05GSUdfVElEU1BCUklER0Up
-IMKgIMKgIMKgKz0gdGlkc3BicmlkZ2Uubwo+Pgo+PiDCoGxpYmdlbiA9IGdlbi9naC5vIGdlbi91
-dWlkdXRpbC5vCj4+IMKgbGliY29yZSA9IGNvcmUvY2hubF9zbS5vIGNvcmUvbXNnX3NtLm8gY29y
-ZS9pb19zbS5vIGNvcmUvdGlvbWFwMzQzMC5vIFwKPj4gQEAgLTEzLDcgKzEzLDcgQEAgbGliZGxv
-YWQgPSBkeW5sb2FkL2Nsb2FkLm8gZHlubG9hZC9nZXRzZWN0aW9uLm8gZHlubG9hZC9yZWxvYy5v
-IFwKPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZHlubG9hZC90cmFtcC5vCj4+IMKgbGliaHcg
-PSBody9od19tbXUubwo+Pgo+PiAtYnJpZGdlZHJpdmVyLXkgOj0gJChsaWJnZW4pICQobGlic2Vy
-dmljZXMpICQobGliY29yZSkgJChsaWJwbWdyKSAkKGxpYnJtZ3IpIFwKPj4gK3RpZHNwYnJpZGdl
-LXkgOj0gJChsaWJnZW4pICQobGlic2VydmljZXMpICQobGliY29yZSkgJChsaWJwbWdyKSAkKGxp
-YnJtZ3IpIFwKPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAkKGxpYmRsb2Fk
-KSAkKGxpYmh3KQo+Pgo+PiDCoCNNYWNoaW5lIGRlcGVuZGVudAo+Pgo+Pgo+Cj4gU291bmQgZ29v
-ZCB0byBtZSwgYW5kIHVubGVzcyB0aGVyZSBpcyBhbiBvYmplY3Rpb24sIGl0IGFsc28gZ2l2ZXMK
-PiBwbGVudHkgb2YgdGltZSBmb3IgdGhlIGNoYW5nZSB0byBiZSBub3RpY2VkLgoKWWVhaCwgSSBh
-Z3JlZS4gSSBhbHNvIGhhdmUgdGhvdWdodCBvbiBkb2luZyB0aGlzLgoKLS0gCkZlbGlwZSBDb250
-cmVyYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxp
-bnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFk
-ZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4
-LWFybS1rZXJuZWwK
+On Mon, Jan 30, 2012 at 11:25:34AM -0600, Ramirez Luna, Omar wrote:
+> 2012/1/23 V=EDctor Manuel J=E1quez Leal <vjaquez@igalia.com>:
+> > No functional changes.
+> >
+> > According to Lindent, the file drv_internface.c had some lines with=
+ bad
+> > indentation.
+> >
+> > This commit is the output of Lindent.
+>=20
+> Usually lindent tends to do whatever it wants, unless carefully
+> configured...
+
+Thanks Omar!
+
+I'll post a v2 of this patch set, with a couple things more and with mo=
+re
+attention on what lindent does in this one, if that's ok.
+
+vmjl
+
+>=20
+> ...
+> > @@ -342,9 +342,10 @@ static void bridge_recover(struct work_struct =
+*work)
+> > =A0 =A0 =A0 =A0if (atomic_read(&bridge_cref)) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0INIT_COMPLETION(bridge_comp);
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0while (!wait_for_completion_timeout(=
+&bridge_comp,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 msecs_to_jiffies(REC_TIMEOUT)))
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info("%s:%d handle=
+(s) still opened\n",
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 __func__, atomic_read(&bridge_cref));
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 msecs_to_jiffies
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (REC_TIMEOUT)))
+>=20
+> Like here, it just split msecs_to_jiffies(REC_TIMEOUT) into 2 lines
+> making it a little harder to read.
+>=20
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_info("%s:%d handle=
+(s) still opened\n", __func__,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 atomi=
+c_read(&bridge_cref));
+>=20
+> I remember the rule was to break lines as far to the right as
+> possible, no? Chapter 2 CodingStyle, same for the other similar
+> changes.
+>=20
+> ...
+> > @@ -547,10 +548,9 @@ static int __devexit omap34_xx_bridge_remove(s=
+truct platform_device *pdev)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: Failed to retrieve the o=
+bject handle\n", __func__);
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto func_cont;
+> > =A0 =A0 =A0 =A0}
+> > -
+>=20
+> Blank line removed?
+>=20
+> > =A0#ifdef CONFIG_TIDSPBRIDGE_DVFS
+> > =A0 =A0 =A0 =A0if (cpufreq_unregister_notifier(&iva_clk_notifier,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 CPUFREQ_TRANSITION_NOTIFIER))
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 CPUFREQ_TRANSITION_NOTIFIER))
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pr_err("%s: cpufreq_unregister_notif=
+ier failed for iva2_ck\n",
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__);
+> > =A0#endif /* #ifdef CONFIG_TIDSPBRIDGE_DVFS */
+> > --
+> > 1.7.8.3
+> >
+>=20
+> Regards,
+>=20
+> Omar
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
