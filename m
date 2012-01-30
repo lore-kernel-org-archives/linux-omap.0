@@ -1,52 +1,156 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/7] ARM: OMAP2+: hwmod/timer: first set of cleanups for 3.4
-Date: Mon, 30 Jan 2012 03:18:10 -0700
-Message-ID: <20120130101251.10450.58423.stgit@dusk>
+Subject: [PATCH 4/7] ARM: OMAP2+: hwmod: provide a function to return the
+ address space of the MPU RT
+Date: Mon, 30 Jan 2012 03:18:16 -0700
+Message-ID: <20120130101815.10450.39272.stgit@dusk>
+References: <20120130101251.10450.58423.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42184 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42203 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab2A3KSn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 05:18:43 -0500
+	with ESMTP id S1751746Ab2A3KSo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 05:18:44 -0500
+In-Reply-To: <20120130101251.10450.58423.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-This series does some cleanup and documentation on the OMAP hwmod code
-(and a bit of the OMAP4 data) and timer code. It is the first
-prerequisite series to removing a big chunk of hwmod data -- that will
-be done in a later series.
+A subsequent patch will need to know the struct omap_hwmod_addr_space
+record corresponding to the module's register target, used by the MPU.
+So, convert _find_mpu_rt_base() into _find_mpu_rt_addr_space().  Then
+modify its sole current user, _populate_mpu_rt_base(), to extract the
+MPU RT base address itself from the struct omap_hwmod_addr_space record=
+=2E
 
-Boot-tested on an OMAP35xx BeagleBoard and OMAP44xx ES2 Pandaboard.
-
-This series is also available via git from git://git.pwsan.com/linux-2.6 in
-the branch "hwmod_code_cleanup_3.4".
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod.c |   57 ++++++++++++++++++++++--------=
+--------
+ 1 files changed, 33 insertions(+), 24 deletions(-)
 
-hwmod_code_cleanup_3.4
-   text	   data	    bss	    dec	    hex	filename
-6592293	 678588	5590684	12861565	 c4407d	vmlinux.orig
-6592597	 677948	5590684	12861229	 c43f2d	vmlinux.patched
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index c991bd7..4e8d332 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -917,24 +917,22 @@ static int __init _find_mpu_port_index(struct oma=
+p_hwmod *oh)
+ }
+=20
+ /**
+- * _find_mpu_rt_base - find hwmod register target base addr accessible=
+ by MPU
++ * _find_mpu_rt_addr_space - return MPU register target address space =
+for @oh
+  * @oh: struct omap_hwmod *
+  *
+- * Return the virtual address of the base of the register target of
+- * device @oh, or NULL on error.
++ * Returns a pointer to the struct omap_hwmod_addr_space record repres=
+enting
++ * the register target MPU address space; or returns NULL upon error.
+  */
+-static void __iomem * __init _find_mpu_rt_base(struct omap_hwmod *oh, =
+u8 index)
++static struct omap_hwmod_addr_space * __init _find_mpu_rt_addr_space(s=
+truct omap_hwmod *oh)
+ {
+ 	struct omap_hwmod_ocp_if *os;
+ 	struct omap_hwmod_addr_space *mem;
+-	int i =3D 0, found =3D 0;
+-	void __iomem *va_start;
++	int found =3D 0, i =3D 0;
+=20
+-	if (!oh || oh->slaves_cnt =3D=3D 0)
++	if (!oh || oh->_int_flags & _HWMOD_NO_MPU_PORT || oh->slaves_cnt =3D=3D=
+ 0)
+ 		return NULL;
+=20
+-	os =3D oh->slaves[index];
+-
++	os =3D oh->slaves[oh->_mpu_port_index];
+ 	if (!os->addr)
+ 		return NULL;
+=20
+@@ -944,20 +942,7 @@ static void __iomem * __init _find_mpu_rt_base(str=
+uct omap_hwmod *oh, u8 index)
+ 			found =3D 1;
+ 	} while (!found && mem->pa_start !=3D mem->pa_end);
+=20
+-	if (found) {
+-		va_start =3D ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
+-		if (!va_start) {
+-			pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
+-			return NULL;
+-		}
+-		pr_debug("omap_hwmod: %s: MPU register target at va %p\n",
+-			 oh->name, va_start);
+-	} else {
+-		pr_debug("omap_hwmod: %s: no MPU register target found\n",
+-			 oh->name);
+-	}
+-
+-	return (found) ? va_start : NULL;
++	return (found) ? mem : NULL;
+ }
+=20
+ /**
+@@ -2031,19 +2016,43 @@ int __init omap_hwmod_register(struct omap_hwmo=
+d **ohs)
+=20
+ /*
+  * _populate_mpu_rt_base - populate the virtual address for a hwmod
++ * @oh: struct omap_hwmod *
++ * @data: (unused)
+  *
+  * Must be called only from omap_hwmod_setup_*() so ioremap works prop=
+erly.
+  * Assumes the caller takes care of locking if needed.
+  */
+ static int __init _populate_mpu_rt_base(struct omap_hwmod *oh, void *d=
+ata)
+ {
++	struct omap_hwmod_addr_space *mem;
++	void __iomem *va_start;
++
++	if (!oh)
++		return 0;
++
+ 	if (oh->_state !=3D _HWMOD_STATE_REGISTERED)
+ 		return 0;
+=20
+ 	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
+ 		return 0;
+=20
+-	oh->_mpu_rt_va =3D _find_mpu_rt_base(oh, oh->_mpu_port_index);
++	mem =3D _find_mpu_rt_addr_space(oh);
++	if (!mem) {
++		pr_debug("omap_hwmod: %s: no MPU register target found\n",
++			 oh->name);
++		return 0;
++	}
++
++	va_start =3D ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
++	if (!va_start) {
++		pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
++		return 0;
++	}
++
++	pr_debug("omap_hwmod: %s: MPU register target at va %p\n",
++		 oh->name, va_start);
++
++	oh->_mpu_rt_va =3D va_start;
+=20
+ 	return 0;
+ }
 
-Paul Walmsley (7):
-      ARM: OMAP2+: hwmod: control all hardreset lines attached to a hwmod
-      ARM: OMAP4: hwmod data: remove pseudo-hwmods associated with hardreset lines
-      ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits are reprogrammed after a reset
-      ARM: OMAP2+: hwmod: provide a function to return the address space of the MPU RT
-      ARM: OMAP2+: hwmod: add omap_hwmod_get_mpu_irq() and omap_hwmod_get_mpu_rt_pa()
-      ARM: OMAP2+: timer: use a proper interface to get hwmod data
-      ARM: OMAP2+: hwmod: split the _setup() function
 
-
- arch/arm/mach-omap2/omap_hwmod.c             |  345 +++++++++++++++++++-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  101 --------
- arch/arm/mach-omap2/timer.c                  |    8 -
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    3 
- 4 files changed, 263 insertions(+), 194 deletions(-)
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
