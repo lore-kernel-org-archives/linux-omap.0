@@ -1,62 +1,43 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled
- by uBoot)?
-Date: Tue, 31 Jan 2012 10:51:50 +0530
-Message-ID: <4F277A6E.9070107@ti.com>
-References: <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com> <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com> <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com> <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com> <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: GPIO debounce problems on 3.2
+Date: Mon, 30 Jan 2012 23:13:43 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201302310120.10061@utopia.booyaka.com>
+References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com> <87obtlrniz.fsf@ti.com> <CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com> <87obtkpyna.fsf@ti.com> <alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-2066120892-1327990423=:10061"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:43236 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751754Ab2AaFV6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jan 2012 00:21:58 -0500
-Received: by dadi2 with SMTP id i2so4187229dad.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 21:21:57 -0800 (PST)
-In-Reply-To: <20120127173029.GA3281@arm.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39888 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858Ab2AaGNo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 01:13:44 -0500
+In-Reply-To: <alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Joe Woodward <jw@terrafix.co.uk>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Catalin,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Friday 27 January 2012 11:00 PM, Catalin Marinas wrote:
-> On Fri, Jan 20, 2012 at 08:57:11AM +0000, Joe Woodward wrote:
->>> So I re-iterate that we need to have solution to this problem.
->>
->> ... I don't want to be a pain, but it seems to me that this dicussion
->> didn't reach a full conclussion?
->
-> Probably not, because it depends on many variables. See below my take on
-> this.
->
->> I think it was left with the open options being:
->> 1) Leave the L2/outer cache enabled in the bootloader (not ideal and
->> may cause problems with future devices)
->
-> This depends on whether the L2 is inner or outer:
->
-> L2 inner - leave it enabled in the boot loader
-> L2 outer - leave it disabled in the boot loader
->
->> 2) Turn the L2/outer cache on for OMAP3 later in the kernel boot when
->> the device is known
->
-> Same as above:
->
-> L2 inner - don't do anything, it gets used when SCTLR.M is enabled
-> L2 outer - enabled at boot time via the platform code (later, after MMU
-> 	was enabled).
->
+--155748971-2066120892-1327990423=:10061
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-What is the reasoning behind this recommendation? Why the distinction
-between L2 being inner or outer. I don't see anything to this effect in
-the Cortex-A8 TRM? In fact the only recommendation I could find(section
-8.3) is asking to set L2EN to 1 before setting C bit to 1 irrespective
-of inner/outer?
+On Mon, 30 Jan 2012, Paul Walmsley wrote:
 
-br,
-Aneesh
+> It seems highly suspicious to me that nothing in=20
+> set_24xx_gpio_triggering() in our GPIO code seems to touch the=20
+> WAKEUPENABLE register.
+
+Heh.  Just wanted to follow up on this for anyone who cares.  Gra=B8vydas=
+=20
+noticed that the bit was indeed being set, so was curious to find out why. =
+=20
+It turns out that, like some other GPIO regs, there is another pair of=20
+registers that can be used to modify the wakeup state without a=20
+read-modify-write cycle, and the GPIO driver uses these other two regs -=20
+GPIO_SETWKUENA and GPIO_CLEARWKUENA.
+
+=20
+ - Paul
+--155748971-2066120892-1327990423=:10061--
