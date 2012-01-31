@@ -1,93 +1,91 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to
- pwrdm_clear_all_prev_pwrst()
-Date: Tue, 31 Jan 2012 00:27:57 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201310024510.10061@utopia.booyaka.com>
-References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk> <878vkopw2o.fsf@ti.com> <CAMQu2gxyY50Bno_R2v1x98-ND47CrVpZBq+wA3POXz2+7E7eEw@mail.gmail.com> <alpine.DEB.2.00.1201302359320.10061@utopia.booyaka.com>
- <CAMQu2gyACq7RFyfnyNddDg7xRbHTTqsgXwMq6Ng4WfLxaatvAw@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
+Date: Tue, 31 Jan 2012 07:31:10 +0000
+Message-ID: <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com>
+References: <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
+ <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
+ <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
+ <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+ <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com> <4F277A6E.9070107@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-892981717-1327994877=:10061"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48117 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab2AaH15 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 02:27:57 -0500
-In-Reply-To: <CAMQu2gyACq7RFyfnyNddDg7xRbHTTqsgXwMq6Ng4WfLxaatvAw@mail.gmail.com>
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:54994 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752482Ab2AaHbb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 02:31:31 -0500
+Received: by qafk1 with SMTP id k1so2280561qaf.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 23:31:30 -0800 (PST)
+In-Reply-To: <4F277A6E.9070107@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
+To: Aneesh V <aneesh@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---155748971-892981717-1327994877=:10061
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-On Tue, 31 Jan 2012, Shilimkar, Santosh wrote:
-
-> On Tue, Jan 31, 2012 at 12:45 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Tue, 31 Jan 2012, Shilimkar, Santosh wrote:
-> >
-> >> In this code the need is to clear only CPU and MPUPD, and hence they a=
-re
-> >> explicitly cleared since the pre/post transition calls can be moved to=
- PM_DEBUG
-> >> in production kernels.
-> >>
-> >> But as you stated in current mainline kernel they are superfluous sinc=
-e the
-> >> pre/post calls are not under PM debug. So I am ok either way
-> >
-> > We're using the PM counters for the context restore skip optimization n=
-ow
-> > in pwrdm_get_context_loss_count(), so they've suddenly become needed ev=
+On 31 January 2012 05:21, Aneesh V <aneesh@ti.com> wrote:
+> On Friday 27 January 2012 11:00 PM, Catalin Marinas wrote:
+>> On Fri, Jan 20, 2012 at 08:57:11AM +0000, Joe Woodward wrote:
+>>>> So I re-iterate that we need to have solution to this problem.
+>>>
+>>> ... I don't want to be a pain, but it seems to me that this dicussi=
+on
+>>> didn't reach a full conclussion?
+>>
+>> Probably not, because it depends on many variables. See below my tak=
+e on
+>> this.
+>>
+>>> I think it was left with the open options being:
+>>> 1) Leave the L2/outer cache enabled in the bootloader (not ideal an=
+d
+>>> may cause problems with future devices)
+>>
+>> This depends on whether the L2 is inner or outer:
+>>
+>> L2 inner - leave it enabled in the boot loader
+>> L2 outer - leave it disabled in the boot loader
+>>
+>>> 2) Turn the L2/outer cache on for OMAP3 later in the kernel boot wh=
 en
-> > when PM_DEBUG=3Dn. =A0But those counters are only needed when there are
-> > devices in the CPU* powerdomains to track that can lose logic context. =
-=A0I
-> > don't think that's the case on OMAP4, but you would probably know bette=
-r
-> > than I.
-> >
-> Good point so the pre/post calls are must then. We should kill those extr=
-a calls
-> form OMAP4 code then.
-
-I wonder if we should track how many hwmods are present in a powerdomain? =
-=20
-We could check that counter to determine if we could skip the access.
-
-> > Another aspect is that previous powerstate accesses for the CPU*
-> > powerdomains would theoretically go to the MPU local PRM rather than th=
+>>> the device is known
+>>
+>> Same as above:
+>>
+>> L2 inner - don't do anything, it gets used when SCTLR.M is enabled
+>> L2 outer - enabled at boot time via the platform code (later, after =
+MMU
+>> =A0 =A0 =A0 =A0was enabled).
+>
+> What is the reasoning behind this recommendation? Why the distinction
+> between L2 being inner or outer. I don't see anything to this effect =
+in
+> the Cortex-A8 TRM? In fact the only recommendation I could find(secti=
+on
+> 8.3) is asking to set L2EN to 1 before setting C bit to 1 irrespectiv=
 e
-> > system PRCM. =A0So they may actually return quickly. =A0Haven't tested =
-this.
-> >
-> You are correct. They do.
+> of inner/outer?
 
-Cool.
+Actually you have a good point. I was thinking about outer caches like
+PL310 or L220 that Linux enables later during platform initialisation.
+They could be left enabled or disabled at boot time but they must be
+cleaned/invalidated (you would need to flush after disabling just to
+make sure there are no further lines fetched; alternatively, there
+shouldn't be any cacheable mappings).
 
-> > The MPUSS powerdomain might be another case, though. =A0There are a bun=
-ch of
-> > devices in there: the local timers, APB debug devices, etc. =A0We proba=
-bly
-> > have to worry about restoring context for some of those at some point.
-> >
-> MPUSS PD is at the global PRCM level but that one doesn't take time eithe=
-r.
-> You need few more cycles to reach there.
-> IIRC, other power domains use to take time because of the wait_transition
-> calls we had. Mostly it was because of the BUGs you fixed. When get some
-> time I will profile these calls and see if we still have that issue.
+So I would say in the context of A8, just leave the L2 enabled in the
+boot loader. As long as the MMU is disabled, it won't be used. The
+alternative is to enable L2 slightly later in Linux in the platform
+code to avoid SoC-dependent code in proc-v7.S.
 
-That would be interesting.  I was guessing that the previous powerstate=20
-registers in the global PRCM might be located in some clockdomain that was=
-=20
-clocked at sys_clk or the 32KiHZ clock.  But if it's really just due to=20
-the wait_transition(), that might be something we can optimize...
+So in summary, either option is possible. You could take the approach
+of the cache-l2x0.c - check whether it is already enabled and, if not,
+issue an SMC from the platform code to enable the L2 cache.
 
-
-- Paul
---155748971-892981717-1327994877=:10061--
+--=20
+Catalin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
