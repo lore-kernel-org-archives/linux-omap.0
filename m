@@ -1,55 +1,44 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: GPIO debounce problems on 3.2
-Date: Tue, 31 Jan 2012 03:00:46 +0200
-Message-ID: <CANOLnOMv5jdmo8LeeV2C6X-Yoq_xJ__kzbcFBcdmPsbt6YfsYQ@mail.gmail.com>
-References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com>
-	<87obtlrniz.fsf@ti.com>
-	<CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
-	<87obtkpyna.fsf@ti.com>
-	<alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
-	<871uqgpvpx.fsf@ti.com>
+Subject: Re: [PATCH/RFC] ARM: OMAP: MUSB: disable omap_device auto-suspend
+Date: Tue, 31 Jan 2012 03:04:37 +0200
+Message-ID: <CANOLnOMO=gGogCmQas7E5XdouFAApdmWMSxDvKkn1ZA+TVEW3g@mail.gmail.com>
+References: <1322528190-9274-1-git-send-email-khilman@ti.com>
+	<20111207064954.GD32368@legolas.emea.dhcp.ti.com>
+	<87k468w4v4.fsf@ti.com>
+	<CANOLnOM-V4SFSL7+-ji00fJBu8TC06-pSNWZXA36pqW=4YGFQQ@mail.gmail.com>
+	<20120131093739.0d5b57ee@notabene.brown>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:56256 "EHLO
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:46372 "EHLO
 	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751900Ab2AaBAs convert rfc822-to-8bit
+	by vger.kernel.org with ESMTP id S1751975Ab2AaBEi convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jan 2012 20:00:48 -0500
-Received: by lagu2 with SMTP id u2so2559388lag.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 17:00:46 -0800 (PST)
-In-Reply-To: <871uqgpvpx.fsf@ti.com>
+	Mon, 30 Jan 2012 20:04:38 -0500
+Received: by lagu2 with SMTP id u2so2560634lag.19
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 17:04:37 -0800 (PST)
+In-Reply-To: <20120131093739.0d5b57ee@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Kevin Hilman <khilman@ti.com>, balbi@ti.com, linux-omap@vger.kernel.org
 
-On Tue, Jan 31, 2012 at 2:22 AM, Kevin Hilman <khilman@ti.com> wrote:
-> Paul Walmsley <paul@pwsan.com> writes:
+On Tue, Jan 31, 2012 at 12:37 AM, NeilBrown <neilb@suse.de> wrote:
 >
->> That's probably I/O ring/pad wakeups happening there, not GPIO wakeu=
-ps.
->> Gra=C5=BEvydas, you are referring to the case where the CORE powerdo=
-main is on,
->> but the GPIO IP block is idle?
+> 1/ I don't know what your problem might be, but I have suspend workin=
+g
+> =C2=A0quite well with musb compiled in. =C2=A0CORE goes to RET.
 >
-> Right good point.
->
-> If CORE is powerdomain is staying on, you might also have a look at t=
-he
-> "GPIO module-level wakeups not always working" item in the "Known
-> problems" section of the OMAP PM wiki:
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0http://elinux.org/OMAP_Power_Manage=
-ment#Known_Problems
->
-> It might be the case that haven't done a request_irq() +
-> enable_irq_wake() for those GPIOs.
+> =C2=A0The code is at git://neil.brown.name/gta04 in the 3.2-gta04 bra=
+nch.
+> =C2=A0There are various additions and hacks in there, I don't know wh=
+ich
+> =C2=A0ones might be important.
 
-Well I'm just using standard gpio_keys driver, which does
-request_threaded_irq(), I guess that's good enough? I've also tried
-sticking enable_irq_wake() just after it but that didn't help.
+ok, I see you have USB gadged compiled as module, I had it compiled in
+and that seems to be the problem. With gadget as a module it now
+suspends fine for me too, thanks.
 
 
 --=20
