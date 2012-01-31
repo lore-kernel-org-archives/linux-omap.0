@@ -1,56 +1,71 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 0/7] ARM: OMAP2+: hwmod/timer: first set of cleanups for
- 3.4
-Date: Tue, 31 Jan 2012 09:19:52 +0100
-Message-ID: <4F27A428.3020803@ti.com>
-References: <20120130101251.10450.58423.stgit@dusk> <87ty3cpyuk.fsf@ti.com> <4F27A0B0.50704@ti.com> <alpine.DEB.2.00.1201310111300.10061@utopia.booyaka.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 2/2] staging: tidspbridge: fix incorrect free to drv_datap
+Date: Tue, 31 Jan 2012 11:21:36 +0300
+Message-ID: <20120131082136.GC3294@mwanda>
+References: <1327972818-30993-1-git-send-email-omar.ramirez@ti.com>
+ <1327972818-30993-3-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="h4FfhoHh9AMwLYAn"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38172 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652Ab2AaIT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 03:19:57 -0500
-In-Reply-To: <alpine.DEB.2.00.1201310111300.10061@utopia.booyaka.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:65424 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752292Ab2AaIUP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 03:20:15 -0500
+Content-Disposition: inline
+In-Reply-To: <1327972818-30993-3-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
 
-On 1/31/2012 9:14 AM, Paul Walmsley wrote:
-> Hi
->
-> On Tue, 31 Jan 2012, Cousson, Benoit wrote:
->
->> Thanks to the L3 log error:
->> [    0.838439] L3 custom error: MASTER:DucatiM3 TARGET:GPMC
->>
->> I guess that I understand why I was not releasing the hardreset at boot time
->> before:-)
->>
->> DSP and CortexM3 cannot be released from reset until someone loaded a firmware
->> in memory. Otherwise they will start executing some random instructions that
->> in this case are trying to access an area that is not accessible.
->>
->> We have to let the driver handle the hardreset because it is mainly used for
->> processors.
->
-> Currently we're not asserting hardreset in the hwmod code during _reset().
 
-Ooops, you're right we were talking about asserting the reset not 
-de-asserting it.
+--h4FfhoHh9AMwLYAn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I had that patch in the series at some point, but took it out before
-> posting it.  So maybe that might resolve this particular issue.  Also
-> sounds like we should make sure that we keep the processor IPs in
-> hardreset until some driver explicitly releases it; we'll need to make
-> sure the code does that too.
+On Mon, Jan 30, 2012 at 07:20:18PM -0600, Omar Ramirez Luna wrote:
+> This structure is still used after it has been freed, since it
+> is being allocated in probe, calls to free it have been moved to
+> module's remove routine.
+>=20
+> This should fix the follwoing messages when attempting to remove the
+> module:
+>  drv_get_first_dev_extension: Failed to retrieve the object handle
+>  drv_get_first_dev_extension: Failed to retrieve the object handle
+>  drv_destroy: Failed to store DRV object
+>  mgr_destroy: Failed to store MGR object
+>=20
 
-So maybe in that case, this is because the reset line is already 
-de-asserted by the fast boot and by enabling the clock we start 
-executing some random code in the CortexM3... but this is still weird 
-that this error was not happening before.
+So this is only triggered when you do an rmmod to remove the module?
 
-Regards,
-Benoit
+Probably that's not stable material.
+
+regards,
+dan carpenter
+
+
+--h4FfhoHh9AMwLYAn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPJ6SPAAoJEOnZkXI/YHqRM1UP/Rd15OgmiMhGGZXzMKeKfrU6
+mm3dh3kfg514dCItc+9FQjxJ2XMCoYFUoyN+sNkJPeD0MgJVhp0xpbKrpLkVGg4N
+0tZjsloOlkQ77CMb8NS/s/hqRFyD4V2vEIs8CSoRUeBzJr/TqAjsg2my6fl7nzWn
+m/vvsVXwN4lqdotwyMhn1SeDAWTX1dNYbAtf8EPhwWE62QLYhNdSPXX5W6ZFf5zp
+VUWh1OQk7gxfYJIlK+gZPVbLXodxZZ8bJWNXLHdbYqqnORMiZBtuuFxAQkVw1OqB
+A+cBKoLcXtNhUmEND8tGQTg0EMHkukhnD/+7IFbgDXriqlmIaEMRnupslfK6EzY3
+zeAoRCxIeXIE0/6GpL7nMNx08fV8IUV6CGRzyVQ1wllT6X+ywp/77eVoP6xoi7vX
+3Wcxbq0fcIEO5W+4QpHUTIU10AMJv3ac6wnrhkSekx1l2ZLr1ugfXum6fOIDXM6+
+yzcr/y5QDu8trg7+0SOs72E5SBOlrV+LDU2ArIKaFQeOuyaVFKAiH1OudPbb5l6h
+7FVciVhjA9cQL9HSxQ9QwMT9DpG2Cj9VMsJuQn1aeoLnkDP93IlUhqd8FpZEePOL
+NDmZ7dMctNaMNSYxtT5yVY6oYm1JGyIW1QAtQkHOgevGuADETL5c8cWQ/VJ+e2fL
+8+SQP1xc4XkKfUGWf4BN
+=m5AY
+-----END PGP SIGNATURE-----
+
+--h4FfhoHh9AMwLYAn--
