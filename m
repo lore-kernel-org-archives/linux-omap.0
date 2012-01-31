@@ -1,66 +1,84 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 2/2] staging: tidspbridge: fix incorrect free to drv_datap
-Date: Mon, 30 Jan 2012 19:20:18 -0600
-Message-ID: <1327972818-30993-3-git-send-email-omar.ramirez@ti.com>
-References: <1327972818-30993-1-git-send-email-omar.ramirez@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: GPIO debounce problems on 3.2
+Date: Mon, 30 Jan 2012 18:48:29 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com>
+References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com> <87obtlrniz.fsf@ti.com> <CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com> <87obtkpyna.fsf@ti.com> <alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
+ <CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-523857793-1327973833=:10061"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:37080 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752514Ab2AaBUf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Jan 2012 20:20:35 -0500
-Received: by mail-gx0-f176.google.com with SMTP id r5so37783ggn.7
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 17:20:35 -0800 (PST)
-In-Reply-To: <1327972818-30993-1-git-send-email-omar.ramirez@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39216 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752893Ab2AaBsa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 20:48:30 -0500
+In-Reply-To: <CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com>
+Content-ID: <alpine.DEB.2.00.1201301837380.10061@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-This structure is still used after it has been freed, since it
-is being allocated in probe, calls to free it have been moved to
-module's remove routine.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-This should fix the follwoing messages when attempting to remove the
-module:
- drv_get_first_dev_extension: Failed to retrieve the object handle
- drv_get_first_dev_extension: Failed to retrieve the object handle
- drv_destroy: Failed to store DRV object
- mgr_destroy: Failed to store MGR object
+--155748971-523857793-1327973833=:10061
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1201301837381.10061@utopia.booyaka.com>
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- drivers/staging/tidspbridge/core/tiomap3430.c    |    2 --
- drivers/staging/tidspbridge/rmgr/drv_interface.c |    3 +++
- 2 files changed, 3 insertions(+), 2 deletions(-)
+Hi Gra=B8vydas
 
-diff --git a/drivers/staging/tidspbridge/core/tiomap3430.c b/drivers/staging/tidspbridge/core/tiomap3430.c
-index e1c4492..dde559d 100644
---- a/drivers/staging/tidspbridge/core/tiomap3430.c
-+++ b/drivers/staging/tidspbridge/core/tiomap3430.c
-@@ -1046,8 +1046,6 @@ static int bridge_dev_destroy(struct bridge_dev_context *dev_ctxt)
- 
- 	/* Free the driver's device context: */
- 	kfree(drv_datap->base_img);
--	kfree(drv_datap);
--	dev_set_drvdata(bridge, NULL);
- 	kfree((void *)dev_ctxt);
- 	return status;
- }
-diff --git a/drivers/staging/tidspbridge/rmgr/drv_interface.c b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-index 8bac511..385740b 100644
---- a/drivers/staging/tidspbridge/rmgr/drv_interface.c
-+++ b/drivers/staging/tidspbridge/rmgr/drv_interface.c
-@@ -410,6 +410,9 @@ static int __devexit omap34_xx_bridge_remove(struct platform_device *pdev)
- 		DBC_ASSERT(ret == true);
- 	}
- 
-+	kfree(drv_datap);
-+	dev_set_drvdata(bridge, NULL);
-+
- func_cont:
- 	mem_ext_phys_pool_release();
- 
--- 
-1.7.4.1
+On Tue, 31 Jan 2012, Grazvydas Ignotas wrote:
 
+> On Tue, Jan 31, 2012 at 1:34 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>=20
+> > So apparently, looking at these references, the following registers sho=
+uld
+> > be configured:
+> >
+> > 1. at least one of GPIO_LEVELDETECT{0,1} or GPIO_{RISING,FALLING}DETECT
+> >
+> > 2. GPIO_WAKEUPENABLE
+> >
+> > 3. GPIO_IRQENABLE1
+>=20
+> According to some /dev/mem hacking, all these have corresponding bits=20
+> set.. And as soon as I clear corresponding bit in GPIO_DEBOUNCENABLE=20
+> (using the same /dev/mem hacking method), it starts working. When it's=20
+> set, even GPIO_DATAIN isn't updating in realtime.
+
+Hmm so I may have misunderstood the problem...=20
+
+If the DEBOUNCENABLE bit is set and the debounce clock is off and the GPIO=
+=20
+IP block is idle, then yeah, I'd assume that GPIO wakeups would not=20
+work.
+
+But it sounds like they are working for you when DEBOUNCENABLE is set and=
+=20
+the debounce clock is on and the GPIO IP block is idle and CORE & PER are=
+=20
+ON?
+
+And when DEBOUNCENABLE is clear and the debounce clock is off and the GPIO=
+=20
+IP block is idle and CORE & PER are still ON, then they work?
+
+If the answer to those two latter questions are true, then it sounds like=
+=20
+the hardware is working more or less as expected...
+
+Of course our software support probably still isn't right.  We probably=20
+should keep the debounce clock enabled as long as some GPIO has debounce=20
+support enabled.  And probably provide some way for GPIO users to indicate=
+=20
+whether they are okay with debounce support being disabled when the=20
+rest of the CORE/PER can enter a low-power state.  The motivating=20
+principle being that PM shouldn't violate a requirement from the rest of=20
+the system...
+
+Anyway, just thinking out loud.
+
+
+- Paul
+--155748971-523857793-1327973833=:10061--
