@@ -1,89 +1,77 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
-Date: Tue, 31 Jan 2012 07:31:10 +0000
-Message-ID: <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com>
-References: <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
- <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
- <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
- <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
- <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com> <4F277A6E.9070107@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
+Date: Tue, 31 Jan 2012 13:04:33 +0530
+Message-ID: <CAMQu2gyLgmbeqVevTbGazO3A+AkYPsPeWp9mp0eD_EwXs3SZ0w@mail.gmail.com>
+References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk>
+ <878vkopw2o.fsf@ti.com> <CAMQu2gxyY50Bno_R2v1x98-ND47CrVpZBq+wA3POXz2+7E7eEw@mail.gmail.com>
+ <alpine.DEB.2.00.1201302359320.10061@utopia.booyaka.com> <CAMQu2gyACq7RFyfnyNddDg7xRbHTTqsgXwMq6Ng4WfLxaatvAw@mail.gmail.com>
+ <alpine.DEB.2.00.1201310024510.10061@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:54994 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab2AaHbb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 02:31:31 -0500
-Received: by qafk1 with SMTP id k1so2280561qaf.19
-        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 23:31:30 -0800 (PST)
-In-Reply-To: <4F277A6E.9070107@ti.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:40141 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752960Ab2AaHez convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jan 2012 02:34:55 -0500
+Received: by mail-qw0-f54.google.com with SMTP id a17so3278341qae.20
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 23:34:53 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1201310024510.10061@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-On 31 January 2012 05:21, Aneesh V <aneesh@ti.com> wrote:
-> On Friday 27 January 2012 11:00 PM, Catalin Marinas wrote:
->> On Fri, Jan 20, 2012 at 08:57:11AM +0000, Joe Woodward wrote:
->>>> So I re-iterate that we need to have solution to this problem.
->>>
->>> ... I don't want to be a pain, but it seems to me that this dicussi=
-on
->>> didn't reach a full conclussion?
->>
->> Probably not, because it depends on many variables. See below my tak=
-e on
->> this.
->>
->>> I think it was left with the open options being:
->>> 1) Leave the L2/outer cache enabled in the bootloader (not ideal an=
-d
->>> may cause problems with future devices)
->>
->> This depends on whether the L2 is inner or outer:
->>
->> L2 inner - leave it enabled in the boot loader
->> L2 outer - leave it disabled in the boot loader
->>
->>> 2) Turn the L2/outer cache on for OMAP3 later in the kernel boot wh=
-en
->>> the device is known
->>
->> Same as above:
->>
->> L2 inner - don't do anything, it gets used when SCTLR.M is enabled
->> L2 outer - enabled at boot time via the platform code (later, after =
-MMU
->> =A0 =A0 =A0 =A0was enabled).
+On Tue, Jan 31, 2012 at 12:57 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Tue, 31 Jan 2012, Shilimkar, Santosh wrote:
 >
-> What is the reasoning behind this recommendation? Why the distinction
-> between L2 being inner or outer. I don't see anything to this effect =
-in
-> the Cortex-A8 TRM? In fact the only recommendation I could find(secti=
-on
-> 8.3) is asking to set L2EN to 1 before setting C bit to 1 irrespectiv=
-e
-> of inner/outer?
+>> On Tue, Jan 31, 2012 at 12:45 PM, Paul Walmsley <paul@pwsan.com> wro=
+te:
+>> > On Tue, 31 Jan 2012, Shilimkar, Santosh wrote:
+>> >
+>> >> In this code the need is to clear only CPU and MPUPD, and hence t=
+hey are
+>> >> explicitly cleared since the pre/post transition calls can be mov=
+ed to PM_DEBUG
+>> >> in production kernels.
+>> >>
+>> >> But as you stated in current mainline kernel they are superfluous=
+ since the
+>> >> pre/post calls are not under PM debug. So I am ok either way
+>> >
+>> > We're using the PM counters for the context restore skip optimizat=
+ion now
+>> > in pwrdm_get_context_loss_count(), so they've suddenly become need=
+ed even
+>> > when PM_DEBUG=3Dn. =A0But those counters are only needed when ther=
+e are
+>> > devices in the CPU* powerdomains to track that can lose logic cont=
+ext. =A0I
+>> > don't think that's the case on OMAP4, but you would probably know =
+better
+>> > than I.
+>> >
+>> Good point so the pre/post calls are must then. We should kill those=
+ extra calls
+>> form OMAP4 code then.
+>
+> I wonder if we should track how many hwmods are present in a powerdom=
+ain?
+> We could check that counter to determine if we could skip the access.
+>
+That's good idea since these calls are in critical patha nd faster we c=
+an do
+better it is..
 
-Actually you have a good point. I was thinking about outer caches like
-PL310 or L220 that Linux enables later during platform initialisation.
-They could be left enabled or disabled at boot time but they must be
-cleaned/invalidated (you would need to flush after disabling just to
-make sure there are no further lines fetched; alternatively, there
-shouldn't be any cacheable mappings).
+A week back I was discussing with Benoit and Tony about having some
+infrastructure like "unused clocks" so that we can shutdown those
+modules, and if possible some power domains. That way they get
+removed at one single place and they the power domain calls
+need not iterate over the once which are no longer needed.
 
-So I would say in the context of A8, just leave the L2 enabled in the
-boot loader. As long as the MMU is disabled, it won't be used. The
-alternative is to enable L2 slightly later in Linux in the platform
-code to avoid SoC-dependent code in proc-v7.S.
-
-So in summary, either option is possible. You could take the approach
-of the cache-l2x0.c - check whether it is already enabled and, if not,
-issue an SMC from the platform code to enable the L2 cache.
-
---=20
-Catalin
+Regards
+Santosh
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
