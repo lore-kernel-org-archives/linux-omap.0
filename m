@@ -1,157 +1,101 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
-Date: Tue, 31 Jan 2012 09:53:25 +0000
-Message-ID: <CAHkRjk6KQXR1kt8VTPC3GOaHUusKikxXHR=Mge8akaVL2ipvaw@mail.gmail.com>
-References: <20120116131329.GA928@n2100.arm.linux.org.uk> <CAMQu2gzPGrbBd4_SOM0TFfGH_Y+XYzoh2XjsoPgpzU10tFOpYQ@mail.gmail.com>
- <WC20120117085444.17057E@terrafix.co.uk> <20120117121138.GC11475@arm.com>
- <4F15692D.4070100@ti.com> <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com>
- <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
- <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com>
- <4F277A6E.9070107@ti.com> <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com>
- <CAMQu2gxr5ZkH4AE_7QNptxx7onQMGaj+qhUF+DSw9MnkCqCRog@mail.gmail.com>
- <CAHkRjk7Fh=OUk8K=bJa8xzPqMvT6P6gjT+kqAA0DeVfrF0sUNg@mail.gmail.com> <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled
+	by uBoot)?
+Date: Tue, 31 Jan 2012 09:56:06 +0000
+Message-ID: <20120131095606.GA889@n2100.arm.linux.org.uk>
+References: <CAMQu2gyft96O61Toja-h-MPpzFTQ8dpJWauw3o6qcPQBXEC_6A@mail.gmail.com> <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com> <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com> <4F277A6E.9070107@ti.com> <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com> <CAMQu2gxr5ZkH4AE_7QNptxx7onQMGaj+qhUF+DSw9MnkCqCRog@mail.gmail.com> <CAHkRjk7Fh=OUk8K=bJa8xzPqMvT6P6gjT+kqAA0DeVfrF0sUNg@mail.gmail.com> <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:54865 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752612Ab2AaJxq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:53:46 -0500
-Received: by qcqw6 with SMTP id w6so202387qcq.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:53:45 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52230 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752675Ab2AaJ46 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:56:58 -0500
+Content-Disposition: inline
 In-Reply-To: <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-On 31 January 2012 09:05, Shilimkar, Santosh <santosh.shilimkar@ti.com>=
- wrote:
+On Tue, Jan 31, 2012 at 02:35:51PM +0530, Shilimkar, Santosh wrote:
 > On Tue, Jan 31, 2012 at 2:24 PM, Catalin Marinas
 > <catalin.marinas@arm.com> wrote:
->> On 31 January 2012 07:38, Shilimkar, Santosh <santosh.shilimkar@ti.c=
-om> wrote:
->>> On Tue, Jan 31, 2012 at 1:01 PM, Catalin Marinas
->>> <catalin.marinas@arm.com> wrote:
->>>> On 31 January 2012 05:21, Aneesh V <aneesh@ti.com> wrote:
->>>>> On Friday 27 January 2012 11:00 PM, Catalin Marinas wrote:
->>>>>> On Fri, Jan 20, 2012 at 08:57:11AM +0000, Joe Woodward wrote:
->>>>>>>> So I re-iterate that we need to have solution to this problem.
->>>>>>>
->>>>>>> ... I don't want to be a pain, but it seems to me that this dic=
-ussion
->>>>>>> didn't reach a full conclussion?
->>>>>>
->>>>>> Probably not, because it depends on many variables. See below my=
- take on
->>>>>> this.
->>>>>>
->>>>>>> I think it was left with the open options being:
->>>>>>> 1) Leave the L2/outer cache enabled in the bootloader (not idea=
-l and
->>>>>>> may cause problems with future devices)
->>>>>>
->>>>>> This depends on whether the L2 is inner or outer:
->>>>>>
->>>>>> L2 inner - leave it enabled in the boot loader
->>>>>> L2 outer - leave it disabled in the boot loader
->>>>>>
->>>>>>> 2) Turn the L2/outer cache on for OMAP3 later in the kernel boo=
-t when
->>>>>>> the device is known
->>>>>>
->>>>>> Same as above:
->>>>>>
->>>>>> L2 inner - don't do anything, it gets used when SCTLR.M is enabl=
-ed
->>>>>> L2 outer - enabled at boot time via the platform code (later, af=
-ter MMU
->>>>>> =A0 =A0 =A0 =A0was enabled).
->>>>>
->>>>> What is the reasoning behind this recommendation? Why the distinc=
-tion
->>>>> between L2 being inner or outer. I don't see anything to this eff=
-ect in
->>>>> the Cortex-A8 TRM? In fact the only recommendation I could find(s=
-ection
->>>>> 8.3) is asking to set L2EN to 1 before setting C bit to 1 irrespe=
-ctive
->>>>> of inner/outer?
->>>>
->>>> Actually you have a good point. I was thinking about outer caches =
-like
->>>> PL310 or L220 that Linux enables later during platform initialisat=
-ion.
->>>> They could be left enabled or disabled at boot time but they must =
-be
->>>> cleaned/invalidated (you would need to flush after disabling just =
-to
->>>> make sure there are no further lines fetched; alternatively, there
->>>> shouldn't be any cacheable mappings).
->>>>
->>>> So I would say in the context of A8, just leave the L2 enabled in =
-the
->>>> boot loader. As long as the MMU is disabled, it won't be used. The
->>>> alternative is to enable L2 slightly later in Linux in the platfor=
-m
->>>> code to avoid SoC-dependent code in proc-v7.S.
->>>>
->>>> So in summary, either option is possible. You could take the appro=
-ach
->>>> of the cache-l2x0.c - check whether it is already enabled and, if =
-not,
->>>> issue an SMC from the platform code to enable the L2 cache.
->>>>
->>> if done late in kernel, wouldn't it violate "set L2EN to 1 before
->>> setting C bit to 1"
->>
->> Not if you write the code sequence in such a way that it also switch=
-es
->> the C bit to 0 and back to 1. I think Nicolas suggested that the
->> platform code could go through the power management code. But I thin=
-k
->> with some carefully coded asm code and cache flushing you could set
->> L2EN without a full MMU reset.
->>
+> > Not if you write the code sequence in such a way that it also switches
+> > the C bit to 0 and back to 1. I think Nicolas suggested that the
+> > platform code could go through the power management code. But I think
+> > with some carefully coded asm code and cache flushing you could set
+> > L2EN without a full MMU reset.
+> 
 > That would need identity mapping and also correct cache flushing
 > as you said above. L2 enabled for A8 is fine but not sure about the
-> A15 where L2 is enabled with C bit.
-
-I don't see any problem here - why would you want to treat the L2
-separately form the L1 cache? They are both inner caches, just treat
-them as such - enabled when the C and M bits are set.
-
-> Then there are some settings for
+> A15 where L2 is enabled with C bit. Then there are some settings for
 > ACTLR, L2ACCTRL and L2PFR which needs to be setup before
 > MMU is ebabled.
-
-These in general should go in the boot monitor/loader. There isn't
-other easy clean solution if we want to keep the kernel booting
-generic.
-
-Maybe we could factor out the CPU-specific settings from proc-v*.S
-into a separate arch/arm/boot/preload directory. We keep proc-v*.S
-entirely generic and the implementation-defined bits setting in the
-preload code. You could have an option to link the preload with the
-kernel but we could recommend that people run this code from
-boot-loader before invoking the kernel. This code would be dependent
-on platform and chosen at build-time. But the actual kernel image
-would be generic.
-
+> 
 > And then the errata's on A9, needing setting up dignostic register,
 > changing cache policy etc
 > Hopefully we don't get hit by those issues/erratas
 > in the window from initial MMU setup to this new sequence code.
+> 
+> Will this approach be ok for other cases I mentioned ?
 
-We already enable the MMU in the decompressor and it doesn't have any
-knowledge of CPU errata. But the preload code could solve this as
-well.
+Santosh,
 
---=20
-Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is very clear to me from the discussions, and the discussions I've
+had with folk in ARM, that everyone thinks that the idea of putting
+a platform specific hook in the early bring up code is insane.
+
+Everyone seems to think that the place it is to be solved is either
+in the boot loader or with a wrapper around the kernel.
+
+One of my points that I brought up against it was the limited environment,
+and the lack of stack at that point.  Let's look at what you're
+proposing to do (thanks for the patch):
+
+Your secure hook:
+	stmia   r12, {r1-r11, r13-r14}
+
+The stack you're writing to:
+
+        .align  2
+__v7_setup_stack:
+        .space  4 * 11                          @ 11 registers
+
+And it's layout in the kernel image:
+
+c02ee75c <__v7_setup_stack>:
+        ...
+c02ee788:       00000c08        .word   0x00000c08
+c02ee78c:       00000c09        .word   0x00000c09
+c02ee790:       ff0a81a8        .word   0xff0a81a8
+c02ee794:       40e040e0        .word   0x40e040e0
+
+c02ee798 <gic_secondary_init>:
+c02ee798:       e1a0c00d        mov     ip, sp
+...
+
+You're lucky that what you're _only_ overwriting is the two Cortex ID
+values which have already been used, and not the following words, which
+are the control register masks and the GIC initialization function.
+
+Thank you for proving my point about why platform code can't be allowed
+to get its grubby hands that early in the kernel boot - you are making
+it more fragile by doing this stuff, because you haven't taken the time
+to properly analyse the code before you've modified it.  As such, you
+will see more silent boot failures.
+
+So, as many people have said, we're not going to go down the route of
+allowing platforms to hook into this code.  There's plenty of other
+solutions to this problem in different parts of the system that would
+be more than adequate, and would benefit everyone not just the kernel.
+
+You're making bones about whether there's a window if you do it later
+in the kernel.  You already have a window of opportunity for things to
+have gone wrong and that's the zImage decompressor, which runs with
+caches on.  So if you've managed to get to your existing code in the
+v7 setup function, then you've already proven that it's fine.
+
+Your continued resistance to every alternative suggestion but your
+(broken) hook is getting extremely frustrating.  Please try some of
+these other approaches which are being proposed.  Thanks.
