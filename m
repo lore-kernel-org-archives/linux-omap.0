@@ -1,76 +1,49 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 02/19] ARM: OMAP3+: SmartReflex: add missing error-handling code
-Date: Tue, 31 Jan 2012 10:58:15 +0100
-Message-ID: <1328003912-11709-3-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 03/19] ARM: OMAP3+: SmartReflex: fix err interrupt disable sequence
+Date: Tue, 31 Jan 2012 10:58:16 +0100
+Message-ID: <1328003912-11709-4-git-send-email-j-pihet@ti.com>
 References: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:49867 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753519Ab2AaJ7A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:59:00 -0500
-Received: by werb13 with SMTP id b13so175586wer.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:58:59 -0800 (PST)
+	with ESMTP id S1753371Ab2AaJ7B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:59:01 -0500
+Received: by mail-we0-f174.google.com with SMTP id b13so175586wer.19
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:59:00 -0800 (PST)
 In-Reply-To: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Julia Lawall <julia@diku.dk>, Jean Pihet <j-pihet@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-From: Julia Lawall <julia@diku.dk>
+From: Nishanth Menon <nm@ti.com>
 
-At this point, the ioremap has taken place, so the error handling code at
-the label err_iounmap should be used rather than returning directly.
+sr_modify_mask takes mask, value as parameters, the usage
+currently is value, mask which is wrong, as a result
+vpboundint_st which was supposed to have been disabled,
+does not get disabled.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r@
-identifier x;
-@@
-
-kfree(x)
-
-@@
-identifier r.x;
-expression E1!=0,E2,E3,E4;
-statement S;
-@@
-
-(
-if (<+...x...+>) S
-|
-if (...) { ... when != kfree(x)
-               when != if (...) { ... kfree(x); ... }
-               when != x = E3
-* return E1;
-}
-... when != x = E2
-if (...) { ... when != x = E4
- kfree(x); ... return ...; }
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Acked-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 9dd9345..7e755bb 100644
+index 7e755bb..ee224df 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -897,7 +897,7 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		ret = sr_late_init(sr_info);
- 		if (ret) {
- 			pr_warning("%s: Error in SR late init\n", __func__);
--			return ret;
-+			goto err_iounmap;
- 		}
- 	}
+@@ -447,8 +447,8 @@ int sr_configure_errgen(struct voltagedomain *voltdm)
+ 		sr_errconfig);
  
+ 	/* Enabling the interrupts if the ERROR module is used */
+-	sr_modify_reg(sr, errconfig_offs,
+-		vpboundint_en, (vpboundint_en | vpboundint_st));
++	sr_modify_reg(sr, errconfig_offs, (vpboundint_en | vpboundint_st),
++		      vpboundint_en);
+ 
+ 	return 0;
+ }
 -- 
 1.7.5.4
 
