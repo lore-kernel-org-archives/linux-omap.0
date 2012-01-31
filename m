@@ -1,72 +1,60 @@
-From: Patrick <kpa_info@yahoo.fr>
-Subject: Re : [DSS2] kernel freeze with panel driver
-Date: Tue, 31 Jan 2012 12:02:25 +0000 (GMT)
-Message-ID: <1328011345.70354.YahooMailNeo@web29010.mail.ird.yahoo.com>
-References: <1328007381.86237.YahooMailNeo@web29017.mail.ird.yahoo.com> <4F27CE83.3070608@ti.com>
-Reply-To: Patrick <kpa_info@yahoo.fr>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
+Date: Tue, 31 Jan 2012 12:10:12 +0000
+Message-ID: <CAHkRjk7_giYNk5djA_kevxo0YqvGJBwJydQXvtMy7AKmWv8XEA@mail.gmail.com>
+References: <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
+ <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com>
+ <4F277A6E.9070107@ti.com> <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com>
+ <CAMQu2gxr5ZkH4AE_7QNptxx7onQMGaj+qhUF+DSw9MnkCqCRog@mail.gmail.com>
+ <CAHkRjk7Fh=OUk8K=bJa8xzPqMvT6P6gjT+kqAA0DeVfrF0sUNg@mail.gmail.com>
+ <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com>
+ <CAHkRjk6KQXR1kt8VTPC3GOaHUusKikxXHR=Mge8akaVL2ipvaw@mail.gmail.com> <20120131101000.GA1275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm19-vm0.bullet.mail.ird.yahoo.com ([77.238.189.92]:45757 "HELO
-	nm19-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753065Ab2AaMC1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jan 2012 07:02:27 -0500
-In-Reply-To: <4F27CE83.3070608@ti.com>
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:47730 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742Ab2AaMKe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 07:10:34 -0500
+Received: by qafk1 with SMTP id k1so87390qaf.19
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 04:10:33 -0800 (PST)
+In-Reply-To: <20120131101000.GA1275@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Joe Woodward <jw@terrafix.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Aneesh V <aneesh@ti.com>
 
->Hi,
+On 31 January 2012 10:10, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Tue, Jan 31, 2012 at 09:53:25AM +0000, Catalin Marinas wrote:
+>> Maybe we could factor out the CPU-specific settings from proc-v*.S
+>> into a separate arch/arm/boot/preload directory. We keep proc-v*.S
+>> entirely generic and the implementation-defined bits setting in the
+>> preload code. You could have an option to link the preload with the
+>> kernel but we could recommend that people run this code from
+>> boot-loader before invoking the kernel.
 >
->On Tuesday 31 January 2012 04:26 PM, Patrick wrote:
->> Dear mailing-list,
->>
->>
->> I am working with a vanilla 3.0.17 kernel with some patch for my Oma=
-p4430 based board.
->>
->> I am using the driver video/omap2/panel-lgphilips-lb025q02.c with a =
-very similar screen.
->> I have added on my board init file the init code for both the SPI an=
-d the panel, like below.
->>
->> static struct omap_dss_device sb_dpi_device =3D {
->>=A0 =A0 =A0 =A0 =A0 .type=A0 =A0 =A0 =A0 =A0 =A0 =A0  =3D OMAP_DISPLA=
-Y_TYPE_DPI,
->>=A0 =A0 =A0 .name=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0  =3D "lcd35",
->>=A0 =A0 =A0 .driver_name=A0 =A0 =A0 =A0 =A0 =A0 =3D "lgphilips_lb035q=
-02_panel",
->>=A0 =A0 =A0 .phy.dpi.data_lines=A0 =A0  =3D 24,
->>=A0 =A0 =A0 .platform_enable=A0 =A0 =A0 =A0 =3D sb_panel_enable_lcd,
->>=A0 =A0 =A0 .platform_disable=A0 =A0 =A0  =3D sb_panel_disable_lcd,
->> };
->>
+> You've seen the resistance from uboot to stuff we do with the kernel,
+> this will be no different. =A0There's also quite a number of boot loa=
+ders
+> out there which aren't capable of running a binary, returning and the=
+n
+> loading and running the kernel.
 >
->You have to add a channel field in this, like:
->
->=A0=A0 .channel =3D OMAP_DSS_CHANNEL_LCD2,
->
->On OMAP4, the DPI interface is connected to LCD2 interface and not LCD=
-=20
->interface. That's why you get the error 'display 'lcd35' does not=20
->support manager 'lcd''
->
->Can you try with this change and see what happens?
->
->Archit
+> Plus, of course, it's far from friendly towards TFTP setups.
 
-Yes it works, the kernel boot correctly up to the end.=20
-The display doesn't display what I want but this is another problem ;-)
+=46or platforms that can't/don't want to modify the boot loader, they
+could wrap (prepend) the kernel image with the preload code and they
+just use that to kexec a distro generic kernel. I know it can go to
+3-4 stages boot process on some platforms but you have the advantage
+of a generic kernel image. If SoC vendors don't like the lengthier
+boot process, they have the option of modifying the boot loader and
+include the preload code that the kernel provides (or find a way to
+load it together with the kernel at boot-time).
 
-Thanks for your help.
-
-Patrick
-
------ Mail original -----
-
+--=20
+Catalin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
