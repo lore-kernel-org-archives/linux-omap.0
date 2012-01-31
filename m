@@ -1,65 +1,55 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/7] ARM: OMAP2+: hwmod/timer: first set of cleanups for
- 3.4
-Date: Mon, 30 Jan 2012 16:36:08 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201301635010.17726@utopia.booyaka.com>
-References: <20120130101251.10450.58423.stgit@dusk> <87ty3cpyuk.fsf@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
+Date: Mon, 30 Jan 2012 16:14:23 -0800
+Message-ID: <878vkopw2o.fsf@ti.com>
+References: <20120130093931.11027.31048.stgit@dusk>
+	<20120130094312.11027.31050.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53042 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754156Ab2A3XgJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Jan 2012 18:36:09 -0500
-In-Reply-To: <87ty3cpyuk.fsf@ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:54994 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752903Ab2AaAO2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 30 Jan 2012 19:14:28 -0500
+Received: by yhoo47 with SMTP id o47so2595460yho.24
+        for <linux-omap@vger.kernel.org>; Mon, 30 Jan 2012 16:14:26 -0800 (PST)
+In-Reply-To: <20120130094312.11027.31050.stgit@dusk> (Paul Walmsley's message
+	of "Mon, 30 Jan 2012 02:43:17 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On Mon, 30 Jan 2012, Kevin Hilman wrote:
+Paul Walmsley <paul@pwsan.com> writes:
 
-> Paul Walmsley <paul@pwsan.com> writes:
-> 
-> > This series does some cleanup and documentation on the OMAP hwmod code
-> > (and a bit of the OMAP4 data) and timer code. It is the first
-> > prerequisite series to removing a big chunk of hwmod data -- that will
-> > be done in a later series.
-> >
-> > Boot-tested on an OMAP35xx BeagleBoard and OMAP44xx ES2 Pandaboard.
-> >
-> > This series is also available via git from git://git.pwsan.com/linux-2.6 in
-> > the branch "hwmod_code_cleanup_3.4".
-> 
-> FYI... I tested this branch on my 4430ES2.1/Panda and got an infinite
-> loop of L3 errors.
-> 
-> I haven't debugged which patch causes the problem, but thought you'd
-> like to know.   I did notice that that booting v3.3-rc1, I see
-> 
-> [    0.309478] omap_hwmod: ipu: failed to hardreset
-> 
-> but booting your branch I see a few more reset failures:
-> 
-> [    0.308532] omap_hwmod: dsp: failed to hardreset
-> [    0.328979] omap_hwmod: dsp: failed to hardreset
-> [    0.358001] omap_hwmod: ipu: failed to hardreset
-> [    0.378448] omap_hwmod: ipu: failed to hardreset
-> [    0.398895] omap_hwmod: ipu: failed to hardreset
-> [    0.427520] omap_hwmod: iva: failed to hardreset
-> [    0.447967] omap_hwmod: iva: failed to hardreset
-> 
-> There's a full boot log below.
-> 
-> I noticed you tested on Panda too, but one difference between our setups
-> is probably that I'm not using u-boot.  Instead, I'm booting over USB
-> using the usbboot tool written by Brian Swetland:
-> git://github.com/swetland/omap4boot.git.   It could be that the
-> different bootloaders are leaving the other IPs in different states.
+> Remove some superfluous calls to pwrdm_clear_all_prev_pwrst().
+> pwrdm_pre_transition(), which appears a few lines after these calls,
+> invokes pwrdm_clear_all_prev_pwrst() on each powerdomain -- there's no
+> need to do it twice.
 
-Thanks for the test and the report.  I'll take a look at the situation.  
-Your assumption about bootloaders is correct.  I wonder if Brian's 
-bootloader leaves things enabled.
+It looks like these two for OMAP4 are surpurfluous since the immediately
+follow a call to pwrdm_pre_transition() as well.
+
+Santosh/Rajendra, please confirm/ack.
+
+Kevin
 
 
-- Paul
+diff --git a/arch/arm/mach-omap2/omap-mpuss-lowpower.c b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+index 1d5d010..bbabe1d 100644
+--- a/arch/arm/mach-omap2/omap-mpuss-lowpower.c
++++ b/arch/arm/mach-omap2/omap-mpuss-lowpower.c
+@@ -263,12 +263,10 @@ int omap4_enter_lowpower(unsigned int cpu, unsigned int power_state)
+ 	 * In MPUSS OSWR or device OFF, interrupt controller  contest is lost.
+ 	 */
+ 	mpuss_clear_prev_logic_pwrst();
+-	pwrdm_clear_all_prev_pwrst(mpuss_pd);
+ 	if ((pwrdm_read_next_pwrst(mpuss_pd) == PWRDM_POWER_RET) &&
+ 		(pwrdm_read_logic_retst(mpuss_pd) == PWRDM_POWER_OFF))
+ 		save_state = 2;
+ 
+-	clear_cpu_prev_pwrst(cpu);
+ 	cpu_clear_prev_logic_pwrst(cpu);
+ 	set_cpu_next_pwrst(cpu, power_state);
+ 	set_cpu_wakeup_addr(cpu, virt_to_phys(omap4_cpu_resume));
