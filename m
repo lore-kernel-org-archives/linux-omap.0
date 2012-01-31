@@ -1,60 +1,79 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
-Date: Tue, 31 Jan 2012 12:10:12 +0000
-Message-ID: <CAHkRjk7_giYNk5djA_kevxo0YqvGJBwJydQXvtMy7AKmWv8XEA@mail.gmail.com>
-References: <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com>
- <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com>
- <4F277A6E.9070107@ti.com> <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com>
- <CAMQu2gxr5ZkH4AE_7QNptxx7onQMGaj+qhUF+DSw9MnkCqCRog@mail.gmail.com>
- <CAHkRjk7Fh=OUk8K=bJa8xzPqMvT6P6gjT+kqAA0DeVfrF0sUNg@mail.gmail.com>
- <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com>
- <CAHkRjk6KQXR1kt8VTPC3GOaHUusKikxXHR=Mge8akaVL2ipvaw@mail.gmail.com> <20120131101000.GA1275@n2100.arm.linux.org.uk>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 07/21] OMAP3+: PM: SR/Class3: disable errorgen before
+ disable VP
+Date: Tue, 31 Jan 2012 14:39:48 +0100
+Message-ID: <CAORVsuWrO49aUi7iab=qzxPOjaxkOwFa6bTtdRedK+pX-59t8A@mail.gmail.com>
+References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
+	<1327504583-13408-8-git-send-email-j-pihet@ti.com>
+	<4F213860.9050600@ru.mvista.com>
+	<CAORVsuUNM8bpwyjbG2GcwfiUEf7A54ODC4tfhZNinUhQTE3g5w@mail.gmail.com>
+	<4F27D264.9050203@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:47730 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752742Ab2AaMKe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 07:10:34 -0500
-Received: by qafk1 with SMTP id k1so87390qaf.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 04:10:33 -0800 (PST)
-In-Reply-To: <20120131101000.GA1275@n2100.arm.linux.org.uk>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:57412 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752243Ab2AaNjt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 08:39:49 -0500
+Received: by vbjk17 with SMTP id k17so129387vbj.19
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 05:39:48 -0800 (PST)
+In-Reply-To: <4F27D264.9050203@ru.mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Joe Woodward <jw@terrafix.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Aneesh V <aneesh@ti.com>
+To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-On 31 January 2012 10:10, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Jan 31, 2012 at 09:53:25AM +0000, Catalin Marinas wrote:
->> Maybe we could factor out the CPU-specific settings from proc-v*.S
->> into a separate arch/arm/boot/preload directory. We keep proc-v*.S
->> entirely generic and the implementation-defined bits setting in the
->> preload code. You could have an option to link the preload with the
->> kernel but we could recommend that people run this code from
->> boot-loader before invoking the kernel.
+Sergei,
+
+On Tue, Jan 31, 2012 at 12:37 PM, Sergei Shtylyov
+<sshtylyov@ru.mvista.com> wrote:
+> Hello.
 >
-> You've seen the resistance from uboot to stuff we do with the kernel,
-> this will be no different. =A0There's also quite a number of boot loa=
-ders
-> out there which aren't capable of running a binary, returning and the=
-n
-> loading and running the kernel.
 >
-> Plus, of course, it's far from friendly towards TFTP setups.
+> On 31-01-2012 14:06, Jean Pihet wrote:
+>
+>> ...
+>
+>
+>>>> +int sr_disable_errgen(struct voltagedomain *voltdm)
+>>>> +{
+>>>> + =A0 =A0 =A0 u32 errconfig_offs, vpboundint_en;
+>>>> + =A0 =A0 =A0 u32 vpboundint_st;
+>>>> + =A0 =A0 =A0 struct omap_sr *sr =3D _sr_lookup(voltdm);
+>>>> +
+>>>> + =A0 =A0 =A0 if (IS_ERR(sr)) {
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: omap_sr struct for s=
+r_%s not found\n",
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, voltdm->na=
+me);
+>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>>>
+>>>
+>>>
+>>> =A0 Not PTR_ERR(sr)?
+>
+>
+>> _sr_lookup returns a return code using ERR_PTR so the return value
+>> should be checked for errors using IS_ERR. Please note that _sr_look=
+up
+>> checks for NULL parameter internally.
+>
+>
+> =A0 That's clear. I was asking don't you want to return PTR_ERR(sr) i=
+nstead of
+> -EINVAL.
+Oh yes you are correct, that is a good catch. Sorry for my misunderstan=
+ding.
 
-=46or platforms that can't/don't want to modify the boot loader, they
-could wrap (prepend) the kernel image with the preload code and they
-just use that to kexec a distro generic kernel. I know it can go to
-3-4 stages boot process on some platforms but you have the advantage
-of a generic kernel image. If SoC vendors don't like the lengthier
-boot process, they have the option of modifying the boot loader and
-include the preload code that the kernel provides (or find a way to
-load it together with the kernel at boot-time).
+I caught the same problem at a few other places and I have a patch
+ready for the error handling code. To be submitted asap.
 
---=20
-Catalin
+>
+> WBR, Sergei
+
+Thanks!
+Jean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
