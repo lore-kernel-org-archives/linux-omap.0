@@ -1,85 +1,72 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: GPIO debounce problems on 3.2
-Date: Tue, 31 Jan 2012 13:39:05 +0200
-Message-ID: <CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com>
-References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com>
-	<87obtlrniz.fsf@ti.com>
-	<CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
-	<87obtkpyna.fsf@ti.com>
-	<alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
-	<CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com>
-	<alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com>
+From: Patrick <kpa_info@yahoo.fr>
+Subject: Re : [DSS2] kernel freeze with panel driver
+Date: Tue, 31 Jan 2012 12:02:25 +0000 (GMT)
+Message-ID: <1328011345.70354.YahooMailNeo@web29010.mail.ird.yahoo.com>
+References: <1328007381.86237.YahooMailNeo@web29017.mail.ird.yahoo.com> <4F27CE83.3070608@ti.com>
+Reply-To: Patrick <kpa_info@yahoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57257 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752949Ab2AaLjG convert rfc822-to-8bit
+Received: from nm19-vm0.bullet.mail.ird.yahoo.com ([77.238.189.92]:45757 "HELO
+	nm19-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753065Ab2AaMC1 convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jan 2012 06:39:06 -0500
-Received: by lagu2 with SMTP id u2so2797192lag.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 03:39:05 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com>
+	Tue, 31 Jan 2012 07:02:27 -0500
+In-Reply-To: <4F27CE83.3070608@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Jan 31, 2012 at 3:48 AM, Paul Walmsley <paul@pwsan.com> wrote:
+>Hi,
 >
-> If the DEBOUNCENABLE bit is set and the debounce clock is off and the=
- GPIO
-> IP block is idle, then yeah, I'd assume that GPIO wakeups would not
-> work.
+>On Tuesday 31 January 2012 04:26 PM, Patrick wrote:
+>> Dear mailing-list,
+>>
+>>
+>> I am working with a vanilla 3.0.17 kernel with some patch for my Oma=
+p4430 based board.
+>>
+>> I am using the driver video/omap2/panel-lgphilips-lb025q02.c with a =
+very similar screen.
+>> I have added on my board init file the init code for both the SPI an=
+d the panel, like below.
+>>
+>> static struct omap_dss_device sb_dpi_device =3D {
+>>=A0 =A0 =A0 =A0 =A0 .type=A0 =A0 =A0 =A0 =A0 =A0 =A0  =3D OMAP_DISPLA=
+Y_TYPE_DPI,
+>>=A0 =A0 =A0 .name=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0  =3D "lcd35",
+>>=A0 =A0 =A0 .driver_name=A0 =A0 =A0 =A0 =A0 =A0 =3D "lgphilips_lb035q=
+02_panel",
+>>=A0 =A0 =A0 .phy.dpi.data_lines=A0 =A0  =3D 24,
+>>=A0 =A0 =A0 .platform_enable=A0 =A0 =A0 =A0 =3D sb_panel_enable_lcd,
+>>=A0 =A0 =A0 .platform_disable=A0 =A0 =A0  =3D sb_panel_disable_lcd,
+>> };
+>>
 >
-> But it sounds like they are working for you when DEBOUNCENABLE is set=
- and
-> the debounce clock is on and the GPIO IP block is idle and CORE & PER=
- are
-> ON?
-
-I think so. It works with DEBOUNCENABLE set when cpuidle is disabled
-or CPU is spinning. CORE & PER are ON according to pm_debug/count, I
-think debounce clock is enabled too but I don't know if GPIO is idle
-then (how do I check?).
-
-> And when DEBOUNCENABLE is clear and the debounce clock is off and the=
- GPIO
-> IP block is idle and CORE & PER are still ON, then they work?
-
-Yes.
-
-> If the answer to those two latter questions are true, then it sounds =
-like
-> the hardware is working more or less as expected...
-
-So when does all wakeup stuff come into effect, when CORE+PER go to
-low power state? I'm using 3.2 and CORE seems to always be ON
-(regardless of cpuidle option) except when I suspend I guess. I can
-get PER state to change if I set serial timeouts, but that doesn't
-help the GPIO problem.
-
-> Of course our software support probably still isn't right. =C2=A0We p=
-robably
-> should keep the debounce clock enabled as long as some GPIO has debou=
-nce
-> support enabled. =C2=A0And probably provide some way for GPIO users t=
-o indicate
-> whether they are okay with debounce support being disabled when the
-> rest of the CORE/PER can enter a low-power state. =C2=A0The motivatin=
-g
-> principle being that PM shouldn't violate a requirement from the rest=
- of
-> the system...
+>You have to add a channel field in this, like:
 >
-> Anyway, just thinking out loud.
+>=A0=A0 .channel =3D OMAP_DSS_CHANNEL_LCD2,
 >
+>On OMAP4, the DPI interface is connected to LCD2 interface and not LCD=
+=20
+>interface. That's why you get the error 'display 'lcd35' does not=20
+>support manager 'lcd''
 >
-> - Paul
+>Can you try with this change and see what happens?
+>
+>Archit
 
---=20
-Gra=C5=BEvydas
+Yes it works, the kernel boot correctly up to the end.=20
+The display doesn't display what I want but this is another problem ;-)
+
+Thanks for your help.
+
+Patrick
+
+----- Mail original -----
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
