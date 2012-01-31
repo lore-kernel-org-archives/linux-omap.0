@@ -1,41 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to
- pwrdm_clear_all_prev_pwrst()
-Date: Tue, 31 Jan 2012 00:49:13 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1201310044310.10061@utopia.booyaka.com>
-References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk> <878vkopw2o.fsf@ti.com> <CAMQu2gxyY50Bno_R2v1x98-ND47CrVpZBq+wA3POXz2+7E7eEw@mail.gmail.com> <alpine.DEB.2.00.1201302359320.10061@utopia.booyaka.com>
- <CAMQu2gyACq7RFyfnyNddDg7xRbHTTqsgXwMq6Ng4WfLxaatvAw@mail.gmail.com> <alpine.DEB.2.00.1201310024510.10061@utopia.booyaka.com> <CAMQu2gyLgmbeqVevTbGazO3A+AkYPsPeWp9mp0eD_EwXs3SZ0w@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH v2 4/8] staging: tidspbridge: silence the compiler
+Date: Tue, 31 Jan 2012 11:05:43 +0300
+Message-ID: <20120131080543.GA3294@mwanda>
+References: <cover.1327964066.git.vjaquez@igalia.com>
+ <d25cfe1b88f2b749cb31887d551a1c9b0fcde42e.1327964066.git.vjaquez@igalia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33652 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015Ab2AaHtR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 02:49:17 -0500
-In-Reply-To: <CAMQu2gyLgmbeqVevTbGazO3A+AkYPsPeWp9mp0eD_EwXs3SZ0w@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tK3TaB1xs9ylLrl6"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <d25cfe1b88f2b749cb31887d551a1c9b0fcde42e.1327964066.git.vjaquez@igalia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?iso-8859-1?Q?V=EDctor_Manuel_J=E1quez?= Leal <vjaquez@igalia.com>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Armando Uribe <x0095078@ti.com>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <t-kristo@ti.com>, Rajendra Nayak <rnayak@ti.com>
-
-On Tue, 31 Jan 2012, Shilimkar, Santosh wrote:
-
-> A week back I was discussing with Benoit and Tony about having some
-> infrastructure like "unused clocks" so that we can shutdown those
-> modules, and if possible some power domains. That way they get
-> removed at one single place and they the power domain calls
-> need not iterate over the once which are no longer needed.
-
-Sure, if you have some ideas, that sounds promising.  I'd assume the main 
-performance issues would be related to global PRCM register reads, rather 
-than raw CPU cycles.  So that's probably where it would make sense to 
-focus the effort. 
-
-We should also be able to optimize out a fair number of the powerdomain 
-register reads if we cache them in the struct powerdomain.  The current 
-powerstate and next powerstate seem to be hit a lot, and those should both 
-be cacheable.  Will probably do some of this as part of the functional 
-powerstate code.
 
 
-- Paul
+--tK3TaB1xs9ylLrl6
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, Jan 31, 2012 at 12:12:20AM +0100, V=EDctor Manuel J=E1quez Leal wro=
+te:
+> Silence the warning when compiling drv_interface.c
+>=20
+> Signed-off-by: V=EDctor Manuel J=E1quez Leal <vjaquez@igalia.com>
+
+What does the compiler warn about here?  Normally you would cut and
+paste the warning into the commit message.  But at least give us a
+hint.
+
+You could also reformat that printk so the message is on one line.
+
+	dev_dbg(bridge,
+	        "%s: vm filp %p offset %x start %lx end %lx page_prot %ulx flags %=
+lx\n",
+		__func__, filp, offset, vma->vm_start, vma->vm_end,
+		vma->vm_page_prot, vma->vm_flags);
+
+regards,
+dan carpenter
+
+
+
+--tK3TaB1xs9ylLrl6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPJ6DXAAoJEOnZkXI/YHqRUYIQAIo5uqFcN7GIM8I0+i3+7N+B
+Sacu56b8ASOxpZS5oeKD7sliRvwPF+cvhLsMcVsUsRIMcIXv7PVKkPfLj0F5YFfi
+/nbeHshKVpe82fVYwbuPW882Pnz4oql4fQAbNtZ6cANKRoBc2zksGywA3BRWitv1
+A1ldLfGknyzdCusR7dsD+pyPZ/ZEbDdeQ10/ffGE4CSZz/AcrxmSOAiSvNkD4IdS
+3gGBt00htQNVROK2lQn0LkeEEnmG6qnxPHNmw253t6TnbPy9eSmvm/eUtQvwurXM
+Epiy86bEO9JpmRcUlvfgQ+pQw22lY0QgiKUMy832V12x22HAvFDuFS5FWsCA2Kp0
+sw8GKc9QCDJDabp2MNzuvwS6gDvkotJ3GL8ijgXkdEMUGuufSh38RgTYIip2mzKE
+Or0xmcX1MfAwxneQ7WYtEkzE3487APdfbweNwyn82b5BxUS0hpPU0iXuvloP95Bi
+lRc4cfECS4nAWg7QNIEgN7jn7bjV6zbvmC5qcesKgM9LJ+RmMjtuiz9Y4I9NyFXw
+LDNa2qM45KEDRbYnMwsnwyqqXYzjyC2JJjd3R+d2yYqpwhewxfEkPv+EsXZa4MQG
+NOVjIUsf7Tsff1pNNYODytNLIEi4qIZfOfM9c4dSle8jHTy2bOhlEijtAidy1bQq
+aZV0TboY51oxHbmTfYXY
+=sljU
+-----END PGP SIGNATURE-----
+
+--tK3TaB1xs9ylLrl6--
