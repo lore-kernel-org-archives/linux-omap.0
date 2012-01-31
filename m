@@ -1,15 +1,15 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 15/19] ARM: OMAP3+: SmartReflex: add missing platform_set_drvdata()
-Date: Tue, 31 Jan 2012 10:58:28 +0100
-Message-ID: <1328003912-11709-16-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 18/19] ARM: OMAP3+: SmartReflex: micro-optimization for sanity check
+Date: Tue, 31 Jan 2012 10:58:31 +0100
+Message-ID: <1328003912-11709-19-git-send-email-j-pihet@ti.com>
 References: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:61170 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753845Ab2AaJ7T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:59:19 -0500
-Received: by mail-wi0-f174.google.com with SMTP id s10so4219621wic.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:59:18 -0800 (PST)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:49867 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753858Ab2AaJ7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:59:24 -0500
+Received: by mail-we0-f174.google.com with SMTP id b13so175586wer.19
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:59:24 -0800 (PST)
 In-Reply-To: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,28 +18,27 @@ Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j
 
 From: Felipe Balbi <balbi@ti.com>
 
-That's very useful to fetch the correct struct sr_info
-from the PM handlers.
+val && (val != 1) == val > 1
 
 Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 65e1a7c..eacf4b3 100644
+index c2e3d6b..2fe882f 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -1062,6 +1062,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
- 		return -ENOMEM;
+@@ -1065,7 +1065,7 @@ static int omap_sr_autocomp_store(void *data, u64 val)
  	}
  
-+	platform_set_drvdata(pdev, sr_info);
-+
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
- 		ret = -EINVAL;
+ 	/* Sanity check */
+-	if (val && (val != 1)) {
++	if (val > 1) {
+ 		pr_warning("%s: Invalid argument %lld\n", __func__, val);
+ 		return -EINVAL;
+ 	}
 -- 
 1.7.5.4
 
