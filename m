@@ -1,55 +1,71 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: GPIO debounce problems on 3.2
-Date: Tue, 31 Jan 2012 23:40:33 +0200
-Message-ID: <CANOLnOMzkNSr5hFbASCWaT6PkBSYQhqMxXmjBfU0tm0GTv=yYA@mail.gmail.com>
-References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com>
-	<87obtlrniz.fsf@ti.com>
-	<CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
-	<87obtkpyna.fsf@ti.com>
-	<alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
-	<CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com>
-	<alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com>
-	<CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v2 00/19] ARM: OMAP3+: SmartReflex: bugfixes
+Date: Tue, 31 Jan 2012 13:59:20 -0800
+Message-ID: <87fwevleiv.fsf@ti.com>
+References: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
+	<20120131170830.GJ9339@atomide.com>
+	<CAN5iSWo9+P=tC5Uq_bZ+Js_QPpGTn=Q6f5ecgiehRvT2E5+Diw@mail.gmail.com>
+	<20120131172008.GK9339@atomide.com>
+	<CAORVsuWELB2rt3Vs-5oHFyXCRDUPXSpqOJo26cH+_i3Y0hdraQ@mail.gmail.com>
+	<20120131173344.GL9339@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m020-f174.google.com ([209.85.217.174]:44964 "EHLO
-	mail-lpp01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752466Ab2AaVke convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Jan 2012 16:40:34 -0500
-Received: by lbom4 with SMTP id m4so69767lbo.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 13:40:33 -0800 (PST)
-In-Reply-To: <CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:49389 "HELO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755341Ab2AaV70 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Jan 2012 16:59:26 -0500
+Received: by mail-bk0-f51.google.com with SMTP id jc3so447158bkc.38
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 13:59:25 -0800 (PST)
+In-Reply-To: <20120131173344.GL9339@atomide.com> (Tony Lindgren's message of
+	"Tue, 31 Jan 2012 09:33:44 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jean Pihet <jean.pihet@newoldbits.com>, "Pihet-XID, Jean" <j-pihet@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Paul Walmsley <paul@pwsan.com>
 
-On Tue, Jan 31, 2012 at 1:39 PM, Grazvydas Ignotas <notasas@gmail.com> =
-wrote:
-> So when does all wakeup stuff come into effect, when CORE+PER go to
-> low power state? I'm using 3.2 and CORE seems to always be ON
-> (regardless of cpuidle option) except when I suspend I guess. I can
-> get PER state to change if I set serial timeouts, but that doesn't
-> help the GPIO problem.
+Tony Lindgren <tony@atomide.com> writes:
 
-There is a strange thing in pm34xx.c, omap_sram_idle() function:
-I've added logging of per_next_state, and it's always 1
-(PWRDM_POWER_RET) for me, however if I check /debug/pm_debug/count ,
-core_pwrdm and per_pwrdm only has 1 for ON and zeros for all other
-states. That function calls gpio debounce clock disable if
-per_next_state < PWRDM_POWER_ON.
+> * Jean Pihet <jean.pihet@newoldbits.com> [120131 08:53]:
+>> On Tue, Jan 31, 2012 at 6:20 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Pihet-XID, Jean <j-pihet@ti.com> [120131 08:44]:
+>> >> Hi Tony,
+>> >>
+>> >> On Tue, Jan 31, 2012 at 6:08 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> >> > * Jean Pihet <jean.pihet@newoldbits.com> [120131 01:28]:
+>> >> >> Integrate the latest SmartReflex bufixes from Felipe Balbi [1] and
+>> >> >> Nishant Menon [2], plus misc bugfixes.
+>> >> >
+>> >> > We should move this to live under drivers somewhere. So
+>> >> Yes that is the plan, eventually.
+>> >>
+>> >> > I'd like to see just minimal cleanup in the current location,
+>> >> > then move it to drivers before further patching.
+>> >> >
+>> >> > Is this the minimal cleanup needed before doing that, or
+>> >> > what's your plan regarding moving it to drivers?
+>> >> I would like to clean-up a few things and integrate well known
+>> >> bugfixes before the actual move to drivers/. Doing the opposite
+>> >> generates a rather big patch set (45+ patches to start with).
+>> >>
+>> >> What do you think?
+>> >
+>> > OK fine with me. So would the next patch after this series move
+>> > it to drivers then?
+>> The move to drivers requires some preparation in order to isolate the
+>> SR code from the other OMAP PM code. A patch set containing ~20
+>> patches is needed for that, the very last one being the actual move
+>> between directories.
+>> 
+>> Is that Ok to you?
+>
+> OK, let's plan on putting all the smartreflex stuff into a separate
+> branch then. If some changes are needed to the PM code, those should
+> probably be applied first into Kevin's PM branch.
 
-Does that mean this code is preparing for RET but never enters it?
-Maybe GPIO module ends up active but with debounce clock disabled?
+Tony, I'll queue up this series (after I get to reviewing them) as well
+as the changes needed to the PM core code.  After that we'll be ready to
+move.
 
-
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
