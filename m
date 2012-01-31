@@ -1,107 +1,86 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 07/19] ARM: OMAP3+: SmartReflex: clear ERRCONFIG_VPBOUNDINTST only on a need
-Date: Tue, 31 Jan 2012 10:58:20 +0100
-Message-ID: <1328003912-11709-8-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 08/19] ARM: OMAP3+: hwmod: add SmartReflex IRQs
+Date: Tue, 31 Jan 2012 10:58:21 +0100
+Message-ID: <1328003912-11709-9-git-send-email-j-pihet@ti.com>
 References: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:49867 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753556Ab2AaJ7H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:59:07 -0500
-Received: by mail-we0-f174.google.com with SMTP id b13so175586wer.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:59:06 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:32880 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618Ab2AaJ7I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 04:59:08 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dt10so67497wgb.1
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 01:59:08 -0800 (PST)
 In-Reply-To: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-=46rom: Nishanth Menon <nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
 
-MIME-Version: 1.0
-Content-Type: text/plain; charset=3DUTF-8
-Content-Transfer-Encoding: 8bit
+OMAP3 SmartReflex IRQs in hwmod structures with the same naming as
+present in OMAP4. Without these IRQs being registered, SmartReflex
+driver will be unable to get the IRQ numbers to handle notifications
 
-ERRCONFIG register's VPBOUNDINTST has an additional functional meaning
-It force clears Sr_interruptz internal signal. This can result in
-scenarios where VP-> SR protocol is violated where voltage processor's
-As interruptz is already high, VP will never clear the signal vpirqclr.
-Therefore during the next force update to reset to nominal voltage,
-VP can=E2=80=99t pulsed vpirqclr =3D> PRCM HW can=E2=80=99t generate th=
-e tranxdone IRQ
-and the situation is not recoverable untill a cold reset is invoked.
-
-To prevent this situation, check if status is set before clearing the
-status as this needs to be done only on a need basis.
-
-Reported-by: Vincent Bour <v-bour@ti.com>
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   22 ++++++++++++++++------
- 1 files changed, 16 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/sm=
-artreflex.c
-index ba6ad09..6dea30d 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -289,6 +289,8 @@ error:
- static void sr_v1_disable(struct omap_sr *sr)
- {
- 	int timeout =3D 0;
-+	int errconf_val =3D ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST=
- |
-+			ERRCONFIG_MCUBOUNDINTST;
-=20
- 	/* Enable MCUDisableAcknowledge interrupt */
- 	sr_modify_reg(sr, ERRCONFIG_V1,
-@@ -297,13 +299,13 @@ static void sr_v1_disable(struct omap_sr *sr)
- 	/* SRCONFIG - disable SR */
- 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
-=20
--	/* Disable all other SR interrupts and clear the status */
-+	/* Disable all other SR interrupts and clear the status as needed */
-+	if (sr_read_reg(sr, ERRCONFIG_V1) & ERRCONFIG_VPBOUNDINTST_V1)
-+		errconf_val |=3D ERRCONFIG_VPBOUNDINTST_V1;
- 	sr_modify_reg(sr, ERRCONFIG_V1,
- 			(ERRCONFIG_MCUACCUMINTEN | ERRCONFIG_MCUVALIDINTEN |
- 			ERRCONFIG_MCUBOUNDINTEN | ERRCONFIG_VPBOUNDINTEN_V1),
--			(ERRCONFIG_MCUACCUMINTST | ERRCONFIG_MCUVALIDINTST |
--			ERRCONFIG_MCUBOUNDINTST |
--			ERRCONFIG_VPBOUNDINTST_V1));
-+			errconf_val);
-=20
- 	/*
- 	 * Wait for SR to be disabled.
-@@ -332,9 +334,17 @@ static void sr_v2_disable(struct omap_sr *sr)
- 	/* SRCONFIG - disable SR */
- 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, 0x0);
-=20
--	/* Disable all other SR interrupts and clear the status */
--	sr_modify_reg(sr, ERRCONFIG_V2, ERRCONFIG_VPBOUNDINTEN_V2,
-+	/*
-+	 * Disable all other SR interrupts and clear the status
-+	 * write to status register ONLY on need basis - only if status
-+	 * is set.
-+	 */
-+	if (sr_read_reg(sr, ERRCONFIG_V2) & ERRCONFIG_VPBOUNDINTST_V2)
-+		sr_modify_reg(sr, ERRCONFIG_V2, ERRCONFIG_VPBOUNDINTEN_V2,
- 			ERRCONFIG_VPBOUNDINTST_V2);
-+	else
-+		sr_modify_reg(sr, ERRCONFIG_V2, ERRCONFIG_VPBOUNDINTEN_V2,
-+				0x0);
- 	sr_write_reg(sr, IRQENABLE_CLR, (IRQENABLE_MCUACCUMINT |
- 			IRQENABLE_MCUVALIDINT |
- 			IRQENABLE_MCUBOUNDSINT));
---=20
+diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+index a201ff5..b224ea2 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
+@@ -377,6 +377,16 @@ static struct omap_hwmod_ocp_if omap3_l4_core__i2c3 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
++	{ .name = "sr1_irq", .irq = 18},
++	{ .irq = -1 }
++};
++
++static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
++	{ .name = "sr2_irq", .irq = 19},
++	{ .irq = -1 }
++};
++
+ /* L4 CORE -> SR1 interface */
+ static struct omap_hwmod_addr_space omap3_sr1_addr_space[] = {
+ 	{
+@@ -2667,6 +2677,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
+ 	.slaves		= omap3_sr1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
+ 	.dev_attr	= &sr1_dev_attr,
++	.mpu_irqs	= omap3_smartreflex_mpu_irqs,
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+@@ -2686,6 +2697,7 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
+ 	.slaves		= omap3_sr1_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
+ 	.dev_attr	= &sr1_dev_attr,
++	.mpu_irqs	= omap3_smartreflex_mpu_irqs,
+ };
+ 
+ /* SR2 */
+@@ -2713,6 +2725,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
+ 	.slaves		= omap3_sr2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
+ 	.dev_attr	= &sr2_dev_attr,
++	.mpu_irqs	= omap3_smartreflex_core_irqs,
+ 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ };
+ 
+@@ -2732,6 +2745,7 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
+ 	.slaves		= omap3_sr2_slaves,
+ 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
+ 	.dev_attr	= &sr2_dev_attr,
++	.mpu_irqs	= omap3_smartreflex_core_irqs,
+ };
+ 
+ /*
+-- 
 1.7.5.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
