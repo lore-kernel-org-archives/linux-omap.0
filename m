@@ -1,81 +1,44 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 07/21] OMAP3+: PM: SR/Class3: disable errorgen before
- disable VP
-Date: Tue, 31 Jan 2012 14:39:48 +0100
-Message-ID: <CAORVsuWrO49aUi7iab=qzxPOjaxkOwFa6bTtdRedK+pX-59t8A@mail.gmail.com>
-References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
-	<1327504583-13408-8-git-send-email-j-pihet@ti.com>
-	<4F213860.9050600@ru.mvista.com>
-	<CAORVsuUNM8bpwyjbG2GcwfiUEf7A54ODC4tfhZNinUhQTE3g5w@mail.gmail.com>
-	<4F27D264.9050203@ru.mvista.com>
+From: Daniel Lezcano <daniel.lezcano@free.fr>
+Subject: Re: [PATCH 0/3] coupled cpuidle state support
+Date: Tue, 31 Jan 2012 15:13:04 +0100
+Message-ID: <4F27F6F0.7010508@free.fr>
+References: <1324426147-16735-1-git-send-email-ccross@android.com> <4F1929E9.7070707@linaro.org> <CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com> <4F200BE2.2070301@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57412 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752243Ab2AaNjt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 08:39:49 -0500
-Received: by vbjk17 with SMTP id k17so129387vbj.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 05:39:48 -0800 (PST)
-In-Reply-To: <4F27D264.9050203@ru.mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F200BE2.2070301@free.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin Cross <ccross@android.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@lists.linux-foundation.org, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Amit Kucheria <amit.kucheria@linaro.org>, Arjan van de Ven <arjan@linux.intel.com>, Trinabh Gupta <g.trinabh@gmail.com>, Deepthi Dharwar <deepthi@linux.vnet.ibm.com>, linux-omap@vger.kernel.org, linux-tegra@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-Sergei,
-
-On Tue, Jan 31, 2012 at 12:37 PM, Sergei Shtylyov
-<sshtylyov@ru.mvista.com> wrote:
-> Hello.
->
->
-> On 31-01-2012 14:06, Jean Pihet wrote:
->
->> ...
->
->
->>>> +int sr_disable_errgen(struct voltagedomain *voltdm)
->>>> +{
->>>> + =A0 =A0 =A0 u32 errconfig_offs, vpboundint_en;
->>>> + =A0 =A0 =A0 u32 vpboundint_st;
->>>> + =A0 =A0 =A0 struct omap_sr *sr =3D _sr_lookup(voltdm);
->>>> +
->>>> + =A0 =A0 =A0 if (IS_ERR(sr)) {
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: omap_sr struct for s=
-r_%s not found\n",
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, voltdm->na=
-me);
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+On 01/25/2012 03:04 PM, Daniel Lezcano wrote:
+> On 01/20/2012 09:40 PM, Colin Cross wrote:
+>> On Fri, Jan 20, 2012 at 12:46 AM, Daniel Lezcano
+>> <daniel.lezcano@linaro.org>  wrote:
+>>> Hi Colin,
 >>>
->>>
->>>
->>> =A0 Not PTR_ERR(sr)?
+>>> this patchset could be interesting to resolve in a generic way the cpu
+>>> dependencies.
+>>> What is the status of this patchset ?
+>> I can't do much with it right now, because I don't have any devices
+>> that can do SMP idle with a v3.2 kernel.  I've started working on an
+>> updated version that avoids the spinlock, but it might be a while
+>> before I can test and post it.  I'm mostly looking for feedback on the
+>> approach taken in this patch, and whether it will be useful for other
+>> SoCs besides Tegra and OMAP4.
 >
+> Hi Colin,
 >
->> _sr_lookup returns a return code using ERR_PTR so the return value
->> should be checked for errors using IS_ERR. Please note that _sr_look=
-up
->> checks for NULL parameter internally.
->
->
-> =A0 That's clear. I was asking don't you want to return PTR_ERR(sr) i=
-nstead of
-> -EINVAL.
-Oh yes you are correct, that is a good catch. Sorry for my misunderstan=
-ding.
+> I will be happy to test your patchset. Do you have a pointer to a more 
+> recent kernel ?
 
-I caught the same problem at a few other places and I have a patch
-ready for the error handling code. To be submitted asap.
+Hi Colin,
 
->
-> WBR, Sergei
+sorry for bothering you. I am working on a cpuidle driver for an ARM SMP 
+board, I will be really happy to test your patchset and look how it fits 
+with the cpuidle driver.
 
-Thanks!
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+   -- Daniel
