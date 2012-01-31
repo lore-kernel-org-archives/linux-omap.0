@@ -1,34 +1,69 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled
-	by uBoot)?
-Date: Tue, 31 Jan 2012 10:10:00 +0000
-Message-ID: <20120131101000.GA1275@n2100.arm.linux.org.uk>
-References: <20120117133918.GE11475@arm.com> <CAMQu2gwANxCe-ou_qv29ueLixodoHv9i6VyfvDi2rjEOvhttqA@mail.gmail.com> <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com> <4F277A6E.9070107@ti.com> <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com> <CAMQu2gxr5ZkH4AE_7QNptxx7onQMGaj+qhUF+DSw9MnkCqCRog@mail.gmail.com> <CAHkRjk7Fh=OUk8K=bJa8xzPqMvT6P6gjT+kqAA0DeVfrF0sUNg@mail.gmail.com> <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com> <CAHkRjk6KQXR1kt8VTPC3GOaHUusKikxXHR=Mge8akaVL2ipvaw@mail.gmail.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH 07/21] OMAP3+: PM: SR/Class3: disable errorgen before
+ disable VP
+Date: Tue, 31 Jan 2012 11:06:50 +0100
+Message-ID: <CAORVsuUNM8bpwyjbG2GcwfiUEf7A54ODC4tfhZNinUhQTE3g5w@mail.gmail.com>
+References: <1327504583-13408-1-git-send-email-j-pihet@ti.com>
+ <1327504583-13408-8-git-send-email-j-pihet@ti.com>
+ <4F213860.9050600@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41377 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab2AaKKm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Jan 2012 05:10:42 -0500
-Content-Disposition: inline
-In-Reply-To: <CAHkRjk6KQXR1kt8VTPC3GOaHUusKikxXHR=Mge8akaVL2ipvaw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4F213860.9050600@ru.mvista.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: nm@ti.com, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, balbi@ti.com, linux-omap@vger.kernel.org, Jean Pihet <j-pihet@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aneesh V <aneesh@ti.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Joe Woodward <jw@terrafix.co.uk>
 
-On Tue, Jan 31, 2012 at 09:53:25AM +0000, Catalin Marinas wrote:
-> Maybe we could factor out the CPU-specific settings from proc-v*.S
-> into a separate arch/arm/boot/preload directory. We keep proc-v*.S
-> entirely generic and the implementation-defined bits setting in the
-> preload code. You could have an option to link the preload with the
-> kernel but we could recommend that people run this code from
-> boot-loader before invoking the kernel.
+Sergei,
 
-You've seen the resistance from uboot to stuff we do with the kernel,
-this will be no different.  There's also quite a number of boot loaders
-out there which aren't capable of running a binary, returning and then
-loading and running the kernel.
+On Thu, Jan 26, 2012 at 12:26 PM, Sergei Shtylyov
+<sshtylyov@ru.mvista.com> wrote:
+> Hello.
+>
+>
+> On 25-01-2012 19:16, Jean Pihet wrote:
+...
 
-Plus, of course, it's far from friendly towards TFTP setups.
+>> Change-Id: Id0145adacfa63d7652a29859ad6c95cc2ac61cc8
+> =A0 Please remove this line.
+Done!
+
+...
+
+>> +int sr_disable_errgen(struct voltagedomain *voltdm)
+>> +{
+>> + =A0 =A0 =A0 u32 errconfig_offs, vpboundint_en;
+>> + =A0 =A0 =A0 u32 vpboundint_st;
+>> + =A0 =A0 =A0 struct omap_sr *sr =3D _sr_lookup(voltdm);
+>> +
+>> + =A0 =A0 =A0 if (IS_ERR(sr)) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 pr_warning("%s: omap_sr struct for sr_%s n=
+ot found\n",
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 __func__, voltdm->name);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>
+>
+> =A0 Not PTR_ERR(sr)?
+_sr_lookup returns a return code using ERR_PTR so the return value
+should be checked for errors using IS_ERR. Please note that _sr_lookup
+checks for NULL parameter internally.
+
+BTW in the next revision of patches (just submitted) there is an
+additional patch [19/19] that fixes a few problems related to the use
+of err.h macros.
+
+>
+> WBR, Sergei
+
+Regards,
+Jean
