@@ -1,95 +1,56 @@
-From: Vincent Guittot <vincent.guittot-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 1 Feb 2012 13:13:26 +0100
-Message-ID: <CAKfTPtB3Kcy41H9g9u3u81kEHJeypi=GvOfOjcpdztzqN991nA@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4F1929E9.7070707@linaro.org>
-	<CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
-	<CAKfTPtAsO8z_8AnR8zSGZ9cm_7orDNxB3r09JAFk+2jdezUVmQ@mail.gmail.com>
-	<CAMbhsRQYVXTZ2pX4mBrM6=SyGTqn_GY8xsW4rt_e21zerEzctA@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: miscellaneous powerdomain-related
+ improvements
+Date: Wed, 1 Feb 2012 15:55:22 +0200
+Message-ID: <1328104522.4102.123.camel@sokoban>
+References: <20120130093931.11027.31048.stgit@dusk>  <871uqgswy8.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAMbhsRQYVXTZ2pX4mBrM6=SyGTqn_GY8xsW4rt_e21zerEzctA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-tegra-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org>
-Cc: Daniel Lezcano <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Len Brown <len.brown-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Amit Kucheria <amit.kucheria-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arjan van de Ven <arjan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55050 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754225Ab2BANz2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Feb 2012 08:55:28 -0500
+In-Reply-To: <871uqgswy8.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Colin,
+On Mon, 2012-01-30 at 13:27 -0800, Kevin Hilman wrote:
+> Paul Walmsley <paul@pwsan.com> writes:
+> 
+> > This series optimizes some of the powerdomain-related code in
+> > arch/arm/mach-omap2/pm*, and fixes a bug or two.  These were noticed while
+> > working on the functional powerstate code.
+> >
+> > Rajendra and Santosh, if you have a spare moment, could you please
+> > peek at the OMAP4 LOWPOWERSTATECHANGE part of the second patch?  It
+> > makes sense to me in theory, but you both would probably know better
+> > than I :-)
+> >
+> > Kevin, want to take this series (assuming folks are happy with it) ?
+> 
+> Yes, I'll take this and add the Ack from Santosh.  Thanks for the nice
+> cleanup.   
+> 
+> Will submit after seeing a Tested-by from someone who can test with CORE
+> retention/off on OMAP4 (hint, hint,  Tero :)
 
-Sorry for this late reply
+The patches appear to behave nicely on omap4, there are still a couple
+of quirks in the basic omap4 support though. l3init pd state is not
+updated properly once we wake-up from device-off (it remains active for
+a short while during wake-up before switching to idle with hwauto), and
+cpu1 pwrdm state is not updated properly during hotplug, but these are
+minor issues and should be fixed elsewhere.
 
-On 27 January 2012 18:32, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org> wrote:
-> On Fri, Jan 27, 2012 at 12:54 AM, Vincent Guittot
-> <vincent.guittot-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
->> On 20 January 2012 21:40, Colin Cross <ccross-z5hGa2qSFaRBDgjK7y7TUQ@public.gmane.org> wrote:
->>> On Fri, Jan 20, 2012 at 12:46 AM, Daniel Lezcano
->>> <daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
->>>> Hi Colin,
->>>>
->>>> this patchset could be interesting to resolve in a generic way the=
- cpu
->>>> dependencies.
->>>> What is the status of this patchset ?
->>>
->>> I can't do much with it right now, because I don't have any devices
->>> that can do SMP idle with a v3.2 kernel. =A0I've started working on=
- an
->>> updated version that avoids the spinlock, but it might be a while
->>> before I can test and post it. =A0I'm mostly looking for feedback o=
-n the
->>> approach taken in this patch, and whether it will be useful for oth=
-er
->>> SoCs besides Tegra and OMAP4.
->>>
->>
->> Hi Colin,
->>
->> In your patch, you put in safe state (WFI for most of platform) the
->> cpus that become idle and these cpus are woken up each time a new cp=
-u
->> of the cluster becomes idle. Then, the cluster state is chosen and t=
-he
->> cpus enter the selected C-state. On ux500, we are using another
->> behavior for synchronizing =A0the cpus. The cpus are prepared to ent=
-er
->> the c-state that has been chosen by the governor and the last cpu,
->> that enters idle, chooses the final cluster state (according to cpus=
-'
->> C-state). The main advantage of this solution is that you don't need
->> to wake other cpus to enter the C-state of a cluster. This can be
->> quite worth full when tasks mainly run on one cpu. Have you also thi=
-nk
->> about such behavior when developing the coupled cpuidle driver ? It
->> could be interesting to add such behavior.
->
-> Waking up the cpus that are in the safe state is not done just to
-> choose the target state, it's done to allow the cpus to take
-> themselves to the target low power state. =A0On ux500, are you saying
-> you take the cpus directly from the safe state to a lower power state
-> without ever going back to the active state? =A0I once implemented Te=
-gra
+You can add:
 
-yes it is
+Tested-by: Tero Kristo <t-kristo@ti.com>
 
-> that way, and it required lots of nasty synchronization to prevent
-> resetting the cpu at the same time that it was booting due to an
-> interrupt, and I was later told that Tegra can't handle that sequence
-> at all, although I haven't verified it yet.
+> 
+> Kevin
 
-you have to 2 main things to check :
- - this cpu is the last one to enter an idle state
- - other cpus are prepared to enter a cluster power state
- - other cpus are in WFI
 
-Vincent
-
->
-> On platforms that can't turn the cpus off in a random order, or that
-> can't take a cpu directly from the safe state to the target state,
-> something like these coupled cpuidle patches are required. =A0On
-> platforms that can, the low power modes can be implemented without
-> these patches, although it is very hard to do without race conditions=
-=2E
