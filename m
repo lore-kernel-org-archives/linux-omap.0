@@ -1,53 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
- space
-Date: Wed, 1 Feb 2012 12:08:08 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202011203210.10541@utopia.booyaka.com>
-References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com> <4EEB5913.3090901@ti.com> <alpine.DEB.2.00.1112191451140.12660@utopia.booyaka.com>
- <4F1D4A03.3050700@ti.com> <alpine.DEB.2.00.1201240134421.29673@utopia.booyaka.com> <4F1E8186.2060307@ti.com> <alpine.DEB.2.00.1201251423030.5324@utopia.booyaka.com> <4F28EC71.1070105@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to
+ pwrdm_clear_all_prev_pwrst()
+Date: Wed, 1 Feb 2012 12:27:14 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202011218190.10541@utopia.booyaka.com>
+References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk> <878vkopw2o.fsf@ti.com> <87mx93ok5y.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-598164942-1328123185=:10541"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35279 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:54797 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996Ab2BATIJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 14:08:09 -0500
-In-Reply-To: <4F28EC71.1070105@ti.com>
-Content-ID: <alpine.DEB.2.00.1202011207310.10541@utopia.booyaka.com>
+	with ESMTP id S1751162Ab2BAT1P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 14:27:15 -0500
+In-Reply-To: <87mx93ok5y.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Tue, 31 Jan 2012, Kevin Hilman wrote:
 
---155748971-598164942-1328123185=:10541
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.1202011207311.10541@utopia.booyaka.com>
+> Kevin Hilman <khilman@ti.com> writes:
+> 
+> > Paul Walmsley <paul@pwsan.com> writes:
+> >
+> >> Remove some superfluous calls to pwrdm_clear_all_prev_pwrst().
+> >> pwrdm_pre_transition(), which appears a few lines after these calls,
+> >> invokes pwrdm_clear_all_prev_pwrst() on each powerdomain -- there's no
+> >> need to do it twice.
+> >
+> > It looks like these two for OMAP4 are surpurfluous since the immediately
+> > follow a call to pwrdm_pre_transition() as well.
+> >
+> > Santosh/Rajendra, please confirm/ack.
+> 
+> So after the discussion, do you want to fold this into the original
+> patch, or do you want a separate patch?
 
-Hi P=E9ter,
+Your changes make sense to me.  I am fine with you adding them into the 
+original patch and adding some credit for you into the commit message.  
+Or you can create a separate patch.
 
-On Wed, 1 Feb 2012, Peter Ujfalusi wrote:
+N.B., I haven't looked at this file before.  There are a few other things 
+that don't look right that hopefully someone can take the initiative to 
+fix.  For example, those calls to mpuss_clear_prev_logic_pwrst() and 
+cpu_clear_prev_logic_pwrst() should be removed as well.  That should be 
+done by pwrdm_clear_all_prev_pwrst() in mach-omap2/powerdomain44xx.c.  
+Currently it's not, so that needs to be patched.
 
-> On 01/25/2012 11:23 PM, Paul Walmsley wrote:
-> > Okay, thanks, queued for 3.3-rc.
->=20
-> It seams this patch did not made it to 3.3-rc2.
-> We still have broken audio out of box on SDP4430/Blaze.
-> Can you make sure that this will be queued for rc3?
+Also all of the open-coded powerdomain register accesses in 
+omap-mpuss-lowpower.c should be removed - those should all go through 
+pwrdm_*() functions...
 
-No sadly I can't.  There are at least three levels of maintainers above me=
-=20
-in my mainline submission path.  As you may have seen, I've sent the patch=
-=20
-to Tony and he has pulled the series:
-
-http://www.spinics.net/lists/linux-omap/msg63525.html
-
-so I've done what I can.
 
 
 - Paul
---155748971-598164942-1328123185=:10541--
