@@ -1,54 +1,36 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] staging: tidspbridge: fix incorrect free to drv_datap
-Date: Wed, 1 Feb 2012 09:27:53 +0200
-Message-ID: <CAMP44s23vhhFi19hZ03dXJaKKQPP2J=5uSvOUNAcWUqVN6OE4w@mail.gmail.com>
-References: <1327972818-30993-1-git-send-email-omar.ramirez@ti.com>
-	<1327972818-30993-3-git-send-email-omar.ramirez@ti.com>
-	<20120131082136.GC3294@mwanda>
-	<CAB-zwWg9iudV7o5opYHOMHo8HN9EGB+n0f=mAHQCNWZovHrdvQ@mail.gmail.com>
-	<20120131184338.GO3356@mwanda>
-	<CAMP44s2yssE0_4NnZ=+hhU3_LoV+Uay7Rjmn8m_8RQZefH7knQ@mail.gmail.com>
-	<20120201065846.GP3356@mwanda>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
+ space
+Date: Wed, 01 Feb 2012 09:40:33 +0200
+Message-ID: <4F28EC71.1070105@ti.com>
+References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com> <4EEB5913.3090901@ti.com> <alpine.DEB.2.00.1112191451140.12660@utopia.booyaka.com> <4F1D4A03.3050700@ti.com> <alpine.DEB.2.00.1201240134421.29673@utopia.booyaka.com> <4F1E8186.2060307@ti.com> <alpine.DEB.2.00.1201251423030.5324@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:63475 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753770Ab2BAH1z convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Feb 2012 02:27:55 -0500
-Received: by lagu2 with SMTP id u2so489462lag.19
-        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 23:27:53 -0800 (PST)
-In-Reply-To: <20120201065846.GP3356@mwanda>
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:56940 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753684Ab2BAHkj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 02:40:39 -0500
+Received: by mail-lpp01m020-f182.google.com with SMTP id gj3so160900lbb.41
+        for <linux-omap@vger.kernel.org>; Tue, 31 Jan 2012 23:40:37 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1201251423030.5324@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-On Wed, Feb 1, 2012 at 8:58 AM, Dan Carpenter <dan.carpenter@oracle.com=
-> wrote:
-> On Tue, Jan 31, 2012 at 09:39:00PM +0200, Felipe Contreras wrote:
->> On Tue, Jan 31, 2012 at 8:43 PM, Dan Carpenter <dan.carpenter@oracle=
-=2Ecom> wrote:
->> > How often do people rmmod things on a production system? =C2=A0Hop=
-efully,
->> > never right?
->>
->> That's right... At least in recent versions of the tidspbrdige, that
->> have recovery support. Before, we needed a script to detect MMU
->> faults, and reload the module =3D/ IIRC this is still the case on th=
-e
->> Nokia N900.
->
-> If you have a script that's doing rmmods then that's different. =C2=A0=
-I
-> didn't know about that.
+Hi Paul,
 
-*Had*, there's no need any more.
+On 01/25/2012 11:23 PM, Paul Walmsley wrote:
+> Okay, thanks, queued for 3.3-rc.
 
---=20
-=46elipe Contreras
+It seams this patch did not made it to 3.3-rc2.
+We still have broken audio out of box on SDP4430/Blaze.
+Can you make sure that this will be queued for rc3?
+
+Thank you,
+P=E9ter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
