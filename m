@@ -1,56 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to
- pwrdm_clear_all_prev_pwrst()
-Date: Wed, 1 Feb 2012 12:27:14 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202011218190.10541@utopia.booyaka.com>
-References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk> <878vkopw2o.fsf@ti.com> <87mx93ok5y.fsf@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Wed, 1 Feb 2012 14:22:11 -0600
+Message-ID: <CAB-zwWiDh-NJr26yeVWF6rKShxMSRr2Hdo9oELqCRe=K_UDTMw@mail.gmail.com>
+References: <1328058094-28483-1-git-send-email-felipe.contreras@gmail.com>
+	<20120201011239.GA797@suse.de>
+	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
+	<4F28AFFE.109@gmail.com>
+	<CAMP44s0fxD4kyRrmxcnGOcpnnmr1wd8oFzfZQkCKrT_Zx-kxBg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54797 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162Ab2BAT1P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 14:27:15 -0500
-In-Reply-To: <87mx93ok5y.fsf@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58443 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755191Ab2BAUWM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 15:22:12 -0500
+Received: by mail-wi0-f176.google.com with SMTP id hq12so1432639wib.7
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 12:22:11 -0800 (PST)
+In-Reply-To: <CAMP44s0fxD4kyRrmxcnGOcpnnmr1wd8oFzfZQkCKrT_Zx-kxBg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Justin P. Mattock" <justinmattock@gmail.com>, Greg KH <gregkh@suse.de>, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, Jiri Kosina <jkosina@suse.cz>, Randy Dunlap <rdunlap@xenotime.net>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>
 
-On Tue, 31 Jan 2012, Kevin Hilman wrote:
+On Wed, Feb 1, 2012 at 2:11 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> On Wed, Feb 1, 2012 at 5:22 AM, Justin P. Mattock
+> <justinmattock@gmail.com> wrote:
+>> not sure if I see this warning or not on my machine, but is there a fix for
+>> the warning? I would rather see that, than hide it with setting: default y
+>> (if that's what its doing!)
+>
+> No, there's no fix. IIRC Omar said it would not be easy.
 
-> Kevin Hilman <khilman@ti.com> writes:
-> 
-> > Paul Walmsley <paul@pwsan.com> writes:
-> >
-> >> Remove some superfluous calls to pwrdm_clear_all_prev_pwrst().
-> >> pwrdm_pre_transition(), which appears a few lines after these calls,
-> >> invokes pwrdm_clear_all_prev_pwrst() on each powerdomain -- there's no
-> >> need to do it twice.
-> >
-> > It looks like these two for OMAP4 are surpurfluous since the immediately
-> > follow a call to pwrdm_pre_transition() as well.
-> >
-> > Santosh/Rajendra, please confirm/ack.
-> 
-> So after the discussion, do you want to fold this into the original
-> patch, or do you want a separate patch?
+Indeed, the ideal would be the ability to turn off the config option
+but on the dsp side (when compiling the baseimage), however the
+release package only contains binaries given that the source is not
+open.
 
-Your changes make sense to me.  I am fine with you adding them into the 
-original patch and adding some credit for you into the commit message.  
-Or you can create a separate patch.
+I have been exploring introducing a flag in the shared memory area
+which would require a new baseimage release.
 
-N.B., I haven't looked at this file before.  There are a few other things 
-that don't look right that hopefully someone can take the initiative to 
-fix.  For example, those calls to mpuss_clear_prev_logic_pwrst() and 
-cpu_clear_prev_logic_pwrst() should be removed as well.  That should be 
-done by pwrdm_clear_all_prev_pwrst() in mach-omap2/powerdomain44xx.c.  
-Currently it's not, so that needs to be patched.
+Regards,
 
-Also all of the open-coded powerdomain register accesses in 
-omap-mpuss-lowpower.c should be removed - those should all go through 
-pwrdm_*() functions...
-
-
-
-- Paul
+Omar
