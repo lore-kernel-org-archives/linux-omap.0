@@ -1,112 +1,155 @@
-From: Colin Cross <ccross@android.com>
-Subject: Re: [linux-pm] [PATCH 0/3] coupled cpuidle state support
-Date: Wed, 1 Feb 2012 09:30:15 -0800
-Message-ID: <CAMbhsRTFzc8aGsSGUs2==4FiqBb7zOit4cO=6U698k+RCE+kqQ@mail.gmail.com>
-References: <1324426147-16735-1-git-send-email-ccross@android.com>
-	<4F1929E9.7070707@linaro.org>
-	<CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
-	<CAKfTPtAsO8z_8AnR8zSGZ9cm_7orDNxB3r09JAFk+2jdezUVmQ@mail.gmail.com>
-	<CAMbhsRQYVXTZ2pX4mBrM6=SyGTqn_GY8xsW4rt_e21zerEzctA@mail.gmail.com>
-	<CAKfTPtB3Kcy41H9g9u3u81kEHJeypi=GvOfOjcpdztzqN991nA@mail.gmail.com>
-	<20120201145934.GA20421@e102568-lin.cambridge.arm.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to existing prm code
+Date: Wed, 01 Feb 2012 09:33:56 -0800
+Message-ID: <87obtifofv.fsf@ti.com>
+References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+	<1326017894-7632-4-git-send-email-hvaibhav@ti.com>
+	<87zkdvpgz1.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317AF316@DBDE01.ent.ti.com>
+	<877h0ikpxn.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:54214 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754842Ab2BARaP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 12:30:15 -0500
-Received: by ghrr11 with SMTP id r11so695068ghr.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 09:30:15 -0800 (PST)
-In-Reply-To: <20120201145934.GA20421@e102568-lin.cambridge.arm.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:52461 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752519Ab2BARd5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 12:33:57 -0500
+Received: by mail-pw0-f51.google.com with SMTP id c7so1325502pbc.38
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 09:33:55 -0800 (PST)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Wed, 1 Feb 2012 06:48:46 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Amit Kucheria <amit.kucheria@linaro.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Wed, Feb 1, 2012 at 6:59 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> On Wed, Feb 01, 2012 at 12:13:26PM +0000, Vincent Guittot wrote:
->
-> [...]
->
->> >> In your patch, you put in safe state (WFI for most of platform) t=
-he
->> >> cpus that become idle and these cpus are woken up each time a new=
- cpu
->> >> of the cluster becomes idle. Then, the cluster state is chosen an=
-d the
->> >> cpus enter the selected C-state. On ux500, we are using another
->> >> behavior for synchronizing =A0the cpus. The cpus are prepared to =
-enter
->> >> the c-state that has been chosen by the governor and the last cpu=
-,
->> >> that enters idle, chooses the final cluster state (according to c=
-pus'
->> >> C-state). The main advantage of this solution is that you don't n=
-eed
->> >> to wake other cpus to enter the C-state of a cluster. This can be
->> >> quite worth full when tasks mainly run on one cpu. Have you also =
-think
->> >> about such behavior when developing the coupled cpuidle driver ? =
-It
->> >> could be interesting to add such behavior.
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+
+> On Tue, Jan 24, 2012 at 04:05:32, Hilman, Kevin wrote:
+>> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+>> 
+>> > On Wed, Jan 11, 2012 at 21:48:25, Hiremath, Vaibhav wrote:
+>> >> On Tue, Jan 10, 2012 at 23:39:22, Hilman, Kevin wrote:
+>> >> > Vaibhav Hiremath <hvaibhav@ti.com> writes:
+>> >> > 
+>> >> > > AM33XX PRM module (L4_WK domain) will be treated as another seperate
+>> >> > > partition in _prm_bases[] table.
+>> >> > >
+>> >> > > Also, since cpu_is_omap34xx check is true for am33xx family of
+>> >> > > devices, we must check cpu_is_am33xx fisrt, in order to follow
+>> >> > > omap4 execution path.
+>> >> > 
+>> >> > Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
+>> >> 
+>> >> Yeah sure...
+>> >> 
+>> >> Kevin,
+>> >> As mentioned before, the main idea behind bringing am33xx under omap34xx
+>> >> was mainly due to "cortex-A8 family of devices".
+>> >> 
+>> >> It has been discussed and aligned long time back, so
+>> >> please refer to the thread -
+>> >> 
+>> >> http://www.spinics.net/lists/linux-omap/msg41046.html
+>> >> Multiple versions of -
+>> >> http://www.spinics.net/lists/linux-omap/msg45505.html
+>> >> 
+>> >> Thanks,
+>> >> Vaibhav
+>> >> 
+>> >> > These AM3xxx devices make my brain hurt.
+>> >> > 
+>> >> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> >> > > Cc: Kevin Hilman <khilman@ti.com>
+>> >> > > Cc: Rajendra Nayak <rnayak@ti.com>
+>> >> > 
+>> >> > [...]
+>> >> > 
+>> >> > > diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+>> >> > > index 3d9894f..fcc4123 100644
+>> >> > > --- a/arch/arm/mach-omap2/prminst44xx.c
+>> >> > > +++ b/arch/arm/mach-omap2/prminst44xx.c
+>> >> > > @@ -19,6 +19,7 @@
+>> >> > >  #include "common.h"
+>> >> > >
+>> >> > >  #include "prm44xx.h"
+>> >> > > +#include "prm33xx.h"
+>> >> > >  #include "prminst44xx.h"
+>> >> > >  #include "prm-regbits-44xx.h"
+>> >> > >  #include "prcm44xx.h"
+>> >> > > @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+>> >> > >  	[OMAP4430_CM2_PARTITION]		= 0,
+>> >> > >  	[OMAP4430_SCRM_PARTITION]		= 0,
+>> >> > >  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+>> >> > > +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
+>> >> > >  };
+>> >> > 
+>> >> > I'm not crazy about just extending the "normal" OMAP4 table.  
+>> >> 
+>> >> If it is required then yes (with proper comment).
+>> >> 
+>> >> > That would
+>> >> > imply that with each OMAP4 derivatve we keep extending this table.
+>> >> > 
+>> >> 
+>> >> I would say anyway we will end up adding
+>> >> Cpu_is_xxx everywhere as we add new table for derivatives.
+>> >> 
+>> >> > Instead, how about rename this to one to omap44xx_prm_bases[], then
+>> >> > create a new one called am33xx_prm_bases[].  Then, at init time, assing
+>> >> > _prm_bases to the right one based on cpu_is_.
+>> >> > 
+>> >> 
+>> >> Just wanted to avoid cpu_is_xxxx check here. Will specific comment wouldn't
+>> >> help here (I have clearly mentioned in patch description), may be in c file
+>> >> it is required?
+>> >> OR 
+>> >> you want to be clearly separate table for code readability.
+>> >> 
 >> >
->> > Waking up the cpus that are in the safe state is not done just to
->> > choose the target state, it's done to allow the cpus to take
->> > themselves to the target low power state. =A0On ux500, are you say=
-ing
->> > you take the cpus directly from the safe state to a lower power st=
-ate
->> > without ever going back to the active state? =A0I once implemented=
- Tegra
->>
->> yes it is
+>> > Kevin,
+>> >
+>> > Any comments on this? Should I stick to what is implemented now?
+>> >
+>> 
+>> cpu_is_* checks are acceptable at init time, and we use them often to
+>> initialize SoC-dependent tables/arrays etc.
+>> 
+> Kevin,
 >
-> But if there is a single power rail for the entire cluster, when a CP=
-U
-> is "prepared" for shutdown this means that you have to save the conte=
-xt and
-> clean L1, maybe for nothing since if other CPUs are up and running th=
-e
-> CPU going idle can just enter a simple standby wfi (clock-gated but p=
-ower on).
+> Sorry for delayed response,
 >
-> With Colin's approach, context is saved and L1 cleaned only when it i=
-s
-> almost certain the cluster is powered off (so the CPUs).
+> Here is the ugly part, which I was referring to -
 >
-> It is a trade-off, I am not saying one approach is better than the
-> other; we just have to make sure that preparing the CPU for "possible=
-" shutdown
-> is better than sending IPIs to take CPUs out of wfi and synchronize
-> them (this happens if and only if CPUs enter coupled C-states).
+> 1) "_prm_bases" variable is static variable to the prminst44xx.c
 >
-> As usual this will depend on use cases (and silicon implementations :=
-) )
+> 2) prminst44xx.c file doesn't contain any boot time __init function,
+>    So I have to either add exported __init function OR extern __prm_bases
+>    variable and initialize somewhere outside this file.
 >
-> It is definitely worth benchmarking them.
+> 3) Even if I create 2 separate variables, for example,
 >
+> static u32 omap44xx_prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+> ...
+> };
+>
+> static u32 omap33xx_prm_bases[AM33XX_MAX_PRCM_PARTITIONS] = {
+> ...
+> };
+>
+> Makes it difficult and messy to handle inside below code, 
+> BUG_ON doesn't make sense from AM335x perspective.
 
-I'm less worried about performance, and more worried about race
-conditions.  How do you deal with the following situation:
-CPU0 goes to WFI, and saves its state
-CPU1 goes idle, and selects a deep idle state that powers down CPU0
-CPU1 saves is state, and is about to trigger the power down
-CPU0 gets an interrupt, restores its state, and modifies state (maybe
-takes a spinlock during boot)
-CPU1 cuts the power to CPU0
+Then you can change the BUG_ON.
 
-On OMAP4, the race is handled in hardware.  When CPU1 tries to cut the
-power to the blocks shared by CPU0 the hardware will ignore the
-request if CPU0 is not in WFI.  On Tegra2, there is no hardware
-support and I had to handle it with a spinlock implemented in scratch
-registers because CPU0 is out of coherency when it starts booting and
-ldrex/strex don't work.  I'm not convinced my implementation is
-correct, and I'd be curious to see any other implementations.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+static u32 omap44xx_max_partitions = ARRAY_SIZE(omap44xx_prm_bases)
+static u32 am33xx_max_partitions = ARRAY_SIZE(am33xx_prm_bases)
+static u32 max_partitions.
+
+At init time, assign max_partitions when you assign prm_bases, then
+change the BUG_ON() to be something like:
+
+       BUG_ON(part >= max_partitions || part == INVALID_PARTITION)
+
+Kevin
