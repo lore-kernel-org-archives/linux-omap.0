@@ -1,66 +1,42 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
-Date: Wed, 1 Feb 2012 11:50:30 +0100
-Message-ID: <4F2918F6.9040100@ti.com>
-References: <4F22DEF2.5000807@ti.com> <20120128180602.GC2501@ponder.secretlab.ca> <20120131230928.GA8394@n2100.arm.linux.org.uk>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: In many cases softlockup can not be reported after disabling
+ IRQ for long time
+Date: Wed, 01 Feb 2012 18:51:33 +0800
+Message-ID: <4F291935.2030205@gmail.com>
+References: <CAOwKts8zS1rYA+Y4k-vb8YAaR=aFd1BwryhhWWnWLQyrYrNqyA@mail.gmail.com> <20120131154748.GA5650@redhat.com> <CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46340 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753845Ab2BAKur (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Feb 2012 05:50:47 -0500
-In-Reply-To: <20120131230928.GA8394@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: TAO HU <tghk48@motorola.com>
+Cc: Don Zickus <dzickus@redhat.com>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@nvidia.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, Rob Herring <rob.herring@calxeda.com>, Thomas Abraham <thomas.abraham@linaro.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Russell,
+(Please don't top-reply.)
 
-On 2/1/2012 12:09 AM, Russell King - ARM Linux wrote:
-> On Sat, Jan 28, 2012 at 11:06:02AM -0700, Grant Likely wrote:
->> This makes the assumption that dma specifiers will only ever be 1
->> cell.  I think to be generally useful, the full dma specifier needs to
->> be either handed to the dma controller to get a cookie or passed back
->> to the caller in its entirety.
+On 02/01/2012 10:18 AM, TAO HU wrote:
+> Hi, Don
 >
-> More to the point, who says that the DMA specifier is even an integer?
-> When people are using DMA engines, it (probably) isn't an integer at
-> all.  Several platforms I know of use strings for this.
+> Thanks for your feedback!
 >
-> Some platforms can even select between two or more DMA engines for
-> handling the same peripheral - I believe Samsung do this depending
-> on their individual workloads.
->
-> However, the opaque DMA engine API for requesting a channel doesn't
-> lend itself well to DT, as the match data and match function are
-> entirely left to the individual DMA engine driver and/or platform
-> itself.
->
-> As far as creating another linear number space for DMA stuff, I'd
-> really suggest against that - you're going to need some additional
-> code in place to manage that numberspace.  If you at least use a two-
-> paid cookie, eg 'dma controller phandle + request signal' then that
-> makes all the stuff we're starting to see with the IRQ subsystem,
-> IRQ domains etc become completely unnecessary.
->
-> I guess what I'm saying is ignore the flat number space, and go
-> straight to some kind of 'dma domains' solution from the start.
+> Unfortunately, the hardlockup depends on NMI which is not available on
+> ARM (Cortex-A9) per my understanding.
+> Our system uses OMAP4430. Any more suggestions?
 
-Fully agree, and this is exactly the idea of this DMA binding: First 
-argument is always a DMA controller phandle and then you can add 0, 1 or 
-more cells to define extra specifiers dependent of the DMA controller 
-driver expectation. The one cell Grant was referring was just the extra 
-specifier that is needed for a simple DMA engine like the SDMA we have 
-inside OMAP. But the whole idea is to have a flexible enough mechanism 
-to allow any kind of specifier.
+When there is no NMI, touch_nmi_watchdog() actually touches softlockup 
+watchdog:
 
-No more global linear number space like for IRQ!
+#if defined(ARCH_HAS_NMI_WATCHDOG) || defined(CONFIG_HARDLOCKUP_DETECTOR)
+#include <asm/nmi.h>
+extern void touch_nmi_watchdog(void);
+#else
+static inline void touch_nmi_watchdog(void)
+{
+         touch_softlockup_watchdog();
+}
+#endif
 
-Regards,
-Benoit
-
-
-
+so you need to check if other places calling touch_nmi_watchdog() 
+especially on ARM.
