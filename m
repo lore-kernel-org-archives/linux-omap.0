@@ -1,60 +1,54 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: Reg pinmux driver for OMAP based SoC- AM335X
-Date: Wed, 1 Feb 2012 11:00:05 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93176D1F3@DBDE01.ent.ti.com>
-References: <20120125000407.GU22818@atomide.com>
- <74CDBE0F657A3D45AFBB94109FB122FF178CB82433@HQMAIL01.nvidia.com>
- <20120127020832.GJ29812@atomide.com>
- <20120127065752.GB32740@S2101-09.ap.freescale.net>
- <20120127170545.GH13504@atomide.com>
- <20120130015607.GA10470@S2101-09.ap.freescale.net>
- <20120130172042.GE9339@atomide.com>
- <20120131013215.GB24681@S2101-09.ap.freescale.net>
- <20120131022906.GH9339@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93176CAC6@DBDE01.ent.ti.com>
- <20120131170511.GI9339@atomide.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: GPIO debounce problems on 3.2
+Date: Wed, 1 Feb 2012 13:46:46 +0200
+Message-ID: <CANOLnOMmcztNH+fUzrQxjK5nVVEaAtLi=7ww+dPm0AXEv09qUA@mail.gmail.com>
+References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com>
+	<87obtlrniz.fsf@ti.com>
+	<CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com>
+	<87obtkpyna.fsf@ti.com>
+	<alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
+	<CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com>
+	<alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com>
+	<CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com>
+	<CANOLnOMzkNSr5hFbASCWaT6PkBSYQhqMxXmjBfU0tm0GTv=yYA@mail.gmail.com>
+	<alpine.DEB.2.00.1201312254150.10061@utopia.booyaka.com>
+	<alpine.DEB.2.00.1201312305190.10061@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46802 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753845Ab2BALAM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 06:00:12 -0500
-In-Reply-To: <20120131170511.GI9339@atomide.com>
-Content-Language: en-US
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:35705 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753786Ab2BALqs convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Feb 2012 06:46:48 -0500
+Received: by lagu2 with SMTP id u2so595583lag.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 03:46:46 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1201312305190.10061@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linus Walleij <linus.walleij@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
 
-Hi Tony,
+On Wed, Feb 1, 2012 at 8:06 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Tue, 31 Jan 2012, Paul Walmsley wrote:
+>
+>> Well, whether it's in or out of idle, I'll bet the DEBOUNCENABLE
+>> bits are still set to 1 while the debounce clock is off :-(
+>
+> Along these lines, you might try patching omap2_gpio_prepare_for_idle=
+() to
+> turn off the DEBOUNCENABLE bits?
 
-On Tue, Jan 31, 2012 at 22:35:11, Tony Lindgren wrote:
-> The plan is to deprecate the existing arch/arm/*omap*/*mux* code,
-> and cut it down to minimum. And then add DT only mux support that should
-> work for at least omap2+. That should work for am335x too.
-> 
-> There's currently some discussion going on regarding the pinmux device
-> tree binding and how dynamic mux states should be handled. But I'd
-> assume we'll have basic support available very soon.
-> 
-> The driver I'm working leaves all the data out of kernel, and the driver
-> just knows how to handle a pinmux register instances. Then debugging
-> tools can be done in userspace via debugfs to display more detailed
-> SoC specific information.
-> 
-> So it might be worth waiting just a little bit longer. If you have
-> resources to spend on the pinmuxing, then creating some userspace tool
-> to display SoC specific information would be nice :) For the userspace
-> tool, we can use the data in arch/arm/mach-omap2/mux*2*.[ch].
+Yes that helps. I guess I'll carry this in pandora tree, at least
+we'll have debounce while more demanding programs/games are running.
+Don't know how it's all working for Kevin though..
 
-Thank you for the detailed reply.
 
-I will wait for it and willing to help you in its testing.
-
-I have been tasked on getting AM335X supported well in mainline,
-and will move to other aspects of it while waiting.
-
-Regards
-Afzal
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
