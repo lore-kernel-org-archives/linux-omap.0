@@ -1,15 +1,15 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 09/20] ARM: OMAP3+: SmartReflex: introduce class init, deinit and priv data
-Date: Wed,  1 Feb 2012 09:49:48 +0100
-Message-ID: <1328086199-28486-10-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 05/20] ARM: OMAP3+: SmartReflex: Add a shutdown hook
+Date: Wed,  1 Feb 2012 09:49:44 +0100
+Message-ID: <1328086199-28486-6-git-send-email-j-pihet@ti.com>
 References: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:40135 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308Ab2BAIue (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:34 -0500
-Received: by mail-we0-f174.google.com with SMTP id b13so753770wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:33 -0800 (PST)
+	with ESMTP id S1755321Ab2BAIuV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:21 -0500
+Received: by werb13 with SMTP id b13so753770wer.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:20 -0800 (PST)
 In-Reply-To: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,91 +18,57 @@ Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j
 
 From: Nishanth Menon <nm@ti.com>
 
-Certain class drivers such as class 1.5 drivers, will need specific
-notification that they have to be inited up or deinited independent
-of smart reflex operation. They also may need private data to be
-used for operations of their own, provide the same.
-This allows the class driver to initialize it's internal data structures
-on a need basis in preparation for the specific domain's autocomp usage.
-The resultant operation is as follows:
-when autocomp is set to 1 -> class drivers' init is called
-The existing enable/disable is still used as before by the SmartReflex
-core driver to enable disable the class operation.
-When autocomp is set to 0 -> class drivers' deinit is called, signaling
-the end of usage for that domain.
+Since OMAP's VP and PRM modules do not get reset by warm reset,
+we should ensure that proper shutdown procedure is followed prior
+to allowing the kernel to reboot back up.
+
+Without this patch, Smartreflex module might be left active or
+system might be caught in an indeterminate sequence when reboot
+is triggered, leaving the next reboot behavior to be unpredictable.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   15 +++++++++++++++
- arch/arm/mach-omap2/smartreflex.h |    6 ++++++
- 2 files changed, 21 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 6dea30d..5fd9cb1 100644
+index d7294c6..f384c19 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -218,6 +218,13 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
- 		return;
- 	}
+@@ -1055,8 +1055,32 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
+ 	return 0;
+ }
  
-+	if (sr_class->init &&
-+	    sr_class->init(sr->voltdm, sr_class->class_priv_data)) {
-+		dev_err(&sr->pdev->dev,
-+			"%s: SRClass initialization failed\n", __func__);
++static void __devexit omap_sr_shutdown(struct platform_device *pdev)
++{
++	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct omap_sr *sr_info;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
 +		return;
 +	}
 +
- 	if (!sr_class->enable(sr->voltdm))
- 		sr->autocomp_active = true;
- }
-@@ -233,6 +240,14 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
- 
- 	if (sr->autocomp_active) {
- 		sr_class->disable(sr->voltdm, 1);
-+		if (sr_class->deinit &&
-+		    sr_class->deinit(sr->voltdm,
-+			    sr_class->class_priv_data)) {
-+			dev_err(&sr->pdev->dev,
-+				"%s: SR[%d]Class deinitialization failed\n",
-+				__func__, sr->srid);
-+		}
++	sr_info = _sr_lookup(pdata->voltdm);
++	if (IS_ERR(sr_info)) {
++		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
++			__func__);
++		return;
++	}
 +
- 		sr->autocomp_active = false;
- 	}
- }
-diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
-index 5809141..dd5b21e 100644
---- a/arch/arm/mach-omap2/smartreflex.h
-+++ b/arch/arm/mach-omap2/smartreflex.h
-@@ -177,6 +177,8 @@ struct omap_smartreflex_dev_attr {
-  *
-  * @enable:		API to enable a particular class smaartreflex.
-  * @disable:		API to disable a particular class smartreflex.
-+ * @init:		API to do class specific initialization (optional)
-+ * @deinit:		API to do class specific deinitialization (optional)
-  * @configure:		API to configure a particular class smartreflex.
-  * @notify:		API to notify the class driver about an event in SR.
-  *			Not needed for class3.
-@@ -184,14 +186,18 @@ struct omap_smartreflex_dev_attr {
-  * @class_type:		specify which smartreflex class.
-  *			Can be used by the SR driver to take any class
-  *			based decisions.
-+ * @class_priv_data:	Class specific private data (optional)
-  */
- struct omap_sr_class_data {
- 	int (*enable)(struct voltagedomain *voltdm);
- 	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
-+	int (*init)(struct voltagedomain *voltdm, void *class_priv_data);
-+	int (*deinit)(struct voltagedomain *voltdm, void *class_priv_data);
- 	int (*configure)(struct voltagedomain *voltdm);
- 	int (*notify)(struct voltagedomain *voltdm, u32 status);
- 	u8 notify_flags;
- 	u8 class_type;
-+	void *class_priv_data;
- };
- 
- /**
++	if (sr_info->autocomp_active)
++		sr_stop_vddautocomp(sr_info);
++
++	return;
++}
++
+ static struct platform_driver smartreflex_driver = {
+ 	.remove         = omap_sr_remove,
++	.shutdown	= omap_sr_shutdown,
+ 	.driver		= {
+ 		.name	= "smartreflex",
+ 	},
 -- 
 1.7.5.4
 
