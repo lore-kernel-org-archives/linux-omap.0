@@ -1,49 +1,55 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 16/20] ARM: OMAP3+: SmartReflex: move late_initcall() closer to its argument
-Date: Wed,  1 Feb 2012 09:49:55 +0100
-Message-ID: <1328086199-28486-17-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 14/20] ARM: OMAP3+: SmartReflex Class3: restrict CPU to run on
+Date: Wed,  1 Feb 2012 09:49:53 +0100
+Message-ID: <1328086199-28486-15-git-send-email-j-pihet@ti.com>
 References: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:40135 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab2BAIuq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:46 -0500
+	with ESMTP id S1756044Ab2BAIun (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:43 -0500
 Received: by mail-we0-f174.google.com with SMTP id b13so753770wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:45 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:42 -0800 (PST)
 In-Reply-To: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-From: Felipe Balbi <balbi@ti.com>
+From: Nishanth Menon <nm@ti.com>
 
-no functional changes, trivial patch.
+Use SmartReflex AVS Class3 initialization only for OMAP343x family of
+processors.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/smartreflex-class3.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index eacf4b3..c86880d 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -1291,12 +1291,12 @@ static int __init sr_init(void)
+diff --git a/arch/arm/mach-omap2/smartreflex-class3.c b/arch/arm/mach-omap2/smartreflex-class3.c
+index 9dcda93..735937a 100644
+--- a/arch/arm/mach-omap2/smartreflex-class3.c
++++ b/arch/arm/mach-omap2/smartreflex-class3.c
+@@ -11,6 +11,7 @@
+  * published by the Free Software Foundation.
+  */
  
- 	return 0;
- }
-+late_initcall(sr_init);
++#include <plat/cpu.h>
+ #include "smartreflex.h"
  
- static void __exit sr_exit(void)
+ static int sr_class3_enable(struct voltagedomain *voltdm,
+@@ -58,6 +59,10 @@ static struct omap_sr_class_data class3_data = {
+ /* Smartreflex Class3 init API to be called from board file */
+ static int __init sr_class3_init(void)
  {
- 	platform_driver_unregister(&smartreflex_driver);
++	/* Enable this class only for OMAP343x */
++	if (!cpu_is_omap343x())
++		return -EINVAL;
++
+ 	pr_info("SmartReflex Class3 initialized\n");
+ 	return sr_register_class(&class3_data);
  }
--late_initcall(sr_init);
- module_exit(sr_exit);
- 
- MODULE_DESCRIPTION("OMAP Smartreflex Driver");
 -- 
 1.7.5.4
 
