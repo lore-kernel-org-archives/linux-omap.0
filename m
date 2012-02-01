@@ -1,72 +1,49 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 2/2] staging: tidspbridge: fix incorrect free to drv_datap
-Date: Wed, 1 Feb 2012 09:58:46 +0300
-Message-ID: <20120201065846.GP3356@mwanda>
-References: <1327972818-30993-1-git-send-email-omar.ramirez@ti.com>
- <1327972818-30993-3-git-send-email-omar.ramirez@ti.com>
- <20120131082136.GC3294@mwanda>
- <CAB-zwWg9iudV7o5opYHOMHo8HN9EGB+n0f=mAHQCNWZovHrdvQ@mail.gmail.com>
- <20120131184338.GO3356@mwanda>
- <CAMP44s2yssE0_4NnZ=+hhU3_LoV+Uay7Rjmn8m_8RQZefH7knQ@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: GPIO debounce problems on 3.2
+Date: Tue, 31 Jan 2012 23:58:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1201312324470.10061@utopia.booyaka.com>
+References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com> <87obtlrniz.fsf@ti.com> <CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com> <87obtkpyna.fsf@ti.com> <alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
+ <CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com> <alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com> <CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com> <alpine.DEB.2.00.1201312237410.10061@utopia.booyaka.com>
+ <20120201172100.0e958f8a@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4CyH/NlNBqvsUTYP"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:34891 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899Ab2BAG5S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 01:57:18 -0500
-Content-Disposition: inline
-In-Reply-To: <CAMP44s2yssE0_4NnZ=+hhU3_LoV+Uay7Rjmn8m_8RQZefH7knQ@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:57348 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044Ab2BAG6e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 01:58:34 -0500
+In-Reply-To: <20120201172100.0e958f8a@notabene.brown>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+
+On Wed, 1 Feb 2012, NeilBrown wrote:
+
+> On Tue, 31 Jan 2012 22:47:32 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrote:
+> 
+> > Let me also answer the question from the MPU's perspective.  Suppose the 
+> > MPU powerdomain has entered a low power state.  That means that the MPU 
+> > INTC -- part of the MPU powerdomain -- is also in a low power state. 
+> 
+> My TRM says - in section 12.3.1.3 Power Management
+> 
+>     The MPU subsystem INTC belongs to the CORE power domain.
+> 
+> This is:
+> 
+>       AM/DM37x Multimedia Device
+>       Silicon Revision 1.x
+>       Version N
+> 
+> Is it wrong, are you wrong, or am I confused?
+
+Hmm.  Since section 3.3.2.1 "Power Domains" mentions this too, and refers 
+to CORE_RST, I suspect you and the TRM are right.  
+
+So, for the moment, let's strike that second paragraph that I wrote about 
+MPU wakeups.  I need to doublecheck with some other sources about exactly 
+where the MPU INTC's clock comes from when the MPU clockdomain is idle.
 
 
---4CyH/NlNBqvsUTYP
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Jan 31, 2012 at 09:39:00PM +0200, Felipe Contreras wrote:
-> On Tue, Jan 31, 2012 at 8:43 PM, Dan Carpenter <dan.carpenter@oracle.com>=
- wrote:
-> > How often do people rmmod things on a production system? =A0Hopefully,
-> > never right?
->=20
-> That's right... At least in recent versions of the tidspbrdige, that
-> have recovery support. Before, we needed a script to detect MMU
-> faults, and reload the module =3D/ IIRC this is still the case on the
-> Nokia N900.
-
-If you have a script that's doing rmmods then that's different.  I
-didn't know about that.
-
-regards,
-dan carpenter
-
-
---4CyH/NlNBqvsUTYP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPKOKmAAoJEOnZkXI/YHqROKMP+QHfoR18HDAOh4F5/48o/MV8
-sza5+dSwSj1sK/rui1RBefuZ9YNcY3IMxVh6lWgCQh6aveR6d8a84gqBDB9XZxY1
-oyIGYmpVY/tORo493sFq3AGFByDMivuPb+cu1YvF3ZYqASxGu+D8Ucssb45rgoBn
-yA4PnkvSdo+Ba3glIbNOYLAMEHDO5tiAtpqj8JMhEfS0fizZkmiu8LlzbVjLAAmX
-9bp0q/3hzVU97f1ldj5hk8+XRn6XFtC3/GsjgTf4LOv2j1qU8SNmANm0PNt6lb0X
-PhjAdNTrL45jmwgJBUTBEjY4WpVPOPk5AQpCjcvKgO2P5XzK20q4y1nJ8/yrq1o3
-+z+8zwVBp/vY8Q1CYnVxiCUfNsy9Q/4pZ76jGtJe92phC6FjhCWO0bvT2aNGNdAo
-tOHhavc47q3hYXyLi86mdbZcmko7qSOQkkI9sLobWCSPaHAfGpkrLygrBN+Vmy0b
-oXhcAvt2qDCIn2PDkyksqUmIUXgFIFOm/hbELY5WGrLbf9glKIH1MD8tTqp5Bhnd
-H4OKuIC/zfWR7CeQD9w2U8bDTGqlZHf71/u2KPmgSpEIUb1fmgjU94CaGV5F7qqV
-yr7sspeHWmYAln8WDt/kqkDh2Zw5NajLQ6RjLmjzDJvq7xon0MQlmoiwe9COQZnY
-QwMV2+PSDxSNwjYM1pPU
-=jG1S
------END PGP SIGNATURE-----
-
---4CyH/NlNBqvsUTYP--
+- Paul
