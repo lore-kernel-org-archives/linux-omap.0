@@ -1,45 +1,63 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
-Date: Wed, 1 Feb 2012 14:22:11 -0600
-Message-ID: <CAB-zwWiDh-NJr26yeVWF6rKShxMSRr2Hdo9oELqCRe=K_UDTMw@mail.gmail.com>
-References: <1328058094-28483-1-git-send-email-felipe.contreras@gmail.com>
-	<20120201011239.GA797@suse.de>
-	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
-	<4F28AFFE.109@gmail.com>
-	<CAMP44s0fxD4kyRrmxcnGOcpnnmr1wd8oFzfZQkCKrT_Zx-kxBg@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC 1/1] omap3: PM: MPU and CORE should stay awake if there is
+ CAM domain ACTIVE
+Date: Wed, 1 Feb 2012 15:19:16 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202011458490.10541@utopia.booyaka.com>
+References: <1327658401-28441-1-git-send-email-sakari.ailus@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-378822278-1328134756=:10541"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:58443 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755191Ab2BAUWM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 15:22:12 -0500
-Received: by mail-wi0-f176.google.com with SMTP id hq12so1432639wib.7
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 12:22:11 -0800 (PST)
-In-Reply-To: <CAMP44s0fxD4kyRrmxcnGOcpnnmr1wd8oFzfZQkCKrT_Zx-kxBg@mail.gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39290 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601Ab2BAWTR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 17:19:17 -0500
+In-Reply-To: <1327658401-28441-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Justin P. Mattock" <justinmattock@gmail.com>, Greg KH <gregkh@suse.de>, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, Jiri Kosina <jkosina@suse.cz>, Randy Dunlap <rdunlap@xenotime.net>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-omap@vger.kernel.org, laurent.pinchart@ideasonboard.com, khilman@ti.com
 
-On Wed, Feb 1, 2012 at 2:11 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Wed, Feb 1, 2012 at 5:22 AM, Justin P. Mattock
-> <justinmattock@gmail.com> wrote:
->> not sure if I see this warning or not on my machine, but is there a fix for
->> the warning? I would rather see that, than hide it with setting: default y
->> (if that's what its doing!)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-378822278-1328134756=:10541
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Fri, 27 Jan 2012, Sakari Ailus wrote:
+
+> MPU and CORE should stay awake if there is CAM domain ACTIVE.
+
+I guess this should read that MPU and CORE should stay awake if the ISP IP=
+=20
+block is active?
+
+> This is because that module doesn't have wake-up capability.
 >
-> No, there's no fix. IIRC Omar said it would not be easy.
+> The original patch was written by Jouni H=F6gander in 2008 and this is th=
+e
+> last part left of it which is not in upstream yet.
+>=20
+> I wonder if the approach taken in the patch is valid these days;
+> nevertheless it seems to do the job...
 
-Indeed, the ideal would be the ability to turn off the config option
-but on the dsp side (when compiling the baseimage), however the
-release package only contains binaries given that the source is not
-open.
+Unfortunately we do not yet have a Linux generic framework for this sort=20
+of thing yet, and Tony doesn't want to add more platform_data function=20
+pointers.  So in the interim, would suggest following an=20
+approach similar to the patch at the bottom of this message:
 
-I have been exploring introducing a flag in the shared memory area
-which would require a new baseimage release.
+http://www.spinics.net/lists/linux-omap/msg63495.html
 
-Regards,
+using PM QoS constraints to get what you want.  Make sure you keep the big=
+=20
+nasty comment in there.  That way, when someone manages to get some=20
+generic support in for it, we can convert it over easily.
 
-Omar
+We should probably be marking all of these IP blocks with broken wakeup=20
+with a hwmod flag also, for warning purposes if nothing else.  "Warning,=20
+missing IP block wakeup line; energy consumption will be higher than=20
+necessary; please annoy your silicon vendor"
+
+
+- Paul
+--155748971-378822278-1328134756=:10541--
