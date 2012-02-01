@@ -1,42 +1,53 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: GPIO debounce problems on 3.2
-Date: Wed, 1 Feb 2012 11:41:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202011138400.10541@utopia.booyaka.com>
-References: <CANOLnOOKSC72MsteqE_+F4Q3MUZCJBfDebe7kKHoLsDAxr5y0g@mail.gmail.com> <87obtlrniz.fsf@ti.com> <CANOLnOM-kaHv=Dm2-6xowK4Z_BJuRopj-25M1HeyJsiYgXp7tA@mail.gmail.com> <87obtkpyna.fsf@ti.com> <alpine.DEB.2.00.1201301628440.17726@utopia.booyaka.com>
- <CANOLnOM5VYOQOngF-T=5-CM-J2JzXVEnSaYbDjTQ8P=z9XSSAw@mail.gmail.com> <alpine.DEB.2.00.1201301835430.10061@utopia.booyaka.com> <CANOLnONK_hhzpCuu4xANrMns6eEesnW-5KR6kOSo3AbBwG3twA@mail.gmail.com> <CANOLnOMzkNSr5hFbASCWaT6PkBSYQhqMxXmjBfU0tm0GTv=yYA@mail.gmail.com>
- <alpine.DEB.2.00.1201312254150.10061@utopia.booyaka.com> <alpine.DEB.2.00.1201312305190.10061@utopia.booyaka.com> <CANOLnOMmcztNH+fUzrQxjK5nVVEaAtLi=7ww+dPm0AXEv09qUA@mail.gmail.com>
+Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
+ space
+Date: Wed, 1 Feb 2012 12:08:08 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202011203210.10541@utopia.booyaka.com>
+References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com> <4EEB5913.3090901@ti.com> <alpine.DEB.2.00.1112191451140.12660@utopia.booyaka.com>
+ <4F1D4A03.3050700@ti.com> <alpine.DEB.2.00.1201240134421.29673@utopia.booyaka.com> <4F1E8186.2060307@ti.com> <alpine.DEB.2.00.1201251423030.5324@utopia.booyaka.com> <4F28EC71.1070105@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-598164942-1328123185=:10541"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50904 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:35279 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755236Ab2BASlc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 13:41:32 -0500
-In-Reply-To: <CANOLnOMmcztNH+fUzrQxjK5nVVEaAtLi=7ww+dPm0AXEv09qUA@mail.gmail.com>
+	with ESMTP id S1751996Ab2BATIJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 14:08:09 -0500
+In-Reply-To: <4F28EC71.1070105@ti.com>
+Content-ID: <alpine.DEB.2.00.1202011207310.10541@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-On Wed, 1 Feb 2012, Grazvydas Ignotas wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> On Wed, Feb 1, 2012 at 8:06 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> > On Tue, 31 Jan 2012, Paul Walmsley wrote:
-> >
-> >> Well, whether it's in or out of idle, I'll bet the DEBOUNCENABLE
-> >> bits are still set to 1 while the debounce clock is off :-(
-> >
-> > Along these lines, you might try patching omap2_gpio_prepare_for_idle() to
-> > turn off the DEBOUNCENABLE bits?
-> 
-> Yes that helps. I guess I'll carry this in pandora tree, at least
-> we'll have debounce while more demanding programs/games are running.
+--155748971-598164942-1328123185=:10541
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.1202011207311.10541@utopia.booyaka.com>
 
-Yep definitely.  When only I/O wakeups can occur on those GPIO lines (when 
-CORE/PER is in a low-power state), they are intrinsically debounced :-)  
-So it should be fine.  You are re-enabling the DEBOUNCENABLE bits in 
-omap2_gpio_resume_after_idle() I assume?  If so, that should be a good 
-workaround for mainline too.
+Hi P=E9ter,
+
+On Wed, 1 Feb 2012, Peter Ujfalusi wrote:
+
+> On 01/25/2012 11:23 PM, Paul Walmsley wrote:
+> > Okay, thanks, queued for 3.3-rc.
+>=20
+> It seams this patch did not made it to 3.3-rc2.
+> We still have broken audio out of box on SDP4430/Blaze.
+> Can you make sure that this will be queued for rc3?
+
+No sadly I can't.  There are at least three levels of maintainers above me=
+=20
+in my mainline submission path.  As you may have seen, I've sent the patch=
+=20
+to Tony and he has pulled the series:
+
+http://www.spinics.net/lists/linux-omap/msg63525.html
+
+so I've done what I can.
 
 
 - Paul
+--155748971-598164942-1328123185=:10541--
