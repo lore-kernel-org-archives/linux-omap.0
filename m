@@ -1,45 +1,166 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] arm/dts: OMAP3: Add omap3evm and am335xevm support
-Date: Wed, 1 Feb 2012 11:57:00 +0530
-Message-ID: <1328077620-22411-1-git-send-email-hvaibhav@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to
+ existing prm code
+Date: Wed, 1 Feb 2012 06:48:46 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
+References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+	<1326017894-7632-4-git-send-email-hvaibhav@ti.com>	<87zkdvpgz1.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317AF316@DBDE01.ent.ti.com>
+ <877h0ikpxn.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:32804 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753317Ab2BAG1p (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Feb 2012 01:27:45 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:54346 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753605Ab2BAGsw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 01:48:52 -0500
+In-Reply-To: <877h0ikpxn.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: devicetree-discuss@lists.ozlabs.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>, Benoit Cousson <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-TI's OMAP3EVM and AM335xEVM are software development boards
-available for OMAP35x(AM/DM37x) and AM335x devices respectively;
-and these devices are considered under omap3 family.
+On Tue, Jan 24, 2012 at 04:05:32, Hilman, Kevin wrote:
+> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> 
+> > On Wed, Jan 11, 2012 at 21:48:25, Hiremath, Vaibhav wrote:
+> >> On Tue, Jan 10, 2012 at 23:39:22, Hilman, Kevin wrote:
+> >> > Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> >> > 
+> >> > > AM33XX PRM module (L4_WK domain) will be treated as another seperate
+> >> > > partition in _prm_bases[] table.
+> >> > >
+> >> > > Also, since cpu_is_omap34xx check is true for am33xx family of
+> >> > > devices, we must check cpu_is_am33xx fisrt, in order to follow
+> >> > > omap4 execution path.
+> >> > 
+> >> > Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
+> >> 
+> >> Yeah sure...
+> >> 
+> >> Kevin,
+> >> As mentioned before, the main idea behind bringing am33xx under omap34xx
+> >> was mainly due to "cortex-A8 family of devices".
+> >> 
+> >> It has been discussed and aligned long time back, so
+> >> please refer to the thread -
+> >> 
+> >> http://www.spinics.net/lists/linux-omap/msg41046.html
+> >> Multiple versions of -
+> >> http://www.spinics.net/lists/linux-omap/msg45505.html
+> >> 
+> >> Thanks,
+> >> Vaibhav
+> >> 
+> >> > These AM3xxx devices make my brain hurt.
+> >> > 
+> >> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> >> > > Cc: Kevin Hilman <khilman@ti.com>
+> >> > > Cc: Rajendra Nayak <rnayak@ti.com>
+> >> > 
+> >> > [...]
+> >> > 
+> >> > > diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+> >> > > index 3d9894f..fcc4123 100644
+> >> > > --- a/arch/arm/mach-omap2/prminst44xx.c
+> >> > > +++ b/arch/arm/mach-omap2/prminst44xx.c
+> >> > > @@ -19,6 +19,7 @@
+> >> > >  #include "common.h"
+> >> > >
+> >> > >  #include "prm44xx.h"
+> >> > > +#include "prm33xx.h"
+> >> > >  #include "prminst44xx.h"
+> >> > >  #include "prm-regbits-44xx.h"
+> >> > >  #include "prcm44xx.h"
+> >> > > @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+> >> > >  	[OMAP4430_CM2_PARTITION]		= 0,
+> >> > >  	[OMAP4430_SCRM_PARTITION]		= 0,
+> >> > >  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+> >> > > +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
+> >> > >  };
+> >> > 
+> >> > I'm not crazy about just extending the "normal" OMAP4 table.  
+> >> 
+> >> If it is required then yes (with proper comment).
+> >> 
+> >> > That would
+> >> > imply that with each OMAP4 derivatve we keep extending this table.
+> >> > 
+> >> 
+> >> I would say anyway we will end up adding
+> >> Cpu_is_xxx everywhere as we add new table for derivatives.
+> >> 
+> >> > Instead, how about rename this to one to omap44xx_prm_bases[], then
+> >> > create a new one called am33xx_prm_bases[].  Then, at init time, assing
+> >> > _prm_bases to the right one based on cpu_is_.
+> >> > 
+> >> 
+> >> Just wanted to avoid cpu_is_xxxx check here. Will specific comment wouldn't
+> >> help here (I have clearly mentioned in patch description), may be in c file
+> >> it is required?
+> >> OR 
+> >> you want to be clearly separate table for code readability.
+> >> 
+> >
+> > Kevin,
+> >
+> > Any comments on this? Should I stick to what is implemented now?
+> >
+> 
+> cpu_is_* checks are acceptable at init time, and we use them often to
+> initialize SoC-dependent tables/arrays etc.
+> 
+Kevin,
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Tony Lindgren <tony@atomide.com>
----
- .../devicetree/bindings/arm/omap/omap.txt          |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+Sorry for delayed response,
 
-diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-index dbdab40..ce78498 100644
---- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-+++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-@@ -41,3 +41,9 @@ Boards:
+Here is the ugly part, which I was referring to -
 
- - OMAP4 PandaBoard : Low cost community board
-   compatible = "ti,omap4-panda", "ti,omap4430"
-+
-+- OMAP3 EVM : Software Developement Board for OMAP35x, AM/DM37x
-+  compatible = "ti,omap3-evm", "ti,omap3"
-+
-+- AM335X EVM : Software Developement Board for AM335x
-+  compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
---
-1.7.0.4
+1) "_prm_bases" variable is static variable to the prminst44xx.c
+
+2) prminst44xx.c file doesn't contain any boot time __init function,
+   So I have to either add exported __init function OR extern __prm_bases
+   variable and initialize somewhere outside this file.
+
+3) Even if I create 2 separate variables, for example,
+
+static u32 omap44xx_prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+...
+};
+
+static u32 omap33xx_prm_bases[AM33XX_MAX_PRCM_PARTITIONS] = {
+...
+};
+
+Makes it difficult and messy to handle inside below code, 
+BUG_ON doesn't make sense from AM335x perspective.
+
+u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
+{
+	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
+		part == OMAP4430_INVALID_PRCM_PARTITION ||
+		!_prm_bases[part]);
+		return __raw_readl(_prm_bases[part] + inst + idx);
+}
+/* Write into a register in a PRM instance */
+void omap4_prminst_write_inst_reg(u32 val, u8 part, s16 inst, u16 idx)
+{
+	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
+			part == OMAP4430_INVALID_PRCM_PARTITION ||
+			!_prm_bases[part]);
+		__raw_writel(val, _prm_bases[part] + inst + idx);
+}
+
+
+
+This was the reason I had extended existing omap3 __prm_bases to use it
+for AM33xx.
+
+Thanks,
+Vaibhav
+
+> Kevin
+> 
 
