@@ -1,155 +1,35 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to existing prm code
-Date: Wed, 01 Feb 2012 09:33:56 -0800
-Message-ID: <87obtifofv.fsf@ti.com>
-References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
-	<1326017894-7632-4-git-send-email-hvaibhav@ti.com>
-	<87zkdvpgz1.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A8317AF316@DBDE01.ent.ti.com>
-	<877h0ikpxn.fsf@ti.com>
-	<79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: PM debug: fix the use of debugfs_create_* API
+Date: Wed, 01 Feb 2012 09:37:39 -0800
+Message-ID: <87k446fo9o.fsf@ti.com>
+References: <1328008819-1110-1-git-send-email-j-pihet@ti.com>
+	<1328085451-23225-1-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:52461 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752519Ab2BARd5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 12:33:57 -0500
-Received: by mail-pw0-f51.google.com with SMTP id c7so1325502pbc.38
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 09:33:55 -0800 (PST)
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
-	(Vaibhav Hiremath's message of "Wed, 1 Feb 2012 06:48:46 +0000")
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38566 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755737Ab2BARhn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 12:37:43 -0500
+Received: by mail-pw0-f48.google.com with SMTP id c11so1487281pbc.21
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 09:37:38 -0800 (PST)
+In-Reply-To: <1328085451-23225-1-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Wed, 1 Feb 2012 09:37:31 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-> On Tue, Jan 24, 2012 at 04:05:32, Hilman, Kevin wrote:
->> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
->> 
->> > On Wed, Jan 11, 2012 at 21:48:25, Hiremath, Vaibhav wrote:
->> >> On Tue, Jan 10, 2012 at 23:39:22, Hilman, Kevin wrote:
->> >> > Vaibhav Hiremath <hvaibhav@ti.com> writes:
->> >> > 
->> >> > > AM33XX PRM module (L4_WK domain) will be treated as another seperate
->> >> > > partition in _prm_bases[] table.
->> >> > >
->> >> > > Also, since cpu_is_omap34xx check is true for am33xx family of
->> >> > > devices, we must check cpu_is_am33xx fisrt, in order to follow
->> >> > > omap4 execution path.
->> >> > 
->> >> > Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
->> >> 
->> >> Yeah sure...
->> >> 
->> >> Kevin,
->> >> As mentioned before, the main idea behind bringing am33xx under omap34xx
->> >> was mainly due to "cortex-A8 family of devices".
->> >> 
->> >> It has been discussed and aligned long time back, so
->> >> please refer to the thread -
->> >> 
->> >> http://www.spinics.net/lists/linux-omap/msg41046.html
->> >> Multiple versions of -
->> >> http://www.spinics.net/lists/linux-omap/msg45505.html
->> >> 
->> >> Thanks,
->> >> Vaibhav
->> >> 
->> >> > These AM3xxx devices make my brain hurt.
->> >> > 
->> >> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> >> > > Cc: Kevin Hilman <khilman@ti.com>
->> >> > > Cc: Rajendra Nayak <rnayak@ti.com>
->> >> > 
->> >> > [...]
->> >> > 
->> >> > > diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
->> >> > > index 3d9894f..fcc4123 100644
->> >> > > --- a/arch/arm/mach-omap2/prminst44xx.c
->> >> > > +++ b/arch/arm/mach-omap2/prminst44xx.c
->> >> > > @@ -19,6 +19,7 @@
->> >> > >  #include "common.h"
->> >> > >
->> >> > >  #include "prm44xx.h"
->> >> > > +#include "prm33xx.h"
->> >> > >  #include "prminst44xx.h"
->> >> > >  #include "prm-regbits-44xx.h"
->> >> > >  #include "prcm44xx.h"
->> >> > > @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
->> >> > >  	[OMAP4430_CM2_PARTITION]		= 0,
->> >> > >  	[OMAP4430_SCRM_PARTITION]		= 0,
->> >> > >  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
->> >> > > +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
->> >> > >  };
->> >> > 
->> >> > I'm not crazy about just extending the "normal" OMAP4 table.  
->> >> 
->> >> If it is required then yes (with proper comment).
->> >> 
->> >> > That would
->> >> > imply that with each OMAP4 derivatve we keep extending this table.
->> >> > 
->> >> 
->> >> I would say anyway we will end up adding
->> >> Cpu_is_xxx everywhere as we add new table for derivatives.
->> >> 
->> >> > Instead, how about rename this to one to omap44xx_prm_bases[], then
->> >> > create a new one called am33xx_prm_bases[].  Then, at init time, assing
->> >> > _prm_bases to the right one based on cpu_is_.
->> >> > 
->> >> 
->> >> Just wanted to avoid cpu_is_xxxx check here. Will specific comment wouldn't
->> >> help here (I have clearly mentioned in patch description), may be in c file
->> >> it is required?
->> >> OR 
->> >> you want to be clearly separate table for code readability.
->> >> 
->> >
->> > Kevin,
->> >
->> > Any comments on this? Should I stick to what is implemented now?
->> >
->> 
->> cpu_is_* checks are acceptable at init time, and we use them often to
->> initialize SoC-dependent tables/arrays etc.
->> 
-> Kevin,
+> Check the return code pointer value from debugfs_create_dir for error
+> or NULL.
+> Also added an additional check to prevent the creation of a 'suspend'
+> entry at the debugfs root in case a power domain directory cannot be
+> created.
 >
-> Sorry for delayed response,
->
-> Here is the ugly part, which I was referring to -
->
-> 1) "_prm_bases" variable is static variable to the prminst44xx.c
->
-> 2) prminst44xx.c file doesn't contain any boot time __init function,
->    So I have to either add exported __init function OR extern __prm_bases
->    variable and initialize somewhere outside this file.
->
-> 3) Even if I create 2 separate variables, for example,
->
-> static u32 omap44xx_prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
-> ...
-> };
->
-> static u32 omap33xx_prm_bases[AM33XX_MAX_PRCM_PARTITIONS] = {
-> ...
-> };
->
-> Makes it difficult and messy to handle inside below code, 
-> BUG_ON doesn't make sense from AM335x perspective.
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Then you can change the BUG_ON.
-
-static u32 omap44xx_max_partitions = ARRAY_SIZE(omap44xx_prm_bases)
-static u32 am33xx_max_partitions = ARRAY_SIZE(am33xx_prm_bases)
-static u32 max_partitions.
-
-At init time, assign max_partitions when you assign prm_bases, then
-change the BUG_ON() to be something like:
-
-       BUG_ON(part >= max_partitions || part == INVALID_PARTITION)
+Thanks, queing for v3.4.
 
 Kevin
