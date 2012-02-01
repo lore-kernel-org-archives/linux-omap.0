@@ -1,73 +1,45 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 12/20] ARM: OMAP3+: SmartReflex: disable spamming interrupts
-Date: Wed,  1 Feb 2012 09:49:51 +0100
-Message-ID: <1328086199-28486-13-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 15/20] ARM: OMAP3+: SmartReflex: add missing platform_set_drvdata()
+Date: Wed,  1 Feb 2012 09:49:54 +0100
+Message-ID: <1328086199-28486-16-git-send-email-j-pihet@ti.com>
 References: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:45673 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756041Ab2BAIuk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:40 -0500
-Received: by mail-wi0-f174.google.com with SMTP id s10so697604wic.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:39 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:46589 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756046Ab2BAIuo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:44 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dt10so1012846wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:44 -0800 (PST)
 In-Reply-To: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
 Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-From: Nishanth Menon <nm@ti.com>
+From: Felipe Balbi <balbi@ti.com>
 
-At times with bad SR configurations, especially during silicon bring-ups,
-we could get continuous spurious interrupts which end up hanging the
-platform in the form of an ISR call for status bits that are
-automatically enabled by the hardware without any software clearing
-option.
+That's very useful to fetch the correct struct sr_info
+from the PM handlers.
 
-If we detect scenarios where ISR was called without the corresponding
-notification bit being set, instead of hanging up the system,
-we will disable interrupt after noting the event in the system log
-to try and keep system sanity and allow developer to debug and fix
-the condition.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   21 +++++++++++++++++++--
- 1 files changed, 19 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index a24a228..6971b94 100644
+index 65e1a7c..eacf4b3 100644
 --- a/arch/arm/mach-omap2/smartreflex.c
 +++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -215,8 +215,25 @@ static irqreturn_t sr_interrupt(int irq, void *data)
- 		value = irqstat_to_notifier_v2(status);
+@@ -1062,6 +1062,8 @@ static int __init omap_sr_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
  	}
  
--	if (sr_class->notify)
--		sr_class->notify(sr_info->voltdm, value);
-+	/* Attempt some resemblance of recovery! */
-+	if (!value) {
-+		dev_err(&sr_info->pdev->dev, "%s: Spurious interrupt!"
-+			"status = 0x%08x. Disabling to prevent spamming!!\n",
-+			__func__, status);
-+		disable_irq_nosync(sr_info->irq);
-+		sr_info->irq_enabled = false;
-+	} else {
-+		/* If the caller reports inability to handle, disable as well */
-+		if (sr_class->notify &&
-+		    sr_class->notify(sr_info->voltdm, value)) {
-+			dev_err(&sr_info->pdev->dev, "%s: Callback cant handle!"
-+				"status=0x%08x. Disabling to prevent spam!!\n",
-+				__func__, status);
-+			disable_irq_nosync(sr_info->irq);
-+			sr_info->irq_enabled = false;
-+		}
++	platform_set_drvdata(pdev, sr_info);
 +
-+	}
- 
- 	return IRQ_HANDLED;
- }
+ 	if (!pdata) {
+ 		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
+ 		ret = -EINVAL;
 -- 
 1.7.5.4
 
