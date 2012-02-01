@@ -1,15 +1,15 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 08/20] ARM: OMAP3+: hwmod: add SmartReflex IRQs
-Date: Wed,  1 Feb 2012 09:49:47 +0100
-Message-ID: <1328086199-28486-9-git-send-email-j-pihet@ti.com>
+Subject: [PATCH 09/20] ARM: OMAP3+: SmartReflex: introduce class init, deinit and priv data
+Date: Wed,  1 Feb 2012 09:49:48 +0100
+Message-ID: <1328086199-28486-10-git-send-email-j-pihet@ti.com>
 References: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-we0-f174.google.com ([74.125.82.174]:40135 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308Ab2BAIuc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:32 -0500
+	with ESMTP id S1755308Ab2BAIue (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:34 -0500
 Received: by mail-we0-f174.google.com with SMTP id b13so753770wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:32 -0800 (PST)
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:33 -0800 (PST)
 In-Reply-To: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,69 +18,91 @@ Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j
 
 From: Nishanth Menon <nm@ti.com>
 
-OMAP3 SmartReflex IRQs in hwmod structures with the same naming as
-present in OMAP4. Without these IRQs being registered, SmartReflex
-driver will be unable to get the IRQ numbers to handle notifications
+Certain class drivers such as class 1.5 drivers, will need specific
+notification that they have to be inited up or deinited independent
+of smart reflex operation. They also may need private data to be
+used for operations of their own, provide the same.
+This allows the class driver to initialize it's internal data structures
+on a need basis in preparation for the specific domain's autocomp usage.
+The resultant operation is as follows:
+when autocomp is set to 1 -> class drivers' init is called
+The existing enable/disable is still used as before by the SmartReflex
+core driver to enable disable the class operation.
+When autocomp is set to 0 -> class drivers' deinit is called, signaling
+the end of usage for that domain.
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Jean Pihet <j-pihet@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   15 +++++++++++++++
+ arch/arm/mach-omap2/smartreflex.h |    6 ++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index a201ff5..b224ea2 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -377,6 +377,16 @@ static struct omap_hwmod_ocp_if omap3_l4_core__i2c3 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 6dea30d..5fd9cb1 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -218,6 +218,13 @@ static void sr_start_vddautocomp(struct omap_sr *sr)
+ 		return;
+ 	}
  
-+static struct omap_hwmod_irq_info omap3_smartreflex_mpu_irqs[] = {
-+	{ .name = "sr1_irq", .irq = 18},
-+	{ .irq = -1 }
-+};
++	if (sr_class->init &&
++	    sr_class->init(sr->voltdm, sr_class->class_priv_data)) {
++		dev_err(&sr->pdev->dev,
++			"%s: SRClass initialization failed\n", __func__);
++		return;
++	}
 +
-+static struct omap_hwmod_irq_info omap3_smartreflex_core_irqs[] = {
-+	{ .name = "sr2_irq", .irq = 19},
-+	{ .irq = -1 }
-+};
+ 	if (!sr_class->enable(sr->voltdm))
+ 		sr->autocomp_active = true;
+ }
+@@ -233,6 +240,14 @@ static void sr_stop_vddautocomp(struct omap_sr *sr)
+ 
+ 	if (sr->autocomp_active) {
+ 		sr_class->disable(sr->voltdm, 1);
++		if (sr_class->deinit &&
++		    sr_class->deinit(sr->voltdm,
++			    sr_class->class_priv_data)) {
++			dev_err(&sr->pdev->dev,
++				"%s: SR[%d]Class deinitialization failed\n",
++				__func__, sr->srid);
++		}
 +
- /* L4 CORE -> SR1 interface */
- static struct omap_hwmod_addr_space omap3_sr1_addr_space[] = {
- 	{
-@@ -2667,6 +2677,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- 	.slaves		= omap3_sr1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
- 	.dev_attr	= &sr1_dev_attr,
-+	.mpu_irqs	= omap3_smartreflex_mpu_irqs,
- 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
+ 		sr->autocomp_active = false;
+ 	}
+ }
+diff --git a/arch/arm/mach-omap2/smartreflex.h b/arch/arm/mach-omap2/smartreflex.h
+index 5809141..dd5b21e 100644
+--- a/arch/arm/mach-omap2/smartreflex.h
++++ b/arch/arm/mach-omap2/smartreflex.h
+@@ -177,6 +177,8 @@ struct omap_smartreflex_dev_attr {
+  *
+  * @enable:		API to enable a particular class smaartreflex.
+  * @disable:		API to disable a particular class smartreflex.
++ * @init:		API to do class specific initialization (optional)
++ * @deinit:		API to do class specific deinitialization (optional)
+  * @configure:		API to configure a particular class smartreflex.
+  * @notify:		API to notify the class driver about an event in SR.
+  *			Not needed for class3.
+@@ -184,14 +186,18 @@ struct omap_smartreflex_dev_attr {
+  * @class_type:		specify which smartreflex class.
+  *			Can be used by the SR driver to take any class
+  *			based decisions.
++ * @class_priv_data:	Class specific private data (optional)
+  */
+ struct omap_sr_class_data {
+ 	int (*enable)(struct voltagedomain *voltdm);
+ 	int (*disable)(struct voltagedomain *voltdm, int is_volt_reset);
++	int (*init)(struct voltagedomain *voltdm, void *class_priv_data);
++	int (*deinit)(struct voltagedomain *voltdm, void *class_priv_data);
+ 	int (*configure)(struct voltagedomain *voltdm);
+ 	int (*notify)(struct voltagedomain *voltdm, u32 status);
+ 	u8 notify_flags;
+ 	u8 class_type;
++	void *class_priv_data;
  };
  
-@@ -2686,6 +2697,7 @@ static struct omap_hwmod omap36xx_sr1_hwmod = {
- 	.slaves		= omap3_sr1_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr1_slaves),
- 	.dev_attr	= &sr1_dev_attr,
-+	.mpu_irqs	= omap3_smartreflex_mpu_irqs,
- };
- 
- /* SR2 */
-@@ -2713,6 +2725,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
- 	.slaves		= omap3_sr2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
- 	.dev_attr	= &sr2_dev_attr,
-+	.mpu_irqs	= omap3_smartreflex_core_irqs,
- 	.flags		= HWMOD_SET_DEFAULT_CLOCKACT,
- };
- 
-@@ -2732,6 +2745,7 @@ static struct omap_hwmod omap36xx_sr2_hwmod = {
- 	.slaves		= omap3_sr2_slaves,
- 	.slaves_cnt	= ARRAY_SIZE(omap3_sr2_slaves),
- 	.dev_attr	= &sr2_dev_attr,
-+	.mpu_irqs	= omap3_smartreflex_core_irqs,
- };
- 
- /*
+ /**
 -- 
 1.7.5.4
 
