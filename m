@@ -1,101 +1,58 @@
 From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 20/20] ARM: OMAP3+: SmartReflex: fix error handling
-Date: Wed,  1 Feb 2012 09:49:59 +0100
-Message-ID: <1328086199-28486-21-git-send-email-j-pihet@ti.com>
-References: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
+Subject: Re: [PATCH v2 00/19] ARM: OMAP3+: SmartReflex: bugfixes
+Date: Wed, 1 Feb 2012 09:54:28 +0100
+Message-ID: <CAORVsuX1VOz=3SZQM_WB_bMuDW-aY-f8aAH4Pqb_rqQ9v=NgjA@mail.gmail.com>
+References: <1328003912-11709-1-git-send-email-j-pihet@ti.com>
+	<20120131170830.GJ9339@atomide.com>
+	<CAN5iSWo9+P=tC5Uq_bZ+Js_QPpGTn=Q6f5ecgiehRvT2E5+Diw@mail.gmail.com>
+	<20120131172008.GK9339@atomide.com>
+	<CAORVsuWELB2rt3Vs-5oHFyXCRDUPXSpqOJo26cH+_i3Y0hdraQ@mail.gmail.com>
+	<20120131173344.GL9339@atomide.com>
+	<87fwevleiv.fsf@ti.com>
+	<20120131235816.GM9339@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40135 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab2BAIuw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:50:52 -0500
-Received: by mail-we0-f174.google.com with SMTP id b13so753770wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:50:51 -0800 (PST)
-In-Reply-To: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:51224 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753862Ab2BAIy3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Feb 2012 03:54:29 -0500
+Received: by vbjk17 with SMTP id k17so787608vbj.19
+        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 00:54:28 -0800 (PST)
+In-Reply-To: <20120131235816.GM9339@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>
+Cc: "Pihet-XID, Jean" <j-pihet@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Paul Walmsley <paul@pwsan.com>
 
-Fix the code to correctly use IS_ERR and PTR_ERR on the return
-values pointers
+On Wed, Feb 1, 2012 at 12:58 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Kevin Hilman <khilman@ti.com> [120131 13:28]:
+=2E..
+>> >
+>> > OK, let's plan on putting all the smartreflex stuff into a separat=
+e
+>> > branch then. If some changes are needed to the PM code, those shou=
+ld
+>> > probably be applied first into Kevin's PM branch.
+>>
+>> Tony, I'll queue up this series (after I get to reviewing them) as w=
+ell
+>> as the changes needed to the PM core code. =A0After that we'll be re=
+ady to
+>> move.
+>
+> OK thanks.
+>
+> Tony
 
-Reported-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/smartreflex.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+I just submitted v3 of the patch set.
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 96a97c1..205531b 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -536,7 +536,7 @@ int sr_configure_errgen(struct voltagedomain *voltdm)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	if (!sr->clk_length)
-@@ -604,7 +604,7 @@ int sr_disable_errgen(struct voltagedomain *voltdm)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	switch (sr->ip_type) {
-@@ -655,7 +655,7 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	if (!sr->clk_length)
-@@ -741,7 +741,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
-@@ -749,7 +749,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 	if (IS_ERR(volt_data)) {
- 		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
- 			"for nominal voltage %ld\n", __func__, volt);
--		return -ENODATA;
-+		return PTR_ERR(volt_data);
- 	}
- 
- 	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
-@@ -839,10 +839,10 @@ int sr_notifier_control(struct voltagedomain *voltdm, bool enable)
- 	struct omap_sr *sr = _sr_lookup(voltdm);
- 	u32 value = 0;
- 
--	if (!sr) {
-+	if (IS_ERR(sr)) {
- 		pr_warning("%s: sr corresponding to domain not found\n",
- 				__func__);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 	if (!sr->autocomp_active)
- 		return -EINVAL;
-@@ -1258,7 +1258,7 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
- 	if (IS_ERR(sr_info)) {
- 		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
- 			__func__);
--		return -EINVAL;
-+		return PTR_ERR(sr_info);
- 	}
- 
- 	if (sr_info->autocomp_active)
--- 
-1.7.5.4
-
+Thanks!
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
