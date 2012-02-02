@@ -1,83 +1,104 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
-Date: Thu, 2 Feb 2012 21:45:50 +0200
-Message-ID: <20120202194545.GA29351@legolas.emea.dhcp.ti.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
- <1328203851-20435-2-git-send-email-tarun.kanti@ti.com>
- <20120202184106.GC29215@legolas.emea.dhcp.ti.com>
- <20120202191630.GT15343@ponder.secretlab.ca>
-Reply-To: balbi@ti.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to
+ pwrdm_clear_all_prev_pwrst()
+Date: Thu, 2 Feb 2012 12:59:25 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202021258350.586@utopia.booyaka.com>
+References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk> <878vkopw2o.fsf@ti.com> <87mx93ok5y.fsf@ti.com> <alpine.DEB.2.00.1202011218190.10541@utopia.booyaka.com> <CAMQu2gzVt3K6cuZcbvfNZegimyXz8F4N__A6vDBSyL4QfSnbTw@mail.gmail.com>
+ <alpine.DEB.2.00.1202020041220.10541@utopia.booyaka.com> <CAMQu2gw5uU4kXRWtuUuYAAUcrTJvS_nQhJ42-_hEmHM2NO8ZZg@mail.gmail.com> <alpine.DEB.2.00.1202020302400.586@utopia.booyaka.com> <CAMQu2gxQHyoH-AC4ut2EGVs6wBvAJqUJ8tzXUm2hH_gZqMGE6w@mail.gmail.com>
+ <CAMQu2gxuQVYNvo8VeGrmZGo3tqCydhVaOz1VXjeAgrL8Opm8nA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120202191630.GT15343@ponder.secretlab.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>
-Cc: Felipe Balbi <balbi@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-996379601-1328212765=:586"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:47514 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932506Ab2BBT70 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 14:59:26 -0500
+In-Reply-To: <CAMQu2gxuQVYNvo8VeGrmZGo3tqCydhVaOz1VXjeAgrL8Opm8nA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--155748971-996379601-1328212765=:586
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-On Thu, Feb 02, 2012 at 12:16:30PM -0700, Grant Likely wrote:
-> On Thu, Feb 02, 2012 at 08:41:07PM +0200, Felipe Balbi wrote:
-> > Hi,
-> >=20
-> > On Thu, Feb 02, 2012 at 11:00:27PM +0530, Tarun Kanti DebBarma wrote:
-> > > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> > > index 0b05629..6ea7390 100644
-> > > --- a/drivers/gpio/gpio-omap.c
-> > > +++ b/drivers/gpio/gpio-omap.c
-> > > @@ -28,7 +28,10 @@
-> > >  #include <asm/gpio.h>
-> > >  #include <asm/mach/irq.h>
-> > > =20
-> > > +static LIST_HEAD(omap_gpio_list);
-> >=20
-> > I guess it's now too late because patch is acked and everything, but I
-> > think if you make the driver handle one bank alone and just instantiate
-> > it multiple times (omap_gpio.0, omap_gpio.1, omap_gpio.3, etc) driver
-> > would be faaaaaar simpler.
+Hi Santosh
+
+On Thu, 2 Feb 2012, Shilimkar, Santosh wrote:
+
+> On Thu, Feb 2, 2012 at 3:47 PM, Shilimkar, Santosh
+> <santosh.shilimkar@ti.com> wrote:
+> > On Thu, Feb 2, 2012 at 3:35 PM, Paul Walmsley <paul@pwsan.com> wrote:
+> >> On Thu, 2 Feb 2012, Shilimkar, Santosh wrote:
+> >>
+> >>> Yes, we do have issue with below APIs for OMAP4 and onwards design
+> >>> because of the PRCM change.
+> >>>
+> >>> pwrdm_clear_all_prev_pwrst
+> >>> pwrdm_*_mem_*
+> >>>
+> >>> There use to be a single power state and memory state register till O=
+MAP3
+> >>> at power domain level which can give you the logic and memory last te=
+st
+> >>> which is needed for OSWR.
+> >>>
+> >>> On OMAP4, we have registers per modules and it becomes difficult to m=
+odel
+> >>> this difference in APIs. Initially we tried to fix that with [1] and
+> >>> then later realized
+> >>> that's not going to work on OMAP4 + devices because of mentioned issu=
+e.
+> >>
+> >> If the registers are per-module, it seems like the best place for thos=
+e
+> >> would be the hwmod layer. =A0Do you think that makes sense? =A0So, som=
+ething
+> >> like omap_hwmod_clear_all_prev_pwrst(), etc.? =A0Seems like that shoul=
+d be
+> >> pretty efficient.
+> >>
+> > But all these are power domain registers after all. Rajendra did one ve=
+rsion of
+> > " pwrdm_clear_all_prev_pwrst" =A0API and inside used hwmod. But then th=
+ere he
+> > has iterate over all the modules belongs to that power domain.
+> >
+> > And if you use hwmod or omap_device kind of API, then =A0you need to
+> > build those devices in init or some where.
+> >
+> > All of that was not looking so elegant and hence the other path was cho=
+sen.
+> > The mess is, the registers are still part of power domains though they
+> > are specific
+> > to module. And Fundamentally power domain is stil the central entity
+> > decides the fate of all the modules within that PD, in terms of context
+> > loss/ret etc.
+> >
+> I looked at the MPUSS file. There are 3 functions which access
+> power domain registers directly.
 >=20
-> Is there any shared state between the banks?  On my very cursory glance it
-> looked like banks still have some interaction between them.  If not, then
-> yes I agree that multiple instances would be better.
+> - mpuss_clear_prev_logic_pwrst
+> - cpu_clear_prev_logic_pwrst
+> - omap4_mpuss_read_prev_context_state
+>=20
+> All of these functions access the context registers which
+> we don't have support today at power domian APIs for
+> mentioned issue. This file is using power domain APIs
+> in all possible scenario's except the OSWR scenario
+> which needs the context register accesses.
+>=20
+> if the context clear and read can be handled part of
+> PD APIs, then we can certainly kill this functions.
 
-A quick glance at the TRM shows that banks have separate address spaces
-and IRQ lines. I think it's done this way because we can handoff one (or
-more) bank to other cores on the SoC, so they need to be pretty
-independent.
+That sounds great.  Maybe we can add powerdomain functions for these=20
+purposes that take both a powerdomain pointer and a hwmod pointer.  That=20
+should hopefully work.
 
-I could be missing something though.
 
---=20
-balbi
-
---bp/iNruPH9dso1Pn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPKufpAAoJEIaOsuA1yqREhXoP/RNcQWnfcr5pv76ySF1cita9
-XzTgVo64I0pJ2FxrrEGDWT0YsFIkL9NMTyojZiGmvCaxdQYcGk+OWzEdIt02tsXu
-ezk3DrWRndxM4P3wLoiRqTVt0NzUxNAU3Rt+6fBs1u3Ofxig8BQOtg8RlM87D9O7
-RA6sU2KKM3H+yPWuW62CHu9DSqyIzjzgeEHeW1fiKAfzInMj04MwFvCV+bZ+PuOe
-KtlHAnIhyChq3wNubtErEX2w2n9ak/S/p0T9APWywZyWfJwhZ4Mmg9Hxna4gPnDr
-kTcuvHIwkcss7D4m96foEz7w2rtfTPSEhu8JNI/gk0vik6rNSMMe/k4ZVcTelPS9
-2Qy2LsAVKihwvD8s+rFHHTdUgfvks+PMpoQ5Gk869ORwiq9cGgq9tq+nn6bRZRJ+
-OIllCsLN178xA+sQRZSaTJxVjrMtg7IHSMhY6Vfclh+E098AJxP4aQGF4mJF/MUa
-xLADMHkPaUZh+lJKi8Rcs6Eu66ibNM9x7XeODmoE+oVpC8ycerHILJR3mUO5jdOi
-9Mk30AtJ9PfWWr6nJMkYzeWGahoE0XS31ozemUs62DJVAi6F64hoIlBQSU7hcuKV
-7Bvcxxj7V0XT/hE/b50FuYUSyfeTXR1reHabE/l4udugnpYw4VDsKKiEjHEGSUs7
-mIlmW4mzv6TChVen/lRe
-=atn8
------END PGP SIGNATURE-----
-
---bp/iNruPH9dso1Pn--
+- Paul
+--155748971-996379601-1328212765=:586--
