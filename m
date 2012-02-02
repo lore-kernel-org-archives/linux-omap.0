@@ -1,14 +1,14 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [RFC 4/7] OMAP: 4430sdp: Correct fixed regulator
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC 4/7] OMAP: 4430sdp: Correct fixed regulator
 	device ID
-Date: Thu,  2 Feb 2012 14:16:56 +0200
-Message-ID: <1328185019-29575-5-git-send-email-peter.ujfalusi@ti.com>
+Date: Thu, 2 Feb 2012 12:38:57 +0000
+Message-ID: <20120202123857.GE7428@opensource.wolfsonmicro.com>
 References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
+	<1328185019-29575-5-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============3785982330462169941=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1328185019-29575-5-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -18,51 +18,61 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>
-Cc: linux-arm-kernel@lists.infradead.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The board has two fixed voltage regulator. Correct the
-device ID for the vbat, which used -1.
-Create defines for the fixed regulator IDs so when adding new
-regulators we know the next available ID to use for them.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+--===============3785982330462169941==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="10jrOL3x2xqLmOsH"
+Content-Disposition: inline
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index f4ac553..d02172d 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -62,6 +62,9 @@
- #define GPIO_WIFI_PMENA		54
- #define GPIO_WIFI_IRQ		53
- 
-+#define FIXED_REG_VBAT_ID	0
-+#define FIXED_REG_VWLAN_ID	1
-+
- static const int sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
- 	KEY(0, 1, KEY_R),
-@@ -368,7 +371,7 @@ static struct fixed_voltage_config sdp4430_vbat_pdata = {
- 
- static struct platform_device sdp4430_vbat = {
- 	.name		= "reg-fixed-voltage",
--	.id		= -1,
-+	.id		= FIXED_REG_VBAT_ID,
- 	.dev = {
- 		.platform_data = &sdp4430_vbat_pdata,
- 	},
-@@ -478,7 +481,7 @@ static struct fixed_voltage_config sdp4430_vwlan = {
- 
- static struct platform_device omap_vwlan_device = {
- 	.name		= "reg-fixed-voltage",
--	.id		= 1,
-+	.id		= FIXED_REG_VWLAN_ID,
- 	.dev = {
- 		.platform_data = &sdp4430_vwlan,
- 	},
--- 
-1.7.8.4
+
+--10jrOL3x2xqLmOsH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, Feb 02, 2012 at 02:16:56PM +0200, Peter Ujfalusi wrote:
+> The board has two fixed voltage regulator. Correct the
+> device ID for the vbat, which used -1.
+> Create defines for the fixed regulator IDs so when adding new
+> regulators we know the next available ID to use for them.
+>=20
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+
+--10jrOL3x2xqLmOsH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPKoPaAAoJEBus8iNuMP3ds1IP/j2dTeJOAHYA5PueT+FiEuXB
+yjoZjzoXDmLJAMoIU7wJX2E+3dsiahcDZyL3nYA6HIO+ckJFO4ccbmifTLrg7Pfo
+/ct6XPdaQRXJ1r901Z1bEFzbra9YIMmCbCL3yWTFWkHXLNLS61fdNKLhSNxTjEwU
+N5gvziHmGKLNJEzjkgqMgbu7NZwzpgtaZDwwy5GhnwOgZgZPeG7KLTBLkPPbjsZ7
+3VmdAx+A1fSmvtd+oS4dYgWmw73Q+skhuzJcPnfI8io9RGlytaojB20T92QR2s4S
+gMbMnnPYYHvqS2FN3KmMbOxK6Wfa4sLtiWaVN7vEKw/1BDmWzpwIdXy/MebryLbx
+D1shxBrdXVr6dHciq8WTi27NfrupD7keGk7oo/wJUFAWMle50o0xeDNjb94pxVn5
+g/k71+Yz/LsC9uUQvfWk31VrBoXN3BNpeMWd1pRlX1UTZye9XTldZmncBu893CoK
+I/p74926rqXG2PRggnN6NAPxVQepTu8xww1gewwMTqTa6ArUTdhrLUYzw5xUiy1W
+TR/JkdKj51VleRuQH7uy2CTN6EYI8phnKOecVknB9AngO9ZTqHHU0l1aFAESjXp/
+l6ugPTLvDEneu5VIMLJFoFZzGa0qKeaAQ4lBg82sCWPk6Mqu2ZwClR2ks2IOieYU
+v1v5rX59zyllqinBmwvx
+=Ns5j
+-----END PGP SIGNATURE-----
+
+--10jrOL3x2xqLmOsH--
+
+--===============3785982330462169941==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============3785982330462169941==--
