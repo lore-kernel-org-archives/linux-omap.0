@@ -1,178 +1,168 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
-Date: Thu, 2 Feb 2012 14:29:08 +0530
-Message-ID: <CAMQu2gw5uU4kXRWtuUuYAAUcrTJvS_nQhJ42-_hEmHM2NO8ZZg@mail.gmail.com>
-References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk>
- <878vkopw2o.fsf@ti.com> <87mx93ok5y.fsf@ti.com> <alpine.DEB.2.00.1202011218190.10541@utopia.booyaka.com>
- <CAMQu2gzVt3K6cuZcbvfNZegimyXz8F4N__A6vDBSyL4QfSnbTw@mail.gmail.com> <alpine.DEB.2.00.1202020041220.10541@utopia.booyaka.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to
+ existing prm code
+Date: Thu, 2 Feb 2012 09:28:59 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317BCD83@DBDE01.ent.ti.com>
+References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+	<1326017894-7632-4-git-send-email-hvaibhav@ti.com>	<87zkdvpgz1.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317AF316@DBDE01.ent.ti.com>
+	<877h0ikpxn.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
+ <87obtifofv.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:44040 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751778Ab2BBI7a convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Feb 2012 03:59:30 -0500
-Received: by mail-qy0-f170.google.com with SMTP id t36so1243614qcm.29
-        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 00:59:29 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1202020041220.10541@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60876 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753447Ab2BBJ3G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 04:29:06 -0500
+In-Reply-To: <87obtifofv.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Thu, Feb 2, 2012 at 2:03 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
->
-> On Thu, 2 Feb 2012, Shilimkar, Santosh wrote:
->
->> On Thu, Feb 2, 2012 at 12:57 AM, Paul Walmsley <paul@pwsan.com> wrot=
-e:
->>
->> > N.B., I haven't looked at this file before. =A0There are a few oth=
-er things
->> > that don't look right that hopefully someone can take the initiati=
-ve to
->> > fix. =A0For example, those calls to mpuss_clear_prev_logic_pwrst()=
- and
->> > cpu_clear_prev_logic_pwrst() should be removed as well. =A0That sh=
-ould be
->> > done by pwrdm_clear_all_prev_pwrst() in mach-omap2/powerdomain44xx=
-=2Ec.
->> > Currently it's not, so that needs to be patched.
->> >
->> We(rajendra and myself) discussed this some time back with Benoit an=
-d we agreed
->> that for CPU and MPU power domains which are needed very early in th=
-e PM power
->> up sequence, we can do direct APIs..
->
-> Looking at the call sites, don't these calls occur quite late in boot=
-,
-> after everything is initialized? =A0I see calls from a late_initcall(=
-) and a
-> suspend entry function. =A0Am I missing something?
->
-The code has changed now  because of the recent ARM suspend code and CP=
-U PM idle
-notifiers consolidation. O.w before we had to check the last power
-state as early as MMU is
-with identity mapping and we use to check the CPU last power state.
+On Wed, Feb 01, 2012 at 23:03:56, Hilman, Kevin wrote:
+> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> 
+> > On Tue, Jan 24, 2012 at 04:05:32, Hilman, Kevin wrote:
+> >> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+> >> 
+> >> > On Wed, Jan 11, 2012 at 21:48:25, Hiremath, Vaibhav wrote:
+> >> >> On Tue, Jan 10, 2012 at 23:39:22, Hilman, Kevin wrote:
+> >> >> > Vaibhav Hiremath <hvaibhav@ti.com> writes:
+> >> >> > 
+> >> >> > > AM33XX PRM module (L4_WK domain) will be treated as another seperate
+> >> >> > > partition in _prm_bases[] table.
+> >> >> > >
+> >> >> > > Also, since cpu_is_omap34xx check is true for am33xx family of
+> >> >> > > devices, we must check cpu_is_am33xx fisrt, in order to follow
+> >> >> > > omap4 execution path.
+> >> >> > 
+> >> >> > Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
+> >> >> 
+> >> >> Yeah sure...
+> >> >> 
+> >> >> Kevin,
+> >> >> As mentioned before, the main idea behind bringing am33xx under omap34xx
+> >> >> was mainly due to "cortex-A8 family of devices".
+> >> >> 
+> >> >> It has been discussed and aligned long time back, so
+> >> >> please refer to the thread -
+> >> >> 
+> >> >> http://www.spinics.net/lists/linux-omap/msg41046.html
+> >> >> Multiple versions of -
+> >> >> http://www.spinics.net/lists/linux-omap/msg45505.html
+> >> >> 
+> >> >> Thanks,
+> >> >> Vaibhav
+> >> >> 
+> >> >> > These AM3xxx devices make my brain hurt.
+> >> >> > 
+> >> >> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> >> >> > > Cc: Kevin Hilman <khilman@ti.com>
+> >> >> > > Cc: Rajendra Nayak <rnayak@ti.com>
+> >> >> > 
+> >> >> > [...]
+> >> >> > 
+> >> >> > > diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+> >> >> > > index 3d9894f..fcc4123 100644
+> >> >> > > --- a/arch/arm/mach-omap2/prminst44xx.c
+> >> >> > > +++ b/arch/arm/mach-omap2/prminst44xx.c
+> >> >> > > @@ -19,6 +19,7 @@
+> >> >> > >  #include "common.h"
+> >> >> > >
+> >> >> > >  #include "prm44xx.h"
+> >> >> > > +#include "prm33xx.h"
+> >> >> > >  #include "prminst44xx.h"
+> >> >> > >  #include "prm-regbits-44xx.h"
+> >> >> > >  #include "prcm44xx.h"
+> >> >> > > @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+> >> >> > >  	[OMAP4430_CM2_PARTITION]		= 0,
+> >> >> > >  	[OMAP4430_SCRM_PARTITION]		= 0,
+> >> >> > >  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+> >> >> > > +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
+> >> >> > >  };
+> >> >> > 
+> >> >> > I'm not crazy about just extending the "normal" OMAP4 table.  
+> >> >> 
+> >> >> If it is required then yes (with proper comment).
+> >> >> 
+> >> >> > That would
+> >> >> > imply that with each OMAP4 derivatve we keep extending this table.
+> >> >> > 
+> >> >> 
+> >> >> I would say anyway we will end up adding
+> >> >> Cpu_is_xxx everywhere as we add new table for derivatives.
+> >> >> 
+> >> >> > Instead, how about rename this to one to omap44xx_prm_bases[], then
+> >> >> > create a new one called am33xx_prm_bases[].  Then, at init time, assing
+> >> >> > _prm_bases to the right one based on cpu_is_.
+> >> >> > 
+> >> >> 
+> >> >> Just wanted to avoid cpu_is_xxxx check here. Will specific comment wouldn't
+> >> >> help here (I have clearly mentioned in patch description), may be in c file
+> >> >> it is required?
+> >> >> OR 
+> >> >> you want to be clearly separate table for code readability.
+> >> >> 
+> >> >
+> >> > Kevin,
+> >> >
+> >> > Any comments on this? Should I stick to what is implemented now?
+> >> >
+> >> 
+> >> cpu_is_* checks are acceptable at init time, and we use them often to
+> >> initialize SoC-dependent tables/arrays etc.
+> >> 
+> > Kevin,
+> >
+> > Sorry for delayed response,
+> >
+> > Here is the ugly part, which I was referring to -
+> >
+> > 1) "_prm_bases" variable is static variable to the prminst44xx.c
+> >
+> > 2) prminst44xx.c file doesn't contain any boot time __init function,
+> >    So I have to either add exported __init function OR extern __prm_bases
+> >    variable and initialize somewhere outside this file.
+> >
+> > 3) Even if I create 2 separate variables, for example,
+> >
+> > static u32 omap44xx_prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+> > ...
+> > };
+> >
+> > static u32 omap33xx_prm_bases[AM33XX_MAX_PRCM_PARTITIONS] = {
+> > ...
+> > };
+> >
+> > Makes it difficult and messy to handle inside below code, 
+> > BUG_ON doesn't make sense from AM335x perspective.
+> 
+> Then you can change the BUG_ON.
+> 
+> static u32 omap44xx_max_partitions = ARRAY_SIZE(omap44xx_prm_bases)
+> static u32 am33xx_max_partitions = ARRAY_SIZE(am33xx_prm_bases)
+> static u32 max_partitions.
+> 
+> At init time, assign max_partitions when you assign prm_bases, then
+> change the BUG_ON() to be something like:
+> 
+>        BUG_ON(part >= max_partitions || part == INVALID_PARTITION)
+> 
+Kevin,
 
-Then for the interrupt controller enable/disable etc as well we use to
-check MPUSS PD
-context lost state etc.
+Getting rid of BUG_ON was the least and trivial one, the issue is 1 & 2.
 
-Thanks to the consolidation, some of those situations have reduced now.
+Let me atleast attempt to implement something on this, will update you.
 
->> These calls were in critical path and the PD API's proposed for cont=
-ext clear
->> and logic clear were use to iterate over all power domains.
->
-> The code iterates over all powerdomains anyway a few lines above thos=
-e
-> calls, right?
->
-As I said in other thread, that code was under PM debug.
-
-> If the code only needs to iterate over a subset, let's discuss what y=
-ou
-> need and a different iterator can be implemented in the powerdomain c=
-ode.
->
->> It is only recently we got clear context etc some reasonable form
->> even though it still iterates over all hwmod etc which is really ove=
-rhead.
->
-> Which mainline PM calls iterate over all hwmods?
->
->> Also you need to create 'pdev' etc for context-loss kind of APIs and
->> we all thought that that makes things un-ncessary complicated and
->> lengthy.
->
-> Could you point out the code that you are referring to? =A0I seem to =
-be
-> missing it :-(
->
-> If the existing powerdomain API is missing something you need, there'=
-s no
-> problem to add it. =A0It makes things easier to debug and more portab=
-le in
-> the long term if there is a clean, standard interface. =A0Another hop=
-e is
-> that more of the PM code can be shared.
->
-Yes, we do have issue with below APIs for OMAP4 and onwards design
-because of the PRCM change.
-
-pwrdm_clear_all_prev_pwrst
-pwrdm_*_mem_*
-
-There use to be a single power state and memory state register till OMA=
-P3
-at power domain level which can give you the logic and memory last test
-which is needed for OSWR.
-
-On OMAP4, we have registers per modules and it becomes difficult to mod=
-el
-this difference in APIs. Initially we tried to fix that with [1] and
-then later realized
-that's not going to work on OMAP4 + devices because of mentioned issue.
-
-Regards
-Santosh
-[1] http://permalink.gmane.org/gmane.linux.ports.arm.omap/42564
+Thanks,
+Vaibhav
 
 
+> Kevin
+> 
 
-
-> In terms of performance, it seems pretty unlikely that one would be a=
-ble
-> to measure a meaningful performance difference, unless we are missing=
- an
-> API call that was needed? =A0As we were discussing before, device rea=
-ds are
-> likely to dominate the profile.
->
-> Flipping through the code, I see that code is getting duplicated agai=
-n.
-> We now have three identical copies of clkdms_setup(). =A0The OMAP4
-> pwrdms_setup() is doing string comparisons to skip powerdomains -- th=
-at's
-> also pretty fragile; that should be controlled through powerdomain fl=
-ags
-> or some similar mechanism. =A0Once that's fixed, it looks to me like =
-that
-> function could be shared with the OMAP34xx pwrdms_setup()? =A0Looks l=
-ike we
-> could also share omap{3,4}_pm_suspend() and omap{2,3,4}_pm_{begin,end=
-}?
->
-> It would be good if we can keep working towards making as much of thi=
-s
-> code as common as possible. =A0If already-tested code can be reused, =
-that
-> should cut down on bugs and maintainer workload. =A0Also, we can avoi=
-d
-> adding unnecessary lines of diff; we are trying to cut that down too.=
-=2E
->
->> > Also all of the open-coded powerdomain register accesses in
->> > omap-mpuss-lowpower.c should be removed - those should all go thro=
-ugh
->> > pwrdm_*() functions...
->> >
->> =A0I will have another look at the code with your recent power domai=
-n
->> clean-ups and see what all can be moved to generic APIs.
->
-> That would be great!
->
->
-> - Paul
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
