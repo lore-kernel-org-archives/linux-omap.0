@@ -1,51 +1,97 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Thu, 2 Feb 2012 12:22:39 -0800
-Message-ID: <20120202202239.GA15590@kroah.com>
-References: <13274430881471@kroah.org>
- <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
- <20120126042155.GA3185@suse.de>
- <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
- <20120126191604.GA15516@suse.de>
- <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
- <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
+Date: Thu, 2 Feb 2012 21:48:13 +0100
+Message-ID: <4F2AF68D.1000505@ti.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com> <1328203851-20435-2-git-send-email-tarun.kanti@ti.com> <20120202184106.GC29215@legolas.emea.dhcp.ti.com> <20120202191630.GT15343@ponder.secretlab.ca> <20120202194545.GA29351@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:46905 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751176Ab2BBUhS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 15:37:18 -0500
-Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 206F6214E2
-	for <linux-omap@vger.kernel.org>; Thu,  2 Feb 2012 15:37:18 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120202194545.GA29351@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com, khilman@ti.com
+Cc: Grant Likely <grant.likely@secretlab.ca>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 02, 2012 at 01:03:01PM -0700, Paul Walmsley wrote:
-> Hi Greg,
-> 
-> On Thu, 26 Jan 2012, Paul Walmsley wrote:
-> 
-> > On Thu, 26 Jan 2012, Greg KH wrote:
-> > 
-> > > Ok, I've just reverted both of these patches for now, please send new
-> > > ones when you have them.
-> > 
-> > Thanks.  A pull request is at the bottom of this message.  The patches 
-> > are also available from the mailing list archives here:
-> > 
-> > http://marc.info/?l=linux-arm-kernel&m=132754676014389&w=2
-> > http://marc.info/?l=linux-arm-kernel&m=132754677914395&w=2
-> > http://marc.info/?l=linux-arm-kernel&m=132754676014388&w=2
-> 
-> Any comments on these? 
+On 2/2/2012 8:45 PM, Felipe Balbi wrote:
+> On Thu, Feb 02, 2012 at 12:16:30PM -0700, Grant Likely wrote:
+>> On Thu, Feb 02, 2012 at 08:41:07PM +0200, Felipe Balbi wrote:
+>>> Hi,
+>>>
+>>> On Thu, Feb 02, 2012 at 11:00:27PM +0530, Tarun Kanti DebBarma wrote:
+>>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>>> index 0b05629..6ea7390 100644
+>>>> --- a/drivers/gpio/gpio-omap.c
+>>>> +++ b/drivers/gpio/gpio-omap.c
+>>>> @@ -28,7 +28,10 @@
+>>>>   #include<asm/gpio.h>
+>>>>   #include<asm/mach/irq.h>
+>>>>
+>>>> +static LIST_HEAD(omap_gpio_list);
+>>>
+>>> I guess it's now too late because patch is acked and everything, but I
+>>> think if you make the driver handle one bank alone and just instantiate
+>>> it multiple times (omap_gpio.0, omap_gpio.1, omap_gpio.3, etc) driver
+>>> would be faaaaaar simpler.
+>>
+>> Is there any shared state between the banks?  On my very cursory glance it
+>> looked like banks still have some interaction between them.  If not, then
+>> yes I agree that multiple instances would be better.
+>
+> A quick glance at the TRM shows that banks have separate address spaces
+> and IRQ lines. I think it's done this way because we can handoff one (or
+> more) bank to other cores on the SoC, so they need to be pretty
+> independent.
+>
+> I could be missing something though.
 
-They are in my to-apply queue, I'm getting to them...
+In fact the driver already handled the 6 GPIOS banks as individual devices:
 
-greg k-h
+[    0.185638] gpiochip_add: registered GPIOs 0 to 31 on device: gpio
+[    0.185882] OMAP GPIO hardware version 0.1
+[    0.186767] gpiochip_add: registered GPIOs 32 to 63 on device: gpio
+[    0.187744] gpiochip_add: registered GPIOs 64 to 95 on device: gpio
+[    0.188751] gpiochip_add: registered GPIOs 96 to 127 on device: gpio
+[    0.189819] gpiochip_add: registered GPIOs 128 to 159 on device: gpio
+[    0.190917] gpiochip_add: registered GPIOs 160 to 191 on device: gpio
+
+That list is only used to iterate over all the instances during CPU idle:
+
+void omap2_gpio_prepare_for_idle(int pwr_mode)
+{
+	struct gpio_bank *bank;
+
+	list_for_each_entry(bank, &omap_gpio_list, node) {
+		if (!bank->mod_usage || !bank->loses_context)
+			continue;
+
+		bank->power_mode = pwr_mode;
+
+		pm_runtime_put_sync_suspend(bank->dev);
+	}
+}
+
+void omap2_gpio_resume_after_idle(void)
+{
+	struct gpio_bank *bank;
+
+	list_for_each_entry(bank, &omap_gpio_list, node) {
+		if (!bank->mod_usage || !bank->loses_context)
+			continue;
+
+		pm_runtime_get_sync(bank->dev);
+	}
+}
+
+
+I don't know if there is some reason to not use driver_for_each_device.
+
+
+Kevin,
+
+Do we have any constraint inside omap_sram_idle to not use the device 
+iterator?
+
+
+Regards,
+Benoit
