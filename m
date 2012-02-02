@@ -1,16 +1,16 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC 7/7] MFD: TWL6040: Add regulator support for
-	VIO, V2V1 supplies
-Date: Thu, 02 Feb 2012 15:18:09 +0200
-Message-ID: <4F2A8D11.9010705@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC 2/7] MFD: twl6040: Convert to i2c driver,
+ and separate it from twl core
+Date: Thu, 2 Feb 2012 13:27:50 +0000
+Message-ID: <20120202132750.GM7428@opensource.wolfsonmicro.com>
 References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328185019-29575-8-git-send-email-peter.ujfalusi@ti.com>
-	<20120202125250.GJ7428@opensource.wolfsonmicro.com>
+	<1328185019-29575-3-git-send-email-peter.ujfalusi@ti.com>
+	<20120202124828.GI7428@opensource.wolfsonmicro.com>
+	<4F2A8912.4070701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/mixed; boundary="===============6179903062096694417=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120202125250.GJ7428@opensource.wolfsonmicro.com>
+In-Reply-To: <4F2A8912.4070701@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -20,75 +20,67 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On 02/02/2012 02:52 PM, Mark Brown wrote:
-> On Thu, Feb 02, 2012 at 02:16:59PM +0200, Peter Ujfalusi wrote:
-> =
 
->> +	twl6040->vio =3D regulator_get(&client->dev, "vio");
->> +	if (IS_ERR(twl6040->vio)) {
->> +		ret =3D PTR_ERR(twl6040->vio);
->> +		dev_err(&client->dev, "Failed to request VIO supply: %d\n",
->> +			ret);
->> +		goto regulator_get_err;
->> +	}
->> +	twl6040->v2v1 =3D regulator_get(&client->dev, "v2v1");
->> +	if (IS_ERR(twl6040->v2v1)) {
->> +		ret =3D PTR_ERR(twl6040->v2v1);
->> +		dev_err(&client->dev, "Failed to request V2V1 supply: %d\n",
->> +			ret);
->> +		regulator_put(twl6040->vio);
->> +		goto regulator_get_err;
->> +	}
-> =
+--===============6179903062096694417==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LJm8egi4vkexsie5"
+Content-Disposition: inline
 
-> Looks like you want regulator_bulk_get() here.  Or (better yet though
-> it'd be a potential issue for merge via MFD and the benefits aren't that
-> exciting since you still need to disable) devm_regulator_bulk_get().
 
-I need separate control for the two power source since we can hit
-different power levels depending on which is powered/not powered:
-power down: vio, v2v1 is OFF
-deep sleep: vio is ON, v2v1 is OFF
-sleep/power on: vio, v2v1 is ON
+--LJm8egi4vkexsie5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-And we have certain sequence to move between power states.
+On Thu, Feb 02, 2012 at 03:01:06PM +0200, Peter Ujfalusi wrote:
+> On 02/02/2012 02:48 PM, Mark Brown wrote:
 
-> =
+> > The calling convention here seems a bit weird too, you've got value then
+> > register but normally we have register then value for I2C/SPI devices.
 
->> +	ret =3D regulator_enable(twl6040->vio);
->> +	if (ret !=3D 0) {
->> +		dev_err(&client->dev, "Failed to enable VIO: %d\n", ret);
->> +		goto power_err;
->> +	}
->> +	ret =3D regulator_enable(twl6040->v2v1);
->> +	if (ret !=3D 0) {
->> +		dev_err(&client->dev, "Failed to enable V2V1: %d\n", ret);
->> +		regulator_disable(twl6040->vio);
+> I have based these part on the twl-core's implementation. I should not
+> have done that, I know.. Let's see how it will look like with regmap.
 
-I disable the vio here, if the v2v1 enable fails.
+Yeah, like I say...
 
->> +		goto power_err;
->> +	}
-> =
+> > Except when we don't :(
 
-> Similarly regulator_bulk_enable() here, and it'll fix...
-> =
+...it's not like we've been consistent so far.  I'm not that fussed
+either way, I probably wouldn't have mentioned it if I hadn't otherwise
+been commenting.
 
->>  gpio1_err:
->> +	regulator_disable(twl6040->v2v1);
->> +	regulator_disable(twl6040->vio);
-> =
+--LJm8egi4vkexsie5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> ...the fact that if you fail to enable the v2.1 regulator you don't
-> disable vio.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-It is handled within the if(){}
-With the devm_regulator this will be much nicer for sure.
+iQIcBAEBAgAGBQJPKo9QAAoJEBus8iNuMP3d8C8P/2APfGHxR50k12kNTnlBiL8y
+n+pO+dZXR1k06mxGl4VRK5LKvtx0CJQj1ZmyiXyjTgcQk8W+HIuVm3UMIN2/X4yO
+mhunULuCrPxzfPyJIaFUejgS85xoQHhWylojfujdbCSlMzFaxBn2iVsu8J4R1t5m
+n/vC/OI8RXB64Bys/XyCAPvJGrRAr5J+S4RuKqImYcbxHtT2NT81h2Y8DiowN0Op
+VVKHOBc37QbHX6YUnDVPBwV4o35hTPh4jMBzGCbfj4Y0SDGfbM/8uIdmQ8IfD0ii
+xPWMgCNZRnxBpFRPZD+r5O/IcwcbT4Dv49CyrDshEqNZLTX94AC+gj3xYn+2Ve7m
+WC/AFT3qfDPGxiztAjjtb3qsnWAXyx3/l2yQrCaqL6b0SEmhJSSE4319kgSj2Ywm
+7cgDWmuiqHJpNaDvOVEb6GoH4QiIdTGiRxAXxihaea4zB9AlDvF8bs5gI1f7z9Q7
+2fl1k9e60J1/JAOiZiHyOzNqiNpBoYhS7MJXknvnzlDaKb2ooKRl8lF4pDH1apBm
+LCvaXxNsx+1Iv4cwBHLD37wJp8AK4HFFEX3PSjaHyzpqThWY7/km1FRCKtuSKyK9
+aNJW2treDVtRBTReVx7dSXeigULGSyX44OJ4Y2KOcm5g0Gyfwe7ThkldYdTfxfep
+HcOl2tNLGICDuTVwQQ1P
+=IGMO
+-----END PGP SIGNATURE-----
 
--- =
+--LJm8egi4vkexsie5--
 
-P=E9ter
+--===============6179903062096694417==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============6179903062096694417==--
