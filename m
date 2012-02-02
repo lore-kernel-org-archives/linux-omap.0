@@ -1,115 +1,68 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [RFC 6/7] OMAP: omap4panda: Add fixed regulator for twl6040 needs
-Date: Thu,  2 Feb 2012 14:16:58 +0200
-Message-ID: <1328185019-29575-7-git-send-email-peter.ujfalusi@ti.com>
+Subject: [RFC 4/7] OMAP: 4430sdp: Correct fixed regulator
+	device ID
+Date: Thu,  2 Feb 2012 14:16:56 +0200
+Message-ID: <1328185019-29575-5-git-send-email-peter.ujfalusi@ti.com>
 References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>
-Cc: Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-The twl6040 VIO power is connected to SMPS V1V8, the
-V2V1 power is coming from SMPS V2V1 of twl6030.
-These are fixed, always on regulators.
-Create fixed voltage regulators for these supplies.
+The board has two fixed voltage regulator. Correct the
+device ID for the vbat, which used -1.
+Create defines for the fixed regulator IDs so when adding new
+regulators we know the next available ID to use for them.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/board-omap4panda.c |   62 +++++++++++++++++++++++++++++++-
- 1 files changed, 61 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index da31a72..4d66c60 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -56,6 +56,10 @@
- #define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index f4ac553..d02172d 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -62,6 +62,9 @@
+ #define GPIO_WIFI_PMENA		54
+ #define GPIO_WIFI_IRQ		53
  
-+#define FIXED_REG_VWLAN_ID	0
-+#define FIXED_REG_V2V1_ID	1
-+#define FIXED_REG_V1V8_ID	2
++#define FIXED_REG_VBAT_ID	0
++#define FIXED_REG_VWLAN_ID	1
 +
- /* wl127x BT, FM, GPS connectivity chip */
- static int wl1271_gpios[] = {46, -1, -1};
- static struct platform_device wl1271_device = {
-@@ -116,10 +120,66 @@ static struct platform_device panda_abe_audio = {
+ static const int sdp4430_keymap[] = {
+ 	KEY(0, 0, KEY_E),
+ 	KEY(0, 1, KEY_R),
+@@ -368,7 +371,7 @@ static struct fixed_voltage_config sdp4430_vbat_pdata = {
+ 
+ static struct platform_device sdp4430_vbat = {
+ 	.name		= "reg-fixed-voltage",
+-	.id		= -1,
++	.id		= FIXED_REG_VBAT_ID,
+ 	.dev = {
+ 		.platform_data = &sdp4430_vbat_pdata,
  	},
- };
- 
-+static struct regulator_consumer_supply panda_vdd_v2v1_supply[] = {
-+	REGULATOR_SUPPLY("v2v1", "1-004b"),
-+};
-+
-+static struct regulator_init_data panda_v2v1smps = {
-+	.constraints = {
-+		.always_on		= true,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(panda_vdd_v2v1_supply),
-+	.consumer_supplies	= panda_vdd_v2v1_supply,
-+};
-+
-+static struct fixed_voltage_config panda_v2v1_pdata = {
-+	.supply_name	= "VDD-V2V1",
-+	.microvolts	= 2100000,
-+	.init_data	= &panda_v2v1smps,
-+	.gpio		= -EINVAL,
-+};
-+
-+static struct platform_device panda_v2v1 = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= FIXED_REG_V2V1_ID,
-+	.dev = {
-+		.platform_data = &panda_v2v1_pdata,
-+	},
-+};
-+
-+static struct regulator_consumer_supply panda_vio_v1v8_supply[] = {
-+	REGULATOR_SUPPLY("vio", "1-004b"),
-+};
-+
-+static struct regulator_init_data panda_v1v8smps = {
-+	.constraints = {
-+		.always_on		= true,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(panda_vio_v1v8_supply),
-+	.consumer_supplies	= panda_vio_v1v8_supply,
-+};
-+
-+static struct fixed_voltage_config panda_v1v8_pdata = {
-+	.supply_name	= "VIO-V1V8",
-+	.microvolts	= 1800000,
-+	.init_data	= &panda_v1v8smps,
-+	.gpio		= -EINVAL,
-+};
-+
-+static struct platform_device panda_v1v8 = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= FIXED_REG_V1V8_ID,
-+	.dev = {
-+		.platform_data = &panda_v1v8_pdata,
-+	},
-+};
-+
- static struct platform_device *panda_devices[] __initdata = {
- 	&leds_gpio,
- 	&wl1271_device,
- 	&panda_abe_audio,
-+	&panda_v1v8,
-+	&panda_v2v1,
- };
- 
- static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-@@ -218,7 +278,7 @@ static struct fixed_voltage_config panda_vwlan = {
+@@ -478,7 +481,7 @@ static struct fixed_voltage_config sdp4430_vwlan = {
  
  static struct platform_device omap_vwlan_device = {
  	.name		= "reg-fixed-voltage",
 -	.id		= 1,
 +	.id		= FIXED_REG_VWLAN_ID,
  	.dev = {
- 		.platform_data = &panda_vwlan,
+ 		.platform_data = &sdp4430_vwlan,
  	},
 -- 
 1.7.8.4
