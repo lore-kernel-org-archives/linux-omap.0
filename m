@@ -1,33 +1,41 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 07/20] ARM: OMAP3+: SmartReflex: clear ERRCONFIG_VPBOUNDINTST only on a need
-Date: Thu, 02 Feb 2012 11:15:38 -0800
-Message-ID: <87d39xcahx.fsf@ti.com>
-References: <1328086199-28486-1-git-send-email-j-pihet@ti.com>
-	<1328086199-28486-8-git-send-email-j-pihet@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
+Date: Thu, 2 Feb 2012 12:16:30 -0700
+Message-ID: <20120202191630.GT15343@ponder.secretlab.ca>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+ <1328203851-20435-2-git-send-email-tarun.kanti@ti.com>
+ <20120202184106.GC29215@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:47093 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932470Ab2BBTQA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 14:16:00 -0500
-Received: by mail-pz0-f54.google.com with SMTP id c6so3018023dae.27
-        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 11:15:34 -0800 (PST)
-In-Reply-To: <1328086199-28486-8-git-send-email-j-pihet@ti.com> (Jean Pihet's
-	message of "Wed, 1 Feb 2012 09:49:46 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120202184106.GC29215@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-Jean Pihet <jean.pihet@newoldbits.com> writes:
+On Thu, Feb 02, 2012 at 08:41:07PM +0200, Felipe Balbi wrote:
+> Hi,
+> 
+> On Thu, Feb 02, 2012 at 11:00:27PM +0530, Tarun Kanti DebBarma wrote:
+> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> > index 0b05629..6ea7390 100644
+> > --- a/drivers/gpio/gpio-omap.c
+> > +++ b/drivers/gpio/gpio-omap.c
+> > @@ -28,7 +28,10 @@
+> >  #include <asm/gpio.h>
+> >  #include <asm/mach/irq.h>
+> >  
+> > +static LIST_HEAD(omap_gpio_list);
+> 
+> I guess it's now too late because patch is acked and everything, but I
+> think if you make the driver handle one bank alone and just instantiate
+> it multiple times (omap_gpio.0, omap_gpio.1, omap_gpio.3, etc) driver
+> would be faaaaaar simpler.
 
-> From: Nishanth Menon <nm@ti.com>
->
-> MIME-Version: 1.0
-> Content-Type: text/plain; charset=UTF-8
-> Content-Transfer-Encoding: 8bit
+Is there any shared state between the banks?  On my very cursory glance it
+looked like banks still have some interaction between them.  If not, then
+yes I agree that multiple instances would be better.
 
-minor: this doesn't belong in the changelog.  I will remove it locally.
-
-Kevin
+g.
