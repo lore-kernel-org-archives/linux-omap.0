@@ -1,14 +1,14 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC 5/7] OMAP: sdp4430: Add fixed regulator for
-	twl6040 needs
-Date: Thu, 2 Feb 2012 12:40:25 +0000
-Message-ID: <20120202124025.GF7428@opensource.wolfsonmicro.com>
+Subject: Re: [RFC 6/7] OMAP: omap4panda: Add fixed regulator
+	for twl6040 needs
+Date: Thu, 2 Feb 2012 12:41:12 +0000
+Message-ID: <20120202124112.GG7428@opensource.wolfsonmicro.com>
 References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328185019-29575-6-git-send-email-peter.ujfalusi@ti.com>
+	<1328185019-29575-7-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4830933798494315922=="
+Content-Type: multipart/mixed; boundary="===============5202645975399160450=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1328185019-29575-6-git-send-email-peter.ujfalusi@ti.com>
+In-Reply-To: <1328185019-29575-7-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -23,56 +23,53 @@ Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lind
 List-Id: linux-omap@vger.kernel.org
 
 
---===============4830933798494315922==
+--===============5202645975399160450==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Zs/RYxT/hKAHzkfQ"
+	protocol="application/pgp-signature"; boundary="5UGlQXeG3ziZS81+"
 Content-Disposition: inline
 
 
---Zs/RYxT/hKAHzkfQ
+--5UGlQXeG3ziZS81+
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Feb 02, 2012 at 02:16:57PM +0200, Peter Ujfalusi wrote:
+On Thu, Feb 02, 2012 at 02:16:58PM +0200, Peter Ujfalusi wrote:
 > The twl6040 VIO power is connected to SMPS V1V8, the
 > V2V1 power is coming from SMPS V2V1 of twl6030.
 > These are fixed, always on regulators.
 > Create fixed voltage regulators for these supplies.
 
-Shouldn't the PMIC be creating the relevant fixed voltage regulators?
-It's a bit clearer given that the supplies actually come from the PMIC
-and it would cut down a bit on the boilerplate in boards (though much
-less so with device tree, sadly).
+Same issue as previously, shouldn't the PMIC create the regulators?
 
---Zs/RYxT/hKAHzkfQ
+--5UGlQXeG3ziZS81+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPKoQzAAoJEBus8iNuMP3dK7sQAINNif96qMJcL2Mx7K0JhuAg
-VPMrXsBVusY2fRoGOwzmxRgRb/pH9g17n/g9tuLfmOdx84gUT6gpkfJjbbEFLr+Q
-UCT5OEBTtth8Cba55pqmcLFn+6l8C2wkeXbsNyErZlAdb3qX3SMywqmmWtEpT7Km
-CYzPErwA7SaYb7/fCfvklEZJQKVlV0t3Ra59e5y958KMYOkEa39zscezLur/AgWv
-S98zSUb9DSfnIDPNegAy1Fif9csAcXY96pIdwzLHnxsq51knU4RkjbK0jcC2eROp
-1mxCZT6ZK8rW2E0VPQeldr8U2qhqf42kjBv5b+/ttGcSqZu6qXwH272//+Wcn3pW
-EpdSgW2ajEwUTKWk9dO+jBYMQaez2oERcThE116/9wuoDTV6b50l1DyvgnnQiFgv
-WgfDFHz115zHBC1+EttTb5BOyVww7V44Qp4Tb8V9+MJrERAUle3ke47ckYBd21so
-9JIVX4QkvOBQ1Fii0vlf8xBXDGlOpkWGM+DRDotwVnVhAGiamUxslBmtlEzsET1V
-osSol9FL6+qyeYErMHHNcpU045VnZpC/JlQ8Yyu2IkpMfvMkJe4HiuBkYp6iifFX
-lqVIkAE2ZVVpCm+GAm6TKnu348zha2U6Av+khp9W+OvQmvfFDW50qgqnXPWrjVSC
-+o/RsLPp5bSj4jEizLLo
-=pA51
+iQIcBAEBAgAGBQJPKoRhAAoJEBus8iNuMP3drgEP/3H7Cx6Ymsi+NQUG2Ku0d/tq
+MVkeUHFvc3QInl1DQHI/qMp8dJSnQBgPr+95cmRbh9Yfv/6RD//b/i3VAZJ4sWOx
+9p6UEyT784IWYk5lXiXh/wQOC/eqCLFKVhg39jmbjkGA+nhDQgoUhHRjn9GLE4iV
+wb19mj/QZEN4HhCfDiJF6TJur2YnjIldKJDw66WJ06V9eLfrTs/jw0MGYFAHTomj
+FerFax0nPlSj6f0P0WrSoJ1kIRxdJT6GZksqYCAyZZHTTtKmZdYkTsxrsnYsKnWN
+L4Jk+JlgvuzGbB5cCJCL8s4+h5SWbJaebtXIXCLyKPjBwWU+/0t7JRLTjPLyn9+8
+kJYhliTHX0r1CfTXbXHocTLp3YOQOfQGdWeXbzIif/XplgpzESuITC0EjC+K7/SG
+84XtTFSS5bX4PAIxxtVESMW4+mUQmYueoRpYqorBhD2w6EbfwWUqEWe7VnnYgD+a
+9lIp5FLkW7PYzyEKhNSdYUOwaOAoYM/5+fY8hE7yBwb088GrSPTCwQSyF5TAgk42
+sVF6wI7LiEp4xa6jrdxTQN4qL+PYpLH87hytS+ixtna0Mae0ehYKn/ZBq8L5PzF/
+u8/u7gdgQ3iSWbQgrEY+nJwnk1chQZKHBUFTNGVxKLE3D+/kF/S84x7eUvUz5JxU
+/ljzWMAUHDy20A9ecaMD
+=eIkI
 -----END PGP SIGNATURE-----
 
---Zs/RYxT/hKAHzkfQ--
+--5UGlQXeG3ziZS81+--
 
---===============4830933798494315922==
+--===============5202645975399160450==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============4830933798494315922==--
+--===============5202645975399160450==--
