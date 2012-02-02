@@ -1,36 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the suspend is not implemented
-Date: Thu, 2 Feb 2012 19:40:26 +0100
-Message-ID: <201202021940.26552.rjw@sisk.pl>
-References: <1327306361-9803-1-git-send-email-shubhrajyoti@ti.com> <201201302358.26152.rjw@sisk.pl> <1328183022.28171.165.camel@sauron.fi.intel.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
+Date: Thu, 02 Feb 2012 10:38:31 -0800
+Message-ID: <87ty39cc7s.fsf@ti.com>
+References: <20120202093600.12509.35052.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:34357 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756276Ab2BBSgo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Feb 2012 13:36:44 -0500
-In-Reply-To: <1328183022.28171.165.camel@sauron.fi.intel.com>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:55555 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757092Ab2BBSi3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 13:38:29 -0500
+Received: by mail-pw0-f50.google.com with SMTP id d12so3300620pbd.9
+        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 10:38:28 -0800 (PST)
+In-Reply-To: <20120202093600.12509.35052.stgit@dusk> (Paul Walmsley's message
+	of "Thu, 02 Feb 2012 02:38:48 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind1@gmail.com, David Woodhouse <dwmw2@infradead.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Brian Norris <computersforpeace@gmail.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, santosh.shilimkar@ti.com, rnayak@ti.com
 
-On Thursday, February 02, 2012, Artem Bityutskiy wrote:
-> On Mon, 2012-01-30 at 23:58 +0100, Rafael J. Wysocki wrote:
-> > Thanks, but is anyone actually going to push it to Linus any time soon?
-> 
-> I agree, but I am not the maintainer so cannot answer. David Woodhouse
-> is aware of this, but I do not know when he gonna send the pull request.
+Paul Walmsley <paul@pwsan.com> writes:
 
-Well, the problem is being reported by more and more people, so I'd
-like to push the fix quickly.
+> Hi
+>
+> This series consolidates some duplicated PM code across OMAP2, 3, and 4.
+> This saves both binary kernel image size, and lines of source.  These
+> functions are just the low-hanging fruit; it looks to me like there's even
+> more consolidation that could be done.
+>
+> Suspend + UART wakeup was tested on OMAP44xx BeagleBoard.  
 
-David, please let me know if you don't want me to include the $subject patch
-into the next PM fixes pull request.  If I don't hear from you, I'll push it
-next week for -rc4.
+I assume you meant Panda board?
 
-Thanks,
-Rafael
+> On the OMAP35xx Beagleboard here, v3.3-rc2 doesn't seem to wake up
+> from suspend correctly with or without these patches, so I've only
+> boot-tested them on that platform.
+
+I also tested idle & suspend + UART wakeup on 3430/n900, 3530/Overo.
+
+Will add these to my cleanup queue for v3.4[1] after adding a Tested-by
+from Santosh.
+
+Kevin
+
+[1]
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/cleanup/pm
