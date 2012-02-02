@@ -1,79 +1,50 @@
-From: "Hiremath, Vaibhav" <hvaibhav-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] arm/dts: OMAP3: Add omap3evm and am335xevm support
-Date: Thu, 2 Feb 2012 09:34:53 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317BCD98@DBDE01.ent.ti.com>
-References: <1328077620-22411-1-git-send-email-hvaibhav@ti.com>
- <20120202045629.GJ15343@ponder.secretlab.ca>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
+Date: Thu, 02 Feb 2012 02:38:48 -0700
+Message-ID: <20120202093600.12509.35052.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120202045629.GJ15343-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:57781 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754589Ab2BBJj6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 04:39:58 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, santosh.shilimkar@ti.com, rnayak@ti.com
 
-On Thu, Feb 02, 2012 at 10:26:29, Grant Likely wrote:
-> On Wed, Feb 01, 2012 at 11:57:00AM +0530, Vaibhav Hiremath wrote:
-> > TI's OMAP3EVM and AM335xEVM are software development boards
-> > available for OMAP35x(AM/DM37x) and AM335x devices respectively;
-> > and these devices are considered under omap3 family.
-> > 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav-l0cyMroinI0@public.gmane.org>
-> > Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-> > Cc: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-> > Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-> 
-> Applied, thanks.
-> 
+Hi
 
-Benoit and/or Grant,
+This series consolidates some duplicated PM code across OMAP2, 3, and 4.
+This saves both binary kernel image size, and lines of source.  These
+functions are just the low-hanging fruit; it looks to me like there's even
+more consolidation that could be done.
 
-Can you also pull-in/merge all other patches which I had submitted recently?
+Suspend + UART wakeup was tested on OMAP44xx BeagleBoard.  On the
+OMAP35xx Beagleboard here, v3.3-rc2 doesn't seem to wake up from
+suspend correctly with or without these patches, so I've only boot-tested
+them on that platform.
 
-arm/dts: omap3-evm: Add i2c and twl4030 support
-arm/dts: Add support for TI AM3517/05 EVM board
-arm:omap2:board-generic: Add DT support for AM33xx devices
-arm/dts: Add support for TI AM335x EVM board
+- Paul
 
-Thanks,
-Vaibhav
-> g.
-> 
-> > ---
-> >  .../devicetree/bindings/arm/omap/omap.txt          |    6 ++++++
-> >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/arm/omap/omap.txt b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> > index dbdab40..ce78498 100644
-> > --- a/Documentation/devicetree/bindings/arm/omap/omap.txt
-> > +++ b/Documentation/devicetree/bindings/arm/omap/omap.txt
-> > @@ -41,3 +41,9 @@ Boards:
-> > 
-> >  - OMAP4 PandaBoard : Low cost community board
-> >    compatible = "ti,omap4-panda", "ti,omap4430"
-> > +
-> > +- OMAP3 EVM : Software Developement Board for OMAP35x, AM/DM37x
-> > +  compatible = "ti,omap3-evm", "ti,omap3"
-> > +
-> > +- AM335X EVM : Software Developement Board for AM335x
-> > +  compatible = "ti,am335x-evm", "ti,am33xx", "ti,omap3"
-> > --
-> > 1.7.0.4
-> > 
-> > 
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+---
+
+pm_cleanup_b_3.4
+   text	   data	    bss	    dec	    hex	filename
+6596402	 680284	5593820	12870506	 c4636a	vmlinux.orig
+6596230	 680292	5593756	12870278	 c46286	vmlinux.patched
+
+Paul Walmsley (2):
+      ARM: OMAP2+: PM: share clkdms_setup() across OMAP2, 3, 4
+      ARM: OMAP2+: PM: share some suspend-related functions across OMAP2, 3, 4
+
+
+ arch/arm/mach-omap2/pm.c     |   74 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h     |    2 +
+ arch/arm/mach-omap2/pm24xx.c |   69 +++------------------------------------
+ arch/arm/mach-omap2/pm34xx.c |   73 ++++-------------------------------------
+ arch/arm/mach-omap2/pm44xx.c |   57 ++------------------------------
+ 5 files changed, 91 insertions(+), 184 deletions(-)
+
