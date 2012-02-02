@@ -1,61 +1,111 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v9 24/25] gpio/omap: restore OE only after setting the output
- level
-Date: Thu, 2 Feb 2012 23:00:50 +0530
-Message-ID: <1328203851-20435-25-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v9 19/25] gpio/omap: fix debounce clock handling
+Date: Thu, 2 Feb 2012 23:00:45 +0530
+Message-ID: <1328203851-20435-20-git-send-email-tarun.kanti@ti.com>
 References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, Nishanth Menon <nm@ti.com>, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Nishanth Menon <nm@ti.com>
+The dbck_enable_mask indicates which all GPIOs within a bank have debounce
+enabled and dbck is enabled/disabled based upon this. But there is no
+mechanism to track the dbck state. In order to manage the dbck state we need
+additional flag and logic so that turning off/on dbck is synchronized with
+pm_runtime_put/get_sync calls.
 
-Setup the dataout register before restoring OE. This is to make
-sure that we have valid data in dataout register which would be
-made available in output pins as soon as OE is enabled. Else,
-there is risk of unknown data getting out into gpio pins.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/gpio/gpio-omap.c |   29 +++++++++++++++++++----------
+ 1 files changed, 19 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 36aaea7..81fdbcf 100644
+index 8b619fd..0ea3dc9 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -1351,7 +1351,6 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 	__raw_writel(bank->context.wake_en,
- 				bank->base + bank->regs->wkup_en);
- 	__raw_writel(bank->context.ctrl, bank->base + bank->regs->ctrl);
--	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
- 	__raw_writel(bank->context.leveldetect0,
- 				bank->base + bank->regs->leveldetect0);
- 	__raw_writel(bank->context.leveldetect1,
-@@ -1361,6 +1360,8 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
- 	__raw_writel(bank->context.fallingdetect,
- 				bank->base + bank->regs->fallingdetect);
- 	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
-+	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
+@@ -67,6 +67,7 @@ struct gpio_bank {
+ 	struct clk *dbck;
+ 	u32 mod_usage;
+ 	u32 dbck_enable_mask;
++	bool dbck_enabled;
+ 	struct device *dev;
+ 	bool is_mpuio;
+ 	bool dbck_flag;
+@@ -158,6 +159,22 @@ static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
+ 	__raw_writel(l, base + reg);
+ }
+ 
++static inline void _gpio_dbck_enable(struct gpio_bank *bank)
++{
++	if (bank->dbck_enable_mask && !bank->dbck_enabled) {
++		clk_enable(bank->dbck);
++		bank->dbck_enabled = true;
++	}
++}
 +
- 	if (bank->dbck_enable_mask) {
- 		__raw_writel(bank->context.debounce, bank->base +
- 					bank->regs->debounce);
++static inline void _gpio_dbck_disable(struct gpio_bank *bank)
++{
++	if (bank->dbck_enable_mask && bank->dbck_enabled) {
++		clk_disable(bank->dbck);
++		bank->dbck_enabled = false;
++	}
++}
++
+ /**
+  * _set_gpio_debounce - low level gpio debounce time
+  * @bank: the gpio bank we're acting upon
+@@ -1176,6 +1193,7 @@ save_gpio_context:
+ 				bank->get_context_loss_count(bank->dev);
+ 
+ 	omap_gpio_save_context(bank);
++	_gpio_dbck_disable(bank);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+@@ -1190,6 +1208,7 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
++	_gpio_dbck_enable(bank);
+ 	if (!bank->enabled_non_wakeup_gpios || !bank->workaround_enabled) {
+ 		spin_unlock_irqrestore(&bank->lock, flags);
+ 		return 0;
+@@ -1271,16 +1290,11 @@ void omap2_gpio_prepare_for_idle(int pwr_mode)
+ 	struct gpio_bank *bank;
+ 
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		int j;
+-
+ 		if (!bank->mod_usage || !bank->loses_context)
+ 			continue;
+ 
+ 		bank->power_mode = pwr_mode;
+ 
+-		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+-			clk_disable(bank->dbck);
+-
+ 		pm_runtime_put_sync_suspend(bank->dev);
+ 	}
+ }
+@@ -1290,14 +1304,9 @@ void omap2_gpio_resume_after_idle(void)
+ 	struct gpio_bank *bank;
+ 
+ 	list_for_each_entry(bank, &omap_gpio_list, node) {
+-		int j;
+-
+ 		if (!bank->mod_usage || !bank->loses_context)
+ 			continue;
+ 
+-		for (j = 0; j < hweight_long(bank->dbck_enable_mask); j++)
+-			clk_enable(bank->dbck);
+-
+ 		pm_runtime_get_sync(bank->dev);
+ 	}
+ }
 -- 
 1.7.0.4
