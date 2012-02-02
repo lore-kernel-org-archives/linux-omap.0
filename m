@@ -1,110 +1,72 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC 7/7] MFD: TWL6040: Add regulator support for
- VIO, V2V1 supplies
-Date: Thu, 2 Feb 2012 12:52:50 +0000
-Message-ID: <20120202125250.GJ7428@opensource.wolfsonmicro.com>
-References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328185019-29575-8-git-send-email-peter.ujfalusi@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC 2/7] MFD: twl6040: Convert to i2c driver, and separate it
+ from twl core
+Date: Thu, 02 Feb 2012 15:01:06 +0200
+Message-ID: <4F2A8912.4070701@ti.com>
+References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com> <1328185019-29575-3-git-send-email-peter.ujfalusi@ti.com> <20120202124828.GI7428@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============7424103933356858824=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1328185019-29575-8-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120202124828.GI7428@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Dmitry Torokhov <dtor@mail.ru>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
+On 02/02/2012 02:48 PM, Mark Brown wrote:
+> On Thu, Feb 02, 2012 at 02:16:54PM +0200, Peter Ujfalusi wrote:
+>=20
+>> +static int twl6040_i2c_read(struct i2c_client *i2c, u8 *value, u8 r=
+eg)
+>> +{
+>> +	struct i2c_msg msg[2];
+>> +	int ret;
+>=20
+> May as well convert to regmap while you're at it, saves some code and
+> will get you access to the regmap features - you have to make updates=
+ in
+> all the relevant places anyway.  We should be pushing to remove use o=
+f
+> the ASoC level code for register cache and whatnot to cut down on cod=
+e
+> duplication (especially for MFDs where it has a few issues interactin=
+g
+> with the MFD) and this seems like a good opportunity.
 
---===============7424103933356858824==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="gBdJBemW82xJqIAr"
-Content-Disposition: inline
+True.
+I have done the bulk of this set back in June, 2011 and thought that I
+will do the move to regmap as increment, but you are right. I'm anyway
+touching the relevant places, so why not do it properly?
+I'll take the regmap into use for  v2.
 
+> The calling convention here seems a bit weird too, you've got value t=
+hen
+> register but normally we have register then value for I2C/SPI devices=
+=2E
 
---gBdJBemW82xJqIAr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have based these part on the twl-core's implementation. I should not
+have done that, I know.. Let's see how it will look like with regmap.
 
-On Thu, Feb 02, 2012 at 02:16:59PM +0200, Peter Ujfalusi wrote:
+> Except when we don't :(
+>=20
+>> -module_platform_driver(twl6040_driver);
+>> +static int __devinit twl6040_init(void)
+>> +{
+>> +	return i2c_add_driver(&twl6040_driver);
+>> +}
+>> +module_init(twl6040_init);
+>> +
+>> +static void __devexit twl6040_exit(void)
+>> +{
+>> +	i2c_del_driver(&twl6040_driver);
+>> +}
+>> +
+>> +module_exit(twl6040_exit);
+>=20
+> There's module_i2c_driver() in mainline as of the last merge window.
 
-> +	twl6040->vio = regulator_get(&client->dev, "vio");
-> +	if (IS_ERR(twl6040->vio)) {
-> +		ret = PTR_ERR(twl6040->vio);
-> +		dev_err(&client->dev, "Failed to request VIO supply: %d\n",
-> +			ret);
-> +		goto regulator_get_err;
-> +	}
-> +	twl6040->v2v1 = regulator_get(&client->dev, "v2v1");
-> +	if (IS_ERR(twl6040->v2v1)) {
-> +		ret = PTR_ERR(twl6040->v2v1);
-> +		dev_err(&client->dev, "Failed to request V2V1 supply: %d\n",
-> +			ret);
-> +		regulator_put(twl6040->vio);
-> +		goto regulator_get_err;
-> +	}
+Oh, good to know. Thanks
 
-Looks like you want regulator_bulk_get() here.  Or (better yet though
-it'd be a potential issue for merge via MFD and the benefits aren't that
-exciting since you still need to disable) devm_regulator_bulk_get().
-
-> +	ret = regulator_enable(twl6040->vio);
-> +	if (ret != 0) {
-> +		dev_err(&client->dev, "Failed to enable VIO: %d\n", ret);
-> +		goto power_err;
-> +	}
-> +	ret = regulator_enable(twl6040->v2v1);
-> +	if (ret != 0) {
-> +		dev_err(&client->dev, "Failed to enable V2V1: %d\n", ret);
-> +		regulator_disable(twl6040->vio);
-> +		goto power_err;
-> +	}
-
-Similarly regulator_bulk_enable() here, and it'll fix...
-
->  gpio1_err:
-> +	regulator_disable(twl6040->v2v1);
-> +	regulator_disable(twl6040->vio);
-
-...the fact that if you fail to enable the v2.1 regulator you don't
-disable vio.
-
---gBdJBemW82xJqIAr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPKocbAAoJEBus8iNuMP3dZ34P/0eSJ5nReLPQ7l+MLlZHOY/Q
-Z993OIDFDzV1VpQqU0FcrVZOhHQ/FAnzjUYQLHU6K974ZwF5ZbgE3OGTklhFSp5N
-3XovWeyaf4vWlYNtXjOlCtXdjTGmmxKeN69IGUsijy6Wc9+NDnYIdqwS/FYmcJRS
-ygGzpdsSFM7/AexQSlbW1GVCkX264MrnkoC84ucO+stmAVrhvthLm7591AMmkJNn
-EkzaSID0VZWYACIt+s0ANHR2cBER7/tPK8pkJKqMDXCW0SCnlpfsp2b7iudwkRX2
-Ua6vxCN7Y31wfpD/OKn8VMtayPutF0hJYSRibFZ8crgAHS/ctw0Mf4YXgtGLGBLU
-EAKL88xZF15TqMMT6fcnKWrIC9FKAgukfsuHnhxTLqxHyTdLS1B2xYQbjpvboUq6
-Mnqj8NhlAHxVee9mAb8onMQuzdXxsyWgZwehtIlQkW0AbZtuVU4Ah4DG7++K/iad
-hBC6sD7mH4HYpxcYw26fIuZdoM8gakAunV963uHHYoQUkSBYhyPotjbuXSZFs6J0
-N9OFfKZdbh/5hEbHWV5bJftrT0XzfekN66Rvle7s9WjpUMV6RTZhGRHpM8C+MhT1
-8yFcZhr+RqDCpbWV9jL7wQqrB2NdqJpneIZtI7nAd13KAIFglz/OvZ0DLi7LJo+y
-hBTmYQNy1Um9O4ZioqRd
-=278o
------END PGP SIGNATURE-----
-
---gBdJBemW82xJqIAr--
-
---===============7424103933356858824==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============7424103933356858824==--
+--=20
+P=E9ter
