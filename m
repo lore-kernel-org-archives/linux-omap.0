@@ -1,59 +1,66 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP2+: PM: code consolidation for 3.4
-Date: Thu, 2 Feb 2012 16:55:43 +0530
-Message-ID: <CAMQu2gyKEFHAXYyhv=a6NW-AMsDHkBy+bYmhQ5ryJCQK_d_RBA@mail.gmail.com>
-References: <20120202093600.12509.35052.stgit@dusk>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the
+ suspend is not implemented
+Date: Thu, 02 Feb 2012 13:43:42 +0200
+Message-ID: <1328183022.28171.165.camel@sauron.fi.intel.com>
+References: <1327306361-9803-1-git-send-email-shubhrajyoti@ti.com>
+	 <20120124090630.GR16726@n2100.arm.linux.org.uk>
+	 <1327923953.2487.13.camel@sauron.fi.intel.com>
+	 <201201302358.26152.rjw@sisk.pl>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-ntbN+tCGDAD6+iGt6fgJ"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:33515 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755475Ab2BBL0F convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Feb 2012 06:26:05 -0500
-Received: by qcsd17 with SMTP id d17so1428819qcs.40
-        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 03:26:03 -0800 (PST)
-In-Reply-To: <20120202093600.12509.35052.stgit@dusk>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:57272 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755753Ab2BBLlq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 06:41:46 -0500
+Received: by pbdu11 with SMTP id u11so1946418pbd.19
+        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 03:41:45 -0800 (PST)
+In-Reply-To: <201201302358.26152.rjw@sisk.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, rnayak@ti.com
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, David Woodhouse <dwmw2@infradead.org>, Brian Norris <computersforpeace@gmail.com>, Shubhrajyoti D <shubhrajyoti@ti.com>, linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 2, 2012 at 3:08 PM, Paul Walmsley <paul@pwsan.com> wrote:
-> Hi
->
-> This series consolidates some duplicated PM code across OMAP2, 3, and=
- 4.
-> This saves both binary kernel image size, and lines of source. =A0The=
-se
-> functions are just the low-hanging fruit; it looks to me like there's=
- even
-> more consolidation that could be done.
->
-> Suspend + UART wakeup was tested on OMAP44xx BeagleBoard. =A0On the
-> OMAP35xx Beagleboard here, v3.3-rc2 doesn't seem to wake up from
-> suspend correctly with or without these patches, so I've only boot-te=
-sted
-> them on that platform.
->
-Thanks for patches. Tried them on OMAP4 SDP and suspend
-is fine on it.
 
-On the consolidation front, I found that OMAP4/OMAP5
-can almost share most of the PRCM code.
-Actually it's too early to talk about OMAP5 patches, which are not even=
- posted
-yet but just thought of mentioning that on this relevant thread.
+--=-ntbN+tCGDAD6+iGt6fgJ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I can send you a git link to have early preview on those changes, if yo=
-u
-would like to have a look at it.
+On Mon, 2012-01-30 at 23:58 +0100, Rafael J. Wysocki wrote:
+> Thanks, but is anyone actually going to push it to Linus any time soon?
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I agree, but I am not the maintainer so cannot answer. David Woodhouse
+is aware of this, but I do not know when he gonna send the pull request.
+
+--=20
+Best Regards,
+Artem Bityutskiy
+
+--=-ntbN+tCGDAD6+iGt6fgJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPKnbuAAoJECmIfjd9wqK0LAsQAJFiuyXBDpjngQibNdRcbc4J
+IL7jDaixrnyvMY8G5qMCxrN0kfSmNwfgU6LEVwt9NCe7rl3oTruFiTA3oz9hdWT3
+kg6bV9WiOt0U/1I6IhsuOokiQtE61qkBRkhZpazCiS83QMejpgVPw91QxWXfbt6Z
+GhVnLzRmeDx4VGn26N3C9pYGRMw7lt61GYYcGjnejjozyh0FFyHQzotvzkkG7fu8
+AYUQuFEa/KefOXSC3+NEQqqqC9XkqkApl/zWGJLm1A6AWpArsB9YcuSzzFHotCNB
+PrHo6Epjopd5nfNkHWk0hDwPa4gXM9gOhIKR2J9lD24kufcA/AcgfujFcxU5oGGl
+PisbYKgKMdXMozBburzodn4/x6wOkip0stqI5GBgmjcvkp9YegjydhEkFvoUOP2d
+RpAe3EO11T777wCa4+2qnD6d8P/Mtnvc+B/4Ix+9QCr8EaMM79bBMXzLrUbot/l+
+jHBQRuZ56cWf+U3hqzxIrVkvjA2g4Ae+r9VOok9aZfbSIRgbCjl1Cr9CrI6gQj9F
++EUWN3CjZyLuViV5LGWOzB443kB5uyorRed5WR3IiI7o/pO6iwGT7VQGuI7j0Q/X
+xmzSIumixMH4/kEvOKrGSEu5oKL8xPMd7xYHcN3y99D5vQl6O2FPCm7D0KUYRhjY
+9kO8pYIzpTEy5caUXn2i
+=Dkax
+-----END PGP SIGNATURE-----
+
+--=-ntbN+tCGDAD6+iGt6fgJ--
+
