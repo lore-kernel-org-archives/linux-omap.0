@@ -1,129 +1,182 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC idle 2/3] arm: Avoid invoking RCU when CPU is idle
-Date: Thu, 2 Feb 2012 09:43:37 -0800
-Message-ID: <20120202174337.GS2518@linux.vnet.ibm.com>
-References: <20120202004253.GA10946@linux.vnet.ibm.com>
- <1328143404-11038-1-git-send-email-paulmck@linux.vnet.ibm.com>
- <1328143404-11038-2-git-send-email-paulmck@linux.vnet.ibm.com>
- <alpine.LFD.2.02.1202012234050.2759@xanadu.home>
- <20120202044439.GD2435@linux.vnet.ibm.com>
- <alpine.LFD.2.02.1202021159560.2759@xanadu.home>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH-V2 3/3] arm:omap:omap4: Hook-up am33xx support to existing prm code
+Date: Thu, 02 Feb 2012 09:59:46 -0800
+Message-ID: <87d39xdskt.fsf@ti.com>
+References: <1326017894-7632-1-git-send-email-hvaibhav@ti.com>
+	<1326017894-7632-4-git-send-email-hvaibhav@ti.com>
+	<87zkdvpgz1.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317AF316@DBDE01.ent.ti.com>
+	<877h0ikpxn.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317BB167@DBDE01.ent.ti.com>
+	<87obtifofv.fsf@ti.com>
+	<79CD15C6BA57404B839C016229A409A8317BCD83@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.02.1202021159560.2759@xanadu.home>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, H Hartley Sweeten <hsweeten@visionengravers.com>, Magnus Damm <magnus.damm@gmail.com>, Will Deacon <will.deacon@arm.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Sekhar Nori <nsekhar@ti.com>, josh@joshtriplett.org, rostedt@goodmis.org, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Barry Song <baohua.song@csr.com>, tglx@linutro
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41004 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754309Ab2BBR7q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 12:59:46 -0500
+Received: by mail-pw0-f46.google.com with SMTP id u11so2202364pbd.19
+        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 09:59:44 -0800 (PST)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8317BCD83@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Thu, 2 Feb 2012 09:28:59 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Thu, Feb 02, 2012 at 12:13:00PM -0500, Nicolas Pitre wrote:
-> On Wed, 1 Feb 2012, Paul E. McKenney wrote:
-> 
-> > On Wed, Feb 01, 2012 at 10:49:22PM -0500, Nicolas Pitre wrote:
-> > > On Wed, 1 Feb 2012, Paul E. McKenney wrote:
-> > > 
-> > > > From: "Paul E. McKenney" <paul.mckenney@linaro.org>
-> > > > 
-> > > > The idle loop is a quiscent state for RCU, which means that RCU ignores
-> > > > CPUs that have told RCU that they are idle via rcu_idle_enter().
-> > > > There are nevertheless quite a few places where idle CPUs use RCU, most
-> > > > commonly indirectly via tracing.  This patch fixes these problems for ARM.
-> > > > 
-> > > > Many of these bugs have been in the kernel for quite some time, but
-> > > > Frederic's recent change now gives warnings.
-> > > > 
-> > > > This patch takes the straightforward approach of pushing the
-> > > > rcu_idle_enter()/rcu_idle_exit() pair further down into the core of the
-> > > > idle loop.
-> > > 
-> > > NAK.
-> > > 
-> > > 1) This is going to conflict with a patch series I've pushed to RMK 
-> > >    already.  You can see its result in linux-next.
-> > > 
-> > > 2) The purpose of (1) is to do precisely the very opposite i.e. move as 
-> > >    much common knowledge as possible up the idle call paths and leave 
-> > >    the platform specific quirks as bare as possible, if any.
-> > > 
-> > > So I'd much prefer if this change was constrained to be inside 
-> > > cpu_idle(), or at least in its close vicinity.
-> > 
-> > OK.  Then the tracing in the inner idle loop needs to go.  Other
-> > restructuring might be required as well. 
-> 
-> Let me expand a bit more on the "if any" in my #2 above.  Most ARM 
-> sub-architectures don't have any special idle drivers and they simply 
-> rely on the default cpu_do_idle call.  What this proposed patch is doing 
-> is to move the rcu_idle_enter()/rcu_idle_exit() pair down into the few 
-> subarchs with an existing cpu-idle callback.  This means in practice 
-> that rcu_idle_enter()/rcu_idle_exit() wouldn't be called at all anymore 
-> on most ARM targets.  Is that appropriate?
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 
-Now that you put it that way, it does seem to have severe disadvantages.
-Good thing I tagged the patches as RFC.  ;-)
+> On Wed, Feb 01, 2012 at 23:03:56, Hilman, Kevin wrote:
+>> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+>> 
+>> > On Tue, Jan 24, 2012 at 04:05:32, Hilman, Kevin wrote:
+>> >> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+>> >> 
+>> >> > On Wed, Jan 11, 2012 at 21:48:25, Hiremath, Vaibhav wrote:
+>> >> >> On Tue, Jan 10, 2012 at 23:39:22, Hilman, Kevin wrote:
+>> >> >> > Vaibhav Hiremath <hvaibhav@ti.com> writes:
+>> >> >> > 
+>> >> >> > > AM33XX PRM module (L4_WK domain) will be treated as another seperate
+>> >> >> > > partition in _prm_bases[] table.
+>> >> >> > >
+>> >> >> > > Also, since cpu_is_omap34xx check is true for am33xx family of
+>> >> >> > > devices, we must check cpu_is_am33xx fisrt, in order to follow
+>> >> >> > > omap4 execution path.
+>> >> >> > 
+>> >> >> > Can you remind me why cpu_is_omap34xx() is true for AM33xx family?
+>> >> >> 
+>> >> >> Yeah sure...
+>> >> >> 
+>> >> >> Kevin,
+>> >> >> As mentioned before, the main idea behind bringing am33xx under omap34xx
+>> >> >> was mainly due to "cortex-A8 family of devices".
+>> >> >> 
+>> >> >> It has been discussed and aligned long time back, so
+>> >> >> please refer to the thread -
+>> >> >> 
+>> >> >> http://www.spinics.net/lists/linux-omap/msg41046.html
+>> >> >> Multiple versions of -
+>> >> >> http://www.spinics.net/lists/linux-omap/msg45505.html
+>> >> >> 
+>> >> >> Thanks,
+>> >> >> Vaibhav
+>> >> >> 
+>> >> >> > These AM3xxx devices make my brain hurt.
+>> >> >> > 
+>> >> >> > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>> >> >> > > Cc: Kevin Hilman <khilman@ti.com>
+>> >> >> > > Cc: Rajendra Nayak <rnayak@ti.com>
+>> >> >> > 
+>> >> >> > [...]
+>> >> >> > 
+>> >> >> > > diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+>> >> >> > > index 3d9894f..fcc4123 100644
+>> >> >> > > --- a/arch/arm/mach-omap2/prminst44xx.c
+>> >> >> > > +++ b/arch/arm/mach-omap2/prminst44xx.c
+>> >> >> > > @@ -19,6 +19,7 @@
+>> >> >> > >  #include "common.h"
+>> >> >> > >
+>> >> >> > >  #include "prm44xx.h"
+>> >> >> > > +#include "prm33xx.h"
+>> >> >> > >  #include "prminst44xx.h"
+>> >> >> > >  #include "prm-regbits-44xx.h"
+>> >> >> > >  #include "prcm44xx.h"
+>> >> >> > > @@ -31,6 +32,7 @@ static u32 _prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+>> >> >> > >  	[OMAP4430_CM2_PARTITION]		= 0,
+>> >> >> > >  	[OMAP4430_SCRM_PARTITION]		= 0,
+>> >> >> > >  	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+>> >> >> > > +	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
+>> >> >> > >  };
+>> >> >> > 
+>> >> >> > I'm not crazy about just extending the "normal" OMAP4 table.  
+>> >> >> 
+>> >> >> If it is required then yes (with proper comment).
+>> >> >> 
+>> >> >> > That would
+>> >> >> > imply that with each OMAP4 derivatve we keep extending this table.
+>> >> >> > 
+>> >> >> 
+>> >> >> I would say anyway we will end up adding
+>> >> >> Cpu_is_xxx everywhere as we add new table for derivatives.
+>> >> >> 
+>> >> >> > Instead, how about rename this to one to omap44xx_prm_bases[], then
+>> >> >> > create a new one called am33xx_prm_bases[].  Then, at init time, assing
+>> >> >> > _prm_bases to the right one based on cpu_is_.
+>> >> >> > 
+>> >> >> 
+>> >> >> Just wanted to avoid cpu_is_xxxx check here. Will specific comment wouldn't
+>> >> >> help here (I have clearly mentioned in patch description), may be in c file
+>> >> >> it is required?
+>> >> >> OR 
+>> >> >> you want to be clearly separate table for code readability.
+>> >> >> 
+>> >> >
+>> >> > Kevin,
+>> >> >
+>> >> > Any comments on this? Should I stick to what is implemented now?
+>> >> >
+>> >> 
+>> >> cpu_is_* checks are acceptable at init time, and we use them often to
+>> >> initialize SoC-dependent tables/arrays etc.
+>> >> 
+>> > Kevin,
+>> >
+>> > Sorry for delayed response,
+>> >
+>> > Here is the ugly part, which I was referring to -
+>> >
+>> > 1) "_prm_bases" variable is static variable to the prminst44xx.c
+>> >
+>> > 2) prminst44xx.c file doesn't contain any boot time __init function,
+>> >    So I have to either add exported __init function OR extern __prm_bases
+>> >    variable and initialize somewhere outside this file.
+>> >
+>> > 3) Even if I create 2 separate variables, for example,
+>> >
+>> > static u32 omap44xx_prm_bases[OMAP4_MAX_PRCM_PARTITIONS] = {
+>> > ...
+>> > };
+>> >
+>> > static u32 omap33xx_prm_bases[AM33XX_MAX_PRCM_PARTITIONS] = {
+>> > ...
+>> > };
+>> >
+>> > Makes it difficult and messy to handle inside below code, 
+>> > BUG_ON doesn't make sense from AM335x perspective.
+>> 
+>> Then you can change the BUG_ON.
+>> 
+>> static u32 omap44xx_max_partitions = ARRAY_SIZE(omap44xx_prm_bases)
+>> static u32 am33xx_max_partitions = ARRAY_SIZE(am33xx_prm_bases)
+>> static u32 max_partitions.
+>> 
+>> At init time, assign max_partitions when you assign prm_bases, then
+>> change the BUG_ON() to be something like:
+>> 
+>>        BUG_ON(part >= max_partitions || part == INVALID_PARTITION)
+>> 
+> Kevin,
+>
+> Getting rid of BUG_ON was the least and trivial one, the issue is 1 & 2.
 
-Annoying, that.  I was hoping to get this fixed on an arch-by-arch basis.
-Looks like it might have to be a global change requiring global agreement. :-(
+Oh, I didn't think those two were a problem since we do similiar things
+throughout the kernel.  Consider using an initcall instead of calling it
+from somwhere else, unless there are specific dependencies.
 
-> > The long and short of it is that you absolutely cannot use RCU between 
-> > the time you invoke rcu_idle_enter() and the time you invoke 
-> > rcu_idle_exit().  The ARM idle code currently does just that and 
-> > therefore must change.
-> > 
-> > Whatever change you choose that causes the code to meet that constraint
-> > is met is fine by me.
-> > 
-> > But that constraint absolutely must be met.
-> 
-> I would have to know more about what the rcu_idle_*() calls imply before 
-> suggesting an alternative.
+Kevin
 
-After a call to rcu_idle_enter(), RCU ignores the CPU completely until the
-next call to rcu_idle_exit().  This means that in the interval between
-rcu_idle_enter() and rcu_idle_exit(), you can say rcu_read_lock() all
-you want, but your data structures will get absolutely no RCU protection.
-This will result in random memory corruption, and for all I know might
-already be resultin in random memory corruption.  So a fix is required.
-
-So why does RCU need to ignore idle CPUs?  Because otherwise, RCU needs
-to periodically wake them up to check their status.  Waking them up
-periodically defeats CONFIG_NO_HZ's attempts to conserve power.  Avoiding
-waking them up and avoiding ignoring them extended RCU grace periods,
-eventually OOMing the systems.
-
-Why this new imposition?  It is not new.  It has always been illegal to
-use RCU in the idle loop from the beginning.  But people happily ignored
-that restriction, partly because it is not always immediately obvious
-what is using RCU.  Event tracing does, but unless you know that...
-
-So we added diagnostics to check for illegal uses of RCU in the idle
-loop, and also separated rcu_idle_enter() and rcu_idle_exit() from
-tick_nohz_stop_sched_tick(), so that things like idle notifiers can work.
-The diagnostics promptly located all sorts of problems, including these.
-
-The two options I see are:
-
-1.	Rip tracing out of the inner idle loops and everything that
-	they invoke.
-
-2.	Push rcu_idle_enter() and rcu_idle_exit() further down into
-	the idle loops.  As you say, -all- of them.
-
-My patch set was an attempt at #2, but clearly a very poorly conceived
-attempt.  But I had to start somewhere.
-
-Other ideas?
-
-							Thanx, Paul
+> Let me atleast attempt to implement something on this, will update you.
+>
+> Thanks,
+> Vaibhav
+>
+>
+>> Kevin
+>> 
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
