@@ -1,42 +1,58 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v9 15/25] gpio/omap: fix bankwidth for OMAP7xx MPUIO
-Date: Thu, 2 Feb 2012 23:00:41 +0530
-Message-ID: <1328203851-20435-16-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v9 25/25] gpio/omap: handle set_dataout reg capable IP on
+ restore
+Date: Thu, 2 Feb 2012 23:00:51 +0530
+Message-ID: <1328203851-20435-26-git-send-email-tarun.kanti@ti.com>
 References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+Cc: khilman@ti.com, Nishanth Menon <nm@ti.com>, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Charulatha V <charu@ti.com>
+From: Nishanth Menon <nm@ti.com>
 
-In all OMAP1 SoCs, the MPUIO bank width is 16 bits. But, in OMAP7xx,
-it is wrongly initialised to 32. Fix this.
+GPIO IP revisions such as those used in OMAP4 have a set_dataout
+while the previous revisions used a single dataout register.
+Depending on what is available restore the dataout settings
+to the right register.
 
-Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/gpio7xx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/gpio/gpio-omap.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/gpio7xx.c b/arch/arm/mach-omap1/gpio7xx.c
-index 433491c..4771d6b 100644
---- a/arch/arm/mach-omap1/gpio7xx.c
-+++ b/arch/arm/mach-omap1/gpio7xx.c
-@@ -52,8 +52,8 @@ static struct omap_gpio_reg_offs omap7xx_mpuio_regs = {
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 81fdbcf..4273401 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1359,7 +1359,12 @@ static void omap_gpio_restore_context(struct gpio_bank *bank)
+ 				bank->base + bank->regs->risingdetect);
+ 	__raw_writel(bank->context.fallingdetect,
+ 				bank->base + bank->regs->fallingdetect);
+-	__raw_writel(bank->context.dataout, bank->base + bank->regs->dataout);
++	if (bank->regs->set_dataout && bank->regs->clr_dataout)
++		__raw_writel(bank->context.dataout,
++				bank->base + bank->regs->set_dataout);
++	else
++		__raw_writel(bank->context.dataout,
++				bank->base + bank->regs->dataout);
+ 	__raw_writel(bank->context.oe, bank->base + bank->regs->direction);
  
- static struct __initdata omap_gpio_platform_data omap7xx_mpu_gpio_config = {
- 	.virtual_irq_start	= IH_MPUIO_BASE,
--	.bank_width		= 32,
- 	.is_mpuio		= true,
-+	.bank_width		= 16,
- 	.bank_stride		= 2,
- 	.regs                   = &omap7xx_mpuio_regs,
- };
+ 	if (bank->dbck_enable_mask) {
 -- 
 1.7.0.4
