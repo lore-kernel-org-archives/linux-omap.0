@@ -1,94 +1,140 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP3: PM: remove superfluous calls to pwrdm_clear_all_prev_pwrst()
-Date: Thu, 2 Feb 2012 12:43:20 +0530
-Message-ID: <CAMQu2gzVt3K6cuZcbvfNZegimyXz8F4N__A6vDBSyL4QfSnbTw@mail.gmail.com>
-References: <20120130093931.11027.31048.stgit@dusk> <20120130094312.11027.31050.stgit@dusk>
- <878vkopw2o.fsf@ti.com> <87mx93ok5y.fsf@ti.com> <alpine.DEB.2.00.1202011218190.10541@utopia.booyaka.com>
+From: TAO HU <tghk48@motorola.com>
+Subject: Re: In many cases softlockup can not be reported after disabling IRQ
+ for long time
+Date: Thu, 2 Feb 2012 16:17:02 +0800
+Message-ID: <CAOwKts8S0EkUGcP3rYqZe+HdvyXD0+SR1f_3xWpu5FprKWuGhQ@mail.gmail.com>
+References: <CAOwKts8zS1rYA+Y4k-vb8YAaR=aFd1BwryhhWWnWLQyrYrNqyA@mail.gmail.com>
+	<20120131154748.GA5650@redhat.com>
+	<CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com>
+	<20120201145802.GF5650@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:58532 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752482Ab2BBHNl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Feb 2012 02:13:41 -0500
-Received: by qadc14 with SMTP id c14so1370667qad.15
-        for <linux-omap@vger.kernel.org>; Wed, 01 Feb 2012 23:13:40 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1202011218190.10541@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120201145802.GF5650@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Don Zickus <dzickus@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 2, 2012 at 12:57 AM, Paul Walmsley <paul@pwsan.com> wrote:
-> On Tue, 31 Jan 2012, Kevin Hilman wrote:
->
->> Kevin Hilman <khilman@ti.com> writes:
+Hi, Don
+
+My concern is not actually that the softlockup could not be reported
+while the IRQ is disabled.
+What bothering me is that even AFTER re-enable the IRQ, it will not
+give warning in many cases.
+
+In theory, disabling IRQ for long time (10s in my case) also implies
+the high priority thread (watchdog) is blocked
+as well.
+So the ideal case is that softlockup driver could give warning right
+after the IRQ is re-enabled.
+It does so occasionally but fails to be consistent.
+
+
+On Wed, Feb 1, 2012 at 10:58 PM, Don Zickus <dzickus@redhat.com> wrote:
+> On Wed, Feb 01, 2012 at 10:18:09AM +0800, TAO HU wrote:
+>> Hi, Don
 >>
->> > Paul Walmsley <paul@pwsan.com> writes:
->> >
->> >> Remove some superfluous calls to pwrdm_clear_all_prev_pwrst().
->> >> pwrdm_pre_transition(), which appears a few lines after these cal=
-ls,
->> >> invokes pwrdm_clear_all_prev_pwrst() on each powerdomain -- there=
-'s no
->> >> need to do it twice.
->> >
->> > It looks like these two for OMAP4 are surpurfluous since the immed=
-iately
->> > follow a call to pwrdm_pre_transition() as well.
->> >
->> > Santosh/Rajendra, please confirm/ack.
+>> Thanks for your feedback!
 >>
->> So after the discussion, do you want to fold this into the original
->> patch, or do you want a separate patch?
+>> Unfortunately, the hardlockup depends on NMI which is not available =
+on
+>> ARM (Cortex-A9) per my understanding.
+>> Our system uses OMAP4430. Any more suggestions?
 >
-> Your changes make sense to me. =A0I am fine with you adding them into=
- the
-> original patch and adding some credit for you into the commit message=
-=2E
-> Or you can create a separate patch.
+> Ah. =A0I wrongly assumed this is x86. Sorry about that.
 >
-> N.B., I haven't looked at this file before. =A0There are a few other =
-things
-> that don't look right that hopefully someone can take the initiative =
-to
-> fix. =A0For example, those calls to mpuss_clear_prev_logic_pwrst() an=
-d
-> cpu_clear_prev_logic_pwrst() should be removed as well. =A0That shoul=
-d be
-> done by pwrdm_clear_all_prev_pwrst() in mach-omap2/powerdomain44xx.c.
-> Currently it's not, so that needs to be patched.
+> Ok, so this is what is going on. =A0The softlockup check is just a hi=
+gh
+> priority thread that periodically runs. =A0If preemption is disabled =
+that
+> thread can't run (or any threads for that matter) and a softlockup
+> condition will exist. =A0However, in order to determine that, a perio=
+dic
+> hrtimer has to come along and do the actual check.
 >
-We(rajendra and myself) discussed this some time back with Benoit and w=
-e agreed
-that for CPU and MPU power domains which are needed very early in the P=
-M power
-up sequence, we can do direct APIs..
-These calls were in critical path and the PD API's proposed for context=
- clear
-and logic clear were use to iterate over all power domains.
-It is only recently we got clear context etc some reasonable form
-even though it still iterates over all hwmod etc which is really overhe=
-ad.
-Also you need to create 'pdev' etc for context-loss kind of APIs and
-we all thought that that makes things un-ncessary complicated and
-lengthy.
+> If that check fails, then the warning is printed out. =A0However that
+> accuracy is based on the resolution of that hrtimer which I set to ab=
+out
+> 1/5 the watchdog threshold or 1 second in this case.
+>
+> Unfortunately, if you disable the irqs, then that timer can't fire an=
+d now
+> we don't have a way to trigger the softlockup check until interrupts =
+are
+> re-enabled.
+>
+> On x86, we have a backup plan for disabled interrupts and that is the
+> hardlockup check which rely on NMIs (something that still fires even =
+when
+> interrupts are disabled).
+>
+> If on ARM you don't have NMIs, then it will be difficult to check for
+> softlockups when interrupts are disabled. =A0Though I do recall sparc=
+ doing
+> something clever like using IRQ0 as a special purpose IRQ to emulate =
+an
+> NMI (IOW, software purposely avoided masking IRQ0). =A0So when an int=
+errupt
+> came in on that irq, it was never blocked and always ran based on the=
+ irq
+> nesting rules.
+>
+> I don't know ARM well enough to give any solution for your problem, b=
+ut my
+> reason above is why it isn't working the way you intended.
+>
+> Cheers,
+> Don
+>
+>>
+>> On Tue, Jan 31, 2012 at 11:47 PM, Don Zickus <dzickus@redhat.com> wr=
+ote:
+>> > On Tue, Jan 31, 2012 at 03:28:09PM +0800, TAO HU wrote:
+>> >> Resend with a new subject
+>> >>
+>> >> On Wed, Jan 25, 2012 at 4:24 PM, TAO HU <tghk48@motorola.com> wro=
+te:
+>> >> > Hi, All
+>> >> >
+>> >> > While playing kernel 3.0.8 with below test code, it does NOT re=
+port
+>> >> > any softlockup with 60%~70% chances.
+>> >> > NOTE: the softlockup timeout is set to 10 seconds (i.e.
+>> >> > watchdog_thresh=3D5) in my test.
+>> >> > ... ...
+>> >> > preempt_disable();
+>> >> > local_irq_disable();
+>> >> > for (i =3D 0; i < 20; i++)
+>> >> > =A0 =A0 =A0 mdelay(1000);
+>> >> > local_irq_enable();
+>> >> > preempt_enable();
+>> >> > ... ...
+>> >> >
+>> >> > However, if I remove local_irq_disable()/local_irq_enable() it =
+will
+>> >> > report softlockup with no problem.
+>> >> > I believe it is due to that after local_irq_enable()
+>> >> > touch_softlockup_watchdog() is called prior softlockup timer.
+>> >
+>> > Hi Hu,
+>> >
+>> > Honestly, you should be getting hardlockup warnings if you are dis=
+abling
+>> > interrupts. =A0Do you see anything in the console output?
+>> >
+>> > Cheers,
+>> > Don
+>>
+>>
+>>
+>> --
+>> Best Regards
+>> Hu Tao
 
 
-> Also all of the open-coded powerdomain register accesses in
-> omap-mpuss-lowpower.c should be removed - those should all go through
-> pwrdm_*() functions...
->
- I will have another look at the code with your recent power domain cle=
-an-ups
-and see what all can be moved to generic APIs.
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Best Regards
+Hu Tao
