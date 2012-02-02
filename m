@@ -1,18 +1,18 @@
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [PATCH RFC idle 2/3] arm: Avoid invoking RCU when CPU is idle
-Date: Wed, 1 Feb 2012 20:40:20 -0800
-Message-ID: <20120202044020.GC2435@linux.vnet.ibm.com>
+Date: Wed, 1 Feb 2012 20:44:39 -0800
+Message-ID: <20120202044439.GD2435@linux.vnet.ibm.com>
 References: <20120202004253.GA10946@linux.vnet.ibm.com>
  <1328143404-11038-1-git-send-email-paulmck@linux.vnet.ibm.com>
  <1328143404-11038-2-git-send-email-paulmck@linux.vnet.ibm.com>
- <4F29F960.6010700@gmail.com>
+ <alpine.LFD.2.02.1202012234050.2759@xanadu.home>
 Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <4F29F960.6010700@gmail.com>
+In-Reply-To: <alpine.LFD.2.02.1202012234050.2759@xanadu.home>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,39 +22,52 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, "Paul E. McKenney" <paul.mckenney@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, rostedt@goodmis.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@vger.kernel.org, Andre
+To: Nicolas Pitre <nico@fluxnic.net>
+Cc: mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, H Hartley Sweeten <hsweeten@visionengravers.com>, Magnus Damm <magnus.damm@gmail.com>, Will Deacon <will.deacon@arm.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Sekhar Nori <nsekhar@ti.com>, josh@joshtriplett.org, rostedt@goodmis.org, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Rob Herring <rob.herring@calxeda.com>, Barry Song <baohua.song@csr.com>, tglx@linutro
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 01, 2012 at 08:48:00PM -0600, Rob Herring wrote:
-> Paul,
+On Wed, Feb 01, 2012 at 10:49:22PM -0500, Nicolas Pitre wrote:
+> On Wed, 1 Feb 2012, Paul E. McKenney wrote:
 > 
-> On 02/01/2012 06:43 PM, Paul E. McKenney wrote:
 > > From: "Paul E. McKenney" <paul.mckenney@linaro.org>
 > > 
 > > The idle loop is a quiscent state for RCU, which means that RCU ignores
 > > CPUs that have told RCU that they are idle via rcu_idle_enter().
 > > There are nevertheless quite a few places where idle CPUs use RCU, most
 > > commonly indirectly via tracing.  This patch fixes these problems for ARM.
-> 
-> Do you have some specific examples of actual problems? It's not possible
-> to restrict tracing at this low level?
-> 
-> This really seems like the wrong direction as we are trying to pull
-> common pieces up out of platform specific code.
-
-If you yank the tracing, that works for me!  But it is your platform,
-so I cannot decide that for you.
-
-							Thanx, Paul
-
+> > 
 > > Many of these bugs have been in the kernel for quite some time, but
 > > Frederic's recent change now gives warnings.
 > > 
 > > This patch takes the straightforward approach of pushing the
 > > rcu_idle_enter()/rcu_idle_exit() pair further down into the core of the
 > > idle loop.
-> > 
+> 
+> NAK.
+> 
+> 1) This is going to conflict with a patch series I've pushed to RMK 
+>    already.  You can see its result in linux-next.
+> 
+> 2) The purpose of (1) is to do precisely the very opposite i.e. move as 
+>    much common knowledge as possible up the idle call paths and leave 
+>    the platform specific quirks as bare as possible, if any.
+> 
+> So I'd much prefer if this change was constrained to be inside 
+> cpu_idle(), or at least in its close vicinity.
+
+OK.  Then the tracing in the inner idle loop needs to go.  Other
+restructuring might be required as well.  The long and short of it is that
+you absolutely cannot use RCU between the time you invoke rcu_idle_enter()
+and the time you invoke rcu_idle_exit().  The ARM idle code currently
+does just that and therefore must change.
+
+Whatever change you choose that causes the code to meet that constraint
+is met is fine by me.
+
+But that constraint absolutely must be met.
+
+							Thanx, Paul
+
 > > Signed-off-by: Paul E. McKenney <paul.mckenney@linaro.org>
 > > Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 > > Cc: Russell King <linux@arm.linux.org.uk>
@@ -108,13 +121,6 @@ so I cannot decide that for you.
 > >  arch/arm/mach-shmobile/pm-sh7372.c |    8 ++++++++
 > >  23 files changed, 78 insertions(+), 2 deletions(-)
 > > 
-> 
-> This is clearly not all platforms and you're missing some cpuidle
-> drivers like omap. Some platform's idle code don't need this?
-> 
-> I'd guess this conflicts with Nico's idle clean-up which is in Russell's
-> for-next branch now.
-> 
 > > diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
 > > index 971d65c..8241df7 100644
 > > --- a/arch/arm/kernel/process.c
@@ -124,12 +130,6 @@ so I cannot decide that for you.
 > >  	while (1) {
 > >  		tick_nohz_idle_enter();
 > > -		rcu_idle_enter();
-> 
-> In some cases with the clean-up, there is no platform specific idle
-> code, so rcu_idle_enter would never be called.
-> 
-> Rob
-> 
 > >  		leds_event(led_idle_start);
 > >  		while (!need_resched()) {
 > >  #ifdef CONFIG_HOTPLUG_CPU
@@ -704,4 +704,7 @@ so I cannot decide that for you.
 > >  	return 0;
 > >  }
 > >  
+> > -- 
+> > 1.7.8
+> > 
 > 
