@@ -1,56 +1,45 @@
-From: Don Zickus <dzickus@redhat.com>
-Subject: Re: In many cases softlockup can not be reported after disabling IRQ
- for long time
-Date: Thu, 2 Feb 2012 10:58:41 -0500
-Message-ID: <20120202155841.GO5650@redhat.com>
-References: <CAOwKts8zS1rYA+Y4k-vb8YAaR=aFd1BwryhhWWnWLQyrYrNqyA@mail.gmail.com>
- <20120131154748.GA5650@redhat.com>
- <CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com>
- <20120201145802.GF5650@redhat.com>
- <CAOwKts8S0EkUGcP3rYqZe+HdvyXD0+SR1f_3xWpu5FprKWuGhQ@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: In many cases softlockup can not be reported after disabling
+	IRQ for long time
+Date: Thu, 2 Feb 2012 16:22:50 +0000
+Message-ID: <20120202162250.GE1275@n2100.arm.linux.org.uk>
+References: <CAOwKts8zS1rYA+Y4k-vb8YAaR=aFd1BwryhhWWnWLQyrYrNqyA@mail.gmail.com> <20120131154748.GA5650@redhat.com> <CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com> <20120201145802.GF5650@redhat.com> <CAOwKts8S0EkUGcP3rYqZe+HdvyXD0+SR1f_3xWpu5FprKWuGhQ@mail.gmail.com> <20120202155841.GO5650@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22059 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756619Ab2BBP7F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 2 Feb 2012 10:59:05 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43213 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753543Ab2BBQXK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 11:23:10 -0500
 Content-Disposition: inline
-In-Reply-To: <CAOwKts8S0EkUGcP3rYqZe+HdvyXD0+SR1f_3xWpu5FprKWuGhQ@mail.gmail.com>
+In-Reply-To: <20120202155841.GO5650@redhat.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: TAO HU <tghk48@motorola.com>
-Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
+To: Don Zickus <dzickus@redhat.com>
+Cc: TAO HU <tghk48@motorola.com>, Ingo Molnar <mingo@elte.hu>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 02, 2012 at 04:17:02PM +0800, TAO HU wrote:
-> Hi, Don
+On Thu, Feb 02, 2012 at 10:58:41AM -0500, Don Zickus wrote:
+> The only thing I can think of is that the clock/jiffies isn't updated
+> until after the hrtimer is run.  I'm not sure if there is any guarantee
+> for ordering once interrupts are enabled.
 > 
-> My concern is not actually that the softlockup could not be reported
-> while the IRQ is disabled.
-> What bothering me is that even AFTER re-enable the IRQ, it will not
-> give warning in many cases.
+> But that is just a guess.
 > 
-> In theory, disabling IRQ for long time (10s in my case) also implies
-> the high priority thread (watchdog) is blocked
-> as well.
-> So the ideal case is that softlockup driver could give warning right
-> after the IRQ is re-enabled.
-> It does so occasionally but fails to be consistent.
+> I guess in theory, I would expect that when interrupts are enabled, the
+> system would immediately jump into an IRQ context, update the
+> clock/jiffies, then run all the other irq handlers like hrtimers, which
+> would see the new time and do the right thing.  After everything is done,
+> the system would return to your test code and re-enable preemption
+> allowing the softlockup thread to run again.
+> 
+> I could be very wrong though. :-)
 
-The only thing I can think of is that the clock/jiffies isn't updated
-until after the hrtimer is run.  I'm not sure if there is any guarantee
-for ordering once interrupts are enabled.
+The first thing to confirm is whether disabling interrupts for 10s
+results in the system losing proper track of time.  If it does, then
+you've immediately found the problem.
 
-But that is just a guess.
-
-I guess in theory, I would expect that when interrupts are enabled, the
-system would immediately jump into an IRQ context, update the
-clock/jiffies, then run all the other irq handlers like hrtimers, which
-would see the new time and do the right thing.  After everything is done,
-the system would return to your test code and re-enable preemption
-allowing the softlockup thread to run again.
-
-I could be very wrong though. :-)
-
-Cheers,
-Don
+So, what you need to do us to use /usr/bin/time to execute a userspace
+command which causes your thread to simulate a soft-lockup.  If you
+arrange for your soft-lockup to last for (eg) exactly 10 seconds, and
+/usr/bin/time reports less than 10 seconds have passed, you've found
+why the system can't report it.
