@@ -1,16 +1,16 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC 2/7] MFD: twl6040: Convert to i2c driver,
- and separate it from twl core
-Date: Thu, 2 Feb 2012 13:27:50 +0000
-Message-ID: <20120202132750.GM7428@opensource.wolfsonmicro.com>
+Subject: Re: [RFC 7/7] MFD: TWL6040: Add regulator support for
+ VIO, V2V1 supplies
+Date: Thu, 2 Feb 2012 13:32:08 +0000
+Message-ID: <20120202133207.GN7428@opensource.wolfsonmicro.com>
 References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328185019-29575-3-git-send-email-peter.ujfalusi@ti.com>
-	<20120202124828.GI7428@opensource.wolfsonmicro.com>
-	<4F2A8912.4070701@ti.com>
+	<1328185019-29575-8-git-send-email-peter.ujfalusi@ti.com>
+	<20120202125250.GJ7428@opensource.wolfsonmicro.com>
+	<4F2A8D11.9010705@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============6179903062096694417=="
+Content-Type: multipart/mixed; boundary="===============2549223136589674730=="
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <4F2A8912.4070701@ti.com>
+In-Reply-To: <4F2A8D11.9010705@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -25,62 +25,79 @@ Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lind
 List-Id: linux-omap@vger.kernel.org
 
 
---===============6179903062096694417==
+--===============2549223136589674730==
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="LJm8egi4vkexsie5"
+	protocol="application/pgp-signature"; boundary="DH4/xewco2zMcht6"
 Content-Disposition: inline
 
 
---LJm8egi4vkexsie5
+--DH4/xewco2zMcht6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Feb 02, 2012 at 03:01:06PM +0200, Peter Ujfalusi wrote:
-> On 02/02/2012 02:48 PM, Mark Brown wrote:
+On Thu, Feb 02, 2012 at 03:18:09PM +0200, Peter Ujfalusi wrote:
+> On 02/02/2012 02:52 PM, Mark Brown wrote:
 
-> > The calling convention here seems a bit weird too, you've got value then
-> > register but normally we have register then value for I2C/SPI devices.
+> > Looks like you want regulator_bulk_get() here.  Or (better yet though
+> > it'd be a potential issue for merge via MFD and the benefits aren't that
+> > exciting since you still need to disable) devm_regulator_bulk_get().
 
-> I have based these part on the twl-core's implementation. I should not
-> have done that, I know.. Let's see how it will look like with regmap.
+> I need separate control for the two power source since we can hit
+> different power levels depending on which is powered/not powered:
+> power down: vio, v2v1 is OFF
+> deep sleep: vio is ON, v2v1 is OFF
+> sleep/power on: vio, v2v1 is ON
 
-Yeah, like I say...
+> And we have certain sequence to move between power states.
 
-> > Except when we don't :(
+That's not a problem for using the bulk get - the array is part of the
+API so you can use regulator_bulk_get() and still look at individual
+supplies within the array later on when enabling and disabling them.
 
-...it's not like we've been consistent so far.  I'm not that fussed
-either way, I probably wouldn't have mentioned it if I hadn't otherwise
-been commenting.
+> >> +	ret = regulator_enable(twl6040->vio);
+> >> +	if (ret != 0) {
+> >> +		dev_err(&client->dev, "Failed to enable VIO: %d\n", ret);
+> >> +		goto power_err;
+> >> +	}
+> >> +	ret = regulator_enable(twl6040->v2v1);
+> >> +	if (ret != 0) {
+> >> +		dev_err(&client->dev, "Failed to enable V2V1: %d\n", ret);
+> >> +		regulator_disable(twl6040->vio);
 
---LJm8egi4vkexsie5
+> I disable the vio here, if the v2v1 enable fails.
+
+Oh, that's quite confusing when mixed in with the goto/unwind - it'd be
+clearer to have the extra lable to jump to.
+
+--DH4/xewco2zMcht6
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPKo9QAAoJEBus8iNuMP3d8C8P/2APfGHxR50k12kNTnlBiL8y
-n+pO+dZXR1k06mxGl4VRK5LKvtx0CJQj1ZmyiXyjTgcQk8W+HIuVm3UMIN2/X4yO
-mhunULuCrPxzfPyJIaFUejgS85xoQHhWylojfujdbCSlMzFaxBn2iVsu8J4R1t5m
-n/vC/OI8RXB64Bys/XyCAPvJGrRAr5J+S4RuKqImYcbxHtT2NT81h2Y8DiowN0Op
-VVKHOBc37QbHX6YUnDVPBwV4o35hTPh4jMBzGCbfj4Y0SDGfbM/8uIdmQ8IfD0ii
-xPWMgCNZRnxBpFRPZD+r5O/IcwcbT4Dv49CyrDshEqNZLTX94AC+gj3xYn+2Ve7m
-WC/AFT3qfDPGxiztAjjtb3qsnWAXyx3/l2yQrCaqL6b0SEmhJSSE4319kgSj2Ywm
-7cgDWmuiqHJpNaDvOVEb6GoH4QiIdTGiRxAXxihaea4zB9AlDvF8bs5gI1f7z9Q7
-2fl1k9e60J1/JAOiZiHyOzNqiNpBoYhS7MJXknvnzlDaKb2ooKRl8lF4pDH1apBm
-LCvaXxNsx+1Iv4cwBHLD37wJp8AK4HFFEX3PSjaHyzpqThWY7/km1FRCKtuSKyK9
-aNJW2treDVtRBTReVx7dSXeigULGSyX44OJ4Y2KOcm5g0Gyfwe7ThkldYdTfxfep
-HcOl2tNLGICDuTVwQQ1P
-=IGMO
+iQIcBAEBAgAGBQJPKpBPAAoJEBus8iNuMP3dWiIP/jfLytqSvCZ5b+fQqMD5mmiX
+Ui7K7iYXKaSyXJSoAuBJXNzFoUOV998rYwanhJXhsVfGKYJzfoidEsWVQamVVS7x
+BModtw7453/5DzNan47UJFRJ1/iqG/kJw20Jq625TbAiVtT1vEF1B9zfqN3JbczR
+iYqzU7/9+SRqdUQt9rvXR5iJI22v801b05Dxe1WrPP2X1y8lzZ7cl2gFCLjjdrit
+ngEAqBwLewX01NEpkJU52a+TAr6Ag4joA6mRX4Um7THWwuYrNPehXDdBr8hEmKgi
+GNBtzizk7KSScXKjabD+ZzLmIc0AAMOKKRNdjtsMKJBTR0d7CpNHebf1CQbqj7so
+K3nev50sHy2HqYfuWxUbFImYN3GuWp5eoIj37q9iOSqPHhgRYgodGOWX5kmkBZ6/
+EC7m3K4JOoXhoK87ImbSWUQI7++u0ewlvVFbtzTHMh1kTLdNnqCVU9Cg+UEGzG8n
+cZLwRgYuKoMuuXvcrHKGMtPGFychZiZFSokt8/1poW6E8P6NzPoRBmA5+gqczIWa
+7PSbLuv1zNPESbKLhgoaSD3l3CCNHPUwWaidGBSmk0Y0R3kVgLfb5wsEIjWlY30f
+wT/LqPOoHFYj8IGzMF3JP4uYYKlugorB6Lic3RchYGV73c/VzHHNA5tpj5+QVLuW
+uJETdo51CBITFvimrWgY
+=kH0B
 -----END PGP SIGNATURE-----
 
---LJm8egi4vkexsie5--
+--DH4/xewco2zMcht6--
 
---===============6179903062096694417==
+--===============2549223136589674730==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
 
---===============6179903062096694417==--
+--===============2549223136589674730==--
