@@ -1,92 +1,89 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: OMAP3 L2/outer cache enabled in kernel (after being disabled by uBoot)?
-Date: Thu, 2 Feb 2012 15:10:47 +0000
-Message-ID: <CAHkRjk4526ubsEJn94gk__07wXx5YjSejcRzLSf5_VALEtvrqA@mail.gmail.com>
-References: <WC20120120085711.330803@terrafix.co.uk> <20120127173029.GA3281@arm.com>
- <4F277A6E.9070107@ti.com> <CAHkRjk7z2QYbU09BRfAWmChw5xj9taCarWfnttWveyqtadiEOg@mail.gmail.com>
- <CAMQu2gxr5ZkH4AE_7QNptxx7onQMGaj+qhUF+DSw9MnkCqCRog@mail.gmail.com>
- <CAHkRjk7Fh=OUk8K=bJa8xzPqMvT6P6gjT+kqAA0DeVfrF0sUNg@mail.gmail.com>
- <CAMQu2gwDJ=aezNAUD3YmGHQ6fBxkxgUonYkQYPH8WBeNvZCKMQ@mail.gmail.com>
- <CAHkRjk6KQXR1kt8VTPC3GOaHUusKikxXHR=Mge8akaVL2ipvaw@mail.gmail.com>
- <alpine.LFD.2.02.1201311253460.2759@xanadu.home> <CAHkRjk690R951NUDC_erNsBtbmtrM-nPjY2gR=Tf-sW4qXX7ww@mail.gmail.com>
- <20120202144942.GD1275@n2100.arm.linux.org.uk>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2] arm/dts: omap3-evm: Add i2c and twl4030 support
+Date: Thu, 2 Feb 2012 15:23:57 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317BD828@DBDE01.ent.ti.com>
+References: <1328077568-22043-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:60447 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756254Ab2BBPLK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 10:11:10 -0500
-Received: by qcqw6 with SMTP id w6so1438446qcq.19
-        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 07:11:09 -0800 (PST)
-In-Reply-To: <20120202144942.GD1275@n2100.arm.linux.org.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:54863 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751946Ab2BBPYO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 10:24:14 -0500
+In-Reply-To: <1328077568-22043-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Nicolas Pitre <nico@fluxnic.net>, Aneesh V <aneesh@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Joe Woodward <jw@terrafix.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>
 
-On 2 February 2012 14:49, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Thu, Feb 02, 2012 at 02:32:03PM +0000, Catalin Marinas wrote:
->> We could do the same and move the bit enabling to separate repositor=
-y :).
->
-> We must certainly could do but that doesn't get around the errata
-> issues when you have things before the kernel (or before these blobs)
-> enabling things like the caches and MMU.
+On Wed, Feb 01, 2012 at 11:56:08, Hiremath, Vaibhav wrote:
+> Add support for TWL4030, which is interfaced on i2c1 bus.
+> Also add clock frequencies for other i2c instances(2 & 3)
+> required for client-device exist on OMAP3EVM board.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+> Changes from V1:
+> 	- As per comment from Benoit, changed hex representation
+> 	  from uppercase to lowercase.
+> 
+>  arch/arm/boot/dts/omap3-evm.dts |   28 ++++++++++++++++++++++++++++
+>  1 files changed, 28 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
+> index 2eee16e..f349ee9 100644
+> --- a/arch/arm/boot/dts/omap3-evm.dts
+> +++ b/arch/arm/boot/dts/omap3-evm.dts
+> @@ -18,3 +18,31 @@
+>  		reg = <0x80000000 0x10000000>; /* 256 MB */
+>  	};
+>  };
+> +
+> +&i2c1 {
+> +	clock-frequency = <2600000>;
+> +
+> +	twl: twl@48 {
+> +		reg = <0x48>;
+> +		interrupts = <7>; /* SYS_NIRQ cascaded to intc */
+> +		interrupt-parent = <&intc>;
+> +	};
+> +};
+> +
+> +/include/ "twl4030.dtsi"
+> +
+> +&i2c2 {
+> +	clock-frequency = <400000>;
+> +};
+> +
+> +&i2c3 {
+> +	clock-frequency = <400000>;
+> +
+> +	/*
+> +	 * TVP5146 Video decoder-in for analog input support.
+> +	 */
+> +	tvp5146@5c {
+> +		compatible = "ti,tvp5146m2";
+> +		reg = <0x5c>;
+> +	};
+> +};
 
-That was my original point - allow such code to be built into a blob
-that the boot loader can execute. But I got your point that not all
-boot loaders are able to execute two binary images.
+Grant,
 
-> The only answer which assures complete system stability is for the
-> earliest reasonable point in the booting sequence to handle the errat=
-a,
-> before any of the potential errata scenarios occur. =A0For things lik=
-e
-> working around L2 cache problems, that means before the L2 cache is
-> enabled for the first time.
->
-> If the boot loader enables the L2 cache, then _it_ has to take care o=
-f
-> the errata before it enables the L2 cache, and not some blob that it
-> loads.
->
-> If the boot loader enables the cache, and there are workarounds for b=
-uggy
-> cache behaviour, then the boot loader has to implement those errata
-> itself.
+Can you ack this patch and below patch as well, so that
+Benoit can queue it in his tree?
 
-But as it was pointed out already, many of those are very rare
-conditions that you can't actually trigger during the boot sequence.
-There are other errata that require SMP for example and the boot
-loader (or decompressor) doesn't care.
+arm/dts: Add support for TI AM3517/05 EVM board
 
-> So, I propose that we rip out all those work-arounds that are just
-> 'set this bit in some register' at boot time from the kernel itself
-> right now, and reconsider how these are handled.
+Thanks,
+Vaibhav
 
-Just don't remove them until we agree where we should *move* them.
-They are still good documentation so far. I would say just disable the
-workarounds in the kernel .config until we decide.
+> --
+> 1.7.0.4
+> 
+> 
 
-> But, having errata for things like DMB being faulty in the kernel aft=
-er
-> things like the boot loader will _already_ have had to issue DMB
-> instructions, or for failing I-cache invalidate after we've already d=
-one
-> some I-cache invalidates (eg, boot loader or the decompressor) is qui=
-te
-> absurd.
-
-As I said, most errata are really hard to trigger (but ARM cannot
-guarantee that it is impossible, so they need to be published).
-
---=20
-Catalin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
