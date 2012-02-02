@@ -1,78 +1,80 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC 3/7] ASoC: twl6040: Remove dependency on
- twl4030 from Kconfig
-Date: Thu, 2 Feb 2012 12:42:04 +0000
-Message-ID: <20120202124203.GH7428@opensource.wolfsonmicro.com>
+Subject: Re: [RFC 2/7] MFD: twl6040: Convert to i2c driver, and separate it
+ from twl core
+Date: Thu, 2 Feb 2012 12:48:29 +0000
+Message-ID: <20120202124828.GI7428@opensource.wolfsonmicro.com>
 References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328185019-29575-4-git-send-email-peter.ujfalusi@ti.com>
+ <1328185019-29575-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8796585474373831178=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1328185019-29575-4-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="lqaZmxkhekPBfBzr"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1328185019-29575-3-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Dmitry Torokhov <dtor@mail.ru>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============8796585474373831178==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bygAmIonOAIqBxQB"
-Content-Disposition: inline
-
-
---bygAmIonOAIqBxQB
+--lqaZmxkhekPBfBzr
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Feb 02, 2012 at 02:16:55PM +0200, Peter Ujfalusi wrote:
-> twl6040 no longer needs twl4030.
->=20
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+On Thu, Feb 02, 2012 at 02:16:54PM +0200, Peter Ujfalusi wrote:
 
-Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> +static int twl6040_i2c_read(struct i2c_client *i2c, u8 *value, u8 reg)
+> +{
+> +	struct i2c_msg msg[2];
+> +	int ret;
 
-Not applying since this needs to follow on from (or be integrated with)
-the patch splitting the twl6040 to avoid build breaks.
+May as well convert to regmap while you're at it, saves some code and
+will get you access to the regmap features - you have to make updates in
+all the relevant places anyway.  We should be pushing to remove use of
+the ASoC level code for register cache and whatnot to cut down on code
+duplication (especially for MFDs where it has a few issues interacting
+with the MFD) and this seems like a good opportunity.
 
---bygAmIonOAIqBxQB
+The calling convention here seems a bit weird too, you've got value then
+register but normally we have register then value for I2C/SPI devices.
+Except when we don't :(
+
+> -module_platform_driver(twl6040_driver);
+> +static int __devinit twl6040_init(void)
+> +{
+> +	return i2c_add_driver(&twl6040_driver);
+> +}
+> +module_init(twl6040_init);
+> +
+> +static void __devexit twl6040_exit(void)
+> +{
+> +	i2c_del_driver(&twl6040_driver);
+> +}
+> +
+> +module_exit(twl6040_exit);
+
+There's module_i2c_driver() in mainline as of the last merge window.
+
+--lqaZmxkhekPBfBzr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPKoSVAAoJEBus8iNuMP3d4s0P/RKQoodtSpsLSXSV9u4wsmkE
-lKx1J51ymoH0PfxXXp4sth28DfX9mlhKXlYAtOAqq0TL/urXGBjD/tsxnD3MAJkZ
-BMIPmHr9E7tZXjq9c/appk7Db1YWqjwLqnP++y67OffvUiE3NcYCpOqqMjNIAY0H
-8s624QiRrvAXZKChPhvySkm2cfcG3Wqred6AsBJQidsgIWNWQzJgBAxhw3/depWh
-2/R5M5KHnmtkWJ5ACTh2SJXU5fMk1WtGEvg4sAYsGrPlSFKwkqkG1r3IIxLrZEGy
-9RsrzT2mcrb+EP7jmzi4s7u5yjjzWcBRKZaF+h2xXYt0LWBXg89fIN6rOMSMbM7P
-P6TUB/CFaDMsQGKlGfg/lHvu6Z+WV7E5TCYZxeOtY4/Qu+c2a7MZmng9XpfT7InQ
-HKMRAScuEczOImbhi03e7VfKcxCvIASHsc2lXWrqCXHa362PN4F0jB2wvfRXl3Ri
-n/3bimFLSZFLzOCR9dPxkX3/CFnNp4jA9qVAvH8Fat5iDGQvuwd+BsW9Cun8XKC3
-lrtKVmJbbvoLVczK3otrSduylyqvQkeYpNXgHPjdGTHUX+ngWaqXuE/npl47DqWf
-P/alcU7tlZWYsYH7cXdtU3nTfkm2KrMONpL6G49g9tD6crUuG3R0YUy9Vkk+xlQ+
-RmfjXrhHvMysOZHwo0ji
-=brAZ
+iQIcBAEBAgAGBQJPKoYWAAoJEBus8iNuMP3dkiAP/0NnSs+t33Pckw9USyUb1Qup
+eTZVQmiVS33bLIIWHHs0lxV3TNURQjJsGEQp5g3gJ/MVPwhNh2eVNrxV7N0a8v6z
+lOc9Bl998OT71NRiE9It472BPSsWI4+kRkqpDyLeP1I8WQSJm7HKouBDcIq+zdAT
+tbCy0VpBpfs5URpaPCbqZKNeS9mWrgjknJlJKxCfz9l82g6TsPU09HJ5GZvhR8jU
+jufX3iWP5EyZXJAMn5qUl44uPTPZHZzVleEvMTKe5IoQC6ldofhg6hCJG9//KElw
+lp4GfwPI5t0EDreUbGlJZoiDURKRvaeCiSRe2q89ye2frCJp4UPOaYhGRZPAG2JV
+ICfMy9PAXv0EDJP0yeU9FMSs6CPYshRkkHVhYUWf1z1BGb46zr+eBCU9rWiAPAwH
+kvbq7D4ByrGio6LPxBU33P5oN1GFfYME4EacwZhwoEHRLyLBitzE/ZNZ5P3mmK1z
+migq4HmRv1GdpbezaYgEGPLawfxkZq6CfwDJclPIhRpj5Iov7n8x2Os/9RcdiDtP
+ysb+IB6GgjM8LOIina/yp9xt7bfr1XcvI0j95MA3vMVK9Zf1A9hzDQuuZ/Sd9aA4
+mQtYrCFsJtjzgZmaFeRYN/Tx8Huz3e+RxFrqzU+/vyZar+3GfSRrhSg2jpRTSp5r
+XkXLfpHAnIMApKp2nN73
+=vrEi
 -----END PGP SIGNATURE-----
 
---bygAmIonOAIqBxQB--
-
---===============8796585474373831178==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============8796585474373831178==--
+--lqaZmxkhekPBfBzr--
