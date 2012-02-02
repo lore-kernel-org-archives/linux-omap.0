@@ -1,64 +1,41 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [RFC 7/7] MFD: TWL6040: Add regulator support for
-	VIO, V2V1 supplies
-Date: Thu, 02 Feb 2012 15:59:20 +0200
-Message-ID: <4F2A96B8.2030004@ti.com>
-References: <1328185019-29575-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328185019-29575-8-git-send-email-peter.ujfalusi@ti.com>
-	<20120202125250.GJ7428@opensource.wolfsonmicro.com>
-	<4F2A8D11.9010705@ti.com>
-	<20120202133207.GN7428@opensource.wolfsonmicro.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/2] ARM: OMAP: Couple of misc fixes for 3.3
+Date: Thu, 2 Feb 2012 19:33:53 +0530
+Message-ID: <1328191435-18652-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20120202133207.GN7428@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35256 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756110Ab2BBOEG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 09:04:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-On 02/02/2012 03:32 PM, Mark Brown wrote:
-> That's not a problem for using the bulk get - the array is part of the
-> API so you can use regulator_bulk_get() and still look at individual
-> supplies within the array later on when enabling and disabling them.
+Patches are tested on OMAP4430 SDP.
 
-For some reason I have associated the use of regulator_bulk_get with the
-use of regulator_bulk_enable/disable. It did not even crossed my mind
-that I can still use regulator_enable on the individual regulators.
-Will convert the regulator_get/put to bulk operations. It will make the
-code a bit cleaner.
-Thanks
+The following changes since commit 62aa2b537c6f5957afd98e29f96897419ed5ebab:
 
->>>> +	ret =3D regulator_enable(twl6040->vio);
->>>> +	if (ret !=3D 0) {
->>>> +		dev_err(&client->dev, "Failed to enable VIO: %d\n", ret);
->>>> +		goto power_err;
->>>> +	}
->>>> +	ret =3D regulator_enable(twl6040->v2v1);
->>>> +	if (ret !=3D 0) {
->>>> +		dev_err(&client->dev, "Failed to enable V2V1: %d\n", ret);
->>>> +		regulator_disable(twl6040->vio);
-> =
+  Linux 3.3-rc2 (2012-01-31 13:31:54 -0800)
 
->> I disable the vio here, if the v2v1 enable fails.
-> =
+Rajendra Nayak (1):
+  ARM: OMAP: Get rid of reset for system timer
 
-> Oh, that's quite confusing when mixed in with the goto/unwind - it'd be
-> clearer to have the extra lable to jump to.
+Santosh Shilimkar (1):
+  ARM: OMAP4: Move the barrier memboclk_steal() as part of reserve
+    callback
 
-I guess this is a matter of taste.
-However I have found some inconsistent naming with the exit labels,
-which I'm going to fix for the next series.
+ arch/arm/mach-omap2/Kconfig                   |    4 ++--
+ arch/arm/mach-omap2/common.h                  |    1 +
+ arch/arm/mach-omap2/io.c                      |    1 +
+ arch/arm/mach-omap2/omap4-common.c            |   25 ++++++++++++++++---------
+ arch/arm/mach-omap2/timer.c                   |    1 -
+ arch/arm/plat-omap/common.c                   |    1 +
+ arch/arm/plat-omap/include/plat/omap-secure.h |    6 ++++++
+ 7 files changed, 27 insertions(+), 12 deletions(-)
 
--- =
+-- 
+1.7.4.1
 
-P=E9ter
