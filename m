@@ -1,140 +1,47 @@
-From: TAO HU <tghk48@motorola.com>
-Subject: Re: In many cases softlockup can not be reported after disabling IRQ
- for long time
-Date: Thu, 2 Feb 2012 16:17:02 +0800
-Message-ID: <CAOwKts8S0EkUGcP3rYqZe+HdvyXD0+SR1f_3xWpu5FprKWuGhQ@mail.gmail.com>
-References: <CAOwKts8zS1rYA+Y4k-vb8YAaR=aFd1BwryhhWWnWLQyrYrNqyA@mail.gmail.com>
-	<20120131154748.GA5650@redhat.com>
-	<CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com>
-	<20120201145802.GF5650@redhat.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v4 1/5] OMAP4: hwmod: Add names for DMIC memory address
+ space
+Date: Thu, 02 Feb 2012 10:32:48 +0200
+Message-ID: <4F2A4A30.8060503@ti.com>
+References: <1322487943-14280-1-git-send-email-peter.ujfalusi@ti.com> <1322487943-14280-2-git-send-email-peter.ujfalusi@ti.com> <alpine.DEB.2.00.1112152327410.12660@utopia.booyaka.com> <4EEB5913.3090901@ti.com> <alpine.DEB.2.00.1112191451140.12660@utopia.booyaka.com> <4F1D4A03.3050700@ti.com> <alpine.DEB.2.00.1201240134421.29673@utopia.booyaka.com> <4F1E8186.2060307@ti.com> <alpine.DEB.2.00.1201251423030.5324@utopia.booyaka.com> <4F28EC71.1070105@ti.com> <alpine.DEB.2.00.1202011203210.10541@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120201145802.GF5650@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Don Zickus <dzickus@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Ingo Molnar <mingo@elte.hu>, linux-arm-kernel@lists.infradead.org, linux-omap <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35040 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754063Ab2BBIcz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Feb 2012 03:32:55 -0500
+Received: by lags15 with SMTP id s15so1109688lag.38
+        for <linux-omap@vger.kernel.org>; Thu, 02 Feb 2012 00:32:52 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1202011203210.10541@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 
-Hi, Don
+Hi Paul,
 
-My concern is not actually that the softlockup could not be reported
-while the IRQ is disabled.
-What bothering me is that even AFTER re-enable the IRQ, it will not
-give warning in many cases.
+On 02/01/2012 09:08 PM, Paul Walmsley wrote:
+> No sadly I can't.  There are at least three levels of maintainers abo=
+ve me=20
+> in my mainline submission path.  As you may have seen, I've sent the =
+patch=20
+> to Tony and he has pulled the series:
+>=20
+> http://www.spinics.net/lists/linux-omap/msg63525.html
 
-In theory, disabling IRQ for long time (10s in my case) also implies
-the high priority thread (watchdog) is blocked
-as well.
-So the ideal case is that softlockup driver could give warning right
-after the IRQ is re-enabled.
-It does so occasionally but fails to be consistent.
+I have missed this.
 
+> so I've done what I can.
 
-On Wed, Feb 1, 2012 at 10:58 PM, Don Zickus <dzickus@redhat.com> wrote:
-> On Wed, Feb 01, 2012 at 10:18:09AM +0800, TAO HU wrote:
->> Hi, Don
->>
->> Thanks for your feedback!
->>
->> Unfortunately, the hardlockup depends on NMI which is not available =
-on
->> ARM (Cortex-A9) per my understanding.
->> Our system uses OMAP4430. Any more suggestions?
->
-> Ah. =A0I wrongly assumed this is x86. Sorry about that.
->
-> Ok, so this is what is going on. =A0The softlockup check is just a hi=
-gh
-> priority thread that periodically runs. =A0If preemption is disabled =
-that
-> thread can't run (or any threads for that matter) and a softlockup
-> condition will exist. =A0However, in order to determine that, a perio=
-dic
-> hrtimer has to come along and do the actual check.
->
-> If that check fails, then the warning is printed out. =A0However that
-> accuracy is based on the resolution of that hrtimer which I set to ab=
-out
-> 1/5 the watchdog threshold or 1 second in this case.
->
-> Unfortunately, if you disable the irqs, then that timer can't fire an=
-d now
-> we don't have a way to trigger the softlockup check until interrupts =
-are
-> re-enabled.
->
-> On x86, we have a backup plan for disabled interrupts and that is the
-> hardlockup check which rely on NMIs (something that still fires even =
-when
-> interrupts are disabled).
->
-> If on ARM you don't have NMIs, then it will be difficult to check for
-> softlockups when interrupts are disabled. =A0Though I do recall sparc=
- doing
-> something clever like using IRQ0 as a special purpose IRQ to emulate =
-an
-> NMI (IOW, software purposely avoided masking IRQ0). =A0So when an int=
-errupt
-> came in on that irq, it was never blocked and always ran based on the=
- irq
-> nesting rules.
->
-> I don't know ARM well enough to give any solution for your problem, b=
-ut my
-> reason above is why it isn't working the way you intended.
->
-> Cheers,
-> Don
->
->>
->> On Tue, Jan 31, 2012 at 11:47 PM, Don Zickus <dzickus@redhat.com> wr=
-ote:
->> > On Tue, Jan 31, 2012 at 03:28:09PM +0800, TAO HU wrote:
->> >> Resend with a new subject
->> >>
->> >> On Wed, Jan 25, 2012 at 4:24 PM, TAO HU <tghk48@motorola.com> wro=
-te:
->> >> > Hi, All
->> >> >
->> >> > While playing kernel 3.0.8 with below test code, it does NOT re=
-port
->> >> > any softlockup with 60%~70% chances.
->> >> > NOTE: the softlockup timeout is set to 10 seconds (i.e.
->> >> > watchdog_thresh=3D5) in my test.
->> >> > ... ...
->> >> > preempt_disable();
->> >> > local_irq_disable();
->> >> > for (i =3D 0; i < 20; i++)
->> >> > =A0 =A0 =A0 mdelay(1000);
->> >> > local_irq_enable();
->> >> > preempt_enable();
->> >> > ... ...
->> >> >
->> >> > However, if I remove local_irq_disable()/local_irq_enable() it =
-will
->> >> > report softlockup with no problem.
->> >> > I believe it is due to that after local_irq_enable()
->> >> > touch_softlockup_watchdog() is called prior softlockup timer.
->> >
->> > Hi Hu,
->> >
->> > Honestly, you should be getting hardlockup warnings if you are dis=
-abling
->> > interrupts. =A0Do you see anything in the console output?
->> >
->> > Cheers,
->> > Don
->>
->>
->>
->> --
->> Best Regards
->> Hu Tao
+Thanks, it is enough if it is on it's way. Will end up in the correct
+place at some point.
 
-
-
---=20
-Best Regards
-Hu Tao
+Regards,
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
