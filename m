@@ -1,52 +1,49 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
-Date: Fri, 03 Feb 2012 13:01:16 -0800
-Message-ID: <87pqdv4oo3.fsf@ti.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Fri, 3 Feb 2012 14:04:45 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202031347590.27947@utopia.booyaka.com>
+References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de> <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
+ <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
+ <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com> <20120204074427.5091fef5@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com> (Tarun
-	Kanti DebBarma's message of "Thu, 2 Feb 2012 23:00:26 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:60627 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757874Ab2BCVEq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 16:04:46 -0500
+In-Reply-To: <20120204074427.5091fef5@notabene.brown>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Greg KH <gregkh@suse.de>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Tarun,
+On Sat, 4 Feb 2012, NeilBrown wrote:
 
-Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
-
-> The following changes since commit 62aa2b537c6f5957afd98e29f96897419ed5ebab:
->   Linus Torvalds (1):
->         Linux 3.3-rc2
+> On Fri, 3 Feb 2012 12:42:22 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrote:
 >
-> are available in the git repository at:
-> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev
-> Branch: for_3.4/gpio_cleanup_fixes_v9
->
-> This series is continuation of cleanup of OMAP GPIO driver and fixes.
-> The cleanup include getting rid of cpu_is_* checks wherever possible,
-> use of gpio_bank list instead of static array, use of unique platform
-> specific value associated data member to OMAP platforms to avoid
-> cpu_is_* checks. The series also include PM runtime support.
+> > Case 1 is expected and is almost certainly not a bug.  As Neil mentioned 
+> > it should be bps-rate dependent.  It occurs when the first character 
+> > transmitted to the OMAP wakes the chip up via I/O ring/chain wakeup.
+> > I/O ring/chain wakeup is driven by a 32KiHz clock and is therefore 
+> > relatively high-latency.  So this could easily cause the first character 
+> > or first few characters to be lost or corrupted, depending on the exact 
+> > sequence of events, the low power state that the chip was in, etc.
+> 
+> A 32KiHz cycles every 30mSec.
+> At 115200 bps, there is one bit every 8.7 microseconds.
+> 
+> When I type "return" - which looks like 0101100001111... on the wire,
+> I see '0xC3' which looks like 011000011111... on the wire.
+> So we lost exactly 2 bits, or a delay around 17 microseconds.
+> 
+> I find it hard to reconcile that delay with the cause being a 32KiHZ clock.
 
-This version is looking pretty good, and I'm almost ready to queue it up
-for Grant.
-
-However, one more minor nit.  Please fix up the compile warnings when
-built without CONFIG_PM_SLEEP or CONFIG_PM_RUNTIME.
-
-The definitons of the dev_pm_ops callbacks need to be conditional when
-using the SET_*_PM_OPS() macros, otherwise you get these warnings:
-
-  CC      drivers/gpio/gpio-omap.o
-/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1142:12: warning: 'omap_gpio_suspend' defined but not used [-Wunused-function]
-/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1167:12: warning: 'omap_gpio_resume' defined but not used [-Wunused-function]
-/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1191:12: warning: 'omap_gpio_runtime_suspend' defined but not used [-Wunused-function]
-/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1237:12: warning: 'omap_gpio_runtime_resume' defined but not used [-Wunused-function]
+If you're not disabling the HF clock oscillator via the AUTOEXTCLKMODE 
+bits, the wakeup logic may be getting clocked by the sys_clk, which is 
+quite a bit faster.  That might explain the corruption patterns you're 
+seeing.
 
 
-Thanks,
-
-Kevin
+- Paul
