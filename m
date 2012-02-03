@@ -1,238 +1,104 @@
-From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Subject: RE: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
-Date: Fri, 3 Feb 2012 12:09:18 +0000
-Message-ID: <1BAFE6F6C881BF42822005164F1491C3317A60AD@DBDE01.ent.ti.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-	<1BAFE6F6C881BF42822005164F1491C3317A5DF7@DBDE01.ent.ti.com>
- <CAC83ZvLoYVofH9oKXw92i-=DbP2i3NfZjLGSJwk1j0JvXcFZVQ@mail.gmail.com>
+From: NeilBrown <neilb@suse.de>
+Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Fri, 3 Feb 2012 23:11:13 +1100
+Message-ID: <20120203231113.25ae2d3a@notabene.brown>
+References: <13274430881471@kroah.org>
+	<alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
+	<20120126042155.GA3185@suse.de>
+	<alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
+	<20120126191604.GA15516@suse.de>
+	<alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
+	<alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com>
+	<20120203150708.386951d2@notabene.brown>
+	<alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com>
+	<20120203205401.5ddf241d@notabene.brown>
+	<CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_//lAh3i/SDYh.FNuHS__a+X7"; protocol="application/pgp-signature"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52483 "EHLO comal.ext.ti.com"
+Received: from cantor2.suse.de ([195.135.220.15]:47559 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753327Ab2BCMJa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 07:09:30 -0500
-In-Reply-To: <CAC83ZvLoYVofH9oKXw92i-=DbP2i3NfZjLGSJwk1j0JvXcFZVQ@mail.gmail.com>
-Content-Language: en-US
+	id S1751317Ab2BCMLa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Feb 2012 07:11:30 -0500
+In-Reply-To: <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Greg KH <gregkh@suse.de>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+--Sig_//lAh3i/SDYh.FNuHS__a+X7
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 03, 2012 at 15:29:49, DebBarma, Tarun Kanti wrote:
-> On Fri, Feb 3, 2012 at 2:51 PM, Hebbar, Gururaja
-> <gururaja.hebbar@ti.com> wrote:
-> 
-> 
-> 	Tarun,
-> 	
-> 	I am interested in testing these patches on AM335x. Do you have
-> a tree with these
-> 	patches applied so that I can pull.
-> 	
-> 
-> You can find the series here:-
-> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-oma
-> p-dev for_3.4/gpio_cleanup_fixes_v9
+On Fri, 3 Feb 2012 13:42:13 +0200 Grazvydas Ignotas <notasas@gmail.com> wro=
+te:
 
-I am unable to download from this repo. The Gitorious web page fails to show
-the tree and gives 500 error
+> On Fri, Feb 3, 2012 at 11:54 AM, NeilBrown <neilb@suse.de> wrote:
+> > On Thu, 2 Feb 2012 22:45:53 -0700 (MST) Paul Walmsley <paul@pwsan.com> =
+wrote:
+> >> On Fri, 3 Feb 2012, NeilBrown wrote:
+> >>
+> >> > then CPUIDLE enters lower states and I think it uses less power but I
+> >> > sometimes lose the first char I type (that is known) but also I some=
+times get
+> >> > corruption on output.
+> >>
+> >> I don't see any output corruption on 35xx BeagleBoard, either with or
+> >> without these patches. =C2=A0So this is presumably a 37xx-centric prob=
+lem, and
+> >> unrelated to these patches, I would guess.
+> >
+> > Maybe it is 37xx specific. =C2=A0I think this is a DM3730.
+>=20
+> Not sure if it's the same problem but with 3530 on 3.2 with
+> sleep_timeout set, I usually get first char dropped (as expected) but
+> sometimes I get corrupted char instead too. Corrupt char seems to
+> almost always happen if I set cpufreq to powersave, on performace it's
+> almost always ok, so maybe it's some timing problem,
 
-downloading using https protocol fails with below error.
+I see that too - I'm glad someone else does :-)
 
-ghebbar@linux-psp-server:~/projects/linux-gits/gitorious-omap$ git remote add omap-gpio2 https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git
+If I look at the corruption as compared to the expected character, it is
+always the case some it has been shifted down a few bits, with '1's shifted
+in the top.
+As bytes are sent lsb first followed by stop bits which are '1', this is
+completely consistent with clocking the bits in a little bit late.
 
-ghebbar@linux-psp-server:~/projects/linux-gits/gitorious-omap$ git fetch omap-gpio2
+I see this with baud rates of 115200 and higher, but never with lower.
 
-error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-a461f67f3067aa122c09f38cf55346152c9fafb8.idx
+My theory is that there is a delay between the falling RX line waking the
+system up, and the CPU enabling the UART - whether enabling the clocks or
+doing a full config, I am not sure - though I think the former.
 
-error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-a66a5d34b6388e1b0c6b49fe4a029cbf755b17c7.idx
+Maybe if we could enable the UART clocks immediately after returning from t=
+he
+WFI instruction we could avoid the corruption....
 
-error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-952401733bd66c72bc947b54ad5a04ca8edfff2a.idx
-
-error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-1f38918dfb5427f9b79b88d7c6cda15e85c2ad92.idx
-
-error: Unable to get pack file https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-2e39094e5e34e6ce642fc2513727a2025b23f8c7.pack
-GnuTLS recv error (-9): A TLS packet with unexpected length was received.
-error: Unable to find f5af8c1f05d8a1e27ca910285da3fee28eb5acce under https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git
-Cannot obtain needed object f5af8c1f05d8a1e27ca910285da3fee28eb5acce
-while processing commit 7e0e6be8759e6423a4f97b4bbc5e9fec0e5cfde3.
-error: Fetch failed.
-ghebbar@linux-psp-server:~/projects/linux-gits/gitorious-omap$ git fetch omap-gpio2
-error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-a461f67f3067aa122c09f38cf55346152c9fafb8.idx
-
-error: wrong index v2 file size in .git/objects/pack/pack-952401733bd66c72bc947b54ad5a04ca8edfff2a.idx
-error: .git/objects/pack/pack-2e39094e5e34e6ce642fc2513727a2025b23f8c7.pack SHA1 checksum mismatch
-error: inflate: data stream error (invalid distance too far back)
-
-
-is there any issue with the repo.
-
-> --
-> Tarun
->  
-> 
-> 
-> 
-> 	On Thu, Feb 02, 2012 at 23:00:26, DebBarma, Tarun Kanti wrote:
-> 	> The following changes since commit
-> 62aa2b537c6f5957afd98e29f96897419ed5ebab:
-> 	>   Linus Torvalds (1):
-> 	>         Linux 3.3-rc2
-> 	>
-> 	> are available in the git repository at:
-> 	>
-> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-om
-> ap-dev
-> <http://gitorious.org/%7Etarunkanti/omap-sw-develoment/tarunkantis-linux
-> -omap-dev> 
-> 	> Branch: for_3.4/gpio_cleanup_fixes_v9
-> 	>
-> 	> This series is continuation of cleanup of OMAP GPIO driver and
-> fixes.
-> 	> The cleanup include getting rid of cpu_is_* checks wherever
-> possible,
-> 	> use of gpio_bank list instead of static array, use of unique
-> platform
-> 	> specific value associated data member to OMAP platforms to
-> avoid
-> 	> cpu_is_* checks. The series also include PM runtime support.
-> 	>
-> 	> Power Tests
-> 	> a) OMAP3430SDP
-> 	> - Modify board-3430sdp.c file to have multiple GPIO modules
-> active
-> 	>   with debounce timeout enabled.
-> 	> - Enable CPU-Idle
-> 	> - Enable UART timeouts
-> 	> - Enable offmode
-> 	> - echo mem > /sys/power/state
-> 	> - Verify retention and offmode count increment
-> 	>
-> 	>   Used following patches to avoid exception during system
-> suspend:-
-> 	>   [PATCH RFC 1/2] mtd : Prevent the NULL pointer access
-> 	>   [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the
-> suspend is not implemented
-> 	>
-> 	> # echo mem > /sys/power/state
-> 	> [   47.128021] PM: Syncing filesystems ... done.
-> 	> [   47.144104] Freezing user space processes ... (elapsed 0.01
-> seconds) done.
-> 	> [   47.168243] Freezing remaining freezable tasks ... (elapsed
-> 0.02 seconds) don
-> e.
-> 	> [   47.205139] Unable to handle kernel NULL pointer
-> dereference at virtual addre
-> ss 000000a0
-> 	> [   47.213317] pgd = deaac000
-> 	> [   47.216033] [000000a0] *pgd=9e932831, *pte=00000000,
-> *ppte=00000000
-> 	> [   47.222381] Internal error: Oops: 17 [#1] SMP
-> 	> [   47.226745] Modules linked in:
-> 	> [   47.229827] CPU: 0    Not tainted
-> (3.3.0-rc2-00031-g12c5c5c #235)
-> 	> [   47.236022] PC is at mtd_cls_suspend+0x8/0x20
-> 	> [   47.240386] LR is at mtd_cls_suspend+0x8/0x20
-> 	> [   47.244750] pc : [<c02e78f8>]    lr : [<c02e78f8>]    psr:
-> a0000013
-> 	> [   47.244750] sp : dea1fe60  ip : 22222222  fp : c0ee7d40
-> 	> [   47.256256] r10: c0ee7cf0  r9 : 00000000  r8 : c02e78f0
-> 	> [   47.261474] r7 : 00000000  r6 : 00000000  r5 : 00000002  r4
-> : dea45800
-> 	> [   47.268005] r3 : deb4cac0  r2 : 00000000  r1 : 00000002  r0
-> : 00000000
-> 	> [   47.274536] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA
-> ARM  Segment user
-> 	> [   47.281677] Control: 10c5387d  Table: 9eaac019  DAC:
-> 00000015
-> 	> [   47.287445] Process sh (pid: 1177, stack limit =
-> 0xdea1e2f8)
-> 	> [   47.293090] Stack: (0xdea1fe60 to 0xdea20000)
-> 	> [...]
-> 	>
-> 	> b) ZOOM3
-> 	> - Enable CPU-Idle
-> 	> - Enable UART timeout
-> 	> - echo mem > /sys/power/state
-> 	> - Wakeup system using serial keyboard
-> 	> - Verify retention count increment
-> 	>
-> 	> Functional Tests
-> 	> - Done on OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430
-> 	>
-> 	> Bootup Test
-> 	> - Done on OMAP1710
-> 	>   Used following patch to fix OMAP1 build error:-
-> 	>   [PATCH] i2c: OMAP: Fix OMAP1 build error
-> 	>
-> 	
-> 	
-> 	[..]
-> 	[..]
-> 	
-> 
-> 	> Charulatha V (8):
-> 	>   gpio/omap: remove dependency on gpio_bank_count
-> 	>   gpio/omap: use flag to identify wakeup domain
-> 	>   gpio/omap: make gpio_context part of gpio_bank structure
-> 	>   gpio/omap: make non-wakeup GPIO part of pdata
-> 	>   gpio/omap: avoid cpu checks during module ena/disable
-> 	>   gpio/omap: use pinctrl offset instead of macro
-> 	>   gpio/omap: remove bank->method & METHOD_* macros
-> 	>   gpio/omap: fix bankwidth for OMAP7xx MPUIO
-> 	>
-> 	> Nishanth Menon (4):
-> 	>   gpio/omap: save and restore debounce registers
-> 	>   gpio/omap: enable irq at the end of all configuration in
-> restore
-> 	>   gpio/omap: restore OE only after setting the output level
-> 	>   gpio/omap: handle set_dataout reg capable IP on restore
-> 	>
-> 	> Tarun Kanti DebBarma (13):
-> 	>   gpio/omap: handle save/restore context in GPIO driver
-> 	>   gpio/omap: further cleanup using wkup_en register
-> 	>   gpio/omap: use level/edge detect reg offsets
-> 	>   gpio/omap: remove hardcoded offsets in context save/restore
-> 	>   gpio/omap: cleanup set_gpio_triggering function
-> 	>   gpio/omap: cleanup omap_gpio_mod_init function
-> 	>   gpio/omap: remove unnecessary bit-masking for read access
-> 	>   gpio/omap: use pm-runtime framework
-> 	>   gpio/omap: optimize suspend and resume functions
-> 	>   gpio/omap: cleanup prepare_for_idle and resume_after_idle
-> 	>   gpio/omap: fix debounce clock handling
-> 	>   gpio/omap: fix incorrect access of debounce module
-> 	>   gpio/omap: remove omap_gpio_save_context overhead
-> 	>
-> 	>  arch/arm/mach-omap1/gpio15xx.c         |    7 +-
-> 	>  arch/arm/mach-omap1/gpio16xx.c         |   47 ++-
-> 	>  arch/arm/mach-omap1/gpio7xx.c          |   14 +-
-> 	>  arch/arm/mach-omap2/gpio.c             |   36 +-
-> 	>  arch/arm/mach-omap2/pm34xx.c           |   14 -
-> 	>  arch/arm/plat-omap/include/plat/gpio.h |   29 +-
-> 	>  drivers/gpio/gpio-omap.c               | 1099
-> +++++++++++++-------------------
-> 	>  7 files changed, 549 insertions(+), 697 deletions(-)
-> 	>
-> 	>
-> 	
-> 	> _______________________________________________
-> 	> linux-arm-kernel mailing list
-> 	> linux-arm-kernel@lists.infradead.org
-> 	> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 	>
-> 	
-> 	
-> 	Regards,
-> 	Gururaja
-> 	
-> 
-> 
-> 
+NeilBrown
 
 
-Regards, 
-Gururaja
+--Sig_//lAh3i/SDYh.FNuHS__a+X7
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.18 (GNU/Linux)
+
+iQIVAwUBTyvO4Tnsnt1WYoG5AQLebhAAj2LIQ6GoEPQ98hvEEB8Ar5o9jQj8u6EJ
+YpgEBM2RZpx2/XBnaIs2oRSNC0h3tLgErJo9sNISCJTez9ZTmFV1z0Q9sA1dOFRU
+JkvAN34fobqcyfrhM9ftFxAHtkg+uHeO4oreCT45VePPvM3MGZsosEkNHGe8lJL7
+nwGYB9aOTLglkID1FJz7kWNS/YodzSXF37FxXWhQew6Dnl/UeXITZZS1MvTvwthv
+kYG/3akp2+whRYcQfVnCnfUCdFZ87cbgUntMo5W4jRa+sTtCRlP2pw2C+RkJYXQx
+Aym4kupe+ggWcYgXI4bbMQK1ey8WXzYCSJXO5aUo0dmRC8vEqQV6EU4QLPcvpUJ0
+TlFhDiMS7Xu8Nn8mRKHQU09Xdx9pAqZiHwNHUM1s4SG1lEdYmI7npl/n4CCOj1EC
+VJAP4QVwnB1Ew48mvjmIPrrc9QTXYmDhU1NxK0QZ/P4qw0hYrnCvFylNP8Hd9a6k
+mIxmTW8sYGkodlafujAEgt3JqJ3LMOLaStnPAS4nnaPVdELtIQ6VbYF4V6PagP8k
+D0SB9Tfnn1jv0qwlqKz48rleRgcKa4NxPPSMqZcpfOJcs3HCTZKFWo9aeqb09u/7
+dMBDXSZ9LHeOHfQmIPMHSFVi3ZrBeo7CRe8pJ8X4EsuvcKxm7kQKJiuck3AmsQsg
+0miw117LdAg=
+=DTxT
+-----END PGP SIGNATURE-----
+
+--Sig_//lAh3i/SDYh.FNuHS__a+X7--
