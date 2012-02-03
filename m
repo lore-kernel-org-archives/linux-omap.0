@@ -1,64 +1,38 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
-Date: Fri, 03 Feb 2012 09:50:19 -0800
-Message-ID: <87liojajs4.fsf@ti.com>
+Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
+Date: Fri, 03 Feb 2012 09:51:31 -0800
+Message-ID: <87d39vajq4.fsf@ti.com>
 References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-	<1328203851-20435-2-git-send-email-tarun.kanti@ti.com>
-	<20120202184106.GC29215@legolas.emea.dhcp.ti.com>
-	<20120202191630.GT15343@ponder.secretlab.ca>
-	<20120202194545.GA29351@legolas.emea.dhcp.ti.com>
-	<4F2AF68D.1000505@ti.com>
-	<20120202214907.GA22888@legolas.emea.dhcp.ti.com>
-	<20120202215350.GB22888@legolas.emea.dhcp.ti.com>
-	<4F2B078B.1040709@ti.com>
-	<20120202220744.GA23092@legolas.emea.dhcp.ti.com>
+	<20120202194258.GU15343@ponder.secretlab.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120202220744.GA23092@legolas.emea.dhcp.ti.com> (Felipe Balbi's
-	message of "Fri, 3 Feb 2012 00:07:45 +0200")
+In-Reply-To: <20120202194258.GU15343@ponder.secretlab.ca> (Grant Likely's
+	message of "Thu, 2 Feb 2012 12:42:58 -0700")
 Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Felipe Balbi <balbi@ti.com> writes:
+Grant Likely <grant.likely@secretlab.ca> writes:
 
-[...]
-
->> >This question remains. Why do we need those funtions ?
+> On Thu, Feb 02, 2012 at 11:00:26PM +0530, Tarun Kanti DebBarma wrote:
+>> The following changes since commit 62aa2b537c6f5957afd98e29f96897419ed5ebab:
+>>   Linus Torvalds (1):
+>>         Linux 3.3-rc2
 >> 
->> These functions are called from the CPUIdle path so outside the scope
->> of the GPIO driver. These are part of a bunch of nasty PM hacks we
->> are doing in the CPU idle loop. We are in the process of getting rid
->> of most of them, but it looks like some are still needed.
+>> are available in the git repository at:
+>> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev
+>> Branch: for_3.4/gpio_cleanup_fixes_v9
 >
-> Too bad. I can see that the gpio pm implementation seems a bit
-> "peculiar". I mean, pm does reference counting and yet the driver has
-> checks to prevent multiple gets and puts on a single bank (meaning that
-> pm counter will be either 0 or 1 at any point in time).
+> Bad git url.  I had to replace 'http:' with 'git:'.
 >
-> To me it looks like those functions are there in order to forcefully put
-> PER power domain in OFF because drivers are always holding a reference
-> to their gpios (drivers generally gpio_request() on probe() and
-> gpio_free() on remove()).
->
-> Looks like the entire pm implementation on OMAP gpio driver has always
-> considered only the fact that gpios can be requested and freed, but
-> never that we want the system to go to OFF even while gpios are
-> requested, because we have I/O PAD wakeups. At some point that has to be
-> sorted out because that HACK is quite ugly :-)
->
-> I'll see if I find some time to go over the interactions between
-> gpio-omap.c and pm24x.c and pm34xx.c any of these days, but I can't
-> promise anything ;-)
+> I've merged this series into my gpio/next branch.  It should show up in
+> linux-next in a couple of days.
 
-If you look at the state of these prepare/resume hacks at the end of
-this series, you'll see that they are significantly cleaner and do
-nothing but call the runtime PM hooks.
+Grant, this series isn't quite ready for merge, and shouldn't be
+considered a pull request.
 
-We have explored several ways to get rid of them completely in the idle
-path but have not yet come up with a clean way, but this series gets us
-a long ways towards that goal.
+I still need to give it a once over and some final testing.
 
 Kevin
