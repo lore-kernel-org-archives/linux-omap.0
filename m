@@ -1,122 +1,80 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC idle 2/3] arm: Avoid invoking RCU when CPU is idle
-Date: Fri, 3 Feb 2012 11:40:05 -0800
-Message-ID: <20120203194005.GK2382@linux.vnet.ibm.com>
-References: <20120202174337.GS2518@linux.vnet.ibm.com>
- <alpine.LFD.2.02.1202021257340.2759@xanadu.home>
- <20120202190708.GE2518@linux.vnet.ibm.com> <87obtgc1xx.fsf@ti.com>
- <4F2B1307.5010207@gmail.com>
- <1328223819.5882.133.camel@gandalf.stny.rr.com>
- <20120202232736.GL2518@linux.vnet.ibm.com>
- <1328237131.5882.135.camel@gandalf.stny.rr.com>
- <20120203060458.GF2380@linux.vnet.ibm.com>
- <1328295309.5882.178.camel@gandalf.stny.rr.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Fri, 3 Feb 2012 12:42:22 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com>
+References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de> <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
+ <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown>
+ <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1328295309.5882.178.camel@gandalf.stny.rr.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, "Paul E. McKenney" <paul.mckenney@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@v
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-666378285-1328298142=:27947"
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: NeilBrown <neilb@suse.de>, Greg KH <gregkh@suse.de>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 03, 2012 at 01:55:09PM -0500, Steven Rostedt wrote:
-> On Thu, 2012-02-02 at 22:04 -0800, Paul E. McKenney wrote:
-> > On Thu, Feb 02, 2012 at 09:45:31PM -0500, Steven Rostedt wrote:
-> 
-> > It is an atomic instruction or two, plus some memory barriers.  Entering
-> > idle is more heavyweight for RCU_FAST_NO_HZ.  But as you say, it is
-> > entering and exiting idle.
-> > 
-> > But should I make an empty definition of RCU_NONIDLE() for some #define
-> > or another?
-> > 
-> > 	#ifdef CONFIG_YOU_TELL_ME
-> > 	#define RCU_NONIDLE(a) \
-> > 		do { \
-> > 			rcu_idle_exit(); \
-> > 			do { a; } while (0); \
-> > 			rcu_idle_enter(); \
-> > 		} while (0)
-> > 	#else /* #ifdef CONFIG_YOU_TELL_ME */
-> > 	#define RCU_NONIDLE(a) do { } while (0);
-> > 	#endif /* #else #ifdef CONFIG_YOU_TELL_ME */
-> > 
-> > Or is event tracing unconditional these days?
-> 
-> I don't like it. As it binds the RCU_NONIDLE to tracepoints only without
-> any annotation that they are bound. Still doesn't help when tracepoints
-> are configured but not enabled.
-> 
-> I have no problem in making a special TRACE_EVENT_IDLE() that does this
-> inside the jump label. Basically what we have today is:
-> 
-> 
-> 	if (static_branch(tracepoint_key)) {
-> 		rcu_read_lock_sched_notrace();
-> 		for (all attached tracepoints) {
-> 			[...]
-> 		}
-> 		rcu_read_unlock_sched_notrace();
-> 	}
-> 
-> Ideally we want the enter/exit idle inside that static_branch()
-> condition:
-> 
-> 	if (static_branch(tracepoint_key)) {
-> 		rcu_idle_exit();
-> 		rcu_read_lock_sched_notrace();
-> 		for (all attached tracepoints) {
-> 			[...]
-> 		}
-> 		rcu_read_unlock_sched_notrace();
-> 		rcu_idle_enter();
-> 	}
-> 
-> The static_branch() is the jump label code when it's a nop when disabled
-> and a jump to the tracing code when enabled:
-> 
-> 	nop; /* or jmp 2f */  <<--- jump label
-> 1:	[ normal code ]
-> 	ret;
-> 
-> 2:	[trace code]
-> 	jmp 1b
-> 
-> 
-> The jump label when disabled is just a nop that ignores the trace code
-> (although current gcc has a bug that it currently doesn't do it this
-> elegantly). When tracing is enabled the nop is converted to a jump to
-> the tracing code. This makes tracepoints very light weight in hot paths.
-> 
-> Ideally, we want the exit/enter rcu idle with in the [trace code], which
-> makes it not used when not needed.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-So the idea is that if you have a trace event that is to be used in idle,
-you use TRACE_EVENT_IDLE() rather than TRACE_EVENT() to declare that
-trace event?  That would work for me, and might make for fewer changes
-for the architecture guys.  Also, this should address the code-size
-concerns we discussed yesterday.
+--155748971-666378285-1328298142=:27947
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-So sounds good!
+On Fri, 3 Feb 2012, Grazvydas Ignotas wrote:
 
-Is a DEFINE_EVENT_IDLE() also needed?  Or prehaps a
-DECLARE_EVENT_CLASS_IDLE()?  My guess is "yes" for at least one of the
-two based on include/trace/events/power.h.
+> On Fri, Feb 3, 2012 at 11:54 AM, NeilBrown <neilb@suse.de> wrote:
+> > On Thu, 2 Feb 2012 22:45:53 -0700 (MST) Paul Walmsley <paul@pwsan.com> =
+wrote:
+> >> On Fri, 3 Feb 2012, NeilBrown wrote:
+> >>
+> >> > then CPUIDLE enters lower states and I think it uses less power but =
+I
+> >> > sometimes lose the first char I type (that is known) but also I some=
+times get
+> >> > corruption on output.
+> >>
+> >> I don't see any output corruption on 35xx BeagleBoard, either with or
+> >> without these patches. =C2=A0So this is presumably a 37xx-centric prob=
+lem, and
+> >> unrelated to these patches, I would guess.
+> >
+> > Maybe it is 37xx specific. =C2=A0I think this is a DM3730.
+>=20
+> Not sure if it's the same problem but with 3530 on 3.2 with
+> sleep_timeout set, I usually get first char dropped (as expected) but
+> sometimes I get corrupted char instead too. Corrupt char seems to
+> almost always happen if I set cpufreq to powersave, on performace it's
+> almost always ok, so maybe it's some timing problem,
 
-I will keep RCU_NONIDLE() for at least a little while (reworking comments
-to point out TRACE_EVENT_IDLE() and friends) in case there turn out to
-be non-tracepoint uses of RCU in the idle loop.
+OK so let's distinguish between two corruption situations:
 
-							Thanx, Paul
+1. The first character transmitted to the OMAP UART in a serial console=20
+when the UART powerdomain is in a non-functional, low power state (e.g.,=20
+RET or below) is corrupted.  This is not actually output corruption, this=
+=20
+is input corruption.
+
+2. Characters are corrupted while the OMAP UART is transmitting data, but=
+=20
+there has been no recent data sent to the OMAP.
+
+Case 1 is expected and is almost certainly not a bug.  As Neil mentioned=20
+it should be bps-rate dependent.  It occurs when the first character=20
+transmitted to the OMAP wakes the chip up via I/O ring/chain wakeup.
+I/O ring/chain wakeup is driven by a 32KiHz clock and is therefore=20
+relatively high-latency.  So this could easily cause the first character=20
+or first few characters to be lost or corrupted, depending on the exact=20
+sequence of events, the low power state that the chip was in, etc.
+
+Case 2 is not expected.  That is likely a bug somewhere.  Neil, this is=20
+what I understood that you are experiencing.  Is that correct?
+
+Gra=C5=BEvydas, are you seeing case 1 or 2 (or something completely differe=
+nt=20
+;-) ?
+
+
+- Paul
+--155748971-666378285-1328298142=:27947--
