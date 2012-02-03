@@ -1,17 +1,23 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Get rid of reset for system timer
-Date: Fri, 03 Feb 2012 09:54:07 -0800
-Message-ID: <877h03ajls.fsf@ti.com>
-References: <1328191435-18652-1-git-send-email-santosh.shilimkar@ti.com>
- <1328191435-18652-2-git-send-email-santosh.shilimkar@ti.com>
- <87obthcc57.fsf@ti.com>
- <CAMQu2gy2jDWszUAMDCfgyXsLNWUAb6phWpOP=7geFXTkc30S_g@mail.gmail.com>
+Subject: Re: [PATCH RFC idle 2/3] arm: Avoid invoking RCU when CPU is idle
+Date: Fri, 03 Feb 2012 10:41:01 -0800
+Message-ID: <87k4437oaq.fsf@ti.com>
+References: <20120202004253.GA10946@linux.vnet.ibm.com>
+ <1328143404-11038-1-git-send-email-paulmck@linux.vnet.ibm.com>
+ <1328143404-11038-2-git-send-email-paulmck@linux.vnet.ibm.com>
+ <alpine.LFD.2.02.1202012234050.2759@xanadu.home>
+ <20120202044439.GD2435@linux.vnet.ibm.com>
+ <alpine.LFD.2.02.1202021159560.2759@xanadu.home>
+ <20120202174337.GS2518@linux.vnet.ibm.com>
+ <alpine.LFD.2.02.1202021257340.2759@xanadu.home>
+ <20120202190708.GE2518@linux.vnet.ibm.com> <87obtgc1xx.fsf@ti.com>
+ <4F2B1307.5010207@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAMQu2gy2jDWszUAMDCfgyXsLNWUAb6phWpOP=7geFXTkc30S_g@mail.gmail.com>
- (Santosh Shilimkar's message of "Fri, 3 Feb 2012 12:45:09 +0530")
+In-Reply-To: <4F2B1307.5010207@gmail.com> (Rob Herring's message of "Thu, 02
+ Feb 2012 16:49:43 -0600")
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,28 +27,77 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, H Hartley Sweeten <hsweeten@visionengravers.com>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, rostedt@goodmis.org, Barry Song <baohua.song@csr.com>, tglx@linut
 List-Id: linux-omap@vger.kernel.org
 
-IlNoaWxpbWthciwgU2FudG9zaCIgPHNhbnRvc2guc2hpbGlta2FyQHRpLmNvbT4gd3JpdGVzOgoK
-PiBPbiBGcmksIEZlYiAzLCAyMDEyIGF0IDEyOjEwIEFNLCBLZXZpbiBIaWxtYW4gPGtoaWxtYW5A
-dGkuY29tPiB3cm90ZToKPj4gU2FudG9zaCBTaGlsaW1rYXIgPHNhbnRvc2guc2hpbGlta2FyQHRp
-LmNvbT4gd3JpdGVzOgo+Pgo+Pj4gRnJvbTogUmFqZW5kcmEgTmF5YWsgPHJuYXlha0B0aS5jb20+
-Cj4+Pgo+Pj4gaHdtb2Qgc2V0dXAgYWxyZWFkeSBkb2VzIGEgcmVzZXQgYW5kIHNldHMgdGhlIE9D
-UCBzeXNjb25maWcKPj4+IHJlZ2lzdGVycyBhcHByb3ByaWF0ZWx5LiBBdm9pZCBkb2luZyBhIHJl
-c2V0IGFnYWluIGFuZCBvdmVycmlkaW5nCj4+PiB0aGUgT0NQIHN5c2NvbmZpZyBzZXR0aW5ncyBp
-biB0aGUgc3lzdGVtIHRpbWVyIGluaXQgY29kZS4KPj4KPj4gVGhhdCBpcyB0cnVlIGZvciBPTUFQ
-NCwgYnV0IGhhdmUgeW91IHZlcmlmaWVkIGlmIHRoaXMgaXMgaW5kZWVkIGEKPj4gZHVwbGljYXRl
-IHJlc2V0IG9uIMKgT01BUDIvMz8KPj4KPiBZZXMuIEl0IGlzIGR1cGxpY2F0ZSBmb3IgT01BUDIg
-YW5kIE9NQVAzIGRldmljZXMgYXMgd2VsbC4KPiBBY3R1YWxseSB0aGlzIHNob3VsZCBoYXZlIGJl
-ZW4gZml4ZWQgd2hlbiB0aGUgZHJpdmVyIHdhcwo+IGh3bW9kIGNvbnZlcnRlZCBidXQgc29tZSBo
-b3cgZ290IG1pc3NlZC4gV2Ugbm90aWNlZAo+IGFuIGlzc3VlIG9uIE9NQVA1LCB3aGVuIHRpbWVy
-IGludGVycnVwdHMgc3RvcHBlZCBmaXJpbmcgd2hlbgo+IGFsd2F5cyBvbiBjbG9jayBkb21haW4g
-d2FzIGFsbG93ZWQgdG8gaWRsZS4gVGhpcyB3YXMgYmVjYXVzZQo+IHRoaXMgcmVzZXQgd2FzIGNs
-ZWFyaW5nIHRoZSBjb3JyZWN0bHkgc2V0IHN5c2MgdmFsdWUgYnkgaHdtb2QuCj4KPiBUaGUgcGF0
-Y2ggaXMgYWxzbyB0ZXN0ZWQgb24gWk9PTTMgKCBPTUFQMzYzMCkKPiBhbmQgT01BUDI0MzBTRFAu
-CgpHcmVhdCwgdGhhbmtzIGZvciB0ZXN0aW5nIG9uIE9NQVAyLzMuCgpLZXZpbgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBt
-YWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9s
-aXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+Rob Herring <robherring2@gmail.com> writes:
+
+> On 02/02/2012 04:20 PM, Kevin Hilman wrote:
+>> "Paul E. McKenney" <paulmck@linux.vnet.ibm.com> writes:
+>> 
+>> [...]
+>> 
+>>>>> The two options I see are:
+>>>>>
+>>>>> 1.	Rip tracing out of the inner idle loops and everything that
+>>>>> 	they invoke.
+>>>>
+>>>> What I suggested above.  But as I said I know sh*t about that tracing 
+>>>> implementation so that's an easy suggestion for me to make.
+>>>
+>>> Works for me as well.  ;-)
+>> 
+>> While I must admit not having a better suggestion, I for one would vote
+>> strongly against removing tracing from the idle path.
+>> 
+>> Being a PM developer and maintainer, much of the code I work on and
+>> maintain happens to be run in the bowels of the idle path.  Not having
+>> the ability to trace this code would be a major step backwards IMO.
+>
+> How is it a step backwards if it is already broken. 
+
+Well, I didn't know it was broken. ;) And, as Paul mentioned, this has
+been broken for a long time. Apparently it's been working well enough
+for nobody to notice until recently.
+
+> Obviously you haven't actually used any tracing here because it
+> doesn't work right with things as is.
+
+It's been working well enough for me to debug several idle path problems
+with tracing.  Admittedly, this has been primarily on UP systems, but
+I've recently started using the tracing on SMP as well.  (however, due
+to "coupled" low-power states on OMAP, large parts of the idle path are
+effectively UP since one CPU0 has to wait for CPU1 to hit a low-power
+state before it can.)
+
+> What exactly do you want to trace at this level. By the point you are in
+> this code, the path is somewhat known and problems you have are likely
+> h/w issues. 
+
+Not really. 
+
+There is still quite a bit of software between the decision to enter
+idle and the hardware taking over.  On OMAP for example, we have power
+domains, clock domains and clocks that are managed during idle, and
+these layers contain tracepoints.
+
+Add to that the runtime PM management of some devices that are coupled
+to the CPU (because they share a power domain, etc).  Runtime PM
+contains tracepoints.
+
+Add to that possible voltage scaling during idle using regulators.
+Regulator framework has tracepoints.
+
+That can lead to quite a bit of tracing info *after* the decision to
+enter idle.
+
+> If you are trying to go thru a very precise sequence of
+> saving cpu state and flushing caches, you don't want calls out to
+> tracing code that could very easily change the behavior.
+
+I'm more worried about the power domain and voltage domain transitions
+(or lack thereof) when trying to debug why a particular low-power state
+was not hit.
+
+Kevin
