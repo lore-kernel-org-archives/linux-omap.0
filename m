@@ -1,49 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Fri, 3 Feb 2012 14:04:45 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202031347590.27947@utopia.booyaka.com>
-References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de> <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
- <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
- <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com> <20120204074427.5091fef5@notabene.brown>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
+Date: Fri, 3 Feb 2012 14:16:29 -0700
+Message-ID: <CACxGe6uLR2ou7+TQdHubrEuHtonbgVtO1ow3iQV5V-jVSx=LWA@mail.gmail.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+ <20120202194258.GU15343@ponder.secretlab.ca> <87d39vajq4.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60627 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757874Ab2BCVEq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 16:04:46 -0500
-In-Reply-To: <20120204074427.5091fef5@notabene.brown>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:64264 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856Ab2BCVQt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 16:16:49 -0500
+In-Reply-To: <87d39vajq4.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Greg KH <gregkh@suse.de>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, 4 Feb 2012, NeilBrown wrote:
-
-> On Fri, 3 Feb 2012 12:42:22 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrote:
+On Fri, Feb 3, 2012 at 10:51 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Grant Likely <grant.likely@secretlab.ca> writes:
 >
-> > Case 1 is expected and is almost certainly not a bug.  As Neil mentioned 
-> > it should be bps-rate dependent.  It occurs when the first character 
-> > transmitted to the OMAP wakes the chip up via I/O ring/chain wakeup.
-> > I/O ring/chain wakeup is driven by a 32KiHz clock and is therefore 
-> > relatively high-latency.  So this could easily cause the first character 
-> > or first few characters to be lost or corrupted, depending on the exact 
-> > sequence of events, the low power state that the chip was in, etc.
-> 
-> A 32KiHz cycles every 30mSec.
-> At 115200 bps, there is one bit every 8.7 microseconds.
-> 
-> When I type "return" - which looks like 0101100001111... on the wire,
-> I see '0xC3' which looks like 011000011111... on the wire.
-> So we lost exactly 2 bits, or a delay around 17 microseconds.
-> 
-> I find it hard to reconcile that delay with the cause being a 32KiHZ clock.
+>> On Thu, Feb 02, 2012 at 11:00:26PM +0530, Tarun Kanti DebBarma wrote=
+:
+>>> The following changes since commit 62aa2b537c6f5957afd98e29f9689741=
+9ed5ebab:
+>>> =A0 Linus Torvalds (1):
+>>> =A0 =A0 =A0 =A0 Linux 3.3-rc2
+>>>
+>>> are available in the git repository at:
+>>> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-lin=
+ux-omap-dev
+>>> Branch: for_3.4/gpio_cleanup_fixes_v9
+>>
+>> Bad git url. =A0I had to replace 'http:' with 'git:'.
+>>
+>> I've merged this series into my gpio/next branch. =A0It should show =
+up in
+>> linux-next in a couple of days.
+>
+> Grant, this series isn't quite ready for merge, and shouldn't be
+> considered a pull request.
 
-If you're not disabling the HF clock oscillator via the AUTOEXTCLKMODE 
-bits, the wakeup logic may be getting clocked by the sys_clk, which is 
-quite a bit faster.  That might explain the corruption patterns you're 
-seeing.
+No problem.  I'll drop it from my tree.
 
-
-- Paul
+g.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
