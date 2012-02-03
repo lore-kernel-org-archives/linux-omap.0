@@ -1,150 +1,119 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Fri, 3 Feb 2012 12:34:08 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202031216320.27947@utopia.booyaka.com>
-References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de> <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
- <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH RFC idle 2/3] arm: Avoid invoking RCU when CPU is idle
+Date: Fri, 03 Feb 2012 14:36:27 -0500
+Message-ID: <1328297787.5882.203.camel@gandalf.stny.rr.com>
+References: <20120202004253.GA10946@linux.vnet.ibm.com>
+ <1328143404-11038-1-git-send-email-paulmck@linux.vnet.ibm.com>
+ <1328143404-11038-2-git-send-email-paulmck@linux.vnet.ibm.com>
+ <alpine.LFD.2.02.1202012234050.2759@xanadu.home>
+ <20120202044439.GD2435@linux.vnet.ibm.com>
+ <alpine.LFD.2.02.1202021159560.2759@xanadu.home>
+ <20120202174337.GS2518@linux.vnet.ibm.com>
+ <alpine.LFD.2.02.1202021257340.2759@xanadu.home>
+ <20120202190708.GE2518@linux.vnet.ibm.com> <87obtgc1xx.fsf@ti.com>
+ <4F2B1307.5010207@gmail.com> <87k4437oaq.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120203205401.5ddf241d@notabene.brown>
-Sender: linux-serial-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Greg KH <gregkh@suse.de>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <87k4437oaq.fsf@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, H Hartley Sweeten <hsweeten@visionengravers.com>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, paulmck@linux.vnet.ibm.com, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, 3 Feb 2012, NeilBrown wrote:
+On Fri, 2012-02-03 at 10:41 -0800, Kevin Hilman wrote:
 
-> On Thu, 2 Feb 2012 22:45:53 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrote:
+> > How is it a step backwards if it is already broken. 
 > 
-> > On Fri, 3 Feb 2012, NeilBrown wrote:
-> > 
-> > > If I enable runtime pm by setting power/autosuspend_delay_ms (e.g. to 5000)
-> > 
-> > Runtime PM should be enabled even with power/autosuspend_delay_ms = 0.  
-> > I think you are simply enabling the autosuspend timer.  There was a 
-> > significant behavior change here from 3.2, I believe.
+> Well, I didn't know it was broken. ;) And, as Paul mentioned, this has
+> been broken for a long time. Apparently it's been working well enough
+> for nobody to notice until recently.
 > 
-> However the default autosuspend_delay_ms is "-1", not "0", and "-1" does
-> disable runbtime_pm completely.  It increments usage_count (see
-> update_autosuspend()) so runtime_pm can never suspend the device.
-
-OK good, so you are indeed keeping the clocks enabled, then.
-
-> Hmm... I thought it was the other way around - CLKEN could gate the clock
-> off, and PRCM could also turn it off after a handshake.  But I finally found
-> the relevant text:
+> > Obviously you haven't actually used any tracing here because it
+> > doesn't work right with things as is.
 > 
->    The software effect is immediate and direct. The functional clock is
->    turned on as soon as the bit is set, and turned off if the bit is cleared
->    and the clock is not required by any module.
-> 
-> so it seems I was wrong.
+> It's been working well enough for me to debug several idle path problems
+> with tracing.  Admittedly, this has been primarily on UP systems, but
+> I've recently started using the tracing on SMP as well.  (however, due
+> to "coupled" low-power states on OMAP, large parts of the idle path are
+> effectively UP since one CPU0 has to wait for CPU1 to hit a low-power
+> state before it can.)
 
-Well, one shouldn't take the TRM too seriously.  But in this case, yes I 
-think you had a slightly different idea than what the hardware people
-intended ;-)
+It's used by all users of powertop, and we haven't heard about a bug
+yet. This doesn't mean that the bug doesn't exist. The race is extremely
+hard to hit. It's one of those "good bugs". You know, the kind that you
+don't really have to worry about because you are more likely to win the
+lottery, become President of the United States, and find a cure for
+cancer (all those together, not just one) than the chance of hitting
+this bug. But it's a bug regardless and should, unfortunately, be fixed.
 
-> Still - something is definitely going wrong because I definitely an regularly
-> see garbage characters.  And the patch fixes it.  So some runtime-suspend
-> handler must be doing something bad, and it must happen while characters
-> are being written.
+But here's the explanation of the bug:
 
-It's certainly possible that there is another idle bug in the UART where 
-it could be mistakenly idle-acking when there are bytes left to be 
-transmitted.  But the patch 'tty: serial: OMAP: block idle while the UART 
-is transferring data in PIO mode' should fix that.  Are you running with 
-those patches applied?  Also, are you using PIO or DMA?
+As Paul has stated, when rcu_idle_enter() is in effect, the calls to
+rcu_read_lock_* are ignored. Thus we can pretend they don't exist.
 
-> > > i.e. when the tx buffer is empty, so turn the clocks off immediately, 
-> > > but wait a while for the fifo to empty.  Hopefully the auto-suspend time 
-> > > is enough.
-> > 
-> > Hmm, this statement is a little unclear to me.  The clocks won't be turned 
-> > off immediately - the request to disable the clocks only happens when the 
-> > autosuspend timer expires.  And even then, as mentioned above, it's just a 
-> > request.  The hardware should not actually disable the functional clock 
-> > until the UART FIFO is drained...
-> 
-> If you pm_runtime_put_autosuspend(), the suspend won't happen immediately but
-> will wait the timeout.
-> If you pm_runtime_put_sync(), the suspend happens straight away.
-> If you pm_runtime_put(), the suspend is schedule immediately in another
-> thread, so it happens very soon.  It doesn't wait for a timer to expire (no
-> timer is ticking at this point).
-> 
-> Just because an autosuspend timeout was set earlier, that won't cause
-> pm_runtime_put() to delay in suspending the device when it is called.
-> 
-> So I think it does request that the clocks be turned off immediately.
+The code in question is the __DO_TRACE() in include/linux/tracepoint.h:
 
-I was under the impression you were referring to the behavior after your 
-patch was applied, rather than before it.  My misunderstanding.
+		rcu_read_lock_sched_notrace();				\
+		it_func_ptr = rcu_dereference_sched((tp)->funcs);	\
+		if (it_func_ptr) {					\
+			do {						\
+				it_func = (it_func_ptr)->func;		\
+				__data = (it_func_ptr)->data;		\
+				((void(*)(proto))(it_func))(args);	\
+			} while ((++it_func_ptr)->func);		\
+		}							\
+		rcu_read_unlock_sched_notrace();	
 
-> > Anyway, consider trying a different CLOCKACTIVITY setting for the UARTs. 
-> 
-> My TRM saids that SYSC for the UARTs doesn't have CLOCKACTIVITY. Only
->  AUTOIDLE SOFTRESET ENAWAKEUP IDLEMODE
-> 
-> Is it worth trying anyway?
+As stated above, the rcu_read_(un)lock_sched_notrace() are worthless
+when in rcu_idle_enter().
 
-Sure, why not.  It's fast to try, and if it happens to work, it's better 
-than hacking the driver..  
+They protect the referencing of tp->funcs, which is an array of all
+funcs that are attached to this tracepoint.
 
-> > Incidentally, I have some patches to fix the latency calculation here that 
-> > are in the works, similar to the ones you describe.  The current 
-> > calculation in the driver is pretty broken, but since the changes to fix 
-> > the calculation are rather involved, Kevin and I thought it would be best 
-> > to defer most of them to the v3.4 merge window.  The calculation fix in 
-> > the 3.3-rc series is simply intended to deal with a very basic power 
-> > management regression, as you know - not to make it ideal, which is more 
-> > complicated.  Anyway, the patches are at git://git.pwsan.com/linux-2.6 in 
-> > the branch 'omap_serial_fix_pm_qos_formula_devel_3.4'.  Keep in mind that 
-> > at least one patch in that branch is broken, but perhaps you might get an 
-> > idea of where they are trying to go.  Comments welcome.
-> > 
-> > > However I am using a lot more power than in 3.2.  
-> > 
-> > Is this without disabling the UART clocks?  If the driver is keeping the 
-> > UART clocks enabled, then increased power consumption is definitely 
-> > expected.
-> 
-> Both. With clocks kept on (autosuspend == -1) I'm using about 30 mA more than
-> before.  With clocks allowed to go off it is closer to 40mA more !!! Weird,
-> isn't it?
+Now we need to look at kernel/tracepoint.c:
 
-Interesting.  A few questions.  Do you have the PMIC and the OMAP 
-configured to scale voltage in retention?  Also, does the power effect 
-differ if you use different autosuspend timeouts?
+The protection is needed against a simultaneous insertion or deletion of
+a tracepoint hook. This happens when a user enables or disables tracing.
 
-> > > If I then enabled runtime_pm with a 5 second autosuspend delay:
-> > >   CORE is still permanently ON (I think the USB might be doing that).
-> > >   PER  is OFF (7 seconds) RET (15 seconds) and ON (8 seconds).
-> > > but more surprising
-> > >   MPU  is OFF (8 sec) RET (8 sec) INA (9 sec) ON (4 secs).
-> > > 
-> > > So we get to turn PER off at the cost of turning the MPU on a lot.
-> > > (the periods in each state are only repeatable to a precision of 20%-50%).
+Note, this race is even made harder to hit, because due to the static
+branch that controls whether this gets called, will be off if no
+tracepoints are attached. So the race can only happen after at least one
+tracepoint is active.
 
-Hmmm yeah, that does seem weird that the MPU would stay out of a low power 
-state just because the autosuspend timer was enabled.  
+But if two probes are are added to this tracepoint, then we can hit the
+race. And it is possible to trigger with only one probe on removal.
 
-> > > p.s. who should I formally submit OMAP-UART patches to?  I have a couple of
-> > > others such as the below that I should submit somewhere.
-> > 
-> > Would suggest sending them to linux-serial@vger.kernel.org, 
-> > linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, and Alan 
-> > Cox since he is the serial maintainer?  And you should probably also cc 
-> > me, since I seem to be stuck with fixing this driver so I can test my 
-> > other patches; and cc Govindraj as well.
->
-> Thanks for your time.
+When adding or removing a tracepoint, the array (the one that
+it_func_ptr points to) is updated by allocating a new array, copying the
+old array plus or minus the tracpoint being added or removed, setting
+the tp->funcs to the new array, and then it calls call_rcu_sched() to
+free it.
 
-Thanks for helping us clean up this driver :-)
+Now for the bug to hit, something had to be coming in or out of idle,
+and jumping to this code. Between the time it got the it_func_ptr to the
+time it accessed any of that pointer's data in the loop, the tp->func
+had to be updated to the new array, and then all CPUs would have passed
+a schedule point (except the rcu_idle CPUs).
 
-By the way, you might want to cc Kevin Hilman on any serial patches too, 
-since he has been working in this area also.
+On uniprocessor, this is not an issue, but on SMP, it is possible that
+with two CPUs the first being in rcu_idle may be ignored, and the second
+would have been adding the tracepoint and then going directly to freeing
+the code. But as tracepoints are very low weight, it is most likely that
+the tracepoints will finish before the first could even free the memory.
 
+But the chance does exist. As the chance of me winning the lottery,
+becoming President of the United States, and curing cancer also exists!
 
-- Paul
+;-)
+
+-- Steve
