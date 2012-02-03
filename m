@@ -1,8 +1,8 @@
 From: NeilBrown <neilb@suse.de>
 Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
  in non-DMA" added to tty tree
-Date: Sat, 4 Feb 2012 08:59:40 +1100
-Message-ID: <20120204085940.2de44594@notabene.brown>
+Date: Sat, 4 Feb 2012 09:10:48 +1100
+Message-ID: <20120204091048.00c7e027@notabene.brown>
 References: <13274430881471@kroah.org>
 	<alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
 	<20120126042155.GA3185@suse.de>
@@ -13,114 +13,103 @@ References: <13274430881471@kroah.org>
 	<20120203150708.386951d2@notabene.brown>
 	<alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com>
 	<20120203205401.5ddf241d@notabene.brown>
-	<alpine.DEB.2.00.1202031255330.27947@utopia.booyaka.com>
+	<CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
+	<20120203231113.25ae2d3a@notabene.brown>
+	<alpine.DEB.2.00.1202031243270.27947@utopia.booyaka.com>
+	<alpine.DEB.2.00.1202031432080.27947@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/EN0kda3g02SFo22xq=XCYCE"; protocol="application/pgp-signature"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50180 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754779Ab2BCV76 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 3 Feb 2012 16:59:58 -0500
-In-Reply-To: <alpine.DEB.2.00.1202031255330.27947@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+ boundary="Sig_/0.E7+2uffOjLYNTl5S=AskQ"; protocol="application/pgp-signature"
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1202031432080.27947@utopia.booyaka.com>
+Sender: linux-serial-owner@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Greg KH <gregkh@suse.de>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
---Sig_/EN0kda3g02SFo22xq=XCYCE
+--Sig_/0.E7+2uffOjLYNTl5S=AskQ
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 3 Feb 2012 13:10:28 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrot=
+On Fri, 3 Feb 2012 14:42:09 -0700 (MST) Paul Walmsley <paul@pwsan.com> wrot=
 e:
 
-> One other comment..
+> One correction on this part...
 >=20
-> On Fri, 3 Feb 2012, NeilBrown wrote:
+> On Fri, 3 Feb 2012, Paul Walmsley wrote:
 >=20
-> > On Thu, 2 Feb 2012 22:45:53 -0700 (MST) Paul Walmsley <paul@pwsan.com> =
-wrote:
+> > On Fri, 3 Feb 2012, NeilBrown wrote:
 > >=20
-> > > On Fri, 3 Feb 2012, NeilBrown wrote:
+> > > My theory is that there is a delay between the falling RX line waking=
+ the
+> > > system up, and the CPU enabling the UART - whether enabling the clock=
+s or
+> > > doing a full config, I am not sure - though I think the former.
 > > >=20
-> > > > I can remove this effect with:
-> > > >=20
-> > > > diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/=
-omap-serial.c
-> > > > index f809041..c7ef760 100644
-> > > > --- a/drivers/tty/serial/omap-serial.c
-> > > > +++ b/drivers/tty/serial/omap-serial.c
-> > > > @@ -440,7 +440,8 @@ static unsigned int serial_omap_tx_empty(struct=
- uart_port *port)
-> > > >  	spin_lock_irqsave(&up->port.lock, flags);
-> > > >  	ret =3D serial_in(up, UART_LSR) & UART_LSR_TEMT ? TIOCSER_TEMT : =
-0;
-> > > >  	spin_unlock_irqrestore(&up->port.lock, flags);
-> > > > -	pm_runtime_put(&up->pdev->dev);
-> > > > +	pm_runtime_mark_last_busy(&up->pdev->dev);
-> > > > +	pm_runtime_put_autosuspend(&up->pdev->dev);
-> > > >  	return ret;
-> > > >  }
+> > > Maybe if we could enable the UART clocks immediately after returning =
+from the
+> > > WFI instruction we could avoid the corruption....
+> >=20
+> > The PRCM should be re-enabling the UART's functional clock itself, with=
+ no=20
+> > kernel involvement.  The sequence should go something like this=20
+> > (simplified):
+> >=20
+> > 1. I/O wakeup occurs
+> >=20
+> > 2. CORE & PER powerdomains are awakened
+> >=20
+> > 3. The UART notices an event on its input lines and deasserts its idle-=
+ack
 >=20
-> It's a little surprising that this helps.  The pm_runtime_get*() and=20
-> _put*() in serial_omap_tx_empty() are just intended to ensure that the=20
-> UART's clocks are running for that LSR register read.
->=20
-> Considering your theory that the UART clocks are being cut while there's=
+> It just occurred to me that, supposedly, the only UART input line that is=
 =20
-> still data in the FIFO, you might consider removing this code at the end=
+> attached to the SWAKEUP signal is CTS.  So the UART may not in fact be=20
+> able to deassert its idle-ack autonomously at this point.
+
+How does that relate to the RX_CTS_WU_EN bit which enables an interrupt on=
 =20
-> of transmit_chars():
+    "a falling edge of pins RX, nCTS, or nDSR"
+
+This seems to be a "wakeup interrupt", bit it isn't clear what it wakes us.
+
 >=20
-> 	if (uart_circ_empty(xmit))
-> 		serial_omap_stop_tx(&up->port);
+> So you might want to give your clock re-enable after WFI idea a shot!  It=
+=20
+> would be interesting if it helps.
 
-I read the code and chickened out of just removing that.
-serial_omap_stop_tx seem to do 2 things:
- 1/ tell the uart to stop sending interrupts when the tx fifo is empty
- 2/ set forceidle (really smartidle) on the uart.
+Might be a bit beyond me at the moment :-(
 
-I didn't feel comfortable removing '1' as I thought it might generate an
-interrupt storm .. maybe not.
-Instead I just removed '2'.  In fact I replaced the 'set_forceidle' call wi=
-th
-'set_noidle'.  So the uart should never report that it was idle.
-
-I did this with my other patch removed so pm_runtime_put() was still being
-called.
-
-Result:  I still get corruption.
-So having the UART say "no, I'm not idle" does *not* stop the clock
-being turned off when we use omap_hwmod_idle() to turn off the clocks.
-
-When we turn off a clock, if that is the last clock in the clock-domain, we
-also turn off the clock-domain (I think).
-Could it be that the clock-domain doesn't do any handshaking with modules,
-and so turns off the clocks even though they are being used?
-
+Thanks,
 NeilBrown
 
---Sig_/EN0kda3g02SFo22xq=XCYCE
+>=20
+> I regret the oversight,=20
+>=20
+>=20
+> - Paul
+
+
+--Sig_/0.E7+2uffOjLYNTl5S=AskQ
 Content-Type: application/pgp-signature; name=signature.asc
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2.0.18 (GNU/Linux)
 
-iQIVAwUBTyxYzDnsnt1WYoG5AQLzcQ/8Dq67gZN1M+8AXPg/9e/2yNsasnxZFFtD
-2QZDv/2G+XlB5BfQQPuFkRBiBUuARR8DAV77nplmfFbRcR/bjtDRmlyBapTyVEt2
-YsK/XgG2eIgHRoHz2vhUpoqJUxRTTGZYZFrDptV9iFr/JYzd5jS/cv4ALWE5jmlY
-3bsil+DLWNPnOiMI0ZTKdxCJZPg3lteiQg1AyDgvyiLKEoUXXBVPWnn4kEJLaOFF
-TlYCUP+5QxykLvLsL0NCIaaZFl04iERK2yY3dASqkjatjVKcYz9VhfdJtqEQFwX8
-yIjXmw3sWODgLQk403nW7DBlTfRG3FiNLvdMPfgUHmJ4xcuKXKMsnkJsJCYd+vqw
-6OkhXOFaI3iEHalE8V1Yp2g+UVh28XCk5B99jre68KBSQY+lq9hF8wP7DxdiHxnb
-4CgWsdZOjcZpeq7LNTzurYpYwmNrsibpVbhMprmdiyYQNa+N3A2b/Gx66ul+IX0C
-RvXGpakvldbN70ORWegiCuRXEK/MMsvo6OYmyFDGnWgA8Md5OugACXz74Mtrc4BT
-Tbehyn3iqlnEFP3VGTVmqYcnMve+IJMGlStpblp7JW7QzZ/k2aMsiWMrkQSqWSHd
-y2BVJBLFgcyOK1jBqfLfz7o4zIZateTi7D+EoRt59tSNLCTWRc3iFJMC3zhsx9E0
-VAluAQG4sNk=
-=5+KD
+iQIVAwUBTyxbaTnsnt1WYoG5AQKukg/8CiNXLevn0vwfV9D0OxNJZh0JZh02HitE
+l5o98xwxoRfkDtcuYJL9jVRhZzrXYRbjsBS7ti9rZ772W4sQ6JG/HMZD80JBNNmB
+QiEofhw5uAIVJTJUvPxxAtSA0UW6LM8lcbOORHgsZMS70cTFviokAtcQ0jftcjC1
++Uep4gUrXxW1iHuoP7wTeOXjwAMwDtJdtVN8u+UsVYH4SHjFFbafWKFcPT6i79TS
+wb3haLVFiYXm+Ie28Ye5+5NXR25mOk+2IyIyni/mTLvWSPUi6GwgS8NiwdhjADh9
+mDZEuMGIpqjRU8eikkpWbxwrkD4rmobCi+Tk8gtpprxolAeWcr0rKNqQgTCIp19Y
+9iavXdTsQGRAcnlK+AfPeWMv8FWOSmRaUqLofdJ2ij2HnESeXCaMUvwHqPIoSlls
+bN+qCsy1/CidIC0oY6NhHCoqSgcI8hVl7a/9F/wSTFyFfRRhv3z3t0KOcIsToB33
+fFPBLtQo9YuqoP309c11TEF6ude7nYFI+Ih/eKFxFJ10U1q+6asoELIN+AWgVys0
+7D7gsGinwspl/lK4wbNJsF7yI0aVrGH2Ct0cLwTbovmmQGcZZtiq3kYodGLytPUj
+m6texG/aQijJaImKvDVSbHVslVNbH5AKJcZr5Hz4/JVvbDL3POLeuShYhkyXadnh
+oE9a7gFELuo=
+=bvFG
 -----END PGP SIGNATURE-----
 
---Sig_/EN0kda3g02SFo22xq=XCYCE--
+--Sig_/0.E7+2uffOjLYNTl5S=AskQ--
