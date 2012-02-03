@@ -1,60 +1,141 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC idle 2/3] arm: Avoid invoking RCU when CPU is idle
-Date: Thu, 2 Feb 2012 15:51:28 -0800
-Message-ID: <20120202235128.GA21031@linux.vnet.ibm.com>
-References: <alpine.LFD.2.02.1202012234050.2759@xanadu.home>
- <20120202044439.GD2435@linux.vnet.ibm.com>
- <alpine.LFD.2.02.1202021159560.2759@xanadu.home>
- <20120202174337.GS2518@linux.vnet.ibm.com>
- <alpine.LFD.2.02.1202021257340.2759@xanadu.home>
- <20120202190708.GE2518@linux.vnet.ibm.com> <87obtgc1xx.fsf@ti.com>
- <4F2B1307.5010207@gmail.com>
- <1328223819.5882.133.camel@gandalf.stny.rr.com>
- <20120202232736.GL2518@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Colin Cross <ccross@android.com>
+Subject: Re: [PATCH 0/3] coupled cpuidle state support
+Date: Thu, 2 Feb 2012 17:19:28 -0800
+Message-ID: <CAMbhsRSBqyTaCBMjJL-izMK=HSVwY6yQQqPyg0enddo2vymyxA@mail.gmail.com>
+References: <1324426147-16735-1-git-send-email-ccross@android.com>
+	<4F1929E9.7070707@linaro.org>
+	<CAMbhsRTbVqV6p0py9NGZrpFPf2yvp-B0dr+o-m7qbdja_-Lfzw@mail.gmail.com>
+	<CAKfTPtAsO8z_8AnR8zSGZ9cm_7orDNxB3r09JAFk+2jdezUVmQ@mail.gmail.com>
+	<CAMbhsRQYVXTZ2pX4mBrM6=SyGTqn_GY8xsW4rt_e21zerEzctA@mail.gmail.com>
+	<CAKfTPtB3Kcy41H9g9u3u81kEHJeypi=GvOfOjcpdztzqN991nA@mail.gmail.com>
+	<20120201145934.GA20421@e102568-lin.cambridge.arm.com>
+	<CAMbhsRTFzc8aGsSGUs2==4FiqBb7zOit4cO=6U698k+RCE+kqQ@mail.gmail.com>
+	<20120201180705.GA20936@e102568-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20120202232736.GL2518@linux.vnet.ibm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, "Paul E. McKenney" <paul.mckenney@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@v
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20120201180705.GA20936@e102568-lin.cambridge.arm.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/linux-pm/>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Kevin Hilman <khilman@ti.com>, Len Brown <len.brown@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Amit Kucheria <amit.kucheria@linaro.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arjan van de Ven <arjan@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 02, 2012 at 03:27:36PM -0800, Paul E. McKenney wrote:
-> On Thu, Feb 02, 2012 at 06:03:39PM -0500, Steven Rostedt wrote:
-> 
-> [ . . . ]
-> 
-> > Anyway, one answer is (and I was talking with Paul about this on IRC) is
-> > that we can create a special "TRACE_EVENT_IDLE()" that will explicitly
-> > call "rcu_idle_exit/enter()" as it expects to be called with it off.
-> > 
-> > This should solve most issues I believe.
-> 
-> You OK with something like RCU_NONIDLE() rather than RCU_EVENT_IDLE()?
-> I have this funny feeling that tracing won't be the only thing using
-> RCU from idle.  :-/
-> 
-> Something like this, perhaps?
+On Wed, Feb 1, 2012 at 10:07 AM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Wed, Feb 01, 2012 at 05:30:15PM +0000, Colin Cross wrote:
+>> On Wed, Feb 1, 2012 at 6:59 AM, Lorenzo Pieralisi
+>> <lorenzo.pieralisi@arm.com> wrote:
+>> > On Wed, Feb 01, 2012 at 12:13:26PM +0000, Vincent Guittot wrote:
+>> >
+>> > [...]
+>> >
+>> >> >> In your patch, you put in safe state (WFI for most of platform) the
+>> >> >> cpus that become idle and these cpus are woken up each time a new =
+cpu
+>> >> >> of the cluster becomes idle. Then, the cluster state is chosen and=
+ the
+>> >> >> cpus enter the selected C-state. On ux500, we are using another
+>> >> >> behavior for synchronizing =A0the cpus. The cpus are prepared to e=
+nter
+>> >> >> the c-state that has been chosen by the governor and the last cpu,
+>> >> >> that enters idle, chooses the final cluster state (according to cp=
+us'
+>> >> >> C-state). The main advantage of this solution is that you don't ne=
+ed
+>> >> >> to wake other cpus to enter the C-state of a cluster. This can be
+>> >> >> quite worth full when tasks mainly run on one cpu. Have you also t=
+hink
+>> >> >> about such behavior when developing the coupled cpuidle driver ? It
+>> >> >> could be interesting to add such behavior.
+>> >> >
+>> >> > Waking up the cpus that are in the safe state is not done just to
+>> >> > choose the target state, it's done to allow the cpus to take
+>> >> > themselves to the target low power state. =A0On ux500, are you sayi=
+ng
+>> >> > you take the cpus directly from the safe state to a lower power sta=
+te
+>> >> > without ever going back to the active state? =A0I once implemented =
+Tegra
+>> >>
+>> >> yes it is
+>> >
+>> > But if there is a single power rail for the entire cluster, when a CPU
+>> > is "prepared" for shutdown this means that you have to save the contex=
+t and
+>> > clean L1, maybe for nothing since if other CPUs are up and running the
+>> > CPU going idle can just enter a simple standby wfi (clock-gated but po=
+wer on).
+>> >
+>> > With Colin's approach, context is saved and L1 cleaned only when it is
+>> > almost certain the cluster is powered off (so the CPUs).
+>> >
+>> > It is a trade-off, I am not saying one approach is better than the
+>> > other; we just have to make sure that preparing the CPU for "possible"=
+ shutdown
+>> > is better than sending IPIs to take CPUs out of wfi and synchronize
+>> > them (this happens if and only if CPUs enter coupled C-states).
+>> >
+>> > As usual this will depend on use cases (and silicon implementations :)=
+ )
+>> >
+>> > It is definitely worth benchmarking them.
+>> >
+>>
+>> I'm less worried about performance, and more worried about race
+>> conditions. =A0How do you deal with the following situation:
+>> CPU0 goes to WFI, and saves its state
+>> CPU1 goes idle, and selects a deep idle state that powers down CPU0
+>> CPU1 saves is state, and is about to trigger the power down
+>> CPU0 gets an interrupt, restores its state, and modifies state (maybe
+>> takes a spinlock during boot)
+>> CPU1 cuts the power to CPU0
+>>
+>> On OMAP4, the race is handled in hardware. =A0When CPU1 tries to cut the
+>> power to the blocks shared by CPU0 the hardware will ignore the
+>> request if CPU0 is not in WFI. =A0On Tegra2, there is no hardware
+>> support and I had to handle it with a spinlock implemented in scratch
+>> registers because CPU0 is out of coherency when it starts booting and
+>> ldrex/strex don't work. =A0I'm not convinced my implementation is
+>> correct, and I'd be curious to see any other implementations.
+>
+> That's a problem you solved with coupled C-states (ie your example in
+> the cover letter), where the primary waits for other CPUs to be reset
+> before issuing the power down command, right ? At that point in time
+> secondaries cannot wake up (?) and if wfi (ie power down) aborts you just
+> take the secondaries out of reset and restart executing simultaneously,
+> correct ? It mirrors the suspend behaviour, which is easier to deal with
+> than completely random idle paths.
 
-Or perhaps with the trailing "while (0)" included:
+Yes, anything that supports hotplug and suspend should support coupled
+cpuidle states fairly easily.  The only thing required that is not
+already used by hotplug/suspend is the ability to save and restore
+context on cpu1, but most implementations end up doing that already.
 
-	#define RCU_NONIDLE(a) \
-		do { \
-			rcu_idle_exit(); \
-			do { a; } while (0); \
-			rcu_idle_enter(); \
-		} while (0)
+> It is true that this should be managed by the PM HW; if HW is not
+> capable of managing these situations things get nasty as you highlighted.
 
-							Thanx, Paul
+Yes - on some platforms, the HW is not designed to handle it.  On
+others, it is designed to, but due to HW bugs it cannot be used.
+
+> And it is also true ldrex/strex on cacheable memory might not be availabl=
+e in
+> those early warm-boot stages. I came up with a locking algorithm on
+> strongly ordered memory to deal with that, but I am still not sure it is
+> something we really really need.
+
+I did the same, but with device memory.
+
+> I will test coupled C-state code ASAP, and come back with feedback.
+>
+> Thanks,
+> Lorenzo
+>
