@@ -1,54 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Reg pinmux driver for OMAP based SoC- AM335X
-Date: Fri, 3 Feb 2012 12:57:32 -0800
-Message-ID: <20120203205731.GD1426@atomide.com>
-References: <20120127065752.GB32740@S2101-09.ap.freescale.net>
- <20120127170545.GH13504@atomide.com>
- <20120130015607.GA10470@S2101-09.ap.freescale.net>
- <20120130172042.GE9339@atomide.com>
- <20120131013215.GB24681@S2101-09.ap.freescale.net>
- <20120131022906.GH9339@atomide.com>
- <C8443D0743D26F4388EA172BF4E2A7A93176CAC6@DBDE01.ent.ti.com>
- <20120131170511.GI9339@atomide.com>
- <79CD15C6BA57404B839C016229A409A8317BB650@DBDE01.ent.ti.com>
- <20120201181407.GN9339@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
+Date: Fri, 03 Feb 2012 13:01:16 -0800
+Message-ID: <87pqdv4oo3.fsf@ti.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20120201181407.GN9339@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "Rajashekhara,
- Sudhakar" <sudhakar.raj@ti.com>, Linus Walleij <linus.walleij@linaro.org>, "Nori, Sekhar" <nsekhar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Thu, 2 Feb 2012 23:00:26 +0530")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [120201 09:43]:
-> * Hiremath, Vaibhav <hvaibhav@ti.com> [120201 01:34]:
-> > On Tue, Jan 31, 2012 at 22:35:11, Tony Lindgren wrote:
-> > > 
-> > > The driver I'm working leaves all the data out of kernel, and the driver
-> > > just knows how to handle a pinmux register instances. 
-> > 
-> > Tony,
-> > 
-> > Is this hosted or accessible somewhere? Just for reference...
-> 
-> Still few more things to fix before I can post it..
+Hi Tarun,
 
-OK now posted as thread "[PATCH 0/2] Initial DT only generic
-pinctrl-simple driver". Did not Cc any omap people as I assume
-they're all reading linux-omap.
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
 
-Regards,
+> The following changes since commit 62aa2b537c6f5957afd98e29f96897419ed5ebab:
+>   Linus Torvalds (1):
+>         Linux 3.3-rc2
+>
+> are available in the git repository at:
+> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev
+> Branch: for_3.4/gpio_cleanup_fixes_v9
+>
+> This series is continuation of cleanup of OMAP GPIO driver and fixes.
+> The cleanup include getting rid of cpu_is_* checks wherever possible,
+> use of gpio_bank list instead of static array, use of unique platform
+> specific value associated data member to OMAP platforms to avoid
+> cpu_is_* checks. The series also include PM runtime support.
 
-Tony
+This version is looking pretty good, and I'm almost ready to queue it up
+for Grant.
+
+However, one more minor nit.  Please fix up the compile warnings when
+built without CONFIG_PM_SLEEP or CONFIG_PM_RUNTIME.
+
+The definitons of the dev_pm_ops callbacks need to be conditional when
+using the SET_*_PM_OPS() macros, otherwise you get these warnings:
+
+  CC      drivers/gpio/gpio-omap.o
+/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1142:12: warning: 'omap_gpio_suspend' defined but not used [-Wunused-function]
+/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1167:12: warning: 'omap_gpio_resume' defined but not used [-Wunused-function]
+/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1191:12: warning: 'omap_gpio_runtime_suspend' defined but not used [-Wunused-function]
+/work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1237:12: warning: 'omap_gpio_runtime_resume' defined but not used [-Wunused-function]
+
+
+Thanks,
+
+Kevin
