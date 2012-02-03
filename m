@@ -1,80 +1,142 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [RFC/PATCH] arm: omap3: pm: do not clear power states twice
-Date: Fri, 3 Feb 2012 10:19:32 +0200
-Message-ID: <20120203081931.GF24297@legolas.emea.dhcp.ti.com>
-References: <1328254094-13978-1-git-send-email-balbi@ti.com>
- <CAMQu2gwtXyLzPNk2_4O+EAWyZaQs+wY_cK4pm_=yJj6ARXnhAw@mail.gmail.com>
-Reply-To: balbi@ti.com
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
+Date: Fri, 3 Feb 2012 09:21:03 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C3317A5DF7@DBDE01.ent.ti.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="NQTVMVnDVuULnIzU"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:45145 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752860Ab2BCITi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 03:19:38 -0500
-Received: by lagw12 with SMTP id w12so2509165lag.21
-        for <linux-omap@vger.kernel.org>; Fri, 03 Feb 2012 00:19:35 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gwtXyLzPNk2_4O+EAWyZaQs+wY_cK4pm_=yJj6ARXnhAw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Paul Walmsley <paul@pwsan.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Benoit Cousson <b-cousson@ti.com>
+
+Tarun,
+
+I am interested in testing these patches on AM335x. Do you have a tree with these 
+patches applied so that I can pull. 
+
+On Thu, Feb 02, 2012 at 23:00:26, DebBarma, Tarun Kanti wrote:
+> The following changes since commit 62aa2b537c6f5957afd98e29f96897419ed5ebab:
+>   Linus Torvalds (1):
+>         Linux 3.3-rc2
+> 
+> are available in the git repository at:
+> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev
+> Branch: for_3.4/gpio_cleanup_fixes_v9
+> 
+> This series is continuation of cleanup of OMAP GPIO driver and fixes.
+> The cleanup include getting rid of cpu_is_* checks wherever possible,
+> use of gpio_bank list instead of static array, use of unique platform
+> specific value associated data member to OMAP platforms to avoid
+> cpu_is_* checks. The series also include PM runtime support.
+> 
+> Power Tests
+> a) OMAP3430SDP
+> - Modify board-3430sdp.c file to have multiple GPIO modules active
+>   with debounce timeout enabled.
+> - Enable CPU-Idle
+> - Enable UART timeouts
+> - Enable offmode
+> - echo mem > /sys/power/state
+> - Verify retention and offmode count increment
+> 
+>   Used following patches to avoid exception during system suspend:-
+>   [PATCH RFC 1/2] mtd : Prevent the NULL pointer access
+>   [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the suspend is not implemented
+> 
+> # echo mem > /sys/power/state
+> [   47.128021] PM: Syncing filesystems ... done.
+> [   47.144104] Freezing user space processes ... (elapsed 0.01 seconds) done.
+> [   47.168243] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) don                                                                                                 e.
+> [   47.205139] Unable to handle kernel NULL pointer dereference at virtual addre                                                                                                 ss 000000a0
+> [   47.213317] pgd = deaac000
+> [   47.216033] [000000a0] *pgd=9e932831, *pte=00000000, *ppte=00000000
+> [   47.222381] Internal error: Oops: 17 [#1] SMP
+> [   47.226745] Modules linked in:
+> [   47.229827] CPU: 0    Not tainted  (3.3.0-rc2-00031-g12c5c5c #235)
+> [   47.236022] PC is at mtd_cls_suspend+0x8/0x20
+> [   47.240386] LR is at mtd_cls_suspend+0x8/0x20
+> [   47.244750] pc : [<c02e78f8>]    lr : [<c02e78f8>]    psr: a0000013
+> [   47.244750] sp : dea1fe60  ip : 22222222  fp : c0ee7d40
+> [   47.256256] r10: c0ee7cf0  r9 : 00000000  r8 : c02e78f0
+> [   47.261474] r7 : 00000000  r6 : 00000000  r5 : 00000002  r4 : dea45800
+> [   47.268005] r3 : deb4cac0  r2 : 00000000  r1 : 00000002  r0 : 00000000
+> [   47.274536] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> [   47.281677] Control: 10c5387d  Table: 9eaac019  DAC: 00000015
+> [   47.287445] Process sh (pid: 1177, stack limit = 0xdea1e2f8)
+> [   47.293090] Stack: (0xdea1fe60 to 0xdea20000)
+> [...]
+> 
+> b) ZOOM3
+> - Enable CPU-Idle
+> - Enable UART timeout
+> - echo mem > /sys/power/state
+> - Wakeup system using serial keyboard
+> - Verify retention count increment
+> 
+> Functional Tests
+> - Done on OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430
+> 
+> Bootup Test
+> - Done on OMAP1710
+>   Used following patch to fix OMAP1 build error:-
+>   [PATCH] i2c: OMAP: Fix OMAP1 build error
+> 
+
+[..]
+[..]
+
+> Charulatha V (8):
+>   gpio/omap: remove dependency on gpio_bank_count
+>   gpio/omap: use flag to identify wakeup domain
+>   gpio/omap: make gpio_context part of gpio_bank structure
+>   gpio/omap: make non-wakeup GPIO part of pdata
+>   gpio/omap: avoid cpu checks during module ena/disable
+>   gpio/omap: use pinctrl offset instead of macro
+>   gpio/omap: remove bank->method & METHOD_* macros
+>   gpio/omap: fix bankwidth for OMAP7xx MPUIO
+> 
+> Nishanth Menon (4):
+>   gpio/omap: save and restore debounce registers
+>   gpio/omap: enable irq at the end of all configuration in restore
+>   gpio/omap: restore OE only after setting the output level
+>   gpio/omap: handle set_dataout reg capable IP on restore
+> 
+> Tarun Kanti DebBarma (13):
+>   gpio/omap: handle save/restore context in GPIO driver
+>   gpio/omap: further cleanup using wkup_en register
+>   gpio/omap: use level/edge detect reg offsets
+>   gpio/omap: remove hardcoded offsets in context save/restore
+>   gpio/omap: cleanup set_gpio_triggering function
+>   gpio/omap: cleanup omap_gpio_mod_init function
+>   gpio/omap: remove unnecessary bit-masking for read access
+>   gpio/omap: use pm-runtime framework
+>   gpio/omap: optimize suspend and resume functions
+>   gpio/omap: cleanup prepare_for_idle and resume_after_idle
+>   gpio/omap: fix debounce clock handling
+>   gpio/omap: fix incorrect access of debounce module
+>   gpio/omap: remove omap_gpio_save_context overhead
+> 
+>  arch/arm/mach-omap1/gpio15xx.c         |    7 +-
+>  arch/arm/mach-omap1/gpio16xx.c         |   47 ++-
+>  arch/arm/mach-omap1/gpio7xx.c          |   14 +-
+>  arch/arm/mach-omap2/gpio.c             |   36 +-
+>  arch/arm/mach-omap2/pm34xx.c           |   14 -
+>  arch/arm/plat-omap/include/plat/gpio.h |   29 +-
+>  drivers/gpio/gpio-omap.c               | 1099 +++++++++++++-------------------
+>  7 files changed, 549 insertions(+), 697 deletions(-)
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
 
 
---NQTVMVnDVuULnIzU
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Feb 03, 2012 at 01:34:55PM +0530, Shilimkar, Santosh wrote:
-> On Fri, Feb 3, 2012 at 12:58 PM, Felipe Balbi <balbi@ti.com> wrote:
-> > The way the code is written, pwrdm_pre_transion()
-> > calls _pwrdm_pre_transition_cb() (for each powerdomain)
-> > which, in turn, calls pwrdm_clear_all_prev_pwrst().
-> >
-> > It looks unnecessary to clear all previous power
-> > states twice, so drop the initial set.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >
-> > Hasn't been tested yet. Compile tested only. It looks
-> > like we can safely remove those calls, but I would
-> > like to hear from the PM folks first :-)
-> >
-> Bit late :)
->=20
-> Paul already cleaned this up.
-> http://www.spinics.net/lists/linux-omap/msg63602.html
-
-that's too bad. Missed an oportunity to have a commit on pm code, heh.
-Anyway, thanks
-
---=20
-balbi
-
---NQTVMVnDVuULnIzU
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPK5iSAAoJEIaOsuA1yqREJFwP/1eXdLoaZhEdk7jTcr5lXpJP
-zi6vbr1/0TAKyt9k/5oG4JbSDrIVHVJ7ecTUW2HwqkBIZa+59HqejleluLRmf0EP
-ei6uesb8/q88MEozT/f71DGEFNhgjZbThs5pQ1M+CG5lBS03JuU0u2tp25eTaIQ9
-Dtxaxh2Cy6KLoOX5xvr9IlZBdEr3oo/9BqO2cVYs+HNaSI15RD94m70vY/BZX6c1
-oqQ5LUFrPvHM8chkSQP2yZnNAmznlb8eZWT2bHyWRsh7G2Bx0TqxnZ+DN1agxjki
-/xwcZwVyYXzPLtzZEKfxu0XGSTaEmcU9ontLXL27q3nTCGvL+A9RaxBtBntUOv+I
-x6xVE7bhccwkLf2BBDv2IiMaPfMGAytmaAxVj1yWYCTxh+5QBe0aglpDOqaBIKhR
-mq9C+aPbfYPk8RVh6HSp9Au2RE2WPkjy13axbkh7tNrhxq0fJckID24sjQ1EfK8U
-pO8JXDhqPAUx8/apu84iMyJ97uO7aozuyuYdoGVGvRkQfEJlFylasRitEJUStWIY
-zSrDwseoBTshTrj/9cd8TPvRJ++ik1hmeOr7LHTxB/wlofO+8XFwBn/91pf1QLQ+
-+kSI8ibPPHb8tAyjDgnZvD3vcCDwMY6GWuHdwtoAxmZwIoajYlTAkwyIZwK49Slt
-PlO2LyY+87Y/R6c6RmLd
-=CpeD
------END PGP SIGNATURE-----
-
---NQTVMVnDVuULnIzU--
+Regards, 
+Gururaja
