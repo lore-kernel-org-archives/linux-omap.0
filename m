@@ -1,67 +1,64 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
-	in non-DMA" added to tty tree
-Date: Fri, 3 Feb 2012 12:20:53 +0000
-Message-ID: <20120203122053.GF1275@n2100.arm.linux.org.uk>
-References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de> <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com> <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <CAAL8m4ztuB-kJvLGd=8PqPCLFcvPW9AQcdcFQ+e03vDT240vog@mail.gmail.com> <20120203230720.28666cc6@notabene.brown>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
+Date: Fri, 03 Feb 2012 09:50:19 -0800
+Message-ID: <87liojajs4.fsf@ti.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+	<1328203851-20435-2-git-send-email-tarun.kanti@ti.com>
+	<20120202184106.GC29215@legolas.emea.dhcp.ti.com>
+	<20120202191630.GT15343@ponder.secretlab.ca>
+	<20120202194545.GA29351@legolas.emea.dhcp.ti.com>
+	<4F2AF68D.1000505@ti.com>
+	<20120202214907.GA22888@legolas.emea.dhcp.ti.com>
+	<20120202215350.GB22888@legolas.emea.dhcp.ti.com>
+	<4F2B078B.1040709@ti.com>
+	<20120202220744.GA23092@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59236 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753522Ab2BCMV2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 07:21:28 -0500
-Content-Disposition: inline
-In-Reply-To: <20120203230720.28666cc6@notabene.brown>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120202220744.GA23092@legolas.emea.dhcp.ti.com> (Felipe Balbi's
+	message of "Fri, 3 Feb 2012 00:07:45 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Charulatha V <charu@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Govindraj <govindraj.ti@gmail.com>, khilman@ti.com, Paul Walmsley <paul@pwsan.com>, greg@kroah.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 03, 2012 at 11:07:20PM +1100, NeilBrown wrote:
-> However what it really shows me is that I was misunderstanding the code
-> (If I spent the time to verify every conclusion that I jumped to, I'd never
-> get anywhere :-( ).  Better clarify that now.
-> 
-> So this function - serial_omap_tx_empty() is called to test if the
-> tx queue is empty.
+Felipe Balbi <balbi@ti.com> writes:
 
-Not just the queue.  The documentation for that function is accurate:
+[...]
 
-  tx_empty(port)
-        This function tests whether the transmitter fifo and shifter
-        for the port described by 'port' is empty.  If it is empty,
-        this function should return TIOCSER_TEMT, otherwise return 0.
-        If the port does not support this operation, then it should
-        return TIOCSER_TEMT.
+>> >This question remains. Why do we need those funtions ?
+>> 
+>> These functions are called from the CPUIdle path so outside the scope
+>> of the GPIO driver. These are part of a bunch of nasty PM hacks we
+>> are doing in the CPU idle loop. We are in the process of getting rid
+>> of most of them, but it looks like some are still needed.
+>
+> Too bad. I can see that the gpio pm implementation seems a bit
+> "peculiar". I mean, pm does reference counting and yet the driver has
+> checks to prevent multiple gets and puts on a single bank (meaning that
+> pm counter will be either 0 or 1 at any point in time).
+>
+> To me it looks like those functions are there in order to forcefully put
+> PER power domain in OFF because drivers are always holding a reference
+> to their gpios (drivers generally gpio_request() on probe() and
+> gpio_free() on remove()).
+>
+> Looks like the entire pm implementation on OMAP gpio driver has always
+> considered only the fact that gpios can be requested and freed, but
+> never that we want the system to go to OFF even while gpios are
+> requested, because we have I/O PAD wakeups. At some point that has to be
+> sorted out because that HACK is quite ugly :-)
+>
+> I'll see if I find some time to go over the interactions between
+> gpio-omap.c and pm24x.c and pm34xx.c any of these days, but I can't
+> promise anything ;-)
 
-So, if this is returning TIOCSER_TEMT while there's still a transmission
-in progress, then it's buggy.
+If you look at the state of these prepare/resume hacks at the end of
+this series, you'll see that they are significantly cleaner and do
+nothing but call the runtime PM hooks.
 
-> So when I
-> 
->    cat somefile
-> 
-> to the serial console, most of the file comes out fine.  But after 'cat'
-> finishes and returns to the shell - while some chars are still in the FIFO - 
-> the shell does an 'stty' ioctl to make sure the settings are still OK.
-> This ioctl calls serial_omap_tx_empty which calls pm_resume_put() which
-> immediately suspends the uart, which seems to stop some clock - even though
-> we think it shouldn't.
+We have explored several ways to get rid of them completely in the idle
+path but have not yet come up with a clean way, but this series gets us
+a long ways towards that goal.
 
-If there's an on-going transmission, why is the runtime PM count zero,
-meaning that the UART can sleep at the point where serial_omap_tx_empty()
-is being called - and obviously there's still characters in the FIFO?
-
-I guess this is highlighting a problem with doing runtime PM with
-serial ports: you don't know when the port has _actually_ finished
-sending its final character, which is even more of a problem if the
-port does hardware CTS flow control itself.
-
-It seems that runtime PM should be checking whether the TX FIFO is empty
-before shutting the port down - and that probably means a hook into the
-idle stuff.
-
-Note though, that serial_omap_tx_empty() can be called via ioctl from
-userspace, so this function would still need the runtime callbacks in
-it so that the register is readable at _any_ time that the port is open.
+Kevin
