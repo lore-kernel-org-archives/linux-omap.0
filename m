@@ -1,14 +1,14 @@
 From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V3 1/3] ARM: OMAP4: Remove hardcoded reg-offs for PWRSTCTRL & PWRSTST
-Date: Fri, 3 Feb 2012 17:13:54 +0530
-Message-ID: <1328269436-18668-2-git-send-email-hvaibhav@ti.com>
+Subject: [PATCH-V3 3/3] ARM: OMAP: am33xx: Hook-up am33xx support to existing prm code
+Date: Fri, 3 Feb 2012 17:13:56 +0530
+Message-ID: <1328269436-18668-4-git-send-email-hvaibhav@ti.com>
 References: <1328269436-18668-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56447 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51585 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753935Ab2BCLs2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753366Ab2BCLs2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Fri, 3 Feb 2012 06:48:28 -0500
 In-Reply-To: <1328269436-18668-1-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,198 +16,168 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, rnayak@ti.com, tony@atomide.com, paul@pwsan.com, b-cousson@ti.com, linux-arm-kernel@lists.infradead.org, Vaibhav Hiremath <hvaibhav@ti.com>
 
-This patch removes the existing hard-coded way of providing
-offset to omap4_prminst_xxx API's and instead use offsets
-provided in powerdomainsxxxx_data.
+Reuse existing omap4 prminst code for am33xx device,
+add separate prm base table for am33xx device and initialize
+it during __init for future use.
 
-Very much required for the new device AM33XX, where,
-
-PRM module in AM33XX is closer to OMAP4 PRM module, so it makes
-complete sense to reuse all the code from existing OMAP4 implementation.
-Having said that, there is a catch here with respect to AM33XX device,
-
-The register offset in PRM module is not consistent
-across (crazy IP integration), for example,
-
-PRM_XXX         PWRSTCTRL PWRSTST RSTCTRL RSTST
-===============================================
-PRM_PER_MOD:    0x0C,     0x08,   0x00,   0x04
-PRM_WKUP_MOD:   0x04,     0x08,   0x00,   0x0C
-PRM_MPU_MOD:    0x00,     0x04,   0x08,   NA
-PRM_DEVICE_MOD: NA,       NA,     0x00,   0x08
-
-So in order to reuse the existing OMAP4 code, we have to add
-seperate entry for register offsets, especially
-PWRSTCTRL & PWRSTST.
+Also, since cpu_is_omap34xx() check is true for am33xx family of
+devices, we must change the order of cpu_is_xxxx check, so first
+check for cpu_is_am33xx() to follow right execution path.
 
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Cc: Kevin Hilman <khilman@ti.com>
 Cc: Rajendra Nayak <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
+CC: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Benoit Cousson <b-cousson@ti.com>
-
-Merge to "Remove-hardcoded-reg-offs-for-PWRSTCT"
 ---
- arch/arm/mach-omap2/powerdomain.h           |    4 ++++
- arch/arm/mach-omap2/powerdomain44xx.c       |   24 ++++++++++++------------
- arch/arm/mach-omap2/powerdomains44xx_data.c |    9 +++++++++
- 3 files changed, 25 insertions(+), 12 deletions(-)
+ arch/arm/mach-omap2/io.c          |    1 +
+ arch/arm/mach-omap2/omap_hwmod.c  |   44 ++++++++++++++++++++++++++-----------
+ arch/arm/mach-omap2/prcm44xx.h    |    2 +
+ arch/arm/mach-omap2/prminst44xx.c |    9 +++++++
+ 4 files changed, 43 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 0d72a8a..9ebb872 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -92,6 +92,8 @@ struct powerdomain;
-  * @pwrdm_clkdms: Clockdomains in this powerdomain
-  * @node: list_head linking all powerdomains
-  * @voltdm_node: list_head linking all powerdomains in a voltagedomain
-+ * @pwrstctrl_offs: XXX_PWRSTCTRL reg offset from prcm_offs
-+ * @pwrstst_offs: XXX_PWRSTST reg offset from prcm_offs
-  * @state:
-  * @state_counter:
-  * @timer:
-@@ -121,6 +123,8 @@ struct powerdomain {
- 	unsigned ret_logic_off_counter;
- 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
-
-+	u8 pwrstctrl_offs;
-+	u8 pwrstst_offs;
- #ifdef CONFIG_PM_DEBUG
- 	s64 timer;
- 	s64 state_timer[PWRDM_MAX_PWRSTS];
-diff --git a/arch/arm/mach-omap2/powerdomain44xx.c b/arch/arm/mach-omap2/powerdomain44xx.c
-index a7880af..b088540 100644
---- a/arch/arm/mach-omap2/powerdomain44xx.c
-+++ b/arch/arm/mach-omap2/powerdomain44xx.c
-@@ -28,7 +28,7 @@ static int omap4_pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP_POWERSTATE_MASK,
- 					(pwrst << OMAP_POWERSTATE_SHIFT),
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
-+					pwrdm->prcm_offs, pwrdm->pwrstctrl_offs);
- 	return 0;
- }
-
-@@ -37,7 +37,7 @@ static int omap4_pwrdm_read_next_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= OMAP_POWERSTATE_MASK;
- 	v >>= OMAP_POWERSTATE_SHIFT;
-
-@@ -49,7 +49,7 @@ static int omap4_pwrdm_read_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP_POWERSTATEST_MASK;
- 	v >>= OMAP_POWERSTATEST_SHIFT;
-
-@@ -61,7 +61,7 @@ static int omap4_pwrdm_read_prev_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP4430_LASTPOWERSTATEENTERED_MASK;
- 	v >>= OMAP4430_LASTPOWERSTATEENTERED_SHIFT;
-
-@@ -73,7 +73,7 @@ static int omap4_pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOWPOWERSTATECHANGE_MASK,
- 					(1 << OMAP4430_LOWPOWERSTATECHANGE_SHIFT),
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTCTRL);
-+					pwrdm->prcm_offs, pwrdm->pwrstctrl_offs);
- 	return 0;
- }
-
-@@ -82,7 +82,7 @@ static int omap4_pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm)
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LASTPOWERSTATEENTERED_MASK,
- 					OMAP4430_LASTPOWERSTATEENTERED_MASK,
- 					pwrdm->prcm_partition,
--					pwrdm->prcm_offs, OMAP4_PM_PWSTST);
-+					pwrdm->prcm_offs, pwrdm->pwrstst_offs);
- 	return 0;
- }
-
-@@ -93,7 +93,7 @@ static int omap4_pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
- 	v = pwrst << __ffs(OMAP4430_LOGICRETSTATE_MASK);
- 	omap4_prminst_rmw_inst_reg_bits(OMAP4430_LOGICRETSTATE_MASK, v,
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
-
- 	return 0;
- }
-@@ -107,7 +107,7 @@ static int omap4_pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank,
-
- 	omap4_prminst_rmw_inst_reg_bits(m, (pwrst << __ffs(m)),
- 					pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
-
- 	return 0;
- }
-@@ -131,7 +131,7 @@ static int omap4_pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
- 	u32 v;
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= OMAP4430_LOGICSTATEST_MASK;
- 	v >>= OMAP4430_LOGICSTATEST_SHIFT;
-
-@@ -157,7 +157,7 @@ static int omap4_pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- 	m = omap2_pwrdm_get_mem_bank_stst_mask(bank);
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTST);
-+					pwrdm->pwrstst_offs);
- 	v &= m;
- 	v >>= __ffs(m);
-
-@@ -171,7 +171,7 @@ static int omap4_pwrdm_read_mem_retst(struct powerdomain *pwrdm, u8 bank)
- 	m = omap2_pwrdm_get_mem_bank_retst_mask(bank);
-
- 	v = omap4_prminst_read_inst_reg(pwrdm->prcm_partition, pwrdm->prcm_offs,
--					OMAP4_PM_PWSTCTRL);
-+					pwrdm->pwrstctrl_offs);
- 	v &= m;
- 	v >>= __ffs(m);
-
-@@ -191,7 +191,7 @@ static int omap4_pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	/* XXX Is this udelay() value meaningful? */
- 	while ((omap4_prminst_read_inst_reg(pwrdm->prcm_partition,
- 					    pwrdm->prcm_offs,
--					    OMAP4_PM_PWSTST) &
-+					    pwrdm->pwrstst_offs) &
- 		OMAP_INTRANSITION_MASK) &&
- 	       (c++ < PWRDM_TRANSITION_BAILOUT))
- 		udelay(1);
-diff --git a/arch/arm/mach-omap2/powerdomains44xx_data.c b/arch/arm/mach-omap2/powerdomains44xx_data.c
-index 704664c..7cf8dcd 100644
---- a/arch/arm/mach-omap2/powerdomains44xx_data.c
-+++ b/arch/arm/mach-omap2/powerdomains44xx_data.c
-@@ -352,7 +352,16 @@ static struct powerdomain *powerdomains_omap44xx[] __initdata = {
-
- void __init omap44xx_powerdomains_init(void)
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index aa33cfb..df94693 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -475,6 +475,7 @@ void __init am33xx_init_early(void)
  {
-+	int i;
+ 	omap2_set_globals_am33xx();
+ 	omap_common_init_early();
++	omap44xx_prminst_init();
+ 	omap3xxx_clk_init();
+ }
+ #endif
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index e91c4a0..0fb5287 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1289,14 +1289,20 @@ static int _assert_hardreset(struct omap_hwmod *oh, const char *name)
+ 	if (IS_ERR_VALUE(ret))
+ 		return ret;
+
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
+-						  ohri.rst_shift);
+-	else if (cpu_is_omap44xx())
++	/*
++	 * In order to use omap4 prm code for am33xx family of devices,
++	 * first check cpu_is_am33xx here.
++	 *
++	 * Note: cpu_is_omap34xx is true for am33xx device as well.
++	 */
++	if (cpu_is_omap44xx() || cpu_is_am33xx())
+ 		return omap4_prminst_assert_hardreset(ohri.rst_shift,
+ 				  oh->clkdm->pwrdm.ptr->prcm_partition,
+ 				  oh->clkdm->pwrdm.ptr->prcm_offs,
+ 				  oh->prcm.omap4.rstctrl_offs);
++	else if (cpu_is_omap24xx() || cpu_is_omap34xx())
++		return omap2_prm_assert_hardreset(oh->prcm.omap2.module_offs,
++						  ohri.rst_shift);
+ 	else
+ 		return -EINVAL;
+ }
+@@ -1323,11 +1329,13 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
+ 	if (IS_ERR_VALUE(ret))
+ 		return ret;
+
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+-		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
+-						   ohri.rst_shift,
+-						   ohri.st_shift);
+-	} else if (cpu_is_omap44xx()) {
++	/*
++	 * In order to use omap4 prm code for am33xx family of devices,
++	 * first check cpu_is_am33xx here.
++	 *
++	 * Note: cpu_is_omap34xx is true for am33xx device as well.
++	 */
++	if (cpu_is_omap44xx() || cpu_is_am33xx()) {
+ 		if (ohri.st_shift)
+ 			pr_err("omap_hwmod: %s: %s: hwmod data error: OMAP4 does not support st_shift\n",
+ 			       oh->name, name);
+@@ -1335,6 +1343,10 @@ static int _deassert_hardreset(struct omap_hwmod *oh, const char *name)
+ 				  oh->clkdm->pwrdm.ptr->prcm_partition,
+ 				  oh->clkdm->pwrdm.ptr->prcm_offs,
+ 				  oh->prcm.omap4.rstctrl_offs);
++	} else if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
++		ret = omap2_prm_deassert_hardreset(oh->prcm.omap2.module_offs,
++						   ohri.rst_shift,
++						   ohri.st_shift);
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -1365,14 +1377,20 @@ static int _read_hardreset(struct omap_hwmod *oh, const char *name)
+ 	if (IS_ERR_VALUE(ret))
+ 		return ret;
+
+-	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+-		return omap2_prm_is_hardreset_asserted(oh->prcm.omap2.module_offs,
+-						       ohri.st_shift);
+-	} else if (cpu_is_omap44xx()) {
++	/*
++	 * In order to use omap4 prm code for am33xx family of devices,
++	 * first check cpu_is_am33xx here.
++	 *
++	 * Note: cpu_is_omap34xx is true for am33xx device as well.
++	 */
++	if (cpu_is_omap44xx() || cpu_is_am33xx()) {
+ 		return omap4_prminst_is_hardreset_asserted(ohri.rst_shift,
+ 				  oh->clkdm->pwrdm.ptr->prcm_partition,
+ 				  oh->clkdm->pwrdm.ptr->prcm_offs,
+ 				  oh->prcm.omap4.rstctrl_offs);
++	} else if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
++		return omap2_prm_is_hardreset_asserted(oh->prcm.omap2.module_offs,
++						       ohri.st_shift);
+ 	} else {
+ 		return -EINVAL;
+ 	}
+diff --git a/arch/arm/mach-omap2/prcm44xx.h b/arch/arm/mach-omap2/prcm44xx.h
+index 7334ffb..02e5a8b 100644
+--- a/arch/arm/mach-omap2/prcm44xx.h
++++ b/arch/arm/mach-omap2/prcm44xx.h
+@@ -31,6 +31,8 @@
+ #define OMAP4430_CM2_PARTITION			3
+ #define OMAP4430_SCRM_PARTITION			4
+ #define OMAP4430_PRCM_MPU_PARTITION		5
++/* AM33XX PRCM is closer to OMAP4, so try to reuse all API's */
++#define AM33XX_PRM_PARTITION			1
+
+ /*
+  * OMAP4_MAX_PRCM_PARTITIONS: set to the highest value of the PRCM partition
+diff --git a/arch/arm/mach-omap2/prminst44xx.c b/arch/arm/mach-omap2/prminst44xx.c
+index 68e13bd..5fd13b4 100644
+--- a/arch/arm/mach-omap2/prminst44xx.c
++++ b/arch/arm/mach-omap2/prminst44xx.c
+@@ -19,6 +19,7 @@
+ #include "common.h"
+
+ #include "prm44xx.h"
++#include "prm33xx.h"
+ #include "prminst44xx.h"
+ #include "prm-regbits-44xx.h"
+ #include "prcm44xx.h"
+@@ -36,6 +37,11 @@ static u32 *omap44xx_prm_bases[] = {
+ 	[OMAP4430_PRCM_MPU_PARTITION]		= OMAP2_L4_IO_ADDRESS(OMAP4430_PRCM_MPU_BASE),
+ };
+
++static u32 *am33xx_prm_bases[] = {
++	[OMAP4430_INVALID_PRCM_PARTITION]	= 0,
++	[AM33XX_PRM_PARTITION]			= AM33XX_L4_WK_IO_ADDRESS(AM33XX_PRM_BASE),
++};
 +
- 	pwrdm_register_platform_funcs(&omap4_pwrdm_operations);
-+	/* Initialise PRM reg offs to default value */
-+	for (i = 0; powerdomains_omap44xx[i] != NULL; i++) {
-+		struct powerdomain *pwrdm = powerdomains_omap44xx[i];
-+
-+		pwrdm->pwrstctrl_offs = OMAP4_PM_PWSTCTRL;
-+		pwrdm->pwrstst_offs = OMAP4_PM_PWSTST;
-+	}
- 	pwrdm_register_pwrdms(powerdomains_omap44xx);
- 	pwrdm_complete_init();
+ /* Read a register in a PRM instance */
+ u32 omap4_prminst_read_inst_reg(u8 part, s16 inst, u16 idx)
+ {
+@@ -182,5 +188,8 @@ void __init omap44xx_prminst_init(void)
+ 	if (cpu_is_omap44xx()) {
+ 		_prm_bases = omap44xx_prm_bases;
+ 		max_prm_partitions = ARRAY_SIZE(omap44xx_prm_bases);
++	} else if (cpu_is_am33xx()) {
++		_prm_bases = am33xx_prm_bases;
++		max_prm_partitions = ARRAY_SIZE(am33xx_prm_bases);
+ 	}
  }
 --
 1.7.0.4
