@@ -1,265 +1,238 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Fri, 3 Feb 2012 23:07:20 +1100
-Message-ID: <20120203230720.28666cc6@notabene.brown>
-References: <13274430881471@kroah.org>
-	<alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com>
-	<20120126042155.GA3185@suse.de>
-	<alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com>
-	<20120126191604.GA15516@suse.de>
-	<alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
-	<alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com>
-	<20120203150708.386951d2@notabene.brown>
-	<CAAL8m4ztuB-kJvLGd=8PqPCLFcvPW9AQcdcFQ+e03vDT240vog@mail.gmail.com>
+From: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
+Subject: RE: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
+Date: Fri, 3 Feb 2012 12:09:18 +0000
+Message-ID: <1BAFE6F6C881BF42822005164F1491C3317A60AD@DBDE01.ent.ti.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+	<1BAFE6F6C881BF42822005164F1491C3317A5DF7@DBDE01.ent.ti.com>
+ <CAC83ZvLoYVofH9oKXw92i-=DbP2i3NfZjLGSJwk1j0JvXcFZVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/35QOn6iGflvbtKTEerRfsGH"; protocol="application/pgp-signature"
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <CAAL8m4ztuB-kJvLGd=8PqPCLFcvPW9AQcdcFQ+e03vDT240vog@mail.gmail.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Govindraj <govindraj.ti@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>, greg@kroah.com, khilman@ti.com, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:52483 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753327Ab2BCMJa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Feb 2012 07:09:30 -0500
+In-Reply-To: <CAC83ZvLoYVofH9oKXw92i-=DbP2i3NfZjLGSJwk1j0JvXcFZVQ@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
---Sig_/35QOn6iGflvbtKTEerRfsGH
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Fri, 3 Feb 2012 12:26:14 +0530 Govindraj <govindraj.ti@gmail.com> wrote:
+On Fri, Feb 03, 2012 at 15:29:49, DebBarma, Tarun Kanti wrote:
+> On Fri, Feb 3, 2012 at 2:51 PM, Hebbar, Gururaja
+> <gururaja.hebbar@ti.com> wrote:
+> 
+> 
+> 	Tarun,
+> 	
+> 	I am interested in testing these patches on AM335x. Do you have
+> a tree with these
+> 	patches applied so that I can pull.
+> 	
+> 
+> You can find the series here:-
+> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-oma
+> p-dev for_3.4/gpio_cleanup_fixes_v9
 
-> On Fri, Feb 3, 2012 at 9:37 AM, NeilBrown <neilb@suse.de> wrote:
-> > On Thu, 2 Feb 2012 13:03:01 -0700 (MST) Paul Walmsley <paul@pwsan.com> =
-wrote:
-> >
-> >> Hi Greg,
-> >>
-> >> On Thu, 26 Jan 2012, Paul Walmsley wrote:
-> >>
-> >> > On Thu, 26 Jan 2012, Greg KH wrote:
-> >> >
-> >> > > Ok, I've just reverted both of these patches for now, please send =
-new
-> >> > > ones when you have them.
-> >> >
-> >> > Thanks. =C2=A0A pull request is at the bottom of this message. =C2=
-=A0The patches
-> >> > are also available from the mailing list archives here:
-> >> >
-> >> > http://marc.info/?l=3Dlinux-arm-kernel&m=3D132754676014389&w=3D2
-> >> > http://marc.info/?l=3Dlinux-arm-kernel&m=3D132754677914395&w=3D2
-> >> > http://marc.info/?l=3Dlinux-arm-kernel&m=3D132754676014388&w=3D2
-> >>
-> >> Any comments on these?
-> >
-> > Can I comment??... =C2=A0They are good but ....
-> >
-> > I've tried two approaches to getting serial behaviour that I am happy w=
-ith.
-> > They are with and without runtime pm.
-> >
-> > If I enable runtime pm by setting power/autosuspend_delay_ms (e.g. to 5=
-000)
-> > then CPUIDLE enters lower states and I think it uses less power but I
-> > sometimes lose the first char I type (that is known) but also I sometim=
-es get
-> > corruption on output.
-> >
-> > The problem seems to be that we turn off the clocks when the kernel's r=
-ing
-> > buffer is empty rather than waiting for the UART's fifo to be empty.
-> > So I get corruption near the end of a stream of output ... not right at=
- the
-> > end so something must be turning the clocks back on somehow.
-> >
-> > I can remove this effect with:
-> >
-> > diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap=
--serial.c
-> > index f809041..c7ef760 100644
-> > --- a/drivers/tty/serial/omap-serial.c
-> > +++ b/drivers/tty/serial/omap-serial.c
-> > @@ -440,7 +440,8 @@ static unsigned int serial_omap_tx_empty(struct uar=
-t_port *port)
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0spin_lock_irqsave(&up->port.lock, flags);
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D serial_in(up, UART_LSR) & UART_LSR_T=
-EMT ? TIOCSER_TEMT : 0;
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0spin_unlock_irqrestore(&up->port.lock, flags=
-);
-> > - =C2=A0 =C2=A0 =C2=A0 pm_runtime_put(&up->pdev->dev);
-> > + =C2=A0 =C2=A0 =C2=A0 pm_runtime_mark_last_busy(&up->pdev->dev);
-> > + =C2=A0 =C2=A0 =C2=A0 pm_runtime_put_autosuspend(&up->pdev->dev);
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0return ret;
-> > =C2=A0}
-> >
->=20
-> But looking into it UART_LSR_TEMT("include/linux/serial_reg.h") =3D> 0x40
->=20
-> from omap trm:
->=20
-> TX_SR_E =3D> bit 6
-> "Read 0x1: Transmitter hold (TX FIFO) and shift registers are empty."
->=20
-> So it means all data from tx fifo has shifted out and no pending data in
-> tx fifo.
->=20
-> But we had used UART_LSR_THRE (0x20) here for tx fifo emptiness comparison
-> then  from omap trm
->=20
-> TX_FIFO_E =3D> bit 5
->=20
-> "Read 0x1: Transmit hold register (TX FIFO) is empty.
-> The transmission is not necessarily complete"
->=20
-> So I think all data has been shifted out from tx fifo for
-> serial_omap_tx_empty check.
+I am unable to download from this repo. The Gitorious web page fails to show
+the tree and gives 500 error
 
-Useful and interesting - thanks.
-However what it really shows me is that I was misunderstanding the code
-(If I spent the time to verify every conclusion that I jumped to, I'd never
-get anywhere :-( ).  Better clarify that now.
+downloading using https protocol fails with below error.
 
-So this function - serial_omap_tx_empty() is called to test if the
-tx queue is empty.
+ghebbar@linux-psp-server:~/projects/linux-gits/gitorious-omap$ git remote add omap-gpio2 https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git
 
-It is called in a loop at the end of uart_wait_until_sent.
+ghebbar@linux-psp-server:~/projects/linux-gits/gitorious-omap$ git fetch omap-gpio2
 
-uart_wait_until_sent it calls from various places, but particularly when
-doing an 'stty' ioctl.
+error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-a461f67f3067aa122c09f38cf55346152c9fafb8.idx
 
-The loop isn't a very tight loop though it would be tighter if jiffies were
-smaller.  As it is it checks every jiffy and usually loops 3 times when I
-see corruption.
+error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-a66a5d34b6388e1b0c6b49fe4a029cbf755b17c7.idx
 
-So when I
+error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-952401733bd66c72bc947b54ad5a04ca8edfff2a.idx
 
-   cat somefile
+error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-1f38918dfb5427f9b79b88d7c6cda15e85c2ad92.idx
 
-to the serial console, most of the file comes out fine.  But after 'cat'
-finishes and returns to the shell - while some chars are still in the FIFO =
--=20
-the shell does an 'stty' ioctl to make sure the settings are still OK.
-This ioctl calls serial_omap_tx_empty which calls pm_resume_put() which
-immediately suspends the uart, which seems to stop some clock - even though
-we think it shouldn't.
+error: Unable to get pack file https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-2e39094e5e34e6ce642fc2513727a2025b23f8c7.pack
+GnuTLS recv error (-9): A TLS packet with unexpected length was received.
+error: Unable to find f5af8c1f05d8a1e27ca910285da3fee28eb5acce under https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git
+Cannot obtain needed object f5af8c1f05d8a1e27ca910285da3fee28eb5acce
+while processing commit 7e0e6be8759e6423a4f97b4bbc5e9fec0e5cfde3.
+error: Fetch failed.
+ghebbar@linux-psp-server:~/projects/linux-gits/gitorious-omap$ git fetch omap-gpio2
+error: Unable to get pack index https://git.gitorious.org/omap-sw-develoment/linux-omap-dev.git/objects/pack/pack-a461f67f3067aa122c09f38cf55346152c9fafb8.idx
 
-(If is use 'dash' instead of 'bash', that shell doesn't fiddle with stty, a=
-nd
-I don't see any corruption).
-
-After a bit more experimentation, I find that if either UART3 or UART4 (whi=
-ch
-are numbers 2 and 3 is sysfs!!!) have auto_suspend_delay set to -1, then I
-don't see any corruption.
-But if both are set to 5000, then I do.
-
-(The settings of UART1 and UART2 seem to be irrelevant - presumably because
-they are in CORE, not PER).
-
-So if either uart wants PER_48M_FCLK on, then it stays on.  But if neither
-explicitly request it and are only keeping it on by being active ... then
-there is room for a hiccup it seems.
-Or maybe it isn't the clocks ... maybe the problem is that PER goes into
-RET mode, which it does for about 40msec.
-
-If I run
- cat /sys/kernel/debug/pm_debug/time; stty 115200; \
- cat /sys/kernel/debug/pm_debug/time
-
-then I see corruption near the end of the first output of the 'time' file,
-and the time that PER is in RET goes up by about 40msec.
-This could be because the clock goes off, or maybe it has some other cause
-that I'm not aware of.
-
-So yeah - I was quite wrong in my original analysis, thanks for encouraging
-me to sort it out.
+error: wrong index v2 file size in .git/objects/pack/pack-952401733bd66c72bc947b54ad5a04ca8edfff2a.idx
+error: .git/objects/pack/pack-2e39094e5e34e6ce642fc2513727a2025b23f8c7.pack SHA1 checksum mismatch
+error: inflate: data stream error (invalid distance too far back)
 
 
+is there any issue with the repo.
 
-This is awfully similar to the problem I had with HDQ - clock seeming to
-disappear when it should not.
+> --
+> Tarun
+>  
+> 
+> 
+> 
+> 	On Thu, Feb 02, 2012 at 23:00:26, DebBarma, Tarun Kanti wrote:
+> 	> The following changes since commit
+> 62aa2b537c6f5957afd98e29f96897419ed5ebab:
+> 	>   Linus Torvalds (1):
+> 	>         Linux 3.3-rc2
+> 	>
+> 	> are available in the git repository at:
+> 	>
+> http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-om
+> ap-dev
+> <http://gitorious.org/%7Etarunkanti/omap-sw-develoment/tarunkantis-linux
+> -omap-dev> 
+> 	> Branch: for_3.4/gpio_cleanup_fixes_v9
+> 	>
+> 	> This series is continuation of cleanup of OMAP GPIO driver and
+> fixes.
+> 	> The cleanup include getting rid of cpu_is_* checks wherever
+> possible,
+> 	> use of gpio_bank list instead of static array, use of unique
+> platform
+> 	> specific value associated data member to OMAP platforms to
+> avoid
+> 	> cpu_is_* checks. The series also include PM runtime support.
+> 	>
+> 	> Power Tests
+> 	> a) OMAP3430SDP
+> 	> - Modify board-3430sdp.c file to have multiple GPIO modules
+> active
+> 	>   with debounce timeout enabled.
+> 	> - Enable CPU-Idle
+> 	> - Enable UART timeouts
+> 	> - Enable offmode
+> 	> - echo mem > /sys/power/state
+> 	> - Verify retention and offmode count increment
+> 	>
+> 	>   Used following patches to avoid exception during system
+> suspend:-
+> 	>   [PATCH RFC 1/2] mtd : Prevent the NULL pointer access
+> 	>   [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the
+> suspend is not implemented
+> 	>
+> 	> # echo mem > /sys/power/state
+> 	> [   47.128021] PM: Syncing filesystems ... done.
+> 	> [   47.144104] Freezing user space processes ... (elapsed 0.01
+> seconds) done.
+> 	> [   47.168243] Freezing remaining freezable tasks ... (elapsed
+> 0.02 seconds) don
+> e.
+> 	> [   47.205139] Unable to handle kernel NULL pointer
+> dereference at virtual addre
+> ss 000000a0
+> 	> [   47.213317] pgd = deaac000
+> 	> [   47.216033] [000000a0] *pgd=9e932831, *pte=00000000,
+> *ppte=00000000
+> 	> [   47.222381] Internal error: Oops: 17 [#1] SMP
+> 	> [   47.226745] Modules linked in:
+> 	> [   47.229827] CPU: 0    Not tainted
+> (3.3.0-rc2-00031-g12c5c5c #235)
+> 	> [   47.236022] PC is at mtd_cls_suspend+0x8/0x20
+> 	> [   47.240386] LR is at mtd_cls_suspend+0x8/0x20
+> 	> [   47.244750] pc : [<c02e78f8>]    lr : [<c02e78f8>]    psr:
+> a0000013
+> 	> [   47.244750] sp : dea1fe60  ip : 22222222  fp : c0ee7d40
+> 	> [   47.256256] r10: c0ee7cf0  r9 : 00000000  r8 : c02e78f0
+> 	> [   47.261474] r7 : 00000000  r6 : 00000000  r5 : 00000002  r4
+> : dea45800
+> 	> [   47.268005] r3 : deb4cac0  r2 : 00000000  r1 : 00000002  r0
+> : 00000000
+> 	> [   47.274536] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA
+> ARM  Segment user
+> 	> [   47.281677] Control: 10c5387d  Table: 9eaac019  DAC:
+> 00000015
+> 	> [   47.287445] Process sh (pid: 1177, stack limit =
+> 0xdea1e2f8)
+> 	> [   47.293090] Stack: (0xdea1fe60 to 0xdea20000)
+> 	> [...]
+> 	>
+> 	> b) ZOOM3
+> 	> - Enable CPU-Idle
+> 	> - Enable UART timeout
+> 	> - echo mem > /sys/power/state
+> 	> - Wakeup system using serial keyboard
+> 	> - Verify retention count increment
+> 	>
+> 	> Functional Tests
+> 	> - Done on OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430
+> 	>
+> 	> Bootup Test
+> 	> - Done on OMAP1710
+> 	>   Used following patch to fix OMAP1 build error:-
+> 	>   [PATCH] i2c: OMAP: Fix OMAP1 build error
+> 	>
+> 	
+> 	
+> 	[..]
+> 	[..]
+> 	
+> 
+> 	> Charulatha V (8):
+> 	>   gpio/omap: remove dependency on gpio_bank_count
+> 	>   gpio/omap: use flag to identify wakeup domain
+> 	>   gpio/omap: make gpio_context part of gpio_bank structure
+> 	>   gpio/omap: make non-wakeup GPIO part of pdata
+> 	>   gpio/omap: avoid cpu checks during module ena/disable
+> 	>   gpio/omap: use pinctrl offset instead of macro
+> 	>   gpio/omap: remove bank->method & METHOD_* macros
+> 	>   gpio/omap: fix bankwidth for OMAP7xx MPUIO
+> 	>
+> 	> Nishanth Menon (4):
+> 	>   gpio/omap: save and restore debounce registers
+> 	>   gpio/omap: enable irq at the end of all configuration in
+> restore
+> 	>   gpio/omap: restore OE only after setting the output level
+> 	>   gpio/omap: handle set_dataout reg capable IP on restore
+> 	>
+> 	> Tarun Kanti DebBarma (13):
+> 	>   gpio/omap: handle save/restore context in GPIO driver
+> 	>   gpio/omap: further cleanup using wkup_en register
+> 	>   gpio/omap: use level/edge detect reg offsets
+> 	>   gpio/omap: remove hardcoded offsets in context save/restore
+> 	>   gpio/omap: cleanup set_gpio_triggering function
+> 	>   gpio/omap: cleanup omap_gpio_mod_init function
+> 	>   gpio/omap: remove unnecessary bit-masking for read access
+> 	>   gpio/omap: use pm-runtime framework
+> 	>   gpio/omap: optimize suspend and resume functions
+> 	>   gpio/omap: cleanup prepare_for_idle and resume_after_idle
+> 	>   gpio/omap: fix debounce clock handling
+> 	>   gpio/omap: fix incorrect access of debounce module
+> 	>   gpio/omap: remove omap_gpio_save_context overhead
+> 	>
+> 	>  arch/arm/mach-omap1/gpio15xx.c         |    7 +-
+> 	>  arch/arm/mach-omap1/gpio16xx.c         |   47 ++-
+> 	>  arch/arm/mach-omap1/gpio7xx.c          |   14 +-
+> 	>  arch/arm/mach-omap2/gpio.c             |   36 +-
+> 	>  arch/arm/mach-omap2/pm34xx.c           |   14 -
+> 	>  arch/arm/plat-omap/include/plat/gpio.h |   29 +-
+> 	>  drivers/gpio/gpio-omap.c               | 1099
+> +++++++++++++-------------------
+> 	>  7 files changed, 549 insertions(+), 697 deletions(-)
+> 	>
+> 	>
+> 	
+> 	> _______________________________________________
+> 	> linux-arm-kernel mailing list
+> 	> linux-arm-kernel@lists.infradead.org
+> 	> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 	>
+> 	
+> 	
+> 	Regards,
+> 	Gururaja
+> 	
+> 
+> 
+> 
 
-There is something important I'm missing.... time to go back to the TRM I
-guess..
 
-
-
->=20
-> >
-> > i.e. when the tx buffer is empty, so turn the clocks off immediately, b=
-ut
-> > wait a while for the fifo to empty. =C2=A0Hopefully the auto-suspend ti=
-me is
-> > enough.
-> >
->=20
-> [...]
->=20
-> >
-> > p.s. who should I formally submit OMAP-UART patches to? =C2=A0I have a =
-couple of
-> > others such as the below that I should submit somewhere.
-> >
-> >
-> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> > index 247d894..35a649f 100644
-> > --- a/arch/arm/mach-omap2/serial.c
-> > +++ b/arch/arm/mach-omap2/serial.c
-> > @@ -54,11 +54,9 @@
-> >
-> > =C2=A0struct omap_uart_state {
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0int num;
-> > - =C2=A0 =C2=A0 =C2=A0 int can_sleep;
-> >
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0struct list_head node;
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0struct omap_hwmod *oh;
-> > - =C2=A0 =C2=A0 =C2=A0 struct platform_device *pdev;
-> > =C2=A0};
-> >
-> > =C2=A0static LIST_HEAD(uart_list);
-> > @@ -381,8 +379,6 @@ void __init omap_serial_init_port(struct omap_board=
-_data *bd
-> >
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0oh->mux =3D omap_hwmod_mux_init(bdata->pads,=
- bdata->pads_cnt);
-> >
-> > - =C2=A0 =C2=A0 =C2=A0 uart->pdev =3D pdev;
-> > -
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0oh->dev_attr =3D uart;
-> >
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0if (((cpu_is_omap34xx() || cpu_is_omap44xx()=
-) && bdata->pads)
->=20
-> Acked-by: Govindraj.R <govindraj.raja@ti.com>
->=20
-> Please post out this part as a patch,
-> I think this change has to go through linux-omap tree.
-
-I'll do that, thanks.
-
-NeilBrown
-
-
---Sig_/35QOn6iGflvbtKTEerRfsGH
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBTyvN+Dnsnt1WYoG5AQIDORAAwp53JG5zz61Es/6d/aSc2CSW6D3nf+yf
-npp9tcbYzvxrzX8AP+uwQqwZaPjn98QHg4CPrs8vz5fWeLGEO1+OrHzYUgKmsAgg
-7zMcQzrrhX0F9H8JssI5jtLNZjC21JHQJO93m/7bGgR/dYJabrY+MdOnuy8qk8da
-mT9yAV3xQU5Uugc/+EPpz6cM0LHS+jcSQIQbZcjR68k37DQ1douQCwpZUfHRmeaB
-MdtaJBZPRo4nA+ODxx/voqM7Q5yqdiUMGF0KyF2ZscSR4SnGI+C7bNPg0uvgd8mx
-VC6mbGD+63o4xp9GA13jO7yt5a9Rlz0Lr71wkqC1AmftuBpaeK5TjZdQBrepBeul
-bS7zn4qRbbujU1e9cX6d9PDRlCp/+4A/qWaCP/FT2++OmJYkWIG1tY1V9aZ0PAIE
-hkeoEmYsCFmknDORGZNyx2G/o/GNmu9wTMtjkuA7KiVCbmLg2hivX9kEIHaQNRUD
-nSAd7WjQjBEC+PW47Lz8phwfhbwdtQlvqObZgAgHPcRgHetAVYehg+WTjYmjo9Ru
-W04Uwhk91Nu4uvMWu5WdIEPuzDmBB9EV0i6AEFlcLS2oZLYT+u9QaensFZq97RcS
-FVYxMrwaUw2+zJodZBnYp54fbysCToiLtgoCA9zLSmWYodkUUomfSzHD6j59ycuG
-zPSSsSfu8YA=
-=DfH8
------END PGP SIGNATURE-----
-
---Sig_/35QOn6iGflvbtKTEerRfsGH--
+Regards, 
+Gururaja
