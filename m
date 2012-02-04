@@ -1,52 +1,56 @@
-From: Paul Walmsley <paul@pwsan.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
- in non-DMA" added to tty tree
-Date: Sat, 4 Feb 2012 12:37:06 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202041224170.9453@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
- <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com> <CANOLnOPm-ZKRvu1PVs-jU2sceehRiwNPd=ysu2SDsLbarAPVbw@mail.gmail.com> <alpine.DEB.2.00.1202040928320.9453@utopia.booyaka.com> <20120204165736.GI1275@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.1202041029520.9453@utopia.booyaka.com> <20120204175528.GL1275@n2100.arm.linux.org.uk>
+	in non-DMA" added to tty tree
+Date: Sat, 4 Feb 2012 20:07:44 +0000
+Message-ID: <20120204200743.GC17309@n2100.arm.linux.org.uk>
+References: <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com> <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com> <CANOLnOPm-ZKRvu1PVs-jU2sceehRiwNPd=ysu2SDsLbarAPVbw@mail.gmail.com> <20120204163931.GH1275@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1202040943450.9453@utopia.booyaka.com> <20120204170114.GJ1275@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1202041005270.9453@utopia.booyaka.com> <20120204174715.GK1275@n2100.arm.linux.org.uk> <alpine.DEB.2.00.1202041211150.9453@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120204175528.GL1275@n2100.arm.linux.org.uk>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1202041211150.9453@utopia.booyaka.com>
 Sender: linux-serial-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Paul Walmsley <paul@pwsan.com>
 Cc: Grazvydas Ignotas <notasas@gmail.com>, khilman@ti.com, NeilBrown <neilb@suse.de>, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 4 Feb 2012, Russell King - ARM Linux wrote:
-
-> On Sat, Feb 04, 2012 at 10:32:16AM -0700, Paul Walmsley wrote:
-> > On Sat, 4 Feb 2012, Russell King - ARM Linux wrote:
-> > 
-> > > [detailed discussion of framing errors]
-> > 
-> > Thanks for the detailed description.  If the driver is in fact discarding 
-> > characters with framing errors -- which I have not personally verified -- 
-> > then taking further action there is pointless.
+On Sat, Feb 04, 2012 at 12:24:07PM -0700, Paul Walmsley wrote:
+> On Sat, 4 Feb 2012, Russell King - ARM Linux wrote:
 > 
-> Paul, I know you don't particularly like me getting involved with OMAP
-> issues, but tough.  You don't seem to understand some of these issues so
-> you're going to get more explanation.
+> > On Sat, Feb 04, 2012 at 10:22:27AM -0700, Paul Walmsley wrote:
+> > > No, that is not an example of a protocol with a retry.  That is an example 
+> > > of a protocol that has no provision for reliable data delivery.  Sending a 
+> > > new data string one second later is not a retry.
+> > > 
+> > > In such situations, the system integrator would just use the UART in the 
+> > > default (lossless) mode.  And if they don't, they'll have to deal with the 
+> > > consequences that they chose.  Those of us who ship battery-powered Linux 
+> > > devices are indeed capable of making this choice.
+> > 
+> > Okay, lets see.  You're making a battery powered Linux device.  It has
+> > a standard RS232 serial port available, and you allow users to load
+> > 'apps' onto it.
+> > 
+> > Do you run the serial ports in lossless mode?
+> 
+> Not every serial port is available to arbitrary 'apps.'.  Not every 
+> battery-powered Linux device allows users to run arbitrary 'apps.'
+> 
+> On devices that do allow users to load arbitrary 'apps,' and that allow 
+> those 'apps' to have direct access to the serial ports, I personally 
+> believe that system integrators should not change the default OMAP serial 
+> setting, which is to run the serial ports in lossless mode.
+> 
+> Here is another example.  Suppose someone builds a GPS receiver with an 
+> OMAP that is capable of sending NMEA position sentences, once per second, 
+> to a remotely connected serial device.  No receive traffic is expected on 
+> that port.
+> 
+> The position you seem to be advocating is that the mainline Linux kernel 
+> should not support any ability to allow the system integrator to 
+> affirmatively instruct the SoC to enter device idle between those position 
+> sentences.  This will cause the SoC to consume energy to losslessly 
+> handle an incoming serial character that will never come.  Is that really 
+> what you're advocating?
 
-Hehe.  Oh, hurt me again with more explanation, please ;-)  I can't take 
-it ;-)  I happen to enjoy many of your technical explanations.  Doesn't 
-necessarily mean that we're always in agreement, though.
-
-As for the part about not wanting you involved with OMAP, that's an 
-interesting perspective, considering I mentioned to you at ELC-E last year 
-my appreciation of your technical review on the lists.  And you'll 
-probably note, if you care to review the lists, that many of my E-mail 
-responses express gratitude for your comments... including the one you 
-quoted.
-
-Of course the snarky, personal bits can be unnecessarily irritating, but 
-anyone who's in this line of work just has to deal with them, it seems.
-
-So if you want to believe otherwise, there's nothing I can do to control 
-that.  But you should represent this as your personal perspective, and 
-not as someone else's, e.g., mine.
-
-
-- Paul
+Stop procrastinating.  Please answer my question.  Then I'll answer yours.
