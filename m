@@ -1,67 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: In many cases softlockup can not be reported after disabling
-	IRQ for long time
-Date: Sat, 4 Feb 2012 12:22:46 +0000
-Message-ID: <20120204122246.GG1275@n2100.arm.linux.org.uk>
-References: <CAOwKts8zS1rYA+Y4k-vb8YAaR=aFd1BwryhhWWnWLQyrYrNqyA@mail.gmail.com> <20120131154748.GA5650@redhat.com> <CAOwKts_dTvc4LiCZUXN9oYzty1pkDEn_VQwPKY=EoVzk0n6tFA@mail.gmail.com> <20120201145802.GF5650@redhat.com> <CAOwKts8S0EkUGcP3rYqZe+HdvyXD0+SR1f_3xWpu5FprKWuGhQ@mail.gmail.com> <20120202084350.GB1275@n2100.arm.linux.org.uk> <CAOwKts--CDpmiMunfYKrYsnWovmQhAC7Vp0P-9MeNVy6vx-Wvw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Aneesh V <aneesh@ti.com>
+Subject: [RFC v4 PATCH 0/4] dt: device tree support for TI EMIF driver
+Date: Sat,  4 Feb 2012 18:12:05 +0530
+Message-ID: <1328359329-685-1-git-send-email-aneesh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50444 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188Ab2BDMXL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Feb 2012 07:23:11 -0500
-Content-Disposition: inline
-In-Reply-To: <CAOwKts--CDpmiMunfYKrYsnWovmQhAC7Vp0P-9MeNVy6vx-Wvw@mail.gmail.com>
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:35746 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752828Ab2BDMmS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Feb 2012 07:42:18 -0500
+Received: by mail-tul01m020-f173.google.com with SMTP id up16so7230261obb.18
+        for <linux-omap@vger.kernel.org>; Sat, 04 Feb 2012 04:42:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: TAO HU <tghk48@motorola.com>
-Cc: Don Zickus <dzickus@redhat.com>, Ingo Molnar <mingo@elte.hu>, linux-omap <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, Aneesh V <aneesh@ti.com>
 
-On Thu, Feb 02, 2012 at 10:05:22PM +0800, TAO HU wrote:
-> I don't know it's already been discussed.
-> Appreciate if you could point out existing discussion thread.
-> 
-> I agree it is impossible to detect "timeout" when using jiffies which
-> relies on timer.
-> 
-> For timestamp, softlockup (watchdog) use cpu_clock() whcih eventually calls
-> sched_clock().
-> And sched_clock() is implemented to read out the value of a 32K
-> timer/counter on OMAP4430.
-> That means the timestamp will be still updated while the IRQ is disabled.
+This series adds device tree support for TI EMIF SDRAM controller
+driver. For this, a binding has been added for representing AC timing
+parameters and other details of LPDDR2 memories.
 
-Yes, and it'll take 131072 seconds to wrap.
+This series depends on the series for adding EMIF driver [1]
 
-> So when IRQ is re-enabled, softlockup code will be able to read a "fresh"
-> timestamp which can be used to
-> detect the timeout.
-> 
-> 
-> static unsigned long get_timestamp(int this_cpu)
-> {
-> return cpu_clock(this_cpu) >> 30LL; /* 2^30 ~= 10^9 */
-> }
-> 
-> unsigned long long __attribute__((weak)) sched_clock(void)
-> {
-> return (unsigned long long)(jiffies - INITIAL_JIFFIES)
-> * (NSEC_PER_SEC / HZ);
-> }
-> 
-> #ifndef CONFIG_OMAP_MPU_TIMER
-> unsigned long long notrace sched_clock(void)
-> {
-> return _omap_32k_sched_clock();
-> }
-> #else
-> unsigned long long notrace omap_32k_sched_clock(void)
-> {
-> return _omap_32k_sched_clock();
-> }
-> #endif
+Changes in RFC v3:
+* Removed support for DDR3
+* Incorporated review comments from Olof
 
-I guess someone needs to do some tracing to see what's going on, and
-get a feel for the order in which things happen.  (Or add some printks.)
+Changes from RFC v3 to RFC v4:
+* Added a new patch to add DT support in the EMIF driver
 
-Is there a ready-prepared bit of code I can try?
+[1] http://marc.info/?l=linux-omap&m=132835811606125&w=2
+
+Aneesh V (4):
+  dt: device tree bindings for LPDDR2 memories
+  dt: emif: device tree bindings for TI's EMIF sdram controller
+  arm: dts: EMIF and LPDDR2 device tree data for OMAP4 boards
+  misc: emif: add device tree support to emif driver
+
+ .../devicetree/bindings/lpddr2/lpddr2-timings.txt  |   54 ++++
+ .../devicetree/bindings/lpddr2/lpddr2.txt          |  102 +++++++
+ .../bindings/memory-controllers/ti/emif.txt        |   55 ++++
+ arch/arm/boot/dts/elpida_ecb240abacn.dtsi          |   71 +++++
+ arch/arm/boot/dts/omap4-panda.dts                  |   13 +
+ arch/arm/boot/dts/omap4-sdp.dts                    |   13 +
+ arch/arm/boot/dts/omap4.dtsi                       |   18 ++
+ drivers/misc/emif.c                                |  281 +++++++++++++++++++-
+ 8 files changed, 606 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2-timings.txt
+ create mode 100644 Documentation/devicetree/bindings/lpddr2/lpddr2.txt
+ create mode 100644 Documentation/devicetree/bindings/memory-controllers/ti/emif.txt
+ create mode 100644 arch/arm/boot/dts/elpida_ecb240abacn.dtsi
+
