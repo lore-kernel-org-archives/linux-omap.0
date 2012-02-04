@@ -1,61 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: Add simple pinmux driver using device
- tree data
-Date: Fri, 3 Feb 2012 16:55:39 -0800
-Message-ID: <20120204005539.GI20333@atomide.com>
-References: <20120203205049.4089.74610.stgit@kaulin.local>
- <20120203205508.4089.35304.stgit@kaulin.local>
- <CACRpkdaDOZ3X0AkWH4B4ZGCXHPxh0CkSg3xi=jHC5L+kJr1d=w@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Fri, 3 Feb 2012 17:59:47 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202031731500.27947@utopia.booyaka.com>
+References: <13274430881471@kroah.org> <alpine.DEB.2.00.1201251156361.5324@utopia.booyaka.com> <20120126042155.GA3185@suse.de> <alpine.DEB.2.00.1201252124470.11174@utopia.booyaka.com> <20120126191604.GA15516@suse.de> <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
+ <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
+ <20120203231113.25ae2d3a@notabene.brown> <EF62F09C0797D947AD4180A1043C0DF73492FFC3@DLEE10.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <CACRpkdaDOZ3X0AkWH4B4ZGCXHPxh0CkSg3xi=jHC5L+kJr1d=w@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Dong Aisheng <dong.aisheng@linaro.org>, Stephen Warren <swarren@nvidia.com>, Linus Walleij <linus.walleij@stericsson.com>, Barry Song <21cnbao@gmail.com>, linux-kernel@vger.kernel.org, Haojian Zhuang <haojian.zhuang@marvell.com>, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Rajendra Nayak <rajendra.nayak@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dong Aisheng <dongas86@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <EF62F09C0797D947AD4180A1043C0DF73492FFC3@DLEE10.ent.ti.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: NeilBrown <neilb@suse.de>, Grazvydas Ignotas <notasas@gmail.com>, "greg@kroah.com" <greg@kroah.com>, "Hilman, Kevin" <khilman@ti.com>, "R, Govindraj" <govindraj.raja@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-* Linus Walleij <linus.walleij@linaro.org> [120203 14:18]:
-> On Fri, Feb 3, 2012 at 9:55 PM, Tony Lindgren <tony@atomide.com> wrote:
-> 
-> > Add simple pinmux driver using device tree data.
-> >
-> > Currently this driver only works on omap2+ series of
-> > processors, where there is either an 8 or 16-bit mux
-> > register for each pin. Support for other similar pinmux
-> > controllers could be added.
-> 
-> So since it's not named pinctrl-omap I guess you intend it
-> to be fully generic for simple muxes, which is nice!
-> If people start ACK:ing this I will be happy with it too,
-> because it's very easy to understand.
+On Sat, 4 Feb 2012, Woodruff, Richard wrote:
 
-Yes the idea is that it should stay generic. I don't know
-how easy or hard it would be to enhance it to support
-also other type mux cases, like multiple mux registers per
-pin, but I guess we'll see.
- 
-> > Note that this patch does not yet support pinconf_ops
-> > or GPIO. Further, alternative mux modes are not yet
-> > handled.
-> 
-> Do you want to evolve the patch for these features
-> or do you want to refactor it in later?
+> When you have aggressive PM working at the SOC level you many times lost 
+> a character on UART every since OMAP2. A strange but true statement is 
+> it is nice to see it losing a character on mainline as it as in 
+> indication that PM is likely working.
 
-Well I'd like to test it a bit more first as I've only
-done minimal testing so far. So maybe let's assume there
-will be one more iteration at least.
+We've been losing wakeup characters in mainline for many years now ;-)
 
-Regards,
+> One irritation was some internal interrupt sources were not linked to 
+> low power wakeup events. If you were in interrupt mode and got 
+> characters below watermark you could sleep before interrupt status 
+> showed up (as you had to wait several frame times before functional 
+> interrupt asserted) but there was no wake at anticipated frame timeout 
+> because lack of linking of internal event to wake event.
 
-Tony
+Indeed, it seems that we are just now working around these wakeup-related 
+bugs.  Kind of surprising that no errata showed up for them.
+
+What's particularly remarkable is that it looks like the UARTs will 
+idle-ack while their transmit FIFOs have data in them (!)
+
+
+- Paul
