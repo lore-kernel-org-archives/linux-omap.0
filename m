@@ -1,38 +1,52 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: OMAP34xx
-Date: Sat, 4 Feb 2012 18:54:53 +0000
-Message-ID: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Sat, 4 Feb 2012 10:59:22 -0800
+Message-ID: <20120204185922.GK20333@atomide.com>
+References: <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com>
+ <20120203205401.5ddf241d@notabene.brown>
+ <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
+ <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com>
+ <CANOLnOPm-ZKRvu1PVs-jU2sceehRiwNPd=ysu2SDsLbarAPVbw@mail.gmail.com>
+ <20120204163931.GH1275@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1202040943450.9453@utopia.booyaka.com>
+ <20120204170114.GJ1275@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1202041005270.9453@utopia.booyaka.com>
+ <20120204174715.GK1275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53780 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754210Ab2BDSy7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Feb 2012 13:54:59 -0500
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20120204174715.GK1275@n2100.arm.linux.org.uk>
+Sender: linux-serial-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, khilman@ti.com, NeilBrown <neilb@suse.de>, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Does someone want to try building and running Linux on (eg) an OMAP34xx
-platform before I post my next email message on this subject, and
-maybe send me a bunch of patches required to fix stuff, to be applied
-to my tree _and_ _then_ forwarded to Linus next Friday.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120204 09:16]:
+> On Sat, Feb 04, 2012 at 10:22:27AM -0700, Paul Walmsley wrote:
+> > No, that is not an example of a protocol with a retry.  That is an example 
+> > of a protocol that has no provision for reliable data delivery.  Sending a 
+> > new data string one second later is not a retry.
+> > 
+> > In such situations, the system integrator would just use the UART in the 
+> > default (lossless) mode.  And if they don't, they'll have to deal with the 
+> > consequences that they chose.  Those of us who ship battery-powered Linux 
+> > devices are indeed capable of making this choice.
+> 
+> Okay, lets see.  You're making a battery powered Linux device.  It has
+> a standard RS232 serial port available, and you allow users to load
+> 'apps' onto it.
+> 
+> Do you run the serial ports in lossless mode?
 
-So, think of this as your last chance, and you'll get the picture about
-how pissed off I am with the - yet again - current poor state of OMAP
-in mainline, which seems to happen every merge window.
+The default should always be the lossless mode. If the clocks for the
+serial port are cut off based on a timer, the timer should be port
+specific, and default to 0.
 
-Consider this: when Linus started using a PowerPC platform, the PowerPC
-people quickly realized that pushing patches upstream which broke stuff
-was a really bad idea, because they got publically flamed for such
-actions especially when stuff was not obviously tested.
+Then if some app using the port wants to intentionall enable automatic
+disabling of the clocks, it can still do it.
 
-This is no different... and this is _not_ my original email which I have
-queued up with the real hot flames in over this.  This is the toned down
-version.  The flames won't get sent if OMAP gets fixed quickly - and if
-testing improves to stop this constant cycle of regressions at every
-merge window.
+Regards,
 
-Thanks.
+Tony
