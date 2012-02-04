@@ -1,55 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: OMAP34xx
-Date: Sat, 4 Feb 2012 15:09:16 -0800
-Message-ID: <20120204230916.GN20333@atomide.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
- <20120204190109.GL20333@atomide.com>
- <20120204203453.GD17309@n2100.arm.linux.org.uk>
- <20120204205303.GA23248@n2100.arm.linux.org.uk>
+Date: Sat, 4 Feb 2012 23:14:37 +0000
+Message-ID: <20120204231437.GA26382@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:32149 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664Ab2BDXJT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Feb 2012 18:09:19 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56379 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2BDXOp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Feb 2012 18:14:45 -0500
 Content-Disposition: inline
-In-Reply-To: <20120204205303.GA23248@n2100.arm.linux.org.uk>
+In-Reply-To: <20120204203453.GD17309@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120204 12:22]:
-> On Sat, Feb 04, 2012 at 08:34:53PM +0000, Russell King - ARM Linux wrote:
-> > And OMAP4 doesn't build.  Fixing the build error in prm44xx.c (which is
-> > virtually the same as the OMAP3 build error in its prm file) gets us to
-> > a buildable state, but... it silently fails to boot.
-> > 
-> > arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
-> 
-> BTW, I can tell you why you don't see this error - you're building with
-> DT enabled, which gives you this header path to those definitions:
-> 
-> arch/arm/mach-omap2/prm44xx.c
->  arch/arm/mach-omap2/common.h
->   plat/common.h    
->    plat/i2c.h
->     linux/i2c.h
->      linux/of.h
->       asm/prom.h
->        asm/irq.h
->         mach/irqs.h
->          plat/irqs.h
->           plat/irqs-44xx.h
-> 
-> which, I think you'll agree, is a recipe for disaster if any one of those
-> decides not to include its child at some point either via configuration
-> or via mere deletion of an include.
+Here's another problem to add to the list:
 
-OK. Sounds like the solution here is to include irqs.h directly
-in prmx44xx.c.
+2fd149645eb46d26130d7070c6de037dddf34880 totally screws serial on
+OMAP3430 - and by that I mean running the port at 115200 baud causes
+a simple 'dmesg' output to take 5+ minutes to output in 16 character
+blocks every two seconds.
 
-Regards,
+This fixes it in so far as it effectively reverts that change (the
+change itself won't revert cleanly), but it's far from nice.
 
-Tony
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 464cffd..1e9256c 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -259,6 +259,8 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
+        struct omap3_idle_statedata *cx;
+        int ret;
+ 
++       { new_state_idx = drv->safe_state_index; goto select_state; }
++
+        /*
+         * Prevent idle completely if CAM is active.
+         * CAM does not have wakeup capability in OMAP3.
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index b77df73..4b76c4c 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -420,7 +420,7 @@ static void omap3_pm_idle(void)
+ {
+        local_fiq_disable();
+ 
+-       if (omap_irq_pending())
++       if (omap_irq_pending() || 1)
+                goto out;
+ 
+        trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+
