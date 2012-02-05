@@ -1,79 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
 Subject: Re: OMAP34xx
-Date: Sun, 5 Feb 2012 10:49:31 -0800
-Message-ID: <20120205184931.GM1426@atomide.com>
+Date: Sun, 5 Feb 2012 10:59:40 -0800
+Message-ID: <20120205185939.GN1426@atomide.com>
 References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
  <20120204190109.GL20333@atomide.com>
  <20120204203453.GD17309@n2100.arm.linux.org.uk>
- <20120205125626.GA11372@n2100.arm.linux.org.uk>
- <20120205143824.GA12577@n2100.arm.linux.org.uk>
- <20120205174036.GT20333@atomide.com>
- <20120205180521.GG17309@n2100.arm.linux.org.uk>
+ <20120205172528.GA17029@n2100.arm.linux.org.uk>
+ <20120205174700.GU20333@atomide.com>
+ <20120205180812.GH17309@n2100.arm.linux.org.uk>
+ <20120205183316.GL1426@atomide.com>
+ <20120205184139.GI17309@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52795 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754631Ab2BEStg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 13:49:36 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22912 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754870Ab2BES7o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 13:59:44 -0500
 Content-Disposition: inline
-In-Reply-To: <20120205180521.GG17309@n2100.arm.linux.org.uk>
+In-Reply-To: <20120205184139.GI17309@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 09:34]:
-> On Sun, Feb 05, 2012 at 09:40:37AM -0800, Tony Lindgren wrote:
-> >  
-> > > > ------------[ cut here ]------------
-> > > > WARNING: at /home/rmk/git/linux-omap/arch/arm/mach-omap2/omap_hwmod.c:1604 _idle+0x34/0xc8()
-> > > > omap_hwmod: dss_hdmi: idle state can only be entered from enabled state
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 10:10]:
+> On Sun, Feb 05, 2012 at 10:33:16AM -0800, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 09:37]:
+> > > So in the meantime, people should put up with the kernel reporting an
+> > > "Error" at error-message level at boot time because they didn't configure
+> > > something?
 > > > 
-> > > This message doesn't exist in the kernel source as far as I can find.
-> > > Ah, yes it does, someone well wrapped the message.
-> > > 
-> > >                 WARN(1, "omap_hwmod: %s: idle state can only be entered from "
-> > >                      "enabled state\n", oh->name);
-> > > 
-> > > So that goes into my patch of omap fixes.  There's others in that file
-> > > which will get the same treatment.
+> > > No, it needs fixing, because it doesn't justify being an error.  It's
+> > > wrong, plain and simple.  Again, if you don't want to send it during
+> > > -rc, I'll send it to Linus as a patch for him to decide whether he wants
+> > > to take it as -rc material.
 > > 
-> > This is not a fix, this should queued for the next merge window
-> > as clean-up.
+> > Hmm, maybe I misunderstood you.
+> > 
+> > Certainly fixing the "Error" makes sense for -rc, but are also thinking
+> > about adding error checking to all platform_device_register() calls?
 > 
-> I would much rather have your agreement, but at the moment given the
-> (yet again) poor state of OMAP, I'm not inclined to allow this to be
-> pushed into the next merge window.
+> I do think they're valid for -rc, because should it fail, things won't
+> work as one desires.
 
-If you stronly think that this is a necessary fix for the -rc cycle,
-then I'm fine with it.
-
-What I'd like to see is a series of targeted critical fixes with
-descriptions of the .config options case the issues so we can avoid
-similar issues in the future.
-
-Then let's have separate clean-up related patches, even if we merge
-them too during the -rc cycle. You've probably done this already in
-your series, but I have not seen the series yet.
+OK, this easily gets into the area where we might get flames from
+Linus like "fixing features during -rc that never worked properly
+before"..
  
-> And if that means I have to apply it to my tree in the fixes branch,
-> that's what I'll do.
-
-Even if we go that path I should still apply your patches for some
-testing. And I'd like to ack the changes, it's a very nice set of
-fixes :)
- 
-> The fact is that because of the wrapping, the message is difficult to
-> find, and that's good enough justification for me to put it in my fixes
-> branch.
+> I did stop short of fixing it properly - and by "properly" I mean that
+> if we fail to register the platform data for the device, then we should
+> not register the device itself.  That involves a change of behaviour in
+> the setup of the system which _might_ cause a regression.
 > 
-> In fact, I'll even send it as a plain patch to Linus so he can see it
-> for what it is and decide whether _he_ wants to apply it, and I believe
-> he will apply it without any questions.
+> Whereas, merely printing an error for a failure to register a device
+> wouldn't be a regression (it might uncover another error, but that's
+> arguably a good thing.)
 
-Sure if it saves some time finding a critical error, it makes sense.
+OK that sounds safe to me.
+ 
+> The last bit of "properly" which needs discussion is concerning whether
+> we should even be trying to register this devices platform data and
+> device structure if WL12XX_PLATFORM_DATA is not enabled - if this is
+> not enabled the platform data won't be stored, and presumably the
+> wireless driver will be missing some vital platform data.
 
-Cheers,
+That sounds like the way to go to me.
+ 
+> It seems silly to have the device registered without the platform data,
+> so that if the module is built for the kernel, it could be inserted and
+> bound to that device...
+> 
+> So even for this apparantly simple looking issue, there's some searching
+> questions that need answering.
+
+I doubt that there's anything else behind it except trying to leave
+out some ifdefs.
+
+Regards,
 
 Tony
