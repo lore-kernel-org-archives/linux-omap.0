@@ -1,122 +1,91 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
-Date: Sun, 5 Feb 2012 18:05:37 +0530
-Message-ID: <CAMQu2gzaQ+uHGpu-mpEPaxFim4_yRayKw_XBPBUgu7ML7daR2w@mail.gmail.com>
-References: <4F2AF68D.1000505@ti.com> <20120202214907.GA22888@legolas.emea.dhcp.ti.com>
- <20120202215350.GB22888@legolas.emea.dhcp.ti.com> <4F2B078B.1040709@ti.com>
- <20120202220744.GA23092@legolas.emea.dhcp.ti.com> <87liojajs4.fsf@ti.com>
- <20120204160802.GA10818@legolas.emea.dhcp.ti.com> <CA+HSevqvHAgA+PPLm8BH5vfWkc8yY8W+fRpqjT2urq2EWtSYiA@mail.gmail.com>
- <20120205090805.GA13300@legolas.emea.dhcp.ti.com> <CAMQu2gyNhEJ3vr7_o_xYAQOYKaRofJViobKtfH2HoxwgU7nUpw@mail.gmail.com>
- <20120205113521.GA13533@legolas.emea.dhcp.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Sun, 5 Feb 2012 12:56:26 +0000
+Message-ID: <20120205125626.GA11372@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120205113521.GA13533@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: "Varadarajan, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34356 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab2BEM4d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 07:56:33 -0500
+Content-Disposition: inline
+In-Reply-To: <20120204203453.GD17309@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Sun, Feb 5, 2012 at 5:05 PM, Felipe Balbi <balbi@ti.com> wrote:
-> Hi,
->
-> On Sun, Feb 05, 2012 at 02:46:19PM +0530, Shilimkar, Santosh wrote:
->> >> bank->mod_usage check is used to take care of doing pm_runtime_ge=
-t*/put* only
->> >> if all the GPIOs in a particular bank are enabled or disabled res=
-pectively.
->> >
->> > and why should you care about that ? The first get will enable the
->> > resources you need, the second get will just increase a counter an=
-d so
->> > on. So if you have 32 gets, you will disable the module when you h=
-ave 32
->> > puts.
->> >
->> Am not sure if it is clear to you that the GPIO resources like clock=
-,
->> debounce clk are per bank wise and not per GPIO line. So doing 32
->
-> this is just one more reason to have usage counters.
->
->> get/put per bank is stupid. runtime pm is for managing pm
->
-> what's stupid is trying to use the pm usage counters as a binary flag=
-,
-> see below.
->
->> resources and if the pm resource is per bank, it has to be
->> handled per bank.
->
-> hehe, what are you talking about Santosh ? That's the whole point of
-> reference counting. If there are 32 users for 1 resource, you want to
-> make sure that you only free the resources (clocks, or whatever resou=
-rce
-> you want) after all 32 users are done with it.
->
-> Trying to use the pm usage counter as a binary flag, that's the stupi=
-d
-> part of the OMAP GPIO driver.
->
-> Instead of adding checks such as:
->
-> if (module_isnt_used())
-> =A0 =A0 =A0 =A0enable_clocks();
->
-> on get and:
->
-> if (module_isnt_needed_anymore())
-> =A0 =A0 =A0 =A0disable_clcoks()
->
-> on put is the most useless piece of code on that driver. Because such
-> checks are already available on PM core through usage counters. The w=
-ay
-> that part of the code works is as follow:
->
-> get() {
-> =A0 =A0 =A0 =A0if (pm_counter_is_zero(dev)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0atomic_inc();
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rpm_resume();
-> =A0 =A0 =A0 =A0}
-> }
->
-> put() {
-> =A0 =A0 =A0 =A0atomic_dec();
->
-> =A0 =A0 =A0 =A0if (pm_counter_is_zero(dev)) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0rpm_suspend();
-> =A0 =A0 =A0 =A0}
-> }
->
-> Do you not see that you're duplicating functionality by trying to use
-> the pm counter a binary flag ?
->
-Ahh.. Now I see your point. I miss-understood the point first time
-and thought that we have disconnect on the pm resources from
-number of GPIO perspective.
+And here's another (set of) problem(s) on the 4430SDP board once the
+previous have been worked around:
 
-What you are saying is to use pm runtime reference counters rather
-than creating local ones for GPIO which seems to be right thing to
-do. Sorry for the noise.
+omap_hwmod: l3_div_ck: missing clockdomain for l3_div_ck.                       
+omap_hwmod: ipu: failed to hardreset                                            
+omap_hwmod: mcpdm: cannot be enabled (3)                                        
+...
+machine_constraints_voltage: VUSB: failed to apply 3300000uV constraint         
+...
+twl_reg twl_reg.46: can't register VUSB, -22                                    
+twl_reg: probe of twl_reg.46 failed with error -22                              
+...
+omap_vc_i2c_init: I2C config for all channels must match.
+omap_vc_i2c_init: I2C config for all channels must match.
+Power Management for TI OMAP4.
+clock: disabling unused clocks to save power
+omapfb omapfb: no driver for display: lcd
+omapfb omapfb: no driver for display: lcd2
+Failed to set PHY power mode to 1
+omapdss HDMI error: failed to power on device
+------------[ cut here ]------------
+WARNING: at /home/rmk/git/linux-omap/arch/arm/mach-omap2/omap_hwmod.c:1604 _idle
++0x34/0xc8()
+omap_hwmod: dss_hdmi: idle state can only be entered from enabled state
+Modules linked in:
+Backtrace:
+[<c0017cb0>] (dump_backtrace+0x0/0x10c) from [<c02bdb98>] (dump_stack+0x18/0x1c)
+ r7:df6d7d28 r6:c0023e4c r5:c034973d r4:00000644
+[<c02bdb80>] (dump_stack+0x0/0x1c) from [<c003448c>] (warn_slowpath_common+0x58/0x70)
+[<c0034434>] (warn_slowpath_common+0x0/0x70) from [<c0034548>] (warn_slowpath_fmt+0x38/0x40)
+ r8:00000000 r7:00000000 r6:c03e0b90 r5:a0000113 r4:c03e0b90
+[<c0034510>] (warn_slowpath_fmt+0x0/0x40) from [<c0023e4c>] (_idle+0x34/0xc8)
+ r3:c03496af r2:c0349a89
+[<c0023e18>] (_idle+0x0/0xc8) from [<c0024a0c>] (omap_hwmod_idle+0x34/0x48)
+mmc0: Voltage range not supported for power class.
+mmc0: power class selection to bus width 8 failed
+mmc0: new high speed MMC card at address 0001
+mmcblk0: mmc0:0001 SEM08G 7.39 GiB
+mmcblk0boot0: mmc0:0001 SEM08G partition 1 1.00 MiB
+mmcblk0boot1: mmc0:0001 SEM08G partition 2 1.00 MiB
+ mmcblk0: unknown partition table
+ r4:c03e0be0
+[<c00249d8>] (omap_hwmod_idle+0x0/0x48) from [<c00304a8>] (omap_device_idle_hwmods+0x24/0x3c)
+ r6:df51f200 r5:df51f180 r4:00000000
+[<c0030484>] (omap_device_idle_hwmods+0x0/0x3c) from [<c003069c>] (_omap_device_deactivate+0x5c/0x134)
+ r5:df51f200 r4:df51f180
+[<c0030640>] (_omap_device_deactivate+0x0/0x134) from [<c00307c0>] (omap_device_idle+0x4c/0x60)
+[<c0030774>] (omap_device_idle+0x0/0x60) from [<c00307f8>] (_od_runtime_suspend+0x24/0x2c)
+ r4:00000000
+[<c00307d4>] (_od_runtime_suspend+0x0/0x2c) from [<c01f6aac>] (__rpm_callback+0x60/0x88)
+ r5:00000000 r4:df515408
+[<c01f6a4c>] (__rpm_callback+0x0/0x88) from [<c01f7134>] (rpm_suspend+0x3dc/0x644)
+ r5:00000000 r4:00000000
+[<c01f6d58>] (rpm_suspend+0x0/0x644) from [<c01f841c>] (__pm_runtime_suspend+0x64/0x7c)
+[<c01f83b8>] (__pm_runtime_suspend+0x0/0x7c) from [<c01f3744>] (pm_generic_runtime_idle+0x50/0x58)
+ r7:c082f300 r6:00000002 r5:00000000 r4:df515408
+[<c01f36f4>] (pm_generic_runtime_idle+0x0/0x58) from [<c0030060>] (_od_runtime_idle+0x10/0x14)
+ r4:df515408
+[<c0030050>] (_od_runtime_idle+0x0/0x14) from [<c01f6aac>] (__rpm_callback+0x60/0x88)
+[<c01f6a4c>] (__rpm_callback+0x0/0x88) from [<c01f7560>] (rpm_idle+0x14c/0x180)
+ r5:00000000 r4:df515408
+[<c01f7414>] (rpm_idle+0x0/0x180) from [<c01f836c>] (pm_runtime_work+0x68/0xb4)
+ r6:00000004 r5:df500540 r4:df515408
+[<c01f8304>] (pm_runtime_work+0x0/0xb4) from [<c0049430>] (process_one_work+0x264/0x3bc)
+ r4:df5154ac
+[<c00491cc>] (process_one_work+0x0/0x3bc) from [<c00499b4>] (worker_thread+0x234
+/0x41c)
+[<c0049780>] (worker_thread+0x0/0x41c) from [<c005000c>] (kthread+0x8c/0x98)
+[<c004ff80>] (kthread+0x0/0x98) from [<c0038828>] (do_exit+0x0/0x2ec)
+ r7:00000013 r6:c0038828 r5:c004ff80 r4:df45feb0
+---[ end trace 0614d9210f06d794 ]---
 
-The agressive clock cutting was tried initially without much success
-and may be we can revisit this one more time.
-
-As per as this series is concerned, we would like to fix
-the build error pointed by Kevin and queue it for 3.4.
-
-There are few more fixes getting cooked up for GPIO and
-as part of that series we will have a look at your suggestion.
-
-Thanks for review.
-
-Regards
-santosh
-
-
-
-
-Regards
-Santosh
