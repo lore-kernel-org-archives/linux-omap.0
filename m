@@ -1,130 +1,52 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: OMAP34xx
-Date: Sun, 5 Feb 2012 18:05:21 +0000
-Message-ID: <20120205180521.GG17309@n2100.arm.linux.org.uk>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk> <20120205174036.GT20333@atomide.com>
+Date: Sun, 5 Feb 2012 18:08:12 +0000
+Message-ID: <20120205180812.GH17309@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205172528.GA17029@n2100.arm.linux.org.uk> <20120205174700.GU20333@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38098 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51065 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab2BESFd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 13:05:33 -0500
+	with ESMTP id S1751799Ab2BESIZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 13:08:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20120205174036.GT20333@atomide.com>
+In-Reply-To: <20120205174700.GU20333@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Sun, Feb 05, 2012 at 09:40:37AM -0800, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 06:07]:
-> > On Sun, Feb 05, 2012 at 12:56:26PM +0000, Russell King - ARM Linux wrote:
-> > > And here's another (set of) problem(s) on the 4430SDP board once the
-> > > previous have been worked around:
-> > > 
-> > > omap_hwmod: l3_div_ck: missing clockdomain for l3_div_ck.
-> > > omap_hwmod: ipu: failed to hardreset
-> > > omap_hwmod: mcpdm: cannot be enabled (3)
-> > > ...
-> > > machine_constraints_voltage: VUSB: failed to apply 3300000uV constraint
-> > > ...
-> > > twl_reg twl_reg.46: can't register VUSB, -22
-> > > twl_reg: probe of twl_reg.46 failed with error -22
-> > > ...
-> > > omap_vc_i2c_init: I2C config for all channels must match.
-> > > omap_vc_i2c_init: I2C config for all channels must match.
+On Sun, Feb 05, 2012 at 09:47:00AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 08:54]:
+> > I'm also getting on the OMAP4430SDP:
 > > 
-> > Fixing this error message to provide something useful allows this problem
-> > to be diagnosed.
+> > Error setting wl12xx data
 > > 
-> > omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
-> > omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).
+> > What a wonderfully descriptive error message.  Not.  What happened to
+> > saying _why_ we couldn't set the data?  As for this:
 > > 
-> > Let's look at the PMIC data for OMAP4:
+> > 	platform_device_register(&omap_vwlan_device);
 > > 
-> > static struct omap_voltdm_pmic omap3_mpu_pmic = {
-> >         .i2c_high_speed            = true,
-> > static struct omap_voltdm_pmic omap3_core_pmic = {
-> >         .i2c_high_speed            = true,
-> > static struct omap_voltdm_pmic omap4_mpu_pmic = {
-> >         .i2c_high_speed            = true,
-> > static struct omap_voltdm_pmic omap4_iva_pmic = {
-> >         .i2c_high_speed            = true,
-> > static struct omap_voltdm_pmic omap4_core_pmic = {
+> > and not checking the return code, I really don't see why anyone bothered
+> > even reporting that wl12xx_set_platform_data() failed... why not just
+> > leave people in the dark over the error...
 > > 
-> > So, OMAP4's PMIC information for the core domain does not have I2C high
-> > speed set, yet the others do.  So if this is an illegal configuration
-> > then the TWL data is plainly wrong.  If it's a legal configuration, the
-> > voltage domain code is talking utter crap about requiring all these to
-> > match.  They can't both be right.
+> > Right, so, this "error" is happening because the WL12xx driver is not
+> > configured, and from what I can see, the WL12xx is something you'd plug
+> > in to the board instead of the SD card.  So it makes no sense to report
+> > an error for a driver for a bit of hardware which is optional.
+> > 
+> > So... my patch gets larger and gets this fixed for all platforms in
+> > mach-omap2.
 > 
-> Indeed.
->  
-> > Has this code been tested on OMAP4 platforms?  I think not (or if it
-> > was, it was done blindly without regard for the messages the kernel
-> > was spitting out - again, that's a failing of people to properly test
-> > their code _before_ sending it upstream.)
-> 
-> Let's let Kevin investigate this one.
->  
-> > > Power Management for TI OMAP4.
-> > > clock: disabling unused clocks to save power
-> > > omapfb omapfb: no driver for display: lcd
-> > > omapfb omapfb: no driver for display: lcd2
-> > 
-> > Okay, so this requires backlight support, and TAAL selected, so that sorts
-> > that error, but causes others:
-> > 
-> > taal display0: taal panel revision e3.83.7d
-> > omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> > DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> > omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> > DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> > omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> > DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> > omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> > DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> > omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> > DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> > omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> > DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> > 
-> > > Failed to set PHY power mode to 1
-> > > omapdss HDMI error: failed to power on device
-> > 
-> > For some reason, enabling TAAL fixes this HDMI error.  Why I don't
-> > understand but it's very very counter intuitive.
-> 
-> Let's let Tomi investigate this one.
->  
-> > > ------------[ cut here ]------------
-> > > WARNING: at /home/rmk/git/linux-omap/arch/arm/mach-omap2/omap_hwmod.c:1604 _idle+0x34/0xc8()
-> > > omap_hwmod: dss_hdmi: idle state can only be entered from enabled state
-> > 
-> > This message doesn't exist in the kernel source as far as I can find.
-> > Ah, yes it does, someone well wrapped the message.
-> > 
-> >                 WARN(1, "omap_hwmod: %s: idle state can only be entered from "
-> >                      "enabled state\n", oh->name);
-> > 
-> > So that goes into my patch of omap fixes.  There's others in that file
-> > which will get the same treatment.
-> 
-> This is not a fix, this should queued for the next merge window
-> as clean-up.
+> That sounds like a good clean-up for next merge window.
 
-I would much rather have your agreement, but at the moment given the
-(yet again) poor state of OMAP, I'm not inclined to allow this to be
-pushed into the next merge window.
+So in the meantime, people should put up with the kernel reporting an
+"Error" at error-message level at boot time because they didn't configure
+something?
 
-And if that means I have to apply it to my tree in the fixes branch,
-that's what I'll do.
-
-The fact is that because of the wrapping, the message is difficult to
-find, and that's good enough justification for me to put it in my fixes
-branch.
-
-In fact, I'll even send it as a plain patch to Linus so he can see it
-for what it is and decide whether _he_ wants to apply it, and I believe
-he will apply it without any questions.
+No, it needs fixing, because it doesn't justify being an error.  It's
+wrong, plain and simple.  Again, if you don't want to send it during
+-rc, I'll send it to Linus as a patch for him to decide whether he wants
+to take it as -rc material.
