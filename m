@@ -1,74 +1,140 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
-	in non-DMA" added to tty tree
-Date: Sun, 5 Feb 2012 16:03:29 +0000
-Message-ID: <20120205160329.GO1275@n2100.arm.linux.org.uk>
-References: <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com> <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com> <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com> <CANOLnOPm-ZKRvu1PVs-jU2sceehRiwNPd=ysu2SDsLbarAPVbw@mail.gmail.com> <20120204163931.GH1275@n2100.arm.linux.org.uk> <EF62F09C0797D947AD4180A1043C0DF734934E36@DLEE10.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP34xx
+Date: Sun, 5 Feb 2012 08:57:16 -0800
+Message-ID: <20120205165716.GR20333@atomide.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+ <20120204190109.GL20333@atomide.com>
+ <20120204203453.GD17309@n2100.arm.linux.org.uk>
+ <20120205015530.GI1426@atomide.com>
+ <20120205111002.GM1275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58997 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753422Ab2BEQ5T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 11:57:19 -0500
 Content-Disposition: inline
-In-Reply-To: <EF62F09C0797D947AD4180A1043C0DF734934E36@DLEE10.ent.ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, NeilBrown <neilb@suse.de>, "R, Govindraj" <govindraj.raja@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+In-Reply-To: <20120205111002.GM1275@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Sun, Feb 05, 2012 at 03:37:21PM +0000, Woodruff, Richard wrote:
-> [x] What is acceptable depends is not black and white.  Is there some
-> QOS mapping which can be set per channel which allows runtime PM to
-> pick a best chose (which may allow for loss and frame issues)?.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 02:39]:
+> On Sat, Feb 04, 2012 at 05:55:30PM -0800, Tony Lindgren wrote:
+> > Hi,
+> > 
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120204 12:03]:
+> > > 
+> > > Another problem oopses the kernel at boot in the voltage domain code,
+> > > which I suspect this has never been boot tested on OMAP34xx CPUs:
+> > > 
+> > > omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
+> > > Unable to handle kernel NULL pointer dereference at virtual address 00000000
+> > ...
+> > > Backtrace: 
+> > > [<c03db824>] (omap_vp_init+0x0/0x15c) from [<c03db448>] (omap_voltage_late_init+
+> > > 0xc4/0xfc)
+> > > [<c03db384>] (omap_voltage_late_init+0x0/0xfc) from [<c03d9df8>] (omap2_common_p
+> > > m_late_init+0x14/0x54)
+> > >  r8:00000000 r7:00000013 r6:c0039988 r5:c03fe004 r4:c03fdfb8
+> > > [<c03d9de4>] (omap2_common_pm_late_init+0x0/0x54) from [<c0008798>] (do_one_init
+> > > call+0x9c/0x164)
+> > > [<c00086fc>] (do_one_initcall+0x0/0x164) from [<c03d1284>] (kernel_init+0x7c/0x1
+> > > 20)
+> > > [<c03d1208>] (kernel_init+0x0/0x120) from [<c0039988>] (do_exit+0x0/0x2cc)
+> > >  r5:c03d1208 r4:00000000
+> > ...
+> > 
+> > > And OMAP4 doesn't build.  Fixing the build error in prm44xx.c (which is
+> > > virtually the same as the OMAP3 build error in its prm file) gets us to
+> > > a buildable state, but... it silently fails to boot.
+> > > 
+> > > arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
+> > > 
+> > > At least enabling DEBUG_LL gets this reason:
+> > > 
+> > > <1>Unable to handle kernel NULL pointer dereference at virtual address 00000000 
+> > ...
+> > > Backtrace:                                                                      
+> > > [<c007bab4>] (irq_domain_add+0x0/0x134) from [<c029baac>] (twl_probe+0xd0/0x370)
+> > >  r6:c03bef90 r5:00000014 r4:00000170                                            
+> > > [<c029b9dc>] (twl_probe+0x0/0x370) from [<c01eee70>] (i2c_device_probe+0xb0/0xe4
+> > > )                                                                               
+> > > [<c01eedc0>] (i2c_device_probe+0x0/0xe4) from [<c01d1f34>] (really_probe+0xa0/0x
+> > > 178)                                                                            
+> > ...
+> > 
+> > Just to verify, it seems that both of these happen because of
+> > IRQ_DOMAIN not being set?
+> 
+> No.  The OMAP3 boot oops is partly because of that rubbish dependency
+> preventing the PMIC support code being build, but that is only part of
+> the problem and therefore that patch is only _part_ of the solution.
 
-What you're asking is whether there's anything in the kernel which can
-predict when the next character is to arrive.
+OK
+ 
+> It's clearly a legal configuration for the TWL support to be disabled,
+> and the kernel should NOT oops on boot because of that.  So even though
+> removing the IRQ_DOMAIN dependency _and_ enabling the driver makes the
+> oops go away, that's _really_ not a fix by any shape or form.
+> 
+> Code should _never_ oops because something isn't built-in that's required.
+> The vc layer of the voltage domain cope with the missing pmic, and so
+> should the vp layer.
 
-For many serial protocols, that would require a non-causal universe.  So
-far, I'm afraid, physics hasn't managed to provably invent time travel
-in any useful way.  Once physics has, then maybe this can be fixed.
+Agreed. The TWL support be optional. It is possible to have a some non-TWL/TPS
+PMIC: For example Nokia n8x0 were using retu/tahvo instead of TPS PMIC.
+ 
+> As for OMAP4, in no way does that patch fix the problem there, because
+> OMAP4 has the GIC, and the GIC selects CONFIG_IRQ_DOMAIN.  The problem is
+> much more fundamental, and of course the code reveals why:
+> 
+> drivers/mfd/twl-core.c:
+>         domain.irq_base = pdata->irq_base;
+>         domain.nr_irq = nr_irqs;
+> #ifdef CONFIG_OF_IRQ
+>         domain.of_node = of_node_get(node);
+>         domain.ops = &irq_domain_simple_ops;
+> #endif
+>         irq_domain_add(&domain);
+> 
+> kernel/irq/irqdomain.c:
+> void irq_domain_add(struct irq_domain *domain)
+> {
+>         irq_domain_for_each_irq(domain, hwirq, irq) {
+> 
+> include/linux/irqdomain.h:
+> #define irq_domain_for_each_irq(d, hw, irq) \
+>         for (hw = d->hwirq_base, irq = irq_domain_to_irq(d, hw); \
+>              hw < d->hwirq_base + d->nr_irq; \
+>              hw++, irq = irq_domain_to_irq(d, hw))
+> 
+> static inline unsigned int irq_domain_to_irq(struct irq_domain *d,
+>                                              unsigned long hwirq)
+> {
+>         if (d->ops->to_irq)
+>                 return d->ops->to_irq(d, hwirq);
+> 
+> Basically, the irq domain ops pointer _must_ _always_ be a valid pointer
+> before an irq domain is added.
+> 
+> At a guess, twl-core.c should be:
+> 
+> drivers/mfd/twl-core.c:
+> #ifdef CONFIG_IRQ_DOMAIN
+>         domain.irq_base = pdata->irq_base;
+>         domain.nr_irq = nr_irqs;
+> #ifdef CONFIG_OF_IRQ
+>         domain.of_node = of_node_get(node);
+> #endif
+>         domain.ops = &irq_domain_simple_ops;
+>         irq_domain_add(&domain);
+> #endif
 
-But, the fact of the matter is that deriving the UART clocks from a PLL
-which takes a finite time to lock, and the PLL is shut down during runtime
-PM _is_ _going_ _to_ _cause_ _problems_.  There is absolutely no getting
-away from that.
+OK makes sense.
 
-Let's take your modem example.  Modems today would typically be used with
-some IP based protocol, probably PPP based.  Incoming traffic on IP is
-entirely unpredictable.  You wouldn't know when the next character would
-be received.
+Regards,
 
-One solution to this is to transmit an 0xff character before your real
-data to ensure that your end is awake and properly synchronized...
-
-Therefore, if you're running PPP (or, shudder, SLIP) over serial, you'd
-have to totally defeat the PM support for the port.  No, not just for the
-initial negotiation, but all the time that the PPP connection was
-established.
-
-You can't rely on the remote end retrying, because of backoffs.
-
-You'll find that setting a PM timeout of maybe 5 seconds works, but as
-soon as you experience a flakey link somewhere, the TCP could backoff to
-10 seconds or even minutes with its retry.  At that point you're into a
-vicious circle because you're now putting the port into low power mode,
-which will drop the first character.  That means that TCP's retry will
-get dropped on the floor, which in turn will increase the TCP backoff.
-And so the cycle continues with ever increasing TCP backoffs and no
-forward progress.
-
-... but the problem with the 0xff character approach here is that most
-ISPs won't allow you to drop by and fiddle with their PPP termination to
-add that workaround.  They'll rightfully tell you to go screw yourself
-and get some hardware which works.
-
-So, go ahead with having PM drop random characters if you want, but don't
-expect anyone in their right mind to accept broken workarounds to the
-kernel serial driver to try to drop maybe 16 characters or more at a time
-on the floor when a framing error occurs just because the PM is broken.
-
-And let's not forget the problem that current kernels have on OMAP34xx
-platforms.  Literally minutes to get a dmesg out over a 115200 baud serial
-port, 16 characters at a time.  I guess you're going to try to justify
-that as 'acceptable behaviour' from the system.  Yes, of course it is.
-If you're dealing with a 1960s computer which processes that slowly.
-
-And I thought we were in 2012.
+Tony
