@@ -1,150 +1,50 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
-Date: Sun, 5 Feb 2012 13:35:22 +0200
-Message-ID: <20120205113521.GA13533@legolas.emea.dhcp.ti.com>
-References: <4F2AF68D.1000505@ti.com>
- <20120202214907.GA22888@legolas.emea.dhcp.ti.com>
- <20120202215350.GB22888@legolas.emea.dhcp.ti.com>
- <4F2B078B.1040709@ti.com>
- <20120202220744.GA23092@legolas.emea.dhcp.ti.com>
- <87liojajs4.fsf@ti.com>
- <20120204160802.GA10818@legolas.emea.dhcp.ti.com>
- <CA+HSevqvHAgA+PPLm8BH5vfWkc8yY8W+fRpqjT2urq2EWtSYiA@mail.gmail.com>
- <20120205090805.GA13300@legolas.emea.dhcp.ti.com>
- <CAMQu2gyNhEJ3vr7_o_xYAQOYKaRofJViobKtfH2HoxwgU7nUpw@mail.gmail.com>
-Reply-To: balbi@ti.com
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gyNhEJ3vr7_o_xYAQOYKaRofJViobKtfH2HoxwgU7nUpw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: balbi@ti.com, "Varadarajan, Charulatha" <charu@ti.com>, Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH] arm: omap3: cm-t35: fix section mismatch warning
+Date: Sun,  5 Feb 2012 13:39:40 +0200
+Message-ID: <1328441980-28892-1-git-send-email-grinberg@compulab.co.il>
+References: <20120205012556.GG1426@atomide.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:40922
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753475Ab2BELkA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 06:40:00 -0500
+In-Reply-To: <20120205012556.GG1426@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Igor Grinberg <grinberg@compulab.co.il>
 
+WARNING: arch/arm/mach-omap2/built-in.o(.text+0xeae8):
+Section mismatch in reference from the function cm_t35_init_usbh()
+to the (unknown reference) .init.data:(unknown)
+The function cm_t35_init_usbh() references
+the (unknown reference) __initdata (unknown).
+This is often because cm_t35_init_usbh lacks a __initdata
+annotation or the annotation of (unknown) is wrong.
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+---
+Sorry about this one. I fixed similar problem for cm-t3517 a while ago,
+but somehow missed cm-t35. Thanks for spotting.
+Probably enabling the CONFIG_DEBUG_SECTION_MISMATCH in defconfigs
+can raise people awareness for this.
 
-Hi,
+ arch/arm/mach-omap2/board-cm-t35.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On Sun, Feb 05, 2012 at 02:46:19PM +0530, Shilimkar, Santosh wrote:
-> >> bank->mod_usage check is used to take care of doing pm_runtime_get*/pu=
-t* only
-> >> if all the GPIOs in a particular bank are enabled or disabled respecti=
-vely.
-> >
-> > and why should you care about that ? The first get will enable the
-> > resources you need, the second get will just increase a counter and so
-> > on. So if you have 32 gets, you will disable the module when you have 32
-> > puts.
-> >
-> Am not sure if it is clear to you that the GPIO resources like clock,
-> debounce clk are per bank wise and not per GPIO line. So doing 32
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index d839c05..a8cedbe 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -436,7 +436,7 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
+-static void cm_t35_init_usbh(void)
++static void  __init cm_t35_init_usbh(void)
+ {
+ 	int err;
+ 
+-- 
+1.7.3.4
 
-this is just one more reason to have usage counters.
-
-> get/put per bank is stupid. runtime pm is for managing pm
-
-what's stupid is trying to use the pm usage counters as a binary flag,
-see below.
-
-> resources and if the pm resource is per bank, it has to be
-> handled per bank.
-
-hehe, what are you talking about Santosh ? That's the whole point of
-reference counting. If there are 32 users for 1 resource, you want to
-make sure that you only free the resources (clocks, or whatever resource
-you want) after all 32 users are done with it.
-
-Trying to use the pm usage counter as a binary flag, that's the stupid
-part of the OMAP GPIO driver.
-
-Instead of adding checks such as:
-
-if (module_isnt_used())
-	enable_clocks();
-
-on get and:
-
-if (module_isnt_needed_anymore())
-	disable_clcoks()
-
-on put is the most useless piece of code on that driver. Because such
-checks are already available on PM core through usage counters. The way
-that part of the code works is as follow:
-
-get() {
-	if (pm_counter_is_zero(dev)) {
-		atomic_inc();
-
-		rpm_resume();
-	}
-}
-
-put() {
-	atomic_dec();
-
-	if (pm_counter_is_zero(dev)) {
-		rpm_suspend();
-	}
-}
-
-Do you not see that you're duplicating functionality by trying to use
-the pm counter a binary flag ?
-
-> >> With the above change, pm_runtime_put*/get* would be called for every
-> >> gpio_request()
-> >> /_free() (that is, for upto 32 pins in OMAP3/4) in a bank irrespective
-> >> of whether other
-> >
-> > so ?
-> It's useless.
-
-no, it's not.
-
-> >> GPIO pins are enabled or disabled in the same bank. Hence it is
-> >> required to have a
-> >> check based on mod_usage.
-> >
-> > unnecessary.
-> >
-> I don't think so.
-
-then show that to me with code. Looking at the usage counters on pm
-runtime, you're duplicating functionality with it and trying to use it
-as a binary flag.
-
-Preventing multiple gets/puts breaks the whole idea of _having_ usage
-counters to start with.
-
---=20
-balbi
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPLml5AAoJEIaOsuA1yqREFrcP/iosgZQlpS81y05dT02nX4Ej
-HklExfqez6c7RWmNr6ys3oxyUbc9ZCG3WoWlBQXlLmO7eQ475W73FjmnJjsLJjIt
-9b3Goz6fotOzq8GPmfz4XwBHbWqdEn5blHt3G7KbxGx8Gx6PFfG6bLWugDzHEXRC
-px2t7/RABvJQUDNkQxQaTaMaAkCC86pmKOaWgmnQR2VVIeOn42iDAp50ODgSVLgW
-mZkypxAIBUBwRuX7xAtn5l6+x/GschBS5YFtU4f2DiBUu3WtXB33jhic/D84F2Q9
-pWCtzGBZHiKzQsqRyqpe9KYgrlOn+StfLzLCLSIkYOuHZlvLCOGh/87WMNkzrLkb
-T1UTkqYxedegeIsQny2aVaKkG3NeTZ7Oc2g35bsA31rSMcMAC24GvkjlIlJCa5+6
-nLjEvn7NTUN+ysxsN2U3tAL/eQpg7fJHlxbYB4ZQOEmHprrQJICsXPdh+agJ8B6X
-i8t8hnF4//p1HTtvTGng9dfv5torp4WfPlKY0cMUKv70S7K3NYjVvtHb1k21s2KH
-0DjTZ+jdkUMLtrTRVfICa7YS307D8vsWotLVCie4naTQyaxq7z9ZV7C7YCBjuAPO
-XRMbELnhbdf/gNPb/wKPYob3Bymfhv/sgNwoeBqTstNUkE6WCQUCv4US3BsT5gbv
-DesQJjrLuurTb4fyuRrV
-=9hKt
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
