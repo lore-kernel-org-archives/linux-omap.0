@@ -1,82 +1,27 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: OMAP34xx
-Date: Sun, 5 Feb 2012 10:59:40 -0800
-Message-ID: <20120205185939.GN1426@atomide.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
- <20120204190109.GL20333@atomide.com>
- <20120204203453.GD17309@n2100.arm.linux.org.uk>
- <20120205172528.GA17029@n2100.arm.linux.org.uk>
- <20120205174700.GU20333@atomide.com>
- <20120205180812.GH17309@n2100.arm.linux.org.uk>
- <20120205183316.GL1426@atomide.com>
- <20120205184139.GI17309@n2100.arm.linux.org.uk>
+Date: Sun, 5 Feb 2012 20:04:45 +0000
+Message-ID: <20120205200445.GJ17309@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk> <20120205174036.GT20333@atomide.com> <20120205180521.GG17309@n2100.arm.linux.org.uk> <20120205184931.GM1426@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:22912 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754870Ab2BES7o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 13:59:44 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47563 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970Ab2BEUE6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 15:04:58 -0500
 Content-Disposition: inline
-In-Reply-To: <20120205184139.GI17309@n2100.arm.linux.org.uk>
+In-Reply-To: <20120205184931.GM1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 10:10]:
-> On Sun, Feb 05, 2012 at 10:33:16AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 09:37]:
-> > > So in the meantime, people should put up with the kernel reporting an
-> > > "Error" at error-message level at boot time because they didn't configure
-> > > something?
-> > > 
-> > > No, it needs fixing, because it doesn't justify being an error.  It's
-> > > wrong, plain and simple.  Again, if you don't want to send it during
-> > > -rc, I'll send it to Linus as a patch for him to decide whether he wants
-> > > to take it as -rc material.
-> > 
-> > Hmm, maybe I misunderstood you.
-> > 
-> > Certainly fixing the "Error" makes sense for -rc, but are also thinking
-> > about adding error checking to all platform_device_register() calls?
-> 
-> I do think they're valid for -rc, because should it fail, things won't
-> work as one desires.
+On Sun, Feb 05, 2012 at 10:49:31AM -0800, Tony Lindgren wrote:
+> Then let's have separate clean-up related patches, even if we merge
+> them too during the -rc cycle. You've probably done this already in
+> your series, but I have not seen the series yet.
 
-OK, this easily gets into the area where we might get flames from
-Linus like "fixing features during -rc that never worked properly
-before"..
- 
-> I did stop short of fixing it properly - and by "properly" I mean that
-> if we fail to register the platform data for the device, then we should
-> not register the device itself.  That involves a change of behaviour in
-> the setup of the system which _might_ cause a regression.
-> 
-> Whereas, merely printing an error for a failure to register a device
-> wouldn't be a regression (it might uncover another error, but that's
-> arguably a good thing.)
-
-OK that sounds safe to me.
- 
-> The last bit of "properly" which needs discussion is concerning whether
-> we should even be trying to register this devices platform data and
-> device structure if WL12XX_PLATFORM_DATA is not enabled - if this is
-> not enabled the platform data won't be stored, and presumably the
-> wireless driver will be missing some vital platform data.
-
-That sounds like the way to go to me.
- 
-> It seems silly to have the device registered without the platform data,
-> so that if the module is built for the kernel, it could be inserted and
-> bound to that device...
-> 
-> So even for this apparantly simple looking issue, there's some searching
-> questions that need answering.
-
-I doubt that there's anything else behind it except trying to leave
-out some ifdefs.
-
-Regards,
-
-Tony
+Actually I don't - what I have is that single (and growing) patch
+which you've seen at the moment.  Once I'm happy that it's in a
+reasonable state, I'll then see about splitting it up.
