@@ -1,87 +1,289 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
-	in non-DMA" added to tty tree
-Date: Sun, 5 Feb 2012 17:57:40 +0000
-Message-ID: <EF62F09C0797D947AD4180A1043C0DF734934E9D@DLEE10.ent.ti.com>
-References: <alpine.DEB.2.00.1201261225520.32667@utopia.booyaka.com>
- <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com>
- <20120203150708.386951d2@notabene.brown>
- <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com>
- <20120203205401.5ddf241d@notabene.brown>
- <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
- <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com>
- <CANOLnOPm-ZKRvu1PVs-jU2sceehRiwNPd=ysu2SDsLbarAPVbw@mail.gmail.com>
- <20120204163931.GH1275@n2100.arm.linux.org.uk>
- <EF62F09C0797D947AD4180A1043C0DF734934E36@DLEE10.ent.ti.com>
- <20120205160329.GO1275@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Sun, 5 Feb 2012 17:58:09 +0000
+Message-ID: <20120205175809.GF17309@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205012556.GG1426@atomide.com> <20120205125904.GB11372@n2100.arm.linux.org.uk> <20120205172925.GS20333@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120205160329.GO1275@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Sender: linux-serial-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, NeilBrown <neilb@suse.de>, "R, Govindraj" <govindraj.raja@ti.com>, "Valkeinen, Tomi" <tomi.valkeinen@ti.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32804 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752228Ab2BER6S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 12:58:18 -0500
+Content-Disposition: inline
+In-Reply-To: <20120205172925.GS20333@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Sunday, February 05, 2012 10:03 AM
-> To: Woodruff, Richard
-
-> On Sun, Feb 05, 2012 at 03:37:21PM +0000, Woodruff, Richard wrote:
-> > [x] What is acceptable depends is not black and white.  Is there some
-> > QOS mapping which can be set per channel which allows runtime PM to
-> > pick a best chose (which may allow for loss and frame issues)?.
+On Sun, Feb 05, 2012 at 09:29:25AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 04:28]:
+> > In any case, here's my current (tested) patch unbreaking OMAP as a whole,
+> > not only for all these section mismatches but the more fundamental issues
+> > like the broken serial ports on OMAP3 and the irq domain buggeration too.
+> > 
+> > This leaves one section mismatch for me in the OMAP hotplug code.
 > 
-> What you're asking is whether there's anything in the kernel which can
-> predict when the next character is to arrive.
+> OK great all the section mismatch warning fixes look correct to me
+> except one. The ones that make things __init should be a separate
+> clean-up patch for the next merge window.
 
-No, this was not the comment's intent.
+Err.  This stuff _really_ isn't merge window stuff.  It's -rc stuff.  Why?
 
-> But, the fact of the matter is that deriving the UART clocks from a PLL
-> which takes a finite time to lock, and the PLL is shut down during runtime
-> PM _is_ _going_ _to_ _cause_ _problems_.  There is absolutely no getting
-> away from that.
+If there's the possibility that stuff in the .init sections could be
+called after it has been discarded (which is basically what the
+section mismatch warnings are telling you) there is the potential for
+OOPSing the kernel.
 
-Yes this is one of the issues to be worked around.
+They are _bug_ fixes.
 
-> Let's take your modem example.  Modems today would typically be used with
-> some IP based protocol, probably PPP based.  Incoming traffic on IP is
-> entirely unpredictable.  You wouldn't know when the next character would
-> be received.
+> > --- a/arch/arm/mach-omap2/hsmmc.c
+> > +++ b/arch/arm/mach-omap2/hsmmc.c
+> > @@ -293,8 +293,8 @@ static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
+> >  	}
+> >  }
+> >  
+> > -static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+> > -					struct omap_mmc_platform_data *mmc)
+> > +static int omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+> > +				 struct omap_mmc_platform_data *mmc)
+> >  {
+> >  	char *hc_name;
+> >  
+> > @@ -430,7 +430,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
+> >  
+> >  #define MAX_OMAP_MMC_HWMOD_NAME_LEN		16
+> >  
+> > -void __init omap_init_hsmmc(struct omap2_hsmmc_info *hsmmcinfo, int ctrl_nr)
+> > +void omap_init_hsmmc(struct omap2_hsmmc_info *hsmmcinfo, int ctrl_nr)
+> >  {
+> >  	struct omap_hwmod *oh;
+> >  	struct platform_device *pdev;
+> > @@ -487,7 +487,7 @@ void __init omap_init_hsmmc(struct omap2_hsmmc_info *hsmmcinfo, int ctrl_nr)
+> >  	kfree(mmc_data);
+> >  }
+> >  
+> > -void __init omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> > +void omap2_hsmmc_init(struct omap2_hsmmc_info *controllers)
+> >  {
+> >  	u32 reg;
+> >  
 > 
-> One solution to this is to transmit an 0xff character before your real
-> data to ensure that your end is awake and properly synchronized...
+> All these hsmmc_init functions should stay __init. There's something wrong
+> in the calling function if that's not the case. Or else there's something
+> wrong inside these functions that needs to be fixed.
 
-This approach as you say has issues.  This is solved in different ways for modems.
+Incorrect.  Let's see why - taking 3430SDP as an example:
 
-<sleep>My observation is modem software which many talk over ppp over ip over serial of some sort (might be uart, might be usb), will send a command to the modem to go into a low power mode. Now you can cut clocks with out hurting modem and getting SOC power.
+static int sdp3430_twl_gpio_setup(struct device *dev,
+                unsigned gpio, unsigned ngpio)
+{
+        /* gpio + 0 is "mmc0_cd" (input/IRQ),
+         * gpio + 1 is "mmc1_cd" (input/IRQ)
+         */
+        mmc[0].gpio_cd = gpio + 0;
+        mmc[1].gpio_cd = gpio + 1;
+        omap2_hsmmc_init(mmc);
 
-<wake>When some event happens at modem or processor (timer near beacon or other) the modem or apps processor can signal the other with some wake event (maybe over gpio) which then puts system in a state where it can receive data in trusted manner.
+        /* gpio + 7 is "sub_lcd_en_bkl" (output/PWM1) */
+        gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "sub_lcd_en_bkl");
 
-The modem channel driver try's to inform kernel about entering/exiting modes to set expectation.
+        /* gpio + 15 is "sub_lcd_nRST" (output) */
+        gpio_request_one(gpio + 15, GPIOF_OUT_INIT_LOW, "sub_lcd_nRST");
 
-> So, go ahead with having PM drop random characters if you want, but don't
-> expect anyone in their right mind to accept broken workarounds to the
-> kernel serial driver to try to drop maybe 16 characters or more at a time
-> on the floor when a framing error occurs just because the PM is broken.
+        return 0;
+}
 
-No character was dropped in modem example.  On the UART-to-Debug console it may be ok to drop a character.  Ether needs a coordination hook.
+static struct twl4030_gpio_platform_data sdp3430_gpio_data = {
+        .setup          = sdp3430_twl_gpio_setup,
+};
 
-Each stack needs some way to adjust expectations.  Finding a way to isolate to a sub-layer of stack and not break everything is always the quest.
+So, we have a non-__init function calling an __init function which will
+be discarded at runtime and the memory associated with omap2_hsmmc_init()
+poisoned.
 
-> And let's not forget the problem that current kernels have on OMAP34xx
-> platforms.  Literally minutes to get a dmesg out over a 115200 baud serial
-> port, 16 characters at a time.  I guess you're going to try to justify
-> that as 'acceptable behaviour' from the system.  Yes, of course it is.
-> If you're dealing with a 1960s computer which processes that slowly.
+Now, the question is, can this function be called at runtime?  Well,
+this is platform data for the TWL4030 GPIO platform device, and the
+TWL4030 GPIO platform driver is a loadable module:
+
+config GPIO_TWL4030
+        tristate "TWL4030, TWL5030, and TPS659x0 GPIOs"
+
+So, it can be built as a loadable module, and then loaded into the
+kernel _after_ the __init code has been discarded.  When that happens
+on the 3430SDP, the .setup function will be called, and therefore the
+discarded omap2_hsmmc_init() will also be called.
+
+Therefore omap2_hsmmc_init() and its called functions _must_ _not_ be
+marked __init - or 3430SDP needs to be fixed so that HSMMC is not
+dependent on TWL4030.
+
+But, as long as the code is structured in this way, the HSMMC code
+_must_ lose its __init attributes.
+
+What I suggest is that these changes get applied as is for -rc, fixing
+the OOPS potential of the current situation.  Then, for the merge window,
+a proper solution to the 'omap2_hsmmc_init() might be called after init
+time' problem gets merged and then these functions can go back to being
+__init marked.
+
+> Does making sdp3430_twl_gpio_setup() into __init fix those warnings
+> for you? That should be safe as omap3430_i2c_init() is __init.
+
+See above why that's a very very wrong solution.
+
+> > --- a/arch/arm/mach-omap2/mux.c
+> > +++ b/arch/arm/mach-omap2/mux.c
+> > @@ -100,8 +100,8 @@ void omap_mux_write_array(struct omap_mux_partition *partition,
+> >  
+> >  static char *omap_mux_options;
+> >  
+> > -static int __init _omap_mux_init_gpio(struct omap_mux_partition *partition,
+> > -				      int gpio, int val)
+> > +static int _omap_mux_init_gpio(struct omap_mux_partition *partition,
+> > +			       int gpio, int val)
+> >  {
+> >  	struct omap_mux_entry *e;
+> >  	struct omap_mux *gpio_mux = NULL;
+> > @@ -145,7 +145,7 @@ static int __init _omap_mux_init_gpio(struct omap_mux_partition *partition,
+> >  	return 0;
+> >  }
+> >  
+> > -int __init omap_mux_init_gpio(int gpio, int val)
+> > +int omap_mux_init_gpio(int gpio, int val)
+> >  {
+> >  	struct omap_mux_partition *partition;
+> >  	int ret;
+> > @@ -159,9 +159,9 @@ int __init omap_mux_init_gpio(int gpio, int val)
+> >  	return -ENODEV;
+> >  }
+> >  
+> > -static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
+> > -					const char *muxname,
+> > -					struct omap_mux **found_mux)
+> > +static int _omap_mux_get_by_name(struct omap_mux_partition *partition,
+> > +				 const char *muxname,
+> > +				 struct omap_mux **found_mux)
+> >  {
+> >  	struct omap_mux *mux = NULL;
+> >  	struct omap_mux_entry *e;
+> > @@ -240,7 +240,7 @@ omap_mux_get_by_name(const char *muxname,
+> >  	return -ENODEV;
+> >  }
+> >  
+> > -int __init omap_mux_init_signal(const char *muxname, int val)
+> > +int omap_mux_init_signal(const char *muxname, int val)
+> >  {
+> >  	struct omap_mux_partition *partition = NULL;
+> >  	struct omap_mux *mux = NULL;
+> > @@ -1094,8 +1094,8 @@ static void omap_mux_init_package(struct omap_mux *superset,
+> >  		omap_mux_package_init_balls(package_balls, superset);
+> >  }
+> >  
+> > -static void omap_mux_init_signals(struct omap_mux_partition *partition,
+> > -				  struct omap_board_mux *board_mux)
+> > +static void __init omap_mux_init_signals(struct omap_mux_partition *partition,
+> > +					 struct omap_board_mux *board_mux)
+> >  {
+> >  	omap_mux_set_cmdline_signals();
+> >  	omap_mux_write_array(partition, board_mux);
+> > @@ -1109,8 +1109,8 @@ static void omap_mux_init_package(struct omap_mux *superset,
+> >  {
+> >  }
+> >  
+> > -static void omap_mux_init_signals(struct omap_mux_partition *partition,
+> > -				  struct omap_board_mux *board_mux)
+> > +static void __init omap_mux_init_signals(struct omap_mux_partition *partition,
+> > +					 struct omap_board_mux *board_mux)
+> >  {
+> >  }
+> >  
 > 
-> And I thought we were in 2012.
+> All the omap_mux_init_* functions should also __init. Again, there's
+> something wrong with the calling function if the caller is not __init.
 
-This looks like a different issue.  Years back with custom kernels with lots of hacks hack this was not the case.  These days the job is harder to make it work more generally.  Evolving for PM tradeoffs is painful in HW and SW.
+I disagree.
 
-Regards,
-Richard W.
+Unfortunately, you have code which is not __init only which calls them.
+As I've already proven above, for example, hsmmc stuff must not be marked
+__init given the current structure of OMAP code.  Because hsmmc calls
+into the OMAP mux stuff (specifically omap_mux_init_signal()) it too
+can't be marked __init.
 
+So, for now the __init stuff must go, until the bigger problem of
+why omap2_hsmmc_init() can get called from non-init contexts.
+
+> 
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -420,7 +420,7 @@ static void omap3_pm_idle(void)
+> >  {
+> >  	local_fiq_disable();
+> >  
+> > -	if (omap_irq_pending())
+> > +	if (omap_irq_pending() || 1)
+> >  		goto out;
+> >  
+> >  	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
+> 
+> This does not look right to me. I thought reverting of the serial
+> patches should have already solved the issue you're seeing with
+> slow serial port?
+> 
+> Those are the reverting commits drivers/tty/serial/serial-omap.c:
+> 
+> 8a74e9ffd97dc9de063de8c02ae32db79dd60436 (Revert "tty: serial: OMAP: ensure
+> FIFO levels are set correctly in non-DMA mode")
+> 
+> af681cad3f79ad8f7bd6cb170b70990aeef74233 (Revert "tty: serial: OMAP: transmit
+> FIFO threshold interrupts don't wake the chip")
+
+These commits have absolutely nothing to do with it.  I pointed out the
+bad commit in one of my emails:
+
+commit 2fd149645eb46d26130d7070c6de037dddf34880
+Author: Govindraj.R <govindraj.raja@ti.com>
+Date:   Wed Nov 9 17:41:21 2011 +0530
+
+    ARM: OMAP2+: UART: Remove omap_uart_can_sleep and add pm_qos
+    
+    Omap_uart_can_sleep function blocks system wide low power state until
+    uart is active remove this func and add qos requests to prevent
+    MPU from transitioning.
+    
+    Keep qos request to default value which will allow MPU to transition
+    and while uart baud rate is available calculate the latency value
+    from the baudrate and use the same to hold constraint while uart clocks
+    are enabled, and if uart is auto-idled the constraint is updated with
+    default constraint value allowing MPU to transition.
+    
+    Qos requests are blocking notifier calls so put these requests to
+    work queue, also the driver uses irq_safe version of runtime API's
+    and callbacks can be called in interrupt disabled context.
+    So to avoid warn on slow path warning while using qos update
+    API's from runtime callbacks use the qos_work_queue.
+    
+    During bootup the runtime_resume call backs might not be called and runtime
+    callback gets called only after uart is idled by setting the autosuspend
+    timeout. So qos_request from runtime resume callback might not activated during
+    boot if uart baudrate is calculated during bootup for console uart, so schedule
+    the qos_work queue once we calc_latency while configuring the uart port.
+    
+    Flush and complete any pending qos jobs in work queue while suspending.
+    
+    Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+    Acked-by: Greg Kroah-Hartman <gregkh@suse.de> (for drivers/tty changes)
+    Signed-off-by: Kevin Hilman <khilman@ti.com>
+
+Basically, it looks like the OMAP 3 UART is not delivering transmit IRQs
+while in some of the deeper low power modes.
+
+I tried reverting the rest of the patches between this one and HEAD for
+omap-serial.c, but they have no effect what so ever on this bug.  As I
+said in one of my emails in this thread, the above commit can't be
+trivially reverted because some other stuff that the code relied upon
+has vanished.
+
+So, the above along with the other part in arch/arm/mach-omap2/cpuidle34xx.c
+is the smallest 'fix' I could find of resolving the regression.
