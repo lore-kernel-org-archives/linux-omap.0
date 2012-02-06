@@ -1,115 +1,158 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP34xx
-Date: Sun, 5 Feb 2012 12:51:57 -0800
-Message-ID: <20120205205157.GO1426@atomide.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
- <20120204190109.GL20333@atomide.com>
- <20120204203453.GD17309@n2100.arm.linux.org.uk>
- <20120205172528.GA17029@n2100.arm.linux.org.uk>
- <20120205174700.GU20333@atomide.com>
- <20120205180812.GH17309@n2100.arm.linux.org.uk>
- <20120205183316.GL1426@atomide.com>
- <20120205184139.GI17309@n2100.arm.linux.org.uk>
- <20120205185939.GN1426@atomide.com>
- <20120205201146.GK17309@n2100.arm.linux.org.uk>
+From: "Varadarajan, Charulatha" <charu@ti.com>
+Subject: Re: [PATCH v9 01/25] gpio/omap: remove dependency on gpio_bank_count
+Date: Mon, 6 Feb 2012 10:48:44 +0530
+Message-ID: <CA+HSevpbaT9b1cF85GJE4pB6rgX5nsnj2ttXdHMeUzqSBswfGA@mail.gmail.com>
+References: <20120202191630.GT15343@ponder.secretlab.ca> <20120202194545.GA29351@legolas.emea.dhcp.ti.com>
+ <4F2AF68D.1000505@ti.com> <20120202214907.GA22888@legolas.emea.dhcp.ti.com>
+ <20120202215350.GB22888@legolas.emea.dhcp.ti.com> <4F2B078B.1040709@ti.com>
+ <20120202220744.GA23092@legolas.emea.dhcp.ti.com> <87liojajs4.fsf@ti.com>
+ <20120204160802.GA10818@legolas.emea.dhcp.ti.com> <CA+HSevqvHAgA+PPLm8BH5vfWkc8yY8W+fRpqjT2urq2EWtSYiA@mail.gmail.com>
+ <20120205090805.GA13300@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:31147 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751704Ab2BEUwE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Feb 2012 15:52:04 -0500
-Content-Disposition: inline
-In-Reply-To: <20120205201146.GK17309@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120205090805.GA13300@legolas.emea.dhcp.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balbi@ti.com
+Cc: Kevin Hilman <khilman@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 11:40]:
-> On Sun, Feb 05, 2012 at 10:59:40AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 10:10]:
-> > > On Sun, Feb 05, 2012 at 10:33:16AM -0800, Tony Lindgren wrote:
-> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 09:37]:
-> > > > > So in the meantime, people should put up with the kernel reporting an
-> > > > > "Error" at error-message level at boot time because they didn't configure
-> > > > > something?
-> > > > > 
-> > > > > No, it needs fixing, because it doesn't justify being an error.  It's
-> > > > > wrong, plain and simple.  Again, if you don't want to send it during
-> > > > > -rc, I'll send it to Linus as a patch for him to decide whether he wants
-> > > > > to take it as -rc material.
-> > > > 
-> > > > Hmm, maybe I misunderstood you.
-> > > > 
-> > > > Certainly fixing the "Error" makes sense for -rc, but are also thinking
-> > > > about adding error checking to all platform_device_register() calls?
-> > > 
-> > > I do think they're valid for -rc, because should it fail, things won't
-> > > work as one desires.
-> > 
-> > OK, this easily gets into the area where we might get flames from
-> > Linus like "fixing features during -rc that never worked properly
-> > before"..
-> 
-> There is a sliding scale of what's acceptable during the -rc.
-> Certainly this kind of thing would not be welcome during the final
-> -rc or even the previous -rc, but we're not there yet.
-> 
-> And it's not like it's a feature that never worked.
+=46elipe,
 
-Well at least sounds like you have points to argue merging it :)
- 
-> > I doubt that there's anything else behind it except trying to leave
-> > out some ifdefs.
-> 
-> I don't think you've properly understood what _should_ be going on
-> here.  Let me illustrate one possibility of how these code sections
-> might look:
-> 
-> +static void __init xxx_wl12xx_init(void)
-> +{
-> +#ifdef CONFIG_WL12XX_PLATFORM_DATA
-> +       int ret;
-> +
-> +       /* WL12xx WLAN Init */
-> +       ret = wl12xx_set_platform_data(&xxx_wlan_data);
-> +       if (ret) {
-> +               pr_err("error setting wl12xx data: %d\n", ret);
-> +		return;
-> +	}
-> +       ret = platform_device_register(&xxx_wlan_regulator);
-> +       if (ret)
-> +               pr_err("error registering wl12xx device: %d\n", ret);
-> +#endif
-> +}
-> 
-> In that case, the xxx_wlan_regulator device should also be ifdef'd.
-> 
-> In other words, if we fail to setup the platform data, we avoid
-> registering the device.
-> 
-> But... wait a moment, that device isn't the actual card itself but is a
-> regulator for the card, and that makes it even less clear whether the
-> ifdef should include it.  So, maybe this is the proper solution:
-> 
-> +static void __init xxx_wl12xx_init(void)
-> +{
-> +       int ret;
-> +
-> +#ifdef CONFIG_WL12XX_PLATFORM_DATA
-> +       /* WL12xx WLAN Init */
-> +       ret = wl12xx_set_platform_data(&xxx_wlan_data);
-> +       if (ret)
-> +               pr_err("error setting wl12xx data: %d\n", ret);
-> +#endif
-> +       ret = platform_device_register(&xxx_wlan_regulator);
-> +       if (ret)
-> +               pr_err("error registering wl12xx device: %d\n", ret);
-> +}
+On Sun, Feb 5, 2012 at 14:38, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
+>
+> On Sun, Feb 05, 2012 at 12:37:55PM +0530, Varadarajan, Charulatha wro=
+te:
+>> Felipe,
+>>
+>> On Sat, Feb 4, 2012 at 21:38, Felipe Balbi <balbi@ti.com> wrote:
+>> >
+>> > Hi,
+>> >
+>> > On Fri, Feb 03, 2012 at 09:50:19AM -0800, Kevin Hilman wrote:
+>> > > Felipe Balbi <balbi@ti.com> writes:
+>> > >
+>> > > [...]
+>> > >
+>> > > >> >This question remains. Why do we need those funtions ?
+>> > > >>
+>> > > >> These functions are called from the CPUIdle path so outside t=
+he scope
+>> > > >> of the GPIO driver. These are part of a bunch of nasty PM hac=
+ks we
+>> > > >> are doing in the CPU idle loop. We are in the process of gett=
+ing rid
+>> > > >> of most of them, but it looks like some are still needed.
+>> > > >
+>> > > > Too bad. I can see that the gpio pm implementation seems a bit
+>> > > > "peculiar". I mean, pm does reference counting and yet the dri=
+ver has
+>> > > > checks to prevent multiple gets and puts on a single bank (mea=
+ning that
+>> > > > pm counter will be either 0 or 1 at any point in time).
+>> > > >
+>> > > > To me it looks like those functions are there in order to forc=
+efully put
+>> > > > PER power domain in OFF because drivers are always holding a r=
+eference
+>> > > > to their gpios (drivers generally gpio_request() on probe() an=
+d
+>> > > > gpio_free() on remove()).
+>> > > >
+>> > > > Looks like the entire pm implementation on OMAP gpio driver ha=
+s always
+>> > > > considered only the fact that gpios can be requested and freed=
+, but
+>> > > > never that we want the system to go to OFF even while gpios ar=
+e
+>> > > > requested, because we have I/O PAD wakeups. At some point that=
+ has to be
+>> > > > sorted out because that HACK is quite ugly :-)
+>> > > >
+>> > > > I'll see if I find some time to go over the interactions betwe=
+en
+>> > > > gpio-omap.c and pm24x.c and pm34xx.c any of these days, but I =
+can't
+>> > > > promise anything ;-)
+>> > >
+>> > > If you look at the state of these prepare/resume hacks at the en=
+d of
+>> > > this series, you'll see that they are significantly cleaner and =
+do
+>> > > nothing but call the runtime PM hooks.
+>> >
+>> > sure, definitely.
+>> >
+>> > > We have explored several ways to get rid of them completely in t=
+he idle
+>> > > path but have not yet come up with a clean way, but this series =
+gets us
+>> > > a long ways towards that goal.
+>> >
+>> > have you thought about being a bit more aggressive at when to
+>> > runtime_get and runtime_put ?
+>> >
+>> > I didn't test below (will do probably on monday), but I think this=
+ will
+>> > help keeping GPIO block always suspended, and only wake it up when=
+ truly
+>> > needed. That way, you could, at some point, remove that list_head
+>> > because by the time you reach CPUIdle path, GPIO module is already
+>> > suspended. That's the theory at least, gotta run it first on silic=
+on to
+>> > be sure
+>> >
+>> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> > index 4273401..2dd9ced 100644
+>> > --- a/drivers/gpio/gpio-omap.c
+>> > +++ b/drivers/gpio/gpio-omap.c
+>> > @@ -537,12 +537,7 @@ static int omap_gpio_request(struct gpio_chip=
+ *chip, unsigned offset)
+>> > =A0 =A0 =A0 =A0struct gpio_bank *bank =3D container_of(chip, struc=
+t gpio_bank, chip);
+>> > =A0 =A0 =A0 =A0unsigned long flags;
+>> >
+>> > - =A0 =A0 =A0 /*
+>> > - =A0 =A0 =A0 =A0* If this is the first gpio_request for the bank,
+>> > - =A0 =A0 =A0 =A0* enable the bank module.
+>> > - =A0 =A0 =A0 =A0*/
+>> > - =A0 =A0 =A0 if (!bank->mod_usage)
+>> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 pm_runtime_get_sync(bank->dev);
+>> > + =A0 =A0 =A0 pm_runtime_get_sync(bank->dev);
+>>
+>> bank->mod_usage check is used to take care of doing pm_runtime_get*/=
+put* only
+>> if all the GPIOs in a particular bank are enabled or disabled respec=
+tively.
+>
+> and why should you care about that ? The first get will enable the
+> resources you need, the second get will just increase a counter and s=
+o
+> on. So if you have 32 gets, you will disable the module when you have=
+ 32
+> puts.
 
-Hmm I see. Ohad, care to take a look this one?
+Agreed!
 
-Regards,
+-V Charulatha
 
-Tony
+>
+>> With the above change, pm_runtime_put*/get* would be called for ever=
+y
+>> gpio_request()
+>> /_free() (that is, for upto 32 pins in OMAP3/4) in a bank irrespecti=
+ve
+>> of whether other
+>
+> so ?
+>
+>> GPIO pins are enabled or disabled in the same bank. Hence it is
+>> required to have a
+>> check based on mod_usage.
+>
+> unnecessary.
+>
+> --
+> balbi
