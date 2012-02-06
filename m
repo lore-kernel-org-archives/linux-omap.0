@@ -1,94 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP34xx
-Date: Mon, 6 Feb 2012 15:48:46 -0800
-Message-ID: <20120206234845.GX1426@atomide.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
- <20120204190109.GL20333@atomide.com>
- <20120204203453.GD17309@n2100.arm.linux.org.uk>
- <20120205012556.GG1426@atomide.com>
- <20120205125904.GB11372@n2100.arm.linux.org.uk>
- <20120205172925.GS20333@atomide.com>
- <4F306016.9010203@ti.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: OMAP3530 with no TWL4030 power controller
+Date: Mon, 06 Feb 2012 16:54:38 -0700
+Message-ID: <4F30683E.2030509@mlbassoc.com>
+References: <4F301177.4020008@mlbassoc.com> <20120206234531.GW1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:13194 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341Ab2BFXsv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 18:48:51 -0500
-Content-Disposition: inline
-In-Reply-To: <4F306016.9010203@ti.com>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:51445 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754039Ab2BFXyk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 18:54:40 -0500
+In-Reply-To: <20120206234531.GW1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
 
-* Cousson, Benoit <b-cousson@ti.com> [120206 14:48]:
-> + Grant and Rob
-> 
-> Hi Tony,
-> 
-> On 2/5/2012 6:29 PM, Tony Lindgren wrote:
-> 
-> [...]
-> 
-> >> --- a/drivers/mfd/Kconfig
-> >> +++ b/drivers/mfd/Kconfig
-> >> @@ -200,7 +200,7 @@ config MENELAUS
-> >>
-> >>   config TWL4030_CORE
-> >>   	bool "Texas Instruments TWL4030/TWL5030/TWL6030/TPS659x0 Support"
-> >> -	depends on I2C=y&&  GENERIC_HARDIRQS&&  IRQ_DOMAIN
-> >> +	depends on I2C=y&&  GENERIC_HARDIRQS
-> >>   	help
-> >>   	  Say yes here if you have TWL4030 / TWL6030 family chip on your board.
-> >>   	  This core driver provides register access and IRQ handling
-> >> --- a/drivers/mfd/twl-core.c
-> >> +++ b/drivers/mfd/twl-core.c
-> >> @@ -263,7 +263,9 @@ struct twl_client {
-> >>
-> >>   static struct twl_client twl_modules[TWL_NUM_SLAVES];
-> >>
-> >> +#ifdef CONFIG_IRQ_DOMAIN
-> >>   static struct irq_domain domain;
-> >> +#endif
-> >>
-> >>   /* mapping the module id to slave id and base address */
-> >>   struct twl_mapping {
-> >> @@ -1226,13 +1228,13 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> >>   	pdata->irq_base = status;
-> >>   	pdata->irq_end = pdata->irq_base + nr_irqs;
-> >>
-> >> +#ifdef CONFIG_IRQ_DOMAIN
-> >>   	domain.irq_base = pdata->irq_base;
-> >>   	domain.nr_irq = nr_irqs;
-> >> -#ifdef CONFIG_OF_IRQ
-> >>   	domain.of_node = of_node_get(node);
-> >>   	domain.ops =&irq_domain_simple_ops;
-> >> -#endif
-> >>   	irq_domain_add(&domain);
-> >> +#endif
-> >>
-> >>   	if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
-> >>   		dev_dbg(&client->dev, "can't talk I2C?\n");
-> > 
-> > The above should be a separate fix to the drivers/mfd/twl code.
-> 
-> In theory that patch should not be even needed.
-> The twl changes were done like that because it was assuming that USE_OF and thus IRQ_DOMAIN will be enabled by default for all OMAP2+ platforms at 3.3 time.
-> The whole point of doing that was to reduce the ifdefery in every drivers we have to adapt to DT.
-> 
-> You even pulled the patch to enable that a while back [1], but for some reason it did not reach mainline in 3.3-rc1.
-> 
-> Since Rob is about to enable IRQ_DOMAIN for every ARM platforms, I'd rather push the patch to enable OF for every OMAP2+ platform and avoid hacking the twl-core any further since Grant / Rob have anyway some patches to simplify and potentially removed the custom irq_domain from this driver [2].
+On 2012-02-06 16:45, Tony Lindgren wrote:
+> * Gary Thomas<gary@mlbassoc.com>  [120206 09:14]:
+>> I have an OMAP3530 (DM3730) board which uses a very simple
+>> power controller (TPS65910A1).  This controller does not
+>> support many of the power supplies, etc, that are common
+>> on the TWL4030 and similar devices.
+>>
+>> I'm using Linux 3.0.  How can I remove the reliance on the
+>> TWL devices?  Simply disabling PM in my configuration isn't
+>> enough - that generates a bunch of undefined references.
+>> Also, there are many places where power supply stuff is
+>> accessed, outside of PM, in particular DSS2 which has a
+>> terrible time.  Here's what I get when I disabled PM and
+>> REGULATOR support:
+>
+> Yes it should be possible to support other PMIC other than
+> TWL chips too.. What you're seeing is a bug.
 
-To me it seems that it is safe to enable OF as that's
-what we've had with omap2plus_defconfig for a while now
-and that's what we're heading to anyways.
+This will be a bit more of a change than just another PMIC since
+this device isn't much of a power manager (other than at the very
+lowest level to handle power up sequencing, etc).  It's good to
+hear that it _should_ work and I look forward to ideas on how
+to _make_ it work.
 
-Regards,
+For now, I've left PM and REGULATOR enabled so I can at least
+build the kernel and with just a few changes, I can get the
+kernel to boot to a prompt.  I do need to work out the uglyness
+of what I've had to do though :-)
 
-Tony
+Thanks
 
-> [1] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap.git;a=commit;h=40c0591f0a349ec074357e05c6ab1a3bc951807c
-> [2] http://www.spinics.net/lists/arm-kernel/msg157375.html
+>
+>> arch/arm/mach-omap2/built-in.o: In function `omap_set_pwrdm_state':
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:122: undefined reference to `pwrdm_read_next_pwrst'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:126: undefined reference to `pwrdm_read_pwrst'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:127: undefined reference to `pwrdm_read_pwrst'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:133: undefined reference to `pwrdm_wait_transition'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:138: undefined reference to `pwrdm_set_next_pwrst'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:153: undefined reference to `pwrdm_set_lowpwrstchange'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:159: undefined reference to `pwrdm_wait_transition'
+>> /local/linux-3.0/arch/arm/mach-omap2/pm.c:160: undefined reference to `pwrdm_state_switch'
+>> arch/arm/mach-omap2/built-in.o: In function `omap_hwmod_get_context_loss_count':
+>> /local/linux-3.0/arch/arm/mach-omap2/omap_hwmod.c:2638: undefined reference to `pwrdm_get_context_loss_count'
+>> arch/arm/mach-omap2/built-in.o: In function `_clkdm_clk_hwmod_disable':
+>> /local/linux-3.0/arch/arm/mach-omap2/clockdomain.c:895: undefined reference to `pwrdm_clkdm_state_switch'
+>> arch/arm/mach-omap2/built-in.o: In function `clkdm_allow_idle':
+>> /local/linux-3.0/arch/arm/mach-omap2/clockdomain.c:786: undefined reference to `pwrdm_clkdm_state_switch'
+>> arch/arm/mach-omap2/built-in.o: In function `_clkdm_clk_hwmod_enable':
+>> /local/linux-3.0/arch/arm/mach-omap2/clockdomain.c:869: undefined reference to `pwrdm_wait_transition'
+>> /local/linux-3.0/arch/arm/mach-omap2/clockdomain.c:870: undefined reference to `pwrdm_clkdm_state_switch'
+>> arch/arm/mach-omap2/built-in.o: In function `_clkdm_register':
+>> /local/linux-3.0/arch/arm/mach-omap2/clockdomain.c:79: undefined reference to `pwrdm_lookup'
+>> /local/linux-3.0/arch/arm/mach-omap2/clockdomain.c:93: undefined reference to `pwrdm_add_clkdm'
+>> arch/arm/mach-omap2/built-in.o: In function `omap2_clk_disable_unused':
+>> /local/linux-3.0/arch/arm/mach-omap2/clock.c:442: undefined reference to `pwrdm_clkdm_state_switch'
+>> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_infrastructure':
+>> /local/linux-3.0/arch/arm/mach-omap2/io.c:355: undefined reference to `omap3xxx_voltagedomains_init'
+>> /local/linux-3.0/arch/arm/mach-omap2/io.c:356: undefined reference to `omap3xxx_powerdomains_init'
+>>
+>>
+>> Any ideas?  I'd like to keep my changes to the kernel to
+>> a minimum,
+>
+> Sounds like there should be empty functions for the prdm_* functions
+> in this case. Kevin might have some patches to fix this already.
+>
+> Regards,
+>
+> Tony
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
