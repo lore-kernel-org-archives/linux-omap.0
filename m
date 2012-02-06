@@ -1,75 +1,38 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
-Date: Mon, 6 Feb 2012 17:23:18 +0530
-Message-ID: <CAC83ZvJndyGv6KAuzn1GLYMMNH1cC-u3=sdHxqO+q-xtaFbnVA@mail.gmail.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-	<87pqdv4oo3.fsf@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87pqdv4oo3.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-arm-kernel@lists.infradead.org
+From: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] [trivial] mach-omap1: Fix typo in lcd_dma.c
+Date: Mon,  6 Feb 2012 23:16:44 +0900
+Message-ID: <1328537804-1916-1-git-send-email-standby24x7@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from i118-21-156-233.s30.a048.ap.plala.or.jp ([118.21.156.233]:35527
+	"EHLO rinabert.homeip.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752184Ab2BFORT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 09:17:19 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, trivial@kernel.org, standby24x7@gmail.com
 
-Kevin,
+Correct spelling "resulotion" to "resolution" in
+arch/arm/mach-omap1/lcd_dma.c
 
-On Sat, Feb 4, 2012 at 2:31 AM, Kevin Hilman <khilman@ti.com> wrote:
->
-> Hi Tarun,
->
-> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->
-> > The following changes since commit 62aa2b537c6f5957afd98e29f9689741=
-9ed5ebab:
-> > =A0 Linus Torvalds (1):
-> > =A0 =A0 =A0 =A0 Linux 3.3-rc2
-> >
-> > are available in the git repository at:
-> > http://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-lin=
-ux-omap-dev
-> > Branch: for_3.4/gpio_cleanup_fixes_v9
-> >
-> > This series is continuation of cleanup of OMAP GPIO driver and fixe=
-s.
-> > The cleanup include getting rid of cpu_is_* checks wherever possibl=
-e,
-> > use of gpio_bank list instead of static array, use of unique platfo=
-rm
-> > specific value associated data member to OMAP platforms to avoid
-> > cpu_is_* checks. The series also include PM runtime support.
->
-> This version is looking pretty good, and I'm almost ready to queue it=
- up
-> for Grant.
->
-> However, one more minor nit. =A0Please fix up the compile warnings wh=
-en
-> built without CONFIG_PM_SLEEP or CONFIG_PM_RUNTIME.
->
-> The definitons of the dev_pm_ops callbacks need to be conditional whe=
-n
-> using the SET_*_PM_OPS() macros, otherwise you get these warnings:
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ arch/arm/mach-omap1/lcd_dma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I have updated the branch with the required changes.
---
-Tarun
->
->
->
-> =A0CC =A0 =A0 =A0drivers/gpio/gpio-omap.o
-> /work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1142:12: warning: 'omap=
-_gpio_suspend' defined but not used [-Wunused-function]
-> /work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1167:12: warning: 'omap=
-_gpio_resume' defined but not used [-Wunused-function]
-> /work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1191:12: warning: 'omap=
-_gpio_runtime_suspend' defined but not used [-Wunused-function]
-> /work/kernel/omap/pm/drivers/gpio/gpio-omap.c:1237:12: warning: 'omap=
-_gpio_runtime_resume' defined but not used [-Wunused-function]
->
->
-> Thanks,
->
-> Kevin
+diff --git a/arch/arm/mach-omap1/lcd_dma.c b/arch/arm/mach-omap1/lcd_dma.c
+index 4538093..4c5ce7d 100644
+--- a/arch/arm/mach-omap1/lcd_dma.c
++++ b/arch/arm/mach-omap1/lcd_dma.c
+@@ -117,7 +117,7 @@ EXPORT_SYMBOL(omap_set_lcd_dma_b1_mirror);
+ void omap_set_lcd_dma_b1_vxres(unsigned long vxres)
+ {
+ 	if (cpu_is_omap15xx()) {
+-		printk(KERN_ERR "DMA virtual resulotion is not supported "
++		printk(KERN_ERR "DMA virtual resolution is not supported "
+ 				"in 1510 mode\n");
+ 		BUG();
+ 	}
+-- 
+1.7.6.5
+
