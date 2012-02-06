@@ -1,166 +1,85 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: OMAP34xx
-Date: Mon, 6 Feb 2012 12:37:31 +0200
-Message-ID: <CAK=WgbZorAreBdwLKndAxmm7H3Q=2pyy2=N93Mb3jiyW0qNroA@mail.gmail.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
- <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk>
- <20120205172528.GA17029@n2100.arm.linux.org.uk> <20120205174700.GU20333@atomide.com>
- <20120205180812.GH17309@n2100.arm.linux.org.uk> <20120205183316.GL1426@atomide.com>
- <20120205184139.GI17309@n2100.arm.linux.org.uk> <20120205185939.GN1426@atomide.com>
- <20120205201146.GK17309@n2100.arm.linux.org.uk> <20120205205157.GO1426@atomide.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 1/2] OMAPDSS: Features: Maintain dss_feats as a list
+Date: Mon, 06 Feb 2012 12:42:23 +0200
+Message-ID: <1328524943.1898.38.camel@deskari>
+References: <1327900959-29198-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=e89a8f2343a318bd7204b84941d9
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-R6sTr4EDDnKZHApkvFSc"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:35894 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751979Ab2BFKhw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 05:37:52 -0500
-Received: by obcva7 with SMTP id va7so6626703obc.19
-        for <linux-omap@vger.kernel.org>; Mon, 06 Feb 2012 02:37:51 -0800 (PST)
-In-Reply-To: <20120205205157.GO1426@atomide.com>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:40328 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754185Ab2BFKm2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 05:42:28 -0500
+In-Reply-To: <1327900959-29198-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Archit Taneja <archit@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
---e89a8f2343a318bd7204b84941d9
-Content-Type: text/plain; charset=ISO-8859-1
 
-On Sun, Feb 5, 2012 at 10:51 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hmm I see. Ohad, care to take a look this one?
+--=-R6sTr4EDDnKZHApkvFSc
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-All worthy comments, and indeed there's no point in registering the
-fixed regulator device in case wl12xx_set_platform_data() fails.
+Hi,
 
-I cooked up something (using wl12xx_set_platform_data()'s -ENOSYS to
-avoid ifdef'ing the code) - see below (and attached).
+On Mon, 2012-01-30 at 10:52 +0530, Archit Taneja wrote:
+> The number of dss_feat_id members has increased to a large value, the cur=
+rent
+> way of assigning a subset of these features (for a particular OMAP) as a =
+mask
+> is no longer feasible.
+>=20
+> Maintain the subset of features supported as lists. Make the function
+> dss_has_feature() traverse through this list.
 
-Russell, Tony, please tell me if you want me to cook something similar
-for all the other platforms, or would rather use your existing
-patch(es).
+I think this makes the code easier to maintain, so in that sense it is
+good. But I do hesitate a bit, I think many features are checked in
+often used code paths (the configuration done on each frame when
+swapping/panning), and bit compare versus finding an item in a list
+could have performance impact.
 
-Thanks,
-Ohad.
+Then again, I'm purely guessing here, as it could well be that compared
+to the other code, checking the features is insignificant. Thus, I'm
+fine with this patch, and we can optimize it later if need be.
 
->From 6bc46ed359c8399a53a9e02bbf8f47b2831dfe0e Mon Sep 17 00:00:00 2001
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Date: Mon, 6 Feb 2012 11:53:17 +0200
-Subject: [PATCH] ARM: OMAP4: panda: clean up/fix wlan init path
+However, I'm anyway giving a few ideas how this could also be handled:
 
-1. Stop intimidating users with scary wlan error messages in case wl12xx
-   support wasn't even built.
-2. When a wlan init error does happen, provide users with helpful
-   information regarding the nature of the failure.
-3. Don't bother registering wl12xx's fixed regulator device in case
-   wl12xx_set_platform_data() failed.
+- 64 bit mask. Would be simple, but we'd still have a hard limit there.
 
-While we're at it, extract the wlan init code to a dedicated function to
-make omap4_panda_init() look a bit nicer.
+- Variable length bitmask, i.e. an int or byte array from which a
+particular bit is checked. There could be a ready made datatype for this
+in the kernel.
 
-Reported-by: Russell King <linux@arm.linux.org.uk>
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-omap4panda.c |   26 ++++++++++++++++++++++----
- 1 files changed, 22 insertions(+), 4 deletions(-)
+- Lists like in this patch, but in sorted order. Then, if we're looking
+for a feat which has, say, number 4 assigned to it, we can stop
+iterating the list when we hit a feat > 4 in the list. Quite simple
+optimization, but needs extra maintenance to keep the feat lists sorted.
 
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c
-b/arch/arm/mach-omap2/board-omap4panda.c
-index 30ad40d..c801e7e 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -475,6 +475,27 @@ void omap4_panda_display_init(void)
- 		omap_hdmi_init(0);
- }
+ Tomi
 
-+static void __init omap4_panda_wlan_init(void)
-+{
-+	int ret;
-+
-+	ret = wl12xx_set_platform_data(&omap_panda_wlan_data);
-+
-+	/* bail out silently in case wl12xx isn't configured */
-+	if (ret == -ENOSYS)
-+		return;
-+
-+	/* bail out verbosely on any other error */
-+	if (ret) {
-+		pr_err("error setting wl12xx data: %d\n", ret);
-+		return;
-+	}
-+
-+	ret = platform_device_register(&omap_vwlan_device);
-+	if (ret)
-+		pr_err("error registering wl12xx's fixed regulator: %d\n", ret);
-+}
-+
- static void __init omap4_panda_init(void)
- {
- 	int package = OMAP_PACKAGE_CBS;
-@@ -483,12 +504,9 @@ static void __init omap4_panda_init(void)
- 		package = OMAP_PACKAGE_CBL;
- 	omap4_mux_init(board_mux, NULL, package);
 
--	if (wl12xx_set_platform_data(&omap_panda_wlan_data))
--		pr_err("error setting wl12xx data\n");
--
-+	omap4_panda_wlan_init();
- 	omap4_panda_i2c_init();
- 	platform_add_devices(panda_devices, ARRAY_SIZE(panda_devices));
--	platform_device_register(&omap_vwlan_device);
- 	omap_serial_init();
- 	omap_sdrc_init(NULL, NULL);
- 	omap4_twl6030_hsmmc_init(mmc);
--- 
-1.7.5.4
+--=-R6sTr4EDDnKZHApkvFSc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
---e89a8f2343a318bd7204b84941d9
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-ARM-OMAP4-panda-clean-up-fix-wlan-init-path.patch"
-Content-Disposition: attachment;
-	filename="0001-ARM-OMAP4-panda-clean-up-fix-wlan-init-path.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gybccsgd0
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-RnJvbSA2YmM0NmVkMzU5YzgzOTlhNTNhOWUwMmJiZjhmNDdiMjgzMWRmZTBlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBPaGFkIEJlbi1Db2hlbiA8b2hhZEB3aXplcnkuY29tPgpEYXRl
-OiBNb24sIDYgRmViIDIwMTIgMTE6NTM6MTcgKzAyMDAKU3ViamVjdDogW1BBVENIXSBBUk06IE9N
-QVA0OiBwYW5kYTogY2xlYW4gdXAvZml4IHdsYW4gaW5pdCBwYXRoCgoxLiBTdG9wIGludGltaWRh
-dGluZyB1c2VycyB3aXRoIHNjYXJ5IHdsYW4gZXJyb3IgbWVzc2FnZXMgaW4gY2FzZSB3bDEyeHgK
-ICAgc3VwcG9ydCB3YXNuJ3QgZXZlbiBidWlsdC4KMi4gV2hlbiBhIHdsYW4gaW5pdCBlcnJvciBk
-b2VzIGhhcHBlbiwgcHJvdmlkZSB1c2VycyB3aXRoIGhlbHBmdWwKICAgaW5mb3JtYXRpb24gcmVn
-YXJkaW5nIHRoZSBuYXR1cmUgb2YgdGhlIGZhaWx1cmUuCjMuIERvbid0IGJvdGhlciByZWdpc3Rl
-cmluZyB3bDEyeHgncyBmaXhlZCByZWd1bGF0b3IgZGV2aWNlIGluIGNhc2UKICAgd2wxMnh4X3Nl
-dF9wbGF0Zm9ybV9kYXRhKCkgZmFpbGVkLgoKV2hpbGUgd2UncmUgYXQgaXQsIGV4dHJhY3QgdGhl
-IHdsYW4gaW5pdCBjb2RlIHRvIGEgZGVkaWNhdGVkIGZ1bmN0aW9uIHRvCm1ha2Ugb21hcDRfcGFu
-ZGFfaW5pdCgpIGxvb2sgYSBiaXQgbmljZXIuCgpSZXBvcnRlZC1ieTogUnVzc2VsbCBLaW5nIDxs
-aW51eEBhcm0ubGludXgub3JnLnVrPgpTaWduZWQtb2ZmLWJ5OiBPaGFkIEJlbi1Db2hlbiA8b2hh
-ZEB3aXplcnkuY29tPgpDYzogVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KLS0tCiBh
-cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXA0cGFuZGEuYyB8ICAgMjYgKysrKysrKysrKysr
-KysrKysrKysrKy0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgMjIgaW5zZXJ0aW9ucygrKSwgNCBkZWxl
-dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXA0cGFu
-ZGEuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDRwYW5kYS5jCmluZGV4IDMwYWQ0
-MGQuLmM4MDFlN2UgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDRw
-YW5kYS5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDRwYW5kYS5jCkBAIC00
-NzUsNiArNDc1LDI3IEBAIHZvaWQgb21hcDRfcGFuZGFfZGlzcGxheV9pbml0KHZvaWQpCiAJCW9t
-YXBfaGRtaV9pbml0KDApOwogfQogCitzdGF0aWMgdm9pZCBfX2luaXQgb21hcDRfcGFuZGFfd2xh
-bl9pbml0KHZvaWQpCit7CisJaW50IHJldDsKKworCXJldCA9IHdsMTJ4eF9zZXRfcGxhdGZvcm1f
-ZGF0YSgmb21hcF9wYW5kYV93bGFuX2RhdGEpOworCisJLyogYmFpbCBvdXQgc2lsZW50bHkgaW4g
-Y2FzZSB3bDEyeHggaXNuJ3QgY29uZmlndXJlZCAqLworCWlmIChyZXQgPT0gLUVOT1NZUykKKwkJ
-cmV0dXJuOworCisJLyogYmFpbCBvdXQgdmVyYm9zZWx5IG9uIGFueSBvdGhlciBlcnJvciAqLwor
-CWlmIChyZXQpIHsKKwkJcHJfZXJyKCJlcnJvciBzZXR0aW5nIHdsMTJ4eCBkYXRhOiAlZFxuIiwg
-cmV0KTsKKwkJcmV0dXJuOworCX0KKworCXJldCA9IHBsYXRmb3JtX2RldmljZV9yZWdpc3Rlcigm
-b21hcF92d2xhbl9kZXZpY2UpOworCWlmIChyZXQpCisJCXByX2VycigiZXJyb3IgcmVnaXN0ZXJp
-bmcgd2wxMnh4J3MgZml4ZWQgcmVndWxhdG9yOiAlZFxuIiwgcmV0KTsKK30KKwogc3RhdGljIHZv
-aWQgX19pbml0IG9tYXA0X3BhbmRhX2luaXQodm9pZCkKIHsKIAlpbnQgcGFja2FnZSA9IE9NQVBf
-UEFDS0FHRV9DQlM7CkBAIC00ODMsMTIgKzUwNCw5IEBAIHN0YXRpYyB2b2lkIF9faW5pdCBvbWFw
-NF9wYW5kYV9pbml0KHZvaWQpCiAJCXBhY2thZ2UgPSBPTUFQX1BBQ0tBR0VfQ0JMOwogCW9tYXA0
-X211eF9pbml0KGJvYXJkX211eCwgTlVMTCwgcGFja2FnZSk7CiAKLQlpZiAod2wxMnh4X3NldF9w
-bGF0Zm9ybV9kYXRhKCZvbWFwX3BhbmRhX3dsYW5fZGF0YSkpCi0JCXByX2VycigiZXJyb3Igc2V0
-dGluZyB3bDEyeHggZGF0YVxuIik7Ci0KKwlvbWFwNF9wYW5kYV93bGFuX2luaXQoKTsKIAlvbWFw
-NF9wYW5kYV9pMmNfaW5pdCgpOwogCXBsYXRmb3JtX2FkZF9kZXZpY2VzKHBhbmRhX2RldmljZXMs
-IEFSUkFZX1NJWkUocGFuZGFfZGV2aWNlcykpOwotCXBsYXRmb3JtX2RldmljZV9yZWdpc3Rlcigm
-b21hcF92d2xhbl9kZXZpY2UpOwogCW9tYXBfc2VyaWFsX2luaXQoKTsKIAlvbWFwX3NkcmNfaW5p
-dChOVUxMLCBOVUxMKTsKIAlvbWFwNF90d2w2MDMwX2hzbW1jX2luaXQobW1jKTsKLS0gCjEuNy41
-LjQKCg==
---e89a8f2343a318bd7204b84941d9--
+iQIcBAABAgAGBQJPL66PAAoJEPo9qoy8lh711YYP/0CptROhzbVsda3e7jV16KXC
+id4qAqpddQgkuD1zr8UYLnYtSSXByA2qjEeVewLds3yRbN1iDzUQziHIuXVGtWVB
+Rmf/wnlFWvTFYo06jKZQ2dXLpHSDURZl7VFvVcokFL2+GF8Wo47rWAZkWM2fOQjh
+v4x5noRX4jTZtntekx76MSIoV7JeGqouqkO4ehfzz3br81zlbuwzKNVNuglShSSU
+sOq5FTHZVfQnt4jQWFccZ6o9S9q8kQ1LVjM8reB502gTrksRVflqdSRs96uzQ516
+3yh2Cq8LuHFRxeJL/3z4eZTS1Nbc+voargLbdZlAxVQca6RRdREUYZOoGLPpYLa9
+KTHaAfdFBsW4khTQyZruVsv609sEpravxggaOLFI7JAqWWug1KTFanUq8ueCa6Jq
+pMu4a5bgBwn5E4LEMDcjuJFDBYreFEGAnuwix3Ld47ivG5f2Jqe8MF+ftWM7LtSx
++qdmaOuE3nc0ueQlmPSMHdmYoY2+G0kLFRp7ShYLM/hIUEO/k+Z0tebtAmgnLwRT
+d3c5jIIbCRbqc2V9zm4sYPxrgw19BYpMeFttrE57Sz4pScYtKxHOzcAGjLKmCvTG
+XcQ4vUkeHSwJNff5hcxzCH9eBh793OTgjGHuLft75gdhlm5YGBtNs5ZPV/sYJEGC
+FBFr1aw0ByumUJxdMB+b
+=HJcS
+-----END PGP SIGNATURE-----
+
+--=-R6sTr4EDDnKZHApkvFSc--
+
