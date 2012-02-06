@@ -1,49 +1,66 @@
-From: Yegor Yefremov <yegor_sub1@visionsystems.de>
-Subject: Re: [PATCH] OMAP3: clock3xxx_data: change EMAC clocks aliases
-Date: Mon, 06 Feb 2012 09:27:15 +0100
-Message-ID: <4F2F8EE3.1050305@visionsystems.de>
-References: <1324423634-32581-1-git-send-email-yanok@emcraft.com>
-Reply-To: yegor_sub1@visionsystems.de
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: OMAP34xx
+Date: Mon, 6 Feb 2012 11:05:10 +0200
+Message-ID: <1328519110.4102.202.camel@sokoban>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+	 <20120204190109.GL20333@atomide.com>
+	 <20120204203453.GD17309@n2100.arm.linux.org.uk>
+	 <20120205172528.GA17029@n2100.arm.linux.org.uk>
+	 <20120205174700.GU20333@atomide.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hhlx01.vscom.de ([62.145.30.242]:33295 "EHLO
-	mail.visionsystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517Ab2BFI11 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 03:27:27 -0500
-In-Reply-To: <1324423634-32581-1-git-send-email-yanok@emcraft.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59227 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753368Ab2BFJFX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 04:05:23 -0500
+In-Reply-To: <20120205174700.GU20333@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Ilya Yanok <yanok@emcraft.com>, linux-omap@vger.kernel.org, sasha_d@emcraft.com, Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Am 21.12.2011 00:27, schrieb Ilya Yanok:
-> Rename EMAC clocks to match driver expectations: both davinci_emac and
-> davinci_mdio drivers call clk_get(dev, NULL) so we have to provide
-> ("davinci_emac", NULL) and ("davinci_mdio.0", NULL) clocks instead of
-> ("davinci_emac", "emac_clk") and ("davinci_emac", "phy_clk") resp.
+On Sun, 2012-02-05 at 09:47 -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120205 08:54]:
+> > I'm also getting on the OMAP4430SDP:
+> > 
+> > Error setting wl12xx data
+> > 
+> > What a wonderfully descriptive error message.  Not.  What happened to
+> > saying _why_ we couldn't set the data?  As for this:
+> > 
+> > 	platform_device_register(&omap_vwlan_device);
+> > 
+> > and not checking the return code, I really don't see why anyone bothered
+> > even reporting that wl12xx_set_platform_data() failed... why not just
+> > leave people in the dark over the error...
+> > 
+> > Right, so, this "error" is happening because the WL12xx driver is not
+> > configured, and from what I can see, the WL12xx is something you'd plug
+> > in to the board instead of the SD card.  So it makes no sense to report
+> > an error for a driver for a bit of hardware which is optional.
+> > 
+> > So... my patch gets larger and gets this fixed for all platforms in
+> > mach-omap2.
 > 
-> CC: Paul Walmsley <paul@pwsan.com>
-> Signed-off-by: Ilya Yanok <yanok@emcraft.com>
-> ---
->  arch/arm/mach-omap2/clock3xxx_data.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+> That sounds like a good clean-up for next merge window.
+>  
+> > PRCM: failed to allocate irq descs: -12
+> > 
+> > Does OMAP require sparse IRQ, or is NR_IRQS not set sufficiently high for
+> > OMAP?  I can't work this one out, and it looks like things are missing for
+> > this to even work (did something in plat/irqs.h get missed?)
 > 
-> diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-> index d75e5f6..1a60661 100644
-> --- a/arch/arm/mach-omap2/clock3xxx_data.c
-> +++ b/arch/arm/mach-omap2/clock3xxx_data.c
-> @@ -3465,8 +3465,8 @@ static struct omap_clk omap3xxx_clks[] = {
->  	CLK(NULL,	"ipss_ick",	&ipss_ick,	CK_AM35XX),
->  	CLK(NULL,	"rmii_ck",	&rmii_ck,	CK_AM35XX),
->  	CLK(NULL,	"pclk_ck",	&pclk_ck,	CK_AM35XX),
-> -	CLK("davinci_emac",	"emac_clk",	&emac_ick,	CK_AM35XX),
-> -	CLK("davinci_emac",	"phy_clk",	&emac_fck,	CK_AM35XX),
-> +	CLK("davinci_emac",	NULL,	&emac_ick,	CK_AM35XX),
-> +	CLK("davinci_mdio.0",	NULL,	&emac_fck,	CK_AM35XX),
->  	CLK("vpfe-capture",	"master",	&vpfe_ick,	CK_AM35XX),
->  	CLK("vpfe-capture",	"slave",	&vpfe_fck,	CK_AM35XX),
->  	CLK("musb-am35x",	"ick",		&hsotgusb_ick_am35xx,	CK_AM35XX),
+> Tero, can you please investigate this?
 
-Tested-by: Yegor Yefremov <yegorslists@googlemail.com>
+Sparse IRQ would be good, PRCM attempts to allocate either 32 or 64
+descs based on PRM module revision (omap3 uses 32, omap4+ uses 64.)
+
+Personally I have only seen this error on omap4, but omap4 support is
+not fully integrated in mainline yet.
+
+-Tero
+
+
