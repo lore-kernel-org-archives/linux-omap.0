@@ -1,50 +1,43 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/2] ARM: OMAP: Couple of misc fixes for 3.3
-Date: Mon, 6 Feb 2012 15:03:27 +0530
-Message-ID: <CAMQu2gyXA7Bj1d5fPJLZ6yC+0o3TM1K8+2qQFU1J2W_zQbDwWg@mail.gmail.com>
-References: <1328191435-18652-1-git-send-email-santosh.shilimkar@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] ARM: OMAP4: cpuidle: Fix the C-state reporting to cpuidle governor.
+Date: Mon, 6 Feb 2012 15:08:15 +0530
+Message-ID: <1328521095-24025-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:39480 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754050Ab2BFJds convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Feb 2012 04:33:48 -0500
-Received: by mail-qw0-f51.google.com with SMTP id 41so3704831qan.17
-        for <linux-omap@vger.kernel.org>; Mon, 06 Feb 2012 01:33:47 -0800 (PST)
-In-Reply-To: <1328191435-18652-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60762 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754050Ab2BFJiZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 04:38:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Tony,
+OMAP4 cpuidle driver is reporting the state requested by governor rather than
+the actually attempted one.
 
-On Thu, Feb 2, 2012 at 7:33 PM, Santosh Shilimkar
-<santosh.shilimkar@ti.com> wrote:
-> Patches are tested on OMAP4430 SDP.
->
-> The following changes since commit 62aa2b537c6f5957afd98e29f96897419e=
-d5ebab:
->
-> =A0Linux 3.3-rc2 (2012-01-31 13:31:54 -0800)
->
-> Rajendra Nayak (1):
-> =A0ARM: OMAP: Get rid of reset for system timer
->
-> Santosh Shilimkar (1):
-> =A0ARM: OMAP4: Move the barrier memboclk_steal() as part of reserve
-> =A0 =A0callback
->
-Can you please queue these two fixes if you are ok
-with them ?
+This is obviously misleading sysfs and powertop cpuidle statistics.
+Fix it so that stats are reported correctly.
 
-Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reported-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle44xx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+index cfdbb86..f128489 100644
+--- a/arch/arm/mach-omap2/cpuidle44xx.c
++++ b/arch/arm/mach-omap2/cpuidle44xx.c
+@@ -85,6 +85,7 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
+ 	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
+ 	if (cpu1_state != PWRDM_POWER_OFF) {
+ 		new_state_idx = drv->safe_state_index;
++		index = drv->safe_state_index;
+ 		cx = cpuidle_get_statedata(&dev->states_usage[new_state_idx]);
+ 	}
+ 
+-- 
+1.7.4.1
+
