@@ -1,118 +1,90 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 5/7] OMAP: sdp4430: Add fixed regulator for twl6040 needs
-Date: Tue,  7 Feb 2012 15:01:16 +0200
-Message-ID: <1328619678-26080-6-git-send-email-peter.ujfalusi@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 7/7] MFD: TWL6040: Add regulator support
+ for VIO, V2V1 supplies
+Date: Tue, 7 Feb 2012 13:16:57 +0000
+Message-ID: <20120207131657.GL3332@opensource.wolfsonmicro.com>
 References: <1328619678-26080-1-git-send-email-peter.ujfalusi@ti.com>
+	<1328619678-26080-8-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1328619678-26080-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>
-Cc: linux-arm-kernel@lists.infradead.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+Content-Type: multipart/mixed; boundary="===============8792861670143903095=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1328619678-26080-8-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-The twl6040 VIO power is connected to SMPS V1V8, the
-V2V1 power is coming from SMPS V2V1 of twl6030.
-These are fixed, always on regulators.
-Create fixed voltage regulators for these supplies.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/board-4430sdp.c |   58 +++++++++++++++++++++++++++++++++++
- 1 files changed, 58 insertions(+), 0 deletions(-)
+--===============8792861670143903095==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="NZiXfHLGvOGtDZMn"
+Content-Disposition: inline
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index d02172d..5de5753 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -64,6 +64,8 @@
- 
- #define FIXED_REG_VBAT_ID	0
- #define FIXED_REG_VWLAN_ID	1
-+#define FIXED_REG_V2V1_ID	2
-+#define FIXED_REG_V1V8_ID	3
- 
- static const int sdp4430_keymap[] = {
- 	KEY(0, 0, KEY_E),
-@@ -349,6 +351,60 @@ static int __init omap_ethernet_init(void)
- 	return status;
- }
- 
-+static struct regulator_consumer_supply sdp4430_vpmic_v2v1_supply[] = {
-+	REGULATOR_SUPPLY("v2v1", "1-004b"),
-+};
-+
-+static struct regulator_init_data sdp4430_v2v1smps = {
-+	.constraints = {
-+		.always_on		= true,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(sdp4430_vpmic_v2v1_supply),
-+	.consumer_supplies	= sdp4430_vpmic_v2v1_supply,
-+};
-+
-+static struct fixed_voltage_config sdp4430_v2v1_pdata = {
-+	.supply_name	= "VPMIC-V2V1",
-+	.microvolts	= 2100000,
-+	.init_data	= &sdp4430_v2v1smps,
-+	.gpio		= -EINVAL,
-+};
-+
-+static struct platform_device sdp4430_v2v1 = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= FIXED_REG_V2V1_ID,
-+	.dev = {
-+		.platform_data = &sdp4430_v2v1_pdata,
-+	},
-+};
-+
-+static struct regulator_consumer_supply sdp4430_vpmic_v1v8_supply[] = {
-+	REGULATOR_SUPPLY("vio", "1-004b"),
-+};
-+
-+static struct regulator_init_data sdp4430_v1v8smps = {
-+	.constraints = {
-+		.always_on		= true,
-+	},
-+	.num_consumer_supplies	= ARRAY_SIZE(sdp4430_vpmic_v1v8_supply),
-+	.consumer_supplies	= sdp4430_vpmic_v1v8_supply,
-+};
-+
-+static struct fixed_voltage_config sdp4430_v1v8_pdata = {
-+	.supply_name	= "VPMIC-V1V8",
-+	.microvolts	= 1800000,
-+	.init_data	= &sdp4430_v1v8smps,
-+	.gpio		= -EINVAL,
-+};
-+
-+static struct platform_device sdp4430_v1v8 = {
-+	.name		= "reg-fixed-voltage",
-+	.id		= FIXED_REG_V1V8_ID,
-+	.dev = {
-+		.platform_data = &sdp4430_v1v8_pdata,
-+	},
-+};
-+
- static struct regulator_consumer_supply sdp4430_vbat_supply[] = {
- 	REGULATOR_SUPPLY("vddvibl", "twl6040-vibra"),
- 	REGULATOR_SUPPLY("vddvibr", "twl6040-vibra"),
-@@ -416,6 +472,8 @@ static struct platform_device *sdp4430_devices[] __initdata = {
- 	&sdp4430_vbat,
- 	&sdp4430_dmic_codec,
- 	&sdp4430_abe_audio,
-+	&sdp4430_v1v8,
-+	&sdp4430_v2v1,
- };
- 
- static struct omap_musb_board_data musb_board_data = {
--- 
-1.7.8.4
+
+--NZiXfHLGvOGtDZMn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Feb 07, 2012 at 03:01:18PM +0200, Peter Ujfalusi wrote:
+> twl6040 has three power supply source:
+> VBAT needs to be connected to VBAT, VIO, and V2V1.
+> Add regulator support for the VIO, V2V1 supplies.
+> Initially handle the two supply together with bulk commands.
+
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+
+> +	twl6040->supplies = devm_kzalloc(&client->dev,
+> +					 sizeof(struct regulator_bulk_data) *
+> +					 TWL6040_NUM_SUPPLIES, GFP_KERNEL);
+> +	if (!twl6040->supplies) {
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+
+though I'd be inclined to just embed this structure into the twl6040
+struct directly, you're always going to need to allocate it and it saves
+a tiny bit of error handling and whatnot.
+
+--NZiXfHLGvOGtDZMn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPMSRDAAoJEBus8iNuMP3dynEP/ixDQp/g4HRQThsELFNjhkI9
+uO4Rt1mK5kZg7OgioD0QfX8nNOO0cCxvBVX3Aaa49RnmgEtUWcYJSumW3ZAj4yIy
+4dwsMR0eemJnrnKQczOKDprKpds0OIWxd79WfsREV2jU6QhyrmHl38mRW31uLrDD
+Ab2y9sT6ZT+m7EnyAIr7K8d9z4ye+y04slOqwBNCnUZNBHqBF6XvMK78cffa/Icm
+WtO639Y32YXsO3QbaNxN2e4SDG5J6q2jrouxKm3+aukSe4ppieVM15ZbHIfE3C3k
+Q36clC/nQ6wmC+3hMkCcSFUH7zjfsW6T6rTUCgh7CJwj1HU2bhAzGnBARdQ3lqHh
+mMcXSnZd83QlhK4pUbgWfmCY3fG24XzMDS70Z0dG9s7E129Hou8eZMJjj4ivmCFW
+2vHBLa/zjSl8RHRe4VacMwWIknb7NoCX7DANWoWPhSGGYdvc4X1mjLQ2MYu0eUC7
+Gzr7l9o5xvLe5P+UQZDKguBrEXSNBNu7teBSZHbwvKTONA1WgKqLP7JR3pwrbx6v
+1weOnQN8oAGR8ce9rvxv2jsAB+CPPskw15BqW6dbUSYUZpBi46XhphegWcOubEPh
+jLogAmxTS5Oln/pJQFQzJRPc7TOdqZDLM4b75cxEklzvUNiAAgJyM6EEgfh2JGdy
+cmBuuLMzR/FdzZ1dDa2R
+=ucmh
+-----END PGP SIGNATURE-----
+
+--NZiXfHLGvOGtDZMn--
+
+--===============8792861670143903095==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============8792861670143903095==--
