@@ -1,47 +1,31 @@
-From: Brian Austin <brian.austin@cirrus.com>
-Subject: Re: is omap development at git tree on kernel.org
-Date: Tue, 7 Feb 2012 08:53:34 -0600
-Message-ID: <alpine.DEB.2.02.1202070849400.24880@heelrod.ad.cirrus.com>
-References: <alpine.DEB.2.02.1202061702130.13460@heelrod.ad.cirrus.com> <20120206231637.GC20333@atomide.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
+Date: Tue, 07 Feb 2012 07:49:28 -0800
+Message-ID: <4F314808.9070009@ti.com>
+References: <1328367090-10402-1-git-send-email-rnayak@ti.com>
+ <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"; format=flowed
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:44158 "EHLO
-	TX2EHSOBE006.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754189Ab2BGOyl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2012 09:54:41 -0500
-In-Reply-To: <20120206231637.GC20333@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "S, Venkatraman" <svenkatr@ti.com>
+Cc: cjb@laptop.org, linaro-dev@lists.linaro.org, balajitk@ti.com, patches@linaro.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Brian Austin <brian.austin@cirrus.com>, linux-omap@vger.kernel.org
 
-On Mon, 6 Feb 2012, Tony Lindgren wrote:
-
-> Yes that's the current URL. For most part all the code is in the
-> mainline kernel, and the linux-omap git tree is used for staging
-> the patches for every merge window. Right now the focus is getting
-> all the fixes into the -rc cycle, and over next few weeks we'll
-> get busy merging all the new code posted for the next merge window.
+On Tuesday 07 February 2012 02:02 AM, S, Venkatraman wrote:
+> I gave it a spin on Beagleboard-XM (OMAP3630) with root filesystem
+> on the SD card, and checked again on 4430SDP.
 >
-> For stable versions, the latest stable mainline version is the
-> way to go, so that's v3.2.x right now. For development versions,
-> mainline v3.3-rc3 will contain the fixes you mentioned above.
->
+> Tested-by: Venkatraman S<svenkatr@ti.com>
 
-Thanks for the info Tony,
-
-Just to give you some background,  I do my codec development on a 
-"beagleboard like" system and use the for-next branch of ASoC for codec 
-patches.  I have noticed some issues with the latest OMAP port in this 
-branch and have seem the emails lately from Russell...
-
-I have seen these issues for a while and would be more than happy to 
-inform the OMAP folks of problems with the latest dev branches, kind of 
-like a regression tester for you.  If I find something and can fix with a 
-patch to email this list, what linux-omap branch should I base the patch 
-off of?
-
-Thanks,
-Brian
-
+Great, thanks Venkat.
