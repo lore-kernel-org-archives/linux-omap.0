@@ -1,52 +1,278 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/4] staging: tidspbridge: remove desgin-by-contract macros
-Date: Tue, 7 Feb 2012 02:02:56 +0200
-Message-ID: <CAMP44s3a7C1JTvrFd8FQxthJYRa4EDEi9sw8Oz=wKcJ_Pfu6dg@mail.gmail.com>
-References: <cover.1328563908.git.vjaquez@igalia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1328563908.git.vjaquez@igalia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?V=C3=ADctor_Manuel_J=C3=A1quez_Leal?= <vjaquez@igalia.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org, linux-omap@vger.kernel.org
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] OMAP: DSS2: TPO-TD03MTEA1: fix suspend hang
+Date: Tue,  7 Feb 2012 02:13:49 +0200
+Message-ID: <1328573630-7348-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62389 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756136Ab2BGAOA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Feb 2012 19:14:00 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-fbdev@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-2012/2/7 V=C3=ADctor Manuel J=C3=A1quez Leal <vjaquez@igalia.com>:
-> These patches removes all the design-by-contract (DBC) macros in the
-> tidspbridge.
->
-> Also it removes the config option CONFIG_TIDSPBRIDGE_DEBUG.
->
-> The patches are applied above these submitted patches:
-> http://thread.gmane.org/gmane.linux.kernel/1246081
->
-> The main reasons to remove these DBC macros are
->
-> * The kernel in general doesn't follow the DBC approach
->
-> * They only provide a needless verbosity, since they are available on=
-ly
-> =C2=A0when CONFIG_TIDSPBRIDGE_DEBUG is enabled. If they were useful t=
-hey
-> =C2=A0should be left for the dynamic debugging always. So, if they ar=
-e not
-> =C2=A0used, is dead code at the end, and should be removed.
->
-> * Deleting them means less code to maintain
->
-> As the Emperor Joseph II told to Mozart in the motion picture Amadeus=
-:
-> "It's quality work. And there are simply too many notes, that's
-> all. Just cut a few and it will be perfect."
+During system suspend, at the time DSS is being suspended, SPI is
+already suspended and it's clocks are cut. Because of this trying to
+communicate with the LCD controller results in a deadlock.
 
-The whole series is fine by me :)
+To fix this, split out LCD programming parts of display enable/disable
+functions and perform them from SPI PM callbacks instead when system is
+being suspended. If the display is just being enabled/disabled, do it
+from DSS callbacks as before.
 
-Even the warnings that don't depend on DEBUG have been neglected
-anyway =3D/ Will send some patches for a few of them soon.
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+rather invasive so best for upcoming merge window I guess..
 
-Cheers.
+ .../video/omap2/displays/panel-tpo-td043mtea1.c    |  151 ++++++++++++++------
+ 1 files changed, 108 insertions(+), 43 deletions(-)
 
---=20
-=46elipe Contreras
+diff --git a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+index e6649aa..741e9d7 100644
+--- a/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
++++ b/drivers/video/omap2/displays/panel-tpo-td043mtea1.c
+@@ -53,10 +53,14 @@ static const u16 tpo_td043_def_gamma[12] = {
+ struct tpo_td043_device {
+ 	struct spi_device *spi;
+ 	struct regulator *vcc_reg;
++	int nreset_gpio;
+ 	u16 gamma[12];
+ 	u32 mode;
+ 	u32 hmirror:1;
+ 	u32 vmirror:1;
++	u32 powered_on:1;
++	u32 spi_suspended:1;
++	u32 power_on_resume:1;
+ };
+ 
+ static int tpo_td043_write(struct spi_device *spi, u8 addr, u8 data)
+@@ -265,28 +269,16 @@ static const struct omap_video_timings tpo_td043_timings = {
+ 	.vbp		= 34,
+ };
+ 
+-static int tpo_td043_power_on(struct omap_dss_device *dssdev)
++static int tpo_td043_power_on(struct tpo_td043_device *tpo_td043)
+ {
+-	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
+-	int nreset_gpio = dssdev->reset_gpio;
+-	int r;
++	int nreset_gpio = tpo_td043->nreset_gpio;
+ 
+-	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++	if (tpo_td043->powered_on)
+ 		return 0;
+ 
+-	r = omapdss_dpi_display_enable(dssdev);
+-	if (r)
+-		goto err0;
+-
+-	if (dssdev->platform_enable) {
+-		r = dssdev->platform_enable(dssdev);
+-		if (r)
+-			goto err1;
+-	}
+-
+ 	regulator_enable(tpo_td043->vcc_reg);
+ 
+-	/* wait for power up */
++	/* wait for regulator to stabilize */
+ 	msleep(160);
+ 
+ 	if (gpio_is_valid(nreset_gpio))
+@@ -301,19 +293,15 @@ static int tpo_td043_power_on(struct omap_dss_device *dssdev)
+ 			tpo_td043->vmirror);
+ 	tpo_td043_write_gamma(tpo_td043->spi, tpo_td043->gamma);
+ 
++	tpo_td043->powered_on = 1;
+ 	return 0;
+-err1:
+-	omapdss_dpi_display_disable(dssdev);
+-err0:
+-	return r;
+ }
+ 
+-static void tpo_td043_power_off(struct omap_dss_device *dssdev)
++static void tpo_td043_power_off(struct tpo_td043_device *tpo_td043)
+ {
+-	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
+-	int nreset_gpio = dssdev->reset_gpio;
++	int nreset_gpio = tpo_td043->nreset_gpio;
+ 
+-	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++	if (!tpo_td043->powered_on)
+ 		return;
+ 
+ 	tpo_td043_write(tpo_td043->spi, 3,
+@@ -329,54 +317,94 @@ static void tpo_td043_power_off(struct omap_dss_device *dssdev)
+ 
+ 	regulator_disable(tpo_td043->vcc_reg);
+ 
++	tpo_td043->powered_on = 0;
++}
++
++static int tpo_td043_enable_dss(struct omap_dss_device *dssdev)
++{
++	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
++	int r;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		return 0;
++
++	r = omapdss_dpi_display_enable(dssdev);
++	if (r)
++		goto err0;
++
++	if (dssdev->platform_enable) {
++		r = dssdev->platform_enable(dssdev);
++		if (r)
++			goto err1;
++	}
++
++	/*
++	 * If we are resuming from system suspend, SPI clocks might not be
++	 * enabled yet, so we'll program the LCD from SPI PM resume callback.
++	 */
++	if (!tpo_td043->spi_suspended) {
++		r = tpo_td043_power_on(tpo_td043);
++		if (r)
++			goto err1;
++	}
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++err1:
++	omapdss_dpi_display_disable(dssdev);
++err0:
++	return r;
++}
++
++static void tpo_td043_disable_dss(struct omap_dss_device *dssdev)
++{
++	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(&dssdev->dev);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		return;
++
+ 	if (dssdev->platform_disable)
+ 		dssdev->platform_disable(dssdev);
+ 
+ 	omapdss_dpi_display_disable(dssdev);
++
++	if (!tpo_td043->spi_suspended)
++		tpo_td043_power_off(tpo_td043);
+ }
+ 
+ static int tpo_td043_enable(struct omap_dss_device *dssdev)
+ {
+-	int ret;
+-
+ 	dev_dbg(&dssdev->dev, "enable\n");
+ 
+-	ret = tpo_td043_power_on(dssdev);
+-	if (ret)
+-		return ret;
+-
+-	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
+-
+-	return 0;
++	return tpo_td043_enable_dss(dssdev);
+ }
+ 
+ static void tpo_td043_disable(struct omap_dss_device *dssdev)
+ {
+ 	dev_dbg(&dssdev->dev, "disable\n");
+ 
+-	tpo_td043_power_off(dssdev);
++	tpo_td043_disable_dss(dssdev);
+ 
+ 	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
+ }
+ 
+ static int tpo_td043_suspend(struct omap_dss_device *dssdev)
+ {
+-	tpo_td043_power_off(dssdev);
++	dev_dbg(&dssdev->dev, "suspend\n");
++
++	tpo_td043_disable_dss(dssdev);
++
+ 	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++
+ 	return 0;
+ }
+ 
+ static int tpo_td043_resume(struct omap_dss_device *dssdev)
+ {
+-	int r = 0;
+-
+-	r = tpo_td043_power_on(dssdev);
+-	if (r)
+-		return r;
+-
+-	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++	dev_dbg(&dssdev->dev, "resume\n");
+ 
+-	return 0;
++	return tpo_td043_enable_dss(dssdev);
+ }
+ 
+ static int tpo_td043_probe(struct omap_dss_device *dssdev)
+@@ -491,6 +519,7 @@ static int tpo_td043_spi_probe(struct spi_device *spi)
+ 		return -ENOMEM;
+ 
+ 	tpo_td043->spi = spi;
++	tpo_td043->nreset_gpio = dssdev->reset_gpio;
+ 	dev_set_drvdata(&spi->dev, tpo_td043);
+ 	dev_set_drvdata(&dssdev->dev, tpo_td043);
+ 
+@@ -509,10 +538,46 @@ static int __devexit tpo_td043_spi_remove(struct spi_device *spi)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM_SLEEP
++static int tpo_td043_spi_suspend(struct device *dev)
++{
++	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dev);
++
++	dev_dbg(dev, "tpo_td043_spi_suspend, tpo %p\n", tpo_td043);
++
++	tpo_td043->power_on_resume = tpo_td043->powered_on;
++	tpo_td043_power_off(tpo_td043);
++	tpo_td043->spi_suspended = 1;
++
++	return 0;
++}
++
++static int tpo_td043_spi_resume(struct device *dev)
++{
++	struct tpo_td043_device *tpo_td043 = dev_get_drvdata(dev);
++	int ret;
++
++	dev_dbg(dev, "tpo_td043_spi_resume\n");
++
++	if (tpo_td043->power_on_resume) {
++		ret = tpo_td043_power_on(tpo_td043);
++		if (ret)
++			return ret;
++	}
++	tpo_td043->spi_suspended = 0;
++
++	return 0;
++}
++#endif
++
++static SIMPLE_DEV_PM_OPS(tpo_td043_spi_pm,
++	tpo_td043_spi_suspend, tpo_td043_spi_resume);
++
+ static struct spi_driver tpo_td043_spi_driver = {
+ 	.driver = {
+ 		.name	= "tpo_td043mtea1_panel_spi",
+ 		.owner	= THIS_MODULE,
++		.pm	= &tpo_td043_spi_pm,
+ 	},
+ 	.probe	= tpo_td043_spi_probe,
+ 	.remove	= __devexit_p(tpo_td043_spi_remove),
+-- 
+1.7.0.4
+
