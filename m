@@ -1,28 +1,54 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP34xx
-Date: Tue, 7 Feb 2012 08:46:03 +0000
-Message-ID: <20120207084603.GQ1275@n2100.arm.linux.org.uk>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205012556.GG1426@atomide.com> <20120205125904.GB11372@n2100.arm.linux.org.uk> <20120205172925.GS20333@atomide.com> <4F306016.9010203@ti.com> <20120207002405.GA18209@n2100.arm.linux.org.uk> <CACxGe6t0-10DOwrh_auvUtOUZ3SCgiz8vFrf35LejT+Py8q0zA@mail.gmail.com> <4F30B61C.3020801@ti.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
+Date: Tue, 7 Feb 2012 15:32:22 +0530
+Message-ID: <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
+References: <1328367090-10402-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41236 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756572Ab2BGIqP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2012 03:46:15 -0500
-Content-Disposition: inline
-In-Reply-To: <4F30B61C.3020801@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1328367090-10402-1-git-send-email-rnayak@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balajitk@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>
 
-On Tue, Feb 07, 2012 at 06:26:52AM +0100, Cousson, Benoit wrote:
-> Moreover, with Rob latest series, IRQ_DOMAIN will be enabled on every  
-> ARM platform, so the "depend IRQ_DOMAIN" that "fix" is removing right  
-> now will have to be added again once we will move that code to use  
-> genirq domain support.
+On Sat, Feb 4, 2012 at 8:21 PM, Rajendra Nayak <rnayak@ti.com> wrote:
+> This series mainly cleans up all instances of hardcoding's in
+> the driver based on pdev->id. This is cleanup leading to the
+> DT adaptation of omap_hsmmc driver.
+>
+> Patches are based on 3.3-rc2 and can be found here
+> git://gitorious.org/omap-pm/linux.git omap_hsmmc_cleanup
+>
+> Tested the patches on my omap4 boards (panda and SDP) but
+> haven't tested yet on omap3/2 since I did'nt have boards
+> handy. So any testing on any omap3/2 boards is really
+> appreciated.
 
-Please, get a clue and realise that the current code, even with IRQ_DOMAIN
-set, OOPSes on boot, as I've already reported, and as I've now said several
-times now.  The code is fucked.  Therefore code needs fixing.
+I gave it a spin on Beagleboard-XM (OMAP3630) with root filesystem
+on the SD card, and checked again on 4430SDP.
+
+Tested-by: Venkatraman S <svenkatr@ti.com>
+
+>
+> regards,
+> Rajendra
+>
+> Balaji T K (3):
+> =A0mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
+> =A0 =A0channels
+> =A0mmc: omap_hsmmc: remove unused .set_sleep function
+> =A0mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
+> =A0 =A0host->id based hardcoding
+>
+> Rajendra Nayak (3):
+> =A0mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
+> =A0mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
+> =A0mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
+>
+> =A0arch/arm/plat-omap/include/plat/mmc.h | =A0 =A02 -
+> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 | =A0158 +++--------=
+----------------------
+> =A02 files changed, 14 insertions(+), 146 deletions(-)
+>
