@@ -1,43 +1,84 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH][RFC] tracing/rcu: Add trace_##name##__rcuidle() static
- tracepoint for inside rcu_idle_exit() sections
-Date: Tue, 07 Feb 2012 07:32:56 -0500
-Message-ID: <1328617976.2200.66.camel@gandalf.stny.rr.com>
-References: <20120202190708.GE2518@linux.vnet.ibm.com>
- <87obtgc1xx.fsf@ti.com> <4F2B1307.5010207@gmail.com>
- <1328223819.5882.133.camel@gandalf.stny.rr.com>
- <20120202232736.GL2518@linux.vnet.ibm.com>
- <1328237131.5882.135.camel@gandalf.stny.rr.com>
- <20120203060458.GF2380@linux.vnet.ibm.com>
- <1328295309.5882.178.camel@gandalf.stny.rr.com>
- <20120203194005.GK2382@linux.vnet.ibm.com>
- <1328563113.2200.39.camel@gandalf.stny.rr.com>
- <20120206233804.GM5941@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120206233804.GM5941@linux.vnet.ibm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: paulmck@linux.vnet.ibm.com
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, "Paul E. McKenney" <paul.mckenney@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@v
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 0/7] MFD: twl6040: Conversion to i2c driver
+Date: Tue,  7 Feb 2012 15:01:11 +0200
+Message-ID: <1328619678-26080-1-git-send-email-peter.ujfalusi@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 2012-02-06 at 15:38 -0800, Paul E. McKenney wrote:
+Hello,
 
-> Aside from the "pre;" below needing to precede rcu_read_lock_sched_notrace()
-> as Josh noted, this looks reasonable to me.
-> 
+Changes since v1 (RFC series):
+- make use of regmap in the converted twl6040 driver [1]
+- use module_i2c_driver to reduce line of code
+- Use regulator_bulk functions for now in the twl6040 mfd driver. [2]
 
-Does this mean I can add an Acked-by from you and Josh? Obviously with
-the post "pre" change.
+[1] Initially I'm not using the register cache offered by regmap, it will come
+as a followup series
 
--- Steve
+[2] When the driver supports more power levels, the bulk_enable/disable will be
+removed, and the VIO/V2V1 supplies are going to be handled separately. As of now
+it is better to enable them with the bulk call.
+
+Still in the to-do list:
+Implement proper regulator support on SDP4430, and PandaBoard for the needed
+supplies by the twl6040.
+The supply source is the same on both boards:
+TWL6040 VDD2V1 <- TWL6030 V2V1 SMPS
+TWL6040 VDDVIO <- TWL6030 V1V8 SMPS
+
+There seams to be no control implemented in the regulator driver for these SMPS
+regulators, so this need to be done first.
+
+The reason that I'm sending this series (even when I know that the proper
+regulator support is missing for SDP4430/PandaBoard) is to get feedback for the
+rest of the series, so I can include the fixes in the v3 series.
+
+------
+Intro mail from the original series:
+
+This series will convert the twl6040 MFD driver to an i2c driver.
+Compared to older twl4030/5030/TPS the twl6040 is a standalone audio IC. It is
+better if the twl6040-core (and all of it's child devices) does not depend on
+the twl-core since it has nothing to with it.
+
+With this conversion the dependency on twl can be dropped from the twl6040
+driver stack (core, vibra, audio).
+
+Between the first and second patch the audio will not probe on OMAP4, but I felt
+it is better this way at least for the first RFC series to not have too big
+change within one patch. The two patch can be squashed together later if no
+objections.
+
+Regards,
+Peter
+---
+Peter Ujfalusi (7):
+  MFD: twl-core: Detach twl6040 from the pmic mfd driver
+  MFD: twl6040: Convert to i2c driver, and separate it from twl core
+  ASoC: twl6040: Remove dependency on twl4030 from Kconfig
+  OMAP: 4430sdp: Correct fixed regulator device ID
+  OMAP: sdp4430: Add fixed regulator for twl6040 needs
+  OMAP: omap4panda: Add fixed regulator for twl6040 needs
+  MFD: TWL6040: Add regulator support for VIO, V2V1 supplies
+
+ arch/arm/mach-omap2/board-4430sdp.c    |   77 ++++++++++++++--
+ arch/arm/mach-omap2/board-generic.c    |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c |   75 ++++++++++++++--
+ arch/arm/mach-omap2/twl-common.c       |   37 +++++++-
+ arch/arm/mach-omap2/twl-common.h       |   10 +--
+ drivers/input/misc/Kconfig             |    1 -
+ drivers/input/misc/twl6040-vibra.c     |    4 +-
+ drivers/mfd/Kconfig                    |    2 +-
+ drivers/mfd/twl-core.c                 |   58 +++++++-----
+ drivers/mfd/twl6040-core.c             |  155 +++++++++++++++++++++----------
+ include/linux/i2c/twl.h                |   12 ---
+ include/linux/mfd/twl6040.h            |   29 ++++++
+ sound/soc/codecs/Kconfig               |    2 +-
+ sound/soc/codecs/twl6040.c             |    3 +-
+ 14 files changed, 345 insertions(+), 122 deletions(-)
+
+-- 
+1.7.8.4
