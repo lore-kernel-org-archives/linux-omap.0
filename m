@@ -1,31 +1,35 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
-Date: Tue, 07 Feb 2012 07:49:28 -0800
-Message-ID: <4F314808.9070009@ti.com>
-References: <1328367090-10402-1-git-send-email-rnayak@ti.com>
- <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: OMAP34xx
+Date: Tue, 7 Feb 2012 17:28:09 +0000
+Message-ID: <20120207172809.GD26764@sirena.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+ <20120204190109.GL20333@atomide.com>
+ <20120204203453.GD17309@n2100.arm.linux.org.uk>
+ <20120205012556.GG1426@atomide.com>
+ <20120205125904.GB11372@n2100.arm.linux.org.uk>
+ <20120205172925.GS20333@atomide.com>
+ <4F306016.9010203@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: cjb@laptop.org, linaro-dev@lists.linaro.org, balajitk@ti.com, patches@linaro.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:51029 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513Ab2BGR2O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2012 12:28:14 -0500
+Content-Disposition: inline
+In-Reply-To: <4F306016.9010203@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 
-On Tuesday 07 February 2012 02:02 AM, S, Venkatraman wrote:
-> I gave it a spin on Beagleboard-XM (OMAP3630) with root filesystem
-> on the SD card, and checked again on 4430SDP.
->
-> Tested-by: Venkatraman S<svenkatr@ti.com>
+On Tue, Feb 07, 2012 at 12:19:50AM +0100, Cousson, Benoit wrote:
 
-Great, thanks Venkat.
+> The twl changes were done like that because it was assuming that
+> USE_OF and thus IRQ_DOMAIN will be enabled by default for all OMAP2+
+> platforms at 3.3 time.  The whole point of doing that was to reduce
+> the ifdefery in every drivers we have to adapt to DT.
+
+Note that those drivers have been buildable on non-OMAP platforms for a
+very long time now in order to give better build coverage for the
+function drivers.
