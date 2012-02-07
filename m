@@ -1,86 +1,43 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V3 0/3] ARM: OMAP4: Remove hardcoded reg-offs for
- PWRSTCTRL & PWRSTST
-Date: Tue, 7 Feb 2012 10:56:26 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317C25CC@DBDE01.ent.ti.com>
-References: <1328269436-18668-1-git-send-email-hvaibhav@ti.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH][RFC] tracing/rcu: Add trace_##name##__rcuidle() static
+ tracepoint for inside rcu_idle_exit() sections
+Date: Tue, 07 Feb 2012 07:32:56 -0500
+Message-ID: <1328617976.2200.66.camel@gandalf.stny.rr.com>
+References: <20120202190708.GE2518@linux.vnet.ibm.com>
+ <87obtgc1xx.fsf@ti.com> <4F2B1307.5010207@gmail.com>
+ <1328223819.5882.133.camel@gandalf.stny.rr.com>
+ <20120202232736.GL2518@linux.vnet.ibm.com>
+ <1328237131.5882.135.camel@gandalf.stny.rr.com>
+ <20120203060458.GF2380@linux.vnet.ibm.com>
+ <1328295309.5882.178.camel@gandalf.stny.rr.com>
+ <20120203194005.GK2382@linux.vnet.ibm.com>
+ <1328563113.2200.39.camel@gandalf.stny.rr.com>
+ <20120206233804.GM5941@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36013 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754899Ab2BGK4f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2012 05:56:35 -0500
-In-Reply-To: <1328269436-18668-1-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120206233804.GM5941@linux.vnet.ibm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: paulmck@linux.vnet.ibm.com
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, "Paul E. McKenney" <paul.mckenney@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@v
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Feb 03, 2012 at 17:13:53, Hiremath, Vaibhav wrote:
-> This patch series removes the existing hard-coded way of providing
-> offset to omap4_prminst_xxx API's and instead use offsets
-> provided in powerdomainsxxxx_data.
-> Also, hook up AM33XX device support to existing omap4 PRM code.
-> 
-> Background:
-> ==========
-> PRM module in AM33XX is closer to OMAP4 PRM module, so it complete
-> sense to reuse all the code from existing OMAP4 implementation.
-> Having said that, there is a catch here with respect to AM33XX device,
-> 
-> The register offset in PRM module is not consistent
-> across (crazy IP integration), for example,
-> 
-> PRM_XXX         PWRSTCTRL PWRSTST RSTCTRL RSTST
-> ===============================================
-> PRM_PER_MOD:    0x0C,     0x08,   0x00,   0x04
-> PRM_WKUP_MOD:   0x04,     0x08,   0x00,   0x0C
-> PRM_MPU_MOD:    0x00,     0x04,   0x08,   NA
-> PRM_DEVICE_MOD: NA,       NA,     0x00,   0x08
-> 
-> So in order to reuse the existing OMAP4 code, we have to add
-> seperate entry for register offsets, especially
-> PWRSTCTRL & PWRSTST.
-> 
-> NOTE: Boot tested on AM335x EVM and AM37xEVM
-> 
-> Changes from V2:
-> 	- As per Kevin's comment, created separate prm_base table
-> 	  for am33xx and added __init function for prminst to
-> 	  initialize prm_base table during boot time.
-> 	- Minor comment from Kevin, to add extra line in patch 1/3
-> Changes from V1:
->  	- As per Kevin's comment, patch is split into logical
-> 	  commits for ease of review.
->   	- Added specific comment for cpu_is_xxx check order
-> 	  change.
-> 
-> 
-> Vaibhav Hiremath (3):
->   ARM: OMAP4: Remove hardcoded reg-offs for PWRSTCTRL & PWRSTST
->   ARM: OMAP4: prminst: Add boot time __init function for prminst
->   ARM: OMAP: am33xx: Hook-up am33xx support to existing prm code
+On Mon, 2012-02-06 at 15:38 -0800, Paul E. McKenney wrote:
+
+> Aside from the "pre;" below needing to precede rcu_read_lock_sched_notrace()
+> as Josh noted, this looks reasonable to me.
 > 
 
-Kevin,
+Does this mean I can add an Acked-by from you and Josh? Obviously with
+the post "pre" change.
 
-Any comments on this patch-series?
-
-Thanks,
-Vaibhav
-
->  arch/arm/mach-omap2/io.c                    |    3 ++
->  arch/arm/mach-omap2/omap_hwmod.c            |   44 +++++++++++++++++++--------
->  arch/arm/mach-omap2/powerdomain.h           |    4 ++
->  arch/arm/mach-omap2/powerdomain44xx.c       |   24 +++++++-------
->  arch/arm/mach-omap2/powerdomains44xx_data.c |    9 +++++
->  arch/arm/mach-omap2/prcm44xx.h              |    2 +
->  arch/arm/mach-omap2/prminst44xx.c           |   35 ++++++++++++++++-----
->  arch/arm/mach-omap2/prminst44xx.h           |    2 +-
->  8 files changed, 89 insertions(+), 34 deletions(-)
-> 
-> 
-
+-- Steve
