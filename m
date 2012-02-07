@@ -1,200 +1,48 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH][RFC] tracing/rcu: Add trace_##name##__rcuidle() static
- tracepoint for inside rcu_idle_exit() sections
-Date: Mon, 6 Feb 2012 15:38:05 -0800
-Message-ID: <20120206233804.GM5941@linux.vnet.ibm.com>
-References: <20120202190708.GE2518@linux.vnet.ibm.com> <87obtgc1xx.fsf@ti.com>
- <4F2B1307.5010207@gmail.com>
- <1328223819.5882.133.camel@gandalf.stny.rr.com>
- <20120202232736.GL2518@linux.vnet.ibm.com>
- <1328237131.5882.135.camel@gandalf.stny.rr.com>
- <20120203060458.GF2380@linux.vnet.ibm.com>
- <1328295309.5882.178.camel@gandalf.stny.rr.com>
- <20120203194005.GK2382@linux.vnet.ibm.com>
- <1328563113.2200.39.camel@gandalf.stny.rr.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Tue, 7 Feb 2012 08:41:17 +0000
+Message-ID: <20120207084117.GP1275@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205012556.GG1426@atomide.com> <20120205125904.GB11372@n2100.arm.linux.org.uk> <20120205172925.GS20333@atomide.com> <4F306016.9010203@ti.com> <20120207002405.GA18209@n2100.arm.linux.org.uk> <4F307661.6030706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52004 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754411Ab2BGIla (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2012 03:41:30 -0500
 Content-Disposition: inline
-In-Reply-To: <1328563113.2200.39.camel@gandalf.stny.rr.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Nicolas Pitre <nicolas.pitre@linaro.org>, mathieu.desnoyers@polymtl.ca, peterz@infradead.org, fweisbec@gmail.com, Nicolas Ferre <nicolas.ferre@atmel.com>, dhowells@redhat.com, Lennert Buytenhek <kernel@wantstofly.org>, Kevin Hilman <khilman@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Russell King <linux@arm.linux.org.uk>, eric.dumazet@gmail.com, "Paul E. McKenney" <paul.mckenney@linaro.org>, Magnus Damm <magnus.damm@gmail.com>, Tony Lindgren <tony@atomide.com>, dipankar@in.ibm.com, darren@dvhart.com, mingo@elte.hu, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Len Brown <len.brown@intel.com>, Amit Kucheria <amit.kucheria@canonical.com>, patches@linaro.org, Will Deacon <will.deacon@arm.com>, josh@joshtriplett.org, Sekhar Nori <nsekhar@ti.com>, niv@us.ibm.com, linux-samsung-soc@vger.kernel.org, Barry Song <baohua.song@csr.com>, tglx@linutronix.de, linux-omap@v
+In-Reply-To: <4F307661.6030706@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 
-On Mon, Feb 06, 2012 at 04:18:33PM -0500, Steven Rostedt wrote:
-> As I have said, I may find a better solution than to create a
-> TRACE_EVENT_IDLE(), and I believe I have :-)
-> 
-> A added a new static inline function that lets *any* tracepoint be used
-> inside a rcu_idle_exit() section. And this also solves the problem where
-> the same tracepoint may be used inside a rcu_idle_exit() section as well
-> as outside of one.
-> 
-> I added a new tracepoint function with a "_rcuidle" extension. All
-> tracepoints can be used with either the normal "trace_foobar()"
-> function, or the "trace_foobar_rcuidle()" function when inside a
-> rcu_idle_exit() section.
-> 
-> Ideally, this patch would be broken up into two commits. The first would
-> change the tracepoint.h to introduce the new trace_foobar_rcuidle()
-> static inline, and the second patch would change the power tracepoints
-> to use this tracepoint function. For the RFC, I'm keeping it as a single
-> patch.
-> 
-> Another nice aspect about this patch is that "static inline"s are not
-> compiled into text when not used. So only the tracepoints that actually
-> use the _rcuidle() version will have them defined in the actual text
-> that is booted.
-> 
-> -- Steve
+On Tue, Feb 07, 2012 at 01:54:57AM +0100, Cousson, Benoit wrote:
+> Hi Russell,
+>
+> On 2/7/2012 1:24 AM, Russell King - ARM Linux wrote:
+>> On Tue, Feb 07, 2012 at 12:19:50AM +0100, Cousson, Benoit wrote:
+>>> In theory that patch should not be even needed.
+>>
+>> In theory that change is needed to fix the obviously broken code which
+>> is there at the moment.
+>
+> Well, both patches were supposed to be merged during the last merge  
+> window, so this code is not broken
 
-Aside from the "pre;" below needing to precede rcu_read_lock_sched_notrace()
-as Josh noted, this looks reasonable to me.
+You're talking out your arse.  It's fucked, because:
 
-							Thanx, Paul
+        domain.irq_base = pdata->irq_base;
+        domain.nr_irq = nr_irqs;
+#ifdef CONFIG_OF_IRQ
+        domain.of_node = of_node_get(node);
+        domain.ops = &irq_domain_simple_ops;
+#endif
+        irq_domain_add(&domain);
 
-> Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-> 
-> Index: linux-trace.git/include/linux/tracepoint.h
-> ===================================================================
-> --- linux-trace.git.orig/include/linux/tracepoint.h
-> +++ linux-trace.git/include/linux/tracepoint.h
-> @@ -114,7 +114,7 @@ static inline void tracepoint_synchroniz
->   * as "(void *, void)". The DECLARE_TRACE_NOARGS() will pass in just
->   * "void *data", where as the DECLARE_TRACE() will pass in "void *data, proto".
->   */
-> -#define __DO_TRACE(tp, proto, args, cond)				\
-> +#define __DO_TRACE(tp, proto, args, cond, pre, post)			\
->  	do {								\
->  		struct tracepoint_func *it_func_ptr;			\
->  		void *it_func;						\
-> @@ -123,6 +123,7 @@ static inline void tracepoint_synchroniz
->  		if (!(cond))						\
->  			return;						\
->  		rcu_read_lock_sched_notrace();				\
-> +		pre;							\
->  		it_func_ptr = rcu_dereference_sched((tp)->funcs);	\
->  		if (it_func_ptr) {					\
->  			do {						\
-> @@ -132,6 +133,7 @@ static inline void tracepoint_synchroniz
->  			} while ((++it_func_ptr)->func);		\
->  		}							\
->  		rcu_read_unlock_sched_notrace();			\
-> +		post;							\
->  	} while (0)
-> 
->  /*
-> @@ -139,7 +141,7 @@ static inline void tracepoint_synchroniz
->   * not add unwanted padding between the beginning of the section and the
->   * structure. Force alignment to the same alignment as the section start.
->   */
-> -#define __DECLARE_TRACE(name, proto, args, cond, data_proto, data_args)	\
-> +#define __DECLARE_TRACE(name, proto, args, cond, data_proto, data_args) \
->  	extern struct tracepoint __tracepoint_##name;			\
->  	static inline void trace_##name(proto)				\
->  	{								\
-> @@ -147,7 +149,17 @@ static inline void tracepoint_synchroniz
->  			__DO_TRACE(&__tracepoint_##name,		\
->  				TP_PROTO(data_proto),			\
->  				TP_ARGS(data_args),			\
-> -				TP_CONDITION(cond));			\
-> +				TP_CONDITION(cond),,);			\
-> +	}								\
-> +	static inline void trace_##name##_rcuidle(proto)		\
-> +	{								\
-> +		if (static_branch(&__tracepoint_##name.key))		\
-> +			__DO_TRACE(&__tracepoint_##name,		\
-> +				TP_PROTO(data_proto),			\
-> +				TP_ARGS(data_args),			\
-> +				TP_CONDITION(cond),			\
-> +				rcu_idle_exit(),			\
-> +				rcu_idle_enter());			\
->  	}								\
->  	static inline int						\
->  	register_trace_##name(void (*probe)(data_proto), void *data)	\
-> @@ -190,7 +202,7 @@ static inline void tracepoint_synchroniz
->  	EXPORT_SYMBOL(__tracepoint_##name)
-> 
->  #else /* !CONFIG_TRACEPOINTS */
-> -#define __DECLARE_TRACE(name, proto, args, cond, data_proto, data_args)	\
-> +#define __DECLARE_TRACE(name, proto, args, cond, data_proto, data_args) \
->  	static inline void trace_##name(proto)				\
->  	{ }								\
->  	static inline int						\
-> Index: linux-trace.git/arch/x86/kernel/process.c
-> ===================================================================
-> --- linux-trace.git.orig/arch/x86/kernel/process.c
-> +++ linux-trace.git/arch/x86/kernel/process.c
-> @@ -377,8 +377,8 @@ static inline int hlt_use_halt(void)
->  void default_idle(void)
->  {
->  	if (hlt_use_halt()) {
-> -		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> -		trace_cpu_idle(1, smp_processor_id());
-> +		trace_power_start_rcuidle(POWER_CSTATE, 1, smp_processor_id());
-> +		trace_cpu_idle_rcuidle(1, smp_processor_id());
->  		current_thread_info()->status &= ~TS_POLLING;
->  		/*
->  		 * TS_POLLING-cleared state must be visible before we
-> @@ -391,7 +391,7 @@ void default_idle(void)
->  		else
->  			local_irq_enable();
->  		current_thread_info()->status |= TS_POLLING;
-> -		trace_power_end(smp_processor_id());
-> +		trace_power_end_rcuidle(smp_processor_id());
->  		trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
->  	} else {
->  		local_irq_enable();
-> @@ -450,8 +450,8 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
->  static void mwait_idle(void)
->  {
->  	if (!need_resched()) {
-> -		trace_power_start(POWER_CSTATE, 1, smp_processor_id());
-> -		trace_cpu_idle(1, smp_processor_id());
-> +		trace_power_start_rcuidle(POWER_CSTATE, 1, smp_processor_id());
-> +		trace_cpu_idle_rcuidle(1, smp_processor_id());
->  		if (this_cpu_has(X86_FEATURE_CLFLUSH_MONITOR))
->  			clflush((void *)&current_thread_info()->flags);
-> 
-> @@ -461,8 +461,8 @@ static void mwait_idle(void)
->  			__sti_mwait(0, 0);
->  		else
->  			local_irq_enable();
-> -		trace_power_end(smp_processor_id());
-> -		trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-> +		trace_power_end_rcuidle(smp_processor_id());
-> +		trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
->  	} else
->  		local_irq_enable();
->  }
-> @@ -474,13 +474,13 @@ static void mwait_idle(void)
->   */
->  static void poll_idle(void)
->  {
-> -	trace_power_start(POWER_CSTATE, 0, smp_processor_id());
-> -	trace_cpu_idle(0, smp_processor_id());
-> +	trace_power_start_rcuidle(POWER_CSTATE, 0, smp_processor_id());
-> +	trace_cpu_idle_rcuidle(0, smp_processor_id());
->  	local_irq_enable();
->  	while (!need_resched())
->  		cpu_relax();
-> -	trace_power_end(smp_processor_id());
-> -	trace_cpu_idle(PWR_EVENT_EXIT, smp_processor_id());
-> +	trace_power_end_rcuidle(smp_processor_id());
-> +	trace_cpu_idle_rcuidle(PWR_EVENT_EXIT, smp_processor_id());
->  }
-> 
->  /*
-> 
-> 
+YOU MUST NEVER EVER REGISTER AN IRQ DOMAIN WITH A NULL .ops MEMBER OTHERWISE
+THE KERNEL IS GUARANTEED TO OOPS.
+
+I don't care whether you think "oh, but OF_IRQ should have been set".
+That's not the point.  The fact is, how this code is _currently_ written,
+it is _broken_ and therefore this code needs fixing.
