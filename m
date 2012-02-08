@@ -1,54 +1,51 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: OMAP34xx
-Date: Wed, 08 Feb 2012 15:03:19 -0800
-Message-ID: <871uq53p3c.fsf@ti.com>
-References: <20120205125904.GB11372@n2100.arm.linux.org.uk>
-	<20120205172925.GS20333@atomide.com>
-	<20120205175809.GF17309@n2100.arm.linux.org.uk>
-	<20120205182910.GK1426@atomide.com> <87lioegtk9.fsf@ti.com>
-	<87y5sei1qz.fsf@ti.com>
-	<CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
-	<87k43xfee3.fsf@ti.com> <20120208170653.GA3492@kroah.com>
-	<CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
-	<20120208195327.GA5223@kroah.com>
+Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
+Date: Wed, 08 Feb 2012 15:06:15 -0800
+Message-ID: <87ty312ae0.fsf@ti.com>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
+	<E1RvAWP-0006H3-1A@rmk-PC.arm.linux.org.uk>
+	<20120208184539.GE29796@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:53810 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755241Ab2BHXD2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:03:28 -0500
-Received: by pbcun15 with SMTP id un15so1451318pbc.33
-        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 15:03:23 -0800 (PST)
-In-Reply-To: <20120208195327.GA5223@kroah.com> (Greg KH's message of "Wed, 8
-	Feb 2012 11:53:27 -0800")
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:42639 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755092Ab2BHXGS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:06:18 -0500
+Received: by mail-pw0-f42.google.com with SMTP id wz12so1646460pbc.1
+        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 15:06:17 -0800 (PST)
+In-Reply-To: <20120208184539.GE29796@atomide.com> (Tony Lindgren's message of
+	"Wed, 8 Feb 2012 10:45:39 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Greg,
+Tony Lindgren <tony@atomide.com> writes:
 
-Greg KH <gregkh@linuxfoundation.org> writes:
-
-[...]
-
->> It would look to me like they are queued for 3.4 but Kevin says there
->> were intended for 3.3-rc.
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:06]:
+>> While testing on my OMAP3430 platform, this error message was emitted:
+>> 
+>> omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
+>> 
+>> Trying to find this message was difficult because it was wrapped across
+>> several lines.  It also mis-spells "required", doesn't read very well,
+>> and has spaces lacking.  Let's replace it with a more concise:
+>> 
+>> omap_vc_init_channel: No PMIC info for vdd_core
+>> 
+>> While we're here, fix a simple spelling error in a comment.
+>> 
+>> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 >
-> Kevin might have wished they would go into 3.3, but given that the first
-> round of these patches had to be reverted, I thought it safer to wait
-> for 3.4.
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Sorry for the churn on these, but I guess we weren't expecting you to
-apply the first before it got some testing/acks.  Sorry about that.
+NAK.
 
-The version you have currently queued is needed for v3.3 as they fix
-brokenness on v3.3.  Any chance they can be applied queued for 3.3?
-We'll have another set of enhancements on top of those that are
-targetted for v3.4, but those you have queued currently are defintely
-fixes.
+Tony, please use the patches already in your cleanup branch (that came
+from my for_3.3/cleanup/pm) that fix this and also fix a similar problem
+for VP.
+
+Thanks,
 
 Kevin
-
-
