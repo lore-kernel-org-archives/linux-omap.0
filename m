@@ -1,41 +1,69 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/16] ARM: omap: fix oops in
-	drivers/video/omap2/dss/dpi.c
-Date: Wed, 8 Feb 2012 22:50:12 +0000
-Message-ID: <20120208225012.GA25414@n2100.arm.linux.org.uk>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk> <E1RvAVQ-0006Gp-Is@rmk-PC.arm.linux.org.uk> <20120208183607.GB29796@atomide.com>
+Subject: Re: [PATCH 16/16] ARM: omap: disable cpuidle for OMAP3 platforms
+Date: Wed, 8 Feb 2012 22:59:23 +0000
+Message-ID: <20120208225923.GB25414@n2100.arm.linux.org.uk>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk> <E1RvAZz-0006Hr-9C@rmk-PC.arm.linux.org.uk> <20120208185905.GP29796@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50476 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35477 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754759Ab2BHWuV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 17:50:21 -0500
+	with ESMTP id S1756573Ab2BHW7d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 17:59:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20120208183607.GB29796@atomide.com>
+In-Reply-To: <20120208185905.GP29796@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Feb 08, 2012 at 10:36:07AM -0800, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:05]:
-> > When a PMIC is not found, this driver is unable to obtain its
-> > 'vdds_dsi_reg' regulator.  Even through its initialization function
-> > fails, other code still calls its enable function, which fails to
-> > check whether it has this regulator before asking for it to be enabled.
+On Wed, Feb 08, 2012 at 10:59:06AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:10]:
+> > Commit 2fd149645eb4 (ARM: OMAP2+: UART: Remove omap_uart_can_sleep and add pm_qos)
+> > has caused a regression on OMAP3 platforms.
 > > 
-> > This fixes the oops, however a better fix would be to sort out the
-> > upper layers to prevent them calling into a module which failed to
-> > initialize.
+> > When the UART is trying to transmit data, if we enter a low power mode,
+> > transmission stops, which makes serial on OMAP3 unusable - a 'dmesg'
+> > takes five minutes to be output at 115200 baud, at a rate of around a
+> > block of 16 characters every couple of seconds.
 > > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> > Unfortunately, the commit above can't be reverted because of many other
+> > changes in this area, so this implements a dirty fix by disabling
+> > CPU idle in the places the original commit does, irrespective of the
+> > UART state.
+> ...
 > 
-> Tomi can look into fixing this properly for v3.4:
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -421,7 +421,7 @@ static void omap3_pm_idle(void)
+> >  	local_irq_disable();
+> >  	local_fiq_disable();
+> >  
+> > -	if (omap_irq_pending() || need_resched())
+> > +	if (omap_irq_pending() || need_resched() || 1)
+> >  		goto out;
+> >  
+> >  	trace_power_start(POWER_CSTATE, 1, smp_processor_id());
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> Argh, this is just too ugly. There has got to be a better fix for the
+> -rc series.
 
-No, it's a thing for v3.3, because you can still get this oops.
+That I'd agree on - because it is ugly and it's the best I could do
+to revert the commit mentioned above short of reverting a whole raft
+of other useful looking commits.
 
-I expect _most_ of these patches will go into v3.3, and anything with
-'fix' or 'oops' in especially I want to see in v3.3.
+There's got to be a better solution.
+
+> Looks like the patches to fix omap-serial.c are queued for v3.4,
+> so that won't help.
+
+Well, the fact of the matter is this is a regression, which means it
+needs fixing for v3.3.  A simple patch would be preferred over more
+complex patches.
+
+So, if there's no other solution but to put the omap-serial patches
+in for v3.3, then that's the best solution for v3.3.  First, someone
+who understands this code needs to see whether there is a simpler
+fix (eg, putting back what was there in a simpler form.)
+
+However, leaving it in its current state for v3.3 is not acceptable.
