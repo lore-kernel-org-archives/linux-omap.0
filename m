@@ -1,50 +1,43 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 3/3 v5] usb: musb: enable support for am335x
-Date: Wed, 8 Feb 2012 09:56:52 +0530
-Message-ID: <1328675212-29693-3-git-send-email-ajay.gupta@ti.com>
-References: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP34xx
+Date: Tue, 7 Feb 2012 20:54:42 -0800
+Message-ID: <20120208045441.GA20885@atomide.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+ <20120204190109.GL20333@atomide.com>
+ <20120204203453.GD17309@n2100.arm.linux.org.uk>
+ <20120205012556.GG1426@atomide.com>
+ <20120205125904.GB11372@n2100.arm.linux.org.uk>
+ <20120205172925.GS20333@atomide.com>
+ <4F306016.9010203@ti.com>
+ <20120207172809.GD26764@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59597 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756193Ab2BHE1I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Feb 2012 23:27:08 -0500
-In-Reply-To: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:42952 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513Ab2BHEyr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Feb 2012 23:54:47 -0500
+Content-Disposition: inline
+In-Reply-To: <20120207172809.GD26764@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, balbi@ti.com, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 
-Enabled the flag so that musb_dsps glue file can be used for am335x
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [120207 08:57]:
+> On Tue, Feb 07, 2012 at 12:19:50AM +0100, Cousson, Benoit wrote:
+> 
+> > The twl changes were done like that because it was assuming that
+> > USE_OF and thus IRQ_DOMAIN will be enabled by default for all OMAP2+
+> > platforms at 3.3 time.  The whole point of doing that was to reduce
+> > the ifdefery in every drivers we have to adapt to DT.
+> 
+> Note that those drivers have been buildable on non-OMAP platforms for a
+> very long time now in order to give better build coverage for the
+> function drivers.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/musb/Kconfig |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Good point and should be tested too while at it.
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 126c220..ef0c3f9 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -8,7 +8,7 @@ config USB_MUSB_HDRC
- 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
- 	depends on USB && USB_GADGET
- 	select NOP_USB_XCEIV if (ARCH_DAVINCI || MACH_OMAP3EVM || BLACKFIN)
--	select NOP_USB_XCEIV if SOC_OMAPTI81XX
-+	select NOP_USB_XCEIV if (SOC_OMAPTI81XX || SOC_OMAPAM33XX)
- 	select TWL4030_USB if MACH_OMAP_3430SDP
- 	select TWL6030_USB if MACH_OMAP_4430SDP || MACH_OMAP4_PANDA
- 	select USB_OTG_UTILS
-@@ -57,7 +57,7 @@ config USB_MUSB_AM35X
- 
- config USB_MUSB_DSPS
- 	tristate "TI DSPS platforms"
--	depends on SOC_OMAPTI81XX
-+	depends on SOC_OMAPTI81XX || SOC_OMAPAM33XX
- 
- config USB_MUSB_BLACKFIN
- 	tristate "Blackfin"
--- 
-1.7.0.4
+Regards,
 
+Tony
