@@ -1,74 +1,47 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] ARM: OMAP: update omap1 and omap2plus defconfigs
-Date: Wed, 08 Feb 2012 16:37:21 +0100
-Message-ID: <2185461.e7xKmI3MHi@vclass>
-References: <20120208053556.GB1426@atomide.com> <1328696173-17226-1-git-send-email-grinberg@compulab.co.il>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: OMAP34xx
+Date: Wed, 8 Feb 2012 17:16:36 +0100
+Message-ID: <4F329FE4.2090300@ti.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205012556.GG1426@atomide.com> <20120205125904.GB11372@n2100.arm.linux.org.uk> <20120205172925.GS20333@atomide.com> <4F306016.9010203@ti.com> <20120207172809.GD26764@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:59203 "EHLO d1.icnet.pl"
+Received: from bear.ext.ti.com ([192.94.94.41]:34737 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757157Ab2BHQCB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Feb 2012 11:02:01 -0500
-In-Reply-To: <1328696173-17226-1-git-send-email-grinberg@compulab.co.il>
+	id S1753535Ab2BHQQw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Feb 2012 11:16:52 -0500
+In-Reply-To: <20120207172809.GD26764@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, "rob.herring@calxeda.com" <rob.herring@calxeda.com>, Grant Likely <grant.likely@secretlab.ca>
 
-On Wednesday 08 of February 2012 12:16:13 Igor Grinberg wrote:
-> ...
-> After updating omap1_defconfig,
-> there are several section mismatch warnings seen.
-> Hopefully, I will have time to fix those tomorrow
-> (unless someone will be kind enough to fix them before me).
+Hi Mark,
 
-Sound like introduced with my recent ams-delta patches, sorry.
-I'll have a look at them.
+On 2/7/2012 6:28 PM, Mark Brown wrote:
+> On Tue, Feb 07, 2012 at 12:19:50AM +0100, Cousson, Benoit wrote:
+>
+>> The twl changes were done like that because it was assuming that
+>> USE_OF and thus IRQ_DOMAIN will be enabled by default for all OMAP2+
+>> platforms at 3.3 time.  The whole point of doing that was to reduce
+>> the ifdefery in every drivers we have to adapt to DT.
+>
+> Note that those drivers have been buildable on non-OMAP platforms for a
+> very long time now in order to give better build coverage for the
+> function drivers.
 
-Thanks,
-Janusz
+Yes, sure, but the only restriction I was adding is to make that driver 
+dependent of the IRQ_DOMAIN stuff. That should be there by default on 
+every ARM platform soon and this is there as well for PPC. So this will 
+still be buildable on other platforms assuming they will support IRQ_DOMAIN.
 
-> The mismatches are:
-> 
-> WARNING: vmlinux.o(.data+0xb7e4): Section mismatch in reference from
-> the variable latch1_gpio_device to the (unknown reference)
-> .init.rodata:(unknown) The variable latch1_gpio_device references
-> the (unknown reference) __initconst (unknown)
-> If the reference is valid then annotate the
-> variable with __init* or __refdata (see linux/init.h) or name the variable:
-> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> 
-> WARNING: vmlinux.o(.data+0xb8f4): Section mismatch in reference from
-> the variable latch1_gpio_device to the (unknown reference)
-> .init.rodata:(unknown) The variable latch1_gpio_device references
-> the (unknown reference) __initconst (unknown)
-> If the reference is valid then annotate the
-> variable with __init* or __refdata (see linux/init.h) or name the variable:
-> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> 
-> WARNING: vmlinux.o(.data+0xb974): Section mismatch in reference from
-> the variable latch2_gpio_device to the (unknown reference)
-> .init.rodata:(unknown) The variable latch2_gpio_device references
-> the (unknown reference) __initconst (unknown)
-> If the reference is valid then annotate the
-> variable with __init* or __refdata (see linux/init.h) or name the variable:
-> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> 
-> WARNING: vmlinux.o(.data+0xba84): Section mismatch in reference from
-> the variable latch2_gpio_device to the (unknown reference)
-> .init.rodata:(unknown) The variable latch2_gpio_device references
-> the (unknown reference) __initconst (unknown)
-> If the reference is valid then annotate the
-> variable with __init* or __refdata (see linux/init.h) or name the variable:
-> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> 
-> WARNING: vmlinux.o(.data+0xbb04): Section mismatch in reference from
-> the variable ams_delta_kp_device to the (unknown reference)
-> .init.data:(unknown) The variable ams_delta_kp_device references
-> the (unknown reference) __initdata (unknown)
-> If the reference is valid then annotate the
-> variable with __init* or __refdata (see linux/init.h) or name the variable:
-> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+The point is that once we will fully use the irq_domain support to 
+generic-chip that Rob is working on for this driver, we will always need 
+IRQ_DOMAIN enabled.
 
+So far the IRQ_DOMAIN support is minimal and just needed for DT because 
+that piece of infrastructure was not ready at that time.
+
+Regards,
+Benoit
