@@ -1,64 +1,50 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: OMAP34xx
-Date: Wed, 08 Feb 2012 09:01:24 -0800
-Message-ID: <87k43xfee3.fsf@ti.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
-	<20120204190109.GL20333@atomide.com>
-	<20120204203453.GD17309@n2100.arm.linux.org.uk>
-	<20120205012556.GG1426@atomide.com>
-	<20120205125904.GB11372@n2100.arm.linux.org.uk>
-	<20120205172925.GS20333@atomide.com>
-	<20120205175809.GF17309@n2100.arm.linux.org.uk>
-	<20120205182910.GK1426@atomide.com> <87lioegtk9.fsf@ti.com>
-	<87y5sei1qz.fsf@ti.com>
-	<CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: Minimum timing resolution in Ubuntu/Linaro on the PandaBoard ES
+Date: Wed, 08 Feb 2012 09:05:02 -0800
+Message-ID: <1328720702.8119.11.camel@js-netbook>
+References: <4F31A91B.8080106@umich.edu> <4F32063F.1020607@linaro.org>
+	 <51DAA6EF-1C3B-4964-8447-893D295E51A1@umich.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:60870 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754680Ab2BHRBc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Feb 2012 12:01:32 -0500
-Received: by daed14 with SMTP id d14so927102dae.33
-        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 09:01:29 -0800 (PST)
-In-Reply-To: <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
-	(Grazvydas Ignotas's message of "Wed, 8 Feb 2012 12:46:18 +0200")
+Received: from e33.co.us.ibm.com ([32.97.110.151]:48215 "EHLO
+	e33.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757331Ab2BHRGI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 12:06:08 -0500
+Received: from /spool/local
+	by e33.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-omap@vger.kernel.org> from <john.stultz@linaro.org>;
+	Wed, 8 Feb 2012 10:05:52 -0700
+Received: from d03relay05.boulder.ibm.com (d03relay05.boulder.ibm.com [9.17.195.107])
+	by d03dlp03.boulder.ibm.com (Postfix) with ESMTP id A5E7C19D8052
+	for <linux-omap@vger.kernel.org>; Wed,  8 Feb 2012 10:05:28 -0700 (MST)
+Received: from d03av02.boulder.ibm.com (d03av02.boulder.ibm.com [9.17.195.168])
+	by d03relay05.boulder.ibm.com (8.13.8/8.13.8/NCO v10.0) with ESMTP id q18H5FFK118044
+	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 10:05:17 -0700
+Received: from d03av02.boulder.ibm.com (loopback [127.0.0.1])
+	by d03av02.boulder.ibm.com (8.14.4/8.13.1/NCO v10.0 AVout) with ESMTP id q18H5ARH018869
+	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 10:05:11 -0700
+In-Reply-To: <51DAA6EF-1C3B-4964-8447-893D295E51A1@umich.edu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, gregkh@linuxfoundation.org
+To: Andrew Richardson <chardson@umich.edu>
+Cc: Dmitry Antipov <dmitry.antipov@linaro.org>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org
 
-Grazvydas Ignotas <notasas@gmail.com> writes:
+On Wed, 2012-02-08 at 04:32 -0500, Andrew Richardson wrote:
+> Ah, very interesting.
 
-> On Wed, Feb 8, 2012 at 2:53 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Kevin Hilman <khilman@ti.com> writes:
->>
->>> This one is indeed strange. =C2=A0I have not seen this on the 34xx =
-devices
->>> I'm using (3430/n900, 3530/Overo, 3630/Zoom3).
->>
->> OK, I've reproduced this on v3.3-rc2.
->>
->> The reason I wasn't seeing this is because I'm using the fixes Paul =
-has
->> already posted that fix this problem:
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0http://marc.info/?l=3Dlinux-arm-kernel&m=3D=
-132754676814391&w=3D2
->>
->> Kevin
->
-> But it looks like these are now queued for 3.4 in tty tree?
+>         > dmesg | grep clock
+>         [    0.000000] OMAP clockevent source: GPTIMER1 at 32768 Hz
+>         [    0.000000] sched_clock: 32 bits at 32kHz, resolution
+>         30517ns, wraps every 131071999ms
 
-I believe they were targettted for 3.3-rc.
+Hrm. So 30us is still much smaller then the 2.5ms you were seeing. So
+that doesn't fully explain the behavior.
 
-Paul, Greg, can you confirm?
+thanks
+-john
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
