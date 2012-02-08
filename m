@@ -1,51 +1,30 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] I2C: OMAP: fix build breakage when CONFIG_OF is not set
-Date: Wed, 8 Feb 2012 16:48:35 +0100
-Message-ID: <4F329953.9010608@ti.com>
-References: <1328698612-18661-1-git-send-email-coelho@ti.com>  <20120208105957.GB16334@legolas.emea.dhcp.ti.com>  <1328699077.20197.51.camel@cumari>  <CAM=Q2cvZWdUk-v4-EWUJzAf4br-4+tO2s3qS_dn4KhHp+mm2+g@mail.gmail.com> <1328700319.20197.54.camel@cumari>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: patch "tty: serial: OMAP: ensure FIFO levels are set correctly
+ in non-DMA" added to tty tree
+Date: Wed, 8 Feb 2012 08:50:29 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202080848530.31161@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1202021302070.586@utopia.booyaka.com> <20120203150708.386951d2@notabene.brown> <alpine.DEB.2.00.1202022137150.586@utopia.booyaka.com> <20120203205401.5ddf241d@notabene.brown> <CANOLnONsZKHJPbEx2+ic3EZ1PqcD30VT4Z2bR5iW-JNQJQL0GA@mail.gmail.com>
+ <alpine.DEB.2.00.1202031234120.27947@utopia.booyaka.com> <CANOLnOPm-ZKRvu1PVs-jU2sceehRiwNPd=ysu2SDsLbarAPVbw@mail.gmail.com> <alpine.DEB.2.00.1202040928320.9453@utopia.booyaka.com> <20120204165736.GI1275@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.1202041029520.9453@utopia.booyaka.com> <20120204175528.GL1275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1328700319.20197.54.camel@cumari>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
-Cc: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:40983 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757128Ab2BHPua (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 10:50:30 -0500
+In-Reply-To: <20120204175528.GL1275@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, khilman@ti.com, NeilBrown <neilb@suse.de>, govindraj.raja@ti.com, tomi.valkeinen@ti.com, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Luca,
 
-On 2/8/2012 12:25 PM, Luciano Coelho wrote:
-> On Wed, 2012-02-08 at 16:42 +0530, Shubhrajyoti Datta wrote:
->> On Wed, Feb 8, 2012 at 4:34 PM, Luciano Coelho<coelho-l0cyMroinI0@public.gmane.org>  wrote:
->>> On Wed, 2012-02-08 at 12:59 +0200, Felipe Balbi wrote:
->>>> On Wed, Feb 08, 2012 at 12:56:52PM +0200, Luciano Coelho wrote:
->>>>> Since commit 6145197be6cc0583fa1a2f4ec1079d366137061e, building
->>>>
->>>> we generally like to see the commit subject here too. And adding the
->>>> abbreviated commit instead of the full sha1, wouldn't hurt either ;-)
->>>
->>> Ok, different practices. :)
->>
->> However  there was already a discurssion.
->> Anyways thanks for the patch.
->> http://permalink.gmane.org/gmane.linux.ports.arm.omap/69796
->>
->>
->>>
->>> I'll send v2.
->> I think there was already a fix for this.
->>
->> http://www.spinics.net/lists/linux-omap/msg63151.html
->>
->> Anyways thanks for the patch.
->
-> Ah, okay.  Thanks for the info, I hadn't seen these.
+Hi
 
-Yeah, it looks like the OMAP fixes missed -rc2, but Tony sent the pull 
-request [1].
+Just a quick note.  Haven't had the chance to follow up on these threads 
+due to travel and other obligations, but plan to do so soon.
 
-Regards,
-Benoit
+regards -
 
-[1] http://www.spinics.net/lists/linux-omap/msg63564.html
+- Paul
