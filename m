@@ -1,23 +1,27 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
-Date: Wed, 8 Feb 2012 23:56:20 +0000
-Message-ID: <20120208235620.GE25414@n2100.arm.linux.org.uk>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk> <E1RvAWP-0006H3-1A@rmk-PC.arm.linux.org.uk> <20120208184539.GE29796@atomide.com> <87ty312ae0.fsf@ti.com> <20120208235358.GD16877@atomide.com>
+Date: Wed, 8 Feb 2012 15:57:16 -0800
+Message-ID: <20120208235716.GE16877@atomide.com>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
+ <E1RvAWP-0006H3-1A@rmk-PC.arm.linux.org.uk>
+ <20120208184539.GE29796@atomide.com>
+ <87ty312ae0.fsf@ti.com>
+ <20120208235358.GD16877@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59114 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757087Ab2BHX4b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:56:31 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:48954 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932116Ab2BHX5U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:57:20 -0500
 Content-Disposition: inline
 In-Reply-To: <20120208235358.GD16877@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, Feb 08, 2012 at 03:53:58PM -0800, Tony Lindgren wrote:
+* Tony Lindgren <tony@atomide.com> [120208 15:22]:
 > * Kevin Hilman <khilman@ti.com> [120208 14:35]:
 > > Tony Lindgren <tony@atomide.com> writes:
 > > 
@@ -56,4 +60,12 @@ On Wed, Feb 08, 2012 at 03:53:58PM -0800, Tony Lindgren wrote:
 > 
 > Everybody OK with that?
 
-Does it fix the other issues I mention in the commit log as well?
+Also, what about this one in the cleanup branch:
+
+d269914ece0498f31603ecd85ed3d7a586b3cbcd ARM: OMAP2+: PM: only register TWL with voltage layer when device is present
+
+Should that be a fix too?
+
+Regards,
+
+Tony
