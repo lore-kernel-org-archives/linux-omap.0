@@ -1,60 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap3: cm-t35: fix section mismatch warning
-Date: Tue, 7 Feb 2012 21:35:57 -0800
-Message-ID: <20120208053556.GB1426@atomide.com>
-References: <20120205012556.GG1426@atomide.com>
- <1328441980-28892-1-git-send-email-grinberg@compulab.co.il>
+Subject: Re: OMAP34xx
+Date: Tue, 7 Feb 2012 21:47:25 -0800
+Message-ID: <20120208054724.GC1426@atomide.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+ <20120204190109.GL20333@atomide.com>
+ <20120204203453.GD17309@n2100.arm.linux.org.uk>
+ <87zkcugus0.fsf@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:44956 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044Ab2BHFgE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 00:36:04 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:16667 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054Ab2BHFra (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 00:47:30 -0500
 Content-Disposition: inline
-In-Reply-To: <1328441980-28892-1-git-send-email-grinberg@compulab.co.il>
+In-Reply-To: <87zkcugus0.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Igor Grinberg <grinberg@compulab.co.il> [120205 03:08]:
-> WARNING: arch/arm/mach-omap2/built-in.o(.text+0xeae8):
-> Section mismatch in reference from the function cm_t35_init_usbh()
-> to the (unknown reference) .init.data:(unknown)
-> The function cm_t35_init_usbh() references
-> the (unknown reference) __initdata (unknown).
-> This is often because cm_t35_init_usbh lacks a __initdata
-> annotation or the annotation of (unknown) is wrong.
+* Kevin Hilman <khilman@ti.com> [120207 13:38]:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 > 
-> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
-> ---
-> Sorry about this one. I fixed similar problem for cm-t3517 a while ago,
-> but somehow missed cm-t35. Thanks for spotting.
-> Probably enabling the CONFIG_DEBUG_SECTION_MISMATCH in defconfigs
-> can raise people awareness for this.
+> [...]
+> 
+> > Another problem oopses the kernel at boot in the voltage domain code,
+> > which I suspect this has never been boot tested on OMAP34xx CPUs:
+> >
+> > omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
+> > Unable to handle kernel NULL pointer dereference at virtual address 00000000
+...
+> > [<c03db824>] (omap_vp_init+0x0/0x15c) from [<c03db448>] (omap_voltage_late_init+
+> > 0xc4/0xfc)
+...
+> 
+> FWIW, this problem has been fixed for some time, and in my
+> for_3.3/cleanup/pm branch (and included in Tony's cleanup branch) which
+> was supposed to be merged for v3.3.
 
-Thanks applying into fixes. Yes let's plan on doing that,
-and also make sure we're actually seeing the warnings..
+Yes sorry I guess I did not realize it was a fix. This was one of
+the three branches that were left out of the last merge window
+because it was getting too.
+
+I assume you're talking about commit af9a2ed9667b49e7e125eac526d8f655183ce53e?
+
+Regards,
 
 Tony
- 
->  arch/arm/mach-omap2/board-cm-t35.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-> index d839c05..a8cedbe 100644
-> --- a/arch/arm/mach-omap2/board-cm-t35.c
-> +++ b/arch/arm/mach-omap2/board-cm-t35.c
-> @@ -436,7 +436,7 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
->  	.reset_gpio_port[2]  = -EINVAL
->  };
->  
-> -static void cm_t35_init_usbh(void)
-> +static void  __init cm_t35_init_usbh(void)
->  {
->  	int err;
->  
-> -- 
-> 1.7.3.4
-> 
