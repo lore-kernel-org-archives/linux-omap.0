@@ -1,63 +1,35 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: ASoC related suspend problems on OMAP3
-Date: Wed, 8 Feb 2012 11:51:32 +0000
-Message-ID: <20120208115132.GA25756@sirena.org.uk>
-References: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH 3.3] OMAP4: PRM: fix build breakage when CONFIG_OF is
+ not defined
+Date: Wed, 08 Feb 2012 15:50:30 +0400
+Message-ID: <4F326186.8090300@ru.mvista.com>
+References: <1328698752-18756-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Grazvydas Ignotas <notasas@gmail.com>, lrg@ti.com
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kevin Hilman <khilman@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1328698752-18756-1-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: tony@atomide.com, Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 08, 2012 at 02:34:38AM +0200, Grazvydas Ignotas wrote:
-> Hi,
-> 
-> On OMAP3 pandora, system suspend stops working properly after using
-> audio at least once:
+Hello.
 
-Also adding Liam to the CC list (and not deleting any context for
-visibility).
+On 08-02-2012 14:59, Luciano Coelho wrote:
 
-> 
-> (just after boot):
-> # echo mem > /sys/power/state
-> [   12.578186] PM: Entering mem sleep
-> [   12.678802] PM: suspend of devices complete after 92.834 msecs
-> [   12.688201] PM: late suspend of devices complete after 3.173 msecs
-> [   17.607971] Successfully put all powerdomains to target state
-> 
-> # aplay /dev/zero
-> ^C
-> # echo mem > /sys/power/state
-> [  104.404663] PM: suspend of devices complete after 78.794 msecs
-> [  104.413909] PM: late suspend of devices complete after 3.021 msecs
-> [  106.601196] Powerdomain (per_pwrdm) didn't enter target state 1
-> [  106.607421] Powerdomain (core_pwrdm) didn't enter target state 1
-> [  106.613739] Could not enter target state in pm_suspend
-> 
-> I'm seeing this on 3.2, unable to verify on current Linus HEAD as
-> something else is preventing core/per low power states there.
-> Any ideas what could be causing this? Perhaps some clock is left enabled?
-> 
-> -- 
-> Gra??vydas
-> _______________________________________________
-> Alsa-devel mailing list
-> Alsa-devel@alsa-project.org
-> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+> Since 3.3-rc1, prm44xx.c build breaks if CONFIG_OF is not set:
 
--- 
-"You grabbed my hand and we fell into it, like a daydream - or a fever."
+> arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
+> make[1]: *** [arch/arm/mach-omap2/prm44xx.o] Error 1
+
+> This is because of a missing include, which is added indirectly if
+> CONFIG_OF is defined.  This problem was introduced in commit
+> 2f31b51659c2d8315ea2888ba5b93076febe672b
+
+    Please also specify the summary of that commit in parens.
+
+> Cc: Tero Kristo<t-kristo@ti.com>
+> Signed-off-by: Luciano Coelho<coelho@ti.com>
+
+WBR, Sergei
