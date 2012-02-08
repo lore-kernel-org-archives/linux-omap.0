@@ -1,25 +1,39 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: omap_hsmmc.c and MMC_CAP_SDIO_IRQ
-Date: Wed, 8 Feb 2012 08:51:36 -0800
-Message-ID: <CAGDS+nnXQO19rOs7Z9BU-OgfoYu7LMx4LAPQegwkS48q0c4buQ@mail.gmail.com>
-References: <4F1EC123.8070103@linuxtv.org>
-	<CAGDS+nnVosHsv4SUcGXCieVQG2cjW=mL7DZ7_W2p+uNhUYfPyw@mail.gmail.com>
-	<CANfBPZ-6KptF=RG7fUX5+hB9DZDn9TvadU5acOm5yTAM7XOVgA@mail.gmail.com>
+From: John Stultz <john.stultz-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: Minimum timing resolution in Ubuntu/Linaro on the PandaBoard ES
+Date: Wed, 08 Feb 2012 08:58:42 -0800
+Message-ID: <1328720322.8119.7.camel@js-netbook>
+References: <4F31A91B.8080106@umich.edu> <4F32063F.1020607@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANfBPZ-6KptF=RG7fUX5+hB9DZDn9TvadU5acOm5yTAM7XOVgA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>
-Cc: Michael Hunold <hunold@linuxtv.org>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Sourav Poddar <sourav.poddar@ti.com>, Balaji T Krishnamoorthy <balajitk@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <4F32063F.1020607-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Dmitry Antipov <dmitry.antipov-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Andrew Richardson <chardson-63aXycvo3TyHXe+LvDLADg@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Sun, Jan 29, 2012 at 9:37 AM, S, Venkatraman <svenkatr@ti.com> wrote:
+On Tue, 2012-02-07 at 21:21 -0800, Dmitry Antipov wrote:
+> BTW, I have no ideas why clock_getres(CLOCK_REALTIME,...) returns {0, 1}
+> regardless of underlying clock source. I expect {0, 30517} for 32K timer
+> and {0, 26} for MPU timer.
 
-> A few folks in my group are working on this (CC'ed). I'd hazard a guess to say
-> that the patches can be validated and sent out in another 1-2 weeks - Sourav ?
+Yea. I had proposed to export the underlying clocksource's resolution
+via clock_getres, but it was argued against. The concern is that
+applications might not expect clock_getres to change while the
+application is running.  Between any clock_getres() call and a time
+read, the clocksources could change.
 
-Any update on the status of the above-mentioned patch for SDIO
-interrupt support?
+But if someone has a different reading of the posix spec, it might be
+good to revisit this.
 
-Steve
+thanks
+-john
