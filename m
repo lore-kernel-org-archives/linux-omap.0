@@ -1,55 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/16] ARM: omap: fix oops in
- drivers/video/omap2/dss/dpi.c
-Date: Wed, 8 Feb 2012 15:32:20 -0800
-Message-ID: <20120208233220.GB16877@atomide.com>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
- <E1RvAVQ-0006Gp-Is@rmk-PC.arm.linux.org.uk>
- <20120208183607.GB29796@atomide.com>
- <20120208225012.GA25414@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Wed, 8 Feb 2012 23:34:41 +0000
+Message-ID: <20120208233441.GD25414@n2100.arm.linux.org.uk>
+References: <20120205172925.GS20333@atomide.com> <20120205175809.GF17309@n2100.arm.linux.org.uk> <20120205182910.GK1426@atomide.com> <87lioegtk9.fsf@ti.com> <87y5sei1qz.fsf@ti.com> <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com> <87k43xfee3.fsf@ti.com> <20120208170653.GA3492@kroah.com> <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com> <20120208195327.GA5223@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:38501 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757776Ab2BHXcX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:32:23 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44907 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754489Ab2BHXe7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:34:59 -0500
 Content-Disposition: inline
-In-Reply-To: <20120208225012.GA25414@n2100.arm.linux.org.uk>
+In-Reply-To: <20120208195327.GA5223@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-fbdev@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 14:19]:
-> On Wed, Feb 08, 2012 at 10:36:07AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:05]:
-> > > When a PMIC is not found, this driver is unable to obtain its
-> > > 'vdds_dsi_reg' regulator.  Even through its initialization function
-> > > fails, other code still calls its enable function, which fails to
-> > > check whether it has this regulator before asking for it to be enabled.
-> > > 
-> > > This fixes the oops, however a better fix would be to sort out the
-> > > upper layers to prevent them calling into a module which failed to
-> > > initialize.
-> > > 
-> > > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > 
-> > Tomi can look into fixing this properly for v3.4:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> No, it's a thing for v3.3, because you can still get this oops.
-> 
-> I expect _most_ of these patches will go into v3.3, and anything with
-> 'fix' or 'oops' in especially I want to see in v3.3.
+On Wed, Feb 08, 2012 at 11:53:27AM -0800, Greg KH wrote:
+> On Wed, Feb 08, 2012 at 07:23:34PM +0200, Grazvydas Ignotas wrote:
+> > On Wed, Feb 8, 2012 at 7:06 PM, Greg KH <gregkh@linuxfoundation.org=
+> wrote:
+> > > On Wed, Feb 08, 2012 at 09:01:24AM -0800, Kevin Hilman wrote:
+> > >> Grazvydas Ignotas <notasas@gmail.com> writes:
+> > >>
+> > >> > On Wed, Feb 8, 2012 at 2:53 AM, Kevin Hilman <khilman@ti.com> =
+wrote:
+> > >> >> Kevin Hilman <khilman@ti.com> writes:
+> > >> >>
+> > >> >>> This one is indeed strange. =A0I have not seen this on the 3=
+4xx devices
+> > >> >>> I'm using (3430/n900, 3530/Overo, 3630/Zoom3).
+> > >> >>
+> > >> >> OK, I've reproduced this on v3.3-rc2.
+> > >> >>
+> > >> >> The reason I wasn't seeing this is because I'm using the fixe=
+s Paul has
+> > >> >> already posted that fix this problem:
+> > >> >>
+> > >> >> =A0 =A0 =A0 =A0http://marc.info/?l=3Dlinux-arm-kernel&m=3D132=
+754676814391&w=3D2
+> > >> >>
+> > >> >> Kevin
+> > >> >
+> > >> > But it looks like these are now queued for 3.4 in tty tree?
+> > >>
+> > >> I believe they were targettted for 3.3-rc.
+> > >>
+> > >> Paul, Greg, can you confirm?
+> > >
+> > > I have no idea what you are refering to here, please be much more
+> > > specific. =A0You can look at the linux-next tree to answer your q=
+uestion
+> > > yourself as well...
+> >=20
+> > It's about these patches in gregkh/tty.git tty-next:
+> > 6bbcbf2 tty: serial: omap-serial: wakeup latency constraint is in
+> > microseconds, not milliseconds
+> > edbe5db tty: serial: OMAP: block idle while the UART is transferrin=
+g
+> > data in PIO mode
+> > 5816269 tty: serial: OMAP: use a 1-byte RX FIFO threshold in PIO mo=
+de
+> >=20
+> > It would look to me like they are queued for 3.4 but Kevin says the=
+re
+> > were intended for 3.3-rc.
+>=20
+> Kevin might have wished they would go into 3.3, but given that the fi=
+rst
+> round of these patches had to be reverted, I thought it safer to wait
+> for 3.4.
 
-I acked your patch for -rc. Then Tomi can work on  the "better fix part"
-you mention above for v3.4 and that's what I meant by my comment
-above.
+Greg,
 
-Or is there something else that needs fixing for the -rc series there?
+There's currently a regression here:
 
-Regards,
+2fd149645eb4 (ARM: OMAP2+: UART: Remove omap_uart_can_sleep and add pm_=
+qos)
 
-Tony
+which causes OMAP3 platforms to spit out 16 characters every couple of
+seconds after typing 'dmesg' on the serial console.  This is something
+which used to work before the above commit.
+
+The above commit doesn't revert because there's a bunch of other change=
+s
+in later commits which remove some of the stuff it depends on, so a sim=
+ple
+revert is out.
+
+What I'd like to see from OMAP folk is whether there's a simple solutio=
+n.
+If not, then edbe5db looks like it should be targetted for -rc.
+
+However, I've not yet tested edbe5db to confirm whether it solves my
+observations (I've not seen it either).
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
