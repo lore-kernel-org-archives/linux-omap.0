@@ -1,20 +1,22 @@
 From: <mythripk@ti.com>
-Subject: [PATCH v4 1/3] OMAPDSS: HDMI: Move Avi-infoframe struct to hdmi_ip_data
-Date: Wed, 8 Feb 2012 11:54:19 +0530
-Message-ID: <1328682261-22493-1-git-send-email-mythripk@ti.com>
+Subject: [PATCH v4 2/3] OMAPDSS: HDMI: Add quantization range support in IP lib
+Date: Wed, 8 Feb 2012 11:54:20 +0530
+Message-ID: <1328682261-22493-2-git-send-email-mythripk@ti.com>
+References: <1328682261-22493-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59991 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:59990 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751861Ab2BHGbh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1755981Ab2BHGbh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 8 Feb 2012 01:31:37 -0500
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q186VavU000649
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q186Vaoa000650
 	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 00:31:36 -0600
 Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q186VZhJ029083
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q186VZhK029083
 	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 12:01:35 +0530 (IST)
+In-Reply-To: <1328682261-22493-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -22,167 +24,103 @@ Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
 From: Mythri P K <mythripk@ti.com>
 
-With AVI infoframe various parameters of video stream such as
-aspect ratio, quantization range, videocode etc will be indicated
-from source to sink.Thus AVI information needs to be set/accessed
-by the middle ware based on the video content.
-Thus this parameter is now moved to the ip_data structure.
+Configure the IP to support the limited range and full range quantization
+mode. If the full range is configured HDMI transmitter will expand the range
+of pixel data from 16-235 to full 8 bit 0-235.
 
 Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/video/omap2/dss/ti_hdmi.h         |   42 +++++++++++++++++++++++++++++
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    8 +++---
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   40 ---------------------------
- 3 files changed, 46 insertions(+), 44 deletions(-)
+ drivers/video/omap2/dss/ti_hdmi.h         |    2 +
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   41 +++++++++++++++++++++++++++++
+ include/video/omapdss.h                   |    5 +++
+ 3 files changed, 48 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
-index 26ec6d1..46e776c 100644
+index 46e776c..ab0f2c2 100644
 --- a/drivers/video/omap2/dss/ti_hdmi.h
 +++ b/drivers/video/omap2/dss/ti_hdmi.h
-@@ -113,6 +113,47 @@ struct ti_hdmi_ip_ops {
- 
- };
- 
-+/*
-+ * Refer to section 8.2 in HDMI 1.3 specification for
-+ * details about infoframe databytes
-+ */
-+struct hdmi_core_infoframe_avi {
-+	/* Y0, Y1 rgb,yCbCr */
-+	u8	db1_format;
-+	/* A0  Active information Present */
-+	u8	db1_active_info;
-+	/* B0, B1 Bar info data valid */
-+	u8	db1_bar_info_dv;
-+	/* S0, S1 scan information */
-+	u8	db1_scan_info;
-+	/* C0, C1 colorimetry */
-+	u8	db2_colorimetry;
-+	/* M0, M1 Aspect ratio (4:3, 16:9) */
-+	u8	db2_aspect_ratio;
-+	/* R0...R3 Active format aspect ratio */
-+	u8	db2_active_fmt_ar;
-+	/* ITC IT content. */
-+	u8	db3_itc;
-+	/* EC0, EC1, EC2 Extended colorimetry */
-+	u8	db3_ec;
-+	/* Q1, Q0 Quantization range */
-+	u8	db3_q_range;
-+	/* SC1, SC0 Non-uniform picture scaling */
-+	u8	db3_nup_scaling;
-+	/* VIC0..6 Video format identification */
-+	u8	db4_videocode;
-+	/* PR0..PR3 Pixel repetition factor */
-+	u8	db5_pixel_repeat;
-+	/* Line number end of top bar */
-+	u16	db6_7_line_eoftop;
-+	/* Line number start of bottom bar */
-+	u16	db8_9_line_sofbottom;
-+	/* Pixel number end of left bar */
-+	u16	db10_11_pixel_eofleft;
-+	/* Pixel number start of right bar */
-+	u16	db12_13_pixel_sofright;
-+};
-+
- struct hdmi_ip_data {
- 	void __iomem	*base_wp;	/* HDMI wrapper */
- 	unsigned long	core_sys_offset;
-@@ -122,6 +163,7 @@ struct hdmi_ip_data {
- 	const struct ti_hdmi_ip_ops *ops;
+@@ -164,6 +164,7 @@ struct hdmi_ip_data {
  	struct hdmi_config cfg;
  	struct hdmi_pll_info pll_data;
-+	struct hdmi_core_infoframe_avi avi_cfg;
+ 	struct hdmi_core_infoframe_avi avi_cfg;
++	enum hdmi_range range;
  };
  int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
  void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+@@ -181,4 +182,5 @@ void ti_hdmi_4xxx_phy_dump(struct hdmi_ip_data *ip_data, struct seq_file *s);
+ 	defined(CONFIG_SND_OMAP_SOC_OMAP4_HDMI_MODULE)
+ void ti_hdmi_4xxx_wp_audio_enable(struct hdmi_ip_data *ip_data, bool enable);
+ #endif
++int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data);
+ #endif
 diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 9bbf961..6f93271 100644
+index 6f93271..b0a9573 100644
 --- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
 +++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -534,12 +534,12 @@ static void hdmi_core_video_config(struct hdmi_ip_data *ip_data,
- 			HDMI_CORE_SYS_TMDS_CTRL, cfg->tclk_sel_clkmult, 6, 5);
+@@ -610,6 +610,47 @@ static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
+ 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_CHSUM, checksum);
  }
  
--static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data,
--		struct hdmi_core_infoframe_avi info_avi)
-+static void hdmi_core_aux_infoframe_avi_config(struct hdmi_ip_data *ip_data)
++int ti_hdmi_4xxx_configure_range(struct hdmi_ip_data *ip_data)
++{
++	int var;
++
++	switch (ip_data->range) {
++	/*
++	 * Setting the AVI infroframe to respective limited range
++	 * 0 if limited range 1 if full range
++	 */
++	case HDMI_LIMITED_RANGE:
++		ip_data->avi_cfg.db3_q_range = HDMI_INFOFRAME_AVI_DB3Q_LR;
++		hdmi_core_aux_infoframe_avi_config(ip_data);
++		var = hdmi_read_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_ACEN);
++		var = FLD_MOD(var, 1, 1, 1);
++		hdmi_write_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_ACEN, var);
++		break;
++	case HDMI_FULL_RANGE:
++		/* HDMI 1.3 section 6.6 YCBCR components shall
++		 * always be Limited Range
++		 */
++		if (ip_data->avi_cfg.db1_format ==
++					HDMI_INFOFRAME_AVI_DB1Y_YUV422) {
++			pr_err("Only limited range is supported for YUV");
++			return -EINVAL;
++		}
++		ip_data->avi_cfg.db3_q_range = HDMI_INFOFRAME_AVI_DB3Q_FR;
++		hdmi_core_aux_infoframe_avi_config(ip_data);
++			var = hdmi_read_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_MODE);
++			var = FLD_MOD(var, 1, 4, 4);
++			hdmi_write_reg(hdmi_core_sys_base(ip_data),
++						HDMI_CORE_SYS_VID_MODE, var);
++		break;
++	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
+ static void hdmi_core_av_packet_config(struct hdmi_ip_data *ip_data,
+ 		struct hdmi_core_packet_enable_repeat repeat_cfg)
  {
- 	u32 val;
- 	char sum = 0, checksum = 0;
- 	void __iomem *av_base = hdmi_av_base(ip_data);
-+	struct hdmi_core_infoframe_avi info_avi = ip_data->avi_cfg;
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 062b3b2..29f4e78 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -204,6 +204,11 @@ enum omap_hdmi_flags {
+ 	OMAP_HDMI_SDA_SCL_EXTERNAL_PULLUP = 1 << 0,
+ };
  
- 	sum += 0x82 + 0x002 + 0x00D;
- 	hdmi_write_reg(av_base, HDMI_CORE_AV_AVI_TYPE, 0x082);
-@@ -718,7 +718,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
- 	struct omap_video_timings video_timing;
- 	struct hdmi_video_format video_format;
- 	/* HDMI core */
--	struct hdmi_core_infoframe_avi avi_cfg;
-+	struct hdmi_core_infoframe_avi avi_cfg = ip_data->avi_cfg;
- 	struct hdmi_core_video_config v_core_cfg;
- 	struct hdmi_core_packet_enable_repeat repeat_cfg;
- 	struct hdmi_config *cfg = &ip_data->cfg;
-@@ -780,7 +780,7 @@ void ti_hdmi_4xxx_basic_configure(struct hdmi_ip_data *ip_data)
- 	avi_cfg.db10_11_pixel_eofleft = 0;
- 	avi_cfg.db12_13_pixel_sofright = 0;
++enum hdmi_range {
++	HDMI_LIMITED_RANGE = 0,
++	HDMI_FULL_RANGE = 1,
++};
++
+ /* RFBI */
  
--	hdmi_core_aux_infoframe_avi_config(ip_data, avi_cfg);
-+	hdmi_core_aux_infoframe_avi_config(ip_data);
- 
- 	/* enable/repeat the infoframe */
- 	repeat_cfg.avi_infoframe = HDMI_PACKETENABLE;
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index 004b418..a14d1a0 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -450,46 +450,6 @@ struct hdmi_core_video_config {
-  * Refer to section 8.2 in HDMI 1.3 specification for
-  * details about infoframe databytes
-  */
--struct hdmi_core_infoframe_avi {
--	/* Y0, Y1 rgb,yCbCr */
--	u8	db1_format;
--	/* A0  Active information Present */
--	u8	db1_active_info;
--	/* B0, B1 Bar info data valid */
--	u8	db1_bar_info_dv;
--	/* S0, S1 scan information */
--	u8	db1_scan_info;
--	/* C0, C1 colorimetry */
--	u8	db2_colorimetry;
--	/* M0, M1 Aspect ratio (4:3, 16:9) */
--	u8	db2_aspect_ratio;
--	/* R0...R3 Active format aspect ratio */
--	u8	db2_active_fmt_ar;
--	/* ITC IT content. */
--	u8	db3_itc;
--	/* EC0, EC1, EC2 Extended colorimetry */
--	u8	db3_ec;
--	/* Q1, Q0 Quantization range */
--	u8	db3_q_range;
--	/* SC1, SC0 Non-uniform picture scaling */
--	u8	db3_nup_scaling;
--	/* VIC0..6 Video format identification */
--	u8	db4_videocode;
--	/* PR0..PR3 Pixel repetition factor */
--	u8	db5_pixel_repeat;
--	/* Line number end of top bar */
--	u16	db6_7_line_eoftop;
--	/* Line number start of bottom bar */
--	u16	db8_9_line_sofbottom;
--	/* Pixel number end of left bar */
--	u16	db10_11_pixel_eofleft;
--	/* Pixel number start of right bar */
--	u16	db12_13_pixel_sofright;
--};
--/*
-- * Refer to section 8.2 in HDMI 1.3 specification for
-- * details about infoframe databytes
-- */
- struct hdmi_core_infoframe_audio {
- 	u8 db1_coding_type;
- 	u8 db1_channel_count;
+ struct rfbi_timings {
 -- 
 1.7.5.4
 
