@@ -1,91 +1,94 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: ASoC related suspend problems on OMAP3
-Date: Wed, 08 Feb 2012 10:29:29 +0200
-Message-ID: <4F323269.6090008@ti.com>
-References: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Wed, 8 Feb 2012 09:45:58 +0000
+Message-ID: <20120208094558.GS1275@n2100.arm.linux.org.uk>
+References: <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205012556.GG1426@atomide.com> <20120205125904.GB11372@n2100.arm.linux.org.uk> <20120205172925.GS20333@atomide.com> <20120205175809.GF17309@n2100.arm.linux.org.uk> <20120205182910.GK1426@atomide.com> <87lioegtk9.fsf@ti.com> <20120207224937.GA16704@lit.local.igalia.com> <8762fijifc.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:41796 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755536Ab2BHI3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 03:29:30 -0500
-Received: by lagk11 with SMTP id k11so277824lag.29
-        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 00:29:28 -0800 (PST)
-In-Reply-To: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57997 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362Ab2BHJqd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 04:46:33 -0500
+Content-Disposition: inline
+In-Reply-To: <8762fijifc.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: alsa-devel@alsa-project.org, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On 02/08/2012 02:34 AM, Grazvydas Ignotas wrote:
-> Hi,
+On Tue, Feb 07, 2012 at 04:08:23PM -0800, Kevin Hilman wrote:
+> V=EDctor M. J=E1quez L. <vjaquez@igalia.com> writes:
+> > If it helps, I observed the same issue in a beagleboard rev B6, wit=
+h
+> > v3.3-rc2
 >=20
-> On OMAP3 pandora, system suspend stops working properly after using
-> audio at least once:
->=20
-> (just after boot):
-> # echo mem > /sys/power/state
-> [   12.578186] PM: Entering mem sleep
-> [   12.678802] PM: suspend of devices complete after 92.834 msecs
-> [   12.688201] PM: late suspend of devices complete after 3.173 msecs
-> [   17.607971] Successfully put all powerdomains to target state
->=20
-> # aplay /dev/zero
-> ^C
-> # echo mem > /sys/power/state
-> [  104.404663] PM: suspend of devices complete after 78.794 msecs
-> [  104.413909] PM: late suspend of devices complete after 3.021 msecs
-> [  106.601196] Powerdomain (per_pwrdm) didn't enter target state 1
-> [  106.607421] Powerdomain (core_pwrdm) didn't enter target state 1
-> [  106.613739] Could not enter target state in pm_suspend
->=20
-> I'm seeing this on 3.2, unable to verify on current Linus HEAD as
-> something else is preventing core/per low power states there.
-> Any ideas what could be causing this? Perhaps some clock is left enab=
-led?
+> Great, thanks.  Can you share your ~/.config?
 
-I would bet that some clocks left enabled, but it as far as I can tell
-the audio path is well balanced in regards of clocks.
+If it helps, ARM Kautobuild V2 is up and running (assuming I don't brea=
+k
+the scripts again) at:
 
-So I'm not sure, but I just checked with 3.3-rc2 on Beagle xM (Rev C):
+  http://www.arm.linux.org.uk/developer/build/
 
-after boot:
-# echo mem > /sys/power/state
-[  163.776153] Freezing user space processes ...
-[  163.804595] (elapsed 0.02 seconds) done.
-[  163.808746] Freezing remaining freezable tasks ... (elapsed 0.02 sec=
-onds)
-[  163.837097] Suspending console(s) (use no_console_suspend to debug)
-[  164.019042] PM: suspend of devices complete after 157.684 msecs
-[  164.025115] PM: late suspend of devices complete after 6.011 msecs
-[  164.025238] Disabling non-boot CPUs ...
-[  172.497528] Successfully put all powerdomains to target state
+from where the build configs I use (and the exact ones used in those
+compiles) are available.  These aren't configs in arch/arm/configs.
 
-aplay <some wav>
+The OMAP oldconfig builds represent my test configs that I try to boot =
+on
+my boards.  This version of Kautobuild not only builds kernels, but it
+also packages the built image and modules into a tar file.  Everything
+else is discarded.
 
-# echo mem > /sys/power/state
-[  300.574920] Freezing user space processes ...
-[  300.602874] (elapsed 0.02 seconds) done.
-[  300.607025] Freezing remaining freezable tasks ... (elapsed 0.02 sec=
-onds)
-[  300.635620] Suspending console(s) (use no_console_suspend to debug)
-[  300.809692] PM: suspend of devices complete after 149.810 msecs
-[  300.814117] PM: late suspend of devices complete after 4.364 msecs
-[  300.814147] Disabling non-boot CPUs ...
-[  309.520721] Successfully put all powerdomains to target state
+As of yesterday evening, it also transfers the built image to a TFTP
+server ready for boards to fetch for boot testing.
 
-Here it seams to be OK...
-You could try to compare the clock counts after boot, and after the apl=
-ay:
+The base kernel which is currently being used for this is whatever stat=
+e
+my working tree is in when it runs, so it's not _that_ useful externall=
+y
+at the moment.
 
-cat /sys/kernel/debug/clock/summary
+Currently, the builds run on my working laptop, targetted at 2am each
+night local time (though they're a little more sporadic at the moment.)
+The downside to them running on the laptop is that when I take the
+laptop away, they won't run.
 
-if they differ we leave have unbalanced clock handling...
 
---=20
-P=C3=A9ter
+I also have a program which monitors a tty port, detects the initial
+booting of a board, and can talk to the boot loader and kernel to instr=
+uct
+them to do various things (like telling uboot to load one of the tftp'd
+kernels.)
+
+However, there's a few bits missing from being able to finish this syst=
+em
+off:
+
+(a) properly detecting on machines monitoring boards when a new kernel =
+is
+    ready for testing.
+(b) sorting out how to reliably reboot the various boards in a safe man=
+ner
+(c) working out where and how to connect all these boards in a safe man=
+ner
+
+=46or most boards, switching the mains to their individual power suppli=
+es
+will work.  For something like the OMAP3430 LDP, it's complicated by it=
+s
+built-in battery which has to be connected for it to power up at all.
+It can't be left plugged in because it drains the battery even with an
+external USB charger.
+
+As the OMAP4430 only provides USB, practically it's going to have to be
+left out of the automatic stuff because I don't have a machine which it
+could be connected to which wouldn't also be part of the boot test farm=
+=2E
+
+In other words, the OMAP platforms I have will only be manually boot
+tested for the forseeable future.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
