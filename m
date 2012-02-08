@@ -1,66 +1,74 @@
-From: "Coelho, Luciano" <coelho@ti.com>
-Subject: Re: [PATCH] I2C: OMAP: fix build breakage when CONFIG_OF is not set
-Date: Wed, 8 Feb 2012 17:54:23 +0200
-Message-ID: <CAKd1q9owoor5aShGb=LpDvkzmQvKASb8R9HPZtcyhvsY4+OqHg@mail.gmail.com>
-References: <1328698612-18661-1-git-send-email-coelho@ti.com>
-	<20120208105957.GB16334@legolas.emea.dhcp.ti.com>
-	<1328699077.20197.51.camel@cumari>
-	<CAM=Q2cvZWdUk-v4-EWUJzAf4br-4+tO2s3qS_dn4KhHp+mm2+g@mail.gmail.com>
-	<1328700319.20197.54.camel@cumari>
-	<4F329953.9010608@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] ARM: OMAP: update omap1 and omap2plus defconfigs
+Date: Wed, 08 Feb 2012 16:37:21 +0100
+Message-ID: <2185461.e7xKmI3MHi@vclass>
+References: <20120208053556.GB1426@atomide.com> <1328696173-17226-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F329953.9010608@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>, balbi@ti.com, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:59203 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757157Ab2BHQCB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Feb 2012 11:02:01 -0500
+In-Reply-To: <1328696173-17226-1-git-send-email-grinberg@compulab.co.il>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Benoit,
+On Wednesday 08 of February 2012 12:16:13 Igor Grinberg wrote:
+> ...
+> After updating omap1_defconfig,
+> there are several section mismatch warnings seen.
+> Hopefully, I will have time to fix those tomorrow
+> (unless someone will be kind enough to fix them before me).
 
-Ok, thanks. Good to know that the fixes are already queued.
+Sound like introduced with my recent ams-delta patches, sorry.
+I'll have a look at them.
 
-On 2/8/12, Cousson, Benoit <b-cousson@ti.com> wrote:
-> Hi Luca,
->
-> On 2/8/2012 12:25 PM, Luciano Coelho wrote:
->> On Wed, 2012-02-08 at 16:42 +0530, Shubhrajyoti Datta wrote:
->>> On Wed, Feb 8, 2012 at 4:34 PM, Luciano Coelho<coelho@ti.com>  wrote:
->>>> On Wed, 2012-02-08 at 12:59 +0200, Felipe Balbi wrote:
->>>>> On Wed, Feb 08, 2012 at 12:56:52PM +0200, Luciano Coelho wrote:
->>>>>> Since commit 6145197be6cc0583fa1a2f4ec1079d366137061e, building
->>>>>
->>>>> we generally like to see the commit subject here too. And adding the
->>>>> abbreviated commit instead of the full sha1, wouldn't hurt either ;-)
->>>>
->>>> Ok, different practices. :)
->>>
->>> However  there was already a discurssion.
->>> Anyways thanks for the patch.
->>> http://permalink.gmane.org/gmane.linux.ports.arm.omap/69796
->>>
->>>
->>>>
->>>> I'll send v2.
->>> I think there was already a fix for this.
->>>
->>> http://www.spinics.net/lists/linux-omap/msg63151.html
->>>
->>> Anyways thanks for the patch.
->>
->> Ah, okay.  Thanks for the info, I hadn't seen these.
->
-> Yeah, it looks like the OMAP fixes missed -rc2, but Tony sent the pull
-> request [1].
->
-> Regards,
-> Benoit
->
-> [1] http://www.spinics.net/lists/linux-omap/msg63564.html
->
+Thanks,
+Janusz
 
+> The mismatches are:
+> 
+> WARNING: vmlinux.o(.data+0xb7e4): Section mismatch in reference from
+> the variable latch1_gpio_device to the (unknown reference)
+> .init.rodata:(unknown) The variable latch1_gpio_device references
+> the (unknown reference) __initconst (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+> 
+> WARNING: vmlinux.o(.data+0xb8f4): Section mismatch in reference from
+> the variable latch1_gpio_device to the (unknown reference)
+> .init.rodata:(unknown) The variable latch1_gpio_device references
+> the (unknown reference) __initconst (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+> 
+> WARNING: vmlinux.o(.data+0xb974): Section mismatch in reference from
+> the variable latch2_gpio_device to the (unknown reference)
+> .init.rodata:(unknown) The variable latch2_gpio_device references
+> the (unknown reference) __initconst (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+> 
+> WARNING: vmlinux.o(.data+0xba84): Section mismatch in reference from
+> the variable latch2_gpio_device to the (unknown reference)
+> .init.rodata:(unknown) The variable latch2_gpio_device references
+> the (unknown reference) __initconst (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+> 
+> WARNING: vmlinux.o(.data+0xbb04): Section mismatch in reference from
+> the variable ams_delta_kp_device to the (unknown reference)
+> .init.data:(unknown) The variable ams_delta_kp_device references
+> the (unknown reference) __initdata (unknown)
+> If the reference is valid then annotate the
+> variable with __init* or __refdata (see linux/init.h) or name the variable:
+> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
 
--- 
-Cheers,
-Luca.
