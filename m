@@ -1,50 +1,39 @@
 From: Luciano Coelho <coelho@ti.com>
-Subject: [PATCH] I2C: OMAP: fix build breakage when CONFIG_OF is not set
-Date: Wed,  8 Feb 2012 12:56:52 +0200
-Message-ID: <1328698612-18661-1-git-send-email-coelho@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:38101 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756130Ab2BHK5I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 05:57:08 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Subject: [PATCH 3.3] OMAP4: PRM: fix build breakage when CONFIG_OF is not defined
+Date: Wed,  8 Feb 2012 12:59:12 +0200
+Message-ID: <1328698752-18756-1-git-send-email-coelho@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tony@atomide.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, khali@linux-fr.org, ben-linux@fluff.org, w.sang@pengutronix.de, grant.likely@secretlab.ca, rob.herring@calxeda.com, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-Since commit 6145197be6cc0583fa1a2f4ec1079d366137061e, building
-i2c_omap.c breaks if CONFIG_OF is not set:
+Since 3.3-rc1, prm44xx.c build breaks if CONFIG_OF is not set:
 
-drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_probe':
-drivers/i2c/busses/i2c-omap.c:1021: error: 'omap_i2c_of_match' undeclared (first use in this function)
-drivers/i2c/busses/i2c-omap.c:1021: error: (Each undeclared identifier is reported only once
-drivers/i2c/busses/i2c-omap.c:1021: error: for each function it appears in.)
+arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
+make[1]: *** [arch/arm/mach-omap2/prm44xx.o] Error 1
 
-This is because the definition of omap_i2c_of_match is #ifdef'd on
-CONFIG_OF, but the usage of it is not.
+This is because of a missing include, which is added indirectly if
+CONFIG_OF is defined.  This problem was introduced in commit
+2f31b51659c2d8315ea2888ba5b93076febe672b
 
-Since the places where omap_ic2_of_match are prepared to get NULL
-pointers if CONFIG_OF is not defined, we can simply define it to NULL.
-
-Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Tero Kristo <t-kristo@ti.com>
 Signed-off-by: Luciano Coelho <coelho@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index f713eac..fd200eb 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -979,6 +979,8 @@ static const struct of_device_id omap_i2c_of_match[] = {
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
-+#else
-+static const struct of_device_id *omap_i2c_of_match = NULL;
- #endif
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 33dd655..f2e06ad 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -20,6 +20,7 @@
+ #include "common.h"
+ #include <plat/cpu.h>
+ #include <plat/prcm.h>
++#include <plat/irqs.h>
  
- static int __devinit
+ #include "vp.h"
+ #include "prm44xx.h"
 -- 
 1.7.5.4
-
