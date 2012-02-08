@@ -1,47 +1,63 @@
-From: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] I2C: OMAP: fix build breakage when CONFIG_OF is not set
-Date: Wed, 08 Feb 2012 13:25:19 +0200
-Message-ID: <1328700319.20197.54.camel@cumari>
-References: <1328698612-18661-1-git-send-email-coelho@ti.com>
-	 <20120208105957.GB16334@legolas.emea.dhcp.ti.com>
-	 <1328699077.20197.51.camel@cumari>
-	 <CAM=Q2cvZWdUk-v4-EWUJzAf4br-4+tO2s3qS_dn4KhHp+mm2+g@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: ASoC related suspend problems on OMAP3
+Date: Wed, 8 Feb 2012 11:51:32 +0000
+Message-ID: <20120208115132.GA25756@sirena.org.uk>
+References: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAM=Q2cvZWdUk-v4-EWUJzAf4br-4+tO2s3qS_dn4KhHp+mm2+g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: balbi-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Grazvydas Ignotas <notasas@gmail.com>, lrg@ti.com
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, Kevin Hilman <khilman@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 2012-02-08 at 16:42 +0530, Shubhrajyoti Datta wrote: 
-> On Wed, Feb 8, 2012 at 4:34 PM, Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org> wrote:
-> > On Wed, 2012-02-08 at 12:59 +0200, Felipe Balbi wrote:
-> >> On Wed, Feb 08, 2012 at 12:56:52PM +0200, Luciano Coelho wrote:
-> >> > Since commit 6145197be6cc0583fa1a2f4ec1079d366137061e, building
-> >>
-> >> we generally like to see the commit subject here too. And adding the
-> >> abbreviated commit instead of the full sha1, wouldn't hurt either ;-)
-> >
-> > Ok, different practices. :)
+On Wed, Feb 08, 2012 at 02:34:38AM +0200, Grazvydas Ignotas wrote:
+> Hi,
 > 
-> However  there was already a discurssion.
-> Anyways thanks for the patch.
-> http://permalink.gmane.org/gmane.linux.ports.arm.omap/69796
-> 
-> 
-> >
-> > I'll send v2.
-> I think there was already a fix for this.
-> 
-> http://www.spinics.net/lists/linux-omap/msg63151.html
-> 
-> Anyways thanks for the patch.
+> On OMAP3 pandora, system suspend stops working properly after using
+> audio at least once:
 
-Ah, okay.  Thanks for the info, I hadn't seen these.
+Also adding Liam to the CC list (and not deleting any context for
+visibility).
+
+> 
+> (just after boot):
+> # echo mem > /sys/power/state
+> [   12.578186] PM: Entering mem sleep
+> [   12.678802] PM: suspend of devices complete after 92.834 msecs
+> [   12.688201] PM: late suspend of devices complete after 3.173 msecs
+> [   17.607971] Successfully put all powerdomains to target state
+> 
+> # aplay /dev/zero
+> ^C
+> # echo mem > /sys/power/state
+> [  104.404663] PM: suspend of devices complete after 78.794 msecs
+> [  104.413909] PM: late suspend of devices complete after 3.021 msecs
+> [  106.601196] Powerdomain (per_pwrdm) didn't enter target state 1
+> [  106.607421] Powerdomain (core_pwrdm) didn't enter target state 1
+> [  106.613739] Could not enter target state in pm_suspend
+> 
+> I'm seeing this on 3.2, unable to verify on current Linus HEAD as
+> something else is preventing core/per low power states there.
+> Any ideas what could be causing this? Perhaps some clock is left enabled?
+> 
+> -- 
+> Gra??vydas
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
 
 -- 
-Cheers,
-Luca.
+"You grabbed my hand and we fell into it, like a daydream - or a fever."
