@@ -1,72 +1,51 @@
-From: Andrew Richardson <chardson@umich.edu>
-Subject: Re: Minimum timing resolution in Ubuntu/Linaro on the PandaBoard ES
-Date: Wed, 8 Feb 2012 09:21:44 -0500
-Message-ID: <F521AFB6-6907-466C-AAED-3DC6015A6760@umich.edu>
-References: <4F31A91B.8080106@umich.edu> <4F32063F.1020607@linaro.org> <51DAA6EF-1C3B-4964-8447-893D295E51A1@umich.edu> <4F327ECA.4040105@linaro.org>
-Mime-Version: 1.0 (Apple Message framework v1251.1)
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.mail.umich.edu ([141.211.12.86]:38802 "EHLO
-	tombraider.mr.itd.umich.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753487Ab2BHOVv convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Feb 2012 09:21:51 -0500
-In-Reply-To: <4F327ECA.4040105@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH] I2C: OMAP: fix build breakage when CONFIG_OF is not set
+Date: Wed, 8 Feb 2012 16:48:35 +0100
+Message-ID: <4F329953.9010608@ti.com>
+References: <1328698612-18661-1-git-send-email-coelho@ti.com>  <20120208105957.GB16334@legolas.emea.dhcp.ti.com>  <1328699077.20197.51.camel@cumari>  <CAM=Q2cvZWdUk-v4-EWUJzAf4br-4+tO2s3qS_dn4KhHp+mm2+g@mail.gmail.com> <1328700319.20197.54.camel@cumari>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1328700319.20197.54.camel@cumari>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Cc: Shubhrajyoti Datta <omaplinuxkernel-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, balbi-l0cyMroinI0@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Antipov <dmitry.antipov@linaro.org>
-Cc: John Stultz <john.stultz@linaro.org>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org
 
+Hi Luca,
 
-On Feb 8, 2012, at 8:55 AM, Dmitry Antipov wrote:
+On 2/8/2012 12:25 PM, Luciano Coelho wrote:
+> On Wed, 2012-02-08 at 16:42 +0530, Shubhrajyoti Datta wrote:
+>> On Wed, Feb 8, 2012 at 4:34 PM, Luciano Coelho<coelho-l0cyMroinI0@public.gmane.org>  wrote:
+>>> On Wed, 2012-02-08 at 12:59 +0200, Felipe Balbi wrote:
+>>>> On Wed, Feb 08, 2012 at 12:56:52PM +0200, Luciano Coelho wrote:
+>>>>> Since commit 6145197be6cc0583fa1a2f4ec1079d366137061e, building
+>>>>
+>>>> we generally like to see the commit subject here too. And adding the
+>>>> abbreviated commit instead of the full sha1, wouldn't hurt either ;-)
+>>>
+>>> Ok, different practices. :)
+>>
+>> However  there was already a discurssion.
+>> Anyways thanks for the patch.
+>> http://permalink.gmane.org/gmane.linux.ports.arm.omap/69796
+>>
+>>
+>>>
+>>> I'll send v2.
+>> I think there was already a fix for this.
+>>
+>> http://www.spinics.net/lists/linux-omap/msg63151.html
+>>
+>> Anyways thanks for the patch.
+>
+> Ah, okay.  Thanks for the info, I hadn't seen these.
 
-> On 02/08/2012 01:32 AM, Andrew Richardson wrote:
-> 
->> Do you recommend using "Get linaro image tools: method 2 (source code)"
->> ( http://releases.linaro.org/12.01/ubuntu/leb-panda/ ) and building the
->> kernel myself?
-> 
-> Unfortunately this is the only way. In theory, there are clocksource=
-> boot option, and sysfs interface under /sys/devices/system/clocksource,
-> but, IIUC, there is no way to compile the kernel with both 32K and MPU
-> timers support and then select one of them for the default clock source
-> at the boot time or when the system is running.
-> 
->> It seems to me that we would want to disable some of the power-saving
->> changes that have been made, such as this timer, and possibly configure
->> other settings like cache behavior, though I have no idea
->> how they're currently set. I have a bunch of docs from ARM on power and
->> cache config, but I haven't messed around with them as I'm not sure where
->> to start. My best guess is that I would have to rebuild the kernel to
->> start handling that configuration myself. Is that true?
-> 
-> If you're seriously concerned on the optimization for the particular
-> workload, you definitely should.
-> 
->> Some people ( http://groups.google.com/group/pandaboard/browse_thread/thread/a18fa3514d130720 )
->> have mentioned enabling line fill and prefetching to speed up memcpy
->> operations, which also seems  useful. Is this also a kernel-level setting?
-> 
-> Sure. Caching (and it's relationship to real memory speed) is a hard topic.
-> For the starting point, try:
-> 
-> 1. Read http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13544.html
->   (this is for A8, but should be more or less applicable to A9);
-> 
-> 2. Run 'dmesg | grep -i cache' and check for the something similar to:
-> 
->   L310 cache controller enabled
->   l2x0: 16 ways, CACHE_ID 0x410000c4, AUX_CTRL 0x7e470000, Cache size: 1048576 B
-> 
-> 3. Read http://infocenter.arm.com/help/topic/com.arm.doc.ddi0246f/DDI0246F_l2c310_r3p2_trm.pdf
->   and realize the meaning of these AUX_CTRL bits;
-> 
-> 4. Read arch/arm/mach-omap2/omap4-common.c and arch/arm/mm/cache-l2x0.c, try to play
->   with 'aux_ctrl' bits within omap_l2_cache_init() and check whether it affects your
->   workload. Note this may cause kernel crash and/or prevent the system from booting at all.
-> 
-> Dmitry
-> 
-> 
+Yeah, it looks like the OMAP fixes missed -rc2, but Tony sent the pull 
+request [1].
 
+Regards,
+Benoit
+
+[1] http://www.spinics.net/lists/linux-omap/msg63564.html
