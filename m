@@ -1,91 +1,55 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: OMAP34xx
-Date: Wed, 8 Feb 2012 11:53:27 -0800
-Message-ID: <20120208195327.GA5223@kroah.com>
-References: <20120205125904.GB11372@n2100.arm.linux.org.uk>
- <20120205172925.GS20333@atomide.com>
- <20120205175809.GF17309@n2100.arm.linux.org.uk>
- <20120205182910.GK1426@atomide.com>
- <87lioegtk9.fsf@ti.com>
- <87y5sei1qz.fsf@ti.com>
- <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
- <87k43xfee3.fsf@ti.com>
- <20120208170653.GA3492@kroah.com>
- <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
+Date: Wed, 08 Feb 2012 20:31:49 +0000
+Message-ID: <4F32DBB5.4010004@gmx.de>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:37866 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757247Ab2BHTzo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 14:55:44 -0500
-Received: from compute4.internal (compute4.nyi.mail.srv.osa [10.202.2.44])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id CABCB212C8
-	for <linux-omap@vger.kernel.org>; Wed,  8 Feb 2012 14:55:43 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:49361 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751426Ab2BHUcI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 15:32:08 -0500
+In-Reply-To: <20120208163546.GA15849@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt_Cousson?= <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Feb 08, 2012 at 07:23:34PM +0200, Grazvydas Ignotas wrote:
-> On Wed, Feb 8, 2012 at 7:06 PM, Greg KH <gregkh@linuxfoundation.org> =
-wrote:
-> > On Wed, Feb 08, 2012 at 09:01:24AM -0800, Kevin Hilman wrote:
-> >> Grazvydas Ignotas <notasas@gmail.com> writes:
-> >>
-> >> > On Wed, Feb 8, 2012 at 2:53 AM, Kevin Hilman <khilman@ti.com> wr=
-ote:
-> >> >> Kevin Hilman <khilman@ti.com> writes:
-> >> >>
-> >> >>> This one is indeed strange. =A0I have not seen this on the 34x=
-x devices
-> >> >>> I'm using (3430/n900, 3530/Overo, 3630/Zoom3).
-> >> >>
-> >> >> OK, I've reproduced this on v3.3-rc2.
-> >> >>
-> >> >> The reason I wasn't seeing this is because I'm using the fixes =
-Paul has
-> >> >> already posted that fix this problem:
-> >> >>
-> >> >> =A0 =A0 =A0 =A0http://marc.info/?l=3Dlinux-arm-kernel&m=3D13275=
-4676814391&w=3D2
-> >> >>
-> >> >> Kevin
-> >> >
-> >> > But it looks like these are now queued for 3.4 in tty tree?
-> >>
-> >> I believe they were targettted for 3.3-rc.
-> >>
-> >> Paul, Greg, can you confirm?
-> >
-> > I have no idea what you are refering to here, please be much more
-> > specific. =A0You can look at the linux-next tree to answer your que=
-stion
-> > yourself as well...
->=20
-> It's about these patches in gregkh/tty.git tty-next:
-> 6bbcbf2 tty: serial: omap-serial: wakeup latency constraint is in
-> microseconds, not milliseconds
-> edbe5db tty: serial: OMAP: block idle while the UART is transferring
-> data in PIO mode
-> 5816269 tty: serial: OMAP: use a 1-byte RX FIFO threshold in PIO mode
->=20
-> It would look to me like they are queued for 3.4 but Kevin says there
-> were intended for 3.3-rc.
+Hi Russell,
 
-Kevin might have wished they would go into 3.3, but given that the firs=
-t
-round of these patches had to be reverted, I thought it safer to wait
-for 3.4.
+On 02/08/2012 04:35 PM, Russell King - ARM Linux wrote:
+> commit c49d005b6cc8491fad5b24f82805be2d6bcbd3dd
+> Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> Date:   Tue Jan 17 11:09:57 2012 +0200
+> 
+>     OMAPDSS: HDMI: PHY burnout fix
+>     
+>     A hardware bug in the OMAP4 HDMI PHY causes physical damage to the board
+>     if the HDMI PHY is kept powered on when the cable is not connected.
 
-thanks,
+I agree this is a serious issue.
 
-greg k-h
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> which now has me wondering if, by trying to boot v3.3-rc2 on this board
+> during the past week, I have a destroyed HDMI interface on it.
+
+I am not sure as I don't keep track of all OMAP changes, but you make it sound
+like a regression, is there any difference to 3.2 behavior?
+
+> So, a big thanks for sitting on that fix and exposing peoples hardware
+> to damage, that shows real professionalism.
+
+Well, I am no professional to begin with, at least in the sense of getting paid
+for it. That said I'm quite happy if I manage to find a few hours every weekend
+to do the work. Given that the final thing should be tested in -next before I
+ask Linus to pull, it is completely usual (and even quite fast) if things take
+8-13 days on my end. If this isn't fast enough for Tomi, he'd better ask Linus
+to pull directly for such issues.
+This one was also somewhat special as I had to learn how to deal with PGP and
+signed tags to make Linus happy.
+
+
+Best regards,
+
+Florian Tobias Schandinat
