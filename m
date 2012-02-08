@@ -1,47 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2: Fix the OMAP2 only build break seen with
- 2011+ ARM tool-chains
-Date: Tue, 7 Feb 2012 21:33:43 -0800
-Message-ID: <20120208053343.GA1426@atomide.com>
-References: <1328523587-21341-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH] arm: omap3: cm-t35: fix section mismatch warning
+Date: Tue, 7 Feb 2012 21:35:57 -0800
+Message-ID: <20120208053556.GB1426@atomide.com>
+References: <20120205012556.GG1426@atomide.com>
+ <1328441980-28892-1-git-send-email-grinberg@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:38098 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:44956 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119Ab2BHFdq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 00:33:46 -0500
+	with ESMTP id S1751044Ab2BHFgE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 00:36:04 -0500
 Content-Disposition: inline
-In-Reply-To: <1328523587-21341-1-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1328441980-28892-1-git-send-email-grinberg@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Igor Grinberg <grinberg@compulab.co.il>
+Cc: Arnd Bergmann <arnd@arndb.de>, Russell King <linux@arm.linux.org.uk>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [120206 01:48]:
-> With the latest Sourcery G++ Lite 2011.03-41 and latest linaro
-> tool-chains OMAP2 only build breaks with below error.
+* Igor Grinberg <grinberg@compulab.co.il> [120205 03:08]:
+> WARNING: arch/arm/mach-omap2/built-in.o(.text+0xeae8):
+> Section mismatch in reference from the function cm_t35_init_usbh()
+> to the (unknown reference) .init.data:(unknown)
+> The function cm_t35_init_usbh() references
+> the (unknown reference) __initdata (unknown).
+> This is often because cm_t35_init_usbh lacks a __initdata
+> annotation or the annotation of (unknown) is wrong.
 > 
-> arch/arm/mach-omap2/omap-smc.S: Assembler messages:
-> arch/arm/mach-omap2/omap-smc.S:30: Error: selected processor does not support ARM mode `smc #0'
-> arch/arm/mach-omap2/omap-smc.S:53: Error: selected processor does not support ARM mode `smc #0'
-> arch/arm/mach-omap2/omap-smc.S:61: Error: selected processor does not support ARM mode `smc #0'
-> arch/arm/mach-omap2/omap-smc.S:69: Error: selected processor does not support ARM mode `smc #0'
-> arch/arm/mach-omap2/omap-smc.S:77: Error: selected processor does not support ARM mode `smc #0'
-> make[1]: *** [arch/arm/mach-omap2/omap-smc.o] Error 1
-> 
-> OMAP2 devices doesn't have the security support but the security support
-> was getting built because of OMAP2PLUS. Don't build security code for
-> OMAP2 devices.
-> 
-> While at it, fix the secure-common line in the Makefile to use tabs
-> instead of spaces.
-> 
-> Reported-by: Kevin Hilman <khilman@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+> ---
+> Sorry about this one. I fixed similar problem for cm-t3517 a while ago,
+> but somehow missed cm-t35. Thanks for spotting.
+> Probably enabling the CONFIG_DEBUG_SECTION_MISMATCH in defconfigs
+> can raise people awareness for this.
 
-Thanks, applying into fixes.
-
-Regards,
+Thanks applying into fixes. Yes let's plan on doing that,
+and also make sure we're actually seeing the warnings..
 
 Tony
+ 
+>  arch/arm/mach-omap2/board-cm-t35.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+> index d839c05..a8cedbe 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -436,7 +436,7 @@ static struct usbhs_omap_board_data usbhs_bdata __initdata = {
+>  	.reset_gpio_port[2]  = -EINVAL
+>  };
+>  
+> -static void cm_t35_init_usbh(void)
+> +static void  __init cm_t35_init_usbh(void)
+>  {
+>  	int err;
+>  
+> -- 
+> 1.7.3.4
+> 
