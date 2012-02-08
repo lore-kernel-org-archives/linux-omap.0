@@ -1,162 +1,71 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Possible circular locking dependency (3.3-rc2)
-Date: Wed, 8 Feb 2012 14:41:48 +0200
-Message-ID: <20120208124147.GF16334@legolas.emea.dhcp.ti.com>
-Reply-To: balbi@ti.com
+From: <mythripk@ti.com>
+Subject: [PATCH] OMAPDSS: HDMI: Add M2 divider while calculating pll
+Date: Wed, 8 Feb 2012 18:43:45 +0530
+Message-ID: <1328706825-23555-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="jkO+KyKz7TfD21mV"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grant Likely <grant.likely@secretlab.ca>, Linus Walleij <linus.walleij@stericsson.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55783 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757018Ab2BHNVB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 08:21:01 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q18DKxQ6032071
+	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 07:21:00 -0600
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q18DKxKx000975
+	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 18:50:59 +0530 (IST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
+From: Mythri P K <mythripk@ti.com>
 
---jkO+KyKz7TfD21mV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+While calculating regm and regmf value add M2 divider in the equation.
 
-Hi guys,
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-I have just triggered the folllowing:
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 92a6679..9185630 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 
+ 	refclk = clkin / pi->regn;
+ 
+-	/*
+-	 * multiplier is pixel_clk/ref_clk
+-	 * Multiplying by 100 to avoid fractional part removal
+-	 */
+-	pi->regm = (phy * 100 / (refclk)) / 100;
+-
+ 	if (dssdev->clocks.hdmi.regm2 == 0)
+ 		pi->regm2 = HDMI_DEFAULT_REGM2;
+ 	else
+ 		pi->regm2 = dssdev->clocks.hdmi.regm2;
+ 
+ 	/*
++	 * multiplier is pixel_clk/ref_clk
++	 * Multiplying by 100 to avoid fractional part removal
++	 */
++	pi->regm = (phy * 100 * pi->regm2 / (refclk)) / 100;
++
++	/*
+ 	 * fractional multiplier is remainder of the difference between
+ 	 * multiplier and actual phy(required pixel clock thus should be
+ 	 * multiplied by 2^18(262144) divided by the reference clock
+ 	 */
+-	mf = (phy - pi->regm * refclk) * 262144;
+-	pi->regmf = mf / (refclk);
++	mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
++	pi->regmf = pi->regm2 * mf / refclk;
+ 
+ 	/*
+ 	 * Dcofreq should be set to 1 if required pixel clock
+-- 
+1.7.5.4
 
-[   84.860321] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
-[   84.860321] [ INFO: possible circular locking dependency detected ]
-[   84.860321] 3.3.0-rc2-00026-ge4e8a39 #474 Not tainted
-[   84.860321] -------------------------------------------------------
-[   84.860321] bash/949 is trying to acquire lock:
-[   84.860321]  (sysfs_lock){+.+.+.}, at: [<c0275358>] gpio_value_store+0x2=
-4/0xcc
-[   84.860321]=20
-[   84.860321] but task is already holding lock:
-[   84.860321]  (s_active#22){++++.+}, at: [<c016996c>] sysfs_write_file+0x=
-dc/0x184
-[   84.911468]=20
-[   84.911468] which lock already depends on the new lock.
-[   84.911468]=20
-[   84.920043]=20
-[   84.920043] the existing dependency chain (in reverse order) is:
-[   84.920043]=20
-[   84.927886] -> #1 (s_active#22){++++.+}:
-[   84.927886]        [<c008f640>] check_prevs_add+0xdc/0x150
-[   84.927886]        [<c008fc18>] validate_chain.clone.24+0x564/0x694
-[   84.927886]        [<c0090cdc>] __lock_acquire+0x49c/0x980
-[   84.951660]        [<c0091838>] lock_acquire+0x98/0x100
-[   84.951660]        [<c016a8e8>] sysfs_deactivate+0xb0/0x100
-[   84.962982]        [<c016b1b4>] sysfs_addrm_finish+0x2c/0x6c
-[   84.962982]        [<c016b8bc>] sysfs_remove_dir+0x84/0x98
-[   84.962982]        [<c02590d8>] kobject_del+0x10/0x78
-[   84.974670]        [<c02c29e8>] device_del+0x140/0x170
-[   84.974670]        [<c02c2a24>] device_unregister+0xc/0x18
-[   84.985382]        [<c0276894>] gpio_unexport+0xbc/0xdc
-[   84.985382]        [<c02768c8>] gpio_free+0x14/0xfc
-[   85.001708]        [<c0276a28>] unexport_store+0x78/0x8c
-[   85.001708]        [<c02c5af8>] class_attr_store+0x18/0x24
-[   85.007293]        [<c0169990>] sysfs_write_file+0x100/0x184
-[   85.018981]        [<c0109d48>] vfs_write+0xb4/0x148
-[   85.018981]        [<c0109fd0>] sys_write+0x40/0x70
-[   85.018981]        [<c0013cc0>] ret_fast_syscall+0x0/0x3c
-[   85.035003]=20
-[   85.035003] -> #0 (sysfs_lock){+.+.+.}:
-[   85.035003]        [<c008f54c>] check_prev_add+0x680/0x698
-[   85.035003]        [<c008f640>] check_prevs_add+0xdc/0x150
-[   85.052093]        [<c008fc18>] validate_chain.clone.24+0x564/0x694
-[   85.052093]        [<c0090cdc>] __lock_acquire+0x49c/0x980
-[   85.052093]        [<c0091838>] lock_acquire+0x98/0x100
-[   85.069885]        [<c047e280>] mutex_lock_nested+0x3c/0x2f4
-[   85.069885]        [<c0275358>] gpio_value_store+0x24/0xcc
-[   85.069885]        [<c02c18dc>] dev_attr_store+0x18/0x24
-[   85.087158]        [<c0169990>] sysfs_write_file+0x100/0x184
-[   85.087158]        [<c0109d48>] vfs_write+0xb4/0x148
-[   85.098297]        [<c0109fd0>] sys_write+0x40/0x70
-[   85.098297]        [<c0013cc0>] ret_fast_syscall+0x0/0x3c
-[   85.109069]=20
-[   85.109069] other info that might help us debug this:
-[   85.109069]=20
-[   85.117462]  Possible unsafe locking scenario:
-[   85.117462]=20
-[   85.117462]        CPU0                    CPU1
-[   85.128417]        ----                    ----
-[   85.128417]   lock(s_active#22);
-[   85.128417]                                lock(sysfs_lock);
-[   85.128417]                                lock(s_active#22);
-[   85.142486]   lock(sysfs_lock);
-[   85.151794]=20
-[   85.151794]  *** DEADLOCK ***
-[   85.151794]=20
-[   85.151794] 2 locks held by bash/949:
-[   85.158020]  #0:  (&buffer->mutex){+.+.+.}, at: [<c01698b8>] sysfs_write=
-_file+0x28/0x184
-[   85.170349]  #1:  (s_active#22){++++.+}, at: [<c016996c>] sysfs_write_fi=
-le+0xdc/0x184
-[   85.170349]=20
-[   85.178588] stack backtrace:
-[   85.178588] [<c001b824>] (unwind_backtrace+0x0/0xf0) from [<c008de64>] (=
-print_circular_bug+0x100/0x114)
-[   85.193023] [<c008de64>] (print_circular_bug+0x100/0x114) from [<c008f54=
-c>] (check_prev_add+0x680/0x698)
-[   85.193023] [<c008f54c>] (check_prev_add+0x680/0x698) from [<c008f640>] =
-(check_prevs_add+0xdc/0x150)
-[   85.212524] [<c008f640>] (check_prevs_add+0xdc/0x150) from [<c008fc18>] =
-(validate_chain.clone.24+0x564/0x694)
-[   85.212524] [<c008fc18>] (validate_chain.clone.24+0x564/0x694) from [<c0=
-090cdc>] (__lock_acquire+0x49c/0x980)
-[   85.233306] [<c0090cdc>] (__lock_acquire+0x49c/0x980) from [<c0091838>] =
-(lock_acquire+0x98/0x100)
-[   85.233306] [<c0091838>] (lock_acquire+0x98/0x100) from [<c047e280>] (mu=
-tex_lock_nested+0x3c/0x2f4)
-[   85.242614] [<c047e280>] (mutex_lock_nested+0x3c/0x2f4) from [<c0275358>=
-] (gpio_value_store+0x24/0xcc)
-[   85.261840] [<c0275358>] (gpio_value_store+0x24/0xcc) from [<c02c18dc>] =
-(dev_attr_store+0x18/0x24)
-[   85.261840] [<c02c18dc>] (dev_attr_store+0x18/0x24) from [<c0169990>] (s=
-ysfs_write_file+0x100/0x184)
-[   85.271240] [<c0169990>] (sysfs_write_file+0x100/0x184) from [<c0109d48>=
-] (vfs_write+0xb4/0x148)
-[   85.290008] [<c0109d48>] (vfs_write+0xb4/0x148) from [<c0109fd0>] (sys_w=
-rite+0x40/0x70)
-[   85.298400] [<c0109fd0>] (sys_write+0x40/0x70) from [<c0013cc0>] (ret_fa=
-st_syscall+0x0/0x3c)
--bash: echo: write error: Operation not permitted
-
-the way to trigger is:
-
-
-root@legolas:~# cd /sys/class/gpio/
-root@legolas:/sys/class/gpio# echo 2 > export=20
-root@legolas:/sys/class/gpio# echo 2 > unexport=20
-root@legolas:/sys/class/gpio# echo 2 > export=20
-root@legolas:/sys/class/gpio# cd gpio2/
-root@legolas:/sys/class/gpio/gpio2# echo 1 > value=20
-
---=20
-balbi
-
---jkO+KyKz7TfD21mV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPMm2LAAoJEIaOsuA1yqREBxEQALAkioSegidvj3IaG0JBtkv1
-bGaOKGWNPxJJpL2IDJDCI3KliNEt7t9VB/ACaqXBbMauhdWmEkiBnh/ZFjzdUnu/
-0z0pmFa4yE4KTYor8DPvzvutR6k+O38KaMPzjR6O0woEP1Y7j8ORQJNKnouJIgh7
-zXUjxDZ+WRh7xhdE6ctlZLV2DSZ6/aYpaAYGBwUWT/OUMXk1kA4LV+DBa26I6sgR
-CiO0I4bl8fYLde4pCzKNLQGJFhhAVhsPp+mNLfpiYTrkZjTni9iQVDFllNYDofrL
-4cuoRq+O36Gq1+17bskPQrhfr8n6pKpbI0EqfQAATw99vmU+wg0ZZDIhyxnlTEf3
-cLiq7JfxWs4UhS2WkigBPROkToPP/UU6wcFu1saRIilVdNhxtLJNzhMFHoDfn4t/
-ocpYaNt6hG+k4YIdJzFCODNZtrpMf2MwfblO8zDatgfCAqhvCZDJ7UQ02t8FbXNJ
-r/ro1FGjWvvqG62ELOYkhm8BAAlC1KnjmtFxamXFttZdTu7L1UqwUvkOFwYxwntz
-dSQX6mZbWxCP/EzrNWVrBi0wtQlr/cRwd0cLC2TGoRYQSvl27sqhgumalbbbPP7r
-8Di/fEMWZLemJJOWlf1QtX6FV6tp4RyfEeyukSg9NOr2F2/mhVry9ddFclHm06CX
-SHrniaynpSr+sXn60Ehr
-=4NF/
------END PGP SIGNATURE-----
-
---jkO+KyKz7TfD21mV--
