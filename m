@@ -1,48 +1,41 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 14/16] ARM: omap: fix wrapped error messages in
- omap_hwmod.c
-Date: Wed, 8 Feb 2012 10:54:08 -0800
-Message-ID: <20120208185407.GN29796@atomide.com>
+Subject: Re: [PATCH 15/16] ARM: omap: resolve nebulous 'Error setting
+ wl12xx data'
+Date: Wed, 8 Feb 2012 10:56:50 -0800
+Message-ID: <20120208185650.GO29796@atomide.com>
 References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
- <E1RvAZK-0006Hi-Vm@rmk-PC.arm.linux.org.uk>
- <alpine.DEB.2.00.1202081039590.26892@utopia.booyaka.com>
+ <E1RvAZf-0006Hm-40@rmk-PC.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:15585 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756942Ab2BHSyN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 13:54:13 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:15451 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756913Ab2BHS46 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 13:56:58 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1202081039590.26892@utopia.booyaka.com>
+In-Reply-To: <E1RvAZf-0006Hm-40@rmk-PC.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, =?utf-8?Q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Paul Walmsley <paul@pwsan.com> [120208 09:09]:
-> On Wed, 8 Feb 2012, Russell King - ARM Linux wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:09]:
+> It's useful to print the error code when a called function fails so a
+> diagnosis of why it failed is possible.  In this case, it fails because
+> we try to register some data for the wl12xx driver, but as the driver
+> is not configured, a stub function is used which simply returns -ENOSYS.
 > 
-> > While trying to debug my OMAP platforms, they emitted this message:
-> > 
-> > omap_hwmod: %s: enabled state can only be entered from initialized, idle, or disabled state
-> > 
-> > The following backtrace said it was from a function called '_enable',
-> > which didn't provide much clue.  Grepping didn't find it either.
-> > 
-> > The message is wrapped, so unwrap the message so grep can find it.  Do
-> > the same for three other messages in this file.
-> > 
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Let's do the simple thing for -rc and print the error code.
 > 
-> Thanks, I'll queue this for 3.4.
+> Also, the return code from platform_register_device() at each of these
+> sites was not being checked.  Add some checking, and again print the
+> error code.
+> 
+> This should be fixed properly for the next merge window so we don't
+> issue error messages merely because a driver is not configured.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Looks like Russell is willing to take potential flamage and argue
-this should go into -rc because of the hard to find message.
+Looks right to me for -rc. Yes let's plan on fixing this for v3.4.
 
-Care to ack instead, or do you have objections to this being
-merged during the -rc?
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
