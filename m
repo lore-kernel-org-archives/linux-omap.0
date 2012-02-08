@@ -1,53 +1,117 @@
-From: Dmitry Antipov <dmitry.antipov@linaro.org>
-Subject: Re: Minimum timing resolution in Ubuntu/Linaro on the PandaBoard
- ES
-Date: Tue, 07 Feb 2012 21:21:03 -0800
-Message-ID: <4F32063F.1020607@linaro.org>
-References: <4F31A91B.8080106@umich.edu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP34xx
+Date: Tue, 7 Feb 2012 21:32:13 -0800
+Message-ID: <20120208053213.GB20885@atomide.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+ <20120204190109.GL20333@atomide.com>
+ <20120204203453.GD17309@n2100.arm.linux.org.uk>
+ <20120205012556.GG1426@atomide.com>
+ <20120205125904.GB11372@n2100.arm.linux.org.uk>
+ <20120205172925.GS20333@atomide.com>
+ <20120206181314.GQ1426@atomide.com>
+ <20120207101057.GR1275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38160 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302Ab2BHFT5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 00:19:57 -0500
-Received: by iacb35 with SMTP id b35so337952iac.19
-        for <linux-omap@vger.kernel.org>; Tue, 07 Feb 2012 21:19:56 -0800 (PST)
-In-Reply-To: <4F31A91B.8080106@umich.edu>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61674 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821Ab2BHFcQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 00:32:16 -0500
+Content-Disposition: inline
+In-Reply-To: <20120207101057.GR1275@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Richardson <chardson@umich.edu>
-Cc: John Stultz <john.stultz@linaro.org>, linaro-dev@lists.linaro.org, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On 02/07/2012 02:43 PM, Andrew Richardson wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120207 01:39]:
+> On Mon, Feb 06, 2012 at 10:13:15AM -0800, Tony Lindgren wrote:
+> > FYI, I'm now seeing the same warning as Igor posted with
+> > omap2plus_defconfig using the same compiler as Igor:
+> > 
+> > gcc version 4.4.1 (Sourcery G++ Lite 2010q1-202) 
+> > 
+> > Still no other warnings though.
+> 
+> If you're not getting the twl4030_power_init() you still need to
+> investigate why.  For example, are you sure you're building with
+> CONFIG_TWL4030_POWER enabled?
 
-> I'm experiencing what appears to be a minimum clock resolution issue
-> in using clock_gettime() on a PandaBoard ES running ubuntu.
+Yes it's enabled in omap2plus_defconfig. Same results with one
+of your defconfigs. Below is the output from compiler above.
+ 
+> Secondly, check what you're actually getting:
+> 
+> $ arm-linux-objdump -t ../build/omap4/drivers/mfd/twl4030-power.o | grep twl4030_power_init
+> 000000c0 g     F .init.text     0000066c twl4030_power_init
 
-Do you have CONFIG_OMAP_32K_TIMER enabled in your kernel?
-Look at 'dmesg | grep clock' and check for the following:
+00000650 g     F .init.text     000001a0 twl4030_power_init
 
-...
-OMAP clockevent source: GPTIMER1 at 32768 Hz
-sched_clock: 32 bits at 32kHz, resolution 30517ns, wraps every 131071999ms
-...
+> $ arm-linux-objdump -r ../build/omap4/drivers/mfd/twl-core.o | grep 'twl4030_power_init\|^RELOC'
+> RELOCATION RECORDS FOR [.text]:
+> RELOCATION RECORDS FOR [.init.text]:
+> RELOCATION RECORDS FOR [.exit.text]:
+> RELOCATION RECORDS FOR [.devinit.text]:
+> 00000258 R_ARM_PC24        twl4030_power_init
 
-Most probably this is the answer - by default, recent OMAPs are configured
-to use less-accurate, but more energy-saving timer (32KHz) in favor of
-MPU timer.
+RELOCATION RECORDS FOR [.text]:
+RELOCATION RECORDS FOR [.init.text]:
+RELOCATION RECORDS FOR [.exit.text]:
+RELOCATION RECORDS FOR [.devinit.text]:
+000001c8 R_ARM_CALL        twl4030_power_init
+RELOCATION RECORDS FOR [.ARM.exidx]:
+RELOCATION RECORDS FOR [.ARM.exidx.init.text]:
+RELOCATION RECORDS FOR [.ARM.exidx.exit.text]:
+RELOCATION RECORDS FOR [.ARM.exidx.devinit.text]:
+RELOCATION RECORDS FOR [___kcrctab+twl_i2c_write]:
+RELOCATION RECORDS FOR [___ksymtab+twl_i2c_write_u8]:
+RELOCATION RECORDS FOR [___ksymtab+twl_i2c_write]:
+RELOCATION RECORDS FOR [___ksymtab+twl_rev]:
+RELOCATION RECORDS FOR [___ksymtab_gpl+twl_get_version]:
+RELOCATION RECORDS FOR [___kcrctab_gpl+twl_get_type]:
+RELOCATION RECORDS FOR [___ksymtab+twl_i2c_read]:
+RELOCATION RECORDS FOR [___ksymtab_gpl+twl_get_type]:
+RELOCATION RECORDS FOR [___kcrctab+twl_rev]:
+RELOCATION RECORDS FOR [___kcrctab+twl_i2c_write_u8]:
+RELOCATION RECORDS FOR [___kcrctab+twl_i2c_read_u8]:
+RELOCATION RECORDS FOR [___ksymtab+twl_i2c_read_u8]:
+RELOCATION RECORDS FOR [___kcrctab+twl_i2c_read]:
+RELOCATION RECORDS FOR [___kcrctab_gpl+twl_get_version]:
+RELOCATION RECORDS FOR [.data]:
+RELOCATION RECORDS FOR [.initcall4.init]:
+RELOCATION RECORDS FOR [.exitcall.exit]:
+RELOCATION RECORDS FOR [.debug_info]:
+RELOCATION RECORDS FOR [.debug_line]:
+RELOCATION RECORDS FOR [.debug_frame]:
+RELOCATION RECORDS FOR [.debug_loc]:
+RELOCATION RECORDS FOR [.debug_pubnames]:
+RELOCATION RECORDS FOR [.debug_aranges]:
+RELOCATION RECORDS FOR [.debug_ranges]:
 
-Disable CONFIG_OMAP_32K_TIMER to switch to MPU timer, and check
-'dmesg | grep clock' to see:
+> and from this we can see that the compiler is doing what they're told
+> wrt the sections the code is being placed into, and secondly that the
+> section mismatch tool is working correctly.
+> 
+> So, if you have all that, but you're still not getting this mismatch
+> warning:
+> 
+>     WARNING: drivers/mfd/built-in.o(.devinit.text+0x258): Section mismatch in reference from the function twl_probe() to the function .init.text:twl4030_power_init()
+>     The function __devinit twl_probe() references
+>     a function __init twl4030_power_init().
+>     If twl4030_power_init is only used by twl_probe then
+>     annotate twl4030_power_init with a matching annotation.
+> 
+> then, quite simply, your build setup is broken and can't be relied
+> upon to give proper warnings.
 
-...
-OMAP clockevent source: GPTIMER1 at 38400000 Hz
-OMAP clocksource: GPTIMER2 at 38400000 Hz
-sched_clock: 32 bits at 38MHz, resolution 26ns, wraps every 111848ms
-...
+Right, no luck yet getting crosstool-ng built plain gcc working..
+Yesterday ftp.gnu.org was down and the script is using that. Have
+to continue with that when I get a chance.
+ 
+> As I mentioned previously, there's no way that the compiler could
+> optimize this to get rid of this warning as the function definition is
+> in a completely separate file to where it's being called.
 
-BTW, I have no ideas why clock_getres(CLOCK_REALTIME,...) returns {0, 1}
-regardless of underlying clock source. I expect {0, 30517} for 32K timer
-and {0, 26} for MPU timer.
+Yes it seems that there's something wrong..
 
-Dmitry
+Tony
