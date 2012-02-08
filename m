@@ -1,42 +1,61 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH 3.3] OMAP4: PRM: fix build breakage when CONFIG_OF is
- not defined
-Date: Wed, 08 Feb 2012 13:05:21 +0200
-Message-ID: <1328699121.20197.52.camel@cumari>
-References: <1328698752-18756-1-git-send-email-coelho@ti.com>
-	 <20120208110318.GC16334@legolas.emea.dhcp.ti.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH] ARM: OMAP: update omap1 and omap2plus defconfigs
+Date: Wed, 08 Feb 2012 13:09:02 +0200
+Message-ID: <4F3257CE.7070909@compulab.co.il>
+References: <20120208053556.GB1426@atomide.com> <1328696173-17226-1-git-send-email-grinberg@compulab.co.il> <20120208101958.GT1275@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120208110318.GC16334@legolas.emea.dhcp.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: balbi@ti.com
-Cc: tony@atomide.com, linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:35421
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755332Ab2BHLJO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 06:09:14 -0500
+In-Reply-To: <20120208101958.GT1275@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Wed, 2012-02-08 at 13:03 +0200, Felipe Balbi wrote: 
-> On Wed, Feb 08, 2012 at 12:59:12PM +0200, Luciano Coelho wrote:
-> > Since 3.3-rc1, prm44xx.c build breaks if CONFIG_OF is not set:
-> > 
-> > arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
-> > make[1]: *** [arch/arm/mach-omap2/prm44xx.o] Error 1
-> > 
-> > This is because of a missing include, which is added indirectly if
-> > CONFIG_OF is defined.  This problem was introduced in commit
-> > 2f31b51659c2d8315ea2888ba5b93076febe672b
+Hi Russell,
+
+On 02/08/12 12:19, Russell King - ARM Linux wrote:
+> On Wed, Feb 08, 2012 at 12:16:13PM +0200, Igor Grinberg wrote:
+>> This patch updates omapX_defconfig to 3.3-rc1 and enables
+>> the CONFIG_DEBUG_SECTION_MISMATCH.
 > 
-> same as previous patch. Abbreviated commit and commit subject.
+> You shouldn't enable this in the kernel supplied defconfigs.
 
-Okay, I'll send v2 in a sec.
+Hmmm... Ok, looks like I've forgot the purpose of defconfigs...
+It is intended for users rather than developers (right?) and
+the CONFIG_DEBUG_SECTION_MISMATCH has no use for users?
+Is it the case, or is there anything else?
 
-> > Cc: Tero Kristo <t-kristo@ti.com>
-> > Signed-off-by: Luciano Coelho <coelho@ti.com>
 > 
-> Reviewed-by: Felipe Balbi <balbi@ti.com>
+>> The update is done by:
+>> 1) make mrproper && make omapX_defconfig
+>> 2) Enable the CONFIG_DEBUG_SECTION_MISMATCH
+>> 3) make savedefconfig
+>> 4) cp defconfig arch/arm/configs/omapX_defconfig
+>>
+>> Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+>> ---
+>> After updating omap1_defconfig,
+>> there are several section mismatch warnings seen.
+>> Hopefully, I will have time to fix those tomorrow
+>> (unless someone will be kind enough to fix them before me).
+>> The mismatches are:
+> 
+> The correct way is to build with:
+> 
+> make ... CONFIG_DEBUG_SECTION_MISMATCH=y
+> 
+> or set it in your private configuration.
 
-Thanks!
+In my current setup, command line switch would be most appropriate.
+Thanks for suggestion.
+
 
 -- 
-Cheers,
-Luca.
+Regards,
+Igor.
