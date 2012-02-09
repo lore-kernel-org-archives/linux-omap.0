@@ -1,31 +1,32 @@
-From: Matt Porter <mporter@ti.com>
-Subject: [PATCH 0/2] omap: fix omap2plus defaults for am35xx parts
-Date: Thu,  9 Feb 2012 15:16:24 -0500
-Message-ID: <1328818586-7104-1-git-send-email-mporter@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3: clock3xxx_data: change EMAC clocks aliases
+Date: Thu, 9 Feb 2012 13:20:50 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202091314320.6698@utopia.booyaka.com>
+References: <1324423634-32581-1-git-send-email-yanok@emcraft.com> <4F2F8EE3.1050305@visionsystems.de> <20120209190957.GA30410@h56-17.vpn.ti.com> <alpine.DEB.2.00.1202091245210.4469@utopia.booyaka.com> <20120209201100.GB30410@h56-17.vpn.ti.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:34447 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252Ab2BIUQ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 15:16:29 -0500
-Received: by iacb35 with SMTP id b35so2991128iac.19
-        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 12:16:29 -0800 (PST)
+Received: from utopia.booyaka.com ([72.9.107.138]:37567 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757787Ab2BIUUv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 15:20:51 -0500
+In-Reply-To: <20120209201100.GB30410@h56-17.vpn.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+To: Matt Porter <mporter@ti.com>
+Cc: Yegor Yefremov <yegor_sub1@visionsystems.de>, Tony Lindgren <tony@atomide.com>, Ilya Yanok <yanok@emcraft.com>, linux-omap@vger.kernel.org, sasha_d@emcraft.com
 
-This series enables all current am35xx boards and the on-chip Ethernet
-driver in omap2plus_defconfig. It will help users of these boards to
-have a working defconfig out of the box.
+Hi Matt
 
-Matt Porter (2):
-  omap: enable davinci_emac in omap2plus_defconfig for am35xx
-  omap: build am3517crane board support by default
+On Thu, 9 Feb 2012, Matt Porter wrote:
 
- arch/arm/configs/omap2plus_defconfig |    1 +
- arch/arm/mach-omap2/Kconfig          |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+> Thanks Paul.
+> 
+> Any chance we can see it in 3.3 fixes? It's the only thing preventing 
+> the emac and thus nfsroot from working in 3.3 for these systems.
 
--- 
-1.7.5.4
+Did EMAC work on previous versions of Linux for those systems? i.e., does 
+this patch fix a regression?
 
+
+- Paul
