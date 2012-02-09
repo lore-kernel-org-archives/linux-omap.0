@@ -1,75 +1,88 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: OMAP34xx
-Date: Wed, 8 Feb 2012 16:47:31 -0800
-Message-ID: <20120209004731.GA11343@kroah.com>
-References: <87lioegtk9.fsf@ti.com>
- <87y5sei1qz.fsf@ti.com>
- <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
- <87k43xfee3.fsf@ti.com>
- <20120208170653.GA3492@kroah.com>
- <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
- <20120208195327.GA5223@kroah.com>
- <871uq53p3c.fsf@ti.com>
- <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
+Date: Thu, 9 Feb 2012 00:53:34 +0000
+Message-ID: <20120209005334.GG25414@n2100.arm.linux.org.uk>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk> <4F32DBB5.4010004@gmx.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61668 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756773Ab2BIArk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:47:40 -0500
-Received: by pbcun15 with SMTP id un15so1064091pbc.19
-        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 16:47:40 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49414 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757880Ab2BIAxo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:53:44 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+In-Reply-To: <4F32DBB5.4010004@gmx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: linux-omap@vger.kernel.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Feb 08, 2012 at 05:14:18PM -0700, Paul Walmsley wrote:
-> Hi Greg
+On Wed, Feb 08, 2012 at 08:31:49PM +0000, Florian Tobias Schandinat wrote:
+> Hi Russell,
 > 
-> was just directed at this thread:
-> 
-> On Wed, 8 Feb 2012, Greg KH wrote:
-> 
-> > Don't send me anything, saying it needs to get into the -rc merge 
-> > window, that you don't actually want to see merged.  Otherwise, how long 
-> > am I supposed to know to wait?  That's just looney.
-> 
-> We did want to see it merged.  But then we came up with a better fix, 
-> which is why I asked you to revert the original in favor of the new 
-> version:
-> 
-> http://marc.info/?l=linux-arm-kernel&m=132760582332651&w=2
-> 
-> If we'd realized that the second version would be delayed until 3.4, we 
-> wouldn't have wanted the first version to be reverted :-(
-
-You said the first version was broken.
-
-Anyway, moving on...
-
-> > > The version you have currently queued is needed for v3.3 as they fix
-> > > brokenness on v3.3.  Any chance they can be applied queued for 3.3?
-> > > We'll have another set of enhancements on top of those that are
-> > > targetted for v3.4, but those you have queued currently are defintely
-> > > fixes.
+> On 02/08/2012 04:35 PM, Russell King - ARM Linux wrote:
+> > commit c49d005b6cc8491fad5b24f82805be2d6bcbd3dd
+> > Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > Date:   Tue Jan 17 11:09:57 2012 +0200
 > > 
-> > At this point in the release cycle, I would prefer to wait.
+> >     OMAPDSS: HDMI: PHY burnout fix
+> >     
+> >     A hardware bug in the OMAP4 HDMI PHY causes physical damage to the board
+> >     if the HDMI PHY is kept powered on when the cable is not connected.
 > 
-> It would be really great if this series could make it in for v3.3-rcX.  
-> Without it, 3.3 will be unusable for any OMAP users that run the console 
-> on the serial port.  That's pretty much every OMAP user that runs mainline 
-> kernels, AFAIK.
+> I agree this is a serious issue.
+> 
+> > which now has me wondering if, by trying to boot v3.3-rc2 on this board
+> > during the past week, I have a destroyed HDMI interface on it.
+> 
+> I am not sure as I don't keep track of all OMAP changes, but you make it
+> sound like a regression, is there any difference to 3.2 behavior?
 
-Show me an OMAP user that actually runs a mainline kernel :)
+I've no idea when the problem was introduced, that's not the point that
+I'm making.  The point that I'm making is that the patch is dated January
+17th, it was apparantly committed on the 26th, and it went into mainline
+on the 8th February.
 
-What changeset(s) do you want me to take from my tty-next tree and put
-it in the tty-linus tree to be merged for the 3.3-final timeframe?
+For a patch which fixes a _hardware_ _destruction_ issue, three weeks is
+_FAR_ too long for it to take to get into mainline.
 
-thanks,
+Moreover, only last Monday did I enable the OMAP2 DSS subsystem on the
+4430 SDP platform, _including_ the HDMI code, and looking at the commit
+it could be one of those platforms which is affected.
 
-greg k-h
+As I don't have a HDMI cable connected to the system, and I ran that
+kernel overnight, and I tried opening each /dev/fb* device, what I'm now
+wondering is: have I destroyed the HDMI PHY on my 4430SDP?
+
+But that's not really the point.  The point is, for someone to sit on such
+a patch for weeks is, in my opinion, as good as saying to your users "I
+don't care if you bust your hardware."
+
+However, you raise another point, a much more serious one at that.  Is
+this problem also present in 3.2?  The patch seems to apply almost cleanly
+to that kernel version, so I guess it is.  It fails to apply to v3.1
+because of missing files, so I guess 3.1 is unaffected.
+
+So, why isn't this patch copied to the stable people?
+
+And why is there this seemingly lack of care for hardware destruction bugs?
+
+Please, if it affects v3.2, PLEASE PLEASE PLEASE tell the stable people
+who know nothing about this commit until I asked them this evening about
+it.
+
+> > So, a big thanks for sitting on that fix and exposing peoples hardware
+> > to damage, that shows real professionalism.
+> 
+> Well, I am no professional to begin with, at least in the sense of getting paid
+> for it. That said I'm quite happy if I manage to find a few hours every weekend
+> to do the work. Given that the final thing should be tested in -next before I
+> ask Linus to pull, it is completely usual (and even quite fast) if things take
+> 8-13 days on my end. If this isn't fast enough for Tomi, he'd better ask Linus
+> to pull directly for such issues.
+
+For hardware destruction issues, once the problem has been identified, it
+should be shouted about very loudly to get it upstream as quickly as
+possible.  I'm sure Linus would've even taken it in patch form.
+
+(You do realise that Linus does apply patches as well as pulling trees?)
