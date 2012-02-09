@@ -1,96 +1,173 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: OMAP34xx
-Date: Thu, 9 Feb 2012 10:36:24 -0800
-Message-ID: <20120209183624.GJ1426@atomide.com>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com>
- <4F3374F0.3080002@bitmer.com>
- <20120209133739.GB2590@sirena.org.uk>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Thu, 9 Feb 2012 20:41:55 +0200
+Message-ID: <CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
+References: <1328058094-28483-1-git-send-email-felipe.contreras@gmail.com>
+	<20120201011239.GA797@suse.de>
+	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
+	<20120201034445.GA2979@kroah.com>
+	<CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
+	<20120209173528.GA31726@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:30273 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825Ab2BISgf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 13:36:35 -0500
-Content-Disposition: inline
-In-Reply-To: <20120209133739.GB2590@sirena.org.uk>
+Received: from mail-lpp01m020-f174.google.com ([209.85.217.174]:47601 "EHLO
+	mail-lpp01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752559Ab2BISl5 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Feb 2012 13:41:57 -0500
+Received: by lbom4 with SMTP id m4so944764lbo.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 10:41:55 -0800 (PST)
+In-Reply-To: <20120209173528.GA31726@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [120209 05:06]:
-> On Thu, Feb 09, 2012 at 09:25:36AM +0200, Jarkko Nikula wrote:
-> > On 02/09/2012 02:47 AM, Greg KH wrote:
-> > > Show me an OMAP user that actually runs a mainline kernel :)
-> 
-> > I guess pretty much all these days? Most error reports what I recall
-> > seeing during past 2-3 years are from mainline kernel and not that much
-> > from linux-omap or some board support package kernel.
-> 
-> Most of the other guys are going in via the TI support channels rather
-> than asking on the public lists I expect (and remember that even if
-> people are basing their code on mainline the chances are they've still
-> got a bunch of out of tree changes on top for their own boards if
-> they're not directly using one of the reference boards).
+On Thu, Feb 9, 2012 at 7:35 PM, Greg KH <gregkh@linuxfoundation.org> wr=
+ote:
+> On Wed, Feb 01, 2012 at 09:26:16AM +0200, Felipe Contreras wrote:
+>> On Wed, Feb 1, 2012 at 5:44 AM, Greg KH <greg@kroah.com> wrote:
+>> > On Wed, Feb 01, 2012 at 03:37:55AM +0200, Felipe Contreras wrote:
+>> >> On Wed, Feb 1, 2012 at 3:12 AM, Greg KH <gregkh@suse.de> wrote:
+>> >> > On Wed, Feb 01, 2012 at 03:01:32AM +0200, Felipe Contreras wrot=
+e:
+>> >> >> From: Felipe Contreras <felipe.contreras@nokia.com>
+>> >> >>
+>> >> >> The public images have it enabled, it's safer, and we get rid =
+of this
+>> >> >> warning:
+>> >> >>
+>> >> >> WARNING: at arch/arm/mach-omap2/omap_l3_smx.c:162 omap3_l3_app=
+_irq+0x114/0x15c()
+>> >> >> In-band Error seen by IVA_SS =C2=A0at address 0
+>> >> >> Modules linked in: bridgedriver(C+) mailbox_mach mailbox ipv6 =
+g_ether
+>> >> >> [<c0012848>] (unwind_backtrace+0x0/0xec) from [<c002e760>] (wa=
+rn_slowpath_common+0x4c/0x64)
+>> >> >> [<c002e760>] (warn_slowpath_common+0x4c/0x64) from [<c002e7f8>=
+] (warn_slowpath_fmt+0x2c/0x3c)
+>> >> >> [<c002e7f8>] (warn_slowpath_fmt+0x2c/0x3c) from [<c00217c8>] (=
+omap3_l3_app_irq+0x114/0x15c)
+>> >> >> [<c00217c8>] (omap3_l3_app_irq+0x114/0x15c) from [<c0059844>] =
+(handle_irq_event_percpu+0x28/0x174)
+>> >> >> [<c0059844>] (handle_irq_event_percpu+0x28/0x174) from [<c0059=
+9b8>] (handle_irq_event+0x28/0x38)
+>> >> >> [<c00599b8>] (handle_irq_event+0x28/0x38) from [<c005b8d0>] (h=
+andle_level_irq+0xb8/0xe0)
+>> >> >> [<c005b8d0>] (handle_level_irq+0xb8/0xe0) from [<c0059598>] (g=
+eneric_handle_irq+0x28/0x30)
+>> >> >> [<c0059598>] (generic_handle_irq+0x28/0x30) from [<c000e62c>] =
+(handle_IRQ+0x60/0x84)
+>> >> >> [<c000e62c>] (handle_IRQ+0x60/0x84) from [<c000d334>] (__irq_s=
+vc+0x34/0x80)
+>> >> >> [<c000d334>] (__irq_svc+0x34/0x80) from [<c0015804>] (v7_dma_i=
+nv_range+0x34/0x48)
+>> >> >> [<c0015804>] (v7_dma_inv_range+0x34/0x48) from [<c00129ec>] (d=
+ma_cache_maint_page+0x2c/0x34)
+>> >> >> [<c00129ec>] (dma_cache_maint_page+0x2c/0x34) from [<c0012a34>=
+] (___dma_page_dev_to_cpu+0x24/0x68)
+>> >> >> [<c0012a34>] (___dma_page_dev_to_cpu+0x24/0x68) from [<c0012b5=
+0>] (dma_unmap_sg+0x40/0x64)
+>> >> >> [<c0012b50>] (dma_unmap_sg+0x40/0x64) from [<c019fba4>] (omap_=
+hsmmc_post_req+0x3c/0x48)
+>> >> >> [<c019fba4>] (omap_hsmmc_post_req+0x3c/0x48) from [<c01932f4>]=
+ (mmc_post_req+0x18/0x1c)
+>> >> >> [<c01932f4>] (mmc_post_req+0x18/0x1c) from [<c019535c>] (mmc_s=
+tart_req+0xd4/0xec)
+>> >> >> [<c019535c>] (mmc_start_req+0xd4/0xec) from [<c019d330>] (mmc_=
+blk_issue_rw_rq+0x64/0x244)
+>> >> >> [<c019d330>] (mmc_blk_issue_rw_rq+0x64/0x244) from [<c019d7bc>=
+] (mmc_blk_issue_rq+0x2ac/0x2cc)
+>> >> >> [<c019d7bc>] (mmc_blk_issue_rq+0x2ac/0x2cc) from [<c019e1c0>] =
+(mmc_queue_thread+0x8c/0xf8)
+>> >> >> [<c019e1c0>] (mmc_queue_thread+0x8c/0xf8) from [<c0044c10>] (k=
+thread+0x84/0x8c)
+>> >> >> [<c0044c10>] (kthread+0x84/0x8c) from [<c000e694>] (kernel_thr=
+ead_exit+0x0/0x8)
+>> >> >> ---[ end trace 5dec1c8d7857375d ]---
+>> >> >>
+>> >> >> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+>> >> >> ---
+>> >> >> =C2=A0drivers/staging/tidspbridge/Kconfig | =C2=A0 =C2=A01 +
+>> >> >> =C2=A01 files changed, 1 insertions(+), 0 deletions(-)
+>> >> >>
+>> >> >> diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/sta=
+ging/tidspbridge/Kconfig
+>> >> >> index 21a559e..614e974 100644
+>> >> >> --- a/drivers/staging/tidspbridge/Kconfig
+>> >> >> +++ b/drivers/staging/tidspbridge/Kconfig
+>> >> >> @@ -61,6 +61,7 @@ config TIDSPBRIDGE_CACHE_LINE_CHECK
+>> >> >> =C2=A0config TIDSPBRIDGE_WDT3
+>> >> >> =C2=A0 =C2=A0 =C2=A0 bool "Enable watchdog timer"
+>> >> >> =C2=A0 =C2=A0 =C2=A0 depends on TIDSPBRIDGE
+>> >> >> + =C2=A0 =C2=A0 default y
+>> >> >
+>> >> > Nothing is ever default y, sorry, I can't accept this.
+>> >>
+>> >> % git grep 'default y' -- 'drivers/*/Kconfig' | wc -l
+>> >> 493
+>> >
+>> > That's nice, but proves nothing, no new entries should be y.
+>> >
+>> > If it should be y, then it should just not be an option and always
+>> > enabled, right? =C2=A0Why not do that?
+>>
+>> What if I compiled a DSP baseimage that doesn't have this watchdog?
+>
+> I don't know, you tell me.
 
-Please everybody using omaps with mainline give a test for the
-merge of the various fixes planned. I've done a branch with
-v3.3-rc3 + Russell's fixes + Paul's serial port fixes + fixes
-that I've queued up.
+Then you want this option disabled.
 
-This fixes the various build and boot issues with custom .configs
-that don't select CONFIG_MACH_OMAP_GENERIC. It should fix slow serial
-console issues. And it fixes booting with DT to minimal enviroment.
+>> And using that logic, we should start removing all configurations in
+>> the kernel that have 'default y'.
+>
+> If your machine needs it to boot, then no, do not.
 
-If you still see problems with compiling, booting, or slow serial
-port, please post the issues to linux-omap and LAKML lists
-immediately.
+There's many configurations that are not needed for booting, yet they
+are 'default y'.
 
-The testing branch is available at:
+>> No. There's a reason they are *configurations*, and there's a reason
+>> they are 'default y'.
+>
+> Again, no NEW config options should be default y unless you really ha=
+ve
+> a good reason.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap testing-omap-fixes
+I already gave you a good reason, and this came from Linus Torvalds.
 
-For reference, see below what commits this branch contains.
+http://article.gmane.org/gmane.linux.kernel/995419
 
-Regards,
+Notice how he agreed that setting defaults was a good idea. I can't
+point to the mails of other people that also agreed this was the
+direction to go.
 
-Tony
+You keep saying no options should be 'default y', but you don't say
+where that policy comes from.
 
+> And I'll take that a step further and say, if you want
+> this to be default y, then why even make it a config option at all an=
+d
+> not just build it in whenever the dependancy is detected?
 
-Benoit Cousson (1):
-      ARM: OMAP2+: board-generic: Add missing handle_irq callbacks
+The dependency can't be detected.
 
-Igor Grinberg (1):
-      ARM: OMAP3: cm-t35: fix section mismatch warning
+> So, care to just send a patch removing this config option instead?
 
-Paul Walmsley (3):
-      tty: serial: omap-serial: wakeup latency constraint is in microseconds, not milliseconds
-      tty: serial: OMAP: block idle while the UART is transferring data in PIO mode
-      tty: serial: OMAP: use a 1-byte RX FIFO threshold in PIO mode
+No. That's not what anybody wants.
 
-Russell King - ARM Linux (15):
-      ARM: omap: fix oops in arch/arm/mach-omap2/vp.c when pmic is not found
-      ARM: omap: fix oops in drivers/video/omap2/dss/dpi.c
-      ARM: omap: fix broken twl-core dependencies and ifdefs
-      ARM: omap: fix prm44xx.c OMAP44XX_IRQ_PRCM build error
-      ARM: omap: fix vc.c PMIC error message
-      ARM: omap: fix uninformative vc/i2c configuration error message
-      ARM: omap: fix section mismatch errors in TWL PMIC driver
-      ARM: omap: fix section mismatch warning in mux.c
-      ARM: omap: preemptively fix section mismatch in omap4_sdp4430_wifi_mux_init()
-      ARM: omap: fix section mismatch warning for omap_secondary_startup()
-      ARM: omap: fix section mismatch error for omap_4430sdp_display_init()
-      ARM: omap: fix section mismatch warning for sdp3430_twl_gpio_setup()
-      ARM: omap: fix section mismatch warnings in mux.c caused by hsmmc.c
-      ARM: omap: fix wrapped error messages in omap_hwmod.c
-      ARM: omap: resolve nebulous 'Error setting wl12xx data'
+> Or, if bad things happen if the option is turned off, then fix those,
+> don't paper over it by trying to enable the option, that's not a real
+> fix.
 
-Santosh Shilimkar (1):
-      ARM: OMAP2: Fix the OMAP2 only build break seen with 2011+ ARM tool-chains
+The real fix is not coming any time soon (if possible at all). So, do
+you want the warning fixed or not?
 
-Tony Lindgren (2):
-      Merge branch 'fixes-dt' into fixes
-      Merge branch 'fixes' into testing-omap-fixes
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
