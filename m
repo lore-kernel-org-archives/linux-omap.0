@@ -1,103 +1,94 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: [PATCH 2/3] OMAPDSS: HDMI: Implement initialization of MCLK
-Date: Wed, 8 Feb 2012 21:10:22 -0600
-Message-ID: <1328757023-20543-3-git-send-email-ricardo.neri@ti.com>
-References: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH] gpio: omap: be more aggressive with pm_runtime
+Date: Thu, 9 Feb 2012 08:08:37 +0200
+Message-ID: <20120209060835.GA1121@legolas.emea.dhcp.ti.com>
+References: <1328707614-20146-1-git-send-email-balbi@ti.com>
+ <20120208135329.GJ16334@legolas.emea.dhcp.ti.com>
+ <87zkcsx48j.fsf@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42705 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757582Ab2BIDLB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Feb 2012 22:11:01 -0500
-Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q193B0u1011182
-	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 21:11:00 -0600
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q193B0lF020253
-	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 21:11:00 -0600 (CST)
-In-Reply-To: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:39997 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750997Ab2BIGIn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 01:08:43 -0500
+Received: by lagz14 with SMTP id z14so1486964lag.41
+        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 22:08:40 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <87zkcsx48j.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, mythripk@ti.com
-Cc: a0393947@ti.com, molnar@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: balbi@ti.com, linus.walleij@stericsson.com, Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, tarun.kanti@ti.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
 
-When the MCLK is used to drive the Audio Clock Regeneration packets,
-the initialization procedure is to set ACR_CTRL[2] to 0 and then
-back again to 1. Also, devices that do not support the MCLK, use
-the TMDS clock directly by leaving ACR_CTRL[2] set to 0.
 
-The MLCK clock divisor, mclk_mode, is configured only if MLCK
-is used. Such configuration is no longer related to the CTS mode
-as in some silicon revisions CTS SW-mode is used along with the MCLK.
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
----
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   37 +++++++++++++++++-----------
- 1 files changed, 22 insertions(+), 15 deletions(-)
+On Wed, Feb 08, 2012 at 04:03:24PM -0800, Kevin Hilman wrote:
+> Felipe Balbi <balbi@ti.com> writes:
+>=20
+> > Hi,
+> >
+> > On Wed, Feb 08, 2012 at 03:26:54PM +0200, Felipe Balbi wrote:
+> >> try to keep gpio block suspended as much as possible.
+> >>=20
+> >> Tested with pandaboard and a sysfs exported gpio.
+> >>=20
+> >> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> >> ---
+> >>=20
+> >> I couldn't see any issues with this patch. I managed to export
+> >> a gpio and change the direction with a while true loop with
+> >> no issues whatsoever.
+> >
+> > btw, I also played with gpios 7 and 8 because they have LEDs on them on
+> > pandaboard and everything seems to be fine.
+> >
+> > I just want to be sure I can still go to OFF mode and wakeup, but on
+> > vanilla 3.3-rc2 after echo mem > /sys/power/state the systems freezes on
+> > panda, so I can't go any further.
+>=20
+> I don't think it's frozen.  I suspected it's suspended without any
+> wakeups enabled.  You probably haven't enabled UART wakeups.  Try
+> enabling them like this:
+>=20
+>   echo enabled > /sys/devices/platform/omap/omap_uart.2/tty/ttyO2/power/w=
+akeup
+> =20
+> before going into suspend.
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 9af81f1..0150e21 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -1023,13 +1023,9 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
- 	u32 r;
- 	void __iomem *av_base = hdmi_av_base(ip_data);
- 
--	/* audio clock recovery parameters */
--	r = hdmi_read_reg(av_base, HDMI_CORE_AV_ACR_CTRL);
--	r = FLD_MOD(r, cfg->use_mclk, 2, 2);
--	r = FLD_MOD(r, cfg->en_acr_pkt, 1, 1);
--	r = FLD_MOD(r, cfg->cts_mode, 0, 0);
--	hdmi_write_reg(av_base, HDMI_CORE_AV_ACR_CTRL, r);
--
-+	/*
-+	 * Parameters for generation of Audio Clock Recovery packets
-+	 */
- 	REG_FLD_MOD(av_base, HDMI_CORE_AV_N_SVAL1, cfg->n, 7, 0);
- 	REG_FLD_MOD(av_base, HDMI_CORE_AV_N_SVAL2, cfg->n >> 8, 7, 0);
- 	REG_FLD_MOD(av_base, HDMI_CORE_AV_N_SVAL3, cfg->n >> 16, 7, 0);
-@@ -1041,14 +1037,6 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
- 		REG_FLD_MOD(av_base,
- 				HDMI_CORE_AV_CTS_SVAL3, cfg->cts >> 16, 7, 0);
- 	} else {
--		/*
--		 * HDMI IP uses this configuration to divide the MCLK to
--		 * update CTS value.
--		 */
--		REG_FLD_MOD(av_base,
--				HDMI_CORE_AV_FREQ_SVAL, cfg->mclk_mode, 2, 0);
--
--		/* Configure clock for audio packets */
- 		REG_FLD_MOD(av_base, HDMI_CORE_AV_AUD_PAR_BUSCLK_1,
- 				cfg->aud_par_busclk, 7, 0);
- 		REG_FLD_MOD(av_base, HDMI_CORE_AV_AUD_PAR_BUSCLK_2,
-@@ -1057,6 +1045,25 @@ void hdmi_core_audio_config(struct hdmi_ip_data *ip_data,
- 				(cfg->aud_par_busclk >> 16), 7, 0);
- 	}
- 
-+	/* Set ACR clock divisor */
-+	REG_FLD_MOD(av_base,
-+			HDMI_CORE_AV_FREQ_SVAL, cfg->mclk_mode, 2, 0);
-+
-+	r = hdmi_read_reg(av_base, HDMI_CORE_AV_ACR_CTRL);
-+	/*
-+	 * Use TMDS clock for ACR packets. For devices that use
-+	 * the MCLK, this is the first part of the MCLK initialization.
-+	 */
-+	r = FLD_MOD(r, 0, 2, 2);
-+
-+	r = FLD_MOD(r, cfg->en_acr_pkt, 1, 1);
-+	r = FLD_MOD(r, cfg->cts_mode, 0, 0);
-+	hdmi_write_reg(av_base, HDMI_CORE_AV_ACR_CTRL, r);
-+
-+	/* For devices using MCLK, this completes its initialization. */
-+	if (cfg->use_mclk)
-+		REG_FLD_MOD(av_base, HDMI_CORE_AV_ACR_CTRL, 1, 2, 2);
-+
- 	/* Override of SPDIF sample frequency with value in I2S_CHST4 */
- 	REG_FLD_MOD(av_base, HDMI_CORE_AV_SPDIF_CTRL,
- 						cfg->fs_override, 1, 1);
--- 
-1.7.0.4
+that did the trick. But not having UART with wakeup enabled by default
+prevents us from doing suspend/resume tests during bootup, because the
+system won't wakeup through console.
 
+--=20
+balbi
+
+--+QahgC5+KEYLbs62
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPM2LjAAoJEIaOsuA1yqREqSkP/1SRbYn0I5v+/XHgQa3JL86e
+uzzC9jJ2ULMCuZIlSQlxRHjXv/YbCux/7SSON49WanyRIQ0d2g1qH9BSOyIQoUX3
+GLIYojkYea753pvxHFJ4c/6cIH1113I1XAYMigZdxzUFX730D/axWdM6XEljGz2l
+Sm0ewfOM1GqAvbv5g1nRqoziMiggOd69W+2E7+WsU9HRkvh70JMiI7THwSqUg2H2
+o7C1mMhvwd9B1RMlw+bXATgBZ3pI2Onf4j6/k6s0mPBn9eii9EnnGWVsJJZrWd61
+5Vze5KskKT6Fw0VXUB4KaolDtReH2mOGAzXrfF3Z2cv6ixVo/2cXVqFboFtxMOwO
+a2TLWrYM4WXPfsv4WQJGsNT1uofI58grYkieNfNTlYWJvjl3hjWcGRT3z6MmUJCk
+C+eJILcUMUtkhbgm5yWoIA02kFE1seVH4FI6jrTOXwbBzn7ztvBOppoEEhDFBffC
+Wb+DPNFpEP+Esjk4/NjA4TUNOYRAwpt67pXIJs7v7lUshT8qAQMU6iUkdLy6jQL/
+6n+hPgXuOnuty9/lX9dXCRmXKIcGcc8BfcUqxdA7afhcg/gXVX/3lCDV+UZNkghS
+4e+H3nv+wQ9X2yUHlJ6k8/dsz7w+ZxCZxFOyLpMHNeSEJX2sUz86HY1HNrG3npwQ
+7zVis511MzdQuJpbN6HW
+=xjry
+-----END PGP SIGNATURE-----
+
+--+QahgC5+KEYLbs62--
