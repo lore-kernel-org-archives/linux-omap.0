@@ -1,77 +1,54 @@
-From: Teresa Gamez <T.Gamez@phytec.de>
-Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
-Date: Thu, 09 Feb 2012 09:30:20 +0100
-Message-ID: <1328776220.12747.5.camel@lws-gamez>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
- <4F32DBB5.4010004@gmx.de>  <20120209005334.GG25414@n2100.arm.linux.org.uk>
- <1328770969.1909.11.camel@deskari>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [alsa-devel] ASoC related suspend problems on OMAP3
+Date: Thu, 09 Feb 2012 10:59:38 +0200
+Message-ID: <4F338AFA.4000204@ti.com>
+References: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com> <20120208115132.GA25756@sirena.org.uk> <CANOLnOPkirGhw43u8sen9YDrsZH_g+HXsdOAefbNMkXEasifyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1328770969.1909.11.camel@deskari>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-fbdev@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53903 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750810Ab2BII7h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 03:59:37 -0500
+Received: by lahi5 with SMTP id i5so1742096lah.18
+        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 00:59:34 -0800 (PST)
+In-Reply-To: <CANOLnOPkirGhw43u8sen9YDrsZH_g+HXsdOAefbNMkXEasifyQ@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, lrg@ti.com, alsa-devel@alsa-project.org, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
 
-Am Donnerstag, den 09.02.2012, 09:02 +0200 schrieb Tomi Valkeinen:
-> On Thu, 2012-02-09 at 00:53 +0000, Russell King - ARM Linux wrote:
-> 
-> > Moreover, only last Monday did I enable the OMAP2 DSS subsystem on the
-> > 4430 SDP platform, _including_ the HDMI code, and looking at the commit
-> > it could be one of those platforms which is affected.
-> > 
-> > As I don't have a HDMI cable connected to the system, and I ran that
-> > kernel overnight, and I tried opening each /dev/fb* device, what I'm now
-> > wondering is: have I destroyed the HDMI PHY on my 4430SDP?
-> 
-> Probably not. I don't know the exact details of the HW bug (I wrote the
-> patch as it took too long for the person responsible for it to come up
-> with a decent patch), but my understanding is that the cable needs to be
-> plugged in at some point, and then removed.
-> 
-> Thinking about this now, I guess I should've sent queries to get a
-> proper description of the situation where the bug happens.
-> 
-> > However, you raise another point, a much more serious one at that.  Is
-> > this problem also present in 3.2?  The patch seems to apply almost cleanly
-> > to that kernel version, so I guess it is.  It fails to apply to v3.1
-> > because of missing files, so I guess 3.1 is unaffected.
-> > 
-> > So, why isn't this patch copied to the stable people?
-> 
-> Good point, I'll take it to the stable people.
-> 
-> The problem is present in all kernels where we have the HDMI driver, so
-> 2.6.39+.
+On 02/08/2012 06:19 PM, Grazvydas Ignotas wrote:
+> ok I've figured it out myself - it's because of McBSP2 clock source
+> selection. Pandora has rather unusual config (compared to other
+> boards) that it gets McBSP2 audio clock through external pin. As long
+> as it's set to PRCM functional clock (OMAP internal, reset default)
+> the system suspends fine, but if it's set to external,
+> per_pwrdm+core_pwrdm won't switch to lower power states.
+>=20
+> Pandora sets this by calling snd_soc_dai_set_sysclk() from
+> snd_soc_ops.hw_params callback. Now I wonder, where should I set the
+> clock back so it suspends again, perhaps from snd_soc_ops.hw_free
+> callback? Or maybe it should be handled by omap-mcbsp ASoC driver,
+> perhaps something needs to be configured on McBSP itself for it to go
+> idle with external clock set?
 
-Are there already backported patches out there for 3.0/3.1?
-We are quite interested in this.
+I assume this worked in the past on pandora (suspend), right?
 
-Regards,
-Teresa
+Can you try one _hack_ to see if it helps?
+In omap_mcbsp_request function:
+set the CLOCKACTIVITY field to 0x3 in the sysconfig register.
+Or you can as well try to do the same in
+mach-omap2/omap_hwmod_3xxx_data.c, look for omap3xxx_mcbsp_sysc, and
+change the .clockact =3D 0x2 to 0x3.
 
-> 
-> > For hardware destruction issues, once the problem has been identified, it
-> > should be shouted about very loudly to get it upstream as quickly as
-> > possible.  I'm sure Linus would've even taken it in patch form.
-> > 
-> > (You do realise that Linus does apply patches as well as pulling trees?)
-> 
-> Yes, I should've taken this directly to Linus.
-> 
->  Tomi
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Not sure if this helps, but I would be interested to see the results...
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
