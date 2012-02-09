@@ -1,28 +1,65 @@
-From: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Subject: Re: OMAP34xx
-Date: Thu, 09 Feb 2012 09:25:36 +0200
-Message-ID: <4F3374F0.3080002@bitmer.com>
-References: <87lioegtk9.fsf@ti.com> <87y5sei1qz.fsf@ti.com> <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com> <87k43xfee3.fsf@ti.com> <20120208170653.GA3492@kroah.com> <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com> <20120208195327.GA5223@kroah.com> <871uq53p3c.fsf@ti.com> <20120208231551.GA9009@kroah.com> <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com> <20120209004731.GA11343@kroah.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: HDMI: Add M2 divider while calculating pll
+Date: Thu, 09 Feb 2012 09:46:56 +0200
+Message-ID: <1328773616.1909.13.camel@deskari>
+References: <1328706825-23555-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-eQz57BOGcLLI/4X4Urh/"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bitmer.com ([213.157.87.50]:48225 "EHLO bitmer.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751002Ab2BIHY4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Feb 2012 02:24:56 -0500
-In-Reply-To: <20120209004731.GA11343@kroah.com>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:56497 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751426Ab2BIHrC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 02:47:02 -0500
+Received: by lagp5 with SMTP id p5so1534104lag.2
+        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 23:46:59 -0800 (PST)
+In-Reply-To: <1328706825-23555-1-git-send-email-mythripk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: mythripk@ti.com
+Cc: linux-omap@vger.kernel.org
 
-On 02/09/2012 02:47 AM, Greg KH wrote:
-> Show me an OMAP user that actually runs a mainline kernel :)
-> 
-I guess pretty much all these days? Most error reports what I recall
-seeing during past 2-3 years are from mainline kernel and not that much
-from linux-omap or some board support package kernel.
 
--- 
-Jarkko
+--=-eQz57BOGcLLI/4X4Urh/
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+On Wed, 2012-02-08 at 18:43 +0530, mythripk@ti.com wrote:
+> From: Mythri P K <mythripk@ti.com>
+>=20
+> While calculating regm and regmf value add M2 divider in the equation.
+>=20
+> Signed-off-by: Mythri P K <mythripk@ti.com>
+
+Please spend a bit more time on commit descriptions. What's M2? Why
+wasn't it used before? What does this change affect? Is it a fix or a
+new feature?
+
+ Tomi
+
+
+--=-eQz57BOGcLLI/4X4Urh/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPM3nwAAoJEPo9qoy8lh71x+oP/2CyxCwhNLTa+0wQXCc+FChy
+T8PZ8fDjoE/jiqT/q4DXgBP7d2iDbbZljGz0ZbUD1xaFKJw8gXgqQOI5q9QgS7Em
+X0bf2PMYmwxt34s3+XPJ4uWd6cyOox4wr/tfWd2VLz5pd4IbwyeMxNW1JpOoe17u
+4YQ+FS+ZrTg7DBZzYnbD1s8JWpTmgZOE5o3w92WwefornMDUZ594yjeSaHEFr097
+hN8g3hMgvdLmwUIP8js3eebCc2ynvE4oSZFnWKJXCFkpuAbKTvrEI3BsjyJmNgA0
+a1EpXIEfvEHcdFdtcvP8Qs4XDEdi9D4c6RJGW4f6gfzeSjrgJrZBKIotmnxtbgp6
+oRqw5na0Hd+vcRn25hOlyVNcttfXm6GWEL4ml/FYGpLcSlteD7BRjBEr4q8GH16t
+LB8xwWkIBldf3q37hhCISdOQVA92mafDnSKPIi6bxLWqG6yu8U+x5Dmq/N7kewC2
+ztbCg8B8GpKCyDVF0KitmOMH5KPXx/Mofa9unyBTSTy1umJ3K8TkB1ImOvUXOY8I
+gtMo/P2tzBJqs1oOyEbDaOBGWpLG/x4yOjfgzCpoHl+WAf2NFXIz58EHMILRJr1T
+ftcWquEkzaHENiF4N8FxJWBSR9gTh8lXKLq3ecxIv89wuYD8r8jKFLUg6ZOmynrN
+VE07loCVBqLyZrw00WN4
+=KUTM
+-----END PGP SIGNATURE-----
+
+--=-eQz57BOGcLLI/4X4Urh/--
+
