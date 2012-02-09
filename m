@@ -1,89 +1,77 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/3 v5] usb: musb: Add support for ti81xx platform
-Date: Thu, 9 Feb 2012 10:08:23 +0200
-Message-ID: <20120209080822.GR1121@legolas.emea.dhcp.ti.com>
-References: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
- <4F321320.8010709@ti.com>
-Reply-To: balbi@ti.com
+From: Teresa Gamez <T.Gamez@phytec.de>
+Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
+Date: Thu, 09 Feb 2012 09:30:20 +0100
+Message-ID: <1328776220.12747.5.camel@lws-gamez>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
+ <4F32DBB5.4010004@gmx.de>  <20120209005334.GG25414@n2100.arm.linux.org.uk>
+ <1328770969.1909.11.camel@deskari>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="v6YRErhBvjoBjrPV"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:48713 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756586Ab2BIII2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 03:08:28 -0500
-Content-Disposition: inline
-In-Reply-To: <4F321320.8010709@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1328770969.1909.11.camel@deskari>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-fbdev@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, balbi@ti.com, tony@atomide.com, Ravi Babu <ravibabu@ti.com>
 
+Am Donnerstag, den 09.02.2012, 09:02 +0200 schrieb Tomi Valkeinen:
+> On Thu, 2012-02-09 at 00:53 +0000, Russell King - ARM Linux wrote:
+> 
+> > Moreover, only last Monday did I enable the OMAP2 DSS subsystem on the
+> > 4430 SDP platform, _including_ the HDMI code, and looking at the commit
+> > it could be one of those platforms which is affected.
+> > 
+> > As I don't have a HDMI cable connected to the system, and I ran that
+> > kernel overnight, and I tried opening each /dev/fb* device, what I'm now
+> > wondering is: have I destroyed the HDMI PHY on my 4430SDP?
+> 
+> Probably not. I don't know the exact details of the HW bug (I wrote the
+> patch as it took too long for the person responsible for it to come up
+> with a decent patch), but my understanding is that the cable needs to be
+> plugged in at some point, and then removed.
+> 
+> Thinking about this now, I guess I should've sent queries to get a
+> proper description of the situation where the bug happens.
+> 
+> > However, you raise another point, a much more serious one at that.  Is
+> > this problem also present in 3.2?  The patch seems to apply almost cleanly
+> > to that kernel version, so I guess it is.  It fails to apply to v3.1
+> > because of missing files, so I guess 3.1 is unaffected.
+> > 
+> > So, why isn't this patch copied to the stable people?
+> 
+> Good point, I'll take it to the stable people.
+> 
+> The problem is present in all kernels where we have the HDMI driver, so
+> 2.6.39+.
 
---v6YRErhBvjoBjrPV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Are there already backported patches out there for 3.0/3.1?
+We are quite interested in this.
 
-On Wed, Feb 08, 2012 at 11:46:00AM +0530, Shubhrajyoti wrote:
-> On Wednesday 08 February 2012 09:56 AM, Ajay Kumar Gupta wrote:
-> > +static int dsps_musb_init(struct musb *musb)
-> > +{
-> > +	struct device *dev =3D musb->controller;
-> > +	struct musb_hdrc_platform_data *plat =3D dev->platform_data;
-> > +	struct platform_device *pdev =3D to_platform_device(dev->parent);
-> > +	struct dsps_glue *glue =3D platform_get_drvdata(pdev);
-> > +	const struct dsps_musb_wrapper *wrp =3D glue->wrp;
-> > +	struct omap_musb_board_data *data =3D plat->board_data;
-> > +	void __iomem *reg_base =3D musb->ctrl_base;
-> > +	u32 rev, val;
-> > +	int status;
-> > +
-> > +	/* mentor core register starts at offset of 0x400 from musb base */
-> > +	musb->mregs +=3D wrp->musb_core_offset;
-> > +
-> > +	/* NOP driver needs change if supporting dual instance */
-> > +	usb_nop_xceiv_register();
-> > +	musb->xceiv =3D otg_get_transceiver();
-> > +	if (!musb->xceiv)
-> > +		return -ENODEV;
-> > +
-> > +	status =3D pm_runtime_get_sync(dev);
-> > +	if (status < 0) {
-> > +		dev_err(dev, "pm_runtime_get_sync FAILED");
-> > +		goto err0;
-> > +	}
-> So you are doing a get_sync at init and you cut the clocks at exit only.
-> Any particular reason for that.
+Regards,
+Teresa
 
-that's a very good question. We're just adding a brand new file, which
-is clean and stuff... so we might as well start with good PM
-capabilities.
-
---=20
-balbi
-
---v6YRErhBvjoBjrPV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPM371AAoJEIaOsuA1yqRE1aIQAKlEbeDw/4bfbZh0Ip8XxaWU
-tRVIxGdROUJjwFZEPCocjH9xm64G17lfKQ9QuEec/BCvCcExznPkCFR+vhIdT82x
-FmbkaIMFCxAlfTYa5rJ0gd0cB9NxbfPFvnD/MQIvUHw62r+uwAj0r5yausdVvCIY
-cm5JoMsqimGetZYt5H0DrwkfXASXGQ7xJ3fiI1V63m1KsrIC8fi9CMi/eRq36txp
-fNUTiP3epBd9HuWB7wlIXpjc2M/lo0CVqQLzCJ3nqDc8ZbETc5vk+F3X+D40uANf
-Vw6uhU8cuhsIPGY5gAAKaWUZ0cQqi4zLil2nnzo4mrxRHZguTb3P1nRaehZv737H
-kSmFwEyQnaAx/pGe4WBAoHhYiTTYAABimy938CNAjfO8dX9iGAiEGJJVjqPgmEMU
-89B+Tkzui9Y6KzGThcKOxmJrqsYmLvT/isPwqXmt62jBX+pX4ORwdqRRX93JG323
-fOzYZGgn08o/OjKNzyLB6dmnyUc+p5PjRGzT2sESDJh7UoKo2HZsHXjdDoWcjrOx
-TZnWsZDxYfHADW8JwvMO8tuZGafzs/z1Gco8TnHzf0vXfC/vyPbjKzoN9tCFPfYD
-Jou8Lyy4gOEp8SnO2qfMIoudSOZ/XBWlFcfed9aBt4HrWSt10ugSgl2YsRK914Iu
-UGNO2J3VGzuyNq+xIHYR
-=EwhS
------END PGP SIGNATURE-----
-
---v6YRErhBvjoBjrPV--
+> 
+> > For hardware destruction issues, once the problem has been identified, it
+> > should be shouted about very loudly to get it upstream as quickly as
+> > possible.  I'm sure Linus would've even taken it in patch form.
+> > 
+> > (You do realise that Linus does apply patches as well as pulling trees?)
+> 
+> Yes, I should've taken this directly to Linus.
+> 
+>  Tomi
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
