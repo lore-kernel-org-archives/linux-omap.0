@@ -1,83 +1,94 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HACK: Ensure DSS clock domain gets out of
- idle when HDMI is enabled
-Date: Thu, 09 Feb 2012 14:02:04 +0200
-Message-ID: <1328788924.1909.67.camel@deskari>
-References: <1328769888-24790-1-git-send-email-archit@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] gpio: omap: be more aggressive with pm_runtime
+Date: Thu, 9 Feb 2012 14:03:56 +0200
+Message-ID: <CANOLnONWuEyp9pCPs-tJgyOd_-RdTNAz1axQHJ0d_0Rq37b3=A@mail.gmail.com>
+References: <1328707614-20146-1-git-send-email-balbi@ti.com>
+	<877gzwyivt.fsf@ti.com>
+	<20120209060939.GB1121@legolas.emea.dhcp.ti.com>
+	<20120209111142.GZ1121@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-lBzljEpljla+Kribb0U0"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:32804 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752030Ab2BIMCJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 07:02:09 -0500
-In-Reply-To: <1328769888-24790-1-git-send-email-archit@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:62626 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030Ab2BIMD5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 07:03:57 -0500
+Received: by iacb35 with SMTP id b35so2495429iac.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 04:03:56 -0800 (PST)
+In-Reply-To: <20120209111142.GZ1121@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <archit@ti.com>
-Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: balbi@ti.com
+Cc: Kevin Hilman <khilman@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, linus.walleij@stericsson.com, tarun.kanti@ti.com
+
+On Thu, Feb 9, 2012 at 1:11 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi again,
+>
+> On Thu, Feb 09, 2012 at 08:09:40AM +0200, Felipe Balbi wrote:
+>> On Wed, Feb 08, 2012 at 04:01:42PM -0800, Kevin Hilman wrote:
+>> > Felipe Balbi <balbi@ti.com> writes:
+>> >
+>> > > try to keep gpio block suspended as much as possible.
+>> > >
+>> > > Tested with pandaboard and a sysfs exported gpio.
+>> > >
+>> > > Signed-off-by: Felipe Balbi <balbi@ti.com>
+>> > > ---
+>> >
+>> > Looks like you need a few more get/puts around other places where
+>> > registers are accessed. =C2=A0It currently causes a boot crash on =
+OMAP3 in
+>> > _set_gpio_triggering().
+>>
+>> it was a missing get/put on gpio_irq_set_type(). Fixed.
+>>
+>> > Did you test GPIO wakeups? =C2=A0both IO ring wakeups and GPIO mod=
+ule-level
+>> > wakeups?
+>>
+>> how can I test that easily with panda ?
+>
+> Ok, I have added gpio-keys to panda's boardfile:
+>
+> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-o=
+map2/board-omap4panda.c
+> index 30ad40d..0a38282 100644
+> --- a/arch/arm/mach-omap2/board-omap4panda.c
+> +++ b/arch/arm/mach-omap2/board-omap4panda.c
+> @@ -23,6 +23,7 @@
+> =C2=A0#include <linux/io.h>
+> =C2=A0#include <linux/leds.h>
+> =C2=A0#include <linux/gpio.h>
+> +#include <linux/gpio_keys.h>
+> =C2=A0#include <linux/usb/otg.h>
+> =C2=A0#include <linux/i2c/twl.h>
+> =C2=A0#include <linux/regulator/machine.h>
+> @@ -90,7 +91,30 @@ static struct platform_device leds_gpio =3D {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0},
+> =C2=A0};
+>
+> +static struct gpio_keys_button gpio_buttons[] =3D {
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .code =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =3D BTN_EXTRA,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .gpio =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =3D 121,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .desc =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =3D "user",
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .wakeup =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =3D 1,
+
+While at it, could you also test GPIO module wakeups with debounce
+feature enabled? Kevin says it should work but it doesn't for me. Just
+add:
+    .debounce_interval =3D 10,
 
 
---=-lBzljEpljla+Kribb0U0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Thu, 2012-02-09 at 12:14 +0530, Archit Taneja wrote:
-> For DSS clock domain to transition from idle to active state, it's necess=
-ary
-> to enable the optional clock DSS_FCLK before we enable the module using t=
-he
-> MODULEMODE bits in the DSS clock domain's CM_DSS_DSS_CLKCTRL register.
->=20
-> This sequence was not followed correctly for the 'dss_hdmi' hwmod and it =
-led
-> to DSS clock domain not getting out of idle when pm_runtime_get_sync() wa=
-s
-> called for hdmi's platform device.
->=20
-> Since the clock domain failed to change it's state to active, the hwmod c=
-ode
-> disables any clocks it had enabled before for this hwmod. This led to the=
- clock
-> 'dss_48mhz_clk' getting disabled.
->=20
-> When hdmi's runtime_resume() op is called, the call to dss_runtime_get()
-> correctly enables the DSS clock domain this time. But the clock 'dss_48mh=
-z_clk'
-> disabled before is needed for HDMI's PHY to function. Hence, the driver f=
-ails
-
-There's something wrong with the "But the clock..." sentence above.
-
-The patch looks good, but I think it'd be better to add brief HACK
-comments in the code also. Otherwise it's too easy to forget about this.
-
- Tomi
-
-
---=-lBzljEpljla+Kribb0U0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPM7W8AAoJEPo9qoy8lh715iEP/iKincJFzdbym6nXvpPQUAMh
-p01V9DZ9Rn7sir2BVUjSRh22PX/NUWTUGohFtGKOvCWMwS4rbnhaOgyWMnki/NEu
-DljAB8qMnPv5d6boH6Py63Li8cB7M9N+pxxLXfXeaj91EhPhIkjAXm9100+iGt6X
-oeFAGBalq6K7UGRJbHkxohd79NJOmwBv3UguzovbPPWt7OVv06TtOtSdNpQ6TnPW
-zZ2EHkQzLRNRCOCwLAbX7zaIj67Do634joT3b5jWa9Cv/8af6eJEYtf5b6Ruz7xG
-Nb9YWMmb6T5DV+oX+OQ05xROStfjPxmSqxQ7e1eABqd5aDtHJQS8medjII0yvVyF
-h5LsUE9OG7YSmW76LVLRockI896rropj4lHMYQQ5qMYn+lgBNsjgY208hdZozzmu
-MyPAdb4qCRnhkmpkCRxzG+2aCsdT2BX7xexfWH3rLxXPGkRnRdAmFmQWKSVOdYnD
-uM3GouFTHrYPGklbEABV7ojj4rC96iifU2wO0SSnl41K9LdvBOH0UCU/yo+9TZSr
-sIjMOGMbmtGG0m3+hTmg05y/wtav0QQWkbazDaQU8EOeOBuHYp6abwVqb9nkLYgx
-HSnqmglLvgpEl8CuXq7mBrIHP+R+ebxTg2JxudloC93Vr/Cju3kS9Geby/UyF+r6
-wh6CIJYywY+muutEVJLR
-=4ryc
------END PGP SIGNATURE-----
-
---=-lBzljEpljla+Kribb0U0--
-
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
