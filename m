@@ -1,35 +1,62 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: OMAP34xx
-Date: Thu, 9 Feb 2012 13:37:40 +0000
-Message-ID: <20120209133739.GB2590@sirena.org.uk>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com>
- <4F3374F0.3080002@bitmer.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: ASoC related suspend problems on OMAP3
+Date: Thu, 9 Feb 2012 15:41:03 +0200
+Message-ID: <CANOLnOOEd=LWa4hUpfBKgg4K8627S0W5Dzv1dZso93EuL31D8g@mail.gmail.com>
+References: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com>
+	<20120208115132.GA25756@sirena.org.uk>
+	<CANOLnOPkirGhw43u8sen9YDrsZH_g+HXsdOAefbNMkXEasifyQ@mail.gmail.com>
+	<4F338AFA.4000204@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:40031 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780Ab2BINhu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 08:37:50 -0500
-Content-Disposition: inline
-In-Reply-To: <4F3374F0.3080002@bitmer.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <4F338AFA.4000204@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, lrg@ti.com, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Thu, Feb 09, 2012 at 09:25:36AM +0200, Jarkko Nikula wrote:
-> On 02/09/2012 02:47 AM, Greg KH wrote:
-> > Show me an OMAP user that actually runs a mainline kernel :)
-
-> I guess pretty much all these days? Most error reports what I recall
-> seeing during past 2-3 years are from mainline kernel and not that much
-> from linux-omap or some board support package kernel.
-
-Most of the other guys are going in via the TI support channels rather
-than asking on the public lists I expect (and remember that even if
-people are basing their code on mainline the chances are they've still
-got a bunch of out of tree changes on top for their own boards if
-they're not directly using one of the reference boards).
+T24gVGh1LCBGZWIgOSwgMjAxMiBhdCAxMDo1OSBBTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
+ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4gT24gMDIvMDgvMjAxMiAwNjoxOSBQTSwgR3JhenZ5ZGFz
+IElnbm90YXMgd3JvdGU6Cj4+IG9rIEkndmUgZmlndXJlZCBpdCBvdXQgbXlzZWxmIC0gaXQncyBi
+ZWNhdXNlIG9mIE1jQlNQMiBjbG9jayBzb3VyY2UKPj4gc2VsZWN0aW9uLiBQYW5kb3JhIGhhcyBy
+YXRoZXIgdW51c3VhbCBjb25maWcgKGNvbXBhcmVkIHRvIG90aGVyCj4+IGJvYXJkcykgdGhhdCBp
+dCBnZXRzIE1jQlNQMiBhdWRpbyBjbG9jayB0aHJvdWdoIGV4dGVybmFsIHBpbi4gQXMgbG9uZwo+
+PiBhcyBpdCdzIHNldCB0byBQUkNNIGZ1bmN0aW9uYWwgY2xvY2sgKE9NQVAgaW50ZXJuYWwsIHJl
+c2V0IGRlZmF1bHQpCj4+IHRoZSBzeXN0ZW0gc3VzcGVuZHMgZmluZSwgYnV0IGlmIGl0J3Mgc2V0
+IHRvIGV4dGVybmFsLAo+PiBwZXJfcHdyZG0rY29yZV9wd3JkbSB3b24ndCBzd2l0Y2ggdG8gbG93
+ZXIgcG93ZXIgc3RhdGVzLgo+Pgo+PiBQYW5kb3JhIHNldHMgdGhpcyBieSBjYWxsaW5nIHNuZF9z
+b2NfZGFpX3NldF9zeXNjbGsoKSBmcm9tCj4+IHNuZF9zb2Nfb3BzLmh3X3BhcmFtcyBjYWxsYmFj
+ay4gTm93IEkgd29uZGVyLCB3aGVyZSBzaG91bGQgSSBzZXQgdGhlCj4+IGNsb2NrIGJhY2sgc28g
+aXQgc3VzcGVuZHMgYWdhaW4sIHBlcmhhcHMgZnJvbSBzbmRfc29jX29wcy5od19mcmVlCj4+IGNh
+bGxiYWNrPyBPciBtYXliZSBpdCBzaG91bGQgYmUgaGFuZGxlZCBieSBvbWFwLW1jYnNwIEFTb0Mg
+ZHJpdmVyLAo+PiBwZXJoYXBzIHNvbWV0aGluZyBuZWVkcyB0byBiZSBjb25maWd1cmVkIG9uIE1j
+QlNQIGl0c2VsZiBmb3IgaXQgdG8gZ28KPj4gaWRsZSB3aXRoIGV4dGVybmFsIGNsb2NrIHNldD8K
+Pgo+IEkgYXNzdW1lIHRoaXMgd29ya2VkIGluIHRoZSBwYXN0IG9uIHBhbmRvcmEgKHN1c3BlbmQp
+LCByaWdodD8KCk5vdCByZWFsbHksIHdlIGRpZCBub3QgaGF2ZSB3b3JraW5nIHN1c3BlbmQgdW50
+aWwgbm93IGR1ZSB0byB1bnJlbGF0ZWQKZHJpdmVyIGlzc3VlcyAod2UgYXJlIHNsb3csIEkga25v
+dy4uKS4KCj4gQ2FuIHlvdSB0cnkgb25lIF9oYWNrXyB0byBzZWUgaWYgaXQgaGVscHM/Cj4gSW4g
+b21hcF9tY2JzcF9yZXF1ZXN0IGZ1bmN0aW9uOgo+IHNldCB0aGUgQ0xPQ0tBQ1RJVklUWSBmaWVs
+ZCB0byAweDMgaW4gdGhlIHN5c2NvbmZpZyByZWdpc3Rlci4KPiBPciB5b3UgY2FuIGFzIHdlbGwg
+dHJ5IHRvIGRvIHRoZSBzYW1lIGluCj4gbWFjaC1vbWFwMi9vbWFwX2h3bW9kXzN4eHhfZGF0YS5j
+LCBsb29rIGZvciBvbWFwM3h4eF9tY2JzcF9zeXNjLCBhbmQKPiBjaGFuZ2UgdGhlIC5jbG9ja2Fj
+dCA9IDB4MiB0byAweDMuCj4KPiBOb3Qgc3VyZSBpZiB0aGlzIGhlbHBzLCBidXQgSSB3b3VsZCBi
+ZSBpbnRlcmVzdGVkIHRvIHNlZSB0aGUgcmVzdWx0cy4uLgoKSSd2ZSBjaGFuZ2VkIHRoZSBod21v
+ZCBkYXRhIGFuZCBpdCBkb2Vzbid0IHNlZW0gdG8gaGVscC4gQWZ0ZXIKcGxheWluZywganVzdCBi
+ZWZvcmUgc3VzcGVuZCwgSSd2ZSB0cmllZCB0byByZWFkIG1jYnNwMiBTWVNDT05GSUcKdGhyb3Vn
+aCAvZGV2L21lbSBhbmQgaXQgc2VlbXMgQ0xPQ0tBQ1RJVklUWSBpcyAwIGF0IHRoYXQgdGltZS4g
+QWxzbwp0cmllZCBmb3JjaW5nIENMT0NLQUNUSVZJVFkgdG8gMywgMiwgMSB1c2luZyB0aGUgc2Ft
+ZSBtZXRob2QganVzdApiZWZvcmUgc3VzcGVuZCwgZGlkbid0IGhlbHAgZWl0aGVyLiBBcyBzb29u
+IGFzIEkgY2xlYXJlZCBNQ0JTUDJfQ0xLUwppbiBDT05UUk9MX0RFVkNPTkYwIGl0IHN0YXJ0ZWQg
+c3VzcGVuZGluZyBwcm9wZXJseS4KCgotLSAKR3Jhxb52eWRhcwpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpBbHNhLWRldmVsIG1haWxpbmcgbGlzdApBbHNh
+LWRldmVsQGFsc2EtcHJvamVjdC5vcmcKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2Fsc2EtZGV2ZWwK
