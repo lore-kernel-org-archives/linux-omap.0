@@ -1,84 +1,109 @@
-From: "Austin, Brian" <Brian.Austin@cirrus.com>
-Subject: Re: OMAP34xx
-Date: Thu, 9 Feb 2012 01:43:05 +0000
-Message-ID: <2E5F5ADB-BDFD-4317-A6E9-DC56D6AE5AB0@cirrus.com>
-References: <87lioegtk9.fsf@ti.com> <87y5sei1qz.fsf@ti.com>
- <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
- <87k43xfee3.fsf@ti.com> <20120208170653.GA3492@kroah.com>
- <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
- <20120208195327.GA5223@kroah.com> <871uq53p3c.fsf@ti.com>
- <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>,<20120209004731.GA11343@kroah.com>
+From: Ricardo Neri <ricardo.neri@ti.com>
+Subject: [PATCH 1/3] OMAPDSS: Add DSS feature for HDMI MCLK for audio
+Date: Wed, 8 Feb 2012 21:10:21 -0600
+Message-ID: <1328757023-20543-2-git-send-email-ricardo.neri@ti.com>
+References: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:23569
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750813Ab2BIBnM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Feb 2012 20:43:12 -0500
-In-Reply-To: <20120209004731.GA11343@kroah.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:42881 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757561Ab2BIDLA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Feb 2012 22:11:00 -0500
+Received: from dlep26.itg.ti.com ([157.170.170.121])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q193B0Rq005358
+	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 21:11:00 -0600
+Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q193B0mj020241
+	for <linux-omap@vger.kernel.org>; Wed, 8 Feb 2012 21:11:00 -0600 (CST)
+In-Reply-To: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: tomi.valkeinen@ti.com, mythripk@ti.com
+Cc: a0393947@ti.com, molnar@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org, Ricardo Neri <ricardo.neri@ti.com>
 
+Certain OMAP4 revisions (i.e., 4430 ES2.3, 4460, and 4470) use
+a pseudo clock (generated from the TMDS clock), MCLK, to drive the
+generation of Audio Clock Regeneration packets. Other devices
+(i.e., 4430 ES2.[0,2]) use the TMDS clock directly.
 
+This patch adds a new DSS feature for MCLK support. It also rearranges
+the omap_dss_features structures to reflect the devices supporting it.
 
-On Feb 8, 2012, at 6:47 PM, "Greg KH" <gregkh@linuxfoundation.org> wrote:
+Signed-off-by: Ricardo Neri <ricardo.neri@ti.com>
+---
+ drivers/video/omap2/dss/dss_features.c |   31 ++++++++++++++++++++++++++++++-
+ drivers/video/omap2/dss/dss_features.h |    1 +
+ 2 files changed, 31 insertions(+), 1 deletions(-)
 
-> On Wed, Feb 08, 2012 at 05:14:18PM -0700, Paul Walmsley wrote:
->> Hi Greg
->> 
->> was just directed at this thread:
->> 
->> On Wed, 8 Feb 2012, Greg KH wrote:
->> 
->>> Don't send me anything, saying it needs to get into the -rc merge 
->>> window, that you don't actually want to see merged.  Otherwise, how long 
->>> am I supposed to know to wait?  That's just looney.
->> 
->> We did want to see it merged.  But then we came up with a better fix, 
->> which is why I asked you to revert the original in favor of the new 
->> version:
->> 
->> http://marc.info/?l=linux-arm-kernel&m=132760582332651&w=2
->> 
->> If we'd realized that the second version would be delayed until 3.4, we 
->> wouldn't have wanted the first version to be reverted :-(
-> 
-> You said the first version was broken.
-> 
-> Anyway, moving on...
-> 
->>>> The version you have currently queued is needed for v3.3 as they fix
->>>> brokenness on v3.3.  Any chance they can be applied queued for 3.3?
->>>> We'll have another set of enhancements on top of those that are
->>>> targetted for v3.4, but those you have queued currently are defintely
->>>> fixes.
->>> 
->>> At this point in the release cycle, I would prefer to wait.
->> 
->> It would be really great if this series could make it in for v3.3-rcX.  
->> Without it, 3.3 will be unusable for any OMAP users that run the console 
->> on the serial port.  That's pretty much every OMAP user that runs mainline 
->> kernels, AFAIK.
-> 
-> Show me an OMAP user that actually runs a mainline kernel :)
-> 
-We do for our codec and dsp development and the latest ones have given us fits lately :)
-
-> What changeset(s) do you want me to take from my tty-next tree and put
-> it in the tty-linus tree to be merged for the 3.3-final timeframe?
-> 
-> thanks,
-> 
-> greg k-h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/video/omap2/dss/dss_features.c b/drivers/video/omap2/dss/dss_features.c
+index afcb593..162c9a9 100644
+--- a/drivers/video/omap2/dss/dss_features.c
++++ b/drivers/video/omap2/dss/dss_features.c
+@@ -432,6 +432,30 @@ static const struct omap_dss_features omap4430_es1_0_dss_features  = {
+ 	.burst_size_unit = 16,
+ };
+ 
++/* For OMAP4430 ES 2.0, 2.1 and 2.2 revisions */
++static const struct omap_dss_features omap4430_es2_0_1_2_dss_features = {
++	.reg_fields = omap4_dss_reg_fields,
++	.num_reg_fields = ARRAY_SIZE(omap4_dss_reg_fields),
++
++	.has_feature	=
++		FEAT_MGR_LCD2 |
++		FEAT_CORE_CLK_DIV | FEAT_LCD_CLK_SRC |
++		FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH |
++		FEAT_DSI_GNQ | FEAT_HDMI_CTS_SWMODE |
++		FEAT_HANDLE_UV_SEPARATE | FEAT_ATTR2 | FEAT_CPR |
++		FEAT_PRELOAD | FEAT_FIR_COEF_V | FEAT_ALPHA_FREE_ZORDER,
++
++	.num_mgrs = 3,
++	.num_ovls = 4,
++	.supported_displays = omap4_dss_supported_displays,
++	.supported_color_modes = omap4_dss_supported_color_modes,
++	.overlay_caps = omap4_dss_overlay_caps,
++	.clksrc_names = omap4_dss_clk_source_names,
++	.dss_params = omap4_dss_param_range,
++	.buffer_size_unit = 16,
++	.burst_size_unit = 16,
++};
++
+ /* For all the other OMAP4 versions */
+ static const struct omap_dss_features omap4_dss_features = {
+ 	.reg_fields = omap4_dss_reg_fields,
+@@ -443,7 +467,8 @@ static const struct omap_dss_features omap4_dss_features = {
+ 		FEAT_DSI_DCS_CMD_CONFIG_VC | FEAT_DSI_VC_OCP_WIDTH |
+ 		FEAT_DSI_GNQ | FEAT_HDMI_CTS_SWMODE |
+ 		FEAT_HANDLE_UV_SEPARATE | FEAT_ATTR2 | FEAT_CPR |
+-		FEAT_PRELOAD | FEAT_FIR_COEF_V | FEAT_ALPHA_FREE_ZORDER,
++		FEAT_PRELOAD | FEAT_FIR_COEF_V | FEAT_ALPHA_FREE_ZORDER |
++		FEAT_HDMI_AUDIO_USE_MCLK,
+ 
+ 	.num_mgrs = 3,
+ 	.num_ovls = 4,
+@@ -569,6 +594,10 @@ void dss_features_init(void)
+ 		omap_current_dss_features = &omap3430_dss_features;
+ 	else if (omap_rev() == OMAP4430_REV_ES1_0)
+ 		omap_current_dss_features = &omap4430_es1_0_dss_features;
++	else if (omap_rev() == OMAP4430_REV_ES2_0 ||
++		omap_rev() == OMAP4430_REV_ES2_1 ||
++		omap_rev() == OMAP4430_REV_ES2_2)
++		omap_current_dss_features = &omap4430_es2_0_1_2_dss_features;
+ 	else if (cpu_is_omap44xx())
+ 		omap_current_dss_features = &omap4_dss_features;
+ 	else
+diff --git a/drivers/video/omap2/dss/dss_features.h b/drivers/video/omap2/dss/dss_features.h
+index cd833bb..62dfb2e 100644
+--- a/drivers/video/omap2/dss/dss_features.h
++++ b/drivers/video/omap2/dss/dss_features.h
+@@ -58,6 +58,7 @@ enum dss_feat_id {
+ 	FEAT_FIR_COEF_V			= 1 << 25,
+ 	FEAT_ALPHA_FIXED_ZORDER		= 1 << 26,
+ 	FEAT_ALPHA_FREE_ZORDER		= 1 << 27,
++	FEAT_HDMI_AUDIO_USE_MCLK	= 1 << 28,
+ };
+ 
+ /* DSS register field id */
+-- 
+1.7.0.4
 
