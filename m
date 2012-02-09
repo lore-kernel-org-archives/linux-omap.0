@@ -1,123 +1,90 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: OMAP34xx
-Date: Thu, 9 Feb 2012 12:22:42 +0530
-Message-ID: <4F336D3A.2060302@ti.com>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
+Date: Thu, 09 Feb 2012 09:02:49 +0200
+Message-ID: <1328770969.1909.11.camel@deskari>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
+	 <4F32DBB5.4010004@gmx.de>  <20120209005334.GG25414@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ADDqB3tPKAPbL60WPRVh"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52167 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751208Ab2BIGw5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Feb 2012 01:52:57 -0500
-In-Reply-To: <20120205143824.GA12577@n2100.arm.linux.org.uk>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:34794 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752501Ab2BIHC4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 02:02:56 -0500
+In-Reply-To: <20120209005334.GG25414@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, linux-omap@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>
 
-Hi,
 
-On Sunday 05 February 2012 08:08 PM, Russell King - ARM Linux wrote:
-> On Sun, Feb 05, 2012 at 12:56:26PM +0000, Russell King - ARM Linux wrote:
->> And here's another (set of) problem(s) on the 4430SDP board once the
->> previous have been worked around:
->>
->> omap_hwmod: l3_div_ck: missing clockdomain for l3_div_ck.
->> omap_hwmod: ipu: failed to hardreset
->> omap_hwmod: mcpdm: cannot be enabled (3)
->> ...
->> machine_constraints_voltage: VUSB: failed to apply 3300000uV constraint
->> ...
->> twl_reg twl_reg.46: can't register VUSB, -22
->> twl_reg: probe of twl_reg.46 failed with error -22
->> ...
->> omap_vc_i2c_init: I2C config for all channels must match.
->> omap_vc_i2c_init: I2C config for all channels must match.
->
-> Fixing this error message to provide something useful allows this problem
-> to be diagnosed.
->
-> omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
-> omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).
->
-> Let's look at the PMIC data for OMAP4:
->
-> static struct omap_voltdm_pmic omap3_mpu_pmic = {
->          .i2c_high_speed            = true,
-> static struct omap_voltdm_pmic omap3_core_pmic = {
->          .i2c_high_speed            = true,
-> static struct omap_voltdm_pmic omap4_mpu_pmic = {
->          .i2c_high_speed            = true,
-> static struct omap_voltdm_pmic omap4_iva_pmic = {
->          .i2c_high_speed            = true,
-> static struct omap_voltdm_pmic omap4_core_pmic = {
->
-> So, OMAP4's PMIC information for the core domain does not have I2C high
-> speed set, yet the others do.  So if this is an illegal configuration
-> then the TWL data is plainly wrong.  If it's a legal configuration, the
-> voltage domain code is talking utter crap about requiring all these to
-> match.  They can't both be right.
->
-> Has this code been tested on OMAP4 platforms?  I think not (or if it
-> was, it was done blindly without regard for the messages the kernel
-> was spitting out - again, that's a failing of people to properly test
-> their code _before_ sending it upstream.)
->
->> Power Management for TI OMAP4.
->> clock: disabling unused clocks to save power
->> omapfb omapfb: no driver for display: lcd
->> omapfb omapfb: no driver for display: lcd2
->
-> Okay, so this requires backlight support, and TAAL selected, so that sorts
-> that error, but causes others:
->
-> taal display0: taal panel revision e3.83.7d
-> omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
-> omapdss DSI error: DSI CIO error, cio irqstatus 200000
-> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+--=-ADDqB3tPKAPbL60WPRVh
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This happens when the flex cable connected to the display is faulty or 
-loose.
+On Thu, 2012-02-09 at 00:53 +0000, Russell King - ARM Linux wrote:
 
->
->> Failed to set PHY power mode to 1
->> omapdss HDMI error: failed to power on device
->
-> For some reason, enabling TAAL fixes this HDMI error.  Why I don't
-> understand but it's very very counter intuitive.
+> Moreover, only last Monday did I enable the OMAP2 DSS subsystem on the
+> 4430 SDP platform, _including_ the HDMI code, and looking at the commit
+> it could be one of those platforms which is affected.
+>=20
+> As I don't have a HDMI cable connected to the system, and I ran that
+> kernel overnight, and I tried opening each /dev/fb* device, what I'm now
+> wondering is: have I destroyed the HDMI PHY on my 4430SDP?
 
-This was an issue with our driver. I've posted a fix for this.
+Probably not. I don't know the exact details of the HW bug (I wrote the
+patch as it took too long for the person responsible for it to come up
+with a decent patch), but my understanding is that the cable needs to be
+plugged in at some point, and then removed.
 
-Thanks,
-Archit
+Thinking about this now, I guess I should've sent queries to get a
+proper description of the situation where the bug happens.
 
->
->> ------------[ cut here ]------------
->> WARNING: at /home/rmk/git/linux-omap/arch/arm/mach-omap2/omap_hwmod.c:1604 _idle+0x34/0xc8()
->> omap_hwmod: dss_hdmi: idle state can only be entered from enabled state
->
-> This message doesn't exist in the kernel source as far as I can find.
-> Ah, yes it does, someone well wrapped the message.
->
->                  WARN(1, "omap_hwmod: %s: idle state can only be entered from "
->                       "enabled state\n", oh->name);
->
-> So that goes into my patch of omap fixes.  There's others in that file
-> which will get the same treatment.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> However, you raise another point, a much more serious one at that.  Is
+> this problem also present in 3.2?  The patch seems to apply almost cleanl=
+y
+> to that kernel version, so I guess it is.  It fails to apply to v3.1
+> because of missing files, so I guess 3.1 is unaffected.
+>=20
+> So, why isn't this patch copied to the stable people?
+
+Good point, I'll take it to the stable people.
+
+The problem is present in all kernels where we have the HDMI driver, so
+2.6.39+.
+
+> For hardware destruction issues, once the problem has been identified, it
+> should be shouted about very loudly to get it upstream as quickly as
+> possible.  I'm sure Linus would've even taken it in patch form.
+>=20
+> (You do realise that Linus does apply patches as well as pulling trees?)
+
+Yes, I should've taken this directly to Linus.
+
+ Tomi
+
+
+--=-ADDqB3tPKAPbL60WPRVh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPM2+VAAoJEPo9qoy8lh71oK8P/Ar+i1xmvQnx1QPU6XbzfP8S
+DF8FasC+g7ooBA+2pLSnLMbilzdz7iAtWrZV8u1g56y5GOP4jK/LZyNlwshbCCX7
+6zgxZ8yddqaAK3LfwLKI33MfioN/cGg0SZIuBHlJVYCbUp+N1lYGbOuxV1pBJ3zp
+TiU8h1yuBz5D/abvYU9Jst2Hqh3eakobsd5zTH8VAsx6pNO0e/inyIWyx+GBPpY9
+9EBBEi/Id6Ze8Ba/0EvvgX9Mk8Lsdogb/fzQ3fSDVakN3YBrpS8JBqWg1jZw2TMD
+R6zn3GPuoWspVb023AgwbkaFcsPKsmwZEjJo3ZoyEz62bo1Zg0CIwdPXilZY/nx5
+3b1O8w+8NDXjXfebRB3CxwiJ4W3D8GWmYFntZyHIHFxvDAvzgy2aYwdNQZi1yJOV
++qs33WCwYUFb4bGUyiyfJPzlooCuXv18Da4kWhu0Dk7HvgWoxbLn/OmlMkCWpcR8
+ZTWy2xdYYcLaGMgV2HOh/KbLtLFVk2hCEriz4ofO6rFOXhufQARnGjD4Kf56+QdS
+nv9HmzNlRQpn5rNdjwi46MIm+PB5HZhgJd2FRB9ixkRZUWaMJrQVsndPH/bjnQ67
+BF2D5q1Udn/724eYKmjneD4TN9LsMyHziJYY0C6hOBiVRwK0blJ2v4+M5WU89OvM
+n8DBRYGG3iHOsOiPssgj
+=21xI
+-----END PGP SIGNATURE-----
+
+--=-ADDqB3tPKAPbL60WPRVh--
 
