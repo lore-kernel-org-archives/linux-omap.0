@@ -1,79 +1,86 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH] gpio: omap: be more aggressive with pm_runtime
-Date: Thu, 9 Feb 2012 08:09:40 +0200
-Message-ID: <20120209060939.GB1121@legolas.emea.dhcp.ti.com>
-References: <1328707614-20146-1-git-send-email-balbi@ti.com>
- <877gzwyivt.fsf@ti.com>
-Reply-To: balbi@ti.com
+From: Archit Taneja <archit@ti.com>
+Subject: [PATCH] OMAPDSS: HACK: Ensure DSS clock domain gets out of idle when HDMI is enabled
+Date: Thu, 9 Feb 2012 12:14:48 +0530
+Message-ID: <1328769888-24790-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TRYliJ5NKNqkz5bu"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40578 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750819Ab2BIGJo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 01:09:44 -0500
-Received: by mail-lpp01m020-f179.google.com with SMTP id ge1so646218lbb.38
-        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 22:09:43 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <877gzwyivt.fsf@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51561 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752953Ab2BIGpB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Feb 2012 01:45:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, linus.walleij@stericsson.com, tarun.kanti@ti.com
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
 
+For DSS clock domain to transition from idle to active state, it's necessary
+to enable the optional clock DSS_FCLK before we enable the module using the
+MODULEMODE bits in the DSS clock domain's CM_DSS_DSS_CLKCTRL register.
 
---TRYliJ5NKNqkz5bu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This sequence was not followed correctly for the 'dss_hdmi' hwmod and it led
+to DSS clock domain not getting out of idle when pm_runtime_get_sync() was
+called for hdmi's platform device.
 
-Hi,
+Since the clock domain failed to change it's state to active, the hwmod code
+disables any clocks it had enabled before for this hwmod. This led to the clock
+'dss_48mhz_clk' getting disabled.
 
-On Wed, Feb 08, 2012 at 04:01:42PM -0800, Kevin Hilman wrote:
-> Felipe Balbi <balbi@ti.com> writes:
->=20
-> > try to keep gpio block suspended as much as possible.
-> >
-> > Tested with pandaboard and a sysfs exported gpio.
-> >
-> > Signed-off-by: Felipe Balbi <balbi@ti.com>
-> > ---
->=20
-> Looks like you need a few more get/puts around other places where
-> registers are accessed.  It currently causes a boot crash on OMAP3 in
-> _set_gpio_triggering().
+When hdmi's runtime_resume() op is called, the call to dss_runtime_get()
+correctly enables the DSS clock domain this time. But the clock 'dss_48mhz_clk'
+disabled before is needed for HDMI's PHY to function. Hence, the driver fails
+when it tries to enable HDMI's PHY.
 
-it was a missing get/put on gpio_irq_set_type(). Fixed.
+Fix this for now by ensuring that dss_runtime_get() is called before we call
+pm_runtime_get_sync() for hdmi's platform device. A correct fix for later would
+be to modify the DSS related hwmod's mainclks, and also some changes in how
+opt clocks are handled in the DSS driver.
 
-> Did you test GPIO wakeups?  both IO ring wakeups and GPIO module-level
-> wakeups?
+This fixes the issue of HDMI not working when it's the default display. The
+issue is not seen if any other display is already enabled as the first display
+would have already correctly enabled the DSS clock domain.
 
-how can I test that easily with panda ?
+Signed-off-by: Archit Taneja <archit@ti.com>
+---
+ drivers/video/omap2/dss/hdmi.c |   16 +++++++++++++++-
+ 1 files changed, 15 insertions(+), 1 deletions(-)
 
---=20
-balbi
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index d7aa3b0..ce16a91 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -165,9 +165,21 @@ static int hdmi_runtime_get(void)
+ 
+ 	DSSDBG("hdmi_runtime_get\n");
+ 
++	r = dss_runtime_get();
++	if (r < 0)
++		goto err_get_dss;
++
+ 	r = pm_runtime_get_sync(&hdmi.pdev->dev);
+ 	WARN_ON(r < 0);
+-	return r < 0 ? r : 0;
++	if (r < 0)
++		goto err_get_hdmi;
++
++	return 0;
++
++err_get_hdmi:
++	dss_runtime_put();
++err_get_dss:
++	return r;
+ }
+ 
+ static void hdmi_runtime_put(void)
+@@ -178,6 +190,8 @@ static void hdmi_runtime_put(void)
+ 
+ 	r = pm_runtime_put_sync(&hdmi.pdev->dev);
+ 	WARN_ON(r < 0);
++
++	dss_runtime_put();
+ }
+ 
+ int hdmi_init_display(struct omap_dss_device *dssdev)
+-- 
+1.7.5.4
 
---TRYliJ5NKNqkz5bu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPM2MjAAoJEIaOsuA1yqRE4gwQAJYzEaAy8WaPnkM/6K5GaPI5
-GXhnf4PWXQ1DBFD9db4LSEekpaoFum7+aITFpUE8fMHIedCJ6wUayQspYXdehsPE
-ZZW0KXU6hy6PIMikgBxawMm/xD3mHAnyK1r7/gsTqVf+b8Aeb3nW/rfnKXyQeJ/u
-vqale44d4VmVDKsZx52AGvbmaceccGkHg092ZKdNpRh7IWkAuD2iGMH9ogLhwpuX
-u+c8azbcyckakrtvOwLKhI/+Jvn22i0LZgVaabJsebqFtI2CJznlKUbwxAS4GiCH
-ZOKEyi8fi9TGV4wZsUyvBU7DwpDHmopESf7OEpBQzRwhQ40miWEq8GoZUwh/c7DJ
-ibPvjJnEg+dK/O6RtAnPNG92Cy1dmnmO2otuQi1G7pH435rIiqG7Zk6gb0UgQNY2
-soIQ452K88G2PWk8k6NOyFTEVLuEG0OTK1ikKuH8LNj/V0ogloLt1zQMhG38aWMi
-6F5xXUG2RP5JzvcLRrn1EzoIW7RlpMea/D9KyjQSbxEsefN5mb1KehljX6yy14CJ
-FZahHVTRSg4gdXEr+oiBmOobWdn23cbiblPH36Sk0hR6fBT67LWAFOMh9cC1BI3P
-dvkeGRqxWKMoIgeihWI8rZLlxcmfhLWxBQQep13v89fKcsdBoXo56cXymchOdf2O
-9QzSyk/UZXpzXXMVzVsC
-=buXg
------END PGP SIGNATURE-----
-
---TRYliJ5NKNqkz5bu--
