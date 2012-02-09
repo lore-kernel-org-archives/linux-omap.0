@@ -1,54 +1,77 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] gpio: omap: be more aggressive with pm_runtime
-Date: Wed, 08 Feb 2012 16:03:24 -0800
-Message-ID: <87zkcsx48j.fsf@ti.com>
-References: <1328707614-20146-1-git-send-email-balbi@ti.com>
-	<20120208135329.GJ16334@legolas.emea.dhcp.ti.com>
+Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
+Date: Wed, 08 Feb 2012 16:09:48 -0800
+Message-ID: <87sjikx3xv.fsf@ti.com>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
+	<E1RvAWP-0006H3-1A@rmk-PC.arm.linux.org.uk>
+	<20120208184539.GE29796@atomide.com> <87ty312ae0.fsf@ti.com>
+	<20120208235358.GD16877@atomide.com>
+	<20120208235620.GE25414@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:38339 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757210Ab2BIAD1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:03:27 -0500
-Received: by pbbrp2 with SMTP id rp2so897119pbb.24
-        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 16:03:26 -0800 (PST)
-In-Reply-To: <20120208135329.GJ16334@legolas.emea.dhcp.ti.com> (Felipe Balbi's
-	message of "Wed, 8 Feb 2012 15:53:30 +0200")
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:39554 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756886Ab2BIAJv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:09:51 -0500
+Received: by mail-pw0-f51.google.com with SMTP id rp2so902319pbb.24
+        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 16:09:50 -0800 (PST)
+In-Reply-To: <20120208235620.GE25414@n2100.arm.linux.org.uk> (Russell King's
+	message of "Wed, 8 Feb 2012 23:56:20 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: linus.walleij@stericsson.com, Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, tarun.kanti@ti.com, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Felipe Balbi <balbi@ti.com> writes:
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-> Hi,
->
-> On Wed, Feb 08, 2012 at 03:26:54PM +0200, Felipe Balbi wrote:
->> try to keep gpio block suspended as much as possible.
+> On Wed, Feb 08, 2012 at 03:53:58PM -0800, Tony Lindgren wrote:
+>> * Kevin Hilman <khilman@ti.com> [120208 14:35]:
+>> > Tony Lindgren <tony@atomide.com> writes:
+>> > 
+>> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:06]:
+>> > >> While testing on my OMAP3430 platform, this error message was emitted:
+>> > >> 
+>> > >> omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
+>> > >> 
+>> > >> Trying to find this message was difficult because it was wrapped across
+>> > >> several lines.  It also mis-spells "required", doesn't read very well,
+>> > >> and has spaces lacking.  Let's replace it with a more concise:
+>> > >> 
+>> > >> omap_vc_init_channel: No PMIC info for vdd_core
+>> > >> 
+>> > >> While we're here, fix a simple spelling error in a comment.
+>> > >> 
+>> > >> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>> > >
+>> > > Acked-by: Tony Lindgren <tony@atomide.com>
+>> > 
+>> > NAK.
+>> > 
+>> > Tony, please use the patches already in your cleanup branch (that came
+>> > from my for_3.3/cleanup/pm) that fix this and also fix a similar problem
+>> > for VP.
 >> 
->> Tested with pandaboard and a sysfs exported gpio.
+>> Ah OK, there's the VP part there too.
 >> 
->> Signed-off-by: Felipe Balbi <balbi@ti.com>
->> ---
+>> So that would be the following two patches then for me to
+>> move to fixes from cleanup:
 >> 
->> I couldn't see any issues with this patch. I managed to export
->> a gpio and change the direction with a while true loop with
->> no issues whatsoever.
+>> cd63040e00ea83729673acfea1675d85fde6ea59 ARM: OMAP: voltage: cleanup VC/VP error messages
+>> af9a2ed9667b49e7e125eac526d8f655183ce53e ARM: OMAP2+: voltage: add check for missing PMIC info in VP init
+>> 
+>> And patches 1 and 5 for Russell to drop then.
+>> 
+>> Everybody OK with that?
 >
-> btw, I also played with gpios 7 and 8 because they have LEDs on them on
-> pandaboard and everything seems to be fine.
->
-> I just want to be sure I can still go to OFF mode and wakeup, but on
-> vanilla 3.3-rc2 after echo mem > /sys/power/state the systems freezes on
-> panda, so I can't go any further.
+> Does it fix the other issues I mention in the commit log as well?
 
-I don't think it's frozen.  I suspected it's suspended without any
-wakeups enabled.  You probably haven't enabled UART wakeups.  Try
-enabling them like this:
+Like your patches 1 & 5, my series fixes the oops and also makes the
+error strings simple, non-wrapping ones.
 
-  echo enabled > /sys/devices/platform/omap/omap_uart.2/tty/ttyO2/power/wakeup
- 
-before going into suspend.
+The one thing it doesn't fix is the spelling typo you fixed in the
+comment, but IMO we can leave that out for -rc.
 
 Kevin
+
+
