@@ -1,27 +1,43 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: Incorrect Register Offsets in OMAP Mailbox
-Date: Thu, 9 Feb 2012 17:58:12 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433179BF04@DBDE01.ent.ti.com>
-References: <331ABD5ECB02734CA317220B2BBEABC1317897C8@DBDE01.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433179B3F8@DBDE01.ent.ti.com>
- <20120209174709.GH1426@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
+Date: Thu, 9 Feb 2012 17:59:37 +0000
+Message-ID: <20120209175937.GC19159@n2100.arm.linux.org.uk>
+References: <87ty312ae0.fsf@ti.com> <20120208235358.GD16877@atomide.com> <20120208235620.GE25414@n2100.arm.linux.org.uk> <87sjikx3xv.fsf@ti.com> <20120209001135.GF25414@n2100.arm.linux.org.uk> <87ipjgx3g3.fsf@ti.com> <20120209004027.GF16877@atomide.com> <20120209164913.GB19159@n2100.arm.linux.org.uk> <20120209171830.GH16877@atomide.com> <20120209172747.GG1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33446 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753239Ab2BIR6S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 12:58:18 -0500
-In-Reply-To: <20120209174709.GH1426@atomide.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:50700 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757566Ab2BIR7u (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 12:59:50 -0500
+Content-Disposition: inline
+In-Reply-To: <20120209172747.GG1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "enli.chan@gmail.com" <enli.chan@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Feb 09, 2012 at 23:17:10, Tony Lindgren wrote:
-> Care to reply with Acked-by/Tested-by so I can queue this into fixes?
+On Thu, Feb 09, 2012 at 09:27:47AM -0800, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [120209 08:47]:
+> > 
+> > So that leaves me only the second one to queue that adds checks
+> > for the PMIC info for boards that don't have it, see below.
+> ...
+>  
+> > From d269914ece0498f31603ecd85ed3d7a586b3cbcd Mon Sep 17 00:00:00 2001
+> > From: Kevin Hilman <khilman@ti.com>
+> > Date: Fri, 30 Sep 2011 11:24:04 -0700
+> > Subject: [PATCH] ARM: OMAP2+: PM: only register TWL with voltage layer when device is present
+> > 
+> > Current code registers voltage layer details for TWL PMIC even when a TWL
+> > has not been registered.  Fix this to only register the TWL with voltage
+> > layer when the TWL PMIC is initialized by board-level code.
+> > 
+> > Tested-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
+> > Signed-off-by: Kevin Hilman <khilman@ti.com>
 > 
+> Never mind. This one is already in mainline as commit
+> 46232a3622c6e33605906ee6690dfef372925f53.
 
-Acked-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+Okay, I'll re-send patches 1 and 5 for acks then.  Once I have those,
+can I assume that everyone is happy for patches 1 to 15 to go upstream?
