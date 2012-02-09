@@ -1,88 +1,104 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
-Date: Thu, 9 Feb 2012 00:53:34 +0000
-Message-ID: <20120209005334.GG25414@n2100.arm.linux.org.uk>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk> <4F32DBB5.4010004@gmx.de>
+From: Olof Johansson <olof@lixom.net>
+Subject: Re: ARM/ARM-SoC plans for v3.4 merge window
+Date: Wed, 8 Feb 2012 17:19:21 -0800
+Message-ID: <CAOesGMjm+irNw-kHStLf_H3QyJHa04ProG6i0Zyum1iy7TJxpA@mail.gmail.com>
+References: <20120123114902.GY1068@n2100.arm.linux.org.uk>
+ <20120124095009.GS16726@n2100.arm.linux.org.uk>
+ <20120126212319.GE11941@n2100.arm.linux.org.uk>
+ <CAOesGMh45HSb4mRMc7q53xhmj_kMFvdVJhNnY7cY6gHi=_KynQ@mail.gmail.com>
+ <4F266C13.5080302@atmel.com>
+ <CAOesGMh1wHpaDmYY6_oCu_u0s4fmTfKMLiPaa9bHh9YaiDJozw@mail.gmail.com>
+ <4F326213.3030500@atmel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49414 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757880Ab2BIAxo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:53:44 -0500
-Content-Disposition: inline
-In-Reply-To: <4F32DBB5.4010004@gmx.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4F326213.3030500@atmel.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: davinci-linux-open-source@linux.davincidsp.com, Russell King - ARM Linux <linux@arm.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-samsung-soc@vger.kernel.org, linux-sh@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org, linux-omap@vger.kernel.org, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-omap@vger.kernel.org, =?iso-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@ti.com>, linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Samuel Ortiz <sameo@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Feb 08, 2012 at 08:31:49PM +0000, Florian Tobias Schandinat wrote:
-> Hi Russell,
-> 
-> On 02/08/2012 04:35 PM, Russell King - ARM Linux wrote:
-> > commit c49d005b6cc8491fad5b24f82805be2d6bcbd3dd
-> > Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Date:   Tue Jan 17 11:09:57 2012 +0200
-> > 
-> >     OMAPDSS: HDMI: PHY burnout fix
-> >     
-> >     A hardware bug in the OMAP4 HDMI PHY causes physical damage to the board
-> >     if the HDMI PHY is kept powered on when the cable is not connected.
-> 
-> I agree this is a serious issue.
-> 
-> > which now has me wondering if, by trying to boot v3.3-rc2 on this board
-> > during the past week, I have a destroyed HDMI interface on it.
-> 
-> I am not sure as I don't keep track of all OMAP changes, but you make it
-> sound like a regression, is there any difference to 3.2 behavior?
+On Wed, Feb 8, 2012 at 3:52 AM, Nicolas Ferre <nicolas.ferre@atmel.com> wro=
+te:
+> On 02/08/2012 02:18 AM, Olof Johansson :
+>> Hi,
+>>
+>> On Mon, Jan 30, 2012 at 2:08 AM, Nicolas Ferre <nicolas.ferre@atmel.com>=
+ wrote:
+>>> On 01/29/2012 12:57 AM, Olof Johansson :
+>>>> Hi,
+>>>>
+>>>>
+>>>> On Thu, Jan 26, 2012 at 1:23 PM, Russell King - ARM Linux
+>>>> <linux@arm.linux.org.uk> wrote:
+>>>>
+>>>>
+>>>>> And we're now there. =A0So...
+>>>>>
+>>>>> Arnd, Olaf,
+>>>>>
+>>>>> Please incorporate the latest ARM (for-armsoc branch) changes, which =
+can be found at:
+>>>>>
+>>>>> =A0 =A0 =A0 =A0git://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cu=
+r/linux-arm.git for-armsoc
+>>>>>
+>>>>> with SHA1 dcf81c1af839b77b44404453ecae6e5ac5a75f05.
+>>>>
+>>>> Thanks. I have added this as depends/rmk/for-armsoc in the arm-soc rep=
+o.
+>>>>
+>>>> Any next/ branch we start will have this as the base of said branch,
+>>>> so any vendor branches must either already be developed against this
+>>>> stable branch, or merge on top of this with minimal conflicts.
+>>>
+>>> Ok, great.
+>>>
+>>> I just let you know that there is a conflict between the current Linus'
+>>> tree (with recently updated at91 fixes) and this rmk/for-armsoc branch.
+>>>
+>>> I can give you the resolution of this conflict easily but I would like
+>>> to know which way I execute the merge:
+>>>
+>>> I use this rmk/for-armsoc as a baseline and merge the fixes already in
+>>> Linus' tree on top of it or the other way around?
+>>>
+>>> Maybe it is preferable that I wait for 3.3-rc2 and merge rmk/for-armsoc
+>>> on top of it. This result can be the base of our AT91 work for 3.4
+>>> preparation.
+>>>
+>>> Your thought?
+>>
+>> I missed replying to this email until now when I started looking at
+>> picking up branches for the 3.4 staging, sorry for the delay.
+>>
+>> Russell, would you prefer merging in v3.3-rc2 into your branch so I
+>> can pull the exact same resolution from there, or should we do it
+>> locally in arm-soc? It probably makes sense for you to do it so
+>> there's no more conflicts from there on out for dependent branches.
+>
+> Olof,
+>
+> For your information the conflict resolution is already present in
+> linux-next (and in my 3.4 preparation branches actually).
 
-I've no idea when the problem was introduced, that's not the point that
-I'm making.  The point that I'm making is that the patch is dated January
-17th, it was apparantly committed on the 26th, and it went into mainline
-on the 8th February.
+Yeah, it's just convenient if it's resolved once in the base branch
+instead of every time we pull in something based on it.
 
-For a patch which fixes a _hardware_ _destruction_ issue, three weeks is
-_FAR_ too long for it to take to get into mainline.
+I've pulled in and resolved the conflict with v3.3-rc2 into
+depends/rmk/for-armsoc now so it should be covered for anyone basing
+new branches off of it.
 
-Moreover, only last Monday did I enable the OMAP2 DSS subsystem on the
-4430 SDP platform, _including_ the HDMI code, and looking at the commit
-it could be one of those platforms which is affected.
 
-As I don't have a HDMI cable connected to the system, and I ran that
-kernel overnight, and I tried opening each /dev/fb* device, what I'm now
-wondering is: have I destroyed the HDMI PHY on my 4430SDP?
+Thanks,
 
-But that's not really the point.  The point is, for someone to sit on such
-a patch for weeks is, in my opinion, as good as saying to your users "I
-don't care if you bust your hardware."
-
-However, you raise another point, a much more serious one at that.  Is
-this problem also present in 3.2?  The patch seems to apply almost cleanly
-to that kernel version, so I guess it is.  It fails to apply to v3.1
-because of missing files, so I guess 3.1 is unaffected.
-
-So, why isn't this patch copied to the stable people?
-
-And why is there this seemingly lack of care for hardware destruction bugs?
-
-Please, if it affects v3.2, PLEASE PLEASE PLEASE tell the stable people
-who know nothing about this commit until I asked them this evening about
-it.
-
-> > So, a big thanks for sitting on that fix and exposing peoples hardware
-> > to damage, that shows real professionalism.
-> 
-> Well, I am no professional to begin with, at least in the sense of getting paid
-> for it. That said I'm quite happy if I manage to find a few hours every weekend
-> to do the work. Given that the final thing should be tested in -next before I
-> ask Linus to pull, it is completely usual (and even quite fast) if things take
-> 8-13 days on my end. If this isn't fast enough for Tomi, he'd better ask Linus
-> to pull directly for such issues.
-
-For hardware destruction issues, once the problem has been identified, it
-should be shouted about very loudly to get it upstream as quickly as
-possible.  I'm sure Linus would've even taken it in patch form.
-
-(You do realise that Linus does apply patches as well as pulling trees?)
+-Olof
