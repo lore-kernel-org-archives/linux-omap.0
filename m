@@ -1,86 +1,123 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH] OMAPDSS: HACK: Ensure DSS clock domain gets out of idle when HDMI is enabled
-Date: Thu, 9 Feb 2012 12:14:48 +0530
-Message-ID: <1328769888-24790-1-git-send-email-archit@ti.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: OMAP34xx
+Date: Thu, 9 Feb 2012 12:22:42 +0530
+Message-ID: <4F336D3A.2060302@ti.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51561 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52167 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752953Ab2BIGpB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Feb 2012 01:45:01 -0500
+	id S1751208Ab2BIGw5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Feb 2012 01:52:57 -0500
+In-Reply-To: <20120205143824.GA12577@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-For DSS clock domain to transition from idle to active state, it's necessary
-to enable the optional clock DSS_FCLK before we enable the module using the
-MODULEMODE bits in the DSS clock domain's CM_DSS_DSS_CLKCTRL register.
+Hi,
 
-This sequence was not followed correctly for the 'dss_hdmi' hwmod and it led
-to DSS clock domain not getting out of idle when pm_runtime_get_sync() was
-called for hdmi's platform device.
+On Sunday 05 February 2012 08:08 PM, Russell King - ARM Linux wrote:
+> On Sun, Feb 05, 2012 at 12:56:26PM +0000, Russell King - ARM Linux wrote:
+>> And here's another (set of) problem(s) on the 4430SDP board once the
+>> previous have been worked around:
+>>
+>> omap_hwmod: l3_div_ck: missing clockdomain for l3_div_ck.
+>> omap_hwmod: ipu: failed to hardreset
+>> omap_hwmod: mcpdm: cannot be enabled (3)
+>> ...
+>> machine_constraints_voltage: VUSB: failed to apply 3300000uV constraint
+>> ...
+>> twl_reg twl_reg.46: can't register VUSB, -22
+>> twl_reg: probe of twl_reg.46 failed with error -22
+>> ...
+>> omap_vc_i2c_init: I2C config for all channels must match.
+>> omap_vc_i2c_init: I2C config for all channels must match.
+>
+> Fixing this error message to provide something useful allows this problem
+> to be diagnosed.
+>
+> omap_vc_i2c_init: I2C config for vdd_iva does not match other channels (0).
+> omap_vc_i2c_init: I2C config for vdd_mpu does not match other channels (0).
+>
+> Let's look at the PMIC data for OMAP4:
+>
+> static struct omap_voltdm_pmic omap3_mpu_pmic = {
+>          .i2c_high_speed            = true,
+> static struct omap_voltdm_pmic omap3_core_pmic = {
+>          .i2c_high_speed            = true,
+> static struct omap_voltdm_pmic omap4_mpu_pmic = {
+>          .i2c_high_speed            = true,
+> static struct omap_voltdm_pmic omap4_iva_pmic = {
+>          .i2c_high_speed            = true,
+> static struct omap_voltdm_pmic omap4_core_pmic = {
+>
+> So, OMAP4's PMIC information for the core domain does not have I2C high
+> speed set, yet the others do.  So if this is an illegal configuration
+> then the TWL data is plainly wrong.  If it's a legal configuration, the
+> voltage domain code is talking utter crap about requiring all these to
+> match.  They can't both be right.
+>
+> Has this code been tested on OMAP4 platforms?  I think not (or if it
+> was, it was done blindly without regard for the messages the kernel
+> was spitting out - again, that's a failing of people to properly test
+> their code _before_ sending it upstream.)
+>
+>> Power Management for TI OMAP4.
+>> clock: disabling unused clocks to save power
+>> omapfb omapfb: no driver for display: lcd
+>> omapfb omapfb: no driver for display: lcd2
+>
+> Okay, so this requires backlight support, and TAAL selected, so that sorts
+> that error, but causes others:
+>
+> taal display0: taal panel revision e3.83.7d
+> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
 
-Since the clock domain failed to change it's state to active, the hwmod code
-disables any clocks it had enabled before for this hwmod. This led to the clock
-'dss_48mhz_clk' getting disabled.
+This happens when the flex cable connected to the display is faulty or 
+loose.
 
-When hdmi's runtime_resume() op is called, the call to dss_runtime_get()
-correctly enables the DSS clock domain this time. But the clock 'dss_48mhz_clk'
-disabled before is needed for HDMI's PHY to function. Hence, the driver fails
-when it tries to enable HDMI's PHY.
+>
+>> Failed to set PHY power mode to 1
+>> omapdss HDMI error: failed to power on device
+>
+> For some reason, enabling TAAL fixes this HDMI error.  Why I don't
+> understand but it's very very counter intuitive.
 
-Fix this for now by ensuring that dss_runtime_get() is called before we call
-pm_runtime_get_sync() for hdmi's platform device. A correct fix for later would
-be to modify the DSS related hwmod's mainclks, and also some changes in how
-opt clocks are handled in the DSS driver.
+This was an issue with our driver. I've posted a fix for this.
 
-This fixes the issue of HDMI not working when it's the default display. The
-issue is not seen if any other display is already enabled as the first display
-would have already correctly enabled the DSS clock domain.
+Thanks,
+Archit
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/hdmi.c |   16 +++++++++++++++-
- 1 files changed, 15 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index d7aa3b0..ce16a91 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -165,9 +165,21 @@ static int hdmi_runtime_get(void)
- 
- 	DSSDBG("hdmi_runtime_get\n");
- 
-+	r = dss_runtime_get();
-+	if (r < 0)
-+		goto err_get_dss;
-+
- 	r = pm_runtime_get_sync(&hdmi.pdev->dev);
- 	WARN_ON(r < 0);
--	return r < 0 ? r : 0;
-+	if (r < 0)
-+		goto err_get_hdmi;
-+
-+	return 0;
-+
-+err_get_hdmi:
-+	dss_runtime_put();
-+err_get_dss:
-+	return r;
- }
- 
- static void hdmi_runtime_put(void)
-@@ -178,6 +190,8 @@ static void hdmi_runtime_put(void)
- 
- 	r = pm_runtime_put_sync(&hdmi.pdev->dev);
- 	WARN_ON(r < 0);
-+
-+	dss_runtime_put();
- }
- 
- int hdmi_init_display(struct omap_dss_device *dssdev)
--- 
-1.7.5.4
+>
+>> ------------[ cut here ]------------
+>> WARNING: at /home/rmk/git/linux-omap/arch/arm/mach-omap2/omap_hwmod.c:1604 _idle+0x34/0xc8()
+>> omap_hwmod: dss_hdmi: idle state can only be entered from enabled state
+>
+> This message doesn't exist in the kernel source as far as I can find.
+> Ah, yes it does, someone well wrapped the message.
+>
+>                  WARN(1, "omap_hwmod: %s: idle state can only be entered from "
+>                       "enabled state\n", oh->name);
+>
+> So that goes into my patch of omap fixes.  There's others in that file
+> which will get the same treatment.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
