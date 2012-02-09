@@ -1,65 +1,46 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH RFC] OMAP: serial: Remove the hardcode serial_omap_console_ports
- array.
-Date: Thu, 9 Feb 2012 19:28:31 +0530
-Message-ID: <CAAL8m4yU5KPqO11FY2Rwpuqns+EBtGuAMna0gxcYwK0QZ1fSjA@mail.gmail.com>
-References: <1328795296-22935-1-git-send-email-shubhrajyoti@ti.com>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [RFC PATCH 3/8] misc: emif: add register definitions for EMIF
+Date: Thu, 09 Feb 2012 19:50:30 +0530
+Message-ID: <4F33D62E.8070403@ti.com>
+References: <331ABD5ECB02734CA317220B2BBEABC1317897B8@DBDE01.ent.ti.com> <B5906170F1614E41A8A28DE3B8D121433179B3F3@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:54946 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753780Ab2BIN6w convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Feb 2012 08:58:52 -0500
-In-Reply-To: <1328795296-22935-1-git-send-email-shubhrajyoti@ti.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:53838 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750811Ab2BIOUh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 09:20:37 -0500
+Received: by ggnf1 with SMTP id f1so1031264ggn.0
+        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 06:20:35 -0800 (PST)
+In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433179B3F3@DBDE01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Govindraj Raja <govindraj.raja@ti.com>
+To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Feb 9, 2012 at 7:18 PM, Shubhrajyoti D <shubhrajyoti@ti.com> wr=
-ote:
-> Currently the array serial_omap_console_ports is hard coded to 4.
-> Make it depend on the macro OMAP_MAX_HSUART_PORTS(which is 4) which
-> the maximum uart count.
+On Thursday 09 February 2012 04:55 PM, Bedia, Vaibhav wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of V, Aneesh
+>> Sent: Saturday, February 04, 2012 5:46 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org; akpm@linux-foundation.org; V, Aneesh
+>> Subject: [RFC PATCH 3/8] misc: emif: add register definitions for EMIF
+>>
 >
-> Cc: Govindraj Raja <govindraj.raja@ti.com>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> Sorry for the delayed response. Can these register definitions be put in a place
+> where the code from the arch/arm/mach-omap2/* can also access it?
 
-Acked-by: Govindraj.R <govindraj.raja@ti.com>
+I don't have any issues with it as long as everybody is in agreement.
 
-> ---
-> =A0drivers/tty/serial/omap-serial.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
 >
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
-ap-serial.c
-> index 1c24269..c570696 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -1021,7 +1021,7 @@ static int serial_omap_poll_get_char(struct uar=
-t_port *port)
->
-> =A0#ifdef CONFIG_SERIAL_OMAP_CONSOLE
->
-> -static struct uart_omap_port *serial_omap_console_ports[4];
-> +static struct uart_omap_port *serial_omap_console_ports[OMAP_MAX_HSU=
-ART_PORTS];
->
-> =A0static struct uart_driver serial_omap_reg;
->
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-seria=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Devices like AM335x and TI814x will need to reconfigure the EMIF when coming out
+> of low power states and putting these register definitions in a common place
+> will help us avoid some code duplication.
+
+Can you elaborate on that. Does EMIF lose its settings in low-power
+mode? If so, are you going to do the re-initialization from internal
+RAM or something? For us EMIF doesn't lose its state in low power modes.
+
+br,
+Aneesh
