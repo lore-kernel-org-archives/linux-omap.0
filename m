@@ -1,71 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
-Date: Wed, 8 Feb 2012 15:57:16 -0800
-Message-ID: <20120208235716.GE16877@atomide.com>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
- <E1RvAWP-0006H3-1A@rmk-PC.arm.linux.org.uk>
- <20120208184539.GE29796@atomide.com>
- <87ty312ae0.fsf@ti.com>
- <20120208235358.GD16877@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] gpio: omap: be more aggressive with pm_runtime
+Date: Wed, 08 Feb 2012 16:01:42 -0800
+Message-ID: <877gzwyivt.fsf@ti.com>
+References: <1328707614-20146-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:48954 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116Ab2BHX5U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 18:57:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20120208235358.GD16877@atomide.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:36577 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757706Ab2BIABp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:01:45 -0500
+Received: by mail-pw0-f41.google.com with SMTP id wz17so1259653pbc.14
+        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 16:01:44 -0800 (PST)
+In-Reply-To: <1328707614-20146-1-git-send-email-balbi@ti.com> (Felipe Balbi's
+	message of "Wed, 8 Feb 2012 15:26:54 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, grant.likely@secretlab.ca, linus.walleij@stericsson.com, tarun.kanti@ti.com
 
-* Tony Lindgren <tony@atomide.com> [120208 15:22]:
-> * Kevin Hilman <khilman@ti.com> [120208 14:35]:
-> > Tony Lindgren <tony@atomide.com> writes:
-> > 
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120208 08:06]:
-> > >> While testing on my OMAP3430 platform, this error message was emitted:
-> > >> 
-> > >> omap_vc_init_channel: PMIC info requried to configure vc forvdd_core not populated.Hence cannot initialize vc
-> > >> 
-> > >> Trying to find this message was difficult because it was wrapped across
-> > >> several lines.  It also mis-spells "required", doesn't read very well,
-> > >> and has spaces lacking.  Let's replace it with a more concise:
-> > >> 
-> > >> omap_vc_init_channel: No PMIC info for vdd_core
-> > >> 
-> > >> While we're here, fix a simple spelling error in a comment.
-> > >> 
-> > >> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > >
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > NAK.
-> > 
-> > Tony, please use the patches already in your cleanup branch (that came
-> > from my for_3.3/cleanup/pm) that fix this and also fix a similar problem
-> > for VP.
-> 
-> Ah OK, there's the VP part there too.
-> 
-> So that would be the following two patches then for me to
-> move to fixes from cleanup:
-> 
-> cd63040e00ea83729673acfea1675d85fde6ea59 ARM: OMAP: voltage: cleanup VC/VP error messages
-> af9a2ed9667b49e7e125eac526d8f655183ce53e ARM: OMAP2+: voltage: add check for missing PMIC info in VP init
-> 
-> And patches 1 and 5 for Russell to drop then.
-> 
-> Everybody OK with that?
+Felipe Balbi <balbi@ti.com> writes:
 
-Also, what about this one in the cleanup branch:
+> try to keep gpio block suspended as much as possible.
+>
+> Tested with pandaboard and a sysfs exported gpio.
+>
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
+> ---
 
-d269914ece0498f31603ecd85ed3d7a586b3cbcd ARM: OMAP2+: PM: only register TWL with voltage layer when device is present
+Looks like you need a few more get/puts around other places where
+registers are accessed.  It currently causes a boot crash on OMAP3 in
+_set_gpio_triggering().
 
-Should that be a fix too?
+Did you test GPIO wakeups?  both IO ring wakeups and GPIO module-level
+wakeups?
 
-Regards,
-
-Tony
+Kevin
