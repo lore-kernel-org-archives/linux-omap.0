@@ -1,54 +1,44 @@
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: [PATCH] RM: OMAP4: board-4430sdp: don't initialize value that is never used
-Date: Thu,  9 Feb 2012 22:30:34 +0100
-Message-ID: <1328823034-9668-1-git-send-email-u.kleine-koenig@pengutronix.de>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Thu, 9 Feb 2012 22:34:01 +0000
+Message-ID: <20120209223400.GE19159@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120204190109.GL20333@atomide.com> <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205125626.GA11372@n2100.arm.linux.org.uk> <20120205143824.GA12577@n2100.arm.linux.org.uk> <4F336D3A.2060302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50763 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758244Ab2BIVak (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 16:30:40 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37877 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372Ab2BIWeP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 17:34:15 -0500
+Content-Disposition: inline
+In-Reply-To: <4F336D3A.2060302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: kernel@pengutronix.de, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Archit Taneja <a0393947@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-sdp4430_spi_board_info.irq was initialized to ETH_KS8851_IRQ and in
-omap_4430sdp_init() overwritten with gpio_to_irq(ETH_KS8851_IRQ) before
-sdp4430_spi_board_info was registered. This is a bit confusing, so
-better don't initialize .irq and document that it is set later.
+On Thu, Feb 09, 2012 at 12:22:42PM +0530, Archit Taneja wrote:
+> Hi,
+>
+> On Sunday 05 February 2012 08:08 PM, Russell King - ARM Linux wrote:
+>> Okay, so this requires backlight support, and TAAL selected, so that sorts
+>> that error, but causes others:
+>>
+>> taal display0: taal panel revision e3.83.7d
+>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>> omapdss DSI error: DSI CIO error, cio irqstatus 200000
+>> DSI CIO IRQ 0x200000: ERRCONTENTIONLP1_1
+>
+> This happens when the flex cable connected to the display is faulty or  
+> loose.
 
-Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
----
- arch/arm/mach-omap2/board-4430sdp.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/=
-board-4430sdp.c
-index 39fba9d..991a289 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -321,7 +321,10 @@ static struct spi_board_info sdp4430_spi_board_inf=
-o[] __initdata =3D {
- 		.bus_num                =3D 1,
- 		.chip_select            =3D 0,
- 		.max_speed_hz           =3D 24000000,
--		.irq                    =3D ETH_KS8851_IRQ,
-+		/*
-+		 * .irq is set to gpio_to_irq(ETH_KS8851_IRQ)
-+		 * in omap_4430sdp_init
-+		 */
- 	},
- };
-=20
---=20
-1.7.9
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well, I don't know - it works with ES1 and an old kernel just fine.
