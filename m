@@ -1,32 +1,68 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: clock3xxx_data: change EMAC clocks aliases
-Date: Thu, 9 Feb 2012 13:20:50 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202091314320.6698@utopia.booyaka.com>
-References: <1324423634-32581-1-git-send-email-yanok@emcraft.com> <4F2F8EE3.1050305@visionsystems.de> <20120209190957.GA30410@h56-17.vpn.ti.com> <alpine.DEB.2.00.1202091245210.4469@utopia.booyaka.com> <20120209201100.GB30410@h56-17.vpn.ti.com>
+Subject: Re: OMAP34xx
+Date: Thu, 9 Feb 2012 13:44:31 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202091326500.6698@utopia.booyaka.com>
+References: <20120208231551.GA9009@kroah.com> <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com> <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com> <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
+ <20120209192643.GL1426@atomide.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37567 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36706 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757787Ab2BIUUv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 15:20:51 -0500
-In-Reply-To: <20120209201100.GB30410@h56-17.vpn.ti.com>
+	with ESMTP id S1757893Ab2BIUoc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 15:44:32 -0500
+In-Reply-To: <20120209192643.GL1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Yegor Yefremov <yegor_sub1@visionsystems.de>, Tony Lindgren <tony@atomide.com>, Ilya Yanok <yanok@emcraft.com>, linux-omap@vger.kernel.org, sasha_d@emcraft.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Hi Matt
+On Thu, 9 Feb 2012, Tony Lindgren wrote:
 
-On Thu, 9 Feb 2012, Matt Porter wrote:
-
-> Thanks Paul.
+> * Tony Lindgren <tony@atomide.com> [120209 10:05]:
+> > 
+> > This fixes the various build and boot issues with custom .configs
+> > that don't select CONFIG_MACH_OMAP_GENERIC. It should fix slow serial
+> > console issues. And it fixes booting with DT to minimal enviroment.
 > 
-> Any chance we can see it in 3.3 fixes? It's the only thing preventing 
-> the emac and thus nfsroot from working in 3.3 for these systems.
+> Looks like the serial console is still insanely slow on 2420 both
+> for dmesg.
+> 
+> On 2430, 3430, 3630 and 4430 it seems the problem with slow
+> console is now fixed.
+> 
+> So at least one more patch is needed for the 2420 PM/serial regression.
 
-Did EMAC work on previous versions of Linux for those systems? i.e., does 
-this patch fix a regression?
+Yeah, that one is PM related.  If mach-omap2/pm24xx.c is hacked to only 
+enter MPU retention, rather than full chip retention, it works (quick hack 
+below).  I suspect it is due to the lack of wakeup support in OMAP2 PM, 
+but of course it could be something else.
 
 
 - Paul
+
+>From 98796ac6423302fdb56afa8a0a262fb09e27a1f6 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Thu, 9 Feb 2012 13:07:49 -0700
+Subject: [PATCH] fix 2420 serial
+
+---
+ arch/arm/mach-omap2/pm24xx.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index b8822f8..1f959e3 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -245,7 +245,7 @@ static void omap2_pm_idle(void)
+ 	if (omap_irq_pending())
+ 		goto out;
+ 
+-	omap2_enter_full_retention();
++	omap2_enter_mpu_retention();
+ 
+ out:
+ 	local_fiq_enable();
+-- 
+1.7.9
+
