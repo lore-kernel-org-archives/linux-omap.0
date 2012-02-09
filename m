@@ -1,63 +1,75 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
-Date: Wed, 8 Feb 2012 16:40:27 -0800
-Message-ID: <20120209004027.GF16877@atomide.com>
-References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
- <E1RvAWP-0006H3-1A@rmk-PC.arm.linux.org.uk>
- <20120208184539.GE29796@atomide.com>
- <87ty312ae0.fsf@ti.com>
- <20120208235358.GD16877@atomide.com>
- <20120208235620.GE25414@n2100.arm.linux.org.uk>
- <87sjikx3xv.fsf@ti.com>
- <20120209001135.GF25414@n2100.arm.linux.org.uk>
- <87ipjgx3g3.fsf@ti.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: OMAP34xx
+Date: Wed, 8 Feb 2012 16:47:31 -0800
+Message-ID: <20120209004731.GA11343@kroah.com>
+References: <87lioegtk9.fsf@ti.com>
+ <87y5sei1qz.fsf@ti.com>
+ <CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
+ <87k43xfee3.fsf@ti.com>
+ <20120208170653.GA3492@kroah.com>
+ <CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
+ <20120208195327.GA5223@kroah.com>
+ <871uq53p3c.fsf@ti.com>
+ <20120208231551.GA9009@kroah.com>
+ <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17320 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757322Ab2BIAkc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:40:32 -0500
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:61668 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756773Ab2BIArk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Feb 2012 19:47:40 -0500
+Received: by pbcun15 with SMTP id un15so1064091pbc.19
+        for <linux-omap@vger.kernel.org>; Wed, 08 Feb 2012 16:47:40 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <87ipjgx3g3.fsf@ti.com>
+In-Reply-To: <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Kevin Hilman <khilman@ti.com> [120208 15:49]:
-> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+On Wed, Feb 08, 2012 at 05:14:18PM -0700, Paul Walmsley wrote:
+> Hi Greg
 > 
-> > On Wed, Feb 08, 2012 at 04:09:48PM -0800, Kevin Hilman wrote:
-> >> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> >> > Does it fix the other issues I mention in the commit log as well?
-> >> 
-> >> Like your patches 1 & 5, my series fixes the oops and also makes the
-> >> error strings simple, non-wrapping ones.
-> >> 
-> >> The one thing it doesn't fix is the spelling typo you fixed in the
-> >> comment, but IMO we can leave that out for -rc.
-> >
-> > OK, but it would be much better for that simple fix to go with another
-> > simple patch.  On its own it doesn't make sense as a commit.
+> was just directed at this thread:
 > 
-> Agreed.  We'll have some other VC/VP cleanup for v3.4, and I'll add this
-> into that cleanup.
+> On Wed, 8 Feb 2012, Greg KH wrote:
+> 
+> > Don't send me anything, saying it needs to get into the -rc merge 
+> > window, that you don't actually want to see merged.  Otherwise, how long 
+> > am I supposed to know to wait?  That's just looney.
+> 
+> We did want to see it merged.  But then we came up with a better fix, 
+> which is why I asked you to revert the original in favor of the new 
+> version:
+> 
+> http://marc.info/?l=linux-arm-kernel&m=132760582332651&w=2
+> 
+> If we'd realized that the second version would be delayed until 3.4, we 
+> wouldn't have wanted the first version to be reverted :-(
 
-Eek, looking at it, I'd rather stay away from this formatting patch
-for -rc series because the flaming potential causes me rash!
+You said the first version was broken.
 
-Russell's patch 5 has way better description for the -rc series.
+Anyway, moving on...
 
-So I now suggest that Russell drops patch 1 and updates patch 5 to
-cover both vp.c and vc.c.
+> > > The version you have currently queued is needed for v3.3 as they fix
+> > > brokenness on v3.3.  Any chance they can be applied queued for 3.3?
+> > > We'll have another set of enhancements on top of those that are
+> > > targetted for v3.4, but those you have queued currently are defintely
+> > > fixes.
+> > 
+> > At this point in the release cycle, I would prefer to wait.
+> 
+> It would be really great if this series could make it in for v3.3-rcX.  
+> Without it, 3.3 will be unusable for any OMAP users that run the console 
+> on the serial port.  That's pretty much every OMAP user that runs mainline 
+> kernels, AFAIK.
 
-Then I'll move the following patches queued by Kevin from cleanup
-into fixes:
+Show me an OMAP user that actually runs a mainline kernel :)
 
-d269914ece0498f31603ecd85ed3d7a586b3cbcd ARM: OMAP2+: PM: only register TWL with voltage layer when device is present
-af9a2ed9667b49e7e125eac526d8f655183ce53e ARM: OMAP2+: voltage: add check for missing PMIC info in VP init
+What changeset(s) do you want me to take from my tty-next tree and put
+it in the tty-linus tree to be merged for the 3.3-final timeframe?
 
-Everybody OK with that?
+thanks,
 
-Tony
+greg k-h
