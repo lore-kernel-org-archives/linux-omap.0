@@ -1,54 +1,69 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [alsa-devel] ASoC related suspend problems on OMAP3
-Date: Thu, 09 Feb 2012 10:59:38 +0200
-Message-ID: <4F338AFA.4000204@ti.com>
-References: <CANOLnOMhetqt0ZCCfS0UwnfE0DxLhLhK9=7t0BaQ1SUsv0OWjw@mail.gmail.com> <20120208115132.GA25756@sirena.org.uk> <CANOLnOPkirGhw43u8sen9YDrsZH_g+HXsdOAefbNMkXEasifyQ@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 00/16] rmk's patch series for fixing OMAP
+Date: Thu, 09 Feb 2012 12:24:35 +0200
+Message-ID: <1328783075.1909.44.camel@deskari>
+References: <20120208163546.GA15849@n2100.arm.linux.org.uk>
+	 <4F32DBB5.4010004@gmx.de>  <20120209005334.GG25414@n2100.arm.linux.org.uk>
+	 <1328770969.1909.11.camel@deskari>  <1328776220.12747.5.camel@lws-gamez>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-a6NjbueeR9aAlqe0l7uS"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53903 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750810Ab2BII7h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 03:59:37 -0500
-Received: by lahi5 with SMTP id i5so1742096lah.18
-        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 00:59:34 -0800 (PST)
-In-Reply-To: <CANOLnOPkirGhw43u8sen9YDrsZH_g+HXsdOAefbNMkXEasifyQ@mail.gmail.com>
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:42209 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757797Ab2BIKYj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 05:24:39 -0500
+In-Reply-To: <1328776220.12747.5.camel@lws-gamez>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, lrg@ti.com, alsa-devel@alsa-project.org, Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@bitmer.com>
+To: Teresa Gamez <T.Gamez@phytec.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Kevin Hilman <khilman@ti.com>, linux-fbdev@vger.kernel.org, =?ISO-8859-1?Q?Beno=EEt?= Cousson <b-cousson@ti.com>, Florian Tobias Schandinat <FlorianSchandinat@gmx.de>, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 
-On 02/08/2012 06:19 PM, Grazvydas Ignotas wrote:
-> ok I've figured it out myself - it's because of McBSP2 clock source
-> selection. Pandora has rather unusual config (compared to other
-> boards) that it gets McBSP2 audio clock through external pin. As long
-> as it's set to PRCM functional clock (OMAP internal, reset default)
-> the system suspends fine, but if it's set to external,
-> per_pwrdm+core_pwrdm won't switch to lower power states.
+
+--=-a6NjbueeR9aAlqe0l7uS
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 2012-02-09 at 09:30 +0100, Teresa Gamez wrote:
+> Am Donnerstag, den 09.02.2012, 09:02 +0200 schrieb Tomi Valkeinen:
+
+> > The problem is present in all kernels where we have the HDMI driver, so
+> > 2.6.39+.
 >=20
-> Pandora sets this by calling snd_soc_dai_set_sysclk() from
-> snd_soc_ops.hw_params callback. Now I wonder, where should I set the
-> clock back so it suspends again, perhaps from snd_soc_ops.hw_free
-> callback? Or maybe it should be handled by omap-mcbsp ASoC driver,
-> perhaps something needs to be configured on McBSP itself for it to go
-> idle with external clock set?
+> Are there already backported patches out there for 3.0/3.1?
+> We are quite interested in this.
 
-I assume this worked in the past on pandora (suspend), right?
+I pushed three branches to git://gitorious.org/linux-omap-dss2/linux.git
 
-Can you try one _hack_ to see if it helps?
-In omap_mcbsp_request function:
-set the CLOCKACTIVITY field to 0x3 in the sysconfig register.
-Or you can as well try to do the same in
-mach-omap2/omap_hwmod_3xxx_data.c, look for omap3xxx_mcbsp_sysc, and
-change the .clockact =3D 0x2 to 0x3.
+fixes/for-3.0-stable
+fixes/for-3.1-stable
+fixes/for-3.2-stable
 
-Not sure if this helps, but I would be interested to see the results...
+Which contain the necessary backported patches for each version.
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Tomi
+
+
+--=-a6NjbueeR9aAlqe0l7uS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPM57jAAoJEPo9qoy8lh71Q+YP+QGiLpSnbmhKwjfu9Q1XshTX
+tAg2iQVHtiKJM61dTemLO91ulhNlPhMzO8SeWhNz8EiVQzsHynaD7dxvZhLj6Vy6
+moFulF68ayu8Wb18WWsFgeMiRwEMtvBo5CGqrah35fzzCOUEoEQt0XVzfz/q9Xep
+9FhMgYyJ4wv34Na6YzhMC7qXgA02iITiVYtMK1/NZwAlBxJVuHJoWxn/S6WcbIB+
+vGXIpC83cjj/51eq9LSOa+/5MRHna+T2frFklw41sCnUWn2zXVy+pyJ4A0ZcVd8H
+UmVG2tQWcMUdhHVCoj6GBoBImYqS//6uNS4bcbhxzNzEO3faY+mWZwcCBfBEXjrP
+yfN+K+vRO87KdZ1ggGq6WdEVVjy2/j0NzSCMgmGADk+HP5SU4/q7607VkHwC687P
+XCs8lrjc33y2uVDAM8zaPGy9mxOv1XzUAHTyuLawxsy7XpeXIg83WiObD2vKxCGh
+KT685ioywrz1p+CToa+79/pBfIj5aasLw6AGjuwLg8ok2DlVH9hjPO0XIoxSHFKY
+XRlPiGvUWQv0HKpaysYcLs9ksNzRvwF4es6Nnt4HdVBgi2U9Uje9ekq+ocA1i/t0
+OjFxf2m69UBPxPZH6iK5FWQva37r80k21G5QXFbkQcrp9/e5/VbUqdftZ93tTtFA
+lT9sOM+DsVT2G/rR0B6A
+=dSzd
+-----END PGP SIGNATURE-----
+
+--=-a6NjbueeR9aAlqe0l7uS--
+
