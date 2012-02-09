@@ -1,52 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/16] ARM: omap: fix vc.c PMIC error message
-Date: Thu, 9 Feb 2012 09:27:47 -0800
-Message-ID: <20120209172747.GG1426@atomide.com>
-References: <20120208184539.GE29796@atomide.com>
- <87ty312ae0.fsf@ti.com>
- <20120208235358.GD16877@atomide.com>
- <20120208235620.GE25414@n2100.arm.linux.org.uk>
- <87sjikx3xv.fsf@ti.com>
- <20120209001135.GF25414@n2100.arm.linux.org.uk>
- <87ipjgx3g3.fsf@ti.com>
- <20120209004027.GF16877@atomide.com>
- <20120209164913.GB19159@n2100.arm.linux.org.uk>
- <20120209171830.GH16877@atomide.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 1/2] omap2+: add drm device
+Date: Thu, 9 Feb 2012 09:28:04 -0800
+Message-ID: <20120209172804.GA27532@kroah.com>
+References: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:29681 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927Ab2BIR1y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 12:27:54 -0500
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:41121 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753239Ab2BIRhR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 12:37:17 -0500
+Received: by pbcun15 with SMTP id un15so1715824pbc.19
+        for <linux-omap@vger.kernel.org>; Thu, 09 Feb 2012 09:37:16 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20120209171830.GH16877@atomide.com>
+In-Reply-To: <1326487320-8781-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Andy Gross <andy.gross@ti.com>, Rob Clark <rob@ti.com>
 
-* Tony Lindgren <tony@atomide.com> [120209 08:47]:
+On Fri, Jan 13, 2012 at 02:41:59PM -0600, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
 > 
-> So that leaves me only the second one to queue that adds checks
-> for the PMIC info for boards that don't have it, see below.
-...
- 
-> From d269914ece0498f31603ecd85ed3d7a586b3cbcd Mon Sep 17 00:00:00 2001
-> From: Kevin Hilman <khilman@ti.com>
-> Date: Fri, 30 Sep 2011 11:24:04 -0700
-> Subject: [PATCH] ARM: OMAP2+: PM: only register TWL with voltage layer when device is present
+> Register OMAP DRM/KMS platform device, and reserve a CMA region for
+> the device to use for buffer allocation.
 > 
-> Current code registers voltage layer details for TWL PMIC even when a TWL
-> has not been registered.  Fix this to only register the TWL with voltage
-> layer when the TWL PMIC is initialized by board-level code.
+> v1: initial patch
+> v2: move platform data structs into plat-omap to avoid having to
+>     #include headers from drivers/staging and cleanups
 > 
-> Tested-by: Abhilash Koyamangalath <abhilash.kv@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Rob Clark <rob@ti.com>
+> ---
+> Note: after applying this patch there will be duplicate copies of the
+> platform data structs (until the 2nd patch is applied).  But I tested
+> to ensure this does not cause build breaks.  So the 2nd patch which
+> should go thru staging tree is safe to be held until this patch hits
+> Linus's master branch.
+> 
+>  arch/arm/plat-omap/Makefile           |    2 +-
+>  arch/arm/plat-omap/common.c           |    3 +-
+>  arch/arm/plat-omap/drm.c              |   83 +++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/drm.h |   70 +++++++++++++++++++++++++++
+>  4 files changed, 156 insertions(+), 2 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/drm.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/drm.h
 
-Never mind. This one is already in mainline as commit
-46232a3622c6e33605906ee6690dfef372925f53.
+Did this ever get applied?  As I can't apply 2/2 without it, please feel
+free to add:
+	Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Regards,
+to 2/2 when some dri/omap developer commits this one.
 
-Tony
+thanks,
+
+greg k-h
