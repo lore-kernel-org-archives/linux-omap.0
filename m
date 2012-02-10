@@ -1,71 +1,72 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
-Date: Fri, 10 Feb 2012 22:43:25 +0200
-Message-ID: <CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
-References: <20120201011239.GA797@suse.de>
-	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
-	<20120201034445.GA2979@kroah.com>
-	<CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
-	<20120209173528.GA31726@kroah.com>
-	<CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
-	<20120209185923.GB10284@kroah.com>
-	<CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
-	<20120210180015.GF4141@mwanda>
-	<CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
-	<20120210203537.GG4141@mwanda>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: board-omap3evm: add required smsc911x regulators
+Date: Fri, 10 Feb 2012 14:53:41 -0800
+Message-ID: <20120210225340.GB21865@atomide.com>
+References: <1328738812-26755-1-git-send-email-mporter@ti.com>
+ <20120210174046.GQ1426@atomide.com>
+ <20120210185033.GC40045@h115-84.vpn.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m020-f174.google.com ([209.85.217.174]:48527 "EHLO
-	mail-lpp01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755209Ab2BJUn1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Feb 2012 15:43:27 -0500
-Received: by lbom4 with SMTP id m4so1527695lbo.19
-        for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 12:43:25 -0800 (PST)
-In-Reply-To: <20120210203537.GG4141@mwanda>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20120210185033.GC40045@h115-84.vpn.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Matt Porter <mporter@ti.com>
+Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matt Porter <matt@ohporter.com>
 List-Id: linux-omap@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, linux-omap@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-On Fri, Feb 10, 2012 at 10:35 PM, Dan Carpenter
-<dan.carpenter@oracle.com> wrote:
-> On Fri, Feb 10, 2012 at 09:42:32PM +0200, Felipe Contreras wrote:
->> On Fri, Feb 10, 2012 at 8:00 PM, Dan Carpenter <dan.carpenter@oracle=
-=2Ecom> wrote:
->> > On Fri, Feb 10, 2012 at 01:30:48AM +0200, Felipe Contreras wrote:
->> >> It's not an oops, it's a warning, and again, it depends on the
->> >> firmware being used. We don't have control over that, and we have=
- no
->> >> way to detect if this feature is there. It's up to the user.
->> >
->> > Perhaps just remove the warning message and handle the condition
->> > instead of printing a stack dump? =C2=A0The user should be trigger=
-ing
->> > stack dumps. =C2=A0What on earth?
->>
->> The warning doesn't come from the driver.
->
-> I'm not sure I understand. =C2=A0Are you saying that because it comes
-> from the arch/ directory, it can't be fixed? =C2=A0I have good news f=
-or
-> you my friend. =C2=A0:) =C2=A0It's all open source! =C2=A0\o/
+* Matt Porter <mporter@ti.com> [120210 10:19]:
+> On Fri, Feb 10, 2012 at 09:40:47AM -0800, Tony Lindgren wrote:
+> > * Matt Porter <matt@ohporter.com> [120208 13:35]:
+> > > This fixes smsc911x support on omap3evm that has been broken since
+> > > the smsc911x driver was updated to require the existence of vdd33a
+> > > and vddvario supplies.
+> > 
+> > Great. Few comments:
+> > 
+> > 1. Could you please include the smsc911x commit and subject here too
+> >    so it clearly shows the regression?
+> 
+> Sure. Will do for v2.
+> 
+> > 2. Also, why don't you add this fixed regulator to gpmc-smsc911.c?
+> > 
+> > That way it gets fixed for other too, like zoom2/3.
+> 
+> Ok, so I considered that at first and had two concerns that made me just
+> do it in the omap3evm specific way and see what the feedback was.
+> 
+> 1) If we do a generic implementation in gpmc-smsc911x.c, there needs to
+> be a way to override it. Another board may have a variable supply that
+> feeds this consumer.
+> 
+> 2) Technically, this omap3evm specific implementation matches the hardware
+> in that the osk_3v3 rail is software controllable. Granted, I commented
+> that we simply don't hook up the gpio at this time since this real
+> hardware regulator has always been silently asserted on by the nature of
+> the reset state of the TWL GPIOs and the board level pull downs as well.
 
-The fact that you _can_ remove the warning doesn't mean you should. To
-me it sounds like a proper warning.
+OK
+ 
+> So that said, I don't need #2 to make omap3evm work and I don't think
+> anybody cares yet to actually turn that regulator off (as it will kill
+> other things that appear to not have regulator support anyway). It looks
+> like you talked me into respinning it as a generic implementation. Only
+> question is whether I should bother consider not-yet-existing boards that
+> may not want that generic regulator.
 
-> Anyway, I saw in another email that Omar is working on a fix so
-> probably we can just wait for his patch, yes?
+Well for future boards the regulator should come from device tree,
+so for now it should be safe to add it to gpmc-smsc911.c.
 
-He only proposed a solution, I doubt he is working on. And to me, that
-sounded like a hack rather than a proper fix.
+Regards,
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
