@@ -1,85 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the suspend
- path
-Date: Thu, 9 Feb 2012 20:08:36 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: Incorrect Register Offsets in OMAP Mailbox
+Date: Fri, 10 Feb 2012 04:25:54 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433179C534@DBDE01.ent.ti.com>
+References: <331ABD5ECB02734CA317220B2BBEABC1317897C8@DBDE01.ent.ti.com>
+ <B5906170F1614E41A8A28DE3B8D121433179B3F8@DBDE01.ent.ti.com>
+ <20120209174709.GH1426@atomide.com>
+ <B5906170F1614E41A8A28DE3B8D121433179BF04@DBDE01.ent.ti.com>
+ <20120210011447.GN1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40829 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754323Ab2BJDIg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 22:08:36 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:34287 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754774Ab2BJE0D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 23:26:03 -0500
+In-Reply-To: <20120210011447.GN1426@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, robherring2@gmail.com, tony@atomide.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "enli.chan@gmail.com" <enli.chan@gmail.com>
 
+Hi Tony,
 
-Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
-code should now handle what this was supposed to do.
+On Fri, Feb 10, 2012 at 06:44:47, Tony Lindgren wrote:
+> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [120209 09:27]:
+> > On Thu, Feb 09, 2012 at 23:17:10, Tony Lindgren wrote:
+> > > Care to reply with Acked-by/Tested-by so I can queue this into fixes?
+> > > 
+> > 
+> > Acked-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+> 
+> Is the mailbox now actually usable on this hardware with this patch?
+> 
 
-Tested on N800 -- but it's hard to say whether this fixes anything.
-OMAP24xx static suspend path is currently broken, and this patch
-doesn't change that.
+I am using this fix to make use of the mailbox on AM335x which has the same IP
+as OMAP4. With a couple of patches to add AM335x support I have been able to make
+use of the mailbox for one-way communication between the A8 and Cortex-M3.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/pm24xx.c |   24 ++----------------------
- 1 files changed, 2 insertions(+), 22 deletions(-)
+I don't have an OMAP4 board with me to test this out.
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index b8822f8..7690b53 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -245,7 +245,7 @@ static void omap2_pm_idle(void)
- 	if (omap_irq_pending())
- 		goto out;
- 
--	omap2_enter_full_retention();
-+	omap2_enter_mpu_retention();
- 
- out:
- 	local_fiq_enable();
-@@ -260,26 +260,6 @@ static int omap2_pm_begin(suspend_state_t state)
- 	return 0;
- }
- 
--static int omap2_pm_suspend(void)
--{
--	u32 wken_wkup, mir1;
--
--	wken_wkup = omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
--	wken_wkup &= ~OMAP24XX_EN_GPT1_MASK;
--	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
--
--	/* Mask GPT1 */
--	mir1 = omap_readl(0x480fe0a4);
--	omap_writel(1 << 5, 0x480fe0ac);
--
--	omap2_enter_full_retention();
--
--	omap_writel(mir1, 0x480fe0a4);
--	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
--
--	return 0;
--}
--
- static int omap2_pm_enter(suspend_state_t state)
- {
- 	int ret = 0;
-@@ -287,7 +267,7 @@ static int omap2_pm_enter(suspend_state_t state)
- 	switch (state) {
- 	case PM_SUSPEND_STANDBY:
- 	case PM_SUSPEND_MEM:
--		ret = omap2_pm_suspend();
-+		omap2_enter_full_retention();
- 		break;
- 	default:
- 		ret = -EINVAL;
--- 
-1.7.9
-
+Regards,
+Vaibhav
