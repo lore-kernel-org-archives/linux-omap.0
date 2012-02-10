@@ -1,40 +1,25 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2xxx: PM: fix OMAP2xxx-specific UART idle bug
- in v3.3
-Date: Thu, 9 Feb 2012 17:52:25 -0800
-Message-ID: <20120210015225.GO1426@atomide.com>
-References: <alpine.DEB.2.00.1202091822170.5059@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP34xx
+Date: Thu, 9 Feb 2012 19:19:47 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
+References: <20120208231551.GA9009@kroah.com> <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com> <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com> <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
+ <20120209193442.GA1767@rexfeany.com> <87hayzzjlv.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1202091822170.5059@utopia.booyaka.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-serial@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:50338 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758071Ab2BJCTs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 21:19:48 -0500
+In-Reply-To: <87hayzzjlv.fsf@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Rex Feany <rfeany@laeos.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Paul Walmsley <paul@pwsan.com> [120209 16:52]:
-> 
-> [ This patch is targeted for v3.3-rc ]
-> 
-> On OMAP2420-based systems, the PM code ignores the state of the UART
-> functional clocks when determining what idle state to enter.  This
-> breaks the serial port now that the UART driver's clock behavior can
-> be controlled via the PM autosuspend timeout.
-> 
-> To fix, remove the special-case idle handling for the UARTs in the
-> OMAP2420/2430 PM idle code added by commit
-> 4af4016c53f52b26461b8030211f8427a58fa5ed ("OMAP3: PM: UART: disable
-> clocks when idle and off-mode support").
-> 
-> Tested on Nokia N800.  This patch is a collaboration between Tony
-> Lindgren <tony@atomide.com> and Paul Walmsley <paul@pwsan.com>.
 
-Glad to see this piece of code finally gone with runtime PM :)
+Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
+testing branch; it works.
 
-Applying into fixes.
 
-Regards,
-
-Tony
+- Paul
