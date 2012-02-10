@@ -1,69 +1,68 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 08/10] OMAP: I2C: Fix the error handling
-Date: Fri, 10 Feb 2012 19:30:03 +0530
-Message-ID: <1328882405-15284-9-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH 10/10] I2C: OMAP: Don't check if wait_for_completion_timeout() returns less than zero
+Date: Fri, 10 Feb 2012 19:30:05 +0530
+Message-ID: <1328882405-15284-11-git-send-email-shubhrajyoti@ti.com>
 References: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1328882405-15284-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:60964 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759243Ab2BJOA5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Feb 2012 09:00:57 -0500
+In-Reply-To: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khali@linux-fr.org, Shubhrajyoti D <shubhrajyoti@ti.com>, Ben Dooks <ben-linux@fluff.org>, Kevin Hilman <khilman@ti.com>
 
-Currently in probe
-      pm_runtime_put(dev->dev);
+By definition, wait_for_completion_timeout() returns an unsigned value and
+therefore, it is not necessary to check if the return value is less than zero
+as this is not possible.
 
-...
-        /* i2c device drivers may be active on return from add_adapter() */
-        adap->nr = pdev->id;
-        r = i2c_add_numbered_adapter(adap);
-        if (r) {
-                dev_err(dev->dev, "failure adding adapter\n");
-                goto err_free_irq;
-        }
-...
+This is based on a patch from Jon Hunter <jon-hunter@ti.com>
+Changes from his patch
+- Declare a long as the wait_for_completion_timeout returns long.
 
-        return 0;
-
-err_free_irq:
-        free_irq(dev->irq, dev);
-err_unuse_clocks:
-        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-        pm_runtime_put(dev->dev);
-
-This may access the i2c registers without the clocks.
-Attempting to fix the same by moving the pm_rintime_put after the error check.
-
-Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Cc : Jon Hunter <jon-hunter@ti.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 ---
- drivers/i2c/busses/i2c-omap.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Original patch is
+http://git.omapzoom.org/?p=kernel/omap.git;a=commitdiff;h=ea02cece7b0000bc736e60c4188a11aaa74bc6e6
+ drivers/i2c/busses/i2c-omap.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index fd77cd2..e556c2d 100644
+index 4c5d98f..435d6a7 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -1093,8 +1093,6 @@ omap_i2c_probe(struct platform_device *pdev)
- 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
- 		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
+@@ -501,7 +501,7 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 			     struct i2c_msg *msg, int stop)
+ {
+ 	struct omap_i2c_dev *dev = i2c_get_adapdata(adap);
+-	int r;
++	unsigned long timeout;
+ 	u16 w;
  
--	pm_runtime_put(dev->dev);
--
- 	adap = &dev->adapter;
- 	i2c_set_adapdata(adap, dev);
- 	adap->owner = THIS_MODULE;
-@@ -1114,6 +1112,8 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 	of_i2c_register_devices(adap);
- 
-+	pm_runtime_put(dev->dev);
-+
- 	return 0;
- 
- err_free_irq:
+ 	dev_dbg(dev->dev, "addr: 0x%04x, len: %d, flags: 0x%x, stop: %d\n",
+@@ -569,12 +569,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
+-	r = wait_for_completion_timeout(&dev->cmd_complete,
+-					OMAP_I2C_TIMEOUT);
++	timeout = wait_for_completion_timeout(&dev->cmd_complete,
++						OMAP_I2C_TIMEOUT);
+ 	dev->buf_len = 0;
+-	if (r < 0)
+-		return r;
+-	if (r == 0) {
++	if (timeout == 0) {
+ 		dev_err(dev->dev, "controller timed out\n");
+ 		omap_i2c_init(dev);
+ 		omap_i2c_reset(dev);
 -- 
 1.7.1
+
