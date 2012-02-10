@@ -1,83 +1,85 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: GPMC in HWMOD (and a related AM335X issue)
-Date: Fri, 10 Feb 2012 03:51:32 +0100
-Message-ID: <4F348634.8040909@ti.com>
-References: <1328790544-4423-1-git-send-email-afzal@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the suspend
+ path
+Date: Thu, 9 Feb 2012 20:08:36 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54109 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932381Ab2BJCve (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 9 Feb 2012 21:51:34 -0500
-Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1A2pXkH018373
-	for <linux-omap@vger.kernel.org>; Thu, 9 Feb 2012 20:51:33 -0600
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1A2pXQv025039
-	for <linux-omap@vger.kernel.org>; Thu, 9 Feb 2012 20:51:33 -0600 (CST)
-In-Reply-To: <1328790544-4423-1-git-send-email-afzal@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40829 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323Ab2BJDIg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 22:08:36 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>
-Cc: linux-omap@vger.kernel.org, hvaibhav@ti.com, nsekhar@ti.com
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, robherring2@gmail.com, tony@atomide.com
 
-Hi Mohammed,
 
-On 2/9/2012 1:29 PM, Afzal Mohammed wrote:
-> Hi,
->
-> OMAP HWMOD currently does not have GPMC adapted to it.
->
-> We are facing a problem indirectly related to it in the case of
-> AM335X SoC. It can reuse GPMC code of OMAP except that base address
-> &  IRQ# is different. But we get a kernel crash without
-> (at least) following change
->
-> -------------------------------------------------------------------
->      arm:omap:gpmc: am33xx base address
->
->      GPMC base address of AM335X SoC is same as that of OMAP44XX,
->      update it (eventhough AM33XX is a member of OMAP34XX family)
->      Without this change, Kernel would crash for AM335X
->
-> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> index dfffbbf..4ee2e90 100644
-> --- a/arch/arm/mach-omap2/gpmc.c
-> +++ b/arch/arm/mach-omap2/gpmc.c
-> @@ -711,7 +711,10 @@ static int __init gpmc_init(void)
->                  gpmc_irq = INT_34XX_GPMC_IRQ;
->          } else if (cpu_is_omap34xx()) {
->                  ck = "gpmc_fck";
-> -               l = OMAP34XX_GPMC_BASE;
-> +               if (cpu_is_am33xx())
-> +                       l = OMAP44XX_GPMC_BASE;
-> +               else
-> +                       l = OMAP34XX_GPMC_BASE;
->                  gpmc_irq = INT_34XX_GPMC_IRQ;
->          } else if (cpu_is_omap44xx()) {
->                  ck = "gpmc_ck";
-> -------------------------------------------------------------------
->
-> But the above is not sufficient, even the IRQ # has to be changed
-> And for that we need to feed the proper IRQ # too. Now if it was a
-> HWMOD device, we could have passed it in HWMOD database&  it would
-> have been taken care. Other option is to have a new AM335X specific
-> IRQ header file (which, if my understanding is correct, we can't get
-> into mainline as HWMOD is present for OMAP&  due to DT things)
->
-> HWMOD entries currently does contain GPMC, is it due to the reason that
-> GPMC is not yet adapted to omap_device / omap_hwmod or is there any
-> other reason for not having it in HWMOD (as GPMC not yet a driver?)
+Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
+code should now handle what this was supposed to do.
 
-Yes, that's the reason.
-Nobody had the time to update that driver yet to omap_device and thus we 
-did not create the hwmod entry for it.
-And since we do not use the GPMC on OMAP4 boards, we did not have some 
-good way to test any change on this driver.
+Tested on N800 -- but it's hard to say whether this fixes anything.
+OMAP24xx static suspend path is currently broken, and this patch
+doesn't change that.
 
-Do not hesitate to update that driver and add the DT support if you want:-)
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/pm24xx.c |   24 ++----------------------
+ 1 files changed, 2 insertions(+), 22 deletions(-)
 
-Regards,
-Benoit
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index b8822f8..7690b53 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -245,7 +245,7 @@ static void omap2_pm_idle(void)
+ 	if (omap_irq_pending())
+ 		goto out;
+ 
+-	omap2_enter_full_retention();
++	omap2_enter_mpu_retention();
+ 
+ out:
+ 	local_fiq_enable();
+@@ -260,26 +260,6 @@ static int omap2_pm_begin(suspend_state_t state)
+ 	return 0;
+ }
+ 
+-static int omap2_pm_suspend(void)
+-{
+-	u32 wken_wkup, mir1;
+-
+-	wken_wkup = omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+-	wken_wkup &= ~OMAP24XX_EN_GPT1_MASK;
+-	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+-
+-	/* Mask GPT1 */
+-	mir1 = omap_readl(0x480fe0a4);
+-	omap_writel(1 << 5, 0x480fe0ac);
+-
+-	omap2_enter_full_retention();
+-
+-	omap_writel(mir1, 0x480fe0a4);
+-	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+-
+-	return 0;
+-}
+-
+ static int omap2_pm_enter(suspend_state_t state)
+ {
+ 	int ret = 0;
+@@ -287,7 +267,7 @@ static int omap2_pm_enter(suspend_state_t state)
+ 	switch (state) {
+ 	case PM_SUSPEND_STANDBY:
+ 	case PM_SUSPEND_MEM:
+-		ret = omap2_pm_suspend();
++		omap2_enter_full_retention();
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+-- 
+1.7.9
+
