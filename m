@@ -1,87 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: Add simple pinmux driver using device
- tree data
-Date: Fri, 10 Feb 2012 12:12:34 -0800
-Message-ID: <20120210201234.GY1426@atomide.com>
-References: <20120203205049.4089.74610.stgit@kaulin.local>
- <20120203205508.4089.35304.stgit@kaulin.local>
- <20120207014449.GA2424@r65073-Latitude-D630>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Fri, 10 Feb 2012 23:35:37 +0300
+Message-ID: <20120210203537.GG4141@mwanda>
+References: <20120201011239.GA797@suse.de>
+ <CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
+ <20120201034445.GA2979@kroah.com>
+ <CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
+ <20120209173528.GA31726@kroah.com>
+ <CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
+ <20120209185923.GB10284@kroah.com>
+ <CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
+ <20120210180015.GF4141@mwanda>
+ <CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sLx0z+5FKKtIVDwd"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from acsinet15.oracle.com ([141.146.126.227]:25421 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752139Ab2BJUeI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 15:34:08 -0500
 Content-Disposition: inline
-In-Reply-To: <20120207014449.GA2424@r65073-Latitude-D630>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shawn Guo <shawn.guo@linaro.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Linus Walleij <linus.walleij@stericsson.com>, Barry Song <21cnbao@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Rajendra Nayak <rajendra.nayak@linaro.org>, Dong Aisheng <dong.aisheng@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Dong Aisheng <dongas86@gmail.com>
+In-Reply-To: <CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, linux-omap@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Hi Shawn,
 
-Sorry for the delay, some of this we already talked this week
-at the conference.
+--sLx0z+5FKKtIVDwd
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-* Shawn Guo <shawn.guo@linaro.org> [120206 17:13]:
-> On Fri, Feb 03, 2012 at 12:55:08PM -0800, Tony Lindgren wrote:
-> > 
-> It's so great to eventually see some codes after such an extensive
-> discussion on the binding.  The code looks nice to me except a few
-> trivial comments below.  The only thing I'm concerned is the register
-> level implementation is not so generic to cover controllers like imx
-> one, where pinmux and pinconf have separate registers.  If we can make
-> that part as generic as pin table creating, function/pingroup/mapping
-> generating, the patch will be good for imx to migrate to.
+On Fri, Feb 10, 2012 at 09:42:32PM +0200, Felipe Contreras wrote:
+> On Fri, Feb 10, 2012 at 8:00 PM, Dan Carpenter <dan.carpenter@oracle.com>=
+ wrote:
+> > On Fri, Feb 10, 2012 at 01:30:48AM +0200, Felipe Contreras wrote:
+> >> It's not an oops, it's a warning, and again, it depends on the
+> >> firmware being used. We don't have control over that, and we have no
+> >> way to detect if this feature is there. It's up to the user.
+> >
+> > Perhaps just remove the warning message and handle the condition
+> > instead of printing a stack dump? =A0The user should be triggering
+> > stack dumps. =A0What on earth?
+>=20
+> The warning doesn't come from the driver.
 
-OK, maybe let's see how far we can get by adding other #pinmux-cells
-values to parse in addition to 2. And map some registers using
-compatible + .data entry related to it.
- 
-> > +	/* board specific .dts file, such as omap4-sdp.dts */
-> > +	pinmux@4a100040 {
-> > +		pmx_uart3: pinconfig-uart3 {
-> > +			mux = <0x0104 0x100
-> > +			       0x0106 0x0>;
-> > +                        };
-> 
-> The line is some leftover which should be deleted?
+I'm not sure I understand.  Are you saying that because it comes
+=66rom the arch/ directory, it can't be fixed?  I have good news for
+you my friend.  :)  It's all open source!  \o/
 
-Thanks that looks wrong..
- 
-> > +config PINCTRL_SIMPLE
-> > +	tristate "Simple device tree based pinmux driver"
-> > +	depends on OF
-> > +	help
-> > +	  This selects the device tree based generic pinmux driver.
-> > +
-> 
-> We would call it pinctrl instead pinmux driver?
+Anyway, I saw in another email that Omar is working on a fix so
+probably we can just wait for his patch, yes?
 
-Thanks, fixing.
- 
-> > +	smux->desc->pins = smux->pins.pa;
-> > +	smux->desc->npins = smux->pins.max--;
-> > +
-> Hmm, why do you have pins.max minus 1 here and most of the places where
-> it gets used plus 1?  Keep it as it is and use pins.max - 1 in that
-> only place I have seen?
+regards,
+dan carpenter
 
-Makes sense.
+--sLx0z+5FKKtIVDwd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> > +static int __init smux_register(struct smux_device *smux)
-> > +{
-> > +	int ret;
-> > +
-> > +	if (!smux->dev->of_node)
-> > +		return -ENODEV;
-> > +
-> > +	smux->pctlops = &smux_pinctrl_ops;
-> > +	smux->pmxops = &smux_pinmux_ops;
-> 
-> I do not see where these two pointers inside smux be used anywhere.
-> And also they can be got from smux below anyway.  So why bothering?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Yes those are already gone in the second version I posted.
+iQIcBAEBAgAGBQJPNX+ZAAoJEOnZkXI/YHqRCIkP/1028kvRf51goeJCxyfhjssK
+ex+leTNTnf9CrXlgeCQuB2gyWxGjWjhzEN6iiqo3H+wjIKcQEFx5XnQGo4/znVPN
+oWh9YfPYqX2jz0y6j278phdW2+gs+r+5Qdk8V/gBYALzlXm6n7/oij282NowiU+0
+vSSUl/EuCqgGomwBfkCNUy46OM8F9L3rk3PQEk173AyExWO+NXiv35kJFyVdeRd1
+zck41UOzR8i9hZshVlh5Zu0bTxnIryHXKXOD5AXyhtnOoz6Uz8ab1v3Ldbc3Zeoi
+9Cxv1ItBKlZh3A+Bj3JzRDsX7zUcW1rf4BdUajZI91NqUJ1Al08vwYA25y7+JFvw
+1WU/N5FGC2iKq/MP5SwcAaundMKTL/XMg6rA+3GaTj2D8xYENu0vdDWqzf1lKzxD
+dLtPQ210Fxm9A/fFpz10abvzkUaXmBMzXemEPehmfzkmd7PW82kRH+uARNKGZ9EV
+Sf/NcuSwtiKnaDq8eG2+UumwzdwBWGR0VToHDFxU57IR5RUbKoweR18ylcYdDSk8
+rWLv05WmG4WhfqeTMRmcdmGN33yFaDIAxiNnOTxSphhR0dmbrXkes2b6i9axYmfH
+Xu8KiITzp8tiEUJVvjm1EkyGMQVvVw1mEA7xPRvxbeDjJdBcE6P4SbH03uRq6+y2
+1sbo0SiWcwtz3enrZMH7
+=mUkG
+-----END PGP SIGNATURE-----
 
-Regards,
-
-Tony
+--sLx0z+5FKKtIVDwd--
