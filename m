@@ -1,52 +1,57 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH 0/7] TWL6040: Regulator support
-Date: Fri, 10 Feb 2012 12:05:09 +0200
-Message-ID: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH 1/7] OMAP: 4430SDP: Correct fixed regulator device ID
+Date: Fri, 10 Feb 2012 12:05:10 +0200
+Message-ID: <1328868316-24749-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+The board has two fixed voltage regulator. Correct the
+device ID for the vbat, which used -1.
+Create defines for the fixed regulator IDs so when adding new
+regulators we know the next available ID to use for them.
 
-This series depends on the V3 of MFD: twl6040: Conversion to i2c driver set.
-
-In order to have proper regulator support for twl6040 on SDP4430, and
-PandaBoards I needed to add support for the V1V8, and V2V1 SMPS supplies from
-twl6030.
-The configuration on both boards (and the TRM recommendations) are the same, so
-it make sens to have the V1V8, V2V1 supply configured in the twl-common to avoid
-duplicated code in board files.
-
-The last patch in this series was part of the V2 of MFD: twl6040: Conversion to
-i2c driver set. I have added Mark's Reviewd-by tag, and also addressed his
-comment regarding to the supplies member of the twl6040 struct (no need to
-allocate it separately).
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (7):
-  OMAP: 4430SDP: Correct fixed regulator device ID
-  regulator: twl-regulator: Add fixed LDO for V1V8, V2V1 supply
-  MFD: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS
-  OMAP4: twl-common: Add twl6030 V1V8, V2V1 SMPS common configuration
-  OMAP: 4430SDP: Use common configuration for V1V8, V2V1 supplies
-  OMAP: omap4panda: Use common configuration for V1V8, V2V1 supplies
-  MFD: TWL6040: Add regulator support for VIO, V2V1 supplies
+ arch/arm/mach-omap2/board-4430sdp.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
- arch/arm/mach-omap2/board-4430sdp.c    |   11 ++++++--
- arch/arm/mach-omap2/board-omap4panda.c |    4 ++-
- arch/arm/mach-omap2/twl-common.c       |   43 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/twl-common.h       |    2 +
- drivers/mfd/twl-core.c                 |   10 +++++++
- drivers/mfd/twl6040-core.c             |   33 +++++++++++++++++++++---
- drivers/regulator/twl-regulator.c      |    2 +
- include/linux/i2c/twl.h                |    2 +
- include/linux/mfd/twl6040.h            |    2 +
- 9 files changed, 101 insertions(+), 8 deletions(-)
-
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index f4ac553..d02172d 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -62,6 +62,9 @@
+ #define GPIO_WIFI_PMENA		54
+ #define GPIO_WIFI_IRQ		53
+ 
++#define FIXED_REG_VBAT_ID	0
++#define FIXED_REG_VWLAN_ID	1
++
+ static const int sdp4430_keymap[] = {
+ 	KEY(0, 0, KEY_E),
+ 	KEY(0, 1, KEY_R),
+@@ -368,7 +371,7 @@ static struct fixed_voltage_config sdp4430_vbat_pdata = {
+ 
+ static struct platform_device sdp4430_vbat = {
+ 	.name		= "reg-fixed-voltage",
+-	.id		= -1,
++	.id		= FIXED_REG_VBAT_ID,
+ 	.dev = {
+ 		.platform_data = &sdp4430_vbat_pdata,
+ 	},
+@@ -478,7 +481,7 @@ static struct fixed_voltage_config sdp4430_vwlan = {
+ 
+ static struct platform_device omap_vwlan_device = {
+ 	.name		= "reg-fixed-voltage",
+-	.id		= 1,
++	.id		= FIXED_REG_VWLAN_ID,
+ 	.dev = {
+ 		.platform_data = &sdp4430_vwlan,
+ 	},
 -- 
 1.7.8.4
