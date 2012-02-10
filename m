@@ -1,64 +1,82 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: OMAP34xx
-Date: Fri, 10 Feb 2012 09:37:36 -0500
-Message-ID: <20120210143733.GA40045@h115-84.vpn.ti.com>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com>
- <4F3374F0.3080002@bitmer.com>
- <20120209133739.GB2590@sirena.org.uk>
- <20120209183624.GJ1426@atomide.com>
- <20120209193442.GA1767@rexfeany.com>
- <87hayzzjlv.fsf@ti.com>
- <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A8317C957F@DBDE01.ent.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH RFC] OMAP: serial: Release the claimed memory region in remove
+Date: Fri, 10 Feb 2012 09:23:04 -0600
+Message-ID: <CAOMWX4f0Mpj=NRBXZgtLbvCg3uo+8tZY8OAkriPu2YucRGoPkw@mail.gmail.com>
+References: <1328853482-3687-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34567 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755193Ab2BJOiC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Feb 2012 09:38:02 -0500
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317C957F@DBDE01.ent.ti.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:34929 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752467Ab2BJPXb convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Feb 2012 10:23:31 -0500
+In-Reply-To: <1328853482-3687-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>, Rex Feany <rfeany@laeos.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-serial@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 10, 2012 at 07:10:06AM +0000, Hiremath, Vaibhav wrote:
-> On Fri, Feb 10, 2012 at 07:49:47, Paul Walmsley wrote:
-> > 
-> > Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
-> > testing branch; it works.
-> > 
-> 
-> I tried it on AM37x EVM, it did worked for me but I have some observations,
+On Thu, Feb 9, 2012 at 23:58, Shubhrajyoti D <shubhrajyoti@ti.com> wrot=
+e:
+> Currently the memory region is not released the folowing error is
+> observed.
+>
+> /testsuites # insmod omap-serial.ko
+> [ =A0130.746917] omap_uart omap_uart.0: memory region already claimed
+> [ =A0130.753143] omap_uart: probe of omap_uart.0 failed with error -1=
+6
+> [ =A0130.759338] omap_uart omap_uart.1: memory region already claimed
+> [ =A0130.765380] omap_uart: probe of omap_uart.1 failed with error -1=
+6
+> [ =A0130.771606] omap_uart omap_uart.2: memory region already claimed
+> [ =A0130.777679] omap_uart: probe of omap_uart.2 failed with error -1=
+6
+> [ =A0130.783905] omap_uart omap_uart.3: memory region already claimed
+> [ =A0130.789947] omap_uart: probe of omap_uart.3 failed with error -1=
+6
+>
+> Fix it by releasing the memory region.
+>
+> Cc: Govindraj.R <govindraj.raja@ti.com>
+> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+> ---
+> =A0drivers/tty/serial/omap-serial.c | =A0 =A04 ++++
+> =A01 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
+ap-serial.c
+> index 130f7f8..4def6c3 100644
+> --- a/drivers/tty/serial/omap-serial.c
+> +++ b/drivers/tty/serial/omap-serial.c
+> @@ -1480,6 +1480,10 @@ do_release_region:
+> =A0static int serial_omap_remove(struct platform_device *dev)
+> =A0{
+> =A0 =A0 =A0 =A0struct uart_omap_port *up =3D platform_get_drvdata(dev=
+);
+> + =A0 =A0 =A0 struct resource =A0 =A0 =A0 =A0 *r;
+> +
+> + =A0 =A0 =A0 r =3D platform_get_resource(dev, IORESOURCE_MEM, 0);
+> + =A0 =A0 =A0 release_mem_region(r->start, resource_size(r));
+if this is the same region which ioremapped to up->port.membase, then
+please release mem region after the unmap.
+Regards,
+Nishanth Menon
 
-...
-
-> 2) Missing clockdomain in usb clock -
-> 
-> [root@arago /]# dmesg | grep -ir hwmod
-> [    0.114868] omap_hwmod: usbtll_fck: missing clockdomain for usbtll_fck.
-> ...
-
-I also see this on am37x evm, am35x evm, craneboard, and xM Rev B with an
-omap2plus_defconfig build from the testing-omap-fixes branch.
-
-> 3)  Not sure how this can be handled, since from TWL regulator output
-> perspective it is NA. I enabled DUMMY_REGILATOR option and tried it,
-> it works.
-> 
-> 
-> [root@arago /]# dmesg | grep -ir fail
-> [    0.166717] dpll3_m2_clk rate change failed: -22
-> [    0.828521] sharp_ls_panel display0: failed to set lcd brightness
-> [    1.672454] smsc911x smsc911x.0: Failed to get supply 'vdd33a': -19
-
-I posted a patch to address the smsc911x issue. It's a board specific
-fixed regulator that's controlled via a TWL GPIO but defaults to on.
-
-See [PATCH] omap: board-omap3evm: add required smsc911x regulators
-
--Matt
+>
+> =A0 =A0 =A0 =A0if (up) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0iounmap(up->port.membase);
+> --
+> 1.7.1
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
