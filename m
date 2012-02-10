@@ -1,82 +1,69 @@
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: [PATCH 09/10] I2C: OMAP: Correct I2C revision for OMAP3
-Date: Fri, 10 Feb 2012 19:30:04 +0530
-Message-ID: <1328882405-15284-10-git-send-email-shubhrajyoti@ti.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 08/10] OMAP: I2C: Fix the error handling
+Date: Fri, 10 Feb 2012 19:30:03 +0530
+Message-ID: <1328882405-15284-9-git-send-email-shubhrajyoti@ti.com>
 References: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60678 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759282Ab2BJOAz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Feb 2012 09:00:55 -0500
-In-Reply-To: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1328882405-15284-1-git-send-email-shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khali@linux-fr.org, Jon Hunter <jon-hunter@ti.com>, Ben Dooks <ben-linux@fluff.org>, Kevin Hilman <khilman@ti.com>, Shubhrajyoti D <shubhrajyoti@ti.com>
 
-From: Jon Hunter <jon-hunter@ti.com>
+Currently in probe
+      pm_runtime_put(dev->dev);
 
-The OMAP3530 is based upon the same silicon as the OMAP3430 and so the I2C
-revision is the same for 3430 and 3530. However, the OMAP3630 device has the
-same I2C revision as OMAP4. Correct the revision definition to reflect this.
+...
+        /* i2c device drivers may be active on return from add_adapter() */
+        adap->nr = pdev->id;
+        r = i2c_add_numbered_adapter(adap);
+        if (r) {
+                dev_err(dev->dev, "failure adding adapter\n");
+                goto err_free_irq;
+        }
+...
 
-This patch is based on work done by Jon Hunter <jon-hunter@ti.com>
-Changes from his patch
-- Update OMAP_I2C_REV_ON_3430 also to reflect that it is same as 3530
+        return 0;
 
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+err_free_irq:
+        free_irq(dev->irq, dev);
+err_unuse_clocks:
+        omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+        pm_runtime_put(dev->dev);
+
+This may access the i2c registers without the clocks.
+Attempting to fix the same by moving the pm_rintime_put after the error check.
+
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 ---
-
- drivers/i2c/busses/i2c-omap.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index e556c2d..4c5d98f 100644
+index fd77cd2..e556c2d 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -50,8 +50,8 @@
+@@ -1093,8 +1093,6 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	dev_info(dev->dev, "bus %d rev%d.%d.%d at %d kHz\n", pdev->id,
+ 		 dev->dtrev, dev->rev >> 4, dev->rev & 0xf, dev->speed);
  
- /* I2C controller revisions present on specific hardware */
- #define OMAP_I2C_REV_ON_2430		0x36
--#define OMAP_I2C_REV_ON_3430		0x3C
--#define OMAP_I2C_REV_ON_3530_4430	0x40
-+#define OMAP_I2C_REV_ON_3430_3530	0x3C
-+#define OMAP_I2C_REV_ON_3630_4430	0x40
+-	pm_runtime_put(dev->dev);
+-
+ 	adap = &dev->adapter;
+ 	i2c_set_adapdata(adap, dev);
+ 	adap->owner = THIS_MODULE;
+@@ -1114,6 +1112,8 @@ omap_i2c_probe(struct platform_device *pdev)
  
- /* timeout waiting for the controller to respond */
- #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
-@@ -297,7 +297,7 @@ static int omap_i2c_reset(struct omap_i2c_dev *dev)
- 			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
- 					   SYSC_AUTOIDLE_MASK);
+ 	of_i2c_register_devices(adap);
  
--		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
-+		} else if (dev->rev >= OMAP_I2C_REV_ON_3430_3530) {
- 			dev->syscstate = SYSC_AUTOIDLE_MASK;
- 			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
- 			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
-@@ -1049,7 +1049,7 @@ omap_i2c_probe(struct platform_device *pdev)
++	pm_runtime_put(dev->dev);
++
+ 	return 0;
  
- 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
- 
--	if (dev->rev <= OMAP_I2C_REV_ON_3430)
-+	if (dev->rev <= OMAP_I2C_REV_ON_3430_3530)
- 		dev->errata |= I2C_OMAP3_1P153;
- 
- 	if (!(dev->flags & OMAP_I2C_FLAG_NO_FIFO)) {
-@@ -1067,7 +1067,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 
- 		dev->fifo_size = (dev->fifo_size / 2);
- 
--		if (dev->rev >= OMAP_I2C_REV_ON_3530_4430)
-+		if (dev->rev >= OMAP_I2C_REV_ON_3630_4430)
- 			dev->b_hw = 0; /* Disable hardware fixes */
- 		else
- 			dev->b_hw = 1; /* Enable hardware fixes */
+ err_free_irq:
 -- 
 1.7.1
-
