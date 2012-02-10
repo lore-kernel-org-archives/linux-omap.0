@@ -1,50 +1,66 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: OMAP34xx
-Date: Fri, 10 Feb 2012 13:53:12 +0200
-Message-ID: <CANOLnOPucEMxYa2=fy=Vm_NSHWthnNAq0hJK5u37VZdcwwozFw@mail.gmail.com>
-References: <20120208231551.GA9009@kroah.com>
-	<alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
-	<20120209004731.GA11343@kroah.com>
-	<4F3374F0.3080002@bitmer.com>
-	<20120209133739.GB2590@sirena.org.uk>
-	<20120209183624.GJ1426@atomide.com>
+From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
+Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
+Date: Fri, 10 Feb 2012 18:57:56 +0530
+Message-ID: <CANrkHUbXHrQ=LowgNq9nt+rnrcE-fTqLuOs2+MeCtodv_H-_Cw@mail.gmail.com>
+References: <1328367090-10402-1-git-send-email-rnayak@ti.com>
+	<CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41529 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754568Ab2BJLxO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 06:53:14 -0500
-Received: by yhoo21 with SMTP id o21so1389201yho.19
-        for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 03:53:13 -0800 (PST)
-In-Reply-To: <20120209183624.GJ1426@atomide.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:52506 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759243Ab2BJN16 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Feb 2012 08:27:58 -0500
+In-Reply-To: <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: "S, Venkatraman" <svenkatr@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On Thu, Feb 9, 2012 at 8:36 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Please everybody using omaps with mainline give a test for the
-> merge of the various fixes planned. I've done a branch with
-> v3.3-rc3 + Russell's fixes + Paul's serial port fixes + fixes
-> that I've queued up.
+On Tue, Feb 7, 2012 at 3:32 PM, S, Venkatraman <svenkatr@ti.com> wrote:
+> On Sat, Feb 4, 2012 at 8:21 PM, Rajendra Nayak <rnayak@ti.com> wrote:
+>> This series mainly cleans up all instances of hardcoding's in
+>> the driver based on pdev->id. This is cleanup leading to the
+>> DT adaptation of omap_hsmmc driver.
+>>
+>> Patches are based on 3.3-rc2 and can be found here
+>> git://gitorious.org/omap-pm/linux.git omap_hsmmc_cleanup
+>>
+>> Tested the patches on my omap4 boards (panda and SDP) but
+>> haven't tested yet on omap3/2 since I did'nt have boards
+>> handy. So any testing on any omap3/2 boards is really
+>> appreciated.
 
-Seems to be good on pandora with omap2plus_defconfig, only one section =
-mismatch:
+Tested this series on 2430SDP with FS on SD card
 
-WARNING: vmlinux.o(.text+0x22b64): Section mismatch in reference from
-the function omap4_hotplug_cpu() to the function
-=2Ecpuinit.text:omap_secondary_startup()
-The function omap4_hotplug_cpu() references the function __cpuinit
-omap_secondary_startup().
-This is often because omap4_hotplug_cpu lacks a __cpuinit annotation
-or the annotation of omap_secondary_startup is wrong.
-
-
-
---=20
-Gra=C5=BEvydas
+>
+> I gave it a spin on Beagleboard-XM (OMAP3630) with root filesystem
+> on the SD card, and checked again on 4430SDP.
+>
+> Tested-by: Venkatraman S <svenkatr@ti.com>
+>
+>>
+>> regards,
+>> Rajendra
+>>
+>> Balaji T K (3):
+>> =A0mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
+>> =A0 =A0channels
+>> =A0mmc: omap_hsmmc: remove unused .set_sleep function
+>> =A0mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
+>> =A0 =A0host->id based hardcoding
+>>
+>> Rajendra Nayak (3):
+>> =A0mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
+>> =A0mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
+>> =A0mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
+>>
+>> =A0arch/arm/plat-omap/include/plat/mmc.h | =A0 =A02 -
+>> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 | =A0158 +++-------=
+-----------------------
+>> =A02 files changed, 14 insertions(+), 146 deletions(-)
+>>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
