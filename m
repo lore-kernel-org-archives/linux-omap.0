@@ -1,11 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v3 0/3] MFD: twl6040: Conversion to i2c driver
-Date: Fri, 10 Feb 2012 12:00:15 +0200
-Message-ID: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v3 1/3] MFD: twl-core: Detach twl6040 from the
+	pmic mfd driver
+Date: Fri, 10 Feb 2012 12:00:16 +0200
+Message-ID: <1328868018-24668-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -19,51 +22,155 @@ To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Sant
 Cc: linux-arm-kernel@lists.infradead.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
+On OMAP4 platform audio has separate IC, it is no longer part
+of the pmic chip.
+Prevent twl-core to claim the 0x4b address, which belongs to
+the twl6040 audio IC.
 
-Changes since v2:
-- soc/codec/Kconfig: make twl6040 depend on I2C
-- Regulator related patches has been removed (to be sent as separate series)
-
-------
-Intro mail from the original series:
-
-This series will convert the twl6040 MFD driver to an i2c driver.
-Compared to older twl4030/5030/TPS the twl6040 is a standalone audio IC. It is
-better if the twl6040-core (and all of it's child devices) does not depend on
-the twl-core since it has nothing to with it.
-
-With this conversion the dependency on twl can be dropped from the twl6040
-driver stack (core, vibra, audio).
-
-Between the first and second patch the audio will not probe on OMAP4, but I felt
-it is better this way at least for the first RFC series to not have too big
-change within one patch. The two patch can be squashed together later if no
-objections.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (3):
-  MFD: twl-core: Detach twl6040 from the pmic mfd driver
-  MFD: twl6040: Convert to i2c driver, and separate it from twl core
-  ASoC: twl6040: Remove dependency on twl4030 from Kconfig
+ drivers/mfd/twl-core.c |   58 +++++++++++++++++++++++++++--------------------
+ 1 files changed, 33 insertions(+), 25 deletions(-)
 
- arch/arm/mach-omap2/board-4430sdp.c    |   12 ++--
- arch/arm/mach-omap2/board-generic.c    |    2 +-
- arch/arm/mach-omap2/board-omap4panda.c |   13 ++--
- arch/arm/mach-omap2/twl-common.c       |   37 +++++++++--
- arch/arm/mach-omap2/twl-common.h       |   10 +--
- drivers/input/misc/Kconfig             |    1 -
- drivers/input/misc/twl6040-vibra.c     |    4 +-
- drivers/mfd/Kconfig                    |    2 +-
- drivers/mfd/twl-core.c                 |   58 +++++++++-------
- drivers/mfd/twl6040-core.c             |  114 +++++++++++++++++++-------------
- include/linux/i2c/twl.h                |   12 ----
- include/linux/mfd/twl6040.h            |   27 ++++++++
- sound/soc/codecs/Kconfig               |    2 +-
- sound/soc/codecs/twl6040.c             |    3 +-
- 14 files changed, 182 insertions(+), 115 deletions(-)
-
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index e04e04d..ac6fdd93 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -115,8 +115,8 @@
+ #define twl_has_watchdog()        false
+ #endif
+ 
+-#if defined(CONFIG_MFD_TWL4030_AUDIO) || defined(CONFIG_MFD_TWL4030_AUDIO_MODULE) ||\
+-	defined(CONFIG_TWL6040_CORE) || defined(CONFIG_TWL6040_CORE_MODULE)
++#if defined(CONFIG_MFD_TWL4030_AUDIO) || \
++	defined(CONFIG_MFD_TWL4030_AUDIO_MODULE)
+ #define twl_has_codec()	true
+ #else
+ #define twl_has_codec()	false
+@@ -146,6 +146,7 @@
+ #define SUB_CHIP_ID1 1
+ #define SUB_CHIP_ID2 2
+ #define SUB_CHIP_ID3 3
++#define SUB_CHIP_ID_INVAL 0xff
+ 
+ #define TWL_MODULE_LAST TWL4030_MODULE_LAST
+ 
+@@ -315,7 +316,7 @@ static struct twl_mapping twl6030_map[] = {
+ 	 * so they continue to match the order in this table.
+ 	 */
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_USB },
+-	{ SUB_CHIP_ID3, TWL6030_BASEADD_AUDIO },
++	{ SUB_CHIP_ID_INVAL, TWL6030_BASEADD_AUDIO },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_DIEID },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_PIH },
+@@ -377,6 +378,11 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+ 		return -EPERM;
+ 	}
+ 	sid = twl_map[mod_no].sid;
++	if (unlikely(sid == SUB_CHIP_ID_INVAL)) {
++		pr_err("%s: module %d is not part of the pmic\n",
++		       DRIVER_NAME, mod_no);
++		return -EINVAL;
++	}
+ 	twl = &twl_modules[sid];
+ 
+ 	mutex_lock(&twl->xfer_lock);
+@@ -434,6 +440,11 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+ 		return -EPERM;
+ 	}
+ 	sid = twl_map[mod_no].sid;
++	if (unlikely(sid == SUB_CHIP_ID_INVAL)) {
++		pr_err("%s: module %d is not part of the pmic\n",
++		       DRIVER_NAME, mod_no);
++		return -EINVAL;
++	}
+ 	twl = &twl_modules[sid];
+ 
+ 	mutex_lock(&twl->xfer_lock);
+@@ -834,15 +845,6 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+ 			return PTR_ERR(child);
+ 	}
+ 
+-	if (twl_has_codec() && pdata->audio && twl_class_is_6030()) {
+-		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
+-		child = add_child(sub_chip_id, "twl6040",
+-				pdata->audio, sizeof(*pdata->audio),
+-				false, 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+ 	/* twl4030 regulators */
+ 	if (twl_has_regulator() && twl_class_is_4030()) {
+ 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1,
+@@ -1163,18 +1165,21 @@ int twl6030_exit_irq(void);
+ 
+ static int twl_remove(struct i2c_client *client)
+ {
+-	unsigned i;
++	unsigned i, num_slaves;
+ 	int status;
+ 
+-	if (twl_class_is_4030())
++	if (twl_class_is_4030()) {
+ 		status = twl4030_exit_irq();
+-	else
++		num_slaves = TWL_NUM_SLAVES;
++	} else {
+ 		status = twl6030_exit_irq();
++		num_slaves = TWL_NUM_SLAVES - 1;
++	}
+ 
+ 	if (status < 0)
+ 		return status;
+ 
+-	for (i = 0; i < TWL_NUM_SLAVES; i++) {
++	for (i = 0; i < num_slaves; i++) {
+ 		struct twl_client	*twl = &twl_modules[i];
+ 
+ 		if (twl->client && twl->client != client)
+@@ -1190,7 +1195,7 @@ static int __devinit
+ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	int				status;
+-	unsigned			i;
++	unsigned			i, num_slaves;
+ 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
+ 	struct device_node		*node = client->dev.of_node;
+ 	u8 temp;
+@@ -1244,7 +1249,17 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		return -EBUSY;
+ 	}
+ 
+-	for (i = 0; i < TWL_NUM_SLAVES; i++) {
++	if ((id->driver_data) & TWL6030_CLASS) {
++		twl_id = TWL6030_CLASS_ID;
++		twl_map = &twl6030_map[0];
++		num_slaves = TWL_NUM_SLAVES - 1;
++	} else {
++		twl_id = TWL4030_CLASS_ID;
++		twl_map = &twl4030_map[0];
++		num_slaves = TWL_NUM_SLAVES;
++	}
++
++	for (i = 0; i < num_slaves; i++) {
+ 		struct twl_client	*twl = &twl_modules[i];
+ 
+ 		twl->address = client->addr + i;
+@@ -1263,13 +1278,6 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		mutex_init(&twl->xfer_lock);
+ 	}
+ 	inuse = true;
+-	if ((id->driver_data) & TWL6030_CLASS) {
+-		twl_id = TWL6030_CLASS_ID;
+-		twl_map = &twl6030_map[0];
+-	} else {
+-		twl_id = TWL4030_CLASS_ID;
+-		twl_map = &twl4030_map[0];
+-	}
+ 
+ 	/* setup clock framework */
+ 	clocks_init(&client->dev, pdata->clock);
 -- 
 1.7.8.4
