@@ -1,66 +1,40 @@
-From: Rex Feany <rfeany@laeos.net>
-Subject: Re: OMAP34xx
-Date: Thu, 9 Feb 2012 17:41:21 -0800
-Message-ID: <20120210014121.GA7503@rexfeany.com>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com>
- <4F3374F0.3080002@bitmer.com>
- <20120209133739.GB2590@sirena.org.uk>
- <20120209183624.GJ1426@atomide.com>
- <20120209193442.GA1767@rexfeany.com>
- <87hayzzjlv.fsf@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2xxx: PM: fix OMAP2xxx-specific UART idle bug
+ in v3.3
+Date: Thu, 9 Feb 2012 17:52:25 -0800
+Message-ID: <20120210015225.GO1426@atomide.com>
+References: <alpine.DEB.2.00.1202091822170.5059@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ilona.fnordsoft.com ([173.230.144.79]:35674 "EHLO
-	ilona.fnordsoft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601Ab2BJBlW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 20:41:22 -0500
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87hayzzjlv.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1202091822170.5059@utopia.booyaka.com>
+Sender: linux-serial-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Thus spake Kevin Hilman (khilman@ti.com):
+* Paul Walmsley <paul@pwsan.com> [120209 16:52]:
+> 
+> [ This patch is targeted for v3.3-rc ]
+> 
+> On OMAP2420-based systems, the PM code ignores the state of the UART
+> functional clocks when determining what idle state to enter.  This
+> breaks the serial port now that the UART driver's clock behavior can
+> be controlled via the PM autosuspend timeout.
+> 
+> To fix, remove the special-case idle handling for the UARTs in the
+> OMAP2420/2430 PM idle code added by commit
+> 4af4016c53f52b26461b8030211f8427a58fa5ed ("OMAP3: PM: UART: disable
+> clocks when idle and off-mode support").
+> 
+> Tested on Nokia N800.  This patch is a collaboration between Tony
+> Lindgren <tony@atomide.com> and Paul Walmsley <paul@pwsan.com>.
 
-> Can you double check that you're building and booting using Tony's -rc3
-> based branch?
+Glad to see this piece of code finally gone with runtime PM :)
 
-I believe so, but I cloned it again anyway and it is different from what
-I had originally.
+Applying into fixes.
 
-> Also, can you do a test using omap2plus_defconfig?
+Regards,
 
-Of course! Serial seems OK with the defconfig, but it doesn't detect the
-network chip (it looks like all of the usb stuff is turned off in the
-defconfig). dmesg: http://tonya.fnordsoft.com/omap-testing/dmesg-defconfig
-
-I am trying to get usb & networking working, I tried turning on
-ohci/ehci and smsc95xx, but it doesn't seem like anything is detected.
-Am I just missing a config option? I will go through this more tomorrow,
-becuase I have networking working with my other modified defconfig.
-
-dmesg: http://tonya.fnordsoft.com/omap-testing/dmesg-usb-config
-config: http://tonya.fnordsoft.com/omap-testing/usb-config 
-
- USB_EHCI_HCD n -> m
- USB_NET_SMSC95XX n -> y
- USB_OHCI_HCD n -> m
-+MFD_OMAP_USB_HOST y
-+USB_EHCI_HCD_OMAP y
-+USB_EHCI_MV n
-+USB_EHCI_ROOT_HUB_TT n
-+USB_EHCI_TT_NEWSCHED y
-+USB_OHCI_BIG_ENDIAN_DESC n
-+USB_OHCI_BIG_ENDIAN_MMIO n
-+USB_OHCI_HCD_OMAP1 y
-+USB_OHCI_HCD_OMAP3 y
-+USB_OHCI_LITTLE_ENDIAN y
-+USB_OTG_UTILS y
-+USB_SISUSBVGA n
-
-thanks!!
-/rex.
+Tony
