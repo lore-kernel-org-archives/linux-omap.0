@@ -1,54 +1,38 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH] omap: board-omap3evm: add required smsc911x regulators
-Date: Fri, 10 Feb 2012 13:50:33 -0500
-Message-ID: <20120210185033.GC40045@h115-84.vpn.ti.com>
-References: <1328738812-26755-1-git-send-email-mporter@ti.com>
- <20120210174046.GQ1426@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP34xx
+Date: Fri, 10 Feb 2012 10:58:11 -0800
+Message-ID: <20120210185810.GT1426@atomide.com>
+References: <20120208231551.GA9009@kroah.com>
+ <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+ <20120209004731.GA11343@kroah.com>
+ <4F3374F0.3080002@bitmer.com>
+ <20120209133739.GB2590@sirena.org.uk>
+ <20120209183624.GJ1426@atomide.com>
+ <20120209193442.GA1767@rexfeany.com>
+ <87hayzzjlv.fsf@ti.com>
+ <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62608 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759876Ab2BJS6Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 13:58:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20120210174046.GQ1426@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Matt Porter <matt@ohporter.com>, Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>, Rex Feany <rfeany@laeos.net>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Fri, Feb 10, 2012 at 09:40:47AM -0800, Tony Lindgren wrote:
-> * Matt Porter <matt@ohporter.com> [120208 13:35]:
-> > This fixes smsc911x support on omap3evm that has been broken since
-> > the smsc911x driver was updated to require the existence of vdd33a
-> > and vddvario supplies.
+* Paul Walmsley <paul@pwsan.com> [120209 17:48]:
 > 
-> Great. Few comments:
-> 
-> 1. Could you please include the smsc911x commit and subject here too
->    so it clearly shows the regression?
+> Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
+> testing branch; it works.
 
-Sure. Will do for v2.
+Rex, care to confirm this is also the case for you with
+your custom .config?
 
-> 2. Also, why don't you add this fixed regulator to gpmc-smsc911.c?
-> 
-> That way it gets fixed for other too, like zoom2/3.
+Regards,
 
-Ok, so I considered that at first and had two concerns that made me just
-do it in the omap3evm specific way and see what the feedback was.
-
-1) If we do a generic implementation in gpmc-smsc911x.c, there needs to
-be a way to override it. Another board may have a variable supply that
-feeds this consumer.
-
-2) Technically, this omap3evm specific implementation matches the hardware
-in that the osk_3v3 rail is software controllable. Granted, I commented
-that we simply don't hook up the gpio at this time since this real
-hardware regulator has always been silently asserted on by the nature of
-the reset state of the TWL GPIOs and the board level pull downs as well.
-
-So that said, I don't need #2 to make omap3evm work and I don't think
-anybody cares yet to actually turn that regulator off (as it will kill
-other things that appear to not have regulator support anyway). It looks
-like you talked me into respinning it as a generic implementation. Only
-question is whether I should bother consider not-yet-existing boards that
-may not want that generic regulator.
-
--Matt
+Tony
