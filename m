@@ -1,80 +1,130 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH RFC] OMAP: serial: Release the claimed memory region in remove
-Date: Fri, 10 Feb 2012 09:23:04 -0600
-Message-ID: <CAOMWX4f0Mpj=NRBXZgtLbvCg3uo+8tZY8OAkriPu2YucRGoPkw@mail.gmail.com>
-References: <1328853482-3687-1-git-send-email-shubhrajyoti@ti.com>
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Fri, 10 Feb 2012 07:35:54 -0800
+Message-ID: <20120210073554.e9047c25c3fff71028f03fb2@gmail.com>
+References: <1328058094-28483-1-git-send-email-felipe.contreras@gmail.com>
+	<20120201011239.GA797@suse.de>
+	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
+	<20120201034445.GA2979@kroah.com>
+	<CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
+	<20120209173528.GA31726@kroah.com>
+	<CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
+	<20120209185923.GB10284@kroah.com>
+	<CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
+	<CAB-zwWj0z9N_2RRHBBNcHPLYWRii2T8q+gMgBnA3+ux8Ojg9JA@mail.gmail.com>
+	<20120210051849.GE1565@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:34929 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752467Ab2BJPXb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Feb 2012 10:23:31 -0500
-In-Reply-To: <1328853482-3687-1-git-send-email-shubhrajyoti@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:38011 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750845Ab2BJPgA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 10:36:00 -0500
+Received: by iacb35 with SMTP id b35so415096iac.19
+        for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 07:35:59 -0800 (PST)
+In-Reply-To: <20120210051849.GE1565@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-serial@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
 
-On Thu, Feb 9, 2012 at 23:58, Shubhrajyoti D <shubhrajyoti@ti.com> wrot=
-e:
-> Currently the memory region is not released the folowing error is
-> observed.
->
-> /testsuites # insmod omap-serial.ko
-> [ =A0130.746917] omap_uart omap_uart.0: memory region already claimed
-> [ =A0130.753143] omap_uart: probe of omap_uart.0 failed with error -1=
-6
-> [ =A0130.759338] omap_uart omap_uart.1: memory region already claimed
-> [ =A0130.765380] omap_uart: probe of omap_uart.1 failed with error -1=
-6
-> [ =A0130.771606] omap_uart omap_uart.2: memory region already claimed
-> [ =A0130.777679] omap_uart: probe of omap_uart.2 failed with error -1=
-6
-> [ =A0130.783905] omap_uart omap_uart.3: memory region already claimed
-> [ =A0130.789947] omap_uart: probe of omap_uart.3 failed with error -1=
-6
->
-> Fix it by releasing the memory region.
->
-> Cc: Govindraj.R <govindraj.raja@ti.com>
-> Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-> ---
-> =A0drivers/tty/serial/omap-serial.c | =A0 =A04 ++++
-> =A01 files changed, 4 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/om=
-ap-serial.c
-> index 130f7f8..4def6c3 100644
-> --- a/drivers/tty/serial/omap-serial.c
-> +++ b/drivers/tty/serial/omap-serial.c
-> @@ -1480,6 +1480,10 @@ do_release_region:
-> =A0static int serial_omap_remove(struct platform_device *dev)
-> =A0{
-> =A0 =A0 =A0 =A0struct uart_omap_port *up =3D platform_get_drvdata(dev=
-);
-> + =A0 =A0 =A0 struct resource =A0 =A0 =A0 =A0 *r;
-> +
-> + =A0 =A0 =A0 r =3D platform_get_resource(dev, IORESOURCE_MEM, 0);
-> + =A0 =A0 =A0 release_mem_region(r->start, resource_size(r));
-if this is the same region which ioremapped to up->port.membase, then
-please release mem region after the unmap.
-Regards,
-Nishanth Menon
+On Thu, 9 Feb 2012 21:18:49 -0800
+Greg KH <gregkh@linuxfoundation.org> wrote:
 
->
-> =A0 =A0 =A0 =A0if (up) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0iounmap(up->port.membase);
-> --
-> 1.7.1
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> On Thu, Feb 09, 2012 at 04:45:00PM -0800, Ramirez Luna, Omar wrote:
+> > Hi,
+> >=20
+> > On Thu, Feb 9, 2012 at 3:30 PM, Felipe Contreras
+> > <felipe.contreras@gmail.com> wrote:
+> > >> Again, I'm totally confused as to _WHY_ this needs to be y. =A0W=
+hat is
+> > >> causing this oops without it? =A0If an oops is happening, then s=
+houldn't
+> > >> this be a strict dependancy? =A0Why allow it to be disabled at a=
+ll if it
+> > >> can break your box if you don't enable it?
+> > >
+> > > It's not an oops, it's a warning, and again, it depends on the
+> > > firmware being used. We don't have control over that, and we have=
+ no
+> > > way to detect if this feature is there. It's up to the user.
+> >=20
+> > I have been thinking more into it, how about looking for a WDT symb=
+ol
+> > inside the baseimage to decide whether to turn ON/OFF WDT3, this wo=
+uld
+> > mean that the code is always compiled in, but the decision to turn =
+it
+> > on/off is made at runtime.
+>=20
+> I totally don't understand, why not just silence the warning properly
+> then?
+>=20
+> I fail to understand why this warning happens, why it depends on the
+> firmware, and why you can't detect it at runtime to not do it.  And h=
+ow
+> it all ties into a kconfig option...
+>=20
+> confused,
+>=20
+> greg k-h
+
+so there are _two_ issues that need to be fixed here:
+
+1) the warning fix. =20
+
+2) the whole default y thing that Mr. Torvalds is talking about.
+(the first fix(in my mind)would need to go first before anything else)
+
+Now reading through, greg had mentioned something about dependency, so =
+if this is just dependency then add the proper
+Kconfig option, but if this is more than just a _dependency_ then someb=
+ody(who knows this code)is going to=20
+have to supply the proper fix for the warning(my C skills only take me =
+so far!)
+
+below is my go at sending a _dependency_ fix for this, but could be tot=
+ally wrong..
+
+=46rom 5c7ad6c00d051d5444474007cdbecdf14bf3d0cb Mon Sep 17 00:00:00 200=
+1
+=46rom: "Justin P. Mattock" <justinmattock@gmail.com>
+Date: Fri, 10 Feb 2012 07:19:45 -0800
+Subject: [PATCH] Add dependency TIDSBRIDGE_WDT3 to TIDSBRIDGE.
+
+This would add the missing _dependency_ to tidsbridge to prevent a warn=
+ing from happening.
+
+Note: my Kconfig skills are not the greatest so the below may or may no=
+t work.
+I can't test this because I dont have the hardware.=20
+
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+
+---
+ drivers/staging/tidspbridge/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tids=
+pbridge/Kconfig
+index 21a559e..7b385e0 100644
+--- a/drivers/staging/tidspbridge/Kconfig
++++ b/drivers/staging/tidspbridge/Kconfig
+@@ -6,6 +6,7 @@ menuconfig TIDSPBRIDGE
+ 	tristate "DSP Bridge driver"
+ 	depends on ARCH_OMAP3
+ 	select OMAP_MBOX_FWK
++	select TIDSPBRIDGE_WDT3
+ 	help
+ 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
+ 	  one or more attached DSPs.  The GPP is considered the master or
+--=20
+1.7.9
+
+
+--=20
+Justin P. Mattock <justinmattock@gmail.com>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
