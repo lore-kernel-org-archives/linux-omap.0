@@ -1,105 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the
- suspend path
-Date: Fri, 10 Feb 2012 01:42:09 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
-References: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v3 0/3] MFD: twl6040: Conversion to i2c driver
+Date: Fri, 10 Feb 2012 12:00:15 +0200
+Message-ID: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34111 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755197Ab2BJImK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 03:42:10 -0500
-In-Reply-To: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>
+Cc: linux-arm-kernel@lists.infradead.org, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: khilman@ti.com, robherring2@gmail.com, tony@atomide.com
 
-On Thu, 9 Feb 2012, Paul Walmsley wrote:
+Hello,
 
-> 
-> Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
-> code should now handle what this was supposed to do.
-> 
-> Tested on N800 -- but it's hard to say whether this fixes anything.
-> OMAP24xx static suspend path is currently broken, and this patch
-> doesn't change that.
-> 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Rob Herring <robherring2@gmail.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+Changes since v2:
+- soc/codec/Kconfig: make twl6040 depend on I2C
+- Regulator related patches has been removed (to be sent as separate series)
 
-Just realized that a stray change made it into the patch that was posted.
-Below is a version with the stray change removed.  It applies on 
-Tony's v3.3-rc3 testing branch, plus the OMAP2420 serial fix patch that 
-was posted earlier.
+------
+Intro mail from the original series:
 
+This series will convert the twl6040 MFD driver to an i2c driver.
+Compared to older twl4030/5030/TPS the twl6040 is a standalone audio IC. It is
+better if the twl6040-core (and all of it's child devices) does not depend on
+the twl-core since it has nothing to with it.
 
-- Paul
+With this conversion the dependency on twl can be dropped from the twl6040
+driver stack (core, vibra, audio).
 
-From: Paul Walmsley <paul@pwsan.com>
-Date: Fri, 10 Feb 2012 01:40:04 -0700
-Subject: [PATCH v2] ARM: OMAP2xxx: PM: remove obsolete timer disable code 
-in the suspend path
+Between the first and second patch the audio will not probe on OMAP4, but I felt
+it is better this way at least for the first RFC series to not have too big
+change within one patch. The two patch can be squashed together later if no
+objections.
 
-Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
-code should now handle what this was supposed to do.
-
-Tested on N800 -- but it's hard to say whether this fixes anything.
-OMAP24xx static suspend path is currently broken, and this patch
-doesn't change that.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Rob Herring <robherring2@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Regards,
+Peter
 ---
- arch/arm/mach-omap2/pm24xx.c |   22 +---------------------
- 1 files changed, 1 insertions(+), 21 deletions(-)
+Peter Ujfalusi (3):
+  MFD: twl-core: Detach twl6040 from the pmic mfd driver
+  MFD: twl6040: Convert to i2c driver, and separate it from twl core
+  ASoC: twl6040: Remove dependency on twl4030 from Kconfig
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 23de98d..18eda53 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -254,26 +254,6 @@ static int omap2_pm_begin(suspend_state_t state)
- 	return 0;
- }
- 
--static int omap2_pm_suspend(void)
--{
--	u32 wken_wkup, mir1;
--
--	wken_wkup = omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
--	wken_wkup &= ~OMAP24XX_EN_GPT1_MASK;
--	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
--
--	/* Mask GPT1 */
--	mir1 = omap_readl(0x480fe0a4);
--	omap_writel(1 << 5, 0x480fe0ac);
--
--	omap2_enter_full_retention();
--
--	omap_writel(mir1, 0x480fe0a4);
--	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
--
--	return 0;
--}
--
- static int omap2_pm_enter(suspend_state_t state)
- {
- 	int ret = 0;
-@@ -281,7 +261,7 @@ static int omap2_pm_enter(suspend_state_t state)
- 	switch (state) {
- 	case PM_SUSPEND_STANDBY:
- 	case PM_SUSPEND_MEM:
--		ret = omap2_pm_suspend();
-+		omap2_enter_full_retention();
- 		break;
- 	default:
- 		ret = -EINVAL;
+ arch/arm/mach-omap2/board-4430sdp.c    |   12 ++--
+ arch/arm/mach-omap2/board-generic.c    |    2 +-
+ arch/arm/mach-omap2/board-omap4panda.c |   13 ++--
+ arch/arm/mach-omap2/twl-common.c       |   37 +++++++++--
+ arch/arm/mach-omap2/twl-common.h       |   10 +--
+ drivers/input/misc/Kconfig             |    1 -
+ drivers/input/misc/twl6040-vibra.c     |    4 +-
+ drivers/mfd/Kconfig                    |    2 +-
+ drivers/mfd/twl-core.c                 |   58 +++++++++-------
+ drivers/mfd/twl6040-core.c             |  114 +++++++++++++++++++-------------
+ include/linux/i2c/twl.h                |   12 ----
+ include/linux/mfd/twl6040.h            |   27 ++++++++
+ sound/soc/codecs/Kconfig               |    2 +-
+ sound/soc/codecs/twl6040.c             |    3 +-
+ 14 files changed, 182 insertions(+), 115 deletions(-)
+
 -- 
-1.7.9
-
+1.7.8.4
