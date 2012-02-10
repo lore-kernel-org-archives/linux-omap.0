@@ -1,69 +1,77 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP34xx
-Date: Fri, 10 Feb 2012 11:03:12 +0000
-Message-ID: <20120210110312.GA13163@n2100.arm.linux.org.uk>
-References: <20120204203453.GD17309@n2100.arm.linux.org.uk> <20120205012556.GG1426@atomide.com> <20120205125904.GB11372@n2100.arm.linux.org.uk> <20120205172925.GS20333@atomide.com> <20120205175809.GF17309@n2100.arm.linux.org.uk> <20120205182910.GK1426@atomide.com> <87lioegtk9.fsf@ti.com> <20120207224937.GA16704@lit.local.igalia.com> <8762fijifc.fsf@ti.com> <20120208094558.GS1275@n2100.arm.linux.org.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 3/3] ASoC: twl6040: Remove dependency on
+ twl4030 from Kconfig
+Date: Fri, 10 Feb 2012 11:10:35 +0000
+Message-ID: <20120210111035.GD3056@opensource.wolfsonmicro.com>
+References: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
+	<1328868018-24668-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45295 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758670Ab2BJLD5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 06:03:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20120208094558.GS1275@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============2600201776678922194=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1328868018-24668-4-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-On Wed, Feb 08, 2012 at 09:45:58AM +0000, Russell King - ARM Linux wrot=
-e:
-> On Tue, Feb 07, 2012 at 04:08:23PM -0800, Kevin Hilman wrote:
-> > V=EDctor M. J=E1quez L. <vjaquez@igalia.com> writes:
-> > > If it helps, I observed the same issue in a beagleboard rev B6, w=
-ith
-> > > v3.3-rc2
-> >=20
-> > Great, thanks.  Can you share your ~/.config?
+
+--===============2600201776678922194==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
+Content-Disposition: inline
+
+
+--tsOsTdHNUZQcU9Ye
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Fri, Feb 10, 2012 at 12:00:18PM +0200, Peter Ujfalusi wrote:
+> twl6040 no longer needs twl4030.
 >=20
-> If it helps, ARM Kautobuild V2 is up and running (assuming I don't br=
-eak
-> the scripts again) at:
->=20
->   http://www.arm.linux.org.uk/developer/build/
->=20
-> from where the build configs I use (and the exact ones used in those
-> compiles) are available.  These aren't configs in arch/arm/configs.
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-=46YI, it now has one boot log for the 4430SDP, which is the only platf=
-orm
-I've enabled so far, and it requires me to manually power up the board
-(so it's not going to happen for every build, which means the boot
-results will only be up there for a day until I can sort out a more
-automatic solution.)
+Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-It's not too good at detecting boots that 'pass' rather than 'fail' - a=
-t
-the moment, it assumes it passed if it gets to the end of its script, s=
-o
-this needs to be found from the boot log.  Currently, that means gettin=
-g
-a login prompt.
+This should go via whatever path the first two patches go.
 
-If anyone wants to develop a pcre regexp to detect oopses, warnings,
-panics and other failures - my current for the page generation are:
+--tsOsTdHNUZQcU9Ye
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-errors: /^.*?\b(error|can't register|fail(ed)?)\b.*?$/mi
-warnings: /^.*?\bwarning\b.*?$/mi
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-note that they operate on multi-line strings (hence the 'm' suffix and
-the use of non-greedy "*?" as opposed to the greedy "*").  Install pcre
-and see pcrepattern(3) for more information on pcre regexps if you're
-unfamiliar with these.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQIcBAEBAgAGBQJPNPskAAoJEBus8iNuMP3dWhUP/j833HfDyb3ugioLFPhn8DcI
+wSbdZXaNFM0X53zgGsRZ5oE0WhrWJOpVoR3EA+6ITPKLsjw2q8TPp9hkxwjjJzPZ
+SbaEbDX5BHNKieuqwQfU439t0DogvPJW83UjdhRrSHAOG+BXbLOBLjfuXokIuEOE
+ULp7qILEab8BKv3JTmZSoYR3wt+ZsBzDMvw2T8+lHtpRfG3F/YaQgkshxSrABQv2
+jUcVqDGOQtzR7mGl90BJQn8lFql7JSuIakcX6uiGN4cXln6j6PLiGLQIwXRr35Fn
+f7GiZdItJWyYgl1FKiZ4OUltGmSaTo1B8TNxH4tOQmAm5mkr0cgCq8cupH8pZ+wl
+rJrClaLXKp0/F7mrd13Q9kkyVlrJi/gQ53yvUX7r8nwrZHXCThqciNsr1eMK6ULt
+FndKibhLUGYlY0csSO087hz2XpF7JCg4g19aVOos9Sfo4B76fA3IdHv8csDM9sFc
+/ZMTnmtJtKYVlcG5C4/GQRvQJJRhHnt9aRwkk/Ofz+eer43KvnGuq6Jq4/4yE/xU
+862acfsXH+HBpG7ipvm7V3ILEXBkPESJLI/a/iY/NJYzwTi3qEs813GXJWpVPZCZ
+jxeDNlZrBTwzUCGexCw4NwQKdmYHkirhoh1s2Rgl2/dEWZ+aIygqQLGUWxb51HwR
+8IIcvVkEBbclD6ee/mVV
+=z156
+-----END PGP SIGNATURE-----
+
+--tsOsTdHNUZQcU9Ye--
+
+--===============2600201776678922194==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============2600201776678922194==--
