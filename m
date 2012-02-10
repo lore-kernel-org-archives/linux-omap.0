@@ -1,91 +1,51 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH 2/2] arm:omap: am33xx SRAM support (minimal)
-Date: Fri, 10 Feb 2012 21:07:33 +0530
-Message-ID: <1328888253-1389-1-git-send-email-afzal@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: OMAP34xx
+Date: Fri, 10 Feb 2012 16:03:55 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317CA116@DBDE01.ent.ti.com>
+References: <20120208231551.GA9009@kroah.com>
+ <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+ <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com>
+ <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
+ <20120209193442.GA1767@rexfeany.com> <87hayzzjlv.fsf@ti.com>
+ <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
+ <79CD15C6BA57404B839C016229A409A8317C957F@DBDE01.ent.ti.com>
+ <alpine.DEB.2.00.1202100719280.8570@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38495 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:39140 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758661Ab2BJPxx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 10:53:53 -0500
+	with ESMTP id S932299Ab2BJQE0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 11:04:26 -0500
+In-Reply-To: <alpine.DEB.2.00.1202100719280.8570@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: hvaibhav@ti.com, nsekhar@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>, Afzal Mohammed <afzal@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Hilman, Kevin" <khilman@ti.com>, Rex Feany <rfeany@laeos.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+On Fri, Feb 10, 2012 at 19:49:57, Paul Walmsley wrote:
+> Hi
+> 
+> On Fri, 10 Feb 2012, Hiremath, Vaibhav wrote:
+> 
+> > On Fri, Feb 10, 2012 at 07:49:47, Paul Walmsley wrote:
+> > > 
+> > > Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
+> > > testing branch; it works.
+> > > 
+> > 
+> > I tried it on AM37x EVM, it did worked for me but I have some observations,
+> 
+> What .config are you using?  omap2plus_defconfig?
+> 
+Yes.
 
-Update SRAM start & size for am33xx SoC's.
+Thanks,
+Vaibhav
 
-Note: cpu_is_34xx() is true for am33xx also. Doing
-cpu_is_am33xx() check after cpu_is_34xx() will not
-achieve what we want due to the above reason.
-Hence cpu_is_am33xx() is done before cpu_is_34xx()
-
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
- arch/arm/plat-omap/include/plat/sram.h |    1 +
- arch/arm/plat-omap/sram.c              |   14 ++++++++++++--
- 2 files changed, 13 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
-index 75aa1b2..227ae26 100644
---- a/arch/arm/plat-omap/include/plat/sram.h
-+++ b/arch/arm/plat-omap/include/plat/sram.h
-@@ -101,4 +101,5 @@ static inline void omap_push_sram_idle(void) {}
- #else
- #define OMAP4_SRAM_PA		0x40300000
- #endif
-+#define AM33XX_SRAM_PA		0x40300000
- #endif
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 4243bdc..596f222 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -86,7 +86,7 @@ static int is_sram_locked(void)
- 			__raw_writel(0xCFDE, OMAP24XX_VA_READPERM0);  /* all i-read */
- 			__raw_writel(0xCFDE, OMAP24XX_VA_WRITEPERM0); /* all i-write */
- 		}
--		if (cpu_is_omap34xx()) {
-+		if (cpu_is_omap34xx() && !cpu_is_am33xx()) {
- 			__raw_writel(0xFFFF, OMAP34XX_VA_REQINFOPERM0); /* all q-vects */
- 			__raw_writel(0xFFFF, OMAP34XX_VA_READPERM0);  /* all i-read */
- 			__raw_writel(0xFFFF, OMAP34XX_VA_WRITEPERM0); /* all i-write */
-@@ -124,7 +124,10 @@ static void __init omap_detect_sram(void)
- 				omap_sram_size = 0x800; /* 2K */
- 			}
- 		} else {
--			if (cpu_is_omap34xx()) {
-+			if (cpu_is_am33xx()) {
-+				omap_sram_start = AM33XX_SRAM_PA;
-+				omap_sram_size = 0x10000; /* 64K */
-+			} else if (cpu_is_omap34xx()) {
- 				omap_sram_start = OMAP3_SRAM_PA;
- 				omap_sram_size = 0x10000; /* 64K */
- 			} else if (cpu_is_omap44xx()) {
-@@ -368,6 +371,11 @@ static inline int omap34xx_sram_init(void)
- 	return 0;
- }
- 
-+static inline int am33xx_sram_init(void)
-+{
-+	return 0;
-+}
-+
- int __init omap_sram_init(void)
- {
- 	omap_detect_sram();
-@@ -379,6 +387,8 @@ int __init omap_sram_init(void)
- 		omap242x_sram_init();
- 	else if (cpu_is_omap2430())
- 		omap243x_sram_init();
-+	else if (cpu_is_am33xx())
-+		am33xx_sram_init();
- 	else if (cpu_is_omap34xx())
- 		omap34xx_sram_init();
- 
--- 
-1.7.1
+> 
+> - Paul
+> 
 
