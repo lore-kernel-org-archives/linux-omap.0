@@ -1,54 +1,111 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
-Date: Fri, 10 Feb 2012 11:24:16 -0800
-Message-ID: <20120210192416.GW1426@atomide.com>
-References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the suspend path
+Date: Fri, 10 Feb 2012 11:26:53 -0800
+Message-ID: <87y5saxzeq.fsf@ti.com>
+References: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
+	<alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:43772 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758542Ab2BJT04 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Feb 2012 14:26:56 -0500
+Received: by pbbrq13 with SMTP id rq13so2095337pbb.12
+        for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 11:26:55 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com> (Paul
+	Walmsley's message of "Fri, 10 Feb 2012 01:42:09 -0700 (MST)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robherring2@gmail.com, tony@atomide.com
 
-Hi Tarun,
+Paul Walmsley <paul@pwsan.com> writes:
 
-* Tarun Kanti DebBarma <tarun.kanti@ti.com> [120202 09:00]:
-> 
->   Used following patches to avoid exception during system suspend:-
->   [PATCH RFC 1/2] mtd : Prevent the NULL pointer access
->   [PATCH RFC 2/2] mtd : Make the mtd_suspend return 0 if the suspend is not implemented
+> On Thu, 9 Feb 2012, Paul Walmsley wrote:
+>
+>> 
+>> Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
+>> code should now handle what this was supposed to do.
+>> 
+>> Tested on N800 -- but it's hard to say whether this fixes anything.
+>> OMAP24xx static suspend path is currently broken, and this patch
+>> doesn't change that.
+>> 
+>> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+>> Cc: Kevin Hilman <khilman@ti.com>
+>> Cc: Rob Herring <robherring2@gmail.com>
+>> Cc: Tony Lindgren <tony@atomide.com>
+>
+> Just realized that a stray change made it into the patch that was posted.
+> Below is a version with the stray change removed.  It applies on 
+> Tony's v3.3-rc3 testing branch, plus the OMAP2420 serial fix patch that 
+> was posted earlier.
+>
+>
+> - Paul
+>
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Fri, 10 Feb 2012 01:40:04 -0700
+> Subject: [PATCH v2] ARM: OMAP2xxx: PM: remove obsolete timer disable code 
+> in the suspend path
+>
+> Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
+> code should now handle what this was supposed to do.
+>
+> Tested on N800 -- but it's hard to say whether this fixes anything.
+> OMAP24xx static suspend path is currently broken, and this patch
+> doesn't change that.
+>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rob Herring <robherring2@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-OK so MTD fixes those are supposedly going in during the -rc cycle..
- 
-> # echo mem > /sys/power/state
-> [   47.128021] PM: Syncing filesystems ... done.
-> [   47.144104] Freezing user space processes ... (elapsed 0.01 seconds) done.
-> [   47.168243] Freezing remaining freezable tasks ... (elapsed 0.02 seconds) don                                                                                                 e.
-> [   47.205139] Unable to handle kernel NULL pointer dereference at virtual addre                                                                                                 ss 000000a0
-> [   47.213317] pgd = deaac000
-> [   47.216033] [000000a0] *pgd=9e932831, *pte=00000000, *ppte=00000000
-> [   47.222381] Internal error: Oops: 17 [#1] SMP
-> [   47.226745] Modules linked in:
-> [   47.229827] CPU: 0    Not tainted  (3.3.0-rc2-00031-g12c5c5c #235)
-> [   47.236022] PC is at mtd_cls_suspend+0x8/0x20
-> [   47.240386] LR is at mtd_cls_suspend+0x8/0x20
-> [   47.244750] pc : [<c02e78f8>]    lr : [<c02e78f8>]    psr: a0000013
-> [   47.244750] sp : dea1fe60  ip : 22222222  fp : c0ee7d40
-> [   47.256256] r10: c0ee7cf0  r9 : 00000000  r8 : c02e78f0
-> [   47.261474] r7 : 00000000  r6 : 00000000  r5 : 00000002  r4 : dea45800
-> [   47.268005] r3 : deb4cac0  r2 : 00000000  r1 : 00000002  r0 : 00000000
-> [   47.274536] Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> [   47.281677] Control: 10c5387d  Table: 9eaac019  DAC: 00000015
-> [   47.287445] Process sh (pid: 1177, stack limit = 0xdea1e2f8)
-> [   47.293090] Stack: (0xdea1fe60 to 0xdea20000)
-> [...]
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-..but are there also some patches in your series that should also be
-applied separately as fixes for the -rc cycle?
-
-Regards,
-
-Tony
+> ---
+>  arch/arm/mach-omap2/pm24xx.c |   22 +---------------------
+>  1 files changed, 1 insertions(+), 21 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> index 23de98d..18eda53 100644
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -254,26 +254,6 @@ static int omap2_pm_begin(suspend_state_t state)
+>  	return 0;
+>  }
+>  
+> -static int omap2_pm_suspend(void)
+> -{
+> -	u32 wken_wkup, mir1;
+> -
+> -	wken_wkup = omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+> -	wken_wkup &= ~OMAP24XX_EN_GPT1_MASK;
+> -	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+> -
+> -	/* Mask GPT1 */
+> -	mir1 = omap_readl(0x480fe0a4);
+> -	omap_writel(1 << 5, 0x480fe0ac);
+> -
+> -	omap2_enter_full_retention();
+> -
+> -	omap_writel(mir1, 0x480fe0a4);
+> -	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+> -
+> -	return 0;
+> -}
+> -
+>  static int omap2_pm_enter(suspend_state_t state)
+>  {
+>  	int ret = 0;
+> @@ -281,7 +261,7 @@ static int omap2_pm_enter(suspend_state_t state)
+>  	switch (state) {
+>  	case PM_SUSPEND_STANDBY:
+>  	case PM_SUSPEND_MEM:
+> -		ret = omap2_pm_suspend();
+> +		omap2_enter_full_retention();
+>  		break;
+>  	default:
+>  		ret = -EINVAL;
