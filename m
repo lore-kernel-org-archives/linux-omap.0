@@ -1,132 +1,47 @@
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
-Date: Fri, 10 Feb 2012 07:35:54 -0800
-Message-ID: <20120210073554.e9047c25c3fff71028f03fb2@gmail.com>
-References: <1328058094-28483-1-git-send-email-felipe.contreras@gmail.com>
-	<20120201011239.GA797@suse.de>
-	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
-	<20120201034445.GA2979@kroah.com>
-	<CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
-	<20120209173528.GA31726@kroah.com>
-	<CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
-	<20120209185923.GB10284@kroah.com>
-	<CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
-	<CAB-zwWj0z9N_2RRHBBNcHPLYWRii2T8q+gMgBnA3+ux8Ojg9JA@mail.gmail.com>
-	<20120210051849.GE1565@kroah.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: GPMC in HWMOD (and a related AM335X issue)
+Date: Fri, 10 Feb 2012 15:42:02 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93177E9BE@DBDE01.ent.ti.com>
+References: <1328790544-4423-1-git-send-email-afzal@ti.com>
+ <4F348634.8040909@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38011 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845Ab2BJPgA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 10:36:00 -0500
-Received: by iacb35 with SMTP id b35so415096iac.19
-        for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 07:35:59 -0800 (PST)
-In-Reply-To: <20120210051849.GE1565@kroah.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59236 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757221Ab2BJPmF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 10:42:05 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1AFg3p5009625
+	for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 09:42:04 -0600
+Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1AFg3mA006415
+	for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 21:12:03 +0530 (IST)
+In-Reply-To: <4F348634.8040909@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-On Thu, 9 Feb 2012 21:18:49 -0800
-Greg KH <gregkh@linuxfoundation.org> wrote:
+Hi Benoit,
 
-> On Thu, Feb 09, 2012 at 04:45:00PM -0800, Ramirez Luna, Omar wrote:
-> > Hi,
-> >=20
-> > On Thu, Feb 9, 2012 at 3:30 PM, Felipe Contreras
-> > <felipe.contreras@gmail.com> wrote:
-> > >> Again, I'm totally confused as to _WHY_ this needs to be y. =A0W=
-hat is
-> > >> causing this oops without it? =A0If an oops is happening, then s=
-houldn't
-> > >> this be a strict dependancy? =A0Why allow it to be disabled at a=
-ll if it
-> > >> can break your box if you don't enable it?
-> > >
-> > > It's not an oops, it's a warning, and again, it depends on the
-> > > firmware being used. We don't have control over that, and we have=
- no
-> > > way to detect if this feature is there. It's up to the user.
-> >=20
-> > I have been thinking more into it, how about looking for a WDT symb=
-ol
-> > inside the baseimage to decide whether to turn ON/OFF WDT3, this wo=
-uld
-> > mean that the code is always compiled in, but the decision to turn =
-it
-> > on/off is made at runtime.
->=20
-> I totally don't understand, why not just silence the warning properly
-> then?
->=20
-> I fail to understand why this warning happens, why it depends on the
-> firmware, and why you can't detect it at runtime to not do it.  And h=
-ow
-> it all ties into a kconfig option...
->=20
-> confused,
->=20
-> greg k-h
+> > HWMOD entries currently does contain GPMC, is it due to the reason that
+> > GPMC is not yet adapted to omap_device / omap_hwmod or is there any
+> > other reason for not having it in HWMOD (as GPMC not yet a driver?)
+> 
+> Yes, that's the reason.
+> Nobody had the time to update that driver yet to omap_device and thus we 
+> did not create the hwmod entry for it.
+> And since we do not use the GPMC on OMAP4 boards, we did not have some 
+> good way to test any change on this driver.
+> 
+> Do not hesitate to update that driver and add the DT support if you want:-)
 
-so there are _two_ issues that need to be fixed here:
+Thank you the reply.
 
-1) the warning fix. =20
+Within the constraints I have, if possible, I will try to add it.
 
-2) the whole default y thing that Mr. Torvalds is talking about.
-(the first fix(in my mind)would need to go first before anything else)
-
-Now reading through, greg had mentioned something about dependency, so =
-if this is just dependency then add the proper
-Kconfig option, but if this is more than just a _dependency_ then someb=
-ody(who knows this code)is going to=20
-have to supply the proper fix for the warning(my C skills only take me =
-so far!)
-
-below is my go at sending a _dependency_ fix for this, but could be tot=
-ally wrong..
-
-=46rom 5c7ad6c00d051d5444474007cdbecdf14bf3d0cb Mon Sep 17 00:00:00 200=
-1
-=46rom: "Justin P. Mattock" <justinmattock@gmail.com>
-Date: Fri, 10 Feb 2012 07:19:45 -0800
-Subject: [PATCH] Add dependency TIDSBRIDGE_WDT3 to TIDSBRIDGE.
-
-This would add the missing _dependency_ to tidsbridge to prevent a warn=
-ing from happening.
-
-Note: my Kconfig skills are not the greatest so the below may or may no=
-t work.
-I can't test this because I dont have the hardware.=20
-
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-
----
- drivers/staging/tidspbridge/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tids=
-pbridge/Kconfig
-index 21a559e..7b385e0 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -6,6 +6,7 @@ menuconfig TIDSPBRIDGE
- 	tristate "DSP Bridge driver"
- 	depends on ARCH_OMAP3
- 	select OMAP_MBOX_FWK
-+	select TIDSPBRIDGE_WDT3
- 	help
- 	  DSP/BIOS Bridge is designed for platforms that contain a GPP and
- 	  one or more attached DSPs.  The GPP is considered the master or
---=20
-1.7.9
-
-
---=20
-Justin P. Mattock <justinmattock@gmail.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Afzal
