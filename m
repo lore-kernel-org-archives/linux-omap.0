@@ -1,68 +1,52 @@
-From: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Subject: Re: [PATCH 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
-Date: Fri, 10 Feb 2012 18:57:56 +0530
-Message-ID: <CANrkHUbXHrQ=LowgNq9nt+rnrcE-fTqLuOs2+MeCtodv_H-_Cw@mail.gmail.com>
-References: <1328367090-10402-1-git-send-email-rnayak@ti.com>
-	<CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 00/10] I2C updates
+Date: Fri, 10 Feb 2012 19:29:55 +0530
+Message-ID: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:52506 "EHLO
-	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759243Ab2BJN16 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Feb 2012 08:27:58 -0500
-In-Reply-To: <CANfBPZ-pD55YgneQSyfs1kKB-DUH8g7TQkKO7O6B95Ydfc8cFg@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "S, Venkatraman" <svenkatr@ti.com>, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
 
-On Tue, Feb 7, 2012 at 3:32 PM, S, Venkatraman <svenkatr@ti.com> wrote:
-> On Sat, Feb 4, 2012 at 8:21 PM, Rajendra Nayak <rnayak@ti.com> wrote:
->> This series mainly cleans up all instances of hardcoding's in
->> the driver based on pdev->id. This is cleanup leading to the
->> DT adaptation of omap_hsmmc driver.
->>
->> Patches are based on 3.3-rc2 and can be found here
->> git://gitorious.org/omap-pm/linux.git omap_hsmmc_cleanup
->>
->> Tested the patches on my omap4 boards (panda and SDP) but
->> haven't tested yet on omap3/2 since I did'nt have boards
->> handy. So any testing on any omap3/2 boards is really
->> appreciated.
+This patch series colates the various i2c updates into
+a series.  Since it is collection of various patches
+the version info is not retained, however most of them undergone
+multiple versions.
 
-Tested this series on 2430SDP with FS on SD card
+This is rebased to linus head commit 63082402968f4b73f10b28a8ac1f3da821aeb82d
 
->
-> I gave it a spin on Beagleboard-XM (OMAP3630) with root filesystem
-> on the SD card, and checked again on 4430SDP.
->
-> Tested-by: Venkatraman S <svenkatr@ti.com>
->
->>
->> regards,
->> Rajendra
->>
->> Balaji T K (3):
->> =A0mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
->> =A0 =A0channels
->> =A0mmc: omap_hsmmc: remove unused .set_sleep function
->> =A0mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
->> =A0 =A0host->id based hardcoding
->>
->> Rajendra Nayak (3):
->> =A0mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
->> =A0mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
->> =A0mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
->>
->> =A0arch/arm/plat-omap/include/plat/mmc.h | =A0 =A02 -
->> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 | =A0158 +++-------=
------------------------
->> =A02 files changed, 14 insertions(+), 146 deletions(-)
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patch series does the following 
+
+- Warn fixes if CONFIG_PM_RUNTIME is not selected.
+- I2C register restore only if context if the context is lost
+- Bus busy recovery mechanism.
+- the reset is not done in init.
+
+Tested on omap4sdp and omap3sdp. 
+
+
+Cc: Kevin Hilman <khilman-l0cyMroinI0@public.gmane.org>
+Cc: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+
+Jon Hunter (1):
+  I2C: OMAP: Correct I2C revision for OMAP3
+
+Shubhrajyoti D (8):
+  I2C : OMAP : make omap_i2c_unidle/idle functions depend on
+    CONFIG_PM_RUNTIME
+  OMAP : I2C : Remove reset at init
+  OMAP: I2C: I2C register restore only if context is lost
+  OMAP: I2C: Fix the interrupt clearing in OMAP4
+  OMAP: I2C: Fix the mismatch of pm_runtime enable and disable
+  OMAP: I2C: Optimise the remove code
+  OMAP: I2C: Fix the error handling
+  I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
+    than zero
+
+Vikram Pandita (1):
+  I2C: OMAP: Recover from Bus Busy condition
+
+ drivers/i2c/busses/i2c-omap.c |  173 ++++++++++++++++++++++++-----------------
+ 1 files changed, 101 insertions(+), 72 deletions(-)
