@@ -1,34 +1,31 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Incorrect Register Offsets in OMAP Mailbox
-Date: Thu, 9 Feb 2012 17:14:47 -0800
-Message-ID: <20120210011447.GN1426@atomide.com>
-References: <331ABD5ECB02734CA317220B2BBEABC1317897C8@DBDE01.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433179B3F8@DBDE01.ent.ti.com>
- <20120209174709.GH1426@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433179BF04@DBDE01.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP34xx
+Date: Thu, 9 Feb 2012 18:22:06 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202091821220.5059@utopia.booyaka.com>
+References: <20120208231551.GA9009@kroah.com> <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com> <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com> <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
+ <20120209192643.GL1426@atomide.com> <alpine.DEB.2.00.1202091326500.6698@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56465 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757799Ab2BJBOt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 20:14:49 -0500
-Content-Disposition: inline
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D121433179BF04@DBDE01.ent.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:53355 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757235Ab2BJBWH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 20:22:07 -0500
+In-Reply-To: <alpine.DEB.2.00.1202091326500.6698@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "enli.chan@gmail.com" <enli.chan@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Bedia, Vaibhav <vaibhav.bedia@ti.com> [120209 09:27]:
-> On Thu, Feb 09, 2012 at 23:17:10, Tony Lindgren wrote:
-> > Care to reply with Acked-by/Tested-by so I can queue this into fixes?
-> > 
-> 
-> Acked-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
+On Thu, 9 Feb 2012, Paul Walmsley wrote:
 
-Is the mailbox now actually usable on this hardware with this patch?
+> Yeah, that one is PM related.  If mach-omap2/pm24xx.c is hacked to only 
+> enter MPU retention, rather than full chip retention, it works (quick hack 
+> below).  I suspect it is due to the lack of wakeup support in OMAP2 PM, 
+> but of course it could be something else.
 
-Regards,
+Tony and I tracked this one down to some old pm24xx.c code - patch 
+forthcoming shortly.
 
-Tony
+
+- Paul
