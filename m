@@ -1,72 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap: board-omap3evm: add required smsc911x regulators
-Date: Fri, 10 Feb 2012 14:53:41 -0800
-Message-ID: <20120210225340.GB21865@atomide.com>
-References: <1328738812-26755-1-git-send-email-mporter@ti.com>
- <20120210174046.GQ1426@atomide.com>
- <20120210185033.GC40045@h115-84.vpn.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP34xx
+Date: Fri, 10 Feb 2012 16:39:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202101637190.26931@utopia.booyaka.com>
+References: <20120208231551.GA9009@kroah.com> <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com> <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com> <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
+ <20120209193442.GA1767@rexfeany.com> <87hayzzjlv.fsf@ti.com> <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com> <20120210183117.GB40045@h115-84.vpn.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20120210185033.GC40045@h115-84.vpn.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Matt Porter <mporter@ti.com>
-Cc: linux-omap@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Matt Porter <matt@ohporter.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:35613 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754387Ab2BJXj3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 18:39:29 -0500
+In-Reply-To: <20120210183117.GB40045@h115-84.vpn.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Matt Porter <mporter@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Rex Feany <rfeany@laeos.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Matt Porter <mporter@ti.com> [120210 10:19]:
-> On Fri, Feb 10, 2012 at 09:40:47AM -0800, Tony Lindgren wrote:
-> > * Matt Porter <matt@ohporter.com> [120208 13:35]:
-> > > This fixes smsc911x support on omap3evm that has been broken since
-> > > the smsc911x driver was updated to require the existence of vdd33a
-> > > and vddvario supplies.
-> > 
-> > Great. Few comments:
-> > 
-> > 1. Could you please include the smsc911x commit and subject here too
-> >    so it clearly shows the regression?
-> 
-> Sure. Will do for v2.
-> 
-> > 2. Also, why don't you add this fixed regulator to gpmc-smsc911.c?
-> > 
-> > That way it gets fixed for other too, like zoom2/3.
-> 
-> Ok, so I considered that at first and had two concerns that made me just
-> do it in the omap3evm specific way and see what the feedback was.
-> 
-> 1) If we do a generic implementation in gpmc-smsc911x.c, there needs to
-> be a way to override it. Another board may have a variable supply that
-> feeds this consumer.
-> 
-> 2) Technically, this omap3evm specific implementation matches the hardware
-> in that the osk_3v3 rail is software controllable. Granted, I commented
-> that we simply don't hook up the gpio at this time since this real
-> hardware regulator has always been silently asserted on by the nature of
-> the reset state of the TWL GPIOs and the board level pull downs as well.
+Hello Matt, Vaibhav,
 
-OK
+On Fri, 10 Feb 2012, Matt Porter wrote:
+
+> On Thu, Feb 09, 2012 at 07:19:47PM -0700, Paul Walmsley wrote:
+> > 
+> > Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
+> > testing branch; it works.
+> 
+> Regarding the issue that Vaibhav reported with:
+> 
+> "omap_hwmod: usbtll_fck: missing clockdomain for usbtll_fck"
+> 
+> I also see it on my xM Rev. B. I went back and doublechecked 3.2.5 and
+> this does not occur there. Enabled EHCI+SMSC95xx support on top of
+> omap2plus_defconfig and that works fine for nfsroot in 3.2.5.
+
+I was planning to send this for v3.4.  But maybe we should propose it for 
+v3.3-rc1?  At this point I am unaware of any regressions directly related 
+to the usbtll missing clockdomain, but perhaps someone knows of one?
+
+
+- Paul
+
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Thu, 26 Jan 2012 12:19:04 -0700
+Subject: [PATCH] ARM: OMAP3: clock data: fill in some missing clockdomains
+
+Several clocks are missing clockdomains.  This can cause problems with
+the hwmod and power management code.  Fill these in.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Matt Porter <mporter@ti.com>
+Cc: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/clock3xxx_data.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
+index d75e5f6..5e167d6 100644
+--- a/arch/arm/mach-omap2/clock3xxx_data.c
++++ b/arch/arm/mach-omap2/clock3xxx_data.c
+@@ -1392,6 +1392,7 @@ static struct clk cpefuse_fck = {
+ 	.name		= "cpefuse_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &sys_ck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+ 	.enable_bit	= OMAP3430ES2_EN_CPEFUSE_SHIFT,
+ 	.recalc		= &followparent_recalc,
+@@ -1401,6 +1402,7 @@ static struct clk ts_fck = {
+ 	.name		= "ts_fck",
+ 	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &omap_32k_fck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+ 	.enable_bit	= OMAP3430ES2_EN_TS_SHIFT,
+ 	.recalc		= &followparent_recalc,
+@@ -1410,6 +1412,7 @@ static struct clk usbtll_fck = {
+ 	.name		= "usbtll_fck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &dpll5_m2_ck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
+ 	.enable_bit	= OMAP3430ES2_EN_USBTLL_SHIFT,
+ 	.recalc		= &followparent_recalc,
+@@ -1615,6 +1618,7 @@ static struct clk fshostusb_fck = {
+ 	.name		= "fshostusb_fck",
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.parent		= &core_48m_fck,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
+ 	.enable_bit	= OMAP3430ES1_EN_FSHOSTUSB_SHIFT,
+ 	.recalc		= &followparent_recalc,
+@@ -2041,6 +2045,7 @@ static struct clk omapctrl_ick = {
+ 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
+ 	.enable_bit	= OMAP3430_EN_OMAPCTRL_SHIFT,
+ 	.flags		= ENABLE_ON_INIT,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.recalc		= &followparent_recalc,
+ };
  
-> So that said, I don't need #2 to make omap3evm work and I don't think
-> anybody cares yet to actually turn that regulator off (as it will kill
-> other things that appear to not have regulator support anyway). It looks
-> like you talked me into respinning it as a generic implementation. Only
-> question is whether I should bother consider not-yet-existing boards that
-> may not want that generic regulator.
+@@ -2092,6 +2097,7 @@ static struct clk usb_l4_ick = {
+ 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
+ 	.clksel_mask	= OMAP3430ES1_CLKSEL_FSHOSTUSB_MASK,
+ 	.clksel		= usb_l4_clksel,
++	.clkdm_name	= "core_l4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+-- 
+1.7.9
 
-Well for future boards the regulator should come from device tree,
-so for now it should be safe to add it to gpmc-smsc911.c.
-
-Regards,
-
-Tony
