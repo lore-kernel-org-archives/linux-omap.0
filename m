@@ -1,77 +1,61 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH v3 3/3] ASoC: twl6040: Remove dependency on
- twl4030 from Kconfig
-Date: Fri, 10 Feb 2012 11:10:35 +0000
-Message-ID: <20120210111035.GD3056@opensource.wolfsonmicro.com>
-References: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
-	<1328868018-24668-4-git-send-email-peter.ujfalusi@ti.com>
+Subject: Re: [PATCH 2/7] regulator: twl-regulator: Add fixed LDO for V1V8,
+ V2V1 supply
+Date: Fri, 10 Feb 2012 11:24:41 +0000
+Message-ID: <20120210112441.GE3056@opensource.wolfsonmicro.com>
+References: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
+ <1328868316-24749-3-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============2600201776678922194=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1328868018-24668-4-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FsscpQKzF/jJk6ya"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1328868316-24749-3-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Dmitry Torokhov <dtor@mail.ru>, linux-kernel@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
 
---===============2600201776678922194==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
-Content-Disposition: inline
-
-
---tsOsTdHNUZQcU9Ye
+--FsscpQKzF/jJk6ya
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Feb 10, 2012 at 12:00:18PM +0200, Peter Ujfalusi wrote:
-> twl6040 no longer needs twl4030.
+On Fri, Feb 10, 2012 at 12:05:11PM +0200, Peter Ujfalusi wrote:
+> V1V8 supply most common use is to provide VIO for the system.
+> V2V1 supply is used on SDP4430/PandaBoards to provide 2.1V to
+> twl6040, and also as an input to VCXIO_IN, VDAC_IN of twl6030.
 >=20
 > Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 
 Reviewed-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-This should go via whatever path the first two patches go.
+I'll not apply this as it'll cause runtime breakage if it goes via a
+different path to the rest of the series.  If it's getting near to the
+merge window and nothing is applied please remind me and this can go in
+by itself.
 
---tsOsTdHNUZQcU9Ye
+--FsscpQKzF/jJk6ya
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPNPskAAoJEBus8iNuMP3dWhUP/j833HfDyb3ugioLFPhn8DcI
-wSbdZXaNFM0X53zgGsRZ5oE0WhrWJOpVoR3EA+6ITPKLsjw2q8TPp9hkxwjjJzPZ
-SbaEbDX5BHNKieuqwQfU439t0DogvPJW83UjdhRrSHAOG+BXbLOBLjfuXokIuEOE
-ULp7qILEab8BKv3JTmZSoYR3wt+ZsBzDMvw2T8+lHtpRfG3F/YaQgkshxSrABQv2
-jUcVqDGOQtzR7mGl90BJQn8lFql7JSuIakcX6uiGN4cXln6j6PLiGLQIwXRr35Fn
-f7GiZdItJWyYgl1FKiZ4OUltGmSaTo1B8TNxH4tOQmAm5mkr0cgCq8cupH8pZ+wl
-rJrClaLXKp0/F7mrd13Q9kkyVlrJi/gQ53yvUX7r8nwrZHXCThqciNsr1eMK6ULt
-FndKibhLUGYlY0csSO087hz2XpF7JCg4g19aVOos9Sfo4B76fA3IdHv8csDM9sFc
-/ZMTnmtJtKYVlcG5C4/GQRvQJJRhHnt9aRwkk/Ofz+eer43KvnGuq6Jq4/4yE/xU
-862acfsXH+HBpG7ipvm7V3ILEXBkPESJLI/a/iY/NJYzwTi3qEs813GXJWpVPZCZ
-jxeDNlZrBTwzUCGexCw4NwQKdmYHkirhoh1s2Rgl2/dEWZ+aIygqQLGUWxb51HwR
-8IIcvVkEBbclD6ee/mVV
-=z156
+iQIcBAEBAgAGBQJPNP5lAAoJEBus8iNuMP3dergP/iz/r+K0OmzvviIzPqdS1nyq
+Lrv+PY/ygeeWKX4y+sgktvBoegvxdSD//NMmmycyloIN7rtMZZp1/BU+sij0XnP8
+MkNEBt7kamfGBKqqmc0TVTfqGs+ue3YWcY0qYbBV+XrCppLnI68sJT4MhXrP8slv
+ekgDriV5XChMUWrQabu4q8WflMHksUiSZV9/nn2TNNSQgFfA1LvDtLrfojfbNAsi
+NYLJAC25UR5eEhKFlt6lowrwjgf+8sqqznU+LBINts3llfz2U4IEp5AGStHBhx7w
+ak32T+eOODNOrfgSJA4W/V/xQoowXd4FM+t1AM+ZTzy1J2M+8/01g61rkNrdIuVR
+cjtrDH+c6SV/f3ArE/WvBZqQSl/MBUfikzOmWJbyhLbWf+0WNitC9+MwAeoF4azE
+pqWYv26mmwtWZPFJMxmea2XOoOQlnxN9oyepmeIVpMZTb4WYkT6LOG5nCreATUbf
+kJCnRapSBy1gjjq/hNOoYNEAMFT0vvMgyHQ3BpHsB+rJeVPUAO8z5g8ByqSkDy2p
+udQQigzalzcGfJvTZyYxQR8r5M9o8ttecoV0czHwyk+yLUQUMhnqoW7GJqhl0VJr
+u9W/zj8b7cSo2zkK2aYdl5eAiueoEWcmDtNeX8NKOCEUqJ13UiG0wwCLRBfjX30U
+PnS4VUwY/dEWW3HTPplm
+=p0i3
 -----END PGP SIGNATURE-----
 
---tsOsTdHNUZQcU9Ye--
-
---===============2600201776678922194==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============2600201776678922194==--
+--FsscpQKzF/jJk6ya--
