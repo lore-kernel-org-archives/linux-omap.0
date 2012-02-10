@@ -1,54 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: is omap development at git tree on kernel.org
-Date: Fri, 10 Feb 2012 10:26:14 -0800
-Message-ID: <20120210182614.GR1426@atomide.com>
-References: <alpine.DEB.2.02.1202061702130.13460@heelrod.ad.cirrus.com>
- <20120206231637.GC20333@atomide.com>
- <alpine.DEB.2.02.1202070849400.24880@heelrod.ad.cirrus.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 2/3 v5] arm: omap: am335x: enable phy controls
+Date: Fri, 10 Feb 2012 10:31:43 -0800
+Message-ID: <20120210183143.GS1426@atomide.com>
+References: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
+ <1328675212-29693-2-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:24521 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759807Ab2BJS0Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 13:26:16 -0500
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1202070849400.24880@heelrod.ad.cirrus.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1328675212-29693-2-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, balbi-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Austin <brian.austin@cirrus.com>
-Cc: linux-omap@vger.kernel.org
 
-* Brian Austin <brian.austin@cirrus.com> [120207 06:23]:
-> On Mon, 6 Feb 2012, Tony Lindgren wrote:
-> 
-> >Yes that's the current URL. For most part all the code is in the
-> >mainline kernel, and the linux-omap git tree is used for staging
-> >the patches for every merge window. Right now the focus is getting
-> >all the fixes into the -rc cycle, and over next few weeks we'll
-> >get busy merging all the new code posted for the next merge window.
-> >
-> >For stable versions, the latest stable mainline version is the
-> >way to go, so that's v3.2.x right now. For development versions,
-> >mainline v3.3-rc3 will contain the fixes you mentioned above.
-> >
-> 
-> Thanks for the info Tony,
-> 
-> Just to give you some background,  I do my codec development on a
-> "beagleboard like" system and use the for-next branch of ASoC for
-> codec patches.  I have noticed some issues with the latest OMAP port
-> in this branch and have seem the emails lately from Russell...
-> 
-> I have seen these issues for a while and would be more than happy to
-> inform the OMAP folks of problems with the latest dev branches, kind
-> of like a regression tester for you.  If I find something and can
-> fix with a patch to email this list, what linux-omap branch should I
-> base the patch off of?
+Hi,
 
-Usually for fixes, it's best to base them on most recent mainline
-tag that works. So right now either v3.2 or v3.3-rc3.
+* Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org> [120207 19:55]:
+> Switch on the phy for am335x.
+> 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> ---
+>  arch/arm/mach-omap2/omap_phy_internal.c |   21 ++++++++++++++-------
+>  1 files changed, 14 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-omap2/omap_phy_internal.c
+> index 4c90477..7129408 100644
+> --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> @@ -266,7 +266,11 @@ void ti81xx_musb_phy_power(u8 on)
+>  	void __iomem *scm_base = NULL;
+>  	u32 usbphycfg;
+>  
+> -	scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
+> +	if (cpu_is_ti81xx())
+> +		scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
+> +	else if (cpu_is_am33xx())
+> +		scm_base = ioremap(AM33XX_SCM_BASE, SZ_2K);
+> +
+>  	if (!scm_base) {
+>  		pr_err("system control module ioremap failed\n");
+>  		return;
+> @@ -278,16 +282,19 @@ void ti81xx_musb_phy_power(u8 on)
+>  		if (cpu_is_ti816x()) {
+>  			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
+>  			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
+> -		} else if (cpu_is_ti814x()) {
+> -			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
+> -				| USBPHY_DPINPUT | USBPHY_DMINPUT);
+> -			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
+> -				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
+> +		} else if (cpu_is_ti814x() || cpu_is_am33xx()) {
+> +			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
+> +			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
+> +			if (cpu_is_ti814x()) {
+> +				usbphycfg &= ~(USBPHY_DPINPUT | USBPHY_DMINPUT);
+> +				usbphycfg |= USBPHY_DPOPBUFCTL
+> +					| USBPHY_DMOPBUFCTL;
+> +			}
+>  		}
+>  	} else {
+>  		if (cpu_is_ti816x())
+>  			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
+> -		else if (cpu_is_ti814x())
+> +		else if (cpu_is_ti814x() || cpu_is_am33xx())
+>  			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
+>  
+
+Please remove all the cpu_is_xxxx calls from the *_phy_power functions.
+You should need those only in *_phy_init to set the right flags once,
+not every time you enable or disable the phy.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
