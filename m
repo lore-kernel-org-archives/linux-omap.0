@@ -1,75 +1,105 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP34xx
-Date: Fri, 10 Feb 2012 07:10:06 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317C957F@DBDE01.ent.ti.com>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com>
- <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
- <20120209193442.GA1767@rexfeany.com> <87hayzzjlv.fsf@ti.com>
- <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the
+ suspend path
+Date: Fri, 10 Feb 2012 01:42:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
+References: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42175 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752826Ab2BJHKk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 02:10:40 -0500
-In-Reply-To: <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:34111 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755197Ab2BJImK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 03:42:10 -0500
+In-Reply-To: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: Rex Feany <rfeany@laeos.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: khilman@ti.com, robherring2@gmail.com, tony@atomide.com
 
-On Fri, Feb 10, 2012 at 07:49:47, Paul Walmsley wrote:
+On Thu, 9 Feb 2012, Paul Walmsley wrote:
+
 > 
-> Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
-> testing branch; it works.
+> Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
+> code should now handle what this was supposed to do.
 > 
-
-I tried it on AM37x EVM, it did worked for me but I have some observations,
-
-
-1) [root@arago /]# cat /tmp/pm_debug/count
-usbhost_pwrdm (ON),OFF:434,RET:466,INA:0,ON:901,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-core_pwrdm (ON),OFF:3,RET:2,INA:0,ON:6,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0
-per_pwrdm (ON),OFF:3,RET:2,INA:0,ON:6,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-dss_pwrdm (ON),OFF:434,RET:466,INA:0,ON:901,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-cam_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-neon_pwrdm (ON),OFF:434,RET:466,INA:0,ON:901,RET-LOGIC-OFF:0
-mpu_pwrdm (ON),OFF:434,RET:466,INA:0,ON:901,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0
-iva2_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1,RET-LOGIC-OFF:0,RET-MEMBANK1-OFF:0,RET-MEMBANK2-OFF:0,RET-MEMBANK3-OFF:0,RET-MEMBANK4-OFF:0
-
-
-The OFF counter for MPU/NEON/DSS/USB is getting incremented to huge value. Is it expected?
-Another observation is, if I include DSS driver into the kernel then I get proper count numbers for dss_pwrdm. (not tried same for usb though)
-
-2) Missing clockdomain in usb clock -
-
-[root@arago /]# dmesg | grep -ir hwmod
-[    0.114868] omap_hwmod: usbtll_fck: missing clockdomain for usbtll_fck.
-...
-
-3)  Not sure how this can be handled, since from TWL regulator output perspective it is NA. I enabled DUMMY_REGILATOR option and tried it, it works.
-
-
-[root@arago /]# dmesg | grep -ir fail
-[    0.166717] dpll3_m2_clk rate change failed: -22
-[    0.828521] sharp_ls_panel display0: failed to set lcd brightness
-[    1.672454] smsc911x smsc911x.0: Failed to get supply 'vdd33a': -19
-...
-
-
-Thanks,
-Vaibhav
+> Tested on N800 -- but it's hard to say whether this fixes anything.
+> OMAP24xx static suspend path is currently broken, and this patch
+> doesn't change that.
 > 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Rob Herring <robherring2@gmail.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+
+Just realized that a stray change made it into the patch that was posted.
+Below is a version with the stray change removed.  It applies on 
+Tony's v3.3-rc3 testing branch, plus the OMAP2420 serial fix patch that 
+was posted earlier.
+
+
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Fri, 10 Feb 2012 01:40:04 -0700
+Subject: [PATCH v2] ARM: OMAP2xxx: PM: remove obsolete timer disable code 
+in the suspend path
+
+Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
+code should now handle what this was supposed to do.
+
+Tested on N800 -- but it's hard to say whether this fixes anything.
+OMAP24xx static suspend path is currently broken, and this patch
+doesn't change that.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Rob Herring <robherring2@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/pm24xx.c |   22 +---------------------
+ 1 files changed, 1 insertions(+), 21 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 23de98d..18eda53 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -254,26 +254,6 @@ static int omap2_pm_begin(suspend_state_t state)
+ 	return 0;
+ }
+ 
+-static int omap2_pm_suspend(void)
+-{
+-	u32 wken_wkup, mir1;
+-
+-	wken_wkup = omap2_prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+-	wken_wkup &= ~OMAP24XX_EN_GPT1_MASK;
+-	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+-
+-	/* Mask GPT1 */
+-	mir1 = omap_readl(0x480fe0a4);
+-	omap_writel(1 << 5, 0x480fe0ac);
+-
+-	omap2_enter_full_retention();
+-
+-	omap_writel(mir1, 0x480fe0a4);
+-	omap2_prm_write_mod_reg(wken_wkup, WKUP_MOD, PM_WKEN);
+-
+-	return 0;
+-}
+-
+ static int omap2_pm_enter(suspend_state_t state)
+ {
+ 	int ret = 0;
+@@ -281,7 +261,7 @@ static int omap2_pm_enter(suspend_state_t state)
+ 	switch (state) {
+ 	case PM_SUSPEND_STANDBY:
+ 	case PM_SUSPEND_MEM:
+-		ret = omap2_pm_suspend();
++		omap2_enter_full_retention();
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+-- 
+1.7.9
 
