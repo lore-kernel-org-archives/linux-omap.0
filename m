@@ -1,45 +1,72 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: Incorrect Register Offsets in OMAP Mailbox
-Date: Fri, 10 Feb 2012 04:25:54 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D121433179C534@DBDE01.ent.ti.com>
-References: <331ABD5ECB02734CA317220B2BBEABC1317897C8@DBDE01.ent.ti.com>
- <B5906170F1614E41A8A28DE3B8D121433179B3F8@DBDE01.ent.ti.com>
- <20120209174709.GH1426@atomide.com>
- <B5906170F1614E41A8A28DE3B8D121433179BF04@DBDE01.ent.ti.com>
- <20120210011447.GN1426@atomide.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Thu, 9 Feb 2012 21:18:49 -0800
+Message-ID: <20120210051849.GE1565@kroah.com>
+References: <1328058094-28483-1-git-send-email-felipe.contreras@gmail.com>
+ <20120201011239.GA797@suse.de>
+ <CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
+ <20120201034445.GA2979@kroah.com>
+ <CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
+ <20120209173528.GA31726@kroah.com>
+ <CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
+ <20120209185923.GB10284@kroah.com>
+ <CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
+ <CAB-zwWj0z9N_2RRHBBNcHPLYWRii2T8q+gMgBnA3+ux8Ojg9JA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34287 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754774Ab2BJE0D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Feb 2012 23:26:03 -0500
-In-Reply-To: <20120210011447.GN1426@atomide.com>
-Content-Language: en-US
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:48212 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750745Ab2BJFWG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 10 Feb 2012 00:22:06 -0500
+Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id E355A20A25
+	for <linux-omap@vger.kernel.org>; Fri, 10 Feb 2012 00:22:04 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <CAB-zwWj0z9N_2RRHBBNcHPLYWRii2T8q+gMgBnA3+ux8Ojg9JA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "enli.chan@gmail.com" <enli.chan@gmail.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Tony,
+On Thu, Feb 09, 2012 at 04:45:00PM -0800, Ramirez Luna, Omar wrote:
+> Hi,
+>=20
+> On Thu, Feb 9, 2012 at 3:30 PM, Felipe Contreras
+> <felipe.contreras@gmail.com> wrote:
+> >> Again, I'm totally confused as to _WHY_ this needs to be y. =A0Wha=
+t is
+> >> causing this oops without it? =A0If an oops is happening, then sho=
+uldn't
+> >> this be a strict dependancy? =A0Why allow it to be disabled at all=
+ if it
+> >> can break your box if you don't enable it?
+> >
+> > It's not an oops, it's a warning, and again, it depends on the
+> > firmware being used. We don't have control over that, and we have n=
+o
+> > way to detect if this feature is there. It's up to the user.
+>=20
+> I have been thinking more into it, how about looking for a WDT symbol
+> inside the baseimage to decide whether to turn ON/OFF WDT3, this woul=
+d
+> mean that the code is always compiled in, but the decision to turn it
+> on/off is made at runtime.
 
-On Fri, Feb 10, 2012 at 06:44:47, Tony Lindgren wrote:
-> * Bedia, Vaibhav <vaibhav.bedia@ti.com> [120209 09:27]:
-> > On Thu, Feb 09, 2012 at 23:17:10, Tony Lindgren wrote:
-> > > Care to reply with Acked-by/Tested-by so I can queue this into fixes?
-> > > 
-> > 
-> > Acked-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-> 
-> Is the mailbox now actually usable on this hardware with this patch?
-> 
+I totally don't understand, why not just silence the warning properly
+then?
 
-I am using this fix to make use of the mailbox on AM335x which has the same IP
-as OMAP4. With a couple of patches to add AM335x support I have been able to make
-use of the mailbox for one-way communication between the A8 and Cortex-M3.
+I fail to understand why this warning happens, why it depends on the
+firmware, and why you can't detect it at runtime to not do it.  And how
+it all ties into a kconfig option...
 
-I don't have an OMAP4 board with me to test this out.
+confused,
 
-Regards,
-Vaibhav
+greg k-h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
