@@ -1,162 +1,56 @@
-From: Dong Aisheng <dongas86@gmail.com>
-Subject: Re: [PATCH 2/2] pinctrl: Add simple pinmux driver using device tree
- data
-Date: Fri, 10 Feb 2012 16:33:38 -0800
-Message-ID: <CAA+hA=Qa_3vXvgNMRuDjw93Wb3fGNOM1EqmvYVQO5CN9w2FA3A@mail.gmail.com>
-References: <20120203205049.4089.74610.stgit@kaulin.local>
- <20120203205508.4089.35304.stgit@kaulin.local>
- <20120204175903.GF1426@atomide.com>
- <CAA+hA=Tux3P0RyaB=vG7UeycTt8z4nX9dBicpjB7tQ+xzwoSDQ@mail.gmail.com>
- <20120210200503.GX1426@atomide.com>
+From: Shubhrajyoti D <shubhrajyoti@ti.com>
+Subject: [PATCH] OMAP: serial: Release the claimed memory region in remove
+Date: Sat, 11 Feb 2012 13:03:27 +0530
+Message-ID: <1328945607-4025-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120210200503.GX1426@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Dong Aisheng <dong.aisheng@linaro.org>, Stephen Warren <swarren@nvidia.com>, Linus Walleij <linus.walleij@stericsson.com>, Barry Song <21cnbao@gmail.com>, linux-kernel@vger.kernel.org, Haojian Zhuang <haojian.zhuang@marvell.com>, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Rajendra Nayak <rajendra.nayak@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-serial-owner@vger.kernel.org>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Shubhrajyoti D <shubhrajyoti@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+Currently the memory region is not released the folowing error is
+observed.
 
-On Fri, Feb 10, 2012 at 12:05:03PM -0800, Tony Lindgren wrote:
-> Hi Dong,
->
-> * Dong Aisheng <dongas86@gmail.com> [120207 17:22]:
-> > On 2/4/12, Tony Lindgren <tony@atomide.com> wrote:
-> >
-> > The most difference may be the function enable due to hw difference.
-> > But i see that for DT case, it seems function and group creation may
-> > also be a problem.
->
-> What all do you see as a problem with group creation? Just the
-> naming?
-I said from different SoC's pointer of view.
-Not only naming, but also if group and function created in driver or dt file
-and their map parsing.
+/testsuites # insmod omap-serial.ko
+[  130.746917] omap_uart omap_uart.0: memory region already claimed
+[  130.753143] omap_uart: probe of omap_uart.0 failed with error -16
+[  130.759338] omap_uart omap_uart.1: memory region already claimed
+[  130.765380] omap_uart: probe of omap_uart.1 failed with error -16
+[  130.771606] omap_uart omap_uart.2: memory region already claimed
+[  130.777679] omap_uart: probe of omap_uart.2 failed with error -16
+[  130.783905] omap_uart omap_uart.3: memory region already claimed
+[  130.789947] omap_uart: probe of omap_uart.3 failed with error -16
 
-> > > + sprintf(name, "%lx",
-> > > +         (unsigned long)smux->res->start + offset);
-> > > + pin->name = name;
-> > I'm wondering how about other people do not want the reg address to be PIN name?
-> > It's less meaningful.
->
-> How about try adding optional pinctrl-simple,pin-name entry that you
-> can add to each mux entry?
->
-Put it in pinctrl device node?
-Then how do we name each pin?
-And for IMX, currently we name all pins in driver.
-I still can not find a good reason that i should name all pins in dt file.
-Yes, we indeed have such a case.
-For IMX, some special pins mux still need a setting called 'select input' which
-is controlled in other registers.
-But a rough idea in my mind that may choose different way to fix this issue.
-It's a little like:
-pinctrl_usdhc4: pinconfig-usdhc4 {
-       mux =
-               <MX6Q_SD4_CMD  0 SELECT_INPUT>
-               <MX6Q_SD4_CLK  0 0>
-               <MX6Q_SD4_DAT0 1 0>
-               <MX6Q_SD4_DAT1 1 0>
-               <MX6Q_SD4_DAT2 1 SELECT_INPUT>
-               <MX6Q_SD4_DAT3 1 0>
-               <MX6Q_SD4_DAT4 1 0>
-               <MX6Q_SD4_DAT5 1 0>
-               <MX6Q_SD4_DAT6 1 0>
-               <MX6Q_SD4_DAT7 1 0>;
-}
-This format would not make the dts writer to take too much care of
-register address
-and value. For this case, the #pinmux-cells would be <3>;
-It is a little different from OMAP.
+Fix it by releasing the memory region.
 
-For your proposal, I'm afraid it is a little too much depend on the SoC register
-layout. We need to find a flexible enough way to cover all possible
-register layout
-difference for all SoCs.
-(Considering one register controls multi muxs?)
+Cc: Govindraj.R <govindraj.raja@ti.com>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+---
+changes from the rfc version - 
+move the release after the unmap.
 
-> Note that for more complex mapping you may want to add a hardware
-> specific .data entry that corresponds to the compatible flag, let's
-> say for conf range offset to mux range offset.
->
-> > > +         res = smux_rename_function(function, np->full_name);
-> > A little unclear for rename here.
-> > Can we find a better way?
->
-> You might want to play with parsing optional names from .dts file.
-> I don't need the names and they slow down the parsing. For the names,
-> we can show them with userspace tools using debugfs.
->
-> For reference, this is what I get under debugfs function entry
-> after the rename:
->
-> function: /ocp/serial@0x48020000, groups = [ pinconfig-uart3 ]
->
-The name looks reasonable to me.
+ drivers/tty/serial/omap-serial.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-> > > +static int __init smux_parse_one_pinctrl_entry(struct smux_device *smux,
-> > > +                                           struct device_node *np)
-> > > +{
-> > > +   int count = 0;
-> > > +
-> > > +   do {
->
-> ...
->
-> > > + } while (++count);
-> > This 'while' is for what? Define multi pinctrl properties?
->
-> Yes each client device might request multiple muxes, let's say
-> two pingroups from two different pinctrl driver instances.
->
-You mean like this?
-serial@48020000 {
-      pinctrl = <&pmx_uart3_x>;
-      pinctrl = <&pmx_uart3_y>;
-};
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 8c6f137..16aa4f0 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1480,9 +1480,12 @@ do_release_region:
+ static int serial_omap_remove(struct platform_device *dev)
+ {
+ 	struct uart_omap_port *up = platform_get_drvdata(dev);
++	struct resource		*r;
+ 
+ 	if (up) {
+ 		iounmap(up->port.membase);
++		r = platform_get_resource(dev, IORESOURCE_MEM, 0);
++		release_mem_region(r->start, resource_size(r));
+ 		pm_runtime_disable(&up->pdev->dev);
+ 		uart_remove_one_port(&serial_omap_reg, &up->port);
+ 		pm_qos_remove_request(&up->pm_qos_request);
+-- 
+1.7.1
 
-Did i misunderstand?
-I still can not understand why need this.
-The pinctrl properly in device node can support multi pinmuxs .
-serial@48020000 {
-      pinctrl = <&pmx_uart3_x &pmx_uart3_y>;
-It's good to me that the consensus we reached at Linaro Connect is much like
-my proposal in above URL. :)
-
-> > > + val = of_get_property(pdev->dev.of_node,
-> > > +                         "pinctrl-simple,function-off", &len);
-> > > + if (!val || len != 4) {
-> > > +         dev_err(smux->dev, "function off mode not specified\n");
-> > > +         ret = -EINVAL;
-> > How about other SoCs not support function off mode?
->
-> Maybe disable should not do anything if function-off is not specified?
->
-IIRC currently pinctrl must need a disable function, if that, yes.
-However i think we may change it in the future that make .disable function
-optinal.
-
-> > > +free:
-> > > + devm_kfree(smux->dev, smux);
-> > > +
-> > For devm_* routines, do you still need this error checking?
-> > IIRC, the resource will be automatically released if probe failed.
->
-> I guess, are there some recommendations somewhere for that?
-I don't know where it is.
-I just checked the code before.
-You can see really_probe in drivers/base/dd.c.
-
-Regards
-Dong Aisheng
