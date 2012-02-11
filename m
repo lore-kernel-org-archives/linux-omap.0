@@ -1,42 +1,30 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] arm: omap4: allow disabling MPU local timer if 32K
-	timer is enabled
-Date: Sat, 11 Feb 2012 10:26:44 +0000
-Message-ID: <20120211102644.GD13587@n2100.arm.linux.org.uk>
-References: <1328949085-4452-1-git-send-email-tom.leiming@gmail.com> <20120211100351.GB13587@n2100.arm.linux.org.uk> <CACVXFVNJ=L_H_whTm6AyEc++B=Tw_Jfnzmn-QRYwbbBqiH7H1g@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] OMAP: serial: Release the claimed memory region in
+ remove
+Date: Sat, 11 Feb 2012 11:27:22 +0000
+Message-ID: <20120211112721.GA21453@sirena.org.uk>
+References: <1328945607-4025-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58170 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753166Ab2BKK0z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Feb 2012 05:26:55 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:52243 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754815Ab2BKL1Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Feb 2012 06:27:24 -0500
 Content-Disposition: inline
-In-Reply-To: <CACVXFVNJ=L_H_whTm6AyEc++B=Tw_Jfnzmn-QRYwbbBqiH7H1g@mail.gmail.com>
+In-Reply-To: <1328945607-4025-1-git-send-email-shubhrajyoti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ming Lei <tom.leiming@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Shubhrajyoti D <shubhrajyoti@ti.com>
+Cc: linux-serial@vger.kernel.org, "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, Feb 11, 2012 at 06:19:41PM +0800, Ming Lei wrote:
-> On Sat, Feb 11, 2012 at 6:03 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Sat, Feb 11, 2012 at 04:31:25PM +0800, Ming Lei wrote:
-> >> With 32K gp timer, tick can be driven and system can run well, so
-> >> allow MPU local timer to be disabled if someone requires it, otherwise
-> >> MPU local timer is always chosen as the default clock_event_device.
-> >
-> > The point being?
-> 
-> IMO, 32K gp timer may be more energy-saving than MPU local timer
-> because gp timer has much less clock frequency and only half interrupts
-> generated in tick mode compared with mpu local timer.
-> 
-> >
-> > What if you want to use NO_HZ?
-> 
-> 32K gp timer supports oneshot mode, so it should support NO_HZ.  In my test
-> .config, NO_HZ is enabled and system can run well.
+On Sat, Feb 11, 2012 at 01:03:27PM +0530, Shubhrajyoti D wrote:
+> Currently the memory region is not released the folowing error is
+> observed.
 
-Have you actually checked the tick rate of your timer in /proc/interrupts?
-Have you checked /proc/timer_list to see what mode the system is in?
+> /testsuites # insmod omap-serial.ko
+> [  130.746917] omap_uart omap_uart.0: memory region already claimed
+> [  130.753143] omap_uart: probe of omap_uart.0 failed with error -16
+
+It'd be better yet to use the devm_ functions to prevent such issues
+recurring in future.
