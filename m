@@ -1,113 +1,162 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP34xx
-Date: Fri, 10 Feb 2012 16:39:28 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202101637190.26931@utopia.booyaka.com>
-References: <20120208231551.GA9009@kroah.com> <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com> <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com> <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
- <20120209193442.GA1767@rexfeany.com> <87hayzzjlv.fsf@ti.com> <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com> <20120210183117.GB40045@h115-84.vpn.ti.com>
+From: Dong Aisheng <dongas86@gmail.com>
+Subject: Re: [PATCH 2/2] pinctrl: Add simple pinmux driver using device tree
+ data
+Date: Fri, 10 Feb 2012 16:33:38 -0800
+Message-ID: <CAA+hA=Qa_3vXvgNMRuDjw93Wb3fGNOM1EqmvYVQO5CN9w2FA3A@mail.gmail.com>
+References: <20120203205049.4089.74610.stgit@kaulin.local>
+ <20120203205508.4089.35304.stgit@kaulin.local>
+ <20120204175903.GF1426@atomide.com>
+ <CAA+hA=Tux3P0RyaB=vG7UeycTt8z4nX9dBicpjB7tQ+xzwoSDQ@mail.gmail.com>
+ <20120210200503.GX1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35613 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754387Ab2BJXj3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Feb 2012 18:39:29 -0500
-In-Reply-To: <20120210183117.GB40045@h115-84.vpn.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120210200503.GX1426@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dong Aisheng <dong.aisheng@linaro.org>, Stephen Warren <swarren@nvidia.com>, Linus Walleij <linus.walleij@stericsson.com>, Barry Song <21cnbao@gmail.com>, linux-kernel@vger.kernel.org, Haojian Zhuang <haojian.zhuang@marvell.com>, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Shawn Guo <shawn.guo@freescale.com>, Rajendra Nayak <rajendra.nayak@linaro.org>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Porter <mporter@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, Rex Feany <rfeany@laeos.net>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Hello Matt, Vaibhav,
+Hi Tony,
 
-On Fri, 10 Feb 2012, Matt Porter wrote:
+On Fri, Feb 10, 2012 at 12:05:03PM -0800, Tony Lindgren wrote:
+> Hi Dong,
+>
+> * Dong Aisheng <dongas86@gmail.com> [120207 17:22]:
+> > On 2/4/12, Tony Lindgren <tony@atomide.com> wrote:
+> >
+> > The most difference may be the function enable due to hw difference.
+> > But i see that for DT case, it seems function and group creation may
+> > also be a problem.
+>
+> What all do you see as a problem with group creation? Just the
+> naming?
+I said from different SoC's pointer of view.
+Not only naming, but also if group and function created in driver or dt file
+and their map parsing.
 
-> On Thu, Feb 09, 2012 at 07:19:47PM -0700, Paul Walmsley wrote:
-> > 
-> > Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
-> > testing branch; it works.
-> 
-> Regarding the issue that Vaibhav reported with:
-> 
-> "omap_hwmod: usbtll_fck: missing clockdomain for usbtll_fck"
-> 
-> I also see it on my xM Rev. B. I went back and doublechecked 3.2.5 and
-> this does not occur there. Enabled EHCI+SMSC95xx support on top of
-> omap2plus_defconfig and that works fine for nfsroot in 3.2.5.
+> > > + sprintf(name, "%lx",
+> > > +         (unsigned long)smux->res->start + offset);
+> > > + pin->name = name;
+> > I'm wondering how about other people do not want the reg address to be PIN name?
+> > It's less meaningful.
+>
+> How about try adding optional pinctrl-simple,pin-name entry that you
+> can add to each mux entry?
+>
+Put it in pinctrl device node?
+Then how do we name each pin?
+And for IMX, currently we name all pins in driver.
+I still can not find a good reason that i should name all pins in dt file.
+Yes, we indeed have such a case.
+For IMX, some special pins mux still need a setting called 'select input' which
+is controlled in other registers.
+But a rough idea in my mind that may choose different way to fix this issue.
+It's a little like:
+pinctrl_usdhc4: pinconfig-usdhc4 {
+       mux =
+               <MX6Q_SD4_CMD  0 SELECT_INPUT>
+               <MX6Q_SD4_CLK  0 0>
+               <MX6Q_SD4_DAT0 1 0>
+               <MX6Q_SD4_DAT1 1 0>
+               <MX6Q_SD4_DAT2 1 SELECT_INPUT>
+               <MX6Q_SD4_DAT3 1 0>
+               <MX6Q_SD4_DAT4 1 0>
+               <MX6Q_SD4_DAT5 1 0>
+               <MX6Q_SD4_DAT6 1 0>
+               <MX6Q_SD4_DAT7 1 0>;
+}
+This format would not make the dts writer to take too much care of
+register address
+and value. For this case, the #pinmux-cells would be <3>;
+It is a little different from OMAP.
 
-I was planning to send this for v3.4.  But maybe we should propose it for 
-v3.3-rc1?  At this point I am unaware of any regressions directly related 
-to the usbtll missing clockdomain, but perhaps someone knows of one?
+For your proposal, I'm afraid it is a little too much depend on the SoC register
+layout. We need to find a flexible enough way to cover all possible
+register layout
+difference for all SoCs.
+(Considering one register controls multi muxs?)
 
+> Note that for more complex mapping you may want to add a hardware
+> specific .data entry that corresponds to the compatible flag, let's
+> say for conf range offset to mux range offset.
+>
+> > > +         res = smux_rename_function(function, np->full_name);
+> > A little unclear for rename here.
+> > Can we find a better way?
+>
+> You might want to play with parsing optional names from .dts file.
+> I don't need the names and they slow down the parsing. For the names,
+> we can show them with userspace tools using debugfs.
+>
+> For reference, this is what I get under debugfs function entry
+> after the rename:
+>
+> function: /ocp/serial@0x48020000, groups = [ pinconfig-uart3 ]
+>
+The name looks reasonable to me.
 
-- Paul
+> > > +static int __init smux_parse_one_pinctrl_entry(struct smux_device *smux,
+> > > +                                           struct device_node *np)
+> > > +{
+> > > +   int count = 0;
+> > > +
+> > > +   do {
+>
+> ...
+>
+> > > + } while (++count);
+> > This 'while' is for what? Define multi pinctrl properties?
+>
+> Yes each client device might request multiple muxes, let's say
+> two pingroups from two different pinctrl driver instances.
+>
+You mean like this?
+serial@48020000 {
+      pinctrl = <&pmx_uart3_x>;
+      pinctrl = <&pmx_uart3_y>;
+};
 
+Did i misunderstand?
+I still can not understand why need this.
+The pinctrl properly in device node can support multi pinmuxs .
+serial@48020000 {
+      pinctrl = <&pmx_uart3_x &pmx_uart3_y>;
+It's good to me that the consensus we reached at Linaro Connect is much like
+my proposal in above URL. :)
 
-From: Paul Walmsley <paul@pwsan.com>
-Date: Thu, 26 Jan 2012 12:19:04 -0700
-Subject: [PATCH] ARM: OMAP3: clock data: fill in some missing clockdomains
+> > > + val = of_get_property(pdev->dev.of_node,
+> > > +                         "pinctrl-simple,function-off", &len);
+> > > + if (!val || len != 4) {
+> > > +         dev_err(smux->dev, "function off mode not specified\n");
+> > > +         ret = -EINVAL;
+> > How about other SoCs not support function off mode?
+>
+> Maybe disable should not do anything if function-off is not specified?
+>
+IIRC currently pinctrl must need a disable function, if that, yes.
+However i think we may change it in the future that make .disable function
+optinal.
 
-Several clocks are missing clockdomains.  This can cause problems with
-the hwmod and power management code.  Fill these in.
+> > > +free:
+> > > + devm_kfree(smux->dev, smux);
+> > > +
+> > For devm_* routines, do you still need this error checking?
+> > IIRC, the resource will be automatically released if probe failed.
+>
+> I guess, are there some recommendations somewhere for that?
+I don't know where it is.
+I just checked the code before.
+You can see really_probe in drivers/base/dd.c.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Matt Porter <mporter@ti.com>
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/clock3xxx_data.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock3xxx_data.c b/arch/arm/mach-omap2/clock3xxx_data.c
-index d75e5f6..5e167d6 100644
---- a/arch/arm/mach-omap2/clock3xxx_data.c
-+++ b/arch/arm/mach-omap2/clock3xxx_data.c
-@@ -1392,6 +1392,7 @@ static struct clk cpefuse_fck = {
- 	.name		= "cpefuse_fck",
- 	.ops		= &clkops_omap2_dflt,
- 	.parent		= &sys_ck,
-+	.clkdm_name	= "core_l4_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
- 	.enable_bit	= OMAP3430ES2_EN_CPEFUSE_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1401,6 +1402,7 @@ static struct clk ts_fck = {
- 	.name		= "ts_fck",
- 	.ops		= &clkops_omap2_dflt,
- 	.parent		= &omap_32k_fck,
-+	.clkdm_name	= "core_l4_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
- 	.enable_bit	= OMAP3430ES2_EN_TS_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1410,6 +1412,7 @@ static struct clk usbtll_fck = {
- 	.name		= "usbtll_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &dpll5_m2_ck,
-+	.clkdm_name	= "core_l4_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, OMAP3430ES2_CM_FCLKEN3),
- 	.enable_bit	= OMAP3430ES2_EN_USBTLL_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -1615,6 +1618,7 @@ static struct clk fshostusb_fck = {
- 	.name		= "fshostusb_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &core_48m_fck,
-+	.clkdm_name	= "core_l4_clkdm",
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
- 	.enable_bit	= OMAP3430ES1_EN_FSHOSTUSB_SHIFT,
- 	.recalc		= &followparent_recalc,
-@@ -2041,6 +2045,7 @@ static struct clk omapctrl_ick = {
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
- 	.enable_bit	= OMAP3430_EN_OMAPCTRL_SHIFT,
- 	.flags		= ENABLE_ON_INIT,
-+	.clkdm_name	= "core_l4_clkdm",
- 	.recalc		= &followparent_recalc,
- };
- 
-@@ -2092,6 +2097,7 @@ static struct clk usb_l4_ick = {
- 	.clksel_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_CLKSEL),
- 	.clksel_mask	= OMAP3430ES1_CLKSEL_FSHOSTUSB_MASK,
- 	.clksel		= usb_l4_clksel,
-+	.clkdm_name	= "core_l4_clkdm",
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--- 
-1.7.9
-
+Regards
+Dong Aisheng
