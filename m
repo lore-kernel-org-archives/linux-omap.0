@@ -1,127 +1,83 @@
-From: Maciej Rutecki <maciej.rutecki@gmail.com>
-Subject: Re: Possible circular locking dependency (3.3-rc2)
-Date: Sun, 12 Feb 2012 14:31:54 +0100
-Message-ID: <201202121431.54917.maciej.rutecki@gmail.com>
-References: <20120208124147.GF16334@legolas.emea.dhcp.ti.com>
-Reply-To: maciej.rutecki@gmail.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP34xx
+Date: Sun, 12 Feb 2012 12:12:54 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202121148210.30322@utopia.booyaka.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120212104132.GA17557@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20120208124147.GF16334@legolas.emea.dhcp.ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: balbi@ti.com
-Cc: Grant Likely <grant.likely@secretlab.ca>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linus Walleij <linus.walleij@stericsson.com>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:42511 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879Ab2BLTMy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Feb 2012 14:12:54 -0500
+In-Reply-To: <20120212104132.GA17557@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Olof Johansson <olof@lixom.net>
 
-T24gxZtyb2RhLCA4IGx1dGVnbyAyMDEyIG8gMTM6NDE6NDggRmVsaXBlIEJhbGJpIHdyb3RlOgo+
-IEhpIGd1eXMsCj4gCj4gSSBoYXZlIGp1c3QgdHJpZ2dlcmVkIHRoZSBmb2xsbG93aW5nOgo+IAo+
-IFsgICA4NC44NjAzMjFdID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PQo+IFsgICA4NC44NjAzMjFdIFsgSU5GTzogcG9zc2libGUgY2lyY3VsYXIg
-bG9ja2luZyBkZXBlbmRlbmN5IGRldGVjdGVkIF0KPiBbICAgODQuODYwMzIxXSAzLjMuMC1yYzIt
-MDAwMjYtZ2U0ZThhMzkgIzQ3NCBOb3QgdGFpbnRlZAo+IFsgICA4NC44NjAzMjFdIC0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KPiBbICAgODQu
-ODYwMzIxXSBiYXNoLzk0OSBpcyB0cnlpbmcgdG8gYWNxdWlyZSBsb2NrOgo+IFsgICA4NC44NjAz
-MjFdICAoc3lzZnNfbG9jayl7Ky4rLisufSwgYXQ6IFs8YzAyNzUzNTg+XQo+IGdwaW9fdmFsdWVf
-c3RvcmUrMHgyNC8weGNjIFsgICA4NC44NjAzMjFdCj4gWyAgIDg0Ljg2MDMyMV0gYnV0IHRhc2sg
-aXMgYWxyZWFkeSBob2xkaW5nIGxvY2s6Cj4gWyAgIDg0Ljg2MDMyMV0gIChzX2FjdGl2ZSMyMil7
-KysrKy4rfSwgYXQ6IFs8YzAxNjk5NmM+XQo+IHN5c2ZzX3dyaXRlX2ZpbGUrMHhkYy8weDE4NCBb
-ICAgODQuOTExNDY4XQo+IFsgICA4NC45MTE0NjhdIHdoaWNoIGxvY2sgYWxyZWFkeSBkZXBlbmRz
-IG9uIHRoZSBuZXcgbG9jay4KPiBbICAgODQuOTExNDY4XQo+IFsgICA4NC45MjAwNDNdCj4gWyAg
-IDg0LjkyMDA0M10gdGhlIGV4aXN0aW5nIGRlcGVuZGVuY3kgY2hhaW4gKGluIHJldmVyc2Ugb3Jk
-ZXIpIGlzOgo+IFsgICA4NC45MjAwNDNdCj4gWyAgIDg0LjkyNzg4Nl0gLT4gIzEgKHNfYWN0aXZl
-IzIyKXsrKysrLit9Ogo+IFsgICA4NC45Mjc4ODZdICAgICAgICBbPGMwMDhmNjQwPl0gY2hlY2tf
-cHJldnNfYWRkKzB4ZGMvMHgxNTAKPiBbICAgODQuOTI3ODg2XSAgICAgICAgWzxjMDA4ZmMxOD5d
-IHZhbGlkYXRlX2NoYWluLmNsb25lLjI0KzB4NTY0LzB4Njk0Cj4gWyAgIDg0LjkyNzg4Nl0gICAg
-ICAgIFs8YzAwOTBjZGM+XSBfX2xvY2tfYWNxdWlyZSsweDQ5Yy8weDk4MAo+IFsgICA4NC45NTE2
-NjBdICAgICAgICBbPGMwMDkxODM4Pl0gbG9ja19hY3F1aXJlKzB4OTgvMHgxMDAKPiBbICAgODQu
-OTUxNjYwXSAgICAgICAgWzxjMDE2YThlOD5dIHN5c2ZzX2RlYWN0aXZhdGUrMHhiMC8weDEwMAo+
-IFsgICA4NC45NjI5ODJdICAgICAgICBbPGMwMTZiMWI0Pl0gc3lzZnNfYWRkcm1fZmluaXNoKzB4
-MmMvMHg2Ywo+IFsgICA4NC45NjI5ODJdICAgICAgICBbPGMwMTZiOGJjPl0gc3lzZnNfcmVtb3Zl
-X2RpcisweDg0LzB4OTgKPiBbICAgODQuOTYyOTgyXSAgICAgICAgWzxjMDI1OTBkOD5dIGtvYmpl
-Y3RfZGVsKzB4MTAvMHg3OAo+IFsgICA4NC45NzQ2NzBdICAgICAgICBbPGMwMmMyOWU4Pl0gZGV2
-aWNlX2RlbCsweDE0MC8weDE3MAo+IFsgICA4NC45NzQ2NzBdICAgICAgICBbPGMwMmMyYTI0Pl0g
-ZGV2aWNlX3VucmVnaXN0ZXIrMHhjLzB4MTgKPiBbICAgODQuOTg1MzgyXSAgICAgICAgWzxjMDI3
-Njg5ND5dIGdwaW9fdW5leHBvcnQrMHhiYy8weGRjCj4gWyAgIDg0Ljk4NTM4Ml0gICAgICAgIFs8
-YzAyNzY4Yzg+XSBncGlvX2ZyZWUrMHgxNC8weGZjCj4gWyAgIDg1LjAwMTcwOF0gICAgICAgIFs8
-YzAyNzZhMjg+XSB1bmV4cG9ydF9zdG9yZSsweDc4LzB4OGMKPiBbICAgODUuMDAxNzA4XSAgICAg
-ICAgWzxjMDJjNWFmOD5dIGNsYXNzX2F0dHJfc3RvcmUrMHgxOC8weDI0Cj4gWyAgIDg1LjAwNzI5
-M10gICAgICAgIFs8YzAxNjk5OTA+XSBzeXNmc193cml0ZV9maWxlKzB4MTAwLzB4MTg0Cj4gWyAg
-IDg1LjAxODk4MV0gICAgICAgIFs8YzAxMDlkNDg+XSB2ZnNfd3JpdGUrMHhiNC8weDE0OAo+IFsg
-ICA4NS4wMTg5ODFdICAgICAgICBbPGMwMTA5ZmQwPl0gc3lzX3dyaXRlKzB4NDAvMHg3MAo+IFsg
-ICA4NS4wMTg5ODFdICAgICAgICBbPGMwMDEzY2MwPl0gcmV0X2Zhc3Rfc3lzY2FsbCsweDAvMHgz
-Ywo+IFsgICA4NS4wMzUwMDNdCj4gWyAgIDg1LjAzNTAwM10gLT4gIzAgKHN5c2ZzX2xvY2speysu
-Ky4rLn06Cj4gWyAgIDg1LjAzNTAwM10gICAgICAgIFs8YzAwOGY1NGM+XSBjaGVja19wcmV2X2Fk
-ZCsweDY4MC8weDY5OAo+IFsgICA4NS4wMzUwMDNdICAgICAgICBbPGMwMDhmNjQwPl0gY2hlY2tf
-cHJldnNfYWRkKzB4ZGMvMHgxNTAKPiBbICAgODUuMDUyMDkzXSAgICAgICAgWzxjMDA4ZmMxOD5d
-IHZhbGlkYXRlX2NoYWluLmNsb25lLjI0KzB4NTY0LzB4Njk0Cj4gWyAgIDg1LjA1MjA5M10gICAg
-ICAgIFs8YzAwOTBjZGM+XSBfX2xvY2tfYWNxdWlyZSsweDQ5Yy8weDk4MAo+IFsgICA4NS4wNTIw
-OTNdICAgICAgICBbPGMwMDkxODM4Pl0gbG9ja19hY3F1aXJlKzB4OTgvMHgxMDAKPiBbICAgODUu
-MDY5ODg1XSAgICAgICAgWzxjMDQ3ZTI4MD5dIG11dGV4X2xvY2tfbmVzdGVkKzB4M2MvMHgyZjQK
-PiBbICAgODUuMDY5ODg1XSAgICAgICAgWzxjMDI3NTM1OD5dIGdwaW9fdmFsdWVfc3RvcmUrMHgy
-NC8weGNjCj4gWyAgIDg1LjA2OTg4NV0gICAgICAgIFs8YzAyYzE4ZGM+XSBkZXZfYXR0cl9zdG9y
-ZSsweDE4LzB4MjQKPiBbICAgODUuMDg3MTU4XSAgICAgICAgWzxjMDE2OTk5MD5dIHN5c2ZzX3dy
-aXRlX2ZpbGUrMHgxMDAvMHgxODQKPiBbICAgODUuMDg3MTU4XSAgICAgICAgWzxjMDEwOWQ0OD5d
-IHZmc193cml0ZSsweGI0LzB4MTQ4Cj4gWyAgIDg1LjA5ODI5N10gICAgICAgIFs8YzAxMDlmZDA+
-XSBzeXNfd3JpdGUrMHg0MC8weDcwCj4gWyAgIDg1LjA5ODI5N10gICAgICAgIFs8YzAwMTNjYzA+
-XSByZXRfZmFzdF9zeXNjYWxsKzB4MC8weDNjCj4gWyAgIDg1LjEwOTA2OV0KPiBbICAgODUuMTA5
-MDY5XSBvdGhlciBpbmZvIHRoYXQgbWlnaHQgaGVscCB1cyBkZWJ1ZyB0aGlzOgo+IFsgICA4NS4x
-MDkwNjldCj4gWyAgIDg1LjExNzQ2Ml0gIFBvc3NpYmxlIHVuc2FmZSBsb2NraW5nIHNjZW5hcmlv
-Ogo+IFsgICA4NS4xMTc0NjJdCj4gWyAgIDg1LjExNzQ2Ml0gICAgICAgIENQVTAgICAgICAgICAg
-ICAgICAgICAgIENQVTEKPiBbICAgODUuMTI4NDE3XSAgICAgICAgLS0tLSAgICAgICAgICAgICAg
-ICAgICAgLS0tLQo+IFsgICA4NS4xMjg0MTddICAgbG9jayhzX2FjdGl2ZSMyMik7Cj4gWyAgIDg1
-LjEyODQxN10gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxvY2soc3lzZnNfbG9jayk7
-Cj4gWyAgIDg1LjEyODQxN10gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxvY2soc19h
-Y3RpdmUjMjIpOwo+IFsgICA4NS4xNDI0ODZdICAgbG9jayhzeXNmc19sb2NrKTsKPiBbICAgODUu
-MTUxNzk0XQo+IFsgICA4NS4xNTE3OTRdICAqKiogREVBRExPQ0sgKioqCj4gWyAgIDg1LjE1MTc5
-NF0KPiBbICAgODUuMTUxNzk0XSAyIGxvY2tzIGhlbGQgYnkgYmFzaC85NDk6Cj4gWyAgIDg1LjE1
-ODAyMF0gICMwOiAgKCZidWZmZXItPm11dGV4KXsrLisuKy59LCBhdDogWzxjMDE2OThiOD5dCj4g
-c3lzZnNfd3JpdGVfZmlsZSsweDI4LzB4MTg0IFsgICA4NS4xNzAzNDldICAjMTogIChzX2FjdGl2
-ZSMyMil7KysrKy4rfSwKPiBhdDogWzxjMDE2OTk2Yz5dIHN5c2ZzX3dyaXRlX2ZpbGUrMHhkYy8w
-eDE4NCBbICAgODUuMTcwMzQ5XQo+IFsgICA4NS4xNzg1ODhdIHN0YWNrIGJhY2t0cmFjZToKPiBb
-ICAgODUuMTc4NTg4XSBbPGMwMDFiODI0Pl0gKHVud2luZF9iYWNrdHJhY2UrMHgwLzB4ZjApIGZy
-b20gWzxjMDA4ZGU2ND5dCj4gKHByaW50X2NpcmN1bGFyX2J1ZysweDEwMC8weDExNCkgWyAgIDg1
-LjE5MzAyM10gWzxjMDA4ZGU2ND5dCj4gKHByaW50X2NpcmN1bGFyX2J1ZysweDEwMC8weDExNCkg
-ZnJvbSBbPGMwMDhmNTRjPl0KPiAoY2hlY2tfcHJldl9hZGQrMHg2ODAvMHg2OTgpIFsgICA4NS4x
-OTMwMjNdIFs8YzAwOGY1NGM+XQo+IChjaGVja19wcmV2X2FkZCsweDY4MC8weDY5OCkgZnJvbSBb
-PGMwMDhmNjQwPl0KPiAoY2hlY2tfcHJldnNfYWRkKzB4ZGMvMHgxNTApIFsgICA4NS4yMTI1MjRd
-IFs8YzAwOGY2NDA+XQo+IChjaGVja19wcmV2c19hZGQrMHhkYy8weDE1MCkgZnJvbSBbPGMwMDhm
-YzE4Pl0KPiAodmFsaWRhdGVfY2hhaW4uY2xvbmUuMjQrMHg1NjQvMHg2OTQpIFsgICA4NS4yMTI1
-MjRdIFs8YzAwOGZjMTg+XQo+ICh2YWxpZGF0ZV9jaGFpbi5jbG9uZS4yNCsweDU2NC8weDY5NCkg
-ZnJvbSBbPGMwMDkwY2RjPl0KPiAoX19sb2NrX2FjcXVpcmUrMHg0OWMvMHg5ODApIFsgICA4NS4y
-MzMzMDZdIFs8YzAwOTBjZGM+XQo+IChfX2xvY2tfYWNxdWlyZSsweDQ5Yy8weDk4MCkgZnJvbSBb
-PGMwMDkxODM4Pl0gKGxvY2tfYWNxdWlyZSsweDk4LzB4MTAwKSBbCj4gICA4NS4yMzMzMDZdIFs8
-YzAwOTE4Mzg+XSAobG9ja19hY3F1aXJlKzB4OTgvMHgxMDApIGZyb20gWzxjMDQ3ZTI4MD5dCj4g
-KG11dGV4X2xvY2tfbmVzdGVkKzB4M2MvMHgyZjQpIFsgICA4NS4yNDI2MTRdIFs8YzA0N2UyODA+
-XQo+IChtdXRleF9sb2NrX25lc3RlZCsweDNjLzB4MmY0KSBmcm9tIFs8YzAyNzUzNTg+XQo+IChn
-cGlvX3ZhbHVlX3N0b3JlKzB4MjQvMHhjYykgWyAgIDg1LjI2MTg0MF0gWzxjMDI3NTM1OD5dCj4g
-KGdwaW9fdmFsdWVfc3RvcmUrMHgyNC8weGNjKSBmcm9tIFs8YzAyYzE4ZGM+XSAoZGV2X2F0dHJf
-c3RvcmUrMHgxOC8weDI0KQo+IFsgICA4NS4yNjE4NDBdIFs8YzAyYzE4ZGM+XSAoZGV2X2F0dHJf
-c3RvcmUrMHgxOC8weDI0KSBmcm9tIFs8YzAxNjk5OTA+XQo+IChzeXNmc193cml0ZV9maWxlKzB4
-MTAwLzB4MTg0KSBbICAgODUuMjcxMjQwXSBbPGMwMTY5OTkwPl0KPiAoc3lzZnNfd3JpdGVfZmls
-ZSsweDEwMC8weDE4NCkgZnJvbSBbPGMwMTA5ZDQ4Pl0gKHZmc193cml0ZSsweGI0LzB4MTQ4KSBb
-IAo+ICA4NS4yOTAwMDhdIFs8YzAxMDlkNDg+XSAodmZzX3dyaXRlKzB4YjQvMHgxNDgpIGZyb20g
-WzxjMDEwOWZkMD5dCj4gKHN5c193cml0ZSsweDQwLzB4NzApIFsgICA4NS4yOTg0MDBdIFs8YzAx
-MDlmZDA+XSAoc3lzX3dyaXRlKzB4NDAvMHg3MCkKPiBmcm9tIFs8YzAwMTNjYzA+XSAocmV0X2Zh
-c3Rfc3lzY2FsbCsweDAvMHgzYykgLWJhc2g6IGVjaG86IHdyaXRlIGVycm9yOgo+IE9wZXJhdGlv
-biBub3QgcGVybWl0dGVkCj4gCj4gdGhlIHdheSB0byB0cmlnZ2VyIGlzOgo+IAo+IAo+IHJvb3RA
-bGVnb2xhczp+IyBjZCAvc3lzL2NsYXNzL2dwaW8vCj4gcm9vdEBsZWdvbGFzOi9zeXMvY2xhc3Mv
-Z3BpbyMgZWNobyAyID4gZXhwb3J0Cj4gcm9vdEBsZWdvbGFzOi9zeXMvY2xhc3MvZ3BpbyMgZWNo
-byAyID4gdW5leHBvcnQKPiByb290QGxlZ29sYXM6L3N5cy9jbGFzcy9ncGlvIyBlY2hvIDIgPiBl
-eHBvcnQKPiByb290QGxlZ29sYXM6L3N5cy9jbGFzcy9ncGlvIyBjZCBncGlvMi8KPiByb290QGxl
-Z29sYXM6L3N5cy9jbGFzcy9ncGlvL2dwaW8yIyBlY2hvIDEgPiB2YWx1ZQoKSSBjcmVhdGVkIGEg
-QnVnemlsbGEgZW50cnkgYXQgCmh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5j
-Z2k/aWQ9NDI3NjEKZm9yIHlvdXIgYnVnL3JlZ3Jlc3Npb24gcmVwb3J0LCBwbGVhc2UgYWRkIHlv
-dXIgYWRkcmVzcyB0byB0aGUgQ0MgbGlzdCBpbiAKdGhlcmUsIHRoYW5rcyEKCi0tIApNYWNpZWog
-UnV0ZWNraQpodHRwOi8vd3d3Lm1ydXRlY2tpLnBsCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+Hi
+
+On Sun, 12 Feb 2012, Russell King - ARM Linux wrote:
+
+> The other allnoconfig issue is:
+> 
+> arch/arm/mach-omap2/built-in.o:(.data+0xa3d0): undefined reference to `omap_i2c_reset'
+> 
+> which looks like hwmod can't cope with the I2C_OMAP being disabled.
+> 
+> I don't propose these are fixed for v3.3, but they certainly should be
+> fixed for v3.4.
+
+Thanks for the report.  Here's a patch for this for 3.4.  Compile-tested 
+only; will boot-test it as part of the v2 of the 3.4 hwmod changes.
+
+
+- Paul
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 12 Feb 2012 11:49:34 -0700
+Subject: [PATCH] ARM: OMAP2+: I2C: always compile I2C reset code, even if I2C
+ driver is not built
+
+During kernel init, we reset all IP blocks on the OMAP that we can,
+even if there is no driver compiled for that IP block.  Unlike most IP
+blocks, the I2C block requires some extra programming for this to
+work.  This reset code is incorrectly omitted when the I2C driver is
+deselected.  In this circumstance, the build breaks.  Fix by compiling
+the I2C reset code unconditionally.
+
+Problem reported by Russell King <linux@arm.linux.org.uk>.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+---
+ arch/arm/mach-omap2/Makefile |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fc9b238..0d5676c 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Common support
+ obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer.o pm.o \
+-	 common.o gpio.o dma.o wd_timer.o display.o
++	 common.o gpio.o dma.o wd_timer.o display.o i2c.o
+ 
+ omap-2-3-common				= irq.o sdrc.o
+ hwmod-common				= omap_hwmod.o \
+@@ -182,9 +182,6 @@ obj-$(CONFIG_OMAP_IOMMU)		+= iommu2.o
+ iommu-$(CONFIG_OMAP_IOMMU)		:= omap-iommu.o
+ obj-y					+= $(iommu-m) $(iommu-y)
+ 
+-i2c-omap-$(CONFIG_I2C_OMAP)		:= i2c.o
+-obj-y					+= $(i2c-omap-m) $(i2c-omap-y)
+-
+ ifneq ($(CONFIG_TIDSPBRIDGE),)
+ obj-y					+= dsp.o
+ endif
+-- 
+1.7.9
+
