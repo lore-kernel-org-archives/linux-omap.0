@@ -1,75 +1,48 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 0/5] OMAPDSS: Relocate ASoC HDMI codec to sound
-Date: Sat, 11 Feb 2012 18:34:40 -0600
-Message-ID: <1329006880.2035.1.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
-References: <1329004530-28029-1-git-send-email-ricardo.neri@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP34xx
+Date: Sun, 12 Feb 2012 10:41:32 +0000
+Message-ID: <20120212104132.GA17557@n2100.arm.linux.org.uk>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39128 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752547Ab2BLAfC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 11 Feb 2012 19:35:02 -0500
-Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1C0Z2E0006628
-	for <linux-omap@vger.kernel.org>; Sat, 11 Feb 2012 18:35:02 -0600
-Received: from DFLE71.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1C0Z14h003802
-	for <linux-omap@vger.kernel.org>; Sat, 11 Feb 2012 18:35:02 -0600 (CST)
-In-Reply-To: <1329004530-28029-1-git-send-email-ricardo.neri@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41808 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751819Ab2BLKlk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Feb 2012 05:41:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20120204185453.GB17309@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com, "K, Mythri P" <mythripk@ti.com>
-Cc: s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Hi,
-On Sat, 2012-02-11 at 17:55 -0600, Ricardo Neri wrote:
-> Hello,
-> 
-> In order to give to the OMAP HDMI code a more logical arrangement, the audio
-> part is moved to /sound. Only the IP-specific functions remain in the DSS HDMI
-> IP library. These patches introduce modifications to expose the DSS functio-
-> nality that is going to be required by the ASoC driver.
-> 
-> This relocation is split in two parts. This is first part. The second part
-> is for ASoC and is to be submitted to the ALSA list. The purpose of
-> this split is to ease the integration of these patches first to DSS
-> and then to ASoC.
+Another issue (through lower priority) is this:
 
-The ASoC part has also been submitted and can be consulted here:
+twl-common.c:(.init.text+0x2e48): undefined reference to `omap34xx_vddmpu_volt_data'
+twl-common.c:(.init.text+0x2e4c): undefined reference to `omap34xx_vddcore_volt_data'
+twl-common.c:(.init.text+0x2e5c): undefined reference to `omap36xx_vddmpu_volt_data'
+twl-common.c:(.init.text+0x2e60): undefined reference to `omap36xx_vddcore_volt_data'
+twl-common.c:(.init.text+0x2830): undefined reference to `omap44xx_vdd_mpu_volt_data'
+twl-common.c:(.init.text+0x283c): undefined reference to `omap44xx_vdd_iva_volt_data'
+twl-common.c:(.init.text+0x2844): undefined reference to `omap44xx_vdd_core_volt_data'
 
-http://mailman.alsa-project.org/pipermail/alsa-devel/2012-February/049058.html
+produced by the allnoconfig build.
 
-Ricardo
-> 
-> This work is also based on the patches previously sent for HDMI audio MCLK
-> support:
-> 
-> http://www.spinics.net/lists/linux-omap/msg64302.html
-> 
-> and was implemented on top of:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v3.3-rc3
-> 
-> Thanks,
-> 
-> Ricardo
-> 
-> Ricardo Neri (5):
->   OMAPDSS: HDMI: Add function to get the HDMI mode
->   OMAPDSS: HDMI: Rename audio functions in HDMI IP library
->   OMAPDSS: HDMI: Add audio config functions to HDMI IP ops
->   OMAPDSS: Export functions to enable dynamic linking
->   OMAPDSS/ASoC: Relocate ASoC HDMI codec. Part 1
-> 
->  drivers/video/omap2/dss/dss.h             |    1 +
->  drivers/video/omap2/dss/dss_features.c    |   10 +-
->  drivers/video/omap2/dss/hdmi.c            |  236 +----------------------------
->  drivers/video/omap2/dss/ti_hdmi.h         |   26 +++-
->  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   63 +--------
->  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |   13 --
->  6 files changed, 41 insertions(+), 308 deletions(-)
-> 
+The voltage domain code is always built into the kernel, but it references
+the operating point code for the voltage tables.  The voltage tables are
+only built in when PM_OPP is enabled.
 
+So, this means that either the voltage tables must always be built in, or
+the references need to be surrounded by #ifdef CONFIG_PM_OPP.  The former
+can be done in two ways: either move those tables out of opp*.c, or get
+rid of PM_OPP entirely as it must always be enabled.
 
+The other allnoconfig issue is:
+
+arch/arm/mach-omap2/built-in.o:(.data+0xa3d0): undefined reference to `omap_i2c_reset'
+
+which looks like hwmod can't cope with the I2C_OMAP being disabled.
+
+I don't propose these are fixed for v3.3, but they certainly should be
+fixed for v3.4.
