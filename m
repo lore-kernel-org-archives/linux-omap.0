@@ -1,98 +1,133 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH v2 2/2] ARM: OMAP: sram: Add am33xx SRAM support (minimal)
-Date: Mon, 13 Feb 2012 11:45:15 +0530
-Message-ID: <1329113715-7634-1-git-send-email-afzal@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 2/3 v5] arm: omap: am335x: enable phy controls
+Date: Mon, 13 Feb 2012 08:49:31 +0200
+Message-ID: <20120213064930.GC6614@legolas.emea.dhcp.ti.com>
+References: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
+ <1328675212-29693-2-git-send-email-ajay.gupta@ti.com>
+ <20120210183143.GS1426@atomide.com>
+ <47CEF8C4B26E8C44B22B028A650E0EA9317F6CF4@DBDE01.ent.ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Afzal Mohammed <afzal@ti.com>, nsekhar@ti.com, Vaibhav Bedia <vaibhav.bedia@ti.com>, hvaibhav@ti.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="adJ1OR3c6QgCpb/j"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:46928 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751277Ab2BMGti (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Feb 2012 01:49:38 -0500
+Content-Disposition: inline
+In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA9317F6CF4@DBDE01.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi, Felipe" <balbi@ti.com>
 
-From: Vaibhav Bedia <vaibhav.bedia@ti.com>
 
-Update SRAM start & size for am33xx SoC's.
+--adJ1OR3c6QgCpb/j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Note: cpu_is_34xx() is true for am33xx also. Doing
-cpu_is_am33xx() check after cpu_is_34xx() will not
-achieve what we want due to the above reason.
-Hence cpu_is_am33xx() is done before cpu_is_34xx()
+Hi,
 
-Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
----
+On Mon, Feb 13, 2012 at 04:26:19AM +0000, Gupta, Ajay Kumar wrote:
+> Hi,
+> > * Ajay Kumar Gupta <ajay.gupta@ti.com> [120207 19:55]:
+> > > Switch on the phy for am335x.
+> > >
+> > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/omap_phy_internal.c |   21 ++++++++++++++-------
+> > >  1 files changed, 14 insertions(+), 7 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-
+> > omap2/omap_phy_internal.c
+> > > index 4c90477..7129408 100644
+> > > --- a/arch/arm/mach-omap2/omap_phy_internal.c
+> > > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
+> > > @@ -266,7 +266,11 @@ void ti81xx_musb_phy_power(u8 on)
+> > >  	void __iomem *scm_base =3D NULL;
+> > >  	u32 usbphycfg;
+> > >
+> > > -	scm_base =3D ioremap(TI81XX_SCM_BASE, SZ_2K);
+> > > +	if (cpu_is_ti81xx())
+> > > +		scm_base =3D ioremap(TI81XX_SCM_BASE, SZ_2K);
+> > > +	else if (cpu_is_am33xx())
+> > > +		scm_base =3D ioremap(AM33XX_SCM_BASE, SZ_2K);
+> > > +
+> > >  	if (!scm_base) {
+> > >  		pr_err("system control module ioremap failed\n");
+> > >  		return;
+> > > @@ -278,16 +282,19 @@ void ti81xx_musb_phy_power(u8 on)
+> > >  		if (cpu_is_ti816x()) {
+> > >  			usbphycfg |=3D TI816X_USBPHY0_NORMAL_MODE;
+> > >  			usbphycfg &=3D ~TI816X_USBPHY_REFCLK_OSC;
+> > > -		} else if (cpu_is_ti814x()) {
+> > > -			usbphycfg &=3D ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
+> > > -				| USBPHY_DPINPUT | USBPHY_DMINPUT);
+> > > -			usbphycfg |=3D (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
+> > > -				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
+> > > +		} else if (cpu_is_ti814x() || cpu_is_am33xx()) {
+> > > +			usbphycfg &=3D ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
+> > > +			usbphycfg |=3D USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
+> > > +			if (cpu_is_ti814x()) {
+> > > +				usbphycfg &=3D ~(USBPHY_DPINPUT |
+> > USBPHY_DMINPUT);
+> > > +				usbphycfg |=3D USBPHY_DPOPBUFCTL
+> > > +					| USBPHY_DMOPBUFCTL;
+> > > +			}
+> > >  		}
+> > >  	} else {
+> > >  		if (cpu_is_ti816x())
+> > >  			usbphycfg &=3D ~TI816X_USBPHY0_NORMAL_MODE;
+> > > -		else if (cpu_is_ti814x())
+> > > +		else if (cpu_is_ti814x() || cpu_is_am33xx())
+> > >  			usbphycfg |=3D USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
+> > >
+> >=20
+> > Please remove all the cpu_is_xxxx calls from the *_phy_power functions.
+> > You should need those only in *_phy_init to set the right flags once,
+> > not every time you enable or disable the phy.
+>=20
+> Tony,
+>=20
+> This is a common function used by ti814x, ti816x and am335x and they have
+> mostly the same bit map but a few bits are different so we would need to
+> have cpu_is_xxxx.
+>=20
+> We use this *_phy_power(1) for phy on/init and *_phy_power(0) for phy off
+> and don't have separate *_phy_init(). Even in that case we would require
+> cpu_is_xxxx() as phy power down bit is different for ti816x and same for
+> ti814x and am335x.
+>=20
+> Please let me know how should we handle this.
 
-v2: Use OMAP naming conventions for subject
+use cpu_is_xxxx() to set a flag, and check on the flag.
 
- arch/arm/plat-omap/include/plat/sram.h |    1 +
- arch/arm/plat-omap/sram.c              |   14 ++++++++++++--
- 2 files changed, 13 insertions(+), 2 deletions(-)
+--=20
+balbi
 
-diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
-index 75aa1b2..227ae26 100644
---- a/arch/arm/plat-omap/include/plat/sram.h
-+++ b/arch/arm/plat-omap/include/plat/sram.h
-@@ -101,4 +101,5 @@ static inline void omap_push_sram_idle(void) {}
- #else
- #define OMAP4_SRAM_PA		0x40300000
- #endif
-+#define AM33XX_SRAM_PA		0x40300000
- #endif
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index 4243bdc..596f222 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -86,7 +86,7 @@ static int is_sram_locked(void)
- 			__raw_writel(0xCFDE, OMAP24XX_VA_READPERM0);  /* all i-read */
- 			__raw_writel(0xCFDE, OMAP24XX_VA_WRITEPERM0); /* all i-write */
- 		}
--		if (cpu_is_omap34xx()) {
-+		if (cpu_is_omap34xx() && !cpu_is_am33xx()) {
- 			__raw_writel(0xFFFF, OMAP34XX_VA_REQINFOPERM0); /* all q-vects */
- 			__raw_writel(0xFFFF, OMAP34XX_VA_READPERM0);  /* all i-read */
- 			__raw_writel(0xFFFF, OMAP34XX_VA_WRITEPERM0); /* all i-write */
-@@ -124,7 +124,10 @@ static void __init omap_detect_sram(void)
- 				omap_sram_size = 0x800; /* 2K */
- 			}
- 		} else {
--			if (cpu_is_omap34xx()) {
-+			if (cpu_is_am33xx()) {
-+				omap_sram_start = AM33XX_SRAM_PA;
-+				omap_sram_size = 0x10000; /* 64K */
-+			} else if (cpu_is_omap34xx()) {
- 				omap_sram_start = OMAP3_SRAM_PA;
- 				omap_sram_size = 0x10000; /* 64K */
- 			} else if (cpu_is_omap44xx()) {
-@@ -368,6 +371,11 @@ static inline int omap34xx_sram_init(void)
- 	return 0;
- }
- 
-+static inline int am33xx_sram_init(void)
-+{
-+	return 0;
-+}
-+
- int __init omap_sram_init(void)
- {
- 	omap_detect_sram();
-@@ -379,6 +387,8 @@ int __init omap_sram_init(void)
- 		omap242x_sram_init();
- 	else if (cpu_is_omap2430())
- 		omap243x_sram_init();
-+	else if (cpu_is_am33xx())
-+		am33xx_sram_init();
- 	else if (cpu_is_omap34xx())
- 		omap34xx_sram_init();
- 
--- 
-1.7.1
+--adJ1OR3c6QgCpb/j
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPOLJ6AAoJEIaOsuA1yqRE45QP/0fPR1kqi5413T6KZPPOWDku
+7N7y3QR3s7pabc23slTjE3niLsA1YHsmeFtGuxEjAbADRboOr0eaGcZuCpQpORAF
+aLohOI7r8LYpByqr8w8AjRc61bfs/LIxtQP50T71sljk40zsCEnw872HRw4opGTD
+jy3Q8tf6Rxzsoswa8Y/F3vnejE9fS2CWUirvF1UJ6jy2Af/GP02cF3wgyTvnwoq8
+GshY+w9SYfKnvYclfNQD0lDEQnZzpxD/+ZLjIO+4O8cXhHvflnWXSgXCP+KsaDEU
+vC0HSG2bgDwP1fRMcFobo2GIaWvl/te9uMNS0aMJjGaSz6PAgA0IdLaY2578IhFG
+dChRGWoyp0ibKBqTN0P6aqHv3FjqdD9Ku4smS/gJAXPSiBGNcROkKZUeR6bZpeGy
+6tISfRFNZAjJ6BanFJNYZmYyuLKtG8z1e6KI47JLuXjMXFXFWVD1pK8/rxyMWMZD
+ou6y7+4xGC+C5Of+Bw+5eJowV6K2oxRd3gGOXmrP4uI3z+2TdEFWDHHTbk73k9ye
+5xkrEKI7JVHp2x39XCcn9c2DKqZbw460ITTwuEWTTfuGhb77z1clYhNx2x30lX0b
+CITw0RYTS4+syQyHiZGu7DCUm+bQC/VxYVQOGz4FYCCUw/8tRwI+ofdxUKxge1Ol
+u2AgMl9AngLIfsPDGdNq
+=20lw
+-----END PGP SIGNATURE-----
+
+--adJ1OR3c6QgCpb/j--
