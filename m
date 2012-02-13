@@ -1,42 +1,90 @@
-From: Rex Feany <rfeany@laeos.net>
-Subject: Re: OMAP34xx
-Date: Mon, 13 Feb 2012 08:36:40 -0800
-Message-ID: <20120213163639.GA26284@rexfeany.com>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com>
- <4F3374F0.3080002@bitmer.com>
- <20120209133739.GB2590@sirena.org.uk>
- <20120209183624.GJ1426@atomide.com>
- <20120209193442.GA1767@rexfeany.com>
- <87hayzzjlv.fsf@ti.com>
- <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
- <20120210185810.GT1426@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ilona.fnordsoft.com ([173.230.144.79]:36885 "EHLO
-	ilona.fnordsoft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755282Ab2BMQgk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 11:36:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20120210185810.GT1426@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Porter <mporter@ti.com>
+Subject: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x regulators
+Date: Mon, 13 Feb 2012 11:43:42 -0500
+Message-ID: <1329151422-2146-1-git-send-email-mporter@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-Thus spake Tony Lindgren (tony@atomide.com):
+This fixes smsc911x support on platforms using gpmc_smsc911x_init().
+Commit c7e963f6888816f04d1f5da0e07bec4e0092f227 added the requirement
+that platforms provide vdd33a and vddvario supplies.
 
-> * Paul Walmsley <paul@pwsan.com> [120209 17:48]:
-> > 
-> > Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
-> > testing branch; it works.
-> 
-> Rex, care to confirm this is also the case for you with
-> your custom .config?
+Signed-off-by: Matt Porter <mporter@ti.com>
+---
+ arch/arm/mach-omap2/gpmc-smsc911x.c |   44 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 44 insertions(+), 0 deletions(-)
 
-Yes, it works. Thanks!
-
-take care!
-/rex.
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index 9970331..da8399e 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -19,6 +19,8 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/smsc911x.h>
++#include <linux/regulator/fixed.h>
++#include <linux/regulator/machine.h>
+ 
+ #include <plat/board.h>
+ #include <plat/gpmc.h>
+@@ -42,6 +44,43 @@ static struct smsc911x_platform_config gpmc_smsc911x_config = {
+ 	.flags		= SMSC911X_USE_16BIT,
+ };
+ 
++static struct regulator_consumer_supply gpmc_smsc911x_supply[] = {
++	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
++	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
++};
++
++/* Generic regulator definition to satisfy smsc911x */
++static struct regulator_init_data gpmc_smsc911x_reg_init_data = {
++	.constraints = {
++		.min_uV			= 3300000,
++		.max_uV			= 3300000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= ARRAY_SIZE(gpmc_smsc911x_supply),
++	.consumer_supplies	= gpmc_smsc911x_supply,
++};
++
++static struct fixed_voltage_config gpmc_smsc911x_fixed_reg_data = {
++	.supply_name		= "gpmc_smsc911x",
++	.microvolts		= 3300000,
++	.gpio			= -EINVAL,
++	.startup_delay		= 0,
++	.enable_high		= 0,
++	.enabled_at_boot	= 1,
++	.init_data		= &gpmc_smsc911x_reg_init_data,
++};
++
++static struct platform_device gpmc_smsc911x_regulator = {
++	.name		= "reg-fixed-voltage",
++	.id		= 0,
++	.dev = {
++		.platform_data	= &gpmc_smsc911x_fixed_reg_data,
++	},
++};
++
+ /*
+  * Initialize smsc911x device connected to the GPMC. Note that we
+  * assume that pin multiplexing is done in the board-*.c file,
+@@ -55,6 +94,11 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+ 
+ 	gpmc_cfg = board_data;
+ 
++	if (platform_device_register(&gpmc_smsc911x_regulator) < 0) {
++		pr_err("Unable to register smsc911x regulators\n");
++		return;
++	}
++
+ 	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
+ 		pr_err("Failed to request GPMC mem region\n");
+ 		return;
+-- 
+1.7.5.4
