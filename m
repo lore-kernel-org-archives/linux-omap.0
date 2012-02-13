@@ -1,38 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] omap fixes for v3.3-rc3
-Date: Mon, 13 Feb 2012 22:59:14 +0000
-Message-ID: <201202132259.14589.arnd@arndb.de>
-References: <20120213174557.GB1426@atomide.com>
+From: Ben Dooks <ben-i2c-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Subject: Re: [PATCH 3.3 v2] I2C: OMAP: fix build breakage when CONFIG_OF is
+ not set
+Date: Mon, 13 Feb 2012 23:27:07 +0000
+Message-ID: <20120213232707.GH2999@freya.fluff.org>
+References: <1328699901-19488-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61743 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757957Ab2BMXFb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 18:05:31 -0500
-In-Reply-To: <20120213174557.GB1426@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1328699901-19488-1-git-send-email-coelho-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, w.sang-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Monday 13 February 2012, Tony Lindgren wrote:
-> Hi Arnd and Olof,
+On Wed, Feb 08, 2012 at 01:18:21PM +0200, Luciano Coelho wrote:
+> Since commit 6145197 (i2c: OMAP: Add DT support for i2c controller),
+> building i2c_omap.c breaks if CONFIG_OF is not set:
 > 
-> Please pull omap fixes from:
+> drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_probe':
+> drivers/i2c/busses/i2c-omap.c:1021: error: 'omap_i2c_of_match' undeclared (first use in this function)
+> drivers/i2c/busses/i2c-omap.c:1021: error: (Each undeclared identifier is reported only once
+> drivers/i2c/busses/i2c-omap.c:1021: error: for each function it appears in.)
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+> This is because the definition of omap_i2c_of_match is #ifdef'd on
+> CONFIG_OF, but the usage of it is not.
 > 
-> This contains a DT boot fix that was found sitting in the omap DT branch,
-> omap2 related PM fix for serial port, and few compile and warning fixes.
+> Since the places where omap_ic2_of_match are prepared to get NULL
+> pointers if CONFIG_OF is not defined, we can simply define it to NULL.
 > 
-> Note that Russell also has a series of omap fixes queued up that will get
-> merged via his tree. There should not be any conflicts between these
-> two series.
+> Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Luciano Coelho <coelho-l0cyMroinI0@public.gmane.org>
+> Reviewed-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+> ---
+> v2: changed the commit log to use abbrev sha and include the commit subject
+> 
+>  drivers/i2c/busses/i2c-omap.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index f713eac..fd200eb 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -979,6 +979,8 @@ static const struct of_device_id omap_i2c_of_match[] = {
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, omap_i2c_of_match);
+> +#else
+> +static const struct of_device_id *omap_i2c_of_match = NULL;
+>  #endif
 
-Thanks, merged into the fixes branch.
-
-	Arnd
-
+of_match_ptr(_ptr) will go to NULL if CONFIG_OF is not set, use that please.
