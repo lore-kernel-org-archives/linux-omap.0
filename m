@@ -1,75 +1,26 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 0/9] usb: gadget: generic map/unmap routines
-Date: Mon, 13 Feb 2012 15:08:34 +0200
-Message-ID: <20120213130832.GV6614@legolas.emea.dhcp.ti.com>
-References: <1327405543-27589-1-git-send-email-balbi@ti.com>
-Reply-To: balbi@ti.com
+From: "Fila Mohammed" <fila0ba@yahoo.com>
+Subject: Hello
+Date: Mon, 13 Feb 2012 13:26:03 +0100
+Message-ID: <20120213122117.M66070__3888.3077599623$1329139666$gmane$org@yahoo.co.uk>
+Reply-To: fila23hmohammed@yahoo.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="j2Klb18PAKd8hQ5U"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1327405543-27589-1-git-send-email-balbi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
+Content-Type: text/plain;
+	charset=utf-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx2.mm.pl ([217.172.226.5]:42435 "EHLO mx1.mm.pl"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1750835Ab2BMN1b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Feb 2012 08:27:31 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
---j2Klb18PAKd8hQ5U
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Tue, Jan 24, 2012 at 01:45:21PM +0200, Felipe Balbi wrote:
-> Hi all,
->=20
-> here's a rebased version of generic map/unmap patchset.
->=20
-> Also available on generic-map-unmap branch of my tree, some
-> of the patches have been tested before and already have a
-> Tested-by tag.
->=20
-> Felipe Balbi (9):
->   usb: gadget: add generic map/unmap request utilities
->   usb: dwc3: gadget: use generic map/unmap routines
->   usb: gadget: langwell: use generic map/unmap functions
->   usb: renesas: gadget: use generic map/unmap routines
->   usb: gadget: amd5536: use generic map/unmap routines
->   usb: gadget: r8a66597: use generic map/unmap routines
->   usb: gadget: net2272: use generic map/umap routines
->   usb: gadget: net2280: use generic map/unmap routines
->   usb: gadget: goku: use generic map/unmap routines
-
-Tomorrow, will complete 3 weeks since I re-sent these patches. Since
-nobody has had any issues with them, I'm considering people are happy,
-so I'll queued them up for v3.4 merge window.
-
---=20
-balbi
-
---j2Klb18PAKd8hQ5U
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPOQtQAAoJEIaOsuA1yqRERpkQAIREfhgrtL2brIWZI0KB1h2F
-Y4lU5r4O1nFSKxo+NOuJYsXZPw4ZobjBLNumT+rFSvwKeq+DJZpZfxQ259CKGDHD
-B/Ki++c81WbPud0y9a5iUHi27wtQkpRivyrgUgte1tl7VRtrLQOu/X6oUDcxh8yj
-eKJnibNp1ms7kKvpxuHVhnkjDF1SeE7f85QRgl06Q5Z23kgsLfqBcPt343egUX2h
-vMpDz26pN3nQl3tR9tOa5YIhT+6fmUITq4FMTRK3jQvdIjyu4PrsBR50mepGiYub
-Nz1D6/wGIYs+hwnvofSrT9SRPMRvHRq/Nh2nAAZHlTLKRQHMKMuzzWQ/eLxFfhCG
-F7tZ61GzzHunmeFg8+q0SqMY7eeysLJ22kpAB3gvKB3KyFdaUTzhrd4YEG4dtfX7
-EoYrY4r1ZAf4DZYddziXpKccapxVk7AAY6xBlkvNlDKwG+78IzFiW5uezs/cJD1a
-0z8inijFrNjDJzRQrvXZSkyelfNXmUyk/F0eo8PJzz+kNiXVqM4H+lGdVjBUTmEU
-QV3DnZr6kMkkEW5dXfd7k1Uy/J0Rcz673R4IDb0UmLrXRQdc6uKKEYX8UE6SiLj9
-LLDJ8i2FC2ZIwaMEHKX7DtzoL7+ElJ5DUcfwBNyyOrtYUYLVmEN9/qqW+atrp3Rb
-ozTqNqR/3HvyhSQUSvjN
-=GsJT
------END PGP SIGNATURE-----
-
---j2Klb18PAKd8hQ5U--
+Interested in you,
+My name is Miss Fila, i saw your profile today on this site join4enjoy.com and
+became intrested in you,i will also like to know  more about you ,and i want
+you to send me an email to my email address, with your picture so that i can
+give you my picture for you to know whom i am.Here is my email address and i
+believe we can move from here.I am waiting for your mail to my email address
+and above. Remember the distance or colour does not matter but love matters
+alot in life is truth,caring,trust and understanding.
+Yours Lovely,
+Miss Fila.
