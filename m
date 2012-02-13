@@ -1,65 +1,98 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH] omap: board-omap3evm: add required smsc911x regulators
-Date: Mon, 13 Feb 2012 11:44:27 -0500
-Message-ID: <20120213164424.GD40045@h115-84.vpn.ti.com>
-References: <1328738812-26755-1-git-send-email-mporter@ti.com>
- <20120210174046.GQ1426@atomide.com>
- <20120210185033.GC40045@h115-84.vpn.ti.com>
- <20120210225340.GB21865@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+	regulators
+Date: Mon, 13 Feb 2012 16:52:09 +0000
+Message-ID: <20120213165209.GA31482@n2100.arm.linux.org.uk>
+References: <1329151422-2146-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20120210225340.GB21865@atomide.com>
+In-Reply-To: <1329151422-2146-1-git-send-email-mporter@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Matt Porter <mporter@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Feb 10, 2012 at 02:53:41PM -0800, Tony Lindgren wrote:
-> * Matt Porter <mporter@ti.com> [120210 10:19]:
-> > On Fri, Feb 10, 2012 at 09:40:47AM -0800, Tony Lindgren wrote:
-> > > * Matt Porter <matt@ohporter.com> [120208 13:35]:
-> > > > This fixes smsc911x support on omap3evm that has been broken since
-> > > > the smsc911x driver was updated to require the existence of vdd33a
-> > > > and vddvario supplies.
-> > > 
-> > > Great. Few comments:
-> > > 
-> > > 1. Could you please include the smsc911x commit and subject here too
-> > >    so it clearly shows the regression?
-> > 
-> > Sure. Will do for v2.
-> > 
-> > > 2. Also, why don't you add this fixed regulator to gpmc-smsc911.c?
-> > > 
-> > > That way it gets fixed for other too, like zoom2/3.
-> > 
-> > Ok, so I considered that at first and had two concerns that made me just
-> > do it in the omap3evm specific way and see what the feedback was.
-> > 
-> > 1) If we do a generic implementation in gpmc-smsc911x.c, there needs to
-> > be a way to override it. Another board may have a variable supply that
-> > feeds this consumer.
-> > 
-> > 2) Technically, this omap3evm specific implementation matches the hardware
-> > in that the osk_3v3 rail is software controllable. Granted, I commented
-> > that we simply don't hook up the gpio at this time since this real
-> > hardware regulator has always been silently asserted on by the nature of
-> > the reset state of the TWL GPIOs and the board level pull downs as well.
-> 
-> OK
->  
-> > So that said, I don't need #2 to make omap3evm work and I don't think
-> > anybody cares yet to actually turn that regulator off (as it will kill
-> > other things that appear to not have regulator support anyway). It looks
-> > like you talked me into respinning it as a generic implementation. Only
-> > question is whether I should bother consider not-yet-existing boards that
-> > may not want that generic regulator.
-> 
-> Well for future boards the regulator should come from device tree,
-> so for now it should be safe to add it to gpmc-smsc911.c.
+On Mon, Feb 13, 2012 at 11:43:42AM -0500, Matt Porter wrote:
+> This fixes smsc911x support on platforms using gpmc_smsc911x_init().
+> Commit c7e963f6888816f04d1f5da0e07bec4e0092f227 added the requirement
+> that platforms provide vdd33a and vddvario supplies.
 
-Ok, sounds good. Posted an updated version.
+Thanks.  Only one comment on this.
 
--Matt
+> +static struct platform_device gpmc_smsc911x_regulator = {
+> +	.name		= "reg-fixed-voltage",
+> +	.id		= 0,
+
+$ grep -A1 reg-fixed-voltage arch/arm/*omap* -r
+arch/arm/mach-omap2/board-omap3evm.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-omap3evm.c-	.id		= 1,
+--
+arch/arm/mach-omap2/board-zoom-peripherals.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-zoom-peripherals.c-	.id		= 1,
+--
+arch/arm/mach-omap2/board-overo.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-overo.c-	.id		= 1,
+--
+arch/arm/mach-omap2/board-omap4panda.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-omap4panda.c-	.id		= 1,
+--
+arch/arm/mach-omap2/board-rm680.c:	.name			= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-rm680.c-	.dev			= {
+--
+arch/arm/mach-omap2/board-igep0020.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-igep0020.c-	.id		= 0,
+--
+arch/arm/mach-omap2/board-4430sdp.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-4430sdp.c-	.id		= -1,
+--
+arch/arm/mach-omap2/board-4430sdp.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-4430sdp.c-	.id		= 1,
+--
+arch/arm/mach-omap2/board-omap3pandora.c:	.name		= "reg-fixed-voltage",
+arch/arm/mach-omap2/board-omap3pandora.c-	.id		= 1,
+
+igep0020.c does this:
+
+static struct omap_smsc911x_platform_data smsc911x_cfg = {
+        .cs             = IGEP2_SMSC911X_CS,
+        .gpio_irq       = IGEP2_SMSC911X_GPIO,
+        .gpio_reset     = -EINVAL,
+        .flags          = SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS,
+};
+
+static inline void __init igep2_init_smsc911x(void)
+{
+        gpmc_smsc911x_init(&smsc911x_cfg);
+}
+
+so it seems to use the gpmc_smsc stuff as well.  So we're ending up with
+two "reg-fixed-voltage" devices both with ID 0.  That's not going to work,
+and the driver model/sysfs will give you a nice warning there about that.
+
+I think OMAP (or even the reg-fixed-voltage folk) needs to create an enum
+similar to what I did for 8250 to control the allocation of platform
+device IDs for this, otherwise we're going to keep on running over this
+problem.
+
+/*
+ * Allocate 8250 platform device IDs.  Nothing is implied by
+ * the numbering here, except for the legacy entry being -1.
+ */
+enum {
+	PLAT8250_DEV_LEGACY = -1,
+	PLAT8250_DEV_PLATFORM,
+	PLAT8250_DEV_PLATFORM1,
+	PLAT8250_DEV_PLATFORM2,
+	PLAT8250_DEV_FOURPORT,
+	PLAT8250_DEV_ACCENT,
+	PLAT8250_DEV_BOCA,
+	PLAT8250_DEV_EXAR_ST16C554,
+	PLAT8250_DEV_HUB6,
+	PLAT8250_DEV_MCA,
+	PLAT8250_DEV_AU1X00,
+	PLAT8250_DEV_SM501,
+};
+
+Added Mark for his comment.
