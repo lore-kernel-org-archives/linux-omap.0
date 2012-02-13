@@ -1,78 +1,75 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v2] usb: musb: fix pm_runtime mismatch
-Date: Mon, 13 Feb 2012 14:54:58 +0200
-Message-ID: <CANOLnOOdY78RmQafa3udkbBZ30c6Ra1P_hM9HMy6xKL02gKLjA@mail.gmail.com>
-References: <1324324914-14584-1-git-send-email-felipe.contreras@nokia.com>
-	<CANOLnOP_aXGw2nxRE+VnW2ii2UV4JqJaxcfMbd3oVm6qfWxsGA@mail.gmail.com>
-	<CAMP44s07EnB7d+ZNHQR9RSG=+c+aXDbAOK0_wL_CCDuoWOcrCQ@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 0/9] usb: gadget: generic map/unmap routines
+Date: Mon, 13 Feb 2012 15:08:34 +0200
+Message-ID: <20120213130832.GV6614@legolas.emea.dhcp.ti.com>
+References: <1327405543-27589-1-git-send-email-balbi@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="j2Klb18PAKd8hQ5U"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMP44s07EnB7d+ZNHQR9RSG=+c+aXDbAOK0_wL_CCDuoWOcrCQ@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1327405543-27589-1-git-send-email-balbi@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Hema HK <hemahk@ti.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, Thomas Dahlmann <dahlmann.thomas@arcor.de>, Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>, "open list:DESIGNWARE USB3 D..." <linux-omap@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:AMD GEODE CS5536..." <linux-geode@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Jan 12, 2012 at 5:40 PM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> On Thu, Jan 12, 2012 at 1:56 PM, Grazvydas Ignotas <notasas@gmail.com=
-> wrote:
->> On Mon, Dec 19, 2011 at 10:01 PM, Felipe Contreras
->> <felipe.contreras@nokia.com> wrote:
->>> From: Felipe Contreras <felipe.contreras@gmail.com>
->>>
->>> In musb_init_controller() there's a pm_runtime_put(), but there's n=
-o
->>> pm_runtime_get(), which creates a mismatch that causes the driver t=
-o
->>> sleep when it shouldn't.
->>
->> This patch is causing problems here, the device never suspends, I've
->> verified musb_runtime_suspend and omap2430_runtime_suspend are never
->> called in my setup, unless I revert this patch. I'm using musb with
->> ethernet gadget; cable removal also doesn't suspend musb.
->>
->> It seems pm_runtime_put() that was removed was balancing out
->> pm_runtime_get in musb_platform_init(), which is called at the
->> beginning of musb_init_controller(). I think this pm_runtime_get()
->> from musb_platform_init() should be moved to musb_init_controller() =
-to
->> stop confusing people and pm_runtime_put() needs to be brought back.=
- I
->> can do a patch if nobody objects.
->
-> You mean have both get and put in musb_init_controller()? That's OK,
-> it would be balanced then, but you would have to remove the
-> pm_runtime_put() from omap2430_remove() that presumably was balancing
-> the pm_runtime_get_sync() in omap2430_musb_init().
->
->>> This was introduced in 7acc619[1], but it wasn't triggered in my se=
-tup
->>> until 18a2689[2] was merged to Linus' branch at point df0914[3]. IO=
-W;
->>> when PM is working as it was supposed to.
->>>
->>> However, it seems most of the time this is used in a way that keeps=
- the
->>> counter above 0, so nobody noticed. Also, it seems to depend on the
->>> configuration used in versions before 3.1, but not later (or in it)=
-=2E
->>>
->>> I found the problem by loading isp1704_charger before any usb gadge=
-ts:
->>> http://article.gmane.org/gmane.linux.kernel/1226122
->>
->> isp1704_charger seems to be doing otg_io_read(), and it's perfectly
->> normal that musb can be suspended at the time isp1704 decides to do
->> this. I think proper fix is to wake up must on musb_ulpi_read() and
->> musb_ulpi_write() instead.
->
-> I guess so. If you send these patches I can give them a try.
 
-Sent them a week ago, would be nice if you tried them.
+--j2Klb18PAKd8hQ5U
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
+
+On Tue, Jan 24, 2012 at 01:45:21PM +0200, Felipe Balbi wrote:
+> Hi all,
+>=20
+> here's a rebased version of generic map/unmap patchset.
+>=20
+> Also available on generic-map-unmap branch of my tree, some
+> of the patches have been tested before and already have a
+> Tested-by tag.
+>=20
+> Felipe Balbi (9):
+>   usb: gadget: add generic map/unmap request utilities
+>   usb: dwc3: gadget: use generic map/unmap routines
+>   usb: gadget: langwell: use generic map/unmap functions
+>   usb: renesas: gadget: use generic map/unmap routines
+>   usb: gadget: amd5536: use generic map/unmap routines
+>   usb: gadget: r8a66597: use generic map/unmap routines
+>   usb: gadget: net2272: use generic map/umap routines
+>   usb: gadget: net2280: use generic map/unmap routines
+>   usb: gadget: goku: use generic map/unmap routines
+
+Tomorrow, will complete 3 weeks since I re-sent these patches. Since
+nobody has had any issues with them, I'm considering people are happy,
+so I'll queued them up for v3.4 merge window.
 
 --=20
-Gra=C5=BEvydas
+balbi
+
+--j2Klb18PAKd8hQ5U
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPOQtQAAoJEIaOsuA1yqRERpkQAIREfhgrtL2brIWZI0KB1h2F
+Y4lU5r4O1nFSKxo+NOuJYsXZPw4ZobjBLNumT+rFSvwKeq+DJZpZfxQ259CKGDHD
+B/Ki++c81WbPud0y9a5iUHi27wtQkpRivyrgUgte1tl7VRtrLQOu/X6oUDcxh8yj
+eKJnibNp1ms7kKvpxuHVhnkjDF1SeE7f85QRgl06Q5Z23kgsLfqBcPt343egUX2h
+vMpDz26pN3nQl3tR9tOa5YIhT+6fmUITq4FMTRK3jQvdIjyu4PrsBR50mepGiYub
+Nz1D6/wGIYs+hwnvofSrT9SRPMRvHRq/Nh2nAAZHlTLKRQHMKMuzzWQ/eLxFfhCG
+F7tZ61GzzHunmeFg8+q0SqMY7eeysLJ22kpAB3gvKB3KyFdaUTzhrd4YEG4dtfX7
+EoYrY4r1ZAf4DZYddziXpKccapxVk7AAY6xBlkvNlDKwG+78IzFiW5uezs/cJD1a
+0z8inijFrNjDJzRQrvXZSkyelfNXmUyk/F0eo8PJzz+kNiXVqM4H+lGdVjBUTmEU
+QV3DnZr6kMkkEW5dXfd7k1Uy/J0Rcz673R4IDb0UmLrXRQdc6uKKEYX8UE6SiLj9
+LLDJ8i2FC2ZIwaMEHKX7DtzoL7+ElJ5DUcfwBNyyOrtYUYLVmEN9/qqW+atrp3Rb
+ozTqNqR/3HvyhSQUSvjN
+=GsJT
+-----END PGP SIGNATURE-----
+
+--j2Klb18PAKd8hQ5U--
