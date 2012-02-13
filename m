@@ -1,87 +1,50 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 1/3 v5] usb: musb: Add support for ti81xx platform
-Date: Mon, 13 Feb 2012 07:05:16 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA9317F7187@DBDE01.ent.ti.com>
-References: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
- <4F321320.8010709@ti.com> <20120209080822.GR1121@legolas.emea.dhcp.ti.com>
- <47CEF8C4B26E8C44B22B028A650E0EA9317F03C8@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <47CEF8C4B26E8C44B22B028A650E0EA9317F03C8-Er742YJ7I/eIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>, "Datta, Shubhrajyoti" <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
+From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+Subject: [PATCH] OMAP3 EVM: remove out-of-bounds array access of gpio_leds.
+Date: Mon, 13 Feb 2012 09:35:22 +0100
+Message-ID: <1329122122-5804-1-git-send-email-arnout@mind.be>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:51850
+	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab2BMIfw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 03:35:52 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Syed Mohammed Khasim <khasim@ti.com>, Russell King <linux@arm.linux.org.uk>, Philip Oberstaller <philip.oberstaller@septentrio.com>, "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
 
-Hi,
-> > On Wed, Feb 08, 2012 at 11:46:00AM +0530, Shubhrajyoti wrote:
-> > > On Wednesday 08 February 2012 09:56 AM, Ajay Kumar Gupta wrote:
-> > > > +static int dsps_musb_init(struct musb *musb) {
-> > > > +	struct device *dev = musb->controller;
-> > > > +	struct musb_hdrc_platform_data *plat = dev->platform_data;
-> > > > +	struct platform_device *pdev = to_platform_device(dev-
-> >parent);
-> > > > +	struct dsps_glue *glue = platform_get_drvdata(pdev);
-> > > > +	const struct dsps_musb_wrapper *wrp = glue->wrp;
-> > > > +	struct omap_musb_board_data *data = plat->board_data;
-> > > > +	void __iomem *reg_base = musb->ctrl_base;
-> > > > +	u32 rev, val;
-> > > > +	int status;
-> > > > +
-> > > > +	/* mentor core register starts at offset of 0x400 from musb
-> base
-> > */
-> > > > +	musb->mregs += wrp->musb_core_offset;
-> > > > +
-> > > > +	/* NOP driver needs change if supporting dual instance */
-> > > > +	usb_nop_xceiv_register();
-> > > > +	musb->xceiv = otg_get_transceiver();
-> > > > +	if (!musb->xceiv)
-> > > > +		return -ENODEV;
-> > > > +
-> > > > +	status = pm_runtime_get_sync(dev);
-> > > > +	if (status < 0) {
-> > > > +		dev_err(dev, "pm_runtime_get_sync FAILED");
-> > > > +		goto err0;
-> > > > +	}
-> > > So you are doing a get_sync at init and you cut the clocks at exit
-> > only.
-> > > Any particular reason for that.
-> 
-> This is a platform glue layer and main io paths are in
-> musb_core.c/musb_host.c
-> and musb_gadget.c. Host controller driver's bus_suspend/resume are in
-> musb_host.c.
-> 
-> What specific pm implementation are you looking for?
+From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
 
-The current patch calls pm_runtime_get_sync() for musb "device" and that
-is anyway getting done in common core file musb_core.c.
+The omap3evm BSP enables a GPIO LED on the twl4030 chip.  However,
+the static gpio_leds array doesn't have an entry for it.  This is
+most likely a copy-and-paste error, because it has been in there
+since the first commit of the omap3evm BSP (53c5ec31).
 
-Glue layer file need to call pm_runtime_get_sync() and x_put() for glue
-"device" during init and exit.
+Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
+---
+Please CC me, I'm not on the list.
 
-I will resubmit this patch with above change.
+Since I don't have access to an OMAP3EVM board or schematics, I
+couldn't actually test if my fix is correct.  I discovered the error
+because I'm using this BSP for an AM37xEVM board - which has the
+LED connected to a different GPIO.  It works on the AM37xEVM board
+if I replace the assignment with the correct GPIO number (8).
+---
+ arch/arm/mach-omap2/board-omap3evm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Ajay
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index ec00b2e..f6f5cd4 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -381,7 +381,7 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+ 
+ 	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
+-	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
++	gpio_leds[0].gpio = gpio + TWL4030_GPIO_MAX + 1;
+ 
+ 	platform_device_register(&leds_gpio);
+ 
+-- 
+1.7.8.3
 
-> 
-> Ajay
-> >
-> > that's a very good question. We're just adding a brand new file, which
-> > is clean and stuff... so we might as well start with good PM
-> > capabilities.
-> >
-> > --
-> > balbi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
