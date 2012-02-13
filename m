@@ -1,64 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.3-rc3
-Date: Mon, 13 Feb 2012 09:45:58 -0800
-Message-ID: <20120213174557.GB1426@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+ regulators
+Date: Mon, 13 Feb 2012 09:52:34 -0800
+Message-ID: <20120213175233.GC1426@atomide.com>
+References: <1329151422-2146-1-git-send-email-mporter@ti.com>
+ <20120213165209.GA31482@n2100.arm.linux.org.uk>
+ <20120213165617.GE3494@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:20848 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653Ab2BMRqD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 12:46:03 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20120213165617.GE3494@opensource.wolfsonmicro.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Hi Arnd and Olof,
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [120213 08:25]:
+> On Mon, Feb 13, 2012 at 04:52:09PM +0000, Russell King - ARM Linux wrote:
+> 
+> > I think OMAP (or even the reg-fixed-voltage folk) needs to create an enum
+> > similar to what I did for 8250 to control the allocation of platform
+> > device IDs for this, otherwise we're going to keep on running over this
+> > problem.
+> 
+> > Added Mark for his comment.
+> 
+> Hrm, seems slightly icky but the enum will work if we can decide how to
+> add elements to the enum since it'll be easy to bloat a lot it if it's
+> central.  It's tempting to suggest just using a random number to assign
+> the IDs randomly rather than have a central registry but obviously
+> there's no guarantees there.
 
-Please pull omap fixes from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
-
-This contains a DT boot fix that was found sitting in the omap DT branch,
-omap2 related PM fix for serial port, and few compile and warning fixes.
-
-Note that Russell also has a series of omap fixes queued up that will get
-merged via his tree. There should not be any conflicts between these
-two series.
+Can't we just leave out the .id and have it automatically assigned?
 
 Regards,
 
 Tony
-
-
-The following changes since commit d65b4e98d7ea3038b767b70fe8be959b2913f16d:
-  Linus Torvalds (1):
-        Linux 3.3-rc3
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
-
-Benoit Cousson (1):
-      ARM: OMAP2+: board-generic: Add missing handle_irq callbacks
-
-Igor Grinberg (1):
-      ARM: OMAP3: cm-t35: fix section mismatch warning
-
-Paul Walmsley (1):
-      ARM: OMAP2xxx: PM: fix OMAP2xxx-specific UART idle bug in v3.3
-
-Santosh Shilimkar (1):
-      ARM: OMAP2: Fix the OMAP2 only build break seen with 2011+ ARM tool-chains
-
-Tony Lindgren (1):
-      Merge branch 'fixes-dt' into fixes
-
- arch/arm/mach-omap2/Makefile                  |    4 ++--
- arch/arm/mach-omap2/board-cm-t35.c            |    2 +-
- arch/arm/mach-omap2/board-generic.c           |    4 ++++
- arch/arm/mach-omap2/pm24xx.c                  |    8 +-------
- arch/arm/plat-omap/include/plat/omap-secure.h |    2 +-
- 5 files changed, 9 insertions(+), 11 deletions(-)
