@@ -1,173 +1,82 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] pinctrl: Add simple pinmux driver using device
- tree data
-Date: Mon, 13 Feb 2012 11:11:13 -0800
-Message-ID: <20120213191113.GF1426@atomide.com>
-References: <20120203205049.4089.74610.stgit@kaulin.local>
- <20120203205508.4089.35304.stgit@kaulin.local>
- <20120204175903.GF1426@atomide.com>
- <CAA+hA=Tux3P0RyaB=vG7UeycTt8z4nX9dBicpjB7tQ+xzwoSDQ@mail.gmail.com>
- <20120210200503.GX1426@atomide.com>
- <CAA+hA=Qa_3vXvgNMRuDjw93Wb3fGNOM1EqmvYVQO5CN9w2FA3A@mail.gmail.com>
+From: Marc Butler <marc@plastictigers.com>
+Subject: Re: How do I get slimbus hwmod information?
+Date: Mon, 13 Feb 2012 15:00:45 -0500
+Message-ID: <20120213200045.GA6638@plastictigers.com>
+References: <20120105004503.GA4650@plastictigers.com>
+ <alpine.DEB.2.00.1201251239150.5324@utopia.booyaka.com>
+ <20120130201132.GB6332@plastictigers.com>
+ <alpine.DEB.2.00.1201301429590.17726@utopia.booyaka.com>
+Reply-To: marc@plastictigers.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from li158-162.members.linode.com ([173.230.148.162]:48112 "EHLO
+	plastictigers.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757833Ab2BMUAq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 15:00:46 -0500
 Content-Disposition: inline
-In-Reply-To: <CAA+hA=Qa_3vXvgNMRuDjw93Wb3fGNOM1EqmvYVQO5CN9w2FA3A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dong Aisheng <dongas86@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Linus Walleij <linus.walleij@stericsson.com>, Barry Song <21cnbao@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Rajendra Nayak <rajendra.nayak@linaro.org>, Dong Aisheng <dong.aisheng@linaro.org>, Shawn Guo <shawn.guo@freescale.com>
+In-Reply-To: <alpine.DEB.2.00.1201301429590.17726@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, b-cousson@ti.com, gclemson@audience.com, lrg@ti.com, peter.ujfalusi@ti.com, khilman@ti.com, mturquette@ti.com
 
-* Dong Aisheng <dongas86@gmail.com> [120210 16:02]:
-> Hi Tony,
+Paul,
+
+Sorry it has taken so long reply. Unavoidable and sudden interruption.
+
+On Mon, Jan 30, 2012 at 02:43:34PM -0700, Paul Walmsley wrote:
+> On Mon, 30 Jan 2012, Marc Butler wrote:
+> > On Wed, Jan 25, 2012 at 12:46:50PM -0700, Paul Walmsley wrote:
+> > > The driver shouldn't have any hwmod code in it.  Any 
+> > 
+> > I believe I came to the conclusion that I need the hwmod support,
+> > inorder to build out the platform_* infrastructure the driver needs,
+> > to query/configure resources. The driver itself does not call hwmod
+> > directly.
 > 
-> On Fri, Feb 10, 2012 at 12:05:03PM -0800, Tony Lindgren wrote:
-> > Hi Dong,
-> >
-> > * Dong Aisheng <dongas86@gmail.com> [120207 17:22]:
-> > > On 2/4/12, Tony Lindgren <tony@atomide.com> wrote:
-> > >
-> > > The most difference may be the function enable due to hw difference.
-> > > But i see that for DT case, it seems function and group creation may
-> > > also be a problem.
-> >
-> > What all do you see as a problem with group creation? Just the
-> > naming?
-> I said from different SoC's pointer of view.
-> Not only naming, but also if group and function created in driver or dt file
-> and their map parsing.
-> 
-> > > > + sprintf(name, "%lx",
-> > > > +         (unsigned long)smux->res->start + offset);
-> > > > + pin->name = name;
-> > > I'm wondering how about other people do not want the reg address to be PIN name?
-> > > It's less meaningful.
-> >
-> > How about try adding optional pinctrl-simple,pin-name entry that you
-> > can add to each mux entry?
-> >
-> Put it in pinctrl device node?
-> Then how do we name each pin?
-> And for IMX, currently we name all pins in driver.
-> I still can not find a good reason that i should name all pins in dt file.
+> That sounds right.  The other thing that the omap_device/hwmod 
+> infrastructure is good for is device reset and power management.  
+> Device reset probably won't need any driver modifications; the driver can 
+> just start under the assumption that everything has been reset to the POR 
+> values documented in the TRM.  In terms of power management, your driver 
+> should use the pm_runtime*() functions to play nicely with the rest of the 
+> system :-)  pm_runtime*() will call into omap_device*() which will call 
+> into omap_hwmod*() to ensure that clocks and other PM infrastructure are 
+> appropriately disabled, enabled, etc.
 
-But do you actually need the pin names in kernel? :)
+I'm delaying all but the simplest power management for the time being.
+The complexity is staggering, without even considering interaction the
+ABE, etc. I'm new to OMAP and need to stay in the wading pool for the
+time being, lest I drown. :)
 
-> Yes, we indeed have such a case.
-> For IMX, some special pins mux still need a setting called 'select input' which
-> is controlled in other registers.
-> But a rough idea in my mind that may choose different way to fix this issue.
-> It's a little like:
-> pinctrl_usdhc4: pinconfig-usdhc4 {
->        mux =
->                <MX6Q_SD4_CMD  0 SELECT_INPUT>
->                <MX6Q_SD4_CLK  0 0>
->                <MX6Q_SD4_DAT0 1 0>
->                <MX6Q_SD4_DAT1 1 0>
->                <MX6Q_SD4_DAT2 1 SELECT_INPUT>
->                <MX6Q_SD4_DAT3 1 0>
->                <MX6Q_SD4_DAT4 1 0>
->                <MX6Q_SD4_DAT5 1 0>
->                <MX6Q_SD4_DAT6 1 0>
->                <MX6Q_SD4_DAT7 1 0>;
-> }
-> This format would not make the dts writer to take too much care of
-> register address
-> and value. For this case, the #pinmux-cells would be <3>;
-> It is a little different from OMAP.
+> Yes.  N.B., AFAIK Tony Lindgren isn't taking any more board_*.c patches 
+> for mainline - the goal is to move all of that stuff to DT eventually.  
+> So if you're interested in submitting to mainline (which I hope you are 
+> :-) ) you might want to writethe driver to be able to use either 
+> platform_data or DT data for configuration.  This might involve working on 
+> DT bindings; it might be worth including Liam Girdwood <lrg@ti.com> and 
+> Peter Ujfalusi <peter.ujfalusi@ti.com> on those discussions.  They would 
+> also know if someone inside TI may have already written Slimbus drivers 
+> that haven't yet made it to mainline, but which may have wound up in some 
+> Android-related tree.
 
-If you don't want to keep the extra register entry around, then you
-could have a custom .data entry in the pinctrl driver that contains
-the mapping of these special registers.
+Based on your suggestion, we are looking at DT, however we may also
+need hwmod support for older trees. There is no mention of Slimbus in
+any of the Android trees, so far AFIAK. Thanks for the contacts. This
+is definitely intended to be submitted to the mainline. There is
+however a huge amount of work to be done. :)
 
-> For your proposal, I'm afraid it is a little too much depend on the SoC register
-> layout. We need to find a flexible enough way to cover all possible
-> register layout
-> difference for all SoCs.
-> (Considering one register controls multi muxs?)
+> One other brief note is that there are some very interesting power 
+> management options that may be possible in the audio path that we may not 
+> have full support for in the PM infrastructure layers.  Stuff like DPLL 
+> chaining and IP blocks with externally-driven functional clocks.  I 
+> believe Mike Turquette <mturquette@ti.com> may have explored this area a 
+> bit, although perhaps not specifically with Slimbus. If there is any 
+> interaction of these features with Slimbus (which there may not be), I'd 
+> suggest pushing support for those features off to a second phase, and we 
+> should probably have a group discussion about how to handle those cases 
+> cleanly :-)
 
-Most likely those special cases are best handled in hardware specific
-drivers.
- 
-> > Note that for more complex mapping you may want to add a hardware
-> > specific .data entry that corresponds to the compatible flag, let's
-> > say for conf range offset to mux range offset.
-> >
-> > > > +         res = smux_rename_function(function, np->full_name);
-> > > A little unclear for rename here.
-> > > Can we find a better way?
-> >
-> > You might want to play with parsing optional names from .dts file.
-> > I don't need the names and they slow down the parsing. For the names,
-> > we can show them with userspace tools using debugfs.
-> >
-> > For reference, this is what I get under debugfs function entry
-> > after the rename:
-> >
-> > function: /ocp/serial@0x48020000, groups = [ pinconfig-uart3 ]
-> >
-> The name looks reasonable to me.
-> 
-> > > > +static int __init smux_parse_one_pinctrl_entry(struct smux_device *smux,
-> > > > +                                           struct device_node *np)
-> > > > +{
-> > > > +   int count = 0;
-> > > > +
-> > > > +   do {
-> >
-> > ...
-> >
-> > > > + } while (++count);
-> > > This 'while' is for what? Define multi pinctrl properties?
-> >
-> > Yes each client device might request multiple muxes, let's say
-> > two pingroups from two different pinctrl driver instances.
-> >
-> You mean like this?
-> serial@48020000 {
->       pinctrl = <&pmx_uart3_x>;
->       pinctrl = <&pmx_uart3_y>;
-> };
-> 
-> Did i misunderstand?
-> I still can not understand why need this.
-> The pinctrl properly in device node can support multi pinmuxs .
-> serial@48020000 {
->       pinctrl = <&pmx_uart3_x &pmx_uart3_y>;
-> It's good to me that the consensus we reached at Linaro Connect is much like
-> my proposal in above URL. :)
-
-I meant like what you have in the second option here, the count is
-used to parse each entry.
- 
-> > > > + val = of_get_property(pdev->dev.of_node,
-> > > > +                         "pinctrl-simple,function-off", &len);
-> > > > + if (!val || len != 4) {
-> > > > +         dev_err(smux->dev, "function off mode not specified\n");
-> > > > +         ret = -EINVAL;
-> > > How about other SoCs not support function off mode?
-> >
-> > Maybe disable should not do anything if function-off is not specified?
-> >
-> IIRC currently pinctrl must need a disable function, if that, yes.
-> However i think we may change it in the future that make .disable function
-> optinal.
-
-Sounds good to me.
- 
-> > > > +free:
-> > > > + devm_kfree(smux->dev, smux);
-> > > > +
-> > > For devm_* routines, do you still need this error checking?
-> > > IIRC, the resource will be automatically released if probe failed.
-> >
-> > I guess, are there some recommendations somewhere for that?
-> I don't know where it is.
-> I just checked the code before.
-> You can see really_probe in drivers/base/dd.c.
-
-I guess no devm_kstrdup yet though :) Anyways, most of the strings
-can be the DT names directly and stay as read-only.
-
-Tony
+As mentioned earlier, I am deferring all but the simplest PM this
+without ignoring it outright.
