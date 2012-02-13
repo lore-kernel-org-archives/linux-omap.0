@@ -1,99 +1,34 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/3 v5] arm: omap: am335x: enable phy controls
-Date: Mon, 13 Feb 2012 04:26:19 +0000
-Message-ID: <47CEF8C4B26E8C44B22B028A650E0EA9317F6CF4@DBDE01.ent.ti.com>
-References: <1328675212-29693-1-git-send-email-ajay.gupta@ti.com>
- <1328675212-29693-2-git-send-email-ajay.gupta@ti.com>
- <20120210183143.GS1426@atomide.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH v9 00/25] gpio/omap: driver cleanup and fixes
+Date: Mon, 13 Feb 2012 11:03:09 +0530
+Message-ID: <CAC83Zv+TBgKDH=y++AmG+uXj+quOt60U98OY=BO-41SH=6ozYg@mail.gmail.com>
+References: <1328203851-20435-1-git-send-email-tarun.kanti@ti.com>
+	<20120210192416.GW1426@atomide.com>
+	<87ty2yxy3b.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20120210183143.GS1426-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi, Felipe" <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <87ty2yxy3b.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, grant.likely@secretlab.ca, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
-> * Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org> [120207 19:55]:
-> > Switch on the phy for am335x.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-> > ---
-> >  arch/arm/mach-omap2/omap_phy_internal.c |   21 ++++++++++++++-------
-> >  1 files changed, 14 insertions(+), 7 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_phy_internal.c b/arch/arm/mach-
-> omap2/omap_phy_internal.c
-> > index 4c90477..7129408 100644
-> > --- a/arch/arm/mach-omap2/omap_phy_internal.c
-> > +++ b/arch/arm/mach-omap2/omap_phy_internal.c
-> > @@ -266,7 +266,11 @@ void ti81xx_musb_phy_power(u8 on)
-> >  	void __iomem *scm_base = NULL;
-> >  	u32 usbphycfg;
-> >
-> > -	scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-> > +	if (cpu_is_ti81xx())
-> > +		scm_base = ioremap(TI81XX_SCM_BASE, SZ_2K);
-> > +	else if (cpu_is_am33xx())
-> > +		scm_base = ioremap(AM33XX_SCM_BASE, SZ_2K);
-> > +
-> >  	if (!scm_base) {
-> >  		pr_err("system control module ioremap failed\n");
-> >  		return;
-> > @@ -278,16 +282,19 @@ void ti81xx_musb_phy_power(u8 on)
-> >  		if (cpu_is_ti816x()) {
-> >  			usbphycfg |= TI816X_USBPHY0_NORMAL_MODE;
-> >  			usbphycfg &= ~TI816X_USBPHY_REFCLK_OSC;
-> > -		} else if (cpu_is_ti814x()) {
-> > -			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN
-> > -				| USBPHY_DPINPUT | USBPHY_DMINPUT);
-> > -			usbphycfg |= (USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN
-> > -				| USBPHY_DPOPBUFCTL | USBPHY_DMOPBUFCTL);
-> > +		} else if (cpu_is_ti814x() || cpu_is_am33xx()) {
-> > +			usbphycfg &= ~(USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN);
-> > +			usbphycfg |= USBPHY_OTGVDET_EN | USBPHY_OTGSESSEND_EN;
-> > +			if (cpu_is_ti814x()) {
-> > +				usbphycfg &= ~(USBPHY_DPINPUT |
-> USBPHY_DMINPUT);
-> > +				usbphycfg |= USBPHY_DPOPBUFCTL
-> > +					| USBPHY_DMOPBUFCTL;
-> > +			}
-> >  		}
-> >  	} else {
-> >  		if (cpu_is_ti816x())
-> >  			usbphycfg &= ~TI816X_USBPHY0_NORMAL_MODE;
-> > -		else if (cpu_is_ti814x())
-> > +		else if (cpu_is_ti814x() || cpu_is_am33xx())
-> >  			usbphycfg |= USBPHY_CM_PWRDN | USBPHY_OTG_PWRDN;
-> >
-> 
-> Please remove all the cpu_is_xxxx calls from the *_phy_power functions.
-> You should need those only in *_phy_init to set the right flags once,
-> not every time you enable or disable the phy.
-
-Tony,
-
-This is a common function used by ti814x, ti816x and am335x and they have
-mostly the same bit map but a few bits are different so we would need to
-have cpu_is_xxxx.
-
-We use this *_phy_power(1) for phy on/init and *_phy_power(0) for phy off
-and don't have separate *_phy_init(). Even in that case we would require
-cpu_is_xxxx() as phy power down bit is different for ti816x and same for
-ti814x and am335x.
-
-Please let me know how should we handle this.
-
-Regards,
-Ajay
-> 
-> Regards,
-> 
-> Tony
+On Sat, Feb 11, 2012 at 1:25 AM, Kevin Hilman <khilman@ti.com> wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+>
+> [...]
+>
+>> ..but are there also some patches in your series that should also be
+>> applied separately as fixes for the -rc cycle?
+>
+> IMO, there aren't any things in this series that fall into the
+> regression category.
+That's right.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tarun
+>
+> After I get to a final review and test of this (early next week), I'm
+> planning to sent a pull request to Grant.
+>
+> Kevin
