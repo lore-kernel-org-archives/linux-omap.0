@@ -1,68 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] modpost: Fix section warnings for ARM for many compilers
-Date: Mon, 13 Feb 2012 22:51:18 +0000
-Message-ID: <20120213225118.GC31482@n2100.arm.linux.org.uk>
-References: <20120213212401.GH1426@atomide.com>
- <20120213222652.GL14173@pengutronix.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] omap fixes for v3.3-rc3
+Date: Mon, 13 Feb 2012 22:59:14 +0000
+Message-ID: <201202132259.14589.arnd@arndb.de>
+References: <20120213174557.GB1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20120213222652.GL14173@pengutronix.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
-Cc: Tony Lindgren <tony@atomide.com>, Anders Kaseorg <andersk@ksplice.com>, Rusty Russell <rusty@rustcorp.com.au>, linux-kernel@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:61743 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757957Ab2BMXFb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 18:05:31 -0500
+In-Reply-To: <20120213174557.GB1426@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Mon, Feb 13, 2012 at 11:26:52PM +0100, Uwe Kleine-K=F6nig wrote:
-> On Mon, Feb 13, 2012 at 01:24:01PM -0800, Tony Lindgren wrote:
-> > It turns out that many compilers don't show section warnings on ARM
-> > currently because handling for ARM_CALL relocs are missing from
-> > modpost.c.
-> > =
+On Monday 13 February 2012, Tony Lindgren wrote:
+> Hi Arnd and Olof,
+> 
+> Please pull omap fixes from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
+> 
+> This contains a DT boot fix that was found sitting in the omap DT branch,
+> omap2 related PM fix for serial port, and few compile and warning fixes.
+> 
+> Note that Russell also has a series of omap fixes queued up that will get
+> merged via his tree. There should not be any conflicts between these
+> two series.
 
-> > Based on commit c2e26114 ([ARM] 3205/1: Handle new EABI relocations when
-> > loading kernel modules) it seems that R_ARM_PC24, R_ARM_CALL and
-> > R_ARM_JUMP24 can be handled the same way.
-> > =
+Thanks, merged into the fixes branch.
 
-> > As modpost.c includes elf.h, we need to also consider that at least
-> > Debian libc6-dev is missing defines for both R_ARM_CALL and R_ARM_JUMP24
-> > in /usr/include/elf.h.
-> Huh, even unstable's /usr/include/elf.h doesn't have these symbols.
-> =
+	Arnd
 
-> > So for now let's just use the numbers in modpost.c.
-> > =
-
-> > Cc: Rusty Russell <rusty@rustcorp.com.au>
-> > Cc: Ben Hutchings <ben@decadent.org.uk>
-> > Cc: Anders Kaseorg <andersk@ksplice.com>
-> > Cc: Greg KH <gregkh@linuxfoundation.org>
-> > Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > =
-
-> > ---
-> > =
-
-> > Anybody got better ideas for dealing with the missing elf.h
-> > defines?
-> Maybe:
-> =
-
-> #ifndef R_ARM_CALL
-> #warning "you're elf.h include is outdated"
-
-"You are elf.h include is outdated" does not make sense.
-
-Why are you calling Tony an elf.h include?
