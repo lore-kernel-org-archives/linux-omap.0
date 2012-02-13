@@ -1,59 +1,486 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/3] ARM: OMAP2+: Move SDRC related functions from io.h into
- local common.h
-Date: Mon, 13 Feb 2012 15:53:46 -0800
-Message-ID: <20120213235346.26087.24457.stgit@kaulin.local>
+Subject: [PATCH 3/3] ARM: OMAP: Move most of io.h to omap-iomap.h
+Date: Mon, 13 Feb 2012 15:53:52 -0800
+Message-ID: <20120213235352.26087.49114.stgit@kaulin.local>
 References: <20120213235216.26087.66303.stgit@kaulin.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:25489 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:25531 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757611Ab2BMXxt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 18:53:49 -0500
+	with ESMTP id S1753834Ab2BMXxx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 18:53:53 -0500
 In-Reply-To: <20120213235216.26087.66303.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-These should be local to omap2/3/4.
+Move most of io.h to omap-iomap.h. This is needed
+for the ARM generic removal of io.h files.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/common.h         |    5 +++++
- arch/arm/plat-omap/include/plat/io.h |    4 ----
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/include/plat/io.h         |  222 --------------------------
+ arch/arm/plat-omap/include/plat/omap-iomap.h |  221 ++++++++++++++++++++++++++
+ 2 files changed, 221 insertions(+), 222 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-index febffde..5aa1acb 100644
---- a/arch/arm/mach-omap2/common.h
-+++ b/arch/arm/mach-omap2/common.h
-@@ -235,5 +235,10 @@ static inline u32 omap4_mpuss_read_prev_context_state(void)
- 	return 0;
- }
- #endif
-+
-+struct omap_sdrc_params;
-+extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
-+				      struct omap_sdrc_params *sdrc_cs1);
-+
- #endif /* __ASSEMBLER__ */
- #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
 diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-index 0696bae..f5b386b 100644
+index f5b386b..6a3c700 100644
 --- a/arch/arm/plat-omap/include/plat/io.h
 +++ b/arch/arm/plat-omap/include/plat/io.h
-@@ -266,10 +266,6 @@ extern void omap_writeb(u8 v, u32 pa);
- extern void omap_writew(u16 v, u32 pa);
- extern void omap_writel(u32 v, u32 pa);
+@@ -48,226 +48,4 @@
+ #define __io(a)		__typesafe_io(a)
+ #define __mem_pci(a)	(a)
  
--struct omap_sdrc_params;
--extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
--				      struct omap_sdrc_params *sdrc_cs1);
+-/*
+- * ----------------------------------------------------------------------------
+- * I/O mapping
+- * ----------------------------------------------------------------------------
+- */
 -
- extern void __init omap_init_consistent_dma_size(void);
- 
+-#ifdef __ASSEMBLER__
+-#define IOMEM(x)		(x)
+-#else
+-#define IOMEM(x)		((void __force __iomem *)(x))
+-#endif
+-
+-#define OMAP1_IO_OFFSET		0x01000000	/* Virtual IO = 0xfefb0000 */
+-#define OMAP1_IO_ADDRESS(pa)	IOMEM((pa) - OMAP1_IO_OFFSET)
+-
+-#define OMAP2_L3_IO_OFFSET	0x90000000
+-#define OMAP2_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L3_IO_OFFSET) /* L3 */
+-
+-
+-#define OMAP2_L4_IO_OFFSET	0xb2000000
+-#define OMAP2_L4_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L4_IO_OFFSET) /* L4 */
+-
+-#define OMAP4_L3_IO_OFFSET	0xb4000000
+-#define OMAP4_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_L3_IO_OFFSET) /* L3 */
+-
+-#define AM33XX_L4_WK_IO_OFFSET	0xb5000000
+-#define AM33XX_L4_WK_IO_ADDRESS(pa)	IOMEM((pa) + AM33XX_L4_WK_IO_OFFSET)
+-
+-#define OMAP4_L3_PER_IO_OFFSET	0xb1100000
+-#define OMAP4_L3_PER_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_L3_PER_IO_OFFSET)
+-
+-#define OMAP4_GPMC_IO_OFFSET		0xa9000000
+-#define OMAP4_GPMC_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_GPMC_IO_OFFSET)
+-
+-#define OMAP2_EMU_IO_OFFSET		0xaa800000	/* Emulation */
+-#define OMAP2_EMU_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_EMU_IO_OFFSET)
+-
+-/*
+- * ----------------------------------------------------------------------------
+- * Omap1 specific IO mapping
+- * ----------------------------------------------------------------------------
+- */
+-
+-#define OMAP1_IO_PHYS		0xFFFB0000
+-#define OMAP1_IO_SIZE		0x40000
+-#define OMAP1_IO_VIRT		(OMAP1_IO_PHYS - OMAP1_IO_OFFSET)
+-
+-/*
+- * ----------------------------------------------------------------------------
+- * Omap2 specific IO mapping
+- * ----------------------------------------------------------------------------
+- */
+-
+-/* We map both L3 and L4 on OMAP2 */
+-#define L3_24XX_PHYS	L3_24XX_BASE	/* 0x68000000 --> 0xf8000000*/
+-#define L3_24XX_VIRT	(L3_24XX_PHYS + OMAP2_L3_IO_OFFSET)
+-#define L3_24XX_SIZE	SZ_1M		/* 44kB of 128MB used, want 1MB sect */
+-#define L4_24XX_PHYS	L4_24XX_BASE	/* 0x48000000 --> 0xfa000000 */
+-#define L4_24XX_VIRT	(L4_24XX_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_24XX_SIZE	SZ_1M		/* 1MB of 128MB used, want 1MB sect */
+-
+-#define L4_WK_243X_PHYS		L4_WK_243X_BASE	/* 0x49000000 --> 0xfb000000 */
+-#define L4_WK_243X_VIRT		(L4_WK_243X_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_WK_243X_SIZE		SZ_1M
+-#define OMAP243X_GPMC_PHYS	OMAP243X_GPMC_BASE
+-#define OMAP243X_GPMC_VIRT	(OMAP243X_GPMC_PHYS + OMAP2_L3_IO_OFFSET)
+-						/* 0x6e000000 --> 0xfe000000 */
+-#define OMAP243X_GPMC_SIZE	SZ_1M
+-#define OMAP243X_SDRC_PHYS	OMAP243X_SDRC_BASE
+-						/* 0x6D000000 --> 0xfd000000 */
+-#define OMAP243X_SDRC_VIRT	(OMAP243X_SDRC_PHYS + OMAP2_L3_IO_OFFSET)
+-#define OMAP243X_SDRC_SIZE	SZ_1M
+-#define OMAP243X_SMS_PHYS	OMAP243X_SMS_BASE
+-						/* 0x6c000000 --> 0xfc000000 */
+-#define OMAP243X_SMS_VIRT	(OMAP243X_SMS_PHYS + OMAP2_L3_IO_OFFSET)
+-#define OMAP243X_SMS_SIZE	SZ_1M
+-
+-/* 2420 IVA */
+-#define DSP_MEM_2420_PHYS	OMAP2420_DSP_MEM_BASE
+-						/* 0x58000000 --> 0xfc100000 */
+-#define DSP_MEM_2420_VIRT	0xfc100000
+-#define DSP_MEM_2420_SIZE	0x28000
+-#define DSP_IPI_2420_PHYS	OMAP2420_DSP_IPI_BASE
+-						/* 0x59000000 --> 0xfc128000 */
+-#define DSP_IPI_2420_VIRT	0xfc128000
+-#define DSP_IPI_2420_SIZE	SZ_4K
+-#define DSP_MMU_2420_PHYS	OMAP2420_DSP_MMU_BASE
+-						/* 0x5a000000 --> 0xfc129000 */
+-#define DSP_MMU_2420_VIRT	0xfc129000
+-#define DSP_MMU_2420_SIZE	SZ_4K
+-
+-/* 2430 IVA2.1 - currently unmapped */
+-
+-/*
+- * ----------------------------------------------------------------------------
+- * Omap3 specific IO mapping
+- * ----------------------------------------------------------------------------
+- */
+-
+-/* We map both L3 and L4 on OMAP3 */
+-#define L3_34XX_PHYS		L3_34XX_BASE	/* 0x68000000 --> 0xf8000000 */
+-#define L3_34XX_VIRT		(L3_34XX_PHYS + OMAP2_L3_IO_OFFSET)
+-#define L3_34XX_SIZE		SZ_1M   /* 44kB of 128MB used, want 1MB sect */
+-
+-#define L4_34XX_PHYS		L4_34XX_BASE	/* 0x48000000 --> 0xfa000000 */
+-#define L4_34XX_VIRT		(L4_34XX_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_34XX_SIZE		SZ_4M   /* 1MB of 128MB used, want 1MB sect */
+-
+-/*
+- * ----------------------------------------------------------------------------
+- * AM33XX specific IO mapping
+- * ----------------------------------------------------------------------------
+- */
+-#define L4_WK_AM33XX_PHYS	L4_WK_AM33XX_BASE
+-#define L4_WK_AM33XX_VIRT	(L4_WK_AM33XX_PHYS + AM33XX_L4_WK_IO_OFFSET)
+-#define L4_WK_AM33XX_SIZE	SZ_4M   /* 1MB of 128MB used, want 1MB sect */
+-
+-/*
+- * Need to look at the Size 4M for L4.
+- * VPOM3430 was not working for Int controller
+- */
+-
+-#define L4_PER_34XX_PHYS	L4_PER_34XX_BASE
+-						/* 0x49000000 --> 0xfb000000 */
+-#define L4_PER_34XX_VIRT	(L4_PER_34XX_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_PER_34XX_SIZE	SZ_1M
+-
+-#define L4_EMU_34XX_PHYS	L4_EMU_34XX_BASE
+-						/* 0x54000000 --> 0xfe800000 */
+-#define L4_EMU_34XX_VIRT	(L4_EMU_34XX_PHYS + OMAP2_EMU_IO_OFFSET)
+-#define L4_EMU_34XX_SIZE	SZ_8M
+-
+-#define OMAP34XX_GPMC_PHYS	OMAP34XX_GPMC_BASE
+-						/* 0x6e000000 --> 0xfe000000 */
+-#define OMAP34XX_GPMC_VIRT	(OMAP34XX_GPMC_PHYS + OMAP2_L3_IO_OFFSET)
+-#define OMAP34XX_GPMC_SIZE	SZ_1M
+-
+-#define OMAP343X_SMS_PHYS	OMAP343X_SMS_BASE
+-						/* 0x6c000000 --> 0xfc000000 */
+-#define OMAP343X_SMS_VIRT	(OMAP343X_SMS_PHYS + OMAP2_L3_IO_OFFSET)
+-#define OMAP343X_SMS_SIZE	SZ_1M
+-
+-#define OMAP343X_SDRC_PHYS	OMAP343X_SDRC_BASE
+-						/* 0x6D000000 --> 0xfd000000 */
+-#define OMAP343X_SDRC_VIRT	(OMAP343X_SDRC_PHYS + OMAP2_L3_IO_OFFSET)
+-#define OMAP343X_SDRC_SIZE	SZ_1M
+-
+-/* 3430 IVA - currently unmapped */
+-
+-/*
+- * ----------------------------------------------------------------------------
+- * Omap4 specific IO mapping
+- * ----------------------------------------------------------------------------
+- */
+-
+-/* We map both L3 and L4 on OMAP4 */
+-#define L3_44XX_PHYS		L3_44XX_BASE	/* 0x44000000 --> 0xf8000000 */
+-#define L3_44XX_VIRT		(L3_44XX_PHYS + OMAP4_L3_IO_OFFSET)
+-#define L3_44XX_SIZE		SZ_1M
+-
+-#define L4_44XX_PHYS		L4_44XX_BASE	/* 0x4a000000 --> 0xfc000000 */
+-#define L4_44XX_VIRT		(L4_44XX_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_44XX_SIZE		SZ_4M
+-
+-#define L4_PER_44XX_PHYS	L4_PER_44XX_BASE
+-						/* 0x48000000 --> 0xfa000000 */
+-#define L4_PER_44XX_VIRT	(L4_PER_44XX_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_PER_44XX_SIZE	SZ_4M
+-
+-#define L4_ABE_44XX_PHYS	L4_ABE_44XX_BASE
+-						/* 0x49000000 --> 0xfb000000 */
+-#define L4_ABE_44XX_VIRT	(L4_ABE_44XX_PHYS + OMAP2_L4_IO_OFFSET)
+-#define L4_ABE_44XX_SIZE	SZ_1M
+-
+-#define L4_EMU_44XX_PHYS	L4_EMU_44XX_BASE
+-						/* 0x54000000 --> 0xfe800000 */
+-#define L4_EMU_44XX_VIRT	(L4_EMU_44XX_PHYS + OMAP2_EMU_IO_OFFSET)
+-#define L4_EMU_44XX_SIZE	SZ_8M
+-
+-#define OMAP44XX_GPMC_PHYS	OMAP44XX_GPMC_BASE
+-						/* 0x50000000 --> 0xf9000000 */
+-#define OMAP44XX_GPMC_VIRT	(OMAP44XX_GPMC_PHYS + OMAP4_GPMC_IO_OFFSET)
+-#define OMAP44XX_GPMC_SIZE	SZ_1M
+-
+-
+-#define OMAP44XX_EMIF1_PHYS	OMAP44XX_EMIF1_BASE
+-						/* 0x4c000000 --> 0xfd100000 */
+-#define OMAP44XX_EMIF1_VIRT	(OMAP44XX_EMIF1_PHYS + OMAP4_L3_PER_IO_OFFSET)
+-#define OMAP44XX_EMIF1_SIZE	SZ_1M
+-
+-#define OMAP44XX_EMIF2_PHYS	OMAP44XX_EMIF2_BASE
+-						/* 0x4d000000 --> 0xfd200000 */
+-#define OMAP44XX_EMIF2_SIZE	SZ_1M
+-#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF1_VIRT + OMAP44XX_EMIF1_SIZE)
+-
+-#define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
+-						/* 0x4e000000 --> 0xfd300000 */
+-#define OMAP44XX_DMM_SIZE	SZ_1M
+-#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + OMAP44XX_EMIF2_SIZE)
+-/*
+- * ----------------------------------------------------------------------------
+- * Omap specific register access
+- * ----------------------------------------------------------------------------
+- */
+-
+-#ifndef __ASSEMBLER__
+-
+-/*
+- * NOTE: Please use ioremap + __raw_read/write where possible instead of these
+- */
+-
+-extern u8 omap_readb(u32 pa);
+-extern u16 omap_readw(u32 pa);
+-extern u32 omap_readl(u32 pa);
+-extern void omap_writeb(u8 v, u32 pa);
+-extern void omap_writew(u16 v, u32 pa);
+-extern void omap_writel(u32 v, u32 pa);
+-
+-extern void __init omap_init_consistent_dma_size(void);
+-
+-#endif
+-
  #endif
+diff --git a/arch/arm/plat-omap/include/plat/omap-iomap.h b/arch/arm/plat-omap/include/plat/omap-iomap.h
+index e69de29..6290881 100644
+--- a/arch/arm/plat-omap/include/plat/omap-iomap.h
++++ b/arch/arm/plat-omap/include/plat/omap-iomap.h
+@@ -0,0 +1,221 @@
++/*
++ * ----------------------------------------------------------------------------
++ * I/O mapping
++ * ----------------------------------------------------------------------------
++ */
++
++#ifdef __ASSEMBLER__
++#define IOMEM(x)		(x)
++#else
++#define IOMEM(x)		((void __force __iomem *)(x))
++#endif
++
++#define OMAP1_IO_OFFSET		0x01000000	/* Virtual IO = 0xfefb0000 */
++#define OMAP1_IO_ADDRESS(pa)	IOMEM((pa) - OMAP1_IO_OFFSET)
++
++#define OMAP2_L3_IO_OFFSET	0x90000000
++#define OMAP2_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L3_IO_OFFSET) /* L3 */
++
++
++#define OMAP2_L4_IO_OFFSET	0xb2000000
++#define OMAP2_L4_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L4_IO_OFFSET) /* L4 */
++
++#define OMAP4_L3_IO_OFFSET	0xb4000000
++#define OMAP4_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_L3_IO_OFFSET) /* L3 */
++
++#define AM33XX_L4_WK_IO_OFFSET	0xb5000000
++#define AM33XX_L4_WK_IO_ADDRESS(pa)	IOMEM((pa) + AM33XX_L4_WK_IO_OFFSET)
++
++#define OMAP4_L3_PER_IO_OFFSET	0xb1100000
++#define OMAP4_L3_PER_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_L3_PER_IO_OFFSET)
++
++#define OMAP4_GPMC_IO_OFFSET		0xa9000000
++#define OMAP4_GPMC_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_GPMC_IO_OFFSET)
++
++#define OMAP2_EMU_IO_OFFSET		0xaa800000	/* Emulation */
++#define OMAP2_EMU_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_EMU_IO_OFFSET)
++
++/*
++ * ----------------------------------------------------------------------------
++ * Omap1 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
++
++#define OMAP1_IO_PHYS		0xFFFB0000
++#define OMAP1_IO_SIZE		0x40000
++#define OMAP1_IO_VIRT		(OMAP1_IO_PHYS - OMAP1_IO_OFFSET)
++
++/*
++ * ----------------------------------------------------------------------------
++ * Omap2 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
++
++/* We map both L3 and L4 on OMAP2 */
++#define L3_24XX_PHYS	L3_24XX_BASE	/* 0x68000000 --> 0xf8000000*/
++#define L3_24XX_VIRT	(L3_24XX_PHYS + OMAP2_L3_IO_OFFSET)
++#define L3_24XX_SIZE	SZ_1M		/* 44kB of 128MB used, want 1MB sect */
++#define L4_24XX_PHYS	L4_24XX_BASE	/* 0x48000000 --> 0xfa000000 */
++#define L4_24XX_VIRT	(L4_24XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_24XX_SIZE	SZ_1M		/* 1MB of 128MB used, want 1MB sect */
++
++#define L4_WK_243X_PHYS		L4_WK_243X_BASE	/* 0x49000000 --> 0xfb000000 */
++#define L4_WK_243X_VIRT		(L4_WK_243X_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_WK_243X_SIZE		SZ_1M
++#define OMAP243X_GPMC_PHYS	OMAP243X_GPMC_BASE
++#define OMAP243X_GPMC_VIRT	(OMAP243X_GPMC_PHYS + OMAP2_L3_IO_OFFSET)
++						/* 0x6e000000 --> 0xfe000000 */
++#define OMAP243X_GPMC_SIZE	SZ_1M
++#define OMAP243X_SDRC_PHYS	OMAP243X_SDRC_BASE
++						/* 0x6D000000 --> 0xfd000000 */
++#define OMAP243X_SDRC_VIRT	(OMAP243X_SDRC_PHYS + OMAP2_L3_IO_OFFSET)
++#define OMAP243X_SDRC_SIZE	SZ_1M
++#define OMAP243X_SMS_PHYS	OMAP243X_SMS_BASE
++						/* 0x6c000000 --> 0xfc000000 */
++#define OMAP243X_SMS_VIRT	(OMAP243X_SMS_PHYS + OMAP2_L3_IO_OFFSET)
++#define OMAP243X_SMS_SIZE	SZ_1M
++
++/* 2420 IVA */
++#define DSP_MEM_2420_PHYS	OMAP2420_DSP_MEM_BASE
++						/* 0x58000000 --> 0xfc100000 */
++#define DSP_MEM_2420_VIRT	0xfc100000
++#define DSP_MEM_2420_SIZE	0x28000
++#define DSP_IPI_2420_PHYS	OMAP2420_DSP_IPI_BASE
++						/* 0x59000000 --> 0xfc128000 */
++#define DSP_IPI_2420_VIRT	0xfc128000
++#define DSP_IPI_2420_SIZE	SZ_4K
++#define DSP_MMU_2420_PHYS	OMAP2420_DSP_MMU_BASE
++						/* 0x5a000000 --> 0xfc129000 */
++#define DSP_MMU_2420_VIRT	0xfc129000
++#define DSP_MMU_2420_SIZE	SZ_4K
++
++/* 2430 IVA2.1 - currently unmapped */
++
++/*
++ * ----------------------------------------------------------------------------
++ * Omap3 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
++
++/* We map both L3 and L4 on OMAP3 */
++#define L3_34XX_PHYS		L3_34XX_BASE	/* 0x68000000 --> 0xf8000000 */
++#define L3_34XX_VIRT		(L3_34XX_PHYS + OMAP2_L3_IO_OFFSET)
++#define L3_34XX_SIZE		SZ_1M   /* 44kB of 128MB used, want 1MB sect */
++
++#define L4_34XX_PHYS		L4_34XX_BASE	/* 0x48000000 --> 0xfa000000 */
++#define L4_34XX_VIRT		(L4_34XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_34XX_SIZE		SZ_4M   /* 1MB of 128MB used, want 1MB sect */
++
++/*
++ * ----------------------------------------------------------------------------
++ * AM33XX specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
++#define L4_WK_AM33XX_PHYS	L4_WK_AM33XX_BASE
++#define L4_WK_AM33XX_VIRT	(L4_WK_AM33XX_PHYS + AM33XX_L4_WK_IO_OFFSET)
++#define L4_WK_AM33XX_SIZE	SZ_4M   /* 1MB of 128MB used, want 1MB sect */
++
++/*
++ * Need to look at the Size 4M for L4.
++ * VPOM3430 was not working for Int controller
++ */
++
++#define L4_PER_34XX_PHYS	L4_PER_34XX_BASE
++						/* 0x49000000 --> 0xfb000000 */
++#define L4_PER_34XX_VIRT	(L4_PER_34XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_PER_34XX_SIZE	SZ_1M
++
++#define L4_EMU_34XX_PHYS	L4_EMU_34XX_BASE
++						/* 0x54000000 --> 0xfe800000 */
++#define L4_EMU_34XX_VIRT	(L4_EMU_34XX_PHYS + OMAP2_EMU_IO_OFFSET)
++#define L4_EMU_34XX_SIZE	SZ_8M
++
++#define OMAP34XX_GPMC_PHYS	OMAP34XX_GPMC_BASE
++						/* 0x6e000000 --> 0xfe000000 */
++#define OMAP34XX_GPMC_VIRT	(OMAP34XX_GPMC_PHYS + OMAP2_L3_IO_OFFSET)
++#define OMAP34XX_GPMC_SIZE	SZ_1M
++
++#define OMAP343X_SMS_PHYS	OMAP343X_SMS_BASE
++						/* 0x6c000000 --> 0xfc000000 */
++#define OMAP343X_SMS_VIRT	(OMAP343X_SMS_PHYS + OMAP2_L3_IO_OFFSET)
++#define OMAP343X_SMS_SIZE	SZ_1M
++
++#define OMAP343X_SDRC_PHYS	OMAP343X_SDRC_BASE
++						/* 0x6D000000 --> 0xfd000000 */
++#define OMAP343X_SDRC_VIRT	(OMAP343X_SDRC_PHYS + OMAP2_L3_IO_OFFSET)
++#define OMAP343X_SDRC_SIZE	SZ_1M
++
++/* 3430 IVA - currently unmapped */
++
++/*
++ * ----------------------------------------------------------------------------
++ * Omap4 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
++
++/* We map both L3 and L4 on OMAP4 */
++#define L3_44XX_PHYS		L3_44XX_BASE	/* 0x44000000 --> 0xf8000000 */
++#define L3_44XX_VIRT		(L3_44XX_PHYS + OMAP4_L3_IO_OFFSET)
++#define L3_44XX_SIZE		SZ_1M
++
++#define L4_44XX_PHYS		L4_44XX_BASE	/* 0x4a000000 --> 0xfc000000 */
++#define L4_44XX_VIRT		(L4_44XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_44XX_SIZE		SZ_4M
++
++#define L4_PER_44XX_PHYS	L4_PER_44XX_BASE
++						/* 0x48000000 --> 0xfa000000 */
++#define L4_PER_44XX_VIRT	(L4_PER_44XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_PER_44XX_SIZE	SZ_4M
++
++#define L4_ABE_44XX_PHYS	L4_ABE_44XX_BASE
++						/* 0x49000000 --> 0xfb000000 */
++#define L4_ABE_44XX_VIRT	(L4_ABE_44XX_PHYS + OMAP2_L4_IO_OFFSET)
++#define L4_ABE_44XX_SIZE	SZ_1M
++
++#define L4_EMU_44XX_PHYS	L4_EMU_44XX_BASE
++						/* 0x54000000 --> 0xfe800000 */
++#define L4_EMU_44XX_VIRT	(L4_EMU_44XX_PHYS + OMAP2_EMU_IO_OFFSET)
++#define L4_EMU_44XX_SIZE	SZ_8M
++
++#define OMAP44XX_GPMC_PHYS	OMAP44XX_GPMC_BASE
++						/* 0x50000000 --> 0xf9000000 */
++#define OMAP44XX_GPMC_VIRT	(OMAP44XX_GPMC_PHYS + OMAP4_GPMC_IO_OFFSET)
++#define OMAP44XX_GPMC_SIZE	SZ_1M
++
++
++#define OMAP44XX_EMIF1_PHYS	OMAP44XX_EMIF1_BASE
++						/* 0x4c000000 --> 0xfd100000 */
++#define OMAP44XX_EMIF1_VIRT	(OMAP44XX_EMIF1_PHYS + OMAP4_L3_PER_IO_OFFSET)
++#define OMAP44XX_EMIF1_SIZE	SZ_1M
++
++#define OMAP44XX_EMIF2_PHYS	OMAP44XX_EMIF2_BASE
++						/* 0x4d000000 --> 0xfd200000 */
++#define OMAP44XX_EMIF2_SIZE	SZ_1M
++#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF1_VIRT + OMAP44XX_EMIF1_SIZE)
++
++#define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
++						/* 0x4e000000 --> 0xfd300000 */
++#define OMAP44XX_DMM_SIZE	SZ_1M
++#define OMAP44XX_DMM_VIRT	(OMAP44XX_EMIF2_VIRT + OMAP44XX_EMIF2_SIZE)
++/*
++ * ----------------------------------------------------------------------------
++ * Omap specific register access
++ * ----------------------------------------------------------------------------
++ */
++
++#ifndef __ASSEMBLER__
++
++/*
++ * NOTE: Please use ioremap + __raw_read/write where possible instead of these
++ */
++
++extern u8 omap_readb(u32 pa);
++extern u16 omap_readw(u32 pa);
++extern u32 omap_readl(u32 pa);
++extern void omap_writeb(u8 v, u32 pa);
++extern void omap_writew(u16 v, u32 pa);
++extern void omap_writel(u32 v, u32 pa);
++
++extern void __init omap_init_consistent_dma_size(void);
++
++#endif
 
