@@ -1,47 +1,42 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 4/4] ARM: OMAP1: kconfig: Enable IRQ_DOMAIN by default for OMAP1 platforms
-Date: Mon, 13 Feb 2012 17:30:25 +0100
-Message-ID: <1329150625-8604-5-git-send-email-b-cousson@ti.com>
-References: <1329150625-8604-2-git-send-email-b-cousson@ti.com>
+From: Rex Feany <rfeany@laeos.net>
+Subject: Re: OMAP34xx
+Date: Mon, 13 Feb 2012 08:36:40 -0800
+Message-ID: <20120213163639.GA26284@rexfeany.com>
+References: <20120208231551.GA9009@kroah.com>
+ <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+ <20120209004731.GA11343@kroah.com>
+ <4F3374F0.3080002@bitmer.com>
+ <20120209133739.GB2590@sirena.org.uk>
+ <20120209183624.GJ1426@atomide.com>
+ <20120209193442.GA1767@rexfeany.com>
+ <87hayzzjlv.fsf@ti.com>
+ <alpine.DEB.2.00.1202091919200.12732@utopia.booyaka.com>
+ <20120210185810.GT1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57233 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757185Ab2BMQbM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 11:31:12 -0500
-In-Reply-To: <1329150625-8604-2-git-send-email-b-cousson@ti.com>
+Received: from ilona.fnordsoft.com ([173.230.144.79]:36885 "EHLO
+	ilona.fnordsoft.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755282Ab2BMQgk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 11:36:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20120210185810.GT1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-The devices that can act as an interrupt controller like the
-GPIO are going to be handled using the IRQ domain mechanism
-in order to avoid the static IRQ mapping done so far inside
-plat-omap/irqs.h.
+Thus spake Tony Lindgren (tony@atomide.com):
 
-Enable IRQ_DOMAIN by default to allow the drivers shared with
-OMAP2+ to compile properly on OMAP1 platforms.
+> * Paul Walmsley <paul@pwsan.com> [120209 17:48]:
+> > 
+> > Kevin and I just doublechecked OMAP37xx BeagleBoard xM here with Tony's 
+> > testing branch; it works.
+> 
+> Rex, care to confirm this is also the case for you with
+> your custom .config?
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Yes, it works. Thanks!
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 734009a..e289dd2 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -14,6 +14,7 @@ config ARCH_OMAP1
- 	select CLKDEV_LOOKUP
- 	select CLKSRC_MMIO
- 	select GENERIC_IRQ_CHIP
-+	select IRQ_DOMAIN
- 	select HAVE_IDE
- 	select NEED_MACH_MEMORY_H
- 	help
--- 
-1.7.0.4
-
+take care!
+/rex.
