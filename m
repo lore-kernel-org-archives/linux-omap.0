@@ -1,73 +1,58 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH v2] usb: musb: fix pm_runtime mismatch
-Date: Mon, 13 Feb 2012 17:06:16 +0200
-Message-ID: <CAMP44s1-DkbFXfCHxNdqB8WTEtn1J8Jmf5RP5cgmm4oQkKvptQ@mail.gmail.com>
-References: <1324324914-14584-1-git-send-email-felipe.contreras@nokia.com>
-	<CANOLnOP_aXGw2nxRE+VnW2ii2UV4JqJaxcfMbd3oVm6qfWxsGA@mail.gmail.com>
-	<CAMP44s07EnB7d+ZNHQR9RSG=+c+aXDbAOK0_wL_CCDuoWOcrCQ@mail.gmail.com>
-	<CANOLnOOdY78RmQafa3udkbBZ30c6Ra1P_hM9HMy6xKL02gKLjA@mail.gmail.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH v2 2/2] ARM: OMAP: sram: Add am33xx SRAM support
+ (minimal)
+Date: Mon, 13 Feb 2012 16:07:01 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D121433179FC35@DBDE01.ent.ti.com>
+References: <1329113715-7634-1-git-send-email-afzal@ti.com>
+ <87fweeyfp6.fsf@macbook.be.48ers.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CANOLnOOdY78RmQafa3udkbBZ30c6Ra1P_hM9HMy6xKL02gKLjA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Hema HK <hemahk@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38100 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754835Ab2BMQHS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 11:07:18 -0500
+In-Reply-To: <87fweeyfp6.fsf@macbook.be.48ers.dk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Korsgaard <jacmet@sunsite.dk>, "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nori, Sekhar" <nsekhar@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-On Mon, Feb 13, 2012 at 2:54 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
-> On Thu, Jan 12, 2012 at 5:40 PM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
->> On Thu, Jan 12, 2012 at 1:56 PM, Grazvydas Ignotas <notasas@gmail.com> wrote:
->>> On Mon, Dec 19, 2011 at 10:01 PM, Felipe Contreras
->>> <felipe.contreras@nokia.com> wrote:
->>>> From: Felipe Contreras <felipe.contreras@gmail.com>
->>>>
->>>> In musb_init_controller() there's a pm_runtime_put(), but there's no
->>>> pm_runtime_get(), which creates a mismatch that causes the driver to
->>>> sleep when it shouldn't.
->>>
->>> This patch is causing problems here, the device never suspends, I've
->>> verified musb_runtime_suspend and omap2430_runtime_suspend are never
->>> called in my setup, unless I revert this patch. I'm using musb with
->>> ethernet gadget; cable removal also doesn't suspend musb.
->>>
->>> It seems pm_runtime_put() that was removed was balancing out
->>> pm_runtime_get in musb_platform_init(), which is called at the
->>> beginning of musb_init_controller(). I think this pm_runtime_get()
->>> from musb_platform_init() should be moved to musb_init_controller() to
->>> stop confusing people and pm_runtime_put() needs to be brought back. I
->>> can do a patch if nobody objects.
->>
->> You mean have both get and put in musb_init_controller()? That's OK,
->> it would be balanced then, but you would have to remove the
->> pm_runtime_put() from omap2430_remove() that presumably was balancing
->> the pm_runtime_get_sync() in omap2430_musb_init().
->>
->>>> This was introduced in 7acc619[1], but it wasn't triggered in my setup
->>>> until 18a2689[2] was merged to Linus' branch at point df0914[3]. IOW;
->>>> when PM is working as it was supposed to.
->>>>
->>>> However, it seems most of the time this is used in a way that keeps the
->>>> counter above 0, so nobody noticed. Also, it seems to depend on the
->>>> configuration used in versions before 3.1, but not later (or in it).
->>>>
->>>> I found the problem by loading isp1704_charger before any usb gadgets:
->>>> http://article.gmane.org/gmane.linux.kernel/1226122
->>>
->>> isp1704_charger seems to be doing otg_io_read(), and it's perfectly
->>> normal that musb can be suspended at the time isp1704 decides to do
->>> this. I think proper fix is to wake up must on musb_ulpi_read() and
->>> musb_ulpi_write() instead.
->>
->> I guess so. If you send these patches I can give them a try.
->
-> Sent them a week ago, would be nice if you tried them.
+On Mon, Feb 13, 2012 at 19:54:05, Peter Korsgaard wrote:
+> >>>>> "Afzal" == Afzal Mohammed <afzal@ti.com> writes:
+> 
+>  Afzal> From: Vaibhav Bedia <vaibhav.bedia@ti.com>
+>  Afzal> Update SRAM start & size for am33xx SoC's.
+> 
 
-Sorry, I just started hacking with my N900 again. I will probably test
-them later today.
+This is a really awkward quoting style :|
 
-Cheers.
+> 
+> I don't particular know the omap sram stuff, but doesn't the 33xx have
+> 2x 64K blocks of SRAM?
+> 
 
--- 
-Felipe Contreras
+Yes, but since the lower 64KB will not be available on non-GP device and
+only A8 can access it, for now we make use of the higher 64KB which is referred
+to as the OCMC RAM in the TRM. This will also enable SRAM usage by other drivers
+like PRU and McASP.
+
+>  
+>  Afzal> +static inline int am33xx_sram_init(void)
+>  Afzal> +{
+>  Afzal> +	return 0;
+> 
+> 
+> I know you mentioned it in the commit message, but it might be good with
+> a comment here as well that this dummy function is needed to not get the 34xx
+> init function called for 33xx, so it doesn't get removed when somebody
+> decides to cleanup.
+
+You are right in saying that the dummy function is needed to avoid 34xx SRAM init.
+We'll have some PM related code coming in soon and hopefully the SRAM code won't change
+Without us noticing ;)
+
+Regards,
+Vaibhav B.
