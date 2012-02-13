@@ -1,39 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
- regulators
-Date: Mon, 13 Feb 2012 09:52:34 -0800
-Message-ID: <20120213175233.GC1426@atomide.com>
-References: <1329151422-2146-1-git-send-email-mporter@ti.com>
- <20120213165209.GA31482@n2100.arm.linux.org.uk>
- <20120213165617.GE3494@opensource.wolfsonmicro.com>
+Subject: Re: OMAP34xx
+Date: Mon, 13 Feb 2012 09:59:06 -0800
+Message-ID: <20120213175906.GD1426@atomide.com>
+References: <20120204185453.GB17309@n2100.arm.linux.org.uk>
+ <20120212114430.GA18505@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45364 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757451Ab2BMR7J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 12:59:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20120213165617.GE3494@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
+In-Reply-To: <20120212114430.GA18505@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [120213 08:25]:
-> On Mon, Feb 13, 2012 at 04:52:09PM +0000, Russell King - ARM Linux wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120212 03:13]:
+> Here's another issue which kautobuildv2 just found, as I've now added
+> randconfig to the suite of OMAP4430 SDP builds.  Obviously, as it's
+> using a different configuration each time, it's going to find different
+> issues on each run.
 > 
-> > I think OMAP (or even the reg-fixed-voltage folk) needs to create an enum
-> > similar to what I did for 8250 to control the allocation of platform
-> > device IDs for this, otherwise we're going to keep on running over this
-> > problem.
+> For this, the seed config has the following extra lines compared with
+> allnoconfig:
 > 
-> > Added Mark for his comment.
+> CONFIG_ARM_PATCH_PHYS_VIRT=y
+> CONFIG_THUMB2_KERNEL=n
 > 
-> Hrm, seems slightly icky but the enum will work if we can decide how to
-> add elements to the enum since it'll be easy to bloat a lot it if it's
-> central.  It's tempting to suggest just using a random number to assign
-> the IDs randomly rather than have a central registry but obviously
-> there's no guarantees there.
+> The reason for the last line is that -mauto-it is not supported by my
+> toolchain, so if it were to be enabled, it would cause an immediate
+> build failure.  The second to late line ensures that we don't end up
+> with randconfig having to dream up a value for CONFIG_PHYS_OFFSET,
+> which it can't do.
+> 
+> The seed configs can now be viewed or downloaded from the build site.
+> 8<========
+> From: Russell King <rmk+kernel@arm.linux.org.uk>
+> ARM: OMAP: fix missing __devexit_p() annotations
+> 
+> Missing __devexit_p() annotations in driver structures for remove functions
+> marked with __devexit is waiting for build errors to happen, such as:
+> 
+> `omap_system_dma_remove' referenced in section `.data' of arch/arm/plat-omap/built-in.o: defined in discarded section `.devexit.text' of arch/arm/plat-omap/built-in.o
+> 
+> Add the necessary annotation, and as a result of audit, fix others which
+> are also missing in arch/arm/*omap*.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Can't we just leave out the .id and have it automatically assigned?
-
-Regards,
-
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
