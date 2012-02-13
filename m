@@ -1,61 +1,43 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
- regulators
-Date: Mon, 13 Feb 2012 08:56:18 -0800
-Message-ID: <20120213165617.GE3494@opensource.wolfsonmicro.com>
-References: <1329151422-2146-1-git-send-email-mporter@ti.com>
- <20120213165209.GA31482@n2100.arm.linux.org.uk>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH] ks8851: Fix NOHZ local_softirq_pending 08 warning
+Date: Mon, 13 Feb 2012 18:37:12 +0100
+Message-ID: <1329154632-12745-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="uCPdOCrL+PnN2Vxy"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120213165209.GA31482@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33651 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755474Ab2BMRhY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 12:37:24 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, "David S. Miller" <davem@davemloft.net>
 
+This fix a similar problem as in 72092cc45378176ba700034c91b7af2db524df26
+and 481a8199142c050b72bff8a1956a49fd0a75bbe0 ("can:
+fix NOHZ local_softirq_pending 08 warning"). This fix replaces netif_rx()
+with netif_rx_ni() which has to be used from process/softirq context.
 
---uCPdOCrL+PnN2Vxy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/micrel/ks8851.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On Mon, Feb 13, 2012 at 04:52:09PM +0000, Russell King - ARM Linux wrote:
+diff --git a/drivers/net/ethernet/micrel/ks8851.c b/drivers/net/ethernet/micrel/ks8851.c
+index 6b35e7d..0c3e400 100644
+--- a/drivers/net/ethernet/micrel/ks8851.c
++++ b/drivers/net/ethernet/micrel/ks8851.c
+@@ -583,7 +583,7 @@ static void ks8851_rx_pkts(struct ks8851_net *ks)
+ 					ks8851_dbg_dumpkkt(ks, rxpkt);
+ 
+ 				skb->protocol = eth_type_trans(skb, ks->netdev);
+-				netif_rx(skb);
++				netif_rx_ni(skb);
+ 
+ 				ks->netdev->stats.rx_packets++;
+ 				ks->netdev->stats.rx_bytes += rxlen;
+-- 
+1.7.0.4
 
-> I think OMAP (or even the reg-fixed-voltage folk) needs to create an enum
-> similar to what I did for 8250 to control the allocation of platform
-> device IDs for this, otherwise we're going to keep on running over this
-> problem.
-
-> Added Mark for his comment.
-
-Hrm, seems slightly icky but the enum will work if we can decide how to
-add elements to the enum since it'll be easy to bloat a lot it if it's
-central.  It's tempting to suggest just using a random number to assign
-the IDs randomly rather than have a central registry but obviously
-there's no guarantees there.
-
---uCPdOCrL+PnN2Vxy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPOUCSAAoJEBus8iNuMP3d1BEP/jtzpCV4W0xprw/IUvPMhzz2
-qdwckeGHx5TGzGMlpemvA0EG5h6ZIt+xtVIAkTfvEmOqL48wT973aK7J3kaWKdwH
-Cd0tb1Yxl/4BF+cgniyaXtEP2M3fIDmTN1gtL76N3rRLdT9Tupf9l36PqNEAmy1N
-1md27+VsDD+1y2b6m0hT8dmukDXvWARld0rwCI6rwjjcjgku8908avQAR0GCFZJa
-U763nDF+XRHfSIpzpuUlYLsTDSS2JFlbGg35fgUGr+vWnY/38iEoeRRMyPAN8U6Q
-xGTYuuWwUMmCLefrva6ld4tJXTe9kyEKxs7Plv/KDs6g6oaiQ2os8EoPG/GjPvkC
-6eEMeniAVvFmRwH3+1wLSy/lAOBWW2sFnq2hL/fIV8X+HUu+x1GH38Sfi8e4+M9W
-4VIkEckrygUj2gwgBLuOtvkoG4Qk1j3CoAoJgFxqHL36CxkwlUSN1D+vBFSzhgjW
-9JrQFEiWvyY5fP/Tc4x8G7o9bmBugbDcoRGAY+VWL4WbppBPdOKvGpHEll8ljkdf
-Awc/FNo4mh6PEd9k6JANvjUA3BQo5rWmUsriaz316rnSTf6mPcXx8NJfZZOF/f0E
-Yx6gf45sNLhB1IWAm/oWNJvQlZz85OHJV7eHKuAaz8nJs37WgswBxqM6FkLEsnjB
-4yNR7szTEbSEumCzPNlG
-=r0tG
------END PGP SIGNATURE-----
-
---uCPdOCrL+PnN2Vxy--
