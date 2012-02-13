@@ -1,50 +1,58 @@
 From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
-Subject: [PATCH] OMAP3 EVM: remove out-of-bounds array access of gpio_leds.
-Date: Mon, 13 Feb 2012 09:35:22 +0100
-Message-ID: <1329122122-5804-1-git-send-email-arnout@mind.be>
+Subject: [PATCH] OMAP2 PM: do RCU locking for opp_get_voltage()
+Date: Mon, 13 Feb 2012 09:44:04 +0100
+Message-ID: <1329122644-7121-1-git-send-email-arnout@mind.be>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:51850
+Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:53707
 	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978Ab2BMIfw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 03:35:52 -0500
+	with ESMTP id S1751238Ab2BMIoR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Feb 2012 03:44:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Syed Mohammed Khasim <khasim@ti.com>, Russell King <linux@arm.linux.org.uk>, Philip Oberstaller <philip.oberstaller@septentrio.com>, "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@ti.com>, Thara Gopinath <thara@ti.com>, Russell King <linux@arm.linux.org.uk>, Philip Oberstaller <philip.oberstaller@septentrio.com>, "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
 
 From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
 
-The omap3evm BSP enables a GPIO LED on the twl4030 chip.  However,
-the static gpio_leds array doesn't have an entry for it.  This is
-most likely a copy-and-paste error, because it has been in there
-since the first commit of the omap3evm BSP (53c5ec31).
+According to the documentation of opp_get_voltage(), it must be called
+with rcu_read_lock() held.  The OMAP2 power manager doesn't do this.
+The locking error is caught by PROVE_RCU.
 
 Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
 ---
 Please CC me, I'm not on the list.
 
-Since I don't have access to an OMAP3EVM board or schematics, I
-couldn't actually test if my fix is correct.  I discovered the error
-because I'm using this BSP for an AM37xEVM board - which has the
-LED connected to a different GPIO.  It works on the AM37xEVM board
-if I replace the assignment with the correct GPIO number (8).
----
- arch/arm/mach-omap2/board-omap3evm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I was very surprised by this error, because this is the only user of
+opp_get_voltage().
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index ec00b2e..f6f5cd4 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -381,7 +381,7 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
- 	gpio_request_one(gpio + 7, GPIOF_OUT_INIT_LOW, "EN_DVI");
+Regards,
+Arnout
+---
+ arch/arm/mach-omap2/pm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index 00bff46..bce2bdc 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -174,14 +174,17 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+ 	freq = clk->rate;
+ 	clk_put(clk);
  
- 	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
--	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-+	gpio_leds[0].gpio = gpio + TWL4030_GPIO_MAX + 1;
++	rcu_read_lock();
+ 	opp = opp_find_freq_ceil(dev, &freq);
+ 	if (IS_ERR(opp)) {
+ 		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
+ 			__func__, vdd_name);
++		rcu_read_unlock();
+ 		goto exit;
+ 	}
  
- 	platform_device_register(&leds_gpio);
- 
+ 	bootup_volt = opp_get_voltage(opp);
++	rcu_read_unlock();
+ 	if (!bootup_volt) {
+ 		pr_err("%s: unable to find voltage corresponding "
+ 			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
 -- 
 1.7.8.3
 
