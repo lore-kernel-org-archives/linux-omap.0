@@ -1,63 +1,73 @@
-From: Matt Porter <mporter@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
  regulators
-Date: Mon, 13 Feb 2012 13:17:05 -0500
-Message-ID: <20120213181704.GE40045@h115-84.vpn.ti.com>
+Date: Mon, 13 Feb 2012 10:58:24 -0800
+Message-ID: <20120213185823.GF3494@opensource.wolfsonmicro.com>
 References: <1329151422-2146-1-git-send-email-mporter@ti.com>
  <20120213165209.GA31482@n2100.arm.linux.org.uk>
  <20120213165617.GE3494@opensource.wolfsonmicro.com>
+ <20120213175233.GC1426@atomide.com>
+ <20120213180236.GB31482@n2100.arm.linux.org.uk>
+ <20120213181410.GE1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xaMk4Io5JJdpkLEb"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35772 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755799Ab2BMS6a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 13 Feb 2012 13:58:30 -0500
 Content-Disposition: inline
-In-Reply-To: <20120213165617.GE3494@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
+In-Reply-To: <20120213181410.GE1426@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Feb 13, 2012 at 08:56:18AM -0800, Mark Brown wrote:
-> On Mon, Feb 13, 2012 at 04:52:09PM +0000, Russell King - ARM Linux wrote:
-> 
-> > I think OMAP (or even the reg-fixed-voltage folk) needs to create an enum
-> > similar to what I did for 8250 to control the allocation of platform
-> > device IDs for this, otherwise we're going to keep on running over this
-> > problem.
-> 
-> > Added Mark for his comment.
-> 
-> Hrm, seems slightly icky but the enum will work if we can decide how to
-> add elements to the enum since it'll be easy to bloat a lot it if it's
-> central.  It's tempting to suggest just using a random number to assign
-> the IDs randomly rather than have a central registry but obviously
-> there's no guarantees there.
 
-Another option might be to provide a generic platform device helper
-that instantiates a per-named-platform-device id list that simply
-provides the next available id sequentially as requests for platform
-device registration arrive.
+--xaMk4Io5JJdpkLEb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-arch init:
+On Mon, Feb 13, 2012 at 10:14:10AM -0800, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120213 09:31]:
+> > On Mon, Feb 13, 2012 at 09:52:34AM -0800, Tony Lindgren wrote:
 
-platform_create_id_list_create("reg-fixed-voltage"); 
+> > > Can't we just leave out the .id and have it automatically assigned?
 
-platform init:
+It'd be nice but...
 
-/* I = 0..N, .id filled in by _autoid() registration */
-static struct platform_device my_fixed_regulatorN = {
-	.name		= "reg-fixed-voltage",
-	.dev = ...
-}
+> > Unfortunately, there's no such infrastructure in the driver model.
 
-platform_device_register_autoid(&my_fixed_regulator0); 
-platform_device_register_autoid(&my_fixed_regulator1); 
-platform_device_register_autoid(&my_fixed_regulator2); 
-...
-platform_device_register_autoid(&my_fixed_regulatorN); 
+> Hmm OK, -1 seems to be just used for name in platform_device_add().
 
-Something like this might be able to solve this once for the platform
-device users don't need a fixed enum id. It would require changes to
-platform_device_register() to update the list as static assignment
-of ids occurs so those will not be used by the _autoid() method.
+-1 is a valid ID also, it means "there's only one of these things so
+don't display a number".  Which is sad but there we are.  I'm at ELC/ABS
+so I might try and find Greg in person here to see if we can come up
+with something better, it seems like this is something the core ought to
+be able to help with in much the same way that the USB stuff can.
 
--Matt
+--xaMk4Io5JJdpkLEb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPOV1BAAoJEBus8iNuMP3dqvsQAJfwoP97Gfeo5KJ+3tEAZ8VQ
+dDBE1oQq7A6MIHcq7RPrPGDlNZ1gHwij5YXBESfbn66GrfbXe0oaR5CeumW3Ylce
+oA3CaPZGzl3PzyK0WTqsRm5f8/J0zsJNPZS6WoNWFgoX/xQxB4UFO8Meg2aOJiPK
+dDEpk56A6NYpZlMfJCjOTQrpPNHmd4CrWEvYafHOioNBcUykyeKfr8rE52MPyqjp
+SvWIC2ve7kHi7xPkEF75jqovc7wvKWTpBomDTVuGRpHm2rtHYOLsWcQjqgVcnojN
+6PNKFHZjxbB3OrEXmLGkR7iIypbmVEr1NvSffbtkTK4i/e0yy0vSKODjyGJdVUtD
+R6o8I+RJCLQQYfPNfbXZZUu03n8OkskmREbpNV/FSi9Uz0uaKRBOiGq/Yk6xWZ2j
+m7jbjSqcJkZXTvQenZm5wMcthCbiFFGsRSE9SydASym2XpqOfQD4WdUGtI8jqLJd
+L1aYWYJeeioXszQ3lOe+ccRmi6rluF/y9bQAZLO0e58Qr2LnSJjam/ux1KeWwqGI
+7BkMaTzSZ0zSi89wH7ga6deAOF44DQAsKGeEdmo0lN992vWoWZFPmr5gvER0iS4G
+pVOFjTnRwJ03meTdmBLI2oZkfoJgDldCc+QkQJHeJoYKP2/tMDX4/fwV0KhZOADW
+w0Al+u7y/2pJNj50JvZi
+=N6CA
+-----END PGP SIGNATURE-----
+
+--xaMk4Io5JJdpkLEb--
