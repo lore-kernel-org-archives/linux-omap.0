@@ -1,79 +1,127 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 00/10] I2C updates
-Date: Tue, 14 Feb 2012 14:41:32 +0530
-Message-ID: <4F3A2544.2000407@ti.com>
-References: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com> <1BAFE6F6C881BF42822005164F1491C3317B26A0@DBDE01.ent.ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: [PATCH] usb: host: ehci: allow ehci_* symbols to be unused
+Date: Tue, 14 Feb 2012 11:14:55 +0200
+Message-ID: <1329210895-32513-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:46911 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756468Ab2BNJLk (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:33940 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755712Ab2BNJPB (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 04:11:40 -0500
-In-Reply-To: <1BAFE6F6C881BF42822005164F1491C3317B26A0@DBDE01.ent.ti.com>
+	Tue, 14 Feb 2012 04:15:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hebbar, Gururaja" <gururaja.hebbar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Ben Dooks <ben-linux@fluff.org>, "khali@linux-fr.org" <khali@linux-fr.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Felipe Balbi <balbi@ti.com>
 
-On Tuesday 14 February 2012 11:42 AM, Hebbar, Gururaja wrote:
-> Hi,
->
-> I am interested in testing these patches on AM335x.
+not all platforms will use all of those ehci_*
+symbols on their hc_driver structure. Sometimes
+we might need to provide a modified version of
+a certain method or not provide it at all, as is
+the case with OMAPs which don't support port handoff
+feature.
 
-Thanks for your interest in testin.
->  Do you have a tree with these
-> patches applied so that I can pull.
+Whenever we compile a kernel for an OMAP board with
+EHCI enabled, we get compile warnings:
 
-tree        : git://gitorious.org/linus-tree/linus-tree.git
-branch    : i2c_misc_fixes
+drivers/usb/host/ehci-hub.c:1079: warning: 'ehci_relinquish_port' \
+	defined but not used
+drivers/usb/host/ehci-hub.c:1088: warning: 'ehci_port_handed_over' \
+	defined but not used
 
-let me know if that works for you
-> On Fri, Feb 10, 2012 at 19:29:55, Datta, Shubhrajyoti wrote:
->> This patch series colates the various i2c updates into
->> a series.  Since it is collection of various patches
->> the version info is not retained, however most of them undergone
->> multiple versions.
->>
->> This is rebased to linus head commit 63082402968f4b73f10b28a8ac1f3da821aeb82d
->>
->> The patch series does the following 
->>
->> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
->> - I2C register restore only if context if the context is lost
->> - Bus busy recovery mechanism.
->> - the reset is not done in init.
->>
->> Tested on omap4sdp and omap3sdp. 
->>
->>
->> Cc: Kevin Hilman <khilman@ti.com>
->> Cc: Ben Dooks <ben-linux@fluff.org>
->>
->> Jon Hunter (1):
->>   I2C: OMAP: Correct I2C revision for OMAP3
->>
->> Shubhrajyoti D (8):
->>   I2C : OMAP : make omap_i2c_unidle/idle functions depend on
->>     CONFIG_PM_RUNTIME
->>   OMAP : I2C : Remove reset at init
->>   OMAP: I2C: I2C register restore only if context is lost
->>   OMAP: I2C: Fix the interrupt clearing in OMAP4
->>   OMAP: I2C: Fix the mismatch of pm_runtime enable and disable
->>   OMAP: I2C: Optimise the remove code
->>   OMAP: I2C: Fix the error handling
->>   I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
->>     than zero
->>
->> Vikram Pandita (1):
->>   I2C: OMAP: Recover from Bus Busy condition
->>
->>  drivers/i2c/busses/i2c-omap.c |  173 ++++++++++++++++++++++++-----------------
->>  1 files changed, 101 insertions(+), 72 deletions(-)
->
->
-> Regards, 
-> Gururaja
+In order to cleanup those warnings, we're adding
+__maybe_unused annotation to those functions. We're
+also trying to cope with other platforms which might
+have similar issues with different methods by adding
+the same annotation to all ehci_* functions.
+
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+---
+
+Alan, what do you think about this patch ? It fixes our warnings
+and tries to cope with other possible such cases.
+
+ drivers/usb/host/ehci-hub.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
+index 77bbb23..d50571b 100644
+--- a/drivers/usb/host/ehci-hub.c
++++ b/drivers/usb/host/ehci-hub.c
+@@ -107,7 +107,7 @@ static void ehci_handover_companion_ports(struct ehci_hcd *ehci)
+ 	ehci->owned_ports = 0;
+ }
+ 
+-static int ehci_port_change(struct ehci_hcd *ehci)
++static int __maybe_unused ehci_port_change(struct ehci_hcd *ehci)
+ {
+ 	int i = HCS_N_PORTS(ehci->hcs_params);
+ 
+@@ -201,7 +201,7 @@ static __maybe_unused void ehci_adjust_port_wakeup_flags(struct ehci_hcd *ehci,
+ 	spin_unlock_irqrestore(&ehci->lock, flags);
+ }
+ 
+-static int ehci_bus_suspend (struct usb_hcd *hcd)
++static int __maybe_unused ehci_bus_suspend (struct usb_hcd *hcd)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci (hcd);
+ 	int			port;
+@@ -335,7 +335,7 @@ static int ehci_bus_suspend (struct usb_hcd *hcd)
+ 
+ 
+ /* caller has locked the root hub, and should reset/reinit on error */
+-static int ehci_bus_resume (struct usb_hcd *hcd)
++static int __maybe_unused ehci_bus_resume (struct usb_hcd *hcd)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci (hcd);
+ 	u32			temp;
+@@ -550,7 +550,7 @@ static int check_reset_complete (
+ 
+ /* build "status change" packet (one or two bytes) from HC registers */
+ 
+-static int
++static int __maybe_unused
+ ehci_hub_status_data (struct usb_hcd *hcd, char *buf)
+ {
+ 	struct ehci_hcd	*ehci = hcd_to_ehci (hcd);
+@@ -623,7 +623,7 @@ ehci_hub_status_data (struct usb_hcd *hcd, char *buf)
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static void
++static void __maybe_unused
+ ehci_hub_descriptor (
+ 	struct ehci_hcd			*ehci,
+ 	struct usb_hub_descriptor	*desc
+@@ -658,7 +658,7 @@ ehci_hub_descriptor (
+ 
+ /*-------------------------------------------------------------------------*/
+ 
+-static int ehci_hub_control (
++static int __maybe_unused ehci_hub_control (
+ 	struct usb_hcd	*hcd,
+ 	u16		typeReq,
+ 	u16		wValue,
+@@ -1076,7 +1076,8 @@ error_exit:
+ 	return retval;
+ }
+ 
+-static void ehci_relinquish_port(struct usb_hcd *hcd, int portnum)
++static void __maybe_unused ehci_relinquish_port(struct usb_hcd *hcd,
++		int portnum)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
+ 
+@@ -1085,7 +1086,8 @@ static void ehci_relinquish_port(struct usb_hcd *hcd, int portnum)
+ 	set_owner(ehci, --portnum, PORT_OWNER);
+ }
+ 
+-static int ehci_port_handed_over(struct usb_hcd *hcd, int portnum)
++static int __maybe_unused ehci_port_handed_over(struct usb_hcd *hcd,
++		int portnum)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
+ 	u32 __iomem		*reg;
+-- 
+1.7.9
 
