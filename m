@@ -1,72 +1,158 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 4/6] arm: omap3: add manual control for mpu_iva voltdm usecounting
-Date: Tue, 14 Feb 2012 18:36:40 +0200
-Message-ID: <1329237402-26008-5-git-send-email-t-kristo@ti.com>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
+ idle when HDMI is enabled
+Date: Tue, 14 Feb 2012 22:29:26 +0530
+Message-ID: <CAMQu2gxdWt0rLZYs1SVToD1OExeqgRPTXcKPeR2RkUc-Qgqgqw@mail.gmail.com>
+References: <1328854552-30714-1-git-send-email-archit@ti.com>
+ <1329220678.1845.68.camel@deskari> <4F3A5A5D.4020906@ti.com>
+ <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>
+ <1329226404.1845.118.camel@deskari> <4F3A6563.7000108@ti.com> <4F3A85B0.906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54413 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383Ab2BNQwu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 11:52:50 -0500
-In-Reply-To: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:57614 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758179Ab2BNQ7r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Feb 2012 11:59:47 -0500
+In-Reply-To: <4F3A85B0.906@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Archit Taneja <a0393947@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
 
-mpu_iva voltdm usecount is now decreased during idle. This will
-allow the voltagedomain to reflect actual usage, and will allow
-proper usage of vc callbacks.
+On Tue, Feb 14, 2012 at 9:32 PM, Cousson, Benoit <b-cousson@ti.com> wrote:
+> On 2/14/2012 2:45 PM, Archit Taneja wrote:
+>>
+>> On Tuesday 14 February 2012 07:03 PM, Tomi Valkeinen wrote:
+>>>
+>>> On Tue, 2012-02-14 at 19:00 +0530, Archit Taneja wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> On Tuesday 14 February 2012 06:45 PM, Tomi Valkeinen wrote:
+>>>>>
+>>>>> On Tue, 2012-02-14 at 13:58 +0100, Cousson, Benoit wrote:
+>>>>>>
+>>>>>> Hi Tomi,
+>>>>>
+>>>>>
+>>>>>>> Benoit, do you think we'll get the MODULEMODE mess cleaned up in the
+>>>>>>> hwmod/clk framework at some point, and the drivers could do without
+>>>>>>> these kinds of hacks? =)
+>>>>>>
+>>>>>>
+>>>>>> The best way to fix that for my point of view is to go to device tree
+>>>>>> or/and to consider the DSS as the parent of all the DSS modules.
+>>>>>> pm_runtime will then always ensure that the parent is enabled
+>>>>>> before any
+>>>>>> of the child are used.
+>>>>>
+>>>>>
+>>>>> Ah, right. Sounds fine to me.
+>>>>>
+>>>>> But is that a proper "fix"? Are we sure the MODULEMODE will then always
+>>>>> be handled correctly? Isn't the core problem still there, it just
+>>>>> doesn't happen with the setup anymore?
+>>>>>
+>>>>> I mean, if we have these special requirements regarding MODULEMODE, and
+>>>>> the code doesn't really know about it, would it get broken easily with
+>>>>> restructuring/changes?
+>>>>>
+>>>>> And no, I don't have any clear idea why/how it would break, but I have
+>>>>> just gotten the impression that the MODULEMODE is not handled quite
+>>>>> properly (and so we have these current problems), and having
+>>>>> dss_core as
+>>>>> the parent of other dss modules doesn't really fix that in any way.
+>>>>
+>>>>
+>>>> I agree with that.
+>>>>
+>>>> In the current approach, we have multiple platform devices for DSS, and
+>>>> all of them belong to the same clock domain, and the clock domain has
+>>>> just one MODULEMODE bit field.
+>>>>
+>>>> When shutting off a platform device(by calling pm_runtime_put()), hwmod
+>>>> enables/disables MODULEMODE without taking into mind that other active
+>>>> platform devices may still need it. So, for example, if we have 2
+>>>> platform devices, say dss and dispc, and we have code like:
+>>>>
+>>>> dispc_foo()
+>>>> {
+>>>> pm_runtime_get(dispc_pdev);
+>>>> ...
+>>>> ...
+>>>> pm_runtime_put(dispc_pdev);
+>>>> }
+>>>>
+>>>> dss_foo()
+>>>> {
+>>>> pm_runtime_get(dss_pdev);
+>>>> ...
+>>>> ...
+>>>> dispc_foo(); /* MODULEMODE off after this */
+>>>> ...
+>>>> ...
+>>>> pm_runtime_put(dss_pdev);
+>>>> }
+>>>>
+>>>> This will lead to the situation of one platform device disabling
+>>>> MODULEMODE even though other platform devices need it.
+>>>>
+>>>> This may not be resolved in device tree either. We would need to have
+>>>> some use count mechanism for these bits, or attach MODULEMODE only to
+>>>> one platform device, and don't give others control to enable/disable it.
+>>>
+>>>
+>>> Hmm, are you sure? Not that I checked the code, but isn't MODULEMODE
+>>> mapped to a dss clock (was it "dss_clk")?. And so, the clock's refcount
+>>> should keep the MODULEMODE enabled/disabled?
+>>
+>>
+>> Yes, that's how we are currently dealing with it and making things work.
+>> We are forced to represent MODULEMODE as a clock. I forgot to mention
+>> that in the last mail :)
+>>
+>> However, other modules don't do this. modulemode control is taken care
+>> by hwmod by itself. We just have to fill the hwmod field
+>> '.prcm.omap4.modulemode' and get done with it. If we try this approach,
+>> we get into the trouble I mentioned before.
+>>
+>> We represent MODULEMODE as dss_fck, and make this the l3 slave clock for
+>> all DSS hwmods. This way, we ensure that it gets enabled, and we get a
+>> usecount associated to it. We shouldn't stick to this approach because:
+>>
+>> - It isn't exactly correct. MODULEMODE isn't a clock, and others don't
+>> do it.
+>
+>
+> Yes, fully agree. This was done like that as a hack to avoid any regression
+> because at that time we were not sure if that dependency will have to be
+> handled by the hwmod fmwk or by the driver.
+> Now, I'm sure it should not be handled by the hwmod fmwk :-)
+>
+>
+>> - DSS requires a particular sequence of disabling clocks to go into
+>> lower power states, and with the current approach, this doesn't happen.
+>> So, DSS doesn't idle, and that's the whole purpose of this :)
+>
+>
+> I'm just curious, what particular sequence is required?
+>
+IIRC, the main issue is the order in which functional clock and what
+is so called
+optional clock enabled ....
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index fc69875..14defaf 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -74,6 +74,7 @@ void (*omap3_do_wfi_sram)(void);
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
- static struct powerdomain *cam_pwrdm;
-+static struct voltagedomain *mpu_iva_voltdm;
- 
- static inline void omap3_per_save_context(void)
- {
-@@ -311,6 +312,8 @@ void omap_sram_idle(void)
- 		return;
- 	}
- 
-+	voltdm_pwrdm_disable(mpu_iva_voltdm);
-+
- 	/* NEON control */
- 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
- 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
-@@ -393,6 +396,8 @@ void omap_sram_idle(void)
- 	}
- 	omap3_intc_resume_idle();
- 
-+	voltdm_pwrdm_enable(mpu_iva_voltdm);
-+
- 	pwrdm_post_transition();
- 
- 	/* PER */
-@@ -828,6 +833,9 @@ static int __init omap3_pm_init(void)
- 
- 	(void) clkdm_for_each(clkdms_setup, NULL);
- 
-+	mpu_iva_voltdm = voltdm_lookup("mpu_iva");
-+	voltdm_pwrdm_enable(mpu_iva_voltdm);
-+
- 	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
- 	if (mpu_pwrdm == NULL) {
- 		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
--- 
-1.7.4.1
+While enabling the module
+1. Enable optional clock
+2. Enabled module mode.
 
+While disabling module
+1. Disable module mode
+2. Disable optional clock.
+
+I think only above sequence work. Not following above in either
+path leads to modules being stuck in transition.
+
+Is that right Archit ?
