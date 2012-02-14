@@ -1,61 +1,94 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Get rid of reset for system timer
-Date: Tue, 14 Feb 2012 12:45:11 +0530
-Message-ID: <CAMQu2gxnHE8fps6LD93B2G_w-p=i7YmuadasPrE-601-S8mUkA@mail.gmail.com>
-References: <1328191435-18652-1-git-send-email-santosh.shilimkar@ti.com>
- <1328191435-18652-2-git-send-email-santosh.shilimkar@ti.com>
- <20120210191813.GU1426@atomide.com> <4F39EDD0.9010304@ti.com>
+From: Dong Aisheng <dongas86@gmail.com>
+Subject: Re: [PATCH 2/2] pinctrl: Add simple pinmux driver using device tree
+ data
+Date: Mon, 13 Feb 2012 23:54:40 -0800
+Message-ID: <20120214075440.GA3058@b29396-Latitude-E6410>
+References: <20120203205049.4089.74610.stgit@kaulin.local>
+ <20120203205508.4089.35304.stgit@kaulin.local>
+ <20120204175903.GF1426@atomide.com>
+ <CAA+hA=Tux3P0RyaB=vG7UeycTt8z4nX9dBicpjB7tQ+xzwoSDQ@mail.gmail.com>
+ <20120210200503.GX1426@atomide.com>
+ <CAA+hA=Qa_3vXvgNMRuDjw93Wb3fGNOM1EqmvYVQO5CN9w2FA3A@mail.gmail.com>
+ <20120213191113.GF1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:53794 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753288Ab2BNHPe convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 02:15:34 -0500
-Received: by mail-qy0-f174.google.com with SMTP id w6so3915429qcq.5
-        for <linux-omap@vger.kernel.org>; Mon, 13 Feb 2012 23:15:31 -0800 (PST)
-In-Reply-To: <4F39EDD0.9010304@ti.com>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:47733 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753697Ab2BNHys (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Feb 2012 02:54:48 -0500
+Content-Disposition: inline
+In-Reply-To: <20120213191113.GF1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Stephen Warren <swarren@nvidia.com>, Linus Walleij <linus.walleij@stericsson.com>, Barry Song <21cnbao@gmail.com>, Haojian Zhuang <haojian.zhuang@marvell.com>, Grant Likely <grant.likely@secretlab.ca>, Thomas Abraham <thomas.abraham@linaro.org>, Rajendra Nayak <rajendra.nayak@linaro.org>, Dong Aisheng <dong.aisheng@linaro.org>, Shawn Guo <shawn.guo@freescale.com>
 
-On Tue, Feb 14, 2012 at 10:44 AM, Rajendra Nayak <rnayak@ti.com> wrote:
-> On Saturday 11 February 2012 12:48 AM, Tony Lindgren wrote:
->>
->> * Santosh Shilimkar<santosh.shilimkar@ti.com> =A0[120202 05:33]:
->>>
->>> > =A0From: Rajendra Nayak<rnayak@ti.com>
->>> >
->>> > =A0hwmod setup already does a reset and sets the OCP sysconfig
->>> > =A0registers appropriately. Avoid doing a reset again and overrid=
-ing
->>> > =A0the OCP sysconfig settings in the system timer init code.
->
->>
->>
->> If we want this queued as a fix, it should also describe what
->> actually breaks? Timer? PM?
->
->
-> It only fixes the redundant reset and overriding the smartidle-wakeup
-> OCP setting (done by hwmod) with the smartidle in the driver.
-> Doing this doesn't really break anything as yet in mainline, but will
-> cause timer wakeup issues once OFF mode is in place for OMAP4. On OMA=
-P5
-> however this was causing more issues as the softreset bit position is
-> different than on OMAP2/3/4.
-> So it should be ok to queue this in for 3.4 considering neither OMAP4
-> OFF, not OMAP5 support is in mainline yet.
->
-I second Rajendra's comment.
+On Mon, Feb 13, 2012 at 11:11:13AM -0800, Tony Lindgren wrote:
+...
+> > Put it in pinctrl device node?
+> > Then how do we name each pin?
+> > And for IMX, currently we name all pins in driver.
+> > I still can not find a good reason that i should name all pins in dt file.
+> 
+> But do you actually need the pin names in kernel? :)
+> 
+Yes, i meant name pins in driver.
+
+> > Yes, we indeed have such a case.
+> > For IMX, some special pins mux still need a setting called 'select input' which
+> > is controlled in other registers.
+> > But a rough idea in my mind that may choose different way to fix this issue.
+> > It's a little like:
+> > pinctrl_usdhc4: pinconfig-usdhc4 {
+> >        mux =
+> >                <MX6Q_SD4_CMD  0 SELECT_INPUT>
+> >                <MX6Q_SD4_CLK  0 0>
+> >                <MX6Q_SD4_DAT0 1 0>
+> >                <MX6Q_SD4_DAT1 1 0>
+> >                <MX6Q_SD4_DAT2 1 SELECT_INPUT>
+> >                <MX6Q_SD4_DAT3 1 0>
+> >                <MX6Q_SD4_DAT4 1 0>
+> >                <MX6Q_SD4_DAT5 1 0>
+> >                <MX6Q_SD4_DAT6 1 0>
+> >                <MX6Q_SD4_DAT7 1 0>;
+> > }
+> > This format would not make the dts writer to take too much care of
+> > register address
+> > and value. For this case, the #pinmux-cells would be <3>;
+> > It is a little different from OMAP.
+> 
+> If you don't want to keep the extra register entry around, then you
+> could have a custom .data entry in the pinctrl driver that contains
+> the mapping of these special registers.
+> 
+Yes, that's what i think.
+But we still need pass the value for thoes sepcial registers from dt.
+
+> > For your proposal, I'm afraid it is a little too much depend on the SoC register
+> > layout. We need to find a flexible enough way to cover all possible
+> > register layout
+> > difference for all SoCs.
+> > (Considering one register controls multi muxs?)
+> 
+> Most likely those special cases are best handled in hardware specific
+> drivers.
+>  
+Yes, common driver needs provide a way to cover that.
+
+> > Did i misunderstand?
+> > I still can not understand why need this.
+> > The pinctrl properly in device node can support multi pinmuxs .
+> > serial@48020000 {
+> >       pinctrl = <&pmx_uart3_x &pmx_uart3_y>;
+> > It's good to me that the consensus we reached at Linaro Connect is much like
+> > my proposal in above URL. :)
+> 
+> I meant like what you have in the second option here, the count is
+> used to parse each entry.
+You're right, i misunderstood before.
+Sorry for the noise.
 
 Regards
-Santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Dong Aisheng
