@@ -1,85 +1,83 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4 3/3] OMAPDSS: HDMI: Sysfs support to configure
- quantization
-Date: Tue, 14 Feb 2012 14:22:03 +0200
-Message-ID: <1329222123.1845.82.camel@deskari>
-References: <1328682261-22493-1-git-send-email-mythripk@ti.com>
-	 <1328682261-22493-2-git-send-email-mythripk@ti.com>
-	 <1328682261-22493-3-git-send-email-mythripk@ti.com>
+Subject: Re: [PATCH 0/3] OMAPDSS: HDMI: Add support for audio MCLK
+Date: Tue, 14 Feb 2012 14:27:59 +0200
+Message-ID: <1329222479.1845.86.camel@deskari>
+References: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-q94CFq6x0RsH1MXZVojp"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-vVEkCvXz3E9DOo8EZDRf"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:58280 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754193Ab2BNMW1 (ORCPT
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:46057 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753611Ab2BNM2D (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 07:22:27 -0500
-Received: by mail-lpp01m010-f54.google.com with SMTP id z14so7097806lag.13
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 04:22:06 -0800 (PST)
-In-Reply-To: <1328682261-22493-3-git-send-email-mythripk@ti.com>
+	Tue, 14 Feb 2012 07:28:03 -0500
+Received: by mail-lpp01m010-f53.google.com with SMTP id d3so5318486lah.12
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 04:28:01 -0800 (PST)
+In-Reply-To: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: mythripk@ti.com, a0393947@ti.com, molnar@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
 
 
---=-q94CFq6x0RsH1MXZVojp
+--=-vVEkCvXz3E9DOo8EZDRf
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Wed, 2012-02-08 at 11:54 +0530, mythripk@ti.com wrote:
-> From: Mythri P K <mythripk@ti.com>
+On Wed, 2012-02-08 at 21:10 -0600, Ricardo Neri wrote:
+> Hello,
 >=20
-> Add sysfs support for the user space to configure limited range or full r=
-ange
-> quantization for HDMI.
+> Certain OMAP4 revisions (i.e., 4430 ES2.3, 4460, and 4470) use
+> a pseudo clock (generated from the TMDS clock), MCLK, to drive the
+> generation of Audio Clock Regeneration packets. Other devices
+> (i.e., 4430 ES2.[0,2]) use the TMDS clock directly.=20
 >=20
-> Signed-off-by: Mythri P K <mythripk@ti.com>
+> This set of patches introduces functionality to enable the MCLK on the
+> relevant devices. Such clock is added as new DSS feature. The dss_feature=
+s
+> structures are rearranged to reflect the MCLK support across several
+> silicon revisions.
+>=20
+> These patches have been validated on OMAP 4430 ES2.2 and ES2.3 as well as
+> on 4460 ES1.0. The HDMI sinks used for validation are monitor Dell ST2210=
+b,
+> AV receiver Onkyo TX-SR508 and AV receiver Yamaha RX-V367. Audio playback
+> is functional in all of them.
 
-I'd rather not add another non-standard sysfs entry.
+One question just to be sure: are you sure this clocking difference is
+based on OMAP revision, and has nothing to do with the board?
 
-The color range is something that desktops have to handle also, so
-there's probably ways to handle it in DRM. DisplayPort also has the same
-range setting, so it's not specific to HDMI.
+I think this looks fine. However, it doesn't apply as the dss feat stuff
+has been changed. Could you rebase the patches on top of
 
-So I propose to add a kernel API for this in the omap_dss_driver, so
-that the users of omapdss may handle setting the range as they see best.
-
-Btw, the displayport spec speaks of VESA and CEA ranges. Does HDMI spec
-only speak about limited/full range?
-
-I also only now realized that we have full/limited range setting in
-video overlay's ATTRIBUTEs also. And it seems that we currently set it
-always to 0, i.e. limited range. I wonder if this causes color
-degradation in case the HDMI/DP output also sets limited range, and thus
-the color range gets scaled down twice...=20
+git://gitorious.org/linux-omap-dss2/linux.git dev
 
  Tomi
 
 
---=-q94CFq6x0RsH1MXZVojp
+--=-vVEkCvXz3E9DOo8EZDRf
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPOlHrAAoJEPo9qoy8lh71QQUP/0IKkgKybqfhU3TXqTSZYNw0
-rU8UtBN/+ymH1NZLeKgAlj9h9p3yqJPOTjkTj91fIvhCUAx+39tPTVweL7NW+CCy
-7ffCpQ87rV/733ihSxeLRDeE25+7RzZAW4SgfkZ6UgmlXzqymUOYtiaTHdNSd4aj
-68t5O2OLXZxFqoo5pezbbTNCuVpuzEsheecp+zKtG56XMTYvXiyY25DrnP5055go
-ixlQhUfUTRuzpcf6u5kE5jvU+pdAXopO48WY5p0pQY0GJTH4OHjYgE9rIC6eqwji
-dpY2xpeY8GcWJBi5oJY9ysC/CHrgMIfAzy+qXponCFD9OooNrLzFtmj+UsuqMThY
-gVjZwGD+f7gKRLye1KXeFddFk5AUqbcgU2vOjgklQftDizgkxNbCkX+H/bi6M+fk
-rPPj06ZdSWuKX3mo1d2hl4W6u/oBb0QVpyyqZEeNp6w0gbVol98lodLVmeN9cheP
-+UZgUejz8hGycRf8IMcdmqKQrPotpwk/PzBDHb8Q3iaiOJEcy493R3StR/YQrvjY
-Pzj2N56QDu6c74BS/WGdXQBOJ/uPzFVcPzVbOUi1gFPBfs4qXFulDmiusK9H3Vpt
-kGETLldK6qMgGBIa9FhGX7lxVf2CfFg7C28ksXjAbnBqTNPK23h/eKd0lcSpy/Kg
-5e6NJjQM76OIq5/KYd4K
-=0kbi
+iQIcBAABAgAGBQJPOlNPAAoJEPo9qoy8lh71mrYP/i5OBsM17BHpnliUDt92tSaB
+xsrrrBVw3x/Qjnov7Jv4nPYdoKPtl+YaeMGhcEqA0GQbK7scRwkfb0Cv+Mgsfz5v
+VUhPAJfhLEHDJ52OgcyjFYdvrjpsRgle5Kd6SRC2S7cX3Atntj1Fc/W7zEehvn0d
+1YztAFvt2bIrlVU6aj1A+n8C7BTGz/DxVigOFmbVuHKVczmSASm0EpnXjid/1lzx
+D2pUtiPUlhRBp/P1Pw29Mcv0gbLTZ2PnIqs67F4Jr8GsbjF5roFZkW7iMtp87DKb
+IJKZG//GBpE0GjxAxi9UCvdb056SztfnghEuTefakf3LJIkagIy/Ztqib7okTUlj
+03JQm9Pxe6+IE/PN8nkurVB2uqpygPfL4VJ/xw5Gdn72cPImY0VJ0egRkQE0TDY4
+T1G02oxhhuPiU102L1tVmi3fW1jNlirFdZJF/zuMOtjvUt53owqkpOQlS2WgIKBy
+qautHTYyCS9kSZmdX8JWCqS+7IAaSEPo82Cig+CUUqSXT6dDVpob5EhzTLvG8cKT
+uy5FrDOrd1BjNftU1G6sQrbQ3gcjZvm+4NYI2if5Qvda4UEnkJpoN+Tecc2x7lWd
+w1VZxZ468BmCms9ADSiPw+/mJy0Um1OppSmfkbT4VgEZf1bT6oMZm8Sr0wBP7RY7
+BVBF76KEmcqmrIwy/24N
+=ZdXm
 -----END PGP SIGNATURE-----
 
---=-q94CFq6x0RsH1MXZVojp--
+--=-vVEkCvXz3E9DOo8EZDRf--
 
