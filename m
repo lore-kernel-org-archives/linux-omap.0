@@ -1,131 +1,255 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
-Date: Tue, 14 Feb 2012 18:23:26 +0200
-Message-ID: <CAMP44s3sNH2qRsMHxgCbemefVye=z5E8XFLnSPvUtgA94SoV=A@mail.gmail.com>
-References: <20120201011239.GA797@suse.de>
-	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
-	<20120201034445.GA2979@kroah.com>
-	<CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
-	<20120209173528.GA31726@kroah.com>
-	<CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
-	<20120209185923.GB10284@kroah.com>
-	<CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
-	<20120210180015.GF4141@mwanda>
-	<CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
-	<20120210203537.GG4141@mwanda>
-	<CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
-	<CAB-zwWhSoiMNVGQ=u=6-Umte-AaP9Qih8QMJFTyk8pjXaXysLg@mail.gmail.com>
-	<CAMP44s1yY8N4z_uF1b=DKdEMGXORJUhkytEpbK2AoCSTbmiJNw@mail.gmail.com>
-	<CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCH 2/6] arm: omap3+: voltage/pwrdm/clkdm/clock add recursive usecount tracking
+Date: Tue, 14 Feb 2012 18:36:38 +0200
+Message-ID: <1329237402-26008-3-git-send-email-t-kristo@ti.com>
+References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m020-f174.google.com ([209.85.217.174]:41832 "EHLO
-	mail-lpp01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751236Ab2BNQX1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 11:23:27 -0500
-Received: by lbom4 with SMTP id m4so3147885lbo.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 08:23:26 -0800 (PST)
-In-Reply-To: <CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:45820 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383Ab2BNQu3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 11:50:29 -0500
+In-Reply-To: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
+To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Tue, Feb 14, 2012 at 3:06 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
-m> wrote:
-> On Feb 11, 2012 3:03 PM, "Felipe Contreras" <felipe.contreras@gmail.c=
-om> wrote:
->>
->> On Sat, Feb 11, 2012 at 9:19 PM, Ramirez Luna, Omar <omar.ramirez@ti=
-=2Ecom> wrote:
->> >
->> > On Feb 10, 2012 12:44 PM, "Felipe Contreras" <felipe.contreras@gma=
-il.com>
->> > wrote:
->> >>
->> >> On Fri, Feb 10, 2012 at 10:35 PM, Dan Carpenter
->> >> <dan.carpenter@oracle.com> wrote:
->> >> > On Fri, Feb 10, 2012 at 09:42:32PM +0200, Felipe Contreras wrot=
-e:
->> >> >> On Fri, Feb 10, 2012 at 8:00 PM, Dan Carpenter
->> >> >> <dan.carpenter@oracle.com> wrote:
->> >> >> > On Fri, Feb 10, 2012 at 01:30:48AM +0200, Felipe Contreras w=
-rote:
->> >> >> >> It's not an oops, it's a warning, and again, it depends on =
-the
->> >> >> >> firmware being used. We don't have control over that, and w=
-e have no
->> >> >> >> way to detect if this feature is there. It's up to the user=
-=2E
->> >> >> >
->> >> >> > Perhaps just remove the warning message and handle the condi=
-tion
->> >> >> > instead of printing a stack dump? =C2=A0The user should be t=
-riggering
->> >> >> > stack dumps. =C2=A0What on earth?
->> >> >>
->> >> >> The warning doesn't come from the driver.
->> >> >
->> >> > I'm not sure I understand. =C2=A0Are you saying that because it=
- comes
->> >> > from the arch/ directory, it can't be fixed? =C2=A0I have good =
-news for
->> >> > you my friend. =C2=A0:) =C2=A0It's all open source! =C2=A0\o/
->> >>
->> >> The fact that you _can_ remove the warning doesn't mean you shoul=
-d. To
->> >> me it sounds like a proper warning.
->> >>
->> >> > Anyway, I saw in another email that Omar is working on a fix so
->> >> > probably we can just wait for his patch, yes?
->> >>
->> >> He only proposed a solution, I doubt he is working on. And to me,=
- that
->> >> sounded like a hack rather than a proper fix.
->> >
->> > I'm out on travel but will be able to look at it on Monday.
->> >
->> > Well,=C2=A0 I think it is the right way, you look on the firmware =
-if it has WDT
->> > you use it if it doesn't then you don't. Rather than guessing if y=
-ou have
->> > the feature. It would be like reading a config option in the firmw=
-are.
->>
->> Yeah, but it's not really firmware, it's an operating system image. =
-I
->> can be running Linux there, and I might have implemented WDT. How is
->> that code going to find that out?
->
-> Tidspbridge loader doesn't support that use case, baseimage and let's
-> say a dsp-linuximg won't have the same layout, hence it won't be able
-> to parse and load the latter.
->
-> When that case is applicable, we should first modify the loader code
-> or prepare the baseimages to be common so we can get rid of specific
-> loaders and just dump them into memory.
+This patch fixes the usecount tracking for omap3+, previously the
+usecount numbers were rather bogus and were not really useful for
+any purpose. Now usecount numbers track the number of really active
+clients on each domain. This patch also adds support for usecount
+tracking on powerdomain level and autoidle flag for clocks that
+are hardware controlled and should be skipped in usecount
+calculations.
 
-I'd say the less workarounds, the better.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
+---
+ arch/arm/mach-omap2/clkt_iclk.c         |   21 +++++++++++++++++++
+ arch/arm/mach-omap2/clockdomain.c       |   34 +++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/clockdomain.h       |    2 +
+ arch/arm/mach-omap2/powerdomain.c       |   10 +++++++++
+ arch/arm/mach-omap2/powerdomain.h       |    5 ++++
+ arch/arm/plat-omap/clock.c              |    6 +++++
+ arch/arm/plat-omap/include/plat/clock.h |    2 +
+ 7 files changed, 78 insertions(+), 2 deletions(-)
 
-> WDT could be detected by prepending common symbols into the baseimage=
-s
-> or just making the new images to treat all peripherals as resources,
-> that is, the new baseimg should actually request the wdt3 as any othe=
-r
-> clock.
+diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
+index 3d43fba..f8c2e77 100644
+--- a/arch/arm/mach-omap2/clkt_iclk.c
++++ b/arch/arm/mach-omap2/clkt_iclk.c
+@@ -21,6 +21,7 @@
+ #include "clock2xxx.h"
+ #include "cm2xxx_3xxx.h"
+ #include "cm-regbits-24xx.h"
++#include "clockdomain.h"
+ 
+ /* Private functions */
+ 
+@@ -34,6 +35,16 @@ void omap2_clkt_iclk_allow_idle(struct clk *clk)
+ 	v = __raw_readl((__force void __iomem *)r);
+ 	v |= (1 << clk->enable_bit);
+ 	__raw_writel(v, (__force void __iomem *)r);
++
++	/* Remove this clock from parent clockdomain usecounts */
++	if (clk->usecount && clk->clkdm)
++		clkdm_usecount_dec(clk->clkdm);
++
++	/*
++	 * Mark as autoidle, so we continue to ignore this clock in
++	 * parent clkdm usecount calculations
++	 */
++	clk->autoidle = true;
+ }
+ 
+ /* XXX */
+@@ -46,6 +57,16 @@ void omap2_clkt_iclk_deny_idle(struct clk *clk)
+ 	v = __raw_readl((__force void __iomem *)r);
+ 	v &= ~(1 << clk->enable_bit);
+ 	__raw_writel(v, (__force void __iomem *)r);
++
++	/* Add clock back to parent clockdomain usecount */
++	if (clk->usecount && clk->clkdm)
++		clkdm_usecount_inc(clk->clkdm);
++
++	/*
++	 * Disable autoidle flag so further clkdm usecounts take this
++	 * clock into account
++	 */
++	clk->autoidle = false;
+ }
+ 
+ /* Public data */
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index ad07689..c0b6187 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -907,6 +907,28 @@ bool clkdm_in_hwsup(struct clockdomain *clkdm)
+ 
+ /* Clockdomain-to-clock/hwmod framework interface code */
+ 
++int clkdm_usecount_inc(struct clockdomain *clkdm)
++{
++	int usecount;
++
++	usecount = atomic_inc_return(&clkdm->usecount);
++
++	if (usecount == 1)
++		pwrdm_clkdm_enable(clkdm->pwrdm.ptr);
++	return usecount;
++}
++
++int clkdm_usecount_dec(struct clockdomain *clkdm)
++{
++	int usecount;
++
++	usecount = atomic_dec_return(&clkdm->usecount);
++
++	if (usecount == 0)
++		pwrdm_clkdm_disable(clkdm->pwrdm.ptr);
++	return usecount;
++}
++
+ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ {
+ 	unsigned long flags;
+@@ -919,7 +941,7 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+ 	 * should be called for every clock instance or hwmod that is
+ 	 * enabled, so the clkdm can be force woken up.
+ 	 */
+-	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps)
++	if ((clkdm_usecount_inc(clkdm) > 1) && autodeps)
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&clkdm->lock, flags);
+@@ -945,7 +967,7 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
+ 		return -ERANGE;
+ 	}
+ 
+-	if (atomic_dec_return(&clkdm->usecount) > 0)
++	if (clkdm_usecount_dec(clkdm) > 0)
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&clkdm->lock, flags);
+@@ -982,6 +1004,10 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	if (!clk)
+ 		return -EINVAL;
+ 
++	/* If autoidle clock, do not update clkdm usecounts */
++	if (clk->autoidle)
++		return 0;
++
+ 	return _clkdm_clk_hwmod_enable(clkdm);
+ }
+ 
+@@ -1008,6 +1034,10 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	if (!clk)
+ 		return -EINVAL;
+ 
++	/* If autoidle clock, do not update clkdm usecounts */
++	if (clk->autoidle)
++		return 0;
++
+ 	return _clkdm_clk_hwmod_disable(clkdm);
+ }
+ 
+diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
+index f7b5860..373399a 100644
+--- a/arch/arm/mach-omap2/clockdomain.h
++++ b/arch/arm/mach-omap2/clockdomain.h
+@@ -191,6 +191,8 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
+ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
+ int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh);
+ int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh);
++int clkdm_usecount_inc(struct clockdomain *clkdm);
++int clkdm_usecount_dec(struct clockdomain *clkdm);
+ 
+ extern void __init omap242x_clockdomains_init(void);
+ extern void __init omap243x_clockdomains_init(void);
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 8a18d1b..78bf3c0 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -985,6 +985,16 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
+ 	return -EINVAL;
+ }
+ 
++void pwrdm_clkdm_enable(struct powerdomain *pwrdm)
++{
++	atomic_inc(&pwrdm->usecount);
++}
++
++void pwrdm_clkdm_disable(struct powerdomain *pwrdm)
++{
++	atomic_dec(&pwrdm->usecount);
++}
++
+ int pwrdm_pre_transition(void)
+ {
+ 	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
+diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
+index 0d72a8a..32f44c8 100644
+--- a/arch/arm/mach-omap2/powerdomain.h
++++ b/arch/arm/mach-omap2/powerdomain.h
+@@ -120,6 +120,7 @@ struct powerdomain {
+ 	unsigned state_counter[PWRDM_MAX_PWRSTS];
+ 	unsigned ret_logic_off_counter;
+ 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
++	atomic_t usecount;
+ 
+ #ifdef CONFIG_PM_DEBUG
+ 	s64 timer;
+@@ -216,6 +217,10 @@ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+ int pwrdm_pre_transition(void);
+ int pwrdm_post_transition(void);
++
++void pwrdm_clkdm_enable(struct powerdomain *pwrdm);
++void pwrdm_clkdm_disable(struct powerdomain *pwrdm);
++
+ int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
+ int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
+ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index e17ee5e2..1f80df8 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -283,6 +283,12 @@ int clk_register(struct clk *clk)
+ 		list_add(&clk->sibling, &root_clks);
+ 
+ 	list_add(&clk->node, &clocks);
++	/*
++	 * If clock has no ops, it is handled by hardware and thus will
++	 * idle automatically
++	 */
++	if (clk->ops == &clkops_null)
++		clk->autoidle = true;
+ 	if (clk->init)
+ 		clk->init(clk);
+ 	mutex_unlock(&clocks_mutex);
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index c84f2a4..14b44c0 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -208,6 +208,7 @@ struct dpll_data {
+  * @init: fn ptr to do clock-specific initialization
+  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
+  * @usecount: number of users that have requested this clock to be enabled
++ * @autoidle: indicates hardware controlled clock (not used in domain usecounts)
+  * @fixed_div: when > 0, this clock's rate is its parent's rate / @fixed_div
+  * @flags: see "struct clk.flags possibilities" above
+  * @clksel_reg: for clksel clks, register va containing src/divisor select
+@@ -254,6 +255,7 @@ struct clk {
+ 	void			(*init)(struct clk *);
+ 	u8			enable_bit;
+ 	s8			usecount;
++	bool			autoidle;
+ 	u8			fixed_div;
+ 	u8			flags;
+ #ifdef CONFIG_ARCH_OMAP2PLUS
+-- 
+1.7.4.1
 
-I see, but if wdt3 is requested as another clock, the Linux ARM side
-would still need to know how to threat the WDT.
-
-Cheers.
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
