@@ -1,33 +1,247 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] arm: omap: usb-host: fix compile warning
-Date: Tue, 14 Feb 2012 11:47:21 -0800
-Message-ID: <20120214194721.GR1426@atomide.com>
-References: <1329209686-25551-1-git-send-email-balbi@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH v3 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
+ controller
+Date: Tue, 14 Feb 2012 13:48:07 -0600
+Message-ID: <4F3ABA77.8010303@gmail.com>
+References: <1329242172-4214-1-git-send-email-b-cousson@ti.com> <1329242172-4214-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56184 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757036Ab2BNTrY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 14:47:24 -0500
-Content-Disposition: inline
-In-Reply-To: <1329209686-25551-1-git-send-email-balbi@ti.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:60937 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754800Ab2BNTsK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 14:48:10 -0500
+Received: by yhoo21 with SMTP id o21so280895yho.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 11:48:09 -0800 (PST)
+In-Reply-To: <1329242172-4214-3-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Felipe Balbi <balbi@ti.com> [120214 00:23]:
-> when commit 3528c58 (OMAP: omap_device: when
-> building return platform_device instead of
-> omap_device) started returning a platform_device
-> instead of a omap_device pointer when building
-> a device, it failed to convert all users introducing
-> a compile warning when building
-> arch/arm/mach-omap2/usb-host.c.
+On 02/14/2012 11:56 AM, Benoit Cousson wrote:
+> Add a function to initialize the OMAP2/3 interrupt controller (INTC)
+> using a device tree node.
 > 
-> This patch fixes that warning.
+> This version take advantage of the new irq_domain_add_legacy API.
+> 
+> Replace some printk() with the proper pr_ macro.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
 
-Thanks applying into fixes.
+Given that you plan to do gen irqchip:
 
-Tony
+Acked-by: Rob Herring <rob.herring@calxeda.com>
+
+Rob
+
+> ---
+>  .../devicetree/bindings/arm/omap/intc.txt          |   27 +++++++++
+>  arch/arm/mach-omap2/common.h                       |   10 +++
+>  arch/arm/mach-omap2/irq.c                          |   59 ++++++++++++++++---
+>  3 files changed, 86 insertions(+), 10 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/arm/omap/intc.txt b/Documentation/devicetree/bindings/arm/omap/intc.txt
+> new file mode 100644
+> index 0000000..f2583e6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/arm/omap/intc.txt
+> @@ -0,0 +1,27 @@
+> +* OMAP Interrupt Controller
+> +
+> +OMAP2/3 are using a TI interrupt controller that can support several
+> +configurable number of interrupts.
+> +
+> +Main node required properties:
+> +
+> +- compatible : should be:
+> +	"ti,omap2-intc"
+> +- interrupt-controller : Identifies the node as an interrupt controller
+> +- #interrupt-cells : Specifies the number of cells needed to encode an
+> +  interrupt source. The type shall be a <u32> and the value shall be 1.
+> +
+> +  The cell contains the interrupt number in the range [0-128].
+> +- ti,intc-size: Number of interrupts handled by the interrupt controller.
+> +- reg: physical base address and size of the intc registers map.
+> +
+> +Example:
+> +
+> +	intc: interrupt-controller@1 {
+> +		compatible = "ti,omap2-intc";
+> +		interrupt-controller;
+> +		#interrupt-cells = <1>;
+> +		ti,intc-size = <96>;
+> +		reg = <0x48200000 0x1000>;
+> +	};
+> +
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index febffde..a87ce52 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -174,6 +174,16 @@ void omap3_intc_handle_irq(struct pt_regs *regs);
+>  extern void __iomem *omap4_get_l2cache_base(void);
+>  #endif
+>  
+> +struct device_node;
+> +#ifdef CONFIG_OF
+> +int __init intc_of_init(struct device_node *node, struct device_node *parent);
+> +#else
+> +int __init intc_of_init(struct device_node *node, struct device_node *parent)
+> +{
+> +	return 0;
+> +}
+> +#endif
+> +
+>  #ifdef CONFIG_SMP
+>  extern void __iomem *omap4_get_scu_base(void);
+>  #else
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index 1fef061..e2d0f33 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -11,12 +11,16 @@
+>   * for more details.
+>   */
+>  #include <linux/kernel.h>
+> +#include <linux/module.h>
+>  #include <linux/init.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/io.h>
+>  #include <mach/hardware.h>
+>  #include <asm/exception.h>
+>  #include <asm/mach/irq.h>
+> +#include <linux/irqdomain.h>
+> +#include <linux/of.h>
+> +#include <linux/of_address.h>
+>  
+>  
+>  /* selected INTC register offsets */
+> @@ -57,6 +61,8 @@ static struct omap_irq_bank {
+>  	},
+>  };
+>  
+> +static struct irq_domain *domain;
+> +
+>  /* Structure to save interrupt controller context */
+>  struct omap3_intc_regs {
+>  	u32 sysconfig;
+> @@ -147,17 +153,27 @@ omap_alloc_gc(void __iomem *base, unsigned int irq_start, unsigned int num)
+>  				IRQ_NOREQUEST | IRQ_NOPROBE, 0);
+>  }
+>  
+> -static void __init omap_init_irq(u32 base, int nr_irqs)
+> +static void __init omap_init_irq(u32 base, int nr_irqs,
+> +				 struct device_node *node)
+>  {
+>  	void __iomem *omap_irq_base;
+>  	unsigned long nr_of_irqs = 0;
+>  	unsigned int nr_banks = 0;
+> -	int i, j;
+> +	int i, j, irq_base;
+>  
+>  	omap_irq_base = ioremap(base, SZ_4K);
+>  	if (WARN_ON(!omap_irq_base))
+>  		return;
+>  
+> +	irq_base = irq_alloc_descs(-1, 0, nr_irqs, 0);
+> +	if (irq_base < 0) {
+> +		pr_warn("Couldn't allocate IRQ numbers\n");
+> +		irq_base = 0;
+> +	}
+> +
+> +	domain = irq_domain_add_legacy(node, nr_irqs, irq_base, 0,
+> +				       &irq_domain_simple_ops, NULL);
+> +
+>  	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
+>  		struct omap_irq_bank *bank = irq_banks + i;
+>  
+> @@ -166,36 +182,36 @@ static void __init omap_init_irq(u32 base, int nr_irqs)
+>  		/* Static mapping, never released */
+>  		bank->base_reg = ioremap(base, SZ_4K);
+>  		if (!bank->base_reg) {
+> -			printk(KERN_ERR "Could not ioremap irq bank%i\n", i);
+> +			pr_err("Could not ioremap irq bank%i\n", i);
+>  			continue;
+>  		}
+>  
+>  		omap_irq_bank_init_one(bank);
+>  
+>  		for (j = 0; j < bank->nr_irqs; j += 32)
+> -			omap_alloc_gc(bank->base_reg + j, j, 32);
+> +			omap_alloc_gc(bank->base_reg + j, j + irq_base, 32);
+>  
+>  		nr_of_irqs += bank->nr_irqs;
+>  		nr_banks++;
+>  	}
+>  
+> -	printk(KERN_INFO "Total of %ld interrupts on %d active controller%s\n",
+> -	       nr_of_irqs, nr_banks, nr_banks > 1 ? "s" : "");
+> +	pr_info("Total of %ld interrupts on %d active controller%s\n",
+> +		nr_of_irqs, nr_banks, nr_banks > 1 ? "s" : "");
+>  }
+>  
+>  void __init omap2_init_irq(void)
+>  {
+> -	omap_init_irq(OMAP24XX_IC_BASE, 96);
+> +	omap_init_irq(OMAP24XX_IC_BASE, 96, NULL);
+>  }
+>  
+>  void __init omap3_init_irq(void)
+>  {
+> -	omap_init_irq(OMAP34XX_IC_BASE, 96);
+> +	omap_init_irq(OMAP34XX_IC_BASE, 96, NULL);
+>  }
+>  
+>  void __init ti81xx_init_irq(void)
+>  {
+> -	omap_init_irq(OMAP34XX_IC_BASE, 128);
+> +	omap_init_irq(OMAP34XX_IC_BASE, 128, NULL);
+>  }
+>  
+>  static inline void omap_intc_handle_irq(void __iomem *base_addr, struct pt_regs *regs)
+> @@ -225,8 +241,10 @@ out:
+>  		irqnr = readl_relaxed(base_addr + INTCPS_SIR_IRQ_OFFSET);
+>  		irqnr &= ACTIVEIRQ_MASK;
+>  
+> -		if (irqnr)
+> +		if (irqnr) {
+> +			irqnr = irq_find_mapping(domain, irqnr);
+>  			handle_IRQ(irqnr, regs);
+> +		}
+>  	} while (irqnr);
+>  }
+>  
+> @@ -236,6 +254,27 @@ asmlinkage void __exception_irq_entry omap2_intc_handle_irq(struct pt_regs *regs
+>  	omap_intc_handle_irq(base_addr, regs);
+>  }
+>  
+> +int __init intc_of_init(struct device_node *node, struct device_node *parent)
+> +{
+> +	struct resource res;
+> +	u32 nr_irqs = 96;
+> +
+> +	if (WARN_ON(!node))
+> +		return -ENODEV;
+> +
+> +	if (of_address_to_resource(node, 0, &res)) {
+> +		WARN(1, "unable to get intc registers\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (of_property_read_u32(node, "ti,intc-size", &nr_irqs))
+> +		pr_warn("unable to get intc-size, default to %d\n", nr_irqs);
+> +
+> +	omap_init_irq(res.start, nr_irqs, of_node_get(node));
+> +
+> +	return 0;
+> +}
+> +
+>  #ifdef CONFIG_ARCH_OMAP3
+>  static struct omap3_intc_regs intc_context[ARRAY_SIZE(irq_banks)];
+>  
+
