@@ -1,50 +1,84 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv8 4/5] twl4030: add support for external voltage get/set
-Date: Tue, 14 Feb 2012 14:47:46 +0200
-Message-ID: <1329223666.4102.319.camel@sokoban>
-References: <1323444589-19940-1-git-send-email-t-kristo@ti.com>
-	 <1323444589-19940-5-git-send-email-t-kristo@ti.com> <871ur8weds.fsf@ti.com>
-	 <20120110033012.GM30766@opensource.wolfsonmicro.com>
-	 <87pqertwjt.fsf@ti.com> <20120110191012.GI7164@opensource.wolfsonmicro.com>
-Reply-To: <t-kristo@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: OMAP DSS warning in apply.c
+Date: Tue, 14 Feb 2012 14:57:49 +0200
+Message-ID: <1329224269.1845.99.camel@deskari>
+References: <20120214120643.GH15338@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-NV8dsIBcW7fs/LdQBtWc"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59812 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760260Ab2BNMrw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 07:47:52 -0500
-In-Reply-To: <20120110191012.GI7164@opensource.wolfsonmicro.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:55421 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752977Ab2BNM5y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Feb 2012 07:57:54 -0500
+In-Reply-To: <20120214120643.GH15338@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Kevin Hilman <khilman@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Archit Taneja <archit@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-On Tue, 2012-01-10 at 19:10 +0000, Mark Brown wrote:
-> On Tue, Jan 10, 2012 at 07:19:18AM -0800, Kevin Hilman wrote:
-> 
-> > Yes, some of the control still goes via the normal path (although I
-> > forget which, maybe Benoit can remind us), so I think it's best to add
-> > the HW control part to each regulator that might uses it.
-> 
-> > Ideally this could be facilitated by adding the extentions to the
-> > regulator core so the amount of code needed for each regulator driver
-> > would be minimal.
-> 
-> I think the original version of the patch was something along those
-> lines but it was just a general facility which ignored the regulator
-> driver entirely which didn't feel well integrated.  The discussion
-> suggested that this wasn't something that'd work with other regulators
-> so a per-driver solution seemed OK.
 
-Coming back to this patch now as I have time to look at it, what is the
-general opinion, is it acceptable to patch the regulator core to add
-support for the external controller or should I just resend the latest
-version with changes Mark suggested? This will probably mean that once
-we add new regulator drivers (e.g. pmics) we may need to duplicate the
-external controller support here.
+--=-NV8dsIBcW7fs/LdQBtWc
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
--Tero
+On Tue, 2012-02-14 at 12:06 +0000, Russell King - ARM Linux wrote:
+> kautobuildv2 discovered this in its omap4430sdp oldconfig build:
+>=20
+> drivers/video/omap2/dss/apply.c:350: warning: 'wait_pending_extra_info_up=
+dates' defined but not used
+>=20
+> This looks like a valid warning, because wait_pending_extra_info_updates(=
+)
+> seems to be completely unreferenced.  Should the function be removed?
+> It looks like extra_updated_completion can also be removed as well, as
+> that function is the only place it gets initialized and waited for.
 
+The function will be used when the fifo merge series goes in in the next
+merge window.
+
+I added the "extra_info" code before fifo merge, as it's will be used by
+the fifo merge code and it kinda belonged with the other apply stuff.
+
+The fifo merge code was also supposed to go in in the previous merge
+window with the rest of the rewrites, but due to some complications it
+was delayed and missed the merge window.
+
+> The function also looks weird - it calls extra_info_update_ongoing() firs=
+t
+> under a lock, and then outside the lock.  It's not particularly nice API
+> wise to have stuff sometimes called under a lock and sometimes not.
+
+The second call is actually extra, it was just added for verification
+purposes during development to ensure that the wait logic works
+correctly.
+
+I'll remove it.
+
+ Tomi
+
+
+--=-NV8dsIBcW7fs/LdQBtWc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPOlpNAAoJEPo9qoy8lh71j+AQAIXR9U5/7a4GD20vvzR6B14p
+hIx3Ri92QBGF25Du7lKetdcYBzBllBXOX8mi++cOsAJCuRB9bsh4I+y7CmFgkkeb
+KI0JMNDF48EkZgkj2rQ4dsHxwyMwyFeAanW2zNYRLYEl9O9kj0IPrsuSZeiLKtcA
+gZU4ULN65JUoMIqrWPFIKURxYaJviFeyr0zw0KruApa34+qwhBQVSkybmNZ8MZuC
+GUq8Z8rrcubMwp4dR8QPwhFtsV6+Bi8fymWd/1gtsmggiJPhAbf0g/OKH9H8aRi+
+0chgdmtbp2/fQBvPYLy5NImaCzESA7ynlsr6lJEFJPMS06x6Me3Y3jvP837hBEwV
+fxGurrSiG8yJF4vbbswtosII0Q4Q0FRy4lxvwpbysMz5H9sEAkj/9LEIl9wMUtqS
+N2+Pu/iPd5QDI6miiH92j9Hr5EQCiki+Spzvb4XLg0PmwAhy356toWrJH1ZfUP7V
+cACw7XMR+jr63bIowRYabbWsR4WtfZyEHUhyPUefEQPheVjftbwErRp+FJ9UDvn8
+fE2Cd/oB+K8lQiLcZmLVOuy6IaRQEkyjqTbaMmaJEMoXOz07htZtbgHHY90rXTiw
+8YN6N07X99Doun+J3TKrwSj1C1ijLRPjA8ckK31OdTPUAJ144nHBf6MjGKwyOGPM
+sdnMd2Hdx+oPZSzgJG+P
+=suKx
+-----END PGP SIGNATURE-----
+
+--=-NV8dsIBcW7fs/LdQBtWc--
 
