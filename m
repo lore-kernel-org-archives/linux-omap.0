@@ -1,119 +1,73 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v3 4/4] ARM: OMAP2+: board-generic: Use of_irq_init API
-Date: Tue, 14 Feb 2012 18:56:12 +0100
-Message-ID: <1329242172-4214-5-git-send-email-b-cousson@ti.com>
-References: <1329242172-4214-1-git-send-email-b-cousson@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] OMAP2 PM: do RCU locking for opp_get_voltage()
+Date: Tue, 14 Feb 2012 10:48:37 -0800
+Message-ID: <87sjid6yka.fsf@ti.com>
+References: <1329122644-7121-1-git-send-email-arnout@mind.be>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48805 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754610Ab2BNR4x (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 12:56:53 -0500
-In-Reply-To: <1329242172-4214-1-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35336 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754994Ab2BNSsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Feb 2012 13:48:42 -0500
+Received: by mail-pw0-f45.google.com with SMTP id ro12so741485pbb.32
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 10:48:41 -0800 (PST)
+In-Reply-To: <1329122644-7121-1-git-send-email-arnout@mind.be> (Arnout
+	Vandecappelle's message of "Mon, 13 Feb 2012 09:44:04 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, rob.herring@calxeda.com
-Cc: grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+To: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Thara Gopinath <thara@ti.com>, Russell King <linux@arm.linux.org.uk>, Philip Oberstaller <philip.oberstaller@septentrio.com>
 
-Use the of_irq_init API introduced in 3.2 to handle
-interrupt-controller with DT.
-Update the irq_match table to map the proper XXX_of_init
-functions for INTC and GIC drivers.
+"Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be> writes:
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
-Acked-by: Rob Herring <rob.herring@calxeda.com>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
----
- arch/arm/mach-omap2/board-generic.c |   30 ++++++++++++++++--------------
- 1 files changed, 16 insertions(+), 14 deletions(-)
+> From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
+>
+> According to the documentation of opp_get_voltage(), it must be called
+> with rcu_read_lock() held.  The OMAP2 power manager doesn't do this.
+> The locking error is caught by PROVE_RCU.
+>
+> Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index 02d7e82..cf08921 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -12,6 +12,7 @@
-  * published by the Free Software Foundation.
-  */
- #include <linux/io.h>
-+#include <linux/of_irq.h>
- #include <linux/of_platform.h>
- #include <linux/irqdomain.h>
- #include <linux/i2c/twl.h>
-@@ -24,6 +25,17 @@
- #include "common.h"
- #include "common-board-devices.h"
- 
-+static struct of_device_id irq_match[] __initdata = {
-+	{ .compatible = "ti,omap2-intc", .data = intc_of_init, },
-+	{ .compatible = "arm,cortex-a9-gic", .data = gic_of_init, },
-+	{ }
-+};
-+
-+static void __init omap_init_irq(void)
-+{
-+	of_irq_init(irq_match);
-+}
-+
- /*
-  * XXX: Still needed to boot until the i2c & twl driver is adapted to
-  * device-tree
-@@ -58,18 +70,8 @@ static struct of_device_id omap_dt_match_table[] __initdata = {
- 	{ }
- };
- 
--static struct of_device_id intc_match[] __initdata = {
--	{ .compatible = "ti,omap3-intc", },
--	{ .compatible = "arm,cortex-a9-gic", },
--	{ }
--};
--
- static void __init omap_generic_init(void)
- {
--	struct device_node *node = of_find_matching_node(NULL, intc_match);
--	if (node)
--		irq_domain_add_legacy(node, 32, 0, 0, &irq_domain_simple_ops, NULL);
--
- 	omap_sdrc_init(NULL, NULL);
- 
- 	of_platform_populate(NULL, omap_dt_match_table, NULL, NULL);
-@@ -101,7 +103,7 @@ DT_MACHINE_START(OMAP242X_DT, "Generic OMAP2420 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap242x_map_io,
- 	.init_early	= omap2420_init_early,
--	.init_irq	= omap2_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= omap2_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
- 	.timer		= &omap2_timer,
-@@ -120,7 +122,7 @@ DT_MACHINE_START(OMAP243X_DT, "Generic OMAP2430 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap243x_map_io,
- 	.init_early	= omap2430_init_early,
--	.init_irq	= omap2_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= omap2_intc_handle_irq,
- 	.init_machine	= omap_generic_init,
- 	.timer		= &omap2_timer,
-@@ -139,7 +141,7 @@ DT_MACHINE_START(OMAP3_DT, "Generic OMAP3 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap3_map_io,
- 	.init_early	= omap3430_init_early,
--	.init_irq	= omap3_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= omap3_intc_handle_irq,
- 	.init_machine	= omap3_init,
- 	.timer		= &omap3_timer,
-@@ -158,7 +160,7 @@ DT_MACHINE_START(OMAP4_DT, "Generic OMAP4 (Flattened Device Tree)")
- 	.reserve	= omap_reserve,
- 	.map_io		= omap4_map_io,
- 	.init_early	= omap4430_init_early,
--	.init_irq	= gic_init_irq,
-+	.init_irq	= omap_init_irq,
- 	.handle_irq	= gic_handle_irq,
- 	.init_machine	= omap4_init,
- 	.timer		= &omap4_timer,
--- 
-1.7.0.4
+Thanks for the patch, I've got a patch from Neil Brown queued for this
+already:
 
+       http://marc.info/?l=linux-omap&m=132608991812586&w=2
+
+Kevin
+
+> ---
+> Please CC me, I'm not on the list.
+>
+> I was very surprised by this error, because this is the only user of
+> opp_get_voltage().
+>
+> Regards,
+> Arnout
+> ---
+>  arch/arm/mach-omap2/pm.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 00bff46..bce2bdc 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -174,14 +174,17 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
+>  	freq = clk->rate;
+>  	clk_put(clk);
+>  
+> +	rcu_read_lock();
+>  	opp = opp_find_freq_ceil(dev, &freq);
+>  	if (IS_ERR(opp)) {
+>  		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
+>  			__func__, vdd_name);
+> +		rcu_read_unlock();
+>  		goto exit;
+>  	}
+>  
+>  	bootup_volt = opp_get_voltage(opp);
+> +	rcu_read_unlock();
+>  	if (!bootup_volt) {
+>  		pr_err("%s: unable to find voltage corresponding "
+>  			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
