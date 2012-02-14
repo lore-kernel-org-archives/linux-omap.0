@@ -1,125 +1,131 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
- idle when HDMI is enabled
-Date: Tue, 14 Feb 2012 17:02:56 +0100
-Message-ID: <4F3A85B0.906@ti.com>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>  <1329220678.1845.68.camel@deskari>  <4F3A5A5D.4020906@ti.com>  <1329225311.1845.109.camel@deskari>  <4F3A61EF.4030803@ti.com> <1329226404.1845.118.camel@deskari> <4F3A6563.7000108@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Tue, 14 Feb 2012 18:23:26 +0200
+Message-ID: <CAMP44s3sNH2qRsMHxgCbemefVye=z5E8XFLnSPvUtgA94SoV=A@mail.gmail.com>
+References: <20120201011239.GA797@suse.de>
+	<CAMP44s2Hvgsi+JF=ydAebd=dUYUNfJSB-T3FmLvO=RGDwBvU0Q@mail.gmail.com>
+	<20120201034445.GA2979@kroah.com>
+	<CAMP44s2FNFwvjv=f7WvJG7qXpYVqq0i53FzPcPTAB2g1mUk1Fw@mail.gmail.com>
+	<20120209173528.GA31726@kroah.com>
+	<CAMP44s3jvYMSmQfvhKEzTz9iYq-dabLJ6qniFsjw9vZLqgP0Ng@mail.gmail.com>
+	<20120209185923.GB10284@kroah.com>
+	<CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
+	<20120210180015.GF4141@mwanda>
+	<CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
+	<20120210203537.GG4141@mwanda>
+	<CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
+	<CAB-zwWhSoiMNVGQ=u=6-Umte-AaP9Qih8QMJFTyk8pjXaXysLg@mail.gmail.com>
+	<CAMP44s1yY8N4z_uF1b=DKdEMGXORJUhkytEpbK2AoCSTbmiJNw@mail.gmail.com>
+	<CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51702 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751383Ab2BNQDF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 11:03:05 -0500
-In-Reply-To: <4F3A6563.7000108@ti.com>
+Received: from mail-lpp01m020-f174.google.com ([209.85.217.174]:41832 "EHLO
+	mail-lpp01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751236Ab2BNQX1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Feb 2012 11:23:27 -0500
+Received: by lbom4 with SMTP id m4so3147885lbo.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 08:23:26 -0800 (PST)
+In-Reply-To: <CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
 
-On 2/14/2012 2:45 PM, Archit Taneja wrote:
-> On Tuesday 14 February 2012 07:03 PM, Tomi Valkeinen wrote:
->> On Tue, 2012-02-14 at 19:00 +0530, Archit Taneja wrote:
->>> Hi,
->>>
->>> On Tuesday 14 February 2012 06:45 PM, Tomi Valkeinen wrote:
->>>> On Tue, 2012-02-14 at 13:58 +0100, Cousson, Benoit wrote:
->>>>> Hi Tomi,
->>>>
->>>>>> Benoit, do you think we'll get the MODULEMODE mess cleaned up in the
->>>>>> hwmod/clk framework at some point, and the drivers could do without
->>>>>> these kinds of hacks? =)
->>>>>
->>>>> The best way to fix that for my point of view is to go to device tree
->>>>> or/and to consider the DSS as the parent of all the DSS modules.
->>>>> pm_runtime will then always ensure that the parent is enabled
->>>>> before any
->>>>> of the child are used.
->>>>
->>>> Ah, right. Sounds fine to me.
->>>>
->>>> But is that a proper "fix"? Are we sure the MODULEMODE will then always
->>>> be handled correctly? Isn't the core problem still there, it just
->>>> doesn't happen with the setup anymore?
->>>>
->>>> I mean, if we have these special requirements regarding MODULEMODE, and
->>>> the code doesn't really know about it, would it get broken easily with
->>>> restructuring/changes?
->>>>
->>>> And no, I don't have any clear idea why/how it would break, but I have
->>>> just gotten the impression that the MODULEMODE is not handled quite
->>>> properly (and so we have these current problems), and having
->>>> dss_core as
->>>> the parent of other dss modules doesn't really fix that in any way.
->>>
->>> I agree with that.
->>>
->>> In the current approach, we have multiple platform devices for DSS, and
->>> all of them belong to the same clock domain, and the clock domain has
->>> just one MODULEMODE bit field.
->>>
->>> When shutting off a platform device(by calling pm_runtime_put()), hwmod
->>> enables/disables MODULEMODE without taking into mind that other active
->>> platform devices may still need it. So, for example, if we have 2
->>> platform devices, say dss and dispc, and we have code like:
->>>
->>> dispc_foo()
->>> {
->>> pm_runtime_get(dispc_pdev);
->>> ...
->>> ...
->>> pm_runtime_put(dispc_pdev);
->>> }
->>>
->>> dss_foo()
->>> {
->>> pm_runtime_get(dss_pdev);
->>> ...
->>> ...
->>> dispc_foo(); /* MODULEMODE off after this */
->>> ...
->>> ...
->>> pm_runtime_put(dss_pdev);
->>> }
->>>
->>> This will lead to the situation of one platform device disabling
->>> MODULEMODE even though other platform devices need it.
->>>
->>> This may not be resolved in device tree either. We would need to have
->>> some use count mechanism for these bits, or attach MODULEMODE only to
->>> one platform device, and don't give others control to enable/disable it.
+On Tue, Feb 14, 2012 at 3:06 AM, Ramirez Luna, Omar <omar.ramirez@ti.co=
+m> wrote:
+> On Feb 11, 2012 3:03 PM, "Felipe Contreras" <felipe.contreras@gmail.c=
+om> wrote:
 >>
->> Hmm, are you sure? Not that I checked the code, but isn't MODULEMODE
->> mapped to a dss clock (was it "dss_clk")?. And so, the clock's refcount
->> should keep the MODULEMODE enabled/disabled?
+>> On Sat, Feb 11, 2012 at 9:19 PM, Ramirez Luna, Omar <omar.ramirez@ti=
+=2Ecom> wrote:
+>> >
+>> > On Feb 10, 2012 12:44 PM, "Felipe Contreras" <felipe.contreras@gma=
+il.com>
+>> > wrote:
+>> >>
+>> >> On Fri, Feb 10, 2012 at 10:35 PM, Dan Carpenter
+>> >> <dan.carpenter@oracle.com> wrote:
+>> >> > On Fri, Feb 10, 2012 at 09:42:32PM +0200, Felipe Contreras wrot=
+e:
+>> >> >> On Fri, Feb 10, 2012 at 8:00 PM, Dan Carpenter
+>> >> >> <dan.carpenter@oracle.com> wrote:
+>> >> >> > On Fri, Feb 10, 2012 at 01:30:48AM +0200, Felipe Contreras w=
+rote:
+>> >> >> >> It's not an oops, it's a warning, and again, it depends on =
+the
+>> >> >> >> firmware being used. We don't have control over that, and w=
+e have no
+>> >> >> >> way to detect if this feature is there. It's up to the user=
+=2E
+>> >> >> >
+>> >> >> > Perhaps just remove the warning message and handle the condi=
+tion
+>> >> >> > instead of printing a stack dump? =C2=A0The user should be t=
+riggering
+>> >> >> > stack dumps. =C2=A0What on earth?
+>> >> >>
+>> >> >> The warning doesn't come from the driver.
+>> >> >
+>> >> > I'm not sure I understand. =C2=A0Are you saying that because it=
+ comes
+>> >> > from the arch/ directory, it can't be fixed? =C2=A0I have good =
+news for
+>> >> > you my friend. =C2=A0:) =C2=A0It's all open source! =C2=A0\o/
+>> >>
+>> >> The fact that you _can_ remove the warning doesn't mean you shoul=
+d. To
+>> >> me it sounds like a proper warning.
+>> >>
+>> >> > Anyway, I saw in another email that Omar is working on a fix so
+>> >> > probably we can just wait for his patch, yes?
+>> >>
+>> >> He only proposed a solution, I doubt he is working on. And to me,=
+ that
+>> >> sounded like a hack rather than a proper fix.
+>> >
+>> > I'm out on travel but will be able to look at it on Monday.
+>> >
+>> > Well,=C2=A0 I think it is the right way, you look on the firmware =
+if it has WDT
+>> > you use it if it doesn't then you don't. Rather than guessing if y=
+ou have
+>> > the feature. It would be like reading a config option in the firmw=
+are.
+>>
+>> Yeah, but it's not really firmware, it's an operating system image. =
+I
+>> can be running Linux there, and I might have implemented WDT. How is
+>> that code going to find that out?
 >
-> Yes, that's how we are currently dealing with it and making things work.
-> We are forced to represent MODULEMODE as a clock. I forgot to mention
-> that in the last mail :)
+> Tidspbridge loader doesn't support that use case, baseimage and let's
+> say a dsp-linuximg won't have the same layout, hence it won't be able
+> to parse and load the latter.
 >
-> However, other modules don't do this. modulemode control is taken care
-> by hwmod by itself. We just have to fill the hwmod field
-> '.prcm.omap4.modulemode' and get done with it. If we try this approach,
-> we get into the trouble I mentioned before.
->
-> We represent MODULEMODE as dss_fck, and make this the l3 slave clock for
-> all DSS hwmods. This way, we ensure that it gets enabled, and we get a
-> usecount associated to it. We shouldn't stick to this approach because:
->
-> - It isn't exactly correct. MODULEMODE isn't a clock, and others don't
-> do it.
+> When that case is applicable, we should first modify the loader code
+> or prepare the baseimages to be common so we can get rid of specific
+> loaders and just dump them into memory.
 
-Yes, fully agree. This was done like that as a hack to avoid any 
-regression because at that time we were not sure if that dependency will 
-have to be handled by the hwmod fmwk or by the driver.
-Now, I'm sure it should not be handled by the hwmod fmwk :-)
+I'd say the less workarounds, the better.
 
-> - DSS requires a particular sequence of disabling clocks to go into
-> lower power states, and with the current approach, this doesn't happen.
-> So, DSS doesn't idle, and that's the whole purpose of this :)
+> WDT could be detected by prepending common symbols into the baseimage=
+s
+> or just making the new images to treat all peripherals as resources,
+> that is, the new baseimg should actually request the wdt3 as any othe=
+r
+> clock.
 
-I'm just curious, what particular sequence is required?
+I see, but if wdt3 is requested as another clock, the Linux ARM side
+would still need to know how to threat the WDT.
 
-Thanks,
-Benoit
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
