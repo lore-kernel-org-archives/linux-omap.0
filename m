@@ -1,86 +1,35 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 1/6] arm: omap: clk: add support for omap_clk_for_each
-Date: Tue, 14 Feb 2012 18:36:37 +0200
-Message-ID: <1329237402-26008-2-git-send-email-t-kristo@ti.com>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 0/6] arm: omap: clk/clkdm/pwrdm/voltdm changes to usecounting
+Date: Tue, 14 Feb 2012 18:36:36 +0200
+Message-ID: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44863 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54399 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756301Ab2BNQwd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 11:52:33 -0500
-In-Reply-To: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+	id S1756301Ab2BNQwq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 14 Feb 2012 11:52:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This works similarly to e.g. pwrdm_for_each(). Needed by enhanced
-usecounting debug functionality that will be added to pm-debug.
+This set is split out from a larger set earlier circulated on linux-omap
+list. The main purpose of this set is to provide useful recursive
+usecounting support for clockdomains / powerdomains / voltagedomains
+which can be used for debugging purposes and also to control certain
+chip power features once a sleep condition is reached (voltdm usecount=0).
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- arch/arm/plat-omap/clock.c              |   30 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clock.h |    2 ++
- 2 files changed, 32 insertions(+), 0 deletions(-)
+This set provides only the baseline support for the usecounting, and also
+adds a pm-debug related patch that can be used to check out stuff (patch 6),
+and should later prove rather useful for debugging. Rest of the
+functionality will be posted in separate sets.
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 567e4b5..e17ee5e2 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -356,6 +356,36 @@ int omap_clk_enable_autoidle_all(void)
- 	return 0;
- }
- 
-+/**
-+ * omap_clk_for_each - call a function for each registered clock
-+ * @fn: pointer to callback function
-+ * @data: void * data to pass to callback function
-+ *
-+ * Call @fn for each registered clock, passing @data to each function.
-+ * @fn must return 0 for success or any other value for failure. If
-+ * @fn returns non-zero, the iteration across clocks will stop and
-+ * the non-zero return value will be passed to the caller of
-+ * omap_clk_for_each(). @fn is called with clockfw_lock held.
-+ */
-+int omap_clk_for_each(int (*fn)(struct clk *clk, void *user), void *user)
-+{
-+	struct clk *c;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&clockfw_lock, flags);
-+
-+	list_for_each_entry(c, &clocks, node) {
-+		ret = fn(c, user);
-+		if (ret)
-+			break;
-+	}
-+
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
-+
-+	return ret;
-+}
-+
- int omap_clk_disable_autoidle_all(void)
- {
- 	struct clk *c;
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 240a7b9..c84f2a4 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -300,6 +300,8 @@ extern void propagate_rate(struct clk *clk);
- extern void recalculate_root_clocks(void);
- extern unsigned long followparent_recalc(struct clk *clk);
- extern void clk_enable_init_clocks(void);
-+extern int omap_clk_for_each(int (*fn)(struct clk *clk, void *user),
-+				void *user);
- unsigned long omap_fixed_divisor_recalc(struct clk *clk);
- #ifdef CONFIG_CPU_FREQ
- extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
--- 
-1.7.4.1
+This set has been tested on omap3 beagle board with suspend / resume /
+cpuidle. Also boot tested on omap4 panda (sleep is not functional yet
+on that platform.)
+
+Applies on mainline kernel.
+
+-Tero
 
