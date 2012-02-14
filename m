@@ -1,170 +1,92 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] ARM: OMAP4: cpuidle: Fix the C-state reporting to cpuidle
- governor.
-Date: Tue, 14 Feb 2012 14:17:48 +0530
-Message-ID: <4F3A1FB4.5010304@ti.com>
-References: <1328521095-24025-1-git-send-email-santosh.shilimkar@ti.com> <87haz2gtfw.fsf@ti.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: OMAP34xx
+Date: Tue, 14 Feb 2012 10:48:57 +0200
+Message-ID: <20120214084854.GB24201@legolas.emea.dhcp.ti.com>
+References: <20120208231551.GA9009@kroah.com>
+ <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+ <20120209004731.GA11343@kroah.com>
+ <4F3374F0.3080002@bitmer.com>
+ <20120209133739.GB2590@sirena.org.uk>
+ <20120209183624.GJ1426@atomide.com>
+ <20120209193442.GA1767@rexfeany.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060506090404070702040809"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oC1+HKm2/end4ao3"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:38138 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755197Ab2BNIry (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40155 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752330Ab2BNItD (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 03:47:54 -0500
-Received: by mail-tul01m020-f178.google.com with SMTP id wc7so8782326obb.9
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 00:47:54 -0800 (PST)
-In-Reply-To: <87haz2gtfw.fsf@ti.com>
+	Tue, 14 Feb 2012 03:49:03 -0500
+Received: by lbbgg6 with SMTP id gg6so3591657lbb.0
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 00:49:00 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20120209193442.GA1767@rexfeany.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-
-This is a multi-part message in MIME format.
---------------060506090404070702040809
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-On Wednesday 08 February 2012 04:08 AM, Kevin Hilman wrote:
-> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
-> 
->> OMAP4 cpuidle driver is reporting the state requested by governor rather than
->> the actually attempted one.
->>
->> This is obviously misleading sysfs and powertop cpuidle statistics.
->> Fix it so that stats are reported correctly.
->>
->> Reported-by: Kevin Hilman <khilman@ti.com>
->> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->> ---
->>  arch/arm/mach-omap2/cpuidle44xx.c |    1 +
->>  1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
->> index cfdbb86..f128489 100644
->> --- a/arch/arm/mach-omap2/cpuidle44xx.c
->> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
->> @@ -85,6 +85,7 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
->>  	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
->>  	if (cpu1_state != PWRDM_POWER_OFF) {
->>  		new_state_idx = drv->safe_state_index;
->> +		index = drv->safe_state_index;
-> 
-> How about just get rid of new_state_idx all together and just update
-> index and use it to index in to the states.
-> 
-Make sense. Updated patch below.
-
-Regards,
-Santosh
-
->From 939dc3eda7895043c03526110e2a6b41e9861146 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Sun, 5 Feb 2012 13:18:44 +0530
-Subject: [PATCH 2/2] ARM: OMAP4: cpuidle: Fix the C-state reporting to
-cpuidle governor.
-
-OMAP4 cpuidle driver is reporting the state requested by governor rather
-than
-the actually attempted one.
-
-This is obviously misleading sysfs and powertop cpuidle statistics.
-Fix it so that stats are reported correctly.
-
-While at this, get rid of new_state_idx, update and use
-index in to the states.
-
-Reported-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/cpuidle44xx.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c
-b/arch/arm/mach-omap2/cpuidle44xx.c
-index cfdbb86..72e018b 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -65,7 +65,6 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	struct timespec ts_preidle, ts_postidle, ts_idle;
- 	u32 cpu1_state;
- 	int idle_time;
--	int new_state_idx;
- 	int cpu_id = smp_processor_id();
-
- 	/* Used to keep track of the total time in idle */
-@@ -84,8 +83,8 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	 */
- 	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
- 	if (cpu1_state != PWRDM_POWER_OFF) {
--		new_state_idx = drv->safe_state_index;
--		cx = cpuidle_get_statedata(&dev->states_usage[new_state_idx]);
-+		index = drv->safe_state_index;
-+		cx = cpuidle_get_statedata(&dev->states_usage[index]);
- 	}
-
- 	if (index > 0)
--- 
-1.7.4.1
+To: Rex Feany <rfeany@laeos.net>
+Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Alan Stern <stern@rowland.harvard.edu>
 
 
+--oC1+HKm2/end4ao3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
+On Thu, Feb 09, 2012 at 11:34:42AM -0800, Rex Feany wrote:
+> I also get these warnings when compiling:
+>=20
+>   CC      arch/arm/mach-omap2/usb-host.o
+> arch/arm/mach-omap2/usb-host.c: In function 'usbhs_init':
+> arch/arm/mach-omap2/usb-host.c:528: warning: assignment from incompatible=
+ pointer type
 
---------------060506090404070702040809
-Content-Type: text/x-patch;
- name="0002-ARM-OMAP4-cpuidle-Fix-the-C-state-reporting-to-cpuid.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0002-ARM-OMAP4-cpuidle-Fix-the-C-state-reporting-to-cpuid.pa";
- filename*1="tch"
+yeah, I'll send a patch for that.
 
->From 939dc3eda7895043c03526110e2a6b41e9861146 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Sun, 5 Feb 2012 13:18:44 +0530
-Subject: [PATCH 2/2] ARM: OMAP4: cpuidle: Fix the C-state reporting to cpuidle governor.
+>   CC      drivers/usb/host/ehci-hcd.o
+> drivers/usb/host/ehci-hub.c:1079: warning: 'ehci_relinquish_port' defined=
+ but not used
+> drivers/usb/host/ehci-hub.c:1088: warning: 'ehci_port_handed_over' define=
+d but not used
 
-OMAP4 cpuidle driver is reporting the state requested by governor rather than
-the actually attempted one.
+This can't really be "fixed" without some extra trickery. The fact is
+that OMAP can't handle port handoff (go figure) and if we use those
+functions, we might end up in a situation where USB doesn't work just
+because you connected a full speed device.
 
-This is obviously misleading sysfs and powertop cpuidle statistics.
-Fix it so that stats are reported correctly.
+By not using those functions, we guarantee that the full speed device
+won't get enumerated but USB will still be functional after you
+disconnect such device.
 
-While at this, get rid of new_state_idx, update and use
-index in to the states.
+We could add a bunch of __maybe_unused annotation to all those ehci_*
+functions. What do you say Alan ?
 
-Reported-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/cpuidle44xx.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+--=20
+balbi
 
-diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
-index cfdbb86..72e018b 100644
---- a/arch/arm/mach-omap2/cpuidle44xx.c
-+++ b/arch/arm/mach-omap2/cpuidle44xx.c
-@@ -65,7 +65,6 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	struct timespec ts_preidle, ts_postidle, ts_idle;
- 	u32 cpu1_state;
- 	int idle_time;
--	int new_state_idx;
- 	int cpu_id = smp_processor_id();
- 
- 	/* Used to keep track of the total time in idle */
-@@ -84,8 +83,8 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
- 	 */
- 	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
- 	if (cpu1_state != PWRDM_POWER_OFF) {
--		new_state_idx = drv->safe_state_index;
--		cx = cpuidle_get_statedata(&dev->states_usage[new_state_idx]);
-+		index = drv->safe_state_index;
-+		cx = cpuidle_get_statedata(&dev->states_usage[index]);
- 	}
- 
- 	if (index > 0)
--- 
-1.7.4.1
+--oC1+HKm2/end4ao3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
---------------060506090404070702040809--
+iQIcBAEBAgAGBQJPOh/2AAoJEIaOsuA1yqREqYsP/2Qhrxs7szHK7vuA7ajQZ9nd
+ZKGW4YBm+gLoXmOD/A8Fe12iuKbmNsphZvB5tJCScpI73yN6FUGDxYvWGwuGN8+4
+SfVed0Q4HTRpHkvzv4EcNyOmOOLGskwoxQ89lAWS8vAqNML9Vxtpn8JZsGe1eptp
+PB93aD6vzyWB3JByb0Tv+qh5qhVQdXUTMQu0tPRIRJ8fcFtbYjRJmmzwiuZgtFgJ
+9nIxh092narMp0K8KCjS4YnbDFVBccXs2FH40TFEt7bMgn1ilYulS+rNgJ8GotGQ
+s5YMpJWwbj4ZYwWjIM97cSx/t7RyJB2KYa9XCOX9WZi2nj+xbXslz9xQvG7MPUVz
+bxRfM1dZlPXwjZ12UpelxnwyXvh8fhrLZuUcRhdVKBTIzxw7iJF/6avjP3G17b/X
+skaG9DxdRwz+X9RwFr0I2hJdzvzmuOCnuq7Fyf9RV6QsYCbmhCIUhz8MCPZN5slI
+aAvhiH+2Hv5tlouwBrS1VQ9TVWxiK24RXEOfqkrPgABv2Qf/5+dgf6aV6QtxJ3OT
+LgTNZE0kq10dIyesDU+yp+akZ7D1Z6BdFbqyCm0a/DFwgCTm3WVgZVEumu1RYTl7
+NaxTeGk2xHV0PtmykU6kKFAZkXzEwS7iY39LsSiWlHvxpMlJWhfvekp27Z2VmAVs
+3Epa5Wp1+/w05tBFYYq2
+=eYpS
+-----END PGP SIGNATURE-----
+
+--oC1+HKm2/end4ao3--
