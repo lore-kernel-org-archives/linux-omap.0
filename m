@@ -1,52 +1,61 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 0/6] arm: omap: clk/clkdm/pwrdm/voltdm changes to usecounting
-Date: Tue, 14 Feb 2012 12:02:06 -0800
-Message-ID: <87ty2t5gld.fsf@ti.com>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH] usb: host: ehci: allow ehci_* symbols to be unused
+Date: Tue, 14 Feb 2012 15:11:42 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1202141505400.1544-100000@iolanthe.rowland.org>
+References: <20120214160114.GA11841@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:55273 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754400Ab2BNUCO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 15:02:14 -0500
-Received: by mail-pw0-f54.google.com with SMTP id xa7so976922pbc.27
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 12:02:07 -0800 (PST)
-In-Reply-To: <1329237402-26008-1-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Tue, 14 Feb 2012 18:36:36 +0200")
+Received: from iolanthe.rowland.org ([192.131.102.54]:36078 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757060Ab2BNULn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 15:11:43 -0500
+In-Reply-To: <20120214160114.GA11841@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Tero Kristo <t-kristo@ti.com> writes:
+On Tue, 14 Feb 2012, Felipe Balbi wrote:
 
-> This set is split out from a larger set earlier circulated on linux-omap
-> list. The main purpose of this set is to provide useful recursive
-> usecounting support for clockdomains / powerdomains / voltagedomains
-> which can be used for debugging purposes and also to control certain
-> chip power features once a sleep condition is reached (voltdm usecount=0).
->
-> This set provides only the baseline support for the usecounting, and also
-> adds a pm-debug related patch that can be used to check out stuff (patch 6),
-> and should later prove rather useful for debugging. Rest of the
-> functionality will be posted in separate sets.
->
-> This set has been tested on omap3 beagle board with suspend / resume /
-> cpuidle. Also boot tested on omap4 panda (sleep is not functional yet
-> on that platform.)
+> > The others are questionable.  What reason could there be for not 
+> > implementing ehci_bus_suspend and ehci_bus_resume?  Neither of those 
+> > should involve much platform-specific work, if any.
+> 
+> you never know what kind of silicon erratas might come up, right ? :-)
 
-This is a great series, and results in pm_debug debugfs data that's
-actually useful for real debug.  Thanks!
+Well, when they come up we can annotate those routines.
 
-I had a minor comment on the idle path changes, but all the other stuff
-is
+> > ehci_hub_status_data, ehci_hub_descriptor, and ehci_hub_control are 
+> > even more puzzling.  These are things that _have_ to be implemented for 
+> > the driver to work at all.  Platform code shouldn't replace them; it 
+> > most it should call them as subroutines and override the results when 
+> > necessary.
+> 
+> There's no doubt it needs to be implemented, but the fact is that in
+> some situations we might need to implement it differently because of
+> whatever reason.
+> 
+> See for example that I have a pending workaround to implement for
+> OMAP3 EHCI where we need to reparent a clock before handling
+> SetFeature(port_suspend) so I would need to reimplement
+> echi_hub_control() in order not to expose that detail to core ehci.
+> 
+> Because clock reparenting is something so ARCH-specific it makes no
+> sense to come up with a "quirk" flag for that.
+> 
+> Granted, the way I had envisioned, I would reimplement the particular
+> request that needs special handling and call the generic
+> ehci_hub_control() otherwise, but still. Like I said, you never know
+> what kind of erratas could pop up.
 
-Acked-by: Kevin Hilman <khilman@ti.com>
+It's hard to imagine what sort of errata could require you not to call
+the generic routine.  Besides, it's a big routine, and duplicating it
+in platform-specific code would be a big waste.
 
-Paul, this should probably merge via you (when it's ready) since the
-important changes are clock and powerdomain core changes.
+For now I think you should annotate just the three routines that really
+need it.  This is analogous to patches that add new features with no
+usages in the kernel; we just don't do such things.
 
-Kevin
+Alan Stern
 
