@@ -1,35 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug
- support
-Date: Tue, 14 Feb 2012 12:27:40 -0800
-Message-ID: <20120214202740.GT1426@atomide.com>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
- <1329237402-26008-7-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH 3.3 v2] OMAP4: PRM: fix build breakage when CONFIG_OF
+ is not defined
+Date: Tue, 14 Feb 2012 12:38:01 -0800
+Message-ID: <20120214203801.GU1426@atomide.com>
+References: <1328699683-19357-1-git-send-email-coelho@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45523 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757241Ab2BNU1n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 15:27:43 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1329237402-26008-7-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1328699683-19357-1-git-send-email-coelho@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Luciano Coelho <coelho@ti.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-* Tero Kristo <t-kristo@ti.com> [120214 08:19]:
-> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
-> their own file, 'usecount'. This file shows the usecounts for every
-> active domain and their children recursively. 'count' file now only
-> shows power state counts for powerdomains.
+* Luciano Coelho <coelho@ti.com> [120208 02:43]:
+> Since 3.3-rc1, prm44xx.c build breaks if CONFIG_OF is not set:
 > 
-> This patch also provices a way to do printk dumps from kernel code,
-> by calling the pm_dbg_dump_X functions. The plan is to call these
-> functions once an error condition is detected, e.g. failed suspend.
+> arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
+> make[1]: *** [arch/arm/mach-omap2/prm44xx.o] Error 1
+> 
+> This is because of a missing include, which is added indirectly if
+> CONFIG_OF is defined.  This problem was introduced in commit
+> 2f31b51 (ARM: OMAP4: PRM: use PRCM interrupt handler).
+> 
+> Cc: Tero Kristo <t-kristo@ti.com>
+> Signed-off-by: Luciano Coelho <coelho@ti.com>
+> Reviewed-by: Felipe Balbi <balbi@ti.com>
 
-Why don't you replace this all with a userspace tool that deciphers
-the registers for you?
+A similar patch should be already in mainline kernel queued by Russell.
 
 Tony
+
+> ---
+> v2: changed the commit log to use abbrev sha and include the commit subject
+> 
+>  arch/arm/mach-omap2/prm44xx.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+> index 33dd655..f2e06ad 100644
+> --- a/arch/arm/mach-omap2/prm44xx.c
+> +++ b/arch/arm/mach-omap2/prm44xx.c
+> @@ -20,6 +20,7 @@
+>  #include "common.h"
+>  #include <plat/cpu.h>
+>  #include <plat/prcm.h>
+> +#include <plat/irqs.h>
+>  
+>  #include "vp.h"
+>  #include "prm44xx.h"
+> -- 
+> 1.7.5.4
+> 
