@@ -1,162 +1,100 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 00/16] OMAPDSS: old OMAPFB cleanup
-Date: Tue, 14 Feb 2012 13:52:23 +0200
-Message-ID: <1329220343.1845.65.camel@deskari>
-References: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
+ idle when HDMI is enabled
+Date: Tue, 14 Feb 2012 13:57:58 +0200
+Message-ID: <1329220678.1845.68.camel@deskari>
+References: <1328854552-30714-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-tQ+yPTMpVogF2sJAh83r"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-HTNS9QhKm8GCyImYZaWG"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:35393 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751619Ab2BNLw2 (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:48303 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750858Ab2BNL6D (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 06:52:28 -0500
-In-Reply-To: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
+	Tue, 14 Feb 2012 06:58:03 -0500
+In-Reply-To: <1328854552-30714-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-fbdev@vger.kernel.org, archit@ti.com, linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
 
 
---=-tQ+yPTMpVogF2sJAh83r
+--=-HTNS9QhKm8GCyImYZaWG
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
+Hi,
 
-On Tue, 2012-01-24 at 12:00 +0200, Tomi Valkeinen wrote:
-> Now that all omap2+ boards have been changed to use the newer omapdss dri=
-ver,
-> this patch series removes omap2+ support from the old omapfb driver
-> (drivers/video/omap), and thus makes it an omap1 dss/fb driver.
+On Fri, 2012-02-10 at 11:45 +0530, Archit Taneja wrote:
+> For DSS clock domain to transition from idle to active state. It's necess=
+ary
+> to enable the optional clock DSS_FCLK before we enable the module using t=
+he
+> MODULEMODE bits in the clock domain's CM_DSS_DSS_CLKCTRL register.
 >=20
-> The use of SRAM for video ram had earlier been disabled by removing the S=
-RAM
-> allocation (fee926bb0d399b1eaaf38f9f694bbf2747c4b8a2), and now this serie=
-s also
-> removes the support from the omap fb drivers.
+> This sequence was not followed correctly for the 'dss_hdmi' hwmod and it =
+led
+> to DSS clock domain not getting out of idle when pm_runtime_get_sync() wa=
+s
+> called for hdmi's platform device.
 >=20
-> Also various cleanup patches allow us to remove remove OMAP_TAG_LCD and
-> OMAP_TAG_FBMEM.
+> Since the clock domain failed to change it's state to active, the hwmod c=
+ode
+> disables any clocks it had enabled before for this hwmod. This led to the=
+ clock
+> 'dss_48mhz_clk' gettind disabled.
 >=20
-> All in all, the series removes quite a bit of unneeded code and cleans up=
- the
-> links between the board files and the display drivers, and this should he=
-lp
-> with device tree adaptation.
+> When hdmi's runtime_resume() op is called, the call to dss_runtime_get()
+> correctly enables the DSS clock domain this time. However, the clock
+> 'dss_48mhz_clk' is needed for HDMI's PHY to function correctly. Since it =
+was
+> disabled previously, the driver fails when it tries to enable HDMI's PHY.
 >=20
-> Some of the patches affect the newer omapdss and omapfb drivers, but most=
-ly the
-> patches deal with omap1. I have compile tested the series for both omap1 =
-and
-> omap2, but I have only tested this on OMAP3 and OMAP4 boards, as I don't =
-have
-> OMAP1/2 boards. I think N770's display won't work after these patches, bu=
-t
-> other OMAP1 boards should be ok. To fix N770's display requires knowledge=
- of
-> the hardware setup, which is currently passed from the bootloader.
+> Fix this for now by ensuring that dss_runtime_get() is called before we c=
+all
+> pm_runtime_get_sync() for hdmi's platform device. A correct fix for later=
+ would
+> be to modify the DSS related hwmod's mainclks, and also some changes in h=
+ow
+> opt clocks are handled in the DSS driver.
+>=20
+> This fixes the issue of HDMI not working when it's the default display. T=
+he
+> issue is not seen if any other display is already enabled as the first di=
+splay
+> would have correctly enabled the DSS clockdomain.
 
-Tony, do you have any feedback on this? I think the arch/arm changes are
-quite clean as such, but are you ok with (possibly) breaking N770's
-display? The other OMAP1 boards should, at least in theory, work as well
-as before.
+I think this looks fine, it's shouldn't have any side effects and is
+easy to remove later.
 
-For N770, the bootloader passes the reset GPIO number and number of
-datalines, and I have no idea what those are.
+Benoit, do you think we'll get the MODULEMODE mess cleaned up in the
+hwmod/clk framework at some point, and the drivers could do without
+these kinds of hacks? =3D)
 
  Tomi
 
 
->  Tomi
->=20
-> Tomi Valkeinen (16):
->   OMAPFB: remove old blizzard driver
->   OMAPFB: Remove OMAP2/3 support from old omapfb driver
->   OMAPDSS: Remove video SRAM support
->   OMAPFB: Remove video SRAM support (old omapfb)
->   OMAP2+: remove unneeded #include omapfb.h
->   OMAP: N770: remove HWA742 platform data
->   OAMPFB: remove unused omapfb_set_ctrl_platform_data()
->   OMAPFB: remove early mem alloc from old omapfb
->   OMAPFB: remove mem info from platform_data
->   OMAPFB: remove unused fb_format_to_dss_mode()
->   OMAPFB: Move old omapfb private structs to a private include file
->   OMAPFB: remove omapfb_set_platform_data()
->   OMAP1: pass LCD config with omapfb_set_lcd_config()
->   OMAP: Remove OMAP_TAG_LCD and OMAP_TAG_FBMEM
->   OMAP1: Remove unused LCD devices from board files
->   OMAPFB: remove remaining OMAP arch checks
->=20
->  arch/arm/mach-omap1/board-ams-delta.c      |    9 +-
->  arch/arm/mach-omap1/board-fsample.c        |   15 +-
->  arch/arm/mach-omap1/board-h2.c             |   15 +-
->  arch/arm/mach-omap1/board-h3.c             |    9 +-
->  arch/arm/mach-omap1/board-htcherald.c      |    9 +-
->  arch/arm/mach-omap1/board-innovator.c      |   11 +-
->  arch/arm/mach-omap1/board-nokia770.c       |   19 +-
->  arch/arm/mach-omap1/board-osk.c            |   14 +-
->  arch/arm/mach-omap1/board-palmte.c         |   10 +-
->  arch/arm/mach-omap1/board-palmtt.c         |   10 +-
->  arch/arm/mach-omap1/board-palmz71.c        |   10 +-
->  arch/arm/mach-omap1/board-perseus2.c       |   15 +-
->  arch/arm/mach-omap1/board-sx1.c            |   16 +-
->  arch/arm/mach-omap2/io.c                   |    1 -
->  arch/arm/plat-omap/common.c                |    2 -
->  arch/arm/plat-omap/fb.c                    |  336 +------
->  arch/arm/plat-omap/fb.h                    |   10 -
->  arch/arm/plat-omap/include/plat/blizzard.h |   12 -
->  arch/arm/plat-omap/include/plat/board.h    |    2 -
->  arch/arm/plat-omap/include/plat/hwa742.h   |    8 -
->  arch/arm/plat-omap/include/plat/vram.h     |   21 +-
->  drivers/video/omap/Kconfig                 |   16 +-
->  drivers/video/omap/Makefile                |   12 +-
->  drivers/video/omap/blizzard.c              | 1648 ----------------------=
-------
->  drivers/video/omap/dispc.c                 | 1547 ----------------------=
-----
->  drivers/video/omap/dispc.h                 |   46 -
->  drivers/video/omap/hwa742.c                |   21 +-
->  drivers/video/omap/omapfb.h                |   25 +-
->  drivers/video/omap/omapfb_main.c           |   30 +-
->  drivers/video/omap/rfbi.c                  |  598 ----------
->  drivers/video/omap2/dss/dispc.c            |    1 -
->  drivers/video/omap2/omapfb/omapfb-ioctl.c  |    2 +-
->  drivers/video/omap2/omapfb/omapfb-main.c   |  101 +--
->  drivers/video/omap2/vram.c                 |   99 +--
->  include/linux/omapfb.h                     |   32 +-
->  35 files changed, 100 insertions(+), 4632 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/fb.h
->  delete mode 100644 arch/arm/plat-omap/include/plat/blizzard.h
->  delete mode 100644 arch/arm/plat-omap/include/plat/hwa742.h
->  delete mode 100644 drivers/video/omap/blizzard.c
->  delete mode 100644 drivers/video/omap/dispc.c
->  delete mode 100644 drivers/video/omap/dispc.h
->  delete mode 100644 drivers/video/omap/rfbi.c
->=20
-
-
---=-tQ+yPTMpVogF2sJAh83r
+--=-HTNS9QhKm8GCyImYZaWG
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPOkr3AAoJEPo9qoy8lh71lxwP/0M74uZfm3nwID8zSYwCohpe
-2hr/q8T4IA/LePYdnjnYblBKuFPRse/+QWN8Kk5AHUOVLaG4c/1ZrF1oomgfrOW5
-bDyuBYahLoqKxNk2bQ6Yea1517nDL3CeOTrlhL1RnfNLf6MnZRtF+lO9HY5hlxyo
-FF+nXrTfJryEnQzdxAFnl8cwE2zkdflx+aZAN5VxP9MM5o/t7sbdSo9ZUALiiT5l
-UinpB/L/5w8eM+7JoLM4RbE0gO6MTpiLLJnBeTDrZP5+ODlwicheRFS8uMJC9aUL
-5hw92c0FPOsuWoLxyMUhB3EcxRYBoF/RZ8+YX6f5aifcUeIeBL3knqTcwxa4UmmF
-l8JJSiZ9glLAt1CnRQkkIVYaqQjYsEHq76bjk8H5r4t8RrE/zAqt1YjpR5LXDNpd
-Yklf8zD51fmtYvg0CTHeNg6Rf3hyWDR332AXJSlP901q8B4RZG++y6GTQ1MWrU6Z
-41iY3KIv+baecI9PcDsCbRUoXVadhZYrIGdo52s/xuX8yWGXuVlpXjq+N+GaIkPR
-zzXC02krUn/ABkJgfWDtgmMl+1odo5oqi3KGHumluaWDtpb+DoqJvJlKmJfZyW3V
-wX93Q9E4t2DXPwi63AvTX+r96VAJKOa1z0qGUmP7PFcRz6RjQINKJiiWm1CXasDb
-edZJOzS4eabMAMI3SPsl
-=TXGq
+iQIcBAABAgAGBQJPOkxGAAoJEPo9qoy8lh71zl0QAJ5JO5N9Y6yP66d6GUr9OP67
+a2Cu3OmPB+7gXG1sHdYXA7mF1quI3hNjocvGOkDxPEHkZYF2K5JUSAiBZDdwqBWD
+rGBtRX4aKa67UuqRnx4yF30WDBaPk1lKabqEStOmV51TQNXOALaAookpYIJfBrqS
+2qiDj8Xlcqb1OkpGHE96fnKJe9y7XTdcSWGqnwy5MJ3oJVv79ELvEjEG9BwmYbsO
+NcC+AwmWSgF08Gb6aiOvfbbiRTm9FjDmZeneTWXRrKiVwlSdiQ1+Zkdubeu+Rp/V
+7Halo1maat+W65xHXSjlqRGSQ45l4zPpH6lvpzqbi4OR0ikT2NrrSGhUn/JPSdCN
+rubj4o+wCW1Fz70bX0vnSM7AMfptIXUi68K18dWPkFtdme71DM67IwVD7i7S/J1o
+5ZLbHIdWFz6Fi1bxH11OU0k1VbsIlFeeh1oCZ+Cn7Po6im987rkgwJiOyGBijJfp
+MB3fnLGUHNfOnl9BkyXwvSHFZJKSaiKn3weWTNn9iRmJDblJKcEMMJHD81vYk4iD
+e2fnobG5goJdDvYS1/bFiEDT6DfUdUHB6XJSsZuXIytYeSZIZ22sB1c6b+m0WPAk
+SESUMurrF9j8UhToRCOieSWhSEZEYs++7gvOK+t1EKG7tWkSPPJjZ9qr50BoLjI4
+OVZ/JQu79v7kC8FcmxP/
+=vEpQ
 -----END PGP SIGNATURE-----
 
---=-tQ+yPTMpVogF2sJAh83r--
+--=-HTNS9QhKm8GCyImYZaWG--
 
