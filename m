@@ -1,70 +1,48 @@
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Subject: [PATCH v2] i2c: fix missing handling of errata I2C_OMAP3_1P153
-Date: Tue, 14 Feb 2012 11:15:55 +0100
-Message-ID: <4F3A345B.2060308@gmail.com>
-References: <1328538811-13097-1-git-send-email-tasskjapp@gmail.com> <1329213583-20839-1-git-send-email-tasskjapp@gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+	regulators
+Date: Tue, 14 Feb 2012 11:08:36 +0000
+Message-ID: <20120214110836.GE15338@n2100.arm.linux.org.uk>
+References: <1329151422-2146-1-git-send-email-mporter@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:54909 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362Ab2BNKPf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 05:15:35 -0500
-In-Reply-To: <1329213583-20839-1-git-send-email-tasskjapp@gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32911 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754488Ab2BNLIs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 06:08:48 -0500
+Content-Disposition: inline
+In-Reply-To: <1329151422-2146-1-git-send-email-mporter@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+To: Matt Porter <mporter@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 
-Sorry about the bad mails. First time I use git send-email to follow up 
-on a patch, and it seems I need to read up a bit more on it.
+Two more points:
 
-Anyway.
+On Mon, Feb 13, 2012 at 11:43:42AM -0500, Matt Porter wrote:
+> This fixes smsc911x support on platforms using gpmc_smsc911x_init().
+> Commit c7e963f6888816f04d1f5da0e07bec4e0092f227 added the requirement
 
-This patch is tested on our custom board based on Beagleboard rev C3.
+Always include the commit summary as well here, so:
 
- From 7c1e2c14bccb16c20dc7d93088b12ac6e6e351a3 Mon Sep 17 00:00:00 2001
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Date: Mon, 6 Feb 2012 14:14:23 +0100
-Subject: [PATCH] i2c: fix missing handling of errata I2C_OMAP3_1P153
+Commit c7e963f6888816 (net/smsc911x: Add regulator support) added the ...
 
-i2c_prope set the dev->errata flag, but omap_i2c_init cleared the flag 
-again. Move the errata handling to i2c_probe.
+> @@ -55,6 +94,11 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+>  
+>  	gpmc_cfg = board_data;
+>  
+> +	if (platform_device_register(&gpmc_smsc911x_regulator) < 0) {
+> +		pr_err("Unable to register smsc911x regulators\n");
+> +		return;
+> +	}
 
-Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
----
-  drivers/i2c/busses/i2c-omap.c |   10 +++++-----
-  1 files changed, 5 insertions(+), 5 deletions(-)
+It's always a good idea to indicate why something failed:
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 801df60..d609ae2 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -468,11 +468,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-  	/* Take the I2C module out of reset: */
-  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+	err = platform_device_register(&gpmc_smsc911x_regulator);
+	if (err < 0) {
+		pr_err("Unable to register smsc911x regulators: %d\n", err);
+		return;
+	}
 
--	dev->errata = 0;
--
--	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
--		dev->errata |= I2C_OMAP_ERRATA_I207;
--
-  	/* Enable interrupts */
-  	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-@@ -1058,6 +1053,11 @@ omap_i2c_probe(struct platform_device *pdev)
-
-  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-
-+	dev->errata = 0;
-+
-+	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-+		dev->errata |= I2C_OMAP_ERRATA_I207;
-+
-  	if (dev->rev <= OMAP_I2C_REV_ON_3430)
-  		dev->errata |= I2C_OMAP3_1P153;
-
--- 
-1.7.5.4
-
-
+so that people can see not only what failed, but also why it failed.
