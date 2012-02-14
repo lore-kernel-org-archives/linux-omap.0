@@ -1,92 +1,376 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: OMAP34xx
-Date: Tue, 14 Feb 2012 10:48:57 +0200
-Message-ID: <20120214084854.GB24201@legolas.emea.dhcp.ti.com>
-References: <20120208231551.GA9009@kroah.com>
- <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
- <20120209004731.GA11343@kroah.com>
- <4F3374F0.3080002@bitmer.com>
- <20120209133739.GB2590@sirena.org.uk>
- <20120209183624.GJ1426@atomide.com>
- <20120209193442.GA1767@rexfeany.com>
-Reply-To: balbi@ti.com
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP4: Move the barrier memboclk_steal() as
+ part of reserve callback
+Date: Tue, 14 Feb 2012 14:19:41 +0530
+Message-ID: <4F3A2025.9000609@ti.com>
+References: <1328191435-18652-1-git-send-email-santosh.shilimkar@ti.com> <1328191435-18652-3-git-send-email-santosh.shilimkar@ti.com> <20120210191926.GV1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="oC1+HKm2/end4ao3"
+Content-Type: multipart/mixed;
+ boundary="------------090104080401060802090801"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40155 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752330Ab2BNItD (ORCPT
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:39509 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752330Ab2BNIts (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 03:49:03 -0500
-Received: by lbbgg6 with SMTP id gg6so3591657lbb.0
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 00:49:00 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20120209193442.GA1767@rexfeany.com>
+	Tue, 14 Feb 2012 03:49:48 -0500
+Received: by obbuo19 with SMTP id uo19so8304553obb.25
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 00:49:47 -0800 (PST)
+In-Reply-To: <20120210191926.GV1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rex Feany <rfeany@laeos.net>
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, Alan Stern <stern@rowland.harvard.edu>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+
+This is a multi-part message in MIME format.
+--------------090104080401060802090801
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+On Saturday 11 February 2012 12:49 AM, Tony Lindgren wrote:
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [120202 05:33]:
+>> arm_memblock_steal() is not suppose to be used outside ->reserve callback.
+>> OMAP barrier errata code was using it outside reserve callback and hence
+>> it was broken.
+>>
+>> Move the allocation as part of ->reserve callback to fix the it.
+> 
+> Please update this to mention again commit that changed things
+> around for arm_memblock_steal() so it's clear why this is needed
+> as a fix.
+
+Sure. Patch with updated change log below.
+
+Regards,
+Santosh
+
+>From 4d1ea22985adfe458275b9ae3e00edc6e41a267f Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Thu, 2 Feb 2012 15:59:51 +0530
+Subject: [PATCH 1/2] ARM: OMAP4: Move the barrier memboclk_steal() as
+part of reserve callback
+
+Commit 716a3dc{ARM: Add arm_memblock_steal() to allocate memory away
+from the kernel} introduced arm_memblock_steal() which lead to
+OMAP4_ERRATA_I688 to be broken and needed to be fixed.
+
+arm_memblock_steal() is not suppose to be used outside ->reserve callback.
+OMAP barrier errata code was using it outside reserve callback and hence
+it was broken.
+
+Move the allocation as part of ->reserve callback to fix the it.
+
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/Kconfig                   |    4 ++--
+ arch/arm/mach-omap2/common.h                  |    1 +
+ arch/arm/mach-omap2/io.c                      |    1 +
+ arch/arm/mach-omap2/omap4-common.c            |   25
+++++++++++++++++---------
+ arch/arm/plat-omap/common.c                   |    1 +
+ arch/arm/plat-omap/include/plat/omap-secure.h |    6 ++++++
+ 6 files changed, 27 insertions(+), 11 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index d965da4..e20c8ab 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -364,8 +364,8 @@ config OMAP3_SDRC_AC_TIMING
+ 	  going on could result in system crashes;
+
+ config OMAP4_ERRATA_I688
+-	bool "OMAP4 errata: Async Bridge Corruption (BROKEN)"
+-	depends on ARCH_OMAP4 && BROKEN
++	bool "OMAP4 errata: Async Bridge Corruption"
++	depends on ARCH_OMAP4
+ 	select ARCH_HAS_BARRIERS
+ 	help
+ 	  If a data is stalled inside asynchronous bridge because of back
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index febffde..7e9338e 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -132,6 +132,7 @@ void omap3_map_io(void);
+ void am33xx_map_io(void);
+ void omap4_map_io(void);
+ void ti81xx_map_io(void);
++void omap_barriers_init(void);
+
+ /**
+  * omap_test_timeout - busy-loop, testing a condition
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index eb50c29..fb11b44 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -307,6 +307,7 @@ void __init omapam33xx_map_common_io(void)
+ void __init omap44xx_map_common_io(void)
+ {
+ 	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
++	omap_barriers_init();
+ }
+ #endif
+
+diff --git a/arch/arm/mach-omap2/omap4-common.c
+b/arch/arm/mach-omap2/omap4-common.c
+index 40a8fbc..ebc5950 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -24,6 +24,7 @@
+
+ #include <plat/irqs.h>
+ #include <plat/sram.h>
++#include <plat/omap-secure.h>
+
+ #include <mach/hardware.h>
+ #include <mach/omap-wakeupgen.h>
+@@ -43,6 +44,9 @@ static void __iomem *sar_ram_base;
+
+ void __iomem *dram_sync, *sram_sync;
+
++static phys_addr_t paddr;
++static u32 size;
++
+ void omap_bus_sync(void)
+ {
+ 	if (dram_sync && sram_sync) {
+@@ -52,18 +56,20 @@ void omap_bus_sync(void)
+ 	}
+ }
+
+-static int __init omap_barriers_init(void)
++/* Steal one page physical memory for barrier implementation */
++int __init omap_barrier_reserve_memblock(void)
+ {
+-	struct map_desc dram_io_desc[1];
+-	phys_addr_t paddr;
+-	u32 size;
+-
+-	if (!cpu_is_omap44xx())
+-		return -ENODEV;
+
+ 	size = ALIGN(PAGE_SIZE, SZ_1M);
+ 	paddr = arm_memblock_steal(size, SZ_1M);
+
++	return 0;
++}
++
++void __init omap_barriers_init(void)
++{
++	struct map_desc dram_io_desc[1];
++
+ 	dram_io_desc[0].virtual = OMAP4_DRAM_BARRIER_VA;
+ 	dram_io_desc[0].pfn = __phys_to_pfn(paddr);
+ 	dram_io_desc[0].length = size;
+@@ -75,9 +81,10 @@ static int __init omap_barriers_init(void)
+ 	pr_info("OMAP4: Map 0x%08llx to 0x%08lx for dram barrier\n",
+ 		(long long) paddr, dram_io_desc[0].virtual);
+
+-	return 0;
+ }
+-core_initcall(omap_barriers_init);
++#else
++void __init omap_barriers_init(void)
++{}
+ #endif
+
+ void __init gic_init_irq(void)
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 06383b5..4de7d1e 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -69,6 +69,7 @@ void __init omap_reserve(void)
+ 	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
+ 	omap_secure_ram_reserve_memblock();
++	omap_barrier_reserve_memblock();
+ }
+
+ void __init omap_init_consistent_dma_size(void)
+diff --git a/arch/arm/plat-omap/include/plat/omap-secure.h
+b/arch/arm/plat-omap/include/plat/omap-secure.h
+index 64f9d1c..0f14fb7 100644
+--- a/arch/arm/plat-omap/include/plat/omap-secure.h
++++ b/arch/arm/plat-omap/include/plat/omap-secure.h
+@@ -10,4 +10,10 @@ static inline void omap_secure_ram_reserve_memblock(void)
+ { }
+ #endif
+
++#ifdef CONFIG_OMAP4_ERRATA_I688
++extern int omap_barrier_reserve_memblock(void);
++#else
++static inline void omap_barrier_reserve_memblock(void)
++{ }
++#endif
+ #endif /* __OMAP_SECURE_H__ */
+-- 
+1.7.4.1
 
 
---oC1+HKm2/end4ao3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+--------------090104080401060802090801
+Content-Type: text/x-patch;
+ name="0001-ARM-OMAP4-Move-the-barrier-memboclk_steal-as-part-of.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-ARM-OMAP4-Move-the-barrier-memboclk_steal-as-part-of.pa";
+ filename*1="tch"
 
-Hi,
+>From 3d1ea22985adfe458275b9ae3e00edc6e41a267f Mon Sep 17 00:00:00 2001
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Date: Thu, 2 Feb 2012 15:59:51 +0530
+Subject: [PATCH 1/2] ARM: OMAP4: Move the barrier memboclk_steal() as part of reserve callback
 
-On Thu, Feb 09, 2012 at 11:34:42AM -0800, Rex Feany wrote:
-> I also get these warnings when compiling:
->=20
->   CC      arch/arm/mach-omap2/usb-host.o
-> arch/arm/mach-omap2/usb-host.c: In function 'usbhs_init':
-> arch/arm/mach-omap2/usb-host.c:528: warning: assignment from incompatible=
- pointer type
+Commit 716a3dc{ARM: Add arm_memblock_steal() to allocate memory away
+from the kernel} introduced arm_memblock_steal() which lead to
+OMAP4_ERRATA_I688 to be broken and needed to be fixed.
 
-yeah, I'll send a patch for that.
+arm_memblock_steal() is not suppose to be used outside ->reserve callback.
+OMAP barrier errata code was using it outside reserve callback and hence
+it was broken.
 
->   CC      drivers/usb/host/ehci-hcd.o
-> drivers/usb/host/ehci-hub.c:1079: warning: 'ehci_relinquish_port' defined=
- but not used
-> drivers/usb/host/ehci-hub.c:1088: warning: 'ehci_port_handed_over' define=
-d but not used
+Move the allocation as part of ->reserve callback to fix the it.
 
-This can't really be "fixed" without some extra trickery. The fact is
-that OMAP can't handle port handoff (go figure) and if we use those
-functions, we might end up in a situation where USB doesn't work just
-because you connected a full speed device.
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/Kconfig                   |    4 ++--
+ arch/arm/mach-omap2/common.h                  |    1 +
+ arch/arm/mach-omap2/io.c                      |    1 +
+ arch/arm/mach-omap2/omap4-common.c            |   25 ++++++++++++++++---------
+ arch/arm/plat-omap/common.c                   |    1 +
+ arch/arm/plat-omap/include/plat/omap-secure.h |    6 ++++++
+ 6 files changed, 27 insertions(+), 11 deletions(-)
 
-By not using those functions, we guarantee that the full speed device
-won't get enumerated but USB will still be functional after you
-disconnect such device.
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index d965da4..e20c8ab 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -364,8 +364,8 @@ config OMAP3_SDRC_AC_TIMING
+ 	  going on could result in system crashes;
+ 
+ config OMAP4_ERRATA_I688
+-	bool "OMAP4 errata: Async Bridge Corruption (BROKEN)"
+-	depends on ARCH_OMAP4 && BROKEN
++	bool "OMAP4 errata: Async Bridge Corruption"
++	depends on ARCH_OMAP4
+ 	select ARCH_HAS_BARRIERS
+ 	help
+ 	  If a data is stalled inside asynchronous bridge because of back
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index febffde..7e9338e 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -132,6 +132,7 @@ void omap3_map_io(void);
+ void am33xx_map_io(void);
+ void omap4_map_io(void);
+ void ti81xx_map_io(void);
++void omap_barriers_init(void);
+ 
+ /**
+  * omap_test_timeout - busy-loop, testing a condition
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index eb50c29..fb11b44 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -307,6 +307,7 @@ void __init omapam33xx_map_common_io(void)
+ void __init omap44xx_map_common_io(void)
+ {
+ 	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
++	omap_barriers_init();
+ }
+ #endif
+ 
+diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
+index 40a8fbc..ebc5950 100644
+--- a/arch/arm/mach-omap2/omap4-common.c
++++ b/arch/arm/mach-omap2/omap4-common.c
+@@ -24,6 +24,7 @@
+ 
+ #include <plat/irqs.h>
+ #include <plat/sram.h>
++#include <plat/omap-secure.h>
+ 
+ #include <mach/hardware.h>
+ #include <mach/omap-wakeupgen.h>
+@@ -43,6 +44,9 @@ static void __iomem *sar_ram_base;
+ 
+ void __iomem *dram_sync, *sram_sync;
+ 
++static phys_addr_t paddr;
++static u32 size;
++
+ void omap_bus_sync(void)
+ {
+ 	if (dram_sync && sram_sync) {
+@@ -52,18 +56,20 @@ void omap_bus_sync(void)
+ 	}
+ }
+ 
+-static int __init omap_barriers_init(void)
++/* Steal one page physical memory for barrier implementation */
++int __init omap_barrier_reserve_memblock(void)
+ {
+-	struct map_desc dram_io_desc[1];
+-	phys_addr_t paddr;
+-	u32 size;
+-
+-	if (!cpu_is_omap44xx())
+-		return -ENODEV;
+ 
+ 	size = ALIGN(PAGE_SIZE, SZ_1M);
+ 	paddr = arm_memblock_steal(size, SZ_1M);
+ 
++	return 0;
++}
++
++void __init omap_barriers_init(void)
++{
++	struct map_desc dram_io_desc[1];
++
+ 	dram_io_desc[0].virtual = OMAP4_DRAM_BARRIER_VA;
+ 	dram_io_desc[0].pfn = __phys_to_pfn(paddr);
+ 	dram_io_desc[0].length = size;
+@@ -75,9 +81,10 @@ static int __init omap_barriers_init(void)
+ 	pr_info("OMAP4: Map 0x%08llx to 0x%08lx for dram barrier\n",
+ 		(long long) paddr, dram_io_desc[0].virtual);
+ 
+-	return 0;
+ }
+-core_initcall(omap_barriers_init);
++#else
++void __init omap_barriers_init(void)
++{}
+ #endif
+ 
+ void __init gic_init_irq(void)
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 06383b5..4de7d1e 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -69,6 +69,7 @@ void __init omap_reserve(void)
+ 	omap_vram_reserve_sdram_memblock();
+ 	omap_dsp_reserve_sdram_memblock();
+ 	omap_secure_ram_reserve_memblock();
++	omap_barrier_reserve_memblock();
+ }
+ 
+ void __init omap_init_consistent_dma_size(void)
+diff --git a/arch/arm/plat-omap/include/plat/omap-secure.h b/arch/arm/plat-omap/include/plat/omap-secure.h
+index 64f9d1c..0f14fb7 100644
+--- a/arch/arm/plat-omap/include/plat/omap-secure.h
++++ b/arch/arm/plat-omap/include/plat/omap-secure.h
+@@ -10,4 +10,10 @@ static inline void omap_secure_ram_reserve_memblock(void)
+ { }
+ #endif
+ 
++#ifdef CONFIG_OMAP4_ERRATA_I688
++extern int omap_barrier_reserve_memblock(void);
++#else
++static inline void omap_barrier_reserve_memblock(void)
++{ }
++#endif
+ #endif /* __OMAP_SECURE_H__ */
+-- 
+1.7.4.1
 
-We could add a bunch of __maybe_unused annotation to all those ehci_*
-functions. What do you say Alan ?
 
---=20
-balbi
-
---oC1+HKm2/end4ao3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPOh/2AAoJEIaOsuA1yqREqYsP/2Qhrxs7szHK7vuA7ajQZ9nd
-ZKGW4YBm+gLoXmOD/A8Fe12iuKbmNsphZvB5tJCScpI73yN6FUGDxYvWGwuGN8+4
-SfVed0Q4HTRpHkvzv4EcNyOmOOLGskwoxQ89lAWS8vAqNML9Vxtpn8JZsGe1eptp
-PB93aD6vzyWB3JByb0Tv+qh5qhVQdXUTMQu0tPRIRJ8fcFtbYjRJmmzwiuZgtFgJ
-9nIxh092narMp0K8KCjS4YnbDFVBccXs2FH40TFEt7bMgn1ilYulS+rNgJ8GotGQ
-s5YMpJWwbj4ZYwWjIM97cSx/t7RyJB2KYa9XCOX9WZi2nj+xbXslz9xQvG7MPUVz
-bxRfM1dZlPXwjZ12UpelxnwyXvh8fhrLZuUcRhdVKBTIzxw7iJF/6avjP3G17b/X
-skaG9DxdRwz+X9RwFr0I2hJdzvzmuOCnuq7Fyf9RV6QsYCbmhCIUhz8MCPZN5slI
-aAvhiH+2Hv5tlouwBrS1VQ9TVWxiK24RXEOfqkrPgABv2Qf/5+dgf6aV6QtxJ3OT
-LgTNZE0kq10dIyesDU+yp+akZ7D1Z6BdFbqyCm0a/DFwgCTm3WVgZVEumu1RYTl7
-NaxTeGk2xHV0PtmykU6kKFAZkXzEwS7iY39LsSiWlHvxpMlJWhfvekp27Z2VmAVs
-3Epa5Wp1+/w05tBFYYq2
-=eYpS
------END PGP SIGNATURE-----
-
---oC1+HKm2/end4ao3--
+--------------090104080401060802090801--
