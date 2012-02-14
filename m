@@ -1,73 +1,82 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] OMAP2 PM: do RCU locking for opp_get_voltage()
-Date: Tue, 14 Feb 2012 10:48:37 -0800
-Message-ID: <87sjid6yka.fsf@ti.com>
-References: <1329122644-7121-1-git-send-email-arnout@mind.be>
+Subject: Re: [PATCH] ARM: OMAP4: cpuidle: Fix the C-state reporting to cpuidle governor.
+Date: Tue, 14 Feb 2012 10:58:32 -0800
+Message-ID: <87obt16y3r.fsf@ti.com>
+References: <1328521095-24025-1-git-send-email-santosh.shilimkar@ti.com>
+	<87haz2gtfw.fsf@ti.com> <4F3A1FB4.5010304@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:35336 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754994Ab2BNSsm (ORCPT
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:53319 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752487Ab2BNS6e (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 13:48:42 -0500
-Received: by mail-pw0-f45.google.com with SMTP id ro12so741485pbb.32
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 10:48:41 -0800 (PST)
-In-Reply-To: <1329122644-7121-1-git-send-email-arnout@mind.be> (Arnout
-	Vandecappelle's message of "Mon, 13 Feb 2012 09:44:04 +0100")
+	Tue, 14 Feb 2012 13:58:34 -0500
+Received: by pbcxa7 with SMTP id xa7so803269pbc.13
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 10:58:33 -0800 (PST)
+In-Reply-To: <4F3A1FB4.5010304@ti.com> (Santosh Shilimkar's message of "Tue,
+	14 Feb 2012 14:17:48 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Thara Gopinath <thara@ti.com>, Russell King <linux@arm.linux.org.uk>, Philip Oberstaller <philip.oberstaller@septentrio.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be> writes:
+Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
 
-> From: "Arnout Vandecappelle (Essensium/Mind)" <arnout@mind.be>
->
-> According to the documentation of opp_get_voltage(), it must be called
-> with rcu_read_lock() held.  The OMAP2 power manager doesn't do this.
-> The locking error is caught by PROVE_RCU.
->
-> Signed-off-by: Arnout Vandecappelle (Essensium/Mind) <arnout@mind.be>
-
-Thanks for the patch, I've got a patch from Neil Brown queued for this
-already:
-
-       http://marc.info/?l=linux-omap&m=132608991812586&w=2
-
-Kevin
-
-> ---
-> Please CC me, I'm not on the list.
->
-> I was very surprised by this error, because this is the only user of
-> opp_get_voltage().
+> On Wednesday 08 February 2012 04:08 AM, Kevin Hilman wrote:
+>> Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+>> 
+>>> OMAP4 cpuidle driver is reporting the state requested by governor rather than
+>>> the actually attempted one.
+>>>
+>>> This is obviously misleading sysfs and powertop cpuidle statistics.
+>>> Fix it so that stats are reported correctly.
+>>>
+>>> Reported-by: Kevin Hilman <khilman@ti.com>
+>>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>>> ---
+>>>  arch/arm/mach-omap2/cpuidle44xx.c |    1 +
+>>>  1 files changed, 1 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/cpuidle44xx.c b/arch/arm/mach-omap2/cpuidle44xx.c
+>>> index cfdbb86..f128489 100644
+>>> --- a/arch/arm/mach-omap2/cpuidle44xx.c
+>>> +++ b/arch/arm/mach-omap2/cpuidle44xx.c
+>>> @@ -85,6 +85,7 @@ static int omap4_enter_idle(struct cpuidle_device *dev,
+>>>  	cpu1_state = pwrdm_read_pwrst(cpu1_pd);
+>>>  	if (cpu1_state != PWRDM_POWER_OFF) {
+>>>  		new_state_idx = drv->safe_state_index;
+>>> +		index = drv->safe_state_index;
+>> 
+>> How about just get rid of new_state_idx all together and just update
+>> index and use it to index in to the states.
+>> 
+> Make sense. Updated patch below.
 >
 > Regards,
-> Arnout
-> ---
->  arch/arm/mach-omap2/pm.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
+> Santosh
 >
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 00bff46..bce2bdc 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -174,14 +174,17 @@ static int __init omap2_set_init_voltage(char *vdd_name, char *clk_name,
->  	freq = clk->rate;
->  	clk_put(clk);
->  
-> +	rcu_read_lock();
->  	opp = opp_find_freq_ceil(dev, &freq);
->  	if (IS_ERR(opp)) {
->  		pr_err("%s: unable to find boot up OPP for vdd_%s\n",
->  			__func__, vdd_name);
-> +		rcu_read_unlock();
->  		goto exit;
->  	}
->  
->  	bootup_volt = opp_get_voltage(opp);
-> +	rcu_read_unlock();
->  	if (!bootup_volt) {
->  		pr_err("%s: unable to find voltage corresponding "
->  			"to the bootup OPP for vdd_%s\n", __func__, vdd_name);
+> From 939dc3eda7895043c03526110e2a6b41e9861146 Mon Sep 17 00:00:00 2001
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Date: Sun, 5 Feb 2012 13:18:44 +0530
+> Subject: [PATCH 2/2] ARM: OMAP4: cpuidle: Fix the C-state reporting to
+> cpuidle governor.
+>
+> OMAP4 cpuidle driver is reporting the state requested by governor rather
+> than
+> the actually attempted one.
+>
+> This is obviously misleading sysfs and powertop cpuidle statistics.
+> Fix it so that stats are reported correctly.
+>
+> While at this, get rid of new_state_idx, update and use
+> index in to the states.
+>
+> Reported-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+
+Perfect.  Thanks. 
+
+Queuing as a fix for v3.3.
+
+Kevin
