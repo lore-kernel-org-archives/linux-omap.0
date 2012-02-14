@@ -1,81 +1,85 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
- idle when HDMI is enabled
-Date: Tue, 14 Feb 2012 15:15:11 +0200
-Message-ID: <1329225311.1845.109.camel@deskari>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>
-	 <1329220678.1845.68.camel@deskari>  <4F3A5A5D.4020906@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: TPO-TD03MTEA1: update default gamma
+Date: Tue, 14 Feb 2012 15:17:52 +0200
+Message-ID: <1329225472.1845.112.camel@deskari>
+References: <1328573630-7348-1-git-send-email-notasas@gmail.com>
+	 <1328573630-7348-2-git-send-email-notasas@gmail.com>
+	 <1329222910.1845.90.camel@deskari>
+	 <CANOLnONLHgRzZ-rez4p9Ou6qCtoWVhZWPXNEgsQarBRVFstTaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-gl9pnnLwRtcUiXcIXqMH"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-fXajKhxR0BLTeee8nK4Y"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:35872 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760250Ab2BNNPP (ORCPT
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:37858 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754384Ab2BNNR4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 08:15:15 -0500
-In-Reply-To: <4F3A5A5D.4020906@ti.com>
+	Tue, 14 Feb 2012 08:17:56 -0500
+In-Reply-To: <CANOLnONLHgRzZ-rez4p9Ou6qCtoWVhZWPXNEgsQarBRVFstTaw@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Archit Taneja <archit@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
 
---=-gl9pnnLwRtcUiXcIXqMH
+--=-fXajKhxR0BLTeee8nK4Y
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2012-02-14 at 13:58 +0100, Cousson, Benoit wrote:
-> Hi Tomi,
-
-> > Benoit, do you think we'll get the MODULEMODE mess cleaned up in the
-> > hwmod/clk framework at some point, and the drivers could do without
-> > these kinds of hacks? =3D)
+On Tue, 2012-02-14 at 15:14 +0200, Grazvydas Ignotas wrote:
+> On Tue, Feb 14, 2012 at 2:35 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+> > Hi,
+> >
+> > On Tue, 2012-02-07 at 02:13 +0200, Grazvydas Ignotas wrote:
+> >> Over time better gamma has been determined and tuned with some
+> >> equipment so update the defaults. From subjective point of view
+> >> dark shades should be better visible.
+> >
+> > Is there even need for default gamma? I'd guess the panel has a default
+> > gamma in its firmware, so it should work fine without setting it. And
+> > there's sysfs interface to set the gamma from userspace.
+> >
+> > And, as you said, it's subjective, i.e. there's no right value for it,
+> > so I'm a bit inclined to say that the driver shouldn't even set a
+> > default gamma, and just leave it to userspace.
 >=20
-> The best way to fix that for my point of view is to go to device tree=20
-> or/and to consider the DSS as the parent of all the DSS modules.
-> pm_runtime will then always ensure that the parent is enabled before any=
-=20
-> of the child are used.
+> Well for pandora, we encourage people to run custom Linux distros on
+> the device, people reported running Debian, Arch and Slackware on the
+> device, so we don't have control over everyone's userspace. To reduce
+> the need for everyone to hack userspace of their distro of choice, it
+> would be great to have nice display just from the kernel,
+> out-of-the-box (this gamma has been tuned with some TV studio
+> equipment so is not totally subjective). Still if you don't want it,
+> we can keep carrying that in pandora's kernel tree too.
 
-Ah, right. Sounds fine to me.
-
-But is that a proper "fix"? Are we sure the MODULEMODE will then always
-be handled correctly? Isn't the core problem still there, it just
-doesn't happen with the setup anymore?
-
-I mean, if we have these special requirements regarding MODULEMODE, and
-the code doesn't really know about it, would it get broken easily with
-restructuring/changes?
-
-And no, I don't have any clear idea why/how it would break, but I have
-just gotten the impression that the MODULEMODE is not handled quite
-properly (and so we have these current problems), and having dss_core as
-the parent of other dss modules doesn't really fix that in any way.
+Ok, fair enough. It's not a problem, just a few lines of code. But I
+don't want to get patches every now and that adjust the default gamma to
+whatever is subjectively best at that point of time =3D).
 
  Tomi
 
 
---=-gl9pnnLwRtcUiXcIXqMH
+--=-fXajKhxR0BLTeee8nK4Y
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPOl5fAAoJEPo9qoy8lh71QdIP/jXpgJXNDYkUZL4B+RB4WCfC
-m6m55DTez0mT8V2ChmO4zSaCJMcsHW2SrFI5D6233UNpmFEDDCZryChd3C+PA/+S
-IPIBAFaMxF2PA1U1LQblKERDxfbDv9ERcurGMV1+Gvxcsm66994RAOMYHrXk5PTF
-U3E+XDZhNepOmhI7vs76trmS74jBeSZXdHdn9ZI/mYP/mrnzbPuc2vVgBifFFxia
-PU8mUc1hsHmmYbV2cI9cFL8x/Pq4T/17WJHa3rZmYcS1R1TNme9FcNzeAJ/aUq5P
-671MSHMkJMYgnhaRLo8ai12a72nbvbiilgpNi8rGwu+kTJ95jwvKmfevjXHhAC6j
-G0RU2LLFn6gtcboG81s2rLrYM0gon7P1GCrACyOCpOi0nUX89usgPUQmghfbZb90
-gnHExyAnz6r5mrmKZD8ASNOC4rjWkCKw2aqoS0gIDTDT8n9UvZAKltBXcSGjez1a
-IEb67tXrW0JYGnjyl2hcwO0aE55pksv3VadZOGIsASIIjfjqz0cin+q+CI8Xx4E/
-Ms+9ssCcUblC/vfq/o5jnXUGZhIq6uF/hhWDwhIPoS9LYanHXMfgeesjWn0Br3M0
-rtmf5ONAczVYrPPrSt/8KUcC6CTyiVzHV7H1WD5U5+JEb8vk6q/30csvnE7Aukgg
-YJP94ix9hTVFNI8zbSKZ
-=/Vd8
+iQIcBAABAgAGBQJPOl8AAAoJEPo9qoy8lh71BSUP/10XoPsHDlRi7zNH/0wwCfW9
+k3ObCa49+IVRj+OkNI38ODY+m3IH1Y6M0jW/f7bi2eQCYhlGD2bkJJKJlURDB4TO
+h1SCU9NnDHsLLQLZFE/3LUEvGoOoIecm+PMc4BKRPAd7f8ko1xz2l69FIb4OpfHP
+IfOzliz1klmYF838UojYJnRjAZ1b2NQrd5Q6TBPmPIYoKr0kG9VwDu9VPt7T9Rcw
+ZL3RjmtKkNUcjWUaHQqMyT6kzIyo3JiKNtrRuRqMVY0QdlpeZLPgI/0Pyz1oPF1u
+zglpkSb1556nyFkEJ9YONl/p8sXxZyRVUpbKE62+N93+cxpnj/Mv3CuPAchE9N7N
+CexHB3zi3KoeBJjHlLC1hjU32jYqpvpnkrlh3qHZZfs9pnZgtvN3ztYwz6N+ba2O
+oNfoqRIQ0O888jSJzQyvljpIZ7t3RW/kpuvyx9dyWBxZ9iAyuYK+9zuH0wb0j5v7
+xg8KXG1NQvmoFHoSoQyOpWhT8tOlErYOMvszvpXe1mqh4eliChuYkInwaSLSQ6R8
+jhlYg8dRsPjwTbiB04Be2B58NkO/7NFmkJvTE0nm1UESBwqRryfuRBwUoUj/Mt6M
+uiOuXrQKisDue/RAXE8/g08f1/aWOA5Rkj4EEpkAJM6gC03L/UfabYUfjOvx5vb0
+vDxmd7xuWEeGQRPW0D0G
+=gIq+
 -----END PGP SIGNATURE-----
 
---=-gl9pnnLwRtcUiXcIXqMH--
+--=-fXajKhxR0BLTeee8nK4Y--
 
