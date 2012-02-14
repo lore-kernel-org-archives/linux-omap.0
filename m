@@ -1,51 +1,48 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 1/2] ARM: OMAP4: cminst: Add boot time __init function for cminst
-Date: Tue, 14 Feb 2012 22:11:32 +0100
-Message-ID: <87bop1unln.fsf@macbook.be.48ers.dk>
-References: <1329233348-23356-1-git-send-email-hvaibhav@ti.com>
-	<1329233348-23356-2-git-send-email-hvaibhav@ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug support
+Date: Tue, 14 Feb 2012 14:59:33 -0800
+Message-ID: <87fwed58dm.fsf@ti.com>
+References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+ <1329237402-26008-7-git-send-email-t-kristo@ti.com>
+ <20120214202740.GT1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:51901 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757006Ab2BNVPS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 16:15:18 -0500
-Received: by eaah12 with SMTP id h12so131000eaa.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 13:15:17 -0800 (PST)
-In-Reply-To: <1329233348-23356-2-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Tue, 14 Feb 2012 20:59:07 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120214202740.GT1426@atomide.com> (Tony Lindgren's message of
+ "Tue, 14 Feb 2012 12:27:40 -0800")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <t-kristo@ti.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
->>>>> "Vaibhav" == Vaibhav Hiremath <hvaibhav@ti.com> writes:
+Tony Lindgren <tony@atomide.com> writes:
 
- Vaibhav> AM33xx CM module is closer to OMAP4 CM module, and
- Vaibhav> in order to reuse cminst api's we have to address
- Vaibhav> some of the differences like, base addresses and partitions.
- Vaibhav> Unlike OMAP4 CM, AM33xx doesn't have any partitions and
- Vaibhav> maintains only single partition.
+> * Tero Kristo <t-kristo@ti.com> [120214 08:19]:
+>> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+>> their own file, 'usecount'. This file shows the usecounts for every
+>> active domain and their children recursively. 'count' file now only
+>> shows power state counts for powerdomains.
+>> 
+>> This patch also provices a way to do printk dumps from kernel code,
+>> by calling the pm_dbg_dump_X functions. The plan is to call these
+>> functions once an error condition is detected, e.g. failed suspend.
+>
+> Why don't you replace this all with a userspace tool that deciphers
+> the registers for you?
 
- Vaibhav> So, in order to reuse the existing OMAP4 cminst code
- Vaibhav> for AM33xx this patch adds,
+This patch isn't deciphering registers, it's just dumping usecounts, and
+I think that is extremely useful to have in debugfs.
 
- Vaibhav>   - Boot time __init function, to initialize _cm_bases
- Vaibhav>     based on cpu_is_xxx
- Vaibhav>   - Instead of maintaining phy addr for CM partition
- Vaibhav>     in _cm_bases[] table and then changing it to virt addr,
- Vaibhav>     directly maintain respective virt addr.
+I've already removed all the register dumping from the kernel in the
+hopes that someone will write a userspace tool for that.
 
- Vaibhav> @@ -103,19 +106,19 @@ static bool _is_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs)
- Vaibhav>  /* Read a register in a CM instance */
- Vaibhav>  u32 omap4_cminst_read_inst_reg(u8 part, s16 inst, u16 idx)
- Vaibhav>  {
- Vaibhav> -	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
- Vaibhav> +	BUG_ON(part >= max_cm_partitions ||
- Vaibhav>  	       part == OMAP4430_INVALID_PRCM_PARTITION ||
-
-How about dropping the OMAP4430_ prefix here as it's no longer 4430 specific?
-
--- 
-Bye, Peter Korsgaard
+Kevin
