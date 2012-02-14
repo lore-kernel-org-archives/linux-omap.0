@@ -1,61 +1,35 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [PATCH] usb: host: ehci: allow ehci_* symbols to be unused
-Date: Tue, 14 Feb 2012 15:11:42 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1202141505400.1544-100000@iolanthe.rowland.org>
-References: <20120214160114.GA11841@legolas.emea.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug
+ support
+Date: Tue, 14 Feb 2012 12:27:40 -0800
+Message-ID: <20120214202740.GT1426@atomide.com>
+References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+ <1329237402-26008-7-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:36078 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757060Ab2BNULn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 15:11:43 -0500
-In-Reply-To: <20120214160114.GA11841@legolas.emea.dhcp.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:45523 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757241Ab2BNU1n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 15:27:43 -0500
+Content-Disposition: inline
+In-Reply-To: <1329237402-26008-7-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <balbi@ti.com>
-Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, 14 Feb 2012, Felipe Balbi wrote:
-
-> > The others are questionable.  What reason could there be for not 
-> > implementing ehci_bus_suspend and ehci_bus_resume?  Neither of those 
-> > should involve much platform-specific work, if any.
+* Tero Kristo <t-kristo@ti.com> [120214 08:19]:
+> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+> their own file, 'usecount'. This file shows the usecounts for every
+> active domain and their children recursively. 'count' file now only
+> shows power state counts for powerdomains.
 > 
-> you never know what kind of silicon erratas might come up, right ? :-)
+> This patch also provices a way to do printk dumps from kernel code,
+> by calling the pm_dbg_dump_X functions. The plan is to call these
+> functions once an error condition is detected, e.g. failed suspend.
 
-Well, when they come up we can annotate those routines.
+Why don't you replace this all with a userspace tool that deciphers
+the registers for you?
 
-> > ehci_hub_status_data, ehci_hub_descriptor, and ehci_hub_control are 
-> > even more puzzling.  These are things that _have_ to be implemented for 
-> > the driver to work at all.  Platform code shouldn't replace them; it 
-> > most it should call them as subroutines and override the results when 
-> > necessary.
-> 
-> There's no doubt it needs to be implemented, but the fact is that in
-> some situations we might need to implement it differently because of
-> whatever reason.
-> 
-> See for example that I have a pending workaround to implement for
-> OMAP3 EHCI where we need to reparent a clock before handling
-> SetFeature(port_suspend) so I would need to reimplement
-> echi_hub_control() in order not to expose that detail to core ehci.
-> 
-> Because clock reparenting is something so ARCH-specific it makes no
-> sense to come up with a "quirk" flag for that.
-> 
-> Granted, the way I had envisioned, I would reimplement the particular
-> request that needs special handling and call the generic
-> ehci_hub_control() otherwise, but still. Like I said, you never know
-> what kind of erratas could pop up.
-
-It's hard to imagine what sort of errata could require you not to call
-the generic routine.  Besides, it's a big routine, and duplicating it
-in platform-specific code would be a big waste.
-
-For now I think you should annotate just the three routines that really
-need it.  This is analogous to patches that add new features with no
-usages in the kernel; we just don't do such things.
-
-Alan Stern
-
+Tony
