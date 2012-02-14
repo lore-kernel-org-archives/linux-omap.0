@@ -1,63 +1,66 @@
-From: Peter Korsgaard <jacmet@sunsite.dk>
-Subject: Re: [PATCH 2/2] ARM: OMAP: am33xx: Hook-up am33xx support to existing cm code
-Date: Tue, 14 Feb 2012 21:55:34 +0100
-Message-ID: <87fweduoc9.fsf@macbook.be.48ers.dk>
-References: <1329233348-23356-1-git-send-email-hvaibhav@ti.com>
-	<1329233348-23356-3-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] modpost: Fix section warnings for ARM for many
+ compilers
+Date: Tue, 14 Feb 2012 13:01:43 -0800
+Message-ID: <20120214210143.GW1426@atomide.com>
+References: <20120213212401.GH1426@atomide.com>
+ <20120213222652.GL14173@pengutronix.de>
+ <20120213225118.GC31482@n2100.arm.linux.org.uk>
+ <878vk6cl5z.fsf@rustcorp.com.au>
+ <20120214011228.GM1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:39170 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760943Ab2BNU5L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 15:57:11 -0500
-Received: by eekc14 with SMTP id c14so141457eek.19
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 12:57:10 -0800 (PST)
-In-Reply-To: <1329233348-23356-3-git-send-email-hvaibhav@ti.com> (Vaibhav
-	Hiremath's message of "Tue, 14 Feb 2012 20:59:08 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:15467 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756934Ab2BNVBv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Feb 2012 16:01:51 -0500
+Content-Disposition: inline
+In-Reply-To: <20120214011228.GM1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
+To: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-kernel@vger.kernel.org, Anders Kaseorg <andersk@ksplice.com>, Greg KH <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Ben Hutchings <ben@decadent.org.uk>, linux-arm-kernel@lists.infradead.org
 
->>>>> "Vaibhav" == Vaibhav Hiremath <hvaibhav@ti.com> writes:
+* Tony Lindgren <tony@atomide.com> [120213 16:41]:
+> * Rusty Russell <rusty@rustcorp.com.au> [120213 16:07]:
+> > On Mon, 13 Feb 2012 22:51:18 +0000, Russell King - ARM Linux <linux=
+@arm.linux.org.uk> wrote:
+> > > On Mon, Feb 13, 2012 at 11:26:52PM +0100, Uwe Kleine-K=C3=B6nig w=
+rote:
+> > > > On Mon, Feb 13, 2012 at 01:24:01PM -0800, Tony Lindgren wrote:
+> > > > Maybe:
+> > > >=20
+> > > > #ifndef R_ARM_CALL
+> > > > #warning "you're elf.h include is outdated"
+> > >=20
+> > > "You are elf.h include is outdated" does not make sense.
+> > >=20
+> > > Why are you calling Tony an elf.h include?
+> >=20
+> > Because he knew it would attract the attention of pedants to the pa=
+tch?
+> > :)
+>=20
+> I've been called worse than that :)
+> =20
+> > Just do the #ifndef, and skip the warning.  There's not much the po=
+or
+> > user receiving the warning can do about it.
+>=20
+> OK
+> =20
+> > Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+>=20
+> Assuming your ack applies for this patch below, let me know if that's
+> not the case. =20
 
- Vaibhav> Reuse existing omap4 cminst code for am33xx device,
- Vaibhav> add separate cm base table for am33xx device and initialize
- Vaibhav> it during __init for future use.
+This is now in Russell's patch tracking system as patch 7324/1.
 
- Vaibhav> Also, since cpu_is_omap34xx() check is true for am33xx family of
- Vaibhav> devices, we must change the order of cpu_is_xxxx check, so first
- Vaibhav> check for cpu_is_am33xx() to follow right execution path.
-
- Vaibhav>  	if (cpu_is_omap44xx()) {
- Vaibhav>  		_cm_bases = omap44xx_cm_bases;
- Vaibhav>  		max_cm_partitions = ARRAY_SIZE(omap44xx_cm_bases);
- Vaibhav> +	} else if (cpu_is_am33xx()) {
- Vaibhav> +		_cm_bases =am33xx_cm_bases;
-
-Space after '='.
-
- Vaibhav> +++ b/arch/arm/mach-omap2/omap_hwmod.c
- Vaibhav> @@ -737,7 +737,7 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
- Vaibhav>  static void _enable_module(struct omap_hwmod *oh)
- Vaibhav>  {
- Vaibhav>  	/* The module mode does not exist prior OMAP4 */
- Vaibhav> -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
- Vaibhav> +	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
-
-Maybe update the comment as well?
- 
- Vaibhav>  	/* The module mode does not exist prior OMAP4 */
- Vaibhav> -	if (!cpu_is_omap44xx())
- Vaibhav> +	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
- Vaibhav>  		return -EINVAL;
-
-Here as well.
-
-Otherwise it looks good.
-
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-
--- 
-Bye, Peter Korsgaard
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
