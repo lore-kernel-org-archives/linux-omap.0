@@ -1,66 +1,67 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v4 1/3] OMAPDSS: HDMI: Move Avi-infoframe struct to
- hdmi_ip_data
-Date: Tue, 14 Feb 2012 14:30:09 +0200
-Message-ID: <1329222609.1845.87.camel@deskari>
-References: <1328682261-22493-1-git-send-email-mythripk@ti.com>
+Subject: Re: [PATCH] OMAP: DSS2: TPO-TD03MTEA1: update default gamma
+Date: Tue, 14 Feb 2012 14:35:10 +0200
+Message-ID: <1329222910.1845.90.camel@deskari>
+References: <1328573630-7348-1-git-send-email-notasas@gmail.com>
+	 <1328573630-7348-2-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-bM3LqOBdKo45sKBsT3D/"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-WQBhv5lmFffjS7W5POKV"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38240 "EHLO
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:39647 "EHLO
 	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755211Ab2BNMaM (ORCPT
+	by vger.kernel.org with ESMTP id S1754384Ab2BNMfO (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 07:30:12 -0500
-Received: by mail-lpp01m020-f172.google.com with SMTP id gk8so3577637lbb.31
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 04:30:11 -0800 (PST)
-In-Reply-To: <1328682261-22493-1-git-send-email-mythripk@ti.com>
+	Tue, 14 Feb 2012 07:35:14 -0500
+In-Reply-To: <1328573630-7348-2-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
 
---=-bM3LqOBdKo45sKBsT3D/
+--=-WQBhv5lmFffjS7W5POKV
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2012-02-08 at 11:54 +0530, mythripk@ti.com wrote:
-> From: Mythri P K <mythripk@ti.com>
->=20
-> With AVI infoframe various parameters of video stream such as
-> aspect ratio, quantization range, videocode etc will be indicated
-> from source to sink.Thus AVI information needs to be set/accessed
-> by the middle ware based on the video content.
-> Thus this parameter is now moved to the ip_data structure.
+Hi,
 
-This looks fine and separate from the full/limited range stuff, so I'll
-apply this patch already.
+On Tue, 2012-02-07 at 02:13 +0200, Grazvydas Ignotas wrote:
+> Over time better gamma has been determined and tuned with some
+> equipment so update the defaults. From subjective point of view
+> dark shades should be better visible.
+
+Is there even need for default gamma? I'd guess the panel has a default
+gamma in its firmware, so it should work fine without setting it. And
+there's sysfs interface to set the gamma from userspace.
+
+And, as you said, it's subjective, i.e. there's no right value for it,
+so I'm a bit inclined to say that the driver shouldn't even set a
+default gamma, and just leave it to userspace.
 
  Tomi
 
 
---=-bM3LqOBdKo45sKBsT3D/
+--=-WQBhv5lmFffjS7W5POKV
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPOlPRAAoJEPo9qoy8lh71HiQP/3VQzahVGZjq+K5xXWXf4MdS
-7yueEDbJs/hp7Jb2VxQFFzqg+IVZ0f7oHZUOyTVPiHe5LGx/DYg0vhBuoGQbtQKo
-nwquairJKqJvFxQn8OiDUDDsOfeDtXrRLMWOheWBkM3fV2NfQaFSXwEJ2DN6kxso
-jfb1+dgXtdVXhKDQkbMKvffhGJVLbrV9B650rVWMW5f9WjbUPkcM+RM8m3tVsddP
-bOUtcltXW0xE203+SE4xHgxFSobDJ8Lr1lvI59ejtQfuySb3i8YYgBwpRb/KSB2l
-5/54SH51dAwzg/JqCzx5Dh/ZlTgb8XkP3tADDahsGPFPfz5FrfK2UP3uhdsGceNN
-CbvAH2w4W5THvIq1hfOLNHb+n+zpGG9XZ1VTqpXTQFenOaZeJ0qN2SpGZyDv5MjU
-HZGk6Vhih2Ek/3ss/HpP4HgLd5cF12s0kB1PwIG3+ohpVPKe6VPtH9Zm6+gdrAd6
-O8RiVNINpHZnkK0lPgRou9OFfzmPhI0nWkPefO6z/IGzE3v+v8kIbOdW3+0r3nz4
-FZ6bdsiHZFdCeXYOXyIvfAK28bFcOQ51q3osImkty/PhbImk4hIzjlGO7oKpvKLF
-T/oI1Ow71hb3/mxZWj2IiGbJQacXHzeUXsZAbbsy97+uuwzD9/S0wECjYyZtHnsD
-ghoZLdn/f7PmLEIEm5vB
-=45iz
+iQIcBAABAgAGBQJPOlT+AAoJEPo9qoy8lh71NC4P/2PNLY04SXsb9pYe6BLIYodK
+LWydd/S+dY2/5EAi+EC00u3sGycNxn80Y66olFsxe3aVEsbbd56vcS0wDFz2bFMs
+HTmeo3xtFI+p6PHFB4N/Ns4rXccAFDQdW4s7vdZi3kK2+6f44R4OI/p+hUs5aOE/
+yNpijdo3bnrSjPWRjB8cIRPB1Q3aFcChfO8XBkkMsxeR2a1Fu/c6urznjDc/TA37
+vJLncGyXVjScezkPe5TiKuCXlwtVvOZpk/2lbWAWydfbzwwB5ehy0vXQc8ctr6fA
+wQLv3JAloyL0l29bkf0POkKLvc5SX3Ba4jO4ITeL7ABRL/HIJsWrlUrSGC/5UJoY
+JuOxJb7Q4gLcNp71cG25C4rfMlpfzDwLM0cjC3LMrzvhZEfDqdrSmQ3PBbzYG+fQ
+NSpGQCASOZr7mCes1/h6pum+v0fwh2aksMFviQ5+NuJOMoydi4wVavtIeyS0sxaH
+Nv8XXJZtkNWfic9KM9lsf85WjnW/64W9uWqyGPYfeGmo4qxKej83WHJRR2hfCHkl
+IIcdkIyWfI/7/hDWs2Ur9ClBsONLScaynf+g3NY5Sz1hs4ETprRMAz9vWq2Ya9R3
++h/irbgRjoSVqPMsS0/GhTx7N9cDJFu2wS/Fe7QD30OcmSpU7NRf0Z7H8d3JjHn/
+Lkwsh4qkuesZZM4+6VNI
+=9Szv
 -----END PGP SIGNATURE-----
 
---=-bM3LqOBdKo45sKBsT3D/--
+--=-WQBhv5lmFffjS7W5POKV--
 
