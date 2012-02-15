@@ -1,129 +1,80 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [RFC PATCH 1/2] staging: tidspbridge: always compile dsp wdt code
-Date: Tue, 14 Feb 2012 21:00:33 -0600
-Message-ID: <1329274834-30154-2-git-send-email-omar.ramirez@ti.com>
-References: <1329274834-30154-1-git-send-email-omar.ramirez@ti.com>
+From: <mythripk@ti.com>
+Subject: [PATCH v2] OMAPDSS: HDMI: Add M2 divider while calculating clkout
+Date: Wed, 15 Feb 2012 11:20:34 +0530
+Message-ID: <1329285034-16121-1-git-send-email-mythripk@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:53379 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757629Ab2BODAv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Feb 2012 22:00:51 -0500
-Received: by mail-tul01m020-f181.google.com with SMTP id up10so915175obb.26
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 19:00:50 -0800 (PST)
-In-Reply-To: <1329274834-30154-1-git-send-email-omar.ramirez@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:53194 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752062Ab2BOF5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 00:57:46 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1F5vjAu022689
+	for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 23:57:45 -0600
+Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1F5vifG028772
+	for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 11:27:44 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@nokia.com>
-Cc: linux-omap@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>, devel@driverdev.osuosl.org, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
-In order to detect it at runtime, we need the code handling wdt
-clock available at runtime to decide whether to enable or disable
-based on the baseimage symbols. Default timeout has been set to 5
-seconds.
+From: Mythri P K <mythripk@ti.com>
 
-Downside is that we will lose the option to set a custom timeout
-for overflow, but than can be added (if needed) as part of debugfs.
+Add M2 divider in the equation to calculate regm and regmf.
+Formula for calculating:
+Output clock on digital core domain:
+	CLKOUT = (M / (N+1))*CLKINP*(1/M2)
+Internal oscillator output clock on internal LDO domain:
+	CLKDCOLDO = (M / (N+1))*CLKINP
+The current code when allows variable M2 values as input
+ignores using M2 divider values in calculation of regm and regmf.
+so fix it by using M2 in calculation although the default value for
+M2 is 1.
 
-Signed-off-by: Omar Ramirez <omar.ramirez@ti.com>
+Signed-off-by: Mythri P K <mythripk@ti.com>
 ---
- drivers/staging/tidspbridge/Kconfig                |   16 -------------
- drivers/staging/tidspbridge/core/wdt.c             |   24 +-------------------
- .../tidspbridge/include/dspbridge/_chnl_sm.h       |    4 ---
- 3 files changed, 1 insertions(+), 43 deletions(-)
+ drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/staging/tidspbridge/Kconfig b/drivers/staging/tidspbridge/Kconfig
-index d660891..0dd479f 100644
---- a/drivers/staging/tidspbridge/Kconfig
-+++ b/drivers/staging/tidspbridge/Kconfig
-@@ -52,22 +52,6 @@ config TIDSPBRIDGE_CACHE_LINE_CHECK
- 	  This can lead to heap corruption. Say Y, to enforce the check for 128
- 	  byte alignment, buffers failing this check will be rejected.
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 92a6679..9185630 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
  
--config TIDSPBRIDGE_WDT3
--	bool "Enable watchdog timer"
--	depends on TIDSPBRIDGE
--	help
--	  WTD3 is managed by DSP and once it is enabled, DSP side bridge is in
--	  charge of refreshing the timer before overflow, if the DSP hangs MPU
--	  will caught the interrupt and try to recover DSP.
--
--config TIDSPBRIDGE_WDT_TIMEOUT
--	int "Watchdog timer timeout (in secs)"
--	depends on TIDSPBRIDGE && TIDSPBRIDGE_WDT3
--	default 5
--	help
--	   Watchdog timer timeout value, after that time if the watchdog timer
--	   counter is not reset the wdt overflow interrupt will be triggered
--
- config TIDSPBRIDGE_NTFY_PWRERR
- 	bool "Notify power errors"
- 	depends on TIDSPBRIDGE
-diff --git a/drivers/staging/tidspbridge/core/wdt.c b/drivers/staging/tidspbridge/core/wdt.c
-index 2126f59..70055c8 100644
---- a/drivers/staging/tidspbridge/core/wdt.c
-+++ b/drivers/staging/tidspbridge/core/wdt.c
-@@ -25,8 +25,6 @@
- #include <dspbridge/host_os.h>
+ 	refclk = clkin / pi->regn;
  
+-	/*
+-	 * multiplier is pixel_clk/ref_clk
+-	 * Multiplying by 100 to avoid fractional part removal
+-	 */
+-	pi->regm = (phy * 100 / (refclk)) / 100;
+-
+ 	if (dssdev->clocks.hdmi.regm2 == 0)
+ 		pi->regm2 = HDMI_DEFAULT_REGM2;
+ 	else
+ 		pi->regm2 = dssdev->clocks.hdmi.regm2;
  
--#ifdef CONFIG_TIDSPBRIDGE_WDT3
--
- #define OMAP34XX_WDT3_BASE 		(L4_PER_34XX_BASE + 0x30000)
+ 	/*
++	 * multiplier is pixel_clk/ref_clk
++	 * Multiplying by 100 to avoid fractional part removal
++	 */
++	pi->regm = (phy * 100 * pi->regm2 / (refclk)) / 100;
++
++	/*
+ 	 * fractional multiplier is remainder of the difference between
+ 	 * multiplier and actual phy(required pixel clock thus should be
+ 	 * multiplied by 2^18(262144) divided by the reference clock
+ 	 */
+-	mf = (phy - pi->regm * refclk) * 262144;
+-	pi->regmf = mf / (refclk);
++	mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
++	pi->regmf = pi->regm2 * mf / refclk;
  
- static struct dsp_wdt_setting dsp_wdt;
-@@ -84,7 +82,7 @@ int dsp_wdt_init(void)
- void dsp_wdt_sm_set(void *data)
- {
- 	dsp_wdt.sm_wdt = data;
--	dsp_wdt.sm_wdt->wdt_overflow = CONFIG_TIDSPBRIDGE_WDT_TIMEOUT;
-+	dsp_wdt.sm_wdt->wdt_overflow = 5;	/* in seconds */
- }
- 
- 
-@@ -128,23 +126,3 @@ void dsp_wdt_enable(bool enable)
- 		clk_disable(dsp_wdt.fclk);
- 	}
- }
--
--#else
--void dsp_wdt_enable(bool enable)
--{
--}
--
--void dsp_wdt_sm_set(void *data)
--{
--}
--
--int dsp_wdt_init(void)
--{
--	return 0;
--}
--
--void dsp_wdt_exit(void)
--{
--}
--#endif
--
-diff --git a/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h b/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h
-index 6e7ab4f..cc95a18 100644
---- a/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h
-+++ b/drivers/staging/tidspbridge/include/dspbridge/_chnl_sm.h
-@@ -99,14 +99,10 @@ struct shm {
- 	struct opp_rqst_struct opp_request;
- 	/* load monitor information structure */
- 	struct load_mon_struct load_mon_info;
--#ifdef CONFIG_TIDSPBRIDGE_WDT3
- 	/* Flag for WDT enable/disable F/I clocks */
- 	u32 wdt_setclocks;
- 	u32 wdt_overflow;	/* WDT overflow time */
- 	char dummy[176];	/* padding to 256 byte boundary */
--#else
--	char dummy[184];	/* padding to 256 byte boundary */
--#endif
- 	u32 shm_dbg_var[64];	/* shared memory debug variables */
- };
- 
+ 	/*
+ 	 * Dcofreq should be set to 1 if required pixel clock
 -- 
-1.7.4.1
+1.7.5.4
 
