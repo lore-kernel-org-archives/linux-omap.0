@@ -1,49 +1,81 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: [PATCH 3.3 v2] OMAP4: PRM: fix build breakage when CONFIG_OF is
- not defined
-Date: Wed, 15 Feb 2012 09:20:02 +0200
-Message-ID: <1329290402.19569.24.camel@cumari>
-References: <1328699683-19357-1-git-send-email-coelho@ti.com>
-	 <20120214203801.GU1426@atomide.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v2] usb: host: ehci: allow ehci_* symbols to be unused
+Date: Wed, 15 Feb 2012 09:34:26 +0200
+Message-ID: <1329291266-15798-1-git-send-email-balbi@ti.com>
+References: <Pine.LNX.4.44L0.1202141505400.1544-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36423 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751295Ab2BOHUI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 02:20:08 -0500
-In-Reply-To: <20120214203801.GU1426@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.44L0.1202141505400.1544-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 
-Hi Tony,
+not all platforms will use all of those ehci_*
+symbols on their hc_driver structure. Sometimes
+we might need to provide a modified version of
+a certain method or not provide it at all, as is
+the case with OMAPs which don't support port handoff
+feature.
 
-On Tue, 2012-02-14 at 12:38 -0800, Tony Lindgren wrote: 
-> * Luciano Coelho <coelho@ti.com> [120208 02:43]:
-> > Since 3.3-rc1, prm44xx.c build breaks if CONFIG_OF is not set:
-> > 
-> > arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
-> > make[1]: *** [arch/arm/mach-omap2/prm44xx.o] Error 1
-> > 
-> > This is because of a missing include, which is added indirectly if
-> > CONFIG_OF is defined.  This problem was introduced in commit
-> > 2f31b51 (ARM: OMAP4: PRM: use PRCM interrupt handler).
-> > 
-> > Cc: Tero Kristo <t-kristo@ti.com>
-> > Signed-off-by: Luciano Coelho <coelho@ti.com>
-> > Reviewed-by: Felipe Balbi <balbi@ti.com>
-> 
-> A similar patch should be already in mainline kernel queued by Russell.
+Whenever we compile a kernel for an OMAP board with
+EHCI enabled, we get compile warnings:
 
-Right, someone pointed this out to me after I sent the two patches.
-Sorry for the trouble, I should have looked more carefully before
-jumping in to fix this stuff. ;)
+drivers/usb/host/ehci-hub.c:1079: warning: 'ehci_relinquish_port' \
+	defined but not used
+drivers/usb/host/ehci-hub.c:1088: warning: 'ehci_port_handed_over' \
+	defined but not used
 
+In order to cleanup those warnings, we're adding
+__maybe_unused annotation to those functions.
+
+Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+---
+
+Changes from v1:
+	- only add __maybe_used to relinquish_port, port_handed_over
+		and port_change
+
+ drivers/usb/host/ehci-hub.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
+index 77bbb23..01011dd 100644
+--- a/drivers/usb/host/ehci-hub.c
++++ b/drivers/usb/host/ehci-hub.c
+@@ -107,7 +107,7 @@ static void ehci_handover_companion_ports(struct ehci_hcd *ehci)
+ 	ehci->owned_ports = 0;
+ }
+ 
+-static int ehci_port_change(struct ehci_hcd *ehci)
++static int __maybe_unused ehci_port_change(struct ehci_hcd *ehci)
+ {
+ 	int i = HCS_N_PORTS(ehci->hcs_params);
+ 
+@@ -1076,7 +1076,8 @@ error_exit:
+ 	return retval;
+ }
+ 
+-static void ehci_relinquish_port(struct usb_hcd *hcd, int portnum)
++static void __maybe_unused ehci_relinquish_port(struct usb_hcd *hcd,
++		int portnum)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
+ 
+@@ -1085,7 +1086,8 @@ static void ehci_relinquish_port(struct usb_hcd *hcd, int portnum)
+ 	set_owner(ehci, --portnum, PORT_OWNER);
+ }
+ 
+-static int ehci_port_handed_over(struct usb_hcd *hcd, int portnum)
++static int __maybe_unused ehci_port_handed_over(struct usb_hcd *hcd,
++		int portnum)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
+ 	u32 __iomem		*reg;
 -- 
-Cheers,
-Luca.
+1.7.9
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
