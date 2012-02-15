@@ -1,118 +1,104 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HDMI: Add M2 divider while calculating
- clkout
-Date: Wed, 15 Feb 2012 09:41:00 +0200
-Message-ID: <1329291660.1892.9.camel@deskari>
-References: <1329285034-16121-1-git-send-email-mythripk@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH 4/6] arm: omap3: add manual control for mpu_iva voltdm
+ usecounting
+Date: Wed, 15 Feb 2012 10:16:05 +0200
+Message-ID: <1329293765.4102.335.camel@sokoban>
+References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+	 <1329237402-26008-5-git-send-email-t-kristo@ti.com> <8762f96wdk.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-QbKZRuy3tML8U31h4TuE"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:60094 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757625Ab2BOHlF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 02:41:05 -0500
-Received: by mail-lpp01m010-f52.google.com with SMTP id y4so944155lag.11
-        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 23:41:03 -0800 (PST)
-In-Reply-To: <1329285034-16121-1-git-send-email-mythripk@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59205 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757737Ab2BOIQO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 03:16:14 -0500
+In-Reply-To: <8762f96wdk.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: mythripk@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
+On Tue, 2012-02-14 at 11:35 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > mpu_iva voltdm usecount is now decreased during idle. This will
+> > allow the voltagedomain to reflect actual usage, and will allow
+> > proper usage of vc callbacks.
+> 
+> I don't follow why this is needed in the idle path.
+> 
+> Why aren't the usecounts from clock/powerdomain disables (enables) causing this
+> voltdm disable (enable) to happen automatcially?
 
---=-QbKZRuy3tML8U31h4TuE
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The main issue is mpu powerdomain which doesn't contain any clocks that
+are controlled actively. Without adding a "virtual" usecount
+enable/disable hook, the usecount for mpu_iva will always remain at 0
+(or just follow the iva domain on omap3.) We want the usecount to
+reflect the actual idling of this domain also, so that we can control
+SR / auto-ret based on MPU activity.
 
-On Wed, 2012-02-15 at 11:20 +0530, mythripk@ti.com wrote:
-> From: Mythri P K <mythripk@ti.com>
->=20
-> Add M2 divider in the equation to calculate regm and regmf.
-> Formula for calculating:
-> Output clock on digital core domain:
-> 	CLKOUT =3D (M / (N+1))*CLKINP*(1/M2)
-> Internal oscillator output clock on internal LDO domain:
-> 	CLKDCOLDO =3D (M / (N+1))*CLKINP
-> The current code when allows variable M2 values as input
-> ignores using M2 divider values in calculation of regm and regmf.
-> so fix it by using M2 in calculation although the default value for
-> M2 is 1.
->=20
-> Signed-off-by: Mythri P K <mythripk@ti.com>
-> ---
->  drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
->=20
-> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdm=
-i.c
-> index 92a6679..9185630 100644
-> --- a/drivers/video/omap2/dss/hdmi.c
-> +++ b/drivers/video/omap2/dss/hdmi.c
-> @@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_device=
- *dssdev, int phy,
-> =20
->  	refclk =3D clkin / pi->regn;
-> =20
-> -	/*
-> -	 * multiplier is pixel_clk/ref_clk
-> -	 * Multiplying by 100 to avoid fractional part removal
-> -	 */
-> -	pi->regm =3D (phy * 100 / (refclk)) / 100;
-> -
->  	if (dssdev->clocks.hdmi.regm2 =3D=3D 0)
->  		pi->regm2 =3D HDMI_DEFAULT_REGM2;
->  	else
->  		pi->regm2 =3D dssdev->clocks.hdmi.regm2;
-> =20
->  	/*
-> +	 * multiplier is pixel_clk/ref_clk
-> +	 * Multiplying by 100 to avoid fractional part removal
-> +	 */
-> +	pi->regm =3D (phy * 100 * pi->regm2 / (refclk)) / 100;
+> If these are needed, seems like they should be in the
+> pwrdm_[pre|post]_transition() hooks so they can be generic.
 
-No need for parenthesis around refclk.
+This is actually a good idea, I could move them here. I could also add a
+manual triggering for core domain here, as I have a feeling it might be
+good to have so that core will also follow the idle cycle more tightly
+(basically as a virtual follow for sdrc clock which is idled by HW
+during wfi.)
 
-> +
-> +	/*
->  	 * fractional multiplier is remainder of the difference between
->  	 * multiplier and actual phy(required pixel clock thus should be
->  	 * multiplied by 2^18(262144) divided by the reference clock
->  	 */
-> -	mf =3D (phy - pi->regm * refclk) * 262144;
-> -	pi->regmf =3D mf / (refclk);
-> +	mf =3D (phy - pi->regm / pi->regm2 * refclk) * 262144;
+-Tero
 
-What kind of values does regm have? If the regm2 is something else than
-1, and regm is relatively small value, it's quite easy to lose precision
-there. Would it be better to have:
+> 
+> Kevin
+> 
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/pm34xx.c |    8 ++++++++
+> >  1 files changed, 8 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index fc69875..14defaf 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -74,6 +74,7 @@ void (*omap3_do_wfi_sram)(void);
+> >  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+> >  static struct powerdomain *core_pwrdm, *per_pwrdm;
+> >  static struct powerdomain *cam_pwrdm;
+> > +static struct voltagedomain *mpu_iva_voltdm;
+> >  
+> >  static inline void omap3_per_save_context(void)
+> >  {
+> > @@ -311,6 +312,8 @@ void omap_sram_idle(void)
+> >  		return;
+> >  	}
+> >  
+> > +	voltdm_pwrdm_disable(mpu_iva_voltdm);
+> > +
+> >  	/* NEON control */
+> >  	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+> >  		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+> > @@ -393,6 +396,8 @@ void omap_sram_idle(void)
+> >  	}
+> >  	omap3_intc_resume_idle();
+> >  
+> > +	voltdm_pwrdm_enable(mpu_iva_voltdm);
+> > +
+> >  	pwrdm_post_transition();
+> >  
+> >  	/* PER */
+> > @@ -828,6 +833,9 @@ static int __init omap3_pm_init(void)
+> >  
+> >  	(void) clkdm_for_each(clkdms_setup, NULL);
+> >  
+> > +	mpu_iva_voltdm = voltdm_lookup("mpu_iva");
+> > +	voltdm_pwrdm_enable(mpu_iva_voltdm);
+> > +
+> >  	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
+> >  	if (mpu_pwrdm == NULL) {
+> >  		printk(KERN_ERR "Failed to get mpu_pwrdm\n");
 
-pi->regm * refclk / pi->regm2
-
- Tomi
-=20
-
---=-QbKZRuy3tML8U31h4TuE
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPO2GIAAoJEPo9qoy8lh71IgsQAIipaHDkwN6NIqOrMVzO1vPA
-BFp6ag5pDxV3XdHp4PL+mGV46LdJqbnr7qtRTLKwAxyJTtLrkBGz4Gr3Vu6lhakU
-vK+k2B6HND79rc3disVVxLejpmwU4DJ68M6Vz+K3tzWuJY5Uos3OZxrdspR1bWc1
-a8E4vB3fabvKoAIQI25mdvvlzvczs1jl/M39UKu6RU/kwYTSiWyXnHxsDV9SlyqI
-ze7hu7k3Y/rgppwFcEH3frqCyMiP3eS8ZNg65LnKQ3UZyuaQS85F+zN7xKC6uSuo
-9JiWNf4wsBoWlv1kRU+pJUFYy4LwT1NzVdj3tWxfuX0eFmua6YZAzNx5T5T6f6qe
-Fmg2FOJ3Vny2E07rlYnuHYKgqHwRfm/1TThOEE43YUzJ7jSOVaRoRV9m4Q1d4tUX
-gf7B+6HjiFs5tIF8NS+WYstdwHRhbQl+m7LkZKuPKivJ1UsHNCRZx4EHFk0AQKo/
-uDvTZ/92kmgSb0BBErV1PfRsTKHHXc2u/prrklmXrIG0SNyNbQtuKvQFdob0gxhz
-YjdgRNL90xLRVIgMEgjHqKMK80P2ifNrkcYTcj62HPGTyfBFsX3e9QlM25Kbs6km
-VP8JJNLxRvXtffGcfCB8TR7mXIVNAgNRm+WI7lNi05gMomlIzAsWzQvf76iAQnpL
-7N0A7hqNQZZz77IlPynq
-=TSqC
------END PGP SIGNATURE-----
-
---=-QbKZRuy3tML8U31h4TuE--
 
