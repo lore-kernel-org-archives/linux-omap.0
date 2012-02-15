@@ -1,86 +1,102 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 1/8] arm: omap: clk: add support for omap_clk_for_each
-Date: Wed, 15 Feb 2012 17:37:47 +0200
-Message-ID: <1329320274-481-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2 4/8] arm: omap3: add manual control for mpu / core pwrdm usecounting
+Date: Wed, 15 Feb 2012 17:37:50 +0200
+Message-ID: <1329320274-481-5-git-send-email-t-kristo@ti.com>
 References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52587 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58781 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601Ab2BOPiT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:38:19 -0500
+	id S1751779Ab2BOPiY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:38:24 -0500
 In-Reply-To: <1329320274-481-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This works similarly to e.g. pwrdm_for_each(). Needed by enhanced
-usecounting debug functionality that will be added to pm-debug.
+mpu / core powerdomain usecounts are now statically increased
+by 1 during MPU activity. This allows the domains to reflect
+actual usage, and will allow the usecount to reach 0 just before
+entering wfi. Proper powerdomain usecounts are propageted to
+voltagedomain level also, and will allow vc callbacks to be
+triggered at right point of time.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/plat-omap/clock.c              |   30 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/clock.h |    2 ++
- 2 files changed, 32 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |   40 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 567e4b5..e17ee5e2 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -356,6 +356,36 @@ int omap_clk_enable_autoidle_all(void)
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 076eb42..b0f9b29 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -47,6 +47,7 @@ enum {
+ static LIST_HEAD(pwrdm_list);
+ 
+ static struct pwrdm_ops *arch_pwrdm;
++static struct powerdomain *mpu_pwrdm, *core_pwrdm;
+ 
+ /* Private functions */
+ 
+@@ -1006,11 +1007,17 @@ void pwrdm_clkdm_disable(struct powerdomain *pwrdm)
+ int pwrdm_pre_transition(void)
+ {
+ 	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
++	/* Decrease mpu / core usecounts to indicate we are entering idle */
++	pwrdm_clkdm_disable(mpu_pwrdm);
++	pwrdm_clkdm_disable(core_pwrdm);
  	return 0;
  }
  
+ int pwrdm_post_transition(void)
+ {
++	/* Increase mpu / core usecounts to indicate we are leaving idle */
++	pwrdm_clkdm_enable(mpu_pwrdm);
++	pwrdm_clkdm_enable(core_pwrdm);
+ 	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
+ 	return 0;
+ }
+@@ -1090,3 +1097,36 @@ bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm)
+ 
+ 	return 0;
+ }
++
 +/**
-+ * omap_clk_for_each - call a function for each registered clock
-+ * @fn: pointer to callback function
-+ * @data: void * data to pass to callback function
++ * pwrdm_usecount_init - initialize special powerdomain usecounts
 + *
-+ * Call @fn for each registered clock, passing @data to each function.
-+ * @fn must return 0 for success or any other value for failure. If
-+ * @fn returns non-zero, the iteration across clocks will stop and
-+ * the non-zero return value will be passed to the caller of
-+ * omap_clk_for_each(). @fn is called with clockfw_lock held.
++ * Initializes usecounts for the powerdomains that have static
++ * dependencies with MPU idle cycle, namely mpu_pwrdm and core_pwrdm.
++ * These powerdomains will get their usecounts increased / decreased
++ * each sleep cycle so that they reach 0 just before entering wfi,
++ * and are increased to 1 just after it. This allows the dependent
++ * voltage domains to follow idle cycle properly and trigger their
++ * callbacks for sleep / wakeup.
 + */
-+int omap_clk_for_each(int (*fn)(struct clk *clk, void *user), void *user)
++static int __init pwrdm_usecount_init(void)
 +{
-+	struct clk *c;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&clockfw_lock, flags);
-+
-+	list_for_each_entry(c, &clocks, node) {
-+		ret = fn(c, user);
-+		if (ret)
-+			break;
++	mpu_pwrdm = pwrdm_lookup("mpu_pwrdm");
++	if (!mpu_pwrdm) {
++		pr_err("%s: failed to get mpu_pwrdm\n", __func__);
++		return -EINVAL;
 +	}
 +
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
++	pwrdm_clkdm_enable(mpu_pwrdm);
 +
-+	return ret;
++	core_pwrdm = pwrdm_lookup("core_pwrdm");
++	if (!core_pwrdm) {
++		pr_err("%s: failed to get core_pwrdm\n", __func__);
++		return -EINVAL;
++	}
++
++	pwrdm_clkdm_enable(core_pwrdm);
++
++	return 0;
 +}
-+
- int omap_clk_disable_autoidle_all(void)
- {
- 	struct clk *c;
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index 240a7b9..c84f2a4 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -300,6 +300,8 @@ extern void propagate_rate(struct clk *clk);
- extern void recalculate_root_clocks(void);
- extern unsigned long followparent_recalc(struct clk *clk);
- extern void clk_enable_init_clocks(void);
-+extern int omap_clk_for_each(int (*fn)(struct clk *clk, void *user),
-+				void *user);
- unsigned long omap_fixed_divisor_recalc(struct clk *clk);
- #ifdef CONFIG_CPU_FREQ
- extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
++late_initcall(pwrdm_usecount_init);
 -- 
 1.7.4.1
 
