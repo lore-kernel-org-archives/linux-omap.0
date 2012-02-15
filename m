@@ -1,192 +1,235 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 1/4] spi/omap: Add DT support to McSPI driver
-Date: Wed, 15 Feb 2012 22:10:37 +0100
-Message-ID: <4F3C1F4D.7070700@ti.com>
-References: <1329327457-2121-1-git-send-email-b-cousson@ti.com> <1329327457-2121-2-git-send-email-b-cousson@ti.com> <4F3C08D6.6000108@gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH v3] ARM: OMAP: clock: cleanup CPUfreq leftovers
+Date: Wed, 15 Feb 2012 13:46:55 -0800
+Message-ID: <1329342415-28702-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46753 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755426Ab2BOVKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 16:10:53 -0500
-In-Reply-To: <4F3C08D6.6000108@gmail.com>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:49936 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754744Ab2BOVqW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 16:46:22 -0500
+Received: by dadp13 with SMTP id p13so1399052dad.7
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 13:46:20 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
 
-On 2/15/2012 8:34 PM, Rob Herring wrote:
-> On 02/15/2012 11:37 AM, Benoit Cousson wrote:
->> Add device tree support to the OMAP2+ McSPI driver.
->> Add the bindings documentation.
->>
->> Based on original code from Rajendra.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Grant Likely<grant.likely@secretlab.ca>
->> Cc: Rajendra Nayak<rnayak@ti.com>
->> ---
->>   Documentation/devicetree/bindings/spi/omap-spi.txt |   20 +++++++
->>   drivers/spi/spi-omap2-mcspi.c                      |   56 +++++++++++++++++---
->>   2 files changed, 68 insertions(+), 8 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/spi/omap-spi.txt
->>
->> diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
->> new file mode 100644
->> index 0000000..81df374
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
->> @@ -0,0 +1,20 @@
->> +OMAP2+ McSPI device
->> +
->> +Required properties:
->> +- compatible :
->> +  - "ti,omap2-spi" for OMAP2&  OMAP3.
->> +  - "ti,omap4-spi" for OMAP4+.
->> +- ti,spi-num-cs : Number of chipselect supported  by the instance.
->> +- ti,hwmods: Name of the hwmod associated to the McSPI
->> +
->> +
->> +Example:
->> +
->> +mcspi1: mcspi@1 {
->
-> I don't recall if there's a generic name defined but just "spi" would
-> probably be better.
+Now that we have OPP layer, and OMAP CPUfreq driver is using it, we no
+longer need/use the clock framework code for filling up CPUfreq
+tables.  Remove it.
 
-I was wondering as well, but based on Grant further comment it looks it 
-is the case.
-I couldn't find any list of generic name in the bindings documentation. 
-Is there some place we can get that?
+Thanks to Russell King for pointing out the parts I missed under
+plat-omap in the original version.
 
-> Also, shouldn't this be the base address?
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+Paul, this is an updated version of the previous one after a different
+CPUfreq patch from Russell made me realize I missed the plat-omap pieces.
 
-Yeah, it should, I've just explained the reason of this OMAP 
-irregularity in my answer to Grant. Let see if he'll be convinced or not :-)
+ arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |   80 --------------------------
+ arch/arm/mach-omap2/clock.c                  |    5 --
+ arch/arm/mach-omap2/clock.h                  |    8 ---
+ arch/arm/plat-omap/clock.c                   |   26 --------
+ arch/arm/plat-omap/include/plat/clock.h      |   10 ---
+ 5 files changed, 0 insertions(+), 129 deletions(-)
 
-> Otherwise, for the series:
->
-> Acked-by: Rob Herring<rob.herring@calxeda.com>
-
-Thanks,
-Benoit
-
->
->
->> +    #address-cells =<1>;
->> +    #size-cells =<0>;
->> +    compatible = "ti,omap4-mcspi";
->> +    ti,hwmods = "mcspi1";
->> +    ti,spi-num-cs =<4>;
->> +};
->> +
->> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
->> index 0b0dfb7..bb9274c 100644
->> --- a/drivers/spi/spi-omap2-mcspi.c
->> +++ b/drivers/spi/spi-omap2-mcspi.c
->> @@ -34,6 +34,8 @@
->>   #include<linux/io.h>
->>   #include<linux/slab.h>
->>   #include<linux/pm_runtime.h>
->> +#include<linux/of.h>
->> +#include<linux/of_device.h>
->>
->>   #include<linux/spi/spi.h>
->>
->> @@ -1079,15 +1081,39 @@ static int omap_mcspi_runtime_resume(struct device *dev)
->>   	return 0;
->>   }
->>
->> +static struct omap2_mcspi_platform_config omap2_pdata = {
->> +	.regs_offset = 0,
->> +};
->> +
->> +static struct omap2_mcspi_platform_config omap4_pdata = {
->> +	.regs_offset = OMAP4_MCSPI_REG_OFFSET,
->> +};
->> +
->> +static const struct of_device_id omap_mcspi_of_match[] = {
->> +	{
->> +		.compatible = "ti,omap2-mcspi",
->> +		.data =&omap2_pdata,
->> +	},
->> +	{
->> +		.compatible = "ti,omap4-mcspi",
->> +		.data =&omap4_pdata,
->> +	},
->> +	{ },
->> +};
->> +MODULE_DEVICE_TABLE(of, omap_mcspi_of_match);
->>
->>   static int __init omap2_mcspi_probe(struct platform_device *pdev)
->>   {
->>   	struct spi_master	*master;
->> -	struct omap2_mcspi_platform_config *pdata = pdev->dev.platform_data;
->> +	struct omap2_mcspi_platform_config *pdata;
->>   	struct omap2_mcspi	*mcspi;
->>   	struct resource		*r;
->>   	int			status = 0, i;
->>   	char			wq_name[20];
->> +	u32			regs_offset = 0;
->> +	static int		bus_num = 1;
->> +	struct device_node	*node = pdev->dev.of_node;
->> +	const struct of_device_id *match;
->>
->>   	master = spi_alloc_master(&pdev->dev, sizeof *mcspi);
->>   	if (master == NULL) {
->> @@ -1098,13 +1124,26 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->>   	/* the spi->mode bits understood by this driver: */
->>   	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
->>
->> -	if (pdev->id != -1)
->> -		master->bus_num = pdev->id;
->> -
->>   	master->setup = omap2_mcspi_setup;
->>   	master->transfer = omap2_mcspi_transfer;
->>   	master->cleanup = omap2_mcspi_cleanup;
->> -	master->num_chipselect = pdata->num_cs;
->> +	master->dev.of_node = node;
->> +
->> +	match = of_match_device(omap_mcspi_of_match,&pdev->dev);
->> +	if (match) {
->> +		u32 num_cs = 1; /* default number of chipselect */
->> +		pdata = match->data;
->> +
->> +		of_property_read_u32(node, "ti,spi-num-cs",&num_cs);
->> +		master->num_chipselect = num_cs;
->> +		master->bus_num = bus_num++;
->> +	} else {
->> +		pdata = pdev->dev.platform_data;
->> +		master->num_chipselect = pdata->num_cs;
->> +		if (pdev->id != -1)
->> +			master->bus_num = pdev->id;
->> +	}
->> +	regs_offset = pdata->regs_offset;
->>
->>   	dev_set_drvdata(&pdev->dev, master);
->>
->> @@ -1124,8 +1163,8 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->>   		goto free_master;
->>   	}
->>
->> -	r->start += pdata->regs_offset;
->> -	r->end += pdata->regs_offset;
->> +	r->start += regs_offset;
->> +	r->end += regs_offset;
->>   	mcspi->phys = r->start;
->>   	if (!request_mem_region(r->start, resource_size(r),
->>   				dev_name(&pdev->dev))) {
->> @@ -1285,7 +1324,8 @@ static struct platform_driver omap2_mcspi_driver = {
->>   	.driver = {
->>   		.name =		"omap2_mcspi",
->>   		.owner =	THIS_MODULE,
->> -		.pm =		&omap2_mcspi_pm_ops
->> +		.pm =		&omap2_mcspi_pm_ops,
->> +		.of_match_table = omap_mcspi_of_match,
->>   	},
->>   	.remove =	__exit_p(omap2_mcspi_remove),
->>   };
->
+diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+index 39f9d5a..9a13e07 100644
+--- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
++++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
+@@ -164,83 +164,3 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 
+ 	return 0;
+ }
+-
+-#ifdef CONFIG_CPU_FREQ
+-/*
+- * Walk PRCM rate table and fillout cpufreq freq_table
+- * XXX This should be replaced by an OPP layer in the near future
+- */
+-static struct cpufreq_frequency_table *freq_table;
+-
+-void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+-{
+-	const struct prcm_config *prcm;
+-	int i = 0;
+-	int tbl_sz = 0;
+-
+-	if (!cpu_is_omap24xx())
+-		return;
+-
+-	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+-		if (!(prcm->flags & cpu_mask))
+-			continue;
+-		if (prcm->xtal_speed != sclk->rate)
+-			continue;
+-
+-		/* don't put bypass rates in table */
+-		if (prcm->dpll_speed == prcm->xtal_speed)
+-			continue;
+-
+-		tbl_sz++;
+-	}
+-
+-	/*
+-	 * XXX Ensure that we're doing what CPUFreq expects for this error
+-	 * case and the following one
+-	 */
+-	if (tbl_sz == 0) {
+-		pr_warning("%s: no matching entries in rate_table\n",
+-			   __func__);
+-		return;
+-	}
+-
+-	/* Include the CPUFREQ_TABLE_END terminator entry */
+-	tbl_sz++;
+-
+-	freq_table = kzalloc(sizeof(struct cpufreq_frequency_table) * tbl_sz,
+-			     GFP_ATOMIC);
+-	if (!freq_table) {
+-		pr_err("%s: could not kzalloc frequency table\n", __func__);
+-		return;
+-	}
+-
+-	for (prcm = rate_table; prcm->mpu_speed; prcm++) {
+-		if (!(prcm->flags & cpu_mask))
+-			continue;
+-		if (prcm->xtal_speed != sclk->rate)
+-			continue;
+-
+-		/* don't put bypass rates in table */
+-		if (prcm->dpll_speed == prcm->xtal_speed)
+-			continue;
+-
+-		freq_table[i].index = i;
+-		freq_table[i].frequency = prcm->mpu_speed / 1000;
+-		i++;
+-	}
+-
+-	freq_table[i].index = i;
+-	freq_table[i].frequency = CPUFREQ_TABLE_END;
+-
+-	*table = &freq_table[0];
+-}
+-
+-void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
+-{
+-	if (!cpu_is_omap24xx())
+-		return;
+-
+-	kfree(freq_table);
+-}
+-
+-#endif
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index f57ed5b..d9f4931 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -536,10 +536,5 @@ struct clk_functions omap2_clk_functions = {
+ 	.clk_set_rate		= omap2_clk_set_rate,
+ 	.clk_set_parent		= omap2_clk_set_parent,
+ 	.clk_disable_unused	= omap2_clk_disable_unused,
+-#ifdef CONFIG_CPU_FREQ
+-	/* These will be removed when the OPP code is integrated */
+-	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
+-	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
+-#endif
+ };
+ 
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index b8c2a68..a1bb23a 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -146,14 +146,6 @@ extern const struct clksel_rate gpt_sys_rates[];
+ extern const struct clksel_rate gfx_l3_rates[];
+ extern const struct clksel_rate dsp_ick_rates[];
+ 
+-#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
+-extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+-extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+-#else
+-#define omap2_clk_init_cpufreq_table	0
+-#define omap2_clk_exit_cpufreq_table	0
+-#endif
+-
+ extern const struct clkops clkops_omap2_iclk_dflt_wait;
+ extern const struct clkops clkops_omap2_iclk_dflt;
+ extern const struct clkops clkops_omap2_iclk_idle_only;
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 567e4b5..05a944b 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -399,32 +399,6 @@ struct clk dummy_ck = {
+ 	.ops	= &clkops_null,
+ };
+ 
+-#ifdef CONFIG_CPU_FREQ
+-void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+-{
+-	unsigned long flags;
+-
+-	if (!arch_clock || !arch_clock->clk_init_cpufreq_table)
+-		return;
+-
+-	spin_lock_irqsave(&clockfw_lock, flags);
+-	arch_clock->clk_init_cpufreq_table(table);
+-	spin_unlock_irqrestore(&clockfw_lock, flags);
+-}
+-
+-void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table)
+-{
+-	unsigned long flags;
+-
+-	if (!arch_clock || !arch_clock->clk_exit_cpufreq_table)
+-		return;
+-
+-	spin_lock_irqsave(&clockfw_lock, flags);
+-	arch_clock->clk_exit_cpufreq_table(table);
+-	spin_unlock_irqrestore(&clockfw_lock, flags);
+-}
+-#endif
+-
+ /*
+  *
+  */
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index 240a7b9..d0ef57c 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -272,8 +272,6 @@ struct clk {
+ #endif
+ };
+ 
+-struct cpufreq_frequency_table;
+-
+ struct clk_functions {
+ 	int		(*clk_enable)(struct clk *clk);
+ 	void		(*clk_disable)(struct clk *clk);
+@@ -283,10 +281,6 @@ struct clk_functions {
+ 	void		(*clk_allow_idle)(struct clk *clk);
+ 	void		(*clk_deny_idle)(struct clk *clk);
+ 	void		(*clk_disable_unused)(struct clk *clk);
+-#ifdef CONFIG_CPU_FREQ
+-	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
+-	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
+-#endif
+ };
+ 
+ extern int mpurate;
+@@ -301,10 +295,6 @@ extern void recalculate_root_clocks(void);
+ extern unsigned long followparent_recalc(struct clk *clk);
+ extern void clk_enable_init_clocks(void);
+ unsigned long omap_fixed_divisor_recalc(struct clk *clk);
+-#ifdef CONFIG_CPU_FREQ
+-extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
+-extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
+-#endif
+ extern struct clk *omap_clk_get_by_name(const char *name);
+ extern int omap_clk_enable_autoidle_all(void);
+ extern int omap_clk_disable_autoidle_all(void);
+-- 
+1.7.9
 
