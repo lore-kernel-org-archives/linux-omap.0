@@ -1,80 +1,73 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP34xx
-Date: Wed, 15 Feb 2012 11:27:33 +0000
-Message-ID: <20120215112733.GA25263@n2100.arm.linux.org.uk>
-References: <20120204185453.GB17309@n2100.arm.linux.org.uk> <20120212104132.GA17557@n2100.arm.linux.org.uk>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Wed, 15 Feb 2012 13:41:19 +0200
+Message-ID: <CAMP44s2Xg5P7-+4NPq8tBqk=gSu9T8kvzSpEh_rj6wiZT+qcKQ@mail.gmail.com>
+References: <CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
+	<20120210180015.GF4141@mwanda>
+	<CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
+	<20120210203537.GG4141@mwanda>
+	<CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
+	<CAB-zwWhSoiMNVGQ=u=6-Umte-AaP9Qih8QMJFTyk8pjXaXysLg@mail.gmail.com>
+	<CAMP44s1yY8N4z_uF1b=DKdEMGXORJUhkytEpbK2AoCSTbmiJNw@mail.gmail.com>
+	<CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
+	<CAMP44s3sNH2qRsMHxgCbemefVye=z5E8XFLnSPvUtgA94SoV=A@mail.gmail.com>
+	<CAB-zwWjkCqehNAKp=gFt6Zq=XR+Mscz67oGnfY2sPjgvgpvNFQ@mail.gmail.com>
+	<20120215094357.GA24331@lit.local.igalia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41084 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727Ab2BOL1m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 06:27:42 -0500
-Content-Disposition: inline
-In-Reply-To: <20120212104132.GA17557@n2100.arm.linux.org.uk>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:53634 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751759Ab2BOLlV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 06:41:21 -0500
+Received: by lagu2 with SMTP id u2so872833lag.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 03:41:19 -0800 (PST)
+In-Reply-To: <20120215094357.GA24331@lit.local.igalia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: =?UTF-8?B?VsOtY3RvciBNLiBKw6FxdWV6IEwu?= <vjaquez@igalia.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
 
-On Sun, Feb 12, 2012 at 10:41:32AM +0000, Russell King - ARM Linux wrote:
-> Another issue (through lower priority) is this:
-> 
-> twl-common.c:(.init.text+0x2e48): undefined reference to `omap34xx_vddmpu_volt_data'
-> twl-common.c:(.init.text+0x2e4c): undefined reference to `omap34xx_vddcore_volt_data'
-> twl-common.c:(.init.text+0x2e5c): undefined reference to `omap36xx_vddmpu_volt_data'
-> twl-common.c:(.init.text+0x2e60): undefined reference to `omap36xx_vddcore_volt_data'
-> twl-common.c:(.init.text+0x2830): undefined reference to `omap44xx_vdd_mpu_volt_data'
-> twl-common.c:(.init.text+0x283c): undefined reference to `omap44xx_vdd_iva_volt_data'
-> twl-common.c:(.init.text+0x2844): undefined reference to `omap44xx_vdd_core_volt_data'
-> 
-> produced by the allnoconfig build.
-> 
-> The voltage domain code is always built into the kernel, but it references
-> the operating point code for the voltage tables.  The voltage tables are
-> only built in when PM_OPP is enabled.
-> 
-> So, this means that either the voltage tables must always be built in, or
-> the references need to be surrounded by #ifdef CONFIG_PM_OPP.  The former
-> can be done in two ways: either move those tables out of opp*.c, or get
-> rid of PM_OPP entirely as it must always be enabled.
+2012/2/15 V=C3=ADctor M. J=C3=A1quez L. <vjaquez@igalia.com>:
+> On Tue, Feb 14, 2012 at 08:56:11PM -0600, Ramirez Luna, Omar wrote:
+>> On Tue, Feb 14, 2012 at 10:23 AM, Felipe Contreras
+>> <felipe.contreras@gmail.com> wrote:
+>> >> When that case is applicable, we should first modify the loader c=
+ode
+>> >> or prepare the baseimages to be common so we can get rid of speci=
+fic
+>> >> loaders and just dump them into memory.
+>> >
+>> > I'd say the less workarounds, the better.
+>>
+>> If there are ever more base images compatible with the dsp, I would
+>> say that unifying them into a common format to be dumped in memory
+>> isn't a workaround, and in that process we can get rid of the custom
+>> loader code.
+>
+> Yes! please! and use Ohad's rproc thingy.
 
-Since no one has picked up on this, here's my current patch for it:
+I thought rproc is tied to elf for now.
 
-diff --git a/arch/arm/mach-omap2/voltagedomains3xxx_data.c b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-index c005e2f..57db203 100644
---- a/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains3xxx_data.c
-@@ -108,6 +108,7 @@ void __init omap3xxx_voltagedomains_init(void)
- 	 * XXX Will depend on the process, validation, and binning
- 	 * for the currently-running IC
- 	 */
-+#ifdef CONFIG_PM_OPP
- 	if (cpu_is_omap3630()) {
- 		omap3_voltdm_mpu.volt_data = omap36xx_vddmpu_volt_data;
- 		omap3_voltdm_core.volt_data = omap36xx_vddcore_volt_data;
-@@ -115,6 +116,7 @@ void __init omap3xxx_voltagedomains_init(void)
- 		omap3_voltdm_mpu.volt_data = omap34xx_vddmpu_volt_data;
- 		omap3_voltdm_core.volt_data = omap34xx_vddcore_volt_data;
- 	}
-+#endif
- 
- 	if (cpu_is_omap3517() || cpu_is_omap3505())
- 		voltdms = voltagedomains_am35xx;
-diff --git a/arch/arm/mach-omap2/voltagedomains44xx_data.c b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-index 4e11d02..c3115f6 100644
---- a/arch/arm/mach-omap2/voltagedomains44xx_data.c
-+++ b/arch/arm/mach-omap2/voltagedomains44xx_data.c
-@@ -100,9 +100,11 @@ void __init omap44xx_voltagedomains_init(void)
- 	 * XXX Will depend on the process, validation, and binning
- 	 * for the currently-running IC
- 	 */
-+#ifdef CONFIG_PM_OPP
- 	omap4_voltdm_mpu.volt_data = omap44xx_vdd_mpu_volt_data;
- 	omap4_voltdm_iva.volt_data = omap44xx_vdd_iva_volt_data;
- 	omap4_voltdm_core.volt_data = omap44xx_vdd_core_volt_data;
-+#endif
- 
- 	for (i = 0; voltdm = voltagedomains_omap4[i], voltdm; i++)
- 		voltdm->sys_clk.name = sys_clk_name;
+> What would be the steps to unify that common format? I guess we will =
+depend on
+> TI for that... Do we?
 
+But this "common" format would be specific for tidspbridge, I don't
+think it makes sense for these images to have that constraint.
+Certainly rproc doesn't have it, and that one is not on staging.
+
+In any case, the proposed patch looks good. We can deal about these
+futuristic situations later on.
+
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
