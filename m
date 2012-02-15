@@ -1,68 +1,51 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
-Date: Wed, 15 Feb 2012 13:41:19 +0200
-Message-ID: <CAMP44s2Xg5P7-+4NPq8tBqk=gSu9T8kvzSpEh_rj6wiZT+qcKQ@mail.gmail.com>
-References: <CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
-	<20120210180015.GF4141@mwanda>
-	<CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
-	<20120210203537.GG4141@mwanda>
-	<CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
-	<CAB-zwWhSoiMNVGQ=u=6-Umte-AaP9Qih8QMJFTyk8pjXaXysLg@mail.gmail.com>
-	<CAMP44s1yY8N4z_uF1b=DKdEMGXORJUhkytEpbK2AoCSTbmiJNw@mail.gmail.com>
-	<CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
-	<CAMP44s3sNH2qRsMHxgCbemefVye=z5E8XFLnSPvUtgA94SoV=A@mail.gmail.com>
-	<CAB-zwWjkCqehNAKp=gFt6Zq=XR+Mscz67oGnfY2sPjgvgpvNFQ@mail.gmail.com>
-	<20120215094357.GA24331@lit.local.igalia.com>
+Subject: Re: [RFC PATCH 0/2] staging: tidspbridge: detecting wdt from baseimage
+Date: Wed, 15 Feb 2012 13:42:25 +0200
+Message-ID: <CAMP44s1pPZ4oTVRKDf7mxijRNHnY1p_QynzCgRjjx-nEeT49Ow@mail.gmail.com>
+References: <1329274834-30154-1-git-send-email-omar.ramirez@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:53634 "EHLO
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:59585 "EHLO
 	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751759Ab2BOLlV convert rfc822-to-8bit
+	by vger.kernel.org with ESMTP id S1752034Ab2BOLm0 convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 06:41:21 -0500
-Received: by lagu2 with SMTP id u2so872833lag.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 03:41:19 -0800 (PST)
-In-Reply-To: <20120215094357.GA24331@lit.local.igalia.com>
+	Wed, 15 Feb 2012 06:42:26 -0500
+Received: by lagu2 with SMTP id u2so873975lag.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 03:42:25 -0800 (PST)
+In-Reply-To: <1329274834-30154-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?VsOtY3RvciBNLiBKw6FxdWV6IEwu?= <vjaquez@igalia.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
+To: Omar Ramirez Luna <omar.ramirez@ti.com>
+Cc: Felipe Contreras <felipe.contreras@nokia.com>, linux-omap@vger.kernel.org, "Justin P. Mattock" <justinmattock@gmail.com>, devel@driverdev.osuosl.org, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
 
-2012/2/15 V=C3=ADctor M. J=C3=A1quez L. <vjaquez@igalia.com>:
-> On Tue, Feb 14, 2012 at 08:56:11PM -0600, Ramirez Luna, Omar wrote:
->> On Tue, Feb 14, 2012 at 10:23 AM, Felipe Contreras
->> <felipe.contreras@gmail.com> wrote:
->> >> When that case is applicable, we should first modify the loader c=
-ode
->> >> or prepare the baseimages to be common so we can get rid of speci=
-fic
->> >> loaders and just dump them into memory.
->> >
->> > I'd say the less workarounds, the better.
->>
->> If there are ever more base images compatible with the dsp, I would
->> say that unifying them into a common format to be dumped in memory
->> isn't a workaround, and in that process we can get rid of the custom
->> loader code.
+On Wed, Feb 15, 2012 at 5:00 AM, Omar Ramirez Luna <omar.ramirez@ti.com=
+> wrote:
+> This is an alternate solution for:
 >
-> Yes! please! and use Ohad's rproc thingy.
+> WARNING: at arch/arm/mach-omap2/omap_l3_smx.c:162 omap3_l3_app_irq...
+> In-band Error seen by IVA_SS =C2=A0at address 0
+>
+> Instead of setting CONFIG_TIDSPBRIDGE_WDT3 to 'default y', these patc=
+hes
+> include the code to be compiled for runtime detection of this feature
+> based on baseimage symbols.
+>
+> As mentioned in the description of the first patch, we will lose the =
+option
+> to set a current overflow timeout and the default will be kept as 5 s=
+econds.
+> This can be replaced by a debugfs/sysfs entry if needed, I didn't inc=
+lude
+> such a patch as we first need to decide which fix to take (between th=
+is and
+> default y for CONFIG_TIDSPBRIDGE_WDT3[1]).
+>
+> [1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg62119.h=
+tml
 
-I thought rproc is tied to elf for now.
-
-> What would be the steps to unify that common format? I guess we will =
-depend on
-> TI for that... Do we?
-
-But this "common" format would be specific for tidspbridge, I don't
-think it makes sense for these images to have that constraint.
-Certainly rproc doesn't have it, and that one is not on staging.
-
-In any case, the proposed patch looks good. We can deal about these
-futuristic situations later on.
-
-Cheers.
+LGTM.
 
 --=20
 =46elipe Contreras
