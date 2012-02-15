@@ -1,277 +1,229 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [RFC 10/11] ASoC: omap-mcbsp: Merge the omap_mcbsp_data into omap_mcbsp structure
-Date: Wed, 15 Feb 2012 17:37:59 +0200
-Message-ID: <1329320280-1621-11-git-send-email-peter.ujfalusi@ti.com>
-References: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv2 6/8] arm: omap: pm-debug: enhanced usecount debug support
+Date: Wed, 15 Feb 2012 17:37:52 +0200
+Message-ID: <1329320274-481-7-git-send-email-t-kristo@ti.com>
+References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:55961 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751601Ab2BOPiY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:38:24 -0500
-Received: by mail-bk0-f41.google.com with SMTP id y12so1374558bkt.14
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:38:21 -0800 (PST)
-In-Reply-To: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56215 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751884Ab2BOPih (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:38:37 -0500
+In-Reply-To: <1329320274-481-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-Since the drivers has been merged, merge the two structures together.
+Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+their own file, 'usecount'. This file shows the usecounts for every
+active domain and their children recursively. 'count' file now only
+shows power state counts for powerdomains.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+This patch also provices a way to do printk dumps from kernel code,
+by calling the pm_dbg_dump_X functions. The plan is to call these
+functions once an error condition is detected, e.g. failed suspend.
+
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- sound/soc/omap/mcbsp.h      |   33 ++++++++++++--------------
- sound/soc/omap/omap-mcbsp.c |   53 ++++++++++++++++++------------------------
- 2 files changed, 38 insertions(+), 48 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c |  128 ++++++++++++++++++++++++++++++++++------
+ arch/arm/mach-omap2/pm.h       |    6 ++
+ 2 files changed, 115 insertions(+), 19 deletions(-)
 
-diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index ac90c1a..d250bcc 100644
---- a/sound/soc/omap/mcbsp.h
-+++ b/sound/soc/omap/mcbsp.h
-@@ -269,27 +269,20 @@ struct omap_mcbsp_st_data {
- 	s16 ch1gain;
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 4411163..444588e 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -51,6 +51,7 @@ static int pm_dbg_init(void);
+ enum {
+ 	DEBUG_FILE_COUNTERS = 0,
+ 	DEBUG_FILE_TIMERS,
++	DEBUG_FILE_USECOUNT,
  };
  
--struct omap_mcbsp_data {
--	struct omap_mcbsp_reg_cfg	regs;
--	struct omap_pcm_dma_data	dma_data[2];
--	unsigned int			fmt;
--	/*
--	 * Flags indicating is the bus already activated and configured by
--	 * another substream
--	 */
--	int				active;
--	int				configured;
--	unsigned int			in_freq;
--	int				clk_div;
--	int				wlen;
--};
--
- struct omap_mcbsp {
- 	struct device *dev;
-+	struct clk *fclk;
-+	spinlock_t lock;
- 	unsigned long phys_base;
- 	unsigned long phys_dma_base;
- 	void __iomem *io_base;
- 	u8 id;
-+	/*
-+	 * Flags indicating is the bus already activated and configured by
-+	 * another substream
-+	 */
-+	int active;
-+	int configured;
- 	u8 free;
- 
- 	int rx_irq;
-@@ -300,16 +293,20 @@ struct omap_mcbsp {
- 	u8 dma_tx_sync;
- 
- 	/* Protect the field .free, while checking if the mcbsp is in use */
--	spinlock_t lock;
- 	struct omap_mcbsp_platform_data *pdata;
--	struct clk *fclk;
- 	struct omap_mcbsp_st_data *st_data;
--	struct omap_mcbsp_data mcbsp_data;
-+	struct omap_mcbsp_reg_cfg cfg_regs;
-+	struct omap_pcm_dma_data dma_data[2];
- 	int dma_op_mode;
- 	u16 max_tx_thres;
- 	u16 max_rx_thres;
- 	void *reg_cache;
- 	int reg_cache_size;
-+
-+	unsigned int fmt;
-+	unsigned int in_freq;
-+	int clk_div;
-+	int wlen;
- };
- 
- void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 69a44aa..4cd7af8 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -66,7 +66,6 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
- 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
- 	struct omap_pcm_dma_data *dma_data;
- 	int words;
- 
-@@ -83,7 +82,7 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- 			words = dma_data->packet_size;
- 		else
- 			words = snd_pcm_lib_period_bytes(substream) /
--							(mcbsp_data->wlen / 8);
-+							(mcbsp->wlen / 8);
- 	else
- 		words = 1;
- 
-@@ -160,11 +159,10 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
- 				    struct snd_soc_dai *cpu_dai)
- {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
- 
- 	if (!cpu_dai->active) {
- 		omap_mcbsp_free(mcbsp);
--		mcbsp_data->configured = 0;
-+		mcbsp->configured = 0;
- 	}
+ static const char pwrdm_state_names[][PWRDM_MAX_PWRSTS] = {
+@@ -75,23 +76,6 @@ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev)
+ 	pwrdm->timer = t;
  }
  
-@@ -172,14 +170,13 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 				  struct snd_soc_dai *cpu_dai)
+-static int clkdm_dbg_show_counter(struct clockdomain *clkdm, void *user)
+-{
+-	struct seq_file *s = (struct seq_file *)user;
+-
+-	if (strcmp(clkdm->name, "emu_clkdm") == 0 ||
+-		strcmp(clkdm->name, "wkup_clkdm") == 0 ||
+-		strncmp(clkdm->name, "dpll", 4) == 0)
+-		return 0;
+-
+-	seq_printf(s, "%s->%s (%d)", clkdm->name,
+-			clkdm->pwrdm.ptr->name,
+-			atomic_read(&clkdm->usecount));
+-	seq_printf(s, "\n");
+-
+-	return 0;
+-}
+-
+ static int pwrdm_dbg_show_counter(struct powerdomain *pwrdm, void *user)
  {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
- 	int err = 0, play = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
- 
- 	switch (cmd) {
- 	case SNDRV_PCM_TRIGGER_START:
- 	case SNDRV_PCM_TRIGGER_RESUME:
- 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
--		mcbsp_data->active++;
-+		mcbsp->active++;
- 		omap_mcbsp_start(mcbsp, play, !play);
- 		break;
- 
-@@ -187,7 +184,7 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 	case SNDRV_PCM_TRIGGER_SUSPEND:
- 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
- 		omap_mcbsp_stop(mcbsp, play, !play);
--		mcbsp_data->active--;
-+		mcbsp->active--;
- 		break;
- 	default:
- 		err = -EINVAL;
-@@ -226,8 +223,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 				    struct snd_soc_dai *cpu_dai)
- {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
--	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
-+	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
- 	struct omap_pcm_dma_data *dma_data;
- 	int dma;
- 	int wlen, channels, wpf, sync_mode = OMAP_DMA_SYNC_ELEMENT;
-@@ -235,7 +231,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	unsigned long port;
- 	unsigned int format, div, framesize, master;
- 
--	dma_data = &mcbsp_data->dma_data[substream->stream];
-+	dma_data = &mcbsp->dma_data[substream->stream];
- 
- 	dma = omap_mcbsp_dma_ch_params(mcbsp, substream->stream);
- 	port = omap_mcbsp_dma_reg_params(mcbsp, substream->stream);
-@@ -303,7 +299,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 
- 	snd_soc_dai_set_dma_data(cpu_dai, substream, dma_data);
- 
--	if (mcbsp_data->configured) {
-+	if (mcbsp->configured) {
- 		/* McBSP already configured by another stream */
- 		return 0;
- 	}
-@@ -312,7 +308,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	regs->xcr2	&= ~(RPHASE | XFRLEN2(0x7f) | XWDLEN2(7));
- 	regs->rcr1	&= ~(RFRLEN1(0x7f) | RWDLEN1(7));
- 	regs->xcr1	&= ~(XFRLEN1(0x7f) | XWDLEN1(7));
--	format = mcbsp_data->fmt & SND_SOC_DAIFMT_FORMAT_MASK;
-+	format = mcbsp->fmt & SND_SOC_DAIFMT_FORMAT_MASK;
- 	wpf = channels = params_channels(params);
- 	if (channels == 2 && (format == SND_SOC_DAIFMT_I2S ||
- 			      format == SND_SOC_DAIFMT_LEFT_J)) {
-@@ -350,10 +346,10 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 
- 	/* In McBSP master modes, FRAME (i.e. sample rate) is generated
- 	 * by _counting_ BCLKs. Calculate frame size in BCLKs */
--	master = mcbsp_data->fmt & SND_SOC_DAIFMT_MASTER_MASK;
-+	master = mcbsp->fmt & SND_SOC_DAIFMT_MASTER_MASK;
- 	if (master ==	SND_SOC_DAIFMT_CBS_CFS) {
--		div = mcbsp_data->clk_div ? mcbsp_data->clk_div : 1;
--		framesize = (mcbsp_data->in_freq / div) / params_rate(params);
-+		div = mcbsp->clk_div ? mcbsp->clk_div : 1;
-+		framesize = (mcbsp->in_freq / div) / params_rate(params);
- 
- 		if (framesize < wlen * channels) {
- 			printk(KERN_ERR "%s: not enough bandwidth for desired rate and "
-@@ -379,9 +375,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 		break;
- 	}
- 
--	omap_mcbsp_config(mcbsp, &mcbsp_data->regs);
--	mcbsp_data->wlen = wlen;
--	mcbsp_data->configured = 1;
-+	omap_mcbsp_config(mcbsp, &mcbsp->cfg_regs);
-+	mcbsp->wlen = wlen;
-+	mcbsp->configured = 1;
- 
+ 	struct seq_file *s = (struct seq_file *)user;
+@@ -145,11 +129,112 @@ static int pwrdm_dbg_show_timer(struct powerdomain *pwrdm, void *user)
  	return 0;
  }
-@@ -394,14 +390,13 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 				      unsigned int fmt)
+ 
++static struct voltagedomain *parent_voltdm;
++static struct powerdomain *parent_pwrdm;
++static struct clockdomain *parent_clkdm;
++
++#define PM_DBG_PRINT(s, fmt, args...)			\
++	{						\
++		if (s)					\
++			seq_printf(s, fmt, ## args);	\
++		else					\
++			pr_info(fmt, ## args);		\
++	}
++
++static int _pm_dbg_dump_clk(struct clk *clk, void *user)
++{
++	struct seq_file *s = user;
++
++	if (clk->clkdm == parent_clkdm && clk->usecount && !clk->autoidle)
++		PM_DBG_PRINT(s, "      ck:%s: %d\n", clk->name, clk->usecount);
++
++	return 0;
++}
++
++static int _pm_dbg_dump_hwmod(struct omap_hwmod *oh, void *user)
++{
++	struct seq_file *s = user;
++
++	if (oh->clkdm != parent_clkdm)
++		return 0;
++
++	if (oh->_state != _HWMOD_STATE_ENABLED)
++		return 0;
++
++	PM_DBG_PRINT(s, "      oh:%s: enabled\n", oh->name);
++
++	return 0;
++}
++
++static int _pm_dbg_dump_clkdm(struct clockdomain *clkdm, void *user)
++{
++	struct seq_file *s = user;
++	u32 usecount;
++
++	if (clkdm->pwrdm.ptr == parent_pwrdm) {
++		usecount = atomic_read(&clkdm->usecount);
++		if (usecount) {
++			PM_DBG_PRINT(s, "    cd:%s: %d\n", clkdm->name,
++				usecount);
++			parent_clkdm = clkdm;
++			omap_hwmod_for_each(_pm_dbg_dump_hwmod, s);
++			omap_clk_for_each(_pm_dbg_dump_clk, s);
++		}
++	}
++	return 0;
++}
++
++static int _pm_dbg_dump_pwrdm(struct powerdomain *pwrdm, void *user)
++{
++	struct seq_file *s = user;
++	u32 usecount;
++
++	if (pwrdm->voltdm.ptr == parent_voltdm) {
++		usecount = atomic_read(&pwrdm->usecount);
++		if (usecount) {
++			PM_DBG_PRINT(s, "  pd:%s: %d\n", pwrdm->name, usecount);
++			parent_pwrdm = pwrdm;
++			clkdm_for_each(_pm_dbg_dump_clkdm, s);
++		}
++	}
++	return 0;
++}
++
++void pm_dbg_dump_pwrdm(struct powerdomain *pwrdm)
++{
++	pr_info("pd:%s: %d\n", pwrdm->name, atomic_read(&pwrdm->usecount));
++	parent_pwrdm = pwrdm;
++	clkdm_for_each(_pm_dbg_dump_clkdm, NULL);
++}
++
++void pm_dbg_dump_voltdm(struct voltagedomain *voltdm)
++{
++	pr_info("vd:%s: %d\n", voltdm->name, atomic_read(&voltdm->usecount));
++	parent_voltdm = voltdm;
++	pwrdm_for_each(_pm_dbg_dump_pwrdm, NULL);
++}
++
++static int _voltdm_dbg_show_counters(struct voltagedomain *voltdm, void *user)
++{
++	struct seq_file *s = user;
++
++	seq_printf(s, "vd:%s: %d\n", voltdm->name,
++		atomic_read(&voltdm->usecount));
++
++	parent_voltdm = voltdm;
++	pwrdm_for_each(_pm_dbg_dump_pwrdm, s);
++	return 0;
++}
++
++static int pm_dbg_show_usecount(struct seq_file *s, void *unused)
++{
++	voltdm_for_each(_voltdm_dbg_show_counters, s);
++	return 0;
++}
++
+ static int pm_dbg_show_counters(struct seq_file *s, void *unused)
  {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
--	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
-+	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
- 	bool inv_fs = false;
+ 	pwrdm_for_each(pwrdm_dbg_show_counter, s);
+-	clkdm_for_each(clkdm_dbg_show_counter, s);
+-
+ 	return 0;
+ }
  
--	if (mcbsp_data->configured)
-+	if (mcbsp->configured)
- 		return 0;
- 
--	mcbsp_data->fmt = fmt;
-+	mcbsp->fmt = fmt;
- 	memset(regs, 0, sizeof(*regs));
- 	/* Generic McBSP register settings */
- 	regs->spcr2	|= XINTM(3) | FREE;
-@@ -497,13 +492,12 @@ static int omap_mcbsp_dai_set_clkdiv(struct snd_soc_dai *cpu_dai,
- 				     int div_id, int div)
+@@ -162,6 +247,9 @@ static int pm_dbg_show_timers(struct seq_file *s, void *unused)
+ static int pm_dbg_open(struct inode *inode, struct file *file)
  {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
--	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
-+	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
+ 	switch ((int)inode->i_private) {
++	case DEBUG_FILE_USECOUNT:
++		return single_open(file, pm_dbg_show_usecount,
++			&inode->i_private);
+ 	case DEBUG_FILE_COUNTERS:
+ 		return single_open(file, pm_dbg_show_counters,
+ 			&inode->i_private);
+@@ -271,6 +359,8 @@ static int __init pm_dbg_init(void)
+ 		d, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
+ 	(void) debugfs_create_file("time", S_IRUGO,
+ 		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
++	(void) debugfs_create_file("usecount", S_IRUGO,
++		d, (void *)DEBUG_FILE_USECOUNT, &debug_fops);
  
- 	if (div_id != OMAP_MCBSP_CLKGDV)
- 		return -ENODEV;
+ 	pwrdm_for_each(pwrdms_setup, (void *)d);
  
--	mcbsp_data->clk_div = div;
-+	mcbsp->clk_div = div;
- 	regs->srgr1	&= ~CLKGDV(0xff);
- 	regs->srgr1	|= CLKGDV(div - 1);
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index b737b11..ec8f874 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -61,10 +61,16 @@ inline void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
  
-@@ -515,12 +509,11 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
- 					 int dir)
- {
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
--	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
--	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
-+	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
- 	int err = 0;
++struct clk;
++
+ #ifdef CONFIG_PM_DEBUG
+ extern u32 enable_off_mode;
++extern void pm_dbg_dump_pwrdm(struct powerdomain *pwrdm);
++extern void pm_dbg_dump_voltdm(struct voltagedomain *voltdm);
+ #else
+ #define enable_off_mode 0
++static inline void pm_dbg_dump_pwrdm(struct powerdomain *pwrdm) { }
++static inline void pm_dbg_dump_voltdm(struct voltagedomain *voltdm) { }
+ #endif
  
--	if (mcbsp_data->active) {
--		if (freq == mcbsp_data->in_freq)
-+	if (mcbsp->active) {
-+		if (freq == mcbsp->in_freq)
- 			return 0;
- 		else
- 			return -EBUSY;
-@@ -534,7 +527,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
- 		if (cpu_class_is_omap1() || cpu_dai->id != 1)
- 			return -EINVAL;
- 
--	mcbsp_data->in_freq = freq;
-+	mcbsp->in_freq = freq;
- 	regs->srgr2	&= ~CLKSM;
- 	regs->pcr0	&= ~SCLKME;
- 
+ #if defined(CONFIG_PM_DEBUG) && defined(CONFIG_DEBUG_FS)
 -- 
-1.7.8.4
+1.7.4.1
 
