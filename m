@@ -1,79 +1,103 @@
-From: Omar Ramirez Luna <omar.ramirez@copitl.com>
-Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
-Date: Wed, 15 Feb 2012 16:32:29 -0600
-Message-ID: <CAJ6Av5OaraduTOO5qDShxaUoKCC9qdFJiH4M2ccexjD3hTmtKg@mail.gmail.com>
-References: <CAMP44s3r1-rt6HqgmVuB_Kjd1LSo-75m=6GERUt+ATewBaFw-Q@mail.gmail.com>
-	<20120210180015.GF4141@mwanda>
-	<CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
-	<20120210203537.GG4141@mwanda>
-	<CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
-	<CAB-zwWhSoiMNVGQ=u=6-Umte-AaP9Qih8QMJFTyk8pjXaXysLg@mail.gmail.com>
-	<CAMP44s1yY8N4z_uF1b=DKdEMGXORJUhkytEpbK2AoCSTbmiJNw@mail.gmail.com>
-	<CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
-	<CAMP44s3sNH2qRsMHxgCbemefVye=z5E8XFLnSPvUtgA94SoV=A@mail.gmail.com>
-	<CAB-zwWjkCqehNAKp=gFt6Zq=XR+Mscz67oGnfY2sPjgvgpvNFQ@mail.gmail.com>
-	<20120215094357.GA24331@lit.local.igalia.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: OMAP34xx
+Date: Wed, 15 Feb 2012 15:54:44 -0800
+Message-ID: <87ehtvlkjf.fsf@ti.com>
+References: <20120208231551.GA9009@kroah.com>
+	<alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+	<20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com>
+	<20120209133739.GB2590@sirena.org.uk>
+	<20120209183624.GJ1426@atomide.com> <1329343056.5686.6.camel@cumari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:65062 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751631Ab2BOWc3 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 17:32:29 -0500
-Received: by obcva7 with SMTP id va7so2139845obc.19
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 14:32:29 -0800 (PST)
-In-Reply-To: <20120215094357.GA24331@lit.local.igalia.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:35078 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752160Ab2BOXyu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 18:54:50 -0500
+Received: by mail-pz0-f41.google.com with SMTP id v6so1490017dad.0
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 15:54:46 -0800 (PST)
+In-Reply-To: <1329343056.5686.6.camel@cumari> (Luciano Coelho's message of
+	"Wed, 15 Feb 2012 23:57:36 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
-Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
+To: Luciano Coelho <coelho@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-2012/2/15 V=EDctor M. J=E1quez L. <vjaquez@igalia.com>:
-> On Tue, Feb 14, 2012 at 08:56:11PM -0600, Ramirez Luna, Omar wrote:
->> On Tue, Feb 14, 2012 at 10:23 AM, Felipe Contreras
->> <felipe.contreras@gmail.com> wrote:
->> >> When that case is applicable, we should first modify the loader c=
-ode
->> >> or prepare the baseimages to be common so we can get rid of speci=
-fic
->> >> loaders and just dump them into memory.
->> >
->> > I'd say the less workarounds, the better.
->>
->> If there are ever more base images compatible with the dsp, I would
->> say that unifying them into a common format to be dumped in memory
->> isn't a workaround, and in that process we can get rid of the custom
->> loader code.
+Luciano Coelho <coelho@ti.com> writes:
+
+[...]
+
+> I just tried this on my Panda and I keep getting this kind of BUGs.  It
+> spams my console so much that is pretty much unusable:
 >
-> Yes! please! and use Ohad's rproc thingy.
+> [  336.172302] BUG: sleeping function called from invalid context at include/linux/freezer.h:46                         
+> [  336.181213] in_atomic(): 0, irqs_disabled(): 128, pid: 1618, name: ntpd                                              
+> [  336.181213] INFO: lockdep is turned off.                                                                             
+> [  336.181213] irq event stamp: 0                                                                                       
+> [  336.181213] hardirqs last  enabled at (0): [<  (null)>]   (null)                                                     
+> [  336.201660] hardirqs last disabled at (0): [<c0042314>] copy_process+0x3ec/0x105c                                    
+> [  336.209625] softirqs last  enabled at (0): [<c0042314>] copy_process+0x3ec/0x105c                                    
+> [  336.217498] softirqs last disabled at (0): [<  (null)>]   (null)                                                     
+> [  336.217498] [<c001e1e4>] (unwind_backtrace+0x0/0x148) from [<c0502c24>] (dump_stack+0x20/0x24)                       
+> [  336.232879] [<c0502c24>] (dump_stack+0x20/0x24) from [<c0077998>] (__might_sleep+0x130/0x134)                        
+> [  336.232879] [<c0077998>] (__might_sleep+0x130/0x134) from [<c0018998>] (do_signal+0x54/0x600)                        
+> [  336.250793] [<c0018998>] (do_signal+0x54/0x600) from [<c0018fa4>] (do_notify_resume+0x60/0x6c)                       
+> [  336.250793] [<c0018fa4>] (do_notify_resume+0x60/0x6c) from [<c00154e4>] (work_pending+0x24/0x28)                     
+>
+> I have also seen this in 3.3-rc3 (both on Panda (OMAP4460) and on Blaze
+> (OMAP4430) boards) and I was hoping your tree would have the fix for it,
+> but it doesn't. :( The device boots and seems to work otherwise, but
+> this is annoying and looks shaky.
+>
+> I saw something related to this in another thread from a few months ago,
+> and one patch proposal by Russell, but I didn't find any conclusion or
+> any related patch queued up for upstream.
+>
+> Is there any solution for this? I use a tuned .config (attached) and not
+> the one generated by omap2plus_defconfig (which I didn't try as
+> vanilla).
 
-Yes it would be nice, in theory we could replace some parts with
-remoteproc maybe not the loader yet, not sure how much rpmsg will fit.
+I see the same thing with your ~/.config, but I don't think this is OMAP
+specific.  I suspect this will happen on any ARM platform that  has
+CONFIG_DEBUG_ATOMIC_SLEEP=y.
 
-> What would be the steps to unify that common format? I guess we will =
-depend on
-> TI for that... Do we?
+It appears to be a problem with the recently added audit support for
+ARM, since reverting the commit below makes this BUG go away.
 
-I don't know the stance of TI on this.
+Based on the BUG you're seeing, there appears to be a missing IRQ
+(re)enable in the syscall path with this new audit support, but I did
+not dig further, since it seems Russell is planning to revert this patch
+anyways due to other problems.
 
-But basically we have a loader in kernel space that prepares the
-baseimage to be dumped in memory, that can be done in user space or
-better to distribute a baseimage that just needs to be dumped in
-memory, however there might be some constraints that need to be solved
-like the tight coupling between the driver and the loader, the current
-format of the base image, the size and how it expands to fit in the
-6MB of shm, and so on, not to mention the ability to load dynamic
-code.
+Kevin
 
-I guess it would be better to dive in the code and see.
+commit 29ef73b7a823b77a7cd0bdd7d7cded3fb6c2587b
+Author: Nathaniel Husted <nhusted@gmail.com>
+Date:   Tue Jan 3 14:23:09 2012 -0500
 
-Regards,
+    Kernel: Audit Support For The ARM Platform
+    
+    This patch provides functionality to audit system call events on the
+    ARM platform. The implementation was based off the structure of the
+    MIPS platform and information in this
+    (http://lists.fedoraproject.org/pipermail/arm/2009-October/000382.html)
+    mailing list thread. The required audit_syscall_exit and
+    audit_syscall_entry checks were added to ptrace using the standard
+    registers for system call values (r0 through r3). A thread information
+    flag was added for auditing (TIF_SYSCALL_AUDIT) and a meta-flag was
+    added (_TIF_SYSCALL_WORK) to simplify modifications to the syscall
+    entry/exit. Now, if either the TRACE flag is set or the AUDIT flag is
+    set, the syscall_trace function will be executed. The prober changes
+    were made to Kconfig to allow CONFIG_AUDITSYSCALL to be enabled.
+    
+    Due to platform availability limitations, this patch was only tested
+    on the Android platform running the modified "android-goldfish-2.6.29"
+    kernel. A test compile was performed using Code Sourcery's
+    cross-compilation toolset and the current linux-3.0 stable kernel. The
+    changes compile without error. I'm hoping, due to the simple modifications,
+    the patch is "obviously correct".
+    
+    Signed-off-by: Nathaniel Husted <nhusted@gmail.com>
+    Signed-off-by: Eric Paris <eparis@redhat.com>
 
-Omar
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
