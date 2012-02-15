@@ -1,38 +1,47 @@
-From: Liam Girdwood <lrg@ti.com>
-Subject: Re: [RFC 04/11] ASoC: core - Add API call to register dai kcontrols.
-Date: Wed, 15 Feb 2012 15:46:21 +0000
-Message-ID: <1329320781.14552.1.camel@odin>
-References: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
-	 <1329320280-1621-5-git-send-email-peter.ujfalusi@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [PATCH v2] usb: host: ehci: allow ehci_* symbols to be unused
+Date: Wed, 15 Feb 2012 10:48:30 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1202151048090.1638-100000@iolanthe.rowland.org>
+References: <1329291266-15798-1-git-send-email-balbi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:40121 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751830Ab2BOPqc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:46:32 -0500
-Received: by mail-we0-f179.google.com with SMTP id a1so780918wer.38
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:46:24 -0800 (PST)
-In-Reply-To: <1329320280-1621-5-git-send-email-peter.ujfalusi@ti.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:37488 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751376Ab2BOPsb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 10:48:31 -0500
+In-Reply-To: <1329291266-15798-1-git-send-email-balbi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Greg KH <gregkh@linuxfoundation.org>
 
-On Wed, 2012-02-15 at 17:37 +0200, Peter Ujfalusi wrote:
-> Allow dai drivers to register kcontrols.
+On Wed, 15 Feb 2012, Felipe Balbi wrote:
+
+> not all platforms will use all of those ehci_*
+> symbols on their hc_driver structure. Sometimes
+> we might need to provide a modified version of
+> a certain method or not provide it at all, as is
+> the case with OMAPs which don't support port handoff
+> feature.
 > 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+> Whenever we compile a kernel for an OMAP board with
+> EHCI enabled, we get compile warnings:
+> 
+> drivers/usb/host/ehci-hub.c:1079: warning: 'ehci_relinquish_port' \
+> 	defined but not used
+> drivers/usb/host/ehci-hub.c:1088: warning: 'ehci_port_handed_over' \
+> 	defined but not used
+> 
+> In order to cleanup those warnings, we're adding
+> __maybe_unused annotation to those functions.
+> 
+> Signed-off-by: Felipe Balbi <balbi@ti.com>
 > ---
->  include/sound/soc.h  |    2 ++
->  sound/soc/soc-core.c |   31 +++++++++++++++++++++++++++++++
->  2 files changed, 33 insertions(+), 0 deletions(-)
+> 
+> Changes from v1:
+> 	- only add __maybe_used to relinquish_port, port_handed_over
+> 		and port_change
 
-This feature has already been applied.
-
-Regards
-
-Liam
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
 
