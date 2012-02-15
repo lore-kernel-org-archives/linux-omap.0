@@ -1,94 +1,97 @@
-From: Felipe Balbi <balbi@ti.com>
-Subject: Re: [PATCH 1/2] mfd: omap-usb-host: Remove magic numbers for dev dma
- mask
-Date: Wed, 15 Feb 2012 13:17:05 +0200
-Message-ID: <20120215111704.GA15346@legolas.emea.dhcp.ti.com>
+From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH 2/2] mfd: omap-usb-host: Move usbhs init before allocing
+ child dev
+Date: Wed, 15 Feb 2012 13:17:45 +0200
+Message-ID: <20120215111743.GB15346@legolas.emea.dhcp.ti.com>
 References: <1329301414-31003-1-git-send-email-govindraj.raja@ti.com>
- <1329301414-31003-2-git-send-email-govindraj.raja@ti.com>
-Reply-To: balbi@ti.com
+ <1329301414-31003-3-git-send-email-govindraj.raja@ti.com>
+Reply-To: balbi-l0cyMroinI0@public.gmane.org
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mPYgjWmOFizS0g23"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:34741 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755244Ab2BOLRL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 06:17:11 -0500
+	protocol="application/pgp-signature"; boundary="LMmSgwdUwKH/sMG1"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1329301414-31003-2-git-send-email-govindraj.raja@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1329301414-31003-3-git-send-email-govindraj.raja-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Govindraj.R" <govindraj.raja-l0cyMroinI0@public.gmane.org>
+Cc: Samuel Ortiz <sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Alan Stern <stern@rowland.harvard.edu>
 
 
---mPYgjWmOFizS0g23
+--LMmSgwdUwKH/sMG1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Feb 15, 2012 at 03:53:33PM +0530, Govindraj.R wrote:
-> From: "Govindraj.R" <govindraj.raja@ti.com>
+On Wed, Feb 15, 2012 at 03:53:34PM +0530, Govindraj.R wrote:
+> From: "Govindraj.R" <govindraj.raja-l0cyMroinI0@public.gmane.org>
 >=20
-> Remove the hardcoded magic values for dma mask and use the dma
-> mask macros available.
+> There could be possible race condition where the host dev's
+> are alloced and added to platform dev just before usbhs_init.
+> Just move usbhs_init before adding child dev.
 >=20
-> CC: Felipe Balbi <balbi@ti.com>
-> CC: Alan Stern <stern@rowland.harvard.edu>
-> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
+> CC: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+Acked-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+
+> CC: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+> Signed-off-by: Govindraj.R <govindraj.raja-l0cyMroinI0@public.gmane.org>
 > ---
->  drivers/mfd/omap-usb-host.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
+>  drivers/mfd/omap-usb-host.c |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
 >=20
 > diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-> index 68ac2c5..3109b0a 100644
+> index 3109b0a..c5d48ce 100644
 > --- a/drivers/mfd/omap-usb-host.c
 > +++ b/drivers/mfd/omap-usb-host.c
-> @@ -170,7 +170,7 @@ struct usbhs_hcd_omap {
->  /*----------------------------------------------------------------------=
----*/
+> @@ -799,14 +799,13 @@ static int __devinit usbhs_omap_probe(struct platfo=
+rm_device *pdev)
 > =20
->  const char usbhs_driver_name[] =3D USBHS_DRIVER_NAME;
-> -static u64 usbhs_dmamask =3D ~(u32)0;
-> +static u64 usbhs_dmamask =3D DMA_BIT_MASK(32);
+>  	platform_set_drvdata(pdev, omap);
 > =20
->  /*----------------------------------------------------------------------=
----*/
-> =20
-> @@ -223,7 +223,7 @@ static struct platform_device *omap_usbhs_alloc_child=
-(const char *name,
+> +	omap_usbhs_init(dev);
+>  	ret =3D omap_usbhs_alloc_children(pdev);
+>  	if (ret) {
+>  		dev_err(dev, "omap_usbhs_alloc_children failed\n");
+>  		goto err_alloc;
 >  	}
 > =20
->  	child->dev.dma_mask		=3D &usbhs_dmamask;
-> -	child->dev.coherent_dma_mask	=3D 0xffffffff;
-> +	child->dev.coherent_dma_mask	=3D DMA_BIT_MASK(32);
-
-while at that, you could use dma_set_coherent_mask();
+> -	omap_usbhs_init(dev);
+> -
+>  	goto end_probe;
+> =20
+>  err_alloc:
+> --=20
+> 1.7.5.4
+>=20
 
 --=20
 balbi
 
---mPYgjWmOFizS0g23
+--LMmSgwdUwKH/sMG1
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPO5QwAAoJEIaOsuA1yqREAzEP/jw3H9oPY84gE9Ch6RZQc3fp
-/qiWrn8j4WNk931IV1SFXo55cU0kZFain1D+n8Vq54eUDWdvBf+6xdih36z0Znhp
-z1w9KhMhTo741hKUTkLUKwy5695WmslbJ9C8dLwNXSyPwa0MaIuzCsMimbgeKYZz
-Zv1bMEI/pnI0jZwP1cEAap5eDSrz/8172uPEhHamqVFjaj6xJ/uBYSGc9/UcMKTu
-ZAgjO6H9mrjb4Rd4zyAT/L23O//SdFBQsptuBS/n61n64HYa2dbhLbMEVV3dz4Vc
-oCcKv1BWweJ+aa2CCBt2zu7JSUsxLPIM+FCk5BLBiLritKjWe8EsanvZg/RmRmON
-Uk/t1f9B1jaoQIwBKi6WxZbqIxzecdxLR5HmlRGk5LbmKwNYP9MoEL2aL2kPqaLZ
-batnD4wG8Oyq7R7CVkAEuVhgZFx2/vNRIBRKWEc5HfiwkgKCa/KyY+7lRSw9EpZV
-PIgLJOEO/bTGq5Al2QkHWegMUnQNsHygVzPOLivKY+QywLUQl55Ko2FQKmioX2kN
-OHb6yRG/BDmO4fUtNIU4wJTMlZl1EYPEWBNu1XsarkKyHnTYEcva5iJIKt7drt2n
-iaxZxzlzvNy+3raDmbLEuonKOrxoHptHPEmsuac5KaKYhnbE0afHm6gpvxFF+GId
-uWLWjZBJwLOftSw2tLPG
-=DO7d
+iQIcBAEBAgAGBQJPO5RXAAoJEIaOsuA1yqRESSIP/0YB//v2tLOp6lusfzfZplRt
+jgeq0go+Nb64N/EgTgKEBpnjTOAlatGiRdM0Bz3helMrHKkxuhrTOHJGlcaFStM0
+xWjSilLmzsZ3qDPG/fcP/pcg8DUKO/yc+0DIaQcGbiS3GEgVtV/Zy1qU+lv/pRK0
+4JJqzyaxYn9oNoWsJnjQuP6jD2JJJ4Fca4ff99weYR4/v8+EcMQZ+5OQ3adnj0M3
+sme9htbNltDZSm+lWA8Ckcrq+x4Vh2IoiMDDewlRCbwRgmWPTJtxUy1XLMV9VXI7
+So8OvPz9q5E+LiTs9AdpO+9F1vROtj5nJa5723N2APG3J7sSBNfvsCWiIwIwo/wC
+cRevgp8zW80wtJyXpuoC0LAKTRC4Xzby5V65k+7ond2CN5HbtMwwn8BbCyGGX+lY
+/mVvr+v5ceRwv2a0ZSQ22nJ+Nrmb5+MSGpLWkiQ/hKTAvte/5peCFSIYSe6vIC/b
+ixkx4fcagpamoNGRCD2kLB+lWV63snciRvkL3vlGrOnpQZguOc/ifXRcoR8XtdhG
+DwtmYWEs2BgqwaYZorIk/QX+DIoiaMCsH/bZORx/AUaBXFX67Hb5oVhFkqCBixMB
+B9gLRrjzgB8E0K2OOGcKR+VUIlfa40cfGkBwpiZ9qIXzYYC66ygNIKs0hemlsE5I
+Xb0tu2RZ4N2OIAmE/vbQ
+=AKIm
 -----END PGP SIGNATURE-----
 
---mPYgjWmOFizS0g23--
+--LMmSgwdUwKH/sMG1--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
