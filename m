@@ -1,81 +1,62 @@
-From: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH v2] usb: host: ehci: allow ehci_* symbols to be unused
-Date: Wed, 15 Feb 2012 09:34:26 +0200
-Message-ID: <1329291266-15798-1-git-send-email-balbi@ti.com>
-References: <Pine.LNX.4.44L0.1202141505400.1544-100000@iolanthe.rowland.org>
+From: Peter Korsgaard <jacmet@sunsite.dk>
+Subject: Re: [PATCH 1/2] ARM: OMAP4: cminst: Add boot time __init function for cminst
+Date: Wed, 15 Feb 2012 08:40:37 +0100
+Message-ID: <87mx8ktuh6.fsf@macbook.be.48ers.dk>
+References: <1329233348-23356-1-git-send-email-hvaibhav@ti.com>
+	<1329233348-23356-2-git-send-email-hvaibhav@ti.com>
+	<87bop1unln.fsf@macbook.be.48ers.dk>
+	<79CD15C6BA57404B839C016229A409A8317CF3B2@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1202141505400.1544-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: Linux USB Mailing List <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux OMAP Mailing List <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:62896 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754893Ab2BOHkn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 02:40:43 -0500
+Received: by werb13 with SMTP id b13so421433wer.19
+        for <linux-omap@vger.kernel.org>; Tue, 14 Feb 2012 23:40:42 -0800 (PST)
+In-Reply-To: <79CD15C6BA57404B839C016229A409A8317CF3B2@DBDE01.ent.ti.com>
+	(Vaibhav Hiremath's message of "Wed, 15 Feb 2012 06:27:53 +0000")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-not all platforms will use all of those ehci_*
-symbols on their hc_driver structure. Sometimes
-we might need to provide a modified version of
-a certain method or not provide it at all, as is
-the case with OMAPs which don't support port handoff
-feature.
+>>>>> "Vaibhav" == Hiremath, Vaibhav <hvaibhav@ti.com> writes:
 
-Whenever we compile a kernel for an OMAP board with
-EHCI enabled, we get compile warnings:
+Hi,
 
-drivers/usb/host/ehci-hub.c:1079: warning: 'ehci_relinquish_port' \
-	defined but not used
-drivers/usb/host/ehci-hub.c:1088: warning: 'ehci_port_handed_over' \
-	defined but not used
+ Vaibhav> -	BUG_ON(part >= OMAP4_MAX_PRCM_PARTITIONS ||
+ Vaibhav> +	BUG_ON(part >= max_cm_partitions ||
+ Vaibhav> part == OMAP4430_INVALID_PRCM_PARTITION ||
+ >> 
+ >> How about dropping the OMAP4430_ prefix here as it's no longer 4430 specific?
+ >> 
+ Vaibhav> Peter,
 
-In order to cleanup those warnings, we're adding
-__maybe_unused annotation to those functions.
+ Vaibhav> You could be right here, from this patch perspective, this
+ Vaibhav> change doesn't make sense.
 
-Signed-off-by: Felipe Balbi <balbi-l0cyMroinI0@public.gmane.org>
----
+ Vaibhav> But at the first place I am quite not sure, why this has been
+ Vaibhav> named as OMAP4430_? Vs some macros are named as OMAP4_.
 
-Changes from v1:
-	- only add __maybe_used to relinquish_port, port_handed_over
-		and port_change
+ Vaibhav> So first we need to understand why it has been named this way,
+ Vaibhav> may be "Paul Walmsley" can comment on this. He is original
+ Vaibhav> author of this file.
 
- drivers/usb/host/ehci-hub.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+As I read it, it doesn't have anything to do with any specific hardware,
+it's just to catch bugs when people forget to initialize the structure
+field:
 
-diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
-index 77bbb23..01011dd 100644
---- a/drivers/usb/host/ehci-hub.c
-+++ b/drivers/usb/host/ehci-hub.c
-@@ -107,7 +107,7 @@ static void ehci_handover_companion_ports(struct ehci_hcd *ehci)
- 	ehci->owned_ports = 0;
- }
- 
--static int ehci_port_change(struct ehci_hcd *ehci)
-+static int __maybe_unused ehci_port_change(struct ehci_hcd *ehci)
- {
- 	int i = HCS_N_PORTS(ehci->hcs_params);
- 
-@@ -1076,7 +1076,8 @@ error_exit:
- 	return retval;
- }
- 
--static void ehci_relinquish_port(struct usb_hcd *hcd, int portnum)
-+static void __maybe_unused ehci_relinquish_port(struct usb_hcd *hcd,
-+		int portnum)
- {
- 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
- 
-@@ -1085,7 +1086,8 @@ static void ehci_relinquish_port(struct usb_hcd *hcd, int portnum)
- 	set_owner(ehci, --portnum, PORT_OWNER);
- }
- 
--static int ehci_port_handed_over(struct usb_hcd *hcd, int portnum)
-+static int __maybe_unused ehci_port_handed_over(struct usb_hcd *hcd,
-+		int portnum)
- {
- 	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
- 	u32 __iomem		*reg;
+arch/arm/mach-omap2/prcm44xx.h:
+/*
+ * OMAP4 PRCM partition IDs
+ *
+ * The numbers and order are arbitrary, but 0 is reserved for the
+ * 'invalid' partition in case someone forgets to add a
+ * .prcm_partition field.
+ */
+#define OMAP4430_INVALID_PRCM_PARTITION         0
+
 -- 
-1.7.9
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bye, Peter Korsgaard
