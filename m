@@ -1,135 +1,72 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
  idle when HDMI is enabled
-Date: Wed, 15 Feb 2012 13:35:46 +0100
-Message-ID: <4F3BA6A2.60604@ti.com>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>  <1329220678.1845.68.camel@deskari>  <4F3A5A5D.4020906@ti.com> <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com> <4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com>
+Date: Wed, 15 Feb 2012 14:51:57 +0200
+Message-ID: <1329310317.1892.60.camel@deskari>
+References: <1328854552-30714-1-git-send-email-archit@ti.com>
+	 <1329220678.1845.68.camel@deskari>  <4F3A5A5D.4020906@ti.com>
+	 <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>
+	 <4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com> <4F3BA6A2.60604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-OhWczY3OnVcl7+s59Wul"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42969 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758036Ab2BOMfy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 07:35:54 -0500
-In-Reply-To: <4F3B9E8F.1020002@ti.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:58889 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754807Ab2BOMwD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 07:52:03 -0500
+In-Reply-To: <4F3BA6A2.60604@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Archit Taneja <a0393947@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
 
-On 2/15/2012 1:01 PM, Archit Taneja wrote:
-> On Tuesday 14 February 2012 09:11 PM, Cousson, Benoit wrote:
->> On 2/14/2012 2:30 PM, Archit Taneja wrote:
->>> Hi,
->>>
->>> On Tuesday 14 February 2012 06:45 PM, Tomi Valkeinen wrote:
->>>> On Tue, 2012-02-14 at 13:58 +0100, Cousson, Benoit wrote:
->>>>> Hi Tomi,
->>>>
->>>>>> Benoit, do you think we'll get the MODULEMODE mess cleaned up in the
->>>>>> hwmod/clk framework at some point, and the drivers could do without
->>>>>> these kinds of hacks? =)
->>>>>
->>>>> The best way to fix that for my point of view is to go to device tree
->>>>> or/and to consider the DSS as the parent of all the DSS modules.
->>>>> pm_runtime will then always ensure that the parent is enabled before
->>>>> any
->>>>> of the child are used.
->>>>
->>>> Ah, right. Sounds fine to me.
->>>>
->>>> But is that a proper "fix"? Are we sure the MODULEMODE will then always
->>>> be handled correctly? Isn't the core problem still there, it just
->>>> doesn't happen with the setup anymore?
->>>>
->>>> I mean, if we have these special requirements regarding MODULEMODE, and
->>>> the code doesn't really know about it, would it get broken easily with
->>>> restructuring/changes?
->>>>
->>>> And no, I don't have any clear idea why/how it would break, but I have
->>>> just gotten the impression that the MODULEMODE is not handled quite
->>>> properly (and so we have these current problems), and having
->>>> dss_core as
->>>> the parent of other dss modules doesn't really fix that in any way.
->>>
->>> I agree with that.
->>>
->>> In the current approach, we have multiple platform devices for DSS, and
->>> all of them belong to the same clock domain, and the clock domain has
->>> just one MODULEMODE bit field.
->>>
->>> When shutting off a platform device(by calling pm_runtime_put()), hwmod
->>> enables/disables MODULEMODE without taking into mind that other active
->>> platform devices may still need it. So, for example, if we have 2
->>> platform devices, say dss and dispc, and we have code like:
->>>
->>> dispc_foo()
->>> {
->>> pm_runtime_get(dispc_pdev);
->>> ...
->>> ...
->>> pm_runtime_put(dispc_pdev);
->>> }
->>>
->>> dss_foo()
->>> {
->>> pm_runtime_get(dss_pdev);
->>> ...
->>> ...
->>> dispc_foo(); /* MODULEMODE off after this */
->>> ...
->>> ...
->>> pm_runtime_put(dss_pdev);
->>> }
->>>
->>> This will lead to the situation of one platform device disabling
->>> MODULEMODE even though other platform devices need it.
->>>
->>> This may not be resolved in device tree either. We would need to have
->>> some use count mechanism for these bits, or attach MODULEMODE only to
->>> one platform device, and don't give others control to enable/disable it.
->>
->> And this is exactly what the pm_runtime will provide. The fmwk already
->> handles reference counting.
->> Moreover the dev->parent will increment the power.child_count and thus
->> ensure that the parent is always enabled if at least one child is active.
->>
->> By initializing the dev->parent of each DSS modules to the dss_core, it
->> will ensure that the power dependency is managed properly.
->
-> Yes, a parent/child relation will ensure the required dependencies. It
-> sounds good!
->
-> How do we take care of things in the meanwhile? With the current way of
-> representing modulemode as a slave clock, the disabling sequence gets
-> messed up. In arch/arm/mach-omap2/omap_hwmod.c:
->
-> static int _disable_clocks(struct omap_hwmod *oh)
-> {
-> ...
-> disable mainclk;
-> disable slave clocks;
-> ...
-> }
->
-> For DSS, mainclk is the DSS_FCLK opt clock, and slave clock is
-> modulemode bits. We need the opposite sequence to happen here to cleanly
-> disable DSS.
 
-Yes, but as you pointed out the current clocks mapping in the DSS is a 
-hack that should not be done like that in theory.
-As soon as the devices can handle the dependency, we will be able to fix 
-the clock mapping in the hwmod data and handle properly the module mode 
-only from the dss_core hwmod only.
+--=-OhWczY3OnVcl7+s59Wul
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-But I think you have to change the driver first, otherwise it will break 
-the DSS. We did that hack previously because it was the only way to 
-enable the DSS properly, knowing that disabling it with that method will 
-be impossible.
+On Wed, 2012-02-15 at 13:35 +0100, Cousson, Benoit wrote:
 
-I think that changing the device creation to change the dev->parent 
-should be pretty straightforward.
+> I think that changing the device creation to change the dev->parent=20
+> should be pretty straightforward.
 
-Regards,
-Benoit
+That's not possible with the current kernel, right?
+
+We are now using omap_device_build() (in arch/arm/mach-omap2/display.c)
+to build the dss devices. Looking at the omap_device.c, the parent will
+always forcibly set to omap_device_parent. It'd be nice to be able to
+construct the device child-parent relationship the same way with both DT
+and non-DT cases.
+
+Or can I create only the dss_core with omap_device_build(), and create
+the rest normally with platform device functions, and make dss_core the
+parent of the rest? But are the hwmods then handled correctly?
+
+ Tomi
+
+
+--=-OhWczY3OnVcl7+s59Wul
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPO6ptAAoJEPo9qoy8lh71QcEP/0YbsHMjCuEawnj16uxcL3cr
+Uj5kfgbYoL/qmzirRndZGOlAOFRydB7US5GXmIZ3jRbwMVa2OtjPeBzfBilivuzP
+D4xfpqr/0zqQ505C1KA4rkoho8S03ScODogbH/NYRTowTkro7JuD4B/LGxWgAnbW
+59/VNfni8acByv6Qi+pkUBDTfzaMzwOOjh334UuXjVHx2ONcWVaDWqcD8IeZYgTP
+/jMbYaKvkeLpGbKz24r8y/hu5gfq7RjZW6Q+kYxq7dkC0IMjPCpO3YnJjxZ+kAAf
+/Vrr9Kql4nGCPhR6J4rJYKRUprOPMWlzdjZo9XkqC2s6JEkL/vqwINM6e6T7BAik
++LpTIZxe9IOz/9bFmDDCVE5t0YyTxj+KjKXM1AKtUcXdqfM7dM5JQbl1GjB6gQuN
+x5vGW3CuVhGb5ic31Olr823kvBmeiZJNdCCamQrMAda/Mc9tSevu9FDuF3nEVohj
+TuJx6ibZv0PzZczV3rsM9wwbdtD4yyzB0Ua0x2yyUo02AtDq2gO3fuJtqH5OAHM0
+GZxnwNo7dNRkruwhAXw4JO2M8f14aN1c9Bmg+3mW/4OYM8q9nDR1V1XOx9+HvwRc
+jLSplGTGUQ0sdkAL+67JYv72iZR6Yzr5g2EQ8O4uS5rf4ONWfz6LBf9MlTIkD/3k
+sLrj4fofpf83S6V55oPt
+=xiFZ
+-----END PGP SIGNATURE-----
+
+--=-OhWczY3OnVcl7+s59Wul--
+
