@@ -1,74 +1,49 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 2/2] ARM: OMAP: am33xx: Hook-up am33xx support to
- existing cm code
-Date: Wed, 15 Feb 2012 06:28:58 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317CF3C9@DBDE01.ent.ti.com>
-References: <1329233348-23356-1-git-send-email-hvaibhav@ti.com>
-	<1329233348-23356-3-git-send-email-hvaibhav@ti.com>
- <87fweduoc9.fsf@macbook.be.48ers.dk>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: [PATCH 3.3 v2] OMAP4: PRM: fix build breakage when CONFIG_OF is
+ not defined
+Date: Wed, 15 Feb 2012 09:20:02 +0200
+Message-ID: <1329290402.19569.24.camel@cumari>
+References: <1328699683-19357-1-git-send-email-coelho@ti.com>
+	 <20120214203801.GU1426@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55133 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755078Ab2BOG3M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 01:29:12 -0500
-In-Reply-To: <87fweduoc9.fsf@macbook.be.48ers.dk>
-Content-Language: en-US
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:36423 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751295Ab2BOHUI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 02:20:08 -0500
+In-Reply-To: <20120214203801.GU1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "paul@pwsan.com" <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 
-On Wed, Feb 15, 2012 at 02:25:34, Peter Korsgaard wrote:
-> >>>>> "Vaibhav" == Vaibhav Hiremath <hvaibhav@ti.com> writes:
-> 
->  Vaibhav> Reuse existing omap4 cminst code for am33xx device,
->  Vaibhav> add separate cm base table for am33xx device and initialize
->  Vaibhav> it during __init for future use.
-> 
->  Vaibhav> Also, since cpu_is_omap34xx() check is true for am33xx family of
->  Vaibhav> devices, we must change the order of cpu_is_xxxx check, so first
->  Vaibhav> check for cpu_is_am33xx() to follow right execution path.
-> 
->  Vaibhav>  	if (cpu_is_omap44xx()) {
->  Vaibhav>  		_cm_bases = omap44xx_cm_bases;
->  Vaibhav>  		max_cm_partitions = ARRAY_SIZE(omap44xx_cm_bases);
->  Vaibhav> +	} else if (cpu_is_am33xx()) {
->  Vaibhav> +		_cm_bases =am33xx_cm_bases;
-> 
-> Space after '='.
+Hi Tony,
 
-Oops...Will fix it.
+On Tue, 2012-02-14 at 12:38 -0800, Tony Lindgren wrote: 
+> * Luciano Coelho <coelho@ti.com> [120208 02:43]:
+> > Since 3.3-rc1, prm44xx.c build breaks if CONFIG_OF is not set:
+> > 
+> > arch/arm/mach-omap2/prm44xx.c:41: error: 'OMAP44XX_IRQ_PRCM' undeclared here (not in a function)
+> > make[1]: *** [arch/arm/mach-omap2/prm44xx.o] Error 1
+> > 
+> > This is because of a missing include, which is added indirectly if
+> > CONFIG_OF is defined.  This problem was introduced in commit
+> > 2f31b51 (ARM: OMAP4: PRM: use PRCM interrupt handler).
+> > 
+> > Cc: Tero Kristo <t-kristo@ti.com>
+> > Signed-off-by: Luciano Coelho <coelho@ti.com>
+> > Reviewed-by: Felipe Balbi <balbi@ti.com>
+> 
+> A similar patch should be already in mainline kernel queued by Russell.
 
-> 
->  Vaibhav> +++ b/arch/arm/mach-omap2/omap_hwmod.c
->  Vaibhav> @@ -737,7 +737,7 @@ static void _disable_optional_clocks(struct omap_hwmod *oh)
->  Vaibhav>  static void _enable_module(struct omap_hwmod *oh)
->  Vaibhav>  {
->  Vaibhav>  	/* The module mode does not exist prior OMAP4 */
->  Vaibhav> -	if (cpu_is_omap24xx() || cpu_is_omap34xx())
->  Vaibhav> +	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
-> 
-> Maybe update the comment as well?
->  
-Will update accordingly and submit the next version.
+Right, someone pointed this out to me after I sent the two patches.
+Sorry for the trouble, I should have looked more carefully before
+jumping in to fix this stuff. ;)
 
->  Vaibhav>  	/* The module mode does not exist prior OMAP4 */
->  Vaibhav> -	if (!cpu_is_omap44xx())
->  Vaibhav> +	if (!cpu_is_omap44xx() && !cpu_is_am33xx())
->  Vaibhav>  		return -EINVAL;
-> 
-> Here as well.
-> 
-> Otherwise it looks good.
-> 
-> Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-Thanks
-Vaibhav
-
-> -- 
-> Bye, Peter Korsgaard
-> 
+-- 
+Cheers,
+Luca.
 
