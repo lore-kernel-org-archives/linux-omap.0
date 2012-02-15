@@ -1,118 +1,135 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
- controller
-Date: Wed, 15 Feb 2012 14:21:48 +0100
-Message-ID: <4F3BB16C.90600@ti.com>
-References: <1329242172-4214-1-git-send-email-b-cousson@ti.com>
- <1329242172-4214-3-git-send-email-b-cousson@ti.com>
- <20120214205208.GA2656@ponder.secretlab.ca>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HDMI: Add M2 divider while calculating
+ clkout
+Date: Wed, 15 Feb 2012 16:52:21 +0200
+Message-ID: <1329317541.1892.95.camel@deskari>
+References: <1329285034-16121-1-git-send-email-mythripk@ti.com>
+	 <1329291660.1892.9.camel@deskari>
+	 <CAP5A+B9cuUsAnVSgt4G3Hue2Kns2+es8bW-8zHo2tLB9Kg-O=g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120214205208.GA2656-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-MzAtgx1fpyycEnU505Uu"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:38682 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758524Ab2BOOw1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 09:52:27 -0500
+Received: by mail-bk0-f51.google.com with SMTP id jc3so1308077bkc.24
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 06:52:26 -0800 (PST)
+In-Reply-To: <CAP5A+B9cuUsAnVSgt4G3Hue2Kns2+es8bW-8zHo2tLB9Kg-O=g@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "K, Mythri P" <mythripk@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On 2/14/2012 9:52 PM, Grant Likely wrote:
-> On Tue, Feb 14, 2012 at 06:56:10PM +0100, Benoit Cousson wrote:
->> Add a function to initialize the OMAP2/3 interrupt controller (INTC)
->> using a device tree node.
->>
->> This version take advantage of the new irq_domain_add_legacy API.
->>
->> Replace some printk() with the proper pr_ macro.
->>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Tony Lindgren<tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
->> Cc: Rob Herring<rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>
->> Cc: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
->> ---
->>   .../devicetree/bindings/arm/omap/intc.txt          |   27 +++++++++
->>   arch/arm/mach-omap2/common.h                       |   10 +++
->>   arch/arm/mach-omap2/irq.c                          |   59 ++++++++++++++++---
->>   3 files changed, 86 insertions(+), 10 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
->>
->> diff --git a/Documentation/devicetree/bindings/arm/omap/intc.txt b/Documentation/devicetree/bindings/arm/omap/intc.txt
->> new file mode 100644
->> index 0000000..f2583e6
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/arm/omap/intc.txt
->> @@ -0,0 +1,27 @@
->> +* OMAP Interrupt Controller
->> +
->> +OMAP2/3 are using a TI interrupt controller that can support several
->> +configurable number of interrupts.
->> +
->> +Main node required properties:
->> +
->> +- compatible : should be:
->> +	"ti,omap2-intc"
->> +- interrupt-controller : Identifies the node as an interrupt controller
->> +- #interrupt-cells : Specifies the number of cells needed to encode an
->> +  interrupt source. The type shall be a<u32>  and the value shall be 1.
->> +
->> +  The cell contains the interrupt number in the range [0-128].
->> +- ti,intc-size: Number of interrupts handled by the interrupt controller.
->> +- reg: physical base address and size of the intc registers map.
->> +
->> +Example:
->> +
->> +	intc: interrupt-controller@1 {
->> +		compatible = "ti,omap2-intc";
->> +		interrupt-controller;
->> +		#interrupt-cells =<1>;
->> +		ti,intc-size =<96>;
->> +		reg =<0x48200000 0x1000>;
->> +	};
->> +
->> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
->> index febffde..a87ce52 100644
->> --- a/arch/arm/mach-omap2/common.h
->> +++ b/arch/arm/mach-omap2/common.h
->> @@ -174,6 +174,16 @@ void omap3_intc_handle_irq(struct pt_regs *regs);
->>   extern void __iomem *omap4_get_l2cache_base(void);
->>   #endif
->>
->> +struct device_node;
->> +#ifdef CONFIG_OF
->> +int __init intc_of_init(struct device_node *node, struct device_node *parent);
->
-> This name is pretty generic for a global symbol.  How about omap2_intc_of_init?
 
-That's a good point, I was trying mimic the gic name without thinking in 
-my case it is not a generic IP :-(.
+--=-MzAtgx1fpyycEnU505Uu
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-I'll rename that omap2_intc_of_init and update the branch for the pull 
-request.
+On Wed, 2012-02-15 at 14:55 +0530, K, Mythri P wrote:
+> Hi,
+>=20
+> On Wed, Feb 15, 2012 at 1:11 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
+rote:
+> > On Wed, 2012-02-15 at 11:20 +0530, mythripk@ti.com wrote:
+> >> From: Mythri P K <mythripk@ti.com>
+> >>
+> >> Add M2 divider in the equation to calculate regm and regmf.
+> >> Formula for calculating:
+> >> Output clock on digital core domain:
+> >>       CLKOUT =3D (M / (N+1))*CLKINP*(1/M2)
+> >> Internal oscillator output clock on internal LDO domain:
+> >>       CLKDCOLDO =3D (M / (N+1))*CLKINP
+> >> The current code when allows variable M2 values as input
+> >> ignores using M2 divider values in calculation of regm and regmf.
+> >> so fix it by using M2 in calculation although the default value for
+> >> M2 is 1.
+> >>
+> >> Signed-off-by: Mythri P K <mythripk@ti.com>
+> >> ---
+> >>  drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
+> >>  1 files changed, 8 insertions(+), 8 deletions(-)
+> >>
+> >> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/=
+hdmi.c
+> >> index 92a6679..9185630 100644
+> >> --- a/drivers/video/omap2/dss/hdmi.c
+> >> +++ b/drivers/video/omap2/dss/hdmi.c
+> >> @@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_dev=
+ice *dssdev, int phy,
+> >>
+> >>       refclk =3D clkin / pi->regn;
+> >>
+> >> -     /*
+> >> -      * multiplier is pixel_clk/ref_clk
+> >> -      * Multiplying by 100 to avoid fractional part removal
+> >> -      */
+> >> -     pi->regm =3D (phy * 100 / (refclk)) / 100;
+> >> -
+> >>       if (dssdev->clocks.hdmi.regm2 =3D=3D 0)
+> >>               pi->regm2 =3D HDMI_DEFAULT_REGM2;
+> >>       else
+> >>               pi->regm2 =3D dssdev->clocks.hdmi.regm2;
+> >>
+> >>       /*
+> >> +      * multiplier is pixel_clk/ref_clk
+> >> +      * Multiplying by 100 to avoid fractional part removal
+> >> +      */
+> >> +     pi->regm =3D (phy * 100 * pi->regm2 / (refclk)) / 100;
+> >
+> > No need for parenthesis around refclk.
+> Well this is just a copy of old code will change.
 
-> Otherwise this series looks good.
->
-> Acked-by: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+The multiplication and division with 100 is actually extra also, they
+don't bring any precision here.
 
-> This series need to be committed on top of the irqdomain tree.  I can either
-> pick it up myself (with Tony's ack) or I can stabilize the irqdomain/next tree
-> so that you can use it as a stable base to commit against (which I should
-> probably do anyway since there are others who will depend on it).
+> >
+> >> +
+> >> +     /*
+> >>        * fractional multiplier is remainder of the difference between
+> >>        * multiplier and actual phy(required pixel clock thus should be
+> >>        * multiplied by 2^18(262144) divided by the reference clock
+> >>        */
+> >> -     mf =3D (phy - pi->regm * refclk) * 262144;
+> >> -     pi->regmf =3D mf / (refclk);
+> >> +     mf =3D (phy - pi->regm / pi->regm2 * refclk) * 262144;
+> >
+> > What kind of values does regm have? If the regm2 is something else than
+> > 1, and regm is relatively small value, it's quite easy to lose precisio=
+n
+> > there. Would it be better to have:
+> Normally regm values are much higher compared to regm2 , regm2 is
+> normally 1 or 2.
+> also given that regm2 is a multiplier factor in calculating regm there
+> should not be any precision factor what do you think ?
 
-This series is the base for all the other OMAP DT series, so I'd rather 
-keep it in Tony's tree that contains as well some OMAP fixes not yet in 
-mainline.
+Ok, I think it's fine.
 
-I guess ideally the irqdomain/next should be stabilized and maybe pulled 
-in arm-soc. I'm not sure how Arnd / Olof are handling this kind of 
-dependency.
+ Tomi
 
-Thanks,
-Benoit
+
+--=-MzAtgx1fpyycEnU505Uu
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPO8alAAoJEPo9qoy8lh71PCUP/jftX5rRLPabrnvhFL7tTDqa
+GDJNFdXK8t3XHSy1bRfzL0ka0Ueddg+rSlX1AVgSNY4SF+If3Ig8uKQZUv4AUMQQ
+zmfIAVFIMf4W+aC4p/hf7pAtvbvLW4ZWvdw1FopLRjOQXc3u0+P/n9WhBO7DmDzs
+xIgS3EhtjnY9mcFOFzjoPfQlO0g1P22RLAYPUqoYHhAfOuFD6Js3LC9M6CDW4f+L
+vUqcBGB8eKl8A9TFHFExq/23f6a39zlqyiOEsmPsMv+47qAAHQaMhPD+FyrciYPf
+Dmdkh1TauvyMwqnWVtoXPqUN2KjZMZu5XVUK80sR4pq+P9JNKF014yvodqG8tOIp
+28fr3O1mBXRLZVQTOmoGSdUkpJqHSAoTfOTK2Q9jTdUILnufTowiN/3znqYIXtFR
+bIqx4Hw/F2XgqRUrC/rGiMh3DfRg5Mw30TXxv85Dyt5U1e5C9PxlflFm0qNpbQvi
+KlTi3epb+FzsRAF+aSrJvdKNc97LWh1isS2O18GRA4KAD4Kjpsp1yqJNtL7stu7L
+oxa/0FWmIQC6BP5d3wOgI6eotN7ekeIDK25RZLgu3qDwnMag13WfdnngwVX87K4F
+kBeWtFVs3pjlcRH934LrXZMaB1wUAXVz1DZOuKKAI3DnyVqa8vtzhALTZQQrJiFp
+b2LHmj5ojcbqDKGNRcky
+=Xgd8
+-----END PGP SIGNATURE-----
+
+--=-MzAtgx1fpyycEnU505Uu--
+
