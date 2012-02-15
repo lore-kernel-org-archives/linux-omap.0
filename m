@@ -1,125 +1,40 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [RFC 06/11] ARM: OMAP: Do not register omap-mcbsp-dai
-	device
-Date: Wed, 15 Feb 2012 17:37:55 +0200
-Message-ID: <1329320280-1621-7-git-send-email-peter.ujfalusi@ti.com>
-References: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: OMAP34xx
+Date: Wed, 15 Feb 2012 17:41:52 +0200
+Message-ID: <CAMP44s0-=7qp8SK6rG+h1GW9k7RV+bPVp3uUR-DM8585KTWm2Q@mail.gmail.com>
+References: <87lioegtk9.fsf@ti.com>
+	<87y5sei1qz.fsf@ti.com>
+	<CANOLnOMXdgBv_aGeK7ngD-d07QLRTR22iqD-4571LAuN0PV1FQ@mail.gmail.com>
+	<87k43xfee3.fsf@ti.com>
+	<20120208170653.GA3492@kroah.com>
+	<CANOLnOOTKwtNjWZWXEqsNVy20s8QLwK=2UKGMp8S_Zj6qZH9dg@mail.gmail.com>
+	<20120208195327.GA5223@kroah.com>
+	<871uq53p3c.fsf@ti.com>
+	<20120208231551.GA9009@kroah.com>
+	<alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+	<20120209004731.GA11343@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:64117 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750726Ab2BOPlz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 10:41:55 -0500
+Received: by eaah12 with SMTP id h12so385472eaa.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:41:53 -0800 (PST)
+In-Reply-To: <20120209004731.GA11343@kroah.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
-The driver for omap-mcbsp-dai no longer exist since it has been merged with
-the omap-mcbsp driver.
+On Thu, Feb 9, 2012 at 2:47 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
+> Show me an OMAP user that actually runs a mainline kernel :)
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap1/devices.c           |    9 ---------
- arch/arm/mach-omap2/devices.c           |   22 ----------------------
- arch/arm/plat-omap/include/plat/mcbsp.h |    7 -------
- 3 files changed, 0 insertions(+), 38 deletions(-)
+I haven't used anything but mainline kernel since years when I test
+stuff on my Nokia N900.
 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 1d76a63..187b2fe 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -28,7 +28,6 @@
- #include <plat/mux.h>
- #include <plat/mmc.h>
- #include <plat/omap7xx.h>
--#include <plat/mcbsp.h>
- 
- #include "clock.h"
- 
-@@ -250,16 +249,8 @@ static struct platform_device omap_pcm = {
- 	.id	= -1,
- };
- 
--OMAP_MCBSP_PLATFORM_DEVICE(1);
--OMAP_MCBSP_PLATFORM_DEVICE(2);
--OMAP_MCBSP_PLATFORM_DEVICE(3);
--
- static void omap_init_audio(void)
- {
--	platform_device_register(&omap_mcbsp1);
--	platform_device_register(&omap_mcbsp2);
--	if (!cpu_is_omap7xx())
--		platform_device_register(&omap_mcbsp3);
- 	platform_device_register(&omap_pcm);
- }
- 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 0b510ad..ba540aa 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -26,7 +26,6 @@
- 
- #include <plat/tc.h>
- #include <plat/board.h>
--#include <plat/mcbsp.h>
- #include <plat/mmc.h>
- #include <plat/dma.h>
- #include <plat/omap_hwmod.h>
-@@ -304,29 +303,8 @@ static struct platform_device omap_pcm = {
- 	.id	= -1,
- };
- 
--/*
-- * OMAP2420 has 2 McBSP ports
-- * OMAP2430 has 5 McBSP ports
-- * OMAP3 has 5 McBSP ports
-- * OMAP4 has 4 McBSP ports
-- */
--OMAP_MCBSP_PLATFORM_DEVICE(1);
--OMAP_MCBSP_PLATFORM_DEVICE(2);
--OMAP_MCBSP_PLATFORM_DEVICE(3);
--OMAP_MCBSP_PLATFORM_DEVICE(4);
--OMAP_MCBSP_PLATFORM_DEVICE(5);
--
- static void omap_init_audio(void)
- {
--	platform_device_register(&omap_mcbsp1);
--	platform_device_register(&omap_mcbsp2);
--	if (cpu_is_omap243x() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		platform_device_register(&omap_mcbsp3);
--		platform_device_register(&omap_mcbsp4);
--	}
--	if (cpu_is_omap243x() || cpu_is_omap34xx())
--		platform_device_register(&omap_mcbsp5);
--
- 	platform_device_register(&omap_pcm);
- }
- 
-diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 437e375..8eb9b0e 100644
---- a/arch/arm/plat-omap/include/plat/mcbsp.h
-+++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -27,13 +27,6 @@
- #include <linux/spinlock.h>
- #include <linux/clk.h>
- 
--/* macro for building platform_device for McBSP ports */
--#define OMAP_MCBSP_PLATFORM_DEVICE(port_nr)		\
--static struct platform_device omap_mcbsp##port_nr = {	\
--	.name	= "omap-mcbsp-dai",			\
--	.id	= port_nr - 1,			\
--}
--
- #define MCBSP_CONFIG_TYPE2	0x2
- #define MCBSP_CONFIG_TYPE3	0x3
- #define MCBSP_CONFIG_TYPE4	0x4
+Cheers.
+
 -- 
-1.7.8.4
+Felipe Contreras
