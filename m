@@ -1,28 +1,46 @@
-From: Ann Adams <Ann.Adams@smilebrands.com>
-Subject: (unknown)
-Date: Wed, 15 Feb 2012 09:47:44 -0800
-Message-ID: <62F82CB44658DF47AFBF4FC7BF35DEFE355A31EE77__38623.4021200382$1329328083$gmane$org@EXCMBX.bnd.corp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout.smilebrands.com ([66.104.72.207]:22188 "EHLO
-	snaex01.bnd.corp" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753700Ab2BORrt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 12:47:49 -0500
-Subject: 
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Danny Kukawka <danny.kukawka@bisect.de>
+Subject: [PATCH] dwc3: linux/module.h included twice
+Date: Wed, 15 Feb 2012 18:55:51 +0100
+Message-ID: <1329328551-4957-1-git-send-email-danny.kukawka@bisect.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: Danny Kukawka <dkukawka@suse.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 
+drivers/usb/dwc3/core.c and drivers/usb/dwc3/dwc3-omap.c
+included 'linux/module.h' twice, remove the duplicates.
 
+Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
+---
+ drivers/usb/dwc3/core.c      |    1 -
+ drivers/usb/dwc3/dwc3-omap.c |    1 -
+ 2 files changed, 0 insertions(+), 2 deletions(-)
 
-Hi
-  Sorry for the sudden contact with you via email, but please i have looked
-  For you in the past few months now without any good result that is why i
-  am using this medium, i would appreciate if you did contact me for a brief
-  Discussion my Phone number is (+44) 703 595 6471 and email is michaelachambers@live.co.uk
-    Thanks In Advance
-    Michael Aiden
-Note: All corresponding email should be sent to michaelachambers@live.co.uk  for an immediate attention.
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index 7c9df63..eed4a5b 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -51,7 +51,6 @@
+ 
+ #include <linux/usb/ch9.h>
+ #include <linux/usb/gadget.h>
+-#include <linux/module.h>
+ 
+ #include "core.h"
+ #include "gadget.h"
+diff --git a/drivers/usb/dwc3/dwc3-omap.c b/drivers/usb/dwc3/dwc3-omap.c
+index 3274ac8..92cc7b8 100644
+--- a/drivers/usb/dwc3/dwc3-omap.c
++++ b/drivers/usb/dwc3/dwc3-omap.c
+@@ -46,7 +46,6 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/ioport.h>
+ #include <linux/io.h>
+-#include <linux/module.h>
+ 
+ #include "core.h"
+ #include "io.h"
+-- 
+1.7.8.3
