@@ -1,118 +1,74 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 1/2] mfd: omap-usb-host: Remove magic numbers for dev dma mask
-Date: Wed, 15 Feb 2012 20:31:20 +0530
-Message-ID: <CAAL8m4x0w+bRXxCAuUTP=nKg99kjy1xvxuyH0aJF68HsnOuKBw@mail.gmail.com>
-References: <1329301414-31003-1-git-send-email-govindraj.raja@ti.com>
- <1329301414-31003-2-git-send-email-govindraj.raja@ti.com> <20120215111704.GA15346@legolas.emea.dhcp.ti.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug support
+Date: Wed, 15 Feb 2012 07:20:20 -0800
+Message-ID: <874nus5djf.fsf@ti.com>
+References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+	<1329237402-26008-7-git-send-email-t-kristo@ti.com>
+	<20120214202740.GT1426@atomide.com> <87fwed58dm.fsf@ti.com>
+	<20120214235218.GX1426@atomide.com>
+	<1329294866.4102.343.camel@sokoban>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48407 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab2BOPBm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 10:01:42 -0500
-In-Reply-To: <20120215111704.GA15346@legolas.emea.dhcp.ti.com>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:45048 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751577Ab2BOPUV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:20:21 -0500
+Received: by pbbrq13 with SMTP id rq13so1805353pbb.40
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:20:19 -0800 (PST)
+In-Reply-To: <1329294866.4102.343.camel@sokoban> (Tero Kristo's message of
+	"Wed, 15 Feb 2012 10:34:26 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balbi@ti.com
-Cc: "Govindraj.R" <govindraj.raja@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+To: t-kristo@ti.com
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On Wed, Feb 15, 2012 at 4:47 PM, Felipe Balbi <balbi@ti.com> wrote:
-> On Wed, Feb 15, 2012 at 03:53:33PM +0530, Govindraj.R wrote:
->> From: "Govindraj.R" <govindraj.raja@ti.com>
->>
->> Remove the hardcoded magic values for dma mask and use the dma
->> mask macros available.
->>
->> CC: Felipe Balbi <balbi@ti.com>
->> CC: Alan Stern <stern@rowland.harvard.edu>
->> Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
->> ---
->> =A0drivers/mfd/omap-usb-host.c | =A0 =A04 ++--
->> =A01 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host=
-=2Ec
->> index 68ac2c5..3109b0a 100644
->> --- a/drivers/mfd/omap-usb-host.c
->> +++ b/drivers/mfd/omap-usb-host.c
->> @@ -170,7 +170,7 @@ struct usbhs_hcd_omap {
->> =A0/*---------------------------------------------------------------=
-----------*/
->>
->> =A0const char usbhs_driver_name[] =3D USBHS_DRIVER_NAME;
->> -static u64 usbhs_dmamask =3D ~(u32)0;
->> +static u64 usbhs_dmamask =3D DMA_BIT_MASK(32);
->>
->> =A0/*---------------------------------------------------------------=
-----------*/
->>
->> @@ -223,7 +223,7 @@ static struct platform_device *omap_usbhs_alloc_=
-child(const char *name,
->> =A0 =A0 =A0 }
->>
->> =A0 =A0 =A0 child->dev.dma_mask =A0 =A0 =A0 =A0 =A0 =A0 =3D &usbhs_d=
-mamask;
->> - =A0 =A0 child->dev.coherent_dma_mask =A0 =A0=3D 0xffffffff;
->> + =A0 =A0 child->dev.coherent_dma_mask =A0 =A0=3D DMA_BIT_MASK(32);
+Tero Kristo <t-kristo@ti.com> writes:
+
+> On Tue, 2012-02-14 at 15:52 -0800, Tony Lindgren wrote:
+>> * Kevin Hilman <khilman@ti.com> [120214 14:28]:
+>> > Tony Lindgren <tony@atomide.com> writes:
+>> > 
+>> > > * Tero Kristo <t-kristo@ti.com> [120214 08:19]:
+>> > >> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+>> > >> their own file, 'usecount'. This file shows the usecounts for every
+>> > >> active domain and their children recursively. 'count' file now only
+>> > >> shows power state counts for powerdomains.
+>> > >> 
+>> > >> This patch also provices a way to do printk dumps from kernel code,
+>> > >> by calling the pm_dbg_dump_X functions. The plan is to call these
+>> > >> functions once an error condition is detected, e.g. failed suspend.
+>> > >
+>> > > Why don't you replace this all with a userspace tool that deciphers
+>> > > the registers for you?
+>> > 
+>> > This patch isn't deciphering registers, it's just dumping usecounts, and
+>> > I think that is extremely useful to have in debugfs.
+>> > 
+>> > I've already removed all the register dumping from the kernel in the
+>> > hopes that someone will write a userspace tool for that.
+>> 
+>> OK good to hear you're already considering it.
 >
-> while at that, you could use dma_set_coherent_mask();
+> Yes, register dumps are gone, and I am actually one of the persons who
+> is missing it.
+>
+> I think there should still be some capability to get register snapshots
+> from certain points during kernel execution, this is useful for
+> debugging purposes. I don't know if it would be possible to do a
+> call_usermodehelper() or something from kernel space just before wfi to
+> read all (or part of) the PRCM registers, store them somewhere, and then
+> decipher this data later with another tool. Any comments to this?
 
-Here [1] is the updated patch.
+You should look into the omapconf tool (TI internal only currently)
 
---
-Thanks,
-Govindraj.R
+This tool already has the ability to use /dev/mem to read/decipher OMAP
+PM related registers.
 
+IMO, the one thing we're still missing is the ability to take register
+snapshots (like immediately before and after WFI) and somehow feed those
+to omapconf for deciphering.  
 
-[1]:
+Kevin
 
-=46rom c4523f02fe96b85245ada1047aa1273c56509e5c Mon Sep 17 00:00:00 200=
-1
-=46rom: "Govindraj.R" <govindraj.raja@ti.com>
-Date: Wed, 15 Feb 2012 12:27:50 +0530
-Subject: [PATCH 1/2] mfd: omap-usb-host: Remove magic numbers for dev d=
-ma
- mask
-
-Remove the hardcoded magic values for dma mask and use the dma
-mask api/macro available.
-
-Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
----
- drivers/mfd/omap-usb-host.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 68ac2c5..6800411 100644
---- a/drivers/mfd/omap-usb-host.c
-+++ b/drivers/mfd/omap-usb-host.c
-@@ -170,7 +170,7 @@ struct usbhs_hcd_omap {
- /*--------------------------------------------------------------------=
------*/
-
- const char usbhs_driver_name[] =3D USBHS_DRIVER_NAME;
--static u64 usbhs_dmamask =3D ~(u32)0;
-+static u64 usbhs_dmamask =3D DMA_BIT_MASK(32);
-
- /*--------------------------------------------------------------------=
------*/
-
-@@ -223,7 +223,7 @@ static struct platform_device
-*omap_usbhs_alloc_child(const char *name,
- 	}
-
- 	child->dev.dma_mask		=3D &usbhs_dmamask;
--	child->dev.coherent_dma_mask	=3D 0xffffffff;
-+	dma_set_coherent_mask(&child->dev, DMA_BIT_MASK(32));
- 	child->dev.parent		=3D dev;
-
- 	ret =3D platform_device_add(child);
---=20
-1.7.5.4
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
