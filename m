@@ -1,70 +1,93 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 4/4] arm/dts: omap4-sdp: Add ks8851 ethernet SPI device
-Date: Wed, 15 Feb 2012 18:37:37 +0100
-Message-ID: <1329327457-2121-5-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/4] arm/dts: OMAP4: Add SPI controller nodes
+Date: Wed, 15 Feb 2012 18:37:35 +0100
+Message-ID: <1329327457-2121-3-git-send-email-b-cousson@ti.com>
 References: <1329327457-2121-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35497 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753777Ab2BORiX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 12:38:23 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1329327457-2121-1-git-send-email-b-cousson@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: grant.likely@secretlab.ca
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-Add an ethernet SPI chip in the OMAP4 SDP/Blaze board DTS file.
+Add the 4 McSPI controller nodes present in an OMAP4 device.
 
-Add a fixed regulator node controlled by a GPIO line to supply
-the ethernet chip.
-
-Based on original code from Rajendra.
+Remove SPI static device initialisation if DT is populated.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 ---
- arch/arm/boot/dts/omap4-sdp.dts |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+ arch/arm/boot/dts/omap4.dtsi  |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/devices.c |    4 +++-
+ 2 files changed, 35 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap4-sdp.dts b/arch/arm/boot/dts/omap4-sdp.dts
-index 01db8b7..31938c1 100644
---- a/arch/arm/boot/dts/omap4-sdp.dts
-+++ b/arch/arm/boot/dts/omap4-sdp.dts
-@@ -17,6 +17,16 @@
- 		device_type = "memory";
- 		reg = <0x80000000 0x40000000>; /* 1 GB */
- 	};
+diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+index 4b81f03..7fc0cbe 100644
+--- a/arch/arm/boot/dts/omap4.dtsi
++++ b/arch/arm/boot/dts/omap4.dtsi
+@@ -209,5 +209,37 @@
+ 			#size-cells = <0>;
+ 			ti,hwmods = "i2c4";
+ 		};
 +
-+	vdd_eth: fixedregulator@0 {
-+		compatible = "regulator-fixed";
-+		regulator-name = "VDD_ETH";
-+		regulator-min-microvolt = <3300000>;
-+		regulator-max-microvolt = <3300000>;
-+		gpio = <&gpio2 16 0>;  /* gpio line 48 */
-+		enable-active-high;
-+		regulator-boot-on;
-+	};
- };
- 
- &i2c1 {
-@@ -70,3 +80,14 @@
- 		reg = <0x1e>;
++		mcspi1: mcspi@1 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi1";
++			ti,spi-num-cs = <4>;
++		};
++
++		mcspi2: mcspi@2 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi2";
++			ti,spi-num-cs = <2>;
++		};
++
++		mcspi3: mcspi@3 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi3";
++			ti,spi-num-cs = <2>;
++		};
++
++		mcspi4: mcspi@4 {
++			compatible = "ti,omap4-mcspi";
++			#address-cells = <1>;
++			#size-cells = <0>;
++			ti,hwmods = "mcspi4";
++			ti,spi-num-cs = <1>;
++		};
  	};
  };
-+
-+&mcspi1 {
-+	eth@0 {
-+		compatible = "ks8851";
-+		spi-max-frequency = <24000000>;
-+		reg = <0>;
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <2>; /* gpio line 34 */
-+		vdd-supply = <&vdd_eth>;
-+	};
-+};
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 283d11e..8a489ba 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -725,7 +725,9 @@ static int __init omap2_init_devices(void)
+ 	omap_init_dmic();
+ 	omap_init_camera();
+ 	omap_init_mbox();
+-	omap_init_mcspi();
++	/* If dtb is there, the devices will be created dynamically */
++	if (!of_have_populated_dt())
++		omap_init_mcspi();
+ 	omap_init_pmu();
+ 	omap_hdq_init();
+ 	omap_init_sti();
 -- 
 1.7.0.4
-
