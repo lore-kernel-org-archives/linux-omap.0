@@ -1,15 +1,15 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 1/2] mfd: omap-usb-host: Remove magic numbers for dev dma mask
-Date: Wed, 15 Feb 2012 15:53:33 +0530
-Message-ID: <1329301414-31003-2-git-send-email-govindraj.raja@ti.com>
+Subject: [PATCH 2/2] mfd: omap-usb-host: Move usbhs init before allocing child dev
+Date: Wed, 15 Feb 2012 15:53:34 +0530
+Message-ID: <1329301414-31003-3-git-send-email-govindraj.raja@ti.com>
 References: <1329301414-31003-1-git-send-email-govindraj.raja@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37393 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757982Ab2BOKY2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 05:24:28 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:41145 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757981Ab2BOKYb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 05:24:31 -0500
 In-Reply-To: <1329301414-31003-1-git-send-email-govindraj.raja@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,38 +18,37 @@ Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Alan Stern <stern@r
 
 From: "Govindraj.R" <govindraj.raja@ti.com>
 
-Remove the hardcoded magic values for dma mask and use the dma
-mask macros available.
+There could be possible race condition where the host dev's
+are alloced and added to platform dev just before usbhs_init.
+Just move usbhs_init before adding child dev.
 
 CC: Felipe Balbi <balbi@ti.com>
 CC: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Govindraj.R <govindraj.raja@ti.com>
 ---
- drivers/mfd/omap-usb-host.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/omap-usb-host.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/mfd/omap-usb-host.c b/drivers/mfd/omap-usb-host.c
-index 68ac2c5..3109b0a 100644
+index 3109b0a..c5d48ce 100644
 --- a/drivers/mfd/omap-usb-host.c
 +++ b/drivers/mfd/omap-usb-host.c
-@@ -170,7 +170,7 @@ struct usbhs_hcd_omap {
- /*-------------------------------------------------------------------------*/
+@@ -799,14 +799,13 @@ static int __devinit usbhs_omap_probe(struct platform_device *pdev)
  
- const char usbhs_driver_name[] = USBHS_DRIVER_NAME;
--static u64 usbhs_dmamask = ~(u32)0;
-+static u64 usbhs_dmamask = DMA_BIT_MASK(32);
+ 	platform_set_drvdata(pdev, omap);
  
- /*-------------------------------------------------------------------------*/
- 
-@@ -223,7 +223,7 @@ static struct platform_device *omap_usbhs_alloc_child(const char *name,
++	omap_usbhs_init(dev);
+ 	ret = omap_usbhs_alloc_children(pdev);
+ 	if (ret) {
+ 		dev_err(dev, "omap_usbhs_alloc_children failed\n");
+ 		goto err_alloc;
  	}
  
- 	child->dev.dma_mask		= &usbhs_dmamask;
--	child->dev.coherent_dma_mask	= 0xffffffff;
-+	child->dev.coherent_dma_mask	= DMA_BIT_MASK(32);
- 	child->dev.parent		= dev;
+-	omap_usbhs_init(dev);
+-
+ 	goto end_probe;
  
- 	ret = platform_device_add(child);
+ err_alloc:
 -- 
 1.7.5.4
 
