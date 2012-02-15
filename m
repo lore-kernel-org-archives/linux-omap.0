@@ -1,61 +1,40 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH] cpufreq: OMAP driver depends CPUfreq tables
-Date: Wed, 15 Feb 2012 11:21:49 -0800
-Message-ID: <1329333709-29964-1-git-send-email-khilman@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH v2] ARM: OMAP: clock: cleanup CPUfreq leftovers
+Date: Wed, 15 Feb 2012 11:23:22 -0800
+Message-ID: <CAORVsuUvv0Z36FK19J90uj8g16T9tvWzubpEF5s==wm_fXBB3w@mail.gmail.com>
+References: <1329333165-29646-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:48576 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754996Ab2BOTVP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 14:21:15 -0500
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:57935 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754585Ab2BOTXX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 14:23:23 -0500
+Received: by vcge1 with SMTP id e1so998181vcg.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 11:23:23 -0800 (PST)
+In-Reply-To: <1329333165-29646-1-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dave Jones <davej@redhat.com>, cpufreq@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Kevin Hilman <khilman@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-arm-kernel@lists.infradead.org
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+HI Kevin,
 
-The OMAP driver depends on CPUfreq table support for creating a table
-of frequencies from the OPP layer.  Ensure that it's build to avoid
-link-time errors.
+On Wed, Feb 15, 2012 at 11:12 AM, Kevin Hilman <khilman@ti.com> wrote:
+> --- a/arch/arm/plat-omap/include/plat/clock.h
+> +++ b/arch/arm/plat-omap/include/plat/clock.h
+> @@ -272,7 +272,7 @@ struct clk {
+> =A0#endif
+> =A0};
+>
+> -struct cpufreq_frequency_table;
+> +/* struct cpufreq_frequency_table; */
+This needs to be removed.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- drivers/cpufreq/Kconfig.arm |    5 +++++
- drivers/cpufreq/Makefile    |    2 +-
- 2 files changed, 6 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-index e0664fe..015f026 100644
---- a/drivers/cpufreq/Kconfig.arm
-+++ b/drivers/cpufreq/Kconfig.arm
-@@ -2,6 +2,11 @@
- # ARM CPU Frequency scaling drivers
- #
- 
-+config ARM_OMAP2PLUS_CPUFREQ
-+	bool
-+	depends on ARCH_OMAP2PLUS
-+	select CPU_FREQ_TABLE
-+
- config ARM_S3C64XX_CPUFREQ
- 	bool "Samsung S3C64XX"
- 	depends on CPU_S3C6410
-diff --git a/drivers/cpufreq/Makefile b/drivers/cpufreq/Makefile
-index ac000fa..fda94c7 100644
---- a/drivers/cpufreq/Makefile
-+++ b/drivers/cpufreq/Makefile
-@@ -44,7 +44,7 @@ obj-$(CONFIG_ARM_S3C64XX_CPUFREQ)	+= s3c64xx-cpufreq.o
- obj-$(CONFIG_ARM_S5PV210_CPUFREQ)	+= s5pv210-cpufreq.o
- obj-$(CONFIG_ARM_EXYNOS_CPUFREQ)	+= exynos-cpufreq.o
- obj-$(CONFIG_ARM_EXYNOS4210_CPUFREQ)	+= exynos4210-cpufreq.o
--obj-$(CONFIG_ARCH_OMAP2PLUS)            += omap-cpufreq.o
-+obj-$(CONFIG_ARM_OMAP2PLUS_CPUFREQ)     += omap-cpufreq.o
- 
- ##################################################################################
- # PowerPC platform drivers
--- 
-1.7.9
-
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
