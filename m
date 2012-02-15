@@ -1,57 +1,134 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 0/5] gpio/omap: Cleanup and adaptation to Device Tree
-Date: Wed, 15 Feb 2012 17:04:09 +0100
-Message-ID: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 1/5] gpio/omap: Remove bank->id information and misc cleanup
+Date: Wed, 15 Feb 2012 17:04:10 +0100
+Message-ID: <1329321854-24490-2-git-send-email-b-cousson@ti.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54982 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55003 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907Ab2BOQE3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 11:04:29 -0500
+	with ESMTP id S1750907Ab2BOQEo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 11:04:44 -0500
+In-Reply-To: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-Hi Grant,
+The driver does not need anymore any id to identify the GPIO instance.
+Remove every occurence of the bank->id inside the driver.
 
-Here are a couple of GPIO cleanup + the DT adaptation patches.
+Remove two trailing spaces.
+Add a dev variable for better readability in probe.
+Remove unused variable bank->pbase.
 
-This series is based on lo/master (a37cdd9) + for_3.4/dt_base branch to get
-the needed cleanup and fixes for OMAP.
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+---
+ drivers/gpio/gpio-omap.c |   23 +++++++++--------------
+ 1 files changed, 9 insertions(+), 14 deletions(-)
 
-The interrupt controller support is using irq_domain_add_legacy for
-the moment and will be updated next to use irqchip irq_domain.
-
-It requires the irq_domain generalization and refinement series
-available at:
-  git://git.secretlab.ca/git/linux-2.6 irqdomain/next
-  
-But I guess you already know where to find it :-)
-
-It requires as well Tarun's GPIO cleanup series available at:
-  git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_cleanup_fixes_v9
-
-This series is available here for reference:
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dt_gpio
-
-Regards,
-Benoit
-
-
-Benoit Cousson (5):
-  gpio/omap: Remove bank->id information and misc cleanup
-  gpio/omap: Use devm_ API and add request_mem_region
-  gpio/omap: Add DT support to GPIO driver
-  arm/dts: OMAP4: Add gpio nodes
-  arm/dts: OMAP3: Add gpio nodes
-
- .../devicetree/bindings/gpio/gpio-omap.txt         |   30 ++++
- arch/arm/boot/dts/omap3.dtsi                       |   54 ++++++
- arch/arm/boot/dts/omap4.dtsi                       |   54 ++++++
- arch/arm/mach-omap2/gpio.c                         |    8 +-
- drivers/gpio/gpio-omap.c                           |  175 +++++++++++++++-----
- 5 files changed, 278 insertions(+), 43 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index f49bd6f..a0c3e03 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -50,7 +50,6 @@ struct gpio_regs {
+ 
+ struct gpio_bank {
+ 	struct list_head node;
+-	unsigned long pbase;
+ 	void __iomem *base;
+ 	u16 irq;
+ 	u16 virtual_irq_start;
+@@ -77,7 +76,6 @@ struct gpio_bank {
+ 	int stride;
+ 	u32 width;
+ 	int context_loss_count;
+-	u16 id;
+ 	int power_mode;
+ 	bool workaround_enabled;
+ 
+@@ -155,7 +153,7 @@ static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
+ {
+ 	int l = __raw_readl(base + reg);
+ 
+-	if (set) 
++	if (set)
+ 		l |= mask;
+ 	else
+ 		l &= ~mask;
+@@ -495,7 +493,7 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+ 	unsigned long flags;
+ 
+ 	if (bank->non_wakeup_gpios & gpio_bit) {
+-		dev_err(bank->dev, 
++		dev_err(bank->dev,
+ 			"Unable to modify wakeup on non-wakeup GPIO%d\n", gpio);
+ 		return -EINVAL;
+ 	}
+@@ -1048,37 +1046,36 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
+ 
+ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ {
++	struct device *dev = &pdev->dev;
+ 	struct omap_gpio_platform_data *pdata;
+ 	struct resource *res;
+ 	struct gpio_bank *bank;
+ 	int ret = 0;
+ 
+-	if (!pdev->dev.platform_data) {
++	if (!dev->platform_data) {
+ 		ret = -EINVAL;
+ 		goto err_exit;
+ 	}
+ 
+ 	bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
+ 	if (!bank) {
+-		dev_err(&pdev->dev, "Memory alloc failed for gpio_bank\n");
++		dev_err(dev, "Memory alloc failed\n");
+ 		ret = -ENOMEM;
+ 		goto err_exit;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "GPIO Bank %i Invalid IRQ resource\n",
+-				pdev->id);
++		dev_err(dev, "Invalid IRQ resource\n");
+ 		ret = -ENODEV;
+ 		goto err_free;
+ 	}
+ 
+ 	bank->irq = res->start;
+-	bank->id = pdev->id;
+ 
+ 	pdata = pdev->dev.platform_data;
+ 	bank->virtual_irq_start = pdata->virtual_irq_start;
+-	bank->dev = &pdev->dev;
++	bank->dev = dev;
+ 	bank->dbck_flag = pdata->dbck_flag;
+ 	bank->stride = pdata->bank_stride;
+ 	bank->width = pdata->bank_width;
+@@ -1098,16 +1095,14 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	/* Static mapping, never released */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (unlikely(!res)) {
+-		dev_err(&pdev->dev, "GPIO Bank %i Invalid mem resource\n",
+-				pdev->id);
++		dev_err(dev, "Invalid mem resource\n");
+ 		ret = -ENODEV;
+ 		goto err_free;
+ 	}
+ 
+ 	bank->base = ioremap(res->start, resource_size(res));
+ 	if (!bank->base) {
+-		dev_err(&pdev->dev, "Could not ioremap gpio bank%i\n",
+-				pdev->id);
++		dev_err(dev, "Could not ioremap\n");
+ 		ret = -ENOMEM;
+ 		goto err_free;
+ 	}
+-- 
+1.7.0.4
 
