@@ -1,61 +1,59 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC 00/11]O MAP/ASoC: Move and merge McBSP driver under ASoC
-Date: Wed, 15 Feb 2012 08:08:10 -0800
-Message-ID: <20120215160809.GF2996@opensource.wolfsonmicro.com>
-References: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH 0/4] spi/omap: Adaptation to Device Tree
+Date: Wed, 15 Feb 2012 18:37:33 +0100
+Message-ID: <1329327457-2121-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="aPdhxNJGSeOG9wFI"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54808 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750907Ab2BOQIO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 11:08:14 -0500
-Content-Disposition: inline
-In-Reply-To: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35451 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751873Ab2BORht (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 12:37:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+To: grant.likely@secretlab.ca
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
+
+Hi Grant,
+
+You might think I'm harassing you with all these series, but it looks like
+you are the maintainer of all the stuff I care about for the moment :-)
+
+Here are a couple of SPI patches + the addition of a SPI ethernet device
+needed for sdp4430 board.
+
+This driver is still relying on a valid bus_number which is clearly bad.
+A cleanup is definitively needed, and will be done later.
+
+This series is based on lo/master (a37cdd9) + for_3.4/dt_base branch to get
+the needed cleanup and fixes for OMAP.
+
+Please note that due to the changes in the various OMAP DTS files, I have
+to base this series on top of my other DT series (gpio for example), otherwise
+the merge of the two series will generate some merge conflict in the DTS since
+they are both adding some new nodes at the exact same location.
+
+I'm not sure how this should be handled.
+
+This series is available here for reference:
+  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dt_spi_eth
+
+Regards,
+Benoit
 
 
---aPdhxNJGSeOG9wFI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Benoit Cousson (4):
+  spi/omap: Add DT support to McSPI driver
+  arm/dts: OMAP4: Add SPI controller nodes
+  arm/dts: OMAP3: Add SPI controller nodes
+  arm/dts: omap4-sdp: Add ks8851 ethernet SPI device
 
-On Wed, Feb 15, 2012 at 05:37:49PM +0200, Peter Ujfalusi wrote:
-> Hello,
->=20
-> The aim of this series is to move the plat-omap/mcbsp.c driver out to
-> sound/soc/omap/
-> By doing this we can combine the two levels of McBSP driver stack into a =
-single
-> one.
+ Documentation/devicetree/bindings/spi/omap-spi.txt |   20 +++++++
+ arch/arm/boot/dts/omap3.dtsi                       |   32 +++++++++++
+ arch/arm/boot/dts/omap4-sdp.dts                    |   21 +++++++
+ arch/arm/boot/dts/omap4.dtsi                       |   32 +++++++++++
+ arch/arm/mach-omap2/devices.c                      |    4 +-
+ drivers/spi/spi-omap2-mcspi.c                      |   56 +++++++++++++++++---
+ 6 files changed, 156 insertions(+), 9 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/spi/omap-spi.txt
 
-This all looks OK to me.
-
---aPdhxNJGSeOG9wFI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPO9hiAAoJEBus8iNuMP3dx08P/jSTD9OK6dy+jpZ4aqCcNBT+
-SGvuArB8DDsUppfs5rSfqorWOk1YO0ksJkWPj2K+/5EcUwS+kBeRW0StfDpS9QTr
-j8Hl6Ip6ksr+gHi1fksiDmak2lp2sNc8cVsntbckeIO7qjq6sVvJuGUCY9nywH9g
-yK54UpVCXXTPxMawo5SVzteL+YnxhxR/YVC8qxKWm7euPGksrKKMVrqpQKVpklmZ
-jwQo6AKZ51Yhl9ipzLw9vIi6B1baQE3pvM0+vvAcclcFTNcdbOYA7SFtgTVrHSgm
-dH+mJZJDt3Jd4wbctH7p6rx0K4jq4uxc8yMlhU0aGYrNDbe+0Kx2buxyCUdLZRA0
-s/MFcA5Z1sukRJOekukxr8wrgEMheHa6lmW3NIdp7lbfLxyeScYE2DmfYgEMcymn
-KogpdMv7MYB0xMHDYifVVRIamKRgPwKQ5kFHrgzepoDaHBYKHQtb098zpTMsLnZp
-tqXP7sdVNjJRItkL5EJEJ3q0acnMdXjUTGmcCTxSdfrkQbcJFiiQYGtTKWa/MRxu
-vOyl8n8Tz4MJrM2KFZRkszhe4nfksEB1N8AIq2EQ+o/wxHgaIFN2C76I8WYD0hIx
-yPqQdd3+Fci+aVIppEK355phaDR3kTHCQ2VE2Cvn+AEROoDsLfLMy2ST/kMQ4NT8
-GbAF72ALyman2+Yrr61T
-=4BcC
------END PGP SIGNATURE-----
-
---aPdhxNJGSeOG9wFI--
