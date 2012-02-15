@@ -1,104 +1,92 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [RFC 00/11]O MAP/ASoC: Move and merge McBSP driver under ASoC
-Date: Wed, 15 Feb 2012 17:37:17 +0200
-Message-ID: <1329320246-1548-1-git-send-email-peter.ujfalusi@ti.com>
+Subject: [RFC 01/11] ARM: OMAP: mcbsp: Convert core driver to proper platform driver
+Date: Wed, 15 Feb 2012 17:37:50 +0200
+Message-ID: <1329320280-1621-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58477 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750712Ab2BOPhg (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:44277 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751179Ab2BOPiE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:37:36 -0500
-Received: by mail-lpp01m010-f46.google.com with SMTP id u2so1577449lag.33
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:37:30 -0800 (PST)
+	Wed, 15 Feb 2012 10:38:04 -0500
+Received: by mail-ee0-f49.google.com with SMTP id e50so437905eek.22
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:38:01 -0800 (PST)
+In-Reply-To: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Hello,
+Convert the plat-omap/mcbsp.c driver to be proper platform driver.
+Remove the omap_mcbsp_init function call which was called from
+mach-omap1/2/mcbsp.c to register the platform driver for the just
+created platform device in the same function.
 
-The aim of this series is to move the plat-omap/mcbsp.c driver out to
-sound/soc/omap/
-By doing this we can combine the two levels of McBSP driver stack into a single
-one.
-Formally we had omap-mcbsp.[1-X] drivers (plat-omap/mcbsp.c), and
-omap-mcbsp-dai.[0-(X-1) drivers (sound/soc/omap/omap-mcbsp.c).
-We had global, shared structures, variables, pointers. The API between the two
-driver was a set of exported function calls where one of the parameter was the
-McBSP port id.
-
-With this series we will have one driver for McBSP (omap-mcbsp.[1-X]) which is
-basically the ASoC dai driver. All exported/shared global structures are gone
-since we can use driver data for all ports in this way.
-
-With the code in one place we can do further clean up in the McBSP driver, and
-adding new features will be much easier in the future. Also the DT support for
-McBSP will be significantly easier if we have one set of driver.
-
-McBSP is only used by audio, there are no known other users of the OMAP McBSP
-(well, Nokia n700 has the WLAN connected through McBSP but we do not have
-driver for that anyway).
-
-The series was created against Takashi's topic/asoc branch. I have tested it on
-Beagle xM, and compile tested it for OMAP1, OMAP2, and OMAP4 as well.
-
-I'm going to do more work on the cleanup, and the plan is to merge the two files
-into one (mcbsp.c -> omap-mcbsp.c) eventually.
-
-Comments, testers are welcome...
-
-CC-ing Samuel as well since he is the original author of the plat-omap/mcbsp.c
-driver.
-
-Regards,
-Peter
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
-Peter Ujfalusi (11):
-  ARM: OMAP: mcbsp: Convert core driver to proper platform driver
-  OMAP: mcbsp: Move core driver under sound/soc/omap
-  ASoC: OMAP: McBSP: Consolidate plat/mcbsp.h content
-  ASoC: core - Add API call to register dai kcontrols.
-  ASoC: omap-mcbsp: Create a single driver for McBSP
-  ARM: OMAP: Do not register omap-mcbsp-dai device
-  ASoC: OMAP: mcbsp.h: Clean up bit definitions
-  ASoC: OMAP McBSP: Remove redundant accessors
-  ASoC: omap-mcbsp: Cleanup of module probe/remove code
-  ASoC: omap-mcbsp: Merge the omap_mcbsp_data into omap_mcbsp structure
-  ASoC: omap-mcbsp: Simplify DMA configuration
+ arch/arm/mach-omap1/mcbsp.c             |    2 +-
+ arch/arm/mach-omap2/mcbsp.c             |    2 +-
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 -
+ arch/arm/plat-omap/mcbsp.c              |   11 ++++++-----
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
- arch/arm/mach-omap1/devices.c                  |    9 -
- arch/arm/mach-omap1/mcbsp.c                    |   14 +-
- arch/arm/mach-omap2/devices.c                  |   22 --
- arch/arm/mach-omap2/mcbsp.c                    |    8 +-
- arch/arm/plat-omap/Kconfig                     |    8 -
- arch/arm/plat-omap/Makefile                    |    2 -
- arch/arm/plat-omap/include/plat/mcbsp.h        |  321 ----------------
- include/sound/soc.h                            |    2 +
- sound/soc/omap/Kconfig                         |    4 +
- sound/soc/omap/Makefile                        |    1 +
- sound/soc/omap/am3517evm.c                     |    2 +-
- sound/soc/omap/ams-delta.c                     |    2 +-
- sound/soc/omap/igep0020.c                      |    2 +-
- {arch/arm/plat-omap => sound/soc/omap}/mcbsp.c |  463 ++++--------------------
- sound/soc/omap/mcbsp.h                         |  337 +++++++++++++++++
- sound/soc/omap/n810.c                          |    2 +-
- sound/soc/omap/omap-mcbsp.c                    |  287 ++++++++-------
- sound/soc/omap/omap-mcbsp.h                    |    2 +-
- sound/soc/omap/omap-pcm.h                      |    2 +
- sound/soc/omap/omap3beagle.c                   |    2 +-
- sound/soc/omap/omap3evm.c                      |    2 +-
- sound/soc/omap/omap3pandora.c                  |    4 +-
- sound/soc/omap/osk5912.c                       |    2 +-
- sound/soc/omap/overo.c                         |    2 +-
- sound/soc/omap/rx51.c                          |    4 +-
- sound/soc/omap/sdp3430.c                       |    4 +-
- sound/soc/omap/zoom2.c                         |    4 +-
- sound/soc/soc-core.c                           |   31 ++
- 28 files changed, 631 insertions(+), 914 deletions(-)
- rename {arch/arm/plat-omap => sound/soc/omap}/mcbsp.c (69%)
- create mode 100644 sound/soc/omap/mcbsp.h
-
+diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+index 91f9abb..fe11e13 100644
+--- a/arch/arm/mach-omap1/mcbsp.c
++++ b/arch/arm/mach-omap1/mcbsp.c
+@@ -449,7 +449,7 @@ static int __init omap1_mcbsp_init(void)
+ 					omap16xx_mcbsp_pdata,
+ 					OMAP16XX_MCBSP_COUNT);
+ 
+-	return omap_mcbsp_init();
++	return 0;
+ }
+ 
+ arch_initcall(omap1_mcbsp_init);
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index fb4bcf8..b36d443 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -193,6 +193,6 @@ static int __init omap2_mcbsp_init(void)
+ 	if (!mcbsp_ptr)
+ 		return -ENOMEM;
+ 
+-	return omap_mcbsp_init();
++	return 0;
+ }
+ arch_initcall(omap2_mcbsp_init);
+diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
+index 8fa74e2..7e4f893 100644
+--- a/arch/arm/plat-omap/include/plat/mcbsp.h
++++ b/arch/arm/plat-omap/include/plat/mcbsp.h
+@@ -360,7 +360,6 @@ struct omap_mcbsp_dev_attr {
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count;
+ 
+-int omap_mcbsp_init(void);
+ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
+ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
+ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 4b15cd7..3c704f3 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1354,8 +1354,9 @@ static struct platform_driver omap_mcbsp_driver = {
+ 	},
+ };
+ 
+-int __init omap_mcbsp_init(void)
+-{
+-	/* Register the McBSP driver */
+-	return platform_driver_register(&omap_mcbsp_driver);
+-}
++module_platform_driver(omap_mcbsp_driver);
++
++MODULE_AUTHOR("Samuel Ortiz <samuel.ortiz@nokia.com>");
++MODULE_DESCRIPTION("OMAP McBSP core driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-mcbsp");
 -- 
 1.7.8.4
 
