@@ -1,112 +1,94 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 2/5] gpio/omap: Use devm_ API and add request_mem_region
-Date: Wed, 15 Feb 2012 17:04:11 +0100
-Message-ID: <1329321854-24490-3-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 5/5] arm/dts: OMAP3: Add gpio nodes
+Date: Wed, 15 Feb 2012 17:04:14 +0100
+Message-ID: <1329321854-24490-6-git-send-email-b-cousson@ti.com>
 References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55015 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55032 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259Ab2BOQEs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 11:04:48 -0500
+	with ESMTP id S1752394Ab2BOQEx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 11:04:53 -0500
 In-Reply-To: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>
 
-Replace the regular kzalloc and ioremap with the devm_ equivalent
-to simplify error handling.
-
-Add the missing devm_request_mem_region to reserve the region used
-by the driver.
+Add the 6 GPIOs controller nodes present in OMAP3.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 ---
- drivers/gpio/gpio-omap.c |   35 +++++++++++++++--------------------
- 1 files changed, 15 insertions(+), 20 deletions(-)
+ arch/arm/boot/dts/omap3.dtsi |   54 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 54 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index a0c3e03..c3a9dc8 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -19,7 +19,7 @@
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/io.h>
--#include <linux/slab.h>
-+#include <linux/device.h>
- #include <linux/pm_runtime.h>
- #include <linux/pm.h>
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index ca37ba5..8eb181e 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -69,6 +69,60 @@
+ 			reg = <0x48200000 0x1000>;
+ 		};
  
-@@ -1052,23 +1052,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	struct gpio_bank *bank;
- 	int ret = 0;
- 
--	if (!dev->platform_data) {
--		ret = -EINVAL;
--		goto err_exit;
--	}
-+	if (!dev->platform_data)
-+		return -EINVAL;
- 
--	bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
-+	bank = devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank), GFP_KERNEL);
- 	if (!bank) {
- 		dev_err(dev, "Memory alloc failed\n");
--		ret = -ENOMEM;
--		goto err_exit;
-+		return -ENOMEM;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (unlikely(!res)) {
- 		dev_err(dev, "Invalid IRQ resource\n");
--		ret = -ENODEV;
--		goto err_free;
-+		return -ENODEV;
- 	}
- 
- 	bank->irq = res->start;
-@@ -1096,15 +1092,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (unlikely(!res)) {
- 		dev_err(dev, "Invalid mem resource\n");
--		ret = -ENODEV;
--		goto err_free;
-+		return -ENODEV;
-+	}
++		gpio1: gpio@1 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio1";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
 +
-+	if (!devm_request_mem_region(dev, res->start, resource_size(res),
-+				     pdev->name)) {
-+		dev_err(dev, "Region already claimed\n");
-+		return -EBUSY;
- 	}
- 
--	bank->base = ioremap(res->start, resource_size(res));
-+	bank->base = devm_ioremap(dev, res->start, resource_size(res));
- 	if (!bank->base) {
- 		dev_err(dev, "Could not ioremap\n");
--		ret = -ENOMEM;
--		goto err_free;
-+		return -ENOMEM;
- 	}
- 
- 	platform_set_drvdata(pdev, bank);
-@@ -1125,11 +1125,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	list_add_tail(&bank->node, &omap_gpio_list);
- 
- 	return ret;
--
--err_free:
--	kfree(bank);
--err_exit:
--	return ret;
- }
- 
- #ifdef CONFIG_ARCH_OMAP2PLUS
++		gpio2: gpio@2 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio2";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio3: gpio@3 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio3";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio4: gpio@4 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio4";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio5: gpio@5 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio5";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio6: gpio@6 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio6";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
+ 		uart1: serial@0x4806a000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart1";
 -- 
 1.7.0.4
 
