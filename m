@@ -1,61 +1,61 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug
- support
-Date: Wed, 15 Feb 2012 10:34:26 +0200
-Message-ID: <1329294866.4102.343.camel@sokoban>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
-	 <1329237402-26008-7-git-send-email-t-kristo@ti.com>
-	 <20120214202740.GT1426@atomide.com> <87fwed58dm.fsf@ti.com>
-	 <20120214235218.GX1426@atomide.com>
+Subject: Re: [PATCHv8 4/5] twl4030: add support for external voltage get/set
+Date: Wed, 15 Feb 2012 10:38:21 +0200
+Message-ID: <1329295101.4102.345.camel@sokoban>
+References: <1323444589-19940-1-git-send-email-t-kristo@ti.com>
+	 <1323444589-19940-5-git-send-email-t-kristo@ti.com> <871ur8weds.fsf@ti.com>
+	 <20120110033012.GM30766@opensource.wolfsonmicro.com>
+	 <87pqertwjt.fsf@ti.com> <20120110191012.GI7164@opensource.wolfsonmicro.com>
+	 <1329223666.4102.319.camel@sokoban>  <87fwed6xa0.fsf@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36235 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60250 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752181Ab2BOIed (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 03:34:33 -0500
-In-Reply-To: <20120214235218.GX1426@atomide.com>
+	id S1751402Ab2BOIi1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 03:38:27 -0500
+In-Reply-To: <87fwed6xa0.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-On Tue, 2012-02-14 at 15:52 -0800, Tony Lindgren wrote:
-> * Kevin Hilman <khilman@ti.com> [120214 14:28]:
-> > Tony Lindgren <tony@atomide.com> writes:
-> > 
-> > > * Tero Kristo <t-kristo@ti.com> [120214 08:19]:
-> > >> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
-> > >> their own file, 'usecount'. This file shows the usecounts for every
-> > >> active domain and their children recursively. 'count' file now only
-> > >> shows power state counts for powerdomains.
-> > >> 
-> > >> This patch also provices a way to do printk dumps from kernel code,
-> > >> by calling the pm_dbg_dump_X functions. The plan is to call these
-> > >> functions once an error condition is detected, e.g. failed suspend.
-> > >
-> > > Why don't you replace this all with a userspace tool that deciphers
-> > > the registers for you?
-> > 
-> > This patch isn't deciphering registers, it's just dumping usecounts, and
-> > I think that is extremely useful to have in debugfs.
-> > 
-> > I've already removed all the register dumping from the kernel in the
-> > hopes that someone will write a userspace tool for that.
+On Tue, 2012-02-14 at 11:16 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
 > 
-> OK good to hear you're already considering it.
+> > On Tue, 2012-01-10 at 19:10 +0000, Mark Brown wrote:
+> >> On Tue, Jan 10, 2012 at 07:19:18AM -0800, Kevin Hilman wrote:
+> >> 
+> >> > Yes, some of the control still goes via the normal path (although I
+> >> > forget which, maybe Benoit can remind us), so I think it's best to add
+> >> > the HW control part to each regulator that might uses it.
+> >> 
+> >> > Ideally this could be facilitated by adding the extentions to the
+> >> > regulator core so the amount of code needed for each regulator driver
+> >> > would be minimal.
+> >> 
+> >> I think the original version of the patch was something along those
+> >> lines but it was just a general facility which ignored the regulator
+> >> driver entirely which didn't feel well integrated.  The discussion
+> >> suggested that this wasn't something that'd work with other regulators
+> >> so a per-driver solution seemed OK.
+> >
+> > Coming back to this patch now as I have time to look at it, what is the
+> > general opinion, is it acceptable to patch the regulator core to add
+> > support for the external controller or should I just resend the latest
+> > version with changes Mark suggested? This will probably mean that once
+> > we add new regulator drivers (e.g. pmics) we may need to duplicate the
+> > external controller support here.
+> 
+> How about you keep it in the regulator driver for now, and when we need
+> to abstract it out, we make the case for it then.
 
-Yes, register dumps are gone, and I am actually one of the persons who
-is missing it.
-
-I think there should still be some capability to get register snapshots
-from certain points during kernel execution, this is useful for
-debugging purposes. I don't know if it would be possible to do a
-call_usermodehelper() or something from kernel space just before wfi to
-read all (or part of) the PRCM registers, store them somewhere, and then
-decipher this data later with another tool. Any comments to this?
+Okay, sounds good to me, once we have a second driver that actually
+requires this, we have more backing for the request. Currently the
+regulator core change is difficult to justify. I'll rework the set based
+on last comments and send it out.
 
 -Tero
 
