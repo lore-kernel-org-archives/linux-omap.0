@@ -1,77 +1,192 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH 2/4] arm/dts: OMAP4: Add SPI controller nodes
-Date: Wed, 15 Feb 2012 22:00:42 +0100
-Message-ID: <4F3C1CFA.3050705@ti.com>
-References: <1329327457-2121-1-git-send-email-b-cousson@ti.com>
- <1329327457-2121-3-git-send-email-b-cousson@ti.com>
- <20120215200240.GA25779@ponder.secretlab.ca>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 1/4] spi/omap: Add DT support to McSPI driver
+Date: Wed, 15 Feb 2012 22:10:37 +0100
+Message-ID: <4F3C1F4D.7070700@ti.com>
+References: <1329327457-2121-1-git-send-email-b-cousson@ti.com> <1329327457-2121-2-git-send-email-b-cousson@ti.com> <4F3C08D6.6000108@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-In-Reply-To: <20120215200240.GA25779-e0URQFbLeQY2iJbIjFUEsiwD8/FfD2ys@public.gmane.org>
-List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
-List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
-List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
- <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
-Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46753 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755426Ab2BOVKx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 16:10:53 -0500
+In-Reply-To: <4F3C08D6.6000108@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 2/15/2012 9:02 PM, Grant Likely wrote:
-> On Wed, Feb 15, 2012 at 06:37:35PM +0100, Benoit Cousson wrote:
->> Add the 4 McSPI controller nodes present in an OMAP4 device.
+On 2/15/2012 8:34 PM, Rob Herring wrote:
+> On 02/15/2012 11:37 AM, Benoit Cousson wrote:
+>> Add device tree support to the OMAP2+ McSPI driver.
+>> Add the bindings documentation.
 >>
->> Remove SPI static device initialisation if DT is populated.
+>> Based on original code from Rajendra.
 >>
->> Signed-off-by: Benoit Cousson<b-cousson-l0cyMroinI0@public.gmane.org>
->> Cc: Grant Likely<grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Grant Likely<grant.likely@secretlab.ca>
+>> Cc: Rajendra Nayak<rnayak@ti.com>
 >> ---
->>   arch/arm/boot/dts/omap4.dtsi  |   32 ++++++++++++++++++++++++++++++++
->>   arch/arm/mach-omap2/devices.c |    4 +++-
->>   2 files changed, 35 insertions(+), 1 deletions(-)
+>>   Documentation/devicetree/bindings/spi/omap-spi.txt |   20 +++++++
+>>   drivers/spi/spi-omap2-mcspi.c                      |   56 +++++++++++++++++---
+>>   2 files changed, 68 insertions(+), 8 deletions(-)
+>>   create mode 100644 Documentation/devicetree/bindings/spi/omap-spi.txt
 >>
->> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->> index 4b81f03..7fc0cbe 100644
->> --- a/arch/arm/boot/dts/omap4.dtsi
->> +++ b/arch/arm/boot/dts/omap4.dtsi
->> @@ -209,5 +209,37 @@
->>   			#size-cells =<0>;
->>   			ti,hwmods = "i2c4";
->>   		};
+>> diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
+>> new file mode 100644
+>> index 0000000..81df374
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
+>> @@ -0,0 +1,20 @@
+>> +OMAP2+ McSPI device
 >> +
->> +		mcspi1: mcspi@1 {
->> +			compatible = "ti,omap4-mcspi";
->> +			#address-cells =<1>;
->> +			#size-cells =<0>;
->> +			ti,hwmods = "mcspi1";
->> +			ti,spi-num-cs =<4>;
+>> +Required properties:
+>> +- compatible :
+>> +  - "ti,omap2-spi" for OMAP2&  OMAP3.
+>> +  - "ti,omap4-spi" for OMAP4+.
+>> +- ti,spi-num-cs : Number of chipselect supported  by the instance.
+>> +- ti,hwmods: Name of the hwmod associated to the McSPI
+>> +
+>> +
+>> +Example:
+>> +
+>> +mcspi1: mcspi@1 {
 >
-> No reg or interrupts properties?  And the @<num>  in the name must match the
-> first entry in a reg property.  This looks wrong.
+> I don't recall if there's a generic name defined but just "spi" would
+> probably be better.
 
-Well, it is done on purpose :-)
+I was wondering as well, but based on Grant further comment it looks it 
+is the case.
+I couldn't find any list of generic name in the bindings documentation. 
+Is there some place we can get that?
 
-The idea being that since reg, irq and dma are still provided by hwmod 
-data, I'd rather not populate this information here at all and thus not 
-confuse people that will then think that these entries are valid and useful.
+> Also, shouldn't this be the base address?
 
-At some point, when I'll be able to migrate some of the hwmod data to 
-DT, I will use the hwmod Python generator to generate the OMAP DTS and 
-then populate the proper reg, interrupts and dma-requests.
+Yeah, it should, I've just explained the reason of this OMAP 
+irregularity in my answer to Grant. Let see if he'll be convinced or not :-)
 
-It does not match with the DT convention yet, but this is to emphasis 
-the temporary situation due to hwmod data still in use to build a device.
+> Otherwise, for the series:
+>
+> Acked-by: Rob Herring<rob.herring@calxeda.com>
 
-@<num> might be populated, but again the point was to be *consistent* in 
-the overall inconsistency with regards to DT convention.
-
-Does that make sense or not at all?
-
-Regards,
+Thanks,
 Benoit
+
+>
+>
+>> +    #address-cells =<1>;
+>> +    #size-cells =<0>;
+>> +    compatible = "ti,omap4-mcspi";
+>> +    ti,hwmods = "mcspi1";
+>> +    ti,spi-num-cs =<4>;
+>> +};
+>> +
+>> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+>> index 0b0dfb7..bb9274c 100644
+>> --- a/drivers/spi/spi-omap2-mcspi.c
+>> +++ b/drivers/spi/spi-omap2-mcspi.c
+>> @@ -34,6 +34,8 @@
+>>   #include<linux/io.h>
+>>   #include<linux/slab.h>
+>>   #include<linux/pm_runtime.h>
+>> +#include<linux/of.h>
+>> +#include<linux/of_device.h>
+>>
+>>   #include<linux/spi/spi.h>
+>>
+>> @@ -1079,15 +1081,39 @@ static int omap_mcspi_runtime_resume(struct device *dev)
+>>   	return 0;
+>>   }
+>>
+>> +static struct omap2_mcspi_platform_config omap2_pdata = {
+>> +	.regs_offset = 0,
+>> +};
+>> +
+>> +static struct omap2_mcspi_platform_config omap4_pdata = {
+>> +	.regs_offset = OMAP4_MCSPI_REG_OFFSET,
+>> +};
+>> +
+>> +static const struct of_device_id omap_mcspi_of_match[] = {
+>> +	{
+>> +		.compatible = "ti,omap2-mcspi",
+>> +		.data =&omap2_pdata,
+>> +	},
+>> +	{
+>> +		.compatible = "ti,omap4-mcspi",
+>> +		.data =&omap4_pdata,
+>> +	},
+>> +	{ },
+>> +};
+>> +MODULE_DEVICE_TABLE(of, omap_mcspi_of_match);
+>>
+>>   static int __init omap2_mcspi_probe(struct platform_device *pdev)
+>>   {
+>>   	struct spi_master	*master;
+>> -	struct omap2_mcspi_platform_config *pdata = pdev->dev.platform_data;
+>> +	struct omap2_mcspi_platform_config *pdata;
+>>   	struct omap2_mcspi	*mcspi;
+>>   	struct resource		*r;
+>>   	int			status = 0, i;
+>>   	char			wq_name[20];
+>> +	u32			regs_offset = 0;
+>> +	static int		bus_num = 1;
+>> +	struct device_node	*node = pdev->dev.of_node;
+>> +	const struct of_device_id *match;
+>>
+>>   	master = spi_alloc_master(&pdev->dev, sizeof *mcspi);
+>>   	if (master == NULL) {
+>> @@ -1098,13 +1124,26 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+>>   	/* the spi->mode bits understood by this driver: */
+>>   	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
+>>
+>> -	if (pdev->id != -1)
+>> -		master->bus_num = pdev->id;
+>> -
+>>   	master->setup = omap2_mcspi_setup;
+>>   	master->transfer = omap2_mcspi_transfer;
+>>   	master->cleanup = omap2_mcspi_cleanup;
+>> -	master->num_chipselect = pdata->num_cs;
+>> +	master->dev.of_node = node;
+>> +
+>> +	match = of_match_device(omap_mcspi_of_match,&pdev->dev);
+>> +	if (match) {
+>> +		u32 num_cs = 1; /* default number of chipselect */
+>> +		pdata = match->data;
+>> +
+>> +		of_property_read_u32(node, "ti,spi-num-cs",&num_cs);
+>> +		master->num_chipselect = num_cs;
+>> +		master->bus_num = bus_num++;
+>> +	} else {
+>> +		pdata = pdev->dev.platform_data;
+>> +		master->num_chipselect = pdata->num_cs;
+>> +		if (pdev->id != -1)
+>> +			master->bus_num = pdev->id;
+>> +	}
+>> +	regs_offset = pdata->regs_offset;
+>>
+>>   	dev_set_drvdata(&pdev->dev, master);
+>>
+>> @@ -1124,8 +1163,8 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+>>   		goto free_master;
+>>   	}
+>>
+>> -	r->start += pdata->regs_offset;
+>> -	r->end += pdata->regs_offset;
+>> +	r->start += regs_offset;
+>> +	r->end += regs_offset;
+>>   	mcspi->phys = r->start;
+>>   	if (!request_mem_region(r->start, resource_size(r),
+>>   				dev_name(&pdev->dev))) {
+>> @@ -1285,7 +1324,8 @@ static struct platform_driver omap2_mcspi_driver = {
+>>   	.driver = {
+>>   		.name =		"omap2_mcspi",
+>>   		.owner =	THIS_MODULE,
+>> -		.pm =		&omap2_mcspi_pm_ops
+>> +		.pm =		&omap2_mcspi_pm_ops,
+>> +		.of_match_table = omap_mcspi_of_match,
+>>   	},
+>>   	.remove =	__exit_p(omap2_mcspi_remove),
+>>   };
+>
+
