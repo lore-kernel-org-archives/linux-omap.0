@@ -1,44 +1,40 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v3 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
- controller
-Date: Wed, 15 Feb 2012 14:09:56 +0100
-Message-ID: <4F3BAEA4.6060901@ti.com>
-References: <1329242172-4214-1-git-send-email-b-cousson@ti.com> <1329242172-4214-3-git-send-email-b-cousson@ti.com> <4F3ABA77.8010303@gmail.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP2+: board-generic: Remove un-needed .atag_offset
+ for DT_MACHINE
+Date: Wed, 15 Feb 2012 14:14:53 +0100
+Message-ID: <4F3BAFCD.2000508@ti.com>
+References: <1329150625-8604-2-git-send-email-b-cousson@ti.com> <20120214195249.GS1426@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48010 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752152Ab2BONKN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 08:10:13 -0500
-In-Reply-To: <4F3ABA77.8010303@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44725 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754566Ab2BONPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 08:15:01 -0500
+In-Reply-To: <20120214195249.GS1426@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 2/14/2012 8:48 PM, Rob Herring wrote:
-> On 02/14/2012 11:56 AM, Benoit Cousson wrote:
->> Add a function to initialize the OMAP2/3 interrupt controller (INTC)
->> using a device tree node.
+On 2/14/2012 8:52 PM, Tony Lindgren wrote:
+> * Benoit Cousson<b-cousson@ti.com>  [120213 07:59]:
+>> Some .atag_offset entries were wrongly added during a merge conflict
+>> resolution in 3.3.
+>> Remove them all, since DT boot does not use that attribute anymore.
 >>
->> This version take advantage of the new irq_domain_add_legacy API.
->>
->> Replace some printk() with the proper pr_ macro.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Tony Lindgren<tony@atomide.com>
->> Cc: Rob Herring<rob.herring@calxeda.com>
->> Cc: Grant Likely<grant.likely@secretlab.ca>
+>> Replace as well the #if... by #ifdef for consistency.
 >
-> Given that you plan to do gen irqchip:
+> How about let's also remove the 0x from the serial@0x.. in the .dts
+> files in this clean-up patch?
 
-Yes, I will. I even already have to patch, but I'm just trying to 
-minimize the dependency since I'd like that to be merged for 3.4.
-That series already missed 3.3.
+In the same patch?
 
-> Acked-by: Rob Herring<rob.herring@calxeda.com>
+I'm fine with fixing that as well, but since this is not in the same 
+file / directory, I'd rather do a different patch.
+
+I'll do the fix anyway, it is up to you for the proper location.
 
 Thanks,
 Benoit
