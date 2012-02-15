@@ -1,80 +1,103 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of idle when HDMI is enabled
-Date: Wed, 15 Feb 2012 11:59:19 -0800
-Message-ID: <87fweb98bs.fsf@ti.com>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>
-	<1329220678.1845.68.camel@deskari> <4F3A5A5D.4020906@ti.com>
-	<1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>
-	<4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com>
-	<4F3BA6A2.60604@ti.com> <1329310317.1892.60.camel@deskari>
-	<4F3BAD41.1020102@ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/4] arm/dts: OMAP4: Add SPI controller nodes
+Date: Wed, 15 Feb 2012 13:02:40 -0700
+Message-ID: <20120215200240.GA25779@ponder.secretlab.ca>
+References: <1329327457-2121-1-git-send-email-b-cousson@ti.com>
+ <1329327457-2121-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:53162 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751251Ab2BOT7Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 14:59:25 -0500
-In-Reply-To: <4F3BAD41.1020102@ti.com> (Benoit Cousson's message of "Wed, 15
-	Feb 2012 14:04:01 +0100")
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:34348 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755017Ab2BOUCn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 15:02:43 -0500
+Received: by iacb35 with SMTP id b35so1874359iac.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 12:02:43 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1329327457-2121-3-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Cousson, Benoit" <b-cousson@ti.com> writes:
+On Wed, Feb 15, 2012 at 06:37:35PM +0100, Benoit Cousson wrote:
+> Add the 4 McSPI controller nodes present in an OMAP4 device.
+> 
+> Remove SPI static device initialisation if DT is populated.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> ---
+>  arch/arm/boot/dts/omap4.dtsi  |   32 ++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/devices.c |    4 +++-
+>  2 files changed, 35 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
+> index 4b81f03..7fc0cbe 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -209,5 +209,37 @@
+>  			#size-cells = <0>;
+>  			ti,hwmods = "i2c4";
+>  		};
+> +
+> +		mcspi1: mcspi@1 {
+> +			compatible = "ti,omap4-mcspi";
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			ti,hwmods = "mcspi1";
+> +			ti,spi-num-cs = <4>;
 
-> + Kevin
->
-> On 2/15/2012 1:51 PM, Tomi Valkeinen wrote:
->> On Wed, 2012-02-15 at 13:35 +0100, Cousson, Benoit wrote:
->>
->>> I think that changing the device creation to change the dev->parent
->>> should be pretty straightforward.
->>
->> That's not possible with the current kernel, right?
->>
->> We are now using omap_device_build() (in arch/arm/mach-omap2/display.c)
->> to build the dss devices. Looking at the omap_device.c, the parent will
->> always forcibly set to omap_device_parent. It'd be nice to be able to
->> construct the device child-parent relationship the same way with both DT
->> and non-DT cases.
->
-> I guess this should not be needed anymore since now the whole PM
-> runtime stuff is handled using pm_domain.
->
-> int omap_device_register(struct platform_device *pdev)
-> {
-> 	pr_debug("omap_device: %s: registering\n", pdev->name);
->
-> 	pdev->dev.parent = &omap_device_parent;
-> 	pdev->dev.pm_domain = &omap_device_pm_domain;
-> 	return platform_device_add(pdev);
-> }
->
->
-> Kevin,
->
-> Do we still need to set the dev.parent to omap_device_parent?
+No reg or interrupts properties?  And the @<num> in the name must match the
+first entry in a reg property.  This looks wrong.
 
-Nope.
-
-> I guess the default &platform_bus parent is good enough and
-> potentially the DSS children should be able to overwrite that.
-
-Yes, now that we use PM domains, we don't need it.  I just sent a patch
-to remove omap_device_parent.
-
-Kevin
-
->> Or can I create only the dss_core with omap_device_build(), and create
->> the rest normally with platform device functions, and make dss_core the
->> parent of the rest? But are the hwmods then handled correctly?
->
-> You can, the only issue if you create a regular platform device is
-> that you will miss the automatic pm_runtime support along with the
-> hwmod device creation mechanism + clock / PM.
->
-> I think we can add an extra parameter to allow changing the
-> omap_device parent during omap_device_build.
+> +		};
+> +
+> +		mcspi2: mcspi@2 {
+> +			compatible = "ti,omap4-mcspi";
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			ti,hwmods = "mcspi2";
+> +			ti,spi-num-cs = <2>;
+> +		};
+> +
+> +		mcspi3: mcspi@3 {
+> +			compatible = "ti,omap4-mcspi";
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			ti,hwmods = "mcspi3";
+> +			ti,spi-num-cs = <2>;
+> +		};
+> +
+> +		mcspi4: mcspi@4 {
+> +			compatible = "ti,omap4-mcspi";
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			ti,hwmods = "mcspi4";
+> +			ti,spi-num-cs = <1>;
+> +		};
+>  	};
+>  };
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 283d11e..8a489ba 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -725,7 +725,9 @@ static int __init omap2_init_devices(void)
+>  	omap_init_dmic();
+>  	omap_init_camera();
+>  	omap_init_mbox();
+> -	omap_init_mcspi();
+> +	/* If dtb is there, the devices will be created dynamically */
+> +	if (!of_have_populated_dt())
+> +		omap_init_mcspi();
+>  	omap_init_pmu();
+>  	omap_hdq_init();
+>  	omap_init_sti();
+> -- 
+> 1.7.0.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
