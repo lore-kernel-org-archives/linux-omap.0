@@ -1,115 +1,104 @@
-From: Thomas Weber <weber@corscience.de>
-Subject: Re: [PATCH 1/5] Fix w1_bq27000
-Date: Wed, 15 Feb 2012 16:36:09 +0100
-Message-ID: <4F3BD0E9.5070305@corscience.de>
-References: <20111230004947.11559.81184.stgit@notabene.brown> <20111230005849.11559.79397.stgit@notabene.brown>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [RFC 00/11]O MAP/ASoC: Move and merge McBSP driver under ASoC
+Date: Wed, 15 Feb 2012 17:37:17 +0200
+Message-ID: <1329320246-1548-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20111230005849.11559.79397.stgit@notabene.brown>
-Sender: linux-kernel-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>, zbr@ioremap.net
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58477 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750712Ab2BOPhg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:37:36 -0500
+Received: by mail-lpp01m010-f46.google.com with SMTP id u2so1577449lag.33
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:37:30 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Hello Neil,
+Hello,
 
-On 30.12.2011 01:58, NeilBrown wrote:
-> w1_bq27000 adds a bq27000-battery platform device but does not provide
-> platform data for it. This causes the bq27x00 driver to dereference a NULL
-> pointer.
-> So provide the appropriate platform data.  This requires modifying
-> w1_bq27000_read so that it find the w1 device as the parent of the bq device.
-> 
-> Also there is no point exporting w1_bq27000_read as nothing else uses it
-> or could use it.  So make it static.
-> 
-> Finally, as there is no way to track how many batteries have been found, and
-> we will probably only find one, use an id number of '-1' to assert that this
-> is a unique instance.
-> 
-> Signed-off-by: NeilBrown <neilb@suse.de>
-> ---
-> 
->  drivers/w1/slaves/w1_bq27000.c |   17 ++++++++++++-----
->  1 files changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/w1/slaves/w1_bq27000.c b/drivers/w1/slaves/w1_bq27000.c
-> index 8f4c91f..8f10fd2 100644
-> --- a/drivers/w1/slaves/w1_bq27000.c
-> +++ b/drivers/w1/slaves/w1_bq27000.c
-> @@ -15,6 +15,7 @@
->  #include <linux/types.h>
->  #include <linux/platform_device.h>
->  #include <linux/mutex.h>
-> +#include <linux/power/bq27x00_battery.h>
->  
->  #include "../w1.h"
->  #include "../w1_int.h"
-> @@ -39,10 +40,10 @@ void w1_bq27000_write(struct device *dev, u8 buf, u8 reg)
->  }
->  EXPORT_SYMBOL(w1_bq27000_write);
->  
-> -int w1_bq27000_read(struct device *dev, u8 reg)
-> +static int w1_bq27000_read(struct device *dev, unsigned int reg)
->  {
->  	u8 val;
-> -	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
-> +	struct w1_slave *sl = container_of(dev->parent, struct w1_slave, dev);
->  
->  	if (!dev)
->  		return 0;
-> @@ -52,19 +53,25 @@ int w1_bq27000_read(struct device *dev, u8 reg)
->  
->  	return val;
->  }
-> -EXPORT_SYMBOL(w1_bq27000_read);
-> +
-> +static struct bq27000_platform_data bq27000_battery_info = {
-> +	.read   = w1_bq27000_read,
-> +	.name   = "bq27000-battery",
-> +};
->  
->  static int w1_bq27000_add_slave(struct w1_slave *sl)
->  {
->  	int ret;
-> -	int id = 1;
->  	struct platform_device *pdev;
->  
-> -	pdev = platform_device_alloc("bq27000-battery", id);
-> +	pdev = platform_device_alloc("bq27000-battery", -1);
->  	if (!pdev) {
->  		ret = -ENOMEM;
->  		return ret;
->  	}
-> +	ret = platform_device_add_data(pdev,
-> +				       &bq27000_battery_info,
-> +				       sizeof(bq27000_battery_info));
->  	pdev->dev.parent = &sl->dev;
->  
->  	ret = platform_device_add(pdev);
-> 
-> 
+The aim of this series is to move the plat-omap/mcbsp.c driver out to
+sound/soc/omap/
+By doing this we can combine the two levels of McBSP driver stack into a single
+one.
+Formally we had omap-mcbsp.[1-X] drivers (plat-omap/mcbsp.c), and
+omap-mcbsp-dai.[0-(X-1) drivers (sound/soc/omap/omap-mcbsp.c).
+We had global, shared structures, variables, pointers. The API between the two
+driver was a set of exported function calls where one of the parameter was the
+McBSP port id.
 
-Tested-by: Thomas Weber <weber@corscience.de>
+With this series we will have one driver for McBSP (omap-mcbsp.[1-X]) which is
+basically the ASoC dai driver. All exported/shared global structures are gone
+since we can use driver data for all ports in this way.
 
-Thanks for the patch, now the platform data of the bq27000 are found.
+With the code in one place we can do further clean up in the McBSP driver, and
+adding new features will be much easier in the future. Also the DT support for
+McBSP will be significantly easier if we have one set of driver.
 
-before:
+McBSP is only used by audio, there are no known other users of the OMAP McBSP
+(well, Nokia n700 has the WLAN connected through McBSP but we do not have
+driver for that anyway).
 
-omap_hdq omap_hdq.0: OMAP HDQ Hardware Rev 0.5. Driver in Interrupt mode
-w1_master_driver w1_bus_master1: Family 1 for 01.000000000000.3d is not
-registered.
-bq27000-battery bq27000-battery.1: no platform_data supplied
-bq27000-battery: probe of bq27000-battery.1 failed with error -22
+The series was created against Takashi's topic/asoc branch. I have tested it on
+Beagle xM, and compile tested it for OMAP1, OMAP2, and OMAP4 as well.
 
-after:
+I'm going to do more work on the cleanup, and the plan is to merge the two files
+into one (mcbsp.c -> omap-mcbsp.c) eventually.
 
-omap_hdq omap_hdq.0: OMAP HDQ Hardware Rev 0.5. Driver in Interrupt mode
-w1_master_driver w1_bus_master1: Family 1 for 01.000000000000.3d is not
-registered.
-bq27000-battery bq27000-battery: support ver. 1.2.0 enabled
+Comments, testers are welcome...
+
+CC-ing Samuel as well since he is the original author of the plat-omap/mcbsp.c
+driver.
 
 Regards,
-Thomas
+Peter
+---
+Peter Ujfalusi (11):
+  ARM: OMAP: mcbsp: Convert core driver to proper platform driver
+  OMAP: mcbsp: Move core driver under sound/soc/omap
+  ASoC: OMAP: McBSP: Consolidate plat/mcbsp.h content
+  ASoC: core - Add API call to register dai kcontrols.
+  ASoC: omap-mcbsp: Create a single driver for McBSP
+  ARM: OMAP: Do not register omap-mcbsp-dai device
+  ASoC: OMAP: mcbsp.h: Clean up bit definitions
+  ASoC: OMAP McBSP: Remove redundant accessors
+  ASoC: omap-mcbsp: Cleanup of module probe/remove code
+  ASoC: omap-mcbsp: Merge the omap_mcbsp_data into omap_mcbsp structure
+  ASoC: omap-mcbsp: Simplify DMA configuration
+
+ arch/arm/mach-omap1/devices.c                  |    9 -
+ arch/arm/mach-omap1/mcbsp.c                    |   14 +-
+ arch/arm/mach-omap2/devices.c                  |   22 --
+ arch/arm/mach-omap2/mcbsp.c                    |    8 +-
+ arch/arm/plat-omap/Kconfig                     |    8 -
+ arch/arm/plat-omap/Makefile                    |    2 -
+ arch/arm/plat-omap/include/plat/mcbsp.h        |  321 ----------------
+ include/sound/soc.h                            |    2 +
+ sound/soc/omap/Kconfig                         |    4 +
+ sound/soc/omap/Makefile                        |    1 +
+ sound/soc/omap/am3517evm.c                     |    2 +-
+ sound/soc/omap/ams-delta.c                     |    2 +-
+ sound/soc/omap/igep0020.c                      |    2 +-
+ {arch/arm/plat-omap => sound/soc/omap}/mcbsp.c |  463 ++++--------------------
+ sound/soc/omap/mcbsp.h                         |  337 +++++++++++++++++
+ sound/soc/omap/n810.c                          |    2 +-
+ sound/soc/omap/omap-mcbsp.c                    |  287 ++++++++-------
+ sound/soc/omap/omap-mcbsp.h                    |    2 +-
+ sound/soc/omap/omap-pcm.h                      |    2 +
+ sound/soc/omap/omap3beagle.c                   |    2 +-
+ sound/soc/omap/omap3evm.c                      |    2 +-
+ sound/soc/omap/omap3pandora.c                  |    4 +-
+ sound/soc/omap/osk5912.c                       |    2 +-
+ sound/soc/omap/overo.c                         |    2 +-
+ sound/soc/omap/rx51.c                          |    4 +-
+ sound/soc/omap/sdp3430.c                       |    4 +-
+ sound/soc/omap/zoom2.c                         |    4 +-
+ sound/soc/soc-core.c                           |   31 ++
+ 28 files changed, 631 insertions(+), 914 deletions(-)
+ rename {arch/arm/plat-omap => sound/soc/omap}/mcbsp.c (69%)
+ create mode 100644 sound/soc/omap/mcbsp.h
+
+-- 
+1.7.8.4
+
