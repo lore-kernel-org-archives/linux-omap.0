@@ -1,134 +1,112 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 1/5] gpio/omap: Remove bank->id information and misc cleanup
-Date: Wed, 15 Feb 2012 17:04:10 +0100
-Message-ID: <1329321854-24490-2-git-send-email-b-cousson@ti.com>
+Subject: [PATCH 2/5] gpio/omap: Use devm_ API and add request_mem_region
+Date: Wed, 15 Feb 2012 17:04:11 +0100
+Message-ID: <1329321854-24490-3-git-send-email-b-cousson@ti.com>
 References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55003 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:55015 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907Ab2BOQEo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 11:04:44 -0500
+	with ESMTP id S1752259Ab2BOQEs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 11:04:48 -0500
 In-Reply-To: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, Benoit Cousson <b-cousson@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-The driver does not need anymore any id to identify the GPIO instance.
-Remove every occurence of the bank->id inside the driver.
+Replace the regular kzalloc and ioremap with the devm_ equivalent
+to simplify error handling.
 
-Remove two trailing spaces.
-Add a dev variable for better readability in probe.
-Remove unused variable bank->pbase.
+Add the missing devm_request_mem_region to reserve the region used
+by the driver.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
 Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   23 +++++++++--------------
- 1 files changed, 9 insertions(+), 14 deletions(-)
+ drivers/gpio/gpio-omap.c |   35 +++++++++++++++--------------------
+ 1 files changed, 15 insertions(+), 20 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index f49bd6f..a0c3e03 100644
+index a0c3e03..c3a9dc8 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -50,7 +50,6 @@ struct gpio_regs {
+@@ -19,7 +19,7 @@
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+-#include <linux/slab.h>
++#include <linux/device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pm.h>
  
- struct gpio_bank {
- 	struct list_head node;
--	unsigned long pbase;
- 	void __iomem *base;
- 	u16 irq;
- 	u16 virtual_irq_start;
-@@ -77,7 +76,6 @@ struct gpio_bank {
- 	int stride;
- 	u32 width;
- 	int context_loss_count;
--	u16 id;
- 	int power_mode;
- 	bool workaround_enabled;
- 
-@@ -155,7 +153,7 @@ static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
- {
- 	int l = __raw_readl(base + reg);
- 
--	if (set) 
-+	if (set)
- 		l |= mask;
- 	else
- 		l &= ~mask;
-@@ -495,7 +493,7 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 	unsigned long flags;
- 
- 	if (bank->non_wakeup_gpios & gpio_bit) {
--		dev_err(bank->dev, 
-+		dev_err(bank->dev,
- 			"Unable to modify wakeup on non-wakeup GPIO%d\n", gpio);
- 		return -EINVAL;
- 	}
-@@ -1048,37 +1046,36 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
- 
- static int __devinit omap_gpio_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct omap_gpio_platform_data *pdata;
- 	struct resource *res;
+@@ -1052,23 +1052,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
  	struct gpio_bank *bank;
  	int ret = 0;
  
--	if (!pdev->dev.platform_data) {
-+	if (!dev->platform_data) {
- 		ret = -EINVAL;
- 		goto err_exit;
- 	}
+-	if (!dev->platform_data) {
+-		ret = -EINVAL;
+-		goto err_exit;
+-	}
++	if (!dev->platform_data)
++		return -EINVAL;
  
- 	bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
+-	bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
++	bank = devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank), GFP_KERNEL);
  	if (!bank) {
--		dev_err(&pdev->dev, "Memory alloc failed for gpio_bank\n");
-+		dev_err(dev, "Memory alloc failed\n");
- 		ret = -ENOMEM;
- 		goto err_exit;
+ 		dev_err(dev, "Memory alloc failed\n");
+-		ret = -ENOMEM;
+-		goto err_exit;
++		return -ENOMEM;
  	}
  
  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
  	if (unlikely(!res)) {
--		dev_err(&pdev->dev, "GPIO Bank %i Invalid IRQ resource\n",
--				pdev->id);
-+		dev_err(dev, "Invalid IRQ resource\n");
- 		ret = -ENODEV;
- 		goto err_free;
+ 		dev_err(dev, "Invalid IRQ resource\n");
+-		ret = -ENODEV;
+-		goto err_free;
++		return -ENODEV;
  	}
  
  	bank->irq = res->start;
--	bank->id = pdev->id;
- 
- 	pdata = pdev->dev.platform_data;
- 	bank->virtual_irq_start = pdata->virtual_irq_start;
--	bank->dev = &pdev->dev;
-+	bank->dev = dev;
- 	bank->dbck_flag = pdata->dbck_flag;
- 	bank->stride = pdata->bank_stride;
- 	bank->width = pdata->bank_width;
-@@ -1098,16 +1095,14 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	/* Static mapping, never released */
+@@ -1096,15 +1092,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
  	if (unlikely(!res)) {
--		dev_err(&pdev->dev, "GPIO Bank %i Invalid mem resource\n",
--				pdev->id);
-+		dev_err(dev, "Invalid mem resource\n");
- 		ret = -ENODEV;
- 		goto err_free;
+ 		dev_err(dev, "Invalid mem resource\n");
+-		ret = -ENODEV;
+-		goto err_free;
++		return -ENODEV;
++	}
++
++	if (!devm_request_mem_region(dev, res->start, resource_size(res),
++				     pdev->name)) {
++		dev_err(dev, "Region already claimed\n");
++		return -EBUSY;
  	}
  
- 	bank->base = ioremap(res->start, resource_size(res));
+-	bank->base = ioremap(res->start, resource_size(res));
++	bank->base = devm_ioremap(dev, res->start, resource_size(res));
  	if (!bank->base) {
--		dev_err(&pdev->dev, "Could not ioremap gpio bank%i\n",
--				pdev->id);
-+		dev_err(dev, "Could not ioremap\n");
- 		ret = -ENOMEM;
- 		goto err_free;
+ 		dev_err(dev, "Could not ioremap\n");
+-		ret = -ENOMEM;
+-		goto err_free;
++		return -ENOMEM;
  	}
+ 
+ 	platform_set_drvdata(pdev, bank);
+@@ -1125,11 +1125,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ 	list_add_tail(&bank->node, &omap_gpio_list);
+ 
+ 	return ret;
+-
+-err_free:
+-	kfree(bank);
+-err_exit:
+-	return ret;
+ }
+ 
+ #ifdef CONFIG_ARCH_OMAP2PLUS
 -- 
 1.7.0.4
 
