@@ -1,172 +1,115 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] Fix cpufreq
-Date: Wed, 15 Feb 2012 07:32:07 -0800
-Message-ID: <87sjic3yfc.fsf@ti.com>
-References: <20120215102420.GA23860@n2100.arm.linux.org.uk>
+From: Thomas Weber <weber@corscience.de>
+Subject: Re: [PATCH 1/5] Fix w1_bq27000
+Date: Wed, 15 Feb 2012 16:36:09 +0100
+Message-ID: <4F3BD0E9.5070305@corscience.de>
+References: <20111230004947.11559.81184.stgit@notabene.brown> <20111230005849.11559.79397.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:49529 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750907Ab2BOPcH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:32:07 -0500
-Received: by mail-pw0-f44.google.com with SMTP id wz7so1340819pbc.3
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:32:06 -0800 (PST)
-In-Reply-To: <20120215102420.GA23860@n2100.arm.linux.org.uk> (Russell King's
-	message of "Wed, 15 Feb 2012 10:24:20 +0000")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20111230005849.11559.79397.stgit@notabene.brown>
+Sender: linux-kernel-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>, zbr@ioremap.net
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+Hello Neil,
 
-> OMAPs cpufreq requires the frequency table support, but nothing ensures
-> that this is selected.  This can result in configurations which fail to
-> build:
->
-> drivers/built-in.o:(.data+0x5238): undefined reference to `cpufreq_freq_attr_scaling_available_freqs'
-> drivers/cpufreq/omap-cpufreq.c:88: undefined reference to `cpufreq_frequency_table_target'
-> drivers/cpufreq/omap-cpufreq.c:60: undefined reference to `cpufreq_frequency_table_verify'
-> drivers/cpufreq/omap-cpufreq.c:186: undefined reference to `cpufreq_frequency_table_cpuinfo'
-> drivers/cpufreq/omap-cpufreq.c:190: undefined reference to `cpufreq_frequency_table_get_attr'
->
-> Fix this by introducing a new configuration variable and having that
-> select CPU_FREQ_TABLE.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-
-Actually, we don't use cpufreq_table directly anymore in OMAP core code,
-and I've removed most of it:
-
-   http://marc.info/?l=linux-omap&m=132796096628835&w=2
-
-but looks like I missed the plat-omap/* stuff.  I'll update that patch.
-
-The OMAP cpufreq driver uses the OPP layer now to fill up the cpufreq
-table, but it seems the OPP layer has the same dependency problem: it
-depends on CONFIG_CPU_FREQ, but not CONFIG_CPU_FREQ_TABLE.  
-
-I'll send a patch for that as well.
-
-Kevin
-
+On 30.12.2011 01:58, NeilBrown wrote:
+> w1_bq27000 adds a bq27000-battery platform device but does not provide
+> platform data for it. This causes the bq27x00 driver to dereference a NULL
+> pointer.
+> So provide the appropriate platform data.  This requires modifying
+> w1_bq27000_read so that it find the w1 device as the parent of the bq device.
+> 
+> Also there is no point exporting w1_bq27000_read as nothing else uses it
+> or could use it.  So make it static.
+> 
+> Finally, as there is no way to track how many batteries have been found, and
+> we will probably only find one, use an id number of '-1' to assert that this
+> is a unique instance.
+> 
+> Signed-off-by: NeilBrown <neilb@suse.de>
 > ---
->  arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c |    2 +-
->  arch/arm/mach-omap2/clock.c                  |    2 +-
->  arch/arm/mach-omap2/clock.h                  |    2 +-
->  arch/arm/plat-omap/clock.c                   |    2 +-
->  arch/arm/plat-omap/include/plat/clock.h      |    4 ++--
->  drivers/cpufreq/Kconfig.arm                  |    5 +++++
->  drivers/cpufreq/Makefile                     |    2 +-
->  7 files changed, 12 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-> index 39f9d5a..4705b50 100644
-> --- a/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-> +++ b/arch/arm/mach-omap2/clkt2xxx_virt_prcm_set.c
-> @@ -165,7 +165,7 @@ int omap2_select_table_rate(struct clk *clk, unsigned long rate)
->  	return 0;
+> 
+>  drivers/w1/slaves/w1_bq27000.c |   17 ++++++++++++-----
+>  1 files changed, 12 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/w1/slaves/w1_bq27000.c b/drivers/w1/slaves/w1_bq27000.c
+> index 8f4c91f..8f10fd2 100644
+> --- a/drivers/w1/slaves/w1_bq27000.c
+> +++ b/drivers/w1/slaves/w1_bq27000.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/types.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/mutex.h>
+> +#include <linux/power/bq27x00_battery.h>
+>  
+>  #include "../w1.h"
+>  #include "../w1_int.h"
+> @@ -39,10 +40,10 @@ void w1_bq27000_write(struct device *dev, u8 buf, u8 reg)
 >  }
+>  EXPORT_SYMBOL(w1_bq27000_write);
 >  
-> -#ifdef CONFIG_CPU_FREQ
-> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
->  /*
->   * Walk PRCM rate table and fillout cpufreq freq_table
->   * XXX This should be replaced by an OPP layer in the near future
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index f57ed5b..450feb0 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -536,7 +536,7 @@ struct clk_functions omap2_clk_functions = {
->  	.clk_set_rate		= omap2_clk_set_rate,
->  	.clk_set_parent		= omap2_clk_set_parent,
->  	.clk_disable_unused	= omap2_clk_disable_unused,
-> -#ifdef CONFIG_CPU_FREQ
-> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
->  	/* These will be removed when the OPP code is integrated */
->  	.clk_init_cpufreq_table	= omap2_clk_init_cpufreq_table,
->  	.clk_exit_cpufreq_table	= omap2_clk_exit_cpufreq_table,
-> diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-> index b8c2a68..f331cfc 100644
-> --- a/arch/arm/mach-omap2/clock.h
-> +++ b/arch/arm/mach-omap2/clock.h
-> @@ -146,7 +146,7 @@ extern const struct clksel_rate gpt_sys_rates[];
->  extern const struct clksel_rate gfx_l3_rates[];
->  extern const struct clksel_rate dsp_ick_rates[];
->  
-> -#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_CPU_FREQ)
-> +#if defined(CONFIG_ARCH_OMAP2) && defined(CONFIG_ARM_OMAP2PLUS_CPUFREQ)
->  extern void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
->  extern void omap2_clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
->  #else
-> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-> index 567e4b5..2e2efb6 100644
-> --- a/arch/arm/plat-omap/clock.c
-> +++ b/arch/arm/plat-omap/clock.c
-> @@ -399,7 +399,7 @@ struct clk dummy_ck = {
->  	.ops	= &clkops_null,
->  };
->  
-> -#ifdef CONFIG_CPU_FREQ
-> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
->  void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
+> -int w1_bq27000_read(struct device *dev, u8 reg)
+> +static int w1_bq27000_read(struct device *dev, unsigned int reg)
 >  {
->  	unsigned long flags;
-> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-> index 240a7b9..879ba27 100644
-> --- a/arch/arm/plat-omap/include/plat/clock.h
-> +++ b/arch/arm/plat-omap/include/plat/clock.h
-> @@ -283,7 +283,7 @@ struct clk_functions {
->  	void		(*clk_allow_idle)(struct clk *clk);
->  	void		(*clk_deny_idle)(struct clk *clk);
->  	void		(*clk_disable_unused)(struct clk *clk);
-> -#ifdef CONFIG_CPU_FREQ
-> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
->  	void		(*clk_init_cpufreq_table)(struct cpufreq_frequency_table **);
->  	void		(*clk_exit_cpufreq_table)(struct cpufreq_frequency_table **);
->  #endif
-> @@ -301,7 +301,7 @@ extern void recalculate_root_clocks(void);
->  extern unsigned long followparent_recalc(struct clk *clk);
->  extern void clk_enable_init_clocks(void);
->  unsigned long omap_fixed_divisor_recalc(struct clk *clk);
-> -#ifdef CONFIG_CPU_FREQ
-> +#ifdef CONFIG_ARM_OMAP2PLUS_CPUFREQ
->  extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
->  extern void clk_exit_cpufreq_table(struct cpufreq_frequency_table **table);
->  #endif
-> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
-> index c8bde43..74e8b55 100644
-> --- a/drivers/cpufreq/Kconfig.arm
-> +++ b/drivers/cpufreq/Kconfig.arm
-> @@ -2,6 +2,11 @@
->  # ARM CPU Frequency scaling drivers
->  #
+>  	u8 val;
+> -	struct w1_slave *sl = container_of(dev, struct w1_slave, dev);
+> +	struct w1_slave *sl = container_of(dev->parent, struct w1_slave, dev);
 >  
-> +config ARM_OMAP2PLUS_CPUFREQ
-> +	bool
-> +	depends on ARCH_OMAP2PLUS
-> +	select CPU_FREQ_TABLE
+>  	if (!dev)
+>  		return 0;
+> @@ -52,19 +53,25 @@ int w1_bq27000_read(struct device *dev, u8 reg)
+>  
+>  	return val;
+>  }
+> -EXPORT_SYMBOL(w1_bq27000_read);
 > +
->  config ARM_S3C64XX_CPUFREQ
->  	bool "Samsung S3C64XX"
->  	depends on CPU_S3C6410
-> diff --git a/drivers/cpufreq/Makefile b/drivers/cpufreq/Makefile
-> index ac000fa..fda94c7 100644
-> --- a/drivers/cpufreq/Makefile
-> +++ b/drivers/cpufreq/Makefile
-> @@ -44,7 +44,7 @@ obj-$(CONFIG_ARM_S3C64XX_CPUFREQ)	+= s3c64xx-cpufreq.o
->  obj-$(CONFIG_ARM_S5PV210_CPUFREQ)	+= s5pv210-cpufreq.o
->  obj-$(CONFIG_ARM_EXYNOS_CPUFREQ)	+= exynos-cpufreq.o
->  obj-$(CONFIG_ARM_EXYNOS4210_CPUFREQ)	+= exynos4210-cpufreq.o
-> -obj-$(CONFIG_ARCH_OMAP2PLUS)            += omap-cpufreq.o
-> +obj-$(CONFIG_ARM_OMAP2PLUS_CPUFREQ)     += omap-cpufreq.o
+> +static struct bq27000_platform_data bq27000_battery_info = {
+> +	.read   = w1_bq27000_read,
+> +	.name   = "bq27000-battery",
+> +};
 >  
->  ##################################################################################
->  # PowerPC platform drivers
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  static int w1_bq27000_add_slave(struct w1_slave *sl)
+>  {
+>  	int ret;
+> -	int id = 1;
+>  	struct platform_device *pdev;
+>  
+> -	pdev = platform_device_alloc("bq27000-battery", id);
+> +	pdev = platform_device_alloc("bq27000-battery", -1);
+>  	if (!pdev) {
+>  		ret = -ENOMEM;
+>  		return ret;
+>  	}
+> +	ret = platform_device_add_data(pdev,
+> +				       &bq27000_battery_info,
+> +				       sizeof(bq27000_battery_info));
+>  	pdev->dev.parent = &sl->dev;
+>  
+>  	ret = platform_device_add(pdev);
+> 
+> 
+
+Tested-by: Thomas Weber <weber@corscience.de>
+
+Thanks for the patch, now the platform data of the bq27000 are found.
+
+before:
+
+omap_hdq omap_hdq.0: OMAP HDQ Hardware Rev 0.5. Driver in Interrupt mode
+w1_master_driver w1_bus_master1: Family 1 for 01.000000000000.3d is not
+registered.
+bq27000-battery bq27000-battery.1: no platform_data supplied
+bq27000-battery: probe of bq27000-battery.1 failed with error -22
+
+after:
+
+omap_hdq omap_hdq.0: OMAP HDQ Hardware Rev 0.5. Driver in Interrupt mode
+w1_master_driver w1_bus_master1: Family 1 for 01.000000000000.3d is not
+registered.
+bq27000-battery bq27000-battery: support ver. 1.2.0 enabled
+
+Regards,
+Thomas
