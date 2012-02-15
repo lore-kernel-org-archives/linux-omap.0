@@ -1,68 +1,178 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 4/6] arm: omap3: add manual control for mpu_iva voltdm usecounting
-Date: Wed, 15 Feb 2012 11:29:37 -0800
-Message-ID: <871upvao9q.fsf@ti.com>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
-	<1329237402-26008-5-git-send-email-t-kristo@ti.com>
-	<8762f96wdk.fsf@ti.com> <1329293765.4102.335.camel@sokoban>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 1/4] spi/omap: Add DT support to McSPI driver
+Date: Wed, 15 Feb 2012 13:34:46 -0600
+Message-ID: <4F3C08D6.6000108@gmail.com>
+References: <1329327457-2121-1-git-send-email-b-cousson@ti.com> <1329327457-2121-2-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:37217 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753984Ab2BOT3l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 14:29:41 -0500
-Received: by mail-pz0-f41.google.com with SMTP id v6so1169813dad.28
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 11:29:40 -0800 (PST)
-In-Reply-To: <1329293765.4102.335.camel@sokoban> (Tero Kristo's message of
-	"Wed, 15 Feb 2012 10:16:05 +0200")
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:48161 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754390Ab2BOTes (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 14:34:48 -0500
+Received: by ggnh1 with SMTP id h1so881357ggn.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 11:34:48 -0800 (PST)
+In-Reply-To: <1329327457-2121-2-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: grant.likely@secretlab.ca, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+On 02/15/2012 11:37 AM, Benoit Cousson wrote:
+> Add device tree support to the OMAP2+ McSPI driver.
+> Add the bindings documentation.
+> 
+> Based on original code from Rajendra.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  Documentation/devicetree/bindings/spi/omap-spi.txt |   20 +++++++
+>  drivers/spi/spi-omap2-mcspi.c                      |   56 +++++++++++++++++---
+>  2 files changed, 68 insertions(+), 8 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/spi/omap-spi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/spi/omap-spi.txt b/Documentation/devicetree/bindings/spi/omap-spi.txt
+> new file mode 100644
+> index 0000000..81df374
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/spi/omap-spi.txt
+> @@ -0,0 +1,20 @@
+> +OMAP2+ McSPI device
+> +
+> +Required properties:
+> +- compatible :
+> +  - "ti,omap2-spi" for OMAP2 & OMAP3.
+> +  - "ti,omap4-spi" for OMAP4+.
+> +- ti,spi-num-cs : Number of chipselect supported  by the instance.
+> +- ti,hwmods: Name of the hwmod associated to the McSPI
+> +
+> +
+> +Example:
+> +
+> +mcspi1: mcspi@1 {
 
-> On Tue, 2012-02-14 at 11:35 -0800, Kevin Hilman wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
->> 
->> > mpu_iva voltdm usecount is now decreased during idle. This will
->> > allow the voltagedomain to reflect actual usage, and will allow
->> > proper usage of vc callbacks.
->> 
->> I don't follow why this is needed in the idle path.
->> 
->> Why aren't the usecounts from clock/powerdomain disables (enables) causing this
->> voltdm disable (enable) to happen automatcially?
->
-> The main issue is mpu powerdomain which doesn't contain any clocks that
-> are controlled actively. Without adding a "virtual" usecount
-> enable/disable hook, the usecount for mpu_iva will always remain at 0
-> (or just follow the iva domain on omap3.) 
+I don't recall if there's a generic name defined but just "spi" would
+probably be better. Also, shouldn't this be the base address?
 
-Rather than faking the MPU clock gating by disabling the voltage/power
-domains, why not just gate the MPU clock in idle?   That would trigger
-all the rest and would also be much clearer what is happening in the
-idle path.
+Otherwise, for the series:
 
-> We want the usecount to reflect the actual idling of this domain also,
-> so that we can control SR / auto-ret based on MPU activity.
+Acked-by: Rob Herring <rob.herring@calxeda.com>
 
-Yes, makes sense now.  Thanks for the explanation.
 
->> If these are needed, seems like they should be in the
->> pwrdm_[pre|post]_transition() hooks so they can be generic.
->
-> This is actually a good idea, I could move them here. I could also add a
-> manual triggering for core domain here, as I have a feeling it might be
-> good to have so that core will also follow the idle cycle more tightly
-> (basically as a virtual follow for sdrc clock which is idled by HW
-> during wfi.)
-
-In the comments on the new version, you should also describe in detail
-the reasons for the "manual" idling of CORE (due to clocks that are
-hardware managed.)
-
-Kevin
+> +    #address-cells = <1>;
+> +    #size-cells = <0>;
+> +    compatible = "ti,omap4-mcspi";
+> +    ti,hwmods = "mcspi1";
+> +    ti,spi-num-cs = <4>;
+> +};
+> +
+> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+> index 0b0dfb7..bb9274c 100644
+> --- a/drivers/spi/spi-omap2-mcspi.c
+> +++ b/drivers/spi/spi-omap2-mcspi.c
+> @@ -34,6 +34,8 @@
+>  #include <linux/io.h>
+>  #include <linux/slab.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/of.h>
+> +#include <linux/of_device.h>
+>  
+>  #include <linux/spi/spi.h>
+>  
+> @@ -1079,15 +1081,39 @@ static int omap_mcspi_runtime_resume(struct device *dev)
+>  	return 0;
+>  }
+>  
+> +static struct omap2_mcspi_platform_config omap2_pdata = {
+> +	.regs_offset = 0,
+> +};
+> +
+> +static struct omap2_mcspi_platform_config omap4_pdata = {
+> +	.regs_offset = OMAP4_MCSPI_REG_OFFSET,
+> +};
+> +
+> +static const struct of_device_id omap_mcspi_of_match[] = {
+> +	{
+> +		.compatible = "ti,omap2-mcspi",
+> +		.data = &omap2_pdata,
+> +	},
+> +	{
+> +		.compatible = "ti,omap4-mcspi",
+> +		.data = &omap4_pdata,
+> +	},
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, omap_mcspi_of_match);
+>  
+>  static int __init omap2_mcspi_probe(struct platform_device *pdev)
+>  {
+>  	struct spi_master	*master;
+> -	struct omap2_mcspi_platform_config *pdata = pdev->dev.platform_data;
+> +	struct omap2_mcspi_platform_config *pdata;
+>  	struct omap2_mcspi	*mcspi;
+>  	struct resource		*r;
+>  	int			status = 0, i;
+>  	char			wq_name[20];
+> +	u32			regs_offset = 0;
+> +	static int		bus_num = 1;
+> +	struct device_node	*node = pdev->dev.of_node;
+> +	const struct of_device_id *match;
+>  
+>  	master = spi_alloc_master(&pdev->dev, sizeof *mcspi);
+>  	if (master == NULL) {
+> @@ -1098,13 +1124,26 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+>  	/* the spi->mode bits understood by this driver: */
+>  	master->mode_bits = SPI_CPOL | SPI_CPHA | SPI_CS_HIGH;
+>  
+> -	if (pdev->id != -1)
+> -		master->bus_num = pdev->id;
+> -
+>  	master->setup = omap2_mcspi_setup;
+>  	master->transfer = omap2_mcspi_transfer;
+>  	master->cleanup = omap2_mcspi_cleanup;
+> -	master->num_chipselect = pdata->num_cs;
+> +	master->dev.of_node = node;
+> +
+> +	match = of_match_device(omap_mcspi_of_match, &pdev->dev);
+> +	if (match) {
+> +		u32 num_cs = 1; /* default number of chipselect */
+> +		pdata = match->data;
+> +
+> +		of_property_read_u32(node, "ti,spi-num-cs", &num_cs);
+> +		master->num_chipselect = num_cs;
+> +		master->bus_num = bus_num++;
+> +	} else {
+> +		pdata = pdev->dev.platform_data;
+> +		master->num_chipselect = pdata->num_cs;
+> +		if (pdev->id != -1)
+> +			master->bus_num = pdev->id;
+> +	}
+> +	regs_offset = pdata->regs_offset;
+>  
+>  	dev_set_drvdata(&pdev->dev, master);
+>  
+> @@ -1124,8 +1163,8 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
+>  		goto free_master;
+>  	}
+>  
+> -	r->start += pdata->regs_offset;
+> -	r->end += pdata->regs_offset;
+> +	r->start += regs_offset;
+> +	r->end += regs_offset;
+>  	mcspi->phys = r->start;
+>  	if (!request_mem_region(r->start, resource_size(r),
+>  				dev_name(&pdev->dev))) {
+> @@ -1285,7 +1324,8 @@ static struct platform_driver omap2_mcspi_driver = {
+>  	.driver = {
+>  		.name =		"omap2_mcspi",
+>  		.owner =	THIS_MODULE,
+> -		.pm =		&omap2_mcspi_pm_ops
+> +		.pm =		&omap2_mcspi_pm_ops,
+> +		.of_match_table = omap_mcspi_of_match,
+>  	},
+>  	.remove =	__exit_p(omap2_mcspi_remove),
+>  };
 
