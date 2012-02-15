@@ -1,128 +1,75 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
- idle when HDMI is enabled
-Date: Wed, 15 Feb 2012 17:31:19 +0530
-Message-ID: <4F3B9E8F.1020002@ti.com>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>  <1329220678.1845.68.camel@deskari>  <4F3A5A5D.4020906@ti.com> <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com> <4F3A809E.3070508@ti.com>
+From: =?iso-8859-1?Q?V=EDctor_M=2E_J=E1quez_L=2E?= <vjaquez@igalia.com>
+Subject: Re: [PATCH] staging: tidspbridge: enable watchdog by default
+Date: Wed, 15 Feb 2012 13:02:49 +0100
+Message-ID: <20120215120249.GC24331@lit.local.igalia.com>
+References: <CAMP44s2HUApzGH_rExqS1bOnq0nHj4Y0vEojZN4vXNPAxC1oKA@mail.gmail.com>
+ <20120210203537.GG4141@mwanda>
+ <CAMP44s2OEvn7RVpwJ2zkdkxrzwrbD3+PFQbzYiOG-hvnrc4UhA@mail.gmail.com>
+ <CAB-zwWhSoiMNVGQ=u=6-Umte-AaP9Qih8QMJFTyk8pjXaXysLg@mail.gmail.com>
+ <CAMP44s1yY8N4z_uF1b=DKdEMGXORJUhkytEpbK2AoCSTbmiJNw@mail.gmail.com>
+ <CAB-zwWjtPcdwAfQGW6iB-pLWVuM1S0YJS7ioVv_voYZH2wNM9Q@mail.gmail.com>
+ <CAMP44s3sNH2qRsMHxgCbemefVye=z5E8XFLnSPvUtgA94SoV=A@mail.gmail.com>
+ <CAB-zwWjkCqehNAKp=gFt6Zq=XR+Mscz67oGnfY2sPjgvgpvNFQ@mail.gmail.com>
+ <20120215094357.GA24331@lit.local.igalia.com>
+ <CAMP44s2Xg5P7-+4NPq8tBqk=gSu9T8kvzSpEh_rj6wiZT+qcKQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45033 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753837Ab2BOMBe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 07:01:34 -0500
-In-Reply-To: <4F3A809E.3070508@ti.com>
+Received: from smtp4.mundo-r.com ([212.51.32.151]:48996 "EHLO
+	smtp4.mundo-r.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757787Ab2BOMCy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Feb 2012 07:02:54 -0500
+Content-Disposition: inline
+In-Reply-To: <CAMP44s2Xg5P7-+4NPq8tBqk=gSu9T8kvzSpEh_rj6wiZT+qcKQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap@vger.kernel.org, Felipe Contreras <felipe.contreras@nokia.com>, "Justin P. Mattock" <justinmattock@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Jiri Kosina <jkosina@suse.cz>, Dan Carpenter <dan.carpenter@oracle.com>, Greg KH <gregkh@linuxfoundation.org>
 
-On Tuesday 14 February 2012 09:11 PM, Cousson, Benoit wrote:
-> On 2/14/2012 2:30 PM, Archit Taneja wrote:
->> Hi,
->>
->> On Tuesday 14 February 2012 06:45 PM, Tomi Valkeinen wrote:
->>> On Tue, 2012-02-14 at 13:58 +0100, Cousson, Benoit wrote:
->>>> Hi Tomi,
->>>
->>>>> Benoit, do you think we'll get the MODULEMODE mess cleaned up in the
->>>>> hwmod/clk framework at some point, and the drivers could do without
->>>>> these kinds of hacks? =)
->>>>
->>>> The best way to fix that for my point of view is to go to device tree
->>>> or/and to consider the DSS as the parent of all the DSS modules.
->>>> pm_runtime will then always ensure that the parent is enabled before
->>>> any
->>>> of the child are used.
->>>
->>> Ah, right. Sounds fine to me.
->>>
->>> But is that a proper "fix"? Are we sure the MODULEMODE will then always
->>> be handled correctly? Isn't the core problem still there, it just
->>> doesn't happen with the setup anymore?
->>>
->>> I mean, if we have these special requirements regarding MODULEMODE, and
->>> the code doesn't really know about it, would it get broken easily with
->>> restructuring/changes?
->>>
->>> And no, I don't have any clear idea why/how it would break, but I have
->>> just gotten the impression that the MODULEMODE is not handled quite
->>> properly (and so we have these current problems), and having dss_core as
->>> the parent of other dss modules doesn't really fix that in any way.
->>
->> I agree with that.
->>
->> In the current approach, we have multiple platform devices for DSS, and
->> all of them belong to the same clock domain, and the clock domain has
->> just one MODULEMODE bit field.
->>
->> When shutting off a platform device(by calling pm_runtime_put()), hwmod
->> enables/disables MODULEMODE without taking into mind that other active
->> platform devices may still need it. So, for example, if we have 2
->> platform devices, say dss and dispc, and we have code like:
->>
->> dispc_foo()
->> {
->> pm_runtime_get(dispc_pdev);
->> ...
->> ...
->> pm_runtime_put(dispc_pdev);
->> }
->>
->> dss_foo()
->> {
->> pm_runtime_get(dss_pdev);
->> ...
->> ...
->> dispc_foo(); /* MODULEMODE off after this */
->> ...
->> ...
->> pm_runtime_put(dss_pdev);
->> }
->>
->> This will lead to the situation of one platform device disabling
->> MODULEMODE even though other platform devices need it.
->>
->> This may not be resolved in device tree either. We would need to have
->> some use count mechanism for these bits, or attach MODULEMODE only to
->> one platform device, and don't give others control to enable/disable it.
->
-> And this is exactly what the pm_runtime will provide. The fmwk already
-> handles reference counting.
-> Moreover the dev->parent will increment the power.child_count and thus
-> ensure that the parent is always enabled if at least one child is active.
->
-> By initializing the dev->parent of each DSS modules to the dss_core, it
-> will ensure that the power dependency is managed properly.
+On Wed, Feb 15, 2012 at 01:41:19PM +0200, Felipe Contreras wrote:
+> 2012/2/15 V=EDctor M. J=E1quez L. <vjaquez@igalia.com>:
+> > On Tue, Feb 14, 2012 at 08:56:11PM -0600, Ramirez Luna, Omar wrote:
+> >> On Tue, Feb 14, 2012 at 10:23 AM, Felipe Contreras
+> >> <felipe.contreras@gmail.com> wrote:
+> >> >> When that case is applicable, we should first modify the loader=
+ code
+> >> >> or prepare the baseimages to be common so we can get rid of spe=
+cific
+> >> >> loaders and just dump them into memory.
+> >> >
+> >> > I'd say the less workarounds, the better.
+> >>
+> >> If there are ever more base images compatible with the dsp, I woul=
+d
+> >> say that unifying them into a common format to be dumped in memory
+> >> isn't a workaround, and in that process we can get rid of the cust=
+om
+> >> loader code.
+> >
+> > Yes! please! and use Ohad's rproc thingy.
+>=20
+> I thought rproc is tied to elf for now.
 
-Yes, a parent/child relation will ensure the required dependencies. It 
-sounds good!
+It is.
 
-How do we take care of things in the meanwhile? With the current way of 
-representing modulemode as a slave clock, the disabling sequence gets 
-messed up. In arch/arm/mach-omap2/omap_hwmod.c:
+>=20
+> > What would be the steps to unify that common format? I guess we wil=
+l depend on
+> > TI for that... Do we?
+>=20
+> But this "common" format would be specific for tidspbridge, I don't
+> think it makes sense for these images to have that constraint.
+> Certainly rproc doesn't have it, and that one is not on staging.
+>=20
+> In any case, the proposed patch looks good. We can deal about these
+> futuristic situations later on.
 
-static int _disable_clocks(struct omap_hwmod *oh)
-{
-	...
-	disable mainclk;
-	disable slave clocks;
-	...
-}
+I do agree.
 
-For DSS, mainclk is the DSS_FCLK opt clock, and slave clock is 
-modulemode bits. We need the opposite sequence to happen here to cleanly 
-disable DSS.
-
-Any suggestions?
-
-Thanks,
-Archit
-
->
-> Regards,
-> Benoit
->
->
-
+vmjl
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
