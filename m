@@ -1,68 +1,44 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
- idle when HDMI is enabled
-Date: Wed, 15 Feb 2012 14:04:01 +0100
-Message-ID: <4F3BAD41.1020102@ti.com>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>  <1329220678.1845.68.camel@deskari>  <4F3A5A5D.4020906@ti.com>  <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>  <4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com> <4F3BA6A2.60604@ti.com> <1329310317.1892.60.camel@deskari>
+Subject: Re: [PATCH v3 2/4] ARM: OMAP2/3: intc: Add DT support for TI interrupt
+ controller
+Date: Wed, 15 Feb 2012 14:09:56 +0100
+Message-ID: <4F3BAEA4.6060901@ti.com>
+References: <1329242172-4214-1-git-send-email-b-cousson@ti.com> <1329242172-4214-3-git-send-email-b-cousson@ti.com> <4F3ABA77.8010303@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50489 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48010 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754566Ab2BONEL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 08:04:11 -0500
-In-Reply-To: <1329310317.1892.60.camel@deskari>
+	id S1752152Ab2BONKN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 08:10:13 -0500
+In-Reply-To: <4F3ABA77.8010303@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>, "Hilman, Kevin" <khilman@ti.com>
-Cc: Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: tony@atomide.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+ Kevin
-
-On 2/15/2012 1:51 PM, Tomi Valkeinen wrote:
-> On Wed, 2012-02-15 at 13:35 +0100, Cousson, Benoit wrote:
+On 2/14/2012 8:48 PM, Rob Herring wrote:
+> On 02/14/2012 11:56 AM, Benoit Cousson wrote:
+>> Add a function to initialize the OMAP2/3 interrupt controller (INTC)
+>> using a device tree node.
+>>
+>> This version take advantage of the new irq_domain_add_legacy API.
+>>
+>> Replace some printk() with the proper pr_ macro.
+>>
+>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>> Cc: Tony Lindgren<tony@atomide.com>
+>> Cc: Rob Herring<rob.herring@calxeda.com>
+>> Cc: Grant Likely<grant.likely@secretlab.ca>
 >
->> I think that changing the device creation to change the dev->parent
->> should be pretty straightforward.
->
-> That's not possible with the current kernel, right?
->
-> We are now using omap_device_build() (in arch/arm/mach-omap2/display.c)
-> to build the dss devices. Looking at the omap_device.c, the parent will
-> always forcibly set to omap_device_parent. It'd be nice to be able to
-> construct the device child-parent relationship the same way with both DT
-> and non-DT cases.
+> Given that you plan to do gen irqchip:
 
-I guess this should not be needed anymore since now the whole PM runtime 
-stuff is handled using pm_domain.
+Yes, I will. I even already have to patch, but I'm just trying to 
+minimize the dependency since I'd like that to be merged for 3.4.
+That series already missed 3.3.
 
-int omap_device_register(struct platform_device *pdev)
-{
-	pr_debug("omap_device: %s: registering\n", pdev->name);
+> Acked-by: Rob Herring<rob.herring@calxeda.com>
 
-	pdev->dev.parent = &omap_device_parent;
-	pdev->dev.pm_domain = &omap_device_pm_domain;
-	return platform_device_add(pdev);
-}
-
-
-Kevin,
-
-Do we still need to set the dev.parent to omap_device_parent?
-I guess the default &platform_bus parent is good enough and potentially 
-the DSS children should be able to overwrite that.
-
-> Or can I create only the dss_core with omap_device_build(), and create
-> the rest normally with platform device functions, and make dss_core the
-> parent of the rest? But are the hwmods then handled correctly?
-
-You can, the only issue if you create a regular platform device is that 
-you will miss the automatic pm_runtime support along with the hwmod 
-device creation mechanism + clock / PM.
-
-I think we can add an extra parameter to allow changing the omap_device 
-parent during omap_device_build.
-
-Regards,
+Thanks,
 Benoit
