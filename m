@@ -1,261 +1,277 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 2/8] arm: omap3+: voltage/pwrdm/clkdm/clock add recursive usecount tracking
-Date: Wed, 15 Feb 2012 17:37:48 +0200
-Message-ID: <1329320274-481-3-git-send-email-t-kristo@ti.com>
-References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [RFC 10/11] ASoC: omap-mcbsp: Merge the omap_mcbsp_data into omap_mcbsp structure
+Date: Wed, 15 Feb 2012 17:37:59 +0200
+Message-ID: <1329320280-1621-11-git-send-email-peter.ujfalusi@ti.com>
+References: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58785 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751830Ab2BOPi0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:38:26 -0500
-In-Reply-To: <1329320274-481-1-git-send-email-t-kristo@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:55961 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751601Ab2BOPiY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:38:24 -0500
+Received: by mail-bk0-f41.google.com with SMTP id y12so1374558bkt.14
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 07:38:21 -0800 (PST)
+In-Reply-To: <1329320280-1621-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, tony@atomide.com
-Cc: linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 
-This patch fixes the usecount tracking for omap3+, previously the
-usecount numbers were rather bogus and were not really useful for
-any purpose. Now usecount numbers track the number of really active
-clients on each domain. This patch also adds support for usecount
-tracking on powerdomain level and autoidle flag for clocks that
-are hardware controlled and should be skipped in usecount
-calculations.
+Since the drivers has been merged, merge the two structures together.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 ---
- arch/arm/mach-omap2/clkt_iclk.c         |   21 +++++++++++++++++++
- arch/arm/mach-omap2/clockdomain.c       |   34 +++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/clockdomain.h       |    2 +
- arch/arm/mach-omap2/powerdomain.c       |   16 ++++++++++++++
- arch/arm/mach-omap2/powerdomain.h       |    5 ++++
- arch/arm/plat-omap/clock.c              |    6 +++++
- arch/arm/plat-omap/include/plat/clock.h |    2 +
- 7 files changed, 84 insertions(+), 2 deletions(-)
+ sound/soc/omap/mcbsp.h      |   33 ++++++++++++--------------
+ sound/soc/omap/omap-mcbsp.c |   53 ++++++++++++++++++------------------------
+ 2 files changed, 38 insertions(+), 48 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clkt_iclk.c b/arch/arm/mach-omap2/clkt_iclk.c
-index 3d43fba..f8c2e77 100644
---- a/arch/arm/mach-omap2/clkt_iclk.c
-+++ b/arch/arm/mach-omap2/clkt_iclk.c
-@@ -21,6 +21,7 @@
- #include "clock2xxx.h"
- #include "cm2xxx_3xxx.h"
- #include "cm-regbits-24xx.h"
-+#include "clockdomain.h"
+diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
+index ac90c1a..d250bcc 100644
+--- a/sound/soc/omap/mcbsp.h
++++ b/sound/soc/omap/mcbsp.h
+@@ -269,27 +269,20 @@ struct omap_mcbsp_st_data {
+ 	s16 ch1gain;
+ };
  
- /* Private functions */
- 
-@@ -34,6 +35,16 @@ void omap2_clkt_iclk_allow_idle(struct clk *clk)
- 	v = __raw_readl((__force void __iomem *)r);
- 	v |= (1 << clk->enable_bit);
- 	__raw_writel(v, (__force void __iomem *)r);
-+
-+	/* Remove this clock from parent clockdomain usecounts */
-+	if (clk->usecount && clk->clkdm)
-+		clkdm_usecount_dec(clk->clkdm);
-+
+-struct omap_mcbsp_data {
+-	struct omap_mcbsp_reg_cfg	regs;
+-	struct omap_pcm_dma_data	dma_data[2];
+-	unsigned int			fmt;
+-	/*
+-	 * Flags indicating is the bus already activated and configured by
+-	 * another substream
+-	 */
+-	int				active;
+-	int				configured;
+-	unsigned int			in_freq;
+-	int				clk_div;
+-	int				wlen;
+-};
+-
+ struct omap_mcbsp {
+ 	struct device *dev;
++	struct clk *fclk;
++	spinlock_t lock;
+ 	unsigned long phys_base;
+ 	unsigned long phys_dma_base;
+ 	void __iomem *io_base;
+ 	u8 id;
 +	/*
-+	 * Mark as autoidle, so we continue to ignore this clock in
-+	 * parent clkdm usecount calculations
++	 * Flags indicating is the bus already activated and configured by
++	 * another substream
 +	 */
-+	clk->autoidle = true;
- }
++	int active;
++	int configured;
+ 	u8 free;
  
- /* XXX */
-@@ -46,6 +57,16 @@ void omap2_clkt_iclk_deny_idle(struct clk *clk)
- 	v = __raw_readl((__force void __iomem *)r);
- 	v &= ~(1 << clk->enable_bit);
- 	__raw_writel(v, (__force void __iomem *)r);
-+
-+	/* Add clock back to parent clockdomain usecount */
-+	if (clk->usecount && clk->clkdm)
-+		clkdm_usecount_inc(clk->clkdm);
-+
-+	/*
-+	 * Disable autoidle flag so further clkdm usecounts take this
-+	 * clock into account
-+	 */
-+	clk->autoidle = false;
- }
+ 	int rx_irq;
+@@ -300,16 +293,20 @@ struct omap_mcbsp {
+ 	u8 dma_tx_sync;
  
- /* Public data */
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index ad07689..c0b6187 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -907,6 +907,28 @@ bool clkdm_in_hwsup(struct clockdomain *clkdm)
+ 	/* Protect the field .free, while checking if the mcbsp is in use */
+-	spinlock_t lock;
+ 	struct omap_mcbsp_platform_data *pdata;
+-	struct clk *fclk;
+ 	struct omap_mcbsp_st_data *st_data;
+-	struct omap_mcbsp_data mcbsp_data;
++	struct omap_mcbsp_reg_cfg cfg_regs;
++	struct omap_pcm_dma_data dma_data[2];
+ 	int dma_op_mode;
+ 	u16 max_tx_thres;
+ 	u16 max_rx_thres;
+ 	void *reg_cache;
+ 	int reg_cache_size;
++
++	unsigned int fmt;
++	unsigned int in_freq;
++	int clk_div;
++	int wlen;
+ };
  
- /* Clockdomain-to-clock/hwmod framework interface code */
+ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 69a44aa..4cd7af8 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -66,7 +66,6 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
+ 	struct omap_pcm_dma_data *dma_data;
+ 	int words;
  
-+int clkdm_usecount_inc(struct clockdomain *clkdm)
-+{
-+	int usecount;
-+
-+	usecount = atomic_inc_return(&clkdm->usecount);
-+
-+	if (usecount == 1)
-+		pwrdm_clkdm_enable(clkdm->pwrdm.ptr);
-+	return usecount;
-+}
-+
-+int clkdm_usecount_dec(struct clockdomain *clkdm)
-+{
-+	int usecount;
-+
-+	usecount = atomic_dec_return(&clkdm->usecount);
-+
-+	if (usecount == 0)
-+		pwrdm_clkdm_disable(clkdm->pwrdm.ptr);
-+	return usecount;
-+}
-+
- static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+@@ -83,7 +82,7 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
+ 			words = dma_data->packet_size;
+ 		else
+ 			words = snd_pcm_lib_period_bytes(substream) /
+-							(mcbsp_data->wlen / 8);
++							(mcbsp->wlen / 8);
+ 	else
+ 		words = 1;
+ 
+@@ -160,11 +159,10 @@ static void omap_mcbsp_dai_shutdown(struct snd_pcm_substream *substream,
+ 				    struct snd_soc_dai *cpu_dai)
  {
- 	unsigned long flags;
-@@ -919,7 +941,7 @@ static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
- 	 * should be called for every clock instance or hwmod that is
- 	 * enabled, so the clkdm can be force woken up.
- 	 */
--	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps)
-+	if ((clkdm_usecount_inc(clkdm) > 1) && autodeps)
- 		return 0;
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
  
- 	spin_lock_irqsave(&clkdm->lock, flags);
-@@ -945,7 +967,7 @@ static int _clkdm_clk_hwmod_disable(struct clockdomain *clkdm)
- 		return -ERANGE;
+ 	if (!cpu_dai->active) {
+ 		omap_mcbsp_free(mcbsp);
+-		mcbsp_data->configured = 0;
++		mcbsp->configured = 0;
+ 	}
+ }
+ 
+@@ -172,14 +170,13 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 				  struct snd_soc_dai *cpu_dai)
+ {
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
+ 	int err = 0, play = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
+ 
+ 	switch (cmd) {
+ 	case SNDRV_PCM_TRIGGER_START:
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+-		mcbsp_data->active++;
++		mcbsp->active++;
+ 		omap_mcbsp_start(mcbsp, play, !play);
+ 		break;
+ 
+@@ -187,7 +184,7 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+ 	case SNDRV_PCM_TRIGGER_SUSPEND:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+ 		omap_mcbsp_stop(mcbsp, play, !play);
+-		mcbsp_data->active--;
++		mcbsp->active--;
+ 		break;
+ 	default:
+ 		err = -EINVAL;
+@@ -226,8 +223,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 				    struct snd_soc_dai *cpu_dai)
+ {
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
+-	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
++	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
+ 	struct omap_pcm_dma_data *dma_data;
+ 	int dma;
+ 	int wlen, channels, wpf, sync_mode = OMAP_DMA_SYNC_ELEMENT;
+@@ -235,7 +231,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	unsigned long port;
+ 	unsigned int format, div, framesize, master;
+ 
+-	dma_data = &mcbsp_data->dma_data[substream->stream];
++	dma_data = &mcbsp->dma_data[substream->stream];
+ 
+ 	dma = omap_mcbsp_dma_ch_params(mcbsp, substream->stream);
+ 	port = omap_mcbsp_dma_reg_params(mcbsp, substream->stream);
+@@ -303,7 +299,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 
+ 	snd_soc_dai_set_dma_data(cpu_dai, substream, dma_data);
+ 
+-	if (mcbsp_data->configured) {
++	if (mcbsp->configured) {
+ 		/* McBSP already configured by another stream */
+ 		return 0;
+ 	}
+@@ -312,7 +308,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	regs->xcr2	&= ~(RPHASE | XFRLEN2(0x7f) | XWDLEN2(7));
+ 	regs->rcr1	&= ~(RFRLEN1(0x7f) | RWDLEN1(7));
+ 	regs->xcr1	&= ~(XFRLEN1(0x7f) | XWDLEN1(7));
+-	format = mcbsp_data->fmt & SND_SOC_DAIFMT_FORMAT_MASK;
++	format = mcbsp->fmt & SND_SOC_DAIFMT_FORMAT_MASK;
+ 	wpf = channels = params_channels(params);
+ 	if (channels == 2 && (format == SND_SOC_DAIFMT_I2S ||
+ 			      format == SND_SOC_DAIFMT_LEFT_J)) {
+@@ -350,10 +346,10 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 
+ 	/* In McBSP master modes, FRAME (i.e. sample rate) is generated
+ 	 * by _counting_ BCLKs. Calculate frame size in BCLKs */
+-	master = mcbsp_data->fmt & SND_SOC_DAIFMT_MASTER_MASK;
++	master = mcbsp->fmt & SND_SOC_DAIFMT_MASTER_MASK;
+ 	if (master ==	SND_SOC_DAIFMT_CBS_CFS) {
+-		div = mcbsp_data->clk_div ? mcbsp_data->clk_div : 1;
+-		framesize = (mcbsp_data->in_freq / div) / params_rate(params);
++		div = mcbsp->clk_div ? mcbsp->clk_div : 1;
++		framesize = (mcbsp->in_freq / div) / params_rate(params);
+ 
+ 		if (framesize < wlen * channels) {
+ 			printk(KERN_ERR "%s: not enough bandwidth for desired rate and "
+@@ -379,9 +375,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 		break;
  	}
  
--	if (atomic_dec_return(&clkdm->usecount) > 0)
-+	if (clkdm_usecount_dec(clkdm) > 0)
+-	omap_mcbsp_config(mcbsp, &mcbsp_data->regs);
+-	mcbsp_data->wlen = wlen;
+-	mcbsp_data->configured = 1;
++	omap_mcbsp_config(mcbsp, &mcbsp->cfg_regs);
++	mcbsp->wlen = wlen;
++	mcbsp->configured = 1;
+ 
+ 	return 0;
+ }
+@@ -394,14 +390,13 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 				      unsigned int fmt)
+ {
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
+-	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
++	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
+ 	bool inv_fs = false;
+ 
+-	if (mcbsp_data->configured)
++	if (mcbsp->configured)
  		return 0;
  
- 	spin_lock_irqsave(&clkdm->lock, flags);
-@@ -982,6 +1004,10 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
- 	if (!clk)
- 		return -EINVAL;
- 
-+	/* If autoidle clock, do not update clkdm usecounts */
-+	if (clk->autoidle)
-+		return 0;
-+
- 	return _clkdm_clk_hwmod_enable(clkdm);
- }
- 
-@@ -1008,6 +1034,10 @@ int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
- 	if (!clk)
- 		return -EINVAL;
- 
-+	/* If autoidle clock, do not update clkdm usecounts */
-+	if (clk->autoidle)
-+		return 0;
-+
- 	return _clkdm_clk_hwmod_disable(clkdm);
- }
- 
-diff --git a/arch/arm/mach-omap2/clockdomain.h b/arch/arm/mach-omap2/clockdomain.h
-index f7b5860..373399a 100644
---- a/arch/arm/mach-omap2/clockdomain.h
-+++ b/arch/arm/mach-omap2/clockdomain.h
-@@ -191,6 +191,8 @@ int clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk);
- int clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk);
- int clkdm_hwmod_enable(struct clockdomain *clkdm, struct omap_hwmod *oh);
- int clkdm_hwmod_disable(struct clockdomain *clkdm, struct omap_hwmod *oh);
-+int clkdm_usecount_inc(struct clockdomain *clkdm);
-+int clkdm_usecount_dec(struct clockdomain *clkdm);
- 
- extern void __init omap242x_clockdomains_init(void);
- extern void __init omap243x_clockdomains_init(void);
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 8a18d1b..3b70f69 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -985,6 +985,22 @@ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
- 	return -EINVAL;
- }
- 
-+void pwrdm_clkdm_enable(struct powerdomain *pwrdm)
-+{
-+	if (!pwrdm)
-+		return;
-+
-+	atomic_inc(&pwrdm->usecount);
-+}
-+
-+void pwrdm_clkdm_disable(struct powerdomain *pwrdm)
-+{
-+	if (!pwrdm)
-+		return;
-+
-+	atomic_dec(&pwrdm->usecount);
-+}
-+
- int pwrdm_pre_transition(void)
+-	mcbsp_data->fmt = fmt;
++	mcbsp->fmt = fmt;
+ 	memset(regs, 0, sizeof(*regs));
+ 	/* Generic McBSP register settings */
+ 	regs->spcr2	|= XINTM(3) | FREE;
+@@ -497,13 +492,12 @@ static int omap_mcbsp_dai_set_clkdiv(struct snd_soc_dai *cpu_dai,
+ 				     int div_id, int div)
  {
- 	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
-diff --git a/arch/arm/mach-omap2/powerdomain.h b/arch/arm/mach-omap2/powerdomain.h
-index 0d72a8a..32f44c8 100644
---- a/arch/arm/mach-omap2/powerdomain.h
-+++ b/arch/arm/mach-omap2/powerdomain.h
-@@ -120,6 +120,7 @@ struct powerdomain {
- 	unsigned state_counter[PWRDM_MAX_PWRSTS];
- 	unsigned ret_logic_off_counter;
- 	unsigned ret_mem_off_counter[PWRDM_MAX_MEM_BANKS];
-+	atomic_t usecount;
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
+-	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
++	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
  
- #ifdef CONFIG_PM_DEBUG
- 	s64 timer;
-@@ -216,6 +217,10 @@ int pwrdm_state_switch(struct powerdomain *pwrdm);
- int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
- int pwrdm_pre_transition(void);
- int pwrdm_post_transition(void);
-+
-+void pwrdm_clkdm_enable(struct powerdomain *pwrdm);
-+void pwrdm_clkdm_disable(struct powerdomain *pwrdm);
-+
- int pwrdm_set_lowpwrstchange(struct powerdomain *pwrdm);
- int pwrdm_get_context_loss_count(struct powerdomain *pwrdm);
- bool pwrdm_can_ever_lose_context(struct powerdomain *pwrdm);
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index e17ee5e2..1f80df8 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -283,6 +283,12 @@ int clk_register(struct clk *clk)
- 		list_add(&clk->sibling, &root_clks);
+ 	if (div_id != OMAP_MCBSP_CLKGDV)
+ 		return -ENODEV;
  
- 	list_add(&clk->node, &clocks);
-+	/*
-+	 * If clock has no ops, it is handled by hardware and thus will
-+	 * idle automatically
-+	 */
-+	if (clk->ops == &clkops_null)
-+		clk->autoidle = true;
- 	if (clk->init)
- 		clk->init(clk);
- 	mutex_unlock(&clocks_mutex);
-diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
-index c84f2a4..14b44c0 100644
---- a/arch/arm/plat-omap/include/plat/clock.h
-+++ b/arch/arm/plat-omap/include/plat/clock.h
-@@ -208,6 +208,7 @@ struct dpll_data {
-  * @init: fn ptr to do clock-specific initialization
-  * @enable_bit: bitshift to write to enable/disable the clock (see @enable_reg)
-  * @usecount: number of users that have requested this clock to be enabled
-+ * @autoidle: indicates hardware controlled clock (not used in domain usecounts)
-  * @fixed_div: when > 0, this clock's rate is its parent's rate / @fixed_div
-  * @flags: see "struct clk.flags possibilities" above
-  * @clksel_reg: for clksel clks, register va containing src/divisor select
-@@ -254,6 +255,7 @@ struct clk {
- 	void			(*init)(struct clk *);
- 	u8			enable_bit;
- 	s8			usecount;
-+	bool			autoidle;
- 	u8			fixed_div;
- 	u8			flags;
- #ifdef CONFIG_ARCH_OMAP2PLUS
+-	mcbsp_data->clk_div = div;
++	mcbsp->clk_div = div;
+ 	regs->srgr1	&= ~CLKGDV(0xff);
+ 	regs->srgr1	|= CLKGDV(div - 1);
+ 
+@@ -515,12 +509,11 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ 					 int dir)
+ {
+ 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
+-	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
+-	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
++	struct omap_mcbsp_reg_cfg *regs = &mcbsp->cfg_regs;
+ 	int err = 0;
+ 
+-	if (mcbsp_data->active) {
+-		if (freq == mcbsp_data->in_freq)
++	if (mcbsp->active) {
++		if (freq == mcbsp->in_freq)
+ 			return 0;
+ 		else
+ 			return -EBUSY;
+@@ -534,7 +527,7 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ 		if (cpu_class_is_omap1() || cpu_dai->id != 1)
+ 			return -EINVAL;
+ 
+-	mcbsp_data->in_freq = freq;
++	mcbsp->in_freq = freq;
+ 	regs->srgr2	&= ~CLKSM;
+ 	regs->pcr0	&= ~SCLKME;
+ 
 -- 
-1.7.4.1
+1.7.8.4
 
