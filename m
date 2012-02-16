@@ -1,86 +1,52 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug support
-Date: Thu, 16 Feb 2012 09:35:04 -0800
-Message-ID: <87y5s2hebb.fsf@ti.com>
-References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
-	<1329237402-26008-7-git-send-email-t-kristo@ti.com>
-	<20120214202740.GT1426@atomide.com> <87fwed58dm.fsf@ti.com>
-	<20120214235218.GX1426@atomide.com>
-	<1329294866.4102.343.camel@sokoban> <874nus5djf.fsf@ti.com>
-	<CAOMWX4cg4mfBQGcHLodjFaVY0vVGnKJKvsa9ngMLO-0Ca7gBTQ@mail.gmail.com>
+Subject: Re: [PATCH 2/4] ARM: OMAP2+: omap_device: Replace dev_warn by dev_dbg in omap_device_build_from_dt
+Date: Thu, 16 Feb 2012 10:13:03 -0800
+Message-ID: <87obsyhck0.fsf@ti.com>
+References: <1329150625-8604-2-git-send-email-b-cousson@ti.com>
+	<1329150625-8604-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:41312 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752386Ab2BPRfF (ORCPT
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:51979 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752199Ab2BPSNF (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 12:35:05 -0500
-Received: by mail-pz0-f44.google.com with SMTP id l33so2076001dak.3
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 09:35:04 -0800 (PST)
-In-Reply-To: <CAOMWX4cg4mfBQGcHLodjFaVY0vVGnKJKvsa9ngMLO-0Ca7gBTQ@mail.gmail.com>
-	(Nishanth Menon's message of "Thu, 16 Feb 2012 11:06:38 -0600")
+	Thu, 16 Feb 2012 13:13:05 -0500
+Received: by dadp14 with SMTP id p14so2824422dad.4
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 10:13:04 -0800 (PST)
+In-Reply-To: <1329150625-8604-3-git-send-email-b-cousson@ti.com> (Benoit
+	Cousson's message of "Mon, 13 Feb 2012 17:30:23 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: t-kristo@ti.com, Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-"Menon, Nishanth" <nm@ti.com> writes:
+Benoit Cousson <b-cousson@ti.com> writes:
 
-> On Wed, Feb 15, 2012 at 09:20, Kevin Hilman <khilman@ti.com> wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
->>
->>> On Tue, 2012-02-14 at 15:52 -0800, Tony Lindgren wrote:
->>>> * Kevin Hilman <khilman@ti.com> [120214 14:28]:
->>>> > Tony Lindgren <tony@atomide.com> writes:
->>>> >
->>>> > > * Tero Kristo <t-kristo@ti.com> [120214 08:19]:
->>>> > >> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
->>>> > >> their own file, 'usecount'. This file shows the usecounts for every
->>>> > >> active domain and their children recursively. 'count' file now only
->>>> > >> shows power state counts for powerdomains.
->>>> > >>
->>>> > >> This patch also provices a way to do printk dumps from kernel code,
->>>> > >> by calling the pm_dbg_dump_X functions. The plan is to call these
->>>> > >> functions once an error condition is detected, e.g. failed suspend.
->>>> > >
->>>> > > Why don't you replace this all with a userspace tool that deciphers
->>>> > > the registers for you?
->>>> >
->>>> > This patch isn't deciphering registers, it's just dumping usecounts, and
->>>> > I think that is extremely useful to have in debugfs.
->>>> >
->>>> > I've already removed all the register dumping from the kernel in the
->>>> > hopes that someone will write a userspace tool for that.
->>>>
->>>> OK good to hear you're already considering it.
->>>
->>> Yes, register dumps are gone, and I am actually one of the persons who
->>> is missing it.
->>>
->>> I think there should still be some capability to get register snapshots
->>> from certain points during kernel execution, this is useful for
->>> debugging purposes. I don't know if it would be possible to do a
->>> call_usermodehelper() or something from kernel space just before wfi to
->>> read all (or part of) the PRCM registers, store them somewhere, and then
->>> decipher this data later with another tool. Any comments to this?
->>
->> You should look into the omapconf tool (TI internal only currently)
->>
->> This tool already has the ability to use /dev/mem to read/decipher OMAP
->> PM related registers.
->>
->> IMO, the one thing we're still missing is the ability to take register
->> snapshots (like immediately before and after WFI) and somehow feed those
->> to omapconf for deciphering.
->>
-> Something like this perhaps?
-> https://github.com/nmenon/linux-omap-ti-pm/commit/3cd1994fc0df9a8e3e0be74ec3f3add3ff3aef95
+> This warning becomes a little bit too verbose with the increase of
+> device nodes in some DTS files.
+>
+> Change it to debug only.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@ti.com>
 
-Yes, although that is targetted pretty narrowly at suspend and only PRM
-registers.
+Acked-by: Kevin Hilman <khilman@ti.com>
 
-Do you then use omapconf to display the results?
 
-Kevin
-
+> ---
+>  arch/arm/plat-omap/omap_device.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 80d5e4c..125de17 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -343,7 +343,7 @@ static int omap_device_build_from_dt(struct platform_device *pdev)
+>  
+>  	oh_cnt = of_property_count_strings(node, "ti,hwmods");
+>  	if (!oh_cnt || IS_ERR_VALUE(oh_cnt)) {
+> -		dev_warn(&pdev->dev, "No 'hwmods' to build omap_device\n");
+> +		dev_dbg(&pdev->dev, "No 'hwmods' to build omap_device\n");
+>  		return -ENODEV;
+>  	}
