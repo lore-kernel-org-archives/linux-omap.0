@@ -1,115 +1,86 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 8/8] arm: omap3: prevent per_clkdm from attempting manual domain transitions
-Date: Thu, 16 Feb 2012 09:31:07 -0800
-Message-ID: <877gzmit2c.fsf@ti.com>
-References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
-	<1329320274-481-9-git-send-email-t-kristo@ti.com>
-	<87pqdf99c2.fsf@ti.com> <1329382652.4102.386.camel@sokoban>
-	<CAMQu2gx5JdKfTTUhi28N_=EZ3tDo7nTRA00ErrMpuGMkOh9rgw@mail.gmail.com>
-	<1329398159.4102.391.camel@sokoban>
-	<1329405804.4102.400.camel@sokoban>
-	<CAMQu2gwMboftdRo9dE38ECp+5o2nTPgxeZ60JrbV0xd8HLNfUg@mail.gmail.com>
-	<1329410895.4102.404.camel@sokoban>
+Subject: Re: [PATCH 6/6] arm: omap: pm-debug: enhanced usecount debug support
+Date: Thu, 16 Feb 2012 09:35:04 -0800
+Message-ID: <87y5s2hebb.fsf@ti.com>
+References: <1329237402-26008-1-git-send-email-t-kristo@ti.com>
+	<1329237402-26008-7-git-send-email-t-kristo@ti.com>
+	<20120214202740.GT1426@atomide.com> <87fwed58dm.fsf@ti.com>
+	<20120214235218.GX1426@atomide.com>
+	<1329294866.4102.343.camel@sokoban> <874nus5djf.fsf@ti.com>
+	<CAOMWX4cg4mfBQGcHLodjFaVY0vVGnKJKvsa9ngMLO-0Ca7gBTQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:55679 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751354Ab2BPRbI (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:41312 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752386Ab2BPRfF (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 12:31:08 -0500
-Received: by mail-pw0-f45.google.com with SMTP id ro12so3320731pbb.4
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 09:31:07 -0800 (PST)
-In-Reply-To: <1329410895.4102.404.camel@sokoban> (Tero Kristo's message of
-	"Thu, 16 Feb 2012 18:48:15 +0200")
+	Thu, 16 Feb 2012 12:35:05 -0500
+Received: by mail-pz0-f44.google.com with SMTP id l33so2076001dak.3
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 09:35:04 -0800 (PST)
+In-Reply-To: <CAOMWX4cg4mfBQGcHLodjFaVY0vVGnKJKvsa9ngMLO-0Ca7gBTQ@mail.gmail.com>
+	(Nishanth Menon's message of "Thu, 16 Feb 2012 11:06:38 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: t-kristo@ti.com, Tony Lindgren <tony@atomide.com>, paul@pwsan.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Tero Kristo <t-kristo@ti.com> writes:
+"Menon, Nishanth" <nm@ti.com> writes:
 
-> On Thu, 2012-02-16 at 21:15 +0530, Shilimkar, Santosh wrote:
->> On Thu, Feb 16, 2012 at 8:53 PM, Tero Kristo <t-kristo@ti.com> wrote:
->> > On Thu, 2012-02-16 at 15:15 +0200, Tero Kristo wrote:
->> >> On Thu, 2012-02-16 at 15:27 +0530, Shilimkar, Santosh wrote:
->> >> > On Thu, Feb 16, 2012 at 2:27 PM, Tero Kristo <t-kristo@ti.com> wrote:
->> >> > > On Wed, 2012-02-15 at 11:37 -0800, Kevin Hilman wrote:
->> >> > >> Tero Kristo <t-kristo@ti.com> writes:
->> >> > >>
->> >> > >> > Attempting this will cause problems especially with off-mode enabled.
->> >> > >>
->> >> > >> Please be more verbose about the problems seen, and the root cause(s).
->> >> > >>
->> >> > >
->> >> > > I was actually looking forward for some help with this commit message,
->> >> > > as I am still not quite sure what is going on in here. :) Here is the
->> >> > > log for suspend (btw, cam_pwrdm does not go to off in mainline yet, but
->> >> > > I think that is probably fixed by the patch from Paul,
->> >> > > omap_set_pwrdm_state() does not work properly.) The warning comes out
->> >> > > after wakeup from off-mode, and it is triggered by the disabling of
->> >> > > autodeps before off-mode entry.
->> >> > >
->> >> > This mostly indicates that one of the per clock-domain module
->> >> > clock turning ON seems to be not working well with auto deps
->> >> > disabled. This leads to interconnect violation.
->> >> >
->> >> > if not tried already, can you put the per_clockdomain in SW_WKUP
->> >> > in the low power code early resume path and see if this
->> >> > error goes away.
->> >>
->> >> This seems to get rid of the dump also. It looks like some driver resume
->> >> is not behaving nicely, I am trying to pinpoint the culprit currently
->> >> and see whether it can provide more info.
->> >
->> > Okay, I have some more info about this now.
->> >
->> > What happens is that when entering off-mode, PER domain remains OFF even
->> > during the execution of the exit phase from omap_sram_idle. Adding a
->> > manual SW_WKUP it comes up and there are no issues. If autodeps are
->> > enabled on the domain, it comes back from off mode as active.
->> >
->> > Looking further in the code, we have this at the end of omap_sram_idle:
->> >
->> >        if (per_next_state < PWRDM_POWER_ON) {
->> >                per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
->> >                omap2_gpio_resume_after_idle();
->> >                wake_per();
->> >                if (per_prev_state == PWRDM_POWER_OFF)
->> >                        omap3_per_restore_context();
->> >        }
->> >
->> > ... which seems to assume that per domain is on. Gpio code does not
->> > control any clocks currently, as it only requires the interface clock to
->> > be on, and as this is autoidled....
->> >
->> > Any comments how we should handle this? Shall we just keep these two
->> > patches for handling this or add some different hackery for the gpio
->> > issue?
->> >
->> Good. I thought too that issue will disappear.
->> The issue is pretty clear. Technically every driver pm_runtime() code should
->> be able to manage a clock->clockdomain->power domain power up/down
->> sequence. That should work without auto deps.
->> 
->> Do you narrowed down which driver resume is creating the dump ?
->> UART , GPIO ?
->
-> It is the gpio base stuff called from omap_sram_idle(), basically the
-> restore context part. If I force enable per domain before the code
-> snippet before, there is no dump, but if it is done after, I get the
-> dump.
->
-> The thing is that gpio driver doesn't currently have this kind of
-> mechanism for the restore context part, at least not on omap3 due to
-> above clocking issue (only autoidled interface clock is used.)
+> On Wed, Feb 15, 2012 at 09:20, Kevin Hilman <khilman@ti.com> wrote:
+>> Tero Kristo <t-kristo@ti.com> writes:
+>>
+>>> On Tue, 2012-02-14 at 15:52 -0800, Tony Lindgren wrote:
+>>>> * Kevin Hilman <khilman@ti.com> [120214 14:28]:
+>>>> > Tony Lindgren <tony@atomide.com> writes:
+>>>> >
+>>>> > > * Tero Kristo <t-kristo@ti.com> [120214 08:19]:
+>>>> > >> Voltdm, pwrdm, clkdm, hwmod and clk usecounts are now separeted to
+>>>> > >> their own file, 'usecount'. This file shows the usecounts for every
+>>>> > >> active domain and their children recursively. 'count' file now only
+>>>> > >> shows power state counts for powerdomains.
+>>>> > >>
+>>>> > >> This patch also provices a way to do printk dumps from kernel code,
+>>>> > >> by calling the pm_dbg_dump_X functions. The plan is to call these
+>>>> > >> functions once an error condition is detected, e.g. failed suspend.
+>>>> > >
+>>>> > > Why don't you replace this all with a userspace tool that deciphers
+>>>> > > the registers for you?
+>>>> >
+>>>> > This patch isn't deciphering registers, it's just dumping usecounts, and
+>>>> > I think that is extremely useful to have in debugfs.
+>>>> >
+>>>> > I've already removed all the register dumping from the kernel in the
+>>>> > hopes that someone will write a userspace tool for that.
+>>>>
+>>>> OK good to hear you're already considering it.
+>>>
+>>> Yes, register dumps are gone, and I am actually one of the persons who
+>>> is missing it.
+>>>
+>>> I think there should still be some capability to get register snapshots
+>>> from certain points during kernel execution, this is useful for
+>>> debugging purposes. I don't know if it would be possible to do a
+>>> call_usermodehelper() or something from kernel space just before wfi to
+>>> read all (or part of) the PRCM registers, store them somewhere, and then
+>>> decipher this data later with another tool. Any comments to this?
+>>
+>> You should look into the omapconf tool (TI internal only currently)
+>>
+>> This tool already has the ability to use /dev/mem to read/decipher OMAP
+>> PM related registers.
+>>
+>> IMO, the one thing we're still missing is the ability to take register
+>> snapshots (like immediately before and after WFI) and somehow feed those
+>> to omapconf for deciphering.
+>>
+> Something like this perhaps?
+> https://github.com/nmenon/linux-omap-ti-pm/commit/3cd1994fc0df9a8e3e0be74ec3f3add3ff3aef95
 
-I'm not sure if it fully addresses this, but Tarun's series converts
-GPIO to runtime PM.
+Yes, although that is targetted pretty narrowly at suspend and only PRM
+registers.
 
-Can you try with Tarun's series.  See the for_3.4/gpio_cleanup_fixes_v9
-branch here:
-git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git
+Do you then use omapconf to display the results?
 
 Kevin
 
