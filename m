@@ -1,168 +1,102 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH 1/5] gpio/omap: Remove bank->id information and misc cleanup
-Date: Thu, 16 Feb 2012 11:23:47 +0530
-Message-ID: <CAC83ZvJuHpaBbGoysW7GwOHtqfi72EDhFYja2LE4NyBd+QgFWw@mail.gmail.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
-	<1329321854-24490-2-git-send-email-b-cousson@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 4/5] OMAPDSS: Export functions to enable dynamic linking
+Date: Thu, 16 Feb 2012 08:34:58 +0200
+Message-ID: <1329374098.2046.9.camel@lappy>
+References: <1329004530-28029-1-git-send-email-ricardo.neri@ti.com>
+	 <1329004530-28029-5-git-send-email-ricardo.neri@ti.com>
+	 <1329140906.2817.6.camel@deskari>
+	 <1329264022.2031.1570.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+	 <1329294205.1892.36.camel@deskari>
+	 <1329360397.2016.149.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-jQX+RrkiGmdkFIpmrBTl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:56884 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752639Ab2BPFxs convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 00:53:48 -0500
-Received: by mail-qw0-f47.google.com with SMTP id z30so4447269qad.6
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 21:53:47 -0800 (PST)
-In-Reply-To: <1329321854-24490-2-git-send-email-b-cousson@ti.com>
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40062 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753941Ab2BPGfU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 01:35:20 -0500
+Received: by mail-lpp01m010-f45.google.com with SMTP id i5so2664884lah.18
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 22:35:19 -0800 (PST)
+In-Reply-To: <1329360397.2016.149.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>
-Cc: grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org
+To: Ricardo Neri <ricardo.neri@ti.com>
+Cc: mythripk@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
 
-On Wed, Feb 15, 2012 at 9:34 PM, Benoit Cousson <b-cousson@ti.com> wrot=
-e:
-> The driver does not need anymore any id to identify the GPIO instance=
-=2E
-> Remove every occurence of the bank->id inside the driver.
->
-> Remove two trailing spaces.
-> Add a dev variable for better readability in probe.
-> Remove unused variable bank->pbase.
->
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Looks fine.
-If needed you can add my Acked-by:
---
-Tarun
 
-> ---
-> =A0drivers/gpio/gpio-omap.c | =A0 23 +++++++++--------------
-> =A01 files changed, 9 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index f49bd6f..a0c3e03 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -50,7 +50,6 @@ struct gpio_regs {
->
-> =A0struct gpio_bank {
-> =A0 =A0 =A0 =A0struct list_head node;
-> - =A0 =A0 =A0 unsigned long pbase;
-> =A0 =A0 =A0 =A0void __iomem *base;
-> =A0 =A0 =A0 =A0u16 irq;
-> =A0 =A0 =A0 =A0u16 virtual_irq_start;
-> @@ -77,7 +76,6 @@ struct gpio_bank {
-> =A0 =A0 =A0 =A0int stride;
-> =A0 =A0 =A0 =A0u32 width;
-> =A0 =A0 =A0 =A0int context_loss_count;
-> - =A0 =A0 =A0 u16 id;
-> =A0 =A0 =A0 =A0int power_mode;
-> =A0 =A0 =A0 =A0bool workaround_enabled;
->
-> @@ -155,7 +153,7 @@ static inline void _gpio_rmw(void __iomem *base, =
-u32 reg, u32 mask, bool set)
-> =A0{
-> =A0 =A0 =A0 =A0int l =3D __raw_readl(base + reg);
->
-> - =A0 =A0 =A0 if (set)
-> + =A0 =A0 =A0 if (set)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l |=3D mask;
-> =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l &=3D ~mask;
-> @@ -495,7 +493,7 @@ static int _set_gpio_wakeup(struct gpio_bank *ban=
-k, int gpio, int enable)
-> =A0 =A0 =A0 =A0unsigned long flags;
->
-> =A0 =A0 =A0 =A0if (bank->non_wakeup_gpios & gpio_bit) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(bank->dev,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"Unable to modify wake=
-up on non-wakeup GPIO%d\n", gpio);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
-> =A0 =A0 =A0 =A0}
-> @@ -1048,37 +1046,36 @@ static void __devinit omap_gpio_chip_init(str=
-uct gpio_bank *bank)
->
-> =A0static int __devinit omap_gpio_probe(struct platform_device *pdev)
-> =A0{
-> + =A0 =A0 =A0 struct device *dev =3D &pdev->dev;
-> =A0 =A0 =A0 =A0struct omap_gpio_platform_data *pdata;
-> =A0 =A0 =A0 =A0struct resource *res;
-> =A0 =A0 =A0 =A0struct gpio_bank *bank;
-> =A0 =A0 =A0 =A0int ret =3D 0;
->
-> - =A0 =A0 =A0 if (!pdev->dev.platform_data) {
-> + =A0 =A0 =A0 if (!dev->platform_data) {
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -EINVAL;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_exit;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0bank =3D kzalloc(sizeof(struct gpio_bank), GFP_KERNEL)=
-;
-> =A0 =A0 =A0 =A0if (!bank) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "Memory alloc faile=
-d for gpio_bank\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "Memory alloc failed\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -ENOMEM;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_exit;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0res =3D platform_get_resource(pdev, IORESOURCE_IRQ, 0)=
-;
-> =A0 =A0 =A0 =A0if (unlikely(!res)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "GPIO Bank %i Inval=
-id IRQ resource\n",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdev->i=
-d);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "Invalid IRQ resource\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -ENODEV;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_free;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0bank->irq =3D res->start;
-> - =A0 =A0 =A0 bank->id =3D pdev->id;
->
-> =A0 =A0 =A0 =A0pdata =3D pdev->dev.platform_data;
-> =A0 =A0 =A0 =A0bank->virtual_irq_start =3D pdata->virtual_irq_start;
-> - =A0 =A0 =A0 bank->dev =3D &pdev->dev;
-> + =A0 =A0 =A0 bank->dev =3D dev;
-> =A0 =A0 =A0 =A0bank->dbck_flag =3D pdata->dbck_flag;
-> =A0 =A0 =A0 =A0bank->stride =3D pdata->bank_stride;
-> =A0 =A0 =A0 =A0bank->width =3D pdata->bank_width;
-> @@ -1098,16 +1095,14 @@ static int __devinit omap_gpio_probe(struct p=
-latform_device *pdev)
-> =A0 =A0 =A0 =A0/* Static mapping, never released */
-> =A0 =A0 =A0 =A0res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0)=
-;
-> =A0 =A0 =A0 =A0if (unlikely(!res)) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "GPIO Bank %i Inval=
-id mem resource\n",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdev->i=
-d);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "Invalid mem resource\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -ENODEV;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_free;
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0bank->base =3D ioremap(res->start, resource_size(res))=
-;
-> =A0 =A0 =A0 =A0if (!bank->base) {
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&pdev->dev, "Could not ioremap =
-gpio bank%i\n",
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pdev->i=
-d);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "Could not ioremap\n");
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =3D -ENOMEM;
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_free;
-> =A0 =A0 =A0 =A0}
-> --
-> 1.7.0.4
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-jQX+RrkiGmdkFIpmrBTl
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, 2012-02-15 at 20:46 -0600, Ricardo Neri wrote:
+
+> What other display types featuring audio and video should be considered
+> at this point?
+
+I guess they are a bit theoretical, so I wouldn't worry too much about
+them. But if it's easy to make the API generic, instead of HDMI
+specific, let's aim for generic one just to be on the safe side.
+=20
+> > The audio driver should iterate the dss devices to find the ones (there
+> > could well be multiple HDMI outputs) that support audio when the driver
+> > starts.
+> >=20
+> > Does the above make sense?
+>=20
+> At first glance, I think the omapd_dss_audio_* functions should cover
+> the following:
+>  * CEA-861 infoframe configuration
+>  * IEC-60958 configuration (IEC-61937 support added later)
+>  * audio start/stop
+>  * whether audio is supported by the current video configuration
+>  * a notifier power and video events (e.g, DVI/HDMI mode, changes in
+> pixel clock and deep color configuration) to the ASoC driver. Maybe an
+> enum can encompass DisplayPort and HDMI events.
+
+Sounds fine to me (not that I understand anything about the audio side
+=3D). For notifications, I've long planned to implement notifications for
+omapdss/displays, mainly for hotplug but also other events. So I think
+we should try to make the notification system not audio-specific, but
+usable for other events also.
+
+As for the API, I don't think omap_dss_audio_* is the way to go. The
+audio functions should probably be function pointers in the
+omap_dss_driver struct.
+
+> I think that this is generic enough to cover DisplayPort and HDMI,
+> unless you consider that I am missing some important display type.
+>=20
+> I can try to make it similar to omapfb.
+
+Don't look too closely at omapfb, it's horribly ugly in many places =3D).
+
+ Tomi
+
+
+--=-jQX+RrkiGmdkFIpmrBTl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPPKOSAAoJEPo9qoy8lh71OXkP/0LVPYh+96v2pUrc/HVcWSHU
+Y0Dt6ocYf6sSWpWdfiM2iLXj9b2T3i0u/FhgRev0qzMkMi+FaBA2JDUQgzQMcM6N
+PI47HOn0QtZ/ogyCzNvcHIbmN9k5Rbpy9sS8xFSkDUSMtBYQlS6sXxSlmUC69A4q
+kmIIW/h/mT6/cBnD4qujcuFMHALlOfWojacwU56obJJ2L9FgZ9ZVOLKshc6caOE9
+giVRBk3hKyU/xZmiSwTqgM6+R5cwgIP2R11GBrTqwexsL/w/qX65vaRKZEs4ob9O
+o+PeWJJSy6NMUAE2bGE/hBeql0zCaTm3YpftkUZ1QIQRrTMWkQVVqyDqsHQgg/HL
+iAonIpjl3NT6GX1+W8OVKbRivpbJ6WHZcUoGPSHygLcwG1iwdDCLjQOjSWTIliOt
+lihPTvAgIwyMvdEXXcgZha1pvHHIpGrXVx5LFqU9UKWrA16pYZQ4GrjVcuI2zA27
+JXVXtwssJHbtKf9cyJF9EWyH+tcgJPGbfVlLOdbtaB2t1XlY5ytz8RdXI66fR9fk
+NpWy/JSLacW8b9A3+TQI7klrt/zWzP6vQ3w8U20et7ygjb28lCuYSIG5eX1Hn+EH
+bHQiSaaUgqdZ68UJVBwgQeY//ir3n2te8mMoJ+qAM6TpnKmK2CPm47N1o2HSO8lo
+bmhnSIA4Ck3KjcBuQvNn
+=ZjUs
+-----END PGP SIGNATURE-----
+
+--=-jQX+RrkiGmdkFIpmrBTl--
+
