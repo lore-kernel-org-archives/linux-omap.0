@@ -1,102 +1,101 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 4/5] OMAPDSS: Export functions to enable dynamic linking
-Date: Thu, 16 Feb 2012 08:34:58 +0200
-Message-ID: <1329374098.2046.9.camel@lappy>
-References: <1329004530-28029-1-git-send-email-ricardo.neri@ti.com>
-	 <1329004530-28029-5-git-send-email-ricardo.neri@ti.com>
-	 <1329140906.2817.6.camel@deskari>
-	 <1329264022.2031.1570.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
-	 <1329294205.1892.36.camel@deskari>
-	 <1329360397.2016.149.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH 2/5] gpio/omap: Use devm_ API and add request_mem_region
+Date: Wed, 15 Feb 2012 23:35:33 -0700
+Message-ID: <20120216063533.GA29232@ponder.secretlab.ca>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+ <1329321854-24490-3-git-send-email-b-cousson@ti.com>
+ <CAC83ZvKuOkLKdAVNeoVjRZriouDCGPXPhkZZ+MgcktH+9pYN3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-jQX+RrkiGmdkFIpmrBTl"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:40062 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753941Ab2BPGfU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 01:35:20 -0500
-Received: by mail-lpp01m010-f45.google.com with SMTP id i5so2664884lah.18
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 22:35:19 -0800 (PST)
-In-Reply-To: <1329360397.2016.149.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:65022 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757183Ab2BPGff (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2012 01:35:35 -0500
+Received: by iacb35 with SMTP id b35so2501393iac.19
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 22:35:35 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <CAC83ZvKuOkLKdAVNeoVjRZriouDCGPXPhkZZ+MgcktH+9pYN3w@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ricardo Neri <ricardo.neri@ti.com>
-Cc: mythripk@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org
 
-
---=-jQX+RrkiGmdkFIpmrBTl
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2012-02-15 at 20:46 -0600, Ricardo Neri wrote:
-
-> What other display types featuring audio and video should be considered
-> at this point?
-
-I guess they are a bit theoretical, so I wouldn't worry too much about
-them. But if it's easy to make the API generic, instead of HDMI
-specific, let's aim for generic one just to be on the safe side.
-=20
-> > The audio driver should iterate the dss devices to find the ones (there
-> > could well be multiple HDMI outputs) that support audio when the driver
-> > starts.
-> >=20
-> > Does the above make sense?
+On Thu, Feb 16, 2012 at 11:11:52AM +0530, DebBarma, Tarun Kanti wrote:
+> Hi Benoit,
 >=20
-> At first glance, I think the omapd_dss_audio_* functions should cover
-> the following:
->  * CEA-861 infoframe configuration
->  * IEC-60958 configuration (IEC-61937 support added later)
->  * audio start/stop
->  * whether audio is supported by the current video configuration
->  * a notifier power and video events (e.g, DVI/HDMI mode, changes in
-> pixel clock and deep color configuration) to the ASoC driver. Maybe an
-> enum can encompass DisplayPort and HDMI events.
+> On Wed, Feb 15, 2012 at 9:34 PM, Benoit Cousson <b-cousson@ti.com> wr=
+ote:
+> > Replace the regular kzalloc and ioremap with the devm_ equivalent
+> > to simplify error handling.
+> >
+> > Add the missing devm_request_mem_region to reserve the region used
+> > by the driver.
+> >
+> > Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> > ---
+> > =A0drivers/gpio/gpio-omap.c | =A0 35 +++++++++++++++---------------=
+-----
+> > =A01 files changed, 15 insertions(+), 20 deletions(-)
+> >
+> > diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> > index a0c3e03..c3a9dc8 100644
+> > --- a/drivers/gpio/gpio-omap.c
+> > +++ b/drivers/gpio/gpio-omap.c
+> > @@ -19,7 +19,7 @@
+> > =A0#include <linux/err.h>
+> > =A0#include <linux/clk.h>
+> > =A0#include <linux/io.h>
+> > -#include <linux/slab.h>
+> > +#include <linux/device.h>
+> > =A0#include <linux/pm_runtime.h>
+> > =A0#include <linux/pm.h>
+> >
+> > @@ -1052,23 +1052,19 @@ static int __devinit omap_gpio_probe(struct=
+ platform_device *pdev)
+> > =A0 =A0 =A0 =A0struct gpio_bank *bank;
+> > =A0 =A0 =A0 =A0int ret =3D 0;
+> >
+> > - =A0 =A0 =A0 if (!dev->platform_data) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_exit;
+> > - =A0 =A0 =A0 }
+> > + =A0 =A0 =A0 if (!dev->platform_data)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+> >
+> > - =A0 =A0 =A0 bank =3D kzalloc(sizeof(struct gpio_bank), GFP_KERNEL=
+);
+> > + =A0 =A0 =A0 bank =3D devm_kzalloc(&pdev->dev, sizeof(struct gpio_=
+bank), GFP_KERNEL);
+> > =A0 =A0 =A0 =A0if (!bank) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev, "Memory alloc failed\n"=
+);
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_exit;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+> > =A0 =A0 =A0 =A0}
+> >
+> > =A0 =A0 =A0 =A0res =3D platform_get_resource(pdev, IORESOURCE_IRQ, =
+0);
+> > =A0 =A0 =A0 =A0if (unlikely(!res)) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev, "Invalid IRQ resource\n=
+");
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+> How is the memory allocated to 'bank' getting freed before return -EN=
+ODEV?
 
-Sounds fine to me (not that I understand anything about the audio side
-=3D). For notifications, I've long planned to implement notifications for
-omapdss/displays, mainly for hotplug but also other events. So I think
-we should try to make the notification system not audio-specific, but
-usable for other events also.
+The magic of devm_*() functions.  Anything allocated by those functions=
+ is
+automatically freed on either probe failure or driver removal.
 
-As for the API, I don't think omap_dss_audio_* is the way to go. The
-audio functions should probably be function pointers in the
-omap_dss_driver struct.
+g.
 
-> I think that this is generic enough to cover DisplayPort and HDMI,
-> unless you consider that I am missing some important display type.
->=20
-> I can try to make it similar to omapfb.
-
-Don't look too closely at omapfb, it's horribly ugly in many places =3D).
-
- Tomi
-
-
---=-jQX+RrkiGmdkFIpmrBTl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPPKOSAAoJEPo9qoy8lh71OXkP/0LVPYh+96v2pUrc/HVcWSHU
-Y0Dt6ocYf6sSWpWdfiM2iLXj9b2T3i0u/FhgRev0qzMkMi+FaBA2JDUQgzQMcM6N
-PI47HOn0QtZ/ogyCzNvcHIbmN9k5Rbpy9sS8xFSkDUSMtBYQlS6sXxSlmUC69A4q
-kmIIW/h/mT6/cBnD4qujcuFMHALlOfWojacwU56obJJ2L9FgZ9ZVOLKshc6caOE9
-giVRBk3hKyU/xZmiSwTqgM6+R5cwgIP2R11GBrTqwexsL/w/qX65vaRKZEs4ob9O
-o+PeWJJSy6NMUAE2bGE/hBeql0zCaTm3YpftkUZ1QIQRrTMWkQVVqyDqsHQgg/HL
-iAonIpjl3NT6GX1+W8OVKbRivpbJ6WHZcUoGPSHygLcwG1iwdDCLjQOjSWTIliOt
-lihPTvAgIwyMvdEXXcgZha1pvHHIpGrXVx5LFqU9UKWrA16pYZQ4GrjVcuI2zA27
-JXVXtwssJHbtKf9cyJF9EWyH+tcgJPGbfVlLOdbtaB2t1XlY5ytz8RdXI66fR9fk
-NpWy/JSLacW8b9A3+TQI7klrt/zWzP6vQ3w8U20et7ygjb28lCuYSIG5eX1Hn+EH
-bHQiSaaUgqdZ68UJVBwgQeY//ir3n2te8mMoJ+qAM6TpnKmK2CPm47N1o2HSO8lo
-bmhnSIA4Ck3KjcBuQvNn
-=ZjUs
------END PGP SIGNATURE-----
-
---=-jQX+RrkiGmdkFIpmrBTl--
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
