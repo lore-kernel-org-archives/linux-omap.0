@@ -1,134 +1,95 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HDMI: Add M2 divider while calculating
- clkout
-Date: Thu, 16 Feb 2012 09:12:43 +0200
-Message-ID: <1329376363.2046.12.camel@lappy>
-References: <1329285034-16121-1-git-send-email-mythripk@ti.com>
-	 <1329291660.1892.9.camel@deskari>
-	 <CAP5A+B9cuUsAnVSgt4G3Hue2Kns2+es8bW-8zHo2tLB9Kg-O=g@mail.gmail.com>
-	 <1329317541.1892.95.camel@deskari>
-	 <CAP5A+B_4DwXgx=q3Eem5spsoR6=tPzCQBaBu2mEVQd7zWTTNeA@mail.gmail.com>
+From: Luciano Coelho <coelho@ti.com>
+Subject: Re: OMAP34xx
+Date: Thu, 16 Feb 2012 09:52:19 +0200
+Message-ID: <1329378739.5686.22.camel@cumari>
+References: <20120208231551.GA9009@kroah.com>
+	 <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
+	 <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com>
+	 <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
+	 <1329343056.5686.6.camel@cumari> <87ehtvlkjf.fsf@ti.com>
+	 <4F3C4A0E.1000707@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-4o1Vne7N98dvfmP+L2S+"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:35800 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757359Ab2BPHMs (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:33793 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752278Ab2BPHw1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 02:12:48 -0500
-Received: by mail-lpp01m010-f52.google.com with SMTP id y4so1892586lag.25
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 23:12:46 -0800 (PST)
-In-Reply-To: <CAP5A+B_4DwXgx=q3Eem5spsoR6=tPzCQBaBu2mEVQd7zWTTNeA@mail.gmail.com>
+	Thu, 16 Feb 2012 02:52:27 -0500
+Received: by lahc1 with SMTP id c1so2199063lah.20
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 23:52:24 -0800 (PST)
+In-Reply-To: <4F3C4A0E.1000707@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Kevin Hilman <khilman@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
+Hi Kevin,
 
---=-4o1Vne7N98dvfmP+L2S+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2012-02-16 at 12:12 +0530, K, Mythri P wrote:
-> Hi Tomi,
->=20
-> On Wed, Feb 15, 2012 at 8:22 PM, Tomi Valkeinen <tomi.valkeinen@ti.com> w=
-rote:
-> > On Wed, 2012-02-15 at 14:55 +0530, K, Mythri P wrote:
-> >> Hi,
+On Wed, 2012-02-15 at 16:13 -0800, Kevin Hilman wrote: 
+> On 02/15/2012 03:54 PM, Kevin Hilman wrote:
+> > Luciano Coelho<coelho@ti.com>  writes:
+> >
+> > [...]
+> >
+> >> I just tried this on my Panda and I keep getting this kind of BUGs.  It
+> >> spams my console so much that is pretty much unusable:
 > >>
-> >> On Wed, Feb 15, 2012 at 1:11 PM, Tomi Valkeinen <tomi.valkeinen@ti.com=
-> wrote:
-> >> > On Wed, 2012-02-15 at 11:20 +0530, mythripk@ti.com wrote:
-> >> >> From: Mythri P K <mythripk@ti.com>
-> >> >>
-> >> >> Add M2 divider in the equation to calculate regm and regmf.
-> >> >> Formula for calculating:
-> >> >> Output clock on digital core domain:
-> >> >>       CLKOUT =3D (M / (N+1))*CLKINP*(1/M2)
-> >> >> Internal oscillator output clock on internal LDO domain:
-> >> >>       CLKDCOLDO =3D (M / (N+1))*CLKINP
-> >> >> The current code when allows variable M2 values as input
-> >> >> ignores using M2 divider values in calculation of regm and regmf.
-> >> >> so fix it by using M2 in calculation although the default value for
-> >> >> M2 is 1.
-> >> >>
-> >> >> Signed-off-by: Mythri P K <mythripk@ti.com>
-> >> >> ---
-> >> >>  drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
-> >> >>  1 files changed, 8 insertions(+), 8 deletions(-)
-> >> >>
-> >> >> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/d=
-ss/hdmi.c
-> >> >> index 92a6679..9185630 100644
-> >> >> --- a/drivers/video/omap2/dss/hdmi.c
-> >> >> +++ b/drivers/video/omap2/dss/hdmi.c
-> >> >> @@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_=
-device *dssdev, int phy,
-> >> >>
-> >> >>       refclk =3D clkin / pi->regn;
-> >> >>
-> >> >> -     /*
-> >> >> -      * multiplier is pixel_clk/ref_clk
-> >> >> -      * Multiplying by 100 to avoid fractional part removal
-> >> >> -      */
-> >> >> -     pi->regm =3D (phy * 100 / (refclk)) / 100;
-> >> >> -
-> >> >>       if (dssdev->clocks.hdmi.regm2 =3D=3D 0)
-> >> >>               pi->regm2 =3D HDMI_DEFAULT_REGM2;
-> >> >>       else
-> >> >>               pi->regm2 =3D dssdev->clocks.hdmi.regm2;
-> >> >>
-> >> >>       /*
-> >> >> +      * multiplier is pixel_clk/ref_clk
-> >> >> +      * Multiplying by 100 to avoid fractional part removal
-> >> >> +      */
-> >> >> +     pi->regm =3D (phy * 100 * pi->regm2 / (refclk)) / 100;
-> >> >
-> >> > No need for parenthesis around refclk.
-> >> Well this is just a copy of old code will change.
+> >> [  336.172302] BUG: sleeping function called from invalid context at include/linux/freezer.h:46
+> >> [  336.181213] in_atomic(): 0, irqs_disabled(): 128, pid: 1618, name: ntpd
+> >> [  336.181213] INFO: lockdep is turned off.
+> >> [  336.181213] irq event stamp: 0
+> >> [  336.181213] hardirqs last  enabled at (0): [<   (null)>]   (null)
+> >> [  336.201660] hardirqs last disabled at (0): [<c0042314>] copy_process+0x3ec/0x105c
+> >> [  336.209625] softirqs last  enabled at (0): [<c0042314>] copy_process+0x3ec/0x105c
+> >> [  336.217498] softirqs last disabled at (0): [<   (null)>]   (null)
+> >> [  336.217498] [<c001e1e4>] (unwind_backtrace+0x0/0x148) from [<c0502c24>] (dump_stack+0x20/0x24)
+> >> [  336.232879] [<c0502c24>] (dump_stack+0x20/0x24) from [<c0077998>] (__might_sleep+0x130/0x134)
+> >> [  336.232879] [<c0077998>] (__might_sleep+0x130/0x134) from [<c0018998>] (do_signal+0x54/0x600)
+> >> [  336.250793] [<c0018998>] (do_signal+0x54/0x600) from [<c0018fa4>] (do_notify_resume+0x60/0x6c)
+> >> [  336.250793] [<c0018fa4>] (do_notify_resume+0x60/0x6c) from [<c00154e4>] (work_pending+0x24/0x28)
+> >>
+> >> I have also seen this in 3.3-rc3 (both on Panda (OMAP4460) and on Blaze
+> >> (OMAP4430) boards) and I was hoping your tree would have the fix for it,
+> >> but it doesn't. :( The device boots and seems to work otherwise, but
+> >> this is annoying and looks shaky.
+> >>
+> >> I saw something related to this in another thread from a few months ago,
+> >> and one patch proposal by Russell, but I didn't find any conclusion or
+> >> any related patch queued up for upstream.
+> >>
+> >> Is there any solution for this? I use a tuned .config (attached) and not
+> >> the one generated by omap2plus_defconfig (which I didn't try as
+> >> vanilla).
 > >
-> > The multiplication and division with 100 is actually extra also, they
-> > don't bring any precision here.
-> >
-> Well this is actually done to accommodate the pixel clock, For some
-> pixel clock like 25175 for VGA VESA
-> there is slight change which is detected by the analyzer so it is
-> added for that reason.
+> > I see the same thing with your ~/.config, but I don't think this is OMAP
+> > specific.  I suspect this will happen on any ARM platform that  has
+> > CONFIG_DEBUG_ATOMIC_SLEEP=y.
 
-These two will always return the same value, so I don't think the
-analyzer has detected that:
-
-(phy * 100 * pi->regm2 / (refclk)) / 100
-
-phy * pi->regm2 / refclk
-
- Tomi
+Right.  I always use CONFIG_DEBUG_ATOMIC_SLEEP.  And yes, according to
+what I had seen, this was an ARM issue not only OMAP.
 
 
---=-4o1Vne7N98dvfmP+L2S+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> > It appears to be a problem with the recently added audit support for
+> > ARM, since reverting the commit below makes this BUG go away.
+> 
+> False alarm.  reverting the audit commit didn't make the problem go 
+> away.  It was gone only because I also disabled 
+> CONFIG_DEBUG_ATOMIC_SLEEP.  :/
+> 
+> To debug this further, you might bisect it back to v3.2 because the 
+> problem isn't there in v3.2
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+When I was looking a bit further, I found this patch: a0acae0e "freezer:
+unexport refrigerator() and update try_to_freeze() slightly", which
+seems to be the one introducing the bug.  It's quite far back and quite
+large, so reverting it is not that easy.
 
-iQIcBAABAgAGBQJPPKxrAAoJEPo9qoy8lh71NpIQAKQdW8cILOuKUGguXWR8/fX8
-Y1fAwSm528es6tlaVZcfbUCANDw2Q4ZBUZTHdhLOcPlhKUThgnEzTKe7b5nQ02ML
-JYgmG2owEuFt15EgkHNl+Bd0IZfbw4YQnSiAo5SubjkH+Y9lmxeLB600P/vdJFsy
-drJeKJzsBnkqqmaOT3jbNL2IDMPqzZfbUdLN4nxAdkOqm8ou0X/I5+orFAhLIaKH
-GvIvL2iJO9x6S4j7bipgd7Zuo8RmwMYwf2UActomF3rwm4ceJOk/p8euyXjilcCN
-KuIsQOOQ+XQI/PMz/495vVrCDVwNBFnd2aU9BTVdbL8+eYjgqsjLWhAK8WuIryc2
-3wKOYiiM8AFjmpPJg4TDVvvNUHGoOuEd7+kGcZkCv6opr539BLW9NHLfgvV2UbSp
-J6XwAkxqabloO7IKjRnJfgbitsLoHSZWeGdLGPpzvr4vMtv3069b43JSXDefRXWs
-CNi/CyeSDCi2WGw/T2oQv4cjdCS5h/MoNnCKo4rfjQb3E4VpgXVVN/4wfZOU/Ju2
-Qn3RstyAwIRvIwkqSuzAEemPcjN/lMO7kcjSqVRVubCIZeTuZtm21bK0Fwi+gJqv
-YHqaLxWdPIiLJWM5erh093f1+9H6ghlz+op0ab55iEE/N+1fdMxzGqiDFG3q8Tx1
-aZq6/bt7iB5twAZ7iZ7x
-=N58R
------END PGP SIGNATURE-----
+I may try to do some bisecting later today, but I'm not sure I'll have
+the time.
 
---=-4o1Vne7N98dvfmP+L2S+--
+-- 
+Cheers,
+Luca.
 
