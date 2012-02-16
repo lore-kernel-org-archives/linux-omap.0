@@ -1,112 +1,76 @@
-From: Luciano Coelho <coelho@ti.com>
-Subject: Re: OMAP34xx
-Date: Thu, 16 Feb 2012 09:56:29 +0200
-Message-ID: <1329378989.5686.27.camel@cumari>
-References: <20120208231551.GA9009@kroah.com>
-	 <alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
-	 <20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com>
-	 <20120209133739.GB2590@sirena.org.uk> <20120209183624.GJ1426@atomide.com>
-	 <1329343056.5686.6.camel@cumari> <87ehtvlkjf.fsf@ti.com>
-	 <4F3C4A0E.1000707@deeprootsystems.com>
-	 <20120216112514.13202562@notabene.brown> <8739abk1m9.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
+ idle when HDMI is enabled
+Date: Thu, 16 Feb 2012 10:22:16 +0200
+Message-ID: <1329380536.1951.26.camel@deskari>
+References: <1328854552-30714-1-git-send-email-archit@ti.com>
+	 <1329220678.1845.68.camel@deskari> <4F3A5A5D.4020906@ti.com>
+	 <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>
+	 <4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com> <4F3BA6A2.60604@ti.com>
+	 <1329310317.1892.60.camel@deskari> <4F3BAD41.1020102@ti.com>
+	 <87fweb98bs.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-MHddRiR3joeUlP8cq8H9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58855 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752009Ab2BPH4g (ORCPT
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:33325 "HELO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753538Ab2BPIWU (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 02:56:36 -0500
-Received: by lagy4 with SMTP id y4so3319243lag.39
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 23:56:33 -0800 (PST)
-In-Reply-To: <8739abk1m9.fsf@ti.com>
+	Thu, 16 Feb 2012 03:22:20 -0500
+In-Reply-To: <87fweb98bs.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: NeilBrown <neilb@suse.de>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
 
-On Wed, 2012-02-15 at 17:28 -0800, Kevin Hilman wrote: 
-> NeilBrown <neilb@suse.de> writes:
-> 
-> > On Wed, 15 Feb 2012 16:13:02 -0800 Kevin Hilman <khilman@deeprootsystems.com>
-> > wrote:
-> >
-> >> On 02/15/2012 03:54 PM, Kevin Hilman wrote:
-> >> > Luciano Coelho<coelho@ti.com>  writes:
-> >> >
-> >> > [...]
-> >> >
-> >> >> I just tried this on my Panda and I keep getting this kind of BUGs.  It
-> >> >> spams my console so much that is pretty much unusable:
-> >> >>
-> >> >> [  336.172302] BUG: sleeping function called from invalid context at include/linux/freezer.h:46
-> >> >> [  336.181213] in_atomic(): 0, irqs_disabled(): 128, pid: 1618, name: ntpd
-> >> >> [  336.181213] INFO: lockdep is turned off.
-> >> >> [  336.181213] irq event stamp: 0
-> >> >> [  336.181213] hardirqs last  enabled at (0): [<   (null)>]   (null)
-> >> >> [  336.201660] hardirqs last disabled at (0): [<c0042314>] copy_process+0x3ec/0x105c
-> >> >> [  336.209625] softirqs last  enabled at (0): [<c0042314>] copy_process+0x3ec/0x105c
-> >> >> [  336.217498] softirqs last disabled at (0): [<   (null)>]   (null)
-> >> >> [  336.217498] [<c001e1e4>] (unwind_backtrace+0x0/0x148) from [<c0502c24>] (dump_stack+0x20/0x24)
-> >> >> [  336.232879] [<c0502c24>] (dump_stack+0x20/0x24) from [<c0077998>] (__might_sleep+0x130/0x134)
-> >> >> [  336.232879] [<c0077998>] (__might_sleep+0x130/0x134) from [<c0018998>] (do_signal+0x54/0x600)
-> >> >> [  336.250793] [<c0018998>] (do_signal+0x54/0x600) from [<c0018fa4>] (do_notify_resume+0x60/0x6c)
-> >> >> [  336.250793] [<c0018fa4>] (do_notify_resume+0x60/0x6c) from [<c00154e4>] (work_pending+0x24/0x28)
-> >> >>
-> >> >> I have also seen this in 3.3-rc3 (both on Panda (OMAP4460) and on Blaze
-> >> >> (OMAP4430) boards) and I was hoping your tree would have the fix for it,
-> >> >> but it doesn't. :( The device boots and seems to work otherwise, but
-> >> >> this is annoying and looks shaky.
-> >> >>
-> >> >> I saw something related to this in another thread from a few months ago,
-> >> >> and one patch proposal by Russell, but I didn't find any conclusion or
-> >> >> any related patch queued up for upstream.
-> >> >>
-> >> >> Is there any solution for this? I use a tuned .config (attached) and not
-> >> >> the one generated by omap2plus_defconfig (which I didn't try as
-> >> >> vanilla).
-> >> >
-> >> > I see the same thing with your ~/.config, but I don't think this is OMAP
-> >> > specific.  I suspect this will happen on any ARM platform that  has
-> >> > CONFIG_DEBUG_ATOMIC_SLEEP=y.
-> >> >
-> >> > It appears to be a problem with the recently added audit support for
-> >> > ARM, since reverting the commit below makes this BUG go away.
-> >> 
-> >> False alarm.  reverting the audit commit didn't make the problem go 
-> >> away.  It was gone only because I also disabled 
-> >> CONFIG_DEBUG_ATOMIC_SLEEP.  :/
-> >> 
-> >> To debug this further, you might bisect it back to v3.2 because the 
-> >> problem isn't there in v3.2
-> >
-> > I "fixed" this by applying
-> >
-> >    https://lkml.org/lkml/2011/8/25/231
-> >
-> > as shown here:
-> >
-> > http://neil.brown.name/git?p=gta04;a=commitdiff;h=b43a97aefed9990811ed95676db58538f7279eb6
-> >
-> > because google found some email that suggested it.  It worked but I didn't
-> > even try to understand the patch.
-> 
-> Great, thanks for the pointer.
 
-I had found this patch also when I searched the list.  That's what I
-meant by "one patch proposal by Russell", but it was back in August and
-the patch doesn't seem to have been ever applied.  The discussion also
-seemed to end abruptly, so my assumption was that no conclusion has been
-really reached.
+--=-MHddRiR3joeUlP8cq8H9
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Instead of applying that, I have simply removed the might_sleep() call
-in the try_to_freeze() function.  This definitely doesn't solve the
-problem, but at least my console doesn't get spammed and it's better
-than disabling CONFIG_DEBUG_ATOMIC_SLEEP, because at least I still catch
-other sleeps while atomic. ;)
+On Wed, 2012-02-15 at 11:59 -0800, Kevin Hilman wrote:
+> "Cousson, Benoit" <b-cousson@ti.com> writes:
 
--- 
-Cheers,
-Luca.
+> > Kevin,
+> >
+> > Do we still need to set the dev.parent to omap_device_parent?
+>=20
+> Nope.
+>=20
+> > I guess the default &platform_bus parent is good enough and
+> > potentially the DSS children should be able to overwrite that.
+>=20
+> Yes, now that we use PM domains, we don't need it.  I just sent a patch
+> to remove omap_device_parent.
+
+But it's still not possible to create a custom parent-child hierarchy
+with omap_devices. Or can I change the parent of a platform_device after
+it has been created? (doesn't sound very clean even if I can)
+
+ Tomi
+
+
+--=-MHddRiR3joeUlP8cq8H9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPPLy3AAoJEPo9qoy8lh71vDgP/0JGgMhxR45p+rfjnJkMgdIF
+rZLLIpJ6igsqXcAUbsWzR7JyrNDsJ1GazoI9Q1z7AarGPTkMxcyzO2Gf/LMkCx2+
+G9Lq5+txd7I1D2OyW0NpXOWd14uuD2YsZ2aYVtAQYMTPMWtLL3Hd0DMVtWguHYpM
+ZWEmEn94yNSyMaTcHNo8Wh9ZTX7HpqBI+f8Wr9ehBz+1FUtgZf+CDMmx77oyWj8n
+7JJpaP/4YPGONO2Hetl8jaRiphReSmRPH1XZBGO4jyc54ugKDc5fnB9ts/NzZ+nl
+hnSKOVMEVrfBqQEcouwJ4vg867kbs5uQG7+qPU8j/FRDvf/MuR/km0qjdOpy38FO
+q0EfOMtPpUyyzrzNfDpjCxv1zs3s58T/tiCS9hj1VKjPxnW9+N+2T/FFJOkO+Adi
+R9qXgvEw8cCwS3G+zUiIkYkCdP8UWpL7VglDxactRYBF74Y3K6q6zx9gHs5Tym3L
+wuQCSwQy8WvBCowCQQ2cRpfIHfx6B+dryXbvArL9nOqwapjdGFXjjj14LRqFCxWQ
+Jcug7JU+EHg5ciotJMXEUy0CV616K/6CsVR9PJf3DgAo0cIU6uWfjdEb5SupvL5j
+hD36JExVVIQ0+1FZpaQIDvBFZb5jON/PV7b58O6E4I3iyNicSWom8f4qRTZcfdbm
+jtYnRLqMQdSOh0blruq1
+=bCMb
+-----END PGP SIGNATURE-----
+
+--=-MHddRiR3joeUlP8cq8H9--
 
