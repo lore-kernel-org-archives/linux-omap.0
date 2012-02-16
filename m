@@ -1,76 +1,47 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
- idle when HDMI is enabled
-Date: Thu, 16 Feb 2012 10:22:16 +0200
-Message-ID: <1329380536.1951.26.camel@deskari>
-References: <1328854552-30714-1-git-send-email-archit@ti.com>
-	 <1329220678.1845.68.camel@deskari> <4F3A5A5D.4020906@ti.com>
-	 <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>
-	 <4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com> <4F3BA6A2.60604@ti.com>
-	 <1329310317.1892.60.camel@deskari> <4F3BAD41.1020102@ti.com>
-	 <87fweb98bs.fsf@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 7/8] arm: omap: clockdomain: add support for
+ preventing domain transitions
+Date: Thu, 16 Feb 2012 10:39:09 +0200
+Message-ID: <1329381549.4102.381.camel@sokoban>
+References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
+	 <1329320274-481-8-git-send-email-t-kristo@ti.com>  <87vcn799g8.fsf@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-MHddRiR3joeUlP8cq8H9"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:33325 "HELO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753538Ab2BPIWU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 03:22:20 -0500
-In-Reply-To: <87fweb98bs.fsf@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47716 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754878Ab2BPIjX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 03:39:23 -0500
+In-Reply-To: <87vcn799g8.fsf@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@ti.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-
---=-MHddRiR3joeUlP8cq8H9
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, 2012-02-15 at 11:59 -0800, Kevin Hilman wrote:
-> "Cousson, Benoit" <b-cousson@ti.com> writes:
-
-> > Kevin,
+On Wed, 2012-02-15 at 11:35 -0800, Kevin Hilman wrote:
+> Tero Kristo <t-kristo@ti.com> writes:
+> 
+> > Some clockdomains can't support manual domain transitions triggered by
+> > clock framework, and must be prevented from doing so. Added clkdm flag
+> > CLKDM_NO_MANUAL_TRANS for doing this.
 > >
-> > Do we still need to set the dev.parent to omap_device_parent?
->=20
-> Nope.
->=20
-> > I guess the default &platform_bus parent is good enough and
-> > potentially the DSS children should be able to overwrite that.
->=20
-> Yes, now that we use PM domains, we don't need it.  I just sent a patch
-> to remove omap_device_parent.
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> 
+> Dumb Q: what's the difference between this new flag and CLKDM_CAN_SWSUP?
 
-But it's still not possible to create a custom parent-child hierarchy
-with omap_devices. Or can I change the parent of a platform_device after
-it has been created? (doesn't sound very clean even if I can)
+CAN_SWSUP controls software wakeup / sleep (clktrctrl values 1 and 2),
+but it still allows hwsup based transitions during runtime (basically
+using values 0 & 3 for the same register.) NO_MANUAL_TRANS prevents
+both, but still allows hwauto mode being enabled in the first place.
 
- Tomi
+I was thinking about adding a flag for preventing the autodep disabling
+as this was the root cause for the problem I saw, but I wanted to
+optimize the _clkdm_clk_hwmod_enable/disable for this case, as the
+domain is not going through any transitions.
 
-
---=-MHddRiR3joeUlP8cq8H9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPPLy3AAoJEPo9qoy8lh71vDgP/0JGgMhxR45p+rfjnJkMgdIF
-rZLLIpJ6igsqXcAUbsWzR7JyrNDsJ1GazoI9Q1z7AarGPTkMxcyzO2Gf/LMkCx2+
-G9Lq5+txd7I1D2OyW0NpXOWd14uuD2YsZ2aYVtAQYMTPMWtLL3Hd0DMVtWguHYpM
-ZWEmEn94yNSyMaTcHNo8Wh9ZTX7HpqBI+f8Wr9ehBz+1FUtgZf+CDMmx77oyWj8n
-7JJpaP/4YPGONO2Hetl8jaRiphReSmRPH1XZBGO4jyc54ugKDc5fnB9ts/NzZ+nl
-hnSKOVMEVrfBqQEcouwJ4vg867kbs5uQG7+qPU8j/FRDvf/MuR/km0qjdOpy38FO
-q0EfOMtPpUyyzrzNfDpjCxv1zs3s58T/tiCS9hj1VKjPxnW9+N+2T/FFJOkO+Adi
-R9qXgvEw8cCwS3G+zUiIkYkCdP8UWpL7VglDxactRYBF74Y3K6q6zx9gHs5Tym3L
-wuQCSwQy8WvBCowCQQ2cRpfIHfx6B+dryXbvArL9nOqwapjdGFXjjj14LRqFCxWQ
-Jcug7JU+EHg5ciotJMXEUy0CV616K/6CsVR9PJf3DgAo0cIU6uWfjdEb5SupvL5j
-hD36JExVVIQ0+1FZpaQIDvBFZb5jON/PV7b58O6E4I3iyNicSWom8f4qRTZcfdbm
-jtYnRLqMQdSOh0blruq1
-=bCMb
------END PGP SIGNATURE-----
-
---=-MHddRiR3joeUlP8cq8H9--
+-Tero
 
