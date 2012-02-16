@@ -1,91 +1,42 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv9 1/5] TEMP: arm: OMAP3: beagle rev-c4: enable OPP6
-Date: Thu, 16 Feb 2012 12:27:49 +0200
-Message-ID: <1329388073-17879-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv9 2/5] arm: omap3: voltage: fix channel configuration
+Date: Thu, 16 Feb 2012 12:27:50 +0200
+Message-ID: <1329388073-17879-3-git-send-email-t-kristo@ti.com>
 References: <1329388073-17879-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48958 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753290Ab2BPK2t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2012 05:28:49 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:49411 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753315Ab2BPK2v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 05:28:51 -0500
 In-Reply-To: <1329388073-17879-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
+OMAP3 uses the default settings for VDD1 channel, otherwise the settings will
+overlap with VDD2 and attempting to modify VDD1 voltage will actually change
+VDD2 voltage.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   29 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c      |    4 ++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/vc3xxx_data.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7ffcd28..97678e5 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -484,6 +484,35 @@ static void __init beagle_opp_init(void)
- 		return;
- 	}
- 
-+	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
-+		struct device *mpu_dev, *iva_dev;
-+
-+		mpu_dev = omap_device_get_by_hwmod_name("mpu");
-+		iva_dev = omap_device_get_by_hwmod_name("iva");
-+
-+		if (!mpu_dev || !iva_dev) {
-+			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-+				__func__, mpu_dev, iva_dev);
-+			return;
-+		}
-+		/* Enable MPU 720MHz opp */
-+		r = opp_enable(mpu_dev, 720000000);
-+
-+		/* Enable IVA 520MHz opp */
-+		r |= opp_enable(iva_dev, 520000000);
-+
-+		if (r) {
-+			pr_err("%s: failed to enable higher opp %d\n",
-+				__func__, r);
-+			/*
-+			 * Cleanup - disable the higher freqs - we dont care
-+			 * about the results
-+			 */
-+			opp_disable(mpu_dev, 720000000);
-+			opp_disable(iva_dev, 520000000);
-+		}
-+	}
-+
- 	/* Custom OPP enabled for all xM versions */
- 	if (cpu_is_omap3630()) {
- 		struct device *mpu_dev, *iva_dev;
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..a0f5fe1 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* MPU OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
- 
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* DSP OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
+diff --git a/arch/arm/mach-omap2/vc3xxx_data.c b/arch/arm/mach-omap2/vc3xxx_data.c
+index a5ec7f8f..5d8eaf3 100644
+--- a/arch/arm/mach-omap2/vc3xxx_data.c
++++ b/arch/arm/mach-omap2/vc3xxx_data.c
+@@ -46,6 +46,7 @@ static struct omap_vc_common omap3_vc_common = {
  };
  
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
+ struct omap_vc_channel omap3_vc_mpu = {
++	.flags = OMAP_VC_CHANNEL_DEFAULT,
+ 	.common = &omap3_vc_common,
+ 	.smps_sa_reg	 = OMAP3_PRM_VC_SMPS_SA_OFFSET,
+ 	.smps_volra_reg	 = OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET,
 -- 
 1.7.4.1
 
