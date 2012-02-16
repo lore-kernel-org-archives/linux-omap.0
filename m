@@ -1,105 +1,100 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH v2] i2c: fix missing handling of errata I2C_OMAP3_1P153
-Date: Thu, 16 Feb 2012 17:06:07 +0530
-Message-ID: <CAM=Q2cvQeAcS3drwKAZxV0=FjmmJQFADQgpt0uk66jK_EPxOmA@mail.gmail.com>
-References: <1328538811-13097-1-git-send-email-tasskjapp@gmail.com>
-	<1329213583-20839-1-git-send-email-tasskjapp@gmail.com>
-	<4F3A345B.2060308@gmail.com>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [RFC PATCH 6/8] misc: emif: add interrupt and temperature handling
+Date: Thu, 16 Feb 2012 17:20:20 +0530
+Message-ID: <4F3CED7C.8060406@ti.com>
+References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-7-git-send-email-aneesh@ti.com> <4F3CDD5E.8020600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:33156 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866Ab2BPLgI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2012 06:36:08 -0500
-In-Reply-To: <4F3A345B.2060308@gmail.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:60255 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750981Ab2BPLu1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 06:50:27 -0500
+In-Reply-To: <4F3CDD5E.8020600@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
-Hi ,
+On Thursday 16 February 2012 04:11 PM, Santosh Shilimkar wrote:
+> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
+>> Add an ISR for EMIF that:
+>> 	1. reports details of access errors
+>> 	2. takes action on thermal events
+>>
+>> On thermal events SDRAM timing parameters are
+>> adjusted to ensure safe operation
+>>
+>> Also clear all interrupts on shut-down. Pending IRQs
+>> may casue problems during warm-reset.
+>>
+> Add some more details like MR4, EMIF polling frequency etc
+> for better understanding.
 
-On Tue, Feb 14, 2012 at 3:45 PM, Tasslehoff Kjappfot
-<tasskjapp@gmail.com> wrote:
-> Sorry about the bad mails. First time I use git send-email to follow =
-up on a
-> patch, and it seems I need to read up a bit more on it.
->
-> Anyway.
->
-> This patch is tested on our custom board based on Beagleboard rev C3.
-thanks for the testing . may be include it in the changelogs .
-Just a suggestion not an objection to the patch.
->
-> From 7c1e2c14bccb16c20dc7d93088b12ac6e6e351a3 Mon Sep 17 00:00:00 200=
-1
-> From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-> Date: Mon, 6 Feb 2012 14:14:23 +0100
-> Subject: [PATCH] i2c: fix missing handling of errata I2C_OMAP3_1P153
->
->
-> i2c_prope
-Nitpick :  probe
+Will do.
 
 
 
-set the dev->errata flag, but omap_i2c_init cleared the flag
-> again. Move the errata handling to i2c_probe.
 >
-> Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+>> Signed-off-by: Aneesh V<aneesh@ti.com>
+>> ---
+>>   drivers/misc/emif.c |  209 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+>>   1 files changed, 207 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
+>> index 36ba6f4..5c2b0ae 100644
+>> --- a/drivers/misc/emif.c
+>> +++ b/drivers/misc/emif.c
+>> @@ -500,6 +500,45 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
+>>   }
+>>
+>>   /*
+>> + * Get the temperature level of the EMIF instance:
+>> + * Reads the MR4 register of attached SDRAM parts to find out the temperature
+>> + * level. If there are two parts attached(one on each CS), then the temperature
+>> + * level for the EMIF instance is the higher of the two temperatures.
+>> + */
+>> +static void get_temperature_level(struct emif_data *emif)
+>> +{
+>> +	u32		temp, temperature_level;
+>> +	unsigned long	irqs;
+>> +	void __iomem	*base;
+>> +
+>> +	base = emif->base;
+>> +
+>> +	/* Read mode register 4 */
+>> +	writel(DDR_MR4, base + EMIF_LPDDR2_MODE_REG_CONFIG);
+>> +	temperature_level = readl(base + EMIF_LPDDR2_MODE_REG_DATA);
+>> +	temperature_level = (temperature_level&  MR4_SDRAM_REF_RATE_MASK)>>
+>> +				MR4_SDRAM_REF_RATE_SHIFT;
+>> +
+>> +	if (emif->plat_data->device_info->cs1_used) {
+>> +		writel(DDR_MR4 | CS_MASK, base + EMIF_LPDDR2_MODE_REG_CONFIG);
+>> +		temp = readl(base + EMIF_LPDDR2_MODE_REG_DATA);
+>> +		temp = (temp&  MR4_SDRAM_REF_RATE_MASK)
+>> +				>>  MR4_SDRAM_REF_RATE_SHIFT;
+>> +		temperature_level = max(temp, temperature_level);
+>> +	}
+>> +
+>> +	spin_lock_irqsave(&emif->lock, irqs);
+> Add a line here.
+
+Will do.
+
+>> +	/* treat everything less than nominal(3) in MR4 as nominal */
+>> +	if (unlikely(temperature_level<  SDRAM_TEMP_NOMINAL))
+>> +		temperature_level = SDRAM_TEMP_NOMINAL;
+>> +
+>> +	/* if we get reserved value in MR4 persist with the existing value */
+>> +	if (likely(temperature_level != SDRAM_TEMP_RESERVED_4))
+>> +		emif->temperature_level = temperature_level;
+>> +	spin_unlock_irqrestore(&emif->lock, irqs);
+>> +}
+>> +
 >
-> ---
-> =A0drivers/i2c/busses/i2c-omap.c | =A0 10 +++++-----
-> =A01 files changed, 5 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-o=
-map.c
-> index 801df60..d609ae2 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -468,11 +468,6 @@ static int omap_i2c_init(struct omap_i2c_dev *de=
-v)
-> =A0 =A0 =A0 =A0/* Take the I2C module out of reset: */
-> =A0 =A0 =A0 =A0omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON=
-_EN);
->
-> - =A0 =A0 =A0 dev->errata =3D 0;
-> -
-> - =A0 =A0 =A0 if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->errata |=3D I2C_OMAP_ERRATA_I207;
-> -
-> =A0 =A0 =A0 =A0/* Enable interrupts */
-> =A0 =A0 =A0 =A0dev->iestate =3D (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY =
-|
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_I2C_IE_ARDY | OMA=
-P_I2C_IE_NACK |
-> @@ -1058,6 +1053,11 @@ omap_i2c_probe(struct platform_device *pdev)
->
-> =A0 =A0 =A0 =A0dev->rev =3D omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) =
-& 0xff;
->
-> + =A0 =A0 =A0 dev->errata =3D 0;
-> +
-> + =A0 =A0 =A0 if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->errata |=3D I2C_OMAP_ERRATA_I207;
-> +
-> =A0 =A0 =A0 =A0if (dev->rev <=3D OMAP_I2C_REV_ON_3430)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->errata |=3D I2C_OMAP3_1P153;
->
-> --
-> 1.7.5.4
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
->
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> rest of the patch looks fine to me
+
+Thanks,
+Aneesh
