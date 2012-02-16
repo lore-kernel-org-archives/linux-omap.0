@@ -1,53 +1,85 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCHv2 7/8] arm: omap: clockdomain: add support for preventing
- domain transitions
-Date: Thu, 16 Feb 2012 14:13:12 +0530
-Message-ID: <CAMQu2gwjfBd2ybKhEj+1Y1+b4yT+9i-DomozuxCMpKgcSfm9Gw@mail.gmail.com>
-References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
- <1329320274-481-8-git-send-email-t-kristo@ti.com> <87vcn799g8.fsf@ti.com> <1329381549.4102.381.camel@sokoban>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/5] gpio/omap: Use devm_ API and add request_mem_region
+Date: Thu, 16 Feb 2012 09:56:13 +0100
+Message-ID: <4F3CC4AD.3000103@ti.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>	<1329321854-24490-3-git-send-email-b-cousson@ti.com> <CAC83ZvKuOkLKdAVNeoVjRZriouDCGPXPhkZZ+MgcktH+9pYN3w@mail.gmail.com> <4F3CA41A.4020800@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:39173 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752009Ab2BPInd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 03:43:33 -0500
-Received: by qady23 with SMTP id y23so4761208qad.8
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 00:43:32 -0800 (PST)
-In-Reply-To: <1329381549.4102.381.camel@sokoban>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48726 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755642Ab2BPI43 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 03:56:29 -0500
+In-Reply-To: <4F3CA41A.4020800@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org
 
-Tero,
-On Thu, Feb 16, 2012 at 2:09 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> On Wed, 2012-02-15 at 11:35 -0800, Kevin Hilman wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
+On 2/16/2012 7:37 AM, Shubhrajyoti wrote:
+> On Thursday 16 February 2012 11:11 AM, DebBarma, Tarun Kanti wrote:
+>> Hi Benoit,
 >>
->> > Some clockdomains can't support manual domain transitions triggered by
->> > clock framework, and must be prevented from doing so. Added clkdm flag
->> > CLKDM_NO_MANUAL_TRANS for doing this.
->> >
->> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> > Cc: Paul Walmsley <paul@pwsan.com>
->> > Cc: Kevin Hilman <khilman@ti.com>
->>
->> Dumb Q: what's the difference between this new flag and CLKDM_CAN_SWSUP?
+>> On Wed, Feb 15, 2012 at 9:34 PM, Benoit Cousson<b-cousson@ti.com>  wrote:
+>>> Replace the regular kzalloc and ioremap with the devm_ equivalent
+>>> to simplify error handling.
+>>>
+>>> Add the missing devm_request_mem_region to reserve the region used
+>>> by the driver.
+>>>
+>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>>> Cc: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+>>> ---
+>>>   drivers/gpio/gpio-omap.c |   35 +++++++++++++++--------------------
+>>>   1 files changed, 15 insertions(+), 20 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index a0c3e03..c3a9dc8 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -19,7 +19,7 @@
+>>>   #include<linux/err.h>
+>>>   #include<linux/clk.h>
+>>>   #include<linux/io.h>
+>>> -#include<linux/slab.h>
+>>> +#include<linux/device.h>
+>>>   #include<linux/pm_runtime.h>
+>>>   #include<linux/pm.h>
+>>>
+>>> @@ -1052,23 +1052,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>>>         struct gpio_bank *bank;
+>>>         int ret = 0;
+>>>
+>>> -       if (!dev->platform_data) {
+>>> -               ret = -EINVAL;
+>>> -               goto err_exit;
+>>> -       }
+>>> +       if (!dev->platform_data)
+>>> +               return -EINVAL;
+>>>
+>>> -       bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
+>>> +       bank = devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank), GFP_KERNEL);
+>>>         if (!bank) {
+>>>                 dev_err(dev, "Memory alloc failed\n");
+>>> -               ret = -ENOMEM;
+>>> -               goto err_exit;
+>>> +               return -ENOMEM;
+>>>         }
+>>>
+>>>         res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+>>>         if (unlikely(!res)) {
+>>>                 dev_err(dev, "Invalid IRQ resource\n");
+>>> -               ret = -ENODEV;
+>>> -               goto err_free;
+>>> +               return -ENODEV;
+>> How is the memory allocated to 'bank' getting freed before return -ENODEV?
 >
-> CAN_SWSUP controls software wakeup / sleep (clktrctrl values 1 and 2),
-> but it still allows hwsup based transitions during runtime (basically
-> using values 0 & 3 for the same register.) NO_MANUAL_TRANS prevents
-> both, but still allows hwauto mode being enabled in the first place.
->
-> I was thinking about adding a flag for preventing the autodep disabling
-> as this was the root cause for the problem I saw, but I wanted to
-> optimize the _clkdm_clk_hwmod_enable/disable for this case, as the
-> domain is not going through any transitions.
->
-Which clock-domain you are refering here which needs this
-flag ?
+> I think that may not be needed
 
-Regards
-santosh
+It is indeed not needed, and this is the whole point of that API 
+compared to the regular kzalloc... and that's why it is highly 
+recommended to switch to this kind of API.
+
+Regards,
+Benoit
