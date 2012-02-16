@@ -1,138 +1,103 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 2/5] gpio/omap: Use devm_ API and add request_mem_region
-Date: Thu, 16 Feb 2012 12:07:14 +0530
-Message-ID: <4F3CA41A.4020800@ti.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>	<1329321854-24490-3-git-send-email-b-cousson@ti.com> <CAC83ZvKuOkLKdAVNeoVjRZriouDCGPXPhkZZ+MgcktH+9pYN3w@mail.gmail.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HDMI: Add M2 divider while calculating clkout
+Date: Thu, 16 Feb 2012 12:12:36 +0530
+Message-ID: <CAP5A+B_4DwXgx=q3Eem5spsoR6=tPzCQBaBu2mEVQd7zWTTNeA@mail.gmail.com>
+References: <1329285034-16121-1-git-send-email-mythripk@ti.com>
+ <1329291660.1892.9.camel@deskari> <CAP5A+B9cuUsAnVSgt4G3Hue2Kns2+es8bW-8zHo2tLB9Kg-O=g@mail.gmail.com>
+ <1329317541.1892.95.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:53218 "HELO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756778Ab2BPGhV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 01:37:21 -0500
-Received: by mail-tul01m020-f181.google.com with SMTP id up10so2960764obb.40
-        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 22:37:20 -0800 (PST)
-In-Reply-To: <CAC83ZvKuOkLKdAVNeoVjRZriouDCGPXPhkZZ+MgcktH+9pYN3w@mail.gmail.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:35057 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756778Ab2BPGm4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 01:42:56 -0500
+Received: by mail-iy0-f180.google.com with SMTP id z7so3739831iab.39
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 22:42:56 -0800 (PST)
+In-Reply-To: <1329317541.1892.95.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, devicetree-discuss@lists.ozlabs.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thursday 16 February 2012 11:11 AM, DebBarma, Tarun Kanti wrote:
-> Hi Benoit,
+Hi Tomi,
+
+On Wed, Feb 15, 2012 at 8:22 PM, Tomi Valkeinen <tomi.valkeinen@ti.com>=
+ wrote:
+> On Wed, 2012-02-15 at 14:55 +0530, K, Mythri P wrote:
+>> Hi,
+>>
+>> On Wed, Feb 15, 2012 at 1:11 PM, Tomi Valkeinen <tomi.valkeinen@ti.c=
+om> wrote:
+>> > On Wed, 2012-02-15 at 11:20 +0530, mythripk@ti.com wrote:
+>> >> From: Mythri P K <mythripk@ti.com>
+>> >>
+>> >> Add M2 divider in the equation to calculate regm and regmf.
+>> >> Formula for calculating:
+>> >> Output clock on digital core domain:
+>> >> =A0 =A0 =A0 CLKOUT =3D (M / (N+1))*CLKINP*(1/M2)
+>> >> Internal oscillator output clock on internal LDO domain:
+>> >> =A0 =A0 =A0 CLKDCOLDO =3D (M / (N+1))*CLKINP
+>> >> The current code when allows variable M2 values as input
+>> >> ignores using M2 divider values in calculation of regm and regmf.
+>> >> so fix it by using M2 in calculation although the default value f=
+or
+>> >> M2 is 1.
+>> >>
+>> >> Signed-off-by: Mythri P K <mythripk@ti.com>
+>> >> ---
+>> >> =A0drivers/video/omap2/dss/hdmi.c | =A0 16 ++++++++--------
+>> >> =A01 files changed, 8 insertions(+), 8 deletions(-)
+>> >>
+>> >> diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2=
+/dss/hdmi.c
+>> >> index 92a6679..9185630 100644
+>> >> --- a/drivers/video/omap2/dss/hdmi.c
+>> >> +++ b/drivers/video/omap2/dss/hdmi.c
+>> >> @@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_ds=
+s_device *dssdev, int phy,
+>> >>
+>> >> =A0 =A0 =A0 refclk =3D clkin / pi->regn;
+>> >>
+>> >> - =A0 =A0 /*
+>> >> - =A0 =A0 =A0* multiplier is pixel_clk/ref_clk
+>> >> - =A0 =A0 =A0* Multiplying by 100 to avoid fractional part remova=
+l
+>> >> - =A0 =A0 =A0*/
+>> >> - =A0 =A0 pi->regm =3D (phy * 100 / (refclk)) / 100;
+>> >> -
+>> >> =A0 =A0 =A0 if (dssdev->clocks.hdmi.regm2 =3D=3D 0)
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pi->regm2 =3D HDMI_DEFAULT_REGM2;
+>> >> =A0 =A0 =A0 else
+>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 pi->regm2 =3D dssdev->clocks.hdmi.reg=
+m2;
+>> >>
+>> >> =A0 =A0 =A0 /*
+>> >> + =A0 =A0 =A0* multiplier is pixel_clk/ref_clk
+>> >> + =A0 =A0 =A0* Multiplying by 100 to avoid fractional part remova=
+l
+>> >> + =A0 =A0 =A0*/
+>> >> + =A0 =A0 pi->regm =3D (phy * 100 * pi->regm2 / (refclk)) / 100;
+>> >
+>> > No need for parenthesis around refclk.
+>> Well this is just a copy of old code will change.
 >
-> On Wed, Feb 15, 2012 at 9:34 PM, Benoit Cousson <b-cousson@ti.com> wrote:
->> Replace the regular kzalloc and ioremap with the devm_ equivalent
->> to simplify error handling.
->>
->> Add the missing devm_request_mem_region to reserve the region used
->> by the driver.
->>
->> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
->> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->> ---
->>  drivers/gpio/gpio-omap.c |   35 +++++++++++++++--------------------
->>  1 files changed, 15 insertions(+), 20 deletions(-)
->>
->> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->> index a0c3e03..c3a9dc8 100644
->> --- a/drivers/gpio/gpio-omap.c
->> +++ b/drivers/gpio/gpio-omap.c
->> @@ -19,7 +19,7 @@
->>  #include <linux/err.h>
->>  #include <linux/clk.h>
->>  #include <linux/io.h>
->> -#include <linux/slab.h>
->> +#include <linux/device.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/pm.h>
->>
->> @@ -1052,23 +1052,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->>        struct gpio_bank *bank;
->>        int ret = 0;
->>
->> -       if (!dev->platform_data) {
->> -               ret = -EINVAL;
->> -               goto err_exit;
->> -       }
->> +       if (!dev->platform_data)
->> +               return -EINVAL;
->>
->> -       bank = kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
->> +       bank = devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank), GFP_KERNEL);
->>        if (!bank) {
->>                dev_err(dev, "Memory alloc failed\n");
->> -               ret = -ENOMEM;
->> -               goto err_exit;
->> +               return -ENOMEM;
->>        }
->>
->>        res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->>        if (unlikely(!res)) {
->>                dev_err(dev, "Invalid IRQ resource\n");
->> -               ret = -ENODEV;
->> -               goto err_free;
->> +               return -ENODEV;
-> How is the memory allocated to 'bank' getting freed before return -ENODEV?
-
-I think that may not be needed
-
-See http://www.kernel.org/doc/htmldocs/device-drivers/API-devm-kzalloc.html
-
-
-
->>        }
->>
->>        bank->irq = res->start;
->> @@ -1096,15 +1092,19 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->>        res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>        if (unlikely(!res)) {
->>                dev_err(dev, "Invalid mem resource\n");
->> -               ret = -ENODEV;
->> -               goto err_free;
->> +               return -ENODEV;
-> And here?
+> The multiplication and division with 100 is actually extra also, they
+> don't bring any precision here.
 >
->> +       }
->> +
->> +       if (!devm_request_mem_region(dev, res->start, resource_size(res),
->> +                                    pdev->name)) {
->> +               dev_err(dev, "Region already claimed\n");
->> +               return -EBUSY;
->>        }
->>
->> -       bank->base = ioremap(res->start, resource_size(res));
->> +       bank->base = devm_ioremap(dev, res->start, resource_size(res));
->>        if (!bank->base) {
->>                dev_err(dev, "Could not ioremap\n");
->> -               ret = -ENOMEM;
->> -               goto err_free;
->> +               return -ENOMEM;
-> And here?
-> --
-> Tarun
->>        }
->>
->>        platform_set_drvdata(pdev, bank);
->> @@ -1125,11 +1125,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
->>        list_add_tail(&bank->node, &omap_gpio_list);
->>
->>        return ret;
->> -
->> -err_free:
->> -       kfree(bank);
->> -err_exit:
->> -       return ret;
->>  }
->>
->>  #ifdef CONFIG_ARCH_OMAP2PLUS
->> --
->> 1.7.0.4
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Well this is actually done to accommodate the pixel clock, For some
+pixel clock like 25175 for VGA VESA
+there is slight change which is detected by the analyzer so it is
+added for that reason.
+>> >
+Thanks and regards,
+Mythri.
+> =A0Tomi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
