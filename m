@@ -1,133 +1,96 @@
-From: NeilBrown <neilb@suse.de>
+From: Kevin Hilman <khilman@ti.com>
 Subject: Re: OMAP34xx
-Date: Thu, 16 Feb 2012 11:25:14 +1100
-Message-ID: <20120216112514.13202562@notabene.brown>
+Date: Wed, 15 Feb 2012 17:28:46 -0800
+Message-ID: <8739abk1m9.fsf@ti.com>
 References: <20120208231551.GA9009@kroah.com>
 	<alpine.DEB.2.00.1202081648510.9540@utopia.booyaka.com>
-	<20120209004731.GA11343@kroah.com>
-	<4F3374F0.3080002@bitmer.com>
+	<20120209004731.GA11343@kroah.com> <4F3374F0.3080002@bitmer.com>
 	<20120209133739.GB2590@sirena.org.uk>
-	<20120209183624.GJ1426@atomide.com>
-	<1329343056.5686.6.camel@cumari>
-	<87ehtvlkjf.fsf@ti.com>
-	<4F3C4A0E.1000707@deeprootsystems.com>
+	<20120209183624.GJ1426@atomide.com> <1329343056.5686.6.camel@cumari>
+	<87ehtvlkjf.fsf@ti.com> <4F3C4A0E.1000707@deeprootsystems.com>
+	<20120216112514.13202562@notabene.brown>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/JL4UARxdb/2Oy+X4DpzIQzB"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:44203 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751396Ab2BPAZ2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 19:25:28 -0500
-In-Reply-To: <4F3C4A0E.1000707@deeprootsystems.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:45218 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754791Ab2BPB2v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Feb 2012 20:28:51 -0500
+Received: by mail-pz0-f48.google.com with SMTP id p13so1579629dad.7
+        for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 17:28:48 -0800 (PST)
+In-Reply-To: <20120216112514.13202562@notabene.brown> (NeilBrown's message of
+	"Thu, 16 Feb 2012 11:25:14 +1100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Kevin Hilman <khilman@ti.com>, Luciano Coelho <coelho@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+To: NeilBrown <neilb@suse.de>
+Cc: Luciano Coelho <coelho@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, Greg KH <gregkh@linuxfoundation.org>, Paul Walmsley <paul@pwsan.com>, Grazvydas Ignotas <notasas@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 
---Sig_/JL4UARxdb/2Oy+X4DpzIQzB
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+NeilBrown <neilb@suse.de> writes:
 
-On Wed, 15 Feb 2012 16:13:02 -0800 Kevin Hilman <khilman@deeprootsystems.co=
-m>
-wrote:
+> On Wed, 15 Feb 2012 16:13:02 -0800 Kevin Hilman <khilman@deeprootsystems.com>
+> wrote:
+>
+>> On 02/15/2012 03:54 PM, Kevin Hilman wrote:
+>> > Luciano Coelho<coelho@ti.com>  writes:
+>> >
+>> > [...]
+>> >
+>> >> I just tried this on my Panda and I keep getting this kind of BUGs.  It
+>> >> spams my console so much that is pretty much unusable:
+>> >>
+>> >> [  336.172302] BUG: sleeping function called from invalid context at include/linux/freezer.h:46
+>> >> [  336.181213] in_atomic(): 0, irqs_disabled(): 128, pid: 1618, name: ntpd
+>> >> [  336.181213] INFO: lockdep is turned off.
+>> >> [  336.181213] irq event stamp: 0
+>> >> [  336.181213] hardirqs last  enabled at (0): [<   (null)>]   (null)
+>> >> [  336.201660] hardirqs last disabled at (0): [<c0042314>] copy_process+0x3ec/0x105c
+>> >> [  336.209625] softirqs last  enabled at (0): [<c0042314>] copy_process+0x3ec/0x105c
+>> >> [  336.217498] softirqs last disabled at (0): [<   (null)>]   (null)
+>> >> [  336.217498] [<c001e1e4>] (unwind_backtrace+0x0/0x148) from [<c0502c24>] (dump_stack+0x20/0x24)
+>> >> [  336.232879] [<c0502c24>] (dump_stack+0x20/0x24) from [<c0077998>] (__might_sleep+0x130/0x134)
+>> >> [  336.232879] [<c0077998>] (__might_sleep+0x130/0x134) from [<c0018998>] (do_signal+0x54/0x600)
+>> >> [  336.250793] [<c0018998>] (do_signal+0x54/0x600) from [<c0018fa4>] (do_notify_resume+0x60/0x6c)
+>> >> [  336.250793] [<c0018fa4>] (do_notify_resume+0x60/0x6c) from [<c00154e4>] (work_pending+0x24/0x28)
+>> >>
+>> >> I have also seen this in 3.3-rc3 (both on Panda (OMAP4460) and on Blaze
+>> >> (OMAP4430) boards) and I was hoping your tree would have the fix for it,
+>> >> but it doesn't. :( The device boots and seems to work otherwise, but
+>> >> this is annoying and looks shaky.
+>> >>
+>> >> I saw something related to this in another thread from a few months ago,
+>> >> and one patch proposal by Russell, but I didn't find any conclusion or
+>> >> any related patch queued up for upstream.
+>> >>
+>> >> Is there any solution for this? I use a tuned .config (attached) and not
+>> >> the one generated by omap2plus_defconfig (which I didn't try as
+>> >> vanilla).
+>> >
+>> > I see the same thing with your ~/.config, but I don't think this is OMAP
+>> > specific.  I suspect this will happen on any ARM platform that  has
+>> > CONFIG_DEBUG_ATOMIC_SLEEP=y.
+>> >
+>> > It appears to be a problem with the recently added audit support for
+>> > ARM, since reverting the commit below makes this BUG go away.
+>> 
+>> False alarm.  reverting the audit commit didn't make the problem go 
+>> away.  It was gone only because I also disabled 
+>> CONFIG_DEBUG_ATOMIC_SLEEP.  :/
+>> 
+>> To debug this further, you might bisect it back to v3.2 because the 
+>> problem isn't there in v3.2
+>
+> I "fixed" this by applying
+>
+>    https://lkml.org/lkml/2011/8/25/231
+>
+> as shown here:
+>
+> http://neil.brown.name/git?p=gta04;a=commitdiff;h=b43a97aefed9990811ed95676db58538f7279eb6
+>
+> because google found some email that suggested it.  It worked but I didn't
+> even try to understand the patch.
 
-> On 02/15/2012 03:54 PM, Kevin Hilman wrote:
-> > Luciano Coelho<coelho@ti.com>  writes:
-> >
-> > [...]
-> >
-> >> I just tried this on my Panda and I keep getting this kind of BUGs.  It
-> >> spams my console so much that is pretty much unusable:
-> >>
-> >> [  336.172302] BUG: sleeping function called from invalid context at i=
-nclude/linux/freezer.h:46
-> >> [  336.181213] in_atomic(): 0, irqs_disabled(): 128, pid: 1618, name: =
-ntpd
-> >> [  336.181213] INFO: lockdep is turned off.
-> >> [  336.181213] irq event stamp: 0
-> >> [  336.181213] hardirqs last  enabled at (0): [<   (null)>]   (null)
-> >> [  336.201660] hardirqs last disabled at (0): [<c0042314>] copy_proces=
-s+0x3ec/0x105c
-> >> [  336.209625] softirqs last  enabled at (0): [<c0042314>] copy_proces=
-s+0x3ec/0x105c
-> >> [  336.217498] softirqs last disabled at (0): [<   (null)>]   (null)
-> >> [  336.217498] [<c001e1e4>] (unwind_backtrace+0x0/0x148) from [<c0502c=
-24>] (dump_stack+0x20/0x24)
-> >> [  336.232879] [<c0502c24>] (dump_stack+0x20/0x24) from [<c0077998>] (=
-__might_sleep+0x130/0x134)
-> >> [  336.232879] [<c0077998>] (__might_sleep+0x130/0x134) from [<c001899=
-8>] (do_signal+0x54/0x600)
-> >> [  336.250793] [<c0018998>] (do_signal+0x54/0x600) from [<c0018fa4>] (=
-do_notify_resume+0x60/0x6c)
-> >> [  336.250793] [<c0018fa4>] (do_notify_resume+0x60/0x6c) from [<c00154=
-e4>] (work_pending+0x24/0x28)
-> >>
-> >> I have also seen this in 3.3-rc3 (both on Panda (OMAP4460) and on Blaze
-> >> (OMAP4430) boards) and I was hoping your tree would have the fix for i=
-t,
-> >> but it doesn't. :( The device boots and seems to work otherwise, but
-> >> this is annoying and looks shaky.
-> >>
-> >> I saw something related to this in another thread from a few months ag=
-o,
-> >> and one patch proposal by Russell, but I didn't find any conclusion or
-> >> any related patch queued up for upstream.
-> >>
-> >> Is there any solution for this? I use a tuned .config (attached) and n=
-ot
-> >> the one generated by omap2plus_defconfig (which I didn't try as
-> >> vanilla).
-> >
-> > I see the same thing with your ~/.config, but I don't think this is OMAP
-> > specific.  I suspect this will happen on any ARM platform that  has
-> > CONFIG_DEBUG_ATOMIC_SLEEP=3Dy.
-> >
-> > It appears to be a problem with the recently added audit support for
-> > ARM, since reverting the commit below makes this BUG go away.
->=20
-> False alarm.  reverting the audit commit didn't make the problem go=20
-> away.  It was gone only because I also disabled=20
-> CONFIG_DEBUG_ATOMIC_SLEEP.  :/
->=20
-> To debug this further, you might bisect it back to v3.2 because the=20
-> problem isn't there in v3.2
+Great, thanks for the pointer.
 
-I "fixed" this by applying
-
-   https://lkml.org/lkml/2011/8/25/231
-
-as shown here:
-
-http://neil.brown.name/git?p=3Dgta04;a=3Dcommitdiff;h=3Db43a97aefed9990811e=
-d95676db58538f7279eb6
-
-because google found some email that suggested it.  It worked but I didn't
-even try to understand the patch.
-
-NeilBrown
-
---Sig_/JL4UARxdb/2Oy+X4DpzIQzB
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBTzxM6jnsnt1WYoG5AQIGFRAAqzvirQNVBSRnM2b36AptpK+EX8CENSpH
-KfVzNtdup5AkvWB7xCRpRQ9tj7Nu3ofW8zDQG4G2qb/cR/oRbz8Invl/Dp4mb5OQ
-af5If3ZW/wv+e7HNIrQ0+HWJCRSuIeteT9375a0W/3gvFJ2ljyEQOiv9AW4kVdbQ
-11Ik7SBaRRPMAwvmlqDkWwqyJNL1DoQug86HZTaVq0PAlTcGc1g0ohsnqAolXCCK
-sHUF3GPdVHP+ed4zHBHLdBvuJ7eHjx3v7kAgZjQEAxuvyW0UQksEngWTz5/UvfTc
-uZHccWeCzWwzU3ikRU1YIyU86S5ok7GhDVcICHWrO6+U+AerbseDWlC0Gi47KxAA
-jeW/xVtZ2ldtMUsdrvHb4ddF5OQCt02QO6VSXR8+vjjQB0Y6h3r75weyqJtCVH7j
-+NQWmfLkZROfIyjnb+vCLJOxF1GzcKJsrv8XHDWOh8mjIkn23W5thezSMQLrOKqV
-WcD05QSS/S44wdCGiK8RUAhrwLKpxttaV1E2cxwObRxeHXm/yIvTfObbWEQr7qAJ
-kMeNcJbnaeibsrP4vRWy0iSktuq/22ALtywor3Jb9DwR9mgjmdsOlotQAh0KCEhI
-wbXIbYuL42oXZKLE70vKOjRlYG1R4LXlbdhYEwfLdVrDR7qwH3CE5z5W1ocIDjIN
-GRRxcrxb17U=
-=F0pq
------END PGP SIGNATURE-----
-
---Sig_/JL4UARxdb/2Oy+X4DpzIQzB--
+Kevin
