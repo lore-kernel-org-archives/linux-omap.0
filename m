@@ -1,55 +1,90 @@
-From: Tony Abad <antoniomabad@gmail.com>
-Subject: Re: OMAP watchdog broken on 37XX?
-Date: Thu, 16 Feb 2012 15:48:26 +0000 (UTC)
-Message-ID: <loom.20120216T163912-59@post.gmane.org>
-References: <BANLkTi=WQzdfOXqYWGe8gFjrn=kHbg-2eQ@mail.gmail.com> <BANLkTi=F0wzMXUOUFJ2y9CeRkYckMDyaVA@mail.gmail.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [RFC PATCH 0/8] Add TI EMIF SDRAM controller driver
+Date: Thu, 16 Feb 2012 08:23:59 -0800
+Message-ID: <20120216162359.GB20827@kroah.com>
+References: <1328357771-31644-1-git-send-email-aneesh@ti.com>
+ <4F3CDF9F.9080204@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:47436 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732Ab2BPQAF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 11:00:05 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gplao-linux-omap-open-source-moved1@m.gmane.org>)
-	id 1Ry3ka-0006DU-5a
-	for linux-omap@vger.kernel.org; Thu, 16 Feb 2012 17:00:04 +0100
-Received: from 146-115-190-162.c3-0.wtr-ubr1.sbo-wtr.ma.cable.rcn.com ([146.115.190.162])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 17:00:04 +0100
-Received: from antoniomabad by 146-115-190-162.c3-0.wtr-ubr1.sbo-wtr.ma.cable.rcn.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 17:00:04 +0100
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:41452 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752789Ab2BPQYm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 11:24:42 -0500
+Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id CEBE1212EB
+	for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 11:24:41 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <4F3CDF9F.9080204@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: akpm@linux-foundation.org, Aneesh V <aneesh@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
- 
-> did you try twl4030_wdt instead of omap_wdt?
+On Thu, Feb 16, 2012 at 04:21:11PM +0530, Santosh Shilimkar wrote:
+> Andrew, Greg,
+> 
+> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
+> > Add a driver for the EMIF SDRAM controller used in TI SoCs
+> > 
+> > EMIF is an SDRAM controller that supports, based on its revision,
+> > one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+> > for LPDDR2.
+> > 
+> > The driver supports the following features:
+> > - Calculates the DDR AC timing parameters to be set in EMIF
+> >   registers using data from the device data-sheets and based
+> >   on the DDR frequency. If data from data-sheets is not available
+> >   default timing values from the JEDEC spec are used. These
+> >   will be safe, but not necessarily optimal
+> > - API for changing timings during DVFS or at boot-up
+> > - Temperature alert configuration and handling of temperature
+> >   alerts, if any for LPDDR2 devices
+> >   * temperature alert is based on periodic polling of MR4 mode
+> >     register in DDR devices automatically performed by hardware
+> >   * timings are de-rated and brought back to nominal when
+> >     temperature raises and falls respectively
+> > - Cache of calculated register values to avoid re-calculating
+> >   them
+> > 
+> > The driver will need some minor updates when it is eventually
+> > integrated with DVFS. This can not be done now as DVFS support
+> > is not available yet in mainline.
+> > 
+> > Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+> > <vvardhan@gmail.com> did the initial code snippet for thermal
+> > handling.
+> > 
+> > Testing: 
+> > - The driver is tested on OMAP4430 SDP.
+> > - The driver in a slightly adapted form is also tested on OMAP5.
+> > - Since mainline kernel doesn't have DVFS support yet,
+> >   testing was done using a test module.
+> > - Temperature alert handling was tested with simulated interrupts
+> >   and faked temperature values as testing all cases in real-life
+> >   scenarios is difficult.
+> > 
+> [...]
+> 
+> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
+> >  drivers/misc/Kconfig                       |   20 +
+> >  drivers/misc/Makefile                      |    2 +
+> >  drivers/misc/emif.c                        | 1522 ++++++++++++++++++++++++++++
+> >  drivers/misc/emif_regs.h                   |  461 +++++++++
+> >  drivers/misc/jedec_ddr_data.c              |  141 +++
+> >  include/linux/emif.h                       |  257 +++++
+> >  include/linux/jedec_ddr.h                  |  174 ++++
+> 
+> Any suggestion on where this driver can reside. It's a memory
+> controller driver which supports standard DDR functionality
+> as per JDEC specs including thermal alert. On top of
+> that it does support DVFS using the TI PRCM IP block.
 
-Hi Enrico,
+I don't know what any of those TLA words mean, so I really can't suggest
+where this code should go.  But just from this diffstat, it looks like
+you are creating a new user/kernel interface, without documenting it
+anywhere, which isn't ok.
 
-Last night I went searching around for a fix on the same watchdog problem Steve
-was having, but this time on a BeagleBoard XM Rev. C., using the 37xx chip. 
-Using the twl4030_wdt driver instead of omap_wdt driver succeeded in rebooting
-the system, but with these issues:
-
-1. When running the watchdog from a C program (e.g. using the example code from
-http://embeddedfreak.wordpress.com/2010/08/23/howto-use-linux-watchdog/), the
-program executable itself has been changed such that its 0 bytes after the 
-reboot.
-
-2. It's impossible to get the cause of the last power cycle via the watchdog. 
-i.e. The WDIOC_GETBOOTSTATUS is handled differently in twl4030_wdt vs. 
-omap_wdt, the latter of which relies on omap_prcm_get_reset_sources().
-
-So while the twl4030_wdt driver gets me 90% there, I still need the ability to
-detect a watchdog-causes reset vs. any other reset.  So, is there a patch 
-coming for the omap_wdt driver for 37xx boards?
-
-Regards,
-
-Tony
-
+greg k-h
