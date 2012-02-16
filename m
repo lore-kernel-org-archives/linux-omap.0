@@ -1,42 +1,48 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFT 0/1] MPU DVFS using SMPS regulator driver
-Date: Thu, 16 Feb 2012 11:20:42 -0800
-Message-ID: <1329420043-32656-1-git-send-email-khilman@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: Re: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with frequency
+Date: Thu, 16 Feb 2012 11:24:22 -0800
+Message-ID: <CAORVsuUsnp8gMygbsrQh7O6048eUyjTrT3Ob_Jop5JKQyxiMOA@mail.gmail.com>
+References: <1329420043-32656-1-git-send-email-khilman@ti.com>
+	<1329420043-32656-2-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:34710 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755162Ab2BPTUO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 14:20:14 -0500
-Received: by mail-pw0-f53.google.com with SMTP id rq13so3470976pbb.12
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 11:20:06 -0800 (PST)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:56283 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755274Ab2BPTYW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2012 14:24:22 -0500
+Received: by mail-vw0-f46.google.com with SMTP id k17so1710977vbj.19
+        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 11:24:22 -0800 (PST)
+In-Reply-To: <1329420043-32656-2-git-send-email-khilman@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, Tero Kristo <t-kristo@ti.com>
 
-This patch modifies the OMAP CPUfreq driver to use the regulator framework
-to scale voltage when scaling frequency.  It uses the new SMPS regulator
-driver from Tero.
+Hi Kevin,
 
-This patch applies on top of the recently posted SMPS regulator series
-from Tero:
+On Thu, Feb 16, 2012 at 11:20 AM, Kevin Hilman <khilman@ti.com> wrote:
+> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/volt=
+age.c
+> index 8a36342..140c032 100644
+> --- a/arch/arm/mach-omap2/voltage.c
+> +++ b/arch/arm/mach-omap2/voltage.c
+> @@ -89,6 +89,8 @@ int voltdm_scale(struct voltagedomain *voltdm,
+> =A0 =A0 =A0 =A0ret =3D voltdm->scale(voltdm, target_volt);
+> =A0 =A0 =A0 =A0if (!ret)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0voltdm->nominal_volt =3D target_volt;
+> + =A0 =A0 =A0 printk("KJH: %s: %d\n", __func__, target_volt);
+> + =A0 =A0 =A0 dump_stack();
+The debugging letfovers need to be removed.
 
-   Subject: [PATCHv9 0/5] arm: omap: smps regulator support
-   Date:	Thu, 16 Feb 2012 12:27:48 +0200
+>
+> =A0 =A0 =A0 =A0return ret;
+> =A0}
 
-I'd especially appreciate testing from those of you who are setup to
-measure voltage at the voltage rails and can confirm that voltage is
-actually being scaled.
-
-Kevin Hilman (1):
-  OMAP2+: cpufreq: scale voltage along with frequency
-
- arch/arm/mach-omap2/voltage.c  |    2 ++
- drivers/cpufreq/omap-cpufreq.c |   29 ++++++++++++++++++++++++++++-
- 2 files changed, 30 insertions(+), 1 deletions(-)
-
--- 
-1.7.9
-
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
