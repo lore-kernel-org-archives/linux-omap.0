@@ -1,48 +1,49 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP2+: Split omap2_hsmmc_init() to properly
- support I2C GPIO pins
-Date: Thu, 16 Feb 2012 15:43:34 +0530
-Message-ID: <4F3CD6CE.1090201@ti.com>
-References: <20120215182355.18884.18682.stgit@kaulin.local> <20120215182825.18884.40972.stgit@kaulin.local> <4F3CD460.7000306@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH v2] OMAPDSS: HACK: Ensure DSS clock domain gets out of
+ idle when HDMI is enabled
+Date: Thu, 16 Feb 2012 11:16:42 +0100
+Message-ID: <4F3CD78A.9000905@ti.com>
+References: <1328854552-30714-1-git-send-email-archit@ti.com>  <1329220678.1845.68.camel@deskari> <4F3A5A5D.4020906@ti.com>  <1329225311.1845.109.camel@deskari> <4F3A61EF.4030803@ti.com>  <4F3A809E.3070508@ti.com> <4F3B9E8F.1020002@ti.com> <4F3BA6A2.60604@ti.com>  <1329310317.1892.60.camel@deskari> <4F3BAD41.1020102@ti.com>  <87fweb98bs.fsf@ti.com> <1329380536.1951.26.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:41491 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752157Ab2BPKNl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 05:13:41 -0500
-Received: by mail-tul01m020-f172.google.com with SMTP id wd15so3196473obb.31
-        for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 02:13:40 -0800 (PST)
-In-Reply-To: <4F3CD460.7000306@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48440 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649Ab2BPKQ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2012 05:16:59 -0500
+In-Reply-To: <1329380536.1951.26.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Archit Taneja <a0393947@ti.com>, linux-omap@vger.kernel.org, linux@arm.linux.org.uk, linux-fbdev@vger.kernel.org
 
-On Thursday 16 February 2012 03:33 PM, Rajendra Nayak wrote:
-> better still, I think we should just populate them statically in
-> omap2_hsmmc_info struct above, so omap_hsmmc_init() takes care
-> of it already.
+On 2/16/2012 9:22 AM, Tomi Valkeinen wrote:
+> On Wed, 2012-02-15 at 11:59 -0800, Kevin Hilman wrote:
+>> "Cousson, Benoit"<b-cousson@ti.com>  writes:
+>
+>>> Kevin,
+>>>
+>>> Do we still need to set the dev.parent to omap_device_parent?
+>>
+>> Nope.
+>>
+>>> I guess the default&platform_bus parent is good enough and
+>>> potentially the DSS children should be able to overwrite that.
+>>
+>> Yes, now that we use PM domains, we don't need it.  I just sent a patch
+>> to remove omap_device_parent.
+>
+> But it's still not possible to create a custom parent-child hierarchy
+> with omap_devices. Or can I change the parent of a platform_device after
+> it has been created? (doesn't sound very clean even if I can)
 
-I just tried this and it seems to work...
+Nope, it has to be done before platform_device_add.
 
----
-  arch/arm/mach-omap2/board-omap3beagle.c |    1 +
-  1 file changed, 1 insertion(+)
+Thanks to Ohad patch [1] that Tony has just resent, you can use the 
+internal omap_device API and thus will be able to change the parent 
+before the registration.
 
-Index: linux-2.6/arch/arm/mach-omap2/board-omap3beagle.c
-===================================================================
---- linux-2.6.orig/arch/arm/mach-omap2/board-omap3beagle.c 
-2012-02-16 15:38:47.046933403 +0530
-+++ linux-2.6/arch/arm/mach-omap2/board-omap3beagle.c   2012-02-16 
-15:40:17.355349064 +0530
-@@ -253,6 +253,7 @@
-                 .mmc            = 1,
-                 .caps           = MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
-                 .gpio_wp        = -EINVAL,
-+               .gpio_cd        = OMAP_MAX_GPIO_LINES + 0,
-                 .deferred       = true,
-         },
-         {}      /* Terminator */
+Benoit
+
+[1] ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
