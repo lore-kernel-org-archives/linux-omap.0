@@ -1,90 +1,61 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC PATCH 0/8] Add TI EMIF SDRAM controller driver
-Date: Thu, 16 Feb 2012 08:23:59 -0800
-Message-ID: <20120216162359.GB20827@kroah.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com>
- <4F3CDF9F.9080204@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv9 4/5] regulator: twl4030: add support for external
+ voltage get/set
+Date: Thu, 16 Feb 2012 08:29:20 -0800
+Message-ID: <20120216162919.GD3383@opensource.wolfsonmicro.com>
+References: <1329388073-17879-1-git-send-email-t-kristo@ti.com>
+ <1329388073-17879-5-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mSxgbZZZvrAyzONB"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:41452 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752789Ab2BPQYm (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:48059 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750877Ab2BPQ3Z (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 11:24:42 -0500
-Received: from compute2.internal (compute2.nyi.mail.srv.osa [10.202.2.42])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id CEBE1212EB
-	for <linux-omap@vger.kernel.org>; Thu, 16 Feb 2012 11:24:41 -0500 (EST)
+	Thu, 16 Feb 2012 11:29:25 -0500
 Content-Disposition: inline
-In-Reply-To: <4F3CDF9F.9080204@ti.com>
+In-Reply-To: <1329388073-17879-5-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: akpm@linux-foundation.org, Aneesh V <aneesh@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>
 
-On Thu, Feb 16, 2012 at 04:21:11PM +0530, Santosh Shilimkar wrote:
-> Andrew, Greg,
-> 
-> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
-> > Add a driver for the EMIF SDRAM controller used in TI SoCs
-> > 
-> > EMIF is an SDRAM controller that supports, based on its revision,
-> > one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-> > for LPDDR2.
-> > 
-> > The driver supports the following features:
-> > - Calculates the DDR AC timing parameters to be set in EMIF
-> >   registers using data from the device data-sheets and based
-> >   on the DDR frequency. If data from data-sheets is not available
-> >   default timing values from the JEDEC spec are used. These
-> >   will be safe, but not necessarily optimal
-> > - API for changing timings during DVFS or at boot-up
-> > - Temperature alert configuration and handling of temperature
-> >   alerts, if any for LPDDR2 devices
-> >   * temperature alert is based on periodic polling of MR4 mode
-> >     register in DDR devices automatically performed by hardware
-> >   * timings are de-rated and brought back to nominal when
-> >     temperature raises and falls respectively
-> > - Cache of calculated register values to avoid re-calculating
-> >   them
-> > 
-> > The driver will need some minor updates when it is eventually
-> > integrated with DVFS. This can not be done now as DVFS support
-> > is not available yet in mainline.
-> > 
-> > Discussions with Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > were immensely helpful in shaping up the interfaces. Vibhore Vardhan
-> > <vvardhan@gmail.com> did the initial code snippet for thermal
-> > handling.
-> > 
-> > Testing: 
-> > - The driver is tested on OMAP4430 SDP.
-> > - The driver in a slightly adapted form is also tested on OMAP5.
-> > - Since mainline kernel doesn't have DVFS support yet,
-> >   testing was done using a test module.
-> > - Temperature alert handling was tested with simulated interrupts
-> >   and faked temperature values as testing all cases in real-life
-> >   scenarios is difficult.
-> > 
-> [...]
-> 
-> >  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
-> >  drivers/misc/Kconfig                       |   20 +
-> >  drivers/misc/Makefile                      |    2 +
-> >  drivers/misc/emif.c                        | 1522 ++++++++++++++++++++++++++++
-> >  drivers/misc/emif_regs.h                   |  461 +++++++++
-> >  drivers/misc/jedec_ddr_data.c              |  141 +++
-> >  include/linux/emif.h                       |  257 +++++
-> >  include/linux/jedec_ddr.h                  |  174 ++++
-> 
-> Any suggestion on where this driver can reside. It's a memory
-> controller driver which supports standard DDR functionality
-> as per JDEC specs including thermal alert. On top of
-> that it does support DVFS using the TI PRCM IP block.
 
-I don't know what any of those TLA words mean, so I really can't suggest
-where this code should go.  But just from this diffstat, it looks like
-you are creating a new user/kernel interface, without documenting it
-anywhere, which isn't ok.
+--mSxgbZZZvrAyzONB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-greg k-h
+On Thu, Feb 16, 2012 at 12:27:52PM +0200, Tero Kristo wrote:
+> This is needed for SMPS regulators, which use the OMAP voltage
+> processor for voltage get/set functions instead of the normal I2C
+> channel. For this purpose, regulator_init_data->driver_data contents
+> are expanded, it is now a struct which contains function pointers
+> for the set/get voltage operations, a data pointer for these, and
+> the previously used features bitmask.
+
+Applied, thanks.
+
+--mSxgbZZZvrAyzONB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPPS6yAAoJEBus8iNuMP3dZwsP/2Gbk10xE9jmOG4/0NRRnD1T
+oueRUnNGqtqSqCh5kag7HtvtXda1yR1Q6oE77n8XxodINUVTFn2rhpT7pdmqpwuw
+BO0vg7CfQ+gNgnGCnRXGncpxLaUgFU1/igPJgOgelbhCBCzCFKz7F58Xe4D+mk0G
+ICqkAnwqCYPQ1khM2GPzIJDaPGg9oC9diPMT3U/9DW9/2hwPQpeFUjn/Q2MNKN8H
+2p/YWf22qYcS4YE0aiAfW1b0aPV7kHWfVU6Cc2A49K9RGS9U5WPNw8wTThkEGUjh
+1i3PEmgff84geI/kony5pRYYbNIy1rdFk+rGBE/tp1EmCxtFWDNVjhUfDFWg5wYr
++zFMdqzjr4HabhlillCKXNbPkIWLE/iH9TO4ot3DIKxM1GJlmguUXxlOaSW8BTfj
+8doOjQo8zFoalo5N3+MrZSppTKPthGV0PkQUiImdttatUWOsX9Cos7mR3wF9q1b0
+VhofRT4kGx3DFzB7ar2Shdji79PZBkW20r3ek0G7xx9L2mwEFdVxDStycXZp7q28
+uDeld6F5TXlsLN5zeqG11Deid8gGTANkKQuLlBTkKTJSpNOQVk2rjfkYQhX05Czo
+elMuCgwdSd6uETsNvsi5azzNejZ5tEhwUDsEQ7N0K/GMpoAH7piDrhLOSmmL+s8b
+v5kdFu0c7m/10zD9ykq3
+=PBPt
+-----END PGP SIGNATURE-----
+
+--mSxgbZZZvrAyzONB--
