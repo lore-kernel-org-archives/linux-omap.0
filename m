@@ -1,62 +1,84 @@
-From: Danny Kukawka <danny.kukawka@bisect.de>
-Subject: [PATCH] arch/arm/mach-omap2/: included some headers twice
-Date: Thu, 16 Feb 2012 15:45:02 +0100
-Message-ID: <1329403502-32494-1-git-send-email-danny.kukawka@bisect.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Danny Kukawka <dkukawka@suse.de>, Russell King <linux@arm.linux.org.uk>, =?UTF-8?q?Beno=C3=AEt=20Cousson?= <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 8/8] arm: omap3: prevent per_clkdm from attempting
+ manual domain transitions
+Date: Thu, 16 Feb 2012 17:23:24 +0200
+Message-ID: <1329405804.4102.400.camel@sokoban>
+References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
+	 <1329320274-481-9-git-send-email-t-kristo@ti.com> <87pqdf99c2.fsf@ti.com>
+	 <1329382652.4102.386.camel@sokoban>
+	 <CAMQu2gx5JdKfTTUhi28N_=EZ3tDo7nTRA00ErrMpuGMkOh9rgw@mail.gmail.com>
+	 <1329398159.4102.391.camel@sokoban>
+Reply-To: <t-kristo@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37918 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750747Ab2BPPXf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Feb 2012 10:23:35 -0500
+In-Reply-To: <1329398159.4102.391.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap@vger.kernel.org, paul@pwsan.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org
 
-arch/arm/mach-omap2/: included some headers tiwce:
-- arch/arm/mach-omap2/board-ldp.c: 'linux/gpio.h'
-- arch/arm/mach-omap2/io.c: 'common.h'
-- arch/arm/mach-omap2/omap_hwmod_44xx_data.c: 'plat/i2c.h'
+On Thu, 2012-02-16 at 15:15 +0200, Tero Kristo wrote:
+> On Thu, 2012-02-16 at 15:27 +0530, Shilimkar, Santosh wrote:
+> > On Thu, Feb 16, 2012 at 2:27 PM, Tero Kristo <t-kristo@ti.com> wrote:
+> > > On Wed, 2012-02-15 at 11:37 -0800, Kevin Hilman wrote:
+> > >> Tero Kristo <t-kristo@ti.com> writes:
+> > >>
+> > >> > Attempting this will cause problems especially with off-mode enabled.
+> > >>
+> > >> Please be more verbose about the problems seen, and the root cause(s).
+> > >>
+> > >
+> > > I was actually looking forward for some help with this commit message,
+> > > as I am still not quite sure what is going on in here. :) Here is the
+> > > log for suspend (btw, cam_pwrdm does not go to off in mainline yet, but
+> > > I think that is probably fixed by the patch from Paul,
+> > > omap_set_pwrdm_state() does not work properly.) The warning comes out
+> > > after wakeup from off-mode, and it is triggered by the disabling of
+> > > autodeps before off-mode entry.
+> > >
+> > This mostly indicates that one of the per clock-domain module
+> > clock turning ON seems to be not working well with auto deps
+> > disabled. This leads to interconnect violation.
+> > 
+> > if not tried already, can you put the per_clockdomain in SW_WKUP
+> > in the low power code early resume path and see if this
+> > error goes away.
+> 
+> This seems to get rid of the dump also. It looks like some driver resume
+> is not behaving nicely, I am trying to pinpoint the culprit currently
+> and see whether it can provide more info.
 
-Remove the duplicates.
+Okay, I have some more info about this now.
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
----
- arch/arm/mach-omap2/board-ldp.c            |    1 -
- arch/arm/mach-omap2/io.c                   |    1 -
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 -
- 3 files changed, 0 insertions(+), 3 deletions(-)
+What happens is that when entering off-mode, PER domain remains OFF even
+during the execution of the exit phase from omap_sram_idle. Adding a
+manual SW_WKUP it comes up and there are no issues. If autodeps are
+enabled on the domain, it comes back from off mode as active.
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 2d2a61f..ac42ebe 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -27,7 +27,6 @@
- #include <linux/io.h>
- #include <linux/smsc911x.h>
- #include <linux/mmc/host.h>
--#include <linux/gpio.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index eb50c29..9bd07f3 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -43,7 +43,6 @@
- #include "clockdomain.h"
- #include <plat/omap_hwmod.h>
- #include <plat/multi.h>
--#include "common.h"
- 
- /*
-  * The machine specific code may provide the extra mapping besides the
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index ef0524c..acb561e 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -28,7 +28,6 @@
- #include <plat/mcspi.h>
- #include <plat/mcbsp.h>
- #include <plat/mmc.h>
--#include <plat/i2c.h>
- #include <plat/dmtimer.h>
- #include <plat/common.h>
- 
--- 
-1.7.8.3
+Looking further in the code, we have this at the end of omap_sram_idle:
+
+        if (per_next_state < PWRDM_POWER_ON) {
+                per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+                omap2_gpio_resume_after_idle();
+                wake_per();
+                if (per_prev_state == PWRDM_POWER_OFF)
+                        omap3_per_restore_context();
+        }
+
+... which seems to assume that per domain is on. Gpio code does not
+control any clocks currently, as it only requires the interface clock to
+be on, and as this is autoidled....
+
+Any comments how we should handle this? Shall we just keep these two
+patches for handling this or add some different hackery for the gpio
+issue?
+
+-Tero
+
+
