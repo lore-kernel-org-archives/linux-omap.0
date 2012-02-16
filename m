@@ -1,31 +1,30 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: Re: [RFC PATCH 3/8] misc: emif: add register definitions for EMIF
-Date: Thu, 16 Feb 2012 15:40:13 +0530
-Message-ID: <4F3CD605.8070701@ti.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-4-git-send-email-aneesh@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/3] ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux
+	related functions as __init
+Date: Thu, 16 Feb 2012 10:11:23 +0000
+Message-ID: <20120216101123.GI15338@n2100.arm.linux.org.uk>
+References: <20120215182355.18884.18682.stgit@kaulin.local> <20120215182829.18884.69168.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:45445 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751241Ab2BPKKS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 05:10:18 -0500
-In-Reply-To: <1328357771-31644-4-git-send-email-aneesh@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58224 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241Ab2BPKLi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Feb 2012 05:11:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20120215182829.18884.69168.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
-> Signed-off-by: Aneesh V <aneesh@ti.com>
-> ---
->  drivers/misc/emif_regs.h |  461 ++++++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 461 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/misc/emif_regs.h
+On Wed, Feb 15, 2012 at 10:28:30AM -0800, Tony Lindgren wrote:
+> Now that omap hsmmc init is split into two functions, it's safe
+> to mark omap_hsmmc_init and omap_mux related functions to __init.
 > 
-Changelog please. O.w looks fine to me.
+> This basically reverts the following fixes for the case where
+> TWL was compiled as a module:
+> 
+> d5de63 (ARM: omap: preemptively fix section mismatch in omap4_sdp4430_wifi_mux_init())
 
-Regards
-santosh
+Why did you include this one?  This is unrelated to the TWL problems.
