@@ -1,100 +1,37 @@
 From: Aneesh V <aneesh@ti.com>
-Subject: Re: [RFC PATCH 6/8] misc: emif: add interrupt and temperature handling
-Date: Thu, 16 Feb 2012 17:20:20 +0530
-Message-ID: <4F3CED7C.8060406@ti.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-7-git-send-email-aneesh@ti.com> <4F3CDD5E.8020600@ti.com>
+Subject: Re: [RFC PATCH 2/8] misc: ddr: add LPDDR2 data from JESD209-2
+Date: Thu, 16 Feb 2012 17:25:26 +0530
+Message-ID: <4F3CEEAE.40907@ti.com>
+References: <1328357771-31644-1-git-send-email-aneesh@ti.com>	<1328357771-31644-3-git-send-email-aneesh@ti.com>	<4F3CD55C.2020002@ti.com>	<4F3CDA2D.2060001@ti.com> <20120216111043.3256189f@pyramind.ukuu.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:60255 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750981Ab2BPLu1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 16 Feb 2012 06:50:27 -0500
-In-Reply-To: <4F3CDD5E.8020600@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120216111043.3256189f@pyramind.ukuu.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 
-On Thursday 16 February 2012 04:11 PM, Santosh Shilimkar wrote:
-> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
->> Add an ISR for EMIF that:
->> 	1. reports details of access errors
->> 	2. takes action on thermal events
->>
->> On thermal events SDRAM timing parameters are
->> adjusted to ensure safe operation
->>
->> Also clear all interrupts on shut-down. Pending IRQs
->> may casue problems during warm-reset.
->>
-> Add some more details like MR4, EMIF polling frequency etc
-> for better understanding.
-
-Will do.
-
-
-
+On Thursday 16 February 2012 04:40 PM, Alan Cox wrote:
+> On Thu, 16 Feb 2012 15:57:57 +0530
+> Aneesh V<aneesh@ti.com>  wrote:
 >
->> Signed-off-by: Aneesh V<aneesh@ti.com>
->> ---
->>   drivers/misc/emif.c |  209 ++++++++++++++++++++++++++++++++++++++++++++++++++-
->>   1 files changed, 207 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
->> index 36ba6f4..5c2b0ae 100644
->> --- a/drivers/misc/emif.c
->> +++ b/drivers/misc/emif.c
->> @@ -500,6 +500,45 @@ static u32 get_pwr_mgmt_ctrl(u32 freq, struct emif_data *emif, u32 ip_rev)
->>   }
->>
->>   /*
->> + * Get the temperature level of the EMIF instance:
->> + * Reads the MR4 register of attached SDRAM parts to find out the temperature
->> + * level. If there are two parts attached(one on each CS), then the temperature
->> + * level for the EMIF instance is the higher of the two temperatures.
->> + */
->> +static void get_temperature_level(struct emif_data *emif)
->> +{
->> +	u32		temp, temperature_level;
->> +	unsigned long	irqs;
->> +	void __iomem	*base;
->> +
->> +	base = emif->base;
->> +
->> +	/* Read mode register 4 */
->> +	writel(DDR_MR4, base + EMIF_LPDDR2_MODE_REG_CONFIG);
->> +	temperature_level = readl(base + EMIF_LPDDR2_MODE_REG_DATA);
->> +	temperature_level = (temperature_level&  MR4_SDRAM_REF_RATE_MASK)>>
->> +				MR4_SDRAM_REF_RATE_SHIFT;
->> +
->> +	if (emif->plat_data->device_info->cs1_used) {
->> +		writel(DDR_MR4 | CS_MASK, base + EMIF_LPDDR2_MODE_REG_CONFIG);
->> +		temp = readl(base + EMIF_LPDDR2_MODE_REG_DATA);
->> +		temp = (temp&  MR4_SDRAM_REF_RATE_MASK)
->> +				>>  MR4_SDRAM_REF_RATE_SHIFT;
->> +		temperature_level = max(temp, temperature_level);
->> +	}
->> +
->> +	spin_lock_irqsave(&emif->lock, irqs);
-> Add a line here.
-
-Will do.
-
->> +	/* treat everything less than nominal(3) in MR4 as nominal */
->> +	if (unlikely(temperature_level<  SDRAM_TEMP_NOMINAL))
->> +		temperature_level = SDRAM_TEMP_NOMINAL;
->> +
->> +	/* if we get reserved value in MR4 persist with the existing value */
->> +	if (likely(temperature_level != SDRAM_TEMP_RESERVED_4))
->> +		emif->temperature_level = temperature_level;
->> +	spin_unlock_irqrestore(&emif->lock, irqs);
->> +}
->> +
+>> On Thursday 16 February 2012 03:37 PM, Santosh Shilimkar wrote:
+>>> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
+>>>> add LPDDR2 data from the JEDEC spec JESD209-2. The data
+>>>> includes:
+>>>>
+>>>> 1. Addressing information for LPDDR2 memories of different
+>>>>      densities and types(S2/S4)
+>>>> 2. AC timing data.
+>>>>
+>>>> This data will useful for memory controller device drivers
 >
-> rest of the patch looks fine to me
+> I don't think it belongs in drivers/misc. It's not a driver but a
+> library. lib/ might be a better place for it perhaps ?
 
-Thanks,
+Agree. I shall move it to lib/
+
+br,
 Aneesh
