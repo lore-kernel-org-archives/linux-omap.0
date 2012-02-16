@@ -1,71 +1,135 @@
-From: Ricardo Neri <ricardo.neri@ti.com>
-Subject: Re: [PATCH 0/3] OMAPDSS: HDMI: Add support for audio MCLK
-Date: Wed, 15 Feb 2012 20:58:14 -0600
-Message-ID: <1329361094.2016.156.camel@dexx0075479.dextra-mty.naucm.ext.ti.com>
-References: <1328757023-20543-1-git-send-email-ricardo.neri@ti.com>
-	 <1329222479.1845.86.camel@deskari>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 2/5] gpio/omap: Use devm_ API and add request_mem_region
+Date: Thu, 16 Feb 2012 11:11:52 +0530
+Message-ID: <CAC83ZvKuOkLKdAVNeoVjRZriouDCGPXPhkZZ+MgcktH+9pYN3w@mail.gmail.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com>
+ <1329321854-24490-3-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34418 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755854Ab2BPC6l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Feb 2012 21:58:41 -0500
-Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1G2weD0009467
-	for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 20:58:40 -0600
-Received: from DFLE70.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1G2ween007138
-	for <linux-omap@vger.kernel.org>; Wed, 15 Feb 2012 20:58:40 -0600 (CST)
-In-Reply-To: <1329222479.1845.86.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1329321854-24490-3-git-send-email-b-cousson@ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: grant.likely@secretlab.ca, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: mythripk@ti.com, a0393947@ti.com, molnar@ti.com, s-guiriec@ti.com, lrg@ti.com, peter.ujfalusi@ti.com, linux-omap@vger.kernel.org
 
-Hi Tomi,
+Hi Benoit,
 
-On Tue, 2012-02-14 at 14:27 +0200, Tomi Valkeinen wrote:
-> Hi,
-> 
-> On Wed, 2012-02-08 at 21:10 -0600, Ricardo Neri wrote:
-> > Hello,
-> > 
-> > Certain OMAP4 revisions (i.e., 4430 ES2.3, 4460, and 4470) use
-> > a pseudo clock (generated from the TMDS clock), MCLK, to drive the
-> > generation of Audio Clock Regeneration packets. Other devices
-> > (i.e., 4430 ES2.[0,2]) use the TMDS clock directly. 
-> > 
-> > This set of patches introduces functionality to enable the MCLK on the
-> > relevant devices. Such clock is added as new DSS feature. The dss_features
-> > structures are rearranged to reflect the MCLK support across several
-> > silicon revisions.
-> > 
-> > These patches have been validated on OMAP 4430 ES2.2 and ES2.3 as well as
-> > on 4460 ES1.0. The HDMI sinks used for validation are monitor Dell ST2210b,
-> > AV receiver Onkyo TX-SR508 and AV receiver Yamaha RX-V367. Audio playback
-> > is functional in all of them.
-> 
-> One question just to be sure: are you sure this clocking difference is
-> based on OMAP revision, and has nothing to do with the board?
+On Wed, Feb 15, 2012 at 9:34 PM, Benoit Cousson <b-cousson@ti.com> wrote:
+> Replace the regular kzalloc and ioremap with the devm_ equivalent
+> to simplify error handling.
+>
+> Add the missing devm_request_mem_region to reserve the region used
+> by the driver.
+>
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+> ---
+> =A0drivers/gpio/gpio-omap.c | =A0 35 +++++++++++++++--------------------
+> =A01 files changed, 15 insertions(+), 20 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index a0c3e03..c3a9dc8 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -19,7 +19,7 @@
+> =A0#include <linux/err.h>
+> =A0#include <linux/clk.h>
+> =A0#include <linux/io.h>
+> -#include <linux/slab.h>
+> +#include <linux/device.h>
+> =A0#include <linux/pm_runtime.h>
+> =A0#include <linux/pm.h>
+>
+> @@ -1052,23 +1052,19 @@ static int __devinit omap_gpio_probe(struct platf=
+orm_device *pdev)
+> =A0 =A0 =A0 =A0struct gpio_bank *bank;
+> =A0 =A0 =A0 =A0int ret =3D 0;
+>
+> - =A0 =A0 =A0 if (!dev->platform_data) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EINVAL;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_exit;
+> - =A0 =A0 =A0 }
+> + =A0 =A0 =A0 if (!dev->platform_data)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
+>
+> - =A0 =A0 =A0 bank =3D kzalloc(sizeof(struct gpio_bank), GFP_KERNEL);
+> + =A0 =A0 =A0 bank =3D devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank),=
+ GFP_KERNEL);
+> =A0 =A0 =A0 =A0if (!bank) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev, "Memory alloc failed\n");
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_exit;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0res =3D platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> =A0 =A0 =A0 =A0if (unlikely(!res)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev, "Invalid IRQ resource\n");
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+How is the memory allocated to 'bank' getting freed before return -ENODEV?
 
-Yes, the source clock for the ACR packets depends on how the HDMI IP is
-integrated into the OMAP and therefore it depends solely on the OMAP
-revision and not the board.
-> 
-> I think this looks fine. However, it doesn't apply as the dss feat stuff
-> has been changed. Could you rebase the patches on top of
-> 
-> git://gitorious.org/linux-omap-dss2/linux.git dev
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0bank->irq =3D res->start;
+> @@ -1096,15 +1092,19 @@ static int __devinit omap_gpio_probe(struct platf=
+orm_device *pdev)
+> =A0 =A0 =A0 =A0res =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> =A0 =A0 =A0 =A0if (unlikely(!res)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev, "Invalid mem resource\n");
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENODEV;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENODEV;
+And here?
 
-Sure, I will rebase and resubmit.
-
-Thanks,
-
-Ricardo
-> 
->  Tomi
-> 
-
-
+> + =A0 =A0 =A0 }
+> +
+> + =A0 =A0 =A0 if (!devm_request_mem_region(dev, res->start, resource_size=
+(res),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+pdev->name)) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(dev, "Region already claimed\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EBUSY;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 bank->base =3D ioremap(res->start, resource_size(res));
+> + =A0 =A0 =A0 bank->base =3D devm_ioremap(dev, res->start, resource_size(=
+res));
+> =A0 =A0 =A0 =A0if (!bank->base) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_err(dev, "Could not ioremap\n");
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err_free;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
+And here?
+--
+Tarun
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, bank);
+> @@ -1125,11 +1125,6 @@ static int __devinit omap_gpio_probe(struct platfo=
+rm_device *pdev)
+> =A0 =A0 =A0 =A0list_add_tail(&bank->node, &omap_gpio_list);
+>
+> =A0 =A0 =A0 =A0return ret;
+> -
+> -err_free:
+> - =A0 =A0 =A0 kfree(bank);
+> -err_exit:
+> - =A0 =A0 =A0 return ret;
+> =A0}
+>
+> =A0#ifdef CONFIG_ARCH_OMAP2PLUS
+> --
+> 1.7.0.4
+>
