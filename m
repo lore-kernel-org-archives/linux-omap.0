@@ -1,72 +1,63 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH 0/7] TWL6040: Regulator support
-Date: Fri, 17 Feb 2012 13:48:34 +0200
-Message-ID: <4F3E3E92.30304@ti.com>
-References: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
+From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Subject: Re: [PATCH v3] i2c: fix missing handling of errata I2C_OMAP3_1P153
+Date: Fri, 17 Feb 2012 13:19:29 +0100
+Message-ID: <4F3E45D1.3070405@gmail.com>
+References: <1328538811-13097-1-git-send-email-tasskjapp@gmail.com> <1329213583-20839-1-git-send-email-tasskjapp@gmail.com> <4F3A345B.2060308@gmail.com> <CAM=Q2cvQeAcS3drwKAZxV0=FjmmJQFADQgpt0uk66jK_EPxOmA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56559 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298Ab2BQMTK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 07:19:10 -0500
+In-Reply-To: <CAM=Q2cvQeAcS3drwKAZxV0=FjmmJQFADQgpt0uk66jK_EPxOmA@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org
 
-Hi,
+ From 0195dcf606b0ad069d8b5bc56cb877ff65ebea22 Mon Sep 17 00:00:00 2001
+From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+Date: Mon, 6 Feb 2012 14:14:23 +0100
+Subject: [PATCH] i2c: fix missing handling of errata I2C_OMAP3_1P153
 
-On 02/10/2012 12:05 PM, Peter Ujfalusi wrote:
-> Hello,
->=20
-> This series depends on the V3 of MFD: twl6040: Conversion to i2c driv=
-er set.
->=20
-> In order to have proper regulator support for twl6040 on SDP4430, and
-> PandaBoards I needed to add support for the V1V8, and V2V1 SMPS suppl=
-ies from
-> twl6030.
-> The configuration on both boards (and the TRM recommendations) are th=
-e same, so
-> it make sens to have the V1V8, V2V1 supply configured in the twl-comm=
-on to avoid
-> duplicated code in board files.
->=20
-> The last patch in this series was part of the V2 of MFD: twl6040: Con=
-version to
-> i2c driver set. I have added Mark's Reviewd-by tag, and also addresse=
-d his
-> comment regarding to the supplies member of the twl6040 struct (no ne=
-ed to
-> allocate it separately).
->=20
-> Regards,
-> Peter
-> ---
-> Peter Ujfalusi (7):
->   OMAP: 4430SDP: Correct fixed regulator device ID
->   regulator: twl-regulator: Add fixed LDO for V1V8, V2V1 supply
->   MFD: twl-core: regulator configuration for twl6030 V1V8, V2V1 SMPS
->   OMAP4: twl-common: Add twl6030 V1V8, V2V1 SMPS common configuration
->   OMAP: 4430SDP: Use common configuration for V1V8, V2V1 supplies
->   OMAP: omap4panda: Use common configuration for V1V8, V2V1 supplies
->   MFD: TWL6040: Add regulator support for VIO, V2V1 supplies
->=20
->  arch/arm/mach-omap2/board-4430sdp.c    |   11 ++++++--
->  arch/arm/mach-omap2/board-omap4panda.c |    4 ++-
->  arch/arm/mach-omap2/twl-common.c       |   43 ++++++++++++++++++++++=
-++++++++++
->  arch/arm/mach-omap2/twl-common.h       |    2 +
->  drivers/mfd/twl-core.c                 |   10 +++++++
->  drivers/mfd/twl6040-core.c             |   33 +++++++++++++++++++++-=
---
->  drivers/regulator/twl-regulator.c      |    2 +
->  include/linux/i2c/twl.h                |    2 +
->  include/linux/mfd/twl6040.h            |    2 +
->  9 files changed, 101 insertions(+), 8 deletions(-)
+i2c_probe set the dev->errata flag, but omap_i2c_init cleared the flag 
+again. Move the errata handling to i2c_probe.
 
-It has been a week since I have sent this series. It would be great if
-this be on time for 3.4 merge window (with the depending series which
-converts the twl6040 mfd part into i2c driver).
+Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+---
+  drivers/i2c/busses/i2c-omap.c |   10 +++++-----
+  1 files changed, 5 insertions(+), 5 deletions(-)
 
-Thank you,
-P=E9ter
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 801df60..d609ae2 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -468,11 +468,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+  	/* Take the I2C module out of reset: */
+  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+
+-	dev->errata = 0;
+-
+-	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
+-		dev->errata |= I2C_OMAP_ERRATA_I207;
+-
+  	/* Enable interrupts */
+  	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+@@ -1058,6 +1053,11 @@ omap_i2c_probe(struct platform_device *pdev)
+
+  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+
++	dev->errata = 0;
++
++	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
++		dev->errata |= I2C_OMAP_ERRATA_I207;
++
+  	if (dev->rev <= OMAP_I2C_REV_ON_3430)
+  		dev->errata |= I2C_OMAP3_1P153;
+
+-- 
+1.7.5.4
+
