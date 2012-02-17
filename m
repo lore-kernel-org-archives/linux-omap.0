@@ -1,77 +1,31 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with
- frequency
-Date: Fri, 17 Feb 2012 12:19:20 +0200
-Message-ID: <1329473960.4102.417.camel@sokoban>
-References: <1329420043-32656-1-git-send-email-khilman@ti.com>
-	 <1329420043-32656-2-git-send-email-khilman@ti.com>
-	 <CAORVsuUsnp8gMygbsrQh7O6048eUyjTrT3Ob_Jop5JKQyxiMOA@mail.gmail.com>
-	 <87lio2fu56.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 0/3] omap hsmmc init cleanup and section warning fixes
+ for v3.4 merge window
+Date: Fri, 17 Feb 2012 15:56:37 +0530
+Message-ID: <4F3E2B5D.6040601@ti.com>
+References: <20120215182355.18884.18682.stgit@kaulin.local> <CACYZBRE_Vf8qDQYPRgsL03T8oy2Kv4fYRfE8U7y79Xhb1nwC2A@mail.gmail.com> <20120216121234.GJ15338@n2100.arm.linux.org.uk> <4F3CF7D1.8050807@ti.com> <4F3D0186.2010500@ti.com> <20120216135151.GK15338@n2100.arm.linux.org.uk> <20120217091433.GL15338@n2100.arm.linux.org.uk> <4F3E1ED5.6090305@ti.com> <4F3E251B.6040404@ti.com> <20120217100632.GM15338@n2100.arm.linux.org.uk> <4F3E2984.6000201@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60049 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952Ab2BQKTX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Feb 2012 05:19:23 -0500
-In-Reply-To: <87lio2fu56.fsf@ti.com>
+Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:54124 "EHLO
+	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751814Ab2BQK1A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Feb 2012 05:27:00 -0500
+Received: by pbbro2 with SMTP id ro2so22108625pbb.30
+        for <linux-omap@vger.kernel.org>; Fri, 17 Feb 2012 02:26:58 -0800 (PST)
+In-Reply-To: <4F3E2984.6000201@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, 2012-02-16 at 11:36 -0800, Kevin Hilman wrote:
-> Jean Pihet <jean.pihet@newoldbits.com> writes:
-> 
-> > Hi Kevin,
-> >
-> > On Thu, Feb 16, 2012 at 11:20 AM, Kevin Hilman <khilman@ti.com> wrote:
-> >> diff --git a/arch/arm/mach-omap2/voltage.c b/arch/arm/mach-omap2/voltage.c
-> >> index 8a36342..140c032 100644
-> >> --- a/arch/arm/mach-omap2/voltage.c
-> >> +++ b/arch/arm/mach-omap2/voltage.c
-> >> @@ -89,6 +89,8 @@ int voltdm_scale(struct voltagedomain *voltdm,
-> >>        ret = voltdm->scale(voltdm, target_volt);
-> >>        if (!ret)
-> >>                voltdm->nominal_volt = target_volt;
-> >> +       printk("KJH: %s: %d\n", __func__, target_volt);
-> >> +       dump_stack();
-> > The debugging letfovers need to be removed.
-> 
-> heh, that's why it's RFT.  :)
+On Friday 17 February 2012 03:48 PM, Rajendra Nayak wrote:
+>>
+>
+> Yes, I did get a WARN saying the device is already registered. An
+> unregister in my teardown should fix that too.
 
-<snip>
-
-I tested this out with performance governor and limiting the
-max_scaling_freq to different numbers. Clock frequency seems to change
-based on arm_fck/rate debugfs entry, and the voltage is changing based
-on both measurement and microvolts entry for the regulator.
-
-However, twd_update_frequency crashes on omap3, as it doesn't have local
-timer support but smp_twd registers a cpufreq notifier anyways.
-Following patch fixes this issue (I'll send this out to l-o and l-arm
-lists separately in a bit):
-
----
- arch/arm/kernel/smp_twd.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-index 4285daa..dae8902 100644
---- a/arch/arm/kernel/smp_twd.c
-+++ b/arch/arm/kernel/smp_twd.c
-@@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb = {
- 
- static int twd_cpufreq_init(void)
- {
--       if (!IS_ERR(twd_clk))
-+       if (twd_clk && !IS_ERR(twd_clk))
-                return cpufreq_register_notifier(&twd_cpufreq_nb,
-                        CPUFREQ_TRANSITION_NOTIFIER);
- 
--- 
-1.7.4.1
-
-
+And now I see there is no way to unregister an omap_device :-)
+which needs to be added.
