@@ -1,60 +1,24 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH] arm: smp-twd: check for uninitialized clock in twd_cpufreq_init
-Date: Fri, 17 Feb 2012 16:17:17 +0530
-Message-ID: <CAMQu2gzP1co6QhP-Co9wAwB_pVrjE0X_2GgGni4+t94yjHKi1g@mail.gmail.com>
-References: <1329474869-32356-1-git-send-email-t-kristo@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: SMP local timers and their CPUfreq notifiers setup on OMAP3
+Date: Fri, 17 Feb 2012 10:47:58 +0000
+Message-ID: <20120217104758.GO15338@n2100.arm.linux.org.uk>
+References: <8739aahc0n.fsf@ti.com> <4F3E0655.2040702@ti.com> <0401fed02a58f7bc48cc274050adbac7@localhost> <CAMQu2gwW6ES14jB8E6snE4pQRKg1q2ZF0pBedBtuPxeYV+7cow@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:36401 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750878Ab2BQKri convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Feb 2012 05:47:38 -0500
-Received: by mail-qw0-f43.google.com with SMTP id g1so716895qab.2
-        for <linux-omap@vger.kernel.org>; Fri, 17 Feb 2012 02:47:37 -0800 (PST)
-In-Reply-To: <1329474869-32356-1-git-send-email-t-kristo@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:55086 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab2BQKsf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 05:48:35 -0500
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gwW6ES14jB8E6snE4pQRKg1q2ZF0pBedBtuPxeYV+7cow@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, khilman@ti.com
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 17, 2012 at 4:04 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> Non-smp platforms don't have local timer support, but the twd_cpufreq=
-_init
-> only checks for IS_ERR during init. Check against null also, to avoid
-> crashes during cpufreq transitions on non-smp platforms.
->
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
-I sent a patch for the same issue which Kevin reported.
+On Fri, Feb 17, 2012 at 04:10:57PM +0530, Shilimkar, Santosh wrote:
+> -	if (!IS_ERR(twd_clk))
+> +	if ((!twd_evt) && (!__this_cpu_ptr(twd_evt)) && (!IS_ERR(twd_clk)))
 
-Thread.
-http://www.spinics.net/lists/arm-kernel/msg160275.html
-
-> =A0arch/arm/kernel/smp_twd.c | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-> index 4285daa..dae8902 100644
-> --- a/arch/arm/kernel/smp_twd.c
-> +++ b/arch/arm/kernel/smp_twd.c
-> @@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb =3D {
->
-> =A0static int twd_cpufreq_init(void)
-> =A0{
-> - =A0 =A0 =A0 if (!IS_ERR(twd_clk))
-> + =A0 =A0 =A0 if (twd_clk && !IS_ERR(twd_clk))
-
-Checking the clock node is not enoough because you can
-not have clock node and rely on calibration..
-Testing twd_evt is safe to avoid the issue.
-
-Regards
-santosh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Too many parens.
