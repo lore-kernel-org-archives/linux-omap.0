@@ -1,65 +1,43 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/3] omap hsmmc init cleanup and section warning fixes
-	for v3.4 merge window
-Date: Fri, 17 Feb 2012 09:14:33 +0000
-Message-ID: <20120217091433.GL15338@n2100.arm.linux.org.uk>
-References: <20120215182355.18884.18682.stgit@kaulin.local> <CACYZBRE_Vf8qDQYPRgsL03T8oy2Kv4fYRfE8U7y79Xhb1nwC2A@mail.gmail.com> <20120216121234.GJ15338@n2100.arm.linux.org.uk> <4F3CF7D1.8050807@ti.com> <4F3D0186.2010500@ti.com> <20120216135151.GK15338@n2100.arm.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH] OMAP4: dma: Correct CPU version check for dma_common_ch_end
+Date: Fri, 17 Feb 2012 11:25:06 +0200
+Message-ID: <1329470706-29682-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42511 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174Ab2BQJOp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 04:14:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20120216135151.GK15338@n2100.arm.linux.org.uk>
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:48768 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751925Ab2BQJZS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Feb 2012 04:25:18 -0500
+Received: by mail-lpp01m010-f43.google.com with SMTP id p5so4999607lag.30
+        for <linux-omap@vger.kernel.org>; Fri, 17 Feb 2012 01:25:17 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Feb 16, 2012 at 01:51:51PM +0000, Russell King - ARM Linux wrote:
-> On Thu, Feb 16, 2012 at 06:45:50PM +0530, Rajendra Nayak wrote:
-> > On Thursday 16 February 2012 06:04 PM, Rajendra Nayak wrote:
-> >>> Can you test something with these patches?
-> >>>
-> >>> 1. Build the gpio-twl4030.c as a module, but with HSMMC support built in
-> >>> 2. Boot on the 4430SDP
-> >>
-> >> twl4030 gpio is used for card detect on OMAP3, so I tried this
-> >> on my Beagle instead of 4430SDP.
-> >> The kernel boots up but does not detect/enumerate the mmc card.
-> >>
-> >>> 3. Load the gpio-twl4030 module
-> >>
-> >> I was expecting this to now detect the card, but I instead got
-> >> this error which seems to tell gpio-twl4030 has problems
-> >> when built/used as a module, outside of the mmc issues.
-> >
-> > Looks like I was mislead with the errors and though the twl4030
-> > gpio probe was bailing out with errors, which its not.
-> > It does seem to go ahead, does a mmc late init which registers
-> > the mmc omap_device and hence does a platform_device_add, but the
-> > device never seem to get probed. mmc driver is built in and
-> > registered.
-> >
-> >>
-> >> # insmod gpio-twl4030.ko
-> >> [   16.217864] twl4030_gpio twl4030_gpio: can't dispatch IRQs from modules
-> >> [   16.242004] gpiochip_add: registered GPIOs 192 to 211 on device: twl4030
-> >>
-> >>
-> >>> 4. Remove the gpio-twl4030 module
-> >>> 5. Re-load the gpio-twl4030.ko module
-> >>>
-> >>> and report back what you get.  Thanks.
-> >
-> 
-> (4) and (5) are the key bits of what I was asking you to do.
+CCDN is the last common channel register in all OMAP4 versions. Use
+cpu_is_omap44xx() instead of the cpu_is_omap4430() - which is anyway not
+doing what it supposed to do.
 
-Okay, so that was a total waste of time and effort, because you didn't do
-what I asked.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+---
+ arch/arm/mach-omap2/dma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tony: I think there's a bug here - if the gpio-twl4030 module is inserted,
-removed and re-inserted, I think we'll end up creating the devices for MMC
-twice with the same name, resulting in sysfs complaining very loudly.
+diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
+index a59a45a..b19d849 100644
+--- a/arch/arm/mach-omap2/dma.c
++++ b/arch/arm/mach-omap2/dma.c
+@@ -227,7 +227,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
+ 
+ 	dma_stride		= OMAP2_DMA_STRIDE;
+ 	dma_common_ch_start	= CSDP;
+-	if (cpu_is_omap3630() || cpu_is_omap4430())
++	if (cpu_is_omap3630() || cpu_is_omap44xx())
+ 		dma_common_ch_end = CCDN;
+ 	else
+ 		dma_common_ch_end = CCFN;
+-- 
+1.7.8.4
+
