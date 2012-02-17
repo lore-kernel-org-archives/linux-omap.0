@@ -1,44 +1,119 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [BUG] EHCI build dependencies broken?
-Date: Fri, 17 Feb 2012 12:30:33 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1202171228180.1143-100000@iolanthe.rowland.org>
-References: <20120217171203.GA3945@n2100.arm.linux.org.uk>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [RFC PATCH 0/8] Add TI EMIF SDRAM controller driver
+Date: Fri, 17 Feb 2012 09:50:46 -0800
+Message-ID: <20120217175046.GA29902@kroah.com>
+References: <1328357771-31644-1-git-send-email-aneesh@ti.com>
+ <4F3CDF9F.9080204@ti.com>
+ <20120216162359.GB20827@kroah.com>
+ <4F3E5C8D.7020506@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:44496 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752582Ab2BQRaf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 12:30:35 -0500
-In-Reply-To: <20120217171203.GA3945@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4F3E5C8D.7020506@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aneesh V <aneesh@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Fri, 17 Feb 2012, Russell King - ARM Linux wrote:
-
-> > > Looking at the Kconfig file, it seems that it's entirely possible to
-> > > select EHCI_HCD without any glue selected.  It's also possible to build
-> > > EHCI with two (or more) bus glues selected - eg, it's possible for
-> > > both these to be selected:
-
-> > Of course, that doesn't solve the issue of not having any bus glue
-> > selected at all.  I don't know enough about Kbuild to fix this --
-> > suggestions are welcome.
-> > 
-> > The same problem exists with OHCI and UHCI too.
+On Fri, Feb 17, 2012 at 07:26:29PM +0530, Aneesh V wrote:
+> Greg,
 > 
-> A better solution would be to sort out the OHCI/UHCI/EHCI drivers so that
-> they can support more than one bus glue at any one time.  I think that's
-> been discussed in the past, and is certainly something that's going to be
-> required for the 'single zImage' project on ARM.
+> On Thursday 16 February 2012 09:53 PM, Greg KH wrote:
+> >On Thu, Feb 16, 2012 at 04:21:11PM +0530, Santosh Shilimkar wrote:
+> >>Andrew, Greg,
+> >>
+> >>On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
+> >>>Add a driver for the EMIF SDRAM controller used in TI SoCs
+> >>>
+> >>>EMIF is an SDRAM controller that supports, based on its revision,
+> >>>one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+> >>>for LPDDR2.
+> >>>
+> >>>The driver supports the following features:
+> >>>- Calculates the DDR AC timing parameters to be set in EMIF
+> >>>   registers using data from the device data-sheets and based
+> >>>   on the DDR frequency. If data from data-sheets is not available
+> >>>   default timing values from the JEDEC spec are used. These
+> >>>   will be safe, but not necessarily optimal
+> >>>- API for changing timings during DVFS or at boot-up
+> >>>- Temperature alert configuration and handling of temperature
+> >>>   alerts, if any for LPDDR2 devices
+> >>>   * temperature alert is based on periodic polling of MR4 mode
+> >>>     register in DDR devices automatically performed by hardware
+> >>>   * timings are de-rated and brought back to nominal when
+> >>>     temperature raises and falls respectively
+> >>>- Cache of calculated register values to avoid re-calculating
+> >>>   them
+> >>>
+> >>>The driver will need some minor updates when it is eventually
+> >>>integrated with DVFS. This can not be done now as DVFS support
+> >>>is not available yet in mainline.
+> >>>
+> >>>Discussions with Santosh Shilimkar<santosh.shilimkar@ti.com>
+> >>>were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+> >>><vvardhan@gmail.com>  did the initial code snippet for thermal
+> >>>handling.
+> >>>
+> >>>Testing:
+> >>>- The driver is tested on OMAP4430 SDP.
+> >>>- The driver in a slightly adapted form is also tested on OMAP5.
+> >>>- Since mainline kernel doesn't have DVFS support yet,
+> >>>   testing was done using a test module.
+> >>>- Temperature alert handling was tested with simulated interrupts
+> >>>   and faked temperature values as testing all cases in real-life
+> >>>   scenarios is difficult.
+> >>>
+> >>[...]
+> >>
+> >>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
+> >>>  drivers/misc/Kconfig                       |   20 +
+> >>>  drivers/misc/Makefile                      |    2 +
+> >>>  drivers/misc/emif.c                        | 1522 ++++++++++++++++++++++++++++
+> >>>  drivers/misc/emif_regs.h                   |  461 +++++++++
+> >>>  drivers/misc/jedec_ddr_data.c              |  141 +++
+> >>>  include/linux/emif.h                       |  257 +++++
+> >>>  include/linux/jedec_ddr.h                  |  174 ++++
+> >>
+> >>Any suggestion on where this driver can reside. It's a memory
+> >>controller driver which supports standard DDR functionality
+> >>as per JDEC specs including thermal alert. On top of
+> >>that it does support DVFS using the TI PRCM IP block.
+> >
+> >I don't know what any of those TLA words mean, so I really can't suggest
 > 
-> I suspect that's something for later though.
+> This is a driver for TI's memory controller(called EMIF). The
+> driver is needed for adjusting the controller settings on frequency,
+> voltage, and temperature changes. Any suggestion as to where this
+> should go?
 
-Yes, that's my long-term plan.  Don't know when I'll get around to it, 
-though.  Even when it has been done, I don't know how we'll protect 
-against configs with no bus glue enabled.
+For those type of things, don't the iio framework provide what you need
+and what?  Or perhaps the cpufreq layer?
 
-Alan Stern
+> >where this code should go.  But just from this diffstat, it looks like
+> >you are creating a new user/kernel interface, without documenting it
+> >anywhere, which isn't ok.
+> 
+> I think you are referring to the header files added in include/linux/
+> They are not creating new user/kernel interface per se.
 
+Then why are they in include/linux/ ?
+
+> "include/linux/jedec_ddr.h" is the interface to a library that contains
+> data from the DDR specs. "include/linux/emif.h" has definitions for
+> platform data needed by the driver. Maybe these should go to some other
+> sub-directory within include/ or include/linux/ ?
+
+Who needs these files?  If it's only the drivers themselves, then put it
+in the same directory as the driver.  If it's platform data, then put
+it, and only it, in the include/linux/platform_data/ directory.
+
+> I shall add documentation for the driver in the next revision.
+
+That would be good.  Please also cc: me on the next revision if you wish
+me to take the patches (hint, get_maintainer.pl should have told you
+this...)
+
+thanks,
+
+greg k-h
