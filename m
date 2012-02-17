@@ -1,57 +1,72 @@
-From: Shubhrajyoti Datta <omaplinuxkernel@gmail.com>
-Subject: Re: [PATCH] mtd: omap2: Release memory region in .remove function
-Date: Fri, 17 Feb 2012 20:52:19 +0530
-Message-ID: <CAM=Q2cuXfYA=bibwzDBdb41_KiHu1X4bExbyS2FsfjBM7RXopQ@mail.gmail.com>
-References: <1329490172-8043-1-git-send-email-walle@corscience.de>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCHv9 3/5] arm: omap3: add common twl configurations for vdd1
+ and vdd2
+Date: Fri, 17 Feb 2012 09:22:54 -0600
+Message-ID: <CAOMWX4cmwFKsQ9SV-9c=tfCEqdQ9N2TcJUJ+Sh=syBgOSPz1gg@mail.gmail.com>
+References: <1329388073-17879-1-git-send-email-t-kristo@ti.com>
+ <1329388073-17879-4-git-send-email-t-kristo@ti.com> <CAOMWX4d8C4pjYSr+i3qmqfJHDsHQdtRkvfbGR29U7hXf0SkVZg@mail.gmail.com>
+ <1329476814.4102.433.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1329490172-8043-1-git-send-email-walle@corscience.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bernhard Walle <walle@corscience.de>
-Cc: dwmw2@infradead.org, Artem.Bityutskiy@linux.intel.com, vimal.newwork@gmail.com, tony@atomide.com, s-ghorai@ti.com, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:51299 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751870Ab2BQPXP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Feb 2012 10:23:15 -0500
+Received: by mail-we0-f175.google.com with SMTP id c1so2738897wer.34
+        for <linux-omap@vger.kernel.org>; Fri, 17 Feb 2012 07:23:14 -0800 (PST)
+In-Reply-To: <1329476814.4102.433.camel@sokoban>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, Feb 17, 2012 at 8:19 PM, Bernhard Walle <walle@corscience.de> w=
-rote:
-> When the driver is compiled as module, it's not possible to unload an=
-d
-> reload the driver again:
->
-> =A0 =A0omap2-nand: probe of omap2-nand.0 failed with error -16
->
-Looks right to me
-Reviewed-by: Shubhrajyoti D <shubhrajyoti@ti.com>
+Regards,
+Nishanth Menon
 
-> This patch fixes the problem because it releases the memory region, s=
-o
-> that it can be requested again.
+
+
+On Fri, Feb 17, 2012 at 05:06, Tero Kristo <t-kristo@ti.com> wrote:
+> On Thu, 2012-02-16 at 12:23 -0600, Menon, Nishanth wrote:
+>> On Thu, Feb 16, 2012 at 04:27, Tero Kristo <t-kristo@ti.com> wrote:
+>> > VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
+>> > to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
+>> > are needed by DVFS.
+>> >
+>> > Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manual.
+>>
+>> Please provide documentation version referenced, else we will loose
+>> track of details at a later point of time.
 >
-> Signed-off-by: Bernhard Walle <walle@corscience.de>
-> ---
-> =A0drivers/mtd/nand/omap2.c | =A0 =A01 +
-> =A01 files changed, 1 insertions(+), 0 deletions(-)
+> How should this be marked down? There are too many naming conventions
+> for the TI docs, and I couldn't find any example from kernel commit logs
+> for this. Personally I was using twl5030 es1.2 DM rev E / twl4030 es3.1
+> DM rev L. Or should the literature code be used? Or is there also some
+> numerical version info available somewhere?
+Literature code is the best one. Adding, along with it, a human
+readable "TWL4030 ES3.1 DM rev L"
+is even better :)
+
+>> Also should we rename VDD1 with vdd_mpu_iva and VDD2 as vdd_core to be readable?
 >
-> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-> index b3a883e..7dfcf68 100644
-> --- a/drivers/mtd/nand/omap2.c
-> +++ b/drivers/mtd/nand/omap2.c
-> @@ -1132,6 +1132,7 @@ static int omap_nand_remove(struct platform_dev=
-ice *pdev)
-> =A0 =A0 =A0 =A0/* Release NAND device, its internal structures and pa=
-rtitions */
-> =A0 =A0 =A0 =A0nand_release(&info->mtd);
-> =A0 =A0 =A0 =A0iounmap(info->nand.IO_ADDR_R);
-> + =A0 =A0 =A0 release_mem_region(info->phys_base, NAND_IO_SIZE);
-> =A0 =A0 =A0 =A0kfree(&info->mtd);
-> =A0 =A0 =A0 =A0return 0;
-> =A0}
-> --
-> 1.7.9.1
+> This can be changed if needed, it is just a name.
+> regulator/twl-regulator.c is using vdd1 / vdd2 though, and also
+> pmic_data struct uses these. All the other regulators use Vxx type
+> naming also. These are the names I see on my board through
+> sys/class/regulator:
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> dummy
+> VDD1
+> VDD2
+> VMMC1
+> VDAC
+> VDVI
+> VSIM
+
+no strong opinions on this - thinking from OMAP perspective, I read
+vdd_mpu,core,iva. from TWL perspective,
+4030/5030 - VDD1,2
+6030: VCORE1,2,3
+6032: SMPS1...5
+so I guess it is fine as long as it is in context.
