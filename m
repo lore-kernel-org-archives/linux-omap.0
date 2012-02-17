@@ -1,46 +1,59 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [RFC PATCH 4/8] misc: emif: add basic infrastructure for EMIF
- driver
-Date: Fri, 17 Feb 2012 20:57:14 +0530
-Message-ID: <4F3E71D2.5080306@ti.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-5-git-send-email-aneesh@ti.com> <4F3D2F2F.8050406@ti.com> <4F3E558A.3060605@ti.com> <4F3E59CD.6050108@ti.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [BUG] EHCI build dependencies broken?
+Date: Fri, 17 Feb 2012 10:30:33 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.1202171025550.1350-100000@iolanthe.rowland.org>
+References: <20120217103746.GN15338@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F3E59CD.6050108@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:58612 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751864Ab2BQPae (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 10:30:34 -0500
+In-Reply-To: <20120217103746.GN15338@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-On Friday 17 February 2012 07:14 PM, Cousson, Benoit wrote:
-> Hi Aneesh,
+On Fri, 17 Feb 2012, Russell King - ARM Linux wrote:
 
-[...]
+> The latest randconfig build for OMAP4430SDP produced this build failure:
+> 
+> drivers/usb/host/ehci-hcd.c:1382:2: error: #error "missing bus glue for ehci-hcd"
+> 
+> This appears to be because the OMAP EHCI glue was not selected in the
+> configuration, but ehci-hcd was:
+> 
+> CONFIG_USB_ARCH_HAS_EHCI=y
+> CONFIG_USB_EHCI_HCD=y
+> CONFIG_USB_EHCI_ROOT_HUB_TT=y
+> # CONFIG_USB_EHCI_TT_NEWSCHED is not set
+> # CONFIG_USB_EHCI_HCD_OMAP is not set
+> # CONFIG_USB_EHCI_MV is not set
+> 
+> Looking at the Kconfig file, it seems that it's entirely possible to
+> select EHCI_HCD without any glue selected.  It's also possible to build
+> EHCI with two (or more) bus glues selected - eg, it's possible for
+> both these to be selected:
+> 
+> Kconfig:
+> config USB_EHCI_HCD_OMAP
+>         bool "EHCI support for OMAP3 and later chips"
+>         depends on USB_EHCI_HCD && ARCH_OMAP
+> 
+> config USB_EHCI_MV
+>         bool "EHCI support for Marvell on-chip controller"
+>         depends on USB_EHCI_HCD
 
->>>> + emif = kzalloc(sizeof(struct emif_data), GFP_KERNEL);
->>>
->>> You should use the devm_* version of this API to get the simplify the
->>> error handling / removal.
->>
->> Please note that most of my allocations are happening through
->> kmemdup(). kmemdup() doesn't have a devm_* equivalent. So, I have a
->> cleanup() function and in the interest of uniformity decided to avoid
->> devm_* variants altogether.
->
-> I think it still worth using devm_kzalloc + memcopy here instead of
-> kmemdup to avoid the cleanup() and simplify as well the error handling.
+I'd say the "depends" line for USB_EHCI_MV is broken.  It should allow 
+this option only on systems using the Marvell platform.
 
-I will do that.
+Of course, that doesn't solve the issue of not having any bus glue
+selected at all.  I don't know enough about Kbuild to fix this --
+suggestions are welcome.
 
->
-> You might even propose a new devm_kmemdup API if you want.
+The same problem exists with OHCI and UHCI too.
 
-Ok. I will attempt that, maybe both devm_kmalloc() and devm_kmemdup().
-But I would like to de-couple that from this series. That is, I will do
-the patch separately and if that gets up-streamed I will update EMIF
-driver to use them. Until then I will go with what you suggested above.
+Alan Stern
 
-br,
-Aneesh
