@@ -1,119 +1,74 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [RFC PATCH 0/8] Add TI EMIF SDRAM controller driver
-Date: Fri, 17 Feb 2012 09:50:46 -0800
-Message-ID: <20120217175046.GA29902@kroah.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com>
- <4F3CDF9F.9080204@ti.com>
- <20120216162359.GB20827@kroah.com>
- <4F3E5C8D.7020506@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP2+: Split omap2_hsmmc_init() to properly
+ support I2C GPIO pins
+Date: Fri, 17 Feb 2012 10:10:01 -0800
+Message-ID: <20120217181001.GC18185@atomide.com>
+References: <20120215182355.18884.18682.stgit@kaulin.local>
+ <20120215182825.18884.40972.stgit@kaulin.local>
+ <4F3CD460.7000306@ti.com>
+ <4F3CD6CE.1090201@ti.com>
+ <20120216163558.GB15692@atomide.com>
+ <4F3D33F9.70107@ti.com>
+ <20120216170610.GA18185@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:14307 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525Ab2BQSKN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 13:10:13 -0500
 Content-Disposition: inline
-In-Reply-To: <4F3E5C8D.7020506@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20120216170610.GA18185@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, linux-omap@vger.kernel.org
 
-On Fri, Feb 17, 2012 at 07:26:29PM +0530, Aneesh V wrote:
-> Greg,
+* Tony Lindgren <tony@atomide.com> [120216 08:35]:
+> * Rajendra Nayak <rnayak@ti.com> [120216 08:19]:
+> > On Thursday 16 February 2012 10:05 PM, Tony Lindgren wrote:
+> > >>On Thursday 16 February 2012 03:33 PM, Rajendra Nayak wrote:
+> > >>>>  >better still, I think we should just populate them statically in
+> > >>>>  >omap2_hsmmc_info struct above, so omap_hsmmc_init() takes care
+> > >>>>  >of it already.
+> > >>>
+> > >>>  I just tried this and it seems to work...
+> > >>>
+> > >>>  ---
+> > >>>    arch/arm/mach-omap2/board-omap3beagle.c |    1 +
+> > >>>    1 file changed, 1 insertion(+)
+> > >>>
+> > >>>  Index: linux-2.6/arch/arm/mach-omap2/board-omap3beagle.c
+> > >>>  ===================================================================
+> > >>>  --- linux-2.6.orig/arch/arm/mach-omap2/board-omap3beagle.c
+> > >>>  2012-02-16 15:38:47.046933403 +0530
+> > >>>  +++ linux-2.6/arch/arm/mach-omap2/board-omap3beagle.c   2012-02-16
+> > >>>  15:40:17.355349064 +0530
+> > >>>  @@ -253,6 +253,7 @@
+> > >>>                   .mmc            = 1,
+> > >>>                   .caps           = MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+> > >>>                   .gpio_wp        = -EINVAL,
+> > >>>  +               .gpio_cd        = OMAP_MAX_GPIO_LINES + 0,
+> > >>>                   .deferred       = true,
+> > >>>           },
+> > >>>           {}      /* Terminator */
+> > >Would be nice to avoid the hard coded gpio numbering for the
+> > >external chips though..
+> > 
+> > But if you look closely, thats exactly how its handled today.
+> > All board files hardcode gpio_base to OMAP_MAX_GPIO_LINES in
+> > twl4030_gpio_platform_data. And thats what gets passed back
+> > when the driver calls pdata->setup() from within probe.
 > 
-> On Thursday 16 February 2012 09:53 PM, Greg KH wrote:
-> >On Thu, Feb 16, 2012 at 04:21:11PM +0530, Santosh Shilimkar wrote:
-> >>Andrew, Greg,
-> >>
-> >>On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
-> >>>Add a driver for the EMIF SDRAM controller used in TI SoCs
-> >>>
-> >>>EMIF is an SDRAM controller that supports, based on its revision,
-> >>>one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
-> >>>for LPDDR2.
-> >>>
-> >>>The driver supports the following features:
-> >>>- Calculates the DDR AC timing parameters to be set in EMIF
-> >>>   registers using data from the device data-sheets and based
-> >>>   on the DDR frequency. If data from data-sheets is not available
-> >>>   default timing values from the JEDEC spec are used. These
-> >>>   will be safe, but not necessarily optimal
-> >>>- API for changing timings during DVFS or at boot-up
-> >>>- Temperature alert configuration and handling of temperature
-> >>>   alerts, if any for LPDDR2 devices
-> >>>   * temperature alert is based on periodic polling of MR4 mode
-> >>>     register in DDR devices automatically performed by hardware
-> >>>   * timings are de-rated and brought back to nominal when
-> >>>     temperature raises and falls respectively
-> >>>- Cache of calculated register values to avoid re-calculating
-> >>>   them
-> >>>
-> >>>The driver will need some minor updates when it is eventually
-> >>>integrated with DVFS. This can not be done now as DVFS support
-> >>>is not available yet in mainline.
-> >>>
-> >>>Discussions with Santosh Shilimkar<santosh.shilimkar@ti.com>
-> >>>were immensely helpful in shaping up the interfaces. Vibhore Vardhan
-> >>><vvardhan@gmail.com>  did the initial code snippet for thermal
-> >>>handling.
-> >>>
-> >>>Testing:
-> >>>- The driver is tested on OMAP4430 SDP.
-> >>>- The driver in a slightly adapted form is also tested on OMAP5.
-> >>>- Since mainline kernel doesn't have DVFS support yet,
-> >>>   testing was done using a test module.
-> >>>- Temperature alert handling was tested with simulated interrupts
-> >>>   and faked temperature values as testing all cases in real-life
-> >>>   scenarios is difficult.
-> >>>
-> >>[...]
-> >>
-> >>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
-> >>>  drivers/misc/Kconfig                       |   20 +
-> >>>  drivers/misc/Makefile                      |    2 +
-> >>>  drivers/misc/emif.c                        | 1522 ++++++++++++++++++++++++++++
-> >>>  drivers/misc/emif_regs.h                   |  461 +++++++++
-> >>>  drivers/misc/jedec_ddr_data.c              |  141 +++
-> >>>  include/linux/emif.h                       |  257 +++++
-> >>>  include/linux/jedec_ddr.h                  |  174 ++++
-> >>
-> >>Any suggestion on where this driver can reside. It's a memory
-> >>controller driver which supports standard DDR functionality
-> >>as per JDEC specs including thermal alert. On top of
-> >>that it does support DVFS using the TI PRCM IP block.
-> >
-> >I don't know what any of those TLA words mean, so I really can't suggest
+> Hmm that's not necessarily safe to do as you might have multiple
+> external GPIO connected, such as a PMIC and FPGA..
 > 
-> This is a driver for TI's memory controller(called EMIF). The
-> driver is needed for adjusting the controller settings on frequency,
-> voltage, and temperature changes. Any suggestion as to where this
-> should go?
+> Anyways, it seems OK to me for now, as the DT solves that issue
+> properly and I don't think we currently have any boards with
+> multiple external GPIO chips.
 
-For those type of things, don't the iio framework provide what you need
-and what?  Or perhaps the cpufreq layer?
+Found the reason for this, omap_hsmmc_late_init needs to copy
+gpio_cd and gpio_wp into the pdata. Or platform_device_add_data
+needs to be called a bit later. Will update my patch for that.
 
-> >where this code should go.  But just from this diffstat, it looks like
-> >you are creating a new user/kernel interface, without documenting it
-> >anywhere, which isn't ok.
-> 
-> I think you are referring to the header files added in include/linux/
-> They are not creating new user/kernel interface per se.
-
-Then why are they in include/linux/ ?
-
-> "include/linux/jedec_ddr.h" is the interface to a library that contains
-> data from the DDR specs. "include/linux/emif.h" has definitions for
-> platform data needed by the driver. Maybe these should go to some other
-> sub-directory within include/ or include/linux/ ?
-
-Who needs these files?  If it's only the drivers themselves, then put it
-in the same directory as the driver.  If it's platform data, then put
-it, and only it, in the include/linux/platform_data/ directory.
-
-> I shall add documentation for the driver in the next revision.
-
-That would be good.  Please also cc: me on the next revision if you wish
-me to take the patches (hint, get_maintainer.pl should have told you
-this...)
-
-thanks,
-
-greg k-h
+Tony
