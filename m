@@ -1,63 +1,83 @@
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Subject: Re: [PATCH v3] i2c: fix missing handling of errata I2C_OMAP3_1P153
-Date: Fri, 17 Feb 2012 13:19:29 +0100
-Message-ID: <4F3E45D1.3070405@gmail.com>
-References: <1328538811-13097-1-git-send-email-tasskjapp@gmail.com> <1329213583-20839-1-git-send-email-tasskjapp@gmail.com> <4F3A345B.2060308@gmail.com> <CAM=Q2cvQeAcS3drwKAZxV0=FjmmJQFADQgpt0uk66jK_EPxOmA@mail.gmail.com>
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH] ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod required for am33xx
+Date: Fri, 17 Feb 2012 17:54:48 +0530
+Message-ID: <1329481488-27771-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:56559 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751298Ab2BQMTK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 07:19:10 -0500
-In-Reply-To: <CAM=Q2cvQeAcS3drwKAZxV0=FjmmJQFADQgpt0uk66jK_EPxOmA@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:39390 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751151Ab2BQM16 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Feb 2012 07:27:58 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, khilman@ti.com, tony@atomide.com, paul@pwsan.com, b-cousson@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>, Vaibhav Bedia <vaibhav.bedia@ti.com>
 
- From 0195dcf606b0ad069d8b5bc56cb877ff65ebea22 Mon Sep 17 00:00:00 2001
-From: Tasslehoff Kjappfot <tasskjapp@gmail.com>
-Date: Mon, 6 Feb 2012 14:14:23 +0100
-Subject: [PATCH] i2c: fix missing handling of errata I2C_OMAP3_1P153
+In case of AM33xx family of devices (like cpsw) have different sysc
+bit field offsets defined,
 
-i2c_probe set the dev->errata flag, but omap_i2c_init cleared the flag 
-again. Move the errata handling to i2c_probe.
+sysc_type3:
+|  3     2  |  1    0  |
+| STDBYMODE | IDLEMODE |
 
-Signed-off-by: Tasslehoff Kjappfot <tasskjapp@gmail.com>
+So introduce new sysc_type3 in omap_hwmod common data.
+
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Signed-off-by: Vaibhav Bedia <vaibhav.bedia@ti.com>
 ---
-  drivers/i2c/busses/i2c-omap.c |   10 +++++-----
-  1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_common_data.c |    9 +++++++++
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |   10 ++++++++++
+ 2 files changed, 19 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 801df60..d609ae2 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -468,11 +468,6 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
-  	/* Take the I2C module out of reset: */
-  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
-
--	dev->errata = 0;
--
--	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
--		dev->errata |= I2C_OMAP_ERRATA_I207;
--
-  	/* Enable interrupts */
-  	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
-@@ -1058,6 +1053,11 @@ omap_i2c_probe(struct platform_device *pdev)
-
-  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
-
-+	dev->errata = 0;
+diff --git a/arch/arm/mach-omap2/omap_hwmod_common_data.c b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+index 51e5418..6dd922e 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_common_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_common_data.c
+@@ -49,6 +49,15 @@ struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2 = {
+ 	.srst_shift	= SYSC_TYPE2_SOFTRESET_SHIFT,
+ };
+ 
++/**
++ * struct omap_hwmod_sysc_type3 - TYPE3 sysconfig scheme.
++ * Used by some IPs on AM33xx
++ */
++struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3 = {
++	.midle_shift	= SYSC_TYPE3_MIDLEMODE_SHIFT,
++	.sidle_shift	= SYSC_TYPE3_SIDLEMODE_SHIFT,
++};
 +
-+	if (dev->flags & OMAP_I2C_FLAG_APPLY_ERRATA_I207)
-+		dev->errata |= I2C_OMAP_ERRATA_I207;
+ struct omap_dss_dispc_dev_attr omap2_3_dss_dispc_dev_attr = {
+ 	.manager_count		= 2,
+ 	.has_framedonetv_irq	= 0
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+index 9db27aa..3128364 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -41,6 +41,7 @@ struct omap_device;
+ 
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type1;
+ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
++extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type3;
+ 
+ /*
+  * OCP SYSCONFIG bit shifts/masks TYPE1. These are for IPs compliant
+@@ -70,6 +71,15 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type2;
+ #define SYSC_TYPE2_MIDLEMODE_SHIFT	4
+ #define SYSC_TYPE2_MIDLEMODE_MASK	(0x3 << SYSC_TYPE2_MIDLEMODE_SHIFT)
+ 
++/*
++ * OCP SYSCONFIG bit shifts/masks TYPE3.
++ * This is applicable for some IPs present in AM33XX
++ */
++#define SYSC_TYPE3_SIDLEMODE_SHIFT	0
++#define SYSC_TYPE3_SIDLEMODE_MASK	(0x3 << SYSC_TYPE3_SIDLEMODE_SHIFT)
++#define SYSC_TYPE3_MIDLEMODE_SHIFT	2
++#define SYSC_TYPE3_MIDLEMODE_MASK	(0x3 << SYSC_TYPE3_MIDLEMODE_SHIFT)
 +
-  	if (dev->rev <= OMAP_I2C_REV_ON_3430)
-  		dev->errata |= I2C_OMAP3_1P153;
-
+ /* OCP SYSSTATUS bit shifts/masks */
+ #define SYSS_RESETDONE_SHIFT		0
+ #define SYSS_RESETDONE_MASK		(1 << SYSS_RESETDONE_SHIFT)
 -- 
-1.7.5.4
+1.7.0.4
 
