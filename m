@@ -1,417 +1,150 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [RFC PATCH 4/8] misc: emif: add basic infrastructure for EMIF
- driver
-Date: Fri, 17 Feb 2012 18:56:34 +0530
-Message-ID: <4F3E558A.3060605@ti.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-5-git-send-email-aneesh@ti.com> <4F3D2F2F.8050406@ti.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: SMP local timers and their CPUfreq notifiers setup on OMAP3
+Date: Fri, 17 Feb 2012 13:32:40 +0000
+Message-ID: <4F3E56F8.1000305@arm.com>
+References: <8739aahc0n.fsf@ti.com> <4F3E0655.2040702@ti.com> <0401fed02a58f7bc48cc274050adbac7@localhost> <CAMQu2gwW6ES14jB8E6snE4pQRKg1q2ZF0pBedBtuPxeYV+7cow@mail.gmail.com> <4F3E34A3.4000307@arm.com> <4F3E47F2.2090400@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F3D2F2F.8050406@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from service87.mimecast.com ([91.220.42.44]:44991 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364Ab2BQNcr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 08:32:47 -0500
+In-Reply-To: <4F3E47F2.2090400@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi Benoit,
-
-On Thursday 16 February 2012 10:00 PM, Cousson, Benoit wrote:
-> Hi Aneesh,
->
-> On 2/4/2012 1:16 PM, Aneesh V wrote:
->> EMIF is an SDRAM controller used in various Texas Instruments
->> SoCs. EMIF supports, based on its revision, one or more of
->> LPDDR2/DDR2/DDR3 protocols.
+On 17/02/12 12:28, Santosh Shilimkar wrote:
+> On Friday 17 February 2012 04:36 PM, Marc Zyngier wrote:
+>> On 17/02/12 10:40, Shilimkar, Santosh wrote:
+>>> On Fri, Feb 17, 2012 at 3:17 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
+>>>>
+>>>> Hi Santosh,
+>>>>
+>>>> On Fri, 17 Feb 2012 13:18:37 +0530, Santosh Shilimkar
+>>>> <santosh.shilimkar@ti.com> wrote:
+>>>>>
+>>>
+> 
+> [..]
+> 
+>>> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
+>>> index 4285daa..265a18a 100644
+>>> --- a/arch/arm/kernel/smp_twd.c
+>>> +++ b/arch/arm/kernel/smp_twd.c
+>>> @@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb = {
+>>>
+>>>  static int twd_cpufreq_init(void)
+>>>  {
+>>> -	if (!IS_ERR(twd_clk))
+>>> +	if ((!twd_evt) && (!__this_cpu_ptr(twd_evt)) && (!IS_ERR(twd_clk)))
 >>
->> Add the basic infrastructure for EMIF driver that includes
->> driver registration, probe, parsing of platform data etc.
+>> Erm... Shouldn't that rather be:
+>> 	if (twd_evt && *__this_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
 >>
->> Signed-off-by: Aneesh V<aneesh@ti.com>
->> ---
->>    drivers/misc/Kconfig  |   12 ++
->>    drivers/misc/Makefile |    1 +
->>    drivers/misc/emif.c   |  300 +++++++++++++++++++++++++++++++++++++++++++++++++
->>    include/linux/emif.h  |  160 ++++++++++++++++++++++++++
->>    4 files changed, 473 insertions(+), 0 deletions(-)
->>    create mode 100644 drivers/misc/emif.c
->>    create mode 100644 include/linux/emif.h
->>
->> diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
->> index 8337bf6..d68184a 100644
->> --- a/drivers/misc/Kconfig
->> +++ b/drivers/misc/Kconfig
->> @@ -459,6 +459,18 @@ config DDR
->>    	  information. This data is useful for drivers handling
->>    	  DDR SDRAM controllers.
->>
->> +config EMIF
->> +	tristate "Texas Instruments EMIF driver"
->> +	select DDR
->> +	help
->> +	  This driver is for the EMIF module available in Texas Instruments
->> +	  SoCs. EMIF is an SDRAM controller that, based on its revision,
->> +	  supports one or more of DDR2, DDR3, and LPDDR2 SDRAM protocols.
->> +	  This driver takes care of only LPDDR2 memories presently. The
->> +	  functions of the driver includes re-configuring AC timing
->> +	  parameters and other settings during frequency, voltage and
->> +	  temperature changes
->> +
->>    config ARM_CHARLCD
->>    	bool "ARM Ltd. Character LCD Driver"
->>    	depends on PLAT_VERSATILE
->> diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
->> index 4759166..076db0f 100644
->> --- a/drivers/misc/Makefile
->> +++ b/drivers/misc/Makefile
->> @@ -37,6 +37,7 @@ obj-$(CONFIG_C2PORT)		+= c2port/
->>    obj-$(CONFIG_IWMC3200TOP)      += iwmc3200top/
->>    obj-$(CONFIG_HMC6352)		+= hmc6352.o
->>    obj-$(CONFIG_DDR)		+= jedec_ddr_data.o
->> +obj-$(CONFIG_EMIF)		+= emif.o
->>    obj-y				+= eeprom/
->>    obj-y				+= cb710/
->>    obj-$(CONFIG_SPEAR13XX_PCIE_GADGET)	+= spear13xx_pcie_gadget.o
->> diff --git a/drivers/misc/emif.c b/drivers/misc/emif.c
->> new file mode 100644
->> index 0000000..ba1e3f9
->> --- /dev/null
->> +++ b/drivers/misc/emif.c
->> @@ -0,0 +1,300 @@
->> +/*
->> + * EMIF driver
->> + *
->> + * Copyright (C) 2010 Texas Instruments, Inc.
->
-> Nit: 2012?
+> My bad. You are right. Updated patch below.
+> Tested on OMAP3430 SDP with CPUFREQ enabled.
+> 
+> Regards
+> Santosh
+> 
+> From f58c515a9d1a2c729c05a726d5176843381952ae Mon Sep 17 00:00:00 2001
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Date: Fri, 17 Feb 2012 11:11:28 +0530
+> Subject: [PATCH] ARM: smp_twd: Don't register CPUFREQ notifiers if local
+> timers are not initialised.
+> 
+> Current ARM local timer code registers CPUFREQ notifiers even in case
+> the twd_timer_setup() isn't called. That seems to be wrong and
+> would eventually lead to kernel crash on the CPU frequency transitions
+> on the SOCs where the local timer doesn't exist or broken because of
+> hardware BUG. Fix it by testing twd_evt and *__this_cpu_ptr(twd_evt).
+> 
+> The issue was observed with v3.3-rc3 and building an OMAP2+ kernel
+> on OMAP3 SOC which doesn't have TWD.
+> 
+> Below is the dump for reference :
+> 
+>  Unable to handle kernel paging request at virtual address 007e900
+>  pgd = cdc20000
+>  [007e9000] *pgd=00000000
+>  Internal error: Oops: 5 [#1] SMP
+>  Modules linked in:
+>  CPU: 0    Not tainted  (3.3.0-rc3-pm+debug+initramfs #9)
+>  PC is at twd_update_frequency+0x34/0x48
+>  LR is at twd_update_frequency+0x10/0x48
+>  pc : [<c001382c>]    lr : [<c0013808>]    psr: 60000093
+>  sp : ce311dd8  ip : 00000000  fp : 00000000
+>  r10: 00000000  r9 : 00000001  r8 : ce310000
+>  r7 : c0440458  r6 : c00137f8  r5 : 00000000  r4 : c0947a74
+>  r3 : 00000000  r2 : 007e9000  r1 : 00000000  r0 : 00000000
+>  Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment usr
+>  Control: 10c5387d  Table: 8dc20019  DAC: 00000015
+>  Process sh (pid: 599, stack limit = 0xce3102f8)
+>  Stack: (0xce311dd8 to 0xce312000)
+>  1dc0:                                                       6000c
+>  1de0: 00000001 00000002 00000000 00000000 00000000 00000000 00000
+>  1e00: ffffffff c093d8f0 00000000 ce311ebc 00000001 00000001 ce310
+>  1e20: c001386c c0437c4c c0e95b60 c0e95ba8 00000001 c0e95bf8 ffff4
+>  1e40: 00000000 00000000 c005ef74 ce310000 c0435cf0 ce311ebc 00000
+>  1e60: ce352b40 0007a120 c08d5108 c08ba040 c08ba040 c005f030 00000
+>  1e80: c08bc554 c032fe2c 0007a120 c08d4b64 ce352b40 c08d8618 ffff8
+>  1ea0: c08ba040 c033364c ce311ecc c0433b50 00000002 ffffffea c0330
+>  1ec0: 0007a120 0007a120 22222201 00000000 22222222 00000000 ce357
+>  1ee0: ce3d6000 cdc2aed8 ce352ba0 c0470164 00000002 c032f47c 00034
+>  1f00: c0331cac ce352b40 00000007 c032f6d0 ce352bbc 0003d090 c0930
+>  1f20: c093d8bc c03306a4 00000007 ce311f80 00000007 cdc2aec0 ce358
+>  1f40: ce8d20c0 00000007 b6fe5000 ce311f80 00000007 ce310000 0000c
+>  1f60: c000de74 ce987400 ce8d20c0 b6fe5000 00000000 00000000 0000c
+>  1f80: 00000000 00000000 001fbac8 00000000 00000007 001fbac8 00004
+>  1fa0: c000df04 c000dd60 00000007 001fbac8 00000001 b6fe5000 00000
+>  1fc0: 00000007 001fbac8 00000007 00000004 b6fe5000 00000000 00202
+>  1fe0: 00000000 beb565f8 00101ffc 00008e8c 60000010 00000001 00000
+>  [<c001382c>] (twd_update_frequency+0x34/0x48) from [<c008ac4c>] )
+>  [<c008ac4c>] (smp_call_function_single+0x17c/0x1c8) from [<c0013)
+>  [<c0013890>] (twd_cpufreq_transition+0x24/0x30) from [<c0437c4c>)
+>  [<c0437c4c>] (notifier_call_chain+0x44/0x84) from [<c005efe4>] ()
+>  [<c005efe4>] (__srcu_notifier_call_chain+0x70/0xa4) from [<c005f)
+>  [<c005f030>] (srcu_notifier_call_chain+0x18/0x20) from [<c032fe2)
+>  [<c032fe2c>] (cpufreq_notify_transition+0xc8/0x1b0) from [<c0333)
+>  [<c033364c>] (omap_target+0x1b4/0x28c) from [<c032f47c>] (__cpuf)
+>  [<c032f47c>] (__cpufreq_driver_target+0x50/0x64) from [<c0331d24)
+>  [<c0331d24>] (cpufreq_set+0x78/0x98) from [<c032f6d0>] (store_sc)
+>  [<c032f6d0>] (store_scaling_setspeed+0x5c/0x74) from [<c03306a4>)
+>  [<c03306a4>] (store+0x58/0x74) from [<c014d868>] (sysfs_write_fi)
+>  [<c014d868>] (sysfs_write_file+0x80/0xb4) from [<c00f2c2c>] (vfs)
+>  [<c00f2c2c>] (vfs_write+0xa8/0x138) from [<c00f2e9c>] (sys_write)
+>  [<c00f2e9c>] (sys_write+0x40/0x6c) from [<c000dd60>] (ret_fast_s)
+>  Code: e594300c e792210c e1a01000 e5840004 (e7930002)
+>  ---[ end trace 5da3b5167c1ecdda ]---
+> 
+> Reported-by: Kevin Hilman <khilman@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Will fix it.
+Acked-by: Marc Zyngier <marc.zyngier@arm.com>
 
->
->> + *
->> + * Aneesh V<aneesh@ti.com>
->> + * Santosh Shilimkar<santosh.shilimkar@ti.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +#include<linux/kernel.h>
->> +#include<linux/reboot.h>
->> +#include<linux/emif.h>
->> +#include<linux/io.h>
->> +#include<linux/device.h>
->> +#include<linux/platform_device.h>
->> +#include<linux/interrupt.h>
->> +#include<linux/slab.h>
->> +#include<linux/seq_file.h>
->> +#include<linux/module.h>
->> +#include<linux/spinlock.h>
->> +#include "emif_regs.h"
->> +
->> +/**
->> + * struct emif_data - Per device static data for driver's use
->> + * @duplicate:			Whether the DDR devices attached to this EMIF
->> + *				instance are exactly same as that on EMIF1. In
->> + *				this case we can save some memory and processing
->> + * @temperature_level:		Maximum temperature of LPDDR2 devices attached
->> + *				to this EMIF - read from MR4 register. If there
->> + *				are two devices attached to this EMIF, this
->> + *				value is the maximum of the two temperature
->> + *				levels.
->> + * @irq:			IRQ number
->
-> Do you really need to store the IRQ number?
+> ---
+>  arch/arm/kernel/smp_twd.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
+> index 4285daa..9834851 100644
+> --- a/arch/arm/kernel/smp_twd.c
+> +++ b/arch/arm/kernel/smp_twd.c
+> @@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb = {
+> 
+>  static int twd_cpufreq_init(void)
+>  {
+> -	if (!IS_ERR(twd_clk))
+> +	 if (twd_evt && *__this_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
+>  		return cpufreq_register_notifier(&twd_cpufreq_nb,
+>  			CPUFREQ_TRANSITION_NOTIFIER);
+> 
 
-Yes, I need it right now because setup_interrupts() is called later,
-after the first frequency notification, because that's when I have the
-registers to be programmed on a temperature event. But I am re-thinking
-on this strategy. I will move it back to probe() because other
-interrupts can/should be enabled at probe() time. When I do that I
-won't have to store it anymore and I will remove it.
 
->
->> + * @lock:			lock for protecting temperature_level and
->> + *				associated actions from race conditions
->> + * @base:			base address of memory-mapped IO registers.
->> + * @dev:			device pointer.
->> + * @addressing			table with addressing information from the spec
->> + * @regs_cache:			An array of 'struct emif_regs' that stores
->> + *				calculated register values for different
->> + *				frequencies, to avoid re-calculating them on
->> + *				each DVFS transition.
->> + * @curr_regs:			The set of register values used in the last
->> + *				frequency change (i.e. corresponding to the
->> + *				frequency in effect at the moment)
->> + * @plat_data:			Pointer to saved platform data.
->> + */
->> +struct emif_data {
->> +	u8				duplicate;
->> +	u8				temperature_level;
->> +	u32				irq;
->> +	spinlock_t			lock; /* lock to prevent races */
->
-> Nit: That comment is useless, since you already have the kerneldoc comment before.
+-- 
+Jazz is not dead. It just smells funny...
 
-Ok. Will remove.
-
->
->> +	void __iomem			*base;
->> +	struct device			*dev;
->> +	const struct lpddr2_addressing	*addressing;
->> +	struct emif_regs		*regs_cache[EMIF_MAX_NUM_FREQUENCIES];
->> +	struct emif_regs		*curr_regs;
->> +	struct emif_platform_data	*plat_data;
->> +};
->> +
->> +static struct emif_data *emif1;
->> +
->> +static void __exit cleanup_emif(struct emif_data *emif)
->> +{
->> +	if (emif) {
->> +		if (emif->plat_data) {
->> +			kfree(emif->plat_data->custom_configs);
->> +			kfree(emif->plat_data->timings);
->> +			kfree(emif->plat_data->min_tck);
->> +			kfree(emif->plat_data->device_info);
->> +			kfree(emif->plat_data);
->> +		}
->> +		kfree(emif);
->> +	}
->> +}
->> +
->> +static void get_default_timings(struct emif_data *emif)
->> +{
->> +	struct emif_platform_data *pd = emif->plat_data;
->> +
->> +	pd->timings = lpddr2_jedec_timings;
->> +	pd->timings_arr_size = ARRAY_SIZE(lpddr2_jedec_timings);
->> +
->> +	dev_warn(emif->dev, "Using default timings\n");
->> +}
->> +
->> +static int is_dev_data_valid(u32 type, u32 density, u32 io_width, u32 phy_type,
->> +		u32 ip_rev, struct device *dev)
->> +{
->> +	int valid;
->> +
->> +	valid = (type == DDR_TYPE_LPDDR2_S4 ||
->> +			type == DDR_TYPE_LPDDR2_S2)
->> +		&&   (density>= DDR_DENSITY_64Mb
->> +			&&   density<= DDR_DENSITY_8Gb)
->> +		&&   (io_width>= DDR_IO_WIDTH_8
->> +			&&   io_width<= DDR_IO_WIDTH_32);
->> +
->> +	/* Combinations of EMIF and PHY revisions that we support today */
->> +	switch (ip_rev) {
->> +	case EMIF_4D:
->> +		valid = valid&&   (phy_type == EMIF_PHY_TYPE_ATTILAPHY);
->> +		break;
->> +	case EMIF_4D5:
->> +		valid = valid&&   (phy_type == EMIF_PHY_TYPE_INTELLIPHY);
->> +		break;
->> +	default:
->> +		valid = 0;
->> +	}
->> +
->> +	if (!valid)
->> +		dev_err(dev, "Invalid DDR details\n");
->> +	return valid;
->> +}
->> +
->> +static int is_custom_config_valid(struct emif_custom_configs *cust_cfgs,
->> +		struct device *dev)
->> +{
->> +	int valid = 1;
->> +
->> +	if ((cust_cfgs->mask&   EMIF_CUSTOM_CONFIG_LPMODE)&&
->> +		(cust_cfgs->lpmode != EMIF_LP_MODE_DISABLE))
->> +		valid = cust_cfgs->lpmode_freq_threshold&&
->> +			cust_cfgs->lpmode_timeout_performance&&
->> +			cust_cfgs->lpmode_timeout_power;
->> +
->> +	if (cust_cfgs->mask&   EMIF_CUSTOM_CONFIG_TEMP_ALERT_POLL_INTERVAL)
->> +		valid = valid&&   cust_cfgs->temp_alert_poll_interval_ms;
->> +
->> +	if (!valid)
->> +		dev_warn(dev, "Invalid custom configs\n");
->> +
->> +	return valid;
->> +}
->> +
->> +static struct emif_data * __init get_device_details(
->> +		struct platform_device *pdev)
->> +{
->> +	u32			size;
->> +	struct emif_data	*emif = NULL;
->> +	struct ddr_device_info	*dev_info;
->> +	struct emif_platform_data *pd;
->> +
->> +	pd = pdev->dev.platform_data;
->> +
->> +	if (!(pd&&   pd->device_info&&   is_dev_data_valid(pd->device_info->type,
->> +			pd->device_info->density, pd->device_info->io_width,
->> +			pd->phy_type, pd->ip_rev,&pdev->dev)))
->> +		goto error;
->> +
->> +	emif	= kzalloc(sizeof(struct emif_data), GFP_KERNEL);
->
-> You should use the devm_* version of this API to get the simplify the error handling / removal.
-
-Please note that most of my allocations are happening through
-kmemdup(). kmemdup() doesn't have a devm_* equivalent. So, I have a
-cleanup() function and in the interest of uniformity decided to avoid
-devm_* variants altogether.
-
->
->> +	pd	= kmemdup(pd, sizeof(*pd), GFP_KERNEL);
->> +	dev_info = kmemdup(pd->device_info,
->> +			sizeof(*pd->device_info), GFP_KERNEL);
->> +
->> +	if (!emif || !pd || !dev_info)
->> +		goto error;
->
-> The error report will not be really useful since you will not return the exact source of failure.
->
-
-Ok. Will add a message right here.
-
->> +
->> +	emif->plat_data		= pd;
->> +	emif->dev		=&pdev->dev;
->> +	emif->temperature_level	= SDRAM_TEMP_NOMINAL;
->> +
->> +	pd->device_info	= dev_info;
->> +
->> +	/*
->> +	 * For EMIF instances other than EMIF1 see if the devices connected
->> +	 * are exactly same as on EMIF1(which is typically the case). If so,
->> +	 * mark it as a duplicate of EMIF1 and skip copying timings data.
->> +	 * This will save some memory and some computation later.
->> +	 */
->> +	emif->duplicate = emif1&&   (memcmp(dev_info,
->> +		emif1->plat_data->device_info,
->> +		sizeof(struct ddr_device_info)) == 0);
->> +
->> +	if (emif->duplicate) {
->> +		pd->timings = NULL;
->> +		pd->min_tck = NULL;
->> +		goto out;
->> +	}
->> +
->> +	/*
->> +	 * Copy custom configs - ignore allocation error, if any, as
->> +	 * custom_configs is not very critical
->> +	 */
->> +	if (pd->custom_configs)
->> +		pd->custom_configs = kmemdup(pd->custom_configs,
->> +			sizeof(*pd->custom_configs), GFP_KERNEL);
->> +
->> +	if (pd->custom_configs&&
->> +	    !is_custom_config_valid(pd->custom_configs, emif->dev)) {
->> +		kfree(pd->custom_configs);
->> +		pd->custom_configs = NULL;
->> +	}
->> +
->> +	/*
->> +	 * Copy timings and min-tck values from platform data. If it is not
->> +	 * available or if memory allocation fails, use JEDEC defaults
->> +	 */
->> +	size = sizeof(struct lpddr2_timings) * pd->timings_arr_size;
->> +	if (pd->timings)
->> +		pd->timings = kmemdup(pd->timings, size, GFP_KERNEL);
->> +
->> +	if (!pd->timings)
->> +		get_default_timings(emif);
->> +
->> +	if (pd->min_tck)
->> +		pd->min_tck = kmemdup(pd->min_tck, sizeof(*pd->min_tck),
->> +				GFP_KERNEL);
->> +
->> +	if (!pd->min_tck) {
->> +		pd->min_tck =&lpddr2_min_tck;
->> +		dev_warn(emif->dev, "Using default min-tck values\n");
->> +	}
->> +
->> +	goto out;
->> +
->> +error:
->> +	dev_err(&pdev->dev, "get_device_details() failure!!\n");
->
-> That's not a very good error message, isn't?
-
-Agree. Will fix it.
-
->
->> +	cleanup_emif(emif);
->> +	return NULL;
->> +
->> +out:
->> +	return emif;
->> +}
->> +
->> +static int __init emif_probe(struct platform_device *pdev)
->> +{
->> +	struct emif_data	*emif;
->> +	struct resource		*res;
->> +
->> +	emif = get_device_details(pdev);
->> +
->> +	if (!emif)
->> +		goto error;
->> +
->> +	if (!emif1)
->> +		emif1 = emif;
->> +
->> +	/* Save pointers to each other in emif and device structures */
->> +	emif->dev =&pdev->dev;
->> +	platform_set_drvdata(pdev, emif);
->> +
->> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +	if (!res)
->> +		goto error;
->
-> You should reserve the region before ioremapping it. Something like that:
->
-> if (!devm_request_mem_region(dev, res->start, resource_size(res), pdev->name)) {
->         dev_err(dev, "Region already claimed\n");
->         return -EBUSY;
-> }
->
->> +
->> +	emif->base = ioremap(res->start, SZ_1M);
->
-> Use devm_ioremap.
-
-Will do. Guess devm_request_and_ioremap() will do for both.
-
->
->> +	if (!emif->base)
->> +		goto error;
->> +
->> +	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
->
-> You should use platform_get_irq instead.
-
-Ok Will do.
-
->
->> +	if (!res)
->> +		goto error;
->> +	emif->irq = res->start;
->> +
->> +	dev_info(&pdev->dev, "Device configured with addr = %p and IRQ%d\n",
->> +			emif->base, emif->irq);
->> +	return 0;
->> +
->> +error:
->> +	dev_err(&pdev->dev, "probe failure!!\n");
->
-> Because??? You should be a little bit more verbose in case of failure.
-
-Ok. Will add the error messages at the respective error locations.
-
-Thanks for the review.
-
-br,
-Aneesh
