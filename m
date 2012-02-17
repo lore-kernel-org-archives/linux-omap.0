@@ -1,64 +1,65 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: help: BeagleBoard xM RevC ethernet port
-Date: Fri, 17 Feb 2012 10:24:23 +0200
-Message-ID: <4F3E0EB7.9060803@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/3] omap hsmmc init cleanup and section warning fixes
+	for v3.4 merge window
+Date: Fri, 17 Feb 2012 09:14:33 +0000
+Message-ID: <20120217091433.GL15338@n2100.arm.linux.org.uk>
+References: <20120215182355.18884.18682.stgit@kaulin.local> <CACYZBRE_Vf8qDQYPRgsL03T8oy2Kv4fYRfE8U7y79Xhb1nwC2A@mail.gmail.com> <20120216121234.GJ15338@n2100.arm.linux.org.uk> <4F3CF7D1.8050807@ti.com> <4F3D0186.2010500@ti.com> <20120216135151.GK15338@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:50314 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752016Ab2BQIY1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Feb 2012 03:24:27 -0500
-Received: by mail-lpp01m010-f51.google.com with SMTP id s15so3491211lag.38
-        for <linux-omap@vger.kernel.org>; Fri, 17 Feb 2012 00:24:26 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42511 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751174Ab2BQJOp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 04:14:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20120216135151.GK15338@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: balbi@ti.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi,
+On Thu, Feb 16, 2012 at 01:51:51PM +0000, Russell King - ARM Linux wrote:
+> On Thu, Feb 16, 2012 at 06:45:50PM +0530, Rajendra Nayak wrote:
+> > On Thursday 16 February 2012 06:04 PM, Rajendra Nayak wrote:
+> >>> Can you test something with these patches?
+> >>>
+> >>> 1. Build the gpio-twl4030.c as a module, but with HSMMC support built in
+> >>> 2. Boot on the 4430SDP
+> >>
+> >> twl4030 gpio is used for card detect on OMAP3, so I tried this
+> >> on my Beagle instead of 4430SDP.
+> >> The kernel boots up but does not detect/enumerate the mmc card.
+> >>
+> >>> 3. Load the gpio-twl4030 module
+> >>
+> >> I was expecting this to now detect the card, but I instead got
+> >> this error which seems to tell gpio-twl4030 has problems
+> >> when built/used as a module, outside of the mmc issues.
+> >
+> > Looks like I was mislead with the errors and though the twl4030
+> > gpio probe was bailing out with errors, which its not.
+> > It does seem to go ahead, does a mmc late init which registers
+> > the mmc omap_device and hence does a platform_device_add, but the
+> > device never seem to get probed. mmc driver is built in and
+> > registered.
+> >
+> >>
+> >> # insmod gpio-twl4030.ko
+> >> [   16.217864] twl4030_gpio twl4030_gpio: can't dispatch IRQs from modules
+> >> [   16.242004] gpiochip_add: registered GPIOs 192 to 211 on device: twl4030
+> >>
+> >>
+> >>> 4. Remove the gpio-twl4030 module
+> >>> 5. Re-load the gpio-twl4030.ko module
+> >>>
+> >>> and report back what you get.  Thanks.
+> >
+> 
+> (4) and (5) are the key bits of what I was asking you to do.
 
-I hoped that time will solve this, but so far no luck. I just can not
-get the ethernet port (along with the USB host ports) working on my xM =
-RevC.
-What is the trick to get it working on 3.3-rc3?
+Okay, so that was a total waste of time and effort, because you didn't do
+what I asked.
 
-There seams to be some configuration issue:
-
-[    1.437530] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driv=
-er
-[    1.444671] ehci_hcd: block sizes: qh 64 qtd 96 itd 160 sitd 96
-[    1.451354] ehci-omap ehci-omap.0: failed to get ehci port0 regulato=
-r
-[    1.458282] ehci-omap ehci-omap.0: failed to get ehci port1 regulato=
-r
-[    2.465850] ehci-omap ehci-omap.0: phy reset operation timed out
-[    3.473663] ehci-omap ehci-omap.0: phy reset operation timed out
-[    3.479980] ehci-omap ehci-omap.0: reset hcs_params 0x1313 dbg=3D0 c=
-c=3D1
-pcc=3D3 ordered ports=3D3
-[    3.488769] ehci-omap ehci-omap.0: reset hcc_params 0016 thresh 1
-uframes 256/512/1024 park
-[    3.497589] ehci-omap ehci-omap.0: reset command 0080b02  park=3D3
-ithresh=3D8 period=3D1024 Reset HALT
-[    3.506927] ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
-
-gentoo ~ # lsusb
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-
-So only the root hub is working, the LAN9514 does not.
-Yes, I have enabled the needed configs in my kernel.
-
-Can someone send me a config file for 3.3-rc3 with working ethernet por=
-t?
-
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony: I think there's a bug here - if the gpio-twl4030 module is inserted,
+removed and re-inserted, I think we'll end up creating the devices for MMC
+twice with the same name, resulting in sysfs complaining very loudly.
