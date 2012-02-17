@@ -1,59 +1,81 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [BUG] EHCI build dependencies broken?
-Date: Fri, 17 Feb 2012 10:30:33 -0500 (EST)
-Message-ID: <Pine.LNX.4.44L0.1202171025550.1350-100000@iolanthe.rowland.org>
-References: <20120217103746.GN15338@n2100.arm.linux.org.uk>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCHv9 3/5] arm: omap3: add common twl configurations for vdd1
+ and vdd2
+Date: Fri, 17 Feb 2012 17:49:02 +0100
+Message-ID: <4F3E84FE.3060407@ti.com>
+References: <1329388073-17879-1-git-send-email-t-kristo@ti.com> <1329388073-17879-4-git-send-email-t-kristo@ti.com> <CAOMWX4d8C4pjYSr+i3qmqfJHDsHQdtRkvfbGR29U7hXf0SkVZg@mail.gmail.com> <1329476814.4102.433.camel@sokoban> <CAOMWX4cmwFKsQ9SV-9c=tfCEqdQ9N2TcJUJ+Sh=syBgOSPz1gg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:58612 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751864Ab2BQPae (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 10:30:34 -0500
-In-Reply-To: <20120217103746.GN15338@n2100.arm.linux.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49377 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751323Ab2BQQtL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Feb 2012 11:49:11 -0500
+In-Reply-To: <CAOMWX4cmwFKsQ9SV-9c=tfCEqdQ9N2TcJUJ+Sh=syBgOSPz1gg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: t-kristo@ti.com
+Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, 17 Feb 2012, Russell King - ARM Linux wrote:
+Hi Tero,
 
-> The latest randconfig build for OMAP4430SDP produced this build failure:
-> 
-> drivers/usb/host/ehci-hcd.c:1382:2: error: #error "missing bus glue for ehci-hcd"
-> 
-> This appears to be because the OMAP EHCI glue was not selected in the
-> configuration, but ehci-hcd was:
-> 
-> CONFIG_USB_ARCH_HAS_EHCI=y
-> CONFIG_USB_EHCI_HCD=y
-> CONFIG_USB_EHCI_ROOT_HUB_TT=y
-> # CONFIG_USB_EHCI_TT_NEWSCHED is not set
-> # CONFIG_USB_EHCI_HCD_OMAP is not set
-> # CONFIG_USB_EHCI_MV is not set
-> 
-> Looking at the Kconfig file, it seems that it's entirely possible to
-> select EHCI_HCD without any glue selected.  It's also possible to build
-> EHCI with two (or more) bus glues selected - eg, it's possible for
-> both these to be selected:
-> 
-> Kconfig:
-> config USB_EHCI_HCD_OMAP
->         bool "EHCI support for OMAP3 and later chips"
->         depends on USB_EHCI_HCD && ARCH_OMAP
-> 
-> config USB_EHCI_MV
->         bool "EHCI support for Marvell on-chip controller"
->         depends on USB_EHCI_HCD
+On 2/17/2012 4:22 PM, Menon, Nishanth wrote:
+> On Fri, Feb 17, 2012 at 05:06, Tero Kristo<t-kristo@ti.com>  wrote:
+>> On Thu, 2012-02-16 at 12:23 -0600, Menon, Nishanth wrote:
+>>> On Thu, Feb 16, 2012 at 04:27, Tero Kristo<t-kristo@ti.com>  wrote:
+>>>> VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
+>>>> to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
+>>>> are needed by DVFS.
+>>>>
+>>>> Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manual.
+>>>
+>>> Please provide documentation version referenced, else we will loose
+>>> track of details at a later point of time.
+>>
+>> How should this be marked down? There are too many naming conventions
+>> for the TI docs, and I couldn't find any example from kernel commit logs
+>> for this. Personally I was using twl5030 es1.2 DM rev E / twl4030 es3.1
+>> DM rev L. Or should the literature code be used? Or is there also some
+>> numerical version info available somewhere?
+> Literature code is the best one. Adding, along with it, a human
+> readable "TWL4030 ES3.1 DM rev L"
+> is even better :)
+>
+>>> Also should we rename VDD1 with vdd_mpu_iva and VDD2 as vdd_core to be readable?
+>>
+>> This can be changed if needed, it is just a name.
+>> regulator/twl-regulator.c is using vdd1 / vdd2 though, and also
+>> pmic_data struct uses these. All the other regulators use Vxx type
+>> naming also. These are the names I see on my board through
+>> sys/class/regulator:
+>>
+>> dummy
+>> VDD1
+>> VDD2
+>> VMMC1
+>> VDAC
+>> VDVI
+>> VSIM
+>
+> no strong opinions on this - thinking from OMAP perspective, I read
+> vdd_mpu,core,iva. from TWL perspective,
+> 4030/5030 - VDD1,2
+> 6030: VCORE1,2,3
+> 6032: SMPS1...5
+> so I guess it is fine as long as it is in context.
 
-I'd say the "depends" line for USB_EHCI_MV is broken.  It should allow 
-this option only on systems using the Marvell platform.
+Yes, you should take care of using the proper name depending of the context.
 
-Of course, that doesn't solve the issue of not having any bus glue
-selected at all.  I don't know enough about Kbuild to fix this --
-suggestions are welcome.
+For TWL point of view this is just 2 generic SMPS outputs so VDD1 and 
+VDD2 are the only relevant name you can use.
 
-The same problem exists with OHCI and UHCI too.
+As far as OMAP3 is concern, the power rails were named as well vdd1 and 
+vdd2, but it was so confusing that we changed that on OMAP4 and maybe on 
+3630 to vdd_mpu, vdd_iva and vdd_core.
 
-Alan Stern
+So using this terminology for OMAP power rails is strongly recommended.
+
+Regards,
+Benoit
 
