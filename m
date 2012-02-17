@@ -1,41 +1,64 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH] arm: smp-twd: check for uninitialized clock in twd_cpufreq_init
-Date: Fri, 17 Feb 2012 12:34:29 +0200
-Message-ID: <1329474869-32356-1-git-send-email-t-kristo@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [BUG] EHCI build dependencies broken?
+Date: Fri, 17 Feb 2012 10:37:46 +0000
+Message-ID: <20120217103746.GN15338@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33229 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752729Ab2BQKei (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Feb 2012 05:34:38 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33762 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514Ab2BQKhw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 05:37:52 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
-Cc: khilman@ti.com
+To: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-Non-smp platforms don't have local timer support, but the twd_cpufreq_init
-only checks for IS_ERR during init. Check against null also, to avoid
-crashes during cpufreq transitions on non-smp platforms.
+The latest randconfig build for OMAP4430SDP produced this build failure:
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/kernel/smp_twd.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+drivers/usb/host/ehci-hcd.c:1382:2: error: #error "missing bus glue for ehci-hcd"
 
-diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-index 4285daa..dae8902 100644
---- a/arch/arm/kernel/smp_twd.c
-+++ b/arch/arm/kernel/smp_twd.c
-@@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb = {
- 
- static int twd_cpufreq_init(void)
- {
--	if (!IS_ERR(twd_clk))
-+	if (twd_clk && !IS_ERR(twd_clk))
- 		return cpufreq_register_notifier(&twd_cpufreq_nb,
- 			CPUFREQ_TRANSITION_NOTIFIER);
- 
--- 
-1.7.4.1
+This appears to be because the OMAP EHCI glue was not selected in the
+configuration, but ehci-hcd was:
 
+CONFIG_USB_ARCH_HAS_EHCI=y
+CONFIG_USB_EHCI_HCD=y
+CONFIG_USB_EHCI_ROOT_HUB_TT=y
+# CONFIG_USB_EHCI_TT_NEWSCHED is not set
+# CONFIG_USB_EHCI_HCD_OMAP is not set
+# CONFIG_USB_EHCI_MV is not set
+
+Looking at the Kconfig file, it seems that it's entirely possible to
+select EHCI_HCD without any glue selected.  It's also possible to build
+EHCI with two (or more) bus glues selected - eg, it's possible for
+both these to be selected:
+
+Kconfig:
+config USB_EHCI_HCD_OMAP
+        bool "EHCI support for OMAP3 and later chips"
+        depends on USB_EHCI_HCD && ARCH_OMAP
+
+config USB_EHCI_MV
+        bool "EHCI support for Marvell on-chip controller"
+        depends on USB_EHCI_HCD
+
+ehci-hcd.c:
+#ifdef CONFIG_USB_EHCI_HCD_OMAP
+#include "ehci-omap.c"
+#define        PLATFORM_DRIVER         ehci_hcd_omap_driver
+#endif
+#ifdef CONFIG_USB_EHCI_MV
+#include "ehci-mv.c"
+#define        PLATFORM_DRIVER         ehci_mv_driver
+#endif
+
+So on the whole, it looks like the Kconfig for EHCI is broken.
+
+The full config file which produced this failure will be available for
+the next 7 days from:
+
+http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=146
+
+and the failing build log:
+
+http://www.arm.linux.org.uk/developer/build/result.php?type=build&idx=146
