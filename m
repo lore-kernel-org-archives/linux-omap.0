@@ -1,70 +1,101 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 4/8] misc: emif: add basic infrastructure for EMIF
- driver
-Date: Fri, 17 Feb 2012 14:44:45 +0100
-Message-ID: <4F3E59CD.6050108@ti.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-5-git-send-email-aneesh@ti.com> <4F3D2F2F.8050406@ti.com> <4F3E558A.3060605@ti.com>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [RFC PATCH 0/8] Add TI EMIF SDRAM controller driver
+Date: Fri, 17 Feb 2012 19:26:29 +0530
+Message-ID: <4F3E5C8D.7020506@ti.com>
+References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <4F3CDF9F.9080204@ti.com> <20120216162359.GB20827@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F3E558A.3060605@ti.com>
+In-Reply-To: <20120216162359.GB20827@kroah.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aneesh V <aneesh@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+To: Greg KH <greg@kroah.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Aneesh,
+Greg,
 
-On 2/17/2012 2:26 PM, Aneesh V wrote:
-> On Thursday 16 February 2012 10:00 PM, Cousson, Benoit wrote:
->> On 2/4/2012 1:16 PM, Aneesh V wrote:
-
-[...]
-
->>> +/**
->>> + * struct emif_data - Per device static data for driver's use
->>> + * @duplicate: Whether the DDR devices attached to this EMIF
->>> + * instance are exactly same as that on EMIF1. In
->>> + * this case we can save some memory and processing
->>> + * @temperature_level: Maximum temperature of LPDDR2 devices attached
->>> + * to this EMIF - read from MR4 register. If there
->>> + * are two devices attached to this EMIF, this
->>> + * value is the maximum of the two temperature
->>> + * levels.
->>> + * @irq: IRQ number
+On Thursday 16 February 2012 09:53 PM, Greg KH wrote:
+> On Thu, Feb 16, 2012 at 04:21:11PM +0530, Santosh Shilimkar wrote:
+>> Andrew, Greg,
 >>
->> Do you really need to store the IRQ number?
->
-> Yes, I need it right now because setup_interrupts() is called later,
-> after the first frequency notification, because that's when I have the
-> registers to be programmed on a temperature event. But I am re-thinking
-> on this strategy. I will move it back to probe() because other
-> interrupts can/should be enabled at probe() time. When I do that I
-> won't have to store it anymore and I will remove it.
-
-Yes, I saw the code in a later patch. But in that case you should have 
-introduced that attribute in the patch that will use it and not before.
-
-But I do agree, that requesting the interrupt in the probe is probably 
-better.
-
-[...]
-
->>> + emif = kzalloc(sizeof(struct emif_data), GFP_KERNEL);
+>> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
+>>> Add a driver for the EMIF SDRAM controller used in TI SoCs
+>>>
+>>> EMIF is an SDRAM controller that supports, based on its revision,
+>>> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
+>>> for LPDDR2.
+>>>
+>>> The driver supports the following features:
+>>> - Calculates the DDR AC timing parameters to be set in EMIF
+>>>    registers using data from the device data-sheets and based
+>>>    on the DDR frequency. If data from data-sheets is not available
+>>>    default timing values from the JEDEC spec are used. These
+>>>    will be safe, but not necessarily optimal
+>>> - API for changing timings during DVFS or at boot-up
+>>> - Temperature alert configuration and handling of temperature
+>>>    alerts, if any for LPDDR2 devices
+>>>    * temperature alert is based on periodic polling of MR4 mode
+>>>      register in DDR devices automatically performed by hardware
+>>>    * timings are de-rated and brought back to nominal when
+>>>      temperature raises and falls respectively
+>>> - Cache of calculated register values to avoid re-calculating
+>>>    them
+>>>
+>>> The driver will need some minor updates when it is eventually
+>>> integrated with DVFS. This can not be done now as DVFS support
+>>> is not available yet in mainline.
+>>>
+>>> Discussions with Santosh Shilimkar<santosh.shilimkar@ti.com>
+>>> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
+>>> <vvardhan@gmail.com>  did the initial code snippet for thermal
+>>> handling.
+>>>
+>>> Testing:
+>>> - The driver is tested on OMAP4430 SDP.
+>>> - The driver in a slightly adapted form is also tested on OMAP5.
+>>> - Since mainline kernel doesn't have DVFS support yet,
+>>>    testing was done using a test module.
+>>> - Temperature alert handling was tested with simulated interrupts
+>>>    and faked temperature values as testing all cases in real-life
+>>>    scenarios is difficult.
+>>>
+>> [...]
 >>
->> You should use the devm_* version of this API to get the simplify the
->> error handling / removal.
+>>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
+>>>   drivers/misc/Kconfig                       |   20 +
+>>>   drivers/misc/Makefile                      |    2 +
+>>>   drivers/misc/emif.c                        | 1522 ++++++++++++++++++++++++++++
+>>>   drivers/misc/emif_regs.h                   |  461 +++++++++
+>>>   drivers/misc/jedec_ddr_data.c              |  141 +++
+>>>   include/linux/emif.h                       |  257 +++++
+>>>   include/linux/jedec_ddr.h                  |  174 ++++
+>>
+>> Any suggestion on where this driver can reside. It's a memory
+>> controller driver which supports standard DDR functionality
+>> as per JDEC specs including thermal alert. On top of
+>> that it does support DVFS using the TI PRCM IP block.
 >
-> Please note that most of my allocations are happening through
-> kmemdup(). kmemdup() doesn't have a devm_* equivalent. So, I have a
-> cleanup() function and in the interest of uniformity decided to avoid
-> devm_* variants altogether.
+> I don't know what any of those TLA words mean, so I really can't suggest
 
-I think it still worth using devm_kzalloc + memcopy here instead of 
-kmemdup to avoid the cleanup() and simplify as well the error handling.
+This is a driver for TI's memory controller(called EMIF). The
+driver is needed for adjusting the controller settings on frequency,
+voltage, and temperature changes. Any suggestion as to where this
+should go?
 
-You might even propose a new devm_kmemdup API if you want.
+> where this code should go.  But just from this diffstat, it looks like
+> you are creating a new user/kernel interface, without documenting it
+> anywhere, which isn't ok.
 
-Regards,
-Benoit
+I think you are referring to the header files added in include/linux/
+They are not creating new user/kernel interface per se.
+
+"include/linux/jedec_ddr.h" is the interface to a library that contains
+data from the DDR specs. "include/linux/emif.h" has definitions for
+platform data needed by the driver. Maybe these should go to some other
+sub-directory within include/ or include/linux/ ?
+
+I shall add documentation for the driver in the next revision.
+
+Thanks,
+Aneesh
