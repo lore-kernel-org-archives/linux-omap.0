@@ -1,72 +1,46 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCHv9 3/5] arm: omap3: add common twl configurations for vdd1
- and vdd2
-Date: Fri, 17 Feb 2012 09:22:54 -0600
-Message-ID: <CAOMWX4cmwFKsQ9SV-9c=tfCEqdQ9N2TcJUJ+Sh=syBgOSPz1gg@mail.gmail.com>
-References: <1329388073-17879-1-git-send-email-t-kristo@ti.com>
- <1329388073-17879-4-git-send-email-t-kristo@ti.com> <CAOMWX4d8C4pjYSr+i3qmqfJHDsHQdtRkvfbGR29U7hXf0SkVZg@mail.gmail.com>
- <1329476814.4102.433.camel@sokoban>
+From: Aneesh V <aneesh@ti.com>
+Subject: Re: [RFC PATCH 4/8] misc: emif: add basic infrastructure for EMIF
+ driver
+Date: Fri, 17 Feb 2012 20:57:14 +0530
+Message-ID: <4F3E71D2.5080306@ti.com>
+References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <1328357771-31644-5-git-send-email-aneesh@ti.com> <4F3D2F2F.8050406@ti.com> <4F3E558A.3060605@ti.com> <4F3E59CD.6050108@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:51299 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751870Ab2BQPXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 17 Feb 2012 10:23:15 -0500
-Received: by mail-we0-f175.google.com with SMTP id c1so2738897wer.34
-        for <linux-omap@vger.kernel.org>; Fri, 17 Feb 2012 07:23:14 -0800 (PST)
-In-Reply-To: <1329476814.4102.433.camel@sokoban>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4F3E59CD.6050108@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-Regards,
-Nishanth Menon
+On Friday 17 February 2012 07:14 PM, Cousson, Benoit wrote:
+> Hi Aneesh,
 
+[...]
 
-
-On Fri, Feb 17, 2012 at 05:06, Tero Kristo <t-kristo@ti.com> wrote:
-> On Thu, 2012-02-16 at 12:23 -0600, Menon, Nishanth wrote:
->> On Thu, Feb 16, 2012 at 04:27, Tero Kristo <t-kristo@ti.com> wrote:
->> > VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
->> > to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
->> > are needed by DVFS.
->> >
->> > Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manual.
+>>>> + emif = kzalloc(sizeof(struct emif_data), GFP_KERNEL);
+>>>
+>>> You should use the devm_* version of this API to get the simplify the
+>>> error handling / removal.
 >>
->> Please provide documentation version referenced, else we will loose
->> track of details at a later point of time.
+>> Please note that most of my allocations are happening through
+>> kmemdup(). kmemdup() doesn't have a devm_* equivalent. So, I have a
+>> cleanup() function and in the interest of uniformity decided to avoid
+>> devm_* variants altogether.
 >
-> How should this be marked down? There are too many naming conventions
-> for the TI docs, and I couldn't find any example from kernel commit logs
-> for this. Personally I was using twl5030 es1.2 DM rev E / twl4030 es3.1
-> DM rev L. Or should the literature code be used? Or is there also some
-> numerical version info available somewhere?
-Literature code is the best one. Adding, along with it, a human
-readable "TWL4030 ES3.1 DM rev L"
-is even better :)
+> I think it still worth using devm_kzalloc + memcopy here instead of
+> kmemdup to avoid the cleanup() and simplify as well the error handling.
 
->> Also should we rename VDD1 with vdd_mpu_iva and VDD2 as vdd_core to be readable?
->
-> This can be changed if needed, it is just a name.
-> regulator/twl-regulator.c is using vdd1 / vdd2 though, and also
-> pmic_data struct uses these. All the other regulators use Vxx type
-> naming also. These are the names I see on my board through
-> sys/class/regulator:
->
-> dummy
-> VDD1
-> VDD2
-> VMMC1
-> VDAC
-> VDVI
-> VSIM
+I will do that.
 
-no strong opinions on this - thinking from OMAP perspective, I read
-vdd_mpu,core,iva. from TWL perspective,
-4030/5030 - VDD1,2
-6030: VCORE1,2,3
-6032: SMPS1...5
-so I guess it is fine as long as it is in context.
+>
+> You might even propose a new devm_kmemdup API if you want.
+
+Ok. I will attempt that, maybe both devm_kmalloc() and devm_kmemdup().
+But I would like to de-couple that from this series. That is, I will do
+the patch separately and if that gets up-streamed I will update EMIF
+driver to use them. Until then I will go with what you suggested above.
+
+br,
+Aneesh
