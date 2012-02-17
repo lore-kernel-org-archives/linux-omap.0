@@ -1,158 +1,133 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: SMP local timers and their CPUfreq notifiers setup on OMAP3
-Date: Fri, 17 Feb 2012 11:06:11 +0000
-Message-ID: <4F3E34A3.4000307@arm.com>
-References: <8739aahc0n.fsf@ti.com> <4F3E0655.2040702@ti.com> <0401fed02a58f7bc48cc274050adbac7@localhost> <CAMQu2gwW6ES14jB8E6snE4pQRKg1q2ZF0pBedBtuPxeYV+7cow@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv9 3/5] arm: omap3: add common twl configurations for
+ vdd1 and vdd2
+Date: Fri, 17 Feb 2012 13:06:54 +0200
+Message-ID: <1329476814.4102.433.camel@sokoban>
+References: <1329388073-17879-1-git-send-email-t-kristo@ti.com>
+	 <1329388073-17879-4-git-send-email-t-kristo@ti.com>
+	 <CAOMWX4d8C4pjYSr+i3qmqfJHDsHQdtRkvfbGR29U7hXf0SkVZg@mail.gmail.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:32931 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061Ab2BQLG4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Feb 2012 06:06:56 -0500
-In-Reply-To: <CAMQu2gwW6ES14jB8E6snE4pQRKg1q2ZF0pBedBtuPxeYV+7cow@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33829 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751061Ab2BQLHC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Feb 2012 06:07:02 -0500
+In-Reply-To: <CAOMWX4d8C4pjYSr+i3qmqfJHDsHQdtRkvfbGR29U7hXf0SkVZg@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Kevin Hilman <khilman@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org
 
-On 17/02/12 10:40, Shilimkar, Santosh wrote:
-> On Fri, Feb 17, 2012 at 3:17 PM, Marc Zyngier <marc.zyngier@arm.com> wrote:
->>
->> Hi Santosh,
->>
->> On Fri, 17 Feb 2012 13:18:37 +0530, Santosh Shilimkar
->> <santosh.shilimkar@ti.com> wrote:
->>>
+On Thu, 2012-02-16 at 12:23 -0600, Menon, Nishanth wrote:
+> On Thu, Feb 16, 2012 at 04:27, Tero Kristo <t-kristo@ti.com> wrote:
+> > VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
+> > to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
+> > are needed by DVFS.
+> >
+> > Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manual.
 > 
-> [...]
-> 
->>>  arch/arm/kernel/smp_twd.c |    4 +++-
->>>  1 files changed, 3 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
->>> index 4285daa..753ae37 100644
->>> --- a/arch/arm/kernel/smp_twd.c
->>> +++ b/arch/arm/kernel/smp_twd.c
->>> @@ -30,6 +30,7 @@ void __iomem *twd_base;
->>>
->>>  static struct clk *twd_clk;
->>>  static unsigned long twd_timer_rate;
->>> +static bool twd_initialised;
->>>
->>>  static struct clock_event_device __percpu **twd_evt;
->>>
->>> @@ -129,7 +130,7 @@ static struct notifier_block twd_cpufreq_nb = {
->>>
->>>  static int twd_cpufreq_init(void)
->>>  {
->>> -     if (!IS_ERR(twd_clk))
->>> +     if ((!IS_ERR(twd_clk)) && twd_initialised)
->>>               return cpufreq_register_notifier(&twd_cpufreq_nb,
->>>                       CPUFREQ_TRANSITION_NOTIFIER);
->>
->> Testing twd_evt and *__this_cpu_ptr(twd_evt) should have a similar effect,
->> and save the additional variable.
->>
-> Indeed.
-> Updated patch below.
-> 
-> From 4d351f59e5dabe065d51304455ee01b191cb56d6 Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Fri, 17 Feb 2012 11:11:28 +0530
-> Subject: [PATCH] ARM: smp_twd: Don't register CPUFREQ notifiers if
-> local timers are not initialised.
-> 
-> Current ARM local timer code registers CPUFREQ notifiers even in case
-> the twd_timer_setup() isn't called. That seems to be wrong and
-> would eventually lead to kernel crash on the CPU frequency transitions
-> on the SOCs where the local timer doesn't exist or broken because of
-> hardware BUG. Fix it by testing twd_evt and *__this_cpu_ptr(twd_evt).
-> 
-> The issue was observed with v3.3-rc3 and building an OMAP2+ kernel
-> on OMAP3 SOC which doesn't have TWD.
-> 
-> Below is the dump for reference :
-> 
->  Unable to handle kernel paging request at virtual address 007e900
->  pgd = cdc20000
->  [007e9000] *pgd=00000000
->  Internal error: Oops: 5 [#1] SMP
->  Modules linked in:
->  CPU: 0    Not tainted  (3.3.0-rc3-pm+debug+initramfs #9)
->  PC is at twd_update_frequency+0x34/0x48
->  LR is at twd_update_frequency+0x10/0x48
->  pc : [<c001382c>]    lr : [<c0013808>]    psr: 60000093
->  sp : ce311dd8  ip : 00000000  fp : 00000000
->  r10: 00000000  r9 : 00000001  r8 : ce310000
->  r7 : c0440458  r6 : c00137f8  r5 : 00000000  r4 : c0947a74
->  r3 : 00000000  r2 : 007e9000  r1 : 00000000  r0 : 00000000
->  Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment usr
->  Control: 10c5387d  Table: 8dc20019  DAC: 00000015
->  Process sh (pid: 599, stack limit = 0xce3102f8)
->  Stack: (0xce311dd8 to 0xce312000)
->  1dc0:                                                       6000c
->  1de0: 00000001 00000002 00000000 00000000 00000000 00000000 00000
->  1e00: ffffffff c093d8f0 00000000 ce311ebc 00000001 00000001 ce310
->  1e20: c001386c c0437c4c c0e95b60 c0e95ba8 00000001 c0e95bf8 ffff4
->  1e40: 00000000 00000000 c005ef74 ce310000 c0435cf0 ce311ebc 00000
->  1e60: ce352b40 0007a120 c08d5108 c08ba040 c08ba040 c005f030 00000
->  1e80: c08bc554 c032fe2c 0007a120 c08d4b64 ce352b40 c08d8618 ffff8
->  1ea0: c08ba040 c033364c ce311ecc c0433b50 00000002 ffffffea c0330
->  1ec0: 0007a120 0007a120 22222201 00000000 22222222 00000000 ce357
->  1ee0: ce3d6000 cdc2aed8 ce352ba0 c0470164 00000002 c032f47c 00034
->  1f00: c0331cac ce352b40 00000007 c032f6d0 ce352bbc 0003d090 c0930
->  1f20: c093d8bc c03306a4 00000007 ce311f80 00000007 cdc2aec0 ce358
->  1f40: ce8d20c0 00000007 b6fe5000 ce311f80 00000007 ce310000 0000c
->  1f60: c000de74 ce987400 ce8d20c0 b6fe5000 00000000 00000000 0000c
->  1f80: 00000000 00000000 001fbac8 00000000 00000007 001fbac8 00004
->  1fa0: c000df04 c000dd60 00000007 001fbac8 00000001 b6fe5000 00000
->  1fc0: 00000007 001fbac8 00000007 00000004 b6fe5000 00000000 00202
->  1fe0: 00000000 beb565f8 00101ffc 00008e8c 60000010 00000001 00000
->  [<c001382c>] (twd_update_frequency+0x34/0x48) from [<c008ac4c>] )
->  [<c008ac4c>] (smp_call_function_single+0x17c/0x1c8) from [<c0013)
->  [<c0013890>] (twd_cpufreq_transition+0x24/0x30) from [<c0437c4c>)
->  [<c0437c4c>] (notifier_call_chain+0x44/0x84) from [<c005efe4>] ()
->  [<c005efe4>] (__srcu_notifier_call_chain+0x70/0xa4) from [<c005f)
->  [<c005f030>] (srcu_notifier_call_chain+0x18/0x20) from [<c032fe2)
->  [<c032fe2c>] (cpufreq_notify_transition+0xc8/0x1b0) from [<c0333)
->  [<c033364c>] (omap_target+0x1b4/0x28c) from [<c032f47c>] (__cpuf)
->  [<c032f47c>] (__cpufreq_driver_target+0x50/0x64) from [<c0331d24)
->  [<c0331d24>] (cpufreq_set+0x78/0x98) from [<c032f6d0>] (store_sc)
->  [<c032f6d0>] (store_scaling_setspeed+0x5c/0x74) from [<c03306a4>)
->  [<c03306a4>] (store+0x58/0x74) from [<c014d868>] (sysfs_write_fi)
->  [<c014d868>] (sysfs_write_file+0x80/0xb4) from [<c00f2c2c>] (vfs)
->  [<c00f2c2c>] (vfs_write+0xa8/0x138) from [<c00f2e9c>] (sys_write)
->  [<c00f2e9c>] (sys_write+0x40/0x6c) from [<c000dd60>] (ret_fast_s)
->  Code: e594300c e792210c e1a01000 e5840004 (e7930002)
->  ---[ end trace 5da3b5167c1ecdda ]---
-> 
-> Reported-by: Kevin Hilman <khilman@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/kernel/smp_twd.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-> index 4285daa..265a18a 100644
-> --- a/arch/arm/kernel/smp_twd.c
-> +++ b/arch/arm/kernel/smp_twd.c
-> @@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb = {
-> 
->  static int twd_cpufreq_init(void)
->  {
-> -	if (!IS_ERR(twd_clk))
-> +	if ((!twd_evt) && (!__this_cpu_ptr(twd_evt)) && (!IS_ERR(twd_clk)))
+> Please provide documentation version referenced, else we will loose
+> track of details at a later point of time.
 
-Erm... Shouldn't that rather be:
-	if (twd_evt && *__this_cpu_ptr(twd_evt) && !IS_ERR(twd_clk))
+How should this be marked down? There are too many naming conventions
+for the TI docs, and I couldn't find any example from kernel commit logs
+for this. Personally I was using twl5030 es1.2 DM rev E / twl4030 es3.1
+DM rev L. Or should the literature code be used? Or is there also some
+numerical version info available somewhere?
 
->  		return cpufreq_register_notifier(&twd_cpufreq_nb,
->  			CPUFREQ_TRANSITION_NOTIFIER);
 > 
+> Also should we rename VDD1 with vdd_mpu_iva and VDD2 as vdd_core to be readable?
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+This can be changed if needed, it is just a name.
+regulator/twl-regulator.c is using vdd1 / vdd2 though, and also
+pmic_data struct uses these. All the other regulators use Vxx type
+naming also. These are the names I see on my board through
+sys/class/regulator:
+
+dummy
+VDD1
+VDD2
+VMMC1
+VDAC
+VDVI
+VSIM
+
+
+-Tero
+
+> 
+> Regards,
+> Nishanth Menon
+> >
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/twl-common.c |   36 ++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 36 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+> > index 10b20c6..5f62e51 100644
+> > --- a/arch/arm/mach-omap2/twl-common.c
+> > +++ b/arch/arm/mach-omap2/twl-common.c
+> > @@ -126,6 +126,38 @@ static struct regulator_init_data omap3_vpll2_idata = {
+> >        .consumer_supplies              = omap3_vpll2_supplies,
+> >  };
+> >
+> > +static struct regulator_consumer_supply omap3_vdd1_supply[] = {
+> > +       REGULATOR_SUPPLY("vcc", "mpu.0"),
+> > +};
+> > +
+> > +static struct regulator_consumer_supply omap3_vdd2_supply[] = {
+> > +       REGULATOR_SUPPLY("vcc", "l3_main.0"),
+> > +};
+> > +
+> > +static struct regulator_init_data omap3_vdd1 = {
+> > +       .constraints = {
+> > +               .name                   = "VDD1",
+> > +               .min_uV                 = 600000,
+> > +               .max_uV                 = 1450000,
+> > +               .valid_modes_mask       = REGULATOR_MODE_NORMAL,
+> > +               .valid_ops_mask         = REGULATOR_CHANGE_VOLTAGE,
+> > +       },
+> > +       .num_consumer_supplies          = ARRAY_SIZE(omap3_vdd1_supply),
+> > +       .consumer_supplies              = omap3_vdd1_supply,
+> > +};
+> > +
+> > +static struct regulator_init_data omap3_vdd2 = {
+> > +       .constraints = {
+> > +               .name                   = "VDD2",
+> > +               .min_uV                 = 600000,
+> > +               .max_uV                 = 1450000,
+> > +               .valid_modes_mask       = REGULATOR_MODE_NORMAL,
+> > +               .valid_ops_mask         = REGULATOR_CHANGE_VOLTAGE,
+> > +       },
+> > +       .num_consumer_supplies          = ARRAY_SIZE(omap3_vdd2_supply),
+> > +       .consumer_supplies              = omap3_vdd2_supply,
+> > +};
+> > +
+> >  void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+> >                                  u32 pdata_flags, u32 regulators_flags)
+> >  {
+> > @@ -133,6 +165,10 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+> >                pmic_data->irq_base = TWL4030_IRQ_BASE;
+> >        if (!pmic_data->irq_end)
+> >                pmic_data->irq_end = TWL4030_IRQ_END;
+> > +       if (!pmic_data->vdd1)
+> > +               pmic_data->vdd1 = &omap3_vdd1;
+> > +       if (!pmic_data->vdd2)
+> > +               pmic_data->vdd2 = &omap3_vdd2;
+> >
+> >        /* Common platform data configurations */
+> >        if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
+> > --
+> > 1.7.4.1
+> >
+> >
+> > _______________________________________________
+> > linux-arm-kernel mailing list
+> > linux-arm-kernel@lists.infradead.org
+> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
 
