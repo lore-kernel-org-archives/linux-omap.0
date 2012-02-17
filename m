@@ -1,66 +1,77 @@
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH] ARM: OMAP2+: hwmod: Fix wrong SYSC_TYPE1_XXX_MASK bit
- definitions
-Date: Fri, 17 Feb 2012 16:56:01 +0530
-Message-ID: <1329477961-1307-1-git-send-email-hvaibhav@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 0/3] MFD: twl6040: Conversion to i2c driver
+Date: Fri, 17 Feb 2012 13:47:25 +0200
+Message-ID: <4F3E3E4D.6080505@ti.com>
+References: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, paul@pwsan.com, b-cousson@ti.com, tony@atomide.com, Vaibhav Hiremath <hvaibhav@ti.com>, thara@ti.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>
+Cc: Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-In the SYSC_TYPE1_XXX_MASK configuration, SYSC_XXX_SHIFT macro
-is used which is not defined anywhere in the kernel.
-Until now the build was going through successfully, since it
-is not being used anywhere in kernel.
+Hi,
 
-This bug got introduced by the commit
-358f0e630d5409ab3837b86db3595560eae773b6 ("OMAP3: hwmod: support
-to specify the offset position of various SYSCONFIG register bits.")
+On 02/10/2012 12:00 PM, Peter Ujfalusi wrote:
+> Hello,
+>=20
+> Changes since v2:
+> - soc/codec/Kconfig: make twl6040 depend on I2C
+> - Regulator related patches has been removed (to be sent as separate =
+series)
+>=20
+> ------
+> Intro mail from the original series:
+>=20
+> This series will convert the twl6040 MFD driver to an i2c driver.
+> Compared to older twl4030/5030/TPS the twl6040 is a standalone audio =
+IC. It is
+> better if the twl6040-core (and all of it's child devices) does not d=
+epend on
+> the twl-core since it has nothing to with it.
+>=20
+> With this conversion the dependency on twl can be dropped from the tw=
+l6040
+> driver stack (core, vibra, audio).
+>=20
+> Between the first and second patch the audio will not probe on OMAP4,=
+ but I felt
+> it is better this way at least for the first RFC series to not have t=
+oo big
+> change within one patch. The two patch can be squashed together later=
+ if no
+> objections.
+>=20
+> Regards,
+> Peter
+> ---
+> Peter Ujfalusi (3):
+>   MFD: twl-core: Detach twl6040 from the pmic mfd driver
+>   MFD: twl6040: Convert to i2c driver, and separate it from twl core
+>   ASoC: twl6040: Remove dependency on twl4030 from Kconfig
+>=20
+>  arch/arm/mach-omap2/board-4430sdp.c    |   12 ++--
+>  arch/arm/mach-omap2/board-generic.c    |    2 +-
+>  arch/arm/mach-omap2/board-omap4panda.c |   13 ++--
+>  arch/arm/mach-omap2/twl-common.c       |   37 +++++++++--
+>  arch/arm/mach-omap2/twl-common.h       |   10 +--
+>  drivers/input/misc/Kconfig             |    1 -
+>  drivers/input/misc/twl6040-vibra.c     |    4 +-
+>  drivers/mfd/Kconfig                    |    2 +-
+>  drivers/mfd/twl-core.c                 |   58 +++++++++-------
+>  drivers/mfd/twl6040-core.c             |  114 +++++++++++++++++++---=
+----------
+>  include/linux/i2c/twl.h                |   12 ----
+>  include/linux/mfd/twl6040.h            |   27 ++++++++
+>  sound/soc/codecs/Kconfig               |    2 +-
+>  sound/soc/codecs/twl6040.c             |    3 +-
+>  14 files changed, 182 insertions(+), 115 deletions(-)
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/plat-omap/include/plat/omap_hwmod.h |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+It has been a week since I have sent this series. It would be great if
+this be on time for 3.4 merge window.
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-index dbc18ad..55bef2b 100644
---- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
-+++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
-@@ -49,17 +49,17 @@ extern struct omap_hwmod_sysc_fields omap_hwmod_sysc_type4;
-  * with the original PRCM protocol defined for OMAP2420
-  */
- #define SYSC_TYPE1_MIDLEMODE_SHIFT	12
--#define SYSC_TYPE1_MIDLEMODE_MASK	(0x3 << SYSC_MIDLEMODE_SHIFT)
-+#define SYSC_TYPE1_MIDLEMODE_MASK	(0x3 << SYSC_TYPE1_MIDLEMODE_SHIFT)
- #define SYSC_TYPE1_CLOCKACTIVITY_SHIFT	8
--#define SYSC_TYPE1_CLOCKACTIVITY_MASK	(0x3 << SYSC_CLOCKACTIVITY_SHIFT)
-+#define SYSC_TYPE1_CLOCKACTIVITY_MASK	(0x3 << SYSC_TYPE1_CLOCKACTIVITY_SHIFT)
- #define SYSC_TYPE1_SIDLEMODE_SHIFT	3
--#define SYSC_TYPE1_SIDLEMODE_MASK	(0x3 << SYSC_SIDLEMODE_SHIFT)
-+#define SYSC_TYPE1_SIDLEMODE_MASK	(0x3 << SYSC_TYPE1_SIDLEMODE_SHIFT)
- #define SYSC_TYPE1_ENAWAKEUP_SHIFT	2
--#define SYSC_TYPE1_ENAWAKEUP_MASK	(1 << SYSC_ENAWAKEUP_SHIFT)
-+#define SYSC_TYPE1_ENAWAKEUP_MASK	(1 << SYSC_TYPE1_ENAWAKEUP_SHIFT)
- #define SYSC_TYPE1_SOFTRESET_SHIFT	1
--#define SYSC_TYPE1_SOFTRESET_MASK	(1 << SYSC_SOFTRESET_SHIFT)
-+#define SYSC_TYPE1_SOFTRESET_MASK	(1 << SYSC_TYPE1_SOFTRESET_SHIFT)
- #define SYSC_TYPE1_AUTOIDLE_SHIFT	0
--#define SYSC_TYPE1_AUTOIDLE_MASK	(1 << SYSC_AUTOIDLE_SHIFT)
-+#define SYSC_TYPE1_AUTOIDLE_MASK	(1 << SYSC_TYPE1_AUTOIDLE_SHIFT)
-
- /*
-  * OCP SYSCONFIG bit shifts/masks TYPE2. These are for IPs compliant
---
-1.7.0.4
+Thank you,
+P=E9ter
