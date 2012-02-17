@@ -1,101 +1,90 @@
-From: Aneesh V <aneesh@ti.com>
-Subject: Re: [RFC PATCH 0/8] Add TI EMIF SDRAM controller driver
-Date: Fri, 17 Feb 2012 19:26:29 +0530
-Message-ID: <4F3E5C8D.7020506@ti.com>
-References: <1328357771-31644-1-git-send-email-aneesh@ti.com> <4F3CDF9F.9080204@ti.com> <20120216162359.GB20827@kroah.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 0/3] omap hsmmc init cleanup and section warning fixes
+ for v3.4 merge window
+Date: Fri, 17 Feb 2012 19:54:35 +0530
+Message-ID: <4F3E6323.9020101@ti.com>
+References: <20120215182355.18884.18682.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20120216162359.GB20827@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20120215182355.18884.18682.stgit@kaulin.local>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Greg,
+Tony,
 
-On Thursday 16 February 2012 09:53 PM, Greg KH wrote:
-> On Thu, Feb 16, 2012 at 04:21:11PM +0530, Santosh Shilimkar wrote:
->> Andrew, Greg,
->>
->> On Saturday 04 February 2012 05:46 PM, Aneesh V wrote:
->>> Add a driver for the EMIF SDRAM controller used in TI SoCs
->>>
->>> EMIF is an SDRAM controller that supports, based on its revision,
->>> one or more of LPDDR2/DDR2/DDR3 protocols.This driver adds support
->>> for LPDDR2.
->>>
->>> The driver supports the following features:
->>> - Calculates the DDR AC timing parameters to be set in EMIF
->>>    registers using data from the device data-sheets and based
->>>    on the DDR frequency. If data from data-sheets is not available
->>>    default timing values from the JEDEC spec are used. These
->>>    will be safe, but not necessarily optimal
->>> - API for changing timings during DVFS or at boot-up
->>> - Temperature alert configuration and handling of temperature
->>>    alerts, if any for LPDDR2 devices
->>>    * temperature alert is based on periodic polling of MR4 mode
->>>      register in DDR devices automatically performed by hardware
->>>    * timings are de-rated and brought back to nominal when
->>>      temperature raises and falls respectively
->>> - Cache of calculated register values to avoid re-calculating
->>>    them
->>>
->>> The driver will need some minor updates when it is eventually
->>> integrated with DVFS. This can not be done now as DVFS support
->>> is not available yet in mainline.
->>>
->>> Discussions with Santosh Shilimkar<santosh.shilimkar@ti.com>
->>> were immensely helpful in shaping up the interfaces. Vibhore Vardhan
->>> <vvardhan@gmail.com>  did the initial code snippet for thermal
->>> handling.
->>>
->>> Testing:
->>> - The driver is tested on OMAP4430 SDP.
->>> - The driver in a slightly adapted form is also tested on OMAP5.
->>> - Since mainline kernel doesn't have DVFS support yet,
->>>    testing was done using a test module.
->>> - Temperature alert handling was tested with simulated interrupts
->>>    and faked temperature values as testing all cases in real-life
->>>    scenarios is difficult.
->>>
->> [...]
->>
->>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |  110 ++
->>>   drivers/misc/Kconfig                       |   20 +
->>>   drivers/misc/Makefile                      |    2 +
->>>   drivers/misc/emif.c                        | 1522 ++++++++++++++++++++++++++++
->>>   drivers/misc/emif_regs.h                   |  461 +++++++++
->>>   drivers/misc/jedec_ddr_data.c              |  141 +++
->>>   include/linux/emif.h                       |  257 +++++
->>>   include/linux/jedec_ddr.h                  |  174 ++++
->>
->> Any suggestion on where this driver can reside. It's a memory
->> controller driver which supports standard DDR functionality
->> as per JDEC specs including thermal alert. On top of
->> that it does support DVFS using the TI PRCM IP block.
+On Wednesday 15 February 2012 11:58 PM, Tony Lindgren wrote:
+> Hi all,
 >
-> I don't know what any of those TLA words mean, so I really can't suggest
+> This series fixes up the issues noted by Russell on omap2_hsmmc_init()
+> where if TWL PMIC is compiled as a module we can't keep a bunch of
+> functions marked as __init like they should be. This series fixes
+> the issues by splitting omap2_hsmmc_init() into two functions.
 
-This is a driver for TI's memory controller(called EMIF). The
-driver is needed for adjusting the controller settings on frequency,
-voltage, and temperature changes. Any suggestion as to where this
-should go?
+I have a re-spin of this series ready with all the fixes I did
+while testing the insmod/unbind/bind test suggested by Russell.
+I could not figure out what branch your original patches were
+based on. So let me know what branch of your tree you want me
+to post this series on.
 
-> where this code should go.  But just from this diffstat, it looks like
-> you are creating a new user/kernel interface, without documenting it
-> anywhere, which isn't ok.
+regards,
+Rajendra
 
-I think you are referring to the header files added in include/linux/
-They are not creating new user/kernel interface per se.
-
-"include/linux/jedec_ddr.h" is the interface to a library that contains
-data from the DDR specs. "include/linux/emif.h" has definitions for
-platform data needed by the driver. Maybe these should go to some other
-sub-directory within include/ or include/linux/ ?
-
-I shall add documentation for the driver in the next revision.
-
-Thanks,
-Aneesh
+>
+> One more patch is needed to sort out the remaining issue with
+> omap4 that has yet another luck based initialization for the
+> same issue..
+>
+> Regards,
+>
+> Tony
+>
+> ---
+>
+> Ohad Ben-Cohen (1):
+>        ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
+>
+> Tony Lindgren (2):
+>        ARM: OMAP2+: Split omap2_hsmmc_init() to properly support I2C GPIO pins
+>        ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux related functions as __init
+>
+>
+>   arch/arm/mach-omap2/board-2430sdp.c           |    2
+>   arch/arm/mach-omap2/board-3430sdp.c           |    5 +
+>   arch/arm/mach-omap2/board-4430sdp.c           |    6 +
+>   arch/arm/mach-omap2/board-am3517evm.c         |    2
+>   arch/arm/mach-omap2/board-cm-t35.c            |    6 +
+>   arch/arm/mach-omap2/board-devkit8000.c        |    4 +
+>   arch/arm/mach-omap2/board-flash.c             |    2
+>   arch/arm/mach-omap2/board-igep0020.c          |    7 +-
+>   arch/arm/mach-omap2/board-ldp.c               |    2
+>   arch/arm/mach-omap2/board-omap3beagle.c       |   10 ++
+>   arch/arm/mach-omap2/board-omap3evm.c          |    8 +-
+>   arch/arm/mach-omap2/board-omap3logic.c        |    2
+>   arch/arm/mach-omap2/board-omap3pandora.c      |    6 +
+>   arch/arm/mach-omap2/board-omap3stalker.c      |   15 ++-
+>   arch/arm/mach-omap2/board-omap3touchbook.c    |   17 ++--
+>   arch/arm/mach-omap2/board-omap4panda.c        |    6 +
+>   arch/arm/mach-omap2/board-overo.c             |    5 +
+>   arch/arm/mach-omap2/board-rm680.c             |    2
+>   arch/arm/mach-omap2/board-rx51-peripherals.c  |    2
+>   arch/arm/mach-omap2/board-zoom-peripherals.c  |    6 +
+>   arch/arm/mach-omap2/display.c                 |    8 +-
+>   arch/arm/mach-omap2/hsmmc.c                   |  111 ++++++++++++++++++-------
+>   arch/arm/mach-omap2/hsmmc.h                   |   12 ++-
+>   arch/arm/mach-omap2/mux.c                     |   22 ++---
+>   arch/arm/plat-omap/include/plat/omap_device.h |    7 ++
+>   arch/arm/plat-omap/omap_device.c              |   13 +--
+>   26 files changed, 192 insertions(+), 96 deletions(-)
+>
