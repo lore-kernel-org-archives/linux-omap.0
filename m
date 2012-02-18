@@ -1,51 +1,95 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Subject: Re: [PATCH] arm: smp-twd: check for uninitialized clock in
- twd_cpufreq_init
-Date: Sat, 18 Feb 2012 19:56:30 +0400
-Message-ID: <4F3FCA2E.3000804@ru.mvista.com>
-References: <1329474869-32356-1-git-send-email-t-kristo@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [RFC 00/11]O MAP/ASoC: Move and merge McBSP driver
+	under ASoC
+Date: Sat, 18 Feb 2012 23:43:06 +0200
+Message-ID: <CANOLnONVm47DmMv8MdU1Y_Nx-387SZ5MBHwjO4cxkQ_caJ5dWA@mail.gmail.com>
+References: <1329320246-1548-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1329474869-32356-1-git-send-email-t-kristo@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1329320246-1548-1-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
-
-On 17-02-2012 14:34, Tero Kristo wrote:
-
-> Non-smp platforms don't have local timer support, but the twd_cpufreq_init
-> only checks for IS_ERR during init. Check against null also, to avoid
-> crashes during cpufreq transitions on non-smp platforms.
-
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> ---
->   arch/arm/kernel/smp_twd.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
-
-> diff --git a/arch/arm/kernel/smp_twd.c b/arch/arm/kernel/smp_twd.c
-> index 4285daa..dae8902 100644
-> --- a/arch/arm/kernel/smp_twd.c
-> +++ b/arch/arm/kernel/smp_twd.c
-> @@ -129,7 +129,7 @@ static struct notifier_block twd_cpufreq_nb = {
->
->   static int twd_cpufreq_init(void)
->   {
-> -	if (!IS_ERR(twd_clk))
-> +	if (twd_clk&&  !IS_ERR(twd_clk))
-
-    Why not !IS_ERR_OR_NULL(twd_clk)?
-
-WBR, Sergei
+T24gV2VkLCBGZWIgMTUsIDIwMTIgYXQgNTozNyBQTSwgUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVq
+ZmFsdXNpQHRpLmNvbT4gd3JvdGU6Cj4gQ29tbWVudHMsIHRlc3RlcnMgYXJlIHdlbGNvbWUuLi4K
+ClRyaWVkIHRoZXNlIG9uIGN1cnJlbnQgbWFpbmxpbmUgYW5kIHRoZXkgYnJlYWsgc291bmQgb24g
+cGFuZG9yYToKIyBhcGxheSAvZGV2L3VyYW5kb20KUGxheWluZyByYXcgZGF0YSAnL2Rldi91cmFu
+ZG9tJyA6IFVuc2lnbmVkIDggYml0LCBSYXRlIDgwMDAgSHosIE1vbm8KWyAgIDgxLjMwNjMwNF0g
+b21hcC1tY2JzcDogY2xrczogY291bGQgbm90IGNsa19zZXRfcGFyZW50KCkgdG8gcGFkX2Zjawpb
+ICAgODEuMzEzMTEwXSBBU29DIG9tYXAzcGFuZG9yYTogY2FuJ3Qgc2V0IGNwdSBzeXN0ZW0gY2xv
+Y2sKWyAgIDgxLjMxOTI0NF0gYXNvYzogbWFjaGluZSBod19wYXJhbXMgZmFpbGVkCmFwbGF5OiBz
+ZXRfcGFyYW1zOjEwMjI6IFVuYWJsZSB0byBpbnN0YWxsIGh3IHBhcmFtczoKCkkndmUgcmV0cmll
+ZCB3aXRob3V0IHRoZXNlIHBhdGNoZXMgdG8gY29uZmlybSBpdCB3b3JrcyBsaWtlIHRoYXQsIGFu
+ZCBpdCBkaWQuCgo+Cj4gQ0MtaW5nIFNhbXVlbCBhcyB3ZWxsIHNpbmNlIGhlIGlzIHRoZSBvcmln
+aW5hbCBhdXRob3Igb2YgdGhlIHBsYXQtb21hcC9tY2JzcC5jCj4gZHJpdmVyLgo+Cj4gUmVnYXJk
+cywKPiBQZXRlcgo+IC0tLQo+IFBldGVyIFVqZmFsdXNpICgxMSk6Cj4gwqBBUk06IE9NQVA6IG1j
+YnNwOiBDb252ZXJ0IGNvcmUgZHJpdmVyIHRvIHByb3BlciBwbGF0Zm9ybSBkcml2ZXIKPiDCoE9N
+QVA6IG1jYnNwOiBNb3ZlIGNvcmUgZHJpdmVyIHVuZGVyIHNvdW5kL3NvYy9vbWFwCj4gwqBBU29D
+OiBPTUFQOiBNY0JTUDogQ29uc29saWRhdGUgcGxhdC9tY2JzcC5oIGNvbnRlbnQKPiDCoEFTb0M6
+IGNvcmUgLSBBZGQgQVBJIGNhbGwgdG8gcmVnaXN0ZXIgZGFpIGtjb250cm9scy4KPiDCoEFTb0M6
+IG9tYXAtbWNic3A6IENyZWF0ZSBhIHNpbmdsZSBkcml2ZXIgZm9yIE1jQlNQCj4gwqBBUk06IE9N
+QVA6IERvIG5vdCByZWdpc3RlciBvbWFwLW1jYnNwLWRhaSBkZXZpY2UKPiDCoEFTb0M6IE9NQVA6
+IG1jYnNwLmg6IENsZWFuIHVwIGJpdCBkZWZpbml0aW9ucwo+IMKgQVNvQzogT01BUCBNY0JTUDog
+UmVtb3ZlIHJlZHVuZGFudCBhY2Nlc3NvcnMKPiDCoEFTb0M6IG9tYXAtbWNic3A6IENsZWFudXAg
+b2YgbW9kdWxlIHByb2JlL3JlbW92ZSBjb2RlCj4gwqBBU29DOiBvbWFwLW1jYnNwOiBNZXJnZSB0
+aGUgb21hcF9tY2JzcF9kYXRhIGludG8gb21hcF9tY2JzcCBzdHJ1Y3R1cmUKPiDCoEFTb0M6IG9t
+YXAtbWNic3A6IFNpbXBsaWZ5IERNQSBjb25maWd1cmF0aW9uCj4KPiDCoGFyY2gvYXJtL21hY2gt
+b21hcDEvZGV2aWNlcy5jIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDkgLQo+IMKg
+YXJjaC9hcm0vbWFjaC1vbWFwMS9tY2JzcC5jIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+fCDCoCAxNCArLQo+IMKgYXJjaC9hcm0vbWFjaC1vbWFwMi9kZXZpY2VzLmMgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqB8IMKgIDIyIC0tCj4gwqBhcmNoL2FybS9tYWNoLW9tYXAyL21jYnNwLmMg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB8IMKgIMKgOCArLQo+IMKgYXJjaC9hcm0vcGxh
+dC1vbWFwL0tjb25maWcgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfCDCoCDCoDggLQo+
+IMKgYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgfCDCoCDCoDIgLQo+IMKgYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvcGxhdC9tY2JzcC5o
+IMKgIMKgIMKgIMKgfCDCoDMyMSAtLS0tLS0tLS0tLS0tLS0tCj4gwqBpbmNsdWRlL3NvdW5kL3Nv
+Yy5oIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDIgKwo+
+IMKgc291bmQvc29jL29tYXAvS2NvbmZpZyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCB8IMKgIMKgNCArCj4gwqBzb3VuZC9zb2Mvb21hcC9NYWtlZmlsZSDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwgwqAgwqAxICsKPiDCoHNvdW5kL3NvYy9vbWFwL2FtMzUx
+N2V2bS5jIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHwgwqAgwqAyICstCj4gwqBzb3Vu
+ZC9zb2Mvb21hcC9hbXMtZGVsdGEuYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB8IMKg
+IMKgMiArLQo+IMKgc291bmQvc29jL29tYXAvaWdlcDAwMjAuYyDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoHwgwqAgwqAyICstCj4gwqB7YXJjaC9hcm0vcGxhdC1vbWFwID0+IHNvdW5k
+L3NvYy9vbWFwfS9tY2JzcC5jIHwgwqA0NjMgKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gwqBz
+b3VuZC9zb2Mvb21hcC9tY2JzcC5oIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IHwgwqAzMzcgKysrKysrKysrKysrKysrKysKPiDCoHNvdW5kL3NvYy9vbWFwL244MTAuYyDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHwgwqAgwqAyICstCj4gwqBzb3VuZC9z
+b2Mvb21hcC9vbWFwLW1jYnNwLmMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB8IMKgMjg3
+ICsrKysrKysrLS0tLS0tLQo+IMKgc291bmQvc29jL29tYXAvb21hcC1tY2JzcC5oIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDIgKy0KPiDCoHNvdW5kL3NvYy9vbWFwL29tYXAt
+cGNtLmggwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqB8IMKgIMKgMiArCj4gwqBzb3Vu
+ZC9zb2Mvb21hcC9vbWFwM2JlYWdsZS5jIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHwgwqAg
+wqAyICstCj4gwqBzb3VuZC9zb2Mvb21hcC9vbWFwM2V2bS5jIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgfCDCoCDCoDIgKy0KPiDCoHNvdW5kL3NvYy9vbWFwL29tYXAzcGFuZG9yYS5j
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDQgKy0KPiDCoHNvdW5kL3NvYy9vbWFw
+L29zazU5MTIuYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB8IMKgIMKgMiArLQo+
+IMKgc291bmQvc29jL29tYXAvb3Zlcm8uYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCB8IMKgIMKgMiArLQo+IMKgc291bmQvc29jL29tYXAvcng1MS5jIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgfCDCoCDCoDQgKy0KPiDCoHNvdW5kL3NvYy9vbWFwL3Nk
+cDM0MzAuYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB8IMKgIMKgNCArLQo+IMKg
+c291bmQvc29jL29tYXAvem9vbTIuYyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCB8IMKgIMKgNCArLQo+IMKgc291bmQvc29jL3NvYy1jb3JlLmMgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgfCDCoCAzMSArKwo+IMKgMjggZmlsZXMgY2hhbmdlZCwgNjMx
+IGluc2VydGlvbnMoKyksIDkxNCBkZWxldGlvbnMoLSkKPiDCoHJlbmFtZSB7YXJjaC9hcm0vcGxh
+dC1vbWFwID0+IHNvdW5kL3NvYy9vbWFwfS9tY2JzcC5jICg2OSUpCj4gwqBjcmVhdGUgbW9kZSAx
+MDA2NDQgc291bmQvc29jL29tYXAvbWNic3AuaAo+Cj4gLS0KPiAxLjcuOC40Cj4KPiAtLQo+IFRv
+IHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBs
+aW51eC1vbWFwIiBpbgo+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5r
+ZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCDCoGh0dHA6Ly92Z2VyLmtlcm5lbC5v
+cmcvbWFqb3Jkb21vLWluZm8uaHRtbAoKLS0gCkdyYcW+dnlkYXMKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxz
+YS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcv
+bWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
