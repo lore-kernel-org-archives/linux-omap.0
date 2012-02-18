@@ -1,61 +1,72 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] ARM: omap: pandora: fix usbhs platform data
-Date: Sun, 19 Feb 2012 00:43:05 +0200
-Message-ID: <1329604985-24740-1-git-send-email-notasas@gmail.com>
+Subject: [PATCH] ARM: omap: pandora: add support for backlight and poweroff
+Date: Sun, 19 Feb 2012 00:46:20 +0200
+Message-ID: <1329605180-24939-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:32909 "EHLO
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53404 "EHLO
 	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753575Ab2BRWnO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Feb 2012 17:43:14 -0500
-Received: by eekc14 with SMTP id c14so1802422eek.19
-        for <linux-omap@vger.kernel.org>; Sat, 18 Feb 2012 14:43:12 -0800 (PST)
+	with ESMTP id S1753751Ab2BRWqZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Feb 2012 17:46:25 -0500
+Received: by eekc14 with SMTP id c14so1802819eek.19
+        for <linux-omap@vger.kernel.org>; Sat, 18 Feb 2012 14:46:24 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-It turned out wrong OMAP HSUSB port was configured on pandora,
-but still managed to work somehow. This was noticed after enabling
-in-kernel mux, where USB muxing was causing other devices not to work,
-because hsusb1 pins (instead of hsusb2) were wrongly remuxed, which
-are used for other things on pandora.
+Add platform data for drivers that recently appeared in kernel:
+backlight and TWL4030 poweroff support.
 
 Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+well backlight is queued for 3.4, but poweroff support is already here in 3.3.
+
+ arch/arm/mach-omap2/board-omap3pandora.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 1644b73..2224b5d 100644
+index 2224b5d..835180f 100644
 --- a/arch/arm/mach-omap2/board-omap3pandora.c
 +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -343,7 +343,7 @@ static struct regulator_consumer_supply pandora_vcc_lcd_supply[] = {
+@@ -121,6 +121,11 @@ static struct platform_device pandora_leds_gpio = {
+ 	},
  };
  
- static struct regulator_consumer_supply pandora_usb_phy_supply[] = {
--	REGULATOR_SUPPLY("hsusb0", "ehci-omap.0"),
-+	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
++static struct platform_device pandora_backlight = {
++	.name	= "pandora-backlight",
++	.id	= -1,
++};
++
+ #define GPIO_BUTTON(gpio_num, ev_type, ev_code, act_low, descr)	\
+ {								\
+ 	.gpio		= gpio_num,				\
+@@ -476,6 +481,10 @@ static struct platform_device pandora_vwlan_device = {
+ 
+ static struct twl4030_bci_platform_data pandora_bci_data;
+ 
++static struct twl4030_power_data pandora_power_data = {
++	.use_poweroff	= true,
++};
++
+ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.gpio		= &omap3pandora_gpio_data,
+ 	.vmmc1		= &pandora_vmmc1,
+@@ -486,6 +495,7 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ 	.vsim		= &pandora_vsim,
+ 	.keypad		= &pandora_kp_data,
+ 	.bci		= &pandora_bci_data,
++	.power		= &pandora_power_data,
  };
  
- /* ads7846 on SPI and 2 nub controllers on I2C */
-@@ -561,13 +561,13 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
+ static struct i2c_board_info __initdata omap3pandora_i2c3_boardinfo[] = {
+@@ -557,6 +567,7 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&pandora_leds_gpio,
+ 	&pandora_keys_gpio,
+ 	&pandora_vwlan_device,
++	&pandora_backlight,
+ };
  
  static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
- 
--	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
--	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
-+	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
- 	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
- 
- 	.phy_reset  = true,
--	.reset_gpio_port[0]  = 16,
--	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[0]  = -EINVAL,
-+	.reset_gpio_port[1]  = 16,
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
 -- 
 1.7.0.4
 
