@@ -1,73 +1,61 @@
 From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] ASoC: pandora: switch clock back to internal
-	on stop
-Date: Sun, 19 Feb 2012 00:39:55 +0200
-Message-ID: <1329604795-24509-1-git-send-email-notasas@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: [PATCH] ARM: omap: pandora: fix usbhs platform data
+Date: Sun, 19 Feb 2012 00:43:05 +0200
+Message-ID: <1329604985-24740-1-git-send-email-notasas@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:32909 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753575Ab2BRWnO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 18 Feb 2012 17:43:14 -0500
+Received: by eekc14 with SMTP id c14so1802422eek.19
+        for <linux-omap@vger.kernel.org>; Sat, 18 Feb 2012 14:43:12 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.infradead.org, Grazvydas Ignotas <notasas@gmail.com>
 
-For some reason, OMAP doesn't enter lower power states with functional
-clock (CLKS) source set to external, so switch it back to internal when
-done playing.
+It turned out wrong OMAP HSUSB port was configured on pandora,
+but still managed to work somehow. This was noticed after enabling
+in-kernel mux, where USB muxing was causing other devices not to work,
+because hsusb1 pins (instead of hsusb2) were wrongly remuxed, which
+are used for other things on pandora.
 
 Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 ---
- sound/soc/omap/omap3pandora.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-omap3pandora.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/sound/soc/omap/omap3pandora.c b/sound/soc/omap/omap3pandora.c
-index 07794bd..1be26df 100644
---- a/sound/soc/omap/omap3pandora.c
-+++ b/sound/soc/omap/omap3pandora.c
-@@ -77,6 +77,27 @@ static int omap3pandora_hw_params(struct snd_pcm_substream *substream,
- 	return 0;
- }
- 
-+static int omap3pandora_hw_free(struct snd_pcm_substream *substream)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
-+	int ret;
-+
-+	/*
-+	 * For some reason, if we don't set clock back to internal, OMAP power
-+	 * saving features don't work properly (per power domain doesn't enter
-+	 * lower power states). Switch it back until better solution is found.
-+	 */
-+	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_SYSCLK_CLKS_FCLK,
-+				     0, SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		pr_err(PREFIX "can't set cpu system clock\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
- static int omap3pandora_dac_event(struct snd_soc_dapm_widget *w,
- 	struct snd_kcontrol *k, int event)
- {
-@@ -201,6 +222,7 @@ static int omap3pandora_in_init(struct snd_soc_pcm_runtime *rtd)
- 
- static struct snd_soc_ops omap3pandora_ops = {
- 	.hw_params = omap3pandora_hw_params,
-+	.hw_free = omap3pandora_hw_free,
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 1644b73..2224b5d 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -343,7 +343,7 @@ static struct regulator_consumer_supply pandora_vcc_lcd_supply[] = {
  };
  
- /* Digital audio interface glue - connects codec <--> CPU */
+ static struct regulator_consumer_supply pandora_usb_phy_supply[] = {
+-	REGULATOR_SUPPLY("hsusb0", "ehci-omap.0"),
++	REGULATOR_SUPPLY("hsusb1", "ehci-omap.0"),
+ };
+ 
+ /* ads7846 on SPI and 2 nub controllers on I2C */
+@@ -561,13 +561,13 @@ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ 
+-	.port_mode[0] = OMAP_EHCI_PORT_MODE_PHY,
+-	.port_mode[1] = OMAP_USBHS_PORT_MODE_UNUSED,
++	.port_mode[0] = OMAP_USBHS_PORT_MODE_UNUSED,
++	.port_mode[1] = OMAP_EHCI_PORT_MODE_PHY,
+ 	.port_mode[2] = OMAP_USBHS_PORT_MODE_UNUSED,
+ 
+ 	.phy_reset  = true,
+-	.reset_gpio_port[0]  = 16,
+-	.reset_gpio_port[1]  = -EINVAL,
++	.reset_gpio_port[0]  = -EINVAL,
++	.reset_gpio_port[1]  = 16,
+ 	.reset_gpio_port[2]  = -EINVAL
+ };
+ 
 -- 
 1.7.0.4
+
