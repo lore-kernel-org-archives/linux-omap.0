@@ -1,88 +1,64 @@
-From: Daniel Mack <zonque@gmail.com>
-Subject: [PATCH] ARM: OMAP: hsmmc: add max_freq field
-Date: Sun, 19 Feb 2012 13:20:33 +0100
-Message-ID: <1329654033-19584-1-git-send-email-zonque@gmail.com>
+From: Shubhrajyoti <shubhrajyoti@ti.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP2: remove some orphan function declarations.
+Date: Sun, 19 Feb 2012 19:06:00 +0530
+Message-ID: <4F40FAC0.3010306@ti.com>
+References: <20120219022841.8254.86264.stgit@notabene.brown> <20120219022931.8254.29652.stgit@notabene.brown>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, Chris Ball <cjb@laptop.org>, Daniel Mack <zonque@gmail.com>
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120219022931.8254.29652.stgit@notabene.brown>
+Sender: linux-serial-owner@vger.kernel.org
+To: NeilBrown <neilb@suse.de>
+Cc: Alan Cox <alan@linux.intel.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, "Govindraj \".\" R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-External circuitry like level shifters may limit the maximum operation
-speed of the hsmmc controller. Add a field to struct omap2_hsmmc_info
-so boards can adjust the setting on demand.
+On Sunday 19 February 2012 07:59 AM, NeilBrown wrote:
+> commit 2fd149645eb removed omap_uart_can_sleep and omap3_can_sleep,
+> but not their declarations.  So remove those now.
+>
+a small description with the commit id would have been good.
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Cc: Chris Ball <cjb@laptop.org>
-Cc: Cousson, Benoit <b-cousson@ti.com>
----
 
-This trivial patch is in my queue for some time already, and Tony acked
-on it awhile back. I was told to take Chris Ball in the loop as there
-is currently no OMAP MMC maintainer.
+Looks good to me.
+Reviewed-by: Shubhrajyoti D <shubhrajyoti@ti.com>
 
-This still applies cleanly to 3.3-rc4. Chris, can you queue this?
+thanks.
+> Signed-off-by: NeilBrown <neilb@suse.de>
+> ---
+>
+>  arch/arm/mach-omap2/pm.h                 |    1 -
+>  arch/arm/plat-omap/include/plat/serial.h |    1 -
+>  2 files changed, 0 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index b737b11..6cd954d 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -18,7 +18,6 @@
+>  extern void *omap3_secure_ram_storage;
+>  extern void omap3_pm_off_mode_enable(int);
+>  extern void omap_sram_idle(void);
+> -extern int omap3_can_sleep(void);
+>  extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+>  extern int omap3_idle_init(void);
+>  extern int omap4_idle_init(void);
+> diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
+> index 198d1e6..b073e5f 100644
+> --- a/arch/arm/plat-omap/include/plat/serial.h
+> +++ b/arch/arm/plat-omap/include/plat/serial.h
+> @@ -110,7 +110,6 @@ struct omap_board_data;
+>  struct omap_uart_port_info;
+>  
+>  extern void omap_serial_init(void);
+> -extern int omap_uart_can_sleep(void);
+>  extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
+>  extern void omap_serial_init_port(struct omap_board_data *bdata,
+>  		struct omap_uart_port_info *platform_data);
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
- arch/arm/mach-omap2/hsmmc.c   |    1 +
- arch/arm/mach-omap2/hsmmc.h   |    2 ++
- drivers/mmc/host/omap_hsmmc.c |    8 ++++++--
- 3 files changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index f4a1020..4c7bc36 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -298,6 +298,7 @@ static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 	mmc->slots[0].caps = c->caps;
- 	mmc->slots[0].internal_clock = !c->ext_clock;
- 	mmc->dma_mask = 0xffffffff;
-+	mmc->max_freq = c->max_freq;
- 	if (cpu_is_omap44xx())
- 		mmc->reg_offset = OMAP4_MMC_REG_OFFSET;
- 	else
-diff --git a/arch/arm/mach-omap2/hsmmc.h b/arch/arm/mach-omap2/hsmmc.h
-index f757e78..65a8c12 100644
---- a/arch/arm/mach-omap2/hsmmc.h
-+++ b/arch/arm/mach-omap2/hsmmc.h
-@@ -25,6 +25,8 @@ struct omap2_hsmmc_info {
- 	char	*name;		/* or NULL for default */
- 	struct device *dev;	/* returned: pointer to mmc adapter */
- 	int	ocr_mask;	/* temporary HACK */
-+	int	max_freq;	/* maximum clock, if constrained by external
-+				 * circuitry, or 0 for default */
- 	/* Remux (pad configuration) when powering on/off */
- 	void (*remux)(struct device *dev, int slot, int power_on);
- 	/* init some special card */
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 101cd31..8215ef9 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
- 	if (mmc_slot(host).vcc_aux_disable_is_sleep)
- 		mmc_slot(host).no_off = 1;
- 
--	mmc->f_min	= OMAP_MMC_MIN_CLOCK;
--	mmc->f_max	= OMAP_MMC_MAX_CLOCK;
-+	mmc->f_min = OMAP_MMC_MIN_CLOCK;
-+
-+	if (pdata->max_freq > 0)
-+		mmc->f_max = pdata->max_freq;
-+	else
-+		mmc->f_max = OMAP_MMC_MAX_CLOCK;
- 
- 	spin_lock_init(&host->irq_lock);
- 
--- 
-1.7.7.4
