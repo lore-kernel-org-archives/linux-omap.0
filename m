@@ -1,51 +1,77 @@
-From: NeilBrown <neilb@suse.de>
-Subject: [PATCH 2/2] ARM: OMAP2: remove some orphan function declarations.
-Date: Sun, 19 Feb 2012 13:29:31 +1100
-Message-ID: <20120219022931.8254.29652.stgit@notabene.brown>
-References: <20120219022841.8254.86264.stgit@notabene.brown>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] ASoC: pandora: switch clock back to
+	internal on stop
+Date: Sat, 18 Feb 2012 22:30:06 -0800
+Message-ID: <20120219063005.GA4517@opensource.wolfsonmicro.com>
+References: <1329604795-24509-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120219022841.8254.86264.stgit@notabene.brown>
-Sender: linux-serial-owner@vger.kernel.org
-To: Alan Cox <alan@linux.intel.com>
-Cc: linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, "Govindraj . R" <govindraj.raja@ti.com>, NeilBrown <neilb@suse.de>
+Content-Type: multipart/mixed; boundary="===============0247796993966281692=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1329604795-24509-1-git-send-email-notasas@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
 
-commit 2fd149645eb removed omap_uart_can_sleep and omap3_can_sleep,
-but not their declarations.  So remove those now.
 
-Signed-off-by: NeilBrown <neilb@suse.de>
----
-
- arch/arm/mach-omap2/pm.h                 |    1 -
- arch/arm/plat-omap/include/plat/serial.h |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index b737b11..6cd954d 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -18,7 +18,6 @@
- extern void *omap3_secure_ram_storage;
- extern void omap3_pm_off_mode_enable(int);
- extern void omap_sram_idle(void);
--extern int omap3_can_sleep(void);
- extern int omap_set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
- extern int omap4_idle_init(void);
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index 198d1e6..b073e5f 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -110,7 +110,6 @@ struct omap_board_data;
- struct omap_uart_port_info;
- 
- extern void omap_serial_init(void);
--extern int omap_uart_can_sleep(void);
- extern void omap_serial_board_init(struct omap_uart_port_info *platform_data);
- extern void omap_serial_init_port(struct omap_board_data *bdata,
- 		struct omap_uart_port_info *platform_data);
+--===============0247796993966281692==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
+Content-Disposition: inline
 
 
+--X1bOJ3K7DJ5YkBrT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Sun, Feb 19, 2012 at 12:39:55AM +0200, Grazvydas Ignotas wrote:
+> For some reason, OMAP doesn't enter lower power states with functional
+> clock (CLKS) source set to external, so switch it back to internal when
+> done playing.
+>=20
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+
+Might be an idea to do this in the McBSP driver - have it do the switch
+transparently, then flip back when the port is brought up again?
+
+--X1bOJ3K7DJ5YkBrT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPQJbmAAoJEBus8iNuMP3djuYP/1IfcbwuCbaEcn57/Y9GTuld
+gPa4qIi2njejYaeOcDk9ywwtL4gxvtQVGMPGoT3mq8NoqjCNQTIElwjft/DlEKgX
+YTt4iqO8gfYIQVW7GlGymzk/voeG1FteTrOE8FPxdvwDWEcBf+PUC+dnWx9eQz90
+iHqfaGoR4UY9EFPu/0b2g+kmMKR47L5WKOel4Td8n/vCCdGtlgAkA5tO35btpm47
+3lSgKPigHwmC9f2mdgqpObEvaTJd8rbMwFmv2S47xjocVYbbDYyXVnhjzbVej/DR
++SMDdWSS6md2vaPnTLo9usMZJP7yvuh4mG0nHx12PTYQS1+RJ9gRtXX+N+CVXfzG
+gxfJzjl+6dBxiKVXKF4PC7wsFM66UCdXSXrUljr/KjHyddkqGcMILl1DIHtScEEJ
+fiLHpw43m13/GTiovMMTYTZP9J8JU9amKkGoTJfXM2YyqRYG1byzO/q2vb78rgUI
+lfKhuLE5JAZcaI6QPIlIDAhooGLeYD/ARS+uim30Ft9k9ax5KVaKQf4bc1Nh9Z4w
+i4aEqritA9N/0dhqhXNu5NasKO68iAgQTp7ZyUQhy9YyzD+JQRv1OuHRC33gyalY
+NeNJZc087MQe60KVlqsPFF1/cL1O4fWSOAE5hw55CZ6IvH2ZXgTjJYSaWlnJ9QwK
+7raIATMBCJsnzHmQMWP4
+=NZVE
+-----END PGP SIGNATURE-----
+
+--X1bOJ3K7DJ5YkBrT--
+
+--===============0247796993966281692==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============0247796993966281692==--
