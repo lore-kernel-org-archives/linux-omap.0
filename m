@@ -1,33 +1,41 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP2+: UART: remove unused fields in omap_uart_state.
-Date: Sun, 19 Feb 2012 20:10:46 +0400
-Message-ID: <4F411F06.20006@ru.mvista.com>
-References: <20120219022841.8254.86264.stgit@notabene.brown> <20120219022931.8254.38314.stgit@notabene.brown>
+From: Chris Ball <cjb@laptop.org>
+Subject: Re: [PATCH] ARM: OMAP: hsmmc: add max_freq field
+Date: Sun, 19 Feb 2012 11:16:02 -0500
+Message-ID: <m2zkce6bp9.fsf@bob.laptop.org>
+References: <1329654033-19584-1-git-send-email-zonque@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20120219022931.8254.38314.stgit@notabene.brown>
-Sender: linux-serial-owner@vger.kernel.org
-To: NeilBrown <neilb@suse.de>
-Cc: Alan Cox <alan@linux.intel.com>, Paul Walmsley <paul@pwsan.com>, "Govindraj . R" <govindraj.raja@ti.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1329654033-19584-1-git-send-email-zonque@gmail.com> (Daniel
+	Mack's message of "Sun, 19 Feb 2012 13:20:33 +0100")
+Sender: linux-mmc-owner@vger.kernel.org
+To: Daniel Mack <zonque@gmail.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello.
+Hi,
 
-On 19-02-2012 6:29, NeilBrown wrote:
+On Sun, Feb 19 2012, Daniel Mack wrote:
+> External circuitry like level shifters may limit the maximum operation
+> speed of the hsmmc controller. Add a field to struct omap2_hsmmc_info
+> so boards can adjust the setting on demand.
+>
+> Signed-off-by: Daniel Mack <zonque@gmail.com>
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> Cc: Chris Ball <cjb@laptop.org>
+> Cc: Cousson, Benoit <b-cousson@ti.com>
+> ---
+>
+> This trivial patch is in my queue for some time already, and Tony acked
+> on it awhile back. I was told to take Chris Ball in the loop as there
+> is currently no OMAP MMC maintainer.
+>
+> This still applies cleanly to 3.3-rc4. Chris, can you queue this?
 
-> commit 2fd149645eb46d261 removed the last usage of 'can_sleep' but
-> did not remove the field.
-> commit  8612bd22f3036974 removed the last non-trivial use of 'pdev'.
+Thanks, queued in mmc-next now.  (The arch/arm/mach-omap2/hsmmc.c
+change did not apply cleanly, though; I fixed that.)
 
-    Please also specify the summaries of the above commits with them.
-
-> So remove these fields and the one trivial use.
-
-    This seems like the material for 2 patches.
-
-> Acked-by: Govindraj.R <govindraj.raja@ti.com>
-> Signed-off-by: NeilBrown <neilb@suse.de>
-
-WBR, Sergei
+- Chris.
+-- 
+Chris Ball   <cjb@laptop.org>   <http://printf.net/>
+One Laptop Per Child
