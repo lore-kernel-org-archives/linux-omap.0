@@ -1,41 +1,27 @@
-From: Chris Ball <cjb@laptop.org>
-Subject: Re: [PATCH] ARM: OMAP: hsmmc: add max_freq field
-Date: Sun, 19 Feb 2012 11:16:02 -0500
-Message-ID: <m2zkce6bp9.fsf@bob.laptop.org>
-References: <1329654033-19584-1-git-send-email-zonque@gmail.com>
+From: "Webmail HelpDesk" <accountrevalidate@admin.in.th>
+Subject: Revalidate Your MailBox
+Date: Sun, 19 Feb 2012 20:33:48 +0100
+Message-ID: <20120219193420.7ED225DC1E83@mail.kpoly.edu.gh>
+Reply-To: accountrevalidate@admin.in.th
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1329654033-19584-1-git-send-email-zonque@gmail.com> (Daniel
-	Mack's message of "Sun, 19 Feb 2012 13:20:33 +0100")
-Sender: linux-mmc-owner@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, "Cousson, Benoit" <b-cousson@ti.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 41-204-38-3-dedicated.4u.com.gh ([41.204.38.3]:45684 "EHLO
+	mail.kpoly.edu.gh" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752533Ab2BTBD4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Feb 2012 20:03:56 -0500
+Content-Description: Mail message body
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Recipients <accountrevalidate@admin.in.th>
 
-Hi,
+Dear E-Mail User.
 
-On Sun, Feb 19 2012, Daniel Mack wrote:
-> External circuitry like level shifters may limit the maximum operation
-> speed of the hsmmc controller. Add a field to struct omap2_hsmmc_info
-> so boards can adjust the setting on demand.
->
-> Signed-off-by: Daniel Mack <zonque@gmail.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Cc: Chris Ball <cjb@laptop.org>
-> Cc: Cousson, Benoit <b-cousson@ti.com>
-> ---
->
-> This trivial patch is in my queue for some time already, and Tony acked
-> on it awhile back. I was told to take Chris Ball in the loop as there
-> is currently no OMAP MMC maintainer.
->
-> This still applies cleanly to 3.3-rc4. Chris, can you queue this?
+Your Mail quota has reached limit, You might not be able to send or 
+receive new mail until you re-validate your mailbox .To re-validate
+your mailbox reply to this mail and fill { Your E-Mail Address } 
+{ Username } { Password }:
 
-Thanks, queued in mmc-next now.  (The arch/arm/mach-omap2/hsmmc.c
-change did not apply cleanly, though; I fixed that.)
-
-- Chris.
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Technical Support
+192.168.0.1
