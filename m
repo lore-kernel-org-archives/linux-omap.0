@@ -1,91 +1,95 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv10 1/4] TEMP: OMAP3: beagle rev-c4: enable OPP6
-Date: Mon, 20 Feb 2012 12:26:05 +0200
-Message-ID: <1329733568-26676-2-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv10 4/4] omap3: twl: add external controllers for core voltage regulators
+Date: Mon, 20 Feb 2012 12:26:08 +0200
+Message-ID: <1329733568-26676-5-git-send-email-t-kristo@ti.com>
 References: <1329733568-26676-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51936 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45839 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042Ab2BTK0Z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Feb 2012 05:26:25 -0500
+	id S1752199Ab2BTK0c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Feb 2012 05:26:32 -0500
 In-Reply-To: <1329733568-26676-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-Beagleboard rev-c4 has a speed sorted OMAP3530 chip which can run at 720MHz.
+VDD1 and VDD2 now use voltage processor for controlling the regulators.
+This is done by passing additional voltdm data during the regulator init.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |   29 +++++++++++++++++++++++++++++
- arch/arm/mach-omap2/opp3xxx_data.c      |    4 ++++
- 2 files changed, 33 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/twl-common.c |   33 +++++++++++++++++++++++++++++++--
+ 1 files changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 7ffcd28..97678e5 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -484,6 +484,35 @@ static void __init beagle_opp_init(void)
- 		return;
- 	}
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index 5f62e51..0c453e7 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -31,12 +31,25 @@
  
-+	if (omap3_beagle_version == OMAP3BEAGLE_BOARD_C4) {
-+		struct device *mpu_dev, *iva_dev;
-+
-+		mpu_dev = omap_device_get_by_hwmod_name("mpu");
-+		iva_dev = omap_device_get_by_hwmod_name("iva");
-+
-+		if (!mpu_dev || !iva_dev) {
-+			pr_err("%s: Aiee.. no mpu/dsp devices? %p %p\n",
-+				__func__, mpu_dev, iva_dev);
-+			return;
-+		}
-+		/* Enable MPU 720MHz opp */
-+		r = opp_enable(mpu_dev, 720000000);
-+
-+		/* Enable IVA 520MHz opp */
-+		r |= opp_enable(iva_dev, 520000000);
-+
-+		if (r) {
-+			pr_err("%s: failed to enable higher opp %d\n",
-+				__func__, r);
-+			/*
-+			 * Cleanup - disable the higher freqs - we dont care
-+			 * about the results
-+			 */
-+			opp_disable(mpu_dev, 720000000);
-+			opp_disable(iva_dev, 520000000);
-+		}
-+	}
-+
- 	/* Custom OPP enabled for all xM versions */
- 	if (cpu_is_omap3630()) {
- 		struct device *mpu_dev, *iva_dev;
-diff --git a/arch/arm/mach-omap2/opp3xxx_data.c b/arch/arm/mach-omap2/opp3xxx_data.c
-index d95f3f9..a0f5fe1 100644
---- a/arch/arm/mach-omap2/opp3xxx_data.c
-+++ b/arch/arm/mach-omap2/opp3xxx_data.c
-@@ -98,6 +98,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("mpu", true, 550000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* MPU OPP5 */
- 	OPP_INITIALIZER("mpu", true, 600000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* MPU OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("mpu", false, 720000000, OMAP3430_VDD_MPU_OPP5_UV),
+ #include "twl-common.h"
+ #include "pm.h"
++#include "voltage.h"
  
- 	/*
- 	 * L3 OPP1 - 41.5 MHz is disabled because: The voltage for that OPP is
-@@ -123,6 +125,8 @@ static struct omap_opp_def __initdata omap34xx_opp_def_list[] = {
- 	OPP_INITIALIZER("iva", true, 400000000, OMAP3430_VDD_MPU_OPP4_UV),
- 	/* DSP OPP5 */
- 	OPP_INITIALIZER("iva", true, 430000000, OMAP3430_VDD_MPU_OPP5_UV),
-+	/* DSP OPP6 : omap3530 high speed grade only */
-+	OPP_INITIALIZER("iva", false, 520000000, OMAP3430_VDD_MPU_OPP5_UV),
+ static struct i2c_board_info __initdata pmic_i2c_board_info = {
+ 	.addr		= 0x48,
+ 	.flags		= I2C_CLIENT_WAKE,
  };
  
- static struct omap_opp_def __initdata omap36xx_opp_def_list[] = {
++static int twl_set_voltage(void *data, int target_uV)
++{
++	struct voltagedomain *voltdm = (struct voltagedomain *)data;
++	return voltdm_scale(voltdm, target_uV);
++}
++
++static int twl_get_voltage(void *data)
++{
++	struct voltagedomain *voltdm = (struct voltagedomain *)data;
++	return voltdm_get_voltage(voltdm);
++}
++
+ void __init omap_pmic_init(int bus, u32 clkrate,
+ 			   const char *pmic_type, int pmic_irq,
+ 			   struct twl4030_platform_data *pmic_data)
+@@ -158,6 +171,16 @@ static struct regulator_init_data omap3_vdd2 = {
+ 	.consumer_supplies		= omap3_vdd2_supply,
+ };
+ 
++static struct twl_regulator_driver_data omap3_vdd1_drvdata = {
++	.get_voltage = twl_get_voltage,
++	.set_voltage = twl_set_voltage,
++};
++
++static struct twl_regulator_driver_data omap3_vdd2_drvdata = {
++	.get_voltage = twl_get_voltage,
++	.set_voltage = twl_set_voltage,
++};
++
+ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 				  u32 pdata_flags, u32 regulators_flags)
+ {
+@@ -165,10 +188,16 @@ void __init omap3_pmic_get_config(struct twl4030_platform_data *pmic_data,
+ 		pmic_data->irq_base = TWL4030_IRQ_BASE;
+ 	if (!pmic_data->irq_end)
+ 		pmic_data->irq_end = TWL4030_IRQ_END;
+-	if (!pmic_data->vdd1)
++	if (!pmic_data->vdd1) {
++		omap3_vdd1.driver_data = &omap3_vdd1_drvdata;
++		omap3_vdd1_drvdata.data = voltdm_lookup("mpu_iva");
+ 		pmic_data->vdd1 = &omap3_vdd1;
+-	if (!pmic_data->vdd2)
++	}
++	if (!pmic_data->vdd2) {
++		omap3_vdd2.driver_data = &omap3_vdd2_drvdata;
++		omap3_vdd2_drvdata.data = voltdm_lookup("core");
+ 		pmic_data->vdd2 = &omap3_vdd2;
++	}
+ 
+ 	/* Common platform data configurations */
+ 	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
 -- 
 1.7.4.1
 
