@@ -1,44 +1,46 @@
-From: "Western Union Outlet" <westernunion@wu.com>
-Subject: Transfer Notice!!
-Date: Mon, 20 Feb 2012 00:14:58 +0100
-Message-ID: <20120219231546.4F96F5DC2555@mail.kpoly.edu.gh>
-Reply-To: westernunionpaycenter@fastservice.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: More build errors and warnings
+Date: Mon, 20 Feb 2012 07:53:22 +0000
+Message-ID: <20120220075322.GA22675@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 41-204-38-3-dedicated.4u.com.gh ([41.204.38.3]:45661 "EHLO
-	mail.kpoly.edu.gh" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab2BTCsZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Feb 2012 21:48:25 -0500
-Content-Description: Mail message body
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36409 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751235Ab2BTHx0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 02:53:26 -0500
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86]:35743)
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.76)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1RzO3n-0000yZ-VR
+	for linux-omap@vger.kernel.org; Mon, 20 Feb 2012 07:53:24 +0000
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.76)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1RzO3m-00050k-Ob
+	for linux-omap@vger.kernel.org; Mon, 20 Feb 2012 07:53:22 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Recipients <westernunion@wu.com>
+To: linux-omap@vger.kernel.org
 
-Dear Beneficiary.
+Errors:
 
-We write to inform you that we have transferred USD$400,000.00 dollars, I could have called you via phone to give you the MTCN information but we lost your contact phone number. So, I decided to email you the information so that you can start cashing your money in USD5000.00 daily installment with the same MTCN and sender's name which will be valid for 20 days until you cash the full $400,000.00usd as it automatically activates for use for 20 days after the first reactivation.
+arch/arm/mach-omap2/built-in.o: In function `n8x0_mmc_callback': twl-common.c:(.text+0x108a0): undefined reference to `omap_mmc_notify_cover_event'</pre><h2>Warnings
 
-The money is available for pick up which was deposited for transfer to you by MR Bernard Harry from United Nation Trust Funds.  The money is available for pick up by receiver (you) but when you track it, it will display PICKED UP due to the fact that it has been deactivated from our head office for security reason because it has stayed too long in the air as we have been trying to reach you on the phone for some days now but it was not reachable,so it was blocked.
+Warnings:
 
-Therefore you can not cash it out in any western union office due to its restriction from our head office,which was a security measure because the money has been in the air for three days now and maybe in danger, hence the mtcn has to be reactivated to enable you cash out the money in any western union office in your area, the reactivation of the MTCN will cost you a token of $155, once this is paid, our head office will release the fund on hold to enable you cash it.To be sure of this please log on to www.westernunion.com and click on track to and enter the sender's info and mtcn below.
+drivers/iommu/omap-iommu-debug.c:271: warning: passing argument 1 of 'omap_find_iovm_area' from incompatible pointer type
+drivers/iommu/omap-iommu-debug.c:308: warning: passing argument 1 of 'omap_find_iovm_area' from incompatible pointer type
 
-Sender's Fist name: Abraham
-Sender's Last Name: Elizabeth
-MTCN: 5801913322
-Question: Who Is Great
-Answer: God
-Amount: $5000.00USD
-Total Amount To be Cashed: $400,000.00Usd
+These two are a serious problem, which needs fixing for -rc:
 
-Please also send to us the following details..
-1,Re-Comfirm Your Contact Phone Number.................
+omap-iommu-debug.c:
+        struct omap_iommu *obj = file->private_data;
 
-With due respect please get back to me urgently after tracking the money on-line so i can instruct you on how to send the $155 to us for the reactivation of the MTCN.
+        area = omap_find_iovm_area(obj, (u32)ppos);
 
+arch/arm/plat-omap/include/plat/iovmm.h:extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
 
-Best Regards
-Mr.Smith Mcferrin.
-Outlet Manager,
-Western Union Money Transfer.
+Config file (for the next 7 days):
+http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=170
