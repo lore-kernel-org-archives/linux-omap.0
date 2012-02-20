@@ -1,146 +1,155 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [GIT PULL] OMAP PM EMU fix for v3.3
-Date: Mon, 20 Feb 2012 07:29:31 -0800
-Message-ID: <87linxa5gk.fsf@ti.com>
-References: <87liw8agk4.fsf@ti.com>
-	<AA48DD8077D5D945A49BD1782C1140F1011EBBC7@fioues08.ebgroup.elektrobit.com>
-	<20120127190239.GC9339@atomide.com>
-	<AA48DD8077D5D945A49BD1782C1140F1011EBBC8@fioues08.ebgroup.elektrobit.com>
-	<AA48DD8077D5D945A49BD1782C1140F10122E2B7@fioues08.ebgroup.elektrobit.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] ASoC: pandora: switch clock back to internal on stop
+Date: Mon, 20 Feb 2012 17:34:20 +0200
+Message-ID: <CANOLnOPCtPX5nOpDV-YCjVpv42kiHWsd3=0NcKaUKmH3wZSekA@mail.gmail.com>
+References: <1329604795-24509-1-git-send-email-notasas@gmail.com>
+	<20120219063005.GA4517@opensource.wolfsonmicro.com>
+	<CANOLnOO=UMKJ1CKXKzP5LC_rttxWYRo2yMe9M7PtSL7eV1+GxA@mail.gmail.com>
+	<4F4217EC.7080806@ti.com>
+	<CANOLnOPdDHimsiKFBVvDJcoaE2y9be=vzZj8hTQvbL2sOhgOgA@mail.gmail.com>
+	<4F424A1E.9000502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:37565 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753445Ab2BTP3Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Feb 2012 10:29:25 -0500
-Received: by mail-pw0-f51.google.com with SMTP id rp2so5608552pbb.10
-        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 07:29:24 -0800 (PST)
-In-Reply-To: <AA48DD8077D5D945A49BD1782C1140F10122E2B7@fioues08.ebgroup.elektrobit.com>
-	(Madhusudhan Gowda's message of "Mon, 20 Feb 2012 11:52:51 +0200")
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:42425 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752205Ab2BTPeU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 10:34:20 -0500
+Received: by iacb35 with SMTP id b35so7625414iac.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 07:34:20 -0800 (PST)
+In-Reply-To: <4F424A1E.9000502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan.Gowda@elektrobit.com, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org
 
-+Paul
+On Mon, Feb 20, 2012 at 3:26 PM, Peter Ujfalusi <peter.ujfalusi@ti.com>=
+ wrote:
+> On 02/20/2012 12:50 PM, Grazvydas Ignotas wrote:
+>> Sounds good, I can wait for this I guess.
+>
+> I just wonder why not just switch to twl4030 master scenario for
+> pandora? I know that there are products out there using this scenario=
+ (I
+> mean real consumer devices), and AFAIK they work pretty well.
+> What is the main reason to keep pandora in McBSP master mode? What is
+> the benefit for the platform?
 
-Paul maintains the CM core code and should take this patch if he's OK
-with it.
+Pandora uses 256*fs clock for it's external DAC, which was added for
+improved audio quality (mcbsp2 is connected there instead of twl).
+twl4030 can only provide 256*fs clock in slave mode. So twl4030 is not
+used for playback, but is still used for audio in.
 
-Also, it is most helpful if you describe what platforms it was tested on
-and exactly how you tested it.
+Speaking of which, there is crazy amount of twl4030 audio controls
+available that are not relevant to pandora, since these things are not
+connected, confusing the users. I think there were plans to hide
+snd_soc_dapm_nc_pin() marked things, but that never materialized?
 
-Thanks,
+> Can you send the per domain to suspend
+> during audio playback?
 
-Kevin
+I suppose not, pm_debug counters are not increasing while audio is
+playing. Is that supposed to be possible?
 
-<Madhusudhan.Gowda@elektrobit.com> writes:
+>> Slightly off-topic: would you mind getting OSS emulation working on
+>> OMAP? We talked about it some years back.. I'm still carrying this
+>> hack in pandora tree:
+>> http://git.openpandora.org/cgi-bin/gitweb.cgi?p=3Dpandora-kernel.git=
+;a=3Dcommitdiff;h=3D7717278f6e
+>
+> Hrm, yes I remember. Was it so that the OSS emulation calls hw_params
+> several times, each with different parameter to configure, or somethi=
+ng?
 
-> Hi Kevin,
+Yes, OSS has separate ioctl's for setting rate, channels, etc, each of
+which translates separate hw_params call, and twl4030 only accepts
+first one, so most things end up unconfigured. What's worse the
+program isn't even told some parameters were not set because there is
+no error returned.
+
+> If you do not have duplex operation this might be OK to do, but there
+> are cases when we return -EINVAL if a parameter is not correct...
+> To be honest I have not used OSS emulation for quite a long time, and
+> systems tend to use PulseAudio or AudioFlinger nowdays.
+> If it is really important for you we can take a look, it might bring
+> enhancements for other users as well at the end.
+
+At least for now we are using kernel OSS emulation, so it would be
+nice to have it working. PulseAudio was problematic some time back,
+maybe it's good now, but it's hard to imagine adding another audio
+layer would not affect performance. Additional latency or CPU use is
+not good for a games console, even if it's small.
+
+> We also have the same mechanism in place in omap-mcbsp.c (to not allo=
+w
+> reconfiguration of the mcbsp port) so 'fixing' twl4030 might not be
+> enough for you.
+
+True, it seems first hw_params matches all others in most cases so it
+was not an issue.
+
+>> We have found in-kernel OSS emulation to have best compatibility and
+>> performance, and the later is important for a games machine with an
+>> aging SoC..
 >
-> I think you have missed my last mail. Could you please ACK the pull
-> request and pull the same.
+> Is it still the case?
+
+Well at least for performance I think it still is, and pandora is
+stuck with OMAP3s at least for a while more.
+
+>> The other issue with pandora on mainline is frequent buffer underflo=
+ws
+>> just after the stream starts. Games tend to use tiny buffers with a
+>> goal to have low audio latency, and this often ends up with endless
+>> loop of stream start and underflow events. We used this hack on
+>> earlier kernels (the comment is probably not entirely correct, and
+>> fifo_samples should be multiplied by channels I guess):
+>> http://git.openpandora.org/cgi-bin/gitweb.cgi?p=3Dpandora-kernel.git=
+;a=3Dcommitdiff;h=3Dd3ef3adfa
 >
-> Best Regards
-> Gowda
+> So we want to make sure that application written at least FIFO amount=
+ of
+> data into the buffer before we start the McBSP/DMA, right?
+
+I think it should be at least 2x fifo as IIRC underflow condition is
+triggered when there is nothing left to DMA.
+
+Some retro console emulators work like this:
+while (1) {
+  emulate the 'guest' CPU for 1 video frame
+  generate 1 video frame's worth of audio data and send to host hardwar=
+e
+  draw video frame, read controls, etc
+  sleep if there is time left
+}
+
+So in this case host audio hardware is always kept very close to
+underflow condition, but has very low audio latency. This doesn't work
+well with current mainline.
+
+> Not sure if it is a valid thing to just override the start_threshold.
+> But if we do something like this it might be better to have support i=
+n
+> the core (ASoC, or even in ALSA)..
+
+Sure, that would work for us too.
+
+>> This can of course be fixed in a program itself, but the idea was to
+>> reduce effort needed to port things to pandora, and now I'll have to
+>> be carrying this for compatibility, but I wonder how that looks from
+>> mainline point of view.
 >
->
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org
-> [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of
-> linux-arm-kernel-bounces+madhusudhan.gowda=elektrobit.com@lists.infradea
-> d.org
-> Sent: 28 January 2012 09:58
-> To: tony@atomide.com; khilman@ti.com
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: RE: [GIT PULL] OMAP PM EMU fix for v3.3
->
-> Thanks Tony
->
-> Hi Kevin
-> Please do the needful and pull the same.
->
-> Best Regards
-> Gowda
->
->
-> -----Original Message-----
-> From: linux-arm-kernel-bounces@lists.infradead.org
-> [mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Tony
-> Lindgren
-> Sent: 27 January 2012 21:03
-> To: Gowda Madhusudhan
-> Cc: Kevin Hilman; linux-omap@vger.kernel.org;
-> linux-arm-kernel@lists.infradead.org
-> Subject: Re: [GIT PULL] OMAP PM EMU fix for v3.3
->
-> Hi,
->
-> * Madhusudhan.Gowda@elektrobit.com <Madhusudhan.Gowda@elektrobit.com>
-> [120127 10:25]:
->> Hi Tony,
->> 
->> Please pull the PM EMU off mode fix for v3.3
->
-> It's best that Kevin queues this as it affects PM. Or it at least needs
-> an ack from Kevin.
->
-> Regards,
->
-> Tony
->  
->> Thanks
->> Gowda
->> 
->> The following changes since commit
->> 1c6ece3c23e58d0dbc687407d606f3560ded582a:
->> 
->>   Merge branch 'omap_fixes_a_3.3rc' of git://git.pwsan.com/linux-2.6
->> (2012-01-26 16:48:37 -0800)
->> 
->> are available in the git repository at:
->> 
->>   git://github.com/elektrobit/linux.git linux-omap-emu-fix
->> 
->> Madhusudhan Gowda (1):
->>       ARM: OMAP3 PM:Save and restore EMU context across MPU OFF
->> 
->>  arch/arm/mach-omap2/cm2xxx_3xxx.c |   16 ++++++++++++----
->>  arch/arm/mach-omap2/cm2xxx_3xxx.h |    2 ++
->>  arch/arm/mach-omap2/pm34xx.c      |    8 ++++++++
->>  3 files changed, 22 insertions(+), 4 deletions(-)
->> 
->> 
->> ----------------------------------------------------------------
->> Please note: This e-mail may contain confidential information intended
->
->> solely for the addressee. If you have received this e-mail in error, 
->> please do not disclose it to anyone, notify the sender promptly, and 
->> delete the message from your system.
->> Thank you.
->> 
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
->
-> ----------------------------------------------------------------
-> Please note: This e-mail may contain confidential information intended
-> solely for the addressee. If you have received this e-mail in error,
-> please do not disclose it to anyone, notify the sender promptly, and
-> delete the message from your system.
-> Thank you.
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> We can try to figure out something, but I have a feeling that this wo=
+uld
+> be useful for other platforms as well.
+
+Sounds promising.
+
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
