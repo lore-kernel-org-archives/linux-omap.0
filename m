@@ -1,52 +1,54 @@
-From: Rob Clark <rob.clark@linaro.org>
-Subject: [PATCH] OMAPDSS: HDMI: hot plug detect fix
-Date: Mon, 20 Feb 2012 15:03:36 -0600
-Message-ID: <1329771816-21130-1-git-send-email-rob.clark@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the
+ suspend path
+Date: Mon, 20 Feb 2012 14:08:46 -0800
+Message-ID: <20120220220846.GO18185@atomide.com>
+References: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
+ <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:63902 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753939Ab2BTVDj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 16:03:39 -0500
-Received: by ggnh1 with SMTP id h1so2720980ggn.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 13:03:39 -0800 (PST)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23610 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754577Ab2BTWIt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 17:08:49 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rob Clark <rob@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, robherring2@gmail.com
 
-From: Rob Clark <rob@ti.com>
+* Paul Walmsley <paul@pwsan.com> [120210 00:10]:
+> On Thu, 9 Feb 2012, Paul Walmsley wrote:
+> 
+> > 
+> > Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
+> > code should now handle what this was supposed to do.
+> > 
+> > Tested on N800 -- but it's hard to say whether this fixes anything.
+> > OMAP24xx static suspend path is currently broken, and this patch
+> > doesn't change that.
+> > 
+> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> > Cc: Kevin Hilman <khilman@ti.com>
+> > Cc: Rob Herring <robherring2@gmail.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> 
+> Just realized that a stray change made it into the patch that was posted.
+> Below is a version with the stray change removed.  It applies on 
+> Tony's v3.3-rc3 testing branch, plus the OMAP2420 serial fix patch that 
+> was posted earlier.
 
-The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
-over to using a GPIO for plug detect.  Unfortunately the ->detect()
-method was not also updated, causing HDMI to no longer work for the
-omapdrm driver (because it would actually check if a connection was
-detected before attempting to enable display).
+Thanks I'll apply this into my clean-up branch along with other
+io.h changes. I also have fixed omap_read/write for the following
+on omap2+:
 
-Signed-off-by: Rob Clark <rob@ti.com>
----
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+plat-omap/dma.c
+drivers/gpio/gpio-omap.c
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 2d72334..6847a47 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -479,14 +479,7 @@ int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data,
- 
- bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
- {
--	int r;
--
--	void __iomem *base = hdmi_core_sys_base(ip_data);
--
--	/* HPD */
--	r = REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
--
--	return r == 1;
-+	return gpio_get_value(ip_data->hpd_gpio);
- }
- 
- static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
--- 
-1.7.5.4
+Planning to also fix plat-omap/usb.c.
 
+Regards,
+
+Tony
