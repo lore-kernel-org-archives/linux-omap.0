@@ -1,31 +1,52 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] mfd: twl4030: trivial code-style fixes
-Date: Mon, 20 Feb 2012 18:43:12 +0100
-Message-ID: <20120220174312.GL5387@sortiz-mobl>
-References: <1328058168-28744-1-git-send-email-felipe.contreras@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: More build errors and warnings
+Date: Mon, 20 Feb 2012 09:55:32 -0800
+Message-ID: <20120220175532.GL18185@atomide.com>
+References: <20120220075322.GA22675@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:14267 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751663Ab2BTRgB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Feb 2012 12:36:01 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:36948 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab2BTRzh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 12:55:37 -0500
 Content-Disposition: inline
-In-Reply-To: <1328058168-28744-1-git-send-email-felipe.contreras@gmail.com>
+In-Reply-To: <20120220075322.GA22675@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Jiri Kosina <trivial@kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Felipe,
+Hi Russell & Ohad,
 
-On Wed, Feb 01, 2012 at 03:02:48AM +0200, Felipe Contreras wrote:
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-Applied, thanks.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [120219 23:22]:
+> Errors:
+> 
+> arch/arm/mach-omap2/built-in.o: In function `n8x0_mmc_callback': twl-common.c:(.text+0x108a0): undefined reference to `omap_mmc_notify_cover_event'</pre><h2>Warnings
 
-Cheers,
-Samuel.
+I'll post a fix to do a warning here if the cover events
+are unavailable. The long term fix is to let the MMC driver
+register the callback with the PMIC to do this.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+> Warnings:
+> 
+> drivers/iommu/omap-iommu-debug.c:271: warning: passing argument 1 of 'omap_find_iovm_area' from incompatible pointer type
+> drivers/iommu/omap-iommu-debug.c:308: warning: passing argument 1 of 'omap_find_iovm_area' from incompatible pointer type
+> 
+> These two are a serious problem, which needs fixing for -rc:
+> 
+> omap-iommu-debug.c:
+>         struct omap_iommu *obj = file->private_data;
+> 
+>         area = omap_find_iovm_area(obj, (u32)ppos);
+> 
+> arch/arm/plat-omap/include/plat/iovmm.h:extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
+> 
+> Config file (for the next 7 days):
+> http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=170
+
+Ohad, care to look into fixing these for the -rc series?
+
+Regards,
+
+Tony
