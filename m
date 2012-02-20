@@ -1,62 +1,125 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH] ASoC: pandora: switch clock back to internal on stop
-Date: Mon, 20 Feb 2012 11:52:44 +0200
-Message-ID: <4F4217EC.7080806@ti.com>
-References: <1329604795-24509-1-git-send-email-notasas@gmail.com> <20120219063005.GA4517@opensource.wolfsonmicro.com> <CANOLnOO=UMKJ1CKXKzP5LC_rttxWYRo2yMe9M7PtSL7eV1+GxA@mail.gmail.com>
+From: <Madhusudhan.Gowda@elektrobit.com>
+Subject: RE: [GIT PULL] OMAP PM EMU fix for v3.3
+Date: Mon, 20 Feb 2012 11:52:51 +0200
+Message-ID: <AA48DD8077D5D945A49BD1782C1140F10122E2B7@fioues08.ebgroup.elektrobit.com>
+References: <87liw8agk4.fsf@ti.com> <AA48DD8077D5D945A49BD1782C1140F1011EBBC7@fioues08.ebgroup.elektrobit.com> <20120127190239.GC9339@atomide.com> <AA48DD8077D5D945A49BD1782C1140F1011EBBC8@fioues08.ebgroup.elektrobit.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:50754 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751301Ab2BTJwl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Feb 2012 04:52:41 -0500
-Received: by mail-lpp01m010-f50.google.com with SMTP id m13so8242076lah.37
-        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 01:52:40 -0800 (PST)
-In-Reply-To: <CANOLnOO=UMKJ1CKXKzP5LC_rttxWYRo2yMe9M7PtSL7eV1+GxA@mail.gmail.com>
+Received: from smtpgw2fi.elektrobit.com ([194.136.18.129]:38217 "EHLO
+	smtpgw1fi.elektrobit.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751710Ab2BTJxI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Feb 2012 04:53:08 -0500
+Received: from fioumg02.ebgroup.elektrobit.com (smtpgw2fi.ebgroup.elektrobit.com [127.0.0.1])
+	by smtpgw1fi.elektrobit.com (8.13.8/8.13.8) with ESMTP id q1K9r5jW004171
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 11:53:05 +0200
+Received: (from defang@localhost)
+	by fioumg02.ebgroup.elektrobit.com (8.13.8/8.13.8/Submit) id q1K9qvCp004159
+	for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 11:52:57 +0200
+Content-class: urn:content-classes:message
+In-Reply-To: <AA48DD8077D5D945A49BD1782C1140F1011EBBC8@fioues08.ebgroup.elektrobit.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org
+To: khilman@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-On 02/19/2012 05:52 PM, Grazvydas Ignotas wrote:
->> Might be an idea to do this in the McBSP driver - have it do the swi=
-tch
->> transparently, then flip back when the port is brought up again?
->=20
-> Maybe, but I think pandora is the only one using external clock in
-> mainline
+Hi Kevin,
 
-I have patch on top of the mcbsp merge series which allows users
-(developers) to switch between McBSP2 master/slave configuration on
-Beagle. It will have two PCM:
-0 is the current configuration (twl4030 master, mcbsp2 slave)
-1 is the same as with pandora (twl4030 slave, mcbsp2 master - CLKS pin
-is the source for the SRG).
-With this I can help to track down the suspend issue you see on Pandora=
-=2E
-I hope.
+I think you have missed my last mail. Could you please ACK the pull
+request and pull the same.
 
-> and mcbsp currently doesn't track this state, just does a
-> register write.
+Best Regards
+Gowda
 
-I was also thinking that this should be handled by the mcbsp driver.
-I'm really not sure why we need to do this - it might be clock/hwmod
-issue at the end.
-We could do this unconditionally when all streams has been stopped on
-the mcbsp port IMHO.
 
-> If you still prefer it on mcbsp side, I can do it
-> after Peter's mcbsp merge work is finished I guess.
+-----Original Message-----
+From: linux-arm-kernel-bounces@lists.infradead.org
+[mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of
+linux-arm-kernel-bounces+madhusudhan.gowda=elektrobit.com@lists.infradea
+d.org
+Sent: 28 January 2012 09:58
+To: tony@atomide.com; khilman@ti.com
+Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+Subject: RE: [GIT PULL] OMAP PM EMU fix for v3.3
 
-I'll wait for Janusz for OMAP1 results before I send the v2 series.
-So far so good: now the Pandora like configuration also works.
+Thanks Tony
 
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Kevin
+Please do the needful and pull the same.
+
+Best Regards
+Gowda
+
+
+-----Original Message-----
+From: linux-arm-kernel-bounces@lists.infradead.org
+[mailto:linux-arm-kernel-bounces@lists.infradead.org] On Behalf Of Tony
+Lindgren
+Sent: 27 January 2012 21:03
+To: Gowda Madhusudhan
+Cc: Kevin Hilman; linux-omap@vger.kernel.org;
+linux-arm-kernel@lists.infradead.org
+Subject: Re: [GIT PULL] OMAP PM EMU fix for v3.3
+
+Hi,
+
+* Madhusudhan.Gowda@elektrobit.com <Madhusudhan.Gowda@elektrobit.com>
+[120127 10:25]:
+> Hi Tony,
+> 
+> Please pull the PM EMU off mode fix for v3.3
+
+It's best that Kevin queues this as it affects PM. Or it at least needs
+an ack from Kevin.
+
+Regards,
+
+Tony
+ 
+> Thanks
+> Gowda
+> 
+> The following changes since commit
+> 1c6ece3c23e58d0dbc687407d606f3560ded582a:
+> 
+>   Merge branch 'omap_fixes_a_3.3rc' of git://git.pwsan.com/linux-2.6
+> (2012-01-26 16:48:37 -0800)
+> 
+> are available in the git repository at:
+> 
+>   git://github.com/elektrobit/linux.git linux-omap-emu-fix
+> 
+> Madhusudhan Gowda (1):
+>       ARM: OMAP3 PM:Save and restore EMU context across MPU OFF
+> 
+>  arch/arm/mach-omap2/cm2xxx_3xxx.c |   16 ++++++++++++----
+>  arch/arm/mach-omap2/cm2xxx_3xxx.h |    2 ++
+>  arch/arm/mach-omap2/pm34xx.c      |    8 ++++++++
+>  3 files changed, 22 insertions(+), 4 deletions(-)
+> 
+> 
+> ----------------------------------------------------------------
+> Please note: This e-mail may contain confidential information intended
+
+> solely for the addressee. If you have received this e-mail in error, 
+> please do not disclose it to anyone, notify the sender promptly, and 
+> delete the message from your system.
+> Thank you.
+> 
+
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+
+
+----------------------------------------------------------------
+Please note: This e-mail may contain confidential information intended
+solely for the addressee. If you have received this e-mail in error,
+please do not disclose it to anyone, notify the sender promptly, and
+delete the message from your system.
+Thank you.
