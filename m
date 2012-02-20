@@ -1,62 +1,52 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [RFC 00/11]O MAP/ASoC: Move and merge McBSP driver under ASoC
-Date: Mon, 20 Feb 2012 22:35:38 +0200
-Message-ID: <CANOLnOM9nJ-ukM6z6w7uv8obSc+JO-0EbcSotwNKqW6o7tZNCA@mail.gmail.com>
-References: <1329320246-1548-1-git-send-email-peter.ujfalusi@ti.com>
-	<CANOLnONVm47DmMv8MdU1Y_Nx-387SZ5MBHwjO4cxkQ_caJ5dWA@mail.gmail.com>
-	<4F41FE75.4070003@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Rob Clark <rob.clark@linaro.org>
+Subject: [PATCH] OMAPDSS: HDMI: hot plug detect fix
+Date: Mon, 20 Feb 2012 15:03:36 -0600
+Message-ID: <1329771816-21130-1-git-send-email-rob.clark@linaro.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:63061 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324Ab2BTUfi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 15:35:38 -0500
-Received: by iacb35 with SMTP id b35so7939758iac.19
-        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 12:35:38 -0800 (PST)
-In-Reply-To: <4F41FE75.4070003@ti.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:63902 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753939Ab2BTVDj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 16:03:39 -0500
+Received: by ggnh1 with SMTP id h1so2720980ggn.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 13:03:39 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
+To: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: patches@linaro.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Rob Clark <rob@ti.com>
 
-On Mon, Feb 20, 2012 at 10:04 AM, Peter Ujfalusi <peter.ujfalusi@ti.com=
-> wrote:
-> Hi Gra=C5=BEvydas,
->
-> On 02/18/2012 11:43 PM, Grazvydas Ignotas wrote:
->> On Wed, Feb 15, 2012 at 5:37 PM, Peter Ujfalusi <peter.ujfalusi@ti.c=
-om> wrote:
->>> Comments, testers are welcome...
->>
->> Tried these on current mainline and they break sound on pandora:
->> # aplay /dev/urandom
->> Playing raw data '/dev/urandom' : Unsigned 8 bit, Rate 8000 Hz, Mono
->> [ =C2=A0 81.306304] omap-mcbsp: clks: could not clk_set_parent() to =
-pad_fck
->> [ =C2=A0 81.313110] ASoC omap3pandora: can't set cpu system clock
->> [ =C2=A0 81.319244] asoc: machine hw_params failed
->> aplay: set_params:1022: Unable to install hw params:
->>
->> I've retried without these patches to confirm it works like that, an=
-d it did.
->
-> Thanks for testing the series.
-> The issue is that I forgot to remove the pm_runtime_put/get_sync call=
-s
-> from the moved mcbsp.c file.
-> Can you manually remove these calls from sound/soc/omap/mcbsp.c ?
-> It will fix the issue I believe.
+From: Rob Clark <rob@ti.com>
 
-Yup that helped, playback and recording on OMAP3 pandora
-Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
+over to using a GPIO for plug detect.  Unfortunately the ->detect()
+method was not also updated, causing HDMI to no longer work for the
+omapdrm driver (because it would actually check if a connection was
+detected before attempting to enable display).
 
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    9 +--------
+ 1 files changed, 1 insertions(+), 8 deletions(-)
 
---=20
-Gra=C5=BEvydas
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index 2d72334..6847a47 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -479,14 +479,7 @@ int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data,
+ 
+ bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
+ {
+-	int r;
+-
+-	void __iomem *base = hdmi_core_sys_base(ip_data);
+-
+-	/* HPD */
+-	r = REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
+-
+-	return r == 1;
++	return gpio_get_value(ip_data->hpd_gpio);
+ }
+ 
+ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
+-- 
+1.7.5.4
+
