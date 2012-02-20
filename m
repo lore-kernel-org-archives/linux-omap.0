@@ -1,183 +1,73 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: Possible circular locking dependency (3.3-rc2)
-Date: Mon, 20 Feb 2012 20:08:56 +1100
-Message-ID: <20120220200856.47db7e24@notabene.brown>
-References: <20120208124147.GF16334@legolas.emea.dhcp.ti.com>
-	<CACVXFVMfmabcH57da-prx=J950KEoFtfb-zsuBWn7VY3NaMUUQ@mail.gmail.com>
-	<20120215200910.GE25779@ponder.secretlab.ca>
-	<4F41FF4E.7040000@gmail.com>
+From: =?utf-8?B?5LuFMzAw5YWD77yM5paw5bm054m55oOg44CC?=
+	<admin@caobang.gov.vn>
+Subject: =?utf-8?B?5pyA5pawQjJC6K+i55uY5Lmw5a6244CB5bGV5Lya5Lmw5a62LOa1t+WFs+aVsOaNriw=?=
+	=?utf-8?B?576k5Y+R6L2v5Lu277yM5bm/5Lqk5Lya5Lmw5a62IOWFsTEwMDDkuIcg5LuFMw==?=
+	=?utf-8?B?MDDlhYMh?=
+Date: Mon, 20 Feb 2012 09:16:38 +0000 (UTC)
+Message-ID: <91BD4EBAFE83C9CD088FA87CB0F6002B@kgq>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/a4eQDnRG0G7dtX8boLjf8BA"; protocol="application/pgp-signature"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4F41FF4E.7040000@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Weber <thomas.weber.linux@googlemail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Ming Lei <tom.leiming@gmail.com>, balbi@ti.com, Linus Walleij <linus.walleij@stericsson.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM Kernel Mailing List <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from localhost ([113.176.31.99]:22957 "EHLO caobang.gov.vn"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752101Ab2BTJQa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Feb 2012 04:16:30 -0500
+Received: from kgq by caobang.gov.vn (MDaemon PRO v9.6.5)
+	with ESMTP id md50000068968.msg
+	for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 15:55:52 +0700
+Date: Sat, 20 Feb 2016 16:02:12 +0800
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: cedar-light@hotmail.com, xl0st.s0ulx@hotmail.com, linux-omap@vger.kernel.org, padeu@singnet.com, zybj@live.com, mcculloch_lesley2@hotmail.com, tjross@westquad-188-99.reshall.umich.edu, postmaster@yzg.hk, dan.mathieu@wanadoo.fr, tmolloycbp@aol.com, sandal.bob@comcast.net
 
---Sig_/a4eQDnRG0G7dtX8boLjf8BA
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-On Mon, 20 Feb 2012 09:07:42 +0100 Thomas Weber
-<thomas.weber.linux@googlemail.com> wrote:
-
-> Hello,
->=20
-> I applied the patch from Ming, but got also an error.
-> I am ccing Neil, because I also applied some patches from him.
-
-That looks like it is the third of the three patches I sent.
-
-I needed some locking and there was a mutex available that seemed to be
-available so I used it.  Apparently it causes problems.
-
-I don't think I ever saw that myself ... I wonder why.
-
-There is already a dependency between the mutex I used and s_active
-in sysfs.  I guess that means I'll have to create a new lock just for
-the purpose of keeping two threads from using the w1 bus at the same time...
-
-Apart from this - which is just a warning, though maybe it could become a
-real deadlock - is the bq27000 now working for you?
-
-NeilBrown
-
-
->=20
-> Regards,
-> Thomas
->=20
-> > [    6.229370] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > [    6.235870] [ INFO: possible circular locking dependency detected ]
-> > [    6.242431] 3.3.0-rc4-00020-ga02b31a #10 Not tainted
-> > [    6.247650] -------------------------------------------------------
-> > [    6.254241] udevadm/596 is trying to acquire lock:
-> > [    6.259277]  (&dev->mutex#2){+.+.+.}, at: [<c0308af0>] w1_bq27000_re=
-ad+0x1c/0x48
-> > [    6.267120]=20
-> > [    6.267120] but task is already holding lock:
-> > [    6.273254]  (s_active#11){++++.+}, at: [<c01463d4>] sysfs_write_fil=
-e+0xdc/0x180
-> > [    6.281097]=20
-> > [    6.281127] which lock already depends on the new lock.
-> > [    6.281127]=20
-> > [    6.289703]=20
-> > [    6.289703] the existing dependency chain (in reverse order) is:
-> > [    6.297576]=20
-> > [    6.297576] -> #1 (s_active#11){++++.+}:
-> > [    6.303283]        [<c007b3c8>] lock_acquire+0xa0/0x128
-> > [    6.308807]        [<c0147b50>] sysfs_addrm_finish+0xf4/0x148
-> > [    6.314880]        [<c0146184>] sysfs_hash_and_remove+0x4c/0x88
-> > [    6.321136]        [<c0146cec>] sysfs_remove_file+0x30/0x38
-> > [    6.326995]        [<c0275bec>] device_del+0xf0/0x17c
-> > [    6.332336]        [<c0275c84>] device_unregister+0xc/0x18
-> > [    6.338104]        [<c0306b28>] w1_slave_detach+0xac/0xcc
-> > [    6.343811]        [<c0306e5c>] w1_reconnect_slaves+0xc0/0x10c
-> > [    6.349945]        [<c0307924>] w1_register_family+0x90/0xa0
-> > [    6.355926]        [<c0008760>] do_one_initcall+0x34/0x174
-> > [    6.361694]        [<c054980c>] kernel_init+0x94/0x11c
-> > [    6.367126]        [<c00148b0>] kernel_thread_exit+0x0/0x8
-> > [    6.372924]=20
-> > [    6.372924] -> #0 (&dev->mutex#2){+.+.+.}:
-> > [    6.378845]        [<c007a980>] __lock_acquire+0x1678/0x1ad4
-> > [    6.384826]        [<c007b3c8>] lock_acquire+0xa0/0x128
-> > [    6.390319]        [<c03c7b24>] mutex_lock_nested+0x48/0x2bc
-> > [    6.396301]        [<c0308af0>] w1_bq27000_read+0x1c/0x48
-> > [    6.401977]        [<c03098d4>] bq27000_read_platform+0x2c/0x124
-> > [    6.408325]        [<c030a004>] bq27x00_battery_get_property+0x1cc/0=
-x3cc
-> > [    6.415374]        [<c0309154>] power_supply_show_property+0x4c/0x224
-> > [    6.422180]        [<c0309468>] power_supply_uevent+0xe4/0x224
-> > [    6.428314]        [<c0276b60>] dev_uevent+0xb4/0x170
-> > [    6.433654]        [<c01f4b84>] kobject_uevent_env+0x1d8/0x478
-> > [    6.439819]        [<c027603c>] store_uevent+0x50/0x54
-> > [    6.445220]        [<c0274f58>] dev_attr_store+0x18/0x24
-> > [    6.450805]        [<c01463f8>] sysfs_write_file+0x100/0x180
-> > [    6.456787]        [<c00e96a0>] vfs_write+0xa8/0x138
-> > [    6.462036]        [<c00e9910>] sys_write+0x40/0x6c
-> > [    6.467163]        [<c00138e0>] ret_fast_syscall+0x0/0x3c
-> > [    6.472869]=20
-> > [    6.472869] other info that might help us debug this:
-> > [    6.472900]=20
-> > [    6.481292]  Possible unsafe locking scenario:
-> > [    6.481292]=20
-> > [    6.487518]        CPU0                    CPU1
-> > [    6.492248]        ----                    ----
-> > [    6.497009]   lock(s_active#11);
-> > [    6.500427]                                lock(&dev->mutex#2);
-> > [    6.506683]                                lock(s_active#11);
-> > [    6.512756]   lock(&dev->mutex#2);
-> > [    6.516357]=20
-> > [    6.516357]  *** DEADLOCK ***
-> > [    6.516357]=20
-> > [    6.522583] 2 locks held by udevadm/596:
-> > [    6.526702]  #0:  (&buffer->mutex){+.+.+.}, at: [<c0146320>] sysfs_w=
-rite_file+0x28/0x180
-> > [    6.535278]  #1:  (s_active#11){++++.+}, at: [<c01463d4>] sysfs_writ=
-e_file+0xdc/0x180
-> > [    6.543579]=20
-> > [    6.543579]=20
-> > [    6.543579] stack backtrace:
-> > [    6.548217] [<c0019e9c>] (unwind_backtrace+0x0/0xf8) from [<c03c3544=
->] (print_circular_bug+0x2c8/0x2d4)
-> > [    6.558105] [<c03c3544>] (print_circular_bug+0x2c8/0x2d4) from [<c00=
-7a980>] (__lock_acquire+0x1678/0x1ad4)
-> > [    6.568267] [<c007a980>] (__lock_acquire+0x1678/0x1ad4) from [<c007b=
-3c8>] (lock_acquire+0xa0/0x128)
-> > [    6.577789] [<c007b3c8>] (lock_acquire+0xa0/0x128) from [<c03c7b24>]=
- (mutex_lock_nested+0x48/0x2bc)
-> > [    6.587310] [<c03c7b24>] (mutex_lock_nested+0x48/0x2bc) from [<c0308=
-af0>] (w1_bq27000_read+0x1c/0x48)
-> > [    6.597015] [<c0308af0>] (w1_bq27000_read+0x1c/0x48) from [<c03098d4=
->] (bq27000_read_platform+0x2c/0x124)
-> > [    6.607086] [<c03098d4>] (bq27000_read_platform+0x2c/0x124) from [<c=
-030a004>] (bq27x00_battery_get_property+0x1cc/0x3cc)
-> > [    6.618499] [<c030a004>] (bq27x00_battery_get_property+0x1cc/0x3cc) =
-from [<c0309154>] (power_supply_show_property+0x4c/0x224)
-> > [    6.630401] [<c0309154>] (power_supply_show_property+0x4c/0x224) fro=
-m [<c0309468>] (power_supply_uevent+0xe4/0x224)
-> > [    6.641357] [<c0309468>] (power_supply_uevent+0xe4/0x224) from [<c02=
-76b60>] (dev_uevent+0xb4/0x170)
-> > [    6.650909] [<c0276b60>] (dev_uevent+0xb4/0x170) from [<c01f4b84>] (=
-kobject_uevent_env+0x1d8/0x478)
-> > [    6.660430] [<c01f4b84>] (kobject_uevent_env+0x1d8/0x478) from [<c02=
-7603c>] (store_uevent+0x50/0x54)
-> > [    6.670013] [<c027603c>] (store_uevent+0x50/0x54) from [<c0274f58>] =
-(dev_attr_store+0x18/0x24)
-> > [    6.679107] [<c0274f58>] (dev_attr_store+0x18/0x24) from [<c01463f8>=
-] (sysfs_write_file+0x100/0x180)
-> > [    6.688720] [<c01463f8>] (sysfs_write_file+0x100/0x180) from [<c00e9=
-6a0>] (vfs_write+0xa8/0x138)
-> > [    6.697967] [<c00e96a0>] (vfs_write+0xa8/0x138) from [<c00e9910>] (s=
-ys_write+0x40/0x6c)
-> > [    6.706390] [<c00e9910>] (sys_write+0x40/0x6c) from [<c00138e0>] (re=
-t_fast_syscall+0x0/0x3c)
+MjAwOC0yMDEx5bm0OOWxiuW5v+S6pOS8muaVsOaNru+8jDIwMTDmtbflhbPmj5DljZVwaWVyc+eJ
+iDEwMDDkuIfmlbDmja7vvIzlhY3otLnmm7TmlrAyMDEy5bm05bm/5Lqk5Lya5Lmw5a625pWw5o2u
+44CCDQoNCuS4gOWFsTEw5Liq5YyFKOaVsOaNruaYr+WFqOihjOS4mueahO+8jOaMieeFp+ihjOS4
+muWIhuWlveexu++8jOW5tuS4lOWPr+S7peaMieeFp+WFs+mUruivjeaPkOWPluWHuuadpeeahCnv
+vJogDQox77yMMjAxMeeni+WtoyvmmKXlraPlub/kuqTkvJrkubDlrrbnjrDlnLror6Lnm5jmlbDm
+ja7lupPmlrDpspzlh7rngonvvIzotoXnuqfmlrDpspzkubDlrrbvvIzmlrDpspzmlbDmja7vvIzl
+rrnmmJPmiJDljZXvvIEgDQoy77yM6LSt5Lmw5ZCO5Y+v5Lul5YWN6LS55pu05pawMjAxMuaYpeWt
+o+W5v+S6pOS8misyMDEy56eL5a2j5bm/5Lqk5Lya5Lmw5a625pWw5o2u44CC5aSq6LaF5YC85LqG
+44CCDQoz77yMMjAxMuacgOaWsOWFqOeQg+WxleS8mueOsOWcuuS5sOWutuW6kyjkuI7otLjlj5Hl
+kIzmraUpLOWFsTQ25LiH5p2h5pWw5o2u44CCICjmjInnhafooYzkuJrliIbnsbspDQo077yMMjAx
+MOW5tCwyMDA55bm0LDIwMDjlubQg5pil5a2jK+eni+Wto+W5v+S6pOS8muS5sOWutuWQjeW9le+8
+jDEwMyAxMDQgMTA1IDEwNiAxMDcgMTA4IOWFseWFreWxiiDlhbExMjAuNuS4h+aVsOaNruOAgg0K
+Ne+8jDQ4LjY45LiH5p2h5pyA5paw5Lmw5a626K+i55uY77yM6YO95bim5pyJRW1haWzvvIzmnIDm
+nInku7flgLznmoTor6Lnm5jjgIINCjbvvIwyMDEx5pyA5pawIEIyQiDoi7Hmloflm73pmYXnq5k2
+MOS4h+W4puiBlOe7nOaWueW8j+ivouebmCDmnIDmnInku7flgLzor6Lnm5jkuYvkuIAuDQo377yM
+MjAxMOa1t+WFs+aPkOWNlXBpZXJz54mIMTAwMOS4h+aVsOaNri4NCjjvvIwyMDEx5bm05Yiw6aaZ
+5riv6YeH6LSt55qE5Zu95aSW5a6i5Lq65ZCN5b2VKOmmmea4r+i0uOWPkeWxgOaPkOS+mynvvIzo
+toXnuqfph43opoHnmoTkubDlrrbjgIINCjnvvIwyMDEx5bm05paw5aKe5Yqg55qELee+juWbvUIy
+QiB0aG9tYXNuZXQg6YeH6LSt5ZWG5ZCN5Y2V44CCDQoxMO+8jOe+pOWPkei9r+S7tuWuieijheS4
+jumDqOe9suacjeWKoeOAgg0KDQrov5nkupvlhajmnInvvIzlhbExMjgw5LiHIOaVsOaNruOAgg0K
+DQogDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiAheeri+WNs+WbnuWk
+jemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCuimgeeahOaKk+e0p+iBlOezu1FROiAxMzMwNjA5
+MDcyICAg5oiW6ICF56uL5Y2z5Zue5aSN6YKu566xOiAxMzMwNjA5MDcyQHFxLmNvbQ0K6KaB55qE
+5oqT57Sn6IGU57O7UVE6IDEzMzA2MDkwNzIgICDmiJbogIXnq4vljbPlm57lpI3pgq7nrrE6IDEz
+MzA2MDkwNzJAcXEuY29tDQropoHnmoTmipPntKfogZTns7tRUTogMTMzMDYwOTA3MiAgIOaIluiA
+heeri+WNs+WbnuWkjemCrueusTogMTMzMDYwOTA3MkBxcS5jb20NCg0KDQoNCuivmuS/oeS4uuac
+rO+8jOWmguaenOS4jeS/oeS7u+acrOS6uizlj6/ku6XotbDmt5jlrp3kuqTmmJMs5pS25Yiw5pWw
+5o2u6aqM6K+BMTDlpKnlkI7lho3ku5jmrL4s6L+Z5piv5a+55oKo5pyA5aW955qE5L+d6Zqc5LqG
+44CCIA0KDQoNCg0K5bCP5oqA5ben77yaIA0K5oqKNTAw5LiH5Lmw5a62576k5Y+R5Lul5LiA6YGN
+77yM5Z2H5Lya5pyJ5pWw5Y2D5Liq5Zue5aSN55qE77yM6L+Z5Lqb5bCx5piv6Z2e5bi46auY6LSo
+6YeP55qE5Lmw5a6244CCIA0K5L2/55So5oiR5Lus6YCB55qE576k5Y+R6L2v5Lu277yMMS0y5ZGo
+5bCx5Y+v5a6M5YWo5Y+R5a6M44CCDQoNCg0KDQoNCg0K5bm/5Lqk5Lya5Lmw5a625oyJ5Lqn5ZOB
+57G75Yir5YiG57G777yM5YiG5Li65Lul5LiL5Yeg57G777yaDQoxIOWKnuWFrOiuvuWkhw0KMiDn
+vJbnu4flj4rol6Tpk4Hlt6Xoibrlk4ENCjMg546755KDDQo0IOmkkOWOqOeUqOWFtw0KNSDovabo
+voYNCjYg5aSn5Z6L5py65qKw5Y+K6K6+5aSHDQo3IOeUteWtkOeUteawlA0KOCDnlLXlrZDmtojo
+tLnlk4ENCjkg57q657uHDQoxMCDmnI3oo4UNCjExIOS4quS6uuaKpOeQhg0KMTIg5bel56iL5py6
+5qKwDQoxMyDlt6XlhbcNCjE0IOWMluW3pQ0KMTUg6K6h566X5py65Y+K6YCa6K6vDQoxNiDlrrbl
+sYXnlKjlk4ENCjE3IOWutuWxheijhemlsA0KMTgg5a625YW3DQoxOSDlrrbnlKjnlLXlmagNCjIw
+IOW7uuetkeWPiuijhemlsOadkOaWmQ0KMjEg6IqC5pel55So5ZOBDQoyMiDnpLzlk4Hlj4rotaDl
+k4ENCjIzIOaRqeaJmOi9pg0KMjQg5rG96L2m6YWN5Lu2DQoyNSDpo5/lk4ENCjI2IOmZtueTtw0K
+Mjcg6ZOB55+zDQoyOCDnjqnlhbcNCjI5IOWNq+a1tA0KMzAg5LqU6YeRDQozMSDlsI/lnovmnLrm
+orANCjMyIOmeiw0KMzMg5LyR6Zey55So5ZOBDQozNCDljLvnlpcNCjM1IOa1tOWupOS6p+WTgQ0K
+MzYg5Zut5p6XDQozNyDnhafmmI7kuqflk4ENCjM4IOmSn+ihqOecvOmVnA0KMzkg6Ieq6KGM6L2m
+DQo0MCDljIUNCg0KDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t
+5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDm
+ja4t5oiQ5Y2V546H5p6B6auYDQrmlrDpspzmlbDmja4t5oiQ5Y2V546H5p6B6auYDQo=
 
 
---Sig_/a4eQDnRG0G7dtX8boLjf8BA
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT0INqDnsnt1WYoG5AQL6/w/+MgsU7iOl4MQIc7X8cbomLGxLfspT2VF7
-Rr81vznWGCUqP5MJ3lkzkcOAaOQW0ftXWdDvx3+byY1wintcfbCr5i7lkrhfWibf
-dz2ptbdfDlMTc9rSB+9LWntyZDXZwUTifdsN4kduOklWUOizFiMYG8aoOGak3qrl
-vNwhvqoBmU5/5BrZqSA4BCDIEqTM8Nb55uB5TjhmZ6OO4rws2pYl3zlCn2pLBQKF
-7s5ianpayKtOlfV1mguUqPg5U1M7qoJRUtRlVy/q4JabtO+kOA6iQZp+xBQxcWwl
-hB3UBlWgcnQ/hfLEHTzDBPgoKz7izZZZOF2wuc3vwfDJPntEAE2vckYRW8PavtlI
-OKQB9G8CjadEHB9eZmI3y627OOruXL2/WlhEkwFYLoGxtwpEJ5oTeIJYxkhyHFsY
-PhcMbYsaqiaN/5bDQOrJ2yGFltgwBXoZrR5MCVCWD88qV2QbOcPSU8/epwOo1t6N
-2CGj9q0hZnlBtNhmPNO0joXl0fBuNXTof/jRZZ0x6dk5M12kkK9SlCz4zcXtcEcC
-cJXlZo8hlrfkgQCOynUGUd8gH5/7saX3DOH60gTYxd1D2IcfICbIyX8BCxa7ZzTJ
-GXz8hwgaD6GTebPaFQJVL8DplsjkeSDmpvPf+UAnw2VVvHJOYPGktc68dL/R8sk5
-dctRwE4wsVE=
-=FRE8
------END PGP SIGNATURE-----
-
---Sig_/a4eQDnRG0G7dtX8boLjf8BA--
