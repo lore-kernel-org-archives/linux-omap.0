@@ -1,46 +1,55 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: More build errors and warnings
-Date: Mon, 20 Feb 2012 07:53:22 +0000
-Message-ID: <20120220075322.GA22675@n2100.arm.linux.org.uk>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [RFC 00/11]O MAP/ASoC: Move and merge McBSP driver under ASoC
+Date: Mon, 20 Feb 2012 10:04:05 +0200
+Message-ID: <4F41FE75.4070003@ti.com>
+References: <1329320246-1548-1-git-send-email-peter.ujfalusi@ti.com> <CANOLnONVm47DmMv8MdU1Y_Nx-387SZ5MBHwjO4cxkQ_caJ5dWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36409 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751235Ab2BTHx0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 02:53:26 -0500
-Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86]:35743)
-	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.76)
-	(envelope-from <linux@arm.linux.org.uk>)
-	id 1RzO3n-0000yZ-VR
-	for linux-omap@vger.kernel.org; Mon, 20 Feb 2012 07:53:24 +0000
-Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.76)
-	(envelope-from <linux@n2100.arm.linux.org.uk>)
-	id 1RzO3m-00050k-Ob
-	for linux-omap@vger.kernel.org; Mon, 20 Feb 2012 07:53:22 +0000
-Content-Disposition: inline
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:58902 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751995Ab2BTIED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 20 Feb 2012 03:04:03 -0500
+Received: by mail-lpp01m010-f46.google.com with SMTP id u2so5965764lag.19
+        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 00:04:01 -0800 (PST)
+In-Reply-To: <CANOLnONVm47DmMv8MdU1Y_Nx-387SZ5MBHwjO4cxkQ_caJ5dWA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org, Samuel Ortiz <sameo@linux.intel.com>
 
-Errors:
+Hi Gra=C5=BEvydas,
 
-arch/arm/mach-omap2/built-in.o: In function `n8x0_mmc_callback': twl-common.c:(.text+0x108a0): undefined reference to `omap_mmc_notify_cover_event'</pre><h2>Warnings
+On 02/18/2012 11:43 PM, Grazvydas Ignotas wrote:
+> On Wed, Feb 15, 2012 at 5:37 PM, Peter Ujfalusi <peter.ujfalusi@ti.co=
+m> wrote:
+>> Comments, testers are welcome...
+>=20
+> Tried these on current mainline and they break sound on pandora:
+> # aplay /dev/urandom
+> Playing raw data '/dev/urandom' : Unsigned 8 bit, Rate 8000 Hz, Mono
+> [   81.306304] omap-mcbsp: clks: could not clk_set_parent() to pad_fc=
+k
+> [   81.313110] ASoC omap3pandora: can't set cpu system clock
+> [   81.319244] asoc: machine hw_params failed
+> aplay: set_params:1022: Unable to install hw params:
+>=20
+> I've retried without these patches to confirm it works like that, and=
+ it did.
 
-Warnings:
+Thanks for testing the series.
+The issue is that I forgot to remove the pm_runtime_put/get_sync calls
+from the moved mcbsp.c file.
+Can you manually remove these calls from sound/soc/omap/mcbsp.c ?
+It will fix the issue I believe.
+I will update the series.
 
-drivers/iommu/omap-iommu-debug.c:271: warning: passing argument 1 of 'omap_find_iovm_area' from incompatible pointer type
-drivers/iommu/omap-iommu-debug.c:308: warning: passing argument 1 of 'omap_find_iovm_area' from incompatible pointer type
-
-These two are a serious problem, which needs fixing for -rc:
-
-omap-iommu-debug.c:
-        struct omap_iommu *obj = file->private_data;
-
-        area = omap_find_iovm_area(obj, (u32)ppos);
-
-arch/arm/plat-omap/include/plat/iovmm.h:extern struct iovm_struct *omap_find_iovm_area(struct device *dev, u32 da);
-
-Config file (for the next 7 days):
-http://www.arm.linux.org.uk/developer/build/file.php?type=config&idx=170
+--=20
+P=C3=A9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
