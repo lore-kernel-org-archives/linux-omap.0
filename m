@@ -1,62 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/8] ARM: OMAP2+: Move DISPC L3 firewall to happen in
- omap_display_init()
-Date: Tue, 21 Feb 2012 15:40:35 -0800
-Message-ID: <20120221234035.18709.40664.stgit@kaulin.local>
+Subject: [PATCH 2/8] ARM: OMAP2+: Move SDRC related functions from io.h into
+ local common.h
+Date: Tue, 21 Feb 2012 15:40:37 -0800
+Message-ID: <20120221234037.18709.94932.stgit@kaulin.local>
 References: <20120221233619.18709.87982.stgit@kaulin.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17160 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928Ab2BUXkg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 18:40:36 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:25117 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab2BUXkj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 18:40:39 -0500
 In-Reply-To: <20120221233619.18709.87982.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-Otherwise we cannot move most of plat/io.h to be a local
-iomap.h for mach-omap2.
+These should be local to omap2/3/4.
 
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/display.c   |    3 +++
- drivers/video/omap2/dss/dispc.c |    5 -----
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/common.h         |    5 +++++
+ arch/arm/plat-omap/include/plat/io.h |    4 ----
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 3677b1f..5a7f12f 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -191,6 +191,9 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
- 	memset(&pdata, 0, sizeof(pdata));
- 
- 	if (cpu_is_omap24xx()) {
-+		/* L3 firewall setting: enable access to OCM RAM */
-+		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index febffde..5aa1acb 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -235,5 +235,10 @@ static inline u32 omap4_mpuss_read_prev_context_state(void)
+ 	return 0;
+ }
+ #endif
 +
- 		curr_dss_hwmod = omap2_dss_hwmod_data;
- 		oh_count = ARRAY_SIZE(omap2_dss_hwmod_data);
- 	} else if (cpu_is_omap34xx()) {
-diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-index e1626a1..cce0820 100644
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3272,11 +3272,6 @@ static void _omap_dispc_initial_config(void)
- 	if (dss_has_feature(FEAT_FUNCGATED))
- 		REG_FLD_MOD(DISPC_CONFIG, 1, 9, 9);
++struct omap_sdrc_params;
++extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
++				      struct omap_sdrc_params *sdrc_cs1);
++
+ #endif /* __ASSEMBLER__ */
+ #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
+index 0696bae..f5b386b 100644
+--- a/arch/arm/plat-omap/include/plat/io.h
++++ b/arch/arm/plat-omap/include/plat/io.h
+@@ -266,10 +266,6 @@ extern void omap_writeb(u8 v, u32 pa);
+ extern void omap_writew(u16 v, u32 pa);
+ extern void omap_writel(u32 v, u32 pa);
  
--	/* L3 firewall setting: enable access to OCM RAM */
--	/* XXX this should be somewhere in plat-omap */
--	if (cpu_is_omap24xx())
--		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
+-struct omap_sdrc_params;
+-extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+-				      struct omap_sdrc_params *sdrc_cs1);
 -
- 	_dispc_setup_color_conv_coef();
+ extern void __init omap_init_consistent_dma_size(void);
  
- 	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
+ #endif
 
