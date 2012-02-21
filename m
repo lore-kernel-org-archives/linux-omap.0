@@ -1,75 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/8] ARM: OMAP1: Move 16xx GPIO system clock to platform
- init code
-Date: Tue, 21 Feb 2012 15:40:42 -0800
-Message-ID: <20120221234042.18709.57610.stgit@kaulin.local>
+Subject: [PATCH 3/8] ARM: OMAP: Move omap_init_consistent_dma_size() to
+ local common.h
+Date: Tue, 21 Feb 2012 15:40:40 -0800
+Message-ID: <20120221234040.18709.17025.stgit@kaulin.local>
 References: <20120221233619.18709.87982.stgit@kaulin.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17210 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:17191 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619Ab2BUXkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 18:40:43 -0500
+	with ESMTP id S1751830Ab2BUXkl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 18:40:41 -0500
 In-Reply-To: <20120221233619.18709.87982.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-This way we can remove omap_read/write call from the GPIO driver
-and remove include to linux/io.h.
+We don't want to keep it in io.h as we want to remove io.h
+for omap2+ for the common zImage support.
 
-Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/gpio16xx.c |    7 +++++++
- drivers/gpio/gpio-omap.c       |    8 --------
- 2 files changed, 7 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap1/common.h         |    1 +
+ arch/arm/mach-omap2/common.h         |    2 ++
+ arch/arm/plat-omap/include/plat/io.h |    2 --
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/gpio16xx.c b/arch/arm/mach-omap1/gpio16xx.c
-index 0f399bd..99cabc4 100644
---- a/arch/arm/mach-omap1/gpio16xx.c
-+++ b/arch/arm/mach-omap1/gpio16xx.c
-@@ -218,6 +218,13 @@ static int __init omap16xx_gpio_init(void)
- 	if (!cpu_is_omap16xx())
- 		return -EINVAL;
+diff --git a/arch/arm/mach-omap1/common.h b/arch/arm/mach-omap1/common.h
+index a9a5146..af658ad 100644
+--- a/arch/arm/mach-omap1/common.h
++++ b/arch/arm/mach-omap1/common.h
+@@ -58,5 +58,6 @@ void omap1_restart(char, const char *);
  
-+	/*
-+	 * Enable system clock for GPIO module.
-+	 * The CAM_CLK_CTRL *is* really the right place.
-+	 */
-+	omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
-+					ULPD_CAM_CLK_CTRL);
+ extern struct sys_timer omap1_timer;
+ extern bool omap_32k_timer_init(void);
++extern void __init omap_init_consistent_dma_size(void);
+ 
+ #endif /* __ARCH_ARM_MACH_OMAP1_COMMON_H */
+diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+index 5aa1acb..f78ec4e 100644
+--- a/arch/arm/mach-omap2/common.h
++++ b/arch/arm/mach-omap2/common.h
+@@ -133,6 +133,8 @@ void am33xx_map_io(void);
+ void omap4_map_io(void);
+ void ti81xx_map_io(void);
+ 
++extern void __init omap_init_consistent_dma_size(void);
 +
- 	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
- 		platform_device_register(omap16xx_gpio_dev[i]);
+ /**
+  * omap_test_timeout - busy-loop, testing a condition
+  * @cond: condition to test until it evaluates to true
+diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
+index f5b386b..28cd796 100644
+--- a/arch/arm/plat-omap/include/plat/io.h
++++ b/arch/arm/plat-omap/include/plat/io.h
+@@ -266,8 +266,6 @@ extern void omap_writeb(u8 v, u32 pa);
+ extern void omap_writew(u16 v, u32 pa);
+ extern void omap_writel(u32 v, u32 pa);
  
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 0b05629..1078a14 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -18,7 +18,6 @@
- #include <linux/syscore_ops.h>
- #include <linux/err.h>
- #include <linux/clk.h>
--#include <linux/io.h>
- #include <linux/slab.h>
- #include <linux/pm_runtime.h>
- 
-@@ -1064,13 +1063,6 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
- 						+ OMAP1610_GPIO_IRQSTATUS1);
- 			__raw_writew(0x0014, bank->base
- 						+ OMAP1610_GPIO_SYSCONFIG);
+-extern void __init omap_init_consistent_dma_size(void);
 -
--			/*
--			 * Enable system clock for GPIO module.
--			 * The CAM_CLK_CTRL *is* really the right place.
--			 */
--			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
--						ULPD_CAM_CLK_CTRL);
- 		}
- 		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
- 			__raw_writel(0xffffffff, bank->base
+ #endif
+ 
+ #endif
 
