@@ -1,50 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
- regulators
-Date: Tue, 21 Feb 2012 10:46:48 -0800
-Message-ID: <20120221184648.GR18185@atomide.com>
-References: <1329151422-2146-1-git-send-email-mporter@ti.com>
- <20120213165209.GA31482@n2100.arm.linux.org.uk>
- <20120213165617.GE3494@opensource.wolfsonmicro.com>
- <20120213175233.GC1426@atomide.com>
- <20120213180236.GB31482@n2100.arm.linux.org.uk>
- <20120213181410.GE1426@atomide.com>
- <20120213185823.GF3494@opensource.wolfsonmicro.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH] gpio/omap: fix wakeups on level-triggered GPIOs
+Date: Tue, 21 Feb 2012 11:01:18 -0800
+Message-ID: <1329850878-22189-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120213185823.GF3494@opensource.wolfsonmicro.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:38675 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754767Ab2BUTAg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 14:00:36 -0500
+Received: by mail-pz0-f42.google.com with SMTP id g27so7031258dan.15
+        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 11:00:35 -0800 (PST)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [120213 10:27]:
-> On Mon, Feb 13, 2012 at 10:14:10AM -0800, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120213 09:31]:
-> > > On Mon, Feb 13, 2012 at 09:52:34AM -0800, Tony Lindgren wrote:
-> 
-> > > > Can't we just leave out the .id and have it automatically assigned?
-> 
-> It'd be nice but...
-> 
-> > > Unfortunately, there's no such infrastructure in the driver model.
-> 
-> > Hmm OK, -1 seems to be just used for name in platform_device_add().
-> 
-> -1 is a valid ID also, it means "there's only one of these things so
-> don't display a number".  Which is sad but there we are.  I'm at ELC/ABS
-> so I might try and find Greg in person here to see if we can come up
-> with something better, it seems like this is something the core ought to
-> be able to help with in much the same way that the USB stuff can.
+While both level- and edge-triggered GPIOs are capable of generating
+interrupts, only edge-triggered GPIOs are capable of generating a
+module-level wakeup to the PRCM (c.f. 34xx NDA TRM section 25.5.3.2.)
 
-Matt, care to refresh your original patch using some other number so
-we can apply it as a regression fix for the -rc series while the
-long term solution is being discussed?
+In order to ensure that devices using level-triggered GPIOs as
+interrupts can also cause wakeups (e.g. from idle), this patch enables
+edge-triggering for wakeup-enabled, level-triggered GPIOs when a GPIO
+bank is runtime-suspended (which also happens during idle.)
 
-Just use some random number for now with a comment, 42?
+This fixes a problem found in GPMC-connected network cards with GPIO
+interrupts (e.g. smsc911x on Zoom3, Overo, ...) where network booting
+with NFSroot was very slow since the GPIO IRQs used by the NIC were
+not generating PRCM wakeups, and thus not waking the system from idle.
+NOTE: until v3.3, this boot-time problem was somewhat masked because
+the UART init prevented WFI during boot until the full serial driver
+was available.  Preventing WFI allowed regular GPIO interrupts to fire
+and this problem was not seen.  After the UART runtime PM cleanups, we
+no longer avoid WFI during boot, so GPIO IRQs that were not causing
+wakeups resulted in very slow IRQ response times.
 
-Regards,
+Tested on platforms using level-triggered GPIOs for network IRQs using
+the SMSC911x NIC: 3530/Overo and 3630/Zoom3.
 
-Tony
+Reported-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+This applies on top of the GPIO cleanup and runtime PM conversion series
+which has been submitted for v3.4 and also available here:
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/gpio/runtime-pm-cleanup
+
+ drivers/gpio/gpio-omap.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index f49bd6f..752ae9b 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1196,8 +1196,30 @@ static int omap_gpio_runtime_suspend(struct device *dev)
+ 	struct gpio_bank *bank = platform_get_drvdata(pdev);
+ 	u32 l1 = 0, l2 = 0;
+ 	unsigned long flags;
++	u32 wake_low, wake_hi;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
++
++	/*
++	 * Only edges can generate a wakeup event to the PRCM.
++	 *
++	 * Therefore, ensure any wake-up capable GPIOs have
++	 * edge-detection enabled before going idle to ensure a wakeup
++	 * to the PRCM is generated on a GPIO transition. (c.f. 34xx
++	 * NDA TRM 25.5.3.1)
++	 *
++	 * The normal values will be restored upon ->runtime_resume()
++	 * by writing back the values saved in bank->context.
++	 */
++	wake_low = bank->context.leveldetect0 & bank->context.wake_en;
++	if (wake_low)
++		__raw_writel(wake_low | bank->context.fallingdetect,
++			     bank->base + bank->regs->fallingdetect);
++	wake_hi = bank->context.leveldetect1 & bank->context.wake_en;
++	if (wake_hi)
++		__raw_writel(wake_hi | bank->context.risingdetect,
++			     bank->base + bank->regs->risingdetect);
++
+ 	if (bank->power_mode != OFF_MODE) {
+ 		bank->power_mode = 0;
+ 		goto update_gpio_context_count;
+@@ -1246,6 +1268,18 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	_gpio_dbck_enable(bank);
++
++	/*
++	 * In ->runtime_suspend(), level-triggered, wakeup-enabled
++	 * GPIOs were set to edge trigger also in order to be able to
++	 * generate a PRCM wakeup.  Here we restore the
++	 * pre-runtime_suspend() values for edge triggering.
++	 */
++	__raw_writel(bank->context.fallingdetect,
++		     bank->base + bank->regs->fallingdetect);
++	__raw_writel(bank->context.risingdetect,
++		     bank->base + bank->regs->risingdetect);
++
+ 	if (!bank->enabled_non_wakeup_gpios || !bank->workaround_enabled) {
+ 		spin_unlock_irqrestore(&bank->lock, flags);
+ 		return 0;
+-- 
+1.7.9
+
