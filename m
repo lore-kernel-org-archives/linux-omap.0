@@ -1,43 +1,43 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 6/6] mmc: omap_hsmmc: Don't expect MMC1 to always have
- vmmc supply
-Date: Tue, 21 Feb 2012 18:11:52 +0530
-Message-ID: <4F439110.5020001@ti.com>
-References: <1329818589-10062-1-git-send-email-rnayak@ti.com> <1329818589-10062-7-git-send-email-rnayak@ti.com> <CANfBPZ89Wdu2hWRU2XiPpWpU-BMbs3Z+yhNoR7hp4MH3vRYfbg@mail.gmail.com> <20120221122022.GC22675@n2100.arm.linux.org.uk>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv5 00/14] arm: omap3: auto-ret / auto-off support
+Date: Tue, 21 Feb 2012 16:04:44 +0200
+Message-ID: <1329833098-19900-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <20120221122022.GC22675@n2100.arm.linux.org.uk>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "S, Venkatraman" <svenkatr@ti.com>, cjb@laptop.org, linaro-dev@lists.linaro.org, balajitk@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51337 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753171Ab2BUOFv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 09:05:51 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Tuesday 21 February 2012 05:50 PM, Russell King - ARM Linux wrote:
-> On Tue, Feb 21, 2012 at 05:43:54PM +0530, S, Venkatraman wrote:
->> On Tue, Feb 21, 2012 at 3:33 PM, Rajendra Nayak<rnayak@ti.com>  wrote:
->>> @@ -324,8 +302,8 @@ static int omap_hsmmc_reg_get(struct omap_hsmmc_host
->>> *host)
->>>                         mmc_slot(host).ocr_mask = ocr_value;
->>>                 } else {
->>>                         if (!(mmc_slot(host).ocr_mask&  ocr_value)) {
->>> -                               pr_err("MMC%d ocrmask %x is not
->>> supported\n",
->>> -                                       host->id,
->>> mmc_slot(host).ocr_mask);
->>> +                               pr_err("MMC ocrmask %x is not
->>> supported\n",
->>> +                                       mmc_slot(host).ocr_mask);
->
-> You're dropping the MMC number from these error messages.  It would be
-> much better to fix them instead.  Use dev_info(mmc_dev(host->mmc), "blah"
-> rather than pr_err().
+Hi,
 
-Thanks for catching this. There are a few other instance of pr_* usage
-within the driver. I will post a patch to fix all of them.
+This set applies on top of the pwrdm / clkdm / voltdm usecounting patch
+set I sent last week (see:
+http://www.spinics.net/lists/linux-omap/msg64670.html):
 
->
-> Drivers should not be using pr_* unless they really do not have a struct
-> device.
+Following changes done compared to previous version.
+
+- split out the basic usecounting support as its own set (see above)
+- added lots of new comments to the code, including kerneldoc style
+  function headers
+- changed pmic->vp_vddmin / vddmax to simply vddmin / vddmax, these
+  are now used as limits for all voltage related operations (both
+  vc / vp), pmic limits are checked against the values defined for
+  the omap chip itself to select proper voltage levels
+- some other minor fixes proposed for the previous version
+
+TBD:
+- omap4 support (will work with this once retention works for omap4)
+- pmic script support for omap3 (scaling to 0V level)
+
+Tested on omap3 beagle with retention / off, suspend and dynamic idle.
+Voltage rails for vdd1 (mpu) and vdd2 (core) measured and seen to scale
+correctly to retention / off voltage levels.
+
+-Tero
 
