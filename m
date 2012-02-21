@@ -1,65 +1,52 @@
-From: NeilBrown <neilb@suse.de>
-Subject: Re: [PATCH 0/2] Two trivial omap/serial patches
-Date: Wed, 22 Feb 2012 06:40:37 +1100
-Message-ID: <20120222064037.66d3e4d4@notabene.brown>
-References: <20120219022841.8254.86264.stgit@notabene.brown>
-	<87boos57fd.fsf@ti.com>
+From: Matt Porter <matt@ohporter.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+ regulators
+Date: Tue, 21 Feb 2012 16:11:51 -0500
+Message-ID: <20120221211151.GA1609@beef>
+References: <1329151422-2146-1-git-send-email-mporter@ti.com>
+ <20120213165209.GA31482@n2100.arm.linux.org.uk>
+ <20120213165617.GE3494@opensource.wolfsonmicro.com>
+ <20120213175233.GC1426@atomide.com>
+ <20120213180236.GB31482@n2100.arm.linux.org.uk>
+ <20120213181410.GE1426@atomide.com>
+ <20120213185823.GF3494@opensource.wolfsonmicro.com>
+ <20120221184648.GR18185@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/PpsF1YbnCj/GHUXe=eridGO"; protocol="application/pgp-signature"
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <87boos57fd.fsf@ti.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Alan Cox <alan@linux.intel.com>, linux-serial@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>, "Govindraj . R" <govindraj.raja@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120221184648.GR18185@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
 
---Sig_/PpsF1YbnCj/GHUXe=eridGO
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Tue, Feb 21, 2012 at 10:46:48AM -0800, Tony Lindgren wrote:
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [120213 10:27]:
+> > On Mon, Feb 13, 2012 at 10:14:10AM -0800, Tony Lindgren wrote:
+> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120213 09:31]:
+> > > > On Mon, Feb 13, 2012 at 09:52:34AM -0800, Tony Lindgren wrote:
+> > 
+> > > > > Can't we just leave out the .id and have it automatically assigned?
+> > 
+> > It'd be nice but...
+> > 
+> > > > Unfortunately, there's no such infrastructure in the driver model.
+> > 
+> > > Hmm OK, -1 seems to be just used for name in platform_device_add().
+> > 
+> > -1 is a valid ID also, it means "there's only one of these things so
+> > don't display a number".  Which is sad but there we are.  I'm at ELC/ABS
+> > so I might try and find Greg in person here to see if we can come up
+> > with something better, it seems like this is something the core ought to
+> > be able to help with in much the same way that the USB stuff can.
+> 
+> Matt, care to refresh your original patch using some other number so
+> we can apply it as a regression fix for the -rc series while the
+> long term solution is being discussed?
+> 
+> Just use some random number for now with a comment, 42?
 
-On Tue, 21 Feb 2012 11:10:30 -0800 Kevin Hilman <khilman@ti.com> wrote:
+Will do, I'll post an update with this approach.
 
-> NeilBrown <neilb@suse.de> writes:
->=20
-> > Just a couple of small clean-ups following the recent major changes.
->=20
-> Thanks Neil.
->=20
-> I'll queue these as cleanups for v3.4 since I dont' think they're v3.3
-> material at this point of the cycle.
-
-Thanks,
-
->=20
-> I'll also update the changelogs to follow the practice of adding the
-> shortlog in parens after the commit ID.
-
-I'll try to remember that for next time.
-
-Thanks,
-NeilBrown
-
---Sig_/PpsF1YbnCj/GHUXe=eridGO
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.18 (GNU/Linux)
-
-iQIVAwUBT0PzNTnsnt1WYoG5AQLhzg/7BmrED/BGIloOSoRuKciAUT4FN6AWa5gK
-B0Wu68udjLdDaH1hPsCwSxssDIu047548+sGqVlnydGeHnZ5Q/IgFms8lItk899G
-3E+HJ7INlWgsn0nNvMkUqmYwmHIrgmnnIkPoOJOpBaB9YOD9rc3sziJd46js3QcQ
-tcs+wuEtXiNVgeDg3ud9u3CPanu+3xaXNE0vZdZhgVbDoXDUpNnIaqOklNEr19sg
-j81UFLAT3r0AjKI22d59kcYlTO6UJ6ZreEvTYUUGD2qhXqPWb8Qs5rtIG2M3/+M5
-xEV3myaBbw6+/MBecelh18QMm2SiF1UFcE66p6X/wI5N+zYyV7SIjCeLb4fdA/kP
-3IuhQ64bonDayzRiNcv0wwJhYTsXCV8N6KvppX+LoMbqNAcW6LH3zKyp+aqjXWNd
-y5K452UGiK6F0hTXMlckyP6fjg3hga3+/H6NpYBBBOpA+keDEbN+W4aMeQuktUuO
-zBAUlAarrtUYB80+15Cu5V27PlV3cW5uxYGyJSqGbzr0VvWqWvMOlOk1QRHRGTuv
-gI2/tzYfLRzwEvaQ3nXGGjdZPq9Kgy4pRzQjO9cMt+Wm7UbTd7ANDN1rvIk1ROSi
-Lf7UJCgCraJQ8Gyy8tavk97yk/EXm32oqj/AeejR3mIxlpraSfWulzMQQqc89HDl
-EllubXICCe4=
-=geDX
------END PGP SIGNATURE-----
-
---Sig_/PpsF1YbnCj/GHUXe=eridGO--
+-Matt
