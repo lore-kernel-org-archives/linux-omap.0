@@ -1,54 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM: OMAP2xxx: PM: remove obsolete timer disable code in the
- suspend path
-Date: Mon, 20 Feb 2012 14:08:46 -0800
-Message-ID: <20120220220846.GO18185@atomide.com>
-References: <alpine.DEB.2.00.1202092007540.17520@utopia.booyaka.com>
- <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 0/3] omap hsmmc init cleanup and section warning fixes
+ for v3.4 merge window
+Date: Tue, 21 Feb 2012 10:49:18 +0530
+Message-ID: <4F432956.6070601@ti.com>
+References: <20120215182355.18884.18682.stgit@kaulin.local> <4F3E6323.9020101@ti.com> <20120217202125.GF18185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23610 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754577Ab2BTWIt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Feb 2012 17:08:49 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1202100140430.2553@utopia.booyaka.com>
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:42456 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750732Ab2BUFT0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 00:19:26 -0500
+Received: by mail-tul01m020-f176.google.com with SMTP id wd18so11242889obb.21
+        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 21:19:25 -0800 (PST)
+In-Reply-To: <20120217202125.GF18185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khilman@ti.com, robherring2@gmail.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [120210 00:10]:
-> On Thu, 9 Feb 2012, Paul Walmsley wrote:
-> 
-> > 
-> > Remove omap_{read,write}l() from the 24xx PM code.  The clocksource
-> > code should now handle what this was supposed to do.
-> > 
-> > Tested on N800 -- but it's hard to say whether this fixes anything.
-> > OMAP24xx static suspend path is currently broken, and this patch
-> > doesn't change that.
-> > 
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Cc: Kevin Hilman <khilman@ti.com>
-> > Cc: Rob Herring <robherring2@gmail.com>
-> > Cc: Tony Lindgren <tony@atomide.com>
-> 
-> Just realized that a stray change made it into the patch that was posted.
-> Below is a version with the stray change removed.  It applies on 
-> Tony's v3.3-rc3 testing branch, plus the OMAP2420 serial fix patch that 
-> was posted earlier.
+On Saturday 18 February 2012 01:51 AM, Tony Lindgren wrote:
+> * Rajendra Nayak<rnayak@ti.com>  [120217 05:53]:
+>> Tony,
+>>
+>> On Wednesday 15 February 2012 11:58 PM, Tony Lindgren wrote:
+>>> Hi all,
+>>>
+>>> This series fixes up the issues noted by Russell on omap2_hsmmc_init()
+>>> where if TWL PMIC is compiled as a module we can't keep a bunch of
+>>> functions marked as __init like they should be. This series fixes
+>>> the issues by splitting omap2_hsmmc_init() into two functions.
+>>
+>> I have a re-spin of this series ready with all the fixes I did
+>> while testing the insmod/unbind/bind test suggested by Russell.
+>> I could not figure out what branch your original patches were
+>> based on. So let me know what branch of your tree you want me
+>> to post this series on.
+>
+> I have them on mainline commit a269c2f5a5ad2b24a19fdd723363daf18394ec85.
 
-Thanks I'll apply this into my clean-up branch along with other
-io.h changes. I also have fixed omap_read/write for the following
-on omap2+:
+I could not get them to apply on the above commit, but I was able to on
+this mainline commit instead '4f8a428dac431e7bd09673b404769d87df948eef'.
 
-plat-omap/dma.c
-drivers/gpio/gpio-omap.c
-
-Planning to also fix plat-omap/usb.c.
-
-Regards,
-
-Tony
+Anyways, now that -rc4 is out I based my series on top of that.
