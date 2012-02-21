@@ -1,86 +1,46 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv5 06/14] arm: omap: add support for oscillator setup
-Date: Tue, 21 Feb 2012 16:04:50 +0200
-Message-ID: <1329833098-19900-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv5 07/14] arm: omap3+: vp: use new vp_params for calculating vddmin and vddmax
+Date: Tue, 21 Feb 2012 16:04:51 +0200
+Message-ID: <1329833098-19900-8-git-send-email-t-kristo@ti.com>
 References: <1329833098-19900-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35681 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51356 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755406Ab2BUOF7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Feb 2012 09:05:59 -0500
+	id S1755406Ab2BUOGB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 09:06:01 -0500
 In-Reply-To: <1329833098-19900-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org
 
-This contains startup and shutdown times for the oscillator. By default
-use ULONG_MAX. Oscillator setup is used for calculating and setting up
-latencies for sleep modes that disable oscillator.
+Now we select the vddmin and vddmax values based on both pmic and
+voltage processor data, this allows usage of different power ICs.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 ---
- arch/arm/mach-omap2/pm.c |   27 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h |    8 ++++++++
- 2 files changed, 35 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/vp.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 1881fe9..2402e8e 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -28,6 +28,33 @@
+diff --git a/arch/arm/mach-omap2/vp.c b/arch/arm/mach-omap2/vp.c
+index d9e0650..22df86d 100644
+--- a/arch/arm/mach-omap2/vp.c
++++ b/arch/arm/mach-omap2/vp.c
+@@ -53,8 +53,10 @@ void __init omap_vp_init(struct voltagedomain *voltdm)
+ 	sys_clk_rate = voltdm->sys_clk.rate / 1000;
  
- static struct omap_device_pm_latency *pm_lats;
+ 	timeout = (sys_clk_rate * voltdm->pmic->vp_timeout_us) / 1000;
+-	vddmin = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmin);
+-	vddmax = voltdm->pmic->uv_to_vsel(voltdm->pmic->vddmax);
++	vddmin = max(voltdm->vp_param->vddmin, voltdm->pmic->vddmin);
++	vddmax = min(voltdm->vp_param->vddmax, voltdm->pmic->vddmax);
++	vddmin = voltdm->pmic->uv_to_vsel(vddmin);
++	vddmax = voltdm->pmic->uv_to_vsel(vddmax);
  
-+/**
-+ * struct omap2_oscillator - Describe the board main oscillator latencies
-+ * @startup_time: oscillator startup latency
-+ * @shutdown_time: oscillator shutdown latency
-+ */
-+struct omap2_oscillator {
-+	u32 startup_time;
-+	u32 shutdown_time;
-+};
-+
-+static struct omap2_oscillator oscillator = {
-+	.startup_time = ULONG_MAX,
-+	.shutdown_time = ULONG_MAX,
-+};
-+
-+void omap_pm_setup_oscillator(u32 tstart, u32 tshut)
-+{
-+	oscillator.startup_time = tstart;
-+	oscillator.shutdown_time = tshut;
-+}
-+
-+void omap_pm_get_oscillator(u32 *tstart, u32 *tshut)
-+{
-+	*tstart = oscillator.startup_time;
-+	*tshut = oscillator.shutdown_time;
-+}
-+
- static int _init_omap_device(char *name)
- {
- 	struct omap_hwmod *oh;
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index ec8f874..797d2da 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -141,4 +141,12 @@ static inline int omap4_twl_init(void)
- }
- #endif
- 
-+#ifdef CONFIG_PM
-+extern void omap_pm_setup_oscillator(u32 tstart, u32 tshut);
-+extern void omap_pm_get_oscillator(u32 *tstart, u32 *tshut);
-+#else
-+static inline void omap_pm_setup_oscillator(u32 tstart, u32 tshut) { }
-+static inline void omap_pm_get_oscillator(u32 *tstart, u32 *tshut) { }
-+#endif
-+
- #endif
+ 	waittime = ((voltdm->pmic->step_size / voltdm->pmic->slew_rate) *
+ 		    sys_clk_rate) / 1000;
 -- 
 1.7.4.1
 
