@@ -1,47 +1,43 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 0/3] omap hsmmc init cleanup and section warning fixes
- for v3.4 merge window
-Date: Tue, 21 Feb 2012 10:49:18 +0530
-Message-ID: <4F432956.6070601@ti.com>
-References: <20120215182355.18884.18682.stgit@kaulin.local> <4F3E6323.9020101@ti.com> <20120217202125.GF18185@atomide.com>
+From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod
+ required for am33xx
+Date: Tue, 21 Feb 2012 05:19:47 +0000
+Message-ID: <B5906170F1614E41A8A28DE3B8D12143317A918A@DBDE01.ent.ti.com>
+References: <1329481488-27771-1-git-send-email-hvaibhav@ti.com>
+ <4F3E545F.8070802@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:42456 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750732Ab2BUFT0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Feb 2012 00:19:26 -0500
-Received: by mail-tul01m020-f176.google.com with SMTP id wd18so11242889obb.21
-        for <linux-omap@vger.kernel.org>; Mon, 20 Feb 2012 21:19:25 -0800 (PST)
-In-Reply-To: <20120217202125.GF18185@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41331 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750732Ab2BUFTz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 00:19:55 -0500
+In-Reply-To: <4F3E545F.8070802@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
 
-On Saturday 18 February 2012 01:51 AM, Tony Lindgren wrote:
-> * Rajendra Nayak<rnayak@ti.com>  [120217 05:53]:
->> Tony,
->>
->> On Wednesday 15 February 2012 11:58 PM, Tony Lindgren wrote:
->>> Hi all,
->>>
->>> This series fixes up the issues noted by Russell on omap2_hsmmc_init()
->>> where if TWL PMIC is compiled as a module we can't keep a bunch of
->>> functions marked as __init like they should be. This series fixes
->>> the issues by splitting omap2_hsmmc_init() into two functions.
->>
->> I have a re-spin of this series ready with all the fixes I did
->> while testing the insmod/unbind/bind test suggested by Russell.
->> I could not figure out what branch your original patches were
->> based on. So let me know what branch of your tree you want me
->> to post this series on.
->
-> I have them on mainline commit a269c2f5a5ad2b24a19fdd723363daf18394ec85.
+Hi Benoit,
 
-I could not get them to apply on the above commit, but I was able to on
-this mainline commit instead '4f8a428dac431e7bd09673b404769d87df948eef'.
+On Fri, Feb 17, 2012 at 18:51:35, Cousson, Benoit wrote:
+> Hi Vaibhav,
+> 
+> On 2/17/2012 1:24 PM, Vaibhav Hiremath wrote:
+> > In case of AM33xx family of devices (like cpsw) have different sysc
+> > bit field offsets defined,
+> 
+> It is really used by several IPs, or it is just an unique exception?
+> 
+> For an exception, you can just define the omap_hwmod_sysc_fields for 
+> that IP.
+> This is what SmartReflex is using for example.
+> 
 
-Anyways, now that -rc4 is out I based my series on top of that.
+I haven't really check TI81xx code but we might need to share these SYSC types
+with a few IPs in that family also. How can the sharing of the sysc data be handled?
+
+Regards,
+Vaibhav B.
