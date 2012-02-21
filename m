@@ -1,43 +1,81 @@
-From: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2+: hwmod: Add new sysc_type3 into omap_hwmod
- required for am33xx
-Date: Tue, 21 Feb 2012 05:19:47 +0000
-Message-ID: <B5906170F1614E41A8A28DE3B8D12143317A918A@DBDE01.ent.ti.com>
-References: <1329481488-27771-1-git-send-email-hvaibhav@ti.com>
- <4F3E545F.8070802@ti.com>
+From: <mythripk@ti.com>
+Subject: [PATCH v3] OMAPDSS: HDMI: Add M2 divider while calculating clkout
+Date: Tue, 21 Feb 2012 12:10:58 +0530
+Message-ID: <1329806458-7469-1-git-send-email-mythripk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41331 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60893 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732Ab2BUFTz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 00:19:55 -0500
-In-Reply-To: <4F3E545F.8070802@ti.com>
-Content-Language: en-US
+	id S1751183Ab2BUGsI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 01:48:08 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1L6m6CX017485
+	for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 00:48:07 -0600
+Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1L6m5ug012518
+	for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 12:18:05 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
-Hi Benoit,
+From: Mythri P K <mythripk@ti.com>
 
-On Fri, Feb 17, 2012 at 18:51:35, Cousson, Benoit wrote:
-> Hi Vaibhav,
-> 
-> On 2/17/2012 1:24 PM, Vaibhav Hiremath wrote:
-> > In case of AM33xx family of devices (like cpsw) have different sysc
-> > bit field offsets defined,
-> 
-> It is really used by several IPs, or it is just an unique exception?
-> 
-> For an exception, you can just define the omap_hwmod_sysc_fields for 
-> that IP.
-> This is what SmartReflex is using for example.
-> 
+While calculating regm and regmf value add using M2 divider in
+the equation.
+Formula for calculating:
+Output clock on digital core domain:
+	CLKOUT = (M / (N+1))*CLKINP*(1/M2)
+Internal oscillator output clock on internal LDO domain:
+	CLKDCOLDO = (M / (N+1))*CLKINP
+The current code when allows variable M2 values as input
+ignores using M2 divider values in calculation of regm and regmf.
+so fix it by using M2 in calculation although the default value for
+M2 is 1.
 
-I haven't really check TI81xx code but we might need to share these SYSC types
-with a few IPs in that family also. How can the sharing of the sysc data be handled?
+Signed-off-by: Mythri P K <mythripk@ti.com>
+---
+ drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Regards,
-Vaibhav B.
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index 92a6679..59a493f 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
+ 
+ 	refclk = clkin / pi->regn;
+ 
+-	/*
+-	 * multiplier is pixel_clk/ref_clk
+-	 * Multiplying by 100 to avoid fractional part removal
+-	 */
+-	pi->regm = (phy * 100 / (refclk)) / 100;
+-
+ 	if (dssdev->clocks.hdmi.regm2 == 0)
+ 		pi->regm2 = HDMI_DEFAULT_REGM2;
+ 	else
+ 		pi->regm2 = dssdev->clocks.hdmi.regm2;
+ 
+ 	/*
++	 * multiplier is pixel_clk/ref_clk
++	 * Multiplying by 100 to avoid fractional part removal
++	 */
++	pi->regm = phy * pi->regm2 / refclk;
++
++	/*
+ 	 * fractional multiplier is remainder of the difference between
+ 	 * multiplier and actual phy(required pixel clock thus should be
+ 	 * multiplied by 2^18(262144) divided by the reference clock
+ 	 */
+-	mf = (phy - pi->regm * refclk) * 262144;
+-	pi->regmf = mf / (refclk);
++	mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
++	pi->regmf = pi->regm2 * mf / refclk;
+ 
+ 	/*
+ 	 * Dcofreq should be set to 1 if required pixel clock
+-- 
+1.7.5.4
+
