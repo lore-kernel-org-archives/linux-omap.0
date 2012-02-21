@@ -1,52 +1,57 @@
-From: Matt Porter <matt@ohporter.com>
-Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
- regulators
-Date: Tue, 21 Feb 2012 16:11:51 -0500
-Message-ID: <20120221211151.GA1609@beef>
-References: <1329151422-2146-1-git-send-email-mporter@ti.com>
- <20120213165209.GA31482@n2100.arm.linux.org.uk>
- <20120213165617.GE3494@opensource.wolfsonmicro.com>
- <20120213175233.GC1426@atomide.com>
- <20120213180236.GB31482@n2100.arm.linux.org.uk>
- <20120213181410.GE1426@atomide.com>
- <20120213185823.GF3494@opensource.wolfsonmicro.com>
- <20120221184648.GR18185@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/3] tty: serial: OMAP: block idle while the UART is
+ transferring data in PIO mode
+Date: Tue, 21 Feb 2012 15:02:07 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202211456160.25023@utopia.booyaka.com>
+References: <20120126024903.31613.24730.stgit@dusk> <20120126025036.31613.67819.stgit@dusk> <4F423E28.3040404@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20120221184648.GR18185@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Matt Porter <mporter@ti.com>, Linux OMAP List <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1274065210-1329861727=:25023"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:39093 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755602Ab2BUWCI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 17:02:08 -0500
+In-Reply-To: <4F423E28.3040404@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Alan Cox <alan@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Tue, Feb 21, 2012 at 10:46:48AM -0800, Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [120213 10:27]:
-> > On Mon, Feb 13, 2012 at 10:14:10AM -0800, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [120213 09:31]:
-> > > > On Mon, Feb 13, 2012 at 09:52:34AM -0800, Tony Lindgren wrote:
-> > 
-> > > > > Can't we just leave out the .id and have it automatically assigned?
-> > 
-> > It'd be nice but...
-> > 
-> > > > Unfortunately, there's no such infrastructure in the driver model.
-> > 
-> > > Hmm OK, -1 seems to be just used for name in platform_device_add().
-> > 
-> > -1 is a valid ID also, it means "there's only one of these things so
-> > don't display a number".  Which is sad but there we are.  I'm at ELC/ABS
-> > so I might try and find Greg in person here to see if we can come up
-> > with something better, it seems like this is something the core ought to
-> > be able to help with in much the same way that the USB stuff can.
-> 
-> Matt, care to refresh your original patch using some other number so
-> we can apply it as a regression fix for the -rc series while the
-> long term solution is being discussed?
-> 
-> Just use some random number for now with a comment, 42?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Will do, I'll post an update with this approach.
+--155748971-1274065210-1329861727=:25023
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
--Matt
+Salut Beno=EEt,
+
+On Mon, 20 Feb 2012, Cousson, Benoit wrote:
+
+> 3.3-rc4 is broken in the DT case because of the serial driver. And it=20
+> looks like it is due to this fix.  We cannot rely on pdata anymore in=20
+> DT, and in that case it leads to an Oops due to NULL pdata.
+
+Sorry about the breakage.  I agree with the diagnosis.  That code was just=
+=20
+copied from the DMA errata part of the driver, so it will need to be fixed=
+=20
+as well.  Otherwise the same problem will happen when DMA is enabled.
+
+> And then we will have to add the support for all these OMAP custom hooks =
+without pdata.
+
+That's really the key question for the medium- to long-term...
+
+> A basic fix (below) for the moment is to test for valid pdata inside the =
+driver.
+> I'll repost it properly if you are fine with it.
+
+Looks fine to me, although I'd suggest fixing the DMA workaround path as=20
+well.
+
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
+
+
+- Paul
+--155748971-1274065210-1329861727=:25023--
