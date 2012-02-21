@@ -1,81 +1,64 @@
-From: <mythripk@ti.com>
-Subject: [PATCH v3] OMAPDSS: HDMI: Add M2 divider while calculating clkout
-Date: Tue, 21 Feb 2012 12:10:58 +0530
-Message-ID: <1329806458-7469-1-git-send-email-mythripk@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH] OMAPDSS: HDMI: hot plug detect fix
+Date: Tue, 21 Feb 2012 10:14:36 +0200
+Message-ID: <1329812076.2090.0.camel@deskari>
+References: <1329771816-21130-1-git-send-email-rob.clark@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-S6lBdBGYnCbp+K8n1m+A"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60893 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183Ab2BUGsI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Feb 2012 01:48:08 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1L6m6CX017485
-	for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 00:48:07 -0600
-Received: from DBDE70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1L6m5ug012518
-	for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 12:18:05 +0530 (IST)
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39265 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752174Ab2BUIOm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 03:14:42 -0500
+Received: by lahc1 with SMTP id c1so10011458lah.34
+        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 00:14:39 -0800 (PST)
+In-Reply-To: <1329771816-21130-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linux-omap@vger.kernel.org, dri-devel@lists.freedesktop.org, patches@linaro.org, Rob Clark <rob@ti.com>
 
-From: Mythri P K <mythripk@ti.com>
 
-While calculating regm and regmf value add using M2 divider in
-the equation.
-Formula for calculating:
-Output clock on digital core domain:
-	CLKOUT = (M / (N+1))*CLKINP*(1/M2)
-Internal oscillator output clock on internal LDO domain:
-	CLKDCOLDO = (M / (N+1))*CLKINP
-The current code when allows variable M2 values as input
-ignores using M2 divider values in calculation of regm and regmf.
-so fix it by using M2 in calculation although the default value for
-M2 is 1.
+--=-S6lBdBGYnCbp+K8n1m+A
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- drivers/video/omap2/dss/hdmi.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+On Mon, 2012-02-20 at 15:03 -0600, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
+>=20
+> The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
+> over to using a GPIO for plug detect.  Unfortunately the ->detect()
+> method was not also updated, causing HDMI to no longer work for the
+> omapdrm driver (because it would actually check if a connection was
+> detected before attempting to enable display).
 
-diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
-index 92a6679..59a493f 100644
---- a/drivers/video/omap2/dss/hdmi.c
-+++ b/drivers/video/omap2/dss/hdmi.c
-@@ -256,24 +256,24 @@ static void hdmi_compute_pll(struct omap_dss_device *dssdev, int phy,
- 
- 	refclk = clkin / pi->regn;
- 
--	/*
--	 * multiplier is pixel_clk/ref_clk
--	 * Multiplying by 100 to avoid fractional part removal
--	 */
--	pi->regm = (phy * 100 / (refclk)) / 100;
--
- 	if (dssdev->clocks.hdmi.regm2 == 0)
- 		pi->regm2 = HDMI_DEFAULT_REGM2;
- 	else
- 		pi->regm2 = dssdev->clocks.hdmi.regm2;
- 
- 	/*
-+	 * multiplier is pixel_clk/ref_clk
-+	 * Multiplying by 100 to avoid fractional part removal
-+	 */
-+	pi->regm = phy * pi->regm2 / refclk;
-+
-+	/*
- 	 * fractional multiplier is remainder of the difference between
- 	 * multiplier and actual phy(required pixel clock thus should be
- 	 * multiplied by 2^18(262144) divided by the reference clock
- 	 */
--	mf = (phy - pi->regm * refclk) * 262144;
--	pi->regmf = mf / (refclk);
-+	mf = (phy - pi->regm / pi->regm2 * refclk) * 262144;
-+	pi->regmf = pi->regm2 * mf / refclk;
- 
- 	/*
- 	 * Dcofreq should be set to 1 if required pixel clock
--- 
-1.7.5.4
+Thanks, I totally missed that.
+
+ Tomi
+
+
+--=-S6lBdBGYnCbp+K8n1m+A
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPQ1JnAAoJEPo9qoy8lh71zewQAKovo1fzGbjVyXM8YsO6d18Z
+WKubRt7Ca/CUQ0Up5jCE7nDSyACa5GS/Q4E/FWSa7gprE/Gkf4nBDXDa8Ir2MGgh
+QBS2i+Ui0DRe2W7Vk1UpEw//iJ5G6RZG3eLvk8qG2MYVw3KZlzWdllm/4NuOCYVG
+fklJrqxSMSp3lEZwHZv77j3+v/5z8bFzkXq5lfNNjjt9Nop/vHJ6X5+2WZdx5oNq
+nW4wjngq/Hq9lGl3dD1x9f8QFLNakl/ldSMTezCqUDDACQBpE+56jn6lObjt4+GU
+D99iFe/cwBj1YA8Bnj5Bu2GC64WpPf/qBMUiknaYp/UH3jWWTOosZMvMnNcZIIdi
+qfl5kSdFBbcLxO9BJMBrF3OXjDbbeFzAIBWK3SjQmRuoXshhyYXjIdoBHeyp7wI3
+MQoOc+zmsUpmLHoYtqNysgWQPfT9+AQT9GvuqcdyMciVtJKwTKltwXRpvWjPiYVK
+TGsM8Wo+6NNRMIrocqqC0KxPZYvgp3EGRl5TaJENVW7bCdtLfniWJimYAJ4NbGZ9
+sloT+7HG4ey4mT18NFL6ioQgLI/AkfS4FqZH+zU+w8U8uUhoigbMUBU55HhLS5Na
+9gzCalz2XRPketA2tWWxcyBYqJchhIAFOYlF/fJNOq+Q0qLDNhnTDM0nwr9QyaE8
+XLTS3Q9ApIMU52dIj9ey
+=aXhU
+-----END PGP SIGNATURE-----
+
+--=-S6lBdBGYnCbp+K8n1m+A--
 
