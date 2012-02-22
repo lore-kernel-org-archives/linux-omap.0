@@ -1,321 +1,324 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv10 3/4] omap3: add common twl configurations for vdd1
- and vdd2
-Date: Wed, 22 Feb 2012 12:47:55 +0200
-Message-ID: <1329907675.4102.488.camel@sokoban>
-References: <1329733568-26676-1-git-send-email-t-kristo@ti.com>
-	 <1329733568-26676-4-git-send-email-t-kristo@ti.com> <871upn4tzf.fsf@ti.com>
-Reply-To: <t-kristo@ti.com>
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
+Date: Wed, 22 Feb 2012 11:59:14 +0100
+Message-ID: <4F44CA82.9060906@atmel.com>
+References: <4F22DEF2.5000807@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-9EwMC/gFa4q7uFLHz7Fj"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50603 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754613Ab2BVKsE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 05:48:04 -0500
-In-Reply-To: <871upn4tzf.fsf@ti.com>
+Received: from newsmtp5.atmel.com ([204.2.163.5]:53525 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754186Ab2BVK77 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 05:59:59 -0500
+In-Reply-To: <4F22DEF2.5000807@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Stephen Warren <swarren@nvidia.com>, Thomas Abraham <thomas.abraham@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Ludovic Desroches <ludovic.desroches@atmel.com>
 
---=-9EwMC/gFa4q7uFLHz7Fj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
-On Tue, 2012-02-21 at 16:00 -0800, Kevin Hilman wrote:
-> Tero Kristo <t-kristo@ti.com> writes:
+On 01/27/2012 06:29 PM, Cousson, Benoit :
+> Add some basic helpers to retrieve a DMA controller device_node
+> and the DMA request line number.
 > 
-> > VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
-> > to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
-> > are needed by DVFS.
-> >
-> > Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manuals:
-> > - SWCS019L : TWL4030 ES3.1 Data Manual rev L
-> > - SWCS030E : TWL5030 ES1.2 Data Manual rev E
-> >
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> For legacy reason another API will export the DMA request number
+> into a Linux resource of type IORESOURCE_DMA.
+> This API is usable only on system with an unique DMA controller.
+
+Hi,
+
+I followed that discussion and I like very much the biding that Benoit
+is proposing. It will help me a lot with my current work on Atmel DMA
+controller.
+
+If I understand correctly, some rework is needed before it can be
+integrated in a stable git tree (I mean before we can base our work on
+top of it). So, in the meantime, what should I do to help and make
+things go forward? to be quite frank, I would be interested to have a
+working DMA enabled device soon ;-)
+Do you think that 3.4 is out of reach?
+
+Best regards,
+
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> ---
+>  Documentation/devicetree/bindings/dma/dma.txt |   44 +++++++++
+>  drivers/of/Kconfig                            |    5 +
+>  drivers/of/Makefile                           |    1 +
+>  drivers/of/dma.c                              |  130 +++++++++++++++++++++++++
+>  include/linux/of_dma.h                        |   49 +++++++++
+>  5 files changed, 229 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/dma/dma.txt
+>  create mode 100644 drivers/of/dma.c
+>  create mode 100644 include/linux/of_dma.h
 > 
-> Do you have a similar patch for OMAP4 support?
+> diff --git a/Documentation/devicetree/bindings/dma/dma.txt b/Documentation/devicetree/bindings/dma/dma.txt
+> new file mode 100644
+> index 0000000..7f2a301
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/dma/dma.txt
+> @@ -0,0 +1,44 @@
+> +* Generic DMA Controller and DMA request bindings
+> +
+> +Generic binding to provide a way for a driver to retrieve the
+> +DMA request line that goes from an IP to a DMA controller.
+> +
+> +
+> +* DMA controller
+> +
+> +Required properties:
+> +    - dma-controller: Mark the device as a DMA controller
+> +    - #dma-cells: Number of cell for each DMA line, must be one.
+> +
+> +
+> +Example:
+> +
+> +	sdma: dma-controller@48000000 {
+> +		compatible = "ti,sdma-omap4"
+> +		reg = <0x48000000 0x1000>;
+> +		interrupts = <12>;
+> +        dma-controller;
+> +		#dma-cells = <1>;
+> +	};
+> +
+> +
+> +
+> +* DMA client
+> +
+> +Client drivers should specify the DMA request numbers using a phandle to
+> +the controller + the DMA request number on that controller.
+> +
+> +Required properties:
+> +    - dma-request: List of pair phandle + dma-request per line
+> +    - dma-request-names: list of strings in the same order as the dma-request
+> +      in the dma-request property.
+> +
+> +
+> +Example:
+> +
+> +    i2c1: i2c@1 {
+> +        ...
+> +        dma-request = <&sdma 2 &sdma 3>;
+> +        dma-request-names = "tx", "rx";
+> +        ...
+> +    };
+> diff --git a/drivers/of/Kconfig b/drivers/of/Kconfig
+> index 268163d..7d1f06b 100644
+> --- a/drivers/of/Kconfig
+> +++ b/drivers/of/Kconfig
+> @@ -90,4 +90,9 @@ config OF_PCI_IRQ
+>  	help
+>  	  OpenFirmware PCI IRQ routing helpers
+>  
+> +config OF_DMA
+> +	def_bool y
+> +	help
+> +	  Device Tree DMA routing helpers
+> +
+>  endmenu # OF
+> diff --git a/drivers/of/Makefile b/drivers/of/Makefile
+> index a73f5a5..d08443b 100644
+> --- a/drivers/of/Makefile
+> +++ b/drivers/of/Makefile
+> @@ -12,3 +12,4 @@ obj-$(CONFIG_OF_SELFTEST) += selftest.o
+>  obj-$(CONFIG_OF_MDIO)	+= of_mdio.o
+>  obj-$(CONFIG_OF_PCI)	+= of_pci.o
+>  obj-$(CONFIG_OF_PCI_IRQ)  += of_pci_irq.o
+> +obj-$(CONFIG_OF_DMA)  += dma.o
+> diff --git a/drivers/of/dma.c b/drivers/of/dma.c
+> new file mode 100644
+> index 0000000..d4927e2
+> --- /dev/null
+> +++ b/drivers/of/dma.c
+> @@ -0,0 +1,130 @@
+> +/*
+> + * Device tree helpers for DMA request / controller
+> + *
+> + * Based on of_gpio.c
+> + *
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/device.h>
+> +#include <linux/err.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_dma.h>
+> +
+> +/**
+> + * of_get_dma_request() - Get a DMA request number and dma-controller node
+> + * @np:		device node to get DMA request from
+> + * @propname:	property name containing DMA specifier(s)
+> + * @index:	index of the DMA request
+> + * @ctrl_np:	a device_node pointer to fill in
+> + *
+> + * Returns DMA number along to the dma controller node, or one of the errno
+> + * value on the error condition. If @ctrl_np is not NULL the function also
+> + * fills in the DMA controller device_node pointer.
+> + */
+> +int of_get_dma_request(struct device_node *np, int index,
+> +		       struct device_node **ctrl_np)
+> +{
+> +	int ret = -EINVAL;
+> +	struct of_phandle_args dma_spec;
+> +
+> +	ret = of_parse_phandle_with_args(np, "dma-request", "#dma-cells",
+> +					 index, &dma_spec);
+> +	if (ret) {
+> +		pr_debug("%s: can't parse dma property\n", __func__);
+> +		goto err0;
+> +	}
+> +
+> +	if (dma_spec.args_count > 0)
+> +		ret = dma_spec.args[0];
+> +
+> +	if (ctrl_np)
+> +		*ctrl_np = dma_spec.np;
+> +	else
+> +		of_node_put(dma_spec.np);
+> +
+> +err0:
+> +	pr_debug("%s exited with status %d\n", __func__, ret);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(of_get_dma_request);
+> +
+> +/**
+> + * of_dma_count - Count DMA requests for a device
+> + * @np:		device node to count DMAs for
+> + *
+> + * The function returns the count of DMA requests specified for a node.
+> + *
+> + * Note that the empty DMA specifiers counts too. For example,
+> + *
+> + * dma-request = <0
+> + *                &sdma 1
+> + *                0
+> + *                &sdma 3>;
+> + *
+> + * defines four DMAs (so this function will return 4), two of which
+> + * are not specified.
+> + */
+> +unsigned int of_dma_count(struct device_node *np)
+> +{
+> +	unsigned int cnt = 0;
+> +
+> +	do {
+> +		int ret;
+> +
+> +		ret = of_parse_phandle_with_args(np, "dma-request",
+> +						 "#dma-cells", cnt, NULL);
+> +		/* A hole in the dma-request = <> counts anyway. */
+> +		if (ret < 0 && ret != -EEXIST)
+> +			break;
+> +	} while (++cnt);
+> +
+> +	return cnt;
+> +}
+> +EXPORT_SYMBOL(of_dma_count);
+> +
+> +/**
+> + * of_dma_to_resource - Decode a node's DMA and return it as a resource
+> + * @dev: pointer to device tree node
+> + * @index: zero-based index of the DMA request
+> + * @r: pointer to resource structure to return result into.
+> + *
+> + * Using a resource to export a DMA request number to a driver should
+> + * be used only for legacy purpose and on system when only one DMA controller
+> + * is present.
+> + * The proper and only scalable way is to use the native of_get_dma_request API
+> + * in order retrieve both the DMA controller device node and the DMA request
+> + * line for that controller.
+> + */
+> +int of_dma_to_resource(struct device_node *dev, int index, struct resource *r)
+> +{
+> +	const char *name = NULL;
+> +	int dma;
+> +
+> +	if (!r)
+> +		return -EINVAL;
+> +
+> +	dma = of_get_dma_request(dev, index, NULL);
+> +	if (dma < 0)
+> +		return dma;
+> +
+> +	/*
+> +	 * Get optional "dma-request-names" property to add a name
+> +	 * to the resource.
+> +	 */
+> +	of_property_read_string_index(dev, "dma-request-names", index,
+> +				      &name);
+> +
+> +	r->start = dma;
+> +	r->end = dma;
+> +	r->flags = IORESOURCE_DMA;
+> +	r->name = name ? name : dev->full_name;
+> +
+> +	return dma;
+> +}
+> +EXPORT_SYMBOL_GPL(of_dma_to_resource);
+> diff --git a/include/linux/of_dma.h b/include/linux/of_dma.h
+> new file mode 100644
+> index 0000000..575163d
+> --- /dev/null
+> +++ b/include/linux/of_dma.h
+> @@ -0,0 +1,49 @@
+> +/*
+> + * OF helpers for DMA request / controller
+> + *
+> + * Based on of_gpio.h
+> + *
+> + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef __LINUX_OF_DMA_H
+> +#define __LINUX_OF_DMA_H
+> +
+> +#include <linux/of.h>
+> +
+> +struct device_node;
+> +
+> +#ifdef CONFIG_OF_GPIO
+> +
+> +extern int of_get_dma_request(struct device_node *np, int index,
+> +		       struct device_node **ctrl_np);
+> +extern unsigned int of_dma_count(struct device_node *np);
+> +extern int of_dma_to_resource(struct device_node *dev, int index,
+> +			      struct resource *r);
+> +
+> +#else /* CONFIG_OF_DMA */
+> +
+> +static int of_get_dma_request(struct device_node *np, int index,
+> +			      struct device_node **ctrl_np);
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +static inline unsigned int of_dma_count(struct device_node *np)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int of_dma_to_resource(struct device_node *dev, int index,
+> +			      struct resource *r);
+> +{
+> +	return -ENOSYS;
+> +}
+> +
+> +#endif /* CONFIG_OF_DMA */
+> +
+> +#endif /* __LINUX_OF_DMA_H */
 
-It looks like OMAP4 support requires some changes to the twl-regulator /
-twl-core in addition to the twl-common.c. I have these available (just
-created them), should I post these out? Attached here for reference in
-case you need to test something quickly.
 
--Tero
-
-
---=-9EwMC/gFa4q7uFLHz7Fj
-Content-Disposition: attachment;
-	filename*0="0001-regulator-twl6030-add-support-for-vdd1-vdd2-and-vdd3.pat";
-	filename*1="ch"
-Content-Type: text/x-patch;
-	name="0001-regulator-twl6030-add-support-for-vdd1-vdd2-and-vdd3.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From 4bee5804e8f20af94ecfe170dd4c5df984bdca6c Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Wed, 22 Feb 2012 12:36:58 +0200
-Subject: [PATCH 1/2] regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
-
-vdd1 and vdd2 are now common regulators for twl4030 and twl6030. Also
-added vdd3 as a new regulator for twl6030. twl6030 vdd1...vdd3 smps
-regulator voltages can only be controlled through the smartreflex
-voltage channel, thus the support for the voltage_get and set is
-minimal and requires external controller.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- drivers/mfd/twl-core.c            |   15 ++++++++++++++
- drivers/regulator/twl-regulator.c |   39 +++++++++++++++++++++++++++++++++++++
- include/linux/i2c/twl.h           |    5 ++-
- 3 files changed, 57 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index fae5f76..c788e36 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -949,6 +949,21 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 	/* twl6030 regulators */
- 	if (twl_has_regulator() && twl_class_is_6030() &&
- 			!(features & TWL6025_SUBCLASS)) {
-+		child = add_regulator(TWL6030_REG_VDD1, pdata->vdd1,
-+					features);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDD2, pdata->vdd2,
-+					features);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDD3, pdata->vdd3,
-+					features);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
- 		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc,
- 					features);
- 		if (IS_ERR(child))
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 0afc9e1a..55a0e4d 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -561,6 +561,32 @@ static struct regulator_ops twl4030smps_ops = {
- 	.get_voltage	= twl4030smps_get_voltage,
- };
- 
-+static int twl6030coresmps_set_voltage(struct regulator_dev *rdev, int min_uV,
-+	int max_uV, unsigned *selector)
-+{
-+	struct twlreg_info *info = rdev_get_drvdata(rdev);
-+
-+	if (info->set_voltage)
-+		return info->set_voltage(info->data, min_uV);
-+
-+	return 0;
-+}
-+
-+static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
-+{
-+	struct twlreg_info *info = rdev_get_drvdata(rdev);
-+
-+	if (info->get_voltage)
-+		return info->get_voltage(info->data);
-+
-+	return 0;
-+}
-+
-+static struct regulator_ops twl6030coresmps_ops = {
-+	.set_voltage	= twl6030coresmps_set_voltage,
-+	.get_voltage	= twl6030coresmps_get_voltage,
-+};
-+
- static int twl6030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
- {
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-@@ -918,6 +944,16 @@ static struct regulator_ops twlsmps_ops = {
- 		}, \
- 	}
- 
-+#define TWL6030_ADJUSTABLE_SMPS(label) { \
-+	.desc = { \
-+		.name = #label, \
-+		.id = TWL6030_REG_##label, \
-+		.ops = &twl6030coresmps_ops, \
-+		.type = REGULATOR_VOLTAGE, \
-+		.owner = THIS_MODULE, \
-+		}, \
-+	}
-+
- #define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
- 	.base = offset, \
- 	.min_mV = min_mVolts, \
-@@ -1019,6 +1055,9 @@ static struct twlreg_info twl_regs[] = {
- 	/* 6030 REG with base as PMC Slave Misc : 0x0030 */
- 	/* Turnon-delay and remap configuration values for 6030 are not
- 	   verified since the specification is not public */
-+	TWL6030_ADJUSTABLE_SMPS(VDD1),
-+	TWL6030_ADJUSTABLE_SMPS(VDD2),
-+	TWL6030_ADJUSTABLE_SMPS(VDD3),
- 	TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000, 3300),
- 	TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000, 3300),
- 	TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000, 3300),
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 08a82d3..f66c031 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -712,6 +712,9 @@ struct twl4030_platform_data {
- 	struct regulator_init_data		*vaux1;
- 	struct regulator_init_data		*vaux2;
- 	struct regulator_init_data		*vaux3;
-+	struct regulator_init_data		*vdd1;
-+	struct regulator_init_data		*vdd2;
-+	struct regulator_init_data		*vdd3;
- 	/* TWL4030 LDO regulators */
- 	struct regulator_init_data		*vpll1;
- 	struct regulator_init_data		*vpll2;
-@@ -720,8 +723,6 @@ struct twl4030_platform_data {
- 	struct regulator_init_data		*vsim;
- 	struct regulator_init_data		*vaux4;
- 	struct regulator_init_data		*vio;
--	struct regulator_init_data		*vdd1;
--	struct regulator_init_data		*vdd2;
- 	struct regulator_init_data		*vintana1;
- 	struct regulator_init_data		*vintana2;
- 	struct regulator_init_data		*vintdig;
 -- 
-1.7.4.1
-
-
---=-9EwMC/gFa4q7uFLHz7Fj
-Content-Disposition: attachment;
-	filename*0="0002-arm-omap4-add-common-twl-configurations-for-vdd1-vdd.pat";
-	filename*1="ch"
-Content-Type: text/x-patch;
-	name="0002-arm-omap4-add-common-twl-configurations-for-vdd1-vdd.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
->From 463f0e24eb89d7f14112379df04b6d86eb2a4e97 Mon Sep 17 00:00:00 2001
-From: Tero Kristo <t-kristo@ti.com>
-Date: Wed, 22 Feb 2012 12:40:40 +0200
-Subject: [PATCH 2/2] arm: omap4: add common twl configurations for vdd1, vdd2 and vdd3
-
-VDD1 is used for MPU voltage, VDD2 is for IVA and VDD3 is for CORE.
-These are needed by DVFS. This patch also adds external controller
-support for these regulators, the default I2C control channel can't
-be used to modify the voltages for these regulators on TWL6030.
-
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/twl-common.c |   82 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 82 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index 0c453e7..f19793e 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -349,6 +349,70 @@ static struct regulator_init_data omap4_clk32kg_idata = {
- 	},
- };
- 
-+static struct regulator_consumer_supply omap4_vdd1_supply[] = {
-+	REGULATOR_SUPPLY("vcc", "mpu.0"),
-+};
-+
-+static struct regulator_consumer_supply omap4_vdd2_supply[] = {
-+	REGULATOR_SUPPLY("vcc", "iva.0"),
-+};
-+
-+static struct regulator_consumer_supply omap4_vdd3_supply[] = {
-+	REGULATOR_SUPPLY("vcc", "l3_main.0"),
-+};
-+
-+static struct regulator_init_data omap4_vdd1 = {
-+	.constraints = {
-+		.name			= "vdd_mpu",
-+		.min_uV			= 500000,
-+		.max_uV			= 1500000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
-+	},
-+	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd1_supply),
-+	.consumer_supplies		= omap4_vdd1_supply,
-+};
-+
-+static struct regulator_init_data omap4_vdd2 = {
-+	.constraints = {
-+		.name			= "vdd_iva",
-+		.min_uV			= 500000,
-+		.max_uV			= 1500000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
-+	},
-+	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd2_supply),
-+	.consumer_supplies		= omap4_vdd2_supply,
-+};
-+
-+static struct regulator_init_data omap4_vdd3 = {
-+	.constraints = {
-+		.name			= "vdd_core",
-+		.min_uV			= 500000,
-+		.max_uV			= 1500000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE,
-+	},
-+	.num_consumer_supplies		= ARRAY_SIZE(omap4_vdd3_supply),
-+	.consumer_supplies		= omap4_vdd3_supply,
-+};
-+
-+
-+static struct twl_regulator_driver_data omap4_vdd1_drvdata = {
-+	.get_voltage = twl_get_voltage,
-+	.set_voltage = twl_set_voltage,
-+};
-+
-+static struct twl_regulator_driver_data omap4_vdd2_drvdata = {
-+	.get_voltage = twl_get_voltage,
-+	.set_voltage = twl_set_voltage,
-+};
-+
-+static struct twl_regulator_driver_data omap4_vdd3_drvdata = {
-+	.get_voltage = twl_get_voltage,
-+	.set_voltage = twl_set_voltage,
-+};
-+
- void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 				  u32 pdata_flags, u32 regulators_flags)
- {
-@@ -357,6 +421,24 @@ void __init omap4_pmic_get_config(struct twl4030_platform_data *pmic_data,
- 	if (!pmic_data->irq_end)
- 		pmic_data->irq_end = TWL6030_IRQ_END;
- 
-+	if (!pmic_data->vdd1) {
-+		omap4_vdd1.driver_data = &omap4_vdd1_drvdata;
-+		omap4_vdd1_drvdata.data = voltdm_lookup("mpu");
-+		pmic_data->vdd1 = &omap4_vdd1;
-+	}
-+
-+	if (!pmic_data->vdd2) {
-+		omap4_vdd2.driver_data = &omap4_vdd2_drvdata;
-+		omap4_vdd2_drvdata.data = voltdm_lookup("iva");
-+		pmic_data->vdd2 = &omap4_vdd2;
-+	}
-+
-+	if (!pmic_data->vdd3) {
-+		omap4_vdd3.driver_data = &omap4_vdd3_drvdata;
-+		omap4_vdd3_drvdata.data = voltdm_lookup("core");
-+		pmic_data->vdd3 = &omap4_vdd3;
-+	}
-+
- 	/* Common platform data configurations */
- 	if (pdata_flags & TWL_COMMON_PDATA_USB && !pmic_data->usb)
- 		pmic_data->usb = &omap4_usb_pdata;
--- 
-1.7.4.1
-
-
---=-9EwMC/gFa4q7uFLHz7Fj--
+Nicolas Ferre
