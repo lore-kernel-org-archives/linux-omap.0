@@ -1,66 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/16] OMAPDSS: old OMAPFB cleanup
-Date: Wed, 22 Feb 2012 10:50:16 -0800
-Message-ID: <20120222185016.GI18185@atomide.com>
-References: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
- <1329220343.1845.65.camel@deskari>
+Subject: Re: [PATCH 8/8] ARM: OMAP2+: Limit omap_read/write usage to legacy
+ USB drivers
+Date: Wed, 22 Feb 2012 10:57:28 -0800
+Message-ID: <20120222185728.GJ18185@atomide.com>
+References: <20120221233619.18709.87982.stgit@kaulin.local>
+ <20120221234051.18709.3571.stgit@kaulin.local>
+ <1329898441.2070.10.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:34173 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:46020 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754798Ab2BVSuT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 13:50:19 -0500
+	with ESMTP id S1755026Ab2BVS5d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 13:57:33 -0500
 Content-Disposition: inline
-In-Reply-To: <1329220343.1845.65.camel@deskari>
+In-Reply-To: <1329898441.2070.10.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, archit@ti.com, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120214 03:21]:
-> Hi Tony,
-> 
-> On Tue, 2012-01-24 at 12:00 +0200, Tomi Valkeinen wrote:
-> > Now that all omap2+ boards have been changed to use the newer omapdss driver,
-> > this patch series removes omap2+ support from the old omapfb driver
-> > (drivers/video/omap), and thus makes it an omap1 dss/fb driver.
+* Tomi Valkeinen <tomi.valkeinen@ti.com> [120221 23:42]:
+> On Tue, 2012-02-21 at 15:40 -0800, Tony Lindgren wrote:
+> > Drivers should no longer use omap_read/write functions
+> > but instead use ioremap + read/write functions.
 > > 
-> > The use of SRAM for video ram had earlier been disabled by removing the SRAM
-> > allocation (fee926bb0d399b1eaaf38f9f694bbf2747c4b8a2), and now this series also
-> > removes the support from the omap fb drivers.
+> > As some USB legacy code is still shared between omap1 and
+> > omap2420, let's limit the omap_read/write to plat/usb.h.
 > > 
-> > Also various cleanup patches allow us to remove remove OMAP_TAG_LCD and
-> > OMAP_TAG_FBMEM.
-> > 
-> > All in all, the series removes quite a bit of unneeded code and cleans up the
-> > links between the board files and the display drivers, and this should help
-> > with device tree adaptation.
-
-Great, looks good to me. I've acked the arch/arm/*omap*/* patches.
-There may be some trivial merge conflicts with the includes with
-my cleanup branch for the io.h changes.
-
-> > Some of the patches affect the newer omapdss and omapfb drivers, but mostly the
-> > patches deal with omap1. I have compile tested the series for both omap1 and
-> > omap2, but I have only tested this on OMAP3 and OMAP4 boards, as I don't have
-> > OMAP1/2 boards. I think N770's display won't work after these patches, but
-> > other OMAP1 boards should be ok. To fix N770's display requires knowledge of
-> > the hardware setup, which is currently passed from the bootloader.
+> > Also, let's make drivers/video/omap/lcdc.c depend on
+> > ARCH_OMAP1 as it is not needed for omap2+.
 > 
-> Tony, do you have any feedback on this? I think the arch/arm changes are
-> quite clean as such, but are you ok with (possibly) breaking N770's
-> display? The other OMAP1 boards should, at least in theory, work as well
-> as before.
-> 
-> For N770, the bootloader passes the reset GPIO number and number of
-> datalines, and I have no idea what those are.
+> I'm ok with the lcdc.c change, but I also have a patch series that makes
+> the same change, plus removes the omap2 code from drivers/video/omap/.
 
-I think they should be:
+OK, I'll drop the lcdc.c change from my series as that should
+only affect randconfig builds.
+ 
+> Can you check the series, and give ack if the arch/arm side looks fine?
+> It's this one: [PATCH 00/16] OMAPDSS: old OMAPFB cleanup
 
-conf->nreset_gpio = 13
-conf->data_lines = 24
-
-Regards,
+Yeah great, I've acked those. Let's do a test merge when I
+have these in cleanup branch, looks like the conflicts should
+be trivial.
 
 Tony
