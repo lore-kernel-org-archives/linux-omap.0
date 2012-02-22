@@ -1,43 +1,67 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [PATCH 2/2] iommu/omap: fix NULL pointer dereference
-Date: Wed, 22 Feb 2012 09:17:52 +0000
-Message-ID: <20120222091752.GG22675@n2100.arm.linux.org.uk>
-References: <1329900772-9306-1-git-send-email-ohad@wizery.com>
-	<1329900772-9306-2-git-send-email-ohad@wizery.com>
-	<20120222085623.GF22675@n2100.arm.linux.org.uk>
-	<CAK=Wgba1CfpZpDqN3fruL-Ax_a_DwGuB=92pq4Ng3cSUGL8e2Q@mail.gmail.com>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 3/3] OMAPDSS: DSS: Add runtime_pm protection around wait_for_vsync.
+Date: Wed, 22 Feb 2012 15:16:25 +0530
+Message-ID: <4F44B971.5030402@ti.com>
+References: <1329833192-16529-1-git-send-email-archit@ti.com>   <1329833192-16529-4-git-send-email-archit@ti.com>  <1329840498.2090.36.camel@deskari> <4F4480DD.1000502@ti.com> <1329893360.1891.1.camel@lappy>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAK=Wgba1CfpZpDqN3fruL-Ax_a_DwGuB=92pq4Ng3cSUGL8e2Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Hiroshi DOYU <Hiroshi.DOYU-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59856 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754141Ab2BVJqf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Feb 2012 04:46:35 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1M9kX4f026370
+	for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 03:46:34 -0600
+In-Reply-To: <1329893360.1891.1.camel@lappy>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: lajos@ti.com, linux-omap@vger.kernel.org
 
-On Wed, Feb 22, 2012 at 11:10:38AM +0200, Ohad Ben-Cohen wrote:
-> On Wed, Feb 22, 2012 at 10:56 AM, Russell King - ARM Linux
-> <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> wrote:
-> > There's something else which needs fixing here - the return code. =A0If
-> > omap_find_iovm_area() returns an error code that needs propagating.
-> > Otherwise it might as well just return NULL for all errors.
-> =
+On Wednesday 22 February 2012 12:19 PM, Tomi Valkeinen wrote:
+> On Wed, 2012-02-22 at 11:15 +0530, Archit Taneja wrote:
+>> On Tuesday 21 February 2012 09:38 PM, Tomi Valkeinen wrote:
+>>> On Tue, 2012-02-21 at 19:36 +0530, Archit Taneja wrote:
+>>>> From: Lajos Molnar<lajos@ti.com>
+>>>>
+>>>> If DSS is suspended during a wait_for_vsync operation, it may loose its clock.
+>>>> Request runtime_pm around wait_for_vsync.
+>>>>
+>>>> Signed-off-by: Lajos Molnar<lajos@ti.com>
+>>>> Signed-off-by: Archit Taneja<archit@ti.com>
+>>>> ---
+>>>>    drivers/video/omap2/dss/dispc.c |   16 +++++++++++-----
+>>>>    1 files changed, 11 insertions(+), 5 deletions(-)
+>>>
+>>> This only handles omap_dispc_wait_for_irq_interruptible_timeout(),
+>>> there's also omap_dispc_wait_for_irq_timeout().
+>>>
+>>> However, I think it'd be better to do the runtime_get/put in the caller,
+>>> instead of in these dispc's wait funcs. While it doesn't really matter
+>>> with dss_mgr_wait_for_vsync(), for dss_mgr/ovl_wait_for_go() it makes
+>>> much more sense to get/put there just once, instead of every time the
+>>> omap_dispc_wait_* is called.
+>>
+>> Right, that makes sense. Btw, in the current code, how do we ensure that
+>> clocks are enabled when someone calls omap_dss_mgr_apply().
+>
+> We don't. Apply does not touch any of the registers if the corresponding
+> manager is not enabled, so there's no need to enable clocks.
 
-> Seems like it does just return NULL for all errors, so a cleaner fix
-> can probably just be s/IS_ERR(area)/!area/.
-> =
+Okay, so if a manager is disabled, we won't write to the registers, but 
+still update the private data of the manager and connected overlays, and 
+these will be later written to the registers once the manager gets 
+enabled. Makes sense.
 
-> I'll submit it, but Joerg, if you feel this is becoming a "cleanup",
-> feel free to take the first version.
+In the older apply, we used to always enable clocks, even if we wrote to 
+registers or not. So I got mixed up with that.
 
-That sounds more like a bug fix than a cleanup to me.
+Thanks,
+Archit
+
+>
+>   Tomi
+>
+
