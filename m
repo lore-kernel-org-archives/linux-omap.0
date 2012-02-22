@@ -1,155 +1,369 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: [PATCH/RFT v2] cpufreq: OMAP: scale voltage along with frequency
-Date: Tue, 21 Feb 2012 17:33:12 -0800
-Message-ID: <1329874392-4352-1-git-send-email-khilman@ti.com>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 7/8] ARM: OMAP: Remove plat/io.h by moving it into mach/io.h
+Date: Tue, 21 Feb 2012 20:24:59 -0600
+Message-ID: <4F4451FB.7070007@gmail.com>
+References: <20120221233619.18709.87982.stgit@kaulin.local> <20120221234049.18709.28987.stgit@kaulin.local>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55148 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751719Ab2BVBca (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Feb 2012 20:32:30 -0500
-Received: by daed14 with SMTP id d14so7879662dae.5
-        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 17:32:28 -0800 (PST)
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:58769 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755738Ab2BVCZE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 21:25:04 -0500
+Received: by ggnh1 with SMTP id h1so3228915ggn.19
+        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 18:25:03 -0800 (PST)
+In-Reply-To: <20120221234049.18709.28987.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <t-kristo@ti.com>, Afzal Mohammed <afzal@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Use the regulator framework to get the voltage regulator associated
-with the MPU voltage domain and use it to scale voltage along with
-frequency.
+On 02/21/2012 05:40 PM, Tony Lindgren wrote:
+> This is needed so we can eventually remove mach/io.h
+> for omap2+.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap1/include/mach/io.h |   78 ++++++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/common.h          |   10 ++++
+>  arch/arm/mach-omap2/include/mach/io.h |   60 +++++++++++++++++++++++-
+>  arch/arm/mach-omap2/pm24xx.c          |    2 -
+>  arch/arm/plat-omap/dma.c              |    2 +
+>  arch/arm/plat-omap/include/plat/io.h  |   84 ---------------------------------
+>  arch/arm/plat-omap/usb.c              |    2 +
+>  7 files changed, 150 insertions(+), 88 deletions(-)
+>  delete mode 100644 arch/arm/plat-omap/include/plat/io.h
+> 
+> diff --git a/arch/arm/mach-omap1/include/mach/io.h b/arch/arm/mach-omap1/include/mach/io.h
+> index 57bdf74..07ffba8 100644
+> --- a/arch/arm/mach-omap1/include/mach/io.h
+> +++ b/arch/arm/mach-omap1/include/mach/io.h
+> @@ -1,5 +1,81 @@
+>  /*
+>   * arch/arm/mach-omap1/include/mach/io.h
+> + *
+> + * IO definitions for TI OMAP processors and boards
+> + *
+> + * Copied from arch/arm/mach-sa1100/include/mach/io.h
+> + * Copyright (C) 1997-1999 Russell King
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 675 Mass Ave, Cambridge, MA 02139, USA.
+> + *
+> + * Modifications:
+> + *  06-12-1997	RMK	Created.
+> + *  07-04-1999	RMK	Major cleanup
+>   */
+>  
+> -#include <plat/io.h>
+> +#ifndef __ASM_ARM_ARCH_IO_H
+> +#define __ASM_ARM_ARCH_IO_H
+> +
+> +#include <mach/hardware.h>
 
-While here, CONFIG_CPU_FREQ_DEBUG doesn't exist anymore, so move
-debug prints to use dev_dbg().
+This shouldn't be needed.
 
-Special thanks to Afzal Mohammed for suggestions on more robust error
-checking.
+> +
+> +#define IO_SPACE_LIMIT 0xffffffff
+> +
+> +/*
+> + * We don't actually have real ISA nor PCI buses, but there is so many
+> + * drivers out there that might just work if we fake them...
+> + */
+> +#define __io(a)		__typesafe_io(a)
+> +#define __mem_pci(a)	(a)
+> +
+> +/*
+> + * ----------------------------------------------------------------------------
+> + * I/O mapping
+> + * ----------------------------------------------------------------------------
+> + */
+> +
+> +#ifdef __ASSEMBLER__
+> +#define IOMEM(x)		(x)
+> +#else
+> +#define IOMEM(x)		((void __force __iomem *)(x))
+> +#endif
+> +
 
-Cc: Afzal Mohammed  <afzal@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- drivers/cpufreq/omap-cpufreq.c |   68 +++++++++++++++++++++++++++++++++++++---
- 1 files changed, 63 insertions(+), 5 deletions(-)
+This can't be moved to iomap.h? I did that for other platforms.
 
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-index 5d04c57..9f5d636 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -25,6 +25,7 @@
- #include <linux/opp.h>
- #include <linux/cpu.h>
- #include <linux/module.h>
-+#include <linux/regulator/consumer.h>
- 
- #include <asm/system.h>
- #include <asm/smp_plat.h>
-@@ -52,6 +53,7 @@ static atomic_t freq_table_users = ATOMIC_INIT(0);
- static struct clk *mpu_clk;
- static char *mpu_clk_name;
- static struct device *mpu_dev;
-+static struct regulator *mpu_reg;
- 
- static int omap_verify_speed(struct cpufreq_policy *policy)
- {
-@@ -76,8 +78,10 @@ static int omap_target(struct cpufreq_policy *policy,
- 		       unsigned int relation)
- {
- 	unsigned int i;
--	int ret = 0;
-+	int r, ret = 0;
- 	struct cpufreq_freqs freqs;
-+	struct opp *opp;
-+	unsigned long freq, volt = 0, volt_old = 0;
- 
- 	if (!freq_table) {
- 		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
-@@ -111,13 +115,49 @@ static int omap_target(struct cpufreq_policy *policy,
- 		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
- 	}
- 
--#ifdef CONFIG_CPU_FREQ_DEBUG
--	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old, freqs.new);
--#endif
-+	freq = freqs.new * 1000;
-+
-+	if (mpu_reg) {
-+		opp = opp_find_freq_ceil(mpu_dev, &freq);
-+		if (IS_ERR(opp)) {
-+			dev_err(mpu_dev, "%s: unable to find MPU OPP for %d\n",
-+				__func__, freqs.new);
-+			return -EINVAL;
-+		}
-+		volt = opp_get_voltage(opp);
-+		volt_old = regulator_get_voltage(mpu_reg);
-+	}
-+
-+	dev_dbg(mpu_dev, "cpufreq-omap: %u MHz, %ld mV --> %u MHz, %ld mV\n", 
-+		freqs.old / 1000, volt_old ? volt_old / 1000 : -1,
-+		freqs.new / 1000, volt ? volt / 1000 : -1);
-+
-+	/* scaling up?  scale voltage before frequency */
-+	if (mpu_reg && (freqs.new > freqs.old)) {
-+		r = regulator_set_voltage(mpu_reg, volt, volt);
-+		if (r < 0) {
-+			dev_warn(mpu_dev, "%s: unable to scale voltage up.\n",
-+				 __func__);
-+			freqs.new = freqs.old;
-+			goto done;
-+		}
-+	}
- 
- 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
--	freqs.new = omap_getspeed(policy->cpu);
- 
-+	/* scaling down?  scale voltage after frequency */
-+	if (mpu_reg && (freqs.new < freqs.old)) {
-+		r = regulator_set_voltage(mpu_reg, volt, volt);
-+		if (r < 0) {
-+			dev_warn(mpu_dev, "%s: unable to scale voltage down.\n",
-+				 __func__);
-+			ret = clk_set_rate(mpu_clk, freqs.old * 1000);
-+			freqs.new = freqs.old;
-+			goto done;
-+		}
-+	}
-+
-+	freqs.new = omap_getspeed(policy->cpu);
- #ifdef CONFIG_SMP
- 	/*
- 	 * Note that loops_per_jiffy is not updated on SMP systems in
-@@ -144,6 +184,7 @@ static int omap_target(struct cpufreq_policy *policy,
- 					freqs.new);
- #endif
- 
-+done:
- 	/* notifiers */
- 	for_each_cpu(i, policy->cpus) {
- 		freqs.cpu = i;
-@@ -260,6 +301,23 @@ static int __init omap_cpufreq_init(void)
- 		return -EINVAL;
- 	}
- 
-+	mpu_reg = regulator_get(mpu_dev, "vcc");
-+	if (IS_ERR(mpu_reg)) {
-+		pr_warning("%s: unable to get MPU regulator\n", __func__);
-+		mpu_reg = NULL;
-+	} else {
-+		/* 
-+		 * Ensure physical regulator is present.
-+		 * (e.g. could be dummy regulator.)
-+		 */
-+		if (regulator_get_voltage(mpu_reg) < 0) {
-+			pr_warn("%s: physical regulator not present for MPU\n",
-+				__func__);
-+			regulator_put(mpu_reg);
-+			mpu_reg = NULL;
-+		}
-+	}
-+
- 	return cpufreq_register_driver(&omap_driver);
- }
- 
--- 
-1.7.9.1
+> +/*
+> + * ----------------------------------------------------------------------------
+> + * Omap specific register access
+> + * ----------------------------------------------------------------------------
+> + */
+> +
+> +#ifndef __ASSEMBLER__
+> +
+> +/*
+> + * NOTE: Please use ioremap + __raw_read/write where possible instead of these
+> + */
+> +
+> +extern u8 omap_readb(u32 pa);
+> +extern u16 omap_readw(u32 pa);
+> +extern u32 omap_readl(u32 pa);
+> +extern void omap_writeb(u8 v, u32 pa);
+> +extern void omap_writew(u16 v, u32 pa);
+> +extern void omap_writel(u32 v, u32 pa);
+
+These can't be moved to common.h like omap2?
+
+Same comments on omap2 io.h.
+
+Rob
+
+> +
+> +#endif
+> +
+> +#endif
+> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
+> index f78ec4e..09ca9e9 100644
+> --- a/arch/arm/mach-omap2/common.h
+> +++ b/arch/arm/mach-omap2/common.h
+> @@ -242,5 +242,15 @@ struct omap_sdrc_params;
+>  extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+>  				      struct omap_sdrc_params *sdrc_cs1);
+>  
+> +/*
+> + * NOTE: Please use ioremap + __raw_read/write where possible instead of these
+> + */
+> +extern u8 omap_readb(u32 pa);
+> +extern u16 omap_readw(u32 pa);
+> +extern u32 omap_readl(u32 pa);
+> +extern void omap_writeb(u8 v, u32 pa);
+> +extern void omap_writew(u16 v, u32 pa);
+> +extern void omap_writel(u32 v, u32 pa);
+> +
+>  #endif /* __ASSEMBLER__ */
+>  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
+> diff --git a/arch/arm/mach-omap2/include/mach/io.h b/arch/arm/mach-omap2/include/mach/io.h
+> index fd78f31..7306404 100644
+> --- a/arch/arm/mach-omap2/include/mach/io.h
+> +++ b/arch/arm/mach-omap2/include/mach/io.h
+> @@ -1,5 +1,63 @@
+>  /*
+>   * arch/arm/mach-omap2/include/mach/io.h
+> + *
+> + * IO definitions for TI OMAP processors and boards
+> + *
+> + * Copied from arch/arm/mach-sa1100/include/mach/io.h
+> + * Copyright (C) 1997-1999 Russell King
+> + *
+> + * Copyright (C) 2009 Texas Instruments
+> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 675 Mass Ave, Cambridge, MA 02139, USA.
+> + *
+> + * Modifications:
+> + *  06-12-1997	RMK	Created.
+> + *  07-04-1999	RMK	Major cleanup
+>   */
+>  
+> -#include <plat/io.h>
+> +#ifndef __ASM_ARM_ARCH_IO_H
+> +#define __ASM_ARM_ARCH_IO_H
+> +
+> +#include <mach/hardware.h>
+> +
+> +#define IO_SPACE_LIMIT 0xffffffff
+> +
+> +/*
+> + * We don't actually have real ISA nor PCI buses, but there is so many
+> + * drivers out there that might just work if we fake them...
+> + */
+> +#define __io(a)		__typesafe_io(a)
+> +#define __mem_pci(a)	(a)
+> +
+> +/*
+> + * ----------------------------------------------------------------------------
+> + * I/O mapping
+> + * ----------------------------------------------------------------------------
+> + */
+> +
+> +#ifdef __ASSEMBLER__
+> +#define IOMEM(x)		(x)
+> +#else
+> +#define IOMEM(x)		((void __force __iomem *)(x))
+> +#endif
+> +
+> +#endif
+> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+> index ac0d629..894ed2d 100644
+> --- a/arch/arm/mach-omap2/pm24xx.c
+> +++ b/arch/arm/mach-omap2/pm24xx.c
+> @@ -26,7 +26,6 @@
+>  #include <linux/module.h>
+>  #include <linux/delay.h>
+>  #include <linux/clk.h>
+> -#include <linux/io.h>
+>  #include <linux/irq.h>
+>  #include <linux/time.h>
+>  #include <linux/gpio.h>
+> @@ -42,7 +41,6 @@
+>  
+>  #include <mach/irqs.h>
+>  
+> -#include "iomap.h"
+>  #include "common.h"
+>  #include "prm2xxx_3xxx.h"
+>  #include "prm-regbits-24xx.h"
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 002fb4d..95c3ed6 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -164,6 +164,8 @@ static inline void set_gdma_dev(int req, int dev)
+>  }
+>  #else
+>  #define set_gdma_dev(req, dev)	do {} while (0)
+> +#define omap_readl(reg)		0
+> +#define omap_writel(val, reg)	do {} while (0)
+>  #endif
+>  
+>  void omap_set_dma_priority(int lch, int dst_port, int priority)
+> diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
+> deleted file mode 100644
+> index 93261d9..0000000
+> --- a/arch/arm/plat-omap/include/plat/io.h
+> +++ /dev/null
+> @@ -1,84 +0,0 @@
+> -/*
+> - * arch/arm/plat-omap/include/mach/io.h
+> - *
+> - * IO definitions for TI OMAP processors and boards
+> - *
+> - * Copied from arch/arm/mach-sa1100/include/mach/io.h
+> - * Copyright (C) 1997-1999 Russell King
+> - *
+> - * Copyright (C) 2009 Texas Instruments
+> - * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify it
+> - * under the terms of the GNU General Public License as published by the
+> - * Free Software Foundation; either version 2 of the License, or (at your
+> - * option) any later version.
+> - *
+> - * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> - * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> - * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> - * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> - * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> - * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> - * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> - * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> - * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> - * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> - *
+> - * You should have received a copy of the GNU General Public License along
+> - * with this program; if not, write to the Free Software Foundation, Inc.,
+> - * 675 Mass Ave, Cambridge, MA 02139, USA.
+> - *
+> - * Modifications:
+> - *  06-12-1997	RMK	Created.
+> - *  07-04-1999	RMK	Major cleanup
+> - */
+> -
+> -#ifndef __ASM_ARM_ARCH_IO_H
+> -#define __ASM_ARM_ARCH_IO_H
+> -
+> -#include <mach/hardware.h>
+> -
+> -#define IO_SPACE_LIMIT 0xffffffff
+> -
+> -/*
+> - * We don't actually have real ISA nor PCI buses, but there is so many
+> - * drivers out there that might just work if we fake them...
+> - */
+> -#define __io(a)		__typesafe_io(a)
+> -#define __mem_pci(a)	(a)
+> -
+> -/*
+> - * ----------------------------------------------------------------------------
+> - * I/O mapping
+> - * ----------------------------------------------------------------------------
+> - */
+> -
+> -#ifdef __ASSEMBLER__
+> -#define IOMEM(x)		(x)
+> -#else
+> -#define IOMEM(x)		((void __force __iomem *)(x))
+> -#endif
+> -
+> -/*
+> - * ----------------------------------------------------------------------------
+> - * Omap specific register access
+> - * ----------------------------------------------------------------------------
+> - */
+> -
+> -#ifndef __ASSEMBLER__
+> -
+> -/*
+> - * NOTE: Please use ioremap + __raw_read/write where possible instead of these
+> - */
+> -
+> -extern u8 omap_readb(u32 pa);
+> -extern u16 omap_readw(u32 pa);
+> -extern u32 omap_readl(u32 pa);
+> -extern void omap_writeb(u8 v, u32 pa);
+> -extern void omap_writew(u16 v, u32 pa);
+> -extern void omap_writel(u32 v, u32 pa);
+> -
+> -#endif
+> -
+> -#endif
+> diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
+> index f357088..55a5cd1 100644
+> --- a/arch/arm/plat-omap/usb.c
+> +++ b/arch/arm/plat-omap/usb.c
+> @@ -29,6 +29,8 @@
+>  #include <plat/usb.h>
+>  #include <plat/board.h>
+>  
+> +#include "../mach-omap2/common.h"
+> +
+>  #ifdef	CONFIG_ARCH_OMAP_OTG
+>  
+>  void __init
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
