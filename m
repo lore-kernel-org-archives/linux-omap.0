@@ -1,39 +1,134 @@
-From: Matt Porter <mporter@ti.com>
-Subject: Re: [PATCH 0/2] omap: fix omap2plus defaults for am35xx parts
-Date: Wed, 22 Feb 2012 12:15:11 -0500
-Message-ID: <20120222171511.GC20411@beef>
-References: <1328818586-7104-1-git-send-email-mporter@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [GIT PULL] adding rpmsg and remoteproc to 3.4
+Date: Wed, 22 Feb 2012 19:14:54 +0200
+Message-ID: <CAK=WgbZ2vfyiR0kXa4+-3y9etxQLBfD8b7QRR+r8VCpbOuBruA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:52006 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753762Ab2BVRPI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 12:15:08 -0500
-Received: by ggnh1 with SMTP id h1so174316ggn.19
-        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 09:15:07 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1328818586-7104-1-git-send-email-mporter@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org, "Grosen, Mark" <mgrosen@ti.com>, Brian Swetland <swetland@google.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Rusty Russell <rusty@rustcorp.com.au>, Greg KH <greg@kroah.com>, akpm@linux-foundation.org, Stephen Boyd <sboyd@codeaurora.org>, Russell King <linux@arm.linux.org.uk>, "Shah, Bhavin" <bshah@ti.com>, Iliyan Malchev <malchev@google.com>, "Anna, Suman" <s-anna@ti.com>, "Guzman Lugo, Fernando" <fernando.lugo@ti.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Loic PALLARDY <loic.pallardy@stericsson.com>, Linus Walleij <linus.walleij@linaro.org>, Ludovic BARRE <ludovic.barre@stericsson.com>, Michal Simek <monstr@monstr.eu>, "Clark, Rob" <rob@ti.com>, John Williams <john.williams@petalogix.com>, Saravana Kannan <skannan@co>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>
 
-On Thu, Feb 09, 2012 at 03:16:24PM -0500, Matt Porter wrote:
-> This series enables all current am35xx boards and the on-chip Ethernet
-> driver in omap2plus_defconfig. It will help users of these boards to
-> have a working defconfig out of the box.
-> 
-> Matt Porter (2):
->   omap: enable davinci_emac in omap2plus_defconfig for am35xx
->   omap: build am3517crane board support by default
-> 
->  arch/arm/configs/omap2plus_defconfig |    1 +
->  arch/arm/mach-omap2/Kconfig          |    1 +
->  2 files changed, 2 insertions(+), 0 deletions(-)
+Hi Arnd,
 
-Can these be queued for 3.4? It would be great to have
-omap2plus_defconfig build craneboard support by default to help catch
-any future regressions.
+Please pull:
 
--Matt
+git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git rpmsg-for-3.4
+
+To get the very basic rpmsg+remoteproc core functionality for 3.4.
+
+This is basically the same stuff I sent for 3.3, with an additional
+fix and cleanup which were reported by Grant (and of course the two
+patches that fixed the 3.3 merge conflicts).
+
+This entire patch set has been sitting in linux-next for quite some
+time. I'm not sure if it'd conflict with your tree when you pull it,
+but I can of course ask Stephen to remove my tree if things look ok to
+you.
+
+Please tell me if there are any problems,
+
+Thanks a lot!
+Ohad.
+
+The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
+
+  Linux 3.3-rc1 (2012-01-19 15:04:48 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/ohad/remoteproc.git
+rpmsg-for-3.4
+
+for you to fetch changes up to e12bc14b88d44e5c1456dccb59ff58103f6c6edc:
+
+  remoteproc: s/big switch/lookup table/ (2012-02-22 18:28:49 +0200)
+
+----------------------------------------------------------------
+Adding the rpmsg and remoteproc frameworks, together with
+several bug fixes and clean ups that were collected along the way.
+
+Only very basic functionality is merged at this point (boot a remote
+processor, possibly after configuring its iommu, and then be able to talk
+with it).
+
+And there's a small rpmsg driver sample that shows how easy it is
+now to talk with a service running on a remote processor.
+
+At this point only OMAP4 is supported (but note that we're not populating
+OMAP's platform device yet, since it depends on CMA), but support for other
+platforms is coming soon too.
+
+----------------------------------------------------------------
+Axel Lin (1):
+      rpmsg: rename virtqueue_add_buf_gfp to virtqueue_add_buf
+
+Mark Grosen (2):
+      remoteproc: do not require an iommu
+      remoteproc: avoid registering a virtio device if not supported
+
+Ohad Ben-Cohen (16):
+      remoteproc: add framework for controlling remote processors
+      remoteproc: add debugfs entries
+      remoteproc: create rpmsg virtio device
+      remoteproc/omap: add a remoteproc driver for OMAP4
+      rpmsg: add virtio-based remote processor messaging bus
+      samples/rpmsg: add an rpmsg driver sample
+      remoteproc: remove unused resource type
+      remoteproc/omap: utilize module_platform_driver
+      remoteproc: look for truncated firmware images
+      remoteproc: add Kconfig menu
+      rpmsg: add Kconfig menu
+      remoteproc: depend on EXPERIMENTAL
+      rpmsg: depend on EXPERIMENTAL
+      remoteproc: don't use virtio's weak barriers
+      remoteproc: bail out if firmware has different endianess
+      remoteproc: s/big switch/lookup table/
+
+ Documentation/ABI/testing/sysfs-bus-rpmsg    |   75 ++
+ Documentation/remoteproc.txt                 |  324 ++++++
+ Documentation/rpmsg.txt                      |  293 ++++++
+ MAINTAINERS                                  |    7 +
+ arch/arm/plat-omap/include/plat/remoteproc.h |   57 +
+ drivers/Kconfig                              |    4 +
+ drivers/Makefile                             |    2 +
+ drivers/remoteproc/Kconfig                   |   29 +
+ drivers/remoteproc/Makefile                  |    9 +
+ drivers/remoteproc/omap_remoteproc.c         |  238 +++++
+ drivers/remoteproc/omap_remoteproc.h         |   69 ++
+ drivers/remoteproc/remoteproc_core.c         | 1450 ++++++++++++++++++++++++++
+ drivers/remoteproc/remoteproc_debugfs.c      |  179 ++++
+ drivers/remoteproc/remoteproc_internal.h     |   44 +
+ drivers/remoteproc/remoteproc_rpmsg.c        |  299 ++++++
+ drivers/rpmsg/Kconfig                        |   10 +
+ drivers/rpmsg/Makefile                       |    1 +
+ drivers/rpmsg/virtio_rpmsg_bus.c             | 1026 ++++++++++++++++++
+ include/linux/mod_devicetable.h              |    9 +
+ include/linux/remoteproc.h                   |  271 +++++
+ include/linux/rpmsg.h                        |  326 ++++++
+ include/linux/virtio_ids.h                   |    1 +
+ samples/Kconfig                              |    8 +
+ samples/Makefile                             |    2 +-
+ samples/rpmsg/Makefile                       |    1 +
+ samples/rpmsg/rpmsg_client_sample.c          |  100 ++
+ 26 files changed, 4833 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-rpmsg
+ create mode 100644 Documentation/remoteproc.txt
+ create mode 100644 Documentation/rpmsg.txt
+ create mode 100644 arch/arm/plat-omap/include/plat/remoteproc.h
+ create mode 100644 drivers/remoteproc/Kconfig
+ create mode 100644 drivers/remoteproc/Makefile
+ create mode 100644 drivers/remoteproc/omap_remoteproc.c
+ create mode 100644 drivers/remoteproc/omap_remoteproc.h
+ create mode 100644 drivers/remoteproc/remoteproc_core.c
+ create mode 100644 drivers/remoteproc/remoteproc_debugfs.c
+ create mode 100644 drivers/remoteproc/remoteproc_internal.h
+ create mode 100644 drivers/remoteproc/remoteproc_rpmsg.c
+ create mode 100644 drivers/rpmsg/Kconfig
+ create mode 100644 drivers/rpmsg/Makefile
+ create mode 100644 drivers/rpmsg/virtio_rpmsg_bus.c
+ create mode 100644 include/linux/remoteproc.h
+ create mode 100644 include/linux/rpmsg.h
+ create mode 100644 samples/rpmsg/Makefile
+ create mode 100644 samples/rpmsg/rpmsg_client_sample.c
