@@ -1,44 +1,155 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: OMAP1: Fix out-of-bounds array access for Innovator
-Date: Tue, 21 Feb 2012 16:34:25 -0800
-Message-ID: <20120222003425.GU18185@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: [PATCH/RFT v2] cpufreq: OMAP: scale voltage along with frequency
+Date: Tue, 21 Feb 2012 17:33:12 -0800
+Message-ID: <1329874392-4352-1-git-send-email-khilman@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45404 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830Ab2BVAe2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 19:34:28 -0500
-Content-Disposition: inline
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55148 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751719Ab2BVBca (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Feb 2012 20:32:30 -0500
+Received: by daed14 with SMTP id d14so7879662dae.5
+        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 17:32:28 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: Tero Kristo <t-kristo@ti.com>, Afzal Mohammed <afzal@ti.com>
 
-Otherwise we can get the following on some compilers:
+Use the regulator framework to get the voltage regulator associated
+with the MPU voltage domain and use it to scale voltage along with
+frequency.
 
-arch/arm/mach-omap1/board-innovator.c:419:19: warning:
-array subscript is above array bounds [-Warray-bounds]
-arch/arm/mach-omap1/board-innovator.c:425:19: warning:
-array subscript is above array bounds [-Warray-bounds]
+While here, CONFIG_CPU_FREQ_DEBUG doesn't exist anymore, so move
+debug prints to use dev_dbg().
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Special thanks to Afzal Mohammed for suggestions on more robust error
+checking.
 
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -416,13 +416,13 @@ static void __init innovator_init(void)
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap1510()) {
- 		omap1_usb_init(&innovator1510_usb_config);
--		innovator_config[1].data = &innovator1510_lcd_config;
-+		innovator_config[0].data = &innovator1510_lcd_config;
+Cc: Afzal Mohammed  <afzal@ti.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+---
+ drivers/cpufreq/omap-cpufreq.c |   68 +++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 63 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+index 5d04c57..9f5d636 100644
+--- a/drivers/cpufreq/omap-cpufreq.c
++++ b/drivers/cpufreq/omap-cpufreq.c
+@@ -25,6 +25,7 @@
+ #include <linux/opp.h>
+ #include <linux/cpu.h>
+ #include <linux/module.h>
++#include <linux/regulator/consumer.h>
+ 
+ #include <asm/system.h>
+ #include <asm/smp_plat.h>
+@@ -52,6 +53,7 @@ static atomic_t freq_table_users = ATOMIC_INIT(0);
+ static struct clk *mpu_clk;
+ static char *mpu_clk_name;
+ static struct device *mpu_dev;
++static struct regulator *mpu_reg;
+ 
+ static int omap_verify_speed(struct cpufreq_policy *policy)
+ {
+@@ -76,8 +78,10 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		       unsigned int relation)
+ {
+ 	unsigned int i;
+-	int ret = 0;
++	int r, ret = 0;
+ 	struct cpufreq_freqs freqs;
++	struct opp *opp;
++	unsigned long freq, volt = 0, volt_old = 0;
+ 
+ 	if (!freq_table) {
+ 		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
+@@ -111,13 +115,49 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
  	}
+ 
+-#ifdef CONFIG_CPU_FREQ_DEBUG
+-	pr_info("cpufreq-omap: transition: %u --> %u\n", freqs.old, freqs.new);
+-#endif
++	freq = freqs.new * 1000;
++
++	if (mpu_reg) {
++		opp = opp_find_freq_ceil(mpu_dev, &freq);
++		if (IS_ERR(opp)) {
++			dev_err(mpu_dev, "%s: unable to find MPU OPP for %d\n",
++				__func__, freqs.new);
++			return -EINVAL;
++		}
++		volt = opp_get_voltage(opp);
++		volt_old = regulator_get_voltage(mpu_reg);
++	}
++
++	dev_dbg(mpu_dev, "cpufreq-omap: %u MHz, %ld mV --> %u MHz, %ld mV\n", 
++		freqs.old / 1000, volt_old ? volt_old / 1000 : -1,
++		freqs.new / 1000, volt ? volt / 1000 : -1);
++
++	/* scaling up?  scale voltage before frequency */
++	if (mpu_reg && (freqs.new > freqs.old)) {
++		r = regulator_set_voltage(mpu_reg, volt, volt);
++		if (r < 0) {
++			dev_warn(mpu_dev, "%s: unable to scale voltage up.\n",
++				 __func__);
++			freqs.new = freqs.old;
++			goto done;
++		}
++	}
+ 
+ 	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+-	freqs.new = omap_getspeed(policy->cpu);
+ 
++	/* scaling down?  scale voltage after frequency */
++	if (mpu_reg && (freqs.new < freqs.old)) {
++		r = regulator_set_voltage(mpu_reg, volt, volt);
++		if (r < 0) {
++			dev_warn(mpu_dev, "%s: unable to scale voltage down.\n",
++				 __func__);
++			ret = clk_set_rate(mpu_clk, freqs.old * 1000);
++			freqs.new = freqs.old;
++			goto done;
++		}
++	}
++
++	freqs.new = omap_getspeed(policy->cpu);
+ #ifdef CONFIG_SMP
+ 	/*
+ 	 * Note that loops_per_jiffy is not updated on SMP systems in
+@@ -144,6 +184,7 @@ static int omap_target(struct cpufreq_policy *policy,
+ 					freqs.new);
  #endif
- #ifdef CONFIG_ARCH_OMAP16XX
- 	if (cpu_is_omap1610()) {
- 		omap1_usb_init(&h2_usb_config);
--		innovator_config[1].data = &innovator1610_lcd_config;
-+		innovator_config[0].data = &innovator1610_lcd_config;
+ 
++done:
+ 	/* notifiers */
+ 	for_each_cpu(i, policy->cpus) {
+ 		freqs.cpu = i;
+@@ -260,6 +301,23 @@ static int __init omap_cpufreq_init(void)
+ 		return -EINVAL;
  	}
- #endif
- 	omap_board_config = innovator_config;
+ 
++	mpu_reg = regulator_get(mpu_dev, "vcc");
++	if (IS_ERR(mpu_reg)) {
++		pr_warning("%s: unable to get MPU regulator\n", __func__);
++		mpu_reg = NULL;
++	} else {
++		/* 
++		 * Ensure physical regulator is present.
++		 * (e.g. could be dummy regulator.)
++		 */
++		if (regulator_get_voltage(mpu_reg) < 0) {
++			pr_warn("%s: physical regulator not present for MPU\n",
++				__func__);
++			regulator_put(mpu_reg);
++			mpu_reg = NULL;
++		}
++	}
++
+ 	return cpufreq_register_driver(&omap_driver);
+ }
+ 
+-- 
+1.7.9.1
+
