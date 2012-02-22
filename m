@@ -1,78 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/8] ARM: OMAP2+: Move DISPC L3 firewall to happen in
- omap_display_init()
-Date: Wed, 22 Feb 2012 11:05:31 -0800
-Message-ID: <20120222190531.GK18185@atomide.com>
-References: <20120221233619.18709.87982.stgit@kaulin.local>
- <20120221234035.18709.40664.stgit@kaulin.local>
- <1329898191.2070.6.camel@deskari>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv10 3/4] omap3: add common twl configurations for vdd1 and vdd2
+Date: Wed, 22 Feb 2012 11:16:42 -0800
+Message-ID: <8739a21xwl.fsf@ti.com>
+References: <1329733568-26676-1-git-send-email-t-kristo@ti.com>
+	<1329733568-26676-4-git-send-email-t-kristo@ti.com>
+	<871upn4tzf.fsf@ti.com> <1329907675.4102.488.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59829 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754820Ab2BVTFf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 14:05:35 -0500
-Content-Disposition: inline
-In-Reply-To: <1329898191.2070.6.camel@deskari>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:35158 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753213Ab2BVTQc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Feb 2012 14:16:32 -0500
+Received: by mail-pw0-f50.google.com with SMTP id wy7so451745pbc.9
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 11:16:31 -0800 (PST)
+In-Reply-To: <1329907675.4102.488.camel@sokoban> (Tero Kristo's message of
+	"Wed, 22 Feb 2012 12:47:55 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-* Tomi Valkeinen <tomi.valkeinen@ti.com> [120221 23:38]:
-> Hi,
-> 
-> On Tue, 2012-02-21 at 15:40 -0800, Tony Lindgren wrote:
-> > Otherwise we cannot move most of plat/io.h to be a local
-> > iomap.h for mach-omap2.
-> > 
-> > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > Cc: linux-fbdev@vger.kernel.org
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/mach-omap2/display.c   |    3 +++
-> >  drivers/video/omap2/dss/dispc.c |    5 -----
-> >  2 files changed, 3 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> > index 3677b1f..5a7f12f 100644
-> > --- a/arch/arm/mach-omap2/display.c
-> > +++ b/arch/arm/mach-omap2/display.c
-> > @@ -191,6 +191,9 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
-> >  	memset(&pdata, 0, sizeof(pdata));
-> >  
-> >  	if (cpu_is_omap24xx()) {
-> > +		/* L3 firewall setting: enable access to OCM RAM */
-> > +		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
-> > +
-> >  		curr_dss_hwmod = omap2_dss_hwmod_data;
-> >  		oh_count = ARRAY_SIZE(omap2_dss_hwmod_data);
-> >  	} else if (cpu_is_omap34xx()) {
-> > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> > index e1626a1..cce0820 100644
-> > --- a/drivers/video/omap2/dss/dispc.c
-> > +++ b/drivers/video/omap2/dss/dispc.c
-> > @@ -3272,11 +3272,6 @@ static void _omap_dispc_initial_config(void)
-> >  	if (dss_has_feature(FEAT_FUNCGATED))
-> >  		REG_FLD_MOD(DISPC_CONFIG, 1, 9, 9);
-> >  
-> > -	/* L3 firewall setting: enable access to OCM RAM */
-> > -	/* XXX this should be somewhere in plat-omap */
-> > -	if (cpu_is_omap24xx())
-> > -		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
-> > -
-> >  	_dispc_setup_color_conv_coef();
-> >  
-> >  	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
-> > 
-> 
-> I think the whole raw_writel line can be removed. It's been copied from
-> the old omapfb, and my understanding is that it's about using SRAM for
-> framebuffer. Using SRAM for fb is no longer supported, and I have a
-> patch set that removes the remaining SRAM code from omapfb/omapdss.
+Tero Kristo <t-kristo@ti.com> writes:
 
-OK, I'll remove those from drivers/video/omap2/dss/dispc.c so this
-series keeps building.
+> On Tue, 2012-02-21 at 16:00 -0800, Kevin Hilman wrote:
+>> Tero Kristo <t-kristo@ti.com> writes:
+>> 
+>> > VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
+>> > to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
+>> > are needed by DVFS.
+>> >
+>> > Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manuals:
+>> > - SWCS019L : TWL4030 ES3.1 Data Manual rev L
+>> > - SWCS030E : TWL5030 ES1.2 Data Manual rev E
+>> >
+>> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
+>> 
+>> Do you have a similar patch for OMAP4 support?
+>
+> It looks like OMAP4 support requires some changes to the twl-regulator /
+> twl-core in addition to the twl-common.c. I have these available (just
+> created them), should I post these out? 
 
-Tony
+Yes please.
+
+> Attached here for reference in case you need to test something
+> quickly.
+
+Thanks, it's easier for me to validate actual voltage scaling on OMAP4
+since I have a setup to easily measure voltage rails.
+
+Thanks for these, I verified they work using my v2 CPUfreq driver on
+OMAP4430.
+
+Kevin
+
