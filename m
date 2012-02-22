@@ -1,58 +1,77 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv10 3/4] omap3: add common twl configurations for vdd1 and vdd2
-Date: Wed, 22 Feb 2012 11:16:42 -0800
-Message-ID: <8739a21xwl.fsf@ti.com>
-References: <1329733568-26676-1-git-send-email-t-kristo@ti.com>
-	<1329733568-26676-4-git-send-email-t-kristo@ti.com>
-	<871upn4tzf.fsf@ti.com> <1329907675.4102.488.camel@sokoban>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: Re: Latest OMAP randconfig build error
+Date: Wed, 22 Feb 2012 13:40:03 -0600
+Message-ID: <CAB-zwWjr8dG8ETX7cPHAN2fX6xJp8ofEXyU17BFHj_KqjNceuQ@mail.gmail.com>
+References: <20120222085130.GE22675@n2100.arm.linux.org.uk>
+	<CAK=WgbYxJyLoYs6vcj0dhSSAFX3vHqZAOHcr9t3+xEAh4ZPBNA@mail.gmail.com>
+	<20120222175822.GV18185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:35158 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753213Ab2BVTQc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 14:16:32 -0500
-Received: by mail-pw0-f50.google.com with SMTP id wy7so451745pbc.9
-        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 11:16:31 -0800 (PST)
-In-Reply-To: <1329907675.4102.488.camel@sokoban> (Tero Kristo's message of
-	"Wed, 22 Feb 2012 12:47:55 +0200")
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:50462 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752479Ab2BVTkE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Feb 2012 14:40:04 -0500
+Received: by mail-bk0-f50.google.com with SMTP id y15so466919bkt.9
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 11:40:03 -0800 (PST)
+In-Reply-To: <20120222175822.GV18185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "Anna, Suman" <s-anna@ti.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
-
-> On Tue, 2012-02-21 at 16:00 -0800, Kevin Hilman wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
->> 
->> > VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
->> > to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
->> > are needed by DVFS.
->> >
->> > Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manuals:
->> > - SWCS019L : TWL4030 ES3.1 Data Manual rev L
->> > - SWCS030E : TWL5030 ES1.2 Data Manual rev E
->> >
->> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
->> 
->> Do you have a similar patch for OMAP4 support?
+On Wed, Feb 22, 2012 at 11:58 AM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Ohad Ben-Cohen <ohad@wizery.com> [120222 01:30]:
+>> + Tony, Suman
+>>
+>> On Wed, Feb 22, 2012 at 10:51 AM, Russell King - ARM Linux
+>> <linux@arm.linux.org.uk> wrote:
+>> > arch/arm/mach-omap2/mailbox.c: In function 'omap2_mbox_probe':
+>> > arch/arm/mach-omap2/mailbox.c:354: error: 'omap2_mboxes' undeclare=
+d (first use in this function)
+>> > arch/arm/mach-omap2/mailbox.c:354: error: (Each undeclared identif=
+ier is reported only once
+>> > arch/arm/mach-omap2/mailbox.c:354: error: for each function it app=
+ears in.)
+>>
+>> The below should trivially solve this, but I wonder if there was any
+>> other merit in explicitly using CONFIG_SOC_OMAP2420 there (any
+>> different between 2420 and 2430 in that respect ?).
+>>
+>> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mai=
+lbox.c
+>> index 609ea2d..e61d275 100644
+>> --- a/arch/arm/mach-omap2/mailbox.c
+>> +++ b/arch/arm/mach-omap2/mailbox.c
+>> @@ -258,7 +258,7 @@ struct omap_mbox mbox_dsp_info =3D {
+>> =A0struct omap_mbox *omap3_mboxes[] =3D { &mbox_dsp_info, NULL };
+>> =A0#endif
+>>
+>> -#if defined(CONFIG_SOC_OMAP2420)
+>> +#if defined(CONFIG_ARCH_OMAP2)
+>> =A0/* IVA */
+>> =A0static struct omap_mbox2_priv omap2_mbox_iva_priv =3D {
+>> =A0 =A0 =A0 .tx_fifo =3D {
 >
-> It looks like OMAP4 support requires some changes to the twl-regulator /
-> twl-core in addition to the twl-common.c. I have these available (just
-> created them), should I post these out? 
+> 2430 is like omap3 for the mailbox. So the code we have seems
+> wrong trying to initialize it like 2420 mailbox. So we either
+> need a new entry for omap2430_mboxes[], or should just bail
+> out from the probe for 2430 for the fix.
 
-Yes please.
+Yes, current code tries to configure both mboxes in a 2430, however it
+shouldn't be assigning an irq line for the iva mbox, and any request
+for iva mbox should fail due to that.
 
-> Attached here for reference in case you need to test something
-> quickly.
+Code is wrong to register both in 2430 though.
 
-Thanks, it's easier for me to validate actual voltage scaling on OMAP4
-since I have a setup to easily measure voltage rails.
+Regards,
 
-Thanks for these, I verified they work using my v2 CPUfreq driver on
-OMAP4430.
-
-Kevin
-
+Omar
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
