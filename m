@@ -1,43 +1,46 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: help: BeagleBoard xM RevC ethernet port
-Date: Wed, 22 Feb 2012 14:00:24 -0800
-Message-ID: <874nuizfyf.fsf@ti.com>
-References: <4F3E0EB7.9060803@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/16] OMAPDSS: old OMAPFB cleanup
+Date: Wed, 22 Feb 2012 14:09:26 -0800
+Message-ID: <20120222220926.GL18185@atomide.com>
+References: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
+ <1329220343.1845.65.camel@deskari>
+ <20120222185016.GI18185@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:42828 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755387Ab2BVWAN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 17:00:13 -0500
-Received: by mail-pw0-f42.google.com with SMTP id wz12so715562pbc.29
-        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 14:00:12 -0800 (PST)
-In-Reply-To: <4F3E0EB7.9060803@ti.com> (Peter Ujfalusi's message of "Fri, 17
-	Feb 2012 10:24:23 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:23654 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753817Ab2BVWJ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 17:09:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20120222185016.GI18185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, balbi@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, archit@ti.com, linux-omap@vger.kernel.org
 
-Peter Ujfalusi <peter.ujfalusi@ti.com> writes:
+* Tony Lindgren <tony@atomide.com> [120222 10:18]:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120214 03:21]:
+> > 
+> > Tony, do you have any feedback on this? I think the arch/arm changes are
+> > quite clean as such, but are you ok with (possibly) breaking N770's
+> > display? The other OMAP1 boards should, at least in theory, work as well
+> > as before.
+> > 
+> > For N770, the bootloader passes the reset GPIO number and number of
+> > datalines, and I have no idea what those are.
+> 
+> I think they should be:
+> 
+> conf->nreset_gpio = 13
+> conf->data_lines = 24
 
-> Hi,
->
-> I hoped that time will solve this, but so far no luck. I just can not
-> get the ethernet port (along with the USB host ports) working on my xM RevC.
-> What is the trick to get it working on 3.3-rc3?
->
-> There seams to be some configuration issue:
->
-> [    1.437530] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-> [    1.444671] ehci_hcd: block sizes: qh 64 qtd 96 itd 160 sitd 96
-> [    1.451354] ehci-omap ehci-omap.0: failed to get ehci port0 regulator
-> [    1.458282] ehci-omap ehci-omap.0: failed to get ehci port1 regulator
+Probably should be:
 
+conf->nreset_gpio = 13
+conf->data_lines = 16
 
-The first thing I try when I see these regulator failures is to add
-CONFIG_REGULATOR_DUMMY=y to the .config to see if that helps.  If so,
-then the board file needs some help configuring the right regulators.
+No luck getting anything on the LCD though with
+current kernel though.
 
-Kevin
+Tony
