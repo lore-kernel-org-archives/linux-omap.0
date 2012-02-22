@@ -1,69 +1,52 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Wed, 22 Feb 2012 15:31:19 +0100
-Message-ID: <4F44FC37.2000701@ti.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com>
+From: Matt Porter <mporter@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+ regulators
+Date: Wed, 22 Feb 2012 11:29:01 -0500
+Message-ID: <20120222162901.GB20411@beef>
+References: <1329151422-2146-1-git-send-email-mporter@ti.com>
+ <20120214110836.GE15338@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34761 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751869Ab2BVObm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 09:31:42 -0500
-In-Reply-To: <4F44FA56.7020000@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120214110836.GE15338@n2100.arm.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: grant.likely@secretlab.ca, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 
-On 2/22/2012 3:23 PM, Rob Herring wrote:
-> On 02/15/2012 10:04 AM, Benoit Cousson wrote:
->> Adapt the GPIO driver to retrieve information from a DT file.
->>
->> Allocate the irq_base dynamically and rename bank->virtual_irq_start
->> to bank->irq_base.
->> Change irq_base type to int instead of u16 to match irq_alloc_descs
->> output.
->>
->> Add documentation for GPIO properties specific to OMAP.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> Cc: Tarun Kanti DebBarma<tarun.kanti@ti.com>
->
-> One comment below, but otherwise:
->
-> Acked-by: Rob Herring<rob.herring@calxeda.com>
->
->> ---
->>   .../devicetree/bindings/gpio/gpio-omap.txt         |   30 +++++
->>   drivers/gpio/gpio-omap.c                           |  121 ++++++++++++++++++--
->>   2 files changed, 142 insertions(+), 9 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>
->> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> new file mode 100644
->> index 0000000..c1b3100
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->> @@ -0,0 +1,30 @@
->> +OMAP GPIO controller bindings
->> +
->> +Required properties:
->> +- compatible:
->> +  - "ti,omap2-gpio" for OMAP2 controllers
->> +  - "ti,omap3-gpio" for OMAP3 controllers
->> +  - "ti,omap4-gpio" for OMAP4 controllers
->> +- #gpio-cells : Should be two.
->> +  - first cell is the pin number
->> +  - second cell is used to specify optional parameters (unused)
->> +- gpio-controller : Marks the device node as a GPIO controller.
->> +- #interrupt-cells : Should be one
->
-> There's no level/edge settings for gpios?
+On Tue, Feb 14, 2012 at 11:08:36AM +0000, Russell King - ARM Linux wrote:
+> Two more points:
+> 
+> On Mon, Feb 13, 2012 at 11:43:42AM -0500, Matt Porter wrote:
+> > This fixes smsc911x support on platforms using gpmc_smsc911x_init().
+> > Commit c7e963f6888816f04d1f5da0e07bec4e0092f227 added the requirement
+> 
+> Always include the commit summary as well here, so:
+> 
+> Commit c7e963f6888816 (net/smsc911x: Add regulator support) added the ...
 
-That's a good question, because I was wondering as well :-)
+Ok. Addressed in v2.
 
-I did no see how it was done in other GPIO implementation.
+> > @@ -55,6 +94,11 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
+> >  
+> >  	gpmc_cfg = board_data;
+> >  
+> > +	if (platform_device_register(&gpmc_smsc911x_regulator) < 0) {
+> > +		pr_err("Unable to register smsc911x regulators\n");
+> > +		return;
+> > +	}
+> 
+> It's always a good idea to indicate why something failed:
+> 
+> 	err = platform_device_register(&gpmc_smsc911x_regulator);
+> 	if (err < 0) {
+> 		pr_err("Unable to register smsc911x regulators: %d\n", err);
+> 		return;
+> 	}
+> 
+> so that people can see not only what failed, but also why it failed.
 
-Benoit
+Looks much better, also addressed in v2.
+
+-Matt
