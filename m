@@ -1,38 +1,89 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv10 3/4] omap3: add common twl configurations for vdd1 and vdd2
-Date: Tue, 21 Feb 2012 16:00:52 -0800
-Message-ID: <871upn4tzf.fsf@ti.com>
-References: <1329733568-26676-1-git-send-email-t-kristo@ti.com>
-	<1329733568-26676-4-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with frequency
+Date: Tue, 21 Feb 2012 16:06:12 -0800
+Message-ID: <87vcmz3f63.fsf@ti.com>
+References: <1329420043-32656-1-git-send-email-khilman@ti.com>
+	<1329420043-32656-2-git-send-email-khilman@ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:37238 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753618Ab2BVAAn (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34974 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753122Ab2BVAGE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Feb 2012 19:00:43 -0500
-Received: by mail-pz0-f50.google.com with SMTP id d2so5746533dal.9
-        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 16:00:42 -0800 (PST)
-In-Reply-To: <1329733568-26676-4-git-send-email-t-kristo@ti.com> (Tero
-	Kristo's message of "Mon, 20 Feb 2012 12:26:07 +0200")
+	Tue, 21 Feb 2012 19:06:04 -0500
+Received: by mail-pz0-f45.google.com with SMTP id p14so9186152dad.4
+        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 16:06:03 -0800 (PST)
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
+	(Afzal Mohammed's message of "Fri, 17 Feb 2012 07:35:55 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
 
-Tero Kristo <t-kristo@ti.com> writes:
+"Mohammed, Afzal" <afzal@ti.com> writes:
 
-> VDD1 and VDD2 are the core voltage regulators on OMAP3. VDD1 is used
-> to control MPU/IVA voltage, and VDD2 is used for CORE. These regulators
-> are needed by DVFS.
+> Hi Kevin,
 >
-> Voltage ranges for VDD1 and VDD2 are taken from twl4030/twl5030 data manuals:
-> - SWCS019L : TWL4030 ES3.1 Data Manual rev L
-> - SWCS030E : TWL5030 ES1.2 Data Manual rev E
+> On Fri, Feb 17, 2012 at 00:50:43, Hilman, Kevin wrote:
+>> +	/* scaling up?  scale voltage before frequency */
+>> +	if (mpu_reg && (freqs.new > freqs.old))
+>> +		regulator_set_voltage(mpu_reg, volt, volt);
 >
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
+> Probably voltage ranges has to be specified, otherwise
+> if I understand correctly,  if exact voltage 'volt'
+> is a value that cannot be set by voltage regulator,
+> it may not work properly.
 
-Do you have a similar patch for OMAP4 support?
+In this case, volt comes from the OPP table, and was requested using a
+rounding call into the OPP table, so the resolution problem is handled
+there.  If 'volt' cannot be set by the regulator, then the OPP tables
+are also broken.
+
+Also, in your patch, you only add some offset.  If you want to be
+approximate, shouldn't you have plus and minus?
+
+IMO, we should let the OPP table handle that, and not the CPUfreq driver.
+
+>>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
+>> -	freqs.new = omap_getspeed(policy->cpu);
+>>  
+>> +	/* scaling down?  scale voltage after frequency */
+>> +	if (mpu_reg && (freqs.new < freqs.old))
+>> +		regulator_set_voltage(mpu_reg, volt, volt);
+>> +
+>> +	freqs.new = omap_getspeed(policy->cpu);
+>
+> It would be better to handle error cases too,
+> we have a patch for doing DVFS for AM335X as follows
+
+I agree, my version is not very robust in the face of errors from the
+regulator framework.
+
+Hoever, I'm not crazy about the extra notifications in your proposed
+patch.  I think it's cleaner to always pre and post notify.  If there's
+a failure, the post notify will have the same freq as the pre-notify,
+but that's not a big problem.
+
+I'll send an updated patch that follows this approach instead:
+
+- pre notify
+
+- scale volage up
+  - if fail, goto done
+
+- scale freq
+
+- scale voltage down
+  - if fail
+    - scale freq back
+    - goto done
+
+- SMP jiffies magic
+
+done:
+- post notify
+
 
 Kevin
