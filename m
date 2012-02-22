@@ -1,369 +1,53 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH 7/8] ARM: OMAP: Remove plat/io.h by moving it into mach/io.h
-Date: Tue, 21 Feb 2012 20:24:59 -0600
-Message-ID: <4F4451FB.7070007@gmail.com>
-References: <20120221233619.18709.87982.stgit@kaulin.local> <20120221234049.18709.28987.stgit@kaulin.local>
+From: Archit Taneja <a0393947@ti.com>
+Subject: Re: [PATCH 3/3] OMAPDSS: DSS: Add runtime_pm protection around wait_for_vsync.
+Date: Wed, 22 Feb 2012 11:15:01 +0530
+Message-ID: <4F4480DD.1000502@ti.com>
+References: <1329833192-16529-1-git-send-email-archit@ti.com>  <1329833192-16529-4-git-send-email-archit@ti.com> <1329840498.2090.36.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:58769 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755738Ab2BVCZE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 21:25:04 -0500
-Received: by ggnh1 with SMTP id h1so3228915ggn.19
-        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 18:25:03 -0800 (PST)
-In-Reply-To: <20120221234049.18709.28987.stgit@kaulin.local>
+Received: from devils.ext.ti.com ([198.47.26.153]:57159 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750769Ab2BVFpM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 00:45:12 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1M5jB6F032719
+	for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 23:45:11 -0600
+In-Reply-To: <1329840498.2090.36.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: lajos@ti.com, linux-omap@vger.kernel.org
 
-On 02/21/2012 05:40 PM, Tony Lindgren wrote:
-> This is needed so we can eventually remove mach/io.h
-> for omap2+.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/mach-omap1/include/mach/io.h |   78 ++++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/common.h          |   10 ++++
->  arch/arm/mach-omap2/include/mach/io.h |   60 +++++++++++++++++++++++-
->  arch/arm/mach-omap2/pm24xx.c          |    2 -
->  arch/arm/plat-omap/dma.c              |    2 +
->  arch/arm/plat-omap/include/plat/io.h  |   84 ---------------------------------
->  arch/arm/plat-omap/usb.c              |    2 +
->  7 files changed, 150 insertions(+), 88 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/include/plat/io.h
-> 
-> diff --git a/arch/arm/mach-omap1/include/mach/io.h b/arch/arm/mach-omap1/include/mach/io.h
-> index 57bdf74..07ffba8 100644
-> --- a/arch/arm/mach-omap1/include/mach/io.h
-> +++ b/arch/arm/mach-omap1/include/mach/io.h
-> @@ -1,5 +1,81 @@
->  /*
->   * arch/arm/mach-omap1/include/mach/io.h
-> + *
-> + * IO definitions for TI OMAP processors and boards
-> + *
-> + * Copied from arch/arm/mach-sa1100/include/mach/io.h
-> + * Copyright (C) 1997-1999 Russell King
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + *
-> + * Modifications:
-> + *  06-12-1997	RMK	Created.
-> + *  07-04-1999	RMK	Major cleanup
->   */
->  
-> -#include <plat/io.h>
-> +#ifndef __ASM_ARM_ARCH_IO_H
-> +#define __ASM_ARM_ARCH_IO_H
-> +
-> +#include <mach/hardware.h>
+On Tuesday 21 February 2012 09:38 PM, Tomi Valkeinen wrote:
+> On Tue, 2012-02-21 at 19:36 +0530, Archit Taneja wrote:
+>> From: Lajos Molnar<lajos@ti.com>
+>>
+>> If DSS is suspended during a wait_for_vsync operation, it may loose its clock.
+>> Request runtime_pm around wait_for_vsync.
+>>
+>> Signed-off-by: Lajos Molnar<lajos@ti.com>
+>> Signed-off-by: Archit Taneja<archit@ti.com>
+>> ---
+>>   drivers/video/omap2/dss/dispc.c |   16 +++++++++++-----
+>>   1 files changed, 11 insertions(+), 5 deletions(-)
+>
+> This only handles omap_dispc_wait_for_irq_interruptible_timeout(),
+> there's also omap_dispc_wait_for_irq_timeout().
+>
+> However, I think it'd be better to do the runtime_get/put in the caller,
+> instead of in these dispc's wait funcs. While it doesn't really matter
+> with dss_mgr_wait_for_vsync(), for dss_mgr/ovl_wait_for_go() it makes
+> much more sense to get/put there just once, instead of every time the
+> omap_dispc_wait_* is called.
 
-This shouldn't be needed.
+Right, that makes sense. Btw, in the current code, how do we ensure that 
+clocks are enabled when someone calls omap_dss_mgr_apply().
 
-> +
-> +#define IO_SPACE_LIMIT 0xffffffff
-> +
-> +/*
-> + * We don't actually have real ISA nor PCI buses, but there is so many
-> + * drivers out there that might just work if we fake them...
-> + */
-> +#define __io(a)		__typesafe_io(a)
-> +#define __mem_pci(a)	(a)
-> +
-> +/*
-> + * ----------------------------------------------------------------------------
-> + * I/O mapping
-> + * ----------------------------------------------------------------------------
-> + */
-> +
-> +#ifdef __ASSEMBLER__
-> +#define IOMEM(x)		(x)
-> +#else
-> +#define IOMEM(x)		((void __force __iomem *)(x))
-> +#endif
-> +
+Archit
 
-This can't be moved to iomap.h? I did that for other platforms.
-
-> +/*
-> + * ----------------------------------------------------------------------------
-> + * Omap specific register access
-> + * ----------------------------------------------------------------------------
-> + */
-> +
-> +#ifndef __ASSEMBLER__
-> +
-> +/*
-> + * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-> + */
-> +
-> +extern u8 omap_readb(u32 pa);
-> +extern u16 omap_readw(u32 pa);
-> +extern u32 omap_readl(u32 pa);
-> +extern void omap_writeb(u8 v, u32 pa);
-> +extern void omap_writew(u16 v, u32 pa);
-> +extern void omap_writel(u32 v, u32 pa);
-
-These can't be moved to common.h like omap2?
-
-Same comments on omap2 io.h.
-
-Rob
-
-> +
-> +#endif
-> +
-> +#endif
-> diff --git a/arch/arm/mach-omap2/common.h b/arch/arm/mach-omap2/common.h
-> index f78ec4e..09ca9e9 100644
-> --- a/arch/arm/mach-omap2/common.h
-> +++ b/arch/arm/mach-omap2/common.h
-> @@ -242,5 +242,15 @@ struct omap_sdrc_params;
->  extern void omap_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
->  				      struct omap_sdrc_params *sdrc_cs1);
->  
-> +/*
-> + * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-> + */
-> +extern u8 omap_readb(u32 pa);
-> +extern u16 omap_readw(u32 pa);
-> +extern u32 omap_readl(u32 pa);
-> +extern void omap_writeb(u8 v, u32 pa);
-> +extern void omap_writew(u16 v, u32 pa);
-> +extern void omap_writel(u32 v, u32 pa);
-> +
->  #endif /* __ASSEMBLER__ */
->  #endif /* __ARCH_ARM_MACH_OMAP2PLUS_COMMON_H */
-> diff --git a/arch/arm/mach-omap2/include/mach/io.h b/arch/arm/mach-omap2/include/mach/io.h
-> index fd78f31..7306404 100644
-> --- a/arch/arm/mach-omap2/include/mach/io.h
-> +++ b/arch/arm/mach-omap2/include/mach/io.h
-> @@ -1,5 +1,63 @@
->  /*
->   * arch/arm/mach-omap2/include/mach/io.h
-> + *
-> + * IO definitions for TI OMAP processors and boards
-> + *
-> + * Copied from arch/arm/mach-sa1100/include/mach/io.h
-> + * Copyright (C) 1997-1999 Russell King
-> + *
-> + * Copyright (C) 2009 Texas Instruments
-> + * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the License, or (at your
-> + * option) any later version.
-> + *
-> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> + *
-> + * You should have received a copy of the GNU General Public License along
-> + * with this program; if not, write to the Free Software Foundation, Inc.,
-> + * 675 Mass Ave, Cambridge, MA 02139, USA.
-> + *
-> + * Modifications:
-> + *  06-12-1997	RMK	Created.
-> + *  07-04-1999	RMK	Major cleanup
->   */
->  
-> -#include <plat/io.h>
-> +#ifndef __ASM_ARM_ARCH_IO_H
-> +#define __ASM_ARM_ARCH_IO_H
-> +
-> +#include <mach/hardware.h>
-> +
-> +#define IO_SPACE_LIMIT 0xffffffff
-> +
-> +/*
-> + * We don't actually have real ISA nor PCI buses, but there is so many
-> + * drivers out there that might just work if we fake them...
-> + */
-> +#define __io(a)		__typesafe_io(a)
-> +#define __mem_pci(a)	(a)
-> +
-> +/*
-> + * ----------------------------------------------------------------------------
-> + * I/O mapping
-> + * ----------------------------------------------------------------------------
-> + */
-> +
-> +#ifdef __ASSEMBLER__
-> +#define IOMEM(x)		(x)
-> +#else
-> +#define IOMEM(x)		((void __force __iomem *)(x))
-> +#endif
-> +
-> +#endif
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-> index ac0d629..894ed2d 100644
-> --- a/arch/arm/mach-omap2/pm24xx.c
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -26,7 +26,6 @@
->  #include <linux/module.h>
->  #include <linux/delay.h>
->  #include <linux/clk.h>
-> -#include <linux/io.h>
->  #include <linux/irq.h>
->  #include <linux/time.h>
->  #include <linux/gpio.h>
-> @@ -42,7 +41,6 @@
->  
->  #include <mach/irqs.h>
->  
-> -#include "iomap.h"
->  #include "common.h"
->  #include "prm2xxx_3xxx.h"
->  #include "prm-regbits-24xx.h"
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 002fb4d..95c3ed6 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -164,6 +164,8 @@ static inline void set_gdma_dev(int req, int dev)
->  }
->  #else
->  #define set_gdma_dev(req, dev)	do {} while (0)
-> +#define omap_readl(reg)		0
-> +#define omap_writel(val, reg)	do {} while (0)
->  #endif
->  
->  void omap_set_dma_priority(int lch, int dst_port, int priority)
-> diff --git a/arch/arm/plat-omap/include/plat/io.h b/arch/arm/plat-omap/include/plat/io.h
-> deleted file mode 100644
-> index 93261d9..0000000
-> --- a/arch/arm/plat-omap/include/plat/io.h
-> +++ /dev/null
-> @@ -1,84 +0,0 @@
-> -/*
-> - * arch/arm/plat-omap/include/mach/io.h
-> - *
-> - * IO definitions for TI OMAP processors and boards
-> - *
-> - * Copied from arch/arm/mach-sa1100/include/mach/io.h
-> - * Copyright (C) 1997-1999 Russell King
-> - *
-> - * Copyright (C) 2009 Texas Instruments
-> - * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com>
-> - *
-> - * This program is free software; you can redistribute it and/or modify it
-> - * under the terms of the GNU General Public License as published by the
-> - * Free Software Foundation; either version 2 of the License, or (at your
-> - * option) any later version.
-> - *
-> - * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> - * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> - * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-> - * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> - * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> - * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> - * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> - * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> - * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> - * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> - *
-> - * You should have received a copy of the GNU General Public License along
-> - * with this program; if not, write to the Free Software Foundation, Inc.,
-> - * 675 Mass Ave, Cambridge, MA 02139, USA.
-> - *
-> - * Modifications:
-> - *  06-12-1997	RMK	Created.
-> - *  07-04-1999	RMK	Major cleanup
-> - */
-> -
-> -#ifndef __ASM_ARM_ARCH_IO_H
-> -#define __ASM_ARM_ARCH_IO_H
-> -
-> -#include <mach/hardware.h>
-> -
-> -#define IO_SPACE_LIMIT 0xffffffff
-> -
-> -/*
-> - * We don't actually have real ISA nor PCI buses, but there is so many
-> - * drivers out there that might just work if we fake them...
-> - */
-> -#define __io(a)		__typesafe_io(a)
-> -#define __mem_pci(a)	(a)
-> -
-> -/*
-> - * ----------------------------------------------------------------------------
-> - * I/O mapping
-> - * ----------------------------------------------------------------------------
-> - */
-> -
-> -#ifdef __ASSEMBLER__
-> -#define IOMEM(x)		(x)
-> -#else
-> -#define IOMEM(x)		((void __force __iomem *)(x))
-> -#endif
-> -
-> -/*
-> - * ----------------------------------------------------------------------------
-> - * Omap specific register access
-> - * ----------------------------------------------------------------------------
-> - */
-> -
-> -#ifndef __ASSEMBLER__
-> -
-> -/*
-> - * NOTE: Please use ioremap + __raw_read/write where possible instead of these
-> - */
-> -
-> -extern u8 omap_readb(u32 pa);
-> -extern u16 omap_readw(u32 pa);
-> -extern u32 omap_readl(u32 pa);
-> -extern void omap_writeb(u8 v, u32 pa);
-> -extern void omap_writew(u16 v, u32 pa);
-> -extern void omap_writel(u32 v, u32 pa);
-> -
-> -#endif
-> -
-> -#endif
-> diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
-> index f357088..55a5cd1 100644
-> --- a/arch/arm/plat-omap/usb.c
-> +++ b/arch/arm/plat-omap/usb.c
-> @@ -29,6 +29,8 @@
->  #include <plat/usb.h>
->  #include <plat/board.h>
->  
-> +#include "../mach-omap2/common.h"
-> +
->  #ifdef	CONFIG_ARCH_OMAP_OTG
->  
->  void __init
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
+>   Tomi
+>
 
