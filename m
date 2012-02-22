@@ -1,36 +1,25 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/16] OMAP1: pass LCD config with
- omapfb_set_lcd_config()
-Date: Wed, 22 Feb 2012 10:10:56 -0800
-Message-ID: <20120222181056.GE18185@atomide.com>
+Subject: Re: [PATCH 14/16] OMAP: Remove OMAP_TAG_LCD and OMAP_TAG_FBMEM
+Date: Wed, 22 Feb 2012 10:11:12 -0800
+Message-ID: <20120222181112.GF18185@atomide.com>
 References: <1327399231-20826-1-git-send-email-tomi.valkeinen@ti.com>
- <1327399231-20826-14-git-send-email-tomi.valkeinen@ti.com>
+ <1327399231-20826-15-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:47036 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:47226 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884Ab2BVSK6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 13:10:58 -0500
+	with ESMTP id S1752884Ab2BVSLN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 13:11:13 -0500
 Content-Disposition: inline
-In-Reply-To: <1327399231-20826-14-git-send-email-tomi.valkeinen@ti.com>
+In-Reply-To: <1327399231-20826-15-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-omap@vger.kernel.org, linux-fbdev@vger.kernel.org, archit@ti.com
 
 * Tomi Valkeinen <tomi.valkeinen@ti.com> [120124 01:30]:
-> LCD config for old omapfb driver is passed with OMAP_TAG_LCD from board
-> files or from the bootloader. In an effort to remove OMAP_TAG_LCD, this
-> patch adds omapfb_set_lcd_config() function that the board files can
-> call to set the LCD config.
-> 
-> This has the drawback that configuration can no longer come from the
-> bootloader. Of the boards supported by the kernel, this should only
-> affect N770 which depends on the data from the bootloader. This patch
-> adds an LCD config for N770 to its board files, but that is most
-> probably broken. Fixing this would need information about the HW setup
-> in N770 boards.
+> These tags are no longer used and can be removed.
 > 
 > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
