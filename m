@@ -1,95 +1,90 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with
- frequency
-Date: Wed, 22 Feb 2012 06:14:57 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A931784AE0@DBDE01.ent.ti.com>
-References: <1329420043-32656-1-git-send-email-khilman@ti.com>
-	<1329420043-32656-2-git-send-email-khilman@ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
- <87vcmz3f63.fsf@ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 3/3] OMAPDSS: DSS: Add runtime_pm protection around
+ wait_for_vsync.
+Date: Wed, 22 Feb 2012 08:49:20 +0200
+Message-ID: <1329893360.1891.1.camel@lappy>
+References: <1329833192-16529-1-git-send-email-archit@ti.com>
+	  <1329833192-16529-4-git-send-email-archit@ti.com>
+	 <1329840498.2090.36.camel@deskari> <4F4480DD.1000502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-HmcREuGiuDH9LoKfkf2f"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58943 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461Ab2BVGPC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 01:15:02 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1M6F08q018160
-	for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 00:15:01 -0600
-In-Reply-To: <87vcmz3f63.fsf@ti.com>
-Content-Language: en-US
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:57741 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752058Ab2BVGtd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Feb 2012 01:49:33 -0500
+Received: by mail-lpp01m010-f49.google.com with SMTP id g1so10826972lah.36
+        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 22:49:30 -0800 (PST)
+In-Reply-To: <4F4480DD.1000502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
-
-Hi Kevin,
-
-On Wed, Feb 22, 2012 at 05:36:12, Hilman, Kevin wrote:
-> In this case, volt comes from the OPP table, and was requested using a
-> rounding call into the OPP table, so the resolution problem is handled
-> there.  If 'volt' cannot be set by the regulator, then the OPP tables
-> are also broken.
-> 
-> Also, in your patch, you only add some offset.  If you want to be
-> approximate, shouldn't you have plus and minus?
-> 
-> IMO, we should let the OPP table handle that, and not the CPUfreq driver.
-
-I have a different opinion.
-
-Consider following case,
-
-Voltage to set for OPPX is 1262.5mV and regulator has steps of 10mV,
-and suppose regulator steps are .., 1260mV, 1270mV etc. Regulator
-framework will not be able to set voltage for OPPX (certainly if
-set_voltage_sel is used) if no range specified.
-
-But instead if range of 1262.5 - (1262.5 + 10 - 1) is provided,
-regulator can certainly set voltage for 1270mV (a nearest value)
-
-Resolution in my patch was not meant to be resolution per se, it was meant
-so that a voltage step can always be found for the regulator (assuming
-worst resolution is 12.5mV), and for regulator to get a step, resolution
-had to be used.
-
-Ideal solution may be to use a variable to have a default resolution
-of worst regulator and update it to that of regulator used (perhaps
-making use of something like module parameters)
-
-If regulator for a particular SoC is changed, exact OPP voltage may
-not be settable, but a near value should be sufficient, this can't be
-achieved if range is not specified. That happens exactly for AM335X,
-voltage for one of OPP is 1.26V, but as regulator cannot set the
-value, it is being set at 1.2625V and if no range is specified,
-it will not work.
-
-And in my patch plus - minus was not used as regulator framework will
-try to set voltage for the least voltage which sometimes corresponds
-to exact OPP required value.
-
-For cpufreq omap driver to work with various regulators, it would be
-better to specify ranges.
-
-> I agree, my version is not very robust in the face of errors from the
-> regulator framework.
-> 
-> Hoever, I'm not crazy about the extra notifications in your proposed
-> patch.  I think it's cleaner to always pre and post notify.  If there's
-> a failure, the post notify will have the same freq as the pre-notify,
-> but that's not a big problem.
+To: Archit Taneja <a0393947@ti.com>
+Cc: lajos@ti.com, linux-omap@vger.kernel.org
 
 
-Yes, agree that error handling path is bulky. 
+--=-HmcREuGiuDH9LoKfkf2f
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-A problem that can happen is that drivers who has registered cpufreq
-notifier will think that frequency has changed, that may cause problem
-in addition to delay time getting altered.
+On Wed, 2012-02-22 at 11:15 +0530, Archit Taneja wrote:
+> On Tuesday 21 February 2012 09:38 PM, Tomi Valkeinen wrote:
+> > On Tue, 2012-02-21 at 19:36 +0530, Archit Taneja wrote:
+> >> From: Lajos Molnar<lajos@ti.com>
+> >>
+> >> If DSS is suspended during a wait_for_vsync operation, it may loose it=
+s clock.
+> >> Request runtime_pm around wait_for_vsync.
+> >>
+> >> Signed-off-by: Lajos Molnar<lajos@ti.com>
+> >> Signed-off-by: Archit Taneja<archit@ti.com>
+> >> ---
+> >>   drivers/video/omap2/dss/dispc.c |   16 +++++++++++-----
+> >>   1 files changed, 11 insertions(+), 5 deletions(-)
+> >
+> > This only handles omap_dispc_wait_for_irq_interruptible_timeout(),
+> > there's also omap_dispc_wait_for_irq_timeout().
+> >
+> > However, I think it'd be better to do the runtime_get/put in the caller=
+,
+> > instead of in these dispc's wait funcs. While it doesn't really matter
+> > with dss_mgr_wait_for_vsync(), for dss_mgr/ovl_wait_for_go() it makes
+> > much more sense to get/put there just once, instead of every time the
+> > omap_dispc_wait_* is called.
+>=20
+> Right, that makes sense. Btw, in the current code, how do we ensure that=
+=20
+> clocks are enabled when someone calls omap_dss_mgr_apply().
 
-But whether these are worth handling with a penalty of bulky error
-handling, probably you know better.
+We don't. Apply does not touch any of the registers if the corresponding
+manager is not enabled, so there's no need to enable clocks.
 
-Regards
-Afzal
+ Tomi
+
+
+--=-HmcREuGiuDH9LoKfkf2f
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJPRI/wAAoJEPo9qoy8lh71nqIP/0nDTohouMZkhfah5DQWucqu
+jvLz9taqev4a6fN7s7QsRjLTzOwATChm4J6kc2YWk4jexkAuPYjqEP5Mt00rdmcd
+iOLMHW33uAuYXl1nJIOcZ2VebAlfB0yzON9wRLiEU72YS5ln3bCQu04IXq1SbHMH
+dVr6ymNQcnddiWF0q682CRdE5Kw54EIVrfHL7n/uHH21miTY9PXcSQTYM1PVMODn
+HTtoe1KjKsiCW4KCJ516EU9cemxWU2rUYUIWAg89XWM9gJFhHYF8kfWy2UsW0HNX
+LTiNGsHo1l335cvhwXcKRgyAVRfCnziOOFxvdo2ZFzYIhWBsyDVNKHxSODKDZ2z0
+ayez7kwVBwS2lPOPBX8OkNpNYJmTzPMTnFJ0LDxiP4WzkkBFC/89IbvzHqBhdlP8
+Sb84rCwgAL4p2JbE86J+foRF2u35Jimj9cvF40LtEuzltu2QOVmvOjPGC5fttYmE
+1ryXt1Th1WYJBdLSPyK64TY6qzj2QRqwQyB4ud5B7BSnfzJlB48hzH9J1UbnJRtw
+Sl0+/+k35tTkEYmULfBM6Prc/FQWBif2m4L4A9rjTR6pp3g9qMdHh9AILlM7XrVe
+TECvZbV+/N5NSlejUM8mMcuCi1I4G34ijB4gnaB+qdOouKaPOem39LspO+kaPZ9D
+b6w5dhIiYnQHh59pgWA/
+=7XIB
+-----END PGP SIGNATURE-----
+
+--=-HmcREuGiuDH9LoKfkf2f--
+
