@@ -1,116 +1,32 @@
-From: Archit Taneja <archit@ti.com>
-Subject: [PATCH v2 3/3] OMAPDSS: MANAGER/APPLY: Add runtime_pm protection around wait_for_go/vsync functions
-Date: Wed, 22 Feb 2012 12:23:16 +0530
-Message-ID: <1329893596-4287-1-git-send-email-archit@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v3 0/3] MFD: twl6040: Conversion to i2c driver
+Date: Wed, 22 Feb 2012 09:34:55 +0200
+Message-ID: <4F449A9F.1040907@ti.com>
+References: <1328868018-24668-1-git-send-email-peter.ujfalusi@ti.com> <20120220194736.GN5387@sortiz-mobl> <4F4372E3.4050408@ti.com> <20120221110533.GT5387@sortiz-mobl> <1329846755.20666.4.camel@odin> <20120221184427.GQ18185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42298 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676Ab2BVGxa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 01:53:30 -0500
-Received: from dlep26.itg.ti.com ([157.170.170.121])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1M6rU3B003362
-	for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 00:53:30 -0600
-Received: from DLEE74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1M6rUko015929
-	for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 00:53:30 -0600 (CST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20120221184427.GQ18185@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Dmitry Torokhov <dtor@mail.ru>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, alsa-devel@alsa-project.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@ti.com
-Cc: lajos@ti.com, linux-omap@vger.kernel.org, Archit Taneja <archit@ti.com>
 
-From: Lajos Molnar <lajos@ti.com>
+Hi Tony,
 
-If DSS suspends within the functions dss_mgr_wait_for_go(),
-dss_mgr_wait_for_go_ovl() or dss_mgr_wait_for_vsync(). It may lose it's clock
-and lead to a register access failure.
+On 02/21/2012 08:44 PM, Tony Lindgren wrote:
+> Yeah looks OK to me, acked that patch. Let me know if there are
+> others I should look.
 
-Request runtime_pm around these functions.
+I would appreciate if you could take a look at this series as well:
+TWL6040: Regulator support
+http://marc.info/?l=3Dlinux-omap&m=3D132947934522602&w=3D2
 
-[archit@ti.com: Moved runtime_pm calls to wait_for_go/vsync functions rather
-then calling them from omap_dispc_wait_for_irq_interruptible_timeout()]
+I have separated the twl6040 i2c driver conversion, and regulator
+support since they are dealing with different issues.
+If you know who should look at the drivers/regulator/twl-regulator.c,
+drivers/mfd/twl.c changes could you CC them as well?
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/video/omap2/dss/apply.c   |   12 ++++++++++++
- drivers/video/omap2/dss/manager.c |   12 +++++++++++-
- 2 files changed, 23 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
-index b0264a1..f145e9c 100644
---- a/drivers/video/omap2/dss/apply.c
-+++ b/drivers/video/omap2/dss/apply.c
-@@ -391,6 +391,10 @@ int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 	if (mgr_manual_update(mgr))
- 		return 0;
- 
-+	r = dispc_runtime_get();
-+	if (r)
-+		return r;
-+
- 	irq = dispc_mgr_get_vsync_irq(mgr->id);
- 
- 	mp = get_mgr_priv(mgr);
-@@ -431,6 +435,8 @@ int dss_mgr_wait_for_go(struct omap_overlay_manager *mgr)
- 		}
- 	}
- 
-+	dispc_runtime_put();
-+
- 	return r;
- }
- 
-@@ -454,6 +460,10 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 	if (ovl_manual_update(ovl))
- 		return 0;
- 
-+	r = dispc_runtime_get();
-+	if (r)
-+		return r;
-+
- 	irq = dispc_mgr_get_vsync_irq(ovl->manager->id);
- 
- 	op = get_ovl_priv(ovl);
-@@ -494,6 +504,8 @@ int dss_mgr_wait_for_go_ovl(struct omap_overlay *ovl)
- 		}
- 	}
- 
-+	dispc_runtime_put();
-+
- 	return r;
- }
- 
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index d1858e7..e736460 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -494,6 +494,11 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- {
- 	unsigned long timeout = msecs_to_jiffies(500);
- 	u32 irq;
-+	int r;
-+
-+	r = dispc_runtime_get();
-+	if (r)
-+		return r;
- 
- 	if (mgr->device->type == OMAP_DISPLAY_TYPE_VENC) {
- 		irq = DISPC_IRQ_EVSYNC_ODD;
-@@ -505,7 +510,12 @@ static int dss_mgr_wait_for_vsync(struct omap_overlay_manager *mgr)
- 		else
- 			irq = DISPC_IRQ_VSYNC2;
- 	}
--	return omap_dispc_wait_for_irq_interruptible_timeout(irq, timeout);
-+
-+	r = omap_dispc_wait_for_irq_interruptible_timeout(irq, timeout);
-+
-+	dispc_runtime_put();
-+
-+	return r;
- }
- 
- int dss_init_overlay_managers(struct platform_device *pdev)
--- 
-1.7.5.4
-
+Regards,
+P=E9ter
