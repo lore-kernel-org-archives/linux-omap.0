@@ -1,69 +1,73 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH 8/8] ARM: OMAP2+: Limit omap_read/write usage to legacy
- USB drivers
-Date: Wed, 22 Feb 2012 10:14:01 +0200
-Message-ID: <1329898441.2070.10.camel@deskari>
-References: <20120221233619.18709.87982.stgit@kaulin.local>
-	 <20120221234051.18709.3571.stgit@kaulin.local>
+Subject: Re: [PATCH 0/3] OMAPDSS: Miscellaneous DISPC Fixes
+Date: Wed, 22 Feb 2012 10:29:53 +0200
+Message-ID: <1329899393.2070.19.camel@deskari>
+References: <1329833192-16529-1-git-send-email-archit@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-hGaf9HnPqA6s91vrxpYC"
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Iu/6KvDJjRfzu9JxvPEl"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:45455 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752777Ab2BVIOH (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:55473 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752632Ab2BVI36 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 03:14:07 -0500
-In-Reply-To: <20120221234051.18709.3571.stgit@kaulin.local>
+	Wed, 22 Feb 2012 03:29:58 -0500
+Received: by mail-lpp01m010-f50.google.com with SMTP id m13so10780914lah.23
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 00:29:57 -0800 (PST)
+In-Reply-To: <1329833192-16529-1-git-send-email-archit@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Archit Taneja <archit@ti.com>
+Cc: lajos@ti.com, linux-omap@vger.kernel.org
 
 
---=-hGaf9HnPqA6s91vrxpYC
+--=-Iu/6KvDJjRfzu9JxvPEl
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2012-02-21 at 15:40 -0800, Tony Lindgren wrote:
-> Drivers should no longer use omap_read/write functions
-> but instead use ioremap + read/write functions.
+On Tue, 2012-02-21 at 19:36 +0530, Archit Taneja wrote:
+> These are some minor Display Controller fixes.
 >=20
-> As some USB legacy code is still shared between omap1 and
-> omap2420, let's limit the omap_read/write to plat/usb.h.
+> Tested on 4430sdp and 3430sdp on the tree:
 >=20
-> Also, let's make drivers/video/omap/lcdc.c depend on
-> ARCH_OMAP1 as it is not needed for omap2+.
+> git://gitorious.org/linux-omap-dss2/linux.git dev
+>=20
+> Lajos Molnar (3):
+>   OMAPDSS: DISPC: Fix OMAP4 supported color formats
+>   OMAPDSS: DISPC: Fix FIR coefficients
+>   OMAPDSS: DSS: Add runtime_pm protection around wait_for_vsync.
+>=20
+>  drivers/video/omap2/dss/dispc.c        |   24 +++++++++++++++---------
+>  drivers/video/omap2/dss/dispc_coefs.c  |    9 ++++-----
+>  drivers/video/omap2/dss/dss_features.c |    3 ++-
+>  3 files changed, 21 insertions(+), 15 deletions(-)
 
-I'm ok with the lcdc.c change, but I also have a patch series that makes
-the same change, plus removes the omap2 code from drivers/video/omap/.
-
-Can you check the series, and give ack if the arch/arm side looks fine?
-It's this one: [PATCH 00/16] OMAPDSS: old OMAPFB cleanup
+Thanks, I've applied these.
 
  Tomi
 
 
---=-hGaf9HnPqA6s91vrxpYC
+
+--=-Iu/6KvDJjRfzu9JxvPEl
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAABAgAGBQJPRKPJAAoJEPo9qoy8lh7190YP/09+OkEGMJuQBQp/ypauztt5
-BnUm9E7Kw47mubN+8tisiB6G6Hup5CbJgX3vCyarYNI7bJ4PWdjqVU36UxWEyiRP
-Rs8LFDN8W5dKQ83wURPLBP4MsXj716mc07rPw1duxfs+fLmtPSAqR7UxaZ2QjEeJ
-Hjz+/mGE4h9CZKmKLPYIRLr6cn/gomj57m07sdX94fseTC3q36YzztlcdljQADvm
-aTEzthVxs+rFDeghklhgl1lpeAYEDnaj/hSX8V6cUnKxgXumltOoT6y7u+DaLeFr
-kC+jrxF3w6BG+HIrHZzR4I441UO/WvBYOEhazax8zNRVTV3j56gMyJOV0Qpk0j2B
-w0sv6TA08Lk4nfEdKdbgB7P5ShmeTX5QbfEZuzFIMI+GLOdTqKI8uNXVcQV60DPd
-C69L18lu0pkfXkGZLe0YTJ1GNKifPf/JXGEIZlhkpg5opX4lXz7tNc7YYDDQbbhB
-cMkTUVlvBOYCyfmfpc7aTCUUA4e+hmgUWjaN4/2OoaASkeYt3JgUrpPyhthj6iXv
-sCJrU8p8fpaKuz0og680MzScqxBFsS1647Awa6r36gI2d4gXgTMK34FonGaMegHm
-AOpTOk80eWrcCdzaQOklamRBwuxtdpKH85b0EhUIvIDJ1hxJHzVm/EN/Qm1RT0u9
-IoAct649PmdKFkKS3b0q
-=n3pr
+iQIcBAABAgAGBQJPRKeBAAoJEPo9qoy8lh71r/MP/1YWCrMNS85cnJuOHAyw5uzk
+9xmTP3/EoNp6PPTDQWAZkdAPUKYl/dny/A0QpHJbR+/OgFX4U9gyXOYfxvu7uFfI
+0nEnrQ0m60x3pPooZ2e/l4xN2VWzU7yK3BAc1w0ZYNGJ4cByZCLPNJKp+XfpkTRm
+9BOB3d5o5am/5PBF9BG1CKVb7+vwVyomE56D2YN98pFeLa9xOMwdbW/fK2Ai+5HH
+XCmFrDFEm6LClwExVA/nDhW1zmj/uLm45MvuNNc1nQtm05f95TGoAr7r4XuG7Vt4
+qarog9OlrlIN3SFhzR/209MSJfh9ofhlgrpOY/XET/SKFbCFuvExPXhRZrRAR5f8
+Glcvabuk6n5FGaaZ4aXt7/z6+8gH3/+2oFNkNaiE0YsbzFsYvYDAkdPKRBmp5U1s
+2cKka3lNxDYsciSmmzRJVtizbflqlkpCaJCl5QST9PAVVomoBMU9Zw3pBmoEWl3s
+eHFtINkcGZLoFSYMkYvdicq96BMhCBeI04Lrn47CoSbg4VUM4x8+mP8sqbPeLIE3
+NngE8WcrxEXRnyCeXvw3QB02K69sGP3kRVT8hqPNw17hmaWhS63sdFBC01fKu44+
+dl3yFeFtQIZGA0NoLS/56H1c7GljtgHCnhSbMz4/zXqaJaQdb9k7LBOzHvFxpaxc
+JWm+JXk1be035+NJlioo
+=RciB
 -----END PGP SIGNATURE-----
 
---=-hGaf9HnPqA6s91vrxpYC--
+--=-Iu/6KvDJjRfzu9JxvPEl--
 
