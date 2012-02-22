@@ -1,113 +1,210 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/8] ARM: OMAP2+: Move DISPC L3 firewall to happen in
- omap_display_init()
-Date: Wed, 22 Feb 2012 14:17:10 -0800
-Message-ID: <20120222221710.GN18185@atomide.com>
-References: <20120221233619.18709.87982.stgit@kaulin.local>
- <20120221234035.18709.40664.stgit@kaulin.local>
- <1329898191.2070.6.camel@deskari>
- <20120222190531.GK18185@atomide.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCHv2 8/8] arm: omap3: prevent per_clkdm from attempting manual domain transitions
+Date: Wed, 22 Feb 2012 14:37:47 -0800
+Message-ID: <87pqd6xzno.fsf@ti.com>
+References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
+	<1329320274-481-9-git-send-email-t-kristo@ti.com>
+	<87pqdf99c2.fsf@ti.com> <1329382652.4102.386.camel@sokoban>
+	<CAMQu2gx5JdKfTTUhi28N_=EZ3tDo7nTRA00ErrMpuGMkOh9rgw@mail.gmail.com>
+	<1329398159.4102.391.camel@sokoban>
+	<1329405804.4102.400.camel@sokoban>
+	<CAMQu2gwMboftdRo9dE38ECp+5o2nTPgxeZ60JrbV0xd8HLNfUg@mail.gmail.com>
+	<1329410895.4102.404.camel@sokoban> <877gzmit2c.fsf@ti.com>
+	<1329470938.4102.408.camel@sokoban>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33723 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399Ab2BVWRP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 17:17:15 -0500
-Content-Disposition: inline
-In-Reply-To: <20120222190531.GK18185@atomide.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:56255 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751207Ab2BVWhg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Feb 2012 17:37:36 -0500
+Received: by mail-pz0-f54.google.com with SMTP id c6so644355dae.41
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 14:37:35 -0800 (PST)
+In-Reply-To: <1329470938.4102.408.camel@sokoban> (Tero Kristo's message of
+	"Fri, 17 Feb 2012 11:28:58 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: t-kristo@ti.com
+Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120222 10:34]:
-> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120221 23:38]:
-> > Hi,
-> > 
-> > On Tue, 2012-02-21 at 15:40 -0800, Tony Lindgren wrote:
-> > > Otherwise we cannot move most of plat/io.h to be a local
-> > > iomap.h for mach-omap2.
-> > > 
-> > > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> > > Cc: linux-fbdev@vger.kernel.org
-> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > > ---
-> > >  arch/arm/mach-omap2/display.c   |    3 +++
-> > >  drivers/video/omap2/dss/dispc.c |    5 -----
-> > >  2 files changed, 3 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-> > > index 3677b1f..5a7f12f 100644
-> > > --- a/arch/arm/mach-omap2/display.c
-> > > +++ b/arch/arm/mach-omap2/display.c
-> > > @@ -191,6 +191,9 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
-> > >  	memset(&pdata, 0, sizeof(pdata));
-> > >  
-> > >  	if (cpu_is_omap24xx()) {
-> > > +		/* L3 firewall setting: enable access to OCM RAM */
-> > > +		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
-> > > +
-> > >  		curr_dss_hwmod = omap2_dss_hwmod_data;
-> > >  		oh_count = ARRAY_SIZE(omap2_dss_hwmod_data);
-> > >  	} else if (cpu_is_omap34xx()) {
-> > > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
-> > > index e1626a1..cce0820 100644
-> > > --- a/drivers/video/omap2/dss/dispc.c
-> > > +++ b/drivers/video/omap2/dss/dispc.c
-> > > @@ -3272,11 +3272,6 @@ static void _omap_dispc_initial_config(void)
-> > >  	if (dss_has_feature(FEAT_FUNCGATED))
-> > >  		REG_FLD_MOD(DISPC_CONFIG, 1, 9, 9);
-> > >  
-> > > -	/* L3 firewall setting: enable access to OCM RAM */
-> > > -	/* XXX this should be somewhere in plat-omap */
-> > > -	if (cpu_is_omap24xx())
-> > > -		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
-> > > -
-> > >  	_dispc_setup_color_conv_coef();
-> > >  
-> > >  	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
-> > > 
-> > 
-> > I think the whole raw_writel line can be removed. It's been copied from
-> > the old omapfb, and my understanding is that it's about using SRAM for
-> > framebuffer. Using SRAM for fb is no longer supported, and I have a
-> > patch set that removes the remaining SRAM code from omapfb/omapdss.
-> 
-> OK, I'll remove those from drivers/video/omap2/dss/dispc.c so this
-> series keeps building.
+Tero Kristo <t-kristo@ti.com> writes:
 
-Here's this one updated.
+> On Thu, 2012-02-16 at 09:31 -0800, Kevin Hilman wrote:
+>> Tero Kristo <t-kristo@ti.com> writes:
+>> 
+>> > On Thu, 2012-02-16 at 21:15 +0530, Shilimkar, Santosh wrote:
+>> >> On Thu, Feb 16, 2012 at 8:53 PM, Tero Kristo <t-kristo@ti.com> wrote:
+>> >> > On Thu, 2012-02-16 at 15:15 +0200, Tero Kristo wrote:
+>> >> >> On Thu, 2012-02-16 at 15:27 +0530, Shilimkar, Santosh wrote:
+>> >> >> > On Thu, Feb 16, 2012 at 2:27 PM, Tero Kristo <t-kristo@ti.com> wrote:
+>> >> >> > > On Wed, 2012-02-15 at 11:37 -0800, Kevin Hilman wrote:
+>> >> >> > >> Tero Kristo <t-kristo@ti.com> writes:
+>> >> >> > >>
+>> >> >> > >> > Attempting this will cause problems especially with off-mode enabled.
+>> >> >> > >>
+>> >> >> > >> Please be more verbose about the problems seen, and the root cause(s).
+>> >> >> > >>
+>> >> >> > >
+>> >> >> > > I was actually looking forward for some help with this commit message,
+>> >> >> > > as I am still not quite sure what is going on in here. :) Here is the
+>> >> >> > > log for suspend (btw, cam_pwrdm does not go to off in mainline yet, but
+>> >> >> > > I think that is probably fixed by the patch from Paul,
+>> >> >> > > omap_set_pwrdm_state() does not work properly.) The warning comes out
+>> >> >> > > after wakeup from off-mode, and it is triggered by the disabling of
+>> >> >> > > autodeps before off-mode entry.
+>> >> >> > >
+>> >> >> > This mostly indicates that one of the per clock-domain module
+>> >> >> > clock turning ON seems to be not working well with auto deps
+>> >> >> > disabled. This leads to interconnect violation.
+>> >> >> >
+>> >> >> > if not tried already, can you put the per_clockdomain in SW_WKUP
+>> >> >> > in the low power code early resume path and see if this
+>> >> >> > error goes away.
+>> >> >>
+>> >> >> This seems to get rid of the dump also. It looks like some driver resume
+>> >> >> is not behaving nicely, I am trying to pinpoint the culprit currently
+>> >> >> and see whether it can provide more info.
+>> >> >
+>> >> > Okay, I have some more info about this now.
+>> >> >
+>> >> > What happens is that when entering off-mode, PER domain remains OFF even
+>> >> > during the execution of the exit phase from omap_sram_idle. Adding a
+>> >> > manual SW_WKUP it comes up and there are no issues. If autodeps are
+>> >> > enabled on the domain, it comes back from off mode as active.
+>> >> >
+>> >> > Looking further in the code, we have this at the end of omap_sram_idle:
+>> >> >
+>> >> >        if (per_next_state < PWRDM_POWER_ON) {
+>> >> >                per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+>> >> >                omap2_gpio_resume_after_idle();
+>> >> >                wake_per();
+>> >> >                if (per_prev_state == PWRDM_POWER_OFF)
+>> >> >                        omap3_per_restore_context();
+>> >> >        }
+>> >> >
+>> >> > ... which seems to assume that per domain is on. Gpio code does not
+>> >> > control any clocks currently, as it only requires the interface clock to
+>> >> > be on, and as this is autoidled....
+>> >> >
+>> >> > Any comments how we should handle this? Shall we just keep these two
+>> >> > patches for handling this or add some different hackery for the gpio
+>> >> > issue?
+>> >> >
+>> >> Good. I thought too that issue will disappear.
+>> >> The issue is pretty clear. Technically every driver pm_runtime() code should
+>> >> be able to manage a clock->clockdomain->power domain power up/down
+>> >> sequence. That should work without auto deps.
+>> >> 
+>> >> Do you narrowed down which driver resume is creating the dump ?
+>> >> UART , GPIO ?
+>> >
+>> > It is the gpio base stuff called from omap_sram_idle(), basically the
+>> > restore context part. If I force enable per domain before the code
+>> > snippet before, there is no dump, but if it is done after, I get the
+>> > dump.
+>> >
+>> > The thing is that gpio driver doesn't currently have this kind of
+>> > mechanism for the restore context part, at least not on omap3 due to
+>> > above clocking issue (only autoidled interface clock is used.)
+>> 
+>> I'm not sure if it fully addresses this, but Tarun's series converts
+>> GPIO to runtime PM.
+>> 
+>> Can you try with Tarun's series.  See the for_3.4/gpio_cleanup_fixes_v9
+>> branch here:
+>> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git
+>
+> It does something for the issue, but I still get this during suspend to
+> off:
+>
+> [   11.284973] PM: Syncing filesystems ... done.
+> [   11.379241] Freezing user space processes ... (elapsed 0.02 seconds)
+> done.
+> [   11.408233] Freezing remaining freezable tasks ... (elapsed 0.02
+> seconds) don
+> e.
+> [   11.439239] Suspending console(s) (use no_console_suspend to debug)
+> [   11.564178] PM: suspend of devices complete after 115.506 msecs
+> [   11.567382] PM: late suspend of devices complete after 3.204 msecs
+> [   11.567443] Disabling non-boot CPUs ...
+> [   12.004089] Powerdomain (cam_pwrdm) didn't enter target state 0
+> [   12.004119] Could not enter target state in pm_suspend
+> [   12.009368] PM: early resume of devices complete after 4.944 msecs
+> [   12.436645] PM: resume of devices complete after 426.086 msecs
+> [   12.480285] Restarting tasks ... done.
+> /sys/kernel/debu[   12.488433] ------------[ cut here ]------------
+> [   12.494415] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1604 _idle
+> +0x164/0x1
+> 7c()
+> [   12.502258] omap_hwmod: gpio6: idle state can only be entered from
+> enabled st
+> ate
+> [   12.509979] Modules linked in:
+> [   12.513214] [<c001bcd0>] (unwind_backtrace+0x0/0xf4) from
+> [<c0042968>] (warn_
+> slowpath_common+0x4c/0x64)
+> [   12.523071] [<c0042968>] (warn_slowpath_common+0x4c/0x64) from
+> [<c0042a14>] (
+> warn_slowpath_fmt+0x30/0x40)
+> [   12.533081] [<c0042a14>] (warn_slowpath_fmt+0x30/0x40) from
+> [<c0028d68>] (_id
+> le+0x164/0x17c)
+> [   12.541931] [<c0028d68>] (_idle+0x164/0x17c) from [<c00298b0>]
+> (omap_hwmod_id
+> le+0x28/0x3c)
+> [   12.550567] [<c00298b0>] (omap_hwmod_idle+0x28/0x3c) from
+> [<c003c664>] (omap_
+> device_idle_hwmods+0x24/0x3c)
+> [   12.560699] [<c003c664>] (omap_device_idle_hwmods+0x24/0x3c) from
+> [<c003c898>
+> ] (_omap_device_deactivate+0xa4/0x138)
+> [   12.571594] [<c003c898>] (_omap_device_deactivate+0xa4/0x138) from
+> [<c003c954
+>>] (omap_device_idle+0x28/0x54)
+> [   12.581909] [<c003c954>] (omap_device_idle+0x28/0x54) from
+> [<c003c99c>] (_od_
+> runtime_suspend+0x1c/0x24)
+> [   12.591735] [<c003c99c>] (_od_runtime_suspend+0x1c/0x24) from
+> [<c02c5010>] (_
+> _rpm_callback+0x2c/0x78)
+> [   12.601379] [<c02c5010>] (__rpm_callback+0x2c/0x78) from [<c02c54d0>]
+> (rpm_su
+> spend+0x264/0x6c4)
+> [   12.610504] [<c02c54d0>] (rpm_suspend+0x264/0x6c4) from [<c02c6998>]
+> (__pm_ru
+> ntime_suspend+0x5c/0x74)
+> [   12.620178] [<c02c6998>] (__pm_runtime_suspend+0x5c/0x74) from
+> [<c02731a4>] (
+> omap2_gpio_prepare_for_idle+0x50/0x64)
+> [   12.631103] [<c02731a4>] (omap2_gpio_prepare_for_idle+0x50/0x64) from
+> [<c002b
+> d30>] (omap_sram_idle+0xa0/0x3b0)
+> [   12.641571] [<c002bd30>] (omap_sram_idle+0xa0/0x3b0) from
+> [<c002c1d8>] (omap3
+> _pm_idle+0x60/0x178)
+> [   12.650848] [<c002c1d8>] (omap3_pm_idle+0x60/0x178) from [<c0015c10>]
+> (cpu_id
+> le+0xc4/0x108)
+> [   12.659606] [<c0015c10>] (cpu_idle+0xc4/0x108) from [<c0626828>]
+> (start_kerne
+> l+0x2b0/0x304)
+> [   12.668365] ---[ end trace 441b8fea2b56dcb1 ]---
+>
+>
+> Also, this goes away if I manually force wakeup for the per domain, so
+> this might be caused by some additional latency.
+>
 
-Tony
+What platform are you testing on?
 
+When I test Tarun's series with off-mode on 3430/n900 suspend/resume
+works fine.  But when I add your v2 series, it never comes out of
+suspend, and I don't get a kernel dump either.
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 20 Feb 2012 12:55:07 -0800
-Subject: [PATCH] ARM: OMAP2+: Drop DISPC L3 firewall code
+Can you debug this a little further so we can explain what's going on
+here?
 
-This is only needed when using SRAM for framebuffer,
-and the support for SRAM framebuffer is about to get
-removed.
+Thanks,
 
-Otherwise we cannot move most of plat/io.h to be a local
-iomap.h for mach-omap2.
-
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/drivers/video/omap2/dss/dispc.c
-+++ b/drivers/video/omap2/dss/dispc.c
-@@ -3272,11 +3272,6 @@ static void _omap_dispc_initial_config(void)
- 	if (dss_has_feature(FEAT_FUNCGATED))
- 		REG_FLD_MOD(DISPC_CONFIG, 1, 9, 9);
- 
--	/* L3 firewall setting: enable access to OCM RAM */
--	/* XXX this should be somewhere in plat-omap */
--	if (cpu_is_omap24xx())
--		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
--
- 	_dispc_setup_color_conv_coef();
- 
- 	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
+Kevin
