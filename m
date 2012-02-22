@@ -1,67 +1,46 @@
-From: Archit Taneja <a0393947@ti.com>
-Subject: Re: [PATCH 3/3] OMAPDSS: DSS: Add runtime_pm protection around wait_for_vsync.
-Date: Wed, 22 Feb 2012 15:16:25 +0530
-Message-ID: <4F44B971.5030402@ti.com>
-References: <1329833192-16529-1-git-send-email-archit@ti.com>   <1329833192-16529-4-git-send-email-archit@ti.com>  <1329840498.2090.36.camel@deskari> <4F4480DD.1000502@ti.com> <1329893360.1891.1.camel@lappy>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: Latest OMAP randconfig build error
+Date: Wed, 22 Feb 2012 12:01:18 +0200
+Message-ID: <CAK=WgbYxJyLoYs6vcj0dhSSAFX3vHqZAOHcr9t3+xEAh4ZPBNA@mail.gmail.com>
+References: <20120222085130.GE22675@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59856 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754141Ab2BVJqf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 04:46:35 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1M9kX4f026370
-	for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 03:46:34 -0600
-In-Reply-To: <1329893360.1891.1.camel@lappy>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:41103 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905Ab2BVKBi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 05:01:38 -0500
+Received: by iacb35 with SMTP id b35so10114565iac.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 02:01:38 -0800 (PST)
+In-Reply-To: <20120222085130.GE22675@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: lajos@ti.com, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, "Anna, Suman" <s-anna@ti.com>
 
-On Wednesday 22 February 2012 12:19 PM, Tomi Valkeinen wrote:
-> On Wed, 2012-02-22 at 11:15 +0530, Archit Taneja wrote:
->> On Tuesday 21 February 2012 09:38 PM, Tomi Valkeinen wrote:
->>> On Tue, 2012-02-21 at 19:36 +0530, Archit Taneja wrote:
->>>> From: Lajos Molnar<lajos@ti.com>
->>>>
->>>> If DSS is suspended during a wait_for_vsync operation, it may loose its clock.
->>>> Request runtime_pm around wait_for_vsync.
->>>>
->>>> Signed-off-by: Lajos Molnar<lajos@ti.com>
->>>> Signed-off-by: Archit Taneja<archit@ti.com>
->>>> ---
->>>>    drivers/video/omap2/dss/dispc.c |   16 +++++++++++-----
->>>>    1 files changed, 11 insertions(+), 5 deletions(-)
->>>
->>> This only handles omap_dispc_wait_for_irq_interruptible_timeout(),
->>> there's also omap_dispc_wait_for_irq_timeout().
->>>
->>> However, I think it'd be better to do the runtime_get/put in the caller,
->>> instead of in these dispc's wait funcs. While it doesn't really matter
->>> with dss_mgr_wait_for_vsync(), for dss_mgr/ovl_wait_for_go() it makes
->>> much more sense to get/put there just once, instead of every time the
->>> omap_dispc_wait_* is called.
->>
->> Right, that makes sense. Btw, in the current code, how do we ensure that
->> clocks are enabled when someone calls omap_dss_mgr_apply().
->
-> We don't. Apply does not touch any of the registers if the corresponding
-> manager is not enabled, so there's no need to enable clocks.
++ Tony, Suman
 
-Okay, so if a manager is disabled, we won't write to the registers, but 
-still update the private data of the manager and connected overlays, and 
-these will be later written to the registers once the manager gets 
-enabled. Makes sense.
+On Wed, Feb 22, 2012 at 10:51 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> arch/arm/mach-omap2/mailbox.c: In function 'omap2_mbox_probe':
+> arch/arm/mach-omap2/mailbox.c:354: error: 'omap2_mboxes' undeclared (first use in this function)
+> arch/arm/mach-omap2/mailbox.c:354: error: (Each undeclared identifier is reported only once
+> arch/arm/mach-omap2/mailbox.c:354: error: for each function it appears in.)
 
-In the older apply, we used to always enable clocks, even if we wrote to 
-registers or not. So I got mixed up with that.
+The below should trivially solve this, but I wonder if there was any
+other merit in explicitly using CONFIG_SOC_OMAP2420 there (any
+different between 2420 and 2430 in that respect ?).
 
-Thanks,
-Archit
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 609ea2d..e61d275 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -258,7 +258,7 @@ struct omap_mbox mbox_dsp_info = {
+ struct omap_mbox *omap3_mboxes[] = { &mbox_dsp_info, NULL };
+ #endif
 
->
->   Tomi
->
-
+-#if defined(CONFIG_SOC_OMAP2420)
++#if defined(CONFIG_ARCH_OMAP2)
+ /* IVA */
+ static struct omap_mbox2_priv omap2_mbox_iva_priv = {
+ 	.tx_fifo = {
