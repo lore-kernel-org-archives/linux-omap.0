@@ -1,156 +1,285 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Questions about DSS device tree adaptation
-Date: Wed, 22 Feb 2012 14:07:23 +0200
-Message-ID: <1329912443.2070.58.camel@deskari>
+From: Rob Herring <robherring2@gmail.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Wed, 22 Feb 2012 08:23:18 -0600
+Message-ID: <4F44FA56.7020000@gmail.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-o4ZzGsI8jgYV6queOeQm"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:42940 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751845Ab2BVMHa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Feb 2012 07:07:30 -0500
-Received: by lags15 with SMTP id s15so416879lag.10
-        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 04:07:25 -0800 (PST)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:45687 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751746Ab2BVOXX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 09:23:23 -0500
+Received: by ghrr11 with SMTP id r11so43265ghr.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 06:23:22 -0800 (PST)
+In-Reply-To: <1329321854-24490-4-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Benoit Cousson <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap mailing list <linux-omap@vger.kernel.org>
+To: Benoit Cousson <b-cousson@ti.com>
+Cc: grant.likely@secretlab.ca, khilman@ti.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
 
+On 02/15/2012 10:04 AM, Benoit Cousson wrote:
+> Adapt the GPIO driver to retrieve information from a DT file.
+> 
+> Allocate the irq_base dynamically and rename bank->virtual_irq_start
+> to bank->irq_base.
+> Change irq_base type to int instead of u16 to match irq_alloc_descs
+> output.
+> 
+> Add documentation for GPIO properties specific to OMAP.
+> 
+> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+> Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
---=-o4ZzGsI8jgYV6queOeQm
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+One comment below, but otherwise:
 
-Hi,
+Acked-by: Rob Herring <rob.herring@calxeda.com>
 
-I'd like to get some feedback for the DSS DT work.
+> ---
+>  .../devicetree/bindings/gpio/gpio-omap.txt         |   30 +++++
+>  drivers/gpio/gpio-omap.c                           |  121 ++++++++++++++++++--
+>  2 files changed, 142 insertions(+), 9 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+> new file mode 100644
+> index 0000000..c1b3100
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+> @@ -0,0 +1,30 @@
+> +OMAP GPIO controller bindings
+> +
+> +Required properties:
+> +- compatible:
+> +  - "ti,omap2-gpio" for OMAP2 controllers
+> +  - "ti,omap3-gpio" for OMAP3 controllers
+> +  - "ti,omap4-gpio" for OMAP4 controllers
+> +- #gpio-cells : Should be two.
+> +  - first cell is the pin number
+> +  - second cell is used to specify optional parameters (unused)
+> +- gpio-controller : Marks the device node as a GPIO controller.
+> +- #interrupt-cells : Should be one
 
-I have currently this in omap4.dtsi, under ocp. It's still a hack, for
-example there's sdi for testing even though omap4 doesn't have SDI
-output.
+There's no level/edge settings for gpios?
 
-dss {
-	compatible =3D "ti,omap4-dss";
-	ti,hwmods =3D "dss_core";
-                                              =20
-	dispc {
-		compatible =3D "ti,omap4-dispc";
-		ti,hwmods =3D "dss_dispc";
-	};
-                                              =20
-	dpi: dpi {
-		compatible =3D "ti,omap4-dpi";
-	};
-                                              =20
-	sdi: sdi {
-		compatible =3D "ti,omap3-sdi";
-	};
-                                              =20
-	dsi1: dsi@1 {
-		compatible =3D "ti,omap4-dsi";
-		ti,hwmods =3D "dss_dsi1";
-		id =3D <0>;
-		vdds_dsi-supply =3D <&vcxio>;
-	};
-                                              =20
-	dsi2: dsi@2 {
-		compatible =3D "ti,omap4-dsi";
-		ti,hwmods =3D "dss_dsi2";
-		id =3D <1>;
-		vdds_dsi-supply =3D <&vcxio>;
-	};
-                                              =20
-	hdmi {
-		compatible =3D "ti,omap4-hdmi";
-		ti,hwmods =3D "dss_hdmi";
-                                              =20
-		hpd_gpio =3D <0>;
-		ls_oe =3D <0>;
-	};
-                                              =20
-	rfbi: rfbi {
-		compatible =3D "ti,omap4-rfbi";
-		ti,hwmods =3D "dss_rfbi";
-	};
-                                              =20
-	venc {
-		compatible =3D "ti,omap4-venc";
-		ti,hwmods =3D "dss_venc";
-	};
-};
-
-And in omap4-panda.dtsi I have:
-
-&dpi {
-	dvi {
-		compatible =3D "ti,tfp410";
-		data-lines =3D <24>;
-		channel =3D <2>;
-		enable-gpio =3D <0>;
-		ddc =3D <&dviddc>;
-	};
-};
-
-
-A few notes/questions about the above:
-
-dispc is not an output interface (so it won't have any children), it
-doesn't have anything to customize in the dt data, and it's present on
-all OMAPs. Should it still be present in the DT data, or should the
-device be created dynamically in platform code?
-
-dpi and sdi are not hwmods as the rest of the nodes. They are, from HW
-point of view, more or less parts of DSS or perhaps DISPC.
-
-dsi nodes have the id property, which is used by the driver to choose
-between DSI1 and DSI2 HW modules. Is there a better way to do this than
-a custom property?
-
-Who/where/when should the devices for dss submodules be created? The
-device for dss-node is created automatically by the of-platform code(?),
-but the rest of the submodules need to be handled by me somehow.
-
-I'm currently using of_platform_populate() in the probe of ti,omap4-dss
-driver to create the subdevices, but this approach doesn't feel right.
-Shouldn't the devices be created already at the boot time by platform
-code, not by the driver code?
-
-Is the "simple-bus", that ocp node also uses, something that I could use
-here? If I define the dss node to be compatible with simple-bus also,
-does it mean that the of-platform code creates the submodules for me?
-Are there any side-effects?
-
-How about the actual panel devices. Above there's the "ti,tfp410"
-device. The panel devices are not plain platform devices, so I need to
-handle those myself. Can I somehow handle that in the platform code,
-creating omap_dss_devices at boot time, or do I need to create those
-devices in, for example in this case, dpi-driver's probe?
-
- Tomi
-
-
---=-o4ZzGsI8jgYV6queOeQm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPRNp6AAoJEPo9qoy8lh71fl4P/2nJxIEujOjztRfrKork2228
-659F5y+BT1yvh50TiIScq7zU4lQQP2H3NrhOFk/xSkDruoIElvqQYZTgoyLUA1ak
-4/9enenKR8YX4JC2zyK6XDpP5zbLXJQWjtzd2Yk/RdkeB7aKQRvZfckiyHfSb5KA
-Og8UjIkzUBbBqoOJdS05oFkOdzOmak6qG4NQpyXYt1GfDspXO2nBsf2Gx0g76QGT
-t7oDAcqGttM2aV4Fkwx869ySGljA8JNqo3XxSWTCtlLHKz4mHWYjFv16YZS4/S6w
-NsCrGFeJqLpmm6bw7NIaDf6xrHBf8P+0FZBTY8Z5p5S189Q+vezTjdDMaANlMt1c
-7bCnMTukSBkjE4R4OOumWu75RbgSbFrPmQ3KiKkyJ1TJf263B6D88iv6NsKY37VR
-crwJ2vpMYjC/nZYSwAfKUgjDYK2XUOQpYxk7Vliu0PkHcYC82AMNzy5tBwx/1Y5k
-MrXmECm4PWu1iKUszpynR0fXqeWhmxtTGuiqCDUGvf7vAYcFEeK1wMzotTEyvUHV
-IHXCLhvrl1yfuUuGPsu+L6gHI2Y3gaKTaJFPsncbse/Pe5tsJzg5k8o62/bCaMOf
-N48i+3Ow5rZURQpSobHd6/uFueDCnjVdjQR183YWokCxXOZWnCz+t0YrARiZ6fVW
-qJpWBgzkPZsK2CXdzQJ7
-=SWWX
------END PGP SIGNATURE-----
-
---=-o4ZzGsI8jgYV6queOeQm--
+> +- interrupt-controller: Mark the device node as an interrupt controller
+> +
+> +OMAP specific properties:
+> +- ti,hwmods: Name of the hwmod associated to the GPIO:
+> +  "gpio<X>", <X> being the 1-based instance number from the HW spec
+> +
+> +
+> +Example:
+> +
+> +gpio4: gpio4 {
+> +    compatible = "ti,omap4-gpio";
+> +    ti,hwmods = "gpio4";
+> +    #gpio-cells = <2>;
+> +    gpio-controller;
+> +    #interrupt-cells = <1>;
+> +    interrupt-controller;
+> +};
+> +
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index c3a9dc8..bc2bd69 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -22,6 +22,9 @@
+>  #include <linux/device.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/pm.h>
+> +#include <linux/of.h>
+> +#include <linux/of_device.h>
+> +#include <linux/irqdomain.h>
+>  
+>  #include <mach/hardware.h>
+>  #include <asm/irq.h>
+> @@ -52,7 +55,8 @@ struct gpio_bank {
+>  	struct list_head node;
+>  	void __iomem *base;
+>  	u16 irq;
+> -	u16 virtual_irq_start;
+> +	int irq_base;
+> +	struct irq_domain *domain;
+>  	u32 suspend_wakeup;
+>  	u32 saved_wakeup;
+>  	u32 non_wakeup_gpios;
+> @@ -669,7 +673,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  		if (!isr)
+>  			break;
+>  
+> -		gpio_irq = bank->virtual_irq_start;
+> +		gpio_irq = bank->irq_base;
+>  		for (; isr != 0; isr >>= 1, gpio_irq++) {
+>  			gpio_index = GPIO_INDEX(bank, irq_to_gpio(gpio_irq));
+>  
+> @@ -915,7 +919,7 @@ static int gpio_2irq(struct gpio_chip *chip, unsigned offset)
+>  	struct gpio_bank *bank;
+>  
+>  	bank = container_of(chip, struct gpio_bank, chip);
+> -	return bank->virtual_irq_start + offset;
+> +	return bank->irq_base + offset;
+>  }
+>  
+>  /*---------------------------------------------------------------------*/
+> @@ -1028,8 +1032,7 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
+>  
+>  	gpiochip_add(&bank->chip);
+>  
+> -	for (j = bank->virtual_irq_start;
+> -		     j < bank->virtual_irq_start + bank->width; j++) {
+> +	for (j = bank->irq_base; j < bank->irq_base + bank->width; j++) {
+>  		irq_set_lockdep_class(j, &gpio_lock_class);
+>  		irq_set_chip_data(j, bank);
+>  		if (bank->is_mpuio) {
+> @@ -1044,15 +1047,22 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
+>  	irq_set_handler_data(bank->irq, bank);
+>  }
+>  
+> +static const struct of_device_id omap_gpio_match[];
+> +
+>  static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>  {
+>  	struct device *dev = &pdev->dev;
+> +	struct device_node *node = dev->of_node;
+> +	const struct of_device_id *match;
+>  	struct omap_gpio_platform_data *pdata;
+>  	struct resource *res;
+>  	struct gpio_bank *bank;
+>  	int ret = 0;
+>  
+> -	if (!dev->platform_data)
+> +	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
+> +
+> +	pdata = match ? match->data : dev->platform_data;
+> +	if (!pdata)
+>  		return -EINVAL;
+>  
+>  	bank = devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank), GFP_KERNEL);
+> @@ -1068,9 +1078,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>  	}
+>  
+>  	bank->irq = res->start;
+> -
+> -	pdata = pdev->dev.platform_data;
+> -	bank->virtual_irq_start = pdata->virtual_irq_start;
+>  	bank->dev = dev;
+>  	bank->dbck_flag = pdata->dbck_flag;
+>  	bank->stride = pdata->bank_stride;
+> @@ -1080,6 +1087,18 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
+>  	bank->loses_context = pdata->loses_context;
+>  	bank->get_context_loss_count = pdata->get_context_loss_count;
+>  	bank->regs = pdata->regs;
+> +#ifdef CONFIG_OF_GPIO
+> +	bank->chip.of_node = of_node_get(node);
+> +#endif
+> +
+> +	bank->irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
+> +	if (bank->irq_base < 0) {
+> +		dev_err(dev, "Couldn't allocate IRQ numbers\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	bank->domain = irq_domain_add_legacy(node, bank->width, bank->irq_base,
+> +					     0, &irq_domain_simple_ops, NULL);
+>  
+>  	if (bank->regs->set_dataout && bank->regs->clr_dataout)
+>  		bank->set_dataout = _set_gpio_dataout_reg;
+> @@ -1387,11 +1406,95 @@ static const struct dev_pm_ops gpio_pm_ops = {
+>  									NULL)
+>  };
+>  
+> +#if defined(CONFIG_OF)
+> +static struct omap_gpio_reg_offs omap2_gpio_regs = {
+> +	.revision =		OMAP24XX_GPIO_REVISION,
+> +	.direction =		OMAP24XX_GPIO_OE,
+> +	.datain =		OMAP24XX_GPIO_DATAIN,
+> +	.dataout =		OMAP24XX_GPIO_DATAOUT,
+> +	.set_dataout =		OMAP24XX_GPIO_SETDATAOUT,
+> +	.clr_dataout =		OMAP24XX_GPIO_CLEARDATAOUT,
+> +	.irqstatus =		OMAP24XX_GPIO_IRQSTATUS1,
+> +	.irqstatus2 =		OMAP24XX_GPIO_IRQSTATUS2,
+> +	.irqenable =		OMAP24XX_GPIO_IRQENABLE1,
+> +	.irqenable2 =		OMAP24XX_GPIO_IRQENABLE2,
+> +	.set_irqenable =	OMAP24XX_GPIO_SETIRQENABLE1,
+> +	.clr_irqenable =	OMAP24XX_GPIO_CLEARIRQENABLE1,
+> +	.debounce =		OMAP24XX_GPIO_DEBOUNCE_VAL,
+> +	.debounce_en =		OMAP24XX_GPIO_DEBOUNCE_EN,
+> +	.ctrl =			OMAP24XX_GPIO_CTRL,
+> +	.wkup_en =		OMAP24XX_GPIO_WAKE_EN,
+> +	.leveldetect0 =		OMAP24XX_GPIO_LEVELDETECT0,
+> +	.leveldetect1 =		OMAP24XX_GPIO_LEVELDETECT1,
+> +	.risingdetect =		OMAP24XX_GPIO_RISINGDETECT,
+> +	.fallingdetect =	OMAP24XX_GPIO_FALLINGDETECT,
+> +};
+> +
+> +static struct omap_gpio_reg_offs omap4_gpio_regs = {
+> +	.revision =		OMAP4_GPIO_REVISION,
+> +	.direction =		OMAP4_GPIO_OE,
+> +	.datain =		OMAP4_GPIO_DATAIN,
+> +	.dataout =		OMAP4_GPIO_DATAOUT,
+> +	.set_dataout =		OMAP4_GPIO_SETDATAOUT,
+> +	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
+> +	.irqstatus =		OMAP4_GPIO_IRQSTATUS0,
+> +	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS1,
+> +	.irqenable =		OMAP4_GPIO_IRQSTATUSSET0,
+> +	.irqenable2 =		OMAP4_GPIO_IRQSTATUSSET1,
+> +	.set_irqenable =	OMAP4_GPIO_IRQSTATUSSET0,
+> +	.clr_irqenable =	OMAP4_GPIO_IRQSTATUSCLR0,
+> +	.debounce =		OMAP4_GPIO_DEBOUNCINGTIME,
+> +	.debounce_en =		OMAP4_GPIO_DEBOUNCENABLE,
+> +	.ctrl =			OMAP4_GPIO_CTRL,
+> +	.wkup_en =		OMAP4_GPIO_IRQWAKEN0,
+> +	.leveldetect0 =		OMAP4_GPIO_LEVELDETECT0,
+> +	.leveldetect1 =		OMAP4_GPIO_LEVELDETECT1,
+> +	.risingdetect =		OMAP4_GPIO_RISINGDETECT,
+> +	.fallingdetect =	OMAP4_GPIO_FALLINGDETECT,
+> +};
+> +
+> +static struct omap_gpio_platform_data omap2_pdata = {
+> +	.regs = &omap2_gpio_regs,
+> +	.bank_width = 32,
+> +	.dbck_flag = false,
+> +};
+> +
+> +static struct omap_gpio_platform_data omap3_pdata = {
+> +	.regs = &omap2_gpio_regs,
+> +	.bank_width = 32,
+> +	.dbck_flag = true,
+> +};
+> +
+> +static struct omap_gpio_platform_data omap4_pdata = {
+> +	.regs = &omap4_gpio_regs,
+> +	.bank_width = 32,
+> +	.dbck_flag = true,
+> +};
+> +
+> +static const struct of_device_id omap_gpio_match[] = {
+> +	{
+> +		.compatible = "ti,omap4-gpio",
+> +		.data = &omap4_pdata,
+> +	},
+> +	{
+> +		.compatible = "ti,omap3-gpio",
+> +		.data = &omap3_pdata,
+> +	},
+> +	{
+> +		.compatible = "ti,omap2-gpio",
+> +		.data = &omap2_pdata,
+> +	},
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, omap_gpio_match);
+> +#endif
+> +
+>  static struct platform_driver omap_gpio_driver = {
+>  	.probe		= omap_gpio_probe,
+>  	.driver		= {
+>  		.name	= "omap_gpio",
+>  		.pm	= &gpio_pm_ops,
+> +		.of_match_table = of_match_ptr(omap_gpio_match),
+>  	},
+>  };
+>  
 
