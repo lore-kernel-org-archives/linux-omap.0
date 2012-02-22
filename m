@@ -1,46 +1,113 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] cbus: Fix lines for Nokia 770
-Date: Wed, 22 Feb 2012 14:09:37 -0800
-Message-ID: <20120222220937.GM18185@atomide.com>
+Subject: Re: [PATCH 1/8] ARM: OMAP2+: Move DISPC L3 firewall to happen in
+ omap_display_init()
+Date: Wed, 22 Feb 2012 14:17:10 -0800
+Message-ID: <20120222221710.GN18185@atomide.com>
+References: <20120221233619.18709.87982.stgit@kaulin.local>
+ <20120221234035.18709.40664.stgit@kaulin.local>
+ <1329898191.2070.6.camel@deskari>
+ <20120222190531.GK18185@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62324 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399Ab2BVWJj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 17:09:39 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33723 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755399Ab2BVWRP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 17:17:15 -0500
 Content-Disposition: inline
+In-Reply-To: <20120222190531.GK18185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <balbi@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
->From 54c4785b8d274f8d282b4243945ae0b17edf4686 Mon Sep 17 00:00:00 2001
+* Tony Lindgren <tony@atomide.com> [120222 10:34]:
+> * Tomi Valkeinen <tomi.valkeinen@ti.com> [120221 23:38]:
+> > Hi,
+> > 
+> > On Tue, 2012-02-21 at 15:40 -0800, Tony Lindgren wrote:
+> > > Otherwise we cannot move most of plat/io.h to be a local
+> > > iomap.h for mach-omap2.
+> > > 
+> > > Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> > > Cc: linux-fbdev@vger.kernel.org
+> > > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > > ---
+> > >  arch/arm/mach-omap2/display.c   |    3 +++
+> > >  drivers/video/omap2/dss/dispc.c |    5 -----
+> > >  2 files changed, 3 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
+> > > index 3677b1f..5a7f12f 100644
+> > > --- a/arch/arm/mach-omap2/display.c
+> > > +++ b/arch/arm/mach-omap2/display.c
+> > > @@ -191,6 +191,9 @@ int __init omap_display_init(struct omap_dss_board_info *board_data)
+> > >  	memset(&pdata, 0, sizeof(pdata));
+> > >  
+> > >  	if (cpu_is_omap24xx()) {
+> > > +		/* L3 firewall setting: enable access to OCM RAM */
+> > > +		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
+> > > +
+> > >  		curr_dss_hwmod = omap2_dss_hwmod_data;
+> > >  		oh_count = ARRAY_SIZE(omap2_dss_hwmod_data);
+> > >  	} else if (cpu_is_omap34xx()) {
+> > > diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/dss/dispc.c
+> > > index e1626a1..cce0820 100644
+> > > --- a/drivers/video/omap2/dss/dispc.c
+> > > +++ b/drivers/video/omap2/dss/dispc.c
+> > > @@ -3272,11 +3272,6 @@ static void _omap_dispc_initial_config(void)
+> > >  	if (dss_has_feature(FEAT_FUNCGATED))
+> > >  		REG_FLD_MOD(DISPC_CONFIG, 1, 9, 9);
+> > >  
+> > > -	/* L3 firewall setting: enable access to OCM RAM */
+> > > -	/* XXX this should be somewhere in plat-omap */
+> > > -	if (cpu_is_omap24xx())
+> > > -		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
+> > > -
+> > >  	_dispc_setup_color_conv_coef();
+> > >  
+> > >  	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
+> > > 
+> > 
+> > I think the whole raw_writel line can be removed. It's been copied from
+> > the old omapfb, and my understanding is that it's about using SRAM for
+> > framebuffer. Using SRAM for fb is no longer supported, and I have a
+> > patch set that removes the remaining SRAM code from omapfb/omapdss.
+> 
+> OK, I'll remove those from drivers/video/omap2/dss/dispc.c so this
+> series keeps building.
+
+Here's this one updated.
+
+Tony
+
+
 From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 22 Feb 2012 13:03:07 -0800
-Subject: [PATCH] cbus: Fix lines for Nokia 770
+Date: Mon, 20 Feb 2012 12:55:07 -0800
+Subject: [PATCH] ARM: OMAP2+: Drop DISPC L3 firewall code
 
-This makes retu and tahvo work again on Nokia 770 so it
-stays running.
+This is only needed when using SRAM for framebuffer,
+and the support for SRAM framebuffer is about to get
+removed.
 
+Otherwise we cannot move most of plat/io.h to be a local
+iomap.h for mach-omap2.
+
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
----
-
-I applied this into cbus branch as it seems to fix retu
-watchdog for Nokia 770.
-
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -87,9 +87,9 @@ static struct platform_device nokia770_kp_device = {
- #if defined(CONFIG_CBUS) || defined(CONFIG_CBUS_MODULE)
+--- a/drivers/video/omap2/dss/dispc.c
++++ b/drivers/video/omap2/dss/dispc.c
+@@ -3272,11 +3272,6 @@ static void _omap_dispc_initial_config(void)
+ 	if (dss_has_feature(FEAT_FUNCGATED))
+ 		REG_FLD_MOD(DISPC_CONFIG, 1, 9, 9);
  
- static struct cbus_host_platform_data nokia770_cbus_data = {
--	.clk_gpio	= OMAP_MPUIO(11),
-+	.clk_gpio	= OMAP_MPUIO(9),
- 	.dat_gpio	= OMAP_MPUIO(10),
--	.sel_gpio	= OMAP_MPUIO(9),
-+	.sel_gpio	= OMAP_MPUIO(11),
- };
+-	/* L3 firewall setting: enable access to OCM RAM */
+-	/* XXX this should be somewhere in plat-omap */
+-	if (cpu_is_omap24xx())
+-		__raw_writel(0x402000b0, OMAP2_L3_IO_ADDRESS(0x680050a0));
+-
+ 	_dispc_setup_color_conv_coef();
  
- static struct platform_device nokia770_cbus_device = {
+ 	dispc_set_loadmode(OMAP_DSS_LOAD_FRAME_ONLY);
