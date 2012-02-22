@@ -1,89 +1,44 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with frequency
-Date: Tue, 21 Feb 2012 16:06:12 -0800
-Message-ID: <87vcmz3f63.fsf@ti.com>
-References: <1329420043-32656-1-git-send-email-khilman@ti.com>
-	<1329420043-32656-2-git-send-email-khilman@ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] ARM: OMAP1: Fix out-of-bounds array access for Innovator
+Date: Tue, 21 Feb 2012 16:34:25 -0800
+Message-ID: <20120222003425.GU18185@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:34974 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753122Ab2BVAGE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Feb 2012 19:06:04 -0500
-Received: by mail-pz0-f45.google.com with SMTP id p14so9186152dad.4
-        for <linux-omap@vger.kernel.org>; Tue, 21 Feb 2012 16:06:03 -0800 (PST)
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
-	(Afzal Mohammed's message of "Fri, 17 Feb 2012 07:35:55 +0000")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45404 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab2BVAe2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Feb 2012 19:34:28 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
 
-"Mohammed, Afzal" <afzal@ti.com> writes:
+Otherwise we can get the following on some compilers:
 
-> Hi Kevin,
->
-> On Fri, Feb 17, 2012 at 00:50:43, Hilman, Kevin wrote:
->> +	/* scaling up?  scale voltage before frequency */
->> +	if (mpu_reg && (freqs.new > freqs.old))
->> +		regulator_set_voltage(mpu_reg, volt, volt);
->
-> Probably voltage ranges has to be specified, otherwise
-> if I understand correctly,  if exact voltage 'volt'
-> is a value that cannot be set by voltage regulator,
-> it may not work properly.
+arch/arm/mach-omap1/board-innovator.c:419:19: warning:
+array subscript is above array bounds [-Warray-bounds]
+arch/arm/mach-omap1/board-innovator.c:425:19: warning:
+array subscript is above array bounds [-Warray-bounds]
 
-In this case, volt comes from the OPP table, and was requested using a
-rounding call into the OPP table, so the resolution problem is handled
-there.  If 'volt' cannot be set by the regulator, then the OPP tables
-are also broken.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Also, in your patch, you only add some offset.  If you want to be
-approximate, shouldn't you have plus and minus?
-
-IMO, we should let the OPP table handle that, and not the CPUfreq driver.
-
->>  	ret = clk_set_rate(mpu_clk, freqs.new * 1000);
->> -	freqs.new = omap_getspeed(policy->cpu);
->>  
->> +	/* scaling down?  scale voltage after frequency */
->> +	if (mpu_reg && (freqs.new < freqs.old))
->> +		regulator_set_voltage(mpu_reg, volt, volt);
->> +
->> +	freqs.new = omap_getspeed(policy->cpu);
->
-> It would be better to handle error cases too,
-> we have a patch for doing DVFS for AM335X as follows
-
-I agree, my version is not very robust in the face of errors from the
-regulator framework.
-
-Hoever, I'm not crazy about the extra notifications in your proposed
-patch.  I think it's cleaner to always pre and post notify.  If there's
-a failure, the post notify will have the same freq as the pre-notify,
-but that's not a big problem.
-
-I'll send an updated patch that follows this approach instead:
-
-- pre notify
-
-- scale volage up
-  - if fail, goto done
-
-- scale freq
-
-- scale voltage down
-  - if fail
-    - scale freq back
-    - goto done
-
-- SMP jiffies magic
-
-done:
-- post notify
-
-
-Kevin
+--- a/arch/arm/mach-omap1/board-innovator.c
++++ b/arch/arm/mach-omap1/board-innovator.c
+@@ -416,13 +416,13 @@ static void __init innovator_init(void)
+ #ifdef CONFIG_ARCH_OMAP15XX
+ 	if (cpu_is_omap1510()) {
+ 		omap1_usb_init(&innovator1510_usb_config);
+-		innovator_config[1].data = &innovator1510_lcd_config;
++		innovator_config[0].data = &innovator1510_lcd_config;
+ 	}
+ #endif
+ #ifdef CONFIG_ARCH_OMAP16XX
+ 	if (cpu_is_omap1610()) {
+ 		omap1_usb_init(&h2_usb_config);
+-		innovator_config[1].data = &innovator1610_lcd_config;
++		innovator_config[0].data = &innovator1610_lcd_config;
+ 	}
+ #endif
+ 	omap_board_config = innovator_config;
