@@ -1,210 +1,86 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 1/2] iommu/omap: fix erroneous omap-iommu-debug API calls
-Date: Wed, 22 Feb 2012 10:52:51 +0200
-Message-ID: <1329900772-9306-1-git-send-email-ohad@wizery.com>
+Subject: [PATCH 2/2] iommu/omap: fix NULL pointer dereference
+Date: Wed, 22 Feb 2012 10:52:52 +0200
+Message-ID: <1329900772-9306-2-git-send-email-ohad@wizery.com>
+References: <1329900772-9306-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:60666 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065Ab2BVIxR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 03:53:17 -0500
-Received: by werb13 with SMTP id b13so4333690wer.19
-        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 00:53:16 -0800 (PST)
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:53774 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752904Ab2BVIxU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 03:53:20 -0500
+Received: by wics10 with SMTP id s10so4039781wic.19
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 00:53:19 -0800 (PST)
+In-Reply-To: <1329900772-9306-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Joerg Roedel <Joerg.Roedel@amd.com>, iommu@lists.linux-foundation.org
 Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Ohad Ben-Cohen <ohad@wizery.com>, Hiroshi Doyu <hdoyu@nvidia.com>
 
-Adapt omap-iommu-debug to the latest omap-iommu API changes, which
-were introduced by commit fabdbca "iommu/omap: eliminate the public
-omap_find_iommu_device() method".
+Fix this:
 
-In a nutshell, iommu users are not expected to provide the omap_iommu
-handle anymore - instead, iommus are attached using their user's device
-handle.
+root@omap4430-panda:~# cat /debug/iommu/ducati/mem
+[   62.725708] Unable to handle kernel NULL pointer dereference at virtual addre
+ss 0000001c
+[   62.725708] pgd = e6240000
+[   62.737091] [0000001c] *pgd=a7168831, *pte=00000000, *ppte=00000000
+[   62.743682] Internal error: Oops: 17 [#1] SMP
+[   62.743682] Modules linked in: omap_iommu_debug omap_iovmm virtio_rpmsg_bus o
+map_remoteproc remoteproc virtio_ring virtio mailbox_mach mailbox
+[   62.743682] CPU: 0    Not tainted  (3.3.0-rc1-00265-g382f84e-dirty #682)
+[   62.743682] PC is at debug_read_mem+0x5c/0xac [omap_iommu_debug]
+[   62.743682] LR is at 0x1004
+[   62.777832] pc : [<bf033178>]    lr : [<00001004>]    psr: 60000013
+[   62.777832] sp : e72c7f40  ip : c0763c00  fp : 00000001
+[   62.777832] r10: 00000000  r9 : 00000000  r8 : e72c7f80
+[   62.777832] r7 : e6ffdc08  r6 : bed1ac78  r5 : 00001000  r4 : e7276000
+[   62.777832] r3 : e60f3460  r2 : 00000000  r1 : e60f38c0  r0 : 00000000
+[   62.777832] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+[   62.816375] Control: 10c53c7d  Table: a624004a  DAC: 00000015
+[   62.816375] Process cat (pid: 1176, stack limit = 0xe72c62f8)
+[   62.828369] Stack: (0xe72c7f40 to 0xe72c8000)
+...
+[   62.884185] [<bf033178>] (debug_read_mem+0x5c/0xac [omap_iommu_debug]) from [
+<c010e354>] (vfs_read+0xac/0x130)
+[   62.884185] [<c010e354>] (vfs_read+0xac/0x130) from [<c010e4a8>] (sys_read+0x
+40/0x70)
+[   62.884185] [<c010e4a8>] (sys_read+0x40/0x70) from [<c0014a00>] (ret_fast_sys
+call+0x0/0x3c)
 
-omap-iommu-debug is a hybrid beast though: it invokes both public and
-private omap iommu API, so fix it as necessary (otherwise a crash
-is imminent).
+Fix also its 'echo bla > /debug/iommu/ducati/mem' Oops sibling, too.
 
-Note: omap-iommu-debug is a bit disturbing, as it fiddles with internal
-omap iommu data and requires exposing API which is otherwise not needed.
-It should better be more tightly coupled with omap-iommu, to prevent
-further bit rot and avoid exposing redundant API. Naturally that's out
-of scope for the -rc cycle, so for now just fix the obvious.
-
-Reported-by: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Hiroshi Doyu <hdoyu@nvidia.com>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Joerg Roedel <Joerg.Roedel@amd.com>
 ---
- drivers/iommu/omap-iommu-debug.c |   55 +++++++++++++++++++++++++++++--------
- 1 files changed, 43 insertions(+), 12 deletions(-)
+ drivers/iommu/omap-iommu-debug.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
-index 288da5c..bad9f9d 100644
+index bad9f9d..a2ab29e 100644
 --- a/drivers/iommu/omap-iommu-debug.c
 +++ b/drivers/iommu/omap-iommu-debug.c
-@@ -44,7 +44,8 @@ static ssize_t debug_read_ver(struct file *file, char __user *userbuf,
- static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
- 			       size_t count, loff_t *ppos)
- {
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
-+	struct omap_iommu *obj = dev_to_omap_iommu(dev);
- 	char *p, *buf;
- 	ssize_t bytes;
- 
-@@ -67,7 +68,8 @@ static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
- static ssize_t debug_read_tlb(struct file *file, char __user *userbuf,
- 			      size_t count, loff_t *ppos)
- {
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
-+	struct omap_iommu *obj = dev_to_omap_iommu(dev);
- 	char *p, *buf;
- 	ssize_t bytes, rest;
- 
-@@ -97,7 +99,8 @@ static ssize_t debug_write_pagetable(struct file *file,
- 	struct iotlb_entry e;
- 	struct cr_regs cr;
- 	int err;
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
-+	struct omap_iommu *obj = dev_to_omap_iommu(dev);
- 	char buf[MAXCOLUMN], *p = buf;
- 
- 	count = min(count, sizeof(buf));
-@@ -184,7 +187,8 @@ out:
- static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
- 				    size_t count, loff_t *ppos)
- {
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
-+	struct omap_iommu *obj = dev_to_omap_iommu(dev);
- 	char *p, *buf;
- 	size_t bytes;
- 
-@@ -212,7 +216,8 @@ static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
- static ssize_t debug_read_mmap(struct file *file, char __user *userbuf,
- 			       size_t count, loff_t *ppos)
- {
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
-+	struct omap_iommu *obj = dev_to_omap_iommu(dev);
- 	char *p, *buf;
- 	struct iovm_struct *tmp;
- 	int uninitialized_var(i);
-@@ -254,7 +259,7 @@ static ssize_t debug_read_mmap(struct file *file, char __user *userbuf,
- static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
- 			      size_t count, loff_t *ppos)
- {
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
- 	char *p, *buf;
- 	struct iovm_struct *area;
- 	ssize_t bytes;
-@@ -268,7 +273,7 @@ static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
- 
+@@ -274,7 +274,7 @@ static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
  	mutex_lock(&iommu_debug_lock);
  
--	area = omap_find_iovm_area(obj, (u32)ppos);
-+	area = omap_find_iovm_area(dev, (u32)ppos);
- 	if (IS_ERR(area)) {
+ 	area = omap_find_iovm_area(dev, (u32)ppos);
+-	if (IS_ERR(area)) {
++	if (IS_ERR_OR_NULL(area)) {
  		bytes = -EINVAL;
  		goto err_out;
-@@ -287,7 +292,7 @@ err_out:
- static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
- 			       size_t count, loff_t *ppos)
- {
--	struct omap_iommu *obj = file->private_data;
-+	struct device *dev = file->private_data;
- 	struct iovm_struct *area;
- 	char *p, *buf;
- 
-@@ -305,7 +310,7 @@ static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
- 		goto err_out;
+ 	}
+@@ -311,7 +311,7 @@ static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
  	}
  
--	area = omap_find_iovm_area(obj, (u32)ppos);
-+	area = omap_find_iovm_area(dev, (u32)ppos);
- 	if (IS_ERR(area)) {
+ 	area = omap_find_iovm_area(dev, (u32)ppos);
+-	if (IS_ERR(area)) {
++	if (IS_ERR_OR_NULL(area)) {
  		count = -EINVAL;
  		goto err_out;
-@@ -350,7 +355,7 @@ DEBUG_FOPS(mem);
- 	{								\
- 		struct dentry *dent;					\
- 		dent = debugfs_create_file(#attr, mode, parent,		\
--					   obj, &debug_##attr##_fops);	\
-+					   dev, &debug_##attr##_fops);	\
- 		if (!dent)						\
- 			return -ENOMEM;					\
  	}
-@@ -362,20 +367,29 @@ static int iommu_debug_register(struct device *dev, void *data)
- {
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct omap_iommu *obj = platform_get_drvdata(pdev);
-+	struct omap_iommu_arch_data *arch_data;
- 	struct dentry *d, *parent;
- 
- 	if (!obj || !obj->dev)
- 		return -EINVAL;
- 
-+	arch_data = kzalloc(sizeof(*arch_data), GFP_KERNEL);
-+	if (!arch_data)
-+		return -ENOMEM;
-+
-+	arch_data->iommu_dev = obj;
-+
-+	dev->archdata.iommu = arch_data;
-+
- 	d = debugfs_create_dir(obj->name, iommu_debug_root);
- 	if (!d)
--		return -ENOMEM;
-+		goto nomem;
- 	parent = d;
- 
- 	d = debugfs_create_u8("nr_tlb_entries", 400, parent,
- 			      (u8 *)&obj->nr_tlb_entries);
- 	if (!d)
--		return -ENOMEM;
-+		goto nomem;
- 
- 	DEBUG_ADD_FILE_RO(ver);
- 	DEBUG_ADD_FILE_RO(regs);
-@@ -385,6 +399,22 @@ static int iommu_debug_register(struct device *dev, void *data)
- 	DEBUG_ADD_FILE(mem);
- 
- 	return 0;
-+
-+nomem:
-+	kfree(arch_data);
-+	return -ENOMEM;
-+}
-+
-+static int iommu_debug_unregister(struct device *dev, void *data)
-+{
-+	if (!dev->archdata.iommu)
-+		return 0;
-+
-+	kfree(dev->archdata.iommu);
-+
-+	dev->archdata.iommu = NULL;
-+
-+	return 0;
- }
- 
- static int __init iommu_debug_init(void)
-@@ -411,6 +441,7 @@ module_init(iommu_debug_init)
- static void __exit iommu_debugfs_exit(void)
- {
- 	debugfs_remove_recursive(iommu_debug_root);
-+	omap_foreach_iommu_device(NULL, iommu_debug_unregister);
- }
- module_exit(iommu_debugfs_exit)
- 
 -- 
 1.7.5.4
 
