@@ -1,285 +1,176 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 7/7] ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux related functions as __init
-Date: Thu, 23 Feb 2012 17:10:47 +0530
-Message-ID: <1329997247-27342-8-git-send-email-rnayak@ti.com>
-References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: Questions about DSS device tree adaptation
+Date: Thu, 23 Feb 2012 12:43:20 +0100
+Message-ID: <4F462658.9080404@ti.com>
+References: <1329912443.2070.58.camel@deskari>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35345 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753656Ab2BWLlK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 06:41:10 -0500
-In-Reply-To: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50977 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751766Ab2BWLnX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Feb 2012 06:43:23 -0500
+In-Reply-To: <1329912443.2070.58.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Russell King <rmk+kernel@arm.linux.org.uk>, Rajendra Nayak <rnayak@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-From: Tony Lindgren <tony@atomide.com>
+Hi Tomi,
 
-Now that omap hsmmc init is split into two functions, it's safe
-to mark omap_hsmmc_init and omap_mux related functions to __init.
+On 2/22/2012 1:07 PM, Tomi Valkeinen wrote:
+> Hi,
+>
+> I'd like to get some feedback for the DSS DT work.
+>
+> I have currently this in omap4.dtsi, under ocp. It's still a hack, for
+> example there's sdi for testing even though omap4 doesn't have SDI
+> output.
+>
+> dss {
+> 	compatible = "ti,omap4-dss";
+> 	ti,hwmods = "dss_core";
+>
+> 	dispc {
+> 		compatible = "ti,omap4-dispc";
+> 		ti,hwmods = "dss_dispc";
+> 	};
+>
+> 	dpi: dpi {
+> 		compatible = "ti,omap4-dpi";
+> 	};
+>
+> 	sdi: sdi {
+> 		compatible = "ti,omap3-sdi";
+> 	};
+>
+> 	dsi1: dsi@1 {
+> 		compatible = "ti,omap4-dsi";
+> 		ti,hwmods = "dss_dsi1";
+> 		id =<0>;
 
-This basically reverts the following fixes for the case where
-TWL was compiled as a module:
+Fixed id should be avoided. In theory you should not need that, and if 
+it is needed like for the UART because Linux is expecting a tty<id>, you 
+should create an alias to map the node to the numbered alias. Just check 
+what was done for UART.
 
-a98f77b (ARM: omap: fix section mismatch warning for sdp3430_twl_gpio_setup())
-8930b4e (ARM: omap: fix section mismatch warnings in mux.c caused by hsmmc.c)
+> 		vdds_dsi-supply =<&vcxio>;
+> 	};
+>
+> 	dsi2: dsi@2 {
+> 		compatible = "ti,omap4-dsi";
+> 		ti,hwmods = "dss_dsi2";
+> 		id =<1>;
+> 		vdds_dsi-supply =<&vcxio>;
+> 	};
+>
+> 	hdmi {
+> 		compatible = "ti,omap4-hdmi";
+> 		ti,hwmods = "dss_hdmi";
+>
+> 		hpd_gpio =<0>;
+> 		ls_oe =<0>;
+> 	};
+>
+> 	rfbi: rfbi {
+> 		compatible = "ti,omap4-rfbi";
+> 		ti,hwmods = "dss_rfbi";
+> 	};
+>
+> 	venc {
+> 		compatible = "ti,omap4-venc";
+> 		ti,hwmods = "dss_venc";
+> 	};
+> };
+>
+> And in omap4-panda.dtsi I have:
+>
+> &dpi {
+> 	dvi {
+> 		compatible = "ti,tfp410";
+> 		data-lines =<24>;
+> 		channel =<2>;
+> 		enable-gpio =<0>;
+> 		ddc =<&dviddc>;
+> 	};
+> };
+>
+>
+> A few notes/questions about the above:
+>
+> dispc is not an output interface (so it won't have any children), it
+> doesn't have anything to customize in the dt data, and it's present on
+> all OMAPs. Should it still be present in the DT data, or should the
+> device be created dynamically in platform code?
 
-Additionally it fixes up the remaining section warnings for
-all callers of omap_mux functions.
+For consistency, it is still better to have it. You will then be able to 
+use the DT compatible mechanism to identify properly the various DISPC 
+version if needed.
 
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/board-flash.c          |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |    6 ++++--
- arch/arm/mach-omap2/board-omap3evm.c       |    3 ++-
- arch/arm/mach-omap2/board-omap3stalker.c   |    3 ++-
- arch/arm/mach-omap2/board-omap3touchbook.c |   13 +++++++------
- arch/arm/mach-omap2/board-omap4panda.c     |    2 +-
- arch/arm/mach-omap2/display.c              |    8 ++++----
- arch/arm/mach-omap2/hsmmc.c                |    4 ++--
- arch/arm/mach-omap2/mux.c                  |   14 +++++++-------
- 9 files changed, 30 insertions(+), 25 deletions(-)
+Don't you have a functional dependency between the DISPC and some other 
+nodes like DSI, SDI, DPI?
 
-diff --git a/arch/arm/mach-omap2/board-flash.c b/arch/arm/mach-omap2/board-flash.c
-index 30a6f52..0349fd2 100644
---- a/arch/arm/mach-omap2/board-flash.c
-+++ b/arch/arm/mach-omap2/board-flash.c
-@@ -189,7 +189,7 @@ unmap:
-  *
-  * @return - void.
-  */
--void board_flash_init(struct flash_partitions partition_info[],
-+void __init board_flash_init(struct flash_partitions partition_info[],
- 			char chip_sel_board[][GPMC_CS_NUM], int nand_type)
- {
- 	u8		cs = 0;
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 08749a5..916167e 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -274,8 +274,6 @@ static int beagle_twl_gpio_setup(struct device *dev,
- {
- 	int r;
- 
--	if (beagle_config.mmc1_gpio_wp != -EINVAL)
--		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
- 	mmc[0].gpio_wp = beagle_config.mmc1_gpio_wp;
- 	omap_hsmmc_deferred_add(mmc);
- 
-@@ -533,7 +531,11 @@ static void __init omap3_beagle_init(void)
- {
- 	omap3_mux_init(board_mux, OMAP_PACKAGE_CBB);
- 	omap3_beagle_init_rev();
-+
-+	if (beagle_config.mmc1_gpio_wp != -EINVAL)
-+		omap_mux_init_gpio(beagle_config.mmc1_gpio_wp, OMAP_PIN_INPUT);
- 	omap_hsmmc_init(mmc);
-+
- 	omap3_beagle_i2c_init();
- 
- 	gpio_buttons[0].gpio = beagle_config.usr_button_gpio;
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 2fa7d06..47336c2 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -362,7 +362,6 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
- {
- 	int r, lcd_bl_en;
- 
--	omap_mux_init_gpio(63, OMAP_PIN_INPUT);
- 	omap_hsmmc_deferred_add(mmc);
- 
- 	/*
-@@ -654,7 +653,9 @@ static void __init omap3_evm_init(void)
- 	omap_board_config = omap3_evm_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
- 
-+	omap_mux_init_gpio(63, OMAP_PIN_INPUT);
- 	omap_hsmmc_init(mmc);
-+
- 	omap3_evm_i2c_init();
- 
- 	omap_display_init(&omap3_evm_dss_data);
-diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
-index c6bab9a..b11700d 100644
---- a/arch/arm/mach-omap2/board-omap3stalker.c
-+++ b/arch/arm/mach-omap2/board-omap3stalker.c
-@@ -282,7 +282,6 @@ static int
- omap3stalker_twl_gpio_setup(struct device *dev,
- 			    unsigned gpio, unsigned ngpio)
- {
--	omap_mux_init_gpio(23, OMAP_PIN_INPUT);
- 	omap_hsmmc_deferred_add(mmc);
- 
- 	/*
-@@ -435,7 +434,9 @@ static void __init omap3_stalker_init(void)
- 	omap_board_config = omap3_stalker_config;
- 	omap_board_config_size = ARRAY_SIZE(omap3_stalker_config);
- 
-+	omap_mux_init_gpio(23, OMAP_PIN_INPUT);
- 	omap_hsmmc_init(mmc);
-+
- 	omap3_stalker_i2c_init();
- 
- 	platform_add_devices(omap3_stalker_devices,
-diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
-index 02c0a78..a66e592 100644
---- a/arch/arm/mach-omap2/board-omap3touchbook.c
-+++ b/arch/arm/mach-omap2/board-omap3touchbook.c
-@@ -119,12 +119,6 @@ static struct gpio_led gpio_leds[];
- static int touchbook_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
--	if (system_rev >= 0x20 && system_rev <= 0x34301000) {
--		omap_mux_init_gpio(23, OMAP_PIN_INPUT);
--		mmc[0].gpio_wp = 23;
--	} else {
--		omap_mux_init_gpio(29, OMAP_PIN_INPUT);
--	}
- 	omap_hsmmc_deferred_add(mmc);
- 
- 	/* REVISIT: need ehci-omap hooks for external VBUS
-@@ -361,7 +355,14 @@ static void __init omap3_touchbook_init(void)
- 
- 	pm_power_off = omap3_touchbook_poweroff;
- 
-+	if (system_rev >= 0x20 && system_rev <= 0x34301000) {
-+		omap_mux_init_gpio(23, OMAP_PIN_INPUT);
-+		mmc[0].gpio_wp = 23;
-+	} else {
-+		omap_mux_init_gpio(29, OMAP_PIN_INPUT);
-+	}
- 	omap_hsmmc_init(mmc);
-+
- 	omap3_touchbook_i2c_init();
- 	platform_add_devices(omap3_touchbook_devices,
- 			ARRAY_SIZE(omap3_touchbook_devices));
-diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index bcc563c..7ca7a5c 100644
---- a/arch/arm/mach-omap2/board-omap4panda.c
-+++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -461,7 +461,7 @@ static struct omap_dss_board_info omap4_panda_dss_data = {
- 	.default_device	= &omap4_panda_dvi_device,
- };
- 
--void omap4_panda_display_init(void)
-+void __init omap4_panda_display_init(void)
- {
- 	int r;
- 
-diff --git a/arch/arm/mach-omap2/display.c b/arch/arm/mach-omap2/display.c
-index 3677b1f..62e133c 100644
---- a/arch/arm/mach-omap2/display.c
-+++ b/arch/arm/mach-omap2/display.c
-@@ -124,7 +124,7 @@ static void omap4_hdmi_mux_pads(enum omap_hdmi_flags flags)
- 	}
- }
- 
--static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
-+static int __init omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- {
- 	u32 enable_mask, enable_shift;
- 	u32 pipd_mask, pipd_shift;
-@@ -157,7 +157,7 @@ static int omap4_dsi_mux_pads(int dsi_id, unsigned lanes)
- 	return 0;
- }
- 
--int omap_hdmi_init(enum omap_hdmi_flags flags)
-+int __init omap_hdmi_init(enum omap_hdmi_flags flags)
- {
- 	if (cpu_is_omap44xx())
- 		omap4_hdmi_mux_pads(flags);
-@@ -165,7 +165,7 @@ int omap_hdmi_init(enum omap_hdmi_flags flags)
- 	return 0;
- }
- 
--static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
-+static int __init omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
- {
- 	if (cpu_is_omap44xx())
- 		return omap4_dsi_mux_pads(dsi_id, lane_mask);
-@@ -173,7 +173,7 @@ static int omap_dsi_enable_pads(int dsi_id, unsigned lane_mask)
- 	return 0;
- }
- 
--static void omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
-+static void __init omap_dsi_disable_pads(int dsi_id, unsigned lane_mask)
- {
- 	if (cpu_is_omap44xx())
- 		omap4_dsi_mux_pads(dsi_id, 0);
-diff --git a/arch/arm/mach-omap2/hsmmc.c b/arch/arm/mach-omap2/hsmmc.c
-index 0f256ca..b30dbb8 100644
---- a/arch/arm/mach-omap2/hsmmc.c
-+++ b/arch/arm/mach-omap2/hsmmc.c
-@@ -293,7 +293,7 @@ static inline void omap_hsmmc_mux(struct omap_mmc_platform_data *mmc_controller,
- 	}
- }
- 
--static int omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
-+static int __init omap_hsmmc_pdata_init(struct omap2_hsmmc_info *c,
- 				 struct omap_mmc_platform_data *mmc)
- {
- 	char *hc_name;
-@@ -552,7 +552,7 @@ void omap_hsmmc_deferred_del(struct omap2_hsmmc_info *controllers)
- 	}
- }
- 
--void omap_hsmmc_init(struct omap2_hsmmc_info *controllers)
-+void __init omap_hsmmc_init(struct omap2_hsmmc_info *controllers)
- {
- 	u32 reg;
- 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index fb8bc9f..f26b2fa 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -100,8 +100,8 @@ void omap_mux_write_array(struct omap_mux_partition *partition,
- 
- static char *omap_mux_options;
- 
--static int _omap_mux_init_gpio(struct omap_mux_partition *partition,
--			       int gpio, int val)
-+static int __init _omap_mux_init_gpio(struct omap_mux_partition *partition,
-+				      int gpio, int val)
- {
- 	struct omap_mux_entry *e;
- 	struct omap_mux *gpio_mux = NULL;
-@@ -145,7 +145,7 @@ static int _omap_mux_init_gpio(struct omap_mux_partition *partition,
- 	return 0;
- }
- 
--int omap_mux_init_gpio(int gpio, int val)
-+int __init omap_mux_init_gpio(int gpio, int val)
- {
- 	struct omap_mux_partition *partition;
- 	int ret;
-@@ -159,9 +159,9 @@ int omap_mux_init_gpio(int gpio, int val)
- 	return -ENODEV;
- }
- 
--static int _omap_mux_get_by_name(struct omap_mux_partition *partition,
--				 const char *muxname,
--				 struct omap_mux **found_mux)
-+static int __init _omap_mux_get_by_name(struct omap_mux_partition *partition,
-+					const char *muxname,
-+					struct omap_mux **found_mux)
- {
- 	struct omap_mux *mux = NULL;
- 	struct omap_mux_entry *e;
-@@ -240,7 +240,7 @@ omap_mux_get_by_name(const char *muxname,
- 	return -ENODEV;
- }
- 
--int omap_mux_init_signal(const char *muxname, int val)
-+int __init omap_mux_init_signal(const char *muxname, int val)
- {
- 	struct omap_mux_partition *partition = NULL;
- 	struct omap_mux *mux = NULL;
--- 
-1.7.1
+At some point most OMAP devices will probably be created using DT just 
+to avoid having two different device creation mechanisms.
+It is true that the main priority today is to expose the ones that are 
+configurable at board level.
+
+> dpi and sdi are not hwmods as the rest of the nodes. They are, from HW
+> point of view, more or less parts of DSS or perhaps DISPC.
+
+This is fine, hwmod is really needed only for the IP under PRCM control 
+mostly. Other device can then be regular platform_device.
+
+I even think that I will get rid of the other hwmod as soon as the clock 
+binding will be there in DT. Because for the PRCM point of view, there 
+is only one DSS node. The other ones were created artificially to expose 
+the clocks to the proper device. They should not be there.
+
+> dsi nodes have the id property, which is used by the driver to choose
+> between DSI1 and DSI2 HW modules. Is there a better way to do this than
+> a custom property?
+
+Yes, as explained before.
+
+> Who/where/when should the devices for dss submodules be created? The
+> device for dss-node is created automatically by the of-platform code(?),
+> but the rest of the submodules need to be handled by me somehow.
+
+Yes.
+
+> I'm currently using of_platform_populate() in the probe of ti,omap4-dss
+> driver to create the subdevices, but this approach doesn't feel right.
+> Shouldn't the devices be created already at the boot time by platform
+> code, not by the driver code?
+
+No, this is correct thing to do. It is even much more inlined with the 
+regular way of creating device dynamically in a x86 platform after based 
+on bus enumeration. This is that whole static platform_device that was 
+*wrong* so far.
+In this case, it will allow you to have different definition of the DSS 
+and to rely on the sub nodes to discover what are the sub IPs in your 
+DSS. Whereas today you have to build an array that contains the 
+definition of the DSS for OMAP2, OMAP3 and OMAP4.
+
+> Is the "simple-bus", that ocp node also uses, something that I could use
+> here? If I define the dss node to be compatible with simple-bus also,
+> does it mean that the of-platform code creates the submodules for me?
+> Are there any side-effects?
+
+You should not use simple_bus if you already have a driver to probe that 
+device, otherwise the is the main DT core iterator that will create the 
+device, and you might not want to do that if you have something to do 
+during probe like enabling the clock in order to access the sub modules.
+
+> How about the actual panel devices. Above there's the "ti,tfp410"
+> device. The panel devices are not plain platform devices, so I need to
+> handle those myself. Can I somehow handle that in the platform code,
+> creating omap_dss_devices at boot time, or do I need to create those
+> devices in, for example in this case, dpi-driver's probe?
+
+That does not look right to me. Why cannot they be platform_device?
+
+Regards,
+Benoit
 
