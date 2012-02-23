@@ -1,57 +1,37 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ARM: OMAP: enable Bluetooth on the PandaBoard
-Date: Thu, 23 Feb 2012 15:12:57 +0000
-Message-ID: <201202231512.57684.arnd@arndb.de>
-References: <1329990318-4575-1-git-send-email-mgherzan@gmail.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 3/7] MFD: twl-core: regulator configuration for twl6030
+ V1V8, V2V1 SMPS
+Date: Thu, 23 Feb 2012 16:22:09 +0100
+Message-ID: <20120223152209.GA24377@sortiz-mobl>
+References: <1328868316-24749-1-git-send-email-peter.ujfalusi@ti.com>
+ <1328868316-24749-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:58270 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab2BWPNA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 10:13:00 -0500
-In-Reply-To: <1329990318-4575-1-git-send-email-mgherzan@gmail.com>
+Received: from mga03.intel.com ([143.182.124.21]:4449 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756010Ab2BWPWd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Feb 2012 10:22:33 -0500
+Content-Disposition: inline
+In-Reply-To: <1328868316-24749-4-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mircea Gherzan <mgherzan@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thursday 23 February 2012, Mircea Gherzan wrote:
-> The PandaBoard features a Texas Instruments WiLink7 Bluetooth
-> chip, supported by the "btwilink" driver.
-> 
-> Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
+Hi Peter,
 
-No objections to the patch, but please send it to the maintainer,
-not to me. You also misspelled the address of the linux-omap
-list, so Tony probably didn't get it there either.
+On Fri, Feb 10, 2012 at 12:05:12PM +0200, Peter Ujfalusi wrote:
+> To be able to attach consumers to these supplies from board
+> files we need to have regulator_init_data for them.
+If I understand correctly, this should also go through Liam's tree. If that's
+so, please add my:
 
-	Arnd
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
-> diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-> index 28fc271..b1d74d6 100644
-> --- a/arch/arm/mach-omap2/board-omap4panda.c
-> +++ b/arch/arm/mach-omap2/board-omap4panda.c
-> @@ -91,9 +91,15 @@ static struct platform_device leds_gpio = {
->  	},
->  };
->  
-> +static struct platform_device btwilink_device = {
-> +	.name	= "btwilink",
-> +	.id	= -1,
-> +};
-> +
->  static struct platform_device *panda_devices[] __initdata = {
->  	&leds_gpio,
->  	&wl1271_device,
-> +	&btwilink_device,
->  };
->  
->  static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
-> -- 
-> 1.7.9.1
-> 
-> 
+Cheers,
+Samuel.
 
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
