@@ -1,56 +1,90 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH 4/6] gpio/omap: get rid of retrigger variable in
- gpio_irq_handler
-Date: Thu, 23 Feb 2012 17:40:29 +0530
-Message-ID: <1329999031-6914-5-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH 2/6] gpio/omap: remove saved_wakeup field from struct gpio_bank
+Date: Thu, 23 Feb 2012 17:40:27 +0530
+Message-ID: <1329999031-6914-3-git-send-email-tarun.kanti@ti.com>
 References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This local variable is just assigned zero and then OR'ed
-with isr. It does not appear to serve any purpose and so
-removing it.
+There is no more need to have saved_wakeup. Instead we can use
+context.wake_en which holds the current wakeup enable register
+context. This also means that the read from wakeup enable register
+is not needed.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ drivers/gpio/gpio-omap.c |   13 ++++---------
+ 1 files changed, 4 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index b62e861..3dd4b3a 100644
+index 40a1fb2..64f15d5 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -623,7 +623,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 	u32 isr;
- 	unsigned int gpio_irq, gpio_index;
- 	struct gpio_bank *bank;
--	u32 retrigger = 0;
- 	int unmasked = 0;
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
+@@ -54,7 +54,6 @@ struct gpio_bank {
+ 	u16 irq;
+ 	u16 virtual_irq_start;
+ 	u32 suspend_wakeup;
+-	u32 saved_wakeup;
+ 	u32 non_wakeup_gpios;
+ 	u32 enabled_non_wakeup_gpios;
+ 	struct gpio_regs context;
+@@ -772,7 +771,7 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+ 	unsigned long		flags;
  
-@@ -660,8 +659,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 			chained_irq_exit(chip, desc);
- 		}
+ 	spin_lock_irqsave(&bank->lock, flags);
+-	bank->saved_wakeup = __raw_readl(mask_reg);
++	bank->context.wake_en = __raw_readl(mask_reg);
+ 	__raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
  
--		isr |= retrigger;
--		retrigger = 0;
- 		if (!isr)
- 			break;
+@@ -788,7 +787,7 @@ static int omap_mpuio_resume_noirq(struct device *dev)
+ 	unsigned long		flags;
  
+ 	spin_lock_irqsave(&bank->lock, flags);
+-	__raw_writel(bank->saved_wakeup, mask_reg);
++	__raw_writel(bank->context.wake_en, mask_reg);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
+@@ -1133,7 +1132,6 @@ static int omap_gpio_suspend(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct gpio_bank *bank = platform_get_drvdata(pdev);
+ 	void __iomem *base = bank->base;
+-	void __iomem *wakeup_enable;
+ 	unsigned long flags;
+ 
+ 	if (!bank->mod_usage || !bank->loses_context)
+@@ -1142,10 +1140,7 @@ static int omap_gpio_suspend(struct device *dev)
+ 	if (!bank->regs->wkup_en || !bank->suspend_wakeup)
+ 		return 0;
+ 
+-	wakeup_enable = bank->base + bank->regs->wkup_en;
+-
+ 	spin_lock_irqsave(&bank->lock, flags);
+-	bank->saved_wakeup = __raw_readl(wakeup_enable);
+ 	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
+ 	_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+@@ -1163,12 +1158,12 @@ static int omap_gpio_resume(struct device *dev)
+ 	if (!bank->mod_usage || !bank->loses_context)
+ 		return 0;
+ 
+-	if (!bank->regs->wkup_en || !bank->saved_wakeup)
++	if (!bank->regs->wkup_en || !bank->context.wake_en)
+ 		return 0;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+ 	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
+-	_gpio_rmw(base, bank->regs->wkup_en, bank->saved_wakeup, 1);
++	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
+ 	spin_unlock_irqrestore(&bank->lock, flags);
+ 
+ 	return 0;
 -- 
 1.7.0.4
