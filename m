@@ -1,67 +1,56 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH 5/6] gpio/omap: fix trigger type to unsigned
-Date: Thu, 23 Feb 2012 17:40:30 +0530
-Message-ID: <1329999031-6914-6-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH 4/6] gpio/omap: get rid of retrigger variable in
+ gpio_irq_handler
+Date: Thu, 23 Feb 2012 17:40:29 +0530
+Message-ID: <1329999031-6914-5-git-send-email-tarun.kanti@ti.com>
 References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46319 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754139Ab2BWMKo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Feb 2012 07:10:44 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, Tarun Kanti DebBarma <tarun.kanti@ti.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-The GPIO trigger parameter is of type unsigned.
-enum {
-        IRQ_TYPE_NONE           = 0x00000000,
-        IRQ_TYPE_EDGE_RISING    = 0x00000001,
-        IRQ_TYPE_EDGE_FALLING   = 0x00000002,
-        IRQ_TYPE_EDGE_BOTH      = (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING),
-        IRQ_TYPE_LEVEL_HIGH     = 0x00000004,
-        IRQ_TYPE_LEVEL_LOW      = 0x00000008,
-        IRQ_TYPE_LEVEL_MASK     = (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH),
-        IRQ_TYPE_SENSE_MASK     = 0x0000000f,
-
-        IRQ_TYPE_PROBE          = 0x00000010,
-...
-};
-Even though gpio_irq_type(struct irq_data *d, unsigned type) has the right type
-of parameter, the subsequent called functions set_gpio_triggering() and
-set_gpio_trigger() wrongly makes it signed integer. Fix this.
+This local variable is just assigned zero and then OR'ed
+with isr. It does not appear to serve any purpose and so
+removing it.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/gpio/gpio-omap.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 3dd4b3a..67535c8 100644
+index b62e861..3dd4b3a 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -232,7 +232,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
- }
+@@ -623,7 +623,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	u32 isr;
+ 	unsigned int gpio_irq, gpio_index;
+ 	struct gpio_bank *bank;
+-	u32 retrigger = 0;
+ 	int unmasked = 0;
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
  
- static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
--						int trigger)
-+						unsigned trigger)
- {
- 	void __iomem *base = bank->base;
- 	u32 gpio_bit = 1 << gpio;
-@@ -314,7 +314,8 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
- static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
- #endif
+@@ -660,8 +659,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 			chained_irq_exit(chip, desc);
+ 		}
  
--static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
-+static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
-+							unsigned trigger)
- {
- 	void __iomem *reg = bank->base;
- 	void __iomem *base = bank->base;
+-		isr |= retrigger;
+-		retrigger = 0;
+ 		if (!isr)
+ 			break;
+ 
 -- 
 1.7.0.4
-
