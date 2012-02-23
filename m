@@ -1,89 +1,89 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v3.3-rc4
-Date: Thu, 23 Feb 2012 15:15:28 -0800
-Message-ID: <20120223231528.GE18185@atomide.com>
+Subject: Re: [PATCH 4/8] ARM: OMAP1: Move 16xx GPIO system clock to
+ platform init code
+Date: Thu, 23 Feb 2012 15:42:19 -0800
+Message-ID: <20120223234219.GG18185@atomide.com>
+References: <20120221233619.18709.87982.stgit@kaulin.local>
+ <20120221234042.18709.57610.stgit@kaulin.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51353 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756114Ab2BWXPc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 18:15:32 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:26907 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753521Ab2BWXmW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 18:42:22 -0500
 Content-Disposition: inline
+In-Reply-To: <20120221234042.18709.57610.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Grant Likely <grant.likely@secretlab.ca>, linux-omap@vger.kernel.org
 
-Hi Arnd & Olof,
+* Tony Lindgren <tony@atomide.com> [120221 15:09]:
+> This way we can remove omap_read/write call from the GPIO driver
+> and remove include to linux/io.h.
+...
 
-Please pull omap fixes from:
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -18,7 +18,6 @@
+>  #include <linux/syscore_ops.h>
+>  #include <linux/err.h>
+>  #include <linux/clk.h>
+> -#include <linux/io.h>
+>  #include <linux/slab.h>
+>  #include <linux/pm_runtime.h>
+>  
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
-
-This contains a fix for omap4 to call memblck_steal() from
-.reserve like it should be, and fixes a regression for smsc911x
-using boards as they now require regulators. Also included are
-fixes for errors that show up if the TWL PMIC is compiled as a
-module.
-
-Note that the top two patches are from today: The smsc911x patch
-was updated for to remove an unnecessary variable, and the
-mailbox compile fix I applied earlier today.
+I'll drop this hunk, it causes a conflict with Kevin's
+GPIO runtime PM series and it's not really related to
+this patch or actually needed. Updated patch below.
 
 Regards,
 
 Tony
 
+From: Tony Lindgren <tony@atomide.com>
+Date: Wed, 22 Feb 2012 14:52:38 -0800
+Subject: [PATCH] ARM: OMAP1: Move 16xx GPIO system clock to platform init code
 
-The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
-  Linus Torvalds (1):
-        Linux 3.3-rc4
+This way we can remove omap_read/write call from the GPIO driver
+and remove include to linux/io.h.
 
-are available in the git repository at:
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes
-
-Arnout Vandecappelle (Essensium/Mind) (1):
-      OMAP3 EVM: remove out-of-bounds array access of gpio_leds
-
-Felipe Balbi (1):
-      ARM: OMAP2+: usb-host: fix compile warning
-
-Matt Porter (1):
-      ARM: OMAP2+: gpmc-smsc911x: add required smsc911x regulators
-
-NeilBrown (1):
-      ARM: OMAP: add RCU locking to omap2_set_init_voltage.
-
-Ohad Ben-Cohen (1):
-      ARM: OMAP2: fix mailbox init code
-
-Santosh Shilimkar (2):
-      ARM: OMAP4: cpuidle: Fix the C-state reporting to cpuidle governor.
-      ARM: OMAP4: Move the barrier memboclk_steal() as part of reserve callback
-
-Tony Lindgren (5):
-      Merge branch 'for_3.3/fixes/pm' of git://git.kernel.org/.../khilman/linux-omap-pm into fixes
-      ARM: OMAP: Fix kernel panic with HSMMC when twl4030_gpio is a module
-      ARM: OMAP: Fix build error when mmc_omap is built as module
-      Merge branch 'fixes-mmc' into fixes
-      ARM: OMAP1: Fix out-of-bounds array access for Innovator
-
- arch/arm/mach-omap1/board-innovator.c         |    4 +-
- arch/arm/mach-omap2/Kconfig                   |    4 +-
- arch/arm/mach-omap2/board-n8x0.c              |    4 ++
- arch/arm/mach-omap2/board-omap3evm.c          |    2 +-
- arch/arm/mach-omap2/common.h                  |    1 +
- arch/arm/mach-omap2/cpuidle44xx.c             |    5 +-
- arch/arm/mach-omap2/gpmc-smsc911x.c           |   52 +++++++++++++++++++++++++
- arch/arm/mach-omap2/hsmmc.c                   |    6 +++
- arch/arm/mach-omap2/io.c                      |    1 +
- arch/arm/mach-omap2/mailbox.c                 |   10 ++++-
- arch/arm/mach-omap2/mux.c                     |    2 +-
- arch/arm/mach-omap2/omap4-common.c            |   25 ++++++++----
- arch/arm/mach-omap2/pm.c                      |    3 +
- arch/arm/mach-omap2/usb-host.c                |    6 +-
- arch/arm/plat-omap/common.c                   |    1 +
- arch/arm/plat-omap/include/plat/omap-secure.h |    6 +++
- 16 files changed, 110 insertions(+), 22 deletions(-)
+--- a/arch/arm/mach-omap1/gpio16xx.c
++++ b/arch/arm/mach-omap1/gpio16xx.c
+@@ -218,6 +218,13 @@ static int __init omap16xx_gpio_init(void)
+ 	if (!cpu_is_omap16xx())
+ 		return -EINVAL;
+ 
++	/*
++	 * Enable system clock for GPIO module.
++	 * The CAM_CLK_CTRL *is* really the right place.
++	 */
++	omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
++					ULPD_CAM_CLK_CTRL);
++
+ 	for (i = 0; i < ARRAY_SIZE(omap16xx_gpio_dev); i++)
+ 		platform_device_register(omap16xx_gpio_dev[i]);
+ 
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 0b05629..5b7b164 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -1064,13 +1064,6 @@ static void omap_gpio_mod_init(struct gpio_bank *bank, int id)
+ 						+ OMAP1610_GPIO_IRQSTATUS1);
+ 			__raw_writew(0x0014, bank->base
+ 						+ OMAP1610_GPIO_SYSCONFIG);
+-
+-			/*
+-			 * Enable system clock for GPIO module.
+-			 * The CAM_CLK_CTRL *is* really the right place.
+-			 */
+-			omap_writel(omap_readl(ULPD_CAM_CLK_CTRL) | 0x04,
+-						ULPD_CAM_CLK_CTRL);
+ 		}
+ 		if (cpu_is_omap7xx() && bank->method == METHOD_GPIO_7XX) {
+ 			__raw_writel(0xffffffff, bank->base
