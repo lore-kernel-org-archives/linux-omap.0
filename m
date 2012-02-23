@@ -1,31 +1,50 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/2] OMAP: Section mismatch warning fixes
-Date: Thu, 23 Feb 2012 12:28:28 +0530
-Message-ID: <1329980310-9007-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with
+ frequency
+Date: Thu, 23 Feb 2012 07:17:30 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317853DD@DBDE01.ent.ti.com>
+References: <1329420043-32656-1-git-send-email-khilman@ti.com>
+	<1329420043-32656-2-git-send-email-khilman@ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
+	<87vcmz3f63.fsf@ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A931784AE0@DBDE01.ent.ti.com>
+ <87ehtm1zi9.fsf@ti.com>
+ <C8443D0743D26F4388EA172BF4E2A7A931785204@DBDE01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59046 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37398 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752869Ab2BWG6o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Feb 2012 01:58:44 -0500
+	id S1751078Ab2BWHRf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 02:17:35 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1N7HX6D021637
+	for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 01:17:34 -0600
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A931785204@DBDE01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
 
-Tony,
+Hi Kevin,
 
-Below are couple of section mismatch warning fixes for v3.3-rc5
+On Thu, Feb 23, 2012 at 10:58:57, Mohammed, Afzal wrote:
+> > Using your example above, what if the closest value was 1.259V?
+> > Wouldn't you then need +/- range?
+> 
+> In that case, it will set to next step after 1.259V.
+> 
+> If +/- is used, it may happen that SoC will work for a particular frequency
+> at a voltage lower than it has been characterized (if you ask me to define
+> characterized, I don't know, but what I know is that SoC can work at a
+> lower frequency for the voltage of an OPP, but not vice versa). Still as
+> voltage will be only very less than that specified by OPP, it may not be
+> a problem to use +/-
 
-Santosh Shilimkar (2):
-  ARM: OMAP: fix section mismatch warning for omap4_hotplug_cpu()
-  ARM: OMAP: Fix section mismatch warning for platform_cpu_die()
+Upon discussing with Sekhar, realized that I was wrong in the above
+statements, +/- OPP tolerance range should be used.
 
- arch/arm/mach-omap2/omap-hotplug.c        |    2 +-
- arch/arm/mach-omap2/omap-mpuss-lowpower.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
--- 
-1.7.4.1
-
+Regards
+Afzal
