@@ -1,50 +1,52 @@
-From: "Mohammed, Afzal" <afzal@ti.com>
-Subject: RE: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with
- frequency
-Date: Thu, 23 Feb 2012 07:17:30 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A9317853DD@DBDE01.ent.ti.com>
-References: <1329420043-32656-1-git-send-email-khilman@ti.com>
-	<1329420043-32656-2-git-send-email-khilman@ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
-	<87vcmz3f63.fsf@ti.com>
-	<C8443D0743D26F4388EA172BF4E2A7A931784AE0@DBDE01.ent.ti.com>
- <87ehtm1zi9.fsf@ti.com>
- <C8443D0743D26F4388EA172BF4E2A7A931785204@DBDE01.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH] OMAP4: dma: Correct CPU version check for dma_common_ch_end
+Date: Thu, 23 Feb 2012 09:29:05 +0200
+Message-ID: <4F45EAC1.5070309@ti.com>
+References: <1329470706-29682-1-git-send-email-peter.ujfalusi@ti.com> <20120222230714.GV18185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37398 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751078Ab2BWHRf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 02:17:35 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1N7HX6D021637
-	for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 01:17:34 -0600
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A931785204@DBDE01.ent.ti.com>
-Content-Language: en-US
+Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:38863 "EHLO
+	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753175Ab2BWH27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Feb 2012 02:28:59 -0500
+Received: by lagz14 with SMTP id z14so1950535lag.27
+        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 23:28:56 -0800 (PST)
+In-Reply-To: <20120222230714.GV18185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>, "Nori, Sekhar" <nsekhar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Kevin,
+Hi Tony,
 
-On Thu, Feb 23, 2012 at 10:58:57, Mohammed, Afzal wrote:
-> > Using your example above, what if the closest value was 1.259V?
-> > Wouldn't you then need +/- range?
-> 
-> In that case, it will set to next step after 1.259V.
-> 
-> If +/- is used, it may happen that SoC will work for a particular frequency
-> at a voltage lower than it has been characterized (if you ask me to define
-> characterized, I don't know, but what I know is that SoC can work at a
-> lower frequency for the voltage of an OPP, but not vice versa). Still as
-> voltage will be only very less than that specified by OPP, it may not be
-> a problem to use +/-
+On 02/23/2012 01:07 AM, Tony Lindgren wrote:
+> * Peter Ujfalusi <peter.ujfalusi@ti.com> [120217 00:54]:
+>> CCDN is the last common channel register in all OMAP4 versions. Use
+>> cpu_is_omap44xx() instead of the cpu_is_omap4430() - which is anyway=
+ not
+>> doing what it supposed to do.
+>=20
+> This is a bit unclear.. Which is not doing what is supposed to do?
+> DMA driver? Or one of the cpu_is_omap?
 
-Upon discussing with Sekhar, realized that I was wrong in the above
-statements, +/- OPP tolerance range should be used.
+The cpu_is_omap4430() returns 0 unconditionally. Because of this the
+dma_common_ch_end is wrongly configured on OMAP4 (even on OMAP4430).
 
-Regards
-Afzal
+> If this should be queued as a fix, then we need some kind of
+> description here what breaks.
+
+I will resend the patch with a better commit message. This is a bug for
+sure, but I'm not sure how severe it is. At best we are not clearing th=
+e
+registers between CCFN, and CCDN on OMAP4.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
