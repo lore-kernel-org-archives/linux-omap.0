@@ -1,59 +1,104 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH] MFD: TWL 6030: clear IRQ status register only once
-Date: Wed, 22 Feb 2012 20:03:45 -0600
-Message-ID: <1329962625-29767-1-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [GIT PULL] OMAP PM EMU fix for v3.3
+Date: Wed, 22 Feb 2012 21:09:16 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202222021460.12198@utopia.booyaka.com>
+References: <87liw8agk4.fsf@ti.com><AA48DD8077D5D945A49BD1782C1140F1011EBBC7@fioues08.ebgroup.elektrobit.com><20120127190239.GC9339@atomide.com><AA48DD8077D5D945A49BD1782C1140F1011EBBC8@fioues08.ebgroup.elektrobit.com><AA48DD8077D5D945A49BD1782C1140F10122E2B7@fioues08.ebgroup.elektrobit.com>
+ <87linxa5gk.fsf@ti.com> <AA48DD8077D5D945A49BD1782C1140F10122E4FF@fioues08.ebgroup.elektrobit.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Nishanth Menon <nm@ti.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:53111 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753626Ab2BWEJR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 23:09:17 -0500
+In-Reply-To: <AA48DD8077D5D945A49BD1782C1140F10122E4FF@fioues08.ebgroup.elektrobit.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan.Gowda@elektrobit.com
+Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
 
-TWL6030 family of PMIC use a shadow interrupt status register
-while kernel processes the current interrupt event.
-However, any write(0 or 1) to register INT_STS_A, INT_STS_B or
-INT_STS_C clears all 3 interrupt status registers.
+Hello Gowda,
 
-Since clear of the interrupt is done on 32k clk, depending on I2C
-bus speed, we could in-adverently clear the status of a interrupt
-status pending on shadow register in the current implementation.
-This is due to the fact that multi-byte i2c write operation into
-three seperate status register could result in multiple load
-and clear of status and result in lost interrupts.
+A few questions...
 
-Instead, doing a single byte write to INT_STS_A register with 0x0
-will clear all three interrupt status registers without the related
-risk.
+On Wed, 22 Feb 2012, Madhusudhan.Gowda@elektrobit.com wrote:
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- drivers/mfd/twl6030-irq.c |   13 +++++++++++--
- 1 files changed, 11 insertions(+), 2 deletions(-)
+> I have tested this on beagle board as well as on OMAP3630 based
+> propriatory phone using SDTI serial trace interface.
 
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index c6b456a..aa367a2 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -185,8 +185,17 @@ static int twl6030_irq_thread(void *data)
- 			}
- 		local_irq_enable();
- 		}
--		ret = twl_i2c_write(TWL_MODULE_PIH, sts.bytes,
--				REG_INT_STS_A, 3); /* clear INT_STS_A */
-+
-+		/*
-+		 * NOTE:
-+		 * Simulation confirms that documentation is wrong w.r.t the
-+		 * interrupt status clear operation. A single *byte* write to
-+		 * any one of STS_A to STS_C register results in all three
-+		 * STS registers being reset. Since it does not matter which
-+		 * value is written, all three registers are cleared on a
-+		 * single byte write, so we just use 0x0 to clear.
-+		 */
-+		ret = twl_i2c_write_u8(TWL_MODULE_PIH, 0x00, REG_INT_STS_A);
- 		if (ret)
- 			pr_warning("twl6030: I2C error in clearing PIH ISR\n");
- 
--- 
-1.7.5.4
+What driver are you using for SDTI?  Does it use pm_runtime* or call 
+clk_enable() on some clock when it is in use?  Are you defining a hwmod 
+for it?  I don't see an SDTI driver in mainline, but maybe I am just 
+missing it.  If it's not there, could you please post it or post a link to 
+it so we can take a look at what it's doing?
+
+> Also you can test it by just observing the 
+> CM_EMU (48005100) clkstctrl register
+>  48 => 00000001
+> Across MPU OFF alone
+> 
+> [root@beagleboard /]# echo 0 >
+> /sys/kernel/debug/pm_debug/neon_pwrdm/suspend
+> [root@beagleboard /]# echo 0 >
+> /sys/kernel/debug/pm_debug/mpu_pwrdm/suspend
+> [root@beagleboard /]# echo 1 >
+> /sys/kernel/debug/pm_debug/core_pwrdm/suspend
+> [root@beagleboard /]# echo 1 >
+> /sys/kernel/debug/pm_debug/per_pwrdm/suspend
+> [root@beagleboard /]# echo mem >/sys/power/state
+> [   59.694671] PM: Syncing filesystems ... done.
+> [   59.758209] Freezing user space processes ... (elapsed 0.02 seconds)
+> done.
+> [   59.789947] Freezing remaining freezable tasks ... (elapsed 0.02
+> seconds) done.
+> [   59.820709] Suspending console(s) (use no_console_suspend to debug)
+> [   60.055816] PM: suspend of devices complete after 212.493 msecs
+> [   60.059661] PM: late suspend of devices complete after 3.784 msecs
+> [   60.059753] Disabling non-boot CPUs ...
+> [   64.299865] Successfully put all powerdomains to target state
+> [   64.302551] PM: early resume of devices complete after 2.319 msecs
+> [   64.636444] PM: resume of devices complete after 332.336 msecs
+> [   64.688446] Restarting tasks ... done.
+> [root@beagleboard /]# 
+> 
+> And then print again the CM_EMU (48005100) clkstctrl register offset 48
+> this will have the reset value and PRM_EMU (48307100) offset e4 =>
+> 00000100 register confirms the domain wakeup reset from OFF.
+> 
+> At this moment the SDTI serial trace interface looses connection.
+> 
+> With my patch applied the CM_EMU (48005100) clkstctrl register restores
+> it initial setting across MPU OFF.
+
+Maybe you can walk through these thoughts with me and see if it makes 
+sense to you.
+
+When the PM code initializes, it will put the EMU clockdomain to 
+software-supervised sleep.  (Ideally it would put it to 
+hardware-supervised idle, but Jouni turned this off a long time ago, 
+apparently due to some PRCM usecounting problem with it -- which may 
+simply have been some software problem on our part?)
+
+That accounts for CM_CLKSTCTRL_EMU being set to 0x1 before MPU OFF.  Does 
+the SDTI work for you when CM_CLKSTCTRL_EMU is set to 0x1? There's no 
+FCLKEN/ICLKEN bit for the PRCM to use-count, it seems :-( Although maybe 
+this is done through the SDTI_WINCTRL register?
+
+I observe the same phenomenon that you do, that when MPU comes back from 
+OFF, CM_CLKSTCTRL_EMU is set to 0x2.  From reading the TRM, it's not clear 
+to me what is causing that, although I'd agree with your conclusion that 
+it's related to the MPU's reset line.
+
+But here's the part that's unclear to me about your description: according 
+to the TRM, 0x2 means software-supervised wakeup.  So the EMU clockdomain 
+should be awake at that point.  That shouldn't prevent the SDTI from 
+working; in fact quite the opposite.  So I don't really understand how 
+your patch would fix anything in this regard.  Any thoughts?
+
+My suspicion, by the way, is that the underlying problem may be with the 
+SDTI driver that you're using.  My guess would be that it's not integrated 
+with the OMAP power management infrastructure (via pm_runtime* calls), 
+and that's what's causing the problem.
+
+
+- Paul
