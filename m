@@ -1,154 +1,101 @@
-From: "Elaidi, Djamil" <d-elaidi@ti.com>
-Subject: RE: [PATCH 2/6] ARM: OMAP4 PM: Add IO Daisychain support
-Date: Thu, 23 Feb 2012 15:58:44 +0000
-Message-ID: <5672BD13E82B844A93BB4597F293F19A0B3F41AF@DNCE02.ent.ti.com>
-References: <1330003320-17400-1-git-send-email-t-kristo@ti.com>
- <1330003320-17400-3-git-send-email-t-kristo@ti.com>
+From: Joerg Roedel <Joerg.Roedel@amd.com>
+Subject: Re: [PATCH v2 2/2] iommu/omap: fix NULL pointer dereference
+Date: Thu, 23 Feb 2012 17:11:09 +0100
+Message-ID: <20120223161109.GB2454@amd.com>
+References: <1329902086-13868-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60436 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751692Ab2BWP7B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 10:59:01 -0500
-In-Reply-To: <1330003320-17400-3-git-send-email-t-kristo@ti.com>
-Content-Language: en-US
+Received: from am1ehsobe003.messaging.microsoft.com ([213.199.154.206]:17037
+	"EHLO AM1EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752339Ab2BWQLV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Feb 2012 11:11:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1329902086-13868-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Hiroshi Doyu <hdoyu@nvidia.com>
 
-Hi Kristo,
+I guess these patches are 3.3 material? How about tagging them for
+stable too?
 
-I think you must also add a omap_test_timeout() check after the Trigger=
- WUCLKIN disable, to verify WUCLK_STATUS has come back to 0.
-This is needed because the IO daisy chain will not be ready until the W=
-UCLKIN falling edge has propagated.
+On Wed, Feb 22, 2012 at 11:14:46AM +0200, Ohad Ben-Cohen wrote:
+> Fix this:
+> 
+> root@omap4430-panda:~# cat /debug/iommu/ducati/mem
+> [   62.725708] Unable to handle kernel NULL pointer dereference at virtual addre
+> ss 0000001c
+> [   62.725708] pgd = e6240000
+> [   62.737091] [0000001c] *pgd=a7168831, *pte=00000000, *ppte=00000000
+> [   62.743682] Internal error: Oops: 17 [#1] SMP
+> [   62.743682] Modules linked in: omap_iommu_debug omap_iovmm virtio_rpmsg_bus o
+> map_remoteproc remoteproc virtio_ring virtio mailbox_mach mailbox
+> [   62.743682] CPU: 0    Not tainted  (3.3.0-rc1-00265-g382f84e-dirty #682)
+> [   62.743682] PC is at debug_read_mem+0x5c/0xac [omap_iommu_debug]
+> [   62.743682] LR is at 0x1004
+> [   62.777832] pc : [<bf033178>]    lr : [<00001004>]    psr: 60000013
+> [   62.777832] sp : e72c7f40  ip : c0763c00  fp : 00000001
+> [   62.777832] r10: 00000000  r9 : 00000000  r8 : e72c7f80
+> [   62.777832] r7 : e6ffdc08  r6 : bed1ac78  r5 : 00001000  r4 : e7276000
+> [   62.777832] r3 : e60f3460  r2 : 00000000  r1 : e60f38c0  r0 : 00000000
+> [   62.777832] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> [   62.816375] Control: 10c53c7d  Table: a624004a  DAC: 00000015
+> [   62.816375] Process cat (pid: 1176, stack limit = 0xe72c62f8)
+> [   62.828369] Stack: (0xe72c7f40 to 0xe72c8000)
+> ...
+> [   62.884185] [<bf033178>] (debug_read_mem+0x5c/0xac [omap_iommu_debug]) from [
+> <c010e354>] (vfs_read+0xac/0x130)
+> [   62.884185] [<c010e354>] (vfs_read+0xac/0x130) from [<c010e4a8>] (sys_read+0x
+> 40/0x70)
+> [   62.884185] [<c010e4a8>] (sys_read+0x40/0x70) from [<c0014a00>] (ret_fast_sys
+> call+0x0/0x3c)
+> 
+> Fix also its 'echo bla > /debug/iommu/ducati/mem' Oops sibling, too.
+> 
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Hiroshi Doyu <hdoyu@nvidia.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Russell King <linux@arm.linux.org.uk>
+> Cc: Joerg Roedel <Joerg.Roedel@amd.com>
+> ---
+> v2: omap_find_iovm_area only returns NULL for errors. thanks, rmk.
+> 
+>  drivers/iommu/omap-iommu-debug.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/iommu/omap-iommu-debug.c b/drivers/iommu/omap-iommu-debug.c
+> index bad9f9d..103dbd9 100644
+> --- a/drivers/iommu/omap-iommu-debug.c
+> +++ b/drivers/iommu/omap-iommu-debug.c
+> @@ -274,7 +274,7 @@ static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
+>  	mutex_lock(&iommu_debug_lock);
+>  
+>  	area = omap_find_iovm_area(dev, (u32)ppos);
+> -	if (IS_ERR(area)) {
+> +	if (!area) {
+>  		bytes = -EINVAL;
+>  		goto err_out;
+>  	}
+> @@ -311,7 +311,7 @@ static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
+>  	}
+>  
+>  	area = omap_find_iovm_area(dev, (u32)ppos);
+> -	if (IS_ERR(area)) {
+> +	if (!area) {
+>  		count = -EINVAL;
+>  		goto err_out;
+>  	}
+> -- 
+> 1.7.5.4
+> 
 
-+       /* Trigger WUCLKIN disable */
-+       omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
-+                       OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_O=
-=46FSET);
-+       return;
-+       omap_test_timeout(
-+               (((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+                       OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+                       OMAP4430_WUCLK_STATUS_MASK) >>
-+                       OMAP4430_WUCLK_STATUS_SHIFT) =3D=3D 0),
-+               MAX_IOPAD_LATCH_TIME, i);
+-- 
+AMD Operating System Research Center
 
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
 
-Best regards
-Djamil ELA=CFDI
-+33 4 97 27 50 97
-Software Systems Engineer
-OMAP Platform Business Unit - PSI Modem Integration
-Texas Instruments
-
-
-Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Lo=
-ubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
-
------Original Message-----
-=46rom: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
-kernel.org] On Behalf Of Kristo, Tero
-Sent: jeudi 23 f=E9vrier 2012 14:22
-To: linux-omap@vger.kernel.org; Hilman, Kevin
-Cc: linux-arm-kernel@lists.infradead.org; Nayak, Rajendra; Sripathy, Vi=
-shwanath
-Subject: [PATCH 2/6] ARM: OMAP4 PM: Add IO Daisychain support
-
-=46rom: Rajendra Nayak <rnayak@ti.com>
-
-patch adds IO Daisychain support for OMAP4 as per section 3.9.4 in OMAP=
-4430
-Public TRM.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/prm44xx.c |   32 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/prm44xx.h |    1 +
- 2 files changed, 33 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44x=
-x.c
-index 33dd655..1557647 100644
---- a/arch/arm/mach-omap2/prm44xx.c
-+++ b/arch/arm/mach-omap2/prm44xx.c
-@@ -230,6 +230,41 @@ void omap44xx_prm_restore_irqen(u32 *saved_mask)
-                                 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
- }
-
-+/**
-+ * Maximum time(us) it takes to output the signal WUCLKOUT of the last=
- pad of
-+ * the I/O ring after asserting WUCLKIN high
-+ */
-+#define MAX_IOPAD_LATCH_TIME 1000
-+
-+/* OMAP4 IO Daisychain trigger sequence */
-+void omap4_trigger_wuclk_ctrl(void)
-+{
-+       int i =3D 0;
-+
-+       /* Enable GLOBAL_WUEN */
-+       if (!(omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+               OMAP4_PRM_IO_PMCTRL_OFFSET) & OMAP4430_GLOBAL_WUEN_MASK=
-))
-+               omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
-+                       OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_=
-INST,
-+                       OMAP4_PRM_IO_PMCTRL_OFFSET);
-+
-+       /* Trigger WUCLKIN enable */
-+       omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
-+                       OMAP4430_WUCLK_CTRL_MASK, OMAP4430_PRM_DEVICE_I=
-NST,
-+                       OMAP4_PRM_IO_PMCTRL_OFFSET);
-+       omap_test_timeout(
-+               (((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
-+                       OMAP4_PRM_IO_PMCTRL_OFFSET) &
-+                       OMAP4430_WUCLK_STATUS_MASK) >>
-+                       OMAP4430_WUCLK_STATUS_SHIFT) =3D=3D 1),
-+               MAX_IOPAD_LATCH_TIME, i);
-+
-+       /* Trigger WUCLKIN disable */
-+       omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
-+                       OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_O=
-=46FSET);
-+       return;
-+}
-+
- static int __init omap4xxx_prcm_init(void)
- {
-        if (cpu_is_omap44xx())
-diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44x=
-x.h
-index 7978092..a840f0f 100644
---- a/arch/arm/mach-omap2/prm44xx.h
-+++ b/arch/arm/mach-omap2/prm44xx.h
-@@ -762,6 +762,7 @@ void omap4_prm_vp_clear_txdone(u8 vp_id);
- extern u32 omap4_prm_vcvp_read(u8 offset);
- extern void omap4_prm_vcvp_write(u32 val, u8 offset);
- extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
-+extern void omap4_trigger_wuclk_ctrl(void);
-
- /* PRM interrupt-related functions */
- extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
---
-1.7.4.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
