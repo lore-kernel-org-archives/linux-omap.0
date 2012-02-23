@@ -1,71 +1,154 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
-Date: Thu, 23 Feb 2012 16:57:18 +0100
-Message-ID: <4F4661DE.90704@ti.com>
-References: <4F22DEF2.5000807@ti.com> <4F44CA82.9060906@atmel.com> <4F460EF2.9010000@ti.com> <4F46609C.8080907@atmel.com>
+From: "Elaidi, Djamil" <d-elaidi@ti.com>
+Subject: RE: [PATCH 2/6] ARM: OMAP4 PM: Add IO Daisychain support
+Date: Thu, 23 Feb 2012 15:58:44 +0000
+Message-ID: <5672BD13E82B844A93BB4597F293F19A0B3F41AF@DNCE02.ent.ti.com>
+References: <1330003320-17400-1-git-send-email-t-kristo@ti.com>
+ <1330003320-17400-3-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51221 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752891Ab2BWP5g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 10:57:36 -0500
-In-Reply-To: <4F46609C.8080907@atmel.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60436 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751692Ab2BWP7B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 10:59:01 -0500
+In-Reply-To: <1330003320-17400-3-git-send-email-t-kristo@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>, Rob Herring <rob.herring@calxeda.com>, Stephen Warren <swarren@nvidia.com>, Thomas Abraham <thomas.abraham@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Ludovic Desroches <ludovic.desroches@atmel.com>
+To: "Kristo, Tero" <t-kristo@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
 
-On 2/23/2012 4:51 PM, Nicolas Ferre wrote:
-> On 02/23/2012 11:03 AM, Cousson, Benoit :
->> Salut Nico,
->
-> Coucou Benoit ;-)
->
->> On 2/22/2012 11:59 AM, Nicolas Ferre wrote:
->>> On 01/27/2012 06:29 PM, Cousson, Benoit :
->>>> Add some basic helpers to retrieve a DMA controller device_node
->>>> and the DMA request line number.
->>>>
->>>> For legacy reason another API will export the DMA request number
->>>> into a Linux resource of type IORESOURCE_DMA.
->>>> This API is usable only on system with an unique DMA controller.
->>>
->>> Hi,
->>>
->>> I followed that discussion and I like very much the biding that Benoit
->>> is proposing. It will help me a lot with my current work on Atmel DMA
->>> controller.
->>>
->>> If I understand correctly, some rework is needed before it can be
->>> integrated in a stable git tree (I mean before we can base our work on
->>> top of it). So, in the meantime, what should I do to help and make
->>> things go forward? to be quite frank, I would be interested to have a
->>> working DMA enabled device soon ;-)
->>
->> Me too, but unfortunately, I was busy trying to add irq_domain and
->> fixing issues with SPARSE_IRQ on OMAP :-(
->
-> Been there, loved that ;-)
->
->>> Do you think that 3.4 is out of reach?
->>
->> Maybe not, from the comments, it looks like we should add a .xlate
->> callback to allow any custom parsing of the DMA nodes attributes.
->>
->> I'll be more than happy, if you can finalize that patch :-)
->
-> I will try to figure out what I can understand from the irq mechanism of
-> .xlate and try to see if I can implement it on top of your patch.
+Hi Kristo,
 
-In fact that dma code is a big copy/paste of the of/gpio one and gpio 
-was already managing .xlate function.
-I removed it because I thought it was useless for the DMA :-)
+I think you must also add a omap_test_timeout() check after the Trigger=
+ WUCLKIN disable, to verify WUCLK_STATUS has come back to 0.
+This is needed because the IO daisy chain will not be ready until the W=
+UCLKIN falling edge has propagated.
 
-You might just have to copy the original code...
++       /* Trigger WUCLKIN disable */
++       omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
++                       OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_O=
+=46FSET);
++       return;
++       omap_test_timeout(
++               (((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++                       OMAP4_PRM_IO_PMCTRL_OFFSET) &
++                       OMAP4430_WUCLK_STATUS_MASK) >>
++                       OMAP4430_WUCLK_STATUS_SHIFT) =3D=3D 0),
++               MAX_IOPAD_LATCH_TIME, i);
 
-> I will keep you informed...
 
-Thanks for the help,
-Benoit
+Best regards
+Djamil ELA=CFDI
++33 4 97 27 50 97
+Software Systems Engineer
+OMAP Platform Business Unit - PSI Modem Integration
+Texas Instruments
+
+
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Lo=
+ubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
+
+-----Original Message-----
+=46rom: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
+kernel.org] On Behalf Of Kristo, Tero
+Sent: jeudi 23 f=E9vrier 2012 14:22
+To: linux-omap@vger.kernel.org; Hilman, Kevin
+Cc: linux-arm-kernel@lists.infradead.org; Nayak, Rajendra; Sripathy, Vi=
+shwanath
+Subject: [PATCH 2/6] ARM: OMAP4 PM: Add IO Daisychain support
+
+=46rom: Rajendra Nayak <rnayak@ti.com>
+
+patch adds IO Daisychain support for OMAP4 as per section 3.9.4 in OMAP=
+4430
+Public TRM.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+---
+ arch/arm/mach-omap2/prm44xx.c |   32 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm44xx.h |    1 +
+ 2 files changed, 33 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44x=
+x.c
+index 33dd655..1557647 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -230,6 +230,41 @@ void omap44xx_prm_restore_irqen(u32 *saved_mask)
+                                 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
+ }
+
++/**
++ * Maximum time(us) it takes to output the signal WUCLKOUT of the last=
+ pad of
++ * the I/O ring after asserting WUCLKIN high
++ */
++#define MAX_IOPAD_LATCH_TIME 1000
++
++/* OMAP4 IO Daisychain trigger sequence */
++void omap4_trigger_wuclk_ctrl(void)
++{
++       int i =3D 0;
++
++       /* Enable GLOBAL_WUEN */
++       if (!(omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++               OMAP4_PRM_IO_PMCTRL_OFFSET) & OMAP4430_GLOBAL_WUEN_MASK=
+))
++               omap4_prm_rmw_inst_reg_bits(OMAP4430_GLOBAL_WUEN_MASK,
++                       OMAP4430_GLOBAL_WUEN_MASK, OMAP4430_PRM_DEVICE_=
+INST,
++                       OMAP4_PRM_IO_PMCTRL_OFFSET);
++
++       /* Trigger WUCLKIN enable */
++       omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK,
++                       OMAP4430_WUCLK_CTRL_MASK, OMAP4430_PRM_DEVICE_I=
+NST,
++                       OMAP4_PRM_IO_PMCTRL_OFFSET);
++       omap_test_timeout(
++               (((omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++                       OMAP4_PRM_IO_PMCTRL_OFFSET) &
++                       OMAP4430_WUCLK_STATUS_MASK) >>
++                       OMAP4430_WUCLK_STATUS_SHIFT) =3D=3D 1),
++               MAX_IOPAD_LATCH_TIME, i);
++
++       /* Trigger WUCLKIN disable */
++       omap4_prm_rmw_inst_reg_bits(OMAP4430_WUCLK_CTRL_MASK, 0x0,
++                       OMAP4430_PRM_DEVICE_INST, OMAP4_PRM_IO_PMCTRL_O=
+=46FSET);
++       return;
++}
++
+ static int __init omap4xxx_prcm_init(void)
+ {
+        if (cpu_is_omap44xx())
+diff --git a/arch/arm/mach-omap2/prm44xx.h b/arch/arm/mach-omap2/prm44x=
+x.h
+index 7978092..a840f0f 100644
+--- a/arch/arm/mach-omap2/prm44xx.h
++++ b/arch/arm/mach-omap2/prm44xx.h
+@@ -762,6 +762,7 @@ void omap4_prm_vp_clear_txdone(u8 vp_id);
+ extern u32 omap4_prm_vcvp_read(u8 offset);
+ extern void omap4_prm_vcvp_write(u32 val, u8 offset);
+ extern u32 omap4_prm_vcvp_rmw(u32 mask, u32 bits, u8 offset);
++extern void omap4_trigger_wuclk_ctrl(void);
+
+ /* PRM interrupt-related functions */
+ extern void omap44xx_prm_read_pending_irqs(unsigned long *events);
+--
+1.7.4.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
