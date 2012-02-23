@@ -1,27 +1,47 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] ARM: OMAP2: fix mailbox init code
-Date: Thu, 23 Feb 2012 19:04:09 +0200
-Message-ID: <CAK=WgbYsV4M6RYYyA85=FyJcEW-8O3yiqZit2ev2AW-mG+0-8A@mail.gmail.com>
-References: <1329987215-28227-1-git-send-email-ohad@wizery.com> <B5906170F1614E41A8A28DE3B8D12143317AD2B7@DBDE01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Mircea Gherzan <mgherzan@gmail.com>
+Subject: [PATCH RESEND] ARM: OMAP: enable Bluetooth on the PandaBoard
+Date: Thu, 23 Feb 2012 18:52:57 +0100
+Message-ID: <1330019577-2106-1-git-send-email-mgherzan@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:45140 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943Ab2BWRE3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 12:04:29 -0500
-Received: by iacb35 with SMTP id b35so1782277iac.19
-        for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 09:04:29 -0800 (PST)
-In-Reply-To: <B5906170F1614E41A8A28DE3B8D12143317AD2B7@DBDE01.ent.ti.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:61958 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756223Ab2BWRxF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 12:53:05 -0500
+Received: by eekc4 with SMTP id c4so559376eek.19
+        for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 09:53:04 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Bedia, Vaibhav" <vaibhav.bedia@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Tony Lindgren <tony@atomide.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Russell King <linux@arm.linux.org.uk>, Hiroshi Doyu <hdoyu@nvidia.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, mgherzan@gmail.com
 
-On Thu, Feb 23, 2012 at 11:18 AM, Bedia, Vaibhav <vaibhav.bedia@ti.com> wrote:
-> Instead of adding more #ifs can they be completely removed please?
+The PandaBoard features a Texas Instruments WiLink7 Bluetooth
+chip, supported by the "btwilink" driver.
 
-Care to propose something specific (which is viable for the -rc cycle) ?
+Signed-off-by: Mircea Gherzan <mgherzan@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap4panda.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-Thanks,
-Ohad.
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index 28fc271..b1d74d6 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -91,9 +91,15 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
++static struct platform_device btwilink_device = {
++	.name	= "btwilink",
++	.id	= -1,
++};
++
+ static struct platform_device *panda_devices[] __initdata = {
+ 	&leds_gpio,
+ 	&wl1271_device,
++	&btwilink_device,
+ };
+ 
+ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+-- 
+1.7.9.1
+
