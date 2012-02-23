@@ -1,104 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [GIT PULL] OMAP PM EMU fix for v3.3
-Date: Wed, 22 Feb 2012 21:09:16 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202222021460.12198@utopia.booyaka.com>
-References: <87liw8agk4.fsf@ti.com><AA48DD8077D5D945A49BD1782C1140F1011EBBC7@fioues08.ebgroup.elektrobit.com><20120127190239.GC9339@atomide.com><AA48DD8077D5D945A49BD1782C1140F1011EBBC8@fioues08.ebgroup.elektrobit.com><AA48DD8077D5D945A49BD1782C1140F10122E2B7@fioues08.ebgroup.elektrobit.com>
- <87linxa5gk.fsf@ti.com> <AA48DD8077D5D945A49BD1782C1140F10122E4FF@fioues08.ebgroup.elektrobit.com>
+From: "Mohammed, Afzal" <afzal@ti.com>
+Subject: RE: [PATCH/RFT 1/1] OMAP2+: cpufreq: scale voltage along with
+ frequency
+Date: Thu, 23 Feb 2012 05:28:57 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A931785204@DBDE01.ent.ti.com>
+References: <1329420043-32656-1-git-send-email-khilman@ti.com>
+	<1329420043-32656-2-git-send-email-khilman@ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A931782571@DBDE01.ent.ti.com>
+	<87vcmz3f63.fsf@ti.com>
+	<C8443D0743D26F4388EA172BF4E2A7A931784AE0@DBDE01.ent.ti.com>
+ <87ehtm1zi9.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53111 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753626Ab2BWEJR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Feb 2012 23:09:17 -0500
-In-Reply-To: <AA48DD8077D5D945A49BD1782C1140F10122E4FF@fioues08.ebgroup.elektrobit.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:54016 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab2BWF3E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 00:29:04 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1N5T1Ii008949
+	for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 23:29:02 -0600
+In-Reply-To: <87ehtm1zi9.fsf@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan.Gowda@elektrobit.com
-Cc: khilman@ti.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kristo, Tero" <t-kristo@ti.com>
 
-Hello Gowda,
+Hi Kevin,
 
-A few questions...
-
-On Wed, 22 Feb 2012, Madhusudhan.Gowda@elektrobit.com wrote:
-
-> I have tested this on beagle board as well as on OMAP3630 based
-> propriatory phone using SDTI serial trace interface.
-
-What driver are you using for SDTI?  Does it use pm_runtime* or call 
-clk_enable() on some clock when it is in use?  Are you defining a hwmod 
-for it?  I don't see an SDTI driver in mainline, but maybe I am just 
-missing it.  If it's not there, could you please post it or post a link to 
-it so we can take a look at what it's doing?
-
-> Also you can test it by just observing the 
-> CM_EMU (48005100) clkstctrl register
->  48 => 00000001
-> Across MPU OFF alone
+On Thu, Feb 23, 2012 at 00:12:06, Hilman, Kevin wrote:
+> > And in my patch plus - minus was not used as regulator framework will
+> > try to set voltage for the least voltage which sometimes corresponds
+> > to exact OPP required value.
 > 
-> [root@beagleboard /]# echo 0 >
-> /sys/kernel/debug/pm_debug/neon_pwrdm/suspend
-> [root@beagleboard /]# echo 0 >
-> /sys/kernel/debug/pm_debug/mpu_pwrdm/suspend
-> [root@beagleboard /]# echo 1 >
-> /sys/kernel/debug/pm_debug/core_pwrdm/suspend
-> [root@beagleboard /]# echo 1 >
-> /sys/kernel/debug/pm_debug/per_pwrdm/suspend
-> [root@beagleboard /]# echo mem >/sys/power/state
-> [   59.694671] PM: Syncing filesystems ... done.
-> [   59.758209] Freezing user space processes ... (elapsed 0.02 seconds)
-> done.
-> [   59.789947] Freezing remaining freezable tasks ... (elapsed 0.02
-> seconds) done.
-> [   59.820709] Suspending console(s) (use no_console_suspend to debug)
-> [   60.055816] PM: suspend of devices complete after 212.493 msecs
-> [   60.059661] PM: late suspend of devices complete after 3.784 msecs
-> [   60.059753] Disabling non-boot CPUs ...
-> [   64.299865] Successfully put all powerdomains to target state
-> [   64.302551] PM: early resume of devices complete after 2.319 msecs
-> [   64.636444] PM: resume of devices complete after 332.336 msecs
-> [   64.688446] Restarting tasks ... done.
-> [root@beagleboard /]# 
+> sometimes?
+
+I was not clear in my previous statement, let me explain it differently.
+
+Regulator framework will always try to set lowest voltage in the range.
+Upon, regulator_set_voltage(reg, OPPVOLT, (OPPVOLT+RESOLUTION-1)), if
+OPPVOLT is a value that can be set by the regulator, that will be set by
+the regulator, this is what I meant by 'sometimes'. Otherwise it will set
+the next possible step.
+
+> Using your example above, what if the closest value was 1.259V?
+> Wouldn't you then need +/- range?
+
+In that case, it will set to next step after 1.259V.
+
+If +/- is used, it may happen that SoC will work for a particular frequency
+at a voltage lower than it has been characterized (if you ask me to define
+characterized, I don't know, but what I know is that SoC can work at a
+lower frequency for the voltage of an OPP, but not vice versa). Still as
+voltage will be only very less than that specified by OPP, it may not be
+a problem to use +/-
+
+> Please have a look at my v2.
 > 
-> And then print again the CM_EMU (48005100) clkstctrl register offset 48
-> this will have the reset value and PRM_EMU (48307100) offset e4 =>
-> 00000100 register confirms the domain wakeup reset from OFF.
-> 
-> At this moment the SDTI serial trace interface looses connection.
-> 
-> With my patch applied the CM_EMU (48005100) clkstctrl register restores
-> it initial setting across MPU OFF.
+> The drivers will get pre and post notifiers, with the caveat that upon
+> DVFS failure, the freq in the post notifier might be the same as the one
+> in the pre notifier, indicating that no change was made.
 
-Maybe you can walk through these thoughts with me and see if it makes 
-sense to you.
+Yes, I overlooked your freq.new update for error condition.
 
-When the PM code initializes, it will put the EMU clockdomain to 
-software-supervised sleep.  (Ideally it would put it to 
-hardware-supervised idle, but Jouni turned this off a long time ago, 
-apparently due to some PRCM usecounting problem with it -- which may 
-simply have been some software problem on our part?)
+Earlier while adding support for DVFS on AM335X, it was noticed that, lpj
+was going wrong after dvfs failure, then those error notifiers were added
+to recover properly. Later it was realized that it was due to a bug in
+cpufreq framework,
 
-That accounts for CM_CLKSTCTRL_EMU being set to 0x1 before MPU OFF.  Does 
-the SDTI work for you when CM_CLKSTCTRL_EMU is set to 0x1? There's no 
-FCLKEN/ICLKEN bit for the PRCM to use-count, it seems :-( Although maybe 
-this is done through the SDTI_WINCTRL register?
+"d08de0c1  [CPUFREQ] update lpj only if frequency has changed"
 
-I observe the same phenomenon that you do, that when MPU comes back from 
-OFF, CM_CLKSTCTRL_EMU is set to 0x2.  From reading the TRM, it's not clear 
-to me what is causing that, although I'd agree with your conclusion that 
-it's related to the MPU's reset line.
+fixed it, probably those extra handling in  my patch is not required now,
+if drivers can understand your pre & post notifiers properly (if drivers
+can't, then maybe it is driver problem)
 
-But here's the part that's unclear to me about your description: according 
-to the TRM, 0x2 means software-supervised wakeup.  So the EMU clockdomain 
-should be awake at that point.  That shouldn't prevent the SDTI from 
-working; in fact quite the opposite.  So I don't really understand how 
-your patch would fix anything in this regard.  Any thoughts?
-
-My suspicion, by the way, is that the underlying problem may be with the 
-SDTI driver that you're using.  My guess would be that it's not integrated 
-with the OMAP power management infrastructure (via pm_runtime* calls), 
-and that's what's causing the problem.
-
-
-- Paul
+Regards
+Afzal
