@@ -1,47 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2] OMAP4: dma: Correct CPU version check for dma_common_ch_end
-Date: Thu, 23 Feb 2012 09:44:41 +0200
-Message-ID: <1329983081-9494-1-git-send-email-peter.ujfalusi@ti.com>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Fix section mismatch warning for
+ platform_cpu_die()
+Date: Thu, 23 Feb 2012 08:45:04 +0100
+Message-ID: <20120223074504.GZ14173@pengutronix.de>
+References: <1329980310-9007-1-git-send-email-santosh.shilimkar@ti.com>
+ <1329980310-9007-3-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:41945 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751765Ab2BWHoq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Feb 2012 02:44:46 -0500
-Received: by lahi5 with SMTP id i5so1197154lah.4
-        for <linux-omap@vger.kernel.org>; Wed, 22 Feb 2012 23:44:42 -0800 (PST)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50407 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752894Ab2BWHpI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 02:45:08 -0500
+Content-Disposition: inline
+In-Reply-To: <1329980310-9007-3-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-CCDN is the last common channel register in all OMAP4 versions. Use
-cpu_is_omap44xx() instead of the cpu_is_omap4430().
-cpu_is_omap4430() returns 0 unconditionally. This causes that the
-dma_common_ch_end register variable is not configured correctly on OMAP4, not
-even for OMAP4430.
-Because of this, registers between CCFN - CCDN will be not cleard in the
-omap2_clear_dma function in OMAP4.
+Hello,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- arch/arm/mach-omap2/dma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thu, Feb 23, 2012 at 12:28:30PM +0530, Santosh Shilimkar wrote:
+> WARNING: vmlinux.o(.text+0x226d0):
+> Section mismatch in reference from the function
+> platform_cpu_die() to the function .cpuinit.text:omap4_hotplug_cpu()
+> The function platform_cpu_die() references
+> the function __cpuinit omap4_hotplug_cpu().
+> This is often because platform_cpu_die lacks a __cpuinit
+> annotation or the annotation of omap4_hotplug_cpu is wrong.
+>=20
+> Thanks to Russell King for suggesting __ref annotation trick
+> just like it's parent function for this warning becasue __cupinit
+s/it's/its/; s/becasue/because/; s/cup/cpu/
 
-diff --git a/arch/arm/mach-omap2/dma.c b/arch/arm/mach-omap2/dma.c
-index a59a45a..b19d849 100644
---- a/arch/arm/mach-omap2/dma.c
-+++ b/arch/arm/mach-omap2/dma.c
-@@ -227,7 +227,7 @@ static int __init omap2_system_dma_init_dev(struct omap_hwmod *oh, void *unused)
- 
- 	dma_stride		= OMAP2_DMA_STRIDE;
- 	dma_common_ch_start	= CSDP;
--	if (cpu_is_omap3630() || cpu_is_omap4430())
-+	if (cpu_is_omap3630() || cpu_is_omap44xx())
- 		dma_common_ch_end = CCDN;
- 	else
- 		dma_common_ch_end = CCFN;
--- 
-1.7.8.4
+Having said that I think the grammar is broken, too. Maybe:
 
+	Thanks to Russell King for suggesting to use __ref instead of
+	the initial (and wrong) approach to use __cpuinit.
+
+(But note I'm not a native speaker, too)
+
+Uwe
+
+> usage was definitely wrong to fix this warning..
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig        =
+    |
+Industrial Linux Solutions                 | http://www.pengutronix.de/=
+  |
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
