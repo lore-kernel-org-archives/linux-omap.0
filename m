@@ -1,70 +1,62 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: [PATCH 0/6] gpio/omap: Some more driver cleanup and fixes
-Date: Thu, 23 Feb 2012 17:56:33 +0530
-Message-ID: <CAMQu2gzdfxJms8cc3VhsVzhGq4f8x1QeY6LU6X+2eFZ4_Yv_bw@mail.gmail.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH 1/6] gpio/omap: remove saved_fallingdetect,
+ saved_risingdetect fields
+Date: Thu, 23 Feb 2012 14:28:15 +0200
+Message-ID: <20120223122814.GE18463@legolas.emea.dhcp.ti.com>
 References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
+ <1329999031-6914-2-git-send-email-tarun.kanti@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QXAv++6zoyBcX2gv"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
+Content-Disposition: inline
+In-Reply-To: <1329999031-6914-2-git-send-email-tarun.kanti@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thu, Feb 23, 2012 at 5:40 PM, Tarun Kanti DebBarma
-<tarun.kanti@ti.com> wrote:
-> The cleanup is mostly getting rid of redundant fields in struct gpio_=
-bank{}
-> as we already have them as part of bank->context now. Also, remove un=
--used
-> variable from gpio_irq_handler.
->
-> The fix include correction of _set_gpio_irqenable() implementation an=
-d fix
-> type mismatch of gpio trigger parameter.
->
-> It is baselined on top of Kevin's following series:
-> gpio/omap: cleanup and runtime PM conversion for v3.4
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.g=
-it for_3.4/gpio/runtime-pm-cleanup
->
-> I have applied Benoit's GPIO patches in following series on top of Ke=
-vin's
-> before applying my changes.
-> gpio/omap: Cleanup and adaptation to Device Tree
-> git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.=
-git for_3.4/dt_gpio
->
-> Series is available here for reference:
-> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-=
-omap-dev for_3.4/gpio_further_cleanup_fixes
->
-> Power Test: Off-mode and Retention on OMAP3430 (Suspend and Idle path=
-s).
-> Functional Test: OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BLAZE
->
-> Tarun Kanti DebBarma (6):
-> =A0gpio/omap: remove saved_fallingdetect, saved_risingdetect fields
-> =A0gpio/omap: remove saved_wakeup field from struct gpio_bank
-> =A0gpio/omap: remove suspend_wakeup field from struct gpio_bank
-> =A0gpio/omap: get rid of retrigger variable in gpio_irq_handler
-> =A0gpio/omap: fix trigger type to unsigned
-> =A0gpio/omap: fix _set_gpio_irqenable implementation
->
-> =A0drivers/gpio/gpio-omap.c | =A0 56 +++++++++++++++++++-------------=
--------------
-> =A01 files changed, 24 insertions(+), 32 deletions(-)
->
-Nice clean-up series. I have gone through this series one more time
-Thanks for updating change-logs. I noticed you dropped the edge trigger=
-ed
-irq wakeup fix....I see on the list now.... Kevin has fixed that alread=
-y.
 
-Series looks good to me. You can add:
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+--QXAv++6zoyBcX2gv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Regards
-Santosh
+On Thu, Feb 23, 2012 at 05:40:26PM +0530, Tarun Kanti DebBarma wrote:
+> Since we already have context.fallingdetect and context.risingdetect
+> there is no more need to have these additional fields. Also, getting
+> rid of extra reads associated with them.
+>=20
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+
+Looks trivial and correct:
+
+Acked-by: Felipe Balbi <balbi@ti.com>
+
+--=20
+balbi
+
+--QXAv++6zoyBcX2gv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPRjDeAAoJEIaOsuA1yqRE2K4QAKnXrTHsIDc50w2Eg0gTvYSS
+34zPBHfYhx2ulrLS9A1Nsn8em98+fOitulaVN1E5MnGg3mJvF8tjHj5nZ3ljJHJM
+hxS6JHb2G7vZFMnUdpywEKUkIJYx0q5z5OjIt/19lutNYWvTgMXQwv0eR3cZITj2
+bYjBqx3n+IqIEcp8iBc6+Io+7UH5pQhXHOvPfbIOLp1eJ1Rgig/dxhDqwojM0p71
+MJtF1+b+cmpCwV+CgPaGub1jg/Rlt0kiukXRBQkU4DJJxD9pQ4YkgscikLJpZX0O
+2gVfggoFcTffuM98uaJj+uUJWCI8xTC3wXTkR40dssTab5VuYIqbAZZAsZHIHyso
+tDSYHA7Hcc/0tetW1inXRLZkt6KnG7edJ3Kv9DcgKWIrjhcrGzFvQvBGy7YWy8JI
+gZ5m5UoNLcsqCLH9wt2xzpyxiMhOZoNDNwpgGEOfpaChccgjetI2ygjfKgiW/F4u
+eEVtaGs9lABx8i4Wy+TQLLkPwFTfPfXkSVBC1UcHcQ0O4aGHBrJXOW6C376/xu27
+UL+gLYS+L7LiH3PYpWuw5KUwMgdiScp/5FJZR/YeZP7J/vr/FcC6cEWwrDEhie63
+0dqVai9IqmwJYIhwq/Enc0xIczhY2y4hQlr6ToVd6T1q+HCusIjAKq8DGIlI5wvv
+oEa5y1L+qknyJ8fS+fWp
+=2TUa
+-----END PGP SIGNATURE-----
+
+--QXAv++6zoyBcX2gv--
