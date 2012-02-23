@@ -1,120 +1,65 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 1/7] ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
-Date: Thu, 23 Feb 2012 17:10:41 +0530
-Message-ID: <1329997247-27342-2-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 3/7] mmc: omap_hsmmc: Make the driver support hotpluggable devices
+Date: Thu, 23 Feb 2012 17:10:43 +0530
+Message-ID: <1329997247-27342-4-git-send-email-rnayak@ti.com>
 References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35333 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:35334 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752429Ab2BWLk6 (ORCPT
+	with ESMTP id S1753424Ab2BWLk6 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 06:40:58 -0500
 In-Reply-To: <1329997247-27342-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org
 
-From: Ohad Ben-Cohen <ohad@wizery.com>
+Make the hsmmc driver register the driver using platform_driver_register()
+so it can support hotpluggable devices.
 
-Expose omap_device_{alloc, delete, register} so we can use them outside
-of omap_device.c.
+This is needed, for instance, in case of OMAP3, wherein some of the mmc
+devices might get added and removed dynamically based on dependent modules
+like twl4030-gpio.
 
-This approach allows users, which need to manipulate an archdata member
-of a device before it is registered, to do so. This is also useful
-for users who have their devices created very early so they can be used
-at ->reserve() time to reserve CMA memory.
-
-The immediate use case for this is to set the private iommu archdata
-member, which binds a device to its associated iommu controller.
-This way, generic code will be able to attach omap devices to their
-iommus, without calling any omap-specific API.
-
-With this in hand, we can further clean the existing mainline OMAP iommu
-driver and its mainline users, and focus on generic IOMMU approaches
-for future users (rpmsg/remoteproc and the upcoming generic DMA API).
-
-This patch is still considered an interim solution until DT fully materializes
-for omap; at that point, this functionality will be removed as DT will
-take care of creating the devices and configuring them correctly.
-
-Tested on OMAP4 with a generic rpmsg/remoteproc that doesn't use any
-omap-specific IOMMU API anymore.
-
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Cc: Chris Ball <cjb@laptop.org>
+Cc: <linux-mmc@vger.kernel.org>
 ---
- arch/arm/plat-omap/include/plat/omap_device.h |    7 +++++++
- arch/arm/plat-omap/omap_device.c              |   13 +++----------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
-index 51423d2..05f7615 100644
---- a/arch/arm/plat-omap/include/plat/omap_device.h
-+++ b/arch/arm/plat-omap/include/plat/omap_device.h
-@@ -100,6 +100,13 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
- 					 struct omap_device_pm_latency *pm_lats,
- 					 int pm_lats_cnt, int is_early_device);
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index fd0c661..21b8afa 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1847,7 +1847,7 @@ static void omap_hsmmc_debugfs(struct mmc_host *mmc)
  
-+struct omap_device *omap_device_alloc(struct platform_device *pdev,
-+				      struct omap_hwmod **ohs, int oh_cnt,
-+				      struct omap_device_pm_latency *pm_lats,
-+				      int pm_lats_cnt);
-+void omap_device_delete(struct omap_device *od);
-+int omap_device_register(struct platform_device *pdev);
-+
- void __iomem *omap_device_get_rt_va(struct omap_device *od);
- struct device *omap_device_get_by_hwmod_name(const char *oh_name);
+ #endif
  
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index e8d9869..f72fafc 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -97,14 +97,7 @@
- #define USE_WAKEUP_LAT			0
- #define IGNORE_WAKEUP_LAT		1
+-static int __init omap_hsmmc_probe(struct platform_device *pdev)
++static int omap_hsmmc_probe(struct platform_device *pdev)
+ {
+ 	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
+ 	struct mmc_host *mmc;
+@@ -2264,6 +2264,7 @@ static struct dev_pm_ops omap_hsmmc_dev_pm_ops = {
+ };
  
--static int omap_device_register(struct platform_device *pdev);
- static int omap_early_device_register(struct platform_device *pdev);
--static struct omap_device *omap_device_alloc(struct platform_device *pdev,
--				      struct omap_hwmod **ohs, int oh_cnt,
--				      struct omap_device_pm_latency *pm_lats,
--				      int pm_lats_cnt);
--static void omap_device_delete(struct omap_device *od);
--
- 
- static struct omap_device_pm_latency omap_default_latency[] = {
- 	{
-@@ -509,7 +502,7 @@ static int omap_device_fill_resources(struct omap_device *od,
-  *
-  * Returns an struct omap_device pointer or ERR_PTR() on error;
-  */
--static struct omap_device *omap_device_alloc(struct platform_device *pdev,
-+struct omap_device *omap_device_alloc(struct platform_device *pdev,
- 					struct omap_hwmod **ohs, int oh_cnt,
- 					struct omap_device_pm_latency *pm_lats,
- 					int pm_lats_cnt)
-@@ -591,7 +584,7 @@ oda_exit1:
- 	return ERR_PTR(ret);
+ static struct platform_driver omap_hsmmc_driver = {
++	.probe		= omap_hsmmc_probe,
+ 	.remove		= omap_hsmmc_remove,
+ 	.driver		= {
+ 		.name = DRIVER_NAME,
+@@ -2275,7 +2276,7 @@ static struct platform_driver omap_hsmmc_driver = {
+ static int __init omap_hsmmc_init(void)
+ {
+ 	/* Register the MMC driver */
+-	return platform_driver_probe(&omap_hsmmc_driver, omap_hsmmc_probe);
++	return platform_driver_register(&omap_hsmmc_driver);
  }
  
--static void omap_device_delete(struct omap_device *od)
-+void omap_device_delete(struct omap_device *od)
- {
- 	if (!od)
- 		return;
-@@ -817,7 +810,7 @@ static struct dev_pm_domain omap_device_pm_domain = {
-  * platform_device_register() on the underlying platform_device.
-  * Returns the return value of platform_device_register().
-  */
--static int omap_device_register(struct platform_device *pdev)
-+int omap_device_register(struct platform_device *pdev)
- {
- 	pr_debug("omap_device: %s: registering\n", pdev->name);
- 
+ static void __exit omap_hsmmc_cleanup(void)
 -- 
 1.7.1
 
