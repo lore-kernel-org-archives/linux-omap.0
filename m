@@ -1,63 +1,23 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [PATCH 5/6] gpio/omap: fix trigger type to unsigned
-Date: Thu, 23 Feb 2012 18:09:16 +0530
-Message-ID: <4F463374.3080502@ti.com>
-References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com> <1329999031-6914-6-git-send-email-tarun.kanti@ti.com>
+Date: Thu, 23 Feb 2012 12:46:26 +0000
+Message-ID: <20120223124625.GH22675@n2100.arm.linux.org.uk>
+References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com> <1329999031-6914-6-git-send-email-tarun.kanti@ti.com> <4F463374.3080502@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1329999031-6914-6-git-send-email-tarun.kanti@ti.com>
+Content-Disposition: inline
+In-Reply-To: <4F463374.3080502@ti.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Shubhrajyoti <shubhrajyoti@ti.com>
+Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>, khilman@ti.com, tony@atomide.com, linux-kernel@vger.kernel.org, grant.likely@secretlab.ca, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 23 February 2012 05:40 PM, Tarun Kanti DebBarma wrote:
-> The GPIO trigger parameter is of type unsigned.
-> enum {
->         IRQ_TYPE_NONE           = 0x00000000,
->         IRQ_TYPE_EDGE_RISING    = 0x00000001,
->         IRQ_TYPE_EDGE_FALLING   = 0x00000002,
->         IRQ_TYPE_EDGE_BOTH      = (IRQ_TYPE_EDGE_FALLING | IRQ_TYPE_EDGE_RISING),
->         IRQ_TYPE_LEVEL_HIGH     = 0x00000004,
->         IRQ_TYPE_LEVEL_LOW      = 0x00000008,
->         IRQ_TYPE_LEVEL_MASK     = (IRQ_TYPE_LEVEL_LOW | IRQ_TYPE_LEVEL_HIGH),
->         IRQ_TYPE_SENSE_MASK     = 0x0000000f,
->
->         IRQ_TYPE_PROBE          = 0x00000010,
-> ...
-> };
-> Even though gpio_irq_type(struct irq_data *d, unsigned type) has the right type
-> of parameter, the subsequent called functions set_gpio_triggering() and
-> set_gpio_trigger() wrongly makes it signed integer. Fix this.
->
-> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-> ---
->  drivers/gpio/gpio-omap.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 3dd4b3a..67535c8 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -232,7 +232,7 @@ static void _set_gpio_debounce(struct gpio_bank *bank, unsigned gpio,
->  }
->  
->  static inline void set_gpio_trigger(struct gpio_bank *bank, int gpio,
-> -						int trigger)
-> +						unsigned trigger)
->  {
->  	void __iomem *base = bank->base;
->  	u32 gpio_bit = 1 << gpio;
-> @@ -314,7 +314,8 @@ static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio)
->  static void _toggle_gpio_edge_triggering(struct gpio_bank *bank, int gpio) {}
->  #endif
->  
-> -static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
-> +static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
-> +							unsigned trigger)
-you meant unsigned int ? could it be made u32.
->  {
->  	void __iomem *reg = bank->base;
->  	void __iomem *base = bank->base;
+On Thu, Feb 23, 2012 at 06:09:16PM +0530, Shubhrajyoti wrote:
+> On Thursday 23 February 2012 05:40 PM, Tarun Kanti DebBarma wrote:
+> > -static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
+> > +static int _set_gpio_triggering(struct gpio_bank *bank, int gpio,
+> > +							unsigned trigger)
+> you meant unsigned int ? could it be made u32.
+
+In C, unsigned is the same as unsigned int.
