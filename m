@@ -1,99 +1,106 @@
-From: Afzal Mohammed <afzal@ti.com>
-Subject: [PATCH] cpufreq: OMAP: specify range for voltage scaling
-Date: Thu, 23 Feb 2012 19:19:24 +0530
-Message-ID: <1330004964-22831-1-git-send-email-afzal@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52513 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754003Ab2BWOIA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Feb 2012 09:08:00 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1NE7wkW024312
-	for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 08:07:59 -0600
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q1NE7wio024962
-	for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 19:37:58 +0530 (IST)
-Sender: linux-omap-owner@vger.kernel.org
+From: Matt Porter <mporter@ti.com>
+Subject: [PATCH v3] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x regulators
+Date: Thu, 23 Feb 2012 09:16:04 -0500
+Message-ID: <1330006564-13290-1-git-send-email-mporter@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Afzal Mohammed <afzal@ti.com>, Kevin Hilman <khilman@ti.com>, Sekhar Nori <nsekhar@ti.com>
 
-Specify voltage in ranges for regulator. Range
-used is tolerance specified for OPP.
+This fixes smsc911x support on platforms using gpmc_smsc911x_init().
 
-This helps to achieve DVFS with a wider range of
-regulators.
+Commit c7e963f6888816 (net/smsc911x: Add regulator support) added
+the requirement that platforms provide vdd33a and vddvario supplies.
 
-Cc: Kevin Hilman <khilman@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Afzal Mohammed <afzal@ti.com>
+Signed-off-by: Matt Porter <mporter@ti.com>
 ---
-Hi,
+Changes for v2:
+   - temporary fix to avoid platform device id conflicts
+   - add commit summary from the smsc911x regulator support commit
+   - incorporate platform device registration error cause reporting
+Changes for v3:
+   - remove unneeded local variable err
 
-Tolerance specified here is that of AM335X, least value
-of tolerance that I could find so far for OMAP family
+ arch/arm/mach-omap2/gpmc-smsc911x.c |   52 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 52 insertions(+), 0 deletions(-)
 
-This applies on top of Kevin Hilman's patch (v2),
-"cpufreq: OMAP: scale voltage along with frequency"
-http://www.spinics.net/lists/linux-omap/msg65002.html
-
-Regards
-Afzal
-
- drivers/cpufreq/omap-cpufreq.c |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
-index 10b8e23..3cea51b 100644
---- a/drivers/cpufreq/omap-cpufreq.c
-+++ b/drivers/cpufreq/omap-cpufreq.c
-@@ -38,6 +38,9 @@
+diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
+index 9970331..bbb870c 100644
+--- a/arch/arm/mach-omap2/gpmc-smsc911x.c
++++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+@@ -19,6 +19,8 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/smsc911x.h>
++#include <linux/regulator/fixed.h>
++#include <linux/regulator/machine.h>
  
- #include <mach/hardware.h>
+ #include <plat/board.h>
+ #include <plat/gpmc.h>
+@@ -42,6 +44,50 @@ static struct smsc911x_platform_config gpmc_smsc911x_config = {
+ 	.flags		= SMSC911X_USE_16BIT,
+ };
  
-+/* OPP tolerance in percentage */
-+#define	OPP_TOLERANCE	4
++static struct regulator_consumer_supply gpmc_smsc911x_supply[] = {
++	REGULATOR_SUPPLY("vddvario", "smsc911x.0"),
++	REGULATOR_SUPPLY("vdd33a", "smsc911x.0"),
++};
 +
- #ifdef CONFIG_SMP
- struct lpj_info {
- 	unsigned long	ref;
-@@ -81,7 +84,7 @@ static int omap_target(struct cpufreq_policy *policy,
- 	int r, ret = 0;
- 	struct cpufreq_freqs freqs;
- 	struct opp *opp;
--	unsigned long freq, volt = 0, volt_old = 0;
-+	unsigned long freq, volt = 0, volt_old = 0, tol = 0;
++/* Generic regulator definition to satisfy smsc911x */
++static struct regulator_init_data gpmc_smsc911x_reg_init_data = {
++	.constraints = {
++		.min_uV			= 3300000,
++		.max_uV			= 3300000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= ARRAY_SIZE(gpmc_smsc911x_supply),
++	.consumer_supplies	= gpmc_smsc911x_supply,
++};
++
++static struct fixed_voltage_config gpmc_smsc911x_fixed_reg_data = {
++	.supply_name		= "gpmc_smsc911x",
++	.microvolts		= 3300000,
++	.gpio			= -EINVAL,
++	.startup_delay		= 0,
++	.enable_high		= 0,
++	.enabled_at_boot	= 1,
++	.init_data		= &gpmc_smsc911x_reg_init_data,
++};
++
++/*
++ * Platform device id of 42 is a temporary fix to avoid conflicts
++ * with other reg-fixed-voltage devices. The real fix should
++ * involve the driver core providing a way of dynamically
++ * assigning a unique id on registration for platform devices
++ * in the same name space.
++ */
++static struct platform_device gpmc_smsc911x_regulator = {
++	.name		= "reg-fixed-voltage",
++	.id		= 42,
++	.dev = {
++		.platform_data	= &gpmc_smsc911x_fixed_reg_data,
++	},
++};
++
+ /*
+  * Initialize smsc911x device connected to the GPMC. Note that we
+  * assume that pin multiplexing is done in the board-*.c file,
+@@ -55,6 +101,12 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
  
- 	if (!freq_table) {
- 		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
-@@ -125,6 +128,7 @@ static int omap_target(struct cpufreq_policy *policy,
- 			return -EINVAL;
- 		}
- 		volt = opp_get_voltage(opp);
-+		tol = volt * OPP_TOLERANCE / 100;
- 		volt_old = regulator_get_voltage(mpu_reg);
- 	}
+ 	gpmc_cfg = board_data;
  
-@@ -134,7 +138,7 @@ static int omap_target(struct cpufreq_policy *policy,
- 
- 	/* scaling up?  scale voltage before frequency */
- 	if (mpu_reg && (freqs.new > freqs.old)) {
--		r = regulator_set_voltage(mpu_reg, volt, volt);
-+		r = regulator_set_voltage(mpu_reg, volt - tol, volt + tol);
- 		if (r < 0) {
- 			dev_warn(mpu_dev, "%s: unable to scale voltage up.\n",
- 				 __func__);
-@@ -147,7 +151,7 @@ static int omap_target(struct cpufreq_policy *policy,
- 
- 	/* scaling down?  scale voltage after frequency */
- 	if (mpu_reg && (freqs.new < freqs.old)) {
--		r = regulator_set_voltage(mpu_reg, volt, volt);
-+		r = regulator_set_voltage(mpu_reg, volt - tol, volt + tol);
- 		if (r < 0) {
- 			dev_warn(mpu_dev, "%s: unable to scale voltage down.\n",
- 				 __func__);
++	ret = platform_device_register(&gpmc_smsc911x_regulator);
++	if (ret < 0) {
++		pr_err("Unable to register smsc911x regulators: %d\n", ret);
++		return;
++	}
++
+ 	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
+ 		pr_err("Failed to request GPMC mem region\n");
+ 		return;
 -- 
-1.7.1
-
+1.7.5.4
