@@ -1,81 +1,120 @@
 From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 0/7] omap hsmmc init cleanup and section warning fixes for v3.4 merge window
-Date: Thu, 23 Feb 2012 17:10:40 +0530
-Message-ID: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+Subject: [PATCH v2 1/7] ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
+Date: Thu, 23 Feb 2012 17:10:41 +0530
+Message-ID: <1329997247-27342-2-git-send-email-rnayak@ti.com>
+References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42579 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752218Ab2BWLk4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Feb 2012 06:40:56 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:35333 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752429Ab2BWLk6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 06:40:58 -0500
+In-Reply-To: <1329997247-27342-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Re-sending as these patches did not make it to the lists due to
-issues with my 'git send-email'
+From: Ohad Ben-Cohen <ohad@wizery.com>
 
-Hi Tony,
+Expose omap_device_{alloc, delete, register} so we can use them outside
+of omap_device.c.
 
-This is a re-spin of your series to fix up the section
-mismatch warnings noted by Russell with omap2_hsmmc_init().
-The previous series had an issue around multiple insmod/rmmod
-of the twl4030 gpio driver when built as a module as reported
-by Russell again.
+This approach allows users, which need to manipulate an archdata member
+of a device before it is registered, to do so. This is also useful
+for users who have their devices created very early so they can be used
+at ->reserve() time to reserve CMA memory.
 
-There were 2 issues, one with gpio_requests failing as they were
-never freed on the module unload/unbind. The other was with the
-mmc devices being registered again. I have fixed both these issues
-in this series, mainly by having a .teardown hook for twl4030 gpio
-driver populated from all OMAP3 board files, which release all the
-requested gpios and also unregister the mmc omap/platform device.
+The immediate use case for this is to set the private iommu archdata
+member, which binds a device to its associated iommu controller.
+This way, generic code will be able to attach omap devices to their
+iommus, without calling any omap-specific API.
 
-regards,
-Rajendra
+With this in hand, we can further clean the existing mainline OMAP iommu
+driver and its mainline users, and focus on generic IOMMU approaches
+for future users (rpmsg/remoteproc and the upcoming generic DMA API).
 
-Ohad Ben-Cohen (1):
-  ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
+This patch is still considered an interim solution until DT fully materializes
+for omap; at that point, this functionality will be removed as DT will
+take care of creating the devices and configuring them correctly.
 
-Rajendra Nayak (4):
-  ARM: OMAP: omap_device: Add omap_device_unregister()
-  mmc: omap_hsmmc: Make the driver support hotpluggable devices
-  mmc: omap_hsmmc: If probe fails, give our error messages
-  ARM: OMAP3: Use .teardown of twl4030-gpio to clean board requests
+Tested on OMAP4 with a generic rpmsg/remoteproc that doesn't use any
+omap-specific IOMMU API anymore.
 
-Tony Lindgren (2):
-  ARM: OMAP2+: Split omap2_hsmmc_init() to properly support I2C GPIO
-    pins
-  ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux related functions as
-    __init
+Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/plat-omap/include/plat/omap_device.h |    7 +++++++
+ arch/arm/plat-omap/omap_device.c              |   13 +++----------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
- arch/arm/mach-omap2/board-2430sdp.c           |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c           |   22 +++-
- arch/arm/mach-omap2/board-4430sdp.c           |    4 +-
- arch/arm/mach-omap2/board-am3517evm.c         |    2 +-
- arch/arm/mach-omap2/board-cm-t35.c            |   18 +++-
- arch/arm/mach-omap2/board-devkit8000.c        |   17 +++-
- arch/arm/mach-omap2/board-flash.c             |    2 +-
- arch/arm/mach-omap2/board-igep0020.c          |   25 ++++-
- arch/arm/mach-omap2/board-ldp.c               |   11 ++-
- arch/arm/mach-omap2/board-omap3beagle.c       |   25 ++++-
- arch/arm/mach-omap2/board-omap3evm.c          |   22 +++-
- arch/arm/mach-omap2/board-omap3logic.c        |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c      |   22 +++-
- arch/arm/mach-omap2/board-omap3stalker.c      |   28 ++++--
- arch/arm/mach-omap2/board-omap3touchbook.c    |   30 ++++--
- arch/arm/mach-omap2/board-omap4panda.c        |    6 +-
- arch/arm/mach-omap2/board-overo.c             |   13 +++-
- arch/arm/mach-omap2/board-rm680.c             |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c  |   10 ++-
- arch/arm/mach-omap2/board-zoom-peripherals.c  |   18 +++-
- arch/arm/mach-omap2/display.c                 |    8 +-
- arch/arm/mach-omap2/hsmmc.c                   |  130 +++++++++++++++++++------
- arch/arm/mach-omap2/hsmmc.h                   |   17 +++-
- arch/arm/mach-omap2/mux.c                     |   14 ++--
- arch/arm/plat-omap/include/plat/omap_device.h |    8 ++
- arch/arm/plat-omap/omap_device.c              |   33 ++++---
- drivers/mmc/host/omap_hsmmc.c                 |   11 +-
- 27 files changed, 372 insertions(+), 130 deletions(-)
+diff --git a/arch/arm/plat-omap/include/plat/omap_device.h b/arch/arm/plat-omap/include/plat/omap_device.h
+index 51423d2..05f7615 100644
+--- a/arch/arm/plat-omap/include/plat/omap_device.h
++++ b/arch/arm/plat-omap/include/plat/omap_device.h
+@@ -100,6 +100,13 @@ struct platform_device *omap_device_build_ss(const char *pdev_name, int pdev_id,
+ 					 struct omap_device_pm_latency *pm_lats,
+ 					 int pm_lats_cnt, int is_early_device);
+ 
++struct omap_device *omap_device_alloc(struct platform_device *pdev,
++				      struct omap_hwmod **ohs, int oh_cnt,
++				      struct omap_device_pm_latency *pm_lats,
++				      int pm_lats_cnt);
++void omap_device_delete(struct omap_device *od);
++int omap_device_register(struct platform_device *pdev);
++
+ void __iomem *omap_device_get_rt_va(struct omap_device *od);
+ struct device *omap_device_get_by_hwmod_name(const char *oh_name);
+ 
+diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+index e8d9869..f72fafc 100644
+--- a/arch/arm/plat-omap/omap_device.c
++++ b/arch/arm/plat-omap/omap_device.c
+@@ -97,14 +97,7 @@
+ #define USE_WAKEUP_LAT			0
+ #define IGNORE_WAKEUP_LAT		1
+ 
+-static int omap_device_register(struct platform_device *pdev);
+ static int omap_early_device_register(struct platform_device *pdev);
+-static struct omap_device *omap_device_alloc(struct platform_device *pdev,
+-				      struct omap_hwmod **ohs, int oh_cnt,
+-				      struct omap_device_pm_latency *pm_lats,
+-				      int pm_lats_cnt);
+-static void omap_device_delete(struct omap_device *od);
+-
+ 
+ static struct omap_device_pm_latency omap_default_latency[] = {
+ 	{
+@@ -509,7 +502,7 @@ static int omap_device_fill_resources(struct omap_device *od,
+  *
+  * Returns an struct omap_device pointer or ERR_PTR() on error;
+  */
+-static struct omap_device *omap_device_alloc(struct platform_device *pdev,
++struct omap_device *omap_device_alloc(struct platform_device *pdev,
+ 					struct omap_hwmod **ohs, int oh_cnt,
+ 					struct omap_device_pm_latency *pm_lats,
+ 					int pm_lats_cnt)
+@@ -591,7 +584,7 @@ oda_exit1:
+ 	return ERR_PTR(ret);
+ }
+ 
+-static void omap_device_delete(struct omap_device *od)
++void omap_device_delete(struct omap_device *od)
+ {
+ 	if (!od)
+ 		return;
+@@ -817,7 +810,7 @@ static struct dev_pm_domain omap_device_pm_domain = {
+  * platform_device_register() on the underlying platform_device.
+  * Returns the return value of platform_device_register().
+  */
+-static int omap_device_register(struct platform_device *pdev)
++int omap_device_register(struct platform_device *pdev)
+ {
+ 	pr_debug("omap_device: %s: registering\n", pdev->name);
+ 
+-- 
+1.7.1
 
