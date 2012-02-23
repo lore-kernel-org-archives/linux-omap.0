@@ -1,85 +1,91 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCH 6/6] arm: omap3+: add prcm chain interrupts to the interrupt list
-Date: Thu, 23 Feb 2012 15:22:00 +0200
-Message-ID: <1330003320-17400-7-git-send-email-t-kristo@ti.com>
+Subject: [PATCH 4/6] arm: omap4: prm: fix interrupt register offsets
+Date: Thu, 23 Feb 2012 15:21:58 +0200
+Message-ID: <1330003320-17400-5-git-send-email-t-kristo@ti.com>
 References: <1330003320-17400-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47972 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753805Ab2BWNW2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Feb 2012 08:22:28 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:40576 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753804Ab2BWNW2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Feb 2012 08:22:28 -0500
 In-Reply-To: <1330003320-17400-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, khilman@ti.com
 Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
 
-Currently PRCM chain handler for OMAP4 requires SPARSE_IRQ to be enabled
-from kernel config, however enabling this option breaks the OMAP kernel
-completely and it can't be used. Thus, OMAP_PRCM_IRQ_BASE was added
-to the end of the irq list, and the prm_common code was changed to use
-this instead of irq_desc allocation scheme.
-
-Once SPARSE_IRQ is enabled for OMAP kernel, this patch can be reverted.
+Previous code used wrong instance for the interrupt register access.
+Use the right one which is OCP_SOCKET.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
 Cc: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/prm_common.c       |   14 +-------------
- arch/arm/plat-omap/include/plat/irqs.h |    6 +++++-
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/prm44xx.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 860118a..9ca829f 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -196,11 +196,6 @@ void omap_prcm_irq_cleanup(void)
- 	prcm_irq_setup->priority_mask = NULL;
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index 1557647..a6efbdf 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -145,8 +145,9 @@ static inline u32 _read_pending_irq_reg(u16 irqen_offs, u16 irqst_offs)
+ 	u32 mask, st;
  
- 	irq_set_chained_handler(prcm_irq_setup->irq, NULL);
--
--	if (prcm_irq_setup->base_irq > 0)
--		irq_free_descs(prcm_irq_setup->base_irq,
--			prcm_irq_setup->nr_regs * 32);
--	prcm_irq_setup->base_irq = 0;
+ 	/* XXX read mask from RAM? */
+-	mask = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, irqen_offs);
+-	st = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, irqst_offs);
++	mask = omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
++		irqen_offs);
++	st = omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST, irqst_offs);
+ 
+ 	return mask & st;
+ }
+@@ -178,7 +179,7 @@ void omap44xx_prm_read_pending_irqs(unsigned long *events)
+  */
+ void omap44xx_prm_ocp_barrier(void)
+ {
+-	omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 				OMAP4_REVISION_PRM_OFFSET);
  }
  
- void omap_prcm_irq_prepare(void)
-@@ -282,14 +277,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+@@ -196,19 +197,19 @@ void omap44xx_prm_ocp_barrier(void)
+ void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask)
+ {
+ 	saved_mask[0] =
+-		omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++		omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 					OMAP4_PRM_IRQSTATUS_MPU_OFFSET);
+ 	saved_mask[1] =
+-		omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++		omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 					OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET);
  
- 	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
+-	omap4_prm_write_inst_reg(0, OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	omap4_prm_write_inst_reg(0, OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
  
--	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
--		0);
--
--	if (irq_setup->base_irq < 0) {
--		pr_err("PRCM: failed to allocate irq descs: %d\n",
--			irq_setup->base_irq);
--		goto err;
--	}
-+	irq_setup->base_irq = OMAP_PRCM_IRQ_BASE;
+ 	/* OCP barrier */
+-	omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 				OMAP4_REVISION_PRM_OFFSET);
+ }
  
- 	for (i = 0; i <= irq_setup->nr_regs; i++) {
- 		gc = irq_alloc_generic_chip("PRCM", 1,
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 2efd645..fe1be1d 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -428,8 +428,12 @@
- #define OMAP_GPMC_NR_IRQS	8
- #define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
- 
-+/* PRCM chain handler */
-+#define OMAP_PRCM_IRQ_BASE	(OMAP_GPMC_IRQ_END)
-+#define OMAP_PRCM_NR_IRQS	64
-+#define OMAP_PRCM_IRQ_END	(OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
- 
--#define NR_IRQS			OMAP_GPMC_IRQ_END
-+#define NR_IRQS			OMAP_PRCM_IRQ_END
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
+@@ -224,9 +225,9 @@ void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask)
+  */
+ void omap44xx_prm_restore_irqen(u32 *saved_mask)
+ {
+-	omap4_prm_write_inst_reg(saved_mask[0], OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(saved_mask[0], OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	omap4_prm_write_inst_reg(saved_mask[1], OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(saved_mask[1], OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
+ }
  
 -- 
 1.7.4.1
