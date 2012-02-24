@@ -1,76 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 4/4] arm/dts: OMAP3: Add mmc controller nodes and
- board data
-Date: Fri, 24 Feb 2012 10:49:00 -0800
-Message-ID: <20120224184859.GN18185@atomide.com>
-References: <1329998490-27555-1-git-send-email-rnayak@ti.com>
- <1329998490-27555-5-git-send-email-rnayak@ti.com>
- <20120223185718.GZ18185@atomide.com>
- <4F470B71.1020308@ti.com>
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: [PATCH] DSS Kconfig: Add some help, and fix a couple typoes.
+Date: Fri, 24 Feb 2012 13:52:54 -0500 (EST)
+Message-ID: <alpine.DEB.2.02.1202241351190.26091@oneiric>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62454 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754987Ab2BXStE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 13:49:04 -0500
-Content-Disposition: inline
-In-Reply-To: <4F470B71.1020308@ti.com>
+Received: from astoria.ccjclearline.com ([64.235.106.9]:38478 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754324Ab2BXSxN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 13:53:13 -0500
+Received: from cpec03f0ed08c7f-cm001ac318e826.cpe.net.cable.rogers.com ([99.241.91.63] helo=crashcourse.ca)
+	by astoria.ccjclearline.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <rpjday@crashcourse.ca>)
+	id 1S10GV-0005aW-SW
+	for linux-omap@vger.kernel.org; Fri, 24 Feb 2012 13:53:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balajitk@ti.com, svenkatr@ti.com, linaro-dev@lists.linaro.org
+To: linux-omap@vger.kernel.org
 
-* Rajendra Nayak <rnayak@ti.com> [120223 19:29]:
-> On Friday 24 February 2012 12:27 AM, Tony Lindgren wrote:
-> >>--- a/arch/arm/boot/dts/omap3.dtsi
-> >>+++ b/arch/arm/boot/dts/omap3.dtsi
-> >>@@ -113,5 +113,31 @@
-> >>  			#size-cells =<0>;
-> >>  			ti,hwmods = "i2c3";
-> >>  		};
-> >>+
-> >>+		mmc1: mmc@1 {
-> >>+			compatible = "ti,omap2-hsmmc";
-> >>+			ti,hwmods = "mmc1";
-> >>+			ti,dual-volt;
-> >>+		};
-> >>+
-> >>+		mmc2: mmc@2 {
-> >>+			compatible = "ti,omap2-hsmmc";
-> >>+			ti,hwmods = "mmc2";
-> >>+		};
-> >>+
-> >>+		mmc3: mmc@3 {
-> >>+			compatible = "ti,omap2-hsmmc";
-> >>+			ti,hwmods = "mmc3";
-> >>+		};
-> >>+
-> >>+		mmc4: mmc@4 {
-> >>+			compatible = "ti,omap2-hsmmc";
-> >>+			ti,hwmods = "mmc4";
-> >>+		};
-> >>+
-> >>+		mmc5: mmc@5 {
-> >>+			compatible = "ti,omap2-hsmmc";
-> >>+			ti,hwmods = "mmc5";
-> >>+		};
-> >>  	};
-> >>  };
-> >
-> >These all should all be "ti,omap3-hsmmc" I guess?
-> 
-> Well, I defined the binding such that both omap2 and omap3
-> can use the same compatible "ti,omap2-hsmmc" since there is
-> no difference in the way they are defined or handled. If thats
-> confusing, I can have separate compatibles.
-> Btw, I guess we do the same with a few other re-used IPs as well,
-> I just checked and mcpsi does the same.
 
-Yeah let's use separate compatibles to avoid confusion.
-For omap2 we also have the ti,omap2-mmc in addition to
-ti,omap2-hsmmc..
+Add the standard Kconfig help info as to the name of the module that
+will be created, and fix a couple typoes while we're there.
 
-Regards,
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 
-Tony
+---
+
+diff --git a/drivers/video/omap2/dss/Kconfig b/drivers/video/omap2/dss/Kconfig
+index 7be7c06..c5941c9 100644
+--- a/drivers/video/omap2/dss/Kconfig
++++ b/drivers/video/omap2/dss/Kconfig
+@@ -4,6 +4,9 @@ menuconfig OMAP2_DSS
+         help
+ 	  OMAP2+ Display Subsystem support.
+
++	  To compile this driver as a module, choose M here: the module will be
++	  called omapdss.
++
+ if OMAP2_DSS
+
+ config OMAP2_VRAM_SIZE
+@@ -52,7 +55,7 @@ config OMAP2_DSS_RFBI
+ 	  DBI is a bus between the host processor and a peripheral,
+ 	  such as a display or a framebuffer chip.
+
+-	  See http://www.mipi.org/ for DBI spesifications.
++	  See http://www.mipi.org/ for DBI specifications.
+
+ config OMAP2_DSS_VENC
+ 	bool "VENC support"
+@@ -88,7 +91,7 @@ config OMAP2_DSS_DSI
+ 	  DSI is a high speed half-duplex serial interface between the host
+ 	  processor and a peripheral, such as a display or a framebuffer chip.
+
+-	  See http://www.mipi.org/ for DSI spesifications.
++	  See http://www.mipi.org/ for DSI specifications.
+
+ config OMAP2_DSS_FAKE_VSYNC
+ 	bool "Fake VSYNC irq from manual update displays"
+
+-- 
+
+========================================================================
+Robert P. J. Day                                 Ottawa, Ontario, CANADA
+                        http://crashcourse.ca
+
+Twitter:                                       http://twitter.com/rpjday
+LinkedIn:                               http://ca.linkedin.com/in/rpjday
+========================================================================
