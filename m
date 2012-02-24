@@ -1,16 +1,15 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v2 4/4] arm/dts: OMAP3: Add mmc controller nodes and board
-	data
-Date: Fri, 24 Feb 2012 12:23:05 +0100
-Message-ID: <4F477319.7080409@ti.com>
+From: "T Krishnamoorthy, Balaji" <balajitk-l0cyMroinI0@public.gmane.org>
+Subject: Re: [PATCH v2 1/4] mmc: omap_hsmmc: Convert hsmmc driver to use
+	device tree
+Date: Fri, 24 Feb 2012 17:02:07 +0530
+Message-ID: <CANrkHUarg5ntUW=S7k20LXuYe+ZNCN-cYJhfvvLKM=X8+Db4fg@mail.gmail.com>
 References: <1329998490-27555-1-git-send-email-rnayak@ti.com>
-	<1329998490-27555-5-git-send-email-rnayak@ti.com>
-	<20120223185718.GZ18185@atomide.com> <4F470B71.1020308@ti.com>
+	<1329998490-27555-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <4F470B71.1020308-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <1329998490-27555-2-git-send-email-rnayak-l0cyMroinI0@public.gmane.org>
 List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
 	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
@@ -21,60 +20,66 @@ List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
 Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
 To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, balajitk-l0cyMroinI0@public.gmane.org, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On 2/24/2012 5:00 AM, Rajendra Nayak wrote:
-> On Friday 24 February 2012 12:27 AM, Tony Lindgren wrote:
->>> --- a/arch/arm/boot/dts/omap3.dtsi
->>> +++ b/arch/arm/boot/dts/omap3.dtsi
->>> @@ -113,5 +113,31 @@
->>> #size-cells =<0>;
->>> ti,hwmods = "i2c3";
->>> };
->>> +
->>> + mmc1: mmc@1 {
->>> + compatible = "ti,omap2-hsmmc";
->>> + ti,hwmods = "mmc1";
->>> + ti,dual-volt;
->>> + };
->>> +
->>> + mmc2: mmc@2 {
->>> + compatible = "ti,omap2-hsmmc";
->>> + ti,hwmods = "mmc2";
->>> + };
->>> +
->>> + mmc3: mmc@3 {
->>> + compatible = "ti,omap2-hsmmc";
->>> + ti,hwmods = "mmc3";
->>> + };
->>> +
->>> + mmc4: mmc@4 {
->>> + compatible = "ti,omap2-hsmmc";
->>> + ti,hwmods = "mmc4";
->>> + };
->>> +
->>> + mmc5: mmc@5 {
->>> + compatible = "ti,omap2-hsmmc";
->>> + ti,hwmods = "mmc5";
->>> + };
->>> };
->>> };
->>
->> These all should all be "ti,omap3-hsmmc" I guess?
+On Thu, Feb 23, 2012 at 5:31 PM, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> wrote:
+> Define dt bindings for the ti-omap-hsmmc, and adapt
+> the driver to extract data (which was earlier passed as
+> platform_data) from device tree.
 >
-> Well, I defined the binding such that both omap2 and omap3
-> can use the same compatible "ti,omap2-hsmmc" since there is
-> no difference in the way they are defined or handled. If thats
-> confusing, I can have separate compatibles.
-> Btw, I guess we do the same with a few other re-used IPs as well,
-> I just checked and mcpsi does the same.
+> Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+> ---
+> =A0.../devicetree/bindings/mmc/ti-omap-hsmmc.txt =A0 =A0 =A0| =A0 31 ++++=
++++++
+> =A0drivers/mmc/host/omap_hsmmc.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0| =A0 68 ++++++++++++++++++++
+> =A02 files changed, 99 insertions(+), 0 deletions(-)
+> =A0create mode 100644 Documentation/devicetree/bindings/mmc/ti-omap-hsmmc=
+.txt
+>
+> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Do=
+cumentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> new file mode 100644
+> index 0000000..e4fa8f0
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
+> @@ -0,0 +1,31 @@
+> +* TI Highspeed MMC host controller for OMAP
+> +
+> +The Highspeed MMC Host Controller on TI OMAP family
+> +provides an interface for MMC, SD, and SDIO types of memory cards.
+> +
+> +Required properties:
+> +- compatible:
+> + Should be "ti,omap2-hsmmc", for OMAP2/3 controllers
 
-Yes, the goal is mainly to identify the IP version, so since OMAP3 is 
-using OMAP2 IP, I do not think there is a need to add a new compatible 
-string for OMAP3. The should only be documented in the binding potentially.
-The advantage is that that will avoid adding an extra compatible string 
-in the driver as well whereas there is no change in the IP.
+omap_hsmmc is applicable for omap2430 and omap3.
+omap2420 has non high speed controller mmci-omap - drivers/mmc/host/omap.c
+May be omap3-hsmmc compatible with omap2430 ?
 
-Regards,
-Benoit
+> + Should be "ti,omap4-hsmmc", for OMAP4 controllers
+> +- ti,hwmods: Must be "mmc<n>", n is controller instance starting 1
+> +- reg : should contain hsmmc registers location and length
+> +
+> +Optional properties:
+> +ti,dual-volt: boolean, supports dual voltage cards
+> +<supply-name>-supply: phandle to the regulator device tree node
+> +"supply-name" examples are "vmmc", "vmmc_aux" etc
+> +ti,bus-width: Number of data lines, default assumed is 1 if the property=
+ is missing.
+> +cd-gpios: GPIOs for card detection
+> +wp-gpios: GPIOs for write protection
+> +ti,non-removable: non-removable slot (like eMMC)
+> +
+> +Example:
+> + =A0 =A0 =A0 mmc1: mmc@0x4809c000 {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 compatible =3D "ti,omap4-hsmmc";
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 reg =3D <0x4809c000 0x400>;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ti,hwmods =3D "mmc1";
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ti,dual-volt;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ti,bus-width =3D <4>;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 vmmc-supply =3D <&vmmc>; /* phandle to regu=
+lator node */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ti,non-removable;
+> + =A0 =A0 =A0 };
