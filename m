@@ -1,282 +1,186 @@
 From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 3/6] gpio/omap: Add DT support to GPIO driver
-Date: Fri, 24 Feb 2012 23:21:28 +0100
-Message-ID: <1330122091-28113-4-git-send-email-b-cousson@ti.com>
+Subject: [PATCH v2 4/6] gpio/omap: Fix IRQ handling for SPARSE_IRQ
+Date: Fri, 24 Feb 2012 23:21:29 +0100
+Message-ID: <1330122091-28113-5-git-send-email-b-cousson@ti.com>
 References: <1330122091-28113-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42780 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38337 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758178Ab2BXWWT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 17:22:19 -0500
+	id S932274Ab2BXWWX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 17:22:23 -0500
 In-Reply-To: <1330122091-28113-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: grant.likely@secretlab.ca
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-Adapt the GPIO driver to retrieve information from a DT file.
+The driver is still relying on internal OMAP IRQ defines that
+are not relevant anymore if OMAP is built with SPARSE_IRQ.
 
-Allocate the irq_base dynamically and rename bank->virtual_irq_start
-to bank->irq_base.
-Change irq_base type to int instead of u16 to match irq_alloc_descs
-output.
-
-Add documentation for GPIO properties specific to OMAP.
+Replace the defines with the proper IRQ base number.
+Clean some comment style issue.
+Remove some hidden and ugly cpu_class_is_omap1() inside the
+gpio header.
 
 Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Acked-by: Rob Herring <rob.herring@calxeda.com>
+Tested-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 ---
- .../devicetree/bindings/gpio/gpio-omap.txt         |   36 ++++++
- drivers/gpio/gpio-omap.c                           |  121 ++++++++++++++++++--
- 2 files changed, 148 insertions(+), 9 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/gpio/gpio-omap.txt
+ arch/arm/plat-omap/include/plat/gpio.h |   22 ++------------------
+ drivers/gpio/gpio-omap.c               |   33 ++++++++++++++++---------------
+ 2 files changed, 20 insertions(+), 35 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-new file mode 100644
-index 0000000..bff51a2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
-@@ -0,0 +1,36 @@
-+OMAP GPIO controller bindings
-+
-+Required properties:
-+- compatible:
-+  - "ti,omap2-gpio" for OMAP2 controllers
-+  - "ti,omap3-gpio" for OMAP3 controllers
-+  - "ti,omap4-gpio" for OMAP4 controllers
-+- #gpio-cells : Should be two.
-+  - first cell is the pin number
-+  - second cell is used to specify optional parameters (unused)
-+- gpio-controller : Marks the device node as a GPIO controller.
-+- #interrupt-cells : Should be 2.
-+- interrupt-controller: Mark the device node as an interrupt controller
-+  The first cell is the GPIO number.
-+  The second cell is used to specify flags:
-+    bits[3:0] trigger type and level flags:
-+      1 = low-to-high edge triggered.
-+      2 = high-to-low edge triggered.
-+      4 = active high level-sensitive.
-+      8 = active low level-sensitive.
-+
-+OMAP specific properties:
-+- ti,hwmods: Name of the hwmod associated to the GPIO:
-+  "gpio<X>", <X> being the 1-based instance number from the HW spec
-+
-+
-+Example:
-+
-+gpio4: gpio4 {
-+    compatible = "ti,omap4-gpio";
-+    ti,hwmods = "gpio4";
-+    #gpio-cells = <2>;
-+    gpio-controller;
-+    #interrupt-cells = <2>;
-+    interrupt-controller;
-+};
+diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
+index cb75b65..b8a96c6 100644
+--- a/arch/arm/plat-omap/include/plat/gpio.h
++++ b/arch/arm/plat-omap/include/plat/gpio.h
+@@ -218,30 +218,14 @@ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+ /*-------------------------------------------------------------------------*/
+ 
+-/* Wrappers for "new style" GPIO calls, using the new infrastructure
++/*
++ * Wrappers for "new style" GPIO calls, using the new infrastructure
+  * which lets us plug in FPGA, I2C, and other implementations.
+- * *
++ *
+  * The original OMAP-specific calls should eventually be removed.
+  */
+ 
+ #include <linux/errno.h>
+ #include <asm-generic/gpio.h>
+ 
+-static inline int irq_to_gpio(unsigned irq)
+-{
+-	int tmp;
+-
+-	/* omap1 SOC mpuio */
+-	if (cpu_class_is_omap1() && (irq < (IH_MPUIO_BASE + 16)))
+-		return (irq - IH_MPUIO_BASE) + OMAP_MAX_GPIO_LINES;
+-
+-	/* SOC gpio */
+-	tmp = irq - IH_GPIO_BASE;
+-	if (tmp < OMAP_MAX_GPIO_LINES)
+-		return tmp;
+-
+-	/* we don't supply reverse mappings for non-SOC gpios */
+-	return -EIO;
+-}
+-
+ #endif
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index c3a9dc8..bc2bd69 100644
+index bc2bd69..afef0f7 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -22,6 +22,9 @@
- #include <linux/device.h>
- #include <linux/pm_runtime.h>
- #include <linux/pm.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
-+#include <linux/irqdomain.h>
+@@ -93,6 +93,11 @@ struct gpio_bank {
+ #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+ #define GPIO_MOD_CTRL_BIT	BIT(0)
  
- #include <mach/hardware.h>
- #include <asm/irq.h>
-@@ -52,7 +55,8 @@ struct gpio_bank {
- 	struct list_head node;
- 	void __iomem *base;
- 	u16 irq;
--	u16 virtual_irq_start;
-+	int irq_base;
-+	struct irq_domain *domain;
- 	u32 suspend_wakeup;
- 	u32 saved_wakeup;
- 	u32 non_wakeup_gpios;
-@@ -669,7 +673,7 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- 		if (!isr)
- 			break;
- 
--		gpio_irq = bank->virtual_irq_start;
-+		gpio_irq = bank->irq_base;
- 		for (; isr != 0; isr >>= 1, gpio_irq++) {
- 			gpio_index = GPIO_INDEX(bank, irq_to_gpio(gpio_irq));
- 
-@@ -915,7 +919,7 @@ static int gpio_2irq(struct gpio_chip *chip, unsigned offset)
- 	struct gpio_bank *bank;
- 
- 	bank = container_of(chip, struct gpio_bank, chip);
--	return bank->virtual_irq_start + offset;
-+	return bank->irq_base + offset;
- }
- 
- /*---------------------------------------------------------------------*/
-@@ -1028,8 +1032,7 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
- 
- 	gpiochip_add(&bank->chip);
- 
--	for (j = bank->virtual_irq_start;
--		     j < bank->virtual_irq_start + bank->width; j++) {
-+	for (j = bank->irq_base; j < bank->irq_base + bank->width; j++) {
- 		irq_set_lockdep_class(j, &gpio_lock_class);
- 		irq_set_chip_data(j, bank);
- 		if (bank->is_mpuio) {
-@@ -1044,15 +1047,22 @@ static void __devinit omap_gpio_chip_init(struct gpio_bank *bank)
- 	irq_set_handler_data(bank->irq, bank);
- }
- 
-+static const struct of_device_id omap_gpio_match[];
++static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
++{
++	return gpio_irq - bank->irq_base + bank->chip.base;
++}
 +
- static int __devinit omap_gpio_probe(struct platform_device *pdev)
+ static void _set_gpio_direction(struct gpio_bank *bank, int gpio, int is_input)
  {
- 	struct device *dev = &pdev->dev;
-+	struct device_node *node = dev->of_node;
-+	const struct of_device_id *match;
- 	struct omap_gpio_platform_data *pdata;
- 	struct resource *res;
- 	struct gpio_bank *bank;
- 	int ret = 0;
+ 	void __iomem *reg = bank->base;
+@@ -369,7 +374,7 @@ static int _set_gpio_triggering(struct gpio_bank *bank, int gpio, int trigger)
  
--	if (!dev->platform_data)
-+	match = of_match_device(of_match_ptr(omap_gpio_match), dev);
-+
-+	pdata = match ? match->data : dev->platform_data;
-+	if (!pdata)
+ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ {
+-	struct gpio_bank *bank;
++	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
+ 	unsigned gpio;
+ 	int retval;
+ 	unsigned long flags;
+@@ -377,13 +382,11 @@ static int gpio_irq_type(struct irq_data *d, unsigned type)
+ 	if (!cpu_class_is_omap2() && d->irq > IH_MPUIO_BASE)
+ 		gpio = OMAP_MPUIO(d->irq - IH_MPUIO_BASE);
+ 	else
+-		gpio = d->irq - IH_GPIO_BASE;
++		gpio = irq_to_gpio(bank, d->irq);
+ 
+ 	if (type & ~IRQ_TYPE_SENSE_MASK)
  		return -EINVAL;
  
- 	bank = devm_kzalloc(&pdev->dev, sizeof(struct gpio_bank), GFP_KERNEL);
-@@ -1068,9 +1078,6 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	}
- 
- 	bank->irq = res->start;
+-	bank = irq_data_get_irq_chip_data(d);
 -
--	pdata = pdev->dev.platform_data;
--	bank->virtual_irq_start = pdata->virtual_irq_start;
- 	bank->dev = dev;
- 	bank->dbck_flag = pdata->dbck_flag;
- 	bank->stride = pdata->bank_stride;
-@@ -1080,6 +1087,18 @@ static int __devinit omap_gpio_probe(struct platform_device *pdev)
- 	bank->loses_context = pdata->loses_context;
- 	bank->get_context_loss_count = pdata->get_context_loss_count;
- 	bank->regs = pdata->regs;
-+#ifdef CONFIG_OF_GPIO
-+	bank->chip.of_node = of_node_get(node);
-+#endif
-+
-+	bank->irq_base = irq_alloc_descs(-1, 0, bank->width, 0);
-+	if (bank->irq_base < 0) {
-+		dev_err(dev, "Couldn't allocate IRQ numbers\n");
-+		return -ENODEV;
-+	}
-+
-+	bank->domain = irq_domain_add_legacy(node, bank->width, bank->irq_base,
-+					     0, &irq_domain_simple_ops, NULL);
+ 	if (!bank->regs->leveldetect0 &&
+ 		(type & (IRQ_TYPE_LEVEL_LOW|IRQ_TYPE_LEVEL_HIGH)))
+ 		return -EINVAL;
+@@ -524,14 +527,10 @@ static void _reset_gpio(struct gpio_bank *bank, int gpio)
+ /* Use disable_irq_wake() and enable_irq_wake() functions from drivers */
+ static int gpio_wake_enable(struct irq_data *d, unsigned int enable)
+ {
+-	unsigned int gpio = d->irq - IH_GPIO_BASE;
+-	struct gpio_bank *bank;
+-	int retval;
+-
+-	bank = irq_data_get_irq_chip_data(d);
+-	retval = _set_gpio_wakeup(bank, gpio, enable);
++	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
++	unsigned int gpio = irq_to_gpio(bank, d->irq);
  
- 	if (bank->regs->set_dataout && bank->regs->clr_dataout)
- 		bank->set_dataout = _set_gpio_dataout_reg;
-@@ -1387,11 +1406,95 @@ static const struct dev_pm_ops gpio_pm_ops = {
- 									NULL)
- };
+-	return retval;
++	return _set_gpio_wakeup(bank, gpio, enable);
+ }
  
-+#if defined(CONFIG_OF)
-+static struct omap_gpio_reg_offs omap2_gpio_regs = {
-+	.revision =		OMAP24XX_GPIO_REVISION,
-+	.direction =		OMAP24XX_GPIO_OE,
-+	.datain =		OMAP24XX_GPIO_DATAIN,
-+	.dataout =		OMAP24XX_GPIO_DATAOUT,
-+	.set_dataout =		OMAP24XX_GPIO_SETDATAOUT,
-+	.clr_dataout =		OMAP24XX_GPIO_CLEARDATAOUT,
-+	.irqstatus =		OMAP24XX_GPIO_IRQSTATUS1,
-+	.irqstatus2 =		OMAP24XX_GPIO_IRQSTATUS2,
-+	.irqenable =		OMAP24XX_GPIO_IRQENABLE1,
-+	.irqenable2 =		OMAP24XX_GPIO_IRQENABLE2,
-+	.set_irqenable =	OMAP24XX_GPIO_SETIRQENABLE1,
-+	.clr_irqenable =	OMAP24XX_GPIO_CLEARIRQENABLE1,
-+	.debounce =		OMAP24XX_GPIO_DEBOUNCE_VAL,
-+	.debounce_en =		OMAP24XX_GPIO_DEBOUNCE_EN,
-+	.ctrl =			OMAP24XX_GPIO_CTRL,
-+	.wkup_en =		OMAP24XX_GPIO_WAKE_EN,
-+	.leveldetect0 =		OMAP24XX_GPIO_LEVELDETECT0,
-+	.leveldetect1 =		OMAP24XX_GPIO_LEVELDETECT1,
-+	.risingdetect =		OMAP24XX_GPIO_RISINGDETECT,
-+	.fallingdetect =	OMAP24XX_GPIO_FALLINGDETECT,
-+};
-+
-+static struct omap_gpio_reg_offs omap4_gpio_regs = {
-+	.revision =		OMAP4_GPIO_REVISION,
-+	.direction =		OMAP4_GPIO_OE,
-+	.datain =		OMAP4_GPIO_DATAIN,
-+	.dataout =		OMAP4_GPIO_DATAOUT,
-+	.set_dataout =		OMAP4_GPIO_SETDATAOUT,
-+	.clr_dataout =		OMAP4_GPIO_CLEARDATAOUT,
-+	.irqstatus =		OMAP4_GPIO_IRQSTATUS0,
-+	.irqstatus2 =		OMAP4_GPIO_IRQSTATUS1,
-+	.irqenable =		OMAP4_GPIO_IRQSTATUSSET0,
-+	.irqenable2 =		OMAP4_GPIO_IRQSTATUSSET1,
-+	.set_irqenable =	OMAP4_GPIO_IRQSTATUSSET0,
-+	.clr_irqenable =	OMAP4_GPIO_IRQSTATUSCLR0,
-+	.debounce =		OMAP4_GPIO_DEBOUNCINGTIME,
-+	.debounce_en =		OMAP4_GPIO_DEBOUNCENABLE,
-+	.ctrl =			OMAP4_GPIO_CTRL,
-+	.wkup_en =		OMAP4_GPIO_IRQWAKEN0,
-+	.leveldetect0 =		OMAP4_GPIO_LEVELDETECT0,
-+	.leveldetect1 =		OMAP4_GPIO_LEVELDETECT1,
-+	.risingdetect =		OMAP4_GPIO_RISINGDETECT,
-+	.fallingdetect =	OMAP4_GPIO_FALLINGDETECT,
-+};
-+
-+static struct omap_gpio_platform_data omap2_pdata = {
-+	.regs = &omap2_gpio_regs,
-+	.bank_width = 32,
-+	.dbck_flag = false,
-+};
-+
-+static struct omap_gpio_platform_data omap3_pdata = {
-+	.regs = &omap2_gpio_regs,
-+	.bank_width = 32,
-+	.dbck_flag = true,
-+};
-+
-+static struct omap_gpio_platform_data omap4_pdata = {
-+	.regs = &omap4_gpio_regs,
-+	.bank_width = 32,
-+	.dbck_flag = true,
-+};
-+
-+static const struct of_device_id omap_gpio_match[] = {
-+	{
-+		.compatible = "ti,omap4-gpio",
-+		.data = &omap4_pdata,
-+	},
-+	{
-+		.compatible = "ti,omap3-gpio",
-+		.data = &omap3_pdata,
-+	},
-+	{
-+		.compatible = "ti,omap2-gpio",
-+		.data = &omap2_pdata,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, omap_gpio_match);
-+#endif
-+
- static struct platform_driver omap_gpio_driver = {
- 	.probe		= omap_gpio_probe,
- 	.driver		= {
- 		.name	= "omap_gpio",
- 		.pm	= &gpio_pm_ops,
-+		.of_match_table = of_match_ptr(omap_gpio_match),
- 	},
- };
+ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
+@@ -675,11 +674,13 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
  
+ 		gpio_irq = bank->irq_base;
+ 		for (; isr != 0; isr >>= 1, gpio_irq++) {
+-			gpio_index = GPIO_INDEX(bank, irq_to_gpio(gpio_irq));
++			int gpio = irq_to_gpio(bank, gpio_irq);
+ 
+ 			if (!(isr & 1))
+ 				continue;
+ 
++			gpio_index = GPIO_INDEX(bank, gpio);
++
+ 			/*
+ 			 * Some chips can't respond to both rising and falling
+ 			 * at the same time.  If this irq was requested with
+@@ -705,8 +706,8 @@ exit:
+ 
+ static void gpio_irq_shutdown(struct irq_data *d)
+ {
+-	unsigned int gpio = d->irq - IH_GPIO_BASE;
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
++	unsigned int gpio = irq_to_gpio(bank, d->irq);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+@@ -716,16 +717,16 @@ static void gpio_irq_shutdown(struct irq_data *d)
+ 
+ static void gpio_ack_irq(struct irq_data *d)
+ {
+-	unsigned int gpio = d->irq - IH_GPIO_BASE;
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
++	unsigned int gpio = irq_to_gpio(bank, d->irq);
+ 
+ 	_clear_gpio_irqstatus(bank, gpio);
+ }
+ 
+ static void gpio_mask_irq(struct irq_data *d)
+ {
+-	unsigned int gpio = d->irq - IH_GPIO_BASE;
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
++	unsigned int gpio = irq_to_gpio(bank, d->irq);
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&bank->lock, flags);
+@@ -736,8 +737,8 @@ static void gpio_mask_irq(struct irq_data *d)
+ 
+ static void gpio_unmask_irq(struct irq_data *d)
+ {
+-	unsigned int gpio = d->irq - IH_GPIO_BASE;
+ 	struct gpio_bank *bank = irq_data_get_irq_chip_data(d);
++	unsigned int gpio = irq_to_gpio(bank, d->irq);
+ 	unsigned int irq_mask = GPIO_BIT(bank, gpio);
+ 	u32 trigger = irqd_get_trigger_type(d);
+ 	unsigned long flags;
 -- 
 1.7.0.4
 
