@@ -1,66 +1,70 @@
-From: Shubhrajyoti <shubhrajyoti@ti.com>
-Subject: Re: [PATCH 00/10] I2C updates
-Date: Fri, 24 Feb 2012 15:01:45 +0530
-Message-ID: <4F475901.10005@ti.com>
-References: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and
+ vdd3 regulators
+Date: Fri, 24 Feb 2012 11:38:09 +0200
+Message-ID: <1330076289.4102.517.camel@sokoban>
+References: <1329995109-4795-1-git-send-email-t-kristo@ti.com>
+	 <20120223153422.GF4553@opensource.wolfsonmicro.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:43466 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756123Ab2BXJbv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 04:31:51 -0500
-Received: by mail-yw0-f53.google.com with SMTP id j72so1069747yhj.12
-        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 01:31:50 -0800 (PST)
-In-Reply-To: <1328882405-15284-1-git-send-email-shubhrajyoti@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59390 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756164Ab2BXJiS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 04:38:18 -0500
+In-Reply-To: <20120223153422.GF4553@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti D <shubhrajyoti@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, linux-arm-kernel@lists.infradead.org, khali@linux-fr.org, Kevin Hilman <khilman@ti.com>, Ben Dooks <ben-linux@fluff.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
 
-On Friday 10 February 2012 07:29 PM, Shubhrajyoti D wrote:
-> This patch series colates the various i2c updates into
-> a series.  Since it is collection of various patches
-> the version info is not retained, however most of them undergone
-> multiple versions.
-If there are no further comments can this be queued.
+On Thu, 2012-02-23 at 15:34 +0000, Mark Brown wrote:
+> On Thu, Feb 23, 2012 at 01:05:09PM +0200, Tero Kristo wrote:
+> 
+> > +static int twl6030coresmps_set_voltage(struct regulator_dev *rdev, int min_uV,
+> > +	int max_uV, unsigned *selector)
+> > +{
+> > +	struct twlreg_info *info = rdev_get_drvdata(rdev);
+> > +
+> > +	if (info->set_voltage)
+> > +		return info->set_voltage(info->data, min_uV);
+> > +
+> > +	return 0;
+> > +}
+> 
+> This should be returning an error if it failed to set the voltage.
 
-> This is rebased to linus head commit 63082402968f4b73f10b28a8ac1f3da821aeb82d
->
-> The patch series does the following 
->
-> - Warn fixes if CONFIG_PM_RUNTIME is not selected.
-> - I2C register restore only if context if the context is lost
-> - Bus busy recovery mechanism.
-> - the reset is not done in init.
->
-> Tested on omap4sdp and omap3sdp. 
->
->
-> Cc: Kevin Hilman <khilman@ti.com>
-> Cc: Ben Dooks <ben-linux@fluff.org>
->
-> Jon Hunter (1):
->   I2C: OMAP: Correct I2C revision for OMAP3
->
-> Shubhrajyoti D (8):
->   I2C : OMAP : make omap_i2c_unidle/idle functions depend on
->     CONFIG_PM_RUNTIME
->   OMAP : I2C : Remove reset at init
->   OMAP: I2C: I2C register restore only if context is lost
->   OMAP: I2C: Fix the interrupt clearing in OMAP4
->   OMAP: I2C: Fix the mismatch of pm_runtime enable and disable
->   OMAP: I2C: Optimise the remove code
->   OMAP: I2C: Fix the error handling
->   I2C: OMAP: Don't check if wait_for_completion_timeout() returns less
->     than zero
->
-> Vikram Pandita (1):
->   I2C: OMAP: Recover from Bus Busy condition
->
->  drivers/i2c/busses/i2c-omap.c |  173 ++++++++++++++++++++++++-----------------
->  1 files changed, 101 insertions(+), 72 deletions(-)
->
+Yea, I can change the return to -ENODEV for this and get_voltage.
+
+> Since you're using min_uV as the "register value" you probably ought to
+> be returning that as the selector too and supplying a list_voltage()
+> which just passes the selector back in case something tries to use it
+> and gets confused.
+
+I was thinking at some point about adding a list_voltage for these
+regulators, however I dropped that idea, because the regulators can
+support a range of voltages (from min to max) with some stepping value.
+But... if you propose that the list_voltage would just return the
+current voltage back, wouldn't that also potentially confuse the user
+more, as it can only see the single voltage and nothing else, maybe
+making it to think that the regulator can only support one voltage
+level?
+
+> 
+> > +static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
+> > +{
+> > +	struct twlreg_info *info = rdev_get_drvdata(rdev);
+> > +
+> > +	if (info->get_voltage)
+> > +		return info->get_voltage(info->data);
+> > +
+> > +	return 0;
+> 
+> Similarly here.
+
+I'll change that also.
+
+-Tero
 
