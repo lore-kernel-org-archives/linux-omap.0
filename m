@@ -1,86 +1,149 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2 6/6] ARM: OMAP3+: add prcm chain interrupts to the interrupt list
-Date: Fri, 24 Feb 2012 17:15:46 +0200
-Message-ID: <1330096546-20477-7-git-send-email-t-kristo@ti.com>
-References: <1330096546-20477-1-git-send-email-t-kristo@ti.com>
+Subject: [PATCHv2] regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
+Date: Fri, 24 Feb 2012 17:21:42 +0200
+Message-ID: <1330096902-20933-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41836 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42168 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab2BXPQH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 10:16:07 -0500
-In-Reply-To: <1330096546-20477-1-git-send-email-t-kristo@ti.com>
+	id S1756055Ab2BXPVy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 10:21:54 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
 
-Currently PRCM chain handler for OMAP4 requires SPARSE_IRQ to be enabled
-from kernel config, however enabling this option breaks the OMAP kernel
-completely and it can't be used. Thus, OMAP_PRCM_IRQ_BASE was added
-to the end of the irq list, and the prm_common code was changed to use
-this instead of irq_desc allocation scheme.
-
-Once SPARSE_IRQ is enabled for OMAP kernel, this patch can be reverted.
+vdd1 and vdd2 are now common regulators for twl4030 and twl6030. Also
+added vdd3 as a new regulator for twl6030. twl6030 vdd1...vdd3 smps
+regulator voltages can only be controlled through the smartreflex
+voltage channel, thus the support for the voltage_get and set is
+minimal and requires external controller.
 
 Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <lrg@ti.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Kevin Hilman <khilman@ti.com>
 ---
- arch/arm/mach-omap2/prm_common.c       |   14 +-------------
- arch/arm/plat-omap/include/plat/irqs.h |    6 +++++-
- 2 files changed, 6 insertions(+), 14 deletions(-)
+ drivers/mfd/twl-core.c            |   15 ++++++++++++++
+ drivers/regulator/twl-regulator.c |   39 +++++++++++++++++++++++++++++++++++++
+ include/linux/i2c/twl.h           |    5 ++-
+ 3 files changed, 57 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-index 860118a..9ca829f 100644
---- a/arch/arm/mach-omap2/prm_common.c
-+++ b/arch/arm/mach-omap2/prm_common.c
-@@ -196,11 +196,6 @@ void omap_prcm_irq_cleanup(void)
- 	prcm_irq_setup->priority_mask = NULL;
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 45ab243..0d3db89 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -949,6 +949,21 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+ 	/* twl6030 regulators */
+ 	if (twl_has_regulator() && twl_class_is_6030() &&
+ 			!(features & TWL6025_SUBCLASS)) {
++		child = add_regulator(TWL6030_REG_VDD1, pdata->vdd1,
++					features);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++
++		child = add_regulator(TWL6030_REG_VDD2, pdata->vdd2,
++					features);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++
++		child = add_regulator(TWL6030_REG_VDD3, pdata->vdd3,
++					features);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++
+ 		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc,
+ 					features);
+ 		if (IS_ERR(child))
+diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
+index 7ff8bb2..8611282 100644
+--- a/drivers/regulator/twl-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -561,6 +561,32 @@ static struct regulator_ops twl4030smps_ops = {
+ 	.get_voltage	= twl4030smps_get_voltage,
+ };
  
- 	irq_set_chained_handler(prcm_irq_setup->irq, NULL);
--
--	if (prcm_irq_setup->base_irq > 0)
--		irq_free_descs(prcm_irq_setup->base_irq,
--			prcm_irq_setup->nr_regs * 32);
--	prcm_irq_setup->base_irq = 0;
- }
++static int twl6030coresmps_set_voltage(struct regulator_dev *rdev, int min_uV,
++	int max_uV, unsigned *selector)
++{
++	struct twlreg_info *info = rdev_get_drvdata(rdev);
++
++	if (info->set_voltage)
++		return info->set_voltage(info->data, min_uV);
++
++	return -ENODEV;
++}
++
++static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
++{
++	struct twlreg_info *info = rdev_get_drvdata(rdev);
++
++	if (info->get_voltage)
++		return info->get_voltage(info->data);
++
++	return -ENODEV;
++}
++
++static struct regulator_ops twl6030coresmps_ops = {
++	.set_voltage	= twl6030coresmps_set_voltage,
++	.get_voltage	= twl6030coresmps_get_voltage,
++};
++
+ static int twl6030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
+ {
+ 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
+@@ -926,6 +952,16 @@ static struct regulator_ops twlsmps_ops = {
+ 		}, \
+ 	}
  
- void omap_prcm_irq_prepare(void)
-@@ -282,14 +277,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
- 
- 	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
- 
--	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
--		0);
--
--	if (irq_setup->base_irq < 0) {
--		pr_err("PRCM: failed to allocate irq descs: %d\n",
--			irq_setup->base_irq);
--		goto err;
--	}
-+	irq_setup->base_irq = OMAP_PRCM_IRQ_BASE;
- 
- 	for (i = 0; i <= irq_setup->nr_regs; i++) {
- 		gc = irq_alloc_generic_chip("PRCM", 1,
-diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-index 2efd645..fe1be1d 100644
---- a/arch/arm/plat-omap/include/plat/irqs.h
-+++ b/arch/arm/plat-omap/include/plat/irqs.h
-@@ -428,8 +428,12 @@
- #define OMAP_GPMC_NR_IRQS	8
- #define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
- 
-+/* PRCM chain handler */
-+#define OMAP_PRCM_IRQ_BASE	(OMAP_GPMC_IRQ_END)
-+#define OMAP_PRCM_NR_IRQS	64
-+#define OMAP_PRCM_IRQ_END	(OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
- 
--#define NR_IRQS			OMAP_GPMC_IRQ_END
-+#define NR_IRQS			OMAP_PRCM_IRQ_END
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
- 
++#define TWL6030_ADJUSTABLE_SMPS(label) { \
++	.desc = { \
++		.name = #label, \
++		.id = TWL6030_REG_##label, \
++		.ops = &twl6030coresmps_ops, \
++		.type = REGULATOR_VOLTAGE, \
++		.owner = THIS_MODULE, \
++		}, \
++	}
++
+ #define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
+ 	.base = offset, \
+ 	.min_mV = min_mVolts, \
+@@ -1027,6 +1063,9 @@ static struct twlreg_info twl_regs[] = {
+ 	/* 6030 REG with base as PMC Slave Misc : 0x0030 */
+ 	/* Turnon-delay and remap configuration values for 6030 are not
+ 	   verified since the specification is not public */
++	TWL6030_ADJUSTABLE_SMPS(VDD1),
++	TWL6030_ADJUSTABLE_SMPS(VDD2),
++	TWL6030_ADJUSTABLE_SMPS(VDD3),
+ 	TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000, 3300),
+ 	TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000, 3300),
+ 	TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000, 3300),
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 5790466..59e662b 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -700,6 +700,9 @@ struct twl4030_platform_data {
+ 	struct regulator_init_data		*vaux1;
+ 	struct regulator_init_data		*vaux2;
+ 	struct regulator_init_data		*vaux3;
++	struct regulator_init_data		*vdd1;
++	struct regulator_init_data		*vdd2;
++	struct regulator_init_data		*vdd3;
+ 	/* TWL4030 LDO regulators */
+ 	struct regulator_init_data		*vpll1;
+ 	struct regulator_init_data		*vpll2;
+@@ -708,8 +711,6 @@ struct twl4030_platform_data {
+ 	struct regulator_init_data		*vsim;
+ 	struct regulator_init_data		*vaux4;
+ 	struct regulator_init_data		*vio;
+-	struct regulator_init_data		*vdd1;
+-	struct regulator_init_data		*vdd2;
+ 	struct regulator_init_data		*vintana1;
+ 	struct regulator_init_data		*vintana2;
+ 	struct regulator_init_data		*vintdig;
 -- 
 1.7.4.1
 
