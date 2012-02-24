@@ -1,89 +1,72 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH 3/6] ARM: OMAP3PLUS PM: Add IO Daisychain support via
- hwmod mux
-Date: Fri, 24 Feb 2012 16:35:44 +0200
-Message-ID: <1330094144.4102.554.camel@sokoban>
-References: <1330003320-17400-1-git-send-email-t-kristo@ti.com>
-	 <1330003320-17400-4-git-send-email-t-kristo@ti.com>
-	 <CAMQu2gxQQTfiNoiwZszNWFiDWaei8+f6eKj+K2ZE1wNuvFLH9A@mail.gmail.com>
-Reply-To: <t-kristo@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 2/3] tty: serial: OMAP: block idle while the UART is transferring
+ data in PIO mode
+Date: Fri, 24 Feb 2012 15:35:44 +0100
+Message-ID: <4F47A040.6030502@ti.com>
+References: <20120126024903.31613.24730.stgit@dusk> <20120126025036.31613.67819.stgit@dusk> <4F423E28.3040404@ti.com> <alpine.DEB.2.00.1202211456160.25023@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43806 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:43815 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab2BXOfu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 09:35:50 -0500
-In-Reply-To: <CAMQu2gxQQTfiNoiwZszNWFiDWaei8+f6eKj+K2ZE1wNuvFLH9A@mail.gmail.com>
+	id S1755050Ab2BXOf4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 09:35:56 -0500
+In-Reply-To: <alpine.DEB.2.00.1202211456160.25023@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Alan Cox <alan@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Thu, 2012-02-23 at 19:23 +0530, Shilimkar, Santosh wrote:
-> On Thu, Feb 23, 2012 at 6:51 PM, Tero Kristo <t-kristo@ti.com> wrote:
-> > From: Vishwanath BS <vishwanath.bs@ti.com>
-> >
-> > IO Daisychain feature has to be triggered whenever there is a change in
-> > device's mux configuration (See section 3.9.4 in OMAP4 Public TRM vP).
-> >
-> > Now devices can idle independent of the powerdomain, there can be a
-> > window where device is idled and corresponding powerdomain can be
-> > ON/INACTIVE state. In such situations, since both module wake up is
-> > enabled at padlevel as well as io daisychain sequence is triggered,
-> > there will be 2 PRCM interrupts (Module async wake up via swakeup and
-> > IO Pad interrupt). But as PRCM Interrupt handler clears the Module
-> > Padlevel WKST bit in the first interrupt, module specific interrupt
-> > handler will not triggered for the second time
-> >
-> > Also look at detailed explanation given by Rajendra at
-> > http://www.spinics.net/lists/linux-serial/msg04480.html
-> >
-> > Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/omap_hwmod.c |    9 +++++++--
-> >  arch/arm/mach-omap2/pm.c         |    7 +++++++
-> >  arch/arm/mach-omap2/pm.h         |    1 +
-> >  3 files changed, 15 insertions(+), 2 deletions(-)
-> >
-> 
-> [...]
-> 
-> >
-> > diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> > index 1881fe9..e8b54eb 100644
-> > --- a/arch/arm/mach-omap2/pm.c
-> > +++ b/arch/arm/mach-omap2/pm.c
-> > @@ -25,6 +25,7 @@
-> >  #include "clockdomain.h"
-> >  #include "pm.h"
-> >  #include "twl-common.h"
-> > +#include "prm44xx.h"
-> >
-> >  static struct omap_device_pm_latency *pm_lats;
-> >
-> > @@ -64,6 +65,12 @@ static void omap2_init_processor_devices(void)
-> >        }
-> >  }
-> >
-> > +void omap_trigger_wuclk_ctrl(void)
-> > +{
-> > +       if (cpu_is_omap44xx())
-> 
-> can we avoid above check to make it generic so that even OMAP5 can use this
-> code without any change. Some flag might do the trick.
+Salut Paul,
 
-Can't remove this check, as we don't want to execute this code for
-omap2 / omap3, it would just crash.
+On 2/21/2012 11:02 PM, Paul Walmsley wrote:
+> Salut Beno=EEt,
+>
+> On Mon, 20 Feb 2012, Cousson, Benoit wrote:
+>
+>> 3.3-rc4 is broken in the DT case because of the serial driver. And i=
+t
+>> looks like it is due to this fix.  We cannot rely on pdata anymore i=
+n
+>> DT, and in that case it leads to an Oops due to NULL pdata.
+>
+> Sorry about the breakage.  I agree with the diagnosis.  That code was=
+ just
+> copied from the DMA errata part of the driver, so it will need to be =
+fixed
+> as well.  Otherwise the same problem will happen when DMA is enabled.
+>
+>> And then we will have to add the support for all these OMAP custom h=
+ooks without pdata.
+>
+> That's really the key question for the medium- to long-term...
 
--Tero
+I know you know, I'm always hoping that someone will step up and propos=
+e=20
+some cool idea to fix that :-)
 
-> 
-> Rest of the patch looks fine to me.
-> 
-> Regards
-> Santosh
+>> A basic fix (below) for the moment is to test for valid pdata inside=
+ the driver.
+>> I'll repost it properly if you are fine with it.
+>
+> Looks fine to me, although I'd suggest fixing the DMA workaround path=
+ as
+> well.
 
+Mmm, I've tried to fix every instances of pdata in the code, you think =
+I=20
+missed some?
 
+I'll check again.
+
+> Reviewed-by: Paul Walmsley<paul@pwsan.com>
+
+Thanks,
+Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
