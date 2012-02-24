@@ -1,76 +1,39 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [RFC PATCH] gpio/omap: Fix IRQ handling for SPARSE_IRQ
-Date: Fri, 24 Feb 2012 16:07:52 +0530
-Message-ID: <CAC83ZvLm-ruk3pMkeLhiyOMAVVnByk9PPWsM40AyPErSqz=dKA@mail.gmail.com>
-References: <4F46C1AF.2040201@ti.com>
-	<20120223230821.GD18185@atomide.com>
-	<4F47623E.5060908@ti.com>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH v2 3/4] arm/dts: OMAP4: Add mmc controller nodes and
+	board data
+Date: Fri, 24 Feb 2012 10:37:45 +0000
+Message-ID: <20120224103745.GI22675@n2100.arm.linux.org.uk>
+References: <1329998490-27555-1-git-send-email-rnayak@ti.com>
+	<1329998490-27555-4-git-send-email-rnayak@ti.com>
+	<CANrkHUaP7cV_vSKQYZkeF-aS5CEi2CAp3_9aDJKCVOX-67oNPg@mail.gmail.com>
+	<4F4765EC.1000102@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:41990 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751604Ab2BXKhy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 05:37:54 -0500
-Received: by qcsc20 with SMTP id c20so438340qcs.32
-        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 02:37:53 -0800 (PST)
-In-Reply-To: <4F47623E.5060908@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4F4765EC.1000102-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, "T Krishnamoorthy,
+	Balaji" <balajitk-l0cyMroinI0@public.gmane.org>, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 
-On Fri, Feb 24, 2012 at 3:41 PM, Cousson, Benoit <b-cousson@ti.com> wro=
-te:
-> + Tarun
->
->
-> On 2/24/2012 12:08 AM, Tony Lindgren wrote:
->>
->> * Cousson, Benoit<b-cousson@ti.com> =A0[120223 14:14]:
->>>
->>> The GPIO driver is still relying on internal OMAP IRQ defines that
->>> are not relevant anymore if OMAP is built with SPARSE_IRQ.
->>
->>
->> Great :)
->>
->>> Please note that this patch is still RFC, because I do not know
->>> how to fix properly the ugly cpu_class_is_omap1 and the dependency
->>> with IH_MPUIO_BASE to detect a MPUIO.
->>
->>
->> Sounds like gpio_to_irq() needs to be set in the
->> arch/arm/*omap*/gpio*.c then.
->
->
-> In fact, after a second thought, that might even work for OMAP1 becau=
-se I'm
-> using the proper base (IRQ and GPIO) to convert the IRQ number.
->
->
-> static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
-> {
->
-> =A0 =A0 =A0 =A0return gpio_irq - bank->irq_base + bank->chip.base;
-> }
->
-> But it might be good to test it on OMAP1 platform.
->
->
-> Tarun,
->
-> Do you have an OMAP1 board to test that.
-Yes, I will test on OMAP1 board.
---
-Tarun
->
-> Regards,
-> Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, Feb 24, 2012 at 03:56:52PM +0530, Rajendra Nayak wrote:
+> I don't know if we can, but even if we could, we take care of the same
+> bootargs working on two boards (say sdp and panda) *if* on sdp I have my
+> filesystem on eMMC and on panda I have it on external card.
+> What happens if I want to use my filesystem on both boards on external
+> card?
+
+This is why the bootargs should be part of the information the boot
+loader passes to the kernel, and not part of the kernel configuration
+or DT.
