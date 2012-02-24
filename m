@@ -1,51 +1,180 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 2/6] ARM: OMAP4 PM: Add IO Daisychain support
-Date: Fri, 24 Feb 2012 12:29:42 +0530
-Message-ID: <4F47355E.3090107@ti.com>
-References: <1330003320-17400-1-git-send-email-t-kristo@ti.com> <1330003320-17400-3-git-send-email-t-kristo@ti.com> <CAMQu2gxWYVPMBkj0oD=Cj5r1O+X4Y-Lgpntsvc+Jxj3X6XyviQ@mail.gmail.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: Re: [PATCH v2 5/7] ARM: OMAP2+: Split omap2_hsmmc_init() to properly
+ support I2C GPIO pins
+Date: Fri, 24 Feb 2012 09:01:57 +0200
+Message-ID: <4F4735E5.3070709@compulab.co.il>
+References: <1329997247-27342-1-git-send-email-rnayak@ti.com> <1329997247-27342-6-git-send-email-rnayak@ti.com> <4F464CFF.3080006@compulab.co.il> <20120223184751.GX18185@atomide.com> <4F470DDA.7050603@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:43992 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753270Ab2BXG7v (ORCPT
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:39642
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751985Ab2BXHCK (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 01:59:51 -0500
-Received: by yenr5 with SMTP id r5so993804yen.6
-        for <linux-omap@vger.kernel.org>; Thu, 23 Feb 2012 22:59:49 -0800 (PST)
-In-Reply-To: <CAMQu2gxWYVPMBkj0oD=Cj5r1O+X4Y-Lgpntsvc+Jxj3X6XyviQ@mail.gmail.com>
+	Fri, 24 Feb 2012 02:02:10 -0500
+In-Reply-To: <4F470DDA.7050603@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>, "Dhavlikar, Nilesh" <dnilesh@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>
 
-On Thursday 23 February 2012 07:18 PM, Shilimkar, Santosh wrote:
-> On Thu, Feb 23, 2012 at 6:51 PM, Tero Kristo<t-kristo@ti.com>  wrote:
-[..]
+On 02/24/12 06:11, Rajendra Nayak wrote:
+> On Friday 24 February 2012 12:17 AM, Tony Lindgren wrote:
+>> * Igor Grinberg<grinberg@compulab.co.il>  [120223 05:56]:
+>>>> --- a/arch/arm/mach-omap2/board-cm-t35.c
+>>>> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+>>>> @@ -411,9 +411,9 @@ static struct omap2_hsmmc_info mmc[] = {
+>>>>       {
+>>>>           .mmc        = 1,
+>>>>           .caps        = MMC_CAP_4_BIT_DATA,
+>>>> -        .gpio_cd    = -EINVAL,
+>>>> +        .gpio_cd    = OMAP_MAX_GPIO_LINES + 0,
+>>>>           .gpio_wp    = -EINVAL,
 >>
->> +/**
->> + * Maximum time(us) it takes to output the signal WUCLKOUT of the last pad of
->> + * the I/O ring after asserting WUCLKIN high
->> + */
->> +#define MAX_IOPAD_LATCH_TIME 1000
->> +
-> Is the 1000 us/ms ?
+>> I don't have these changes, in my second revision of the patch.
+>>
+>> It's best not to hardcode the values here.
+> 
+> Ok, I just though doing it the other way is more round about
+> hardcoding where in the board passes a hardcoded value to
+> twl4030 gpio driver and the driver passes the *same* hardcoded
+> value back to the board callback, which is then populated in
+> mmc pdata. The board could as well directly hardcode it in the
+> mmc pdata.
+> That makes it much more readable than this round about
+> hardcoding.
+> But I'll go back to the old way if you think thats how we should
+> handle this.
 
-1000 us.
+The "old" way is preferable. Thanks.
 
-> Is that documented or arbitrary chosen ?
+> 
+>>
+>>>> -
+>>>> +        .deferred    = true,
+>>>>       },
+>>>>       {
+>>>>           .mmc        = 2,
+>>>> @@ -422,6 +422,7 @@ static struct omap2_hsmmc_info mmc[] = {
+>>>>           .gpio_cd    = -EINVAL,
+>>>>           .gpio_wp    = -EINVAL,
+>>>>           .ocr_mask    = 0x00100000,    /* 3.3V */
+>>>> +        .deferred    = true,
+>>>
+>>> Why do you defer this one?
+>>> It does not use external GPIO chip, in fact it does not use CD/WP at all.
+>>
+>> Why do you have the following then to set gpio_cd?
+> 
+> There is only one instance of gpio_cd being populated for the
+> first element in the array mmc[], which is already deferred.
+> 
+>>>> -    mmc[0].gpio_cd = gpio + 0;
+> 
+> Igor was asking about the second element in the array which never
+> has gpio_cd populated. Its just initialized to -EINVAL and stays
+> that way.
 
-looks like it was arbitrarily chosen as there's no documentation
-on the worst case delay. I spoke to Nilesh (copied) and he suggested
-using a value close to 100us instead which should be quite safe.
-1000us according to him is really very high.
-however there does not seem to be any documented value available for
-this in any of the specs.
+Exactly.
 
->
-> Rest of the change looks good to me.
->
-> regards
-> santosh
+> 
+>>
+>>>>       },
+>>>>       {}    /* Terminator */
+>>>>   };
+>>>> @@ -469,9 +470,7 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
+>>>>           pr_err("CM-T35: could not obtain gpio for WiFi reset\n");
+>>>>       }
+>>>>
+>>>> -    /* gpio + 0 is "mmc0_cd" (input/IRQ) */
+>>>> -    mmc[0].gpio_cd = gpio + 0;
+>>>> -    omap2_hsmmc_init(mmc);
+>>>> +    omap_hsmmc_deferred_add(mmc);
+>>>>
+>>>>       return 0;
+>>>>   }
+>>
+>> Hmm I don't have omap_hsmmc_deferred_add() in my second version
+>> of the patch either.
+>>
+>> Rajendra, please do the patches on that, now it's impossible to
+>> see what else you've changed. That's the version posted here:
+>>
+>> http://www.spinics.net/lists/linux-omap/msg64884.html
+> 
+> Sorry for the mess up. I will make sure I have taken all changes/fixes
+> from your reposts.
+> 
+> regards,
+> Rajendra
+>>
+>>>> @@ -639,6 +638,7 @@ static void __init cm_t3x_common_init(void)
+>>>>       omap_serial_init();
+>>>>       omap_sdrc_init(mt46h32m32lf6_sdrc_params,
+>>>>                    mt46h32m32lf6_sdrc_params);
+>>>> +    omap_hsmmc_init(mmc);
+>>>>       cm_t35_init_i2c();
+>>>>       omap_ads7846_init(1, CM_T35_GPIO_PENDOWN, 0, NULL);
+>>>>       cm_t35_init_ethernet();
+>>>
+>>> Other then the comment above, looks fine.
+>>> I will probably be able to test this on Sunday.
+>>
+>> OK
+>>
+>>>> diff --git a/arch/arm/mach-omap2/board-igep0020.c b/arch/arm/mach-omap2/board-igep0020.c
+>>>> index a59ace0..11a6aa4 100644
+>>>> --- a/arch/arm/mach-omap2/board-igep0020.c
+>>>> +++ b/arch/arm/mach-omap2/board-igep0020.c
+>>>> @@ -293,8 +293,9 @@ static struct omap2_hsmmc_info mmc[] = {
+>>>>       {
+>>>>           .mmc        = 1,
+>>>>           .caps        = MMC_CAP_4_BIT_DATA,
+>>>> -        .gpio_cd    = -EINVAL,
+>>>> +        .gpio_cd    = OMAP_MAX_GPIO_LINES + 0,
+>>>>           .gpio_wp    = -EINVAL,
+>>>> +        .deferred    = true,
+>>>>       },
+>>>>   #if defined(CONFIG_LIBERTAS_SDIO) || defined(CONFIG_LIBERTAS_SDIO_MODULE)
+>>>>       {
+>>>> @@ -302,6 +303,7 @@ static struct omap2_hsmmc_info mmc[] = {
+>>>>           .caps        = MMC_CAP_4_BIT_DATA,
+>>>>           .gpio_cd    = -EINVAL,
+>>>>           .gpio_wp    = -EINVAL,
+>>>> +        .deferred    = true,
+>>>
+>>> same here, why defer it?
+>>
+>> Because it too sets gpio_cd in the callback.
 
+Well, not this array element...
+
+>>
+>>> ditto
+>>
+>> ditto, that too sets gpio_cd..
+
+Nope... ditto ;)
+
+>>
+>>>>       },
+>>>>   #endif
+>>>>       {}    /* Terminator */
+>>>> @@ -360,10 +362,8 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+>>>>   {
+>>>>       int r, lcd_bl_en;
+>>>>
+>>>> -    /* gpio + 0 is "mmc0_cd" (input/IRQ) */
+>>>>       omap_mux_init_gpio(63, OMAP_PIN_INPUT);
+>>>> -    mmc[0].gpio_cd = gpio + 0;
+>>
+>> ..here. Same for the others. So maybe check is some are wrong?
+
+I failed parsing the question...
+Here only the first array element gets the gpio_cd value set.
+
+
+-- 
+Regards,
+Igor.
