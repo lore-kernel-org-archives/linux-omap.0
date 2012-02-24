@@ -1,75 +1,66 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and vdd3
- regulators
-Date: Fri, 24 Feb 2012 14:50:27 +0000
-Message-ID: <20120224145027.GN5450@opensource.wolfsonmicro.com>
-References: <20120223153422.GF4553@opensource.wolfsonmicro.com>
- <1330076289.4102.517.camel@sokoban>
- <20120224114940.GB5450@opensource.wolfsonmicro.com>
- <1330089398.4102.539.camel@sokoban>
- <20120224132408.GF5450@opensource.wolfsonmicro.com>
- <1330091765.4102.547.camel@sokoban>
- <20120224140109.GG5450@opensource.wolfsonmicro.com>
- <1330093512.4102.552.camel@sokoban>
- <20120224143415.GL5450@opensource.wolfsonmicro.com>
- <1330094532.4102.555.camel@sokoban>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH] gpio/omap: Fix IRQ handling for SPARSE_IRQ
+Date: Fri, 24 Feb 2012 15:54:52 +0100
+Message-ID: <4F47A4BC.3020307@ti.com>
+References: <4F46C1AF.2040201@ti.com> <4F479B31.7090508@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="fpolVoprVozDR81Y"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47117 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753258Ab2BXOua (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 09:50:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1330094532.4102.555.camel@sokoban>
+Received: from bear.ext.ti.com ([192.94.94.41]:40469 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753653Ab2BXOy6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 09:54:58 -0500
+In-Reply-To: <4F479B31.7090508@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
+On 2/24/2012 3:14 PM, Rob Herring wrote:
+> On 02/23/2012 04:46 PM, Cousson, Benoit wrote:
+...
+>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>> index bc2bd69..afef0f7 100644
+>> --- a/drivers/gpio/gpio-omap.c
+>> +++ b/drivers/gpio/gpio-omap.c
+>> @@ -93,6 +93,11 @@ struct gpio_bank {
+>>   #define GPIO_BIT(bank, gpio) (1<<  GPIO_INDEX(bank, gpio))
+>>   #define GPIO_MOD_CTRL_BIT	BIT(0)
+>>
+>> +static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+>> +{
+>> +	return gpio_irq - bank->irq_base + bank->chip.base;
+>
+> Ideally, you could do something like this when you have a domain setup:
+>
+> irq_get_irq_data(gpio_irq)->hw_irq + bank->chip.base
 
---fpolVoprVozDR81Y
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+OK, good to know. I still plan to move the current irq_domain basic 
+support to the irqchip stuff you have done. I'll do that after 3.4.
 
-On Fri, Feb 24, 2012 at 04:42:12PM +0200, Tero Kristo wrote:
-> On Fri, 2012-02-24 at 14:34 +0000, Mark Brown wrote:
+> Also, with sparse irq you need to have a call to irq_alloc_desc.
 
-> > Ah, so it is - we're fixing things up in the core.  I'd forgotten we did
-> > that.
+irq_alloc_desc was already added as part of the DT migration patch.
+It was not explicit in the changelog, but that patch is based on GPIO 
+cleanup + DT migration series.
 
-> So, no need to add list_voltage to this, I just fix the return values
-> for the get / set and send the new version, am I right?
+> You can avoid that by setting NR_IRQS or machine .nr_irqs, but that needs to go
+> away.
 
-I guess.  Though actually given that there's no interaction with the
-chip itself at all I'm not sure I understand why this is part of the
-twl6030 driver rather than being a separate driver for whatever
-implements the operations - it's not like the case with the other
-regulators where there was some functionality implemented through the
-twl6030 driver beyond straight passthrough.
+Based on a recommendation you did in the commit to fix GIC I did that in 
+the SPARSE_IRQ series I've just sent before that RFC patch:
 
---fpolVoprVozDR81Y
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
++#ifdef CONFIG_SPARSE_IRQ
++#define NR_IRQS			NR_IRQS_LEGACY
++#else
+  #define NR_IRQS			OMAP_GPMC_IRQ_END
++#endif
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> Otherwise, it certainly is a step in the right direction.
 
-iQIcBAEBAgAGBQJPR6OtAAoJEBus8iNuMP3dHgkP/0Kcx2iPZ6rEbomSXYN2/NVR
-+JcIfdprzXOn2PgXwZs231RCB+agX4nyIt43wSROvMBcERMKrra83v38PaDgS62C
-zyCJ5n+6Q5sk2fma0r/zBo5QZQpd/gTpNU7lyozQaJebrCRe0dhUUR45gO/ICt9n
-ybT+qRN6jvoNTUESLXDg5+YTmCBfJ2Souf/ZKmw8Z0LO+M/2oZUibVetjagkn3yF
-OuDWHq7Ab1qIzjVdNZK7KRyzTyfqgh06pLNt3/zl/pg6IQALhB3OwArhPY0vDSsT
-P8Wl9mAzPs4Fqn2onzIg73X7UoF/3giIY97OnJhn5HTqJqBav7K08DzyQU6NahWs
-FgvgUZsHy3LFh3tTV4/Mfrf5xPbG8Ns+XsEm0FnKz8Ekv+KvGt17OLbWGpnti73B
-kPh9z+y6f5AuATAnFJVqMGzdQTms34caSkHwm3JFYgcsrwCcwEdqf1xlJr4Wd8Xh
-p1luB8Wv2tKbZrLut6J5p4WdUoBqYXwB/iq3JM3P5NzFNipkYf7SGQJfZdgq2S5s
-o8VscZiUzfwcZSrhnZODOkDpdtEVkh/OKnGMu9xDWaAGLGQ7yz3qYhREJONnaV2f
-S2rkzAqrl0e/3M6p4/LhRcVqEmONyXuTwc7J+ufF5LsYJhDATL3YxDgoBQDjH2DZ
-M4x9YBknGtVNI2KrM5Gk
-=Kfrm
------END PGP SIGNATURE-----
+Yeah, there is still a long way to clean all the old nasty IRQ stuff in 
+OMAP :-)
 
---fpolVoprVozDR81Y--
+Thanks,
+Benoit
