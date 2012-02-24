@@ -1,109 +1,60 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [RFC PATCH] gpio/omap: Fix IRQ handling for SPARSE_IRQ
-Date: Fri, 24 Feb 2012 08:14:09 -0600
-Message-ID: <4F479B31.7090508@gmail.com>
-References: <4F46C1AF.2040201@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and
+ vdd3 regulators
+Date: Fri, 24 Feb 2012 16:25:12 +0200
+Message-ID: <1330093512.4102.552.camel@sokoban>
+References: <1329995109-4795-1-git-send-email-t-kristo@ti.com>
+	 <20120223153422.GF4553@opensource.wolfsonmicro.com>
+	 <1330076289.4102.517.camel@sokoban>
+	 <20120224114940.GB5450@opensource.wolfsonmicro.com>
+	 <1330089398.4102.539.camel@sokoban>
+	 <20120224132408.GF5450@opensource.wolfsonmicro.com>
+	 <1330091765.4102.547.camel@sokoban>
+	 <20120224140109.GG5450@opensource.wolfsonmicro.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48022 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235Ab2BXOOM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 09:14:12 -0500
-Received: by ghrr11 with SMTP id r11so1116172ghr.19
-        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 06:14:11 -0800 (PST)
-In-Reply-To: <4F46C1AF.2040201@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60135 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754248Ab2BXOZV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 09:25:21 -0500
+In-Reply-To: <20120224140109.GG5450@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Grant Likely <grant.likely@secretlab.ca>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
 
-On 02/23/2012 04:46 PM, Cousson, Benoit wrote:
-> The GPIO driver is still relying on internal OMAP IRQ defines that
-> are not relevant anymore if OMAP is built with SPARSE_IRQ.
+On Fri, 2012-02-24 at 14:01 +0000, Mark Brown wrote:
+> On Fri, Feb 24, 2012 at 03:56:05PM +0200, Tero Kristo wrote:
 > 
-> Replace the defines with the proper IRQ base number.
-> Clean some comment style issue.
-> Remove some hidden and ugly cpu_class_is_omap1() inside the
-> gpio header.
+> > So, do you want me to also change the num_voltages value for the
+> > regulator from zero to be the same as max_uV, as we have this check
+> > within regulator/core:
 > 
-> XXX: That fix might be broken for OMAP1 MPUIO case.
+> >        if (!ops->list_voltage || selector >= rdev->desc->n_voltages)
+> >                 return -EINVAL;
 > 
-> Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-> ---
+> > This will also potentially make some code to iterate over regulator
+> > voltages for ~1.5M times. I still don't think adding list_voltage for
+> > the SMPS regulators makes any sense, unless either the API for
+> > regulator_list_voltage is changed, or we change the control for these
+> > regulators completely from set_voltage() based to set_voltage_sel()
+> > based implementation.
 > 
-> Hi Tony,
-> 
-> Please note that this patch is still RFC, because I do not know how to fix properly the ugly cpu_class_is_omap1 and the dependency with IH_MPUIO_BASE to detect a MPUIO.
-> 
-> I'm still sending it, because it is needed to have SPARSE_IRQ working on OMAP4 with the previous series I've just sent.
-> 
-> Regards,
-> Benoit
-> 
->  arch/arm/plat-omap/include/plat/gpio.h |   22 ++------------------
->  drivers/gpio/gpio-omap.c               |   33 ++++++++++++++++---------------
->  2 files changed, 20 insertions(+), 35 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/plat/gpio.h b/arch/arm/plat-omap/include/plat/gpio.h
-> index cb75b65..b8a96c6 100644
-> --- a/arch/arm/plat-omap/include/plat/gpio.h
-> +++ b/arch/arm/plat-omap/include/plat/gpio.h
-> @@ -218,30 +218,14 @@ extern void omap_set_gpio_debounce(int gpio, int enable);
->  extern void omap_set_gpio_debounce_time(int gpio, int enable);
->  /*-------------------------------------------------------------------------*/
->  
-> -/* Wrappers for "new style" GPIO calls, using the new infrastructure
-> +/*
-> + * Wrappers for "new style" GPIO calls, using the new infrastructure
->   * which lets us plug in FPGA, I2C, and other implementations.
-> - * *
-> + *
->   * The original OMAP-specific calls should eventually be removed.
->   */
->  
->  #include <linux/errno.h>
->  #include <asm-generic/gpio.h>
->  
-> -static inline int irq_to_gpio(unsigned irq)
-> -{
-> -	int tmp;
-> -
-> -	/* omap1 SOC mpuio */
-> -	if (cpu_class_is_omap1() && (irq < (IH_MPUIO_BASE + 16)))
-> -		return (irq - IH_MPUIO_BASE) + OMAP_MAX_GPIO_LINES;
-> -
-> -	/* SOC gpio */
-> -	tmp = irq - IH_GPIO_BASE;
-> -	if (tmp < OMAP_MAX_GPIO_LINES)
-> -		return tmp;
-> -
-> -	/* we don't supply reverse mappings for non-SOC gpios */
-> -	return -EIO;
-> -}
-> -
->  #endif
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index bc2bd69..afef0f7 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -93,6 +93,11 @@ struct gpio_bank {
->  #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
->  #define GPIO_MOD_CTRL_BIT	BIT(0)
->  
-> +static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
-> +{
-> +	return gpio_irq - bank->irq_base + bank->chip.base;
+> Well, the important thing here is to fill in something useful for the
+> returned selector rather than just leaving it undefined.  Providing a
+> list_voltage() would be nice and make things more robust.
 
-Ideally, you could do something like this when you have a domain setup:
+Still, setting selector in this case does nothing, as it is immediately
+overwritten by the regulator core by -1. This looks like a perfectly
+acceptable way to implement a regulator, as everything checks for the
+presence of list_voltage anyway.
 
-irq_get_irq_data(gpio_irq)->hw_irq + bank->chip.base
+If you really insist, I could probably make something that does a
+list_voltage and shows min and max voltages for the regulator, but I
+don't know about the usefulness of that.
 
-Also, with sparse irq you need to have a call to irq_alloc_desc. You can
-avoid that by setting NR_IRQS or machine .nr_irqs, but that needs to go
-away.
+-Tero
 
-Otherwise, it certainly is a step in the right direction.
-
-Rob
