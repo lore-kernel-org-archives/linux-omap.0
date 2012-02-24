@@ -1,100 +1,90 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
-Date: Fri, 24 Feb 2012 16:30:16 +0100
-Message-ID: <4F47AD08.4030504@ti.com>
-References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com>
+From: Balaji T K <balajitk@ti.com>
+Subject: [PATCH 1/4] mmc: omap: Enable Auto CMD12
+Date: Fri, 24 Feb 2012 21:14:31 +0530
+Message-ID: <1330098274-12048-2-git-send-email-balajitk@ti.com>
+References: <1330098274-12048-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35975 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756151Ab2BXPaa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 10:30:30 -0500
-In-Reply-To: <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1330098274-12048-1-git-send-email-balajitk@ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: linux-mmc@vger.kernel.org, cjb@laptop.org
+Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Stephen Warren <swarren@nvidia.com>, Rob Herring <robherring2@gmail.com>
-Cc: "khilman@ti.com" <khilman@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 2/22/2012 7:29 PM, Stephen Warren wrote:
-> Rob Herring wrote at Wednesday, February 22, 2012 10:23 AM:
->> On 02/22/2012 08:31 AM, Cousson, Benoit wrote:
->>> On 2/22/2012 3:23 PM, Rob Herring wrote:
->>>> On 02/15/2012 10:04 AM, Benoit Cousson wrote:
->>>>> Adapt the GPIO driver to retrieve information from a DT file.
->>>>>
->>>>> Allocate the irq_base dynamically and rename bank->virtual_irq_start
->>>>> to bank->irq_base.
->>>>> Change irq_base type to int instead of u16 to match irq_alloc_descs
->>>>> output.
->>>>>
->>>>> Add documentation for GPIO properties specific to OMAP.
->>>>>
->>>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->>>>> Cc: Tarun Kanti DebBarma<tarun.kanti@ti.com>
->>>>
->>>> One comment below, but otherwise:
->>>>
->>>> Acked-by: Rob Herring<rob.herring@calxeda.com>
->>>>
->>>>> ---
->>>>>    .../devicetree/bindings/gpio/gpio-omap.txt         |   30 +++++
->>>>>    drivers/gpio/gpio-omap.c                           |  121
->>>>> ++++++++++++++++++--
->>>>>    2 files changed, 142 insertions(+), 9 deletions(-)
->>>>>    create mode 100644
->>>>> Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>>>>
->>>>> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>>>> b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>>>> new file mode 100644
->>>>> index 0000000..c1b3100
->>>>> --- /dev/null
->>>>> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
->>>>> @@ -0,0 +1,30 @@
->>>>> +OMAP GPIO controller bindings
->>>>> +
->>>>> +Required properties:
->>>>> +- compatible:
->>>>> +  - "ti,omap2-gpio" for OMAP2 controllers
->>>>> +  - "ti,omap3-gpio" for OMAP3 controllers
->>>>> +  - "ti,omap4-gpio" for OMAP4 controllers
->>>>> +- #gpio-cells : Should be two.
->>>>> +  - first cell is the pin number
->>>>> +  - second cell is used to specify optional parameters (unused)
->>>>> +- gpio-controller : Marks the device node as a GPIO controller.
->>>>> +- #interrupt-cells : Should be one
->>>>
->>>> There's no level/edge settings for gpios?
->>>
->>> That's a good question, because I was wondering as well :-)
->>>
->>> I did no see how it was done in other GPIO implementation.
->>
->> There's not really a good example that I've found. Many gpio nodes don't
->> even have "interrupt-controller" set.
->>
->> So if you have an irq_set_type function for gpio's, then you should have
->> 2 cells.
+Enable Auto-CMD12 for multi block read/write on HSMMC
+Tested on OMAP4430, OMAP3430 and OMAP2430 SDP
 
-After checking the OMAP gpio code, I do have a gpio_irq_type and the 
-GPIO do support the 4 types. I'm not sure yet about the combinations.
+Signed-off-by: Balaji T K <balajitk@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
-> Tegra's GPIO IRQ binding (gpio_nvidia.txt in linux-next at least) says:
->
-> - #interrupt-cells : Should be 2.
->    The first cell is the GPIO number.
->    The second cell is used to specify flags:
->      bits[3:0] trigger type and level flags:
->        1 = low-to-high edge triggered.
->        2 = high-to-low edge triggered.
->        4 = active high level-sensitive.
->        8 = active low level-sensitive.
->        Valid combinations are 1, 2, 3, 4, 8.
-
-Indeed, so I'll just copy / paste Tegra's binding...
-
-Thanks,
-Benoit
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 36e7f5b..f4c7f89 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -82,6 +82,7 @@
+ #define BRR_ENABLE		(1 << 5)
+ #define DTO_ENABLE		(1 << 20)
+ #define INIT_STREAM		(1 << 1)
++#define ACEN_ACMD12		(1 << 2)
+ #define DP_SELECT		(1 << 21)
+ #define DDIR			(1 << 4)
+ #define DMA_EN			0x1
+@@ -123,6 +124,7 @@
+ #define OMAP_MMC_MAX_CLOCK	52000000
+ #define DRIVER_NAME		"omap_hsmmc"
+ 
++#define AUTO_CMD12		(1 << 0)	/* Auto CMD12 support */
+ /*
+  * One controller can have multiple slots, like on some omap boards using
+  * omap.c controller driver. Luckily this is not currently done on any known
+@@ -185,6 +187,7 @@ struct omap_hsmmc_host {
+ 	int			reqs_blocked;
+ 	int			use_reg;
+ 	int			req_in_progress;
++	unsigned int		flags;
+ 	struct omap_hsmmc_next	next_data;
+ 
+ 	struct	omap_mmc_platform_data	*pdata;
+@@ -886,6 +889,8 @@ omap_hsmmc_start_command(struct omap_hsmmc_host *host, struct mmc_command *cmd,
+ 		cmdtype = 0x3;
+ 
+ 	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
++	if ((host->flags & AUTO_CMD12) && mmc_op_multi(cmd->opcode))
++		cmdreg |= ACEN_ACMD12;
+ 
+ 	if (data) {
+ 		cmdreg |= DP_SELECT | MSBS | BCE;
+@@ -957,11 +962,16 @@ omap_hsmmc_xfer_done(struct omap_hsmmc_host *host, struct mmc_data *data)
+ 	else
+ 		data->bytes_xfered = 0;
+ 
+-	if (!data->stop) {
++	if (data->stop && ((!(host->flags & AUTO_CMD12)) || data->error))
++		omap_hsmmc_start_command(host, data->stop, NULL);
++	else {
++		if (data->stop)
++			data->stop->resp[0] = OMAP_HSMMC_READ(host->base,
++							RSP76);
+ 		omap_hsmmc_request_done(host, data->mrq);
+-		return;
+ 	}
+-	omap_hsmmc_start_command(host, data->stop, NULL);
++
++	return;
+ }
+ 
+ /*
+@@ -1899,6 +1909,7 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 	host->mapbase	= res->start;
+ 	host->base	= ioremap(host->mapbase, SZ_4K);
+ 	host->power_mode = MMC_POWER_OFF;
++	host->flags	= AUTO_CMD12;
+ 	host->next_data.cookie = 1;
+ 
+ 	platform_set_drvdata(pdev, host);
+-- 
+1.7.0.4
 
