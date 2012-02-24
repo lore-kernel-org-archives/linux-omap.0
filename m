@@ -1,78 +1,53 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 1/4] mmc: omap_hsmmc: Convert hsmmc driver to use device
- tree
-Date: Fri, 24 Feb 2012 17:05:27 +0530
-Message-ID: <4F4775FF.2090500@ti.com>
-References: <1329998490-27555-1-git-send-email-rnayak@ti.com>	<1329998490-27555-2-git-send-email-rnayak@ti.com> <CANrkHUarg5ntUW=S7k20LXuYe+ZNCN-cYJhfvvLKM=X8+Db4fg@mail.gmail.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Fri, 24 Feb 2012 17:14:39 +0530
+Message-ID: <CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
+References: <1330077975-31694-1-git-send-email-keshava_mgowda@ti.com>
+	<20120224101632.GL17178@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANrkHUarg5ntUW=S7k20LXuYe+ZNCN-cYJhfvvLKM=X8+Db4fg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, svenkatr@ti.com, linaro-dev@lists.linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:36672 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753204Ab2BXLok (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 06:44:40 -0500
+Received: by obcwo16 with SMTP id wo16so4802730obc.27
+        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 03:44:39 -0800 (PST)
+In-Reply-To: <20120224101632.GL17178@legolas.emea.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: balbi@ti.com
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com
 
-On Friday 24 February 2012 05:02 PM, T Krishnamoorthy, Balaji wrote:
-> On Thu, Feb 23, 2012 at 5:31 PM, Rajendra Nayak<rnayak@ti.com>  wrote:
->> Define dt bindings for the ti-omap-hsmmc, and adapt
->> the driver to extract data (which was earlier passed as
->> platform_data) from device tree.
->>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> ---
->>   .../devicetree/bindings/mmc/ti-omap-hsmmc.txt      |   31 +++++++++
->>   drivers/mmc/host/omap_hsmmc.c                      |   68 ++++++++++++++++++++
->>   2 files changed, 99 insertions(+), 0 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->>
->> diff --git a/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> new file mode 100644
->> index 0000000..e4fa8f0
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/mmc/ti-omap-hsmmc.txt
->> @@ -0,0 +1,31 @@
->> +* TI Highspeed MMC host controller for OMAP
->> +
->> +The Highspeed MMC Host Controller on TI OMAP family
->> +provides an interface for MMC, SD, and SDIO types of memory cards.
->> +
->> +Required properties:
->> +- compatible:
->> + Should be "ti,omap2-hsmmc", for OMAP2/3 controllers
+On Fri, Feb 24, 2012 at 3:46 PM, Felipe Balbi <balbi@ti.com> wrote:
+> Hi,
 >
-> omap_hsmmc is applicable for omap2430 and omap3.
-> omap2420 has non high speed controller mmci-omap - drivers/mmc/host/omap.c
-> May be omap3-hsmmc compatible with omap2430 ?
-
-Agree. I think its best in that case for me to define a
-compatible "ti,omap2430-hsmmc" for omap2430 and "ti,omap3-hsmmc"
-for omap3. Though the IP blocks are same, I cant think of some
-common compatible string without causing confusion.
-
+> On Fri, Feb 24, 2012 at 03:36:15PM +0530, Keshava Munegowda wrote:
+>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>>
+>> It is observed that the echi ports of 3430 sdp board
+>> are not working due to the random timing of programming
+>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+>> If the PHYs are reset at during usbhs core driver, host ports will
+>> not work because EHCI driver is loaded after the resetting PHYs.
+>> The PHYs should be in reset state while initializing the EHCI
+>> controller.
+>> The code which does the GPIO pins associated with the PHYs
+>> are programmed to reset is moved from the USB host core driver
+>> to EHCI driver.
+>>
+>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>> Reviewed-by: Partha Basak <parthab@india.ti.com>
 >
->> + Should be "ti,omap4-hsmmc", for OMAP4 controllers
->> +- ti,hwmods: Must be "mmc<n>", n is controller instance starting 1
->> +- reg : should contain hsmmc registers location and length
->> +
->> +Optional properties:
->> +ti,dual-volt: boolean, supports dual voltage cards
->> +<supply-name>-supply: phandle to the regulator device tree node
->> +"supply-name" examples are "vmmc", "vmmc_aux" etc
->> +ti,bus-width: Number of data lines, default assumed is 1 if the property is missing.
->> +cd-gpios: GPIOs for card detection
->> +wp-gpios: GPIOs for write protection
->> +ti,non-removable: non-removable slot (like eMMC)
->> +
->> +Example:
->> +       mmc1: mmc@0x4809c000 {
->> +               compatible = "ti,omap4-hsmmc";
->> +               reg =<0x4809c000 0x400>;
->> +               ti,hwmods = "mmc1";
->> +               ti,dual-volt;
->> +               ti,bus-width =<4>;
->> +               vmmc-supply =<&vmmc>; /* phandle to regulator node */
->> +               ti,non-removable;
->> +       };
+> won't this cause issues with EHCI/OHCI interactions ? I mean, what if
+> you connect a FS/LS device and port is handed over to OHCI, does OHCI
+> have any needs to reset the PHY or something similar ?
 
+No, it will not cause any issues with EHCI-OHCI issues.
+But its difficult to comment on this because we don't have port
+handoff supported
+in hardware.
+
+regards
+keshava
