@@ -1,37 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 4/6] ARM: OMAP3: Mark only those mmc devices which use
- gpio_cd, as deferred
-Date: Fri, 24 Feb 2012 14:21:36 -0800
-Message-ID: <20120224222136.GB18901@atomide.com>
-References: <1330077537-19618-1-git-send-email-rnayak@ti.com>
- <1330077537-19618-5-git-send-email-rnayak@ti.com>
+From: Benoit Cousson <b-cousson@ti.com>
+Subject: [PATCH v2 6/6] arm/dts: OMAP3: Add gpio nodes
+Date: Fri, 24 Feb 2012 23:21:31 +0100
+Message-ID: <1330122091-28113-7-git-send-email-b-cousson@ti.com>
+References: <1330122091-28113-1-git-send-email-b-cousson@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52509 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758181Ab2BXWVj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 17:21:39 -0500
-Content-Disposition: inline
-In-Reply-To: <1330077537-19618-5-git-send-email-rnayak@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:38335 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932264Ab2BXWWX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 17:22:23 -0500
+In-Reply-To: <1330122091-28113-1-git-send-email-b-cousson@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: grant.likely@secretlab.ca
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
 
-* Rajendra Nayak <rnayak@ti.com> [120224 01:27]:
-> mmc devices which actually do not depend on twl4030-gpio for
-> gpio_cd should not be maked as deferred.
-> 
-> Also on overo, since none of the mmc devices need to be deferred,
-> get rid of omap_hsmmc_late_init() altogether.
-> 
-> Reported-by: Igor Grinberg <grinberg@compulab.co.il>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Add the 6 GPIOs controller nodes present in OMAP3.
 
-Thanks, I'll fold this into the original patch with your SOB
-so we avoid the extra churn.
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+---
+ arch/arm/boot/dts/omap3.dtsi |   54 ++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 54 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/arch/arm/boot/dts/omap3.dtsi b/arch/arm/boot/dts/omap3.dtsi
+index 0252812..695c469 100644
+--- a/arch/arm/boot/dts/omap3.dtsi
++++ b/arch/arm/boot/dts/omap3.dtsi
+@@ -69,6 +69,60 @@
+ 			reg = <0x48200000 0x1000>;
+ 		};
+ 
++		gpio1: gpio@48310000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio1";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio2: gpio@49050000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio2";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio3: gpio@49052000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio3";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio4: gpio@49054000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio4";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio5: gpio@49056000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio5";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
++		gpio6: gpio@49058000 {
++			compatible = "ti,omap3-gpio";
++			ti,hwmods = "gpio6";
++			gpio-controller;
++			#gpio-cells = <2>;
++			interrupt-controller;
++			#interrupt-cells = <1>;
++		};
++
+ 		uart1: serial@4806a000 {
+ 			compatible = "ti,omap3-uart";
+ 			ti,hwmods = "uart1";
+-- 
+1.7.0.4
 
-Tony
