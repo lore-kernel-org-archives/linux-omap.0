@@ -1,70 +1,70 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and
- vdd3 regulators
-Date: Fri, 24 Feb 2012 11:38:09 +0200
-Message-ID: <1330076289.4102.517.camel@sokoban>
-References: <1329995109-4795-1-git-send-email-t-kristo@ti.com>
-	 <20120223153422.GF4553@opensource.wolfsonmicro.com>
-Reply-To: <t-kristo@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 0/6] Fix issues around twl4030-gpio used as a module
+Date: Fri, 24 Feb 2012 15:28:51 +0530
+Message-ID: <1330077537-19618-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59390 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60381 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756164Ab2BXJiS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 04:38:18 -0500
-In-Reply-To: <20120223153422.GF4553@opensource.wolfsonmicro.com>
+	id S1750792Ab2BXJ7I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 04:59:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Thu, 2012-02-23 at 15:34 +0000, Mark Brown wrote:
-> On Thu, Feb 23, 2012 at 01:05:09PM +0200, Tero Kristo wrote:
-> 
-> > +static int twl6030coresmps_set_voltage(struct regulator_dev *rdev, int min_uV,
-> > +	int max_uV, unsigned *selector)
-> > +{
-> > +	struct twlreg_info *info = rdev_get_drvdata(rdev);
-> > +
-> > +	if (info->set_voltage)
-> > +		return info->set_voltage(info->data, min_uV);
-> > +
-> > +	return 0;
-> > +}
-> 
-> This should be returning an error if it failed to set the voltage.
+Hi Tony,
 
-Yea, I can change the return to -ENODEV for this and get_voltage.
+This series is based on top of 'hsmmc' branch in linux-omap
+on top of commit '0e91c8ddf0e0932da59ec1d116e34049791b0e73' as
+requested by you.
 
-> Since you're using min_uV as the "register value" you probably ought to
-> be returning that as the selector too and supplying a list_voltage()
-> which just passes the selector back in case something tries to use it
-> and gets confused.
+This mainly splits omap_hsmmc_late_init() into omap_hsmmc_deferred_add()
+and omap_hsmmc_deferred_del() and adds .teardown hooks in all omap3 boards
+to handle issues around multiple twl4030-gpio module insmod/unbind/bind
+as reported by Russell.
 
-I was thinking at some point about adding a list_voltage for these
-regulators, however I dropped that idea, because the regulators can
-support a range of voltages (from min to max) with some stepping value.
-But... if you propose that the list_voltage would just return the
-current voltage back, wouldn't that also potentially confuse the user
-more, as it can only see the single voltage and nothing else, maybe
-making it to think that the regulator can only support one voltage
-level?
+In the process this series adds an api to unregister an
+omap_device, makes mmc driver work with hotpluggable devices
+and also removes 'deferred' flag for a few mmc devices on some
+boards which are not really dependent on twl4030-gpio for card
+detect as reported by Igor.
 
-> 
-> > +static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
-> > +{
-> > +	struct twlreg_info *info = rdev_get_drvdata(rdev);
-> > +
-> > +	if (info->get_voltage)
-> > +		return info->get_voltage(info->data);
-> > +
-> > +	return 0;
-> 
-> Similarly here.
+I have tested this series on omap3 beagle, with twl4030-gpio built
+in, as well as twl4030-gpio built as a module and by doing multiple
+insmod/unbind/bind sequence. I have tested card-detect to work fine
+on beagle too.
 
-I'll change that also.
+regards,
+Rajendra
 
--Tero
+Rajendra Nayak (6):
+  ARM: OMAP: omap_device: Add omap_device_unregister()
+  mmc: omap_hsmmc: Make the driver support hotpluggable devices
+  mmc: omap_hsmmc: If probe fails, give our error messages
+  ARM: OMAP3: Make only mmc devices using gpio_cd as deferred
+  ARM: OMAP3: Modify omap_hsmmc_late_init to handle deleting mmc
+    devices
+  ARM: OMAP3: Use .teardown of twl4030-gpio to clean board requests
+
+ arch/arm/mach-omap2/board-3430sdp.c           |   15 ++++-
+ arch/arm/mach-omap2/board-cm-t35.c            |   15 ++++-
+ arch/arm/mach-omap2/board-devkit8000.c        |   15 ++++-
+ arch/arm/mach-omap2/board-igep0020.c          |   18 ++++-
+ arch/arm/mach-omap2/board-ldp.c               |   13 ++++
+ arch/arm/mach-omap2/board-omap3beagle.c       |   17 ++++-
+ arch/arm/mach-omap2/board-omap3evm.c          |   16 ++++-
+ arch/arm/mach-omap2/board-omap3pandora.c      |   14 +++-
+ arch/arm/mach-omap2/board-omap3stalker.c      |   16 ++++-
+ arch/arm/mach-omap2/board-omap3touchbook.c    |   15 ++++-
+ arch/arm/mach-omap2/board-overo.c             |   11 +++-
+ arch/arm/mach-omap2/board-rx51-peripherals.c  |   11 +++
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |   14 +++-
+ arch/arm/mach-omap2/hsmmc.c                   |   93 ++++++++++++-------------
+ arch/arm/mach-omap2/hsmmc.h                   |    9 ++-
+ arch/arm/plat-omap/include/plat/omap_device.h |    1 +
+ arch/arm/plat-omap/omap_device.c              |   20 +++++-
+ drivers/mmc/host/omap_hsmmc.c                 |   11 ++--
+ 18 files changed, 249 insertions(+), 75 deletions(-)
 
