@@ -1,40 +1,41 @@
-From: Balaji T K <balajitk@ti.com>
-Subject: [PATCH 3/4] mmc: omap: use runtime put sync in probe error patch
-Date: Fri, 24 Feb 2012 21:14:33 +0530
-Message-ID: <1330098274-12048-4-git-send-email-balajitk@ti.com>
-References: <1330098274-12048-1-git-send-email-balajitk@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 4/7] ARM: OMAP2+: Fix zoom LCD backlight if TWL_CORE is
+ not selected
+Date: Fri, 24 Feb 2012 08:25:14 -0800
+Message-ID: <20120224162514.GK18185@atomide.com>
+References: <20120224005324.16794.73852.stgit@kaulin.local>
+ <20120224005411.16794.720.stgit@kaulin.local>
+ <4F477A56.9000005@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <1330098274-12048-1-git-send-email-balajitk@ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: linux-mmc@vger.kernel.org, cjb@laptop.org
-Cc: linux-omap@vger.kernel.org, Balaji T K <balajitk@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48795 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235Ab2BXQZR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 11:25:17 -0500
+Content-Disposition: inline
+In-Reply-To: <4F477A56.9000005@ru.mvista.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-pm_runtime_put_sync instead of autosuspend pm runtime API
-because iounmap(host->base) follows immediately.
+* Sergei Shtylyov <sshtylyov@ru.mvista.com> [120224 03:23]:
+> 
+> On 24-02-2012 4:54, Tony Lindgren wrote:
+> >--- a/arch/arm/mach-omap2/board-zoom-display.c
+> >+++ b/arch/arm/mach-omap2/board-zoom-display.c
+> >@@ -53,8 +53,11 @@ static void zoom_panel_disable_lcd(struct omap_dss_device *dssdev)
+> >  #define TWL_LED_PWMON	0x0
+> >  #define TWL_LED_PWMOFF	0x1
+> >
+> >+
+> >  static int zoom_set_bl_intensity(struct omap_dss_device *dssdev, int level)
+> >  {
+> >+
+> 
+>    Empty lines not needed.
 
-Reported-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
----
- drivers/mmc/host/omap_hsmmc.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Thanks removing those.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index c39fb8f..2576c36 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2101,8 +2101,7 @@ err_reg:
- err_irq_cd_init:
- 	free_irq(host->irq, host);
- err_irq:
--	pm_runtime_mark_last_busy(host->dev);
--	pm_runtime_put_autosuspend(host->dev);
-+	pm_runtime_put_sync(host->dev);
- 	clk_put(host->fclk);
- 	if (host->got_dbclk) {
- 		clk_disable(host->dbclk);
--- 
-1.7.0.4
-
+Tony
