@@ -1,83 +1,76 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 3/4] arm/dts: OMAP4: Add mmc controller nodes and board
- data
-Date: Fri, 24 Feb 2012 15:56:52 +0530
-Message-ID: <4F4765EC.1000102@ti.com>
-References: <1329998490-27555-1-git-send-email-rnayak@ti.com>	<1329998490-27555-4-git-send-email-rnayak@ti.com> <CANrkHUaP7cV_vSKQYZkeF-aS5CEi2CAp3_9aDJKCVOX-67oNPg@mail.gmail.com>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [RFC PATCH] gpio/omap: Fix IRQ handling for SPARSE_IRQ
+Date: Fri, 24 Feb 2012 16:07:52 +0530
+Message-ID: <CAC83ZvLm-ruk3pMkeLhiyOMAVVnByk9PPWsM40AyPErSqz=dKA@mail.gmail.com>
+References: <4F46C1AF.2040201@ti.com>
+	<20120223230821.GD18185@atomide.com>
+	<4F47623E.5060908@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <CANrkHUaP7cV_vSKQYZkeF-aS5CEi2CAp3_9aDJKCVOX-67oNPg@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, svenkatr@ti.com, linaro-dev@lists.linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:41990 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751604Ab2BXKhy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 05:37:54 -0500
+Received: by qcsc20 with SMTP id c20so438340qcs.32
+        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 02:37:53 -0800 (PST)
+In-Reply-To: <4F47623E.5060908@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 
-On Friday 24 February 2012 03:46 PM, T Krishnamoorthy, Balaji wrote:
->> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
->> index 29f4589..9204f60 100644
->> --- a/arch/arm/boot/dts/omap4.dtsi
->> +++ b/arch/arm/boot/dts/omap4.dtsi
->> @@ -25,6 +25,11 @@
->>                 serial1 =&uart2;
->>                 serial2 =&uart3;
->>                 serial3 =&uart4;
->> +               mmc1 =&mmc1;
->> +               mmc2 =&mmc2;
->> +               mmc3 =&mmc3;
->> +               mmc4 =&mmc4;
->> +               mmc5 =&mmc5;
->>         };
->>
->>         cpus {
->> @@ -155,5 +160,31 @@
->>                         #size-cells =<0>;
->>                         ti,hwmods = "i2c4";
->>                 };
->> +
->> +               mmc1: mmc@1 {
->> +                       compatible = "ti,omap4-hsmmc";
->> +                       ti,hwmods = "mmc1";
->> +                       ti,dual-volt;
->> +               };
->> +
->> +               mmc2: mmc@2 {
->> +                       compatible = "ti,omap4-hsmmc";
->> +                       ti,hwmods = "mmc2";
->> +               };
+On Fri, Feb 24, 2012 at 3:41 PM, Cousson, Benoit <b-cousson@ti.com> wro=
+te:
+> + Tarun
 >
-> Hi Rajendra,
-> Is there a way to control the device registration order,
-> eMMC connected to mmc2 needs to be registered as /dev/mmcblk0p ...
-> irrespective of whether SD card is mount or not on mmc1 card slot.
-> So that bootargs would not have to be modified when filesystem is on eMMC.
-
-I don't know if we can, but even if we could, we take care of the same
-bootargs working on two boards (say sdp and panda) *if* on sdp I have my
-filesystem on eMMC and on panda I have it on external card.
-What happens if I want to use my filesystem on both boards on external
-card?
-
 >
->> +
->> +               mmc3: mmc@3 {
->> +                       compatible = "ti,omap4-hsmmc";
->> +                       ti,hwmods = "mmc3";
->> +               };
->> +
->> +               mmc4: mmc@4 {
->> +                       compatible = "ti,omap4-hsmmc";
->> +                       ti,hwmods = "mmc4";
->> +               };
->> +
->> +               mmc5: mmc@5 {
->> +                       compatible = "ti,omap4-hsmmc";
->> +                       ti,hwmods = "mmc5";
->> +               };
->>         };
->>   };
->> --
->> 1.7.1
+> On 2/24/2012 12:08 AM, Tony Lindgren wrote:
 >>
-
+>> * Cousson, Benoit<b-cousson@ti.com> =A0[120223 14:14]:
+>>>
+>>> The GPIO driver is still relying on internal OMAP IRQ defines that
+>>> are not relevant anymore if OMAP is built with SPARSE_IRQ.
+>>
+>>
+>> Great :)
+>>
+>>> Please note that this patch is still RFC, because I do not know
+>>> how to fix properly the ugly cpu_class_is_omap1 and the dependency
+>>> with IH_MPUIO_BASE to detect a MPUIO.
+>>
+>>
+>> Sounds like gpio_to_irq() needs to be set in the
+>> arch/arm/*omap*/gpio*.c then.
+>
+>
+> In fact, after a second thought, that might even work for OMAP1 becau=
+se I'm
+> using the proper base (IRQ and GPIO) to convert the IRQ number.
+>
+>
+> static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+> {
+>
+> =A0 =A0 =A0 =A0return gpio_irq - bank->irq_base + bank->chip.base;
+> }
+>
+> But it might be good to test it on OMAP1 platform.
+>
+>
+> Tarun,
+>
+> Do you have an OMAP1 board to test that.
+Yes, I will test on OMAP1 board.
+--
+Tarun
+>
+> Regards,
+> Benoit
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
