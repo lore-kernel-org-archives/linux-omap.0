@@ -1,72 +1,46 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH 2/3] tty: serial: OMAP: block idle while the UART is transferring
- data in PIO mode
-Date: Fri, 24 Feb 2012 15:35:44 +0100
-Message-ID: <4F47A040.6030502@ti.com>
-References: <20120126024903.31613.24730.stgit@dusk> <20120126025036.31613.67819.stgit@dusk> <4F423E28.3040404@ti.com> <alpine.DEB.2.00.1202211456160.25023@utopia.booyaka.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and
+ vdd3 regulators
+Date: Fri, 24 Feb 2012 16:42:12 +0200
+Message-ID: <1330094532.4102.555.camel@sokoban>
+References: <1329995109-4795-1-git-send-email-t-kristo@ti.com>
+	 <20120223153422.GF4553@opensource.wolfsonmicro.com>
+	 <1330076289.4102.517.camel@sokoban>
+	 <20120224114940.GB5450@opensource.wolfsonmicro.com>
+	 <1330089398.4102.539.camel@sokoban>
+	 <20120224132408.GF5450@opensource.wolfsonmicro.com>
+	 <1330091765.4102.547.camel@sokoban>
+	 <20120224140109.GG5450@opensource.wolfsonmicro.com>
+	 <1330093512.4102.552.camel@sokoban>
+	 <20120224143415.GL5450@opensource.wolfsonmicro.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43815 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44190 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755050Ab2BXOf4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 09:35:56 -0500
-In-Reply-To: <alpine.DEB.2.00.1202211456160.25023@utopia.booyaka.com>
+	id S1755439Ab2BXOmU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 09:42:20 -0500
+In-Reply-To: <20120224143415.GL5450@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@suse.de>, Alan Cox <alan@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
 
-Salut Paul,
+On Fri, 2012-02-24 at 14:34 +0000, Mark Brown wrote:
+> On Fri, Feb 24, 2012 at 04:25:12PM +0200, Tero Kristo wrote:
+> 
+> > Still, setting selector in this case does nothing, as it is immediately
+> > overwritten by the regulator core by -1. This looks like a perfectly
+> > acceptable way to implement a regulator, as everything checks for the
+> > presence of list_voltage anyway.
+> 
+> Ah, so it is - we're fixing things up in the core.  I'd forgotten we did
+> that.
 
-On 2/21/2012 11:02 PM, Paul Walmsley wrote:
-> Salut Beno=EEt,
->
-> On Mon, 20 Feb 2012, Cousson, Benoit wrote:
->
->> 3.3-rc4 is broken in the DT case because of the serial driver. And i=
-t
->> looks like it is due to this fix.  We cannot rely on pdata anymore i=
-n
->> DT, and in that case it leads to an Oops due to NULL pdata.
->
-> Sorry about the breakage.  I agree with the diagnosis.  That code was=
- just
-> copied from the DMA errata part of the driver, so it will need to be =
-fixed
-> as well.  Otherwise the same problem will happen when DMA is enabled.
->
->> And then we will have to add the support for all these OMAP custom h=
-ooks without pdata.
->
-> That's really the key question for the medium- to long-term...
+So, no need to add list_voltage to this, I just fix the return values
+for the get / set and send the new version, am I right?
 
-I know you know, I'm always hoping that someone will step up and propos=
-e=20
-some cool idea to fix that :-)
+-Tero
 
->> A basic fix (below) for the moment is to test for valid pdata inside=
- the driver.
->> I'll repost it properly if you are fine with it.
->
-> Looks fine to me, although I'd suggest fixing the DMA workaround path=
- as
-> well.
-
-Mmm, I've tried to fix every instances of pdata in the code, you think =
-I=20
-missed some?
-
-I'll check again.
-
-> Reviewed-by: Paul Walmsley<paul@pwsan.com>
-
-Thanks,
-Benoit
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
