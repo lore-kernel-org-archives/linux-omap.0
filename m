@@ -1,75 +1,52 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 0/6] mmc: omap_hsmmc: Clean up use/abuse of pdev->id
-Date: Fri, 24 Feb 2012 15:40:48 +0530
-Message-ID: <4F476228.7060607@ti.com>
-References: <1329996409-26861-1-git-send-email-rnayak@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH] gpio/omap: Fix IRQ handling for SPARSE_IRQ
+Date: Fri, 24 Feb 2012 11:11:10 +0100
+Message-ID: <4F47623E.5060908@ti.com>
+References: <4F46C1AF.2040201@ti.com> <20120223230821.GD18185@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:46461 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751644Ab2BXKK4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 05:10:56 -0500
-Received: by mail-gy0-f170.google.com with SMTP id g2so643407ghb.1
-        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 02:10:55 -0800 (PST)
-In-Reply-To: <1329996409-26861-1-git-send-email-rnayak@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58873 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752670Ab2BXKLP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 05:11:15 -0500
+In-Reply-To: <20120223230821.GD18185@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-mmc@vger.kernel.org, cjb@laptop.org, linux-omap@vger.kernel.org, balajitk@ti.com, svenkatr@ti.com, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>, "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
 
-Chris,
++ Tarun
 
-On Thursday 23 February 2012 04:56 PM, Rajendra Nayak wrote:
-> Re-sending as these patches did not make it to the lists due to
-> issues with my 'git send-email'
+On 2/24/2012 12:08 AM, Tony Lindgren wrote:
+> * Cousson, Benoit<b-cousson@ti.com>  [120223 14:14]:
+>> The GPIO driver is still relying on internal OMAP IRQ defines that
+>> are not relevant anymore if OMAP is built with SPARSE_IRQ.
 >
-> This series mainly cleans up all instances of hardcoding's in
-> the driver based on pdev->id. This is cleanup leading to the
-> DT adaptation of omap_hsmmc driver.
+> Great :)
 >
-> v2 mainly has some minor changes to get rid of a debug print
-> which was still using host->id and getting rid of 'id' field
-> entirely from omap_hsmmc_host struct.
+>> Please note that this patch is still RFC, because I do not know
+>> how to fix properly the ugly cpu_class_is_omap1 and the dependency
+>> with IH_MPUIO_BASE to detect a MPUIO.
 >
-> The series is tested on OMAP4SDP, OMAP4panda, OMAP3beagle and OMAP2430SDP
-> boards.
+> Sounds like gpio_to_irq() needs to be set in the
+> arch/arm/*omap*/gpio*.c then.
 
-This series is reviewed/tested and acked by Balaji and Venkat.
-Care to pull this in for 3.4?
+In fact, after a second thought, that might even work for OMAP1 because 
+I'm using the proper base (IRQ and GPIO) to convert the IRQ number.
 
-I have one other cleanup patch on top of this series to make all
-remaining pr_* prints in the driver to dev_* [1].
-It would be great if you could pick that up as well.
+static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+{
+	return gpio_irq - bank->irq_base + bank->chip.base;
+}
 
-These patches are cleanups leading to the DT conversion of omap_hsmmc
-driver.
+But it might be good to test it on OMAP1 platform.
 
-regards,
-Rajendra
 
-[1] http://marc.info/?l=linux-mmc&m=132999677405098&w=3
+Tarun,
 
->
-> regards,
-> Rajendra
->
-> Balaji T K (3):
->    mmc: omap_hsmmc: use platform_get_resource_byname for tx/rx DMA
->      channels
->    mmc: omap_hsmmc: remove unused .set_sleep function
->    mmc: omap_hsmmc: Use OMAP_HSMMC_SUPPORTS_DUAL_VOLT flag to remove
->      host->id based hardcoding
->
-> Rajendra Nayak (3):
->    mmc: omap_hsmmc: Get rid of omap_hsmmc_1_set_power function
->    mmc: omap_hsmmc: Get rid of omap_hsmmc_4_set_power function
->    mmc: omap_hsmmc: Don't expect MMC1 to always have vmmc supply
->
->   arch/arm/plat-omap/include/plat/mmc.h |    2 -
->   drivers/mmc/host/omap_hsmmc.c         |  175 +++------------------------------
->   2 files changed, 16 insertions(+), 161 deletions(-)
->
+Do you have an OMAP1 board to test that.
 
+Regards,
+Benoit
