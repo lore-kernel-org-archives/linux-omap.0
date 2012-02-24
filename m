@@ -1,149 +1,100 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv2] regulator: twl6030: add support for vdd1, vdd2 and vdd3 regulators
-Date: Fri, 24 Feb 2012 17:21:42 +0200
-Message-ID: <1330096902-20933-1-git-send-email-t-kristo@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH 3/5] gpio/omap: Add DT support to GPIO driver
+Date: Fri, 24 Feb 2012 16:30:16 +0100
+Message-ID: <4F47AD08.4030504@ti.com>
+References: <1329321854-24490-1-git-send-email-b-cousson@ti.com> <1329321854-24490-4-git-send-email-b-cousson@ti.com> <4F44FA56.7020000@gmail.com> <4F44FC37.2000701@ti.com> <4F452484.5080503@gmail.com> <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42168 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab2BXPVy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 10:21:54 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:35975 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756151Ab2BXPaa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 10:30:30 -0500
+In-Reply-To: <74CDBE0F657A3D45AFBB94109FB122FF17BD8BC6C1@HQMAIL01.nvidia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
+To: Stephen Warren <swarren@nvidia.com>, Rob Herring <robherring2@gmail.com>
+Cc: "khilman@ti.com" <khilman@ti.com>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tarun Kanti DebBarma <tarun.kanti@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-vdd1 and vdd2 are now common regulators for twl4030 and twl6030. Also
-added vdd3 as a new regulator for twl6030. twl6030 vdd1...vdd3 smps
-regulator voltages can only be controlled through the smartreflex
-voltage channel, thus the support for the voltage_get and set is
-minimal and requires external controller.
+On 2/22/2012 7:29 PM, Stephen Warren wrote:
+> Rob Herring wrote at Wednesday, February 22, 2012 10:23 AM:
+>> On 02/22/2012 08:31 AM, Cousson, Benoit wrote:
+>>> On 2/22/2012 3:23 PM, Rob Herring wrote:
+>>>> On 02/15/2012 10:04 AM, Benoit Cousson wrote:
+>>>>> Adapt the GPIO driver to retrieve information from a DT file.
+>>>>>
+>>>>> Allocate the irq_base dynamically and rename bank->virtual_irq_start
+>>>>> to bank->irq_base.
+>>>>> Change irq_base type to int instead of u16 to match irq_alloc_descs
+>>>>> output.
+>>>>>
+>>>>> Add documentation for GPIO properties specific to OMAP.
+>>>>>
+>>>>> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
+>>>>> Cc: Tarun Kanti DebBarma<tarun.kanti@ti.com>
+>>>>
+>>>> One comment below, but otherwise:
+>>>>
+>>>> Acked-by: Rob Herring<rob.herring@calxeda.com>
+>>>>
+>>>>> ---
+>>>>>    .../devicetree/bindings/gpio/gpio-omap.txt         |   30 +++++
+>>>>>    drivers/gpio/gpio-omap.c                           |  121
+>>>>> ++++++++++++++++++--
+>>>>>    2 files changed, 142 insertions(+), 9 deletions(-)
+>>>>>    create mode 100644
+>>>>> Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>>>>>
+>>>>> diff --git a/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>>>>> b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>>>>> new file mode 100644
+>>>>> index 0000000..c1b3100
+>>>>> --- /dev/null
+>>>>> +++ b/Documentation/devicetree/bindings/gpio/gpio-omap.txt
+>>>>> @@ -0,0 +1,30 @@
+>>>>> +OMAP GPIO controller bindings
+>>>>> +
+>>>>> +Required properties:
+>>>>> +- compatible:
+>>>>> +  - "ti,omap2-gpio" for OMAP2 controllers
+>>>>> +  - "ti,omap3-gpio" for OMAP3 controllers
+>>>>> +  - "ti,omap4-gpio" for OMAP4 controllers
+>>>>> +- #gpio-cells : Should be two.
+>>>>> +  - first cell is the pin number
+>>>>> +  - second cell is used to specify optional parameters (unused)
+>>>>> +- gpio-controller : Marks the device node as a GPIO controller.
+>>>>> +- #interrupt-cells : Should be one
+>>>>
+>>>> There's no level/edge settings for gpios?
+>>>
+>>> That's a good question, because I was wondering as well :-)
+>>>
+>>> I did no see how it was done in other GPIO implementation.
+>>
+>> There's not really a good example that I've found. Many gpio nodes don't
+>> even have "interrupt-controller" set.
+>>
+>> So if you have an irq_set_type function for gpio's, then you should have
+>> 2 cells.
 
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Liam Girdwood <lrg@ti.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Kevin Hilman <khilman@ti.com>
----
- drivers/mfd/twl-core.c            |   15 ++++++++++++++
- drivers/regulator/twl-regulator.c |   39 +++++++++++++++++++++++++++++++++++++
- include/linux/i2c/twl.h           |    5 ++-
- 3 files changed, 57 insertions(+), 2 deletions(-)
+After checking the OMAP gpio code, I do have a gpio_irq_type and the 
+GPIO do support the 4 types. I'm not sure yet about the combinations.
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 45ab243..0d3db89 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -949,6 +949,21 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 	/* twl6030 regulators */
- 	if (twl_has_regulator() && twl_class_is_6030() &&
- 			!(features & TWL6025_SUBCLASS)) {
-+		child = add_regulator(TWL6030_REG_VDD1, pdata->vdd1,
-+					features);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDD2, pdata->vdd2,
-+					features);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDD3, pdata->vdd3,
-+					features);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
- 		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc,
- 					features);
- 		if (IS_ERR(child))
-diff --git a/drivers/regulator/twl-regulator.c b/drivers/regulator/twl-regulator.c
-index 7ff8bb2..8611282 100644
---- a/drivers/regulator/twl-regulator.c
-+++ b/drivers/regulator/twl-regulator.c
-@@ -561,6 +561,32 @@ static struct regulator_ops twl4030smps_ops = {
- 	.get_voltage	= twl4030smps_get_voltage,
- };
- 
-+static int twl6030coresmps_set_voltage(struct regulator_dev *rdev, int min_uV,
-+	int max_uV, unsigned *selector)
-+{
-+	struct twlreg_info *info = rdev_get_drvdata(rdev);
-+
-+	if (info->set_voltage)
-+		return info->set_voltage(info->data, min_uV);
-+
-+	return -ENODEV;
-+}
-+
-+static int twl6030coresmps_get_voltage(struct regulator_dev *rdev)
-+{
-+	struct twlreg_info *info = rdev_get_drvdata(rdev);
-+
-+	if (info->get_voltage)
-+		return info->get_voltage(info->data);
-+
-+	return -ENODEV;
-+}
-+
-+static struct regulator_ops twl6030coresmps_ops = {
-+	.set_voltage	= twl6030coresmps_set_voltage,
-+	.get_voltage	= twl6030coresmps_get_voltage,
-+};
-+
- static int twl6030ldo_list_voltage(struct regulator_dev *rdev, unsigned index)
- {
- 	struct twlreg_info	*info = rdev_get_drvdata(rdev);
-@@ -926,6 +952,16 @@ static struct regulator_ops twlsmps_ops = {
- 		}, \
- 	}
- 
-+#define TWL6030_ADJUSTABLE_SMPS(label) { \
-+	.desc = { \
-+		.name = #label, \
-+		.id = TWL6030_REG_##label, \
-+		.ops = &twl6030coresmps_ops, \
-+		.type = REGULATOR_VOLTAGE, \
-+		.owner = THIS_MODULE, \
-+		}, \
-+	}
-+
- #define TWL6030_ADJUSTABLE_LDO(label, offset, min_mVolts, max_mVolts) { \
- 	.base = offset, \
- 	.min_mV = min_mVolts, \
-@@ -1027,6 +1063,9 @@ static struct twlreg_info twl_regs[] = {
- 	/* 6030 REG with base as PMC Slave Misc : 0x0030 */
- 	/* Turnon-delay and remap configuration values for 6030 are not
- 	   verified since the specification is not public */
-+	TWL6030_ADJUSTABLE_SMPS(VDD1),
-+	TWL6030_ADJUSTABLE_SMPS(VDD2),
-+	TWL6030_ADJUSTABLE_SMPS(VDD3),
- 	TWL6030_ADJUSTABLE_LDO(VAUX1_6030, 0x54, 1000, 3300),
- 	TWL6030_ADJUSTABLE_LDO(VAUX2_6030, 0x58, 1000, 3300),
- 	TWL6030_ADJUSTABLE_LDO(VAUX3_6030, 0x5c, 1000, 3300),
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 5790466..59e662b 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -700,6 +700,9 @@ struct twl4030_platform_data {
- 	struct regulator_init_data		*vaux1;
- 	struct regulator_init_data		*vaux2;
- 	struct regulator_init_data		*vaux3;
-+	struct regulator_init_data		*vdd1;
-+	struct regulator_init_data		*vdd2;
-+	struct regulator_init_data		*vdd3;
- 	/* TWL4030 LDO regulators */
- 	struct regulator_init_data		*vpll1;
- 	struct regulator_init_data		*vpll2;
-@@ -708,8 +711,6 @@ struct twl4030_platform_data {
- 	struct regulator_init_data		*vsim;
- 	struct regulator_init_data		*vaux4;
- 	struct regulator_init_data		*vio;
--	struct regulator_init_data		*vdd1;
--	struct regulator_init_data		*vdd2;
- 	struct regulator_init_data		*vintana1;
- 	struct regulator_init_data		*vintana2;
- 	struct regulator_init_data		*vintdig;
--- 
-1.7.4.1
+> Tegra's GPIO IRQ binding (gpio_nvidia.txt in linux-next at least) says:
+>
+> - #interrupt-cells : Should be 2.
+>    The first cell is the GPIO number.
+>    The second cell is used to specify flags:
+>      bits[3:0] trigger type and level flags:
+>        1 = low-to-high edge triggered.
+>        2 = high-to-low edge triggered.
+>        4 = active high level-sensitive.
+>        8 = active low level-sensitive.
+>        Valid combinations are 1, 2, 3, 4, 8.
+
+Indeed, so I'll just copy / paste Tegra's binding...
+
+Thanks,
+Benoit
 
