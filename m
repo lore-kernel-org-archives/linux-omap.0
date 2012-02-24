@@ -1,71 +1,51 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v2 1/4] mmc: omap_hsmmc: Convert hsmmc driver to use device
- tree
-Date: Fri, 24 Feb 2012 18:34:46 +0530
-Message-ID: <4F478AEE.2080909@ti.com>
-References: <1329998490-27555-1-git-send-email-rnayak@ti.com>	<1329998490-27555-2-git-send-email-rnayak@ti.com> <CANrkHUarg5ntUW=S7k20LXuYe+ZNCN-cYJhfvvLKM=X8+Db4fg@mail.gmail.com> <4F4775FF.2090500@ti.com> <4F4787C3.1010507@ti.com> <4F478963.20009@ti.com> <4F478A6C.2060006@ti.com>
+From: Joerg Roedel <Joerg.Roedel-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: [PATCH v2 2/2] iommu/omap: fix NULL pointer dereference
+Date: Fri, 24 Feb 2012 14:16:38 +0100
+Message-ID: <20120224131638.GH2454@amd.com>
+References: <1329902086-13868-1-git-send-email-ohad@wizery.com>
+	<20120223161109.GB2454@amd.com>
+	<CAK=WgbYufgQY-O_MBcXc3aE23sx+r5ZQLS4h_bLUh6DKpLVqAg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:46668 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755195Ab2BXNEx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 08:04:53 -0500
-Received: by mail-gx0-f174.google.com with SMTP id h1so1311884ggn.5
-        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 05:04:52 -0800 (PST)
-In-Reply-To: <4F478A6C.2060006@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAK=WgbYufgQY-O_MBcXc3aE23sx+r5ZQLS4h_bLUh6DKpLVqAg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
+Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Hiroshi DOYU <Hiroshi.DOYU-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, cjb@laptop.org, linaro-dev@lists.linaro.org, devicetree-discuss@lists.ozlabs.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday 24 February 2012 06:32 PM, Cousson, Benoit wrote:
-> On 2/24/2012 1:58 PM, Rajendra Nayak wrote:
->> On Friday 24 February 2012 06:21 PM, Cousson, Benoit wrote:
->>> On 2/24/2012 12:35 PM, Rajendra Nayak wrote:
->>>> On Friday 24 February 2012 05:02 PM, T Krishnamoorthy, Balaji wrote:
->>>>> On Thu, Feb 23, 2012 at 5:31 PM, Rajendra Nayak<rnayak@ti.com> wrote:
-> ...
->>>>>> +Required properties:
->>>>>> +- compatible:
->>>>>> + Should be "ti,omap2-hsmmc", for OMAP2/3 controllers
->>>>>
->>>>> omap_hsmmc is applicable for omap2430 and omap3.
->>>>> omap2420 has non high speed controller mmci-omap -
->>>>> drivers/mmc/host/omap.c
->>>>> May be omap3-hsmmc compatible with omap2430 ?
->>>>
->>>> Agree. I think its best in that case for me to define a
->>>> compatible "ti,omap2430-hsmmc" for omap2430 and "ti,omap3-hsmmc"
->>>> for omap3. Though the IP blocks are same, I cant think of some
->>>> common compatible string without causing confusion.
->>>
->>> It depends, can we detect that using HW revision?
->>
->> We don't need to. The driver does not do anything different for
->> 2430 or omap3.
->
-> I was thinking of OMAP2420 vs OMAP2430. But I'm now wondering if we are
-> using the same driver for the non-HS controller?
+On Thu, Feb 23, 2012 at 06:16:59PM +0200, Ohad Ben-Cohen wrote:
+> On Thu, Feb 23, 2012 at 6:11 PM, Joerg Roedel <Joerg.Roedel-5C7GfCeVMHo@public.gmane.org> wrote:
+> > I guess these patches are 3.3 material?
+> 
+> Yes.
+> 
+> > How about tagging them for stable too?
+> 
+> Good point. But it's only relevant for this 2nd patch (the NULL
+> pointer dereference fix), as the first one is a 3.3 regression. Let me
+> know if you want me to resend the 2nd one with the stable tag.
 
-No, we don't. there is a different driver for 2420.
+Applied both and added stable-tag to the second patch. I'll send the
+pull-request when you guys also send me the correct fix for the
+outstanding initialization order issue on OMAP.
 
->
->>> In that case, there is no need to differentiate again with compatible.
->>
->> Thats perfectly fine. But what *common* compatible string would you
->> use?
->
-> I think that "ti,omap2-hsmmc" is still fine, because OMAP2420 will have
-> "ti,omap2-mmc" and thus we can differentiate the 2 versions.
->
-> Does that make sense?
 
-yup, that makes sense. So I don't need to change anything :-)
+	Joerg
 
->
-> Regards,
-> Benoit
+-- 
+AMD Operating System Research Center
 
+Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
+General Managers: Alberto Bozzo
+Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
