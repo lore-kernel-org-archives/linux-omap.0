@@ -1,83 +1,88 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/1] Fix sprz319 erratum 2.1
-Date: Fri, 24 Feb 2012 15:13:57 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202241419580.23504@utopia.booyaka.com>
-References: <4F4289C2.90707@kynesim.co.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2 5/7] ARM: OMAP2+: Split omap2_hsmmc_init() to
+ properly support I2C GPIO pins
+Date: Fri, 24 Feb 2012 14:19:47 -0800
+Message-ID: <20120224221947.GA18901@atomide.com>
+References: <1329997247-27342-1-git-send-email-rnayak@ti.com>
+ <1329997247-27342-6-git-send-email-rnayak@ti.com>
+ <4F464CFF.3080006@compulab.co.il>
+ <20120223184751.GX18185@atomide.com>
+ <4F470DDA.7050603@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-627212489-1330121637=:23504"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37047 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754497Ab2BXWN6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 17:13:58 -0500
-In-Reply-To: <4F4289C2.90707@kynesim.co.uk>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:38402 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754817Ab2BXWTx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 17:19:53 -0500
+Content-Disposition: inline
+In-Reply-To: <4F470DDA.7050603@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Watts <rrw@kynesim.co.uk>
-Cc: paul@pwsan.com, khilman@ti.com, linux-omap@vger.kernel.org, beagleboard@googlegroups.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Sakoman <steve@sakoman.com>, Steve Sakoman <sakoman@gmail.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+* Rajendra Nayak <rnayak@ti.com> [120223 19:39]:
+> On Friday 24 February 2012 12:17 AM, Tony Lindgren wrote:
+> >* Igor Grinberg<grinberg@compulab.co.il>  [120223 05:56]:
+> >>>--- a/arch/arm/mach-omap2/board-cm-t35.c
+> >>>+++ b/arch/arm/mach-omap2/board-cm-t35.c
+> >>>@@ -411,9 +411,9 @@ static struct omap2_hsmmc_info mmc[] = {
+> >>>  	{
+> >>>  		.mmc		= 1,
+> >>>  		.caps		= MMC_CAP_4_BIT_DATA,
+> >>>-		.gpio_cd	= -EINVAL,
+> >>>+		.gpio_cd	= OMAP_MAX_GPIO_LINES + 0,
+> >>>  		.gpio_wp	= -EINVAL,
+> >
+> >I don't have these changes, in my second revision of the patch.
+> >
+> >It's best not to hardcode the values here.
+> 
+> Ok, I just though doing it the other way is more round about
+> hardcoding where in the board passes a hardcoded value to
+> twl4030 gpio driver and the driver passes the *same* hardcoded
+> value back to the board callback, which is then populated in
+> mmc pdata. The board could as well directly hardcode it in the
+> mmc pdata. That makes it much more readable than this round about
+> hardcoding.
+> But I'll go back to the old way if you think thats how we should
+> handle this.
 
---155748971-627212489-1330121637=:23504
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Yes let's not change it, or if we need to change it, let's do
+it in a separate patch.
+ 
+> >
+> >>>-
+> >>>+		.deferred	= true,
+> >>>  	},
+> >>>  	{
+> >>>  		.mmc		= 2,
+> >>>@@ -422,6 +422,7 @@ static struct omap2_hsmmc_info mmc[] = {
+> >>>  		.gpio_cd	= -EINVAL,
+> >>>  		.gpio_wp	= -EINVAL,
+> >>>  		.ocr_mask	= 0x00100000,	/* 3.3V */
+> >>>+		.deferred	= true,
+> >>
+> >>Why do you defer this one?
+> >>It does not use external GPIO chip, in fact it does not use CD/WP at all.
+> >
+> >Why do you have the following then to set gpio_cd?
+> 
+> There is only one instance of gpio_cd being populated for the
+> first element in the array mmc[], which is already deferred.
+> 
+> >>> -	mmc[0].gpio_cd = gpio + 0;
+> 
+> Igor was asking about the second element in the array which never
+> has gpio_cd populated. Its just initialized to -EINVAL and stays
+> that way.
 
-cc'ing beagleboard list, Kevin
+Ah OK, sorry I forgot about that..
+ 
+> Sorry for the mess up. I will make sure I have taken all changes/fixes
+> from your reposts.
 
-Hi Richard,
+No problem, thanks.
 
-thanks for the patch.  A quick question for you or anyone else who is=20
-experiencing this problem.
-
-On Mon, 20 Feb 2012, Richard Watts wrote:
-
-> There is an erratum in DM3730 which results in the
-> EHCI USB PLL (DPLL5) not updating sufficiently frequently; this
-> leads to USB PHY clock drift and once the clock has drifted far
-> enough, the PHY's ULPI interface stops responding and USB
-> drops out. This is manifested on a Beagle xM by having the attached
-> SMSC9514 report 'Cannot enable port 2. Maybe the USB cable is bad?'
-> or similar.
->=20
-> The fix is to carefully adjust your DPLL5 settings so as to
-> keep the PHY clock as close as possible to 120MHz over the long
-> term; TI SPRZ319e gives a table of such settings and this patch
-> applies that table to systems with a 13MHz or a 26MHz clock,
-> thus fixing the issue (inasfar as it can be fixed) on Beagle xM
-> and Overo Firestorm.
->=20
-> Signed-off-by: Richard Watts <rrw@kynesim.co.uk>
-
-Funny, I just had a conversation with Kevin Hilman about needing to put=20
-the DPLL rate rounding code back in for the OPP tables.  This looks like=20
-another reason why...
-
-Could you, or anyone else who is experiencing this problem on a board with=
-=20
-a 26MHz oscillator try a quick test for me?  I'm a little curious about=20
-the (M, N) of (443, 12) that SPRZ319E is recommending.  Could you see if=20
-your USB problems are also solved by using (480, 13) ?
-
-=2E..
-
-Here's the rationale.  Walking through the estimates here based on=20
-SPRZ319E, (443, 12) results in a frequency error of -166,667 Hz at the VCO=
-=20
-output.  This is 174 ppm below the desired target rate of 960MHz.  But=20
-(480, 13) results in no frequency error.
-
-The downside of using (480, 13) is that the PLL update interval increases=
-=20
-from 461 ns to 500 ns (+9%).  But if the long-term drift of the DPLL is=20
-downward, then starting at a -174 ppm error has removed 35% of the total=20
-margin (+/- 500 ppm).  This might be too na=EFve, but a downward drift,=20
-seems likely given that gate delay increases as temperature increases.
-
-Mainline is currently using (120, 13) which results in a VCO output=20
-frequency of 240MHz -- this presumably results in increased phase noise=20
-compared to (443, 12) and (480, 13) per SPRZ319E. =20
-
-
-- Paul
---155748971-627212489-1330121637=:23504--
+Tony
