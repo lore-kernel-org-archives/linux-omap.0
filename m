@@ -1,51 +1,67 @@
-From: Joerg Roedel <Joerg.Roedel-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [PATCH v2 2/2] iommu/omap: fix NULL pointer dereference
-Date: Fri, 24 Feb 2012 14:16:38 +0100
-Message-ID: <20120224131638.GH2454@amd.com>
-References: <1329902086-13868-1-git-send-email-ohad@wizery.com>
-	<20120223161109.GB2454@amd.com>
-	<CAK=WgbYufgQY-O_MBcXc3aE23sx+r5ZQLS4h_bLUh6DKpLVqAg@mail.gmail.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and
+ vdd3 regulators
+Date: Fri, 24 Feb 2012 15:16:38 +0200
+Message-ID: <1330089398.4102.539.camel@sokoban>
+References: <1329995109-4795-1-git-send-email-t-kristo@ti.com>
+	 <20120223153422.GF4553@opensource.wolfsonmicro.com>
+	 <1330076289.4102.517.camel@sokoban>
+	 <20120224114940.GB5450@opensource.wolfsonmicro.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAK=WgbYufgQY-O_MBcXc3aE23sx+r5ZQLS4h_bLUh6DKpLVqAg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Hiroshi DOYU <Hiroshi.DOYU-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55914 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab2BXNQq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Feb 2012 08:16:46 -0500
+In-Reply-To: <20120224114940.GB5450@opensource.wolfsonmicro.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
 
-On Thu, Feb 23, 2012 at 06:16:59PM +0200, Ohad Ben-Cohen wrote:
-> On Thu, Feb 23, 2012 at 6:11 PM, Joerg Roedel <Joerg.Roedel-5C7GfCeVMHo@public.gmane.org> wrote:
-> > I guess these patches are 3.3 material?
+On Fri, 2012-02-24 at 11:49 +0000, Mark Brown wrote:
+> On Fri, Feb 24, 2012 at 11:38:09AM +0200, Tero Kristo wrote:
+> > On Thu, 2012-02-23 at 15:34 +0000, Mark Brown wrote:
 > 
-> Yes.
+> > > Since you're using min_uV as the "register value" you probably ought to
+> > > be returning that as the selector too and supplying a list_voltage()
+> > > which just passes the selector back in case something tries to use it
+> > > and gets confused.
 > 
-> > How about tagging them for stable too?
+> > I was thinking at some point about adding a list_voltage for these
+> > regulators, however I dropped that idea, because the regulators can
+> > support a range of voltages (from min to max) with some stepping value.
+> > But... if you propose that the list_voltage would just return the
+> > current voltage back, wouldn't that also potentially confuse the user
+> > more, as it can only see the single voltage and nothing else, maybe
+> > making it to think that the regulator can only support one voltage
+> > level?
 > 
-> Good point. But it's only relevant for this 2nd patch (the NULL
-> pointer dereference fix), as the first one is a 3.3 regression. Let me
-> know if you want me to resend the 2nd one with the stable tag.
+> Yes, that'd be completely broken.  You'd need to just return the
+> selector back which would tell them that they had voltage control in
+> microvolt steps.
 
-Applied both and added stable-tag to the second patch. I'll send the
-pull-request when you guys also send me the correct fix for the
-outstanding initialization order issue on OMAP.
+I still ain't quite sure how this would work, do you mean adding
+something like this:
 
++static int twl6030smps_list_voltage(struct regulator_dev *rdev,
++                                   unsigned int selector)
++{
++       return selector;
++}
 
-	Joerg
+I believe this would fail still. I took a look at a few drivers that use
+regulator_list_voltage(), but all of these seem to numerate voltages
+based on regulator_count_voltages(), which will return -EINVAL for the
+SMPS ones as the num_voltages is zero. Also, even if I defined
+num_voltages here, I would be attempting to list_voltage for zero index,
+returning zero, but this would be invalid voltage for the cpu obviously
+(and is also out of range for the regulator min_voltage, and also
+according to docs invalid return value for the function in the first
+place.)
 
--- 
-AMD Operating System Research Center
+-Tero
 
-Advanced Micro Devices GmbH Einsteinring 24 85609 Dornach
-General Managers: Alberto Bozzo
-Registration: Dornach, Landkr. Muenchen; Registerger. Muenchen, HRB Nr. 43632
