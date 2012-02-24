@@ -1,81 +1,87 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator: twl6030: add support for vdd1, vdd2 and vdd3
- regulators
-Date: Fri, 24 Feb 2012 13:24:09 +0000
-Message-ID: <20120224132408.GF5450@opensource.wolfsonmicro.com>
-References: <1329995109-4795-1-git-send-email-t-kristo@ti.com>
- <20120223153422.GF4553@opensource.wolfsonmicro.com>
- <1330076289.4102.517.camel@sokoban>
- <20120224114940.GB5450@opensource.wolfsonmicro.com>
- <1330089398.4102.539.camel@sokoban>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [RFC PATCH] gpio/omap: Fix IRQ handling for SPARSE_IRQ
+Date: Fri, 24 Feb 2012 18:54:58 +0530
+Message-ID: <CAC83ZvJ-mCZFYzOPQ177th7qVC9GBrKnB2pL=R3knMktOeau2g@mail.gmail.com>
+References: <4F46C1AF.2040201@ti.com>
+	<20120223230821.GD18185@atomide.com>
+	<4F47623E.5060908@ti.com>
+	<CAC83ZvLm-ruk3pMkeLhiyOMAVVnByk9PPWsM40AyPErSqz=dKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1Ow488MNN9B9o/ov"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46412 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755195Ab2BXNYL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Feb 2012 08:24:11 -0500
-Content-Disposition: inline
-In-Reply-To: <1330089398.4102.539.camel@sokoban>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:40571 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755195Ab2BXNZA convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Feb 2012 08:25:00 -0500
+Received: by mail-qy0-f175.google.com with SMTP id o7so481276qcs.34
+        for <linux-omap@vger.kernel.org>; Fri, 24 Feb 2012 05:24:59 -0800 (PST)
+In-Reply-To: <CAC83ZvLm-ruk3pMkeLhiyOMAVVnByk9PPWsM40AyPErSqz=dKA@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 
+Hi Benoit,
 
---1Ow488MNN9B9o/ov
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Fri, Feb 24, 2012 at 4:07 PM, DebBarma, Tarun Kanti
+<tarun.kanti@ti.com> wrote:
+> On Fri, Feb 24, 2012 at 3:41 PM, Cousson, Benoit <b-cousson@ti.com> w=
+rote:
+>> + Tarun
+>>
+>>
+>> On 2/24/2012 12:08 AM, Tony Lindgren wrote:
+>>>
+>>> * Cousson, Benoit<b-cousson@ti.com> =A0[120223 14:14]:
+>>>>
+>>>> The GPIO driver is still relying on internal OMAP IRQ defines that
+>>>> are not relevant anymore if OMAP is built with SPARSE_IRQ.
+>>>
+>>>
+>>> Great :)
+>>>
+>>>> Please note that this patch is still RFC, because I do not know
+>>>> how to fix properly the ugly cpu_class_is_omap1 and the dependency
+>>>> with IH_MPUIO_BASE to detect a MPUIO.
+>>>
+>>>
+>>> Sounds like gpio_to_irq() needs to be set in the
+>>> arch/arm/*omap*/gpio*.c then.
+>>
+>>
+>> In fact, after a second thought, that might even work for OMAP1 beca=
+use I'm
+>> using the proper base (IRQ and GPIO) to convert the IRQ number.
+>>
+>>
+>> static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq=
+)
+>> {
+>>
+>> =A0 =A0 =A0 =A0return gpio_irq - bank->irq_base + bank->chip.base;
+>> }
+>>
+>> But it might be good to test it on OMAP1 platform.
+>>
+>>
+>> Tarun,
+>>
+>> Do you have an OMAP1 board to test that.
+> Yes, I will test on OMAP1 board.
+I have booted the image on OMAP1 with following change.
+I guess bank->irq_base was a typo?
 
-On Fri, Feb 24, 2012 at 03:16:38PM +0200, Tero Kristo wrote:
-
-> I still ain't quite sure how this would work, do you mean adding
-> something like this:
-
-> +static int twl6030smps_list_voltage(struct regulator_dev *rdev,
-> +                                   unsigned int selector)
-> +{
-> +       return selector;
-> +}
-
-Yes.
-
-> I believe this would fail still. I took a look at a few drivers that use
-> regulator_list_voltage(), but all of these seem to numerate voltages
-> based on regulator_count_voltages(), which will return -EINVAL for the
-> SMPS ones as the num_voltages is zero. Also, even if I defined
-> num_voltages here, I would be attempting to list_voltage for zero index,
-> returning zero, but this would be invalid voltage for the cpu obviously
-> (and is also out of range for the regulator min_voltage, and also
-> according to docs invalid return value for the function in the first
-> place.)
-
-Well, clearly some of the values won't actually be useful and you should
-feel free to return error values for those or apply an offset or
-something but the basic principle applies.
-
---1Ow488MNN9B9o/ov
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPR49wAAoJEBus8iNuMP3dE8wP/0xHuw0LoUuD+ddPukhatvUy
-wGXUfLKqt384A97XZnaN0xKZ+THlQU/03DOWLOkqVXxPHgN5Sy7DzcROe9lKf0sN
-UI1gK6svlL7Ke2M8E2h66pxmabCyouAa3cJppx3Xo1Kf/78jlDKcpvrsfBn/ZMPq
-/iCKheJG3oYsVyI67XJZt/0bbzj5+Vn5OKxlPmdVIvgCPovLjUUi9CStSPWjK6u8
-A7QX/oOsLtWY3HZcT9QQlZktT2Ird5iBSFTc1xXm3yOTfwBYO12eG2uqwIQdFu3j
-bG67fPqmjvlaDGstEGBgn6M602dvQJmOOAc0G8vU9IRLTKPMa97t3QH3+ovTJvjM
-ABaD4dJVAmEsOGis4A1vkKcte+hiip1acPIPl7HG3jbjp8LvL/gm+c0sAke2BOQN
-vEMHae1sjGXg/Ejh9y9kK2qFhhQklxPi/QHASsgJ2GxK1s1alJIZBtznIKGzUSAU
-QJL3ljgZn5t//EmRhH5OLp1tu3WeAr0g9Rqk+D6mr2V0ZaPx65gEHxoiOTD74E7N
-mG0ijHMW64ePFuGsET68mGAt5rXVPKxhm3bi1FWW/mskpfmtQ0YQ+2Wv+FofiEDk
-ekSCW7m2iF+keFNcWvR08knsDay554HAXKh32u1GownBOzmg74TYOzApzQWRJF4b
-Y7cmDS2JVNb9rasFDj4f
-=lt2V
------END PGP SIGNATURE-----
-
---1Ow488MNN9B9o/ov--
+static int irq_to_gpio(struct gpio_bank *bank, unsigned int gpio_irq)
+{
+        //return gpio_irq - bank->irq_base + bank->chip.base;
+        return gpio_irq - bank->virtual_irq_start + bank->chip.base;
+}
+--
+Tarun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
