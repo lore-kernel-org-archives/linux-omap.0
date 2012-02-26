@@ -1,28 +1,81 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH v2 2/2] iommu/omap: fix NULL pointer dereference
-Date: Sun, 26 Feb 2012 12:20:12 +0200
-Message-ID: <CAK=WgbYg80AJCfHq==ShNkkfuxz6mfmc71hD9Z=JF_8CE9Xjcg@mail.gmail.com>
-References: <1329902086-13868-1-git-send-email-ohad@wizery.com>
- <20120223161109.GB2454@amd.com> <CAK=WgbYufgQY-O_MBcXc3aE23sx+r5ZQLS4h_bLUh6DKpLVqAg@mail.gmail.com>
- <20120224131638.GH2454@amd.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] ARM: OMAP: make iommu subsys_initcall to fix builtin omap3isp
+Date: Sun, 26 Feb 2012 18:34:28 +0100
+Message-ID: <3215700.hj2jFm3b0A@avalon>
+References: <1330251254-14693-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:32879 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936Ab2BZKUc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Feb 2012 05:20:32 -0500
-Received: by iazz13 with SMTP id z13so2027595iaz.19
-        for <linux-omap@vger.kernel.org>; Sun, 26 Feb 2012 02:20:32 -0800 (PST)
-In-Reply-To: <20120224131638.GH2454@amd.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42596 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838Ab2BZReV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Feb 2012 12:34:21 -0500
+In-Reply-To: <1330251254-14693-1-git-send-email-ohad@wizery.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joerg Roedel <Joerg.Roedel@amd.com>
-Cc: iommu@lists.linux-foundation.org, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Hiroshi Doyu <hdoyu@nvidia.com>
+To: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Joerg Roedel <Joerg.Roedel@amd.com>, linux-omap@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-On Fri, Feb 24, 2012 at 3:16 PM, Joerg Roedel <Joerg.Roedel@amd.com> wrote:
-> Applied both and added stable-tag to the second patch. I'll send the
-> pull-request when you guys also send me the correct fix for the
-> outstanding initialization order issue on OMAP.
+Hi Ohad,
 
-It's out, thanks!
+On Sunday 26 February 2012 12:14:14 Ohad Ben-Cohen wrote:
+> omap3isp depends on omap's iommu and will fail to probe if
+> initialized before it (which always happen if they are builtin).
+> 
+> Make omap's iommu subsys_initcall as an interim solution until
+> the probe deferral mechanism is merged.
+
+How will that fix the problem ?
+
+I'm fine with this patch, as it fixes the problem as well, although I still 
+believe modifying the link order would be a better fix in this case.
+
+> Reported-by: James <angweiyang@gmail.com>
+> Debugged-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Cc: stable <stable@vger.kernel.org>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Hiroshi Doyu <hdoyu@nvidia.com>
+> Cc: Joerg Roedel <Joerg.Roedel@amd.com>
+> ---
+>  arch/arm/mach-omap2/mailbox.c |    3 ++-
+>  drivers/iommu/omap-iommu.c    |    3 ++-
+>  2 files changed, 4 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 609ea2d..a6db1e4 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -412,7 +412,8 @@ static void __exit omap2_mbox_exit(void)
+>  	platform_driver_unregister(&omap2_mbox_driver);
+>  }
+> 
+> -module_init(omap2_mbox_init);
+> +/* must be ready before omap3isp is probed */
+
+The problem is not limited to the omap3isp driver, the DSP driver could be 
+affected as well.
+
+> +subsys_initcall(omap2_mbox_init);
+>  module_exit(omap2_mbox_exit);
+> 
+>  MODULE_LICENSE("GPL v2");
+> diff --git a/drivers/iommu/omap-iommu.c b/drivers/iommu/omap-iommu.c
+> index 4e661f0..821062a 100644
+> --- a/drivers/iommu/omap-iommu.c
+> +++ b/drivers/iommu/omap-iommu.c
+> @@ -1222,7 +1222,8 @@ static int __init omap_iommu_init(void)
+> 
+>  	return platform_driver_register(&omap_iommu_driver);
+>  }
+> -module_init(omap_iommu_init);
+> +/* must be ready before omap3isp is probed */
+> +subsys_initcall(omap_iommu_init);
+> 
+>  static void __exit omap_iommu_exit(void)
+>  {
+-- 
+Regards,
+
+Laurent Pinchart
