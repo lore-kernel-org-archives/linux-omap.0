@@ -1,60 +1,64 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/2] Device tree support for TWL regulators
-Date: Mon, 27 Feb 2012 23:24:14 +0100
-Message-ID: <4F4C028E.2000405@ti.com>
-References: <1330338961-31765-1-git-send-email-rnayak@ti.com>
-	<4F4B73C8.8070807@ti.com> <4F4B7798.6000300@ti.com>
-	<20120227134112.GB3191@opensource.wolfsonmicro.com>
-	<4F4B8A85.7060603@ti.com>
-	<CACxGe6vU2dSpRrqd2y=ssgVsWuwpuvFtja9YcUAQA_ETWcwCYg@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 2/6] gpio/omap: remove saved_wakeup field from struct gpio_bank
+Date: Mon, 27 Feb 2012 15:50:24 -0800
+Message-ID: <87aa43vnsv.fsf@ti.com>
+References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
+	<1329999031-6914-3-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <CACxGe6vU2dSpRrqd2y=ssgVsWuwpuvFtja9YcUAQA_ETWcwCYg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>
-Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:48577 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754672Ab2B0Xud (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Feb 2012 18:50:33 -0500
+Received: by mail-pw0-f52.google.com with SMTP id um15so8841016pbc.25
+        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 15:50:26 -0800 (PST)
+In-Reply-To: <1329999031-6914-3-git-send-email-tarun.kanti@ti.com> (Tarun
+	Kanti DebBarma's message of "Thu, 23 Feb 2012 17:40:27 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 2/27/2012 11:17 PM, Grant Likely wrote:
-> On Mon, Feb 27, 2012 at 6:52 AM, Cousson, Benoit<b-cousson-l0cyMroinI0@public.gmane.org>  wrote:
->> Hi Mark,
->>
->>
->> On 2/27/2012 2:41 PM, Mark Brown wrote:
->>>
->>> On Mon, Feb 27, 2012 at 06:01:20PM +0530, Rajendra Nayak wrote:
->>>
->>>> Depending on what order Mark happens to pull them in, I am fine
->>>> re-sending adding support for the 2 twl6030 fixed regulators.
->>>
->>>
->>> Please can you guys come up with a single unified series for this stuff
->>> - I'll hold off on applying anything to allow you to do this.
->>
->>
->> The issue is that the initial TWL regulator series from Rajendra will depend
->> on the twl core DT support I have that depends on the irq_domain series from
->> Grant...
+Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+
+> There is no more need to have saved_wakeup. Instead we can use
+> context.wake_en which holds the current wakeup enable register
+> context. This also means that the read from wakeup enable register
+> is not needed.
 >
-> If it depends on the irqdomain tree, then just merge that tree into
-> yours.  That tree is stable now for exactly that reason.  You can rely
-> on it.
+> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-I've just posted a pull request [1] to Tony that will merge your series 
-into an OMAP DT branch to be a base for further OMAP DT series.
+Looks right, but one question below...
 
-Regards,
-Benoit
+> ---
+>  drivers/gpio/gpio-omap.c |   13 ++++---------
+>  1 files changed, 4 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+> index 40a1fb2..64f15d5 100644
+> --- a/drivers/gpio/gpio-omap.c
+> +++ b/drivers/gpio/gpio-omap.c
+> @@ -54,7 +54,6 @@ struct gpio_bank {
+>  	u16 irq;
+>  	u16 virtual_irq_start;
+>  	u32 suspend_wakeup;
+> -	u32 saved_wakeup;
+>  	u32 non_wakeup_gpios;
+>  	u32 enabled_non_wakeup_gpios;
+>  	struct gpio_regs context;
+> @@ -772,7 +771,7 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
+>  	unsigned long		flags;
+>  
+>  	spin_lock_irqsave(&bank->lock, flags);
+> -	bank->saved_wakeup = __raw_readl(mask_reg);
+> +	bank->context.wake_en = __raw_readl(mask_reg);
 
+Why is this read needed?
 
-[1] http://www.spinics.net/lists/linux-omap/msg65346.html
+Kevin
+
+>  	__raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
+>  	spin_unlock_irqrestore(&bank->lock, flags);
+>  
