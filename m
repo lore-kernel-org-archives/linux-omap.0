@@ -1,157 +1,52 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: OMAP gpio handling
-Date: Mon, 27 Feb 2012 12:41:17 +0530
-Message-ID: <CAC83ZvL7w5tL7q1zqaPWk3df2XXVGEpm+_TH5_OFD4pNDxXpZQ@mail.gmail.com>
-References: <20120225130444.GJ22675@n2100.arm.linux.org.uk>
+From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH v3 0/2] Device tree support for TWL regulators
+Date: Mon, 27 Feb 2012 16:05:59 +0530
+Message-ID: <1330338961-31765-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46677 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750838Ab2B0HLS convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Feb 2012 02:11:18 -0500
-Received: by mail-qw0-f53.google.com with SMTP id c11so227321qad.5
-        for <linux-omap@vger.kernel.org>; Sun, 26 Feb 2012 23:11:17 -0800 (PST)
-In-Reply-To: <20120225130444.GJ22675@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org
 
-On Sat, Feb 25, 2012 at 6:34 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> Can someone explain to me this:
->
-> #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
-> #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
->
-> static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
-> {
-> =A0 =A0 =A0 =A0void __iomem *reg =3D bank->base + bank->regs->datain;
->
-> =A0 =A0 =A0 =A0return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) !=3D =
-0;
-> }
->
-> static int gpio_get(struct gpio_chip *chip, unsigned offset)
-> {
-> =A0 =A0 =A0 =A0struct gpio_bank *bank =3D container_of(chip, struct g=
-pio_bank, chip);
-> =A0 =A0 =A0 =A0void __iomem *reg =3D bank->base;
-> =A0 =A0 =A0 =A0int gpio =3D chip->base + offset;
-> =A0 =A0 =A0 =A0u32 mask =3D GPIO_BIT(bank, gpio);
->
-> =A0 =A0 =A0 =A0if (gpio_is_input(bank, mask))
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return _get_gpio_datain(bank, gpio);
-> =A0 =A0 =A0 =A0else
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return _get_gpio_dataout(bank, gpio);
-> }
->
-> Given that bank->width on OMAP is either 32 or 16, and GPIO numbers f=
-or
-> any GPIO chip are always aligned to 32 or 16, why does this code both=
-er
-> adding the chips base gpio number and then modulo the width?
-As far as I understand we could very well use offset directly.
-The macro is used to derive the same offset value in this case.
-Therefore, _get_gpio_datain(bank, gpio) and _get_gpio_dataout(bank, gpi=
-o)
-can be passed offset instead of (bank->base + offset) as suggested by y=
-ou below.
-And of course, offset can be used to derive mask both here and in the
-called functions.
+Re-sending on top of Tero's changes which are already
+in -next and the one which adds support for twl6030 
+vdd1/2/3 SMPS [1].
 
->
-> Surely this means if - for argument sake - you registered a GPIO chip
-> with 8 lines followed by one with 16 lines, GPIO0..7 would be chip 0
-> bit 0..7, GPIO8..15 would be chip 1 bit 8..15, GPIO16..23 would be
-> chip 1 bit 0..7.
->
-> However, if you registered a GPIO chip with 16 lines first, it would
-> mean GPIO0..15 would be chip 0 bit 0..15, and GPIO16..31 would be
-> chip 1 bit 0..15.
->
-> Surely this kind of behaviour is not intended?
->
-> Is there a reason why the bitmask can't just be (1 << offset) where
-> offset is passed into these functions as GPIO number - chip->base ?
-Yes, I have made the following changes and tested on OMAP4 and OMAP1(bo=
-otup).
+v3 has mainly 2 differences from v2
+-1- TWL driver now uses just one table for both dt and
+non-dt based lookup for driver data.
+-2- All common regulator nodes for twl4030 and twl6030 are
+now defined in the twl4030.dtsi and twl6030.dtsi instead of
+repeating the nodes in all board files, which also means
+the patch ('arm/dts: twl: Pass regulator data from dt')
+has a dependency with the series from Benoit which adds the
+twl4030.dtsi and twl6030.dtsi files[2].
 
-[PATCH] gpio/omap: remove redundant decoding of gpio offset
----
- drivers/gpio/gpio-omap.c |   18 +++++++-----------
- 1 files changed, 7 insertions(+), 11 deletions(-)
+I have tested the patches on omap4panda and omap3beagle boards.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 5953ece..2196747 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -133,18 +133,18 @@ static void _set_gpio_dataout_mask(struct
-gpio_bank *bank, int gpio, int enable)
-        bank->context.dataout =3D l;
- }
+[1] http://marc.info/?l=linux-omap&m=133009693905864&w=2
+[2] git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git
+	for_3.4/dt_i2c_twl
 
--static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
-+static int _get_gpio_datain(struct gpio_bank *bank, int offset)
- {
-        void __iomem *reg =3D bank->base + bank->regs->datain;
+Rajendra Nayak (2):
+  regulator: twl: adapt twl-regulator driver to dt
+  arm/dts: twl: Pass regulator data from dt
 
--       return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) !=3D 0;
-+       return (__raw_readl(reg) & (1 << offset)) !=3D 0;
- }
-
--static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
-+static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
- {
-        void __iomem *reg =3D bank->base + bank->regs->dataout;
-
--       return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) !=3D 0;
-+       return (__raw_readl(reg) & (1 << offset)) !=3D 0;
- }
-
- static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bo=
-ol set)
-@@ -849,19 +849,15 @@ static int gpio_is_input(struct gpio_bank *bank, =
-int mask)
- static int gpio_get(struct gpio_chip *chip, unsigned offset)
- {
-        struct gpio_bank *bank;
--       void __iomem *reg;
--       int gpio;
-        u32 mask;
-
--       gpio =3D chip->base + offset;
-        bank =3D container_of(chip, struct gpio_bank, chip);
--       reg =3D bank->base;
--       mask =3D GPIO_BIT(bank, gpio);
-+       mask =3D (1 << offset);
-
-        if (gpio_is_input(bank, mask))
--               return _get_gpio_datain(bank, gpio);
-+               return _get_gpio_datain(bank, offset);
-        else
--               return _get_gpio_dataout(bank, gpio);
-+               return _get_gpio_dataout(bank, offset);
- }
-
- static int gpio_output(struct gpio_chip *chip, unsigned offset, int va=
-lue)
---
-1.7.0.4
-
---
-Tarun
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ .../bindings/regulator/twl-regulator.txt           |   66 +++++
+ arch/arm/boot/dts/omap3-beagle.dts                 |    6 +
+ arch/arm/boot/dts/twl4030.dtsi                     |   18 ++
+ arch/arm/boot/dts/twl6030.dtsi                     |   60 +++++
+ drivers/regulator/twl-regulator.c                  |  259 +++++++++++++-------
+ 5 files changed, 322 insertions(+), 87 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/regulator/twl-regulator.txt
