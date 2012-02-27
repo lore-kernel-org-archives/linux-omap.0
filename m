@@ -1,55 +1,157 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCH] ARM: OMAP: make iommu subsys_initcall to fix builtin omap3isp
-Date: Mon, 27 Feb 2012 09:00:51 +0200
-Message-ID: <CAK=WgbZRjGEyx0mKmgoWYiOnuvUAka0kTzpLAYbra94Mfpp6qg@mail.gmail.com>
-References: <1330251254-14693-1-git-send-email-ohad@wizery.com>
- <3215700.hj2jFm3b0A@avalon> <CAK=WgbYkVALqrVMVv1ma3WzN5dYriM8X0MfwH4knwWwojB6hjg@mail.gmail.com>
- <35010303.ArkW8BdIu6@avalon>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: OMAP gpio handling
+Date: Mon, 27 Feb 2012 12:41:17 +0530
+Message-ID: <CAC83ZvL7w5tL7q1zqaPWk3df2XXVGEpm+_TH5_OFD4pNDxXpZQ@mail.gmail.com>
+References: <20120225130444.GJ22675@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:39470 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752198Ab2B0HBL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Feb 2012 02:01:11 -0500
-Received: by iazz13 with SMTP id z13so2876871iaz.19
-        for <linux-omap@vger.kernel.org>; Sun, 26 Feb 2012 23:01:11 -0800 (PST)
-In-Reply-To: <35010303.ArkW8BdIu6@avalon>
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:46677 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750838Ab2B0HLS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Feb 2012 02:11:18 -0500
+Received: by mail-qw0-f53.google.com with SMTP id c11so227321qad.5
+        for <linux-omap@vger.kernel.org>; Sun, 26 Feb 2012 23:11:17 -0800 (PST)
+In-Reply-To: <20120225130444.GJ22675@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Joerg Roedel <Joerg.Roedel@amd.com>, linux-omap@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-Hi Laurent,
+On Sat, Feb 25, 2012 at 6:34 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> Can someone explain to me this:
+>
+> #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
+> #define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
+>
+> static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
+> {
+> =A0 =A0 =A0 =A0void __iomem *reg =3D bank->base + bank->regs->datain;
+>
+> =A0 =A0 =A0 =A0return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) !=3D =
+0;
+> }
+>
+> static int gpio_get(struct gpio_chip *chip, unsigned offset)
+> {
+> =A0 =A0 =A0 =A0struct gpio_bank *bank =3D container_of(chip, struct g=
+pio_bank, chip);
+> =A0 =A0 =A0 =A0void __iomem *reg =3D bank->base;
+> =A0 =A0 =A0 =A0int gpio =3D chip->base + offset;
+> =A0 =A0 =A0 =A0u32 mask =3D GPIO_BIT(bank, gpio);
+>
+> =A0 =A0 =A0 =A0if (gpio_is_input(bank, mask))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return _get_gpio_datain(bank, gpio);
+> =A0 =A0 =A0 =A0else
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return _get_gpio_dataout(bank, gpio);
+> }
+>
+> Given that bank->width on OMAP is either 32 or 16, and GPIO numbers f=
+or
+> any GPIO chip are always aligned to 32 or 16, why does this code both=
+er
+> adding the chips base gpio number and then modulo the width?
+As far as I understand we could very well use offset directly.
+The macro is used to derive the same offset value in this case.
+Therefore, _get_gpio_datain(bank, gpio) and _get_gpio_dataout(bank, gpi=
+o)
+can be passed offset instead of (bank->base + offset) as suggested by y=
+ou below.
+And of course, offset can be used to derive mask both here and in the
+called functions.
 
-On Mon, Feb 27, 2012 at 12:47 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> I'm asking about the probe deferral mechanism. The omap3-isp driver will still
-> call iommu_attach_device() in its probe function. What will happen then ? Will
-> it return an error ? On what basis will it do so ?
+>
+> Surely this means if - for argument sake - you registered a GPIO chip
+> with 8 lines followed by one with 16 lines, GPIO0..7 would be chip 0
+> bit 0..7, GPIO8..15 would be chip 1 bit 8..15, GPIO16..23 would be
+> chip 1 bit 0..7.
+>
+> However, if you registered a GPIO chip with 16 lines first, it would
+> mean GPIO0..15 would be chip 0 bit 0..15, and GPIO16..31 would be
+> chip 1 bit 0..15.
+>
+> Surely this kind of behaviour is not intended?
+>
+> Is there a reason why the bitmask can't just be (1 << offset) where
+> offset is passed into these functions as GPIO number - chip->base ?
+Yes, I have made the following changes and tested on OMAP4 and OMAP1(bo=
+otup).
 
-Yes, iommu_attach_device() will fail, and omap3isp's probe function
-will then need to return -EAGAIN to request that its probe function
-will be invoked again later on.
+[PATCH] gpio/omap: remove redundant decoding of gpio offset
+---
+ drivers/gpio/gpio-omap.c |   18 +++++++-----------
+ 1 files changed, 7 insertions(+), 11 deletions(-)
 
-> That's what the comment in the Makefile is for ;-) I don't think it's a
-> perfect solution either, but it avoids playing with the various initcalls. The
-> OMAP3 IOMMU isn't a subsystem, subsys_initcall() looks a bit like an API abuse
-> to me.
+diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+index 5953ece..2196747 100644
+--- a/drivers/gpio/gpio-omap.c
++++ b/drivers/gpio/gpio-omap.c
+@@ -133,18 +133,18 @@ static void _set_gpio_dataout_mask(struct
+gpio_bank *bank, int gpio, int enable)
+        bank->context.dataout =3D l;
+ }
 
-Yes, it's dirty.
+-static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
++static int _get_gpio_datain(struct gpio_bank *bank, int offset)
+ {
+        void __iomem *reg =3D bank->base + bank->regs->datain;
 
-But it's explicit and consistent across build system changes (without
-imposing anything on the build system). We do it all the time with
-other subsystems. We don't like it, but luckily Grant came up with the
-deferred probing mechanism, which will fix this all very nicely.
+-       return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) !=3D 0;
++       return (__raw_readl(reg) & (1 << offset)) !=3D 0;
+ }
 
-> Are drivers supposed to call iommu_attach_device() in their probe() function
-> or later on ?
+-static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
++static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
+ {
+        void __iomem *reg =3D bank->base + bank->regs->dataout;
 
-If you can defer attaching to a later point, most commonly to a point
-where the device is opened by the user, it's better - less power will
-be consumed.
+-       return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) !=3D 0;
++       return (__raw_readl(reg) & (1 << offset)) !=3D 0;
+ }
 
-Thanks,
-Ohad.
+ static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bo=
+ol set)
+@@ -849,19 +849,15 @@ static int gpio_is_input(struct gpio_bank *bank, =
+int mask)
+ static int gpio_get(struct gpio_chip *chip, unsigned offset)
+ {
+        struct gpio_bank *bank;
+-       void __iomem *reg;
+-       int gpio;
+        u32 mask;
+
+-       gpio =3D chip->base + offset;
+        bank =3D container_of(chip, struct gpio_bank, chip);
+-       reg =3D bank->base;
+-       mask =3D GPIO_BIT(bank, gpio);
++       mask =3D (1 << offset);
+
+        if (gpio_is_input(bank, mask))
+-               return _get_gpio_datain(bank, gpio);
++               return _get_gpio_datain(bank, offset);
+        else
+-               return _get_gpio_dataout(bank, gpio);
++               return _get_gpio_dataout(bank, offset);
+ }
+
+ static int gpio_output(struct gpio_chip *chip, unsigned offset, int va=
+lue)
+--
+1.7.0.4
+
+--
+Tarun
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
