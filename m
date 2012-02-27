@@ -1,88 +1,84 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
 Subject: Re: [PATCH v3 0/2] Device tree support for TWL regulators
-Date: Mon, 27 Feb 2012 14:03:56 +0000
-Message-ID: <20120227140356.GF3191@opensource.wolfsonmicro.com>
+Date: Mon, 27 Feb 2012 15:21:26 +0100
+Message-ID: <4F4B9166.7020909@ti.com>
 References: <1330338961-31765-1-git-send-email-rnayak@ti.com>
- <4F4B73C8.8070807@ti.com>
- <4F4B7798.6000300@ti.com>
- <20120227134112.GB3191@opensource.wolfsonmicro.com>
- <4F4B8A85.7060603@ti.com>
+	<4F4B73C8.8070807@ti.com> <4F4B7798.6000300@ti.com>
+	<20120227134112.GB3191@opensource.wolfsonmicro.com>
+	<4F4B8A85.7060603@ti.com>
+	<20120227140356.GF3191@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54600 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752881Ab2B0OEE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Feb 2012 09:04:04 -0500
-Content-Disposition: inline
-In-Reply-To: <4F4B8A85.7060603@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+In-Reply-To: <20120227140356.GF3191-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
+List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
+List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
+	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
+Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lrg@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org
 
+On 2/27/2012 3:03 PM, Mark Brown wrote:
+> On Mon, Feb 27, 2012 at 02:52:05PM +0100, Cousson, Benoit wrote:
+>> On 2/27/2012 2:41 PM, Mark Brown wrote:
+>>> On Mon, Feb 27, 2012 at 06:01:20PM +0530, Rajendra Nayak wrote:
+>
+>>> Please can you guys come up with a single unified series for this stuff
+>>> - I'll hold off on applying anything to allow you to do this.
+>
+>> The issue is that the initial TWL regulator series from Rajendra
+>> will depend on the twl core DT support I have that depends on the
+>> irq_domain series from Grant...
+>
+> Really?  That's the first I've heard of any such dependency here.  Is it
+> a build time dependency or is it just something that's required to make
+> the code actually spring into life?  It looks like it's the latter but
+> you're saying there's an actual dependency.
 
---SNIs70sCzqvszXB4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Mmm, it is written in Rajendra's changelog:
 
-On Mon, Feb 27, 2012 at 02:52:05PM +0100, Cousson, Benoit wrote:
-> On 2/27/2012 2:41 PM, Mark Brown wrote:
-> >On Mon, Feb 27, 2012 at 06:01:20PM +0530, Rajendra Nayak wrote:
+"-2- All common regulator nodes for twl4030 and twl6030 are
+now defined in the twl4030.dtsi and twl6030.dtsi instead of
+repeating the nodes in all board files, which also means
+the patch ('arm/dts: twl: Pass regulator data from dt')
+has a dependency with the series from Benoit which adds the
+twl4030.dtsi and twl6030.dtsi files[2]."
 
-> >Please can you guys come up with a single unified series for this stuff
-> >- I'll hold off on applying anything to allow you to do this.
+The good point is that a missing or broken DTS will indeed not break the 
+build, it will just not boot the platform properly. But that still an 
+important dependency to me.
 
-> The issue is that the initial TWL regulator series from Rajendra
-> will depend on the twl core DT support I have that depends on the
-> irq_domain series from Grant...
+> There's also more than that, there's also at least Tero submitting some
+> other stuff separately (and his stuff won't play with DT...) and I think
+> Peter also.  It really fees like there's a bunch of people working on
+> different things without talking to each other here.
 
-Really?  That's the first I've heard of any such dependency here.  Is it
-a build time dependency or is it just something that's required to make
-the code actually spring into life?  It looks like it's the latter but
-you're saying there's an actual dependency.
+That's the problem with MFD devices that are doing everything from audio 
+to power including the coffee...
 
-There's also more than that, there's also at least Tero submitting some
-other stuff separately (and his stuff won't play with DT...) and I think
-Peter also.  It really fees like there's a bunch of people working on
-different things without talking to each other here.
+>> So I guess, it will be easy for us to split the regulator patches
+>> from the DTS ones to have at least the driver changes merged by you.
+>> Then Tony might be able to pull all the DTS in one series and thus
+>> avoid the various merge conflict that will happen since most OMAP
+>> drivers are hacking the same DTS files.
+>
+>> Does that make sense? Or do you think it will be even worst
+>> separating the patches?
+>
+> Unless there's a compile time dependency I don't think we need to
+> refactor anything here, what I'm seeing at the minute looks OK from a
+> merge point of view except that there appears to be a lack of
+> coordination between the various serieses.
 
-> So I guess, it will be easy for us to split the regulator patches
-> from the DTS ones to have at least the driver changes merged by you.
-> Then Tony might be able to pull all the DTS in one series and thus
-> avoid the various merge conflict that will happen since most OMAP
-> drivers are hacking the same DTS files.
+Fair enough on that point. At least now we have all the stakeholders, so 
+let's do some TI internal laundry.
 
-> Does that make sense? Or do you think it will be even worst
-> separating the patches?
-
-Unless there's a compile time dependency I don't think we need to
-refactor anything here, what I'm seeing at the minute looks OK from a
-merge point of view except that there appears to be a lack of
-coordination between the various serieses.
-
---SNIs70sCzqvszXB4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPS41FAAoJEBus8iNuMP3dtBMP/15v/MN44FUlC5tFiQaNt0q+
-tsH6whmnsG3HtHgrP3lck7CrFb8uQXWLQ6A8PlyLYp2EWgp4BgStfql2ThItpSkh
-CnUOQaqBKEyYFVp3ceuyR4ceC1vk4LrDWans3ost73GJW/k4KDLErQEs6FHU1qqu
-F1Ja8jtV4r7YCv2YTT1eSnjhno/QcMC1JRe45ewqjm5ZTP2ZwfDBALxeaFnzQTxP
-QOU/9IulFz8mSJoOqwNuv2gukte386wVOGHup6QYBwCuk7NnS8Lbmi3N+JDLliHz
-tQYCgCTOXraWn8Ly2bWfFNIZJNWG9cWI/5c7NXk5Qn3QDbCwd3Zmac96BxvnHOG5
-5fVsXtoGGbtUTeyfNgUNi7chbik2oSiZ+Il7N5TmaYyV4BklHgv/aXgvjInEKik6
-xSJiGRlupd5CgypYsOB0o9suuBjRSL7VuFkaGgqpKBuZo7A6Fv21BUK8D46M9I1C
-j3Ew/nzvv9lsGyzKUBISxPeUiVAVEyIkprRGYq9rY23+N1L55rViq6AuXyfrMA6T
-R4TX/dlg7OO9libLwHW6JYJeGO3xtWtpX1vK9RUubYS7mupE/+GTYon7/rOuldim
-f0jLwvDIM4o1LhG0Twm2pMJoS6mFMB3wYzi2fkbpsB7qU/+X1UO19qXo2y+z2t9F
-bchqwvrRJ1S4J0rQ5rg6
-=9kco
------END PGP SIGNATURE-----
-
---SNIs70sCzqvszXB4--
+Regards,
+Benoit
