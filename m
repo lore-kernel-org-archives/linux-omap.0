@@ -1,102 +1,70 @@
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
-Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
-Date: Mon, 27 Feb 2012 18:28:02 +0100
-Message-ID: <4F4BBD22.6090104@atmel.com>
-References: <4F22DEF2.5000807@ti.com> <4F44CA82.9060906@atmel.com> <4F460EF2.9010000@ti.com> <4F46609C.8080907@atmel.com> <4F4661DE.90704@ti.com> <4F4B8095.9010005@atmel.com> <4F4B91B8.8000805@ti.com>
+From: Raghu <raghavendra.kh@gmail.com>
+Subject: Re: OMAP PM constraint to disable OPP50
+Date: Mon, 27 Feb 2012 11:32:41 -0600
+Message-ID: <CAHu_vbqvXja0tGYyj4OgwvQEhfpgLq7BiK+f3mAGEExzbATksQ@mail.gmail.com>
+References: <1329982132.1820.24.camel@deskari>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:32666 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab2B0R2g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Feb 2012 12:28:36 -0500
-In-Reply-To: <4F4B91B8.8000805@ti.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:54516 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753215Ab2B0RdC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Feb 2012 12:33:02 -0500
+Received: by wibhm11 with SMTP id hm11so1435320wib.19
+        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 09:33:01 -0800 (PST)
+In-Reply-To: <1329982132.1820.24.camel@deskari>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@nvidia.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Thomas Abraham <thomas.abraham@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Ludovic Desroches <ludovic.desroches@atmel.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Kevin Hilman <khilman@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap mailing list <linux-omap@vger.kernel.org>
 
-On 02/27/2012 03:22 PM, Cousson, Benoit :
-> On 2/27/2012 2:09 PM, Nicolas Ferre wrote:
->> On 02/23/2012 04:57 PM, Cousson, Benoit :
->>> On 2/23/2012 4:51 PM, Nicolas Ferre wrote:
->>>> On 02/23/2012 11:03 AM, Cousson, Benoit :
->>>>> Salut Nico,
->>>>
->>>> Coucou Benoit ;-)
->>>>
->>>>> On 2/22/2012 11:59 AM, Nicolas Ferre wrote:
->>>>>> On 01/27/2012 06:29 PM, Cousson, Benoit :
->>>>>>> Add some basic helpers to retrieve a DMA controller device_node
->>>>>>> and the DMA request line number.
->>>>>>>
->>>>>>> For legacy reason another API will export the DMA request number
->>>>>>> into a Linux resource of type IORESOURCE_DMA.
->>>>>>> This API is usable only on system with an unique DMA controller.
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> I followed that discussion and I like very much the biding that
->>>>>> Benoit
->>>>>> is proposing. It will help me a lot with my current work on Atmel DMA
->>>>>> controller.
->>>>>>
->>>>>> If I understand correctly, some rework is needed before it can be
->>>>>> integrated in a stable git tree (I mean before we can base our
->>>>>> work on
->>>>>> top of it). So, in the meantime, what should I do to help and make
->>>>>> things go forward? to be quite frank, I would be interested to have a
->>>>>> working DMA enabled device soon ;-)
->>>>>
->>>>> Me too, but unfortunately, I was busy trying to add irq_domain and
->>>>> fixing issues with SPARSE_IRQ on OMAP :-(
->>>>
->>>> Been there, loved that ;-)
->>>>
->>>>>> Do you think that 3.4 is out of reach?
->>>>>
->>>>> Maybe not, from the comments, it looks like we should add a .xlate
->>>>> callback to allow any custom parsing of the DMA nodes attributes.
->>>>>
->>>>> I'll be more than happy, if you can finalize that patch :-)
->>>>
->>>> I will try to figure out what I can understand from the irq
->>>> mechanism of
->>>> .xlate and try to see if I can implement it on top of your patch.
->>>
->>> In fact that dma code is a big copy/paste of the of/gpio one and gpio
->>> was already managing .xlate function.
->>> I removed it because I thought it was useless for the DMA :-)
->>>
->>> You might just have to copy the original code...
->>
->> The thing is that with gpio, we can rely on the gpio_chip structure for
->> having a common storage location of such .xlate callbacks.
->> In our DMA case, I guess that we should not cling to dmaengine
->> infrastructure because not all of us are using it right now.
-> 
-> Yep, that's the main issue compared to GPIO or IRQ.
-> 
->> So, maybe we should provide some simple "xlate" helpers like the
->> irqdomain ones. But I fear that a "callback" directly called from the
->> of_get_dma_request() function is not possible (the gpio code model).
-> 
-> I think a well that we cannot much but a simple very abstract callback
-> since we do not have any formal DMA representation?
-> 
-> I'm not sure to understand you concern?
+On Thu, Feb 23, 2012 at 1:28 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+>
+> Hi,
+>
+> This is an old issue, and I've mentioned earlier, but I think we should
+> finally do something about this. Or perhaps this can already be done,
+> but I don't know the solution.
 
-Well, in fact I cannot find a place where to store a "xlate" callback:
-- it have to be provided by the DMA controller (the one pointed out by
-the phandle) and not the caller of the of_get_dma_request() funtion
-- it has to be generic enough to match the dmaengine/non-dmaengine cases
-(so it cannot be stored in the dmaengine "struct dma_device").
+I agree with you.
+We need to address the L3 bandwidth requirement for DSS as needed by
+high resolution panels.
 
-So I guess that the very basic idea of returning the full DMA specifier
-(struct of_phandle_args) is the best... My only concern is that the
-"helper" becomes very short and empty in this case...
+>
+> The problem is that various DSS clocks have max frequencies that depend
+> on whether we are at OPP100 or OPP50 (e.g. table 10-4. DSS Clock
+> Frequencies in OMAP4 TRM). Some of these clocks come from the PRCM (like
+> DSS_CLK on OMAP4), but some are generated internally by DSS (like pixel
+> clocks).
+>
+> While the clocks coming from PRCM could perhaps be handled automatically
+> (from DSS's point of view) by the PM/clock framework so that OPP50 would
+> be disabled if the clocks are over the OPP50-limit, I guess that's not
+> quite correct. The max freq limitation is inside DSS HW, not in the PRCM
+> side (well, I'm guessing so). And as we anyway need to handle some of
+> the clock limits inside DSS, I guess it's simpler to handle them all in
+> DSS.
+>
+> But the main question is, how should it be done? Afaik the dss driver
+> cannot say "stay in OPP100" to the PM framework. I guess the closest
+> thing is to set a constraint to memory throughput with an arbitrarily
+> high value, thus forcing OPP100.
+>
+> But even if it's quite easy to come up with an arbitrary value that
+> should be high enough for years to come, this approach feels rather
+> hacky. Can it have side effects? May it cause overclocking, as the PM
+> framework thinks we need as much bandwidth as possible? Does it cause
+> higher power consumption because something in L3/Core/somewhere is kept
+> in a high perf mode for the high mem throughput, even if we don't
+> actually need high throughput?
 
-Bye,
--- 
-Nicolas Ferre
+I have been thinking to determine the L3 bandwidth requirement based
+on the number of overlays/pipes enabled, width, height and color
+format and use the PM API omap_pm_set_min_bus_tput()  to request the
+required L3 bandwidth. This bandwidth request and release has to be
+done for each frame.
+I have been looking for right entry and exit functions in DSS drivers
+to add this L3 bandwidth request/release.
+
+Regards,
+Ragha
