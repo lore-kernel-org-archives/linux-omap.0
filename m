@@ -1,31 +1,55 @@
-From: Raffaele Recalcati <lamiaposta71@gmail.com>
-Subject: color phase rotation for ICC profile
-Date: Mon, 27 Feb 2012 04:51:20 +0100
-Message-ID: <CAFU7RzMLsOiJAYb0wkzXH=QTfu-XVkcSrDpNWZDfSGg4FhsBJg@mail.gmail.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH] ARM: OMAP: make iommu subsys_initcall to fix builtin omap3isp
+Date: Mon, 27 Feb 2012 09:00:51 +0200
+Message-ID: <CAK=WgbZRjGEyx0mKmgoWYiOnuvUAka0kTzpLAYbra94Mfpp6qg@mail.gmail.com>
+References: <1330251254-14693-1-git-send-email-ohad@wizery.com>
+ <3215700.hj2jFm3b0A@avalon> <CAK=WgbYkVALqrVMVv1ma3WzN5dYriM8X0MfwH4knwWwojB6hjg@mail.gmail.com>
+ <35010303.ArkW8BdIu6@avalon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:36914 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753367Ab2B0DvU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Feb 2012 22:51:20 -0500
-Received: by qcqw6 with SMTP id w6so827989qcq.19
-        for <linux-omap@vger.kernel.org>; Sun, 26 Feb 2012 19:51:20 -0800 (PST)
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:39470 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198Ab2B0HBL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Feb 2012 02:01:11 -0500
+Received: by iazz13 with SMTP id z13so2876871iaz.19
+        for <linux-omap@vger.kernel.org>; Sun, 26 Feb 2012 23:01:11 -0800 (PST)
+In-Reply-To: <35010303.ArkW8BdIu6@avalon>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Joerg Roedel <Joerg.Roedel@amd.com>, linux-omap@vger.kernel.org, Hiroshi Doyu <hdoyu@nvidia.com>, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, Tony Lindgren <tony@atomide.com>
 
-Hi,
-my tft is a little bit blu,
-so, changing CPR in omap3 I see I can fix the problem.
-I'll try to implement something like this
-http://en.wikipedia.org/wiki/Color_calibration#Display .
-But I don't find an interface for it neither in the more general FBdev.
-I could add an ioctl like OMAPFB_GET_COLOR_KEY,
-but arriving to drivers/video/omap2/dss/dispc.c dispc_mgr_set_cpr_coef fucntion.
-I have to build/buy a calibration software, but I think I can get
-really nice results.
-I'll obviously start with sysfs for debug, but I'd like some ideas to
-develop "the right thing".
+Hi Laurent,
 
-Raffaele
+On Mon, Feb 27, 2012 at 12:47 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> I'm asking about the probe deferral mechanism. The omap3-isp driver will still
+> call iommu_attach_device() in its probe function. What will happen then ? Will
+> it return an error ? On what basis will it do so ?
+
+Yes, iommu_attach_device() will fail, and omap3isp's probe function
+will then need to return -EAGAIN to request that its probe function
+will be invoked again later on.
+
+> That's what the comment in the Makefile is for ;-) I don't think it's a
+> perfect solution either, but it avoids playing with the various initcalls. The
+> OMAP3 IOMMU isn't a subsystem, subsys_initcall() looks a bit like an API abuse
+> to me.
+
+Yes, it's dirty.
+
+But it's explicit and consistent across build system changes (without
+imposing anything on the build system). We do it all the time with
+other subsystems. We don't like it, but luckily Grant came up with the
+deferred probing mechanism, which will fix this all very nicely.
+
+> Are drivers supposed to call iommu_attach_device() in their probe() function
+> or later on ?
+
+If you can defer attaching to a later point, most commonly to a point
+where the device is opened by the user, it's better - less power will
+be consumed.
+
+Thanks,
+Ohad.
