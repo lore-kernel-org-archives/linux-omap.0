@@ -1,61 +1,88 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2] regulator: twl6030: add support for vdd1, vdd2 and
- vdd3 regulators
-Date: Mon, 27 Feb 2012 13:54:25 +0000
-Message-ID: <20120227135425.GE3191@opensource.wolfsonmicro.com>
-References: <1330096902-20933-1-git-send-email-t-kristo@ti.com>
+Subject: Re: [PATCH v3 0/2] Device tree support for TWL regulators
+Date: Mon, 27 Feb 2012 14:03:56 +0000
+Message-ID: <20120227140356.GF3191@opensource.wolfsonmicro.com>
+References: <1330338961-31765-1-git-send-email-rnayak@ti.com>
+ <4F4B73C8.8070807@ti.com>
+ <4F4B7798.6000300@ti.com>
+ <20120227134112.GB3191@opensource.wolfsonmicro.com>
+ <4F4B8A85.7060603@ti.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="DiL7RhKs8rK9YGuF"
+	protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:57386 "EHLO
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54600 "EHLO
 	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753135Ab2B0Ny2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752881Ab2B0OEE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Feb 2012 08:54:28 -0500
+	Mon, 27 Feb 2012 09:04:04 -0500
 Content-Disposition: inline
-In-Reply-To: <1330096902-20933-1-git-send-email-t-kristo@ti.com>
+In-Reply-To: <4F4B8A85.7060603@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: tony@atomide.com, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lrg@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org
 
 
---DiL7RhKs8rK9YGuF
+--SNIs70sCzqvszXB4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Feb 24, 2012 at 05:21:42PM +0200, Tero Kristo wrote:
-> vdd1 and vdd2 are now common regulators for twl4030 and twl6030. Also
-> added vdd3 as a new regulator for twl6030. twl6030 vdd1...vdd3 smps
-> regulator voltages can only be controlled through the smartreflex
-> voltage channel, thus the support for the voltage_get and set is
-> minimal and requires external controller.
+On Mon, Feb 27, 2012 at 02:52:05PM +0100, Cousson, Benoit wrote:
+> On 2/27/2012 2:41 PM, Mark Brown wrote:
+> >On Mon, Feb 27, 2012 at 06:01:20PM +0530, Rajendra Nayak wrote:
 
-Please coordinate with Rajendra and Peter to produce a unified set of
-updates for this driver.  There's too many people sending overlapping
-patches here.
+> >Please can you guys come up with a single unified series for this stuff
+> >- I'll hold off on applying anything to allow you to do this.
 
---DiL7RhKs8rK9YGuF
+> The issue is that the initial TWL regulator series from Rajendra
+> will depend on the twl core DT support I have that depends on the
+> irq_domain series from Grant...
+
+Really?  That's the first I've heard of any such dependency here.  Is it
+a build time dependency or is it just something that's required to make
+the code actually spring into life?  It looks like it's the latter but
+you're saying there's an actual dependency.
+
+There's also more than that, there's also at least Tero submitting some
+other stuff separately (and his stuff won't play with DT...) and I think
+Peter also.  It really fees like there's a bunch of people working on
+different things without talking to each other here.
+
+> So I guess, it will be easy for us to split the regulator patches
+> from the DTS ones to have at least the driver changes merged by you.
+> Then Tony might be able to pull all the DTS in one series and thus
+> avoid the various merge conflict that will happen since most OMAP
+> drivers are hacking the same DTS files.
+
+> Does that make sense? Or do you think it will be even worst
+> separating the patches?
+
+Unless there's a compile time dependency I don't think we need to
+refactor anything here, what I'm seeing at the minute looks OK from a
+merge point of view except that there appears to be a lack of
+coordination between the various serieses.
+
+--SNIs70sCzqvszXB4
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iQIcBAEBAgAGBQJPS4sKAAoJEBus8iNuMP3dLeYQAJlCjgeqsuJ3EalRuBZrCGxh
-bAKWJtRYcmJ5X7wSCDY+/2KtBhwtv4U+gTHrvJ4fUDyGRuj9YI7TFqa2KelHDOjq
-SDqvRaktzLCMPqu4tBAnHipf5FwjRab6AXLIFC3F5EGk7fEZfM+te/F5cJxWvd06
-tmNv+xigBFobEEmUXPuO4YHHb6e8uSncfeRn4vbq9YAPgVQdm4uOyQnBIqZ0hKX5
-dDVZitKAyp4Dx/hJ//EMSThlQZuwVNgvoR1owxlLkJjfaG3UqxRaknYJCkIo4HPF
-m6utopyVwRdao+aq6E1Xa5+opZZlI2UN5RByAyvd7w5wySMgy53XhO43xWL7QzQm
-wd0o6kFQvu0L5rxb0SZJWObVeIq4778yoG2fk5ez036yKJxoMtXZ/i3/D0n7O03k
-OIAZizfaKsqlkSbDga+YSR2XqWlNPkfKzS3dl4biBABJfItQUsQ1K+GARrUvV2n8
-xXpaGbm5l0/uwKeww0kh+3nIDj4GJY9nIPCKR6jYy0/Gx/7MeFRAPl2/+74rmTR0
-WTKmPRt2fMVc5P8FjmdqcgDNhI7Laft5rxYfu40EZEIDN9CHUekxmy9+Xx7n3kn4
-orpbgoYf19LV2lMdKi0zkJ7TvOrQgcy3Pp0nlk0c4rMboODgIsXTM8RblGxW21kV
-9YmmioY2kE25TQAzQt7y
-=wraB
+iQIcBAEBAgAGBQJPS41FAAoJEBus8iNuMP3dtBMP/15v/MN44FUlC5tFiQaNt0q+
+tsH6whmnsG3HtHgrP3lck7CrFb8uQXWLQ6A8PlyLYp2EWgp4BgStfql2ThItpSkh
+CnUOQaqBKEyYFVp3ceuyR4ceC1vk4LrDWans3ost73GJW/k4KDLErQEs6FHU1qqu
+F1Ja8jtV4r7YCv2YTT1eSnjhno/QcMC1JRe45ewqjm5ZTP2ZwfDBALxeaFnzQTxP
+QOU/9IulFz8mSJoOqwNuv2gukte386wVOGHup6QYBwCuk7NnS8Lbmi3N+JDLliHz
+tQYCgCTOXraWn8Ly2bWfFNIZJNWG9cWI/5c7NXk5Qn3QDbCwd3Zmac96BxvnHOG5
+5fVsXtoGGbtUTeyfNgUNi7chbik2oSiZ+Il7N5TmaYyV4BklHgv/aXgvjInEKik6
+xSJiGRlupd5CgypYsOB0o9suuBjRSL7VuFkaGgqpKBuZo7A6Fv21BUK8D46M9I1C
+j3Ew/nzvv9lsGyzKUBISxPeUiVAVEyIkprRGYq9rY23+N1L55rViq6AuXyfrMA6T
+R4TX/dlg7OO9libLwHW6JYJeGO3xtWtpX1vK9RUubYS7mupE/+GTYon7/rOuldim
+f0jLwvDIM4o1LhG0Twm2pMJoS6mFMB3wYzi2fkbpsB7qU/+X1UO19qXo2y+z2t9F
+bchqwvrRJ1S4J0rQ5rg6
+=9kco
 -----END PGP SIGNATURE-----
 
---DiL7RhKs8rK9YGuF--
+--SNIs70sCzqvszXB4--
