@@ -1,49 +1,102 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: [GIT PULL] ARM: OMAP: IRQ domain support for INTC
-Date: Mon, 27 Feb 2012 17:36:11 +0100
-Message-ID: <4F4BB0FB.3040308@ti.com>
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
+Date: Mon, 27 Feb 2012 18:28:02 +0100
+Message-ID: <4F4BBD22.6090104@atmel.com>
+References: <4F22DEF2.5000807@ti.com> <4F44CA82.9060906@atmel.com> <4F460EF2.9010000@ti.com> <4F46609C.8080907@atmel.com> <4F4661DE.90704@ti.com> <4F4B8095.9010005@atmel.com> <4F4B91B8.8000805@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55082 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753656Ab2B0QgQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Feb 2012 11:36:16 -0500
+Received: from newsmtp5.atmel.com ([204.2.163.5]:32666 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752532Ab2B0R2g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Feb 2012 12:28:36 -0500
+In-Reply-To: <4F4B91B8.8000805@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
+To: "Cousson, Benoit" <b-cousson@ti.com>, Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@nvidia.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Thomas Abraham <thomas.abraham@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Ludovic Desroches <ludovic.desroches@atmel.com>
 
-Hi Tony
+On 02/27/2012 03:22 PM, Cousson, Benoit :
+> On 2/27/2012 2:09 PM, Nicolas Ferre wrote:
+>> On 02/23/2012 04:57 PM, Cousson, Benoit :
+>>> On 2/23/2012 4:51 PM, Nicolas Ferre wrote:
+>>>> On 02/23/2012 11:03 AM, Cousson, Benoit :
+>>>>> Salut Nico,
+>>>>
+>>>> Coucou Benoit ;-)
+>>>>
+>>>>> On 2/22/2012 11:59 AM, Nicolas Ferre wrote:
+>>>>>> On 01/27/2012 06:29 PM, Cousson, Benoit :
+>>>>>>> Add some basic helpers to retrieve a DMA controller device_node
+>>>>>>> and the DMA request line number.
+>>>>>>>
+>>>>>>> For legacy reason another API will export the DMA request number
+>>>>>>> into a Linux resource of type IORESOURCE_DMA.
+>>>>>>> This API is usable only on system with an unique DMA controller.
+>>>>>>
+>>>>>> Hi,
+>>>>>>
+>>>>>> I followed that discussion and I like very much the biding that
+>>>>>> Benoit
+>>>>>> is proposing. It will help me a lot with my current work on Atmel DMA
+>>>>>> controller.
+>>>>>>
+>>>>>> If I understand correctly, some rework is needed before it can be
+>>>>>> integrated in a stable git tree (I mean before we can base our
+>>>>>> work on
+>>>>>> top of it). So, in the meantime, what should I do to help and make
+>>>>>> things go forward? to be quite frank, I would be interested to have a
+>>>>>> working DMA enabled device soon ;-)
+>>>>>
+>>>>> Me too, but unfortunately, I was busy trying to add irq_domain and
+>>>>> fixing issues with SPARSE_IRQ on OMAP :-(
+>>>>
+>>>> Been there, loved that ;-)
+>>>>
+>>>>>> Do you think that 3.4 is out of reach?
+>>>>>
+>>>>> Maybe not, from the comments, it looks like we should add a .xlate
+>>>>> callback to allow any custom parsing of the DMA nodes attributes.
+>>>>>
+>>>>> I'll be more than happy, if you can finalize that patch :-)
+>>>>
+>>>> I will try to figure out what I can understand from the irq
+>>>> mechanism of
+>>>> .xlate and try to see if I can implement it on top of your patch.
+>>>
+>>> In fact that dma code is a big copy/paste of the of/gpio one and gpio
+>>> was already managing .xlate function.
+>>> I removed it because I thought it was useless for the DMA :-)
+>>>
+>>> You might just have to copy the original code...
+>>
+>> The thing is that with gpio, we can rely on the gpio_chip structure for
+>> having a common storage location of such .xlate callbacks.
+>> In our DMA case, I guess that we should not cling to dmaengine
+>> infrastructure because not all of us are using it right now.
+> 
+> Yep, that's the main issue compared to GPIO or IRQ.
+> 
+>> So, maybe we should provide some simple "xlate" helpers like the
+>> irqdomain ones. But I fear that a "callback" directly called from the
+>> of_get_dma_request() function is not possible (the gpio code model).
+> 
+> I think a well that we cannot much but a simple very abstract callback
+> since we do not have any formal DMA representation?
+> 
+> I'm not sure to understand you concern?
 
-This series is based on the lo/dt + the irqdomain/next branch merged on top of it.
+Well, in fact I cannot find a place where to store a "xlate" callback:
+- it have to be provided by the DMA controller (the one pointed out by
+the phandle) and not the caller of the of_get_dma_request() funtion
+- it has to be generic enough to match the dmaengine/non-dmaengine cases
+(so it cannot be stored in the dmaengine "struct dma_device").
 
-Grant confirmed that the irqdomain/next is a stable branch and thus can be referenced for dependency.
+So I guess that the very basic idea of returning the full DMA specifier
+(struct of_phandle_args) is the best... My only concern is that the
+"helper" becomes very short and empty in this case...
 
-Please note that I will need that branch to base all the remaining OMAP DT stuff.
-
-Thanks,
-Benoit
-
-
-The following changes since commit 1f52299ec000e2161635b263d81ab92ea7f1f0a7:
-  Benoit Cousson (1):
-        Merge branch 'irqdomain/next' of git://git.secretlab.ca/git/linux-2.6 into for_3.4/dt_irq_domain2
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dt_irq_domain
-
-Benoit Cousson (3):
-      ARM: OMAP2/3: intc: Add DT support for TI interrupt controller
-      arm/dts: OMAP3: Add interrupt-controller bindings for INTC
-      ARM: OMAP2+: board-generic: Use of_irq_init API
-
- .../devicetree/bindings/arm/omap/intc.txt          |   27 +++++++++
- arch/arm/boot/dts/omap3.dtsi                       |    6 +-
- arch/arm/mach-omap2/board-generic.c                |   30 +++++-----
- arch/arm/mach-omap2/common.h                       |   12 ++++
- arch/arm/mach-omap2/irq.c                          |   60 ++++++++++++++++---
- 5 files changed, 109 insertions(+), 26 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
+Bye,
+-- 
+Nicolas Ferre
