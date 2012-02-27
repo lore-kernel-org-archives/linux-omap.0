@@ -1,45 +1,61 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v3 0/2] Device tree support for TWL regulators
-Date: Mon, 27 Feb 2012 14:52:05 +0100
-Message-ID: <4F4B8A85.7060603@ti.com>
-References: <1330338961-31765-1-git-send-email-rnayak@ti.com> <4F4B73C8.8070807@ti.com> <4F4B7798.6000300@ti.com> <20120227134112.GB3191@opensource.wolfsonmicro.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2] regulator: twl6030: add support for vdd1, vdd2 and
+ vdd3 regulators
+Date: Mon, 27 Feb 2012 13:54:25 +0000
+Message-ID: <20120227135425.GE3191@opensource.wolfsonmicro.com>
+References: <1330096902-20933-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="DiL7RhKs8rK9YGuF"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37342 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201Ab2B0NwU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Feb 2012 08:52:20 -0500
-In-Reply-To: <20120227134112.GB3191@opensource.wolfsonmicro.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:57386 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753135Ab2B0Ny2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Feb 2012 08:54:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1330096902-20933-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, tony@atomide.com
-Cc: Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lrg@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Liam Girdwood <lrg@ti.com>, Samuel Ortiz <sameo@linux.intel.com>, Kevin Hilman <khilman@ti.com>, Rajendra Nayak <rnayak@ti.com>, Peter Ujfalusi <peter.ujfalusi@ti.com>
 
-Hi Mark,
 
-On 2/27/2012 2:41 PM, Mark Brown wrote:
-> On Mon, Feb 27, 2012 at 06:01:20PM +0530, Rajendra Nayak wrote:
->
->> Depending on what order Mark happens to pull them in, I am fine
->> re-sending adding support for the 2 twl6030 fixed regulators.
->
-> Please can you guys come up with a single unified series for this stuff
-> - I'll hold off on applying anything to allow you to do this.
+--DiL7RhKs8rK9YGuF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The issue is that the initial TWL regulator series from Rajendra will 
-depend on the twl core DT support I have that depends on the irq_domain 
-series from Grant...
+On Fri, Feb 24, 2012 at 05:21:42PM +0200, Tero Kristo wrote:
+> vdd1 and vdd2 are now common regulators for twl4030 and twl6030. Also
+> added vdd3 as a new regulator for twl6030. twl6030 vdd1...vdd3 smps
+> regulator voltages can only be controlled through the smartreflex
+> voltage channel, thus the support for the voltage_get and set is
+> minimal and requires external controller.
 
-So I guess, it will be easy for us to split the regulator patches from 
-the DTS ones to have at least the driver changes merged by you. Then 
-Tony might be able to pull all the DTS in one series and thus avoid the 
-various merge conflict that will happen since most OMAP drivers are 
-hacking the same DTS files.
+Please coordinate with Rajendra and Peter to produce a unified set of
+updates for this driver.  There's too many people sending overlapping
+patches here.
 
-Does that make sense? Or do you think it will be even worst separating 
-the patches?
+--DiL7RhKs8rK9YGuF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Thanks,
-Benoit
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPS4sKAAoJEBus8iNuMP3dLeYQAJlCjgeqsuJ3EalRuBZrCGxh
+bAKWJtRYcmJ5X7wSCDY+/2KtBhwtv4U+gTHrvJ4fUDyGRuj9YI7TFqa2KelHDOjq
+SDqvRaktzLCMPqu4tBAnHipf5FwjRab6AXLIFC3F5EGk7fEZfM+te/F5cJxWvd06
+tmNv+xigBFobEEmUXPuO4YHHb6e8uSncfeRn4vbq9YAPgVQdm4uOyQnBIqZ0hKX5
+dDVZitKAyp4Dx/hJ//EMSThlQZuwVNgvoR1owxlLkJjfaG3UqxRaknYJCkIo4HPF
+m6utopyVwRdao+aq6E1Xa5+opZZlI2UN5RByAyvd7w5wySMgy53XhO43xWL7QzQm
+wd0o6kFQvu0L5rxb0SZJWObVeIq4778yoG2fk5ez036yKJxoMtXZ/i3/D0n7O03k
+OIAZizfaKsqlkSbDga+YSR2XqWlNPkfKzS3dl4biBABJfItQUsQ1K+GARrUvV2n8
+xXpaGbm5l0/uwKeww0kh+3nIDj4GJY9nIPCKR6jYy0/Gx/7MeFRAPl2/+74rmTR0
+WTKmPRt2fMVc5P8FjmdqcgDNhI7Laft5rxYfu40EZEIDN9CHUekxmy9+Xx7n3kn4
+orpbgoYf19LV2lMdKi0zkJ7TvOrQgcy3Pp0nlk0c4rMboODgIsXTM8RblGxW21kV
+9YmmioY2kE25TQAzQt7y
+=wraB
+-----END PGP SIGNATURE-----
+
+--DiL7RhKs8rK9YGuF--
