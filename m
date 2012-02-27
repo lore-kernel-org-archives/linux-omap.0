@@ -1,93 +1,91 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH v3 0/2] Device tree support for TWL regulators
-Date: Mon, 27 Feb 2012 18:01:20 +0530
-Message-ID: <4F4B7798.6000300@ti.com>
-References: <1330338961-31765-1-git-send-email-rnayak@ti.com> <4F4B73C8.8070807@ti.com>
+From: Nicolas Ferre <nicolas.ferre-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
+Date: Mon, 27 Feb 2012 14:09:41 +0100
+Message-ID: <4F4B8095.9010005@atmel.com>
+References: <4F22DEF2.5000807@ti.com> <4F44CA82.9060906@atmel.com>
+ <4F460EF2.9010000@ti.com> <4F46609C.8080907@atmel.com>
+ <4F4661DE.90704@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:48958 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753489Ab2B0Mb2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Feb 2012 07:31:28 -0500
-Received: by mail-pw0-f48.google.com with SMTP id up7so1463571pbc.7
-        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 04:31:27 -0800 (PST)
-In-Reply-To: <4F4B73C8.8070807@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+In-Reply-To: <4F4661DE.90704-l0cyMroinI0@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/devicetree-discuss>
+List-Post: <mailto:devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>
+List-Help: <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/devicetree-discuss>,
+ <mailto:devicetree-discuss-request-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org?subject=subscribe>
+Errors-To: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Sender: devicetree-discuss-bounces+gldd-devicetree-discuss=m.gmane.org-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+To: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>, Grant Likely <grant.likely-s3s/WqlpOiPyB63q8FvJNQ@public.gmane.org>, Stephen Warren <swarren-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: "devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org" <devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Rob Herring <rob.herring-bsGFqQB8/DxBDgjK7y7TUQ@public.gmane.org>, Ludovic Desroches <ludovic.desroches-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org
 
-On Monday 27 February 2012 05:45 PM, Peter Ujfalusi wrote:
-> Hi Rajendra,
->
->
-> On 02/27/2012 12:35 PM, Rajendra Nayak wrote:
->> Re-sending on top of Tero's changes which are already
->> in -next and the one which adds support for twl6030
->> vdd1/2/3 SMPS [1].
->
-> Would you be able to add support for V1V8, V2V1 SMPS supplies in
-> twl6030? These regulators are need on SDP4430, and PandaBoards for th=
-e
-> twl6040 audio codec.
-> I have sent a series to add this support:
-> http://marc.info/?l=3Dlinux-omap&m=3D132886849202915&w=3D2
+On 02/23/2012 04:57 PM, Cousson, Benoit :
+> On 2/23/2012 4:51 PM, Nicolas Ferre wrote:
+>> On 02/23/2012 11:03 AM, Cousson, Benoit :
+>>> Salut Nico,
+>>
+>> Coucou Benoit ;-)
+>>
+>>> On 2/22/2012 11:59 AM, Nicolas Ferre wrote:
+>>>> On 01/27/2012 06:29 PM, Cousson, Benoit :
+>>>>> Add some basic helpers to retrieve a DMA controller device_node
+>>>>> and the DMA request line number.
+>>>>>
+>>>>> For legacy reason another API will export the DMA request number
+>>>>> into a Linux resource of type IORESOURCE_DMA.
+>>>>> This API is usable only on system with an unique DMA controller.
+>>>>
+>>>> Hi,
+>>>>
+>>>> I followed that discussion and I like very much the biding that Benoit
+>>>> is proposing. It will help me a lot with my current work on Atmel DMA
+>>>> controller.
+>>>>
+>>>> If I understand correctly, some rework is needed before it can be
+>>>> integrated in a stable git tree (I mean before we can base our work on
+>>>> top of it). So, in the meantime, what should I do to help and make
+>>>> things go forward? to be quite frank, I would be interested to have a
+>>>> working DMA enabled device soon ;-)
+>>>
+>>> Me too, but unfortunately, I was busy trying to add irq_domain and
+>>> fixing issues with SPARSE_IRQ on OMAP :-(
+>>
+>> Been there, loved that ;-)
+>>
+>>>> Do you think that 3.4 is out of reach?
+>>>
+>>> Maybe not, from the comments, it looks like we should add a .xlate
+>>> callback to allow any custom parsing of the DMA nodes attributes.
+>>>
+>>> I'll be more than happy, if you can finalize that patch :-)
+>>
+>> I will try to figure out what I can understand from the irq mechanism of
+>> .xlate and try to see if I can implement it on top of your patch.
+> 
+> In fact that dma code is a big copy/paste of the of/gpio one and gpio
+> was already managing .xlate function.
+> I removed it because I thought it was useless for the DMA :-)
+> 
+> You might just have to copy the original code...
 
-Sure, seems quite straight forward to add DT support for those
-too. I just based my patches on top of whats already in -next and
-some changes from Tero. Did not notice there are more patches floating
-around touching twl-regulator :)
-Depending on what order Mark happens to pull them in, I am fine
-re-sending adding support for the 2 twl6030 fixed regulators.
+The thing is that with gpio, we can rely on the gpio_chip structure for
+having a common storage location of such .xlate callbacks.
+In our DMA case, I guess that we should not cling to dmaengine
+infrastructure because not all of us are using it right now.
 
->
-> Thanks,
-> P=E9ter
->
->
->> v3 has mainly 2 differences from v2
->> -1- TWL driver now uses just one table for both dt and
->> non-dt based lookup for driver data.
->> -2- All common regulator nodes for twl4030 and twl6030 are
->> now defined in the twl4030.dtsi and twl6030.dtsi instead of
->> repeating the nodes in all board files, which also means
->> the patch ('arm/dts: twl: Pass regulator data from dt')
->> has a dependency with the series from Benoit which adds the
->> twl4030.dtsi and twl6030.dtsi files[2].
->>
->> I have tested the patches on omap4panda and omap3beagle boards.
->>
->> [1] http://marc.info/?l=3Dlinux-omap&m=3D133009693905864&w=3D2
->> [2] git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-oma=
-p-dt.git
->> 	for_3.4/dt_i2c_twl
->>
->> Rajendra Nayak (2):
->>    regulator: twl: adapt twl-regulator driver to dt
->>    arm/dts: twl: Pass regulator data from dt
->>
->>   .../bindings/regulator/twl-regulator.txt           |   66 +++++
->>   arch/arm/boot/dts/omap3-beagle.dts                 |    6 +
->>   arch/arm/boot/dts/twl4030.dtsi                     |   18 ++
->>   arch/arm/boot/dts/twl6030.dtsi                     |   60 +++++
->>   drivers/regulator/twl-regulator.c                  |  259 ++++++++=
-+++++-------
->>   5 files changed, 322 insertions(+), 87 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/regulator/twl=
--regulator.txt
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, maybe we should provide some simple "xlate" helpers like the
+irqdomain ones. But I fear that a "callback" directly called from the
+of_get_dma_request() function is not possible (the gpio code model).
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On the other hand, the "cookie" based infrastructure seems a little
+overkill to me. It seems that, in this case, we must establish a
+relation between the DMA controller code and the device tree DMA
+helpers. Please correct me if I am wrong.
+
+Best regards,
+-- 
+Nicolas Ferre
