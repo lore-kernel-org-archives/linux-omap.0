@@ -1,84 +1,95 @@
-From: "Cousson, Benoit" <b-cousson-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH v3 0/2] Device tree support for TWL regulators
-Date: Mon, 27 Feb 2012 15:21:26 +0100
-Message-ID: <4F4B9166.7020909@ti.com>
-References: <1330338961-31765-1-git-send-email-rnayak@ti.com>
-	<4F4B73C8.8070807@ti.com> <4F4B7798.6000300@ti.com>
-	<20120227134112.GB3191@opensource.wolfsonmicro.com>
-	<4F4B8A85.7060603@ti.com>
-	<20120227140356.GF3191@opensource.wolfsonmicro.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [RFC PATCH 1/2] of: Add generic device tree DMA helpers
+Date: Mon, 27 Feb 2012 15:22:48 +0100
+Message-ID: <4F4B91B8.8000805@ti.com>
+References: <4F22DEF2.5000807@ti.com> <4F44CA82.9060906@atmel.com> <4F460EF2.9010000@ti.com> <4F46609C.8080907@atmel.com> <4F4661DE.90704@ti.com> <4F4B8095.9010005@atmel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-In-Reply-To: <20120227140356.GF3191-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-List-Unsubscribe: <http://lists.linaro.org/mailman/options/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/linaro-dev>
-List-Post: <mailto:linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>
-List-Help: <mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linaro.org/mailman/listinfo/linaro-dev>,
-	<mailto:linaro-dev-request-cunTk1MwBs8s++Sfvej+rw@public.gmane.org?subject=subscribe>
-Sender: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-Errors-To: linaro-dev-bounces-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: linaro-dev-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, patches-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, devicetree-discuss-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Peter Ujfalusi <peter.ujfalusi-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lrg-l0cyMroinI0@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:51857 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752180Ab2B0OXN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Feb 2012 09:23:13 -0500
+In-Reply-To: <4F4B8095.9010005@atmel.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>, Stephen Warren <swarren@nvidia.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Rob Herring <rob.herring@calxeda.com>, Thomas Abraham <thomas.abraham@linaro.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>, Ludovic Desroches <ludovic.desroches@atmel.com>
 
-On 2/27/2012 3:03 PM, Mark Brown wrote:
-> On Mon, Feb 27, 2012 at 02:52:05PM +0100, Cousson, Benoit wrote:
->> On 2/27/2012 2:41 PM, Mark Brown wrote:
->>> On Mon, Feb 27, 2012 at 06:01:20PM +0530, Rajendra Nayak wrote:
+On 2/27/2012 2:09 PM, Nicolas Ferre wrote:
+> On 02/23/2012 04:57 PM, Cousson, Benoit :
+>> On 2/23/2012 4:51 PM, Nicolas Ferre wrote:
+>>> On 02/23/2012 11:03 AM, Cousson, Benoit :
+>>>> Salut Nico,
+>>>
+>>> Coucou Benoit ;-)
+>>>
+>>>> On 2/22/2012 11:59 AM, Nicolas Ferre wrote:
+>>>>> On 01/27/2012 06:29 PM, Cousson, Benoit :
+>>>>>> Add some basic helpers to retrieve a DMA controller device_node
+>>>>>> and the DMA request line number.
+>>>>>>
+>>>>>> For legacy reason another API will export the DMA request number
+>>>>>> into a Linux resource of type IORESOURCE_DMA.
+>>>>>> This API is usable only on system with an unique DMA controller.
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> I followed that discussion and I like very much the biding that Benoit
+>>>>> is proposing. It will help me a lot with my current work on Atmel DMA
+>>>>> controller.
+>>>>>
+>>>>> If I understand correctly, some rework is needed before it can be
+>>>>> integrated in a stable git tree (I mean before we can base our work on
+>>>>> top of it). So, in the meantime, what should I do to help and make
+>>>>> things go forward? to be quite frank, I would be interested to have a
+>>>>> working DMA enabled device soon ;-)
+>>>>
+>>>> Me too, but unfortunately, I was busy trying to add irq_domain and
+>>>> fixing issues with SPARSE_IRQ on OMAP :-(
+>>>
+>>> Been there, loved that ;-)
+>>>
+>>>>> Do you think that 3.4 is out of reach?
+>>>>
+>>>> Maybe not, from the comments, it looks like we should add a .xlate
+>>>> callback to allow any custom parsing of the DMA nodes attributes.
+>>>>
+>>>> I'll be more than happy, if you can finalize that patch :-)
+>>>
+>>> I will try to figure out what I can understand from the irq mechanism of
+>>> .xlate and try to see if I can implement it on top of your patch.
+>>
+>> In fact that dma code is a big copy/paste of the of/gpio one and gpio
+>> was already managing .xlate function.
+>> I removed it because I thought it was useless for the DMA :-)
+>>
+>> You might just have to copy the original code...
 >
->>> Please can you guys come up with a single unified series for this stuff
->>> - I'll hold off on applying anything to allow you to do this.
->
->> The issue is that the initial TWL regulator series from Rajendra
->> will depend on the twl core DT support I have that depends on the
->> irq_domain series from Grant...
->
-> Really?  That's the first I've heard of any such dependency here.  Is it
-> a build time dependency or is it just something that's required to make
-> the code actually spring into life?  It looks like it's the latter but
-> you're saying there's an actual dependency.
+> The thing is that with gpio, we can rely on the gpio_chip structure for
+> having a common storage location of such .xlate callbacks.
+> In our DMA case, I guess that we should not cling to dmaengine
+> infrastructure because not all of us are using it right now.
 
-Mmm, it is written in Rajendra's changelog:
+Yep, that's the main issue compared to GPIO or IRQ.
 
-"-2- All common regulator nodes for twl4030 and twl6030 are
-now defined in the twl4030.dtsi and twl6030.dtsi instead of
-repeating the nodes in all board files, which also means
-the patch ('arm/dts: twl: Pass regulator data from dt')
-has a dependency with the series from Benoit which adds the
-twl4030.dtsi and twl6030.dtsi files[2]."
+> So, maybe we should provide some simple "xlate" helpers like the
+> irqdomain ones. But I fear that a "callback" directly called from the
+> of_get_dma_request() function is not possible (the gpio code model).
 
-The good point is that a missing or broken DTS will indeed not break the 
-build, it will just not boot the platform properly. But that still an 
-important dependency to me.
+I think a well that we cannot much but a simple very abstract callback 
+since we do not have any formal DMA representation?
 
-> There's also more than that, there's also at least Tero submitting some
-> other stuff separately (and his stuff won't play with DT...) and I think
-> Peter also.  It really fees like there's a bunch of people working on
-> different things without talking to each other here.
+I'm not sure to understand you concern?
 
-That's the problem with MFD devices that are doing everything from audio 
-to power including the coffee...
+> On the other hand, the "cookie" based infrastructure seems a little
+> overkill to me. It seems that, in this case, we must establish a
+> relation between the DMA controller code and the device tree DMA
+> helpers. Please correct me if I am wrong.
 
->> So I guess, it will be easy for us to split the regulator patches
->> from the DTS ones to have at least the driver changes merged by you.
->> Then Tony might be able to pull all the DTS in one series and thus
->> avoid the various merge conflict that will happen since most OMAP
->> drivers are hacking the same DTS files.
->
->> Does that make sense? Or do you think it will be even worst
->> separating the patches?
->
-> Unless there's a compile time dependency I don't think we need to
-> refactor anything here, what I'm seeing at the minute looks OK from a
-> merge point of view except that there appears to be a lack of
-> coordination between the various serieses.
-
-Fair enough on that point. At least now we have all the stakeholders, so 
-let's do some TI internal laundry.
+Yes, and in our case the DMA controller cannot be specified with 
+anything else than a Linux device for the moment.
 
 Regards,
 Benoit
