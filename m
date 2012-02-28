@@ -1,70 +1,51 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] ARM: OMAP: irqs: Fix NR_IRQS value to handle PRCM
-	interrupts
-Date: Tue, 28 Feb 2012 14:36:14 +0000
-Message-ID: <20120228143614.GA5627@n2100.arm.linux.org.uk>
-References: <4F4CD231.4030709@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv2 5/6] ARM: OMAP4: hwmod_data: Do not get DSP out of
+ reset at boot time
+Date: Tue, 28 Feb 2012 17:05:28 +0200
+Message-ID: <1330441528.2116.46.camel@sokoban>
+References: <1330096546-20477-1-git-send-email-t-kristo@ti.com>
+	 <1330096546-20477-6-git-send-email-t-kristo@ti.com>
+	 <alpine.DEB.2.00.1202280330140.11716@utopia.booyaka.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33472 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932085Ab2B1Og1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 09:36:27 -0500
-Content-Disposition: inline
-In-Reply-To: <4F4CD231.4030709@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40089 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755495Ab2B1PFe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Feb 2012 10:05:34 -0500
+In-Reply-To: <alpine.DEB.2.00.1202280330140.11716@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 
-On Tue, Feb 28, 2012 at 02:10:09PM +0100, Cousson, Benoit wrote:
-> The following commit: 2f31b51659c2d8315ea2888ba5b93076febe672b
-> Author: Tero Kristo <t-kristo@ti.com>
-> Date:   Fri Dec 16 14:37:00 2011 -0700
+On Tue, 2012-02-28 at 03:31 -0700, Paul Walmsley wrote:
+> Hi
 > 
->     ARM: OMAP4: PRM: use PRCM interrupt handler
+> On Fri, 24 Feb 2012, Tero Kristo wrote:
 > 
-> introduced the PRCM interrupt handler and thus the need
-> for 64 more interrupts. Since SPARSE_IRQ is still not fully
-> functional on OMAP, the NR_IRQS needs to be updated to avoid
-> the failure that happen during irq_alloc_descs call inside
-> the PRCM driver:
+> > From: Rajendra Nayak <rnayak@ti.com>
+> > 
+> > With no driver handling DSP, if brought out of reset, it stays
+> > active and does not assert standby. This leads to IVAHD powerdomain not
+> > transitioning and hence preventing chip retention.
+> > 
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> > Signed-off-by: Tero Kristo <t-kristo@ti.com>
 > 
-> [    0.208221] PRCM: failed to allocate irq descs: -12
+> Please test this series:
 > 
-> Later the mux framework is then unable to request an IRQ from
-> the PRCM interrupt handler.
+>    http://marc.info/?l=linux-omap&m=133040749621183&w=2
 > 
-> [    1.802795] mux: Failed to setup hwmod io irq -22
+> in lieu of this patch.
+> 
+> 
+> - Paul
 
-This is fine for rc, but longer term...
+Just tried the CSWR set on top of your branch with this patch reverted
+and it works nicely. I'll drop this patch out from the next version.
 
-Do any of these have hard-coded interrupt numbers associated with them?
-If not, just enabling sparse IRQ will sort this out.
+-Tero
 
-As I tried to explain yesterday, there are two modes for IRQ allocation:
-
-1. Without sparse IRQ enabled, irq_alloc_descs(-1, from, num, -1) will
-   allocate IRQs _within_ the existing from..NR_IRQS range, and will fail
-   if there is insufficient IRQs available.
-
-2. With sparse IRQs enabled, irq_alloc_descs(-1, from, num, -1) will
-   allocate IRQs starting at max(from, NR_IRQS) and working upwards.
-
-In either case, irq_alloc_descs(start, 0, num, -1) will allocate 'num'
-IRQs at 'start' or fail if the range is already in use (and 0..NR_IRQS
-is defined as 'being in use' when sparse IRQs are enabled.)
-
-So, if the PRCM interrupts aren't statically assigned (the code suggests
-that they aren't) then it's already sparse-IRQ compliant, and enabling
-sparse IRQ support will mean that they will be allocated above NR_IRQS.
-
-Therefore, I suggest rather than raising NR_IRQS, you instead enable
-SPARSE_IRQ now so that anyone using the dynamic IRQ allocation can
-benefit from sparse IRQ support without having to have a large NR_IRQS.
-
-So, you don't have to wait until everything is converted to use
-sparse IRQ.  You just need to make sure that nothing uses
-irq_alloc_descs(start, from, num, ...) where start < NR_IRQS, and
-nothing using that requires statically defined IRQ numbering.
