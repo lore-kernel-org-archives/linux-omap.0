@@ -1,152 +1,281 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 07/10] ASoC: OMAP McBSP: Remove redundant accessors
-Date: Tue, 28 Feb 2012 09:40:17 +0200
-Message-ID: <1330414820-4641-8-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 06/10] ASoC: OMAP: mcbsp.h: Clean up bit definitions
+Date: Tue, 28 Feb 2012 09:40:16 +0200
+Message-ID: <1330414820-4641-7-git-send-email-peter.ujfalusi@ti.com>
 References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:50276 "HELO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756512Ab2B1Hks (ORCPT
+Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:47653 "EHLO
+	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756499Ab2B1Hks (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
 	Tue, 28 Feb 2012 02:40:48 -0500
-Received: by mail-lpp01m010-f47.google.com with SMTP id w12so1768775lag.20
-        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 23:40:47 -0800 (PST)
+Received: by lahe6 with SMTP id e6so1632060lah.32
+        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 23:40:45 -0800 (PST)
 In-Reply-To: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>
 
-We no longer need accessor functions for max_tx/rx_threshold, dma_op_mode
-or for the FIFO size.
+Use BIT() for bit position, correct field definition by adding mask to
+them, and also adding the missing spaces around '<<'
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- sound/soc/omap/mcbsp.c      |   36 ------------------------------------
- sound/soc/omap/mcbsp.h      |    3 ---
- sound/soc/omap/omap-mcbsp.c |   14 +++++---------
- 3 files changed, 5 insertions(+), 48 deletions(-)
+ sound/soc/omap/mcbsp.h |  194 ++++++++++++++++++++++++------------------------
+ 1 files changed, 97 insertions(+), 97 deletions(-)
 
-diff --git a/sound/soc/omap/mcbsp.c b/sound/soc/omap/mcbsp.c
-index be92a28..95ba7e0 100644
---- a/sound/soc/omap/mcbsp.c
-+++ b/sound/soc/omap/mcbsp.c
-@@ -442,29 +442,6 @@ void omap_mcbsp_set_rx_threshold(struct omap_mcbsp *mcbsp, u16 threshold)
- }
- 
- /*
-- * omap_mcbsp_get_max_tx_thres just return the current configured
-- * maximum threshold for transmission
-- */
--u16 omap_mcbsp_get_max_tx_threshold(struct omap_mcbsp *mcbsp)
--{
--	return mcbsp->max_tx_thres;
--}
--
--/*
-- * omap_mcbsp_get_max_rx_thres just return the current configured
-- * maximum threshold for reception
-- */
--u16 omap_mcbsp_get_max_rx_threshold(struct omap_mcbsp *mcbsp)
--{
--	return mcbsp->max_rx_thres;
--}
--
--u16 omap_mcbsp_get_fifo_size(struct omap_mcbsp *mcbsp)
--{
--	return mcbsp->pdata->buffer_size;
--}
--
--/*
-  * omap_mcbsp_get_tx_delay returns the number of used slots in the McBSP FIFO
-  */
- u16 omap_mcbsp_get_tx_delay(struct omap_mcbsp *mcbsp)
-@@ -504,19 +481,6 @@ u16 omap_mcbsp_get_rx_delay(struct omap_mcbsp *mcbsp)
- 		return threshold - buffstat;
- }
- 
--/*
-- * omap_mcbsp_get_dma_op_mode just return the current configured
-- * operating mode for the mcbsp channel
-- */
--int omap_mcbsp_get_dma_op_mode(struct omap_mcbsp *mcbsp)
--{
--	int dma_op_mode;
--
--	dma_op_mode = mcbsp->dma_op_mode;
--
--	return dma_op_mode;
--}
--
- int omap_mcbsp_request(struct omap_mcbsp *mcbsp)
- {
- 	void *reg_cache;
 diff --git a/sound/soc/omap/mcbsp.h b/sound/soc/omap/mcbsp.h
-index ec00c27..a991e1d 100644
+index 6d57993..ec00c27 100644
 --- a/sound/soc/omap/mcbsp.h
 +++ b/sound/soc/omap/mcbsp.h
-@@ -316,9 +316,6 @@ void omap_mcbsp_config(struct omap_mcbsp *mcbsp,
- 		       const struct omap_mcbsp_reg_cfg *config);
- void omap_mcbsp_set_tx_threshold(struct omap_mcbsp *mcbsp, u16 threshold);
- void omap_mcbsp_set_rx_threshold(struct omap_mcbsp *mcbsp, u16 threshold);
--u16 omap_mcbsp_get_max_tx_threshold(struct omap_mcbsp *mcbsp);
--u16 omap_mcbsp_get_max_rx_threshold(struct omap_mcbsp *mcbsp);
--u16 omap_mcbsp_get_fifo_size(struct omap_mcbsp *mcbsp);
- u16 omap_mcbsp_get_tx_delay(struct omap_mcbsp *mcbsp);
- u16 omap_mcbsp_get_rx_delay(struct omap_mcbsp *mcbsp);
- int omap_mcbsp_get_dma_op_mode(struct omap_mcbsp *mcbsp);
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 8924002..9c703f1 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -67,13 +67,12 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
- 	struct omap_mcbsp *mcbsp = snd_soc_dai_get_drvdata(cpu_dai);
- 	struct omap_mcbsp_data *mcbsp_data = &mcbsp->mcbsp_data;
- 	struct omap_pcm_dma_data *dma_data;
--	int dma_op_mode = omap_mcbsp_get_dma_op_mode(mcbsp);
- 	int words;
+@@ -89,130 +89,130 @@ enum {
+ #define OMAP_ST_REG_SSELCR	0x2C
  
- 	dma_data = snd_soc_dai_get_dma_data(rtd->cpu_dai, substream);
+ /************************** McBSP SPCR1 bit definitions ***********************/
+-#define RRST			0x0001
+-#define RRDY			0x0002
+-#define RFULL			0x0004
+-#define RSYNC_ERR		0x0008
+-#define RINTM(value)		((value)<<4)	/* bits 4:5 */
+-#define ABIS			0x0040
+-#define DXENA			0x0080
+-#define CLKSTP(value)		((value)<<11)	/* bits 11:12 */
+-#define RJUST(value)		((value)<<13)	/* bits 13:14 */
+-#define ALB			0x8000
+-#define DLB			0x8000
++#define RRST			BIT(0)
++#define RRDY			BIT(1)
++#define RFULL			BIT(2)
++#define RSYNC_ERR		BIT(3)
++#define RINTM(value)		(((value) & 0x3) << 4)	/* bits 4:5 */
++#define ABIS			BIT(6)
++#define DXENA			BIT(7)
++#define CLKSTP(value)		(((value) & 0x3) << 11)	/* bits 11:12 */
++#define RJUST(value)		(((value) & 0x3) << 13)	/* bits 13:14 */
++#define ALB			BIT(15)
++#define DLB			BIT(15)
  
- 	/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
--	if (dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
-+	if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
- 		/*
- 		 * Configure McBSP threshold based on either:
- 		 * packet_size, when the sDMA is in packet mode, or
-@@ -106,7 +105,7 @@ static int omap_mcbsp_hwrule_min_buffersize(struct snd_pcm_hw_params *params,
- 	int size;
+ /************************** McBSP SPCR2 bit definitions ***********************/
+-#define XRST		0x0001
+-#define XRDY		0x0002
+-#define XEMPTY		0x0004
+-#define XSYNC_ERR	0x0008
+-#define XINTM(value)	((value)<<4)		/* bits 4:5 */
+-#define GRST		0x0040
+-#define FRST		0x0080
+-#define SOFT		0x0100
+-#define FREE		0x0200
++#define XRST			BIT(0)
++#define XRDY			BIT(1)
++#define XEMPTY			BIT(2)
++#define XSYNC_ERR		BIT(3)
++#define XINTM(value)		(((value) & 0x3) << 4)	/* bits 4:5 */
++#define GRST			BIT(6)
++#define FRST			BIT(7)
++#define SOFT			BIT(8)
++#define FREE			BIT(9)
  
- 	snd_interval_any(&frames);
--	size = omap_mcbsp_get_fifo_size(mcbsp);
-+	size = mcbsp->pdata->buffer_size;
+ /************************** McBSP PCR bit definitions *************************/
+-#define CLKRP		0x0001
+-#define CLKXP		0x0002
+-#define FSRP		0x0004
+-#define FSXP		0x0008
+-#define DR_STAT		0x0010
+-#define DX_STAT		0x0020
+-#define CLKS_STAT	0x0040
+-#define SCLKME		0x0080
+-#define CLKRM		0x0100
+-#define CLKXM		0x0200
+-#define FSRM		0x0400
+-#define FSXM		0x0800
+-#define RIOEN		0x1000
+-#define XIOEN		0x2000
+-#define IDLE_EN		0x4000
++#define CLKRP			BIT(0)
++#define CLKXP			BIT(1)
++#define FSRP			BIT(2)
++#define FSXP			BIT(3)
++#define DR_STAT			BIT(4)
++#define DX_STAT			BIT(5)
++#define CLKS_STAT		BIT(6)
++#define SCLKME			BIT(7)
++#define CLKRM			BIT(8)
++#define CLKXM			BIT(9)
++#define FSRM			BIT(10)
++#define FSXM			BIT(11)
++#define RIOEN			BIT(12)
++#define XIOEN			BIT(13)
++#define IDLE_EN			BIT(14)
  
- 	frames.min = size / channels->min;
- 	frames.integer = 1;
-@@ -255,17 +254,14 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
- 	if (mcbsp->pdata->buffer_size) {
- 		dma_data->set_threshold = omap_mcbsp_set_threshold;
- 		/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
--		if (omap_mcbsp_get_dma_op_mode(mcbsp) ==
--						MCBSP_DMA_MODE_THRESHOLD) {
-+		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
- 			int period_words, max_thrsh;
+ /************************** McBSP RCR1 bit definitions ************************/
+-#define RWDLEN1(value)		((value)<<5)	/* Bits 5:7 */
+-#define RFRLEN1(value)		((value)<<8)	/* Bits 8:14 */
++#define RWDLEN1(value)		(((value) & 0x7) << 5)	/* Bits 5:7 */
++#define RFRLEN1(value)		(((value) & 0x7f) << 8)	/* Bits 8:14 */
  
- 			period_words = params_period_bytes(params) / (wlen / 8);
- 			if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
--				max_thrsh = omap_mcbsp_get_max_tx_threshold(
--							    mcbsp);
-+				max_thrsh = mcbsp->max_tx_thres;
- 			else
--				max_thrsh = omap_mcbsp_get_max_rx_threshold(
--							    mcbsp);
-+				max_thrsh = mcbsp->max_rx_thres;
- 			/*
- 			 * If the period contains less or equal number of words,
- 			 * we are using the original threshold mode setup:
+ /************************** McBSP XCR1 bit definitions ************************/
+-#define XWDLEN1(value)		((value)<<5)	/* Bits 5:7 */
+-#define XFRLEN1(value)		((value)<<8)	/* Bits 8:14 */
++#define XWDLEN1(value)		(((value) & 0x7) << 5)	/* Bits 5:7 */
++#define XFRLEN1(value)		(((value) & 0x7f) << 8)	/* Bits 8:14 */
+ 
+ /*************************** McBSP RCR2 bit definitions ***********************/
+-#define RDATDLY(value)		(value)		/* Bits 0:1 */
+-#define RFIG			0x0004
+-#define RCOMPAND(value)		((value)<<3)	/* Bits 3:4 */
+-#define RWDLEN2(value)		((value)<<5)	/* Bits 5:7 */
+-#define RFRLEN2(value)		((value)<<8)	/* Bits 8:14 */
+-#define RPHASE			0x8000
++#define RDATDLY(value)		((value) & 0x3)		/* Bits 0:1 */
++#define RFIG			BIT(2)
++#define RCOMPAND(value)		(((value) & 0x3) << 3)	/* Bits 3:4 */
++#define RWDLEN2(value)		(((value) & 0x7) << 5)	/* Bits 5:7 */
++#define RFRLEN2(value)		(((value) & 0x7f) << 8)	/* Bits 8:14 */
++#define RPHASE			BIT(15)
+ 
+ /*************************** McBSP XCR2 bit definitions ***********************/
+-#define XDATDLY(value)		(value)		/* Bits 0:1 */
+-#define XFIG			0x0004
+-#define XCOMPAND(value)		((value)<<3)	/* Bits 3:4 */
+-#define XWDLEN2(value)		((value)<<5)	/* Bits 5:7 */
+-#define XFRLEN2(value)		((value)<<8)	/* Bits 8:14 */
+-#define XPHASE			0x8000
++#define XDATDLY(value)		((value) & 0x3)		/* Bits 0:1 */
++#define XFIG			BIT(2)
++#define XCOMPAND(value)		(((value) & 0x3) << 3)	/* Bits 3:4 */
++#define XWDLEN2(value)		(((value) & 0x7) << 5)	/* Bits 5:7 */
++#define XFRLEN2(value)		(((value) & 0x7f) << 8)	/* Bits 8:14 */
++#define XPHASE			BIT(15)
+ 
+ /************************* McBSP SRGR1 bit definitions ************************/
+-#define CLKGDV(value)		(value)		/* Bits 0:7 */
+-#define FWID(value)		((value)<<8)	/* Bits 8:15 */
++#define CLKGDV(value)		((value) & 0x7f)		/* Bits 0:7 */
++#define FWID(value)		(((value) & 0xff) << 8)	/* Bits 8:15 */
+ 
+ /************************* McBSP SRGR2 bit definitions ************************/
+-#define FPER(value)		(value)		/* Bits 0:11 */
+-#define FSGM			0x1000
+-#define CLKSM			0x2000
+-#define CLKSP			0x4000
+-#define GSYNC			0x8000
++#define FPER(value)		((value) & 0x0fff)	/* Bits 0:11 */
++#define FSGM			BIT(12)
++#define CLKSM			BIT(13)
++#define CLKSP			BIT(14)
++#define GSYNC			BIT(15)
+ 
+ /************************* McBSP MCR1 bit definitions *************************/
+-#define RMCM			0x0001
+-#define RCBLK(value)		((value)<<2)	/* Bits 2:4 */
+-#define RPABLK(value)		((value)<<5)	/* Bits 5:6 */
+-#define RPBBLK(value)		((value)<<7)	/* Bits 7:8 */
++#define RMCM			BIT(0)
++#define RCBLK(value)		(((value) & 0x7) << 2)	/* Bits 2:4 */
++#define RPABLK(value)		(((value) & 0x3) << 5)	/* Bits 5:6 */
++#define RPBBLK(value)		(((value) & 0x3) << 7)	/* Bits 7:8 */
+ 
+ /************************* McBSP MCR2 bit definitions *************************/
+-#define XMCM(value)		(value)		/* Bits 0:1 */
+-#define XCBLK(value)		((value)<<2)	/* Bits 2:4 */
+-#define XPABLK(value)		((value)<<5)	/* Bits 5:6 */
+-#define XPBBLK(value)		((value)<<7)	/* Bits 7:8 */
++#define XMCM(value)		((value) & 0x3)		/* Bits 0:1 */
++#define XCBLK(value)		(((value) & 0x7) << 2)	/* Bits 2:4 */
++#define XPABLK(value)		(((value) & 0x3) << 5)	/* Bits 5:6 */
++#define XPBBLK(value)		(((value) & 0x3) << 7)	/* Bits 7:8 */
+ 
+ /*********************** McBSP XCCR bit definitions *************************/
+-#define EXTCLKGATE		0x8000
+-#define PPCONNECT		0x4000
+-#define DXENDLY(value)		((value)<<12)	/* Bits 12:13 */
+-#define XFULL_CYCLE		0x0800
+-#define DILB			0x0020
+-#define XDMAEN			0x0008
+-#define XDISABLE		0x0001
++#define XDISABLE		BIT(0)
++#define XDMAEN			BIT(3)
++#define DILB			BIT(5)
++#define XFULL_CYCLE		BIT(11)
++#define DXENDLY(value)		(((value) & 0x3) << 12)	/* Bits 12:13 */
++#define PPCONNECT		BIT(14)
++#define EXTCLKGATE		BIT(15)
+ 
+ /********************** McBSP RCCR bit definitions *************************/
+-#define RFULL_CYCLE		0x0800
+-#define RDMAEN			0x0008
+-#define RDISABLE		0x0001
++#define RDISABLE		BIT(0)
++#define RDMAEN			BIT(3)
++#define RFULL_CYCLE		BIT(11)
+ 
+ /********************** McBSP SYSCONFIG bit definitions ********************/
+-#define CLOCKACTIVITY(value)	((value)<<8)
+-#define SIDLEMODE(value)	((value)<<3)
+-#define ENAWAKEUP		0x0004
+-#define SOFTRST			0x0002
++#define SOFTRST			BIT(1)
++#define ENAWAKEUP		BIT(2)
++#define SIDLEMODE(value)	(((value) & 0x3) << 3)
++#define CLOCKACTIVITY(value)	(((value) & 0x3) << 8)
+ 
+ /********************** McBSP SSELCR bit definitions ***********************/
+-#define SIDETONEEN		0x0400
++#define SIDETONEEN		BIT(10)
+ 
+ /********************** McBSP Sidetone SYSCONFIG bit definitions ***********/
+-#define ST_AUTOIDLE		0x0001
++#define ST_AUTOIDLE		BIT(0)
+ 
+ /********************** McBSP Sidetone SGAINCR bit definitions *************/
+-#define ST_CH1GAIN(value)	((value<<16))	/* Bits 16:31 */
+-#define ST_CH0GAIN(value)	(value)		/* Bits 0:15 */
++#define ST_CH0GAIN(value)	((value) & 0xffff)	/* Bits 0:15 */
++#define ST_CH1GAIN(value)	(((value) & 0xffff) << 16) /* Bits 16:31 */
+ 
+ /********************** McBSP Sidetone SFIRCR bit definitions **************/
+-#define ST_FIRCOEFF(value)	(value)		/* Bits 0:15 */
++#define ST_FIRCOEFF(value)	((value) & 0xffff)	/* Bits 0:15 */
+ 
+ /********************** McBSP Sidetone SSELCR bit definitions **************/
+-#define ST_COEFFWRDONE		0x0004
+-#define ST_COEFFWREN		0x0002
+-#define ST_SIDETONEEN		0x0001
++#define ST_SIDETONEEN		BIT(0)
++#define ST_COEFFWREN		BIT(1)
++#define ST_COEFFWRDONE		BIT(2)
+ 
+ /********************** McBSP DMA operating modes **************************/
+ #define MCBSP_DMA_MODE_ELEMENT		0
+@@ -220,15 +220,15 @@ enum {
+ #define MCBSP_DMA_MODE_FRAME		2
+ 
+ /********************** McBSP WAKEUPEN bit definitions *********************/
+-#define XEMPTYEOFEN		0x4000
+-#define XRDYEN			0x0400
+-#define XEOFEN			0x0200
+-#define XFSXEN			0x0100
+-#define XSYNCERREN		0x0080
+-#define RRDYEN			0x0008
+-#define REOFEN			0x0004
+-#define RFSREN			0x0002
+-#define RSYNCERREN		0x0001
++#define RSYNCERREN		BIT(0)
++#define RFSREN			BIT(1)
++#define REOFEN			BIT(2)
++#define RRDYEN			BIT(3)
++#define XSYNCERREN		BIT(7)
++#define XFSXEN			BIT(8)
++#define XEOFEN			BIT(9)
++#define XRDYEN			BIT(10)
++#define XEMPTYEOFEN		BIT(14)
+ 
+ /* we don't do multichannel for now */
+ struct omap_mcbsp_reg_cfg {
 -- 
 1.7.8.4
 
