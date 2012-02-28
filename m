@@ -1,264 +1,100 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCHv2 8/8] arm: omap3: prevent per_clkdm from attempting manual domain transitions
-Date: Tue, 28 Feb 2012 15:05:31 -0800
-Message-ID: <87linmimo4.fsf@ti.com>
-References: <1329320274-481-1-git-send-email-t-kristo@ti.com>
-	<1329320274-481-9-git-send-email-t-kristo@ti.com>
-	<87pqdf99c2.fsf@ti.com> <1329382652.4102.386.camel@sokoban>
-	<CAMQu2gx5JdKfTTUhi28N_=EZ3tDo7nTRA00ErrMpuGMkOh9rgw@mail.gmail.com>
-	<1329398159.4102.391.camel@sokoban>
-	<1329405804.4102.400.camel@sokoban>
-	<CAMQu2gwMboftdRo9dE38ECp+5o2nTPgxeZ60JrbV0xd8HLNfUg@mail.gmail.com>
-	<1329410895.4102.404.camel@sokoban> <877gzmit2c.fsf@ti.com>
-	<1329470938.4102.408.camel@sokoban> <87pqd6xzno.fsf@ti.com>
-	<1330418434.2116.44.camel@sokoban>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL] ARM: OMAP: IRQ domain support for INTC
+Date: Tue, 28 Feb 2012 15:48:37 -0800
+Message-ID: <20120228234837.GH18901@atomide.com>
+References: <4F4BB0FB.3040308@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:40876 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965655Ab2B1XFi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Feb 2012 18:05:38 -0500
-Received: by mail-pw0-f49.google.com with SMTP id un1so7975420pbc.22
-        for <linux-omap@vger.kernel.org>; Tue, 28 Feb 2012 15:05:37 -0800 (PST)
-In-Reply-To: <1330418434.2116.44.camel@sokoban> (Tero Kristo's message of
-	"Tue, 28 Feb 2012 10:40:34 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:45840 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757421Ab2B1Xsk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 18:48:40 -0500
+Content-Disposition: inline
+In-Reply-To: <4F4BB0FB.3040308@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: t-kristo@ti.com
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 
-+Paul
+Hi,
 
-Tero Kristo <t-kristo@ti.com> writes:
+* Cousson, Benoit <b-cousson@ti.com> [120227 08:04]:
+> Hi Tony
+> 
+> This series is based on the lo/dt + the irqdomain/next branch merged on top of it.
+> 
+> Grant confirmed that the irqdomain/next is a stable branch and thus can be referenced for dependency.
+> 
+> Please note that I will need that branch to base all the remaining OMAP DT stuff.
+> 
+> Thanks,
+> Benoit
+> 
+> 
+> The following changes since commit 1f52299ec000e2161635b263d81ab92ea7f1f0a7:
+>   Benoit Cousson (1):
+>         Merge branch 'irqdomain/next' of git://git.secretlab.ca/git/linux-2.6 into for_3.4/dt_irq_domain2
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/bcousson/linux-omap-dt.git for_3.4/dt_irq_domain
+> 
+> Benoit Cousson (3):
+>       ARM: OMAP2/3: intc: Add DT support for TI interrupt controller
+>       arm/dts: OMAP3: Add interrupt-controller bindings for INTC
+>       ARM: OMAP2+: board-generic: Use of_irq_init API
+> 
+>  .../devicetree/bindings/arm/omap/intc.txt          |   27 +++++++++
+>  arch/arm/boot/dts/omap3.dtsi                       |    6 +-
+>  arch/arm/mach-omap2/board-generic.c                |   30 +++++-----
+>  arch/arm/mach-omap2/common.h                       |   12 ++++
+>  arch/arm/mach-omap2/irq.c                          |   60 ++++++++++++++++---
+>  5 files changed, 109 insertions(+), 26 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/arm/omap/intc.txt
 
-> On Wed, 2012-02-22 at 14:37 -0800, Kevin Hilman wrote:
->> Tero Kristo <t-kristo@ti.com> writes:
->> 
->> > On Thu, 2012-02-16 at 09:31 -0800, Kevin Hilman wrote:
->> >> Tero Kristo <t-kristo@ti.com> writes:
->> >> 
->> >> > On Thu, 2012-02-16 at 21:15 +0530, Shilimkar, Santosh wrote:
->> >> >> On Thu, Feb 16, 2012 at 8:53 PM, Tero Kristo <t-kristo@ti.com> wrote:
->> >> >> > On Thu, 2012-02-16 at 15:15 +0200, Tero Kristo wrote:
->> >> >> >> On Thu, 2012-02-16 at 15:27 +0530, Shilimkar, Santosh wrote:
->> >> >> >> > On Thu, Feb 16, 2012 at 2:27 PM, Tero Kristo <t-kristo@ti.com> wrote:
->> >> >> >> > > On Wed, 2012-02-15 at 11:37 -0800, Kevin Hilman wrote: 
->> >> >> >> > >> Tero Kristo <t-kristo@ti.com> writes:
->> >> >> >> > >> P
->> >> >> >> > >> > Attempting this will cause problems especially with off-mode enabled.
->> >> >> >> > >>
->> >> >> >> > >> Please be more verbose about the problems seen, and the root cause(s).
->> >> >> >> > >>
->> >> >> >> > >
->> >> >> >> > > I was actually looking forward for some help with this commit message,
->> >> >> >> > > as I am still not quite sure what is going on in here. :) Here is the
->> >> >> >> > > log for suspend (btw, cam_pwrdm does not go to off in mainline yet, but
->> >> >> >> > > I think that is probably fixed by the patch from Paul,
->> >> >> >> > > omap_set_pwrdm_state() does not work properly.) The warning comes out
->> >> >> >> > > after wakeup from off-mode, and it is triggered by the disabling of
->> >> >> >> > > autodeps before off-mode entry.
->> >> >> >> > >
->> >> >> >> > This mostly indicates that one of the per clock-domain module
->> >> >> >> > clock turning ON seems to be not working well with auto deps
->> >> >> >> > disabled. This leads to interconnect violation.
->> >> >> >> >
->> >> >> >> > if not tried already, can you put the per_clockdomain in SW_WKUP
->> >> >> >> > in the low power code early resume path and see if this
->> >> >> >> > error goes away.
->> >> >> >>
->> >> >> >> This seems to get rid of the dump also. It looks like some driver resume
->> >> >> >> is not behaving nicely, I am trying to pinpoint the culprit currently
->> >> >> >> and see whether it can provide more info.
->> >> >> >
->> >> >> > Okay, I have some more info about this now.
->> >> >> >
->> >> >> > What happens is that when entering off-mode, PER domain remains OFF even
->> >> >> > during the execution of the exit phase from omap_sram_idle. Adding a
->> >> >> > manual SW_WKUP it comes up and there are no issues. If autodeps are
->> >> >> > enabled on the domain, it comes back from off mode as active.
->> >> >> >
->> >> >> > Looking further in the code, we have this at the end of omap_sram_idle:
->> >> >> >
->> >> >> >        if (per_next_state < PWRDM_POWER_ON) {
->> >> >> >                per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
->> >> >> >                omap2_gpio_resume_after_idle();
->> >> >> >                wake_per();
->> >> >> >                if (per_prev_state == PWRDM_POWER_OFF)
->> >> >> >                        omap3_per_restore_context();
->> >> >> >        }
->> >> >> >
->> >> >> > ... which seems to assume that per domain is on. Gpio code does not
->> >> >> > control any clocks currently, as it only requires the interface clock to
->> >> >> > be on, and as this is autoidled....
->> >> >> >
->> >> >> > Any comments how we should handle this? Shall we just keep these two
->> >> >> > patches for handling this or add some different hackery for the gpio
->> >> >> > issue?
->> >> >> >
->> >> >> Good. I thought too that issue will disappear.
->> >> >> The issue is pretty clear. Technically every driver pm_runtime() code should
->> >> >> be able to manage a clock->clockdomain->power domain power up/down
->> >> >> sequence. That should work without auto deps.
->> >> >> 
->> >> >> Do you narrowed down which driver resume is creating the dump ?
->> >> >> UART , GPIO ?
->> >> >
->> >> > It is the gpio base stuff called from omap_sram_idle(), basically the
->> >> > restore context part. If I force enable per domain before the code
->> >> > snippet before, there is no dump, but if it is done after, I get the
->> >> > dump.
->> >> >
->> >> > The thing is that gpio driver doesn't currently have this kind of
->> >> > mechanism for the restore context part, at least not on omap3 due to
->> >> > above clocking issue (only autoidled interface clock is used.)
->> >> 
->> >> I'm not sure if it fully addresses this, but Tarun's series converts
->> >> GPIO to runtime PM.
->> >> 
->> >> Can you try with Tarun's series.  See the for_3.4/gpio_cleanup_fixes_v9
->> >> branch here:
->> >> git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev.git
->> >
->> > It does something for the issue, but I still get this during suspend to
->> > off:
->> >
->> > [   11.284973] PM: Syncing filesystems ... done.
->> > [   11.379241] Freezing user space processes ... (elapsed 0.02 seconds)
->> > done.
->> > [   11.408233] Freezing remaining freezable tasks ... (elapsed 0.02
->> > seconds) don
->> > e.
->> > [   11.439239] Suspending console(s) (use no_console_suspend to debug)
->> > [   11.564178] PM: suspend of devices complete after 115.506 msecs
->> > [   11.567382] PM: late suspend of devices complete after 3.204 msecs
->> > [   11.567443] Disabling non-boot CPUs ...
->> > [   12.004089] Powerdomain (cam_pwrdm) didn't enter target state 0
->> > [   12.004119] Could not enter target state in pm_suspend
->> > [   12.009368] PM: early resume of devices complete after 4.944 msecs
->> > [   12.436645] PM: resume of devices complete after 426.086 msecs
->> > [   12.480285] Restarting tasks ... done.
->> > /sys/kernel/debu[   12.488433] ------------[ cut here ]------------
->> > [   12.494415] WARNING: at arch/arm/mach-omap2/omap_hwmod.c:1604 _idle
->> > +0x164/0x1
->> > 7c()
->> > [   12.502258] omap_hwmod: gpio6: idle state can only be entered from
->> > enabled st
->> > ate
->> > [   12.509979] Modules linked in:
->> > [   12.513214] [<c001bcd0>] (unwind_backtrace+0x0/0xf4) from
->> > [<c0042968>] (warn_
->> > slowpath_common+0x4c/0x64)
->> > [   12.523071] [<c0042968>] (warn_slowpath_common+0x4c/0x64) from
->> > [<c0042a14>] (
->> > warn_slowpath_fmt+0x30/0x40)
->> > [   12.533081] [<c0042a14>] (warn_slowpath_fmt+0x30/0x40) from
->> > [<c0028d68>] (_id
->> > le+0x164/0x17c)
->> > [   12.541931] [<c0028d68>] (_idle+0x164/0x17c) from [<c00298b0>]
->> > (omap_hwmod_id
->> > le+0x28/0x3c)
->> > [   12.550567] [<c00298b0>] (omap_hwmod_idle+0x28/0x3c) from
->> > [<c003c664>] (omap_
->> > device_idle_hwmods+0x24/0x3c)
->> > [   12.560699] [<c003c664>] (omap_device_idle_hwmods+0x24/0x3c) from
->> > [<c003c898>
->> > ] (_omap_device_deactivate+0xa4/0x138)
->> > [   12.571594] [<c003c898>] (_omap_device_deactivate+0xa4/0x138) from
->> > [<c003c954
->> >>] (omap_device_idle+0x28/0x54)
->> > [   12.581909] [<c003c954>] (omap_device_idle+0x28/0x54) from
->> > [<c003c99c>] (_od_
->> > runtime_suspend+0x1c/0x24)
->> > [   12.591735] [<c003c99c>] (_od_runtime_suspend+0x1c/0x24) from
->> > [<c02c5010>] (_
->> > _rpm_callback+0x2c/0x78)
->> > [   12.601379] [<c02c5010>] (__rpm_callback+0x2c/0x78) from [<c02c54d0>]
->> > (rpm_su
->> > spend+0x264/0x6c4)
->> > [   12.610504] [<c02c54d0>] (rpm_suspend+0x264/0x6c4) from [<c02c6998>]
->> > (__pm_ru
->> > ntime_suspend+0x5c/0x74)
->> > [   12.620178] [<c02c6998>] (__pm_runtime_suspend+0x5c/0x74) from
->> > [<c02731a4>] (
->> > omap2_gpio_prepare_for_idle+0x50/0x64)
->> > [   12.631103] [<c02731a4>] (omap2_gpio_prepare_for_idle+0x50/0x64) from
->> > [<c002b
->> > d30>] (omap_sram_idle+0xa0/0x3b0)
->> > [   12.641571] [<c002bd30>] (omap_sram_idle+0xa0/0x3b0) from
->> > [<c002c1d8>] (omap3
->> > _pm_idle+0x60/0x178)
->> > [   12.650848] [<c002c1d8>] (omap3_pm_idle+0x60/0x178) from [<c0015c10>]
->> > (cpu_id
->> > le+0xc4/0x108)
->> > [   12.659606] [<c0015c10>] (cpu_idle+0xc4/0x108) from [<c0626828>]
->> > (start_kerne
->> > l+0x2b0/0x304)
->> > [   12.668365] ---[ end trace 441b8fea2b56dcb1 ]---
->> >
->> >
->> > Also, this goes away if I manually force wakeup for the per domain, so
->> > this might be caused by some additional latency.
->> >
->> 
->> What platform are you testing on?
->> 
->> When I test Tarun's series with off-mode on 3430/n900 suspend/resume
->> works fine.  But when I add your v2 series, it never comes out of
->> suspend, and I don't get a kernel dump either.
->> 
->> Can you debug this a little further so we can explain what's going on
->> here?
->> 
->
-> After some debugging, it looks like the root cause for the WARN dump I
-> see with GPIO PM runtime + usecounting is the fact that PER domain
-> enters SW assisted idle and remains OFF after wakeup from OFF mode, and
-> it will remain there until some functional clock is enabled. 
+Hmm, looks like this now produces the following warning at least on omap3:
 
-OK, but before your usecounting changes, the runtime PM enable was
-successfully bringing GPIO out of idle.
+[    0.290832] WARNING: at drivers/mfd/twl4030-irq.c:645 twl4030_sih_setup+0x258/0x298()
+[    0.290832] irq 428 for gpio too big
+[    0.290863] Modules linked in:
+[    0.290893] [<c001b5a8>] (unwind_backtrace+0x0/0xf0) from [<c0042c74>] (warn_slowpath_common+0x4c/0x64)
+[    0.290954] [<c0042c74>] (warn_slowpath_common+0x4c/0x64) from [<c0042d20>] (warn_slowpath_fmt+0x30/0x40)
+[    0.290985] [<c0042d20>] (warn_slowpath_fmt+0x30/0x40) from [<c02d21e4>] (twl4030_sih_setup+0x258/0x298)
+[    0.291015] [<c02d21e4>] (twl4030_sih_setup+0x258/0x298) from [<c0469ae4>] (gpio_twl4030_probe+0x24/0x214)
+[    0.291046] [<c0469ae4>] (gpio_twl4030_probe+0x24/0x214) from [<c02bece8>] (platform_drv_probe+0x18/0x1c)
+[    0.291076] [<c02bece8>] (platform_drv_probe+0x18/0x1c) from [<c02bd7a0>] (really_probe+0x60/0x15c)
+[    0.291107] [<c02bd7a0>] (really_probe+0x60/0x15c) from [<c02bd9e0>] (driver_probe_device+0x48/0x60)
+[    0.291137] [<c02bd9e0>] (driver_probe_device+0x48/0x60) from [<c02bc198>] (bus_for_each_drv+0x5c/0x88)
+[    0.291168] [<c02bc198>] (bus_for_each_drv+0x5c/0x88) from [<c02bd958>] (device_attach+0x98/0xbc)
+[    0.291198] [<c02bd958>] (device_attach+0x98/0xbc) from [<c02bcf9c>] (bus_probe_device+0x88/0xac)
+[    0.291229] [<c02bcf9c>] (bus_probe_device+0x88/0xac) from [<c02bb814>] (device_add+0x278/0x358)
+[    0.291259] [<c02bb814>] (device_add+0x278/0x358) from [<c02bf214>] (platform_device_add+0xf8/0x228)
+[    0.291290] [<c02bf214>] (platform_device_add+0xf8/0x228) from [<c047e394>] (add_numbered_child.constprop.0+0xb8/0xfc)
+[    0.291320] [<c047e394>] (add_numbered_child.constprop.0+0xb8/0xfc) from [<c047e474>] (add_children+0x44/0x658)
+[    0.291351] [<c047e474>] (add_children+0x44/0x658) from [<c046ac6c>] (twl_probe+0x354/0x3bc)
+[    0.291381] [<c046ac6c>] (twl_probe+0x354/0x3bc) from [<c036e364>] (i2c_device_probe+0xc0/0x100)
+[    0.291412] [<c036e364>] (i2c_device_probe+0xc0/0x100) from [<c02bd7a0>] (really_probe+0x60/0x15c)
+[    0.291442] [<c02bd7a0>] (really_probe+0x60/0x15c) from [<c02bd9e0>] (driver_probe_device+0x48/0x60)
+[    0.291473] [<c02bd9e0>] (driver_probe_device+0x48/0x60) from [<c02bc198>] (bus_for_each_drv+0x5c/0x88)
+[    0.291503] [<c02bc198>] (bus_for_each_drv+0x5c/0x88) from [<c02bd958>] (device_attach+0x98/0xbc)
+[    0.291503] [<c02bd958>] (device_attach+0x98/0xbc) from [<c02bcf9c>] (bus_probe_device+0x88/0xac)
+[    0.291534] [<c02bcf9c>] (bus_probe_device+0x88/0xac) from [<c02bb814>] (device_add+0x278/0x358)
+[    0.291564] [<c02bb814>] (device_add+0x278/0x358) from [<c036eac4>] (i2c_new_device+0xec/0x164)
+[    0.291595] [<c036eac4>] (i2c_new_device+0xec/0x164) from [<c036eed4>] (i2c_register_adapter+0x168/0x220)
+[    0.291625] [<c036eed4>] (i2c_register_adapter+0x168/0x220) from [<c036f0f8>] (i2c_add_numbered_adapter+0xd4/0xf0)
+[    0.291656] [<c036f0f8>] (i2c_add_numbered_adapter+0xd4/0xf0) from [<c046f8b8>] (omap_i2c_probe+0x33c/0x428)
+[    0.291687] [<c046f8b8>] (omap_i2c_probe+0x33c/0x428) from [<c02bece8>] (platform_drv_probe+0x18/0x1c)
+[    0.291717] [<c02bece8>] (platform_drv_probe+0x18/0x1c) from [<c02bd7a0>] (really_probe+0x60/0x15c)
+[    0.291748] [<c02bd7a0>] (really_probe+0x60/0x15c) from [<c02bd9e0>] (driver_probe_device+0x48/0x60)
+[    0.291778] [<c02bd9e0>] (driver_probe_device+0x48/0x60) from [<c02bda8c>] (__driver_attach+0x94/0x98)
+[    0.291809] [<c02bda8c>] (__driver_attach+0x94/0x98) from [<c02bc214>] (bus_for_each_dev+0x50/0x7c)
+[    0.291839] [<c02bc214>] (bus_for_each_dev+0x50/0x7c) from [<c02bd2a0>] (bus_add_driver+0x1f4/0x2b8)
+[    0.291870] [<c02bd2a0>] (bus_add_driver+0x1f4/0x2b8) from [<c02bdf5c>] (driver_register+0x78/0x17c)
+[    0.291900] [<c02bdf5c>] (driver_register+0x78/0x17c) from [<c0008630>] (do_one_initcall+0x34/0x178)
+[    0.291931] [<c0008630>] (do_one_initcall+0x34/0x178) from [<c06458ac>] (kernel_init+0x8c/0x12c)
+[    0.291961] [<c06458ac>] (kernel_init+0x8c/0x12c) from [<c0014d68>] (kernel_thread_exit+0x0/0x8)
 
-In the case of GPIO, the iclk is also the functional clock (it's the
-main_clk in the hwmod.)  
+Regards,
 
-> GPIO6 module is only enabling its interface clock, but as this is
-> autoidled, it will not wake up PER domain. This will cause the initial
-> _wait_target_ready(oh) to fail with EBUSY, leaving the hwmod into idle
-> state. Next cpuidle entry will attempt to disable the already idle
-> hwmod causing this dump.
-
-I see.  Thanks for tracking it down.
-
-To me, this suggests that the autoidle changes in your usecounting
-series aren't quite right, especially for modules like GPIO where the
-iclk is also the functional clock.
-
-I added Paul to this discussion to see what his thoughts are on this.
-
-> This can be avoided by preventing PER domain idle on omap3530. 
-
-That doesn't sound quite right either.
-
-> I believe on omap3430 you also need to prevent similar stuff for CORE
-> domain.
->
-> Did you try the patch I posted last week for the core domain + dplls?
-
-I didn't try it until just now and it' doesn't compile because the new
-flag you're using doesn't seem to be defined anywhere.
-
-Kevin
-
-> Does it help with 3430? I guess n900 could hang in the ROM code if PER
-> domain is idle during wakeup, as it is a HS device also and behaves
-> differently during wakeup from OFF.
->
-> -Tero
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
