@@ -1,57 +1,129 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 0/8] ARM: OMAP2+: hwmod/timer: first set of cleanups for 3.4
-Date: Mon, 27 Feb 2012 22:36:43 -0700
-Message-ID: <20120228053524.16278.59430.stgit@dusk>
+Subject: [PATCH v2 1/8] ARM: OMAP2+: hwmod: control all hardreset lines
+ attached to a hwmod
+Date: Mon, 27 Feb 2012 22:36:48 -0700
+Message-ID: <20120228053643.16278.38085.stgit@dusk>
+References: <20120228053524.16278.59430.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58081 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58084 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab2B1Fhp (ORCPT
+	with ESMTP id S1753353Ab2B1Fhp (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 00:37:45 -0500
+In-Reply-To: <20120228053524.16278.59430.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Hi
+Parts of the hwmod code test to see if a module has one and only one
+hardreset line before taking an action.  It seems more appropriate
+to control all hardreset lines associated with a hwmod, not just one.
 
-This series does some cleanup and documentation on the OMAP hwmod code
-(and a bit of the OMAP4 data) and timer code. It is the first
-prerequisite series to removing a big chunk of hwmod data -- that
-will be done in a later series.  This second version reimplements
-the hardreset code in a way that will hopefully fix some of the
-issues that Kevin was seeing.
+It so happens that with the current hwmod data, this patch will not
+change any behavior, since hwmods with hardreset lines have only one
+hardreset line associated with them, and 'pseudo-hwmods' are used to
+handle the other hardreset lines.  But future hwmod data patches to
+remove the pseudo-hwmods will change this.
 
-Boot-tested on an OMAP35xx BeagleBoard and OMAP44xx ES2 Pandaboard.
-
-This series is also available via git from git://git.pwsan.com/linux-2.6 in
-the branch "hwmod_code_cleanup_3.4".
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
+ arch/arm/mach-omap2/omap_hwmod.c |   29 +++++++++++++++--------------
+ 1 files changed, 15 insertions(+), 14 deletions(-)
 
-hwmod_code_cleanup_3.4
-   text	   data	    bss	    dec	    hex	filename
-6600418	 680476	5593820	12874714	 c473da	vmlinux.omap2plus_defconfig.orig
-6600374	 679788	5593820	12873982	 c470fe	vmlinux.omap2plus_defconfig
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/oma=
+p_hwmod.c
+index eba6cd3..543b0dd 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -1475,6 +1475,11 @@ static int _reset(struct omap_hwmod *oh)
+=20
+ 	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
+=20
++	/*
++	 * XXX We're not resetting modules with hardreset lines
++	 * automatically here.  Should we do this also, or just expect
++	 * those modules to define custom reset functions?
++	 */
+ 	ret =3D (oh->class->reset) ? oh->class->reset(oh) : _ocp_softreset(oh=
+);
+=20
+ 	return ret;
+@@ -1490,7 +1495,7 @@ static int _reset(struct omap_hwmod *oh)
+  */
+ static int _enable(struct omap_hwmod *oh)
+ {
+-	int r;
++	int r, i;
+ 	int hwsup =3D 0;
+=20
+ 	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
+@@ -1522,15 +1527,15 @@ static int _enable(struct omap_hwmod *oh)
+ 		return -EINVAL;
+ 	}
+=20
+-
+ 	/*
+-	 * If an IP contains only one HW reset line, then de-assert it in ord=
+er
++	 * If an IP contains HW reset lines, then de-assert them in order
+ 	 * to allow the module state transition. Otherwise the PRCM will retu=
+rn
+ 	 * Intransition status, and the init will failed.
+ 	 */
+-	if ((oh->_state =3D=3D _HWMOD_STATE_INITIALIZED ||
+-	     oh->_state =3D=3D _HWMOD_STATE_DISABLED) && oh->rst_lines_cnt =3D=
+=3D 1)
+-		_deassert_hardreset(oh, oh->rst_lines[0].name);
++	if (oh->_state =3D=3D _HWMOD_STATE_INITIALIZED ||
++	    oh->_state =3D=3D _HWMOD_STATE_DISABLED)
++		for (i =3D 0; i < oh->rst_lines_cnt; i++)
++			_deassert_hardreset(oh, oh->rst_lines[i].name);
+=20
+ 	/* Mux pins for device runtime if populated */
+ 	if (oh->mux && (!oh->mux->enabled ||
+@@ -1677,7 +1682,7 @@ int omap_hwmod_set_ocp_autoidle(struct omap_hwmod=
+ *oh, u8 autoidle)
+  */
+ static int _shutdown(struct omap_hwmod *oh)
+ {
+-	int ret;
++	int ret, i;
+ 	u8 prev_state;
+=20
+ 	if (oh->_state !=3D _HWMOD_STATE_IDLE &&
+@@ -1718,12 +1723,8 @@ static int _shutdown(struct omap_hwmod *oh)
+ 	}
+ 	/* XXX Should this code also force-disable the optional clocks? */
+=20
+-	/*
+-	 * If an IP contains only one HW reset line, then assert it
+-	 * after disabling the clocks and before shutting down the IP.
+-	 */
+-	if (oh->rst_lines_cnt =3D=3D 1)
+-		_assert_hardreset(oh, oh->rst_lines[0].name);
++	for (i =3D 0; i < oh->rst_lines_cnt; i++)
++		_assert_hardreset(oh, oh->rst_lines[i].name);
+=20
+ 	/* Mux pins to safe mode or use populated off mode values */
+ 	if (oh->mux)
+@@ -1776,7 +1777,7 @@ static int _setup(struct omap_hwmod *oh, void *da=
+ta)
+ 	 * reset asserted. Exit without warning because that behavior is
+ 	 * expected.
+ 	 */
+-	if ((oh->flags & HWMOD_INIT_NO_RESET) && oh->rst_lines_cnt =3D=3D 1)
++	if ((oh->flags & HWMOD_INIT_NO_RESET) && oh->rst_lines_cnt > 0)
+ 		return 0;
+=20
+ 	r =3D _enable(oh);
 
-Paul Walmsley (8):
-      ARM: OMAP2+: hwmod: control all hardreset lines attached to a hwmod
-      ARM: OMAP4: hwmod data: remove pseudo-hwmods associated with hardreset lines
-      ARM: OMAP2+: hwmod: reorganize and document the setup process
-      ARM: OMAP2+: hwmod: revise hardreset behavior
-      ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits are reprogrammed after a reset
-      ARM: OMAP2+: hwmod: provide a function to return the address space of the MPU RT
-      ARM: OMAP2+: hwmod: add omap_hwmod_get_resource_byname()
-      ARM: OMAP2+: timer: use a proper interface to get hwmod data
 
-
- arch/arm/mach-omap2/omap_hwmod.c             |  671 +++++++++++++++++++-------
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  101 ----
- arch/arm/mach-omap2/timer.c                  |   15 -
- arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 
- 4 files changed, 520 insertions(+), 269 deletions(-)
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
