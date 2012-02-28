@@ -1,90 +1,65 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH v2 3/5] arm/dts: OMAP4: Add SPI controller nodes
-Date: Tue, 28 Feb 2012 23:19:08 +0100
-Message-ID: <1330467550-20474-4-git-send-email-b-cousson@ti.com>
-References: <1330467550-20474-1-git-send-email-b-cousson@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Fix section mismatch warning for
+ platform_cpu_die()
+Date: Tue, 28 Feb 2012 14:34:48 -0800
+Message-ID: <20120228223447.GE18901@atomide.com>
+References: <1329980310-9007-1-git-send-email-santosh.shilimkar@ti.com>
+ <1329980310-9007-3-git-send-email-santosh.shilimkar@ti.com>
+ <20120223074504.GZ14173@pengutronix.de>
+ <CAMQu2gxLJOY8HzMO71dHTr8VfQ+G=KJP+wv5SwvrktTi7b82+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40106 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756429Ab2B1WUA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Feb 2012 17:20:00 -0500
-In-Reply-To: <1330467550-20474-1-git-send-email-b-cousson@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65235 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965320Ab2B1Wex (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 17:34:53 -0500
+Content-Disposition: inline
+In-Reply-To: <CAMQu2gxLJOY8HzMO71dHTr8VfQ+G=KJP+wv5SwvrktTi7b82+A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: grant.likely@secretlab.ca
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Add the 4 McSPI controller nodes present in an OMAP4 device.
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120223 00:09]:
+> 2012/2/23 Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>:
+> > Hello,
+> >
+> > On Thu, Feb 23, 2012 at 12:28:30PM +0530, Santosh Shilimkar wrote:
+> >> WARNING: vmlinux.o(.text+0x226d0):
+> >> Section mismatch in reference from the function
+> >> platform_cpu_die() to the function .cpuinit.text:omap4_hotplug_cpu=
+()
+> >> The function platform_cpu_die() references
+> >> the function __cpuinit omap4_hotplug_cpu().
+> >> This is often because platform_cpu_die lacks a __cpuinit
+> >> annotation or the annotation of omap4_hotplug_cpu is wrong.
+> >>
+> >> Thanks to Russell King for suggesting __ref annotation trick
+> >> just like it's parent function for this warning becasue __cupinit
+> > s/it's/its/; s/becasue/because/; s/cup/cpu/
+> >
+> > Having said that I think the grammar is broken, too. Maybe:
+> >
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0Thanks to Russell King for suggesting to=
+ use __ref instead of
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0the initial (and wrong) approach to use =
+__cpuinit.
+> >
+> > (But note I'm not a native speaker, too)
+> >
+> Thanks for fixing the grammar. :)
+> Updated patch below with comments corrected as per
+> your suggestion.
 
-Remove SPI static device initialisation if DT is populated.
+Thanks applying both into fixes-non-critical.
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Acked-by: Rob Herring <rob.herring@calxeda.com>
----
- arch/arm/boot/dts/omap4.dtsi  |   32 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/devices.c |    4 +++-
- 2 files changed, 35 insertions(+), 1 deletions(-)
+Regards,
 
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index e8fe75f..82830f5 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -127,5 +127,37 @@
- 			ti,hwmods = "uart4";
- 			clock-frequency = <48000000>;
- 		};
-+
-+		mcspi1: spi@48098000 {
-+			compatible = "ti,omap4-mcspi";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ti,hwmods = "mcspi1";
-+			ti,spi-num-cs = <4>;
-+		};
-+
-+		mcspi2: spi@4809a000 {
-+			compatible = "ti,omap4-mcspi";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ti,hwmods = "mcspi2";
-+			ti,spi-num-cs = <2>;
-+		};
-+
-+		mcspi3: spi@480b8000 {
-+			compatible = "ti,omap4-mcspi";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ti,hwmods = "mcspi3";
-+			ti,spi-num-cs = <2>;
-+		};
-+
-+		mcspi4: spi@480ba000 {
-+			compatible = "ti,omap4-mcspi";
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+			ti,hwmods = "mcspi4";
-+			ti,spi-num-cs = <1>;
-+		};
- 	};
- };
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 283d11e..8a489ba 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -725,7 +725,9 @@ static int __init omap2_init_devices(void)
- 	omap_init_dmic();
- 	omap_init_camera();
- 	omap_init_mbox();
--	omap_init_mcspi();
-+	/* If dtb is there, the devices will be created dynamically */
-+	if (!of_have_populated_dt())
-+		omap_init_mcspi();
- 	omap_init_pmu();
- 	omap_hdq_init();
- 	omap_init_sti();
--- 
-1.7.0.4
-
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
