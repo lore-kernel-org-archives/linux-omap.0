@@ -1,163 +1,36 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 3/6] gpio/omap: remove suspend_wakeup field from struct gpio_bank
-Date: Tue, 28 Feb 2012 10:45:57 -0800
-Message-ID: <87r4xeyexm.fsf@ti.com>
-References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
-	<1329999031-6914-4-git-send-email-tarun.kanti@ti.com>
-	<87ty2bu91e.fsf@ti.com>
-	<CAC83ZvJ97uRSLU-JmO2mnaOuziU=SotghASSJjPvESWL+eATuQ@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@bitmer.com>
+Subject: Re: [PATCH v2 00/10] OMAP/ASoC: Move and merge McBSP driver under
+ ASoC
+Date: Tue, 28 Feb 2012 21:32:16 +0200
+Message-ID: <4F4D2BC0.5010501@bitmer.com>
+References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAC83ZvJ97uRSLU-JmO2mnaOuziU=SotghASSJjPvESWL+eATuQ@mail.gmail.com>
-	(Tarun Kanti DebBarma's message of "Tue, 28 Feb 2012 15:09:05 +0530")
-Sender: linux-kernel-owner@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bitmer.com ([213.157.87.50]:39850 "EHLO bitmer.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757252Ab2B1Tb7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Feb 2012 14:31:59 -0500
+In-Reply-To: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>
 
-"DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
+On 02/28/2012 09:40 AM, Peter Ujfalusi wrote:
+> Hello,
+> 
+> Changes since v1 (RFC series):
+> - removed pm_runtime_get/put_sync calls since core takes care of this.
+>   Fixes the initial issue with OMAP3 Pandora setup reported by Grazvydas Ignotas
+> - Dropped my version of snd_soc_add_dai_controls from the series since Liam
+>   implementation adds the same functionality.
+> - Added Tested-by tags from Janusz (OMAP1), and Grazvydas (OMAP3 pandora)
+> - Added Ack from Tony for the arch/arm/ patches
+> - I have not added Ack from Mark, and Jarkko although they said it looks OK, but
+>   not given explicit ack for the series.
+> 
+I'm sending a minor comment to 1/10 but here's ack to whole series
 
-> On Tue, Feb 28, 2012 at 5:24 AM, Kevin Hilman <khilman@ti.com> wrote:
->> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>
->>> Since we already have bank->context.wake_en to keep track
->>> of gpios which are wakeup enabled, there is no need to have
->>> this field any more.
->>>
->>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>
->> I'm not crazy about this change...
->>
->>> ---
->>> =C2=A0drivers/gpio/gpio-omap.c | =C2=A0 11 +++++------
->>> =C2=A01 files changed, 5 insertions(+), 6 deletions(-)
->>>
->>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>> index 64f15d5..b62e861 100644
->>> --- a/drivers/gpio/gpio-omap.c
->>> +++ b/drivers/gpio/gpio-omap.c
->>> @@ -53,7 +53,6 @@ struct gpio_bank {
->>> =C2=A0 =C2=A0 =C2=A0 void __iomem *base;
->>> =C2=A0 =C2=A0 =C2=A0 u16 irq;
->>> =C2=A0 =C2=A0 =C2=A0 u16 virtual_irq_start;
->>> - =C2=A0 =C2=A0 u32 suspend_wakeup;
->>> =C2=A0 =C2=A0 =C2=A0 u32 non_wakeup_gpios;
->>> =C2=A0 =C2=A0 =C2=A0 u32 enabled_non_wakeup_gpios;
->>> =C2=A0 =C2=A0 =C2=A0 struct gpio_regs context;
->>> @@ -497,9 +496,9 @@ static int _set_gpio_wakeup(struct gpio_bank *b=
-ank, int gpio, int enable)
->>>
->>> =C2=A0 =C2=A0 =C2=A0 spin_lock_irqsave(&bank->lock, flags);
->>> =C2=A0 =C2=A0 =C2=A0 if (enable)
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bank->suspend_wakeup |=3D=
- gpio_bit;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bank->context.wake_en |=
-=3D gpio_bit;
->>> =C2=A0 =C2=A0 =C2=A0 else
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bank->suspend_wakeup &=3D=
- ~gpio_bit;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 bank->context.wake_en &=
-=3D ~gpio_bit;
->>
->> The bank->context values are expected to be copies of the actual
->> register contents, and here that is clearly not the case.
-> Right, it should have been this:
->
->         if (enable)
-> -               bank->suspend_wakeup |=3D gpio_bit;
-> +               bank->context.wake_en |=3D gpio_bit;
->         else
-> -               bank->suspend_wakeup &=3D ~gpio_bit;
-> +               bank->context.wake_en &=3D ~gpio_bit;
-> +
-> +       __raw_writel(bank->context.wake_en, bank->base + bank->regs->=
-wkup_en);
->
->>
->> With this change, you're using the context register to track changes
->> that you *might* eventually write to the register.
-> The above change ensures that bank->context.wake_en reflects the
-> latest register value.
-
-OK, but that changes the behavior of the current code.
-
-The current code *only* writes this register in suspend and resume.
-_set_gpio_wakeup() just records the value that is going to be written i=
-n
-suspend.
-
-Now, I'm not saying we shouldn't make the changes you propose above.  W=
-e
-probably should be updating the wake-enable register whenever
-_set_gpio_wakeup() is run so that GPIO wakeups work across runtime
-suspend/resume as well.
-
-However, you should probably make that functional change a separate
-patch *before* you do $SUBJECT patch which just changes the variable
-used to cache the register contents.
-
-Kevin
-
-
-> There are two distinct paths through which bank->context.wake_en is
-> updated now, viz:
-> Path1:-
-> chip.irq_set_type() --> gpio_irq_type() --> _set_gpio_triggering() --=
->
-> set_gpio_trigger()
->
-> Path2:-
-> chip.irq_set_wake() --> gpio_wake_enable() --> irq_set_wake()
->
->>
->> IMO, this is more confusing than having a separate field to track th=
-is.
-> So, there is no need have a separate field to keep track of this.
-> I hope my understanding is right.
-> --
-> Tarun
->
->>
->> Kevin
->>
->>> =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&bank->lock, flags);
->>>
->>> @@ -772,7 +771,7 @@ static int omap_mpuio_suspend_noirq(struct devi=
-ce *dev)
->>>
->>> =C2=A0 =C2=A0 =C2=A0 spin_lock_irqsave(&bank->lock, flags);
->>> =C2=A0 =C2=A0 =C2=A0 bank->context.wake_en =3D __raw_readl(mask_reg=
-);
->>> - =C2=A0 =C2=A0 __raw_writel(0xffff & ~bank->suspend_wakeup, mask_r=
-eg);
->>> + =C2=A0 =C2=A0 __raw_writel(0xffff & ~bank->context.wake_en, mask_=
-reg);
->>> =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&bank->lock, flags);
->>>
->>> =C2=A0 =C2=A0 =C2=A0 return 0;
->>> @@ -1137,12 +1136,12 @@ static int omap_gpio_suspend(struct device =
-*dev)
->>> =C2=A0 =C2=A0 =C2=A0 if (!bank->mod_usage || !bank->loses_context)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->>>
->>> - =C2=A0 =C2=A0 if (!bank->regs->wkup_en || !bank->suspend_wakeup)
->>> + =C2=A0 =C2=A0 if (!bank->regs->wkup_en || !bank->context.wake_en)
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->>>
->>> =C2=A0 =C2=A0 =C2=A0 spin_lock_irqsave(&bank->lock, flags);
->>> =C2=A0 =C2=A0 =C2=A0 _gpio_rmw(base, bank->regs->wkup_en, 0xfffffff=
-f, 0);
->>> - =C2=A0 =C2=A0 _gpio_rmw(base, bank->regs->wkup_en, bank->suspend_=
-wakeup, 1);
->>> + =C2=A0 =C2=A0 _gpio_rmw(base, bank->regs->wkup_en, bank->context.=
-wake_en, 1);
->>> =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&bank->lock, flags);
->>>
->>> =C2=A0 =C2=A0 =C2=A0 return 0;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Jarkko Nikula <jarkko.nikula@bitmer.com>
