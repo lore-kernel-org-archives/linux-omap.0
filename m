@@ -1,103 +1,166 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: OMAP4 HDMI PHY bug work-around for stable
-Date: Tue, 28 Feb 2012 10:03:13 +0200
-Message-ID: <1330416193.2123.4.camel@deskari>
-References: <1328787865.1909.64.camel@deskari>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v4 1/2] MFD: twl-core: Detach twl6040 from the pmic mfd driver
+Date: Tue, 28 Feb 2012 10:34:51 +0200
+Message-ID: <1330418092-12314-2-git-send-email-peter.ujfalusi@ti.com>
+References: <1330418092-12314-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-t9KbM1gr8f/ep2e1fxOW"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:40481 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755350Ab2B1IDT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Feb 2012 03:03:19 -0500
-Received: by mail-lpp01m010-f43.google.com with SMTP id r15so8321171lag.16
-        for <linux-omap@vger.kernel.org>; Tue, 28 Feb 2012 00:03:16 -0800 (PST)
-In-Reply-To: <1328787865.1909.64.camel@deskari>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1330418092-12314-1-git-send-email-peter.ujfalusi@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Samuel Ortiz <sameo@linux.intel.com>, Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Dmitry Torokhov <dtor@mail.ru>, Misael Lopez Cruz <misael.lopez@ti.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: stable@kernel.org, stable@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
+On OMAP4 platform audio has separate IC, it is no longer part
+of the pmic chip.
+Prevent twl-core to claim the 0x4b address, which belongs to
+the twl6040 audio IC.
 
---=-t9KbM1gr8f/ep2e1fxOW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+---
+ drivers/mfd/twl-core.c |   58 +++++++++++++++++++++++++++--------------------
+ 1 files changed, 33 insertions(+), 25 deletions(-)
 
-Hi,
-
-I haven't seen these merged nor any comment for these. Perhaps
-stable@kernel.org was wrong address, so adding stable@vger.kernel.org
-too.
-
-I have added one additional fix into for-3.2-stable branch, which fixes
-a problem with panel detection that the GPIO changes brought.
-
- Tomi
-
-On Thu, 2012-02-09 at 13:44 +0200, Tomi Valkeinen wrote:
-> Hi,
->=20
-> There is a hardware bug on OMAP4, which may cause the HDMI output to
-> break irreversibly. A work-around for the bug has been merged into
-> mainline, but is missing from stable.
->=20
-> I've backported the necessary patches on top of 3.0, 3.1 and 3.2 stable
-> trees, and pushed the following branches to:
->=20
-> git://gitorious.org/linux-omap-dss2/linux.git
->=20
-> fixes/for-3.0-stable
-> fixes/for-3.1-stable
-> fixes/for-3.2-stable
->=20
-> 3.0 and 3.1 branches additionally contain a patch "OMAP: DSS2: HDMI: use
-> default dividers", which fixes a problem with the HDMI clock divider.
-> Without that the HDMI output won't start at all on those versions.
->=20
-> The branches contain the following backported patches:
->=20
->       OMAP: DSS2: HDMI: use default dividers
->       OMAP: 4430SDP/Panda: use gpio_free_array to free HDMI gpios
->       OMAP: 4430SDP/Panda: rename HPD GPIO to CT_CP_HPD
->       OMAPDSS: remove wrong HDMI HPD muxing
->       OMAP: 4430SDP/Panda: setup HDMI GPIO muxes
->       OMAP: 4430SDP/Panda: add HDMI HPD gpio
->       OMAPDSS: HDMI: PHY burnout fix
->=20
-> Of those, the actual fix is in the last one, but as the GPIOs for HDMI
-> were a mess, they needed some cleanup patches before the fix could be
-> made.
->=20
-> I'm not familiar with the process with stable kernels, so are the
-> branches above fine to get them merged? Or should I send the patches
-> with git-send-email?
->=20
->  Tomi
->=20
-
-
---=-t9KbM1gr8f/ep2e1fxOW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPTIo8AAoJEPo9qoy8lh71HrAP/1OV51NZOyWKYXoyU8bZLzpd
-YpbDRo/ZA+9rfQGC2agGZL7izttdg92WrowvPbYTZWIjJqu3vi9V9xtOtPLF9EMU
-11cy0y4NXAVo+ZKFecyt47YxnKRCebv4RR2YgGTTsuLTdbKP3/a7wdxUbVGV5w7w
-tQO8NzLIiMUlcrtFe17CVdODMMJnL3v2aZMo9yG2A435FpfchGlLg99Xmx1sCmAO
-LAWHpuoLUHqnUKfvGjVdeVVseDmGQikNnXVkZOElRPNSlHz+VzXUiWSnZNXL4Lty
-L2i/Tpe2a/H+4mCkQHCwrbXYq9GmwBXxk2JEc6hZX7R+54+adzvZtW3OqS639KTB
-DVfn8/QQy6FfUgNqPNmNeTkniDVHVdSXMyL9OwabvktBAiT8TuVEkAVWvEPty8hY
-9niN1k+2UFehTB2ClV3AceaW9QTvmdVeZwHLwwEt8tyPIYXKZ6mauYjfmFgzWENf
-36Fih14uzplhwlSwh7a5dDbwDfvT2QUl9VjUrrjLbfDkEoF1/BkDCx5AYboRF4Ug
-DMX+d4J17tj7jcXKA7QqWU5kyo28yDcv9SZZnnW9omY3AT/9n28nrOsU+vOY2tRm
-7imrqZmuWOa5lxQP7PIYBmRlYHAkwiYWaRSaryS/uYjEt7UP6hWeWPA22Y6Qt9Jd
-+jVOVzUPb6mfdGWNhFYe
-=jh8A
------END PGP SIGNATURE-----
-
---=-t9KbM1gr8f/ep2e1fxOW--
-
+diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
+index 8ce3959..9ac003a 100644
+--- a/drivers/mfd/twl-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -115,8 +115,8 @@
+ #define twl_has_watchdog()        false
+ #endif
+ 
+-#if defined(CONFIG_MFD_TWL4030_AUDIO) || defined(CONFIG_MFD_TWL4030_AUDIO_MODULE) ||\
+-	defined(CONFIG_TWL6040_CORE) || defined(CONFIG_TWL6040_CORE_MODULE)
++#if defined(CONFIG_MFD_TWL4030_AUDIO) || \
++	defined(CONFIG_MFD_TWL4030_AUDIO_MODULE)
+ #define twl_has_codec()	true
+ #else
+ #define twl_has_codec()	false
+@@ -146,6 +146,7 @@
+ #define SUB_CHIP_ID1 1
+ #define SUB_CHIP_ID2 2
+ #define SUB_CHIP_ID3 3
++#define SUB_CHIP_ID_INVAL 0xff
+ 
+ #define TWL_MODULE_LAST TWL4030_MODULE_LAST
+ 
+@@ -317,7 +318,7 @@ static struct twl_mapping twl6030_map[] = {
+ 	 * so they continue to match the order in this table.
+ 	 */
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_USB },
+-	{ SUB_CHIP_ID3, TWL6030_BASEADD_AUDIO },
++	{ SUB_CHIP_ID_INVAL, TWL6030_BASEADD_AUDIO },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_DIEID },
+ 	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
+ 	{ SUB_CHIP_ID1, TWL6030_BASEADD_PIH },
+@@ -379,6 +380,11 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+ 		return -EPERM;
+ 	}
+ 	sid = twl_map[mod_no].sid;
++	if (unlikely(sid == SUB_CHIP_ID_INVAL)) {
++		pr_err("%s: module %d is not part of the pmic\n",
++		       DRIVER_NAME, mod_no);
++		return -EINVAL;
++	}
+ 	twl = &twl_modules[sid];
+ 
+ 	mutex_lock(&twl->xfer_lock);
+@@ -436,6 +442,11 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
+ 		return -EPERM;
+ 	}
+ 	sid = twl_map[mod_no].sid;
++	if (unlikely(sid == SUB_CHIP_ID_INVAL)) {
++		pr_err("%s: module %d is not part of the pmic\n",
++		       DRIVER_NAME, mod_no);
++		return -EINVAL;
++	}
+ 	twl = &twl_modules[sid];
+ 
+ 	mutex_lock(&twl->xfer_lock);
+@@ -836,15 +847,6 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+ 			return PTR_ERR(child);
+ 	}
+ 
+-	if (twl_has_codec() && pdata->audio && twl_class_is_6030()) {
+-		sub_chip_id = twl_map[TWL_MODULE_AUDIO_VOICE].sid;
+-		child = add_child(sub_chip_id, "twl6040",
+-				pdata->audio, sizeof(*pdata->audio),
+-				false, 0, 0);
+-		if (IS_ERR(child))
+-			return PTR_ERR(child);
+-	}
+-
+ 	/* twl4030 regulators */
+ 	if (twl_has_regulator() && twl_class_is_4030()) {
+ 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1,
+@@ -1165,18 +1167,21 @@ int twl6030_exit_irq(void);
+ 
+ static int twl_remove(struct i2c_client *client)
+ {
+-	unsigned i;
++	unsigned i, num_slaves;
+ 	int status;
+ 
+-	if (twl_class_is_4030())
++	if (twl_class_is_4030()) {
+ 		status = twl4030_exit_irq();
+-	else
++		num_slaves = TWL_NUM_SLAVES;
++	} else {
+ 		status = twl6030_exit_irq();
++		num_slaves = TWL_NUM_SLAVES - 1;
++	}
+ 
+ 	if (status < 0)
+ 		return status;
+ 
+-	for (i = 0; i < TWL_NUM_SLAVES; i++) {
++	for (i = 0; i < num_slaves; i++) {
+ 		struct twl_client	*twl = &twl_modules[i];
+ 
+ 		if (twl->client && twl->client != client)
+@@ -1192,7 +1197,7 @@ static int __devinit
+ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	int				status;
+-	unsigned			i;
++	unsigned			i, num_slaves;
+ 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
+ 	struct device_node		*node = client->dev.of_node;
+ 	u8 temp;
+@@ -1246,7 +1251,17 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		return -EBUSY;
+ 	}
+ 
+-	for (i = 0; i < TWL_NUM_SLAVES; i++) {
++	if ((id->driver_data) & TWL6030_CLASS) {
++		twl_id = TWL6030_CLASS_ID;
++		twl_map = &twl6030_map[0];
++		num_slaves = TWL_NUM_SLAVES - 1;
++	} else {
++		twl_id = TWL4030_CLASS_ID;
++		twl_map = &twl4030_map[0];
++		num_slaves = TWL_NUM_SLAVES;
++	}
++
++	for (i = 0; i < num_slaves; i++) {
+ 		struct twl_client	*twl = &twl_modules[i];
+ 
+ 		twl->address = client->addr + i;
+@@ -1265,13 +1280,6 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		mutex_init(&twl->xfer_lock);
+ 	}
+ 	inuse = true;
+-	if ((id->driver_data) & TWL6030_CLASS) {
+-		twl_id = TWL6030_CLASS_ID;
+-		twl_map = &twl6030_map[0];
+-	} else {
+-		twl_id = TWL4030_CLASS_ID;
+-		twl_map = &twl4030_map[0];
+-	}
+ 
+ 	/* setup clock framework */
+ 	clocks_init(&client->dev, pdata->clock);
+-- 
+1.7.8.4
