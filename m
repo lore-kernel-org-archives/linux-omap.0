@@ -1,125 +1,95 @@
 From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: [PATCH v2 05/10] ARM: OMAP: Do not register omap-mcbsp-dai device
-Date: Tue, 28 Feb 2012 09:40:15 +0200
-Message-ID: <1330414820-4641-6-git-send-email-peter.ujfalusi@ti.com>
+Subject: [PATCH v2 01/10] ARM: OMAP: mcbsp: Convert core driver to proper platform driver
+Date: Tue, 28 Feb 2012 09:40:11 +0200
+Message-ID: <1330414820-4641-2-git-send-email-peter.ujfalusi@ti.com>
 References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:46444 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756490Ab2B1Hkq (ORCPT
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:57876 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754213Ab2B1Hkf (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Feb 2012 02:40:46 -0500
-Received: by laap9 with SMTP id p9so3833341laa.24
-        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 23:40:43 -0800 (PST)
+	Tue, 28 Feb 2012 02:40:35 -0500
+Received: by mail-lpp01m010-f44.google.com with SMTP id j5so2730978lag.3
+        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 23:40:34 -0800 (PST)
 In-Reply-To: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>
 
-The driver for omap-mcbsp-dai no longer exist since it has been merged with
-the omap-mcbsp driver.
+Convert the plat-omap/mcbsp.c driver to be proper platform driver.
+Remove the omap_mcbsp_init function call which was called from
+mach-omap1/2/mcbsp.c to register the platform driver for the just
+created platform device in the same function.
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Grazvydas Ignotas <notasas@gmail.com>
 Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 ---
- arch/arm/mach-omap1/devices.c           |    9 ---------
- arch/arm/mach-omap2/devices.c           |   22 ----------------------
- arch/arm/plat-omap/include/plat/mcbsp.h |    7 -------
- 3 files changed, 0 insertions(+), 38 deletions(-)
+ arch/arm/mach-omap1/mcbsp.c             |    2 +-
+ arch/arm/mach-omap2/mcbsp.c             |    2 +-
+ arch/arm/plat-omap/include/plat/mcbsp.h |    1 -
+ arch/arm/plat-omap/mcbsp.c              |   11 ++++++-----
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 1d76a63..187b2fe 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -28,7 +28,6 @@
- #include <plat/mux.h>
- #include <plat/mmc.h>
- #include <plat/omap7xx.h>
--#include <plat/mcbsp.h>
+diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+index 91f9abb..fe11e13 100644
+--- a/arch/arm/mach-omap1/mcbsp.c
++++ b/arch/arm/mach-omap1/mcbsp.c
+@@ -449,7 +449,7 @@ static int __init omap1_mcbsp_init(void)
+ 					omap16xx_mcbsp_pdata,
+ 					OMAP16XX_MCBSP_COUNT);
  
- #include "clock.h"
- 
-@@ -250,16 +249,8 @@ static struct platform_device omap_pcm = {
- 	.id	= -1,
- };
- 
--OMAP_MCBSP_PLATFORM_DEVICE(1);
--OMAP_MCBSP_PLATFORM_DEVICE(2);
--OMAP_MCBSP_PLATFORM_DEVICE(3);
--
- static void omap_init_audio(void)
- {
--	platform_device_register(&omap_mcbsp1);
--	platform_device_register(&omap_mcbsp2);
--	if (!cpu_is_omap7xx())
--		platform_device_register(&omap_mcbsp3);
- 	platform_device_register(&omap_pcm);
+-	return omap_mcbsp_init();
++	return 0;
  }
  
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 283d11e..e9fae65 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -26,7 +26,6 @@
+ arch_initcall(omap1_mcbsp_init);
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index fb4bcf8..b36d443 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -193,6 +193,6 @@ static int __init omap2_mcbsp_init(void)
+ 	if (!mcbsp_ptr)
+ 		return -ENOMEM;
  
- #include <plat/tc.h>
- #include <plat/board.h>
--#include <plat/mcbsp.h>
- #include <plat/mmc.h>
- #include <plat/dma.h>
- #include <plat/omap_hwmod.h>
-@@ -304,29 +303,8 @@ static struct platform_device omap_pcm = {
- 	.id	= -1,
- };
- 
--/*
-- * OMAP2420 has 2 McBSP ports
-- * OMAP2430 has 5 McBSP ports
-- * OMAP3 has 5 McBSP ports
-- * OMAP4 has 4 McBSP ports
-- */
--OMAP_MCBSP_PLATFORM_DEVICE(1);
--OMAP_MCBSP_PLATFORM_DEVICE(2);
--OMAP_MCBSP_PLATFORM_DEVICE(3);
--OMAP_MCBSP_PLATFORM_DEVICE(4);
--OMAP_MCBSP_PLATFORM_DEVICE(5);
--
- static void omap_init_audio(void)
- {
--	platform_device_register(&omap_mcbsp1);
--	platform_device_register(&omap_mcbsp2);
--	if (cpu_is_omap243x() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
--		platform_device_register(&omap_mcbsp3);
--		platform_device_register(&omap_mcbsp4);
--	}
--	if (cpu_is_omap243x() || cpu_is_omap34xx())
--		platform_device_register(&omap_mcbsp5);
--
- 	platform_device_register(&omap_pcm);
+-	return omap_mcbsp_init();
++	return 0;
  }
- 
+ arch_initcall(omap2_mcbsp_init);
 diff --git a/arch/arm/plat-omap/include/plat/mcbsp.h b/arch/arm/plat-omap/include/plat/mcbsp.h
-index 437e375..8eb9b0e 100644
+index 8fa74e2..7e4f893 100644
 --- a/arch/arm/plat-omap/include/plat/mcbsp.h
 +++ b/arch/arm/plat-omap/include/plat/mcbsp.h
-@@ -27,13 +27,6 @@
- #include <linux/spinlock.h>
- #include <linux/clk.h>
+@@ -360,7 +360,6 @@ struct omap_mcbsp_dev_attr {
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count;
  
--/* macro for building platform_device for McBSP ports */
--#define OMAP_MCBSP_PLATFORM_DEVICE(port_nr)		\
--static struct platform_device omap_mcbsp##port_nr = {	\
--	.name	= "omap-mcbsp-dai",			\
--	.id	= port_nr - 1,			\
+-int omap_mcbsp_init(void);
+ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
+ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
+ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 4b15cd7..3c704f3 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1354,8 +1354,9 @@ static struct platform_driver omap_mcbsp_driver = {
+ 	},
+ };
+ 
+-int __init omap_mcbsp_init(void)
+-{
+-	/* Register the McBSP driver */
+-	return platform_driver_register(&omap_mcbsp_driver);
 -}
--
- #define MCBSP_CONFIG_TYPE2	0x2
- #define MCBSP_CONFIG_TYPE3	0x3
- #define MCBSP_CONFIG_TYPE4	0x4
++module_platform_driver(omap_mcbsp_driver);
++
++MODULE_AUTHOR("Samuel Ortiz <samuel.ortiz@nokia.com>");
++MODULE_DESCRIPTION("OMAP McBSP core driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-mcbsp");
 -- 
 1.7.8.4
 
