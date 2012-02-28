@@ -1,90 +1,141 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 6/9] ARM: OMAP4: hwmod data: remove bandgap hwmod
-Date: Tue, 28 Feb 2012 04:10:55 -0700
-Message-ID: <20120228111054.808.24406.stgit@dusk>
-References: <20120228110943.808.73639.stgit@dusk>
+From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
+Subject: Re: [PATCH 3/6] gpio/omap: remove suspend_wakeup field from struct gpio_bank
+Date: Tue, 28 Feb 2012 16:45:21 +0530
+Message-ID: <CAC83Zv+fiObi8n4OEBeeuP-iPVasipe0N9yNSn-yZXtv5FMgaQ@mail.gmail.com>
+References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
+	<1329999031-6914-4-git-send-email-tarun.kanti@ti.com>
+	<87ty2bu91e.fsf@ti.com>
+	<CAC83ZvJ97uRSLU-JmO2mnaOuziU=SotghASSJjPvESWL+eATuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35180 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965183Ab2B1LLf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 06:11:35 -0500
-In-Reply-To: <20120228110943.808.73639.stgit@dusk>
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:33705 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751448Ab2B1LPW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Feb 2012 06:15:22 -0500
+Received: by mail-qy0-f182.google.com with SMTP id g15so1772727qcs.27
+        for <linux-omap@vger.kernel.org>; Tue, 28 Feb 2012 03:15:21 -0800 (PST)
+In-Reply-To: <CAC83ZvJ97uRSLU-JmO2mnaOuziU=SotghASSJjPvESWL+eATuQ@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
+To: Kevin Hilman <khilman@ti.com>
+Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Commit 407a6888f7362cb3dabe69ea6d9dcf3c750dc56a ("OMAP4: hwmod data:
-Add AESS, McPDM, bandgap, counter_32k, MMC, KBD, ISS & IPU") adds a
-hwmod for the bandgap die temperature sensor IP block.  This IP block
-has no interconnect port or firewall region, nor does it have an
-independent register space or OCP control registers.  Its registers
-are embedded in the System Control Module (SCM) IP block.  So it
-appears that the bandgap device should be created by the SCM driver.
+On Tue, Feb 28, 2012 at 3:09 PM, DebBarma, Tarun Kanti
+<tarun.kanti@ti.com> wrote:
+> On Tue, Feb 28, 2012 at 5:24 AM, Kevin Hilman <khilman@ti.com> wrote:
+>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
+>>
+>>> Since we already have bank->context.wake_en to keep track
+>>> of gpios which are wakeup enabled, there is no need to have
+>>> this field any more.
+>>>
+>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+>>
+>> I'm not crazy about this change...
+>>
+>>> ---
+>>> =A0drivers/gpio/gpio-omap.c | =A0 11 +++++------
+>>> =A01 files changed, 5 insertions(+), 6 deletions(-)
+>>>
+>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
+>>> index 64f15d5..b62e861 100644
+>>> --- a/drivers/gpio/gpio-omap.c
+>>> +++ b/drivers/gpio/gpio-omap.c
+>>> @@ -53,7 +53,6 @@ struct gpio_bank {
+>>> =A0 =A0 =A0 void __iomem *base;
+>>> =A0 =A0 =A0 u16 irq;
+>>> =A0 =A0 =A0 u16 virtual_irq_start;
+>>> - =A0 =A0 u32 suspend_wakeup;
+>>> =A0 =A0 =A0 u32 non_wakeup_gpios;
+>>> =A0 =A0 =A0 u32 enabled_non_wakeup_gpios;
+>>> =A0 =A0 =A0 struct gpio_regs context;
+>>> @@ -497,9 +496,9 @@ static int _set_gpio_wakeup(struct gpio_bank *b=
+ank, int gpio, int enable)
+>>>
+>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
+>>> =A0 =A0 =A0 if (enable)
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup |=3D gpio_bit;
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en |=3D gpio_bit;
+>>> =A0 =A0 =A0 else
+>>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup &=3D ~gpio_bit;
+>>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en &=3D ~gpio_bit;
+>>
+>> The bank->context values are expected to be copies of the actual
+>> register contents, and here that is clearly not the case.
+> Right, it should have been this:
+>
+> =A0 =A0 =A0 =A0if (enable)
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup |=3D gpio_bit;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en |=3D gpio_bit;
+> =A0 =A0 =A0 =A0else
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup &=3D ~gpio_bit;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en &=3D ~gpio_bit;
+> +
+> + =A0 =A0 =A0 __raw_writel(bank->context.wake_en, bank->base + bank->=
+regs->wkup_en);
+>
+>>
+>> With this change, you're using the context register to track changes
+>> that you *might* eventually write to the register.
+> The above change ensures that bank->context.wake_en reflects the
+> latest register value.
+> There are two distinct paths through which bank->context.wake_en is
+> updated now, viz:
+> Path1:-
+> chip.irq_set_type() --> gpio_irq_type() --> _set_gpio_triggering() --=
+>
+> set_gpio_trigger()
+>
+> Path2:-
+> chip.irq_set_wake() --> gpio_wake_enable() --> irq_set_wake()
+Sorry, it should have been:
+chip.irq_set_wake() --> gpio_wake_enable() --> _set_gpio_wakeup()
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   30 --------------------=
---------
- 1 files changed, 0 insertions(+), 30 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
--omap2/omap_hwmod_44xx_data.c
-index 264c988..8dfed19 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -824,33 +824,6 @@ static struct omap_hwmod omap44xx_aess_hwmod =3D {
- };
-=20
- /*
-- * 'bandgap' class
-- * bangap reference for ldo regulators
-- */
--
--static struct omap_hwmod_class omap44xx_bandgap_hwmod_class =3D {
--	.name	=3D "bandgap",
--};
--
--/* bandgap */
--static struct omap_hwmod_opt_clk bandgap_opt_clks[] =3D {
--	{ .role =3D "fclk", .clk =3D "bandgap_fclk" },
--};
--
--static struct omap_hwmod omap44xx_bandgap_hwmod =3D {
--	.name		=3D "bandgap",
--	.class		=3D &omap44xx_bandgap_hwmod_class,
--	.clkdm_name	=3D "l4_wkup_clkdm",
--	.prcm =3D {
--		.omap4 =3D {
--			.clkctrl_offs =3D OMAP4_CM_WKUP_BANDGAP_CLKCTRL_OFFSET,
--		},
--	},
--	.opt_clks	=3D bandgap_opt_clks,
--	.opt_clks_cnt	=3D ARRAY_SIZE(bandgap_opt_clks),
--};
--
--/*
-  * 'counter' class
-  * 32-bit ordinary counter, clocked by the falling edge of the 32 khz =
-clock
-  */
-@@ -5436,9 +5409,6 @@ static __initdata struct omap_hwmod *omap44xx_hwm=
-ods[] =3D {
- 	/* aess class */
- /*	&omap44xx_aess_hwmod, */
-=20
--	/* bandgap class */
--	&omap44xx_bandgap_hwmod,
--
- 	/* counter class */
- /*	&omap44xx_counter_32k_hwmod, */
-=20
-
-
+>
+>>
+>> IMO, this is more confusing than having a separate field to track th=
+is.
+> So, there is no need have a separate field to keep track of this.
+> I hope my understanding is right.
+> --
+> Tarun
+>
+>>
+>> Kevin
+>>
+>>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
+>>>
+>>> @@ -772,7 +771,7 @@ static int omap_mpuio_suspend_noirq(struct devi=
+ce *dev)
+>>>
+>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
+>>> =A0 =A0 =A0 bank->context.wake_en =3D __raw_readl(mask_reg);
+>>> - =A0 =A0 __raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
+>>> + =A0 =A0 __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
+>>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
+>>>
+>>> =A0 =A0 =A0 return 0;
+>>> @@ -1137,12 +1136,12 @@ static int omap_gpio_suspend(struct device =
+*dev)
+>>> =A0 =A0 =A0 if (!bank->mod_usage || !bank->loses_context)
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>>>
+>>> - =A0 =A0 if (!bank->regs->wkup_en || !bank->suspend_wakeup)
+>>> + =A0 =A0 if (!bank->regs->wkup_en || !bank->context.wake_en)
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
+>>>
+>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
+>>> =A0 =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
+>>> - =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup=
+, 1);
+>>> + =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_e=
+n, 1);
+>>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
+>>>
+>>> =A0 =A0 =A0 return 0;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
