@@ -1,65 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP: Fix section mismatch warning for
- platform_cpu_die()
-Date: Tue, 28 Feb 2012 14:34:48 -0800
-Message-ID: <20120228223447.GE18901@atomide.com>
-References: <1329980310-9007-1-git-send-email-santosh.shilimkar@ti.com>
- <1329980310-9007-3-git-send-email-santosh.shilimkar@ti.com>
- <20120223074504.GZ14173@pengutronix.de>
- <CAMQu2gxLJOY8HzMO71dHTr8VfQ+G=KJP+wv5SwvrktTi7b82+A@mail.gmail.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH 01/14] ARM: OMAP3+: SmartReflex: Layer Cleanup [V4]
+Date: Tue, 28 Feb 2012 14:37:04 -0800
+Message-ID: <87ipiqk2jz.fsf@ti.com>
+References: <1328723039-15952-1-git-send-email-j-pihet@ti.com>
+	<1328723039-15952-2-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65235 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965320Ab2B1Wex (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 17:34:53 -0500
-Content-Disposition: inline
-In-Reply-To: <CAMQu2gxLJOY8HzMO71dHTr8VfQ+G=KJP+wv5SwvrktTi7b82+A@mail.gmail.com>
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:58201 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756205Ab2B1WhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Feb 2012 17:37:09 -0500
+Received: by mail-pw0-f53.google.com with SMTP id jt11so1386458pbb.40
+        for <linux-omap@vger.kernel.org>; Tue, 28 Feb 2012 14:37:08 -0800 (PST)
+In-Reply-To: <1328723039-15952-2-git-send-email-j-pihet@ti.com> (Jean Pihet's
+	message of "Wed, 8 Feb 2012 18:43:46 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, nm@ti.com, Shweta Gulati <shweta.gulati@ti.com>, Benoit Cousson <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, Jean Pihet <j-pihet@ti.com>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [120223 00:09]:
-> 2012/2/23 Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>:
-> > Hello,
-> >
-> > On Thu, Feb 23, 2012 at 12:28:30PM +0530, Santosh Shilimkar wrote:
-> >> WARNING: vmlinux.o(.text+0x226d0):
-> >> Section mismatch in reference from the function
-> >> platform_cpu_die() to the function .cpuinit.text:omap4_hotplug_cpu=
-()
-> >> The function platform_cpu_die() references
-> >> the function __cpuinit omap4_hotplug_cpu().
-> >> This is often because platform_cpu_die lacks a __cpuinit
-> >> annotation or the annotation of omap4_hotplug_cpu is wrong.
-> >>
-> >> Thanks to Russell King for suggesting __ref annotation trick
-> >> just like it's parent function for this warning becasue __cupinit
-> > s/it's/its/; s/becasue/because/; s/cup/cpu/
-> >
-> > Having said that I think the grammar is broken, too. Maybe:
-> >
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0Thanks to Russell King for suggesting to=
- use __ref instead of
-> > =C2=A0 =C2=A0 =C2=A0 =C2=A0the initial (and wrong) approach to use =
-__cpuinit.
-> >
-> > (But note I'm not a native speaker, too)
-> >
-> Thanks for fixing the grammar. :)
-> Updated patch below with comments corrected as per
-> your suggestion.
+Jean Pihet <jean.pihet@newoldbits.com> writes:
 
-Thanks applying both into fixes-non-critical.
+> From: Shweta Gulati <shweta.gulati@ti.com>
+>
+> To set sr ntarget values for all volt_domain,
+> volt_table is retrieved by doing a look_up of 'vdd_name'
+> field from omap_hwmod but voltage domain pointer does not
+> belong to omap_hwmod and is not used anywhere else.
+> As a part of voltage layer and SR Layer clean up volt
+> pointer is removed from omap_hwmod and added in dev
+> attributes of SR.
+>
+> Tested on OMAP3630 SDP and OMAP4430 SDP Board
+>
+> [nm@ti.com: minor modifications in sequence and GPU support]
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+> Acked by: Nishanth Menon <nm@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Signed-off-by: Jean Pihet <j-pihet@ti.com>
 
-Regards,
+Patch contents look fine, but his one needs a better subject.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
