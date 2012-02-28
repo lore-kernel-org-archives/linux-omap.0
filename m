@@ -1,22 +1,26 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 2/5] remoteproc/omap: two Kconfig fixes
-Date: Tue, 28 Feb 2012 19:21:09 +0200
-Message-ID: <1330449672-18191-4-git-send-email-ohad@wizery.com>
+Subject: [PATCH 3/5] rpmsg: fix name service endpoint leak
+Date: Tue, 28 Feb 2012 19:21:10 +0200
+Message-ID: <1330449672-18191-5-git-send-email-ohad@wizery.com>
 References: <1330449672-18191-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1330449672-18191-1-git-send-email-ohad@wizery.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Mark Grosen <mgrosen@ti.com>, Suman Anna <s-anna@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Rob Clark <rob@ti.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Mark Grosen <mgrosen@ti.com>, Suman Anna <s-anna@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Rob Clark <rob@ti.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-1. Depend on OMAP_IOMMU instead of selecting it, to fix an unmet
-   direct dependency of it (and its imminent build error)
-2. Set default to 'no' (achieved implicitly by dropping the 'default'
-   line)
+The name service endpoint wasn't destroyed, so fix it.
 
-Reported-by: Russell King <linux@arm.linux.org.uk>
+This is achieved by introducing an internal __rpmsg_destroy_ept
+function which doesn't assume the given ept is bound to an rpmsg
+channel (much like the existing __rpmsg_create_ept).
+
+This is needed because the name service ept belongs to the rpmsg bus,
+and is never bound with a specific rpdev.
+
+Reported-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -26,28 +30,67 @@ Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
 Cc: Rob Clark <rob@ti.com>
 Cc: Ludovic BARRE <ludovic.barre@stericsson.com>
 Cc: Loic PALLARDY <loic.pallardy@stericsson.com>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>
-Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/remoteproc/Kconfig |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ drivers/rpmsg/virtio_rpmsg_bus.c |   29 +++++++++++++++++++++++------
+ 1 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/remoteproc/Kconfig b/drivers/remoteproc/Kconfig
-index 25fc4cc..24d880e 100644
---- a/drivers/remoteproc/Kconfig
-+++ b/drivers/remoteproc/Kconfig
-@@ -8,11 +8,10 @@ config REMOTEPROC
- config OMAP_REMOTEPROC
- 	tristate "OMAP remoteproc support"
- 	depends on ARCH_OMAP4
--	select OMAP_IOMMU
-+	depends on OMAP_IOMMU
- 	select REMOTEPROC
- 	select OMAP_MBOX_FWK
- 	select RPMSG
--	default m
- 	help
- 	  Say y here to support OMAP's remote processors (dual M3
- 	  and DSP on OMAP4) via the remote processor framework.
+diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
+index 8980ac2..4db9cf8 100644
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c
++++ b/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -290,22 +290,36 @@ struct rpmsg_endpoint *rpmsg_create_ept(struct rpmsg_channel *rpdev,
+ EXPORT_SYMBOL(rpmsg_create_ept);
+ 
+ /**
+- * rpmsg_destroy_ept() - destroy an existing rpmsg endpoint
++ * __rpmsg_destroy_ept() - destroy an existing rpmsg endpoint
++ * @vrp: virtproc which owns this ept
+  * @ept: endpoing to destroy
+  *
+- * Should be used by drivers to destroy an rpmsg endpoint previously
+- * created with rpmsg_create_ept().
++ * An internal function which destroy an ept without assuming it is
++ * bound to an rpmsg channel. This is needed for handling the internal
++ * name service endpoint, which isn't bound to an rpmsg channel.
++ * See also __rpmsg_create_ept().
+  */
+-void rpmsg_destroy_ept(struct rpmsg_endpoint *ept)
++static void
++__rpmsg_destroy_ept(struct virtproc_info *vrp, struct rpmsg_endpoint *ept)
+ {
+-	struct virtproc_info *vrp = ept->rpdev->vrp;
+-
+ 	mutex_lock(&vrp->endpoints_lock);
+ 	idr_remove(&vrp->endpoints, ept->addr);
+ 	mutex_unlock(&vrp->endpoints_lock);
+ 
+ 	kfree(ept);
+ }
++
++/**
++ * rpmsg_destroy_ept() - destroy an existing rpmsg endpoint
++ * @ept: endpoing to destroy
++ *
++ * Should be used by drivers to destroy an rpmsg endpoint previously
++ * created with rpmsg_create_ept().
++ */
++void rpmsg_destroy_ept(struct rpmsg_endpoint *ept)
++{
++	__rpmsg_destroy_ept(ept->rpdev->vrp, ept);
++}
+ EXPORT_SYMBOL(rpmsg_destroy_ept);
+ 
+ /*
+@@ -964,6 +978,9 @@ static void __devexit rpmsg_remove(struct virtio_device *vdev)
+ 	if (ret)
+ 		dev_warn(&vdev->dev, "can't remove rpmsg device: %d\n", ret);
+ 
++	if (vrp->ns_ept)
++		__rpmsg_destroy_ept(vrp, vrp->ns_ept);
++
+ 	idr_remove_all(&vrp->endpoints);
+ 	idr_destroy(&vrp->endpoints);
+ 
 -- 
 1.7.5.4
