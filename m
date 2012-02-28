@@ -1,70 +1,57 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP4: suspend: Do not get dsp/tesla out of
- reset
-Date: Tue, 28 Feb 2012 11:04:51 +0530
-Message-ID: <4F4C677B.4020501@ti.com>
-References: <1330003320-17400-1-git-send-email-t-kristo@ti.com>	<1330003320-17400-6-git-send-email-t-kristo@ti.com> <87ehtfssx7.fsf@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH v2 0/8] ARM: OMAP2+: hwmod/timer: first set of cleanups for 3.4
+Date: Mon, 27 Feb 2012 22:36:43 -0700
+Message-ID: <20120228053524.16278.59430.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:43195 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752033Ab2B1Fe5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Feb 2012 00:34:57 -0500
-Received: by mail-yw0-f45.google.com with SMTP id o21so935945yho.32
-        for <linux-omap@vger.kernel.org>; Mon, 27 Feb 2012 21:34:56 -0800 (PST)
-In-Reply-To: <87ehtfssx7.fsf@ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58081 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab2B1Fhp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 00:37:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: Tero Kristo <t-kristo@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Kevin,
+Hi
 
-On Tuesday 28 February 2012 05:58 AM, Kevin Hilman wrote:
-> Tero Kristo<t-kristo@ti.com>  writes:
->
->> From: Rajendra Nayak<rnayak@ti.com>
->>
->> With no driver handling DSP/TESLA, if brought out of reset, it stays
->> active and does not assert standby.
->>
->> Signed-off-by: Rajendra Nayak<rnayak@ti.com>
->> Signed-off-by: Tero Kristo<t-kristo@ti.com>
->
-> Subject says 'OMAP4: suspend'.  How does HWMOD_INIT_NO_RESET affect
-> suspend?
+This series does some cleanup and documentation on the OMAP hwmod code
+(and a bit of the OMAP4 data) and timer code. It is the first
+prerequisite series to removing a big chunk of hwmod data -- that
+will be done in a later series.  This second version reimplements
+the hardreset code in a way that will hopefully fix some of the
+issues that Kevin was seeing.
 
-The v2 of this patch posted by Tero has a better $subject as suggested
-by Benoit which says 'ARM: OMAP4: hwmod_data: Do not get DSP out of
-reset at boot time'
+Boot-tested on an OMAP35xx BeagleBoard and OMAP44xx ES2 Pandaboard.
 
-The intention of this patch is to *not* get DSP out of reset at boot,
-because once out of reset DSP needs some code that executes a 'wfi'
-equivalent for it to assert a standby and allow suspend to sleep.
+This series is also available via git from git://git.pwsan.com/linux-2.6 in
+the branch "hwmod_code_cleanup_3.4".
 
-regards,
-Rajendra
 
->
-> Kevin
->
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |    1 +
->>   1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> index ef0524c..81d90da 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -1160,6 +1160,7 @@ static struct omap_hwmod omap44xx_dsp_hwmod = {
->>   	.name		= "dsp",
->>   	.class		=&omap44xx_dsp_hwmod_class,
->>   	.clkdm_name	= "tesla_clkdm",
->> +	.flags		= HWMOD_INIT_NO_RESET,
->>   	.mpu_irqs	= omap44xx_dsp_irqs,
->>   	.rst_lines	= omap44xx_dsp_resets,
->>   	.rst_lines_cnt	= ARRAY_SIZE(omap44xx_dsp_resets),
+- Paul
+
+---
+
+hwmod_code_cleanup_3.4
+   text	   data	    bss	    dec	    hex	filename
+6600418	 680476	5593820	12874714	 c473da	vmlinux.omap2plus_defconfig.orig
+6600374	 679788	5593820	12873982	 c470fe	vmlinux.omap2plus_defconfig
+
+Paul Walmsley (8):
+      ARM: OMAP2+: hwmod: control all hardreset lines attached to a hwmod
+      ARM: OMAP4: hwmod data: remove pseudo-hwmods associated with hardreset lines
+      ARM: OMAP2+: hwmod: reorganize and document the setup process
+      ARM: OMAP2+: hwmod: revise hardreset behavior
+      ARM: OMAP2+: hwmod: ensure that SYSCONFIG bits are reprogrammed after a reset
+      ARM: OMAP2+: hwmod: provide a function to return the address space of the MPU RT
+      ARM: OMAP2+: hwmod: add omap_hwmod_get_resource_byname()
+      ARM: OMAP2+: timer: use a proper interface to get hwmod data
+
+
+ arch/arm/mach-omap2/omap_hwmod.c             |  671 +++++++++++++++++++-------
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |  101 ----
+ arch/arm/mach-omap2/timer.c                  |   15 -
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    2 
+ 4 files changed, 520 insertions(+), 269 deletions(-)
 
