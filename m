@@ -1,38 +1,30 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] tty: serial: OMAP: block idle while the UART is
- transferring data in PIO mode
-Date: Tue, 28 Feb 2012 10:13:43 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.1202281012130.11716@utopia.booyaka.com>
-References: <20120126024903.31613.24730.stgit@dusk> <20120126025036.31613.67819.stgit@dusk> <4F423E28.3040404@ti.com> <alpine.DEB.2.00.1202211456160.25023@utopia.booyaka.com> <4F47A040.6030502@ti.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Subject: [PATCH 0/5] trivial remoteproc/rpmsg fixes
+Date: Tue, 28 Feb 2012 19:21:06 +0200
+Message-ID: <1330449672-18191-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <4F47A040.6030502@ti.com>
-Content-ID: <alpine.DEB.2.00.1202281012401.11716@utopia.booyaka.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Alan Cox <alan@linux.intel.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+Five remoteproc/rpmsg fixes.
 
-On Fri, 24 Feb 2012, Cousson, Benoit wrote:
+One was reported by Russell (the Kconfig fixes) and one by Omar (the endpoint
+leak).
 
-> On 2/21/2012 11:02 PM, Paul Walmsley wrote:
->
-> > Looks fine to me, although I'd suggest fixing the DMA workaround path as
-> > well.
-> 
-> Mmm, I've tried to fix every instances of pdata in the code, you think I
-> missed some?
-> 
-> I'll check again.
-> 
-> > Reviewed-by: Paul Walmsley<paul@pwsan.com>
+Ohad Ben-Cohen (5):
+  remoteproc: make sure we're parsing a 32bit firmware
+  remoteproc/omap: two Kconfig fixes
+  rpmsg: fix name service endpoint leak
+  rpmsg: validate incoming message length before propagating
+  rpmsg: fix published buffer length in rpmsg_recv_done
 
-I just doublechecked the code paths and looks like you covered them all.  
-Sorry about the confusion.
+ drivers/remoteproc/Kconfig           |    3 +-
+ drivers/remoteproc/remoteproc_core.c |    8 ++++++
+ drivers/rpmsg/virtio_rpmsg_bus.c     |   42 ++++++++++++++++++++++++++++-----
+ 3 files changed, 44 insertions(+), 9 deletions(-)
 
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
-
-- Paul
+-- 
+1.7.5.4
