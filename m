@@ -1,135 +1,69 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 1/9] ARM: OMAP2/3: hwmod data: update old names
-Date: Tue, 28 Feb 2012 04:10:51 -0700
-Message-ID: <20120228111048.808.23906.stgit@dusk>
+Subject: [PATCH 7/9] ARM: OMAP4: hwmod data: add OCP_USER_DSP;
+ mark omap44xx_dsp__iva appropriately
+Date: Tue, 28 Feb 2012 04:10:56 -0700
+Message-ID: <20120228111055.808.79928.stgit@dusk>
 References: <20120228110943.808.73639.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35169 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:35184 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965132Ab2B1LLd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 06:11:33 -0500
+	with ESMTP id S965165Ab2B1LLf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 06:11:35 -0500
 In-Reply-To: <20120228110943.808.73639.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Some of the 2xxx and 3xxx hwmod data files use the old naming style
-for hwmods, ending in a "_hwmod".  These names are used by the OMAP
-integration code to map hwmods to platform_devices, so they need to be
-consistent, or the platform_devices won't be created.  Remove the
-_hwmod suffix to conform with the rest of the OMAP SoC data.
+One of the OMAP4 links was missing OCP_USER flags, since it was only
+used by the DSP initiator, and we did not have an OCP_USER_DSP flag.
+=46uture patches will switch the hwmod code and data to register
+interfaces, rather than hwmods, and it will be mandatory for all
+interfaces to have at least one user bit set.  This patch resolves the
+issue by adding OCP_USER_DSP and marking the DSP-IVA interface
+appropriately.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_2420_data.c |    4 ++--
- arch/arm/mach-omap2/omap_hwmod_2430_data.c |    6 +++---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   10 +++++-----
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c   |    1 +
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420_data.c b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-index a5409ce..02a8b39 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420_data.c
-@@ -1376,7 +1376,7 @@ static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr = {
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach=
+-omap2/omap_hwmod_44xx_data.c
+index 8dfed19..f3fd64d 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -1089,6 +1089,7 @@ static struct omap_hwmod_ocp_if omap44xx_dsp__iva=
+ =3D {
+ 	.master		=3D &omap44xx_dsp_hwmod,
+ 	.slave		=3D &omap44xx_iva_hwmod,
+ 	.clk		=3D "dpll_iva_m5x2_ck",
++	.user		=3D OCP_USER_DSP,
  };
- 
- static struct omap_hwmod omap2420_mcspi1_hwmod = {
--	.name		= "mcspi1_hwmod",
-+	.name		= "mcspi1",
- 	.mpu_irqs	= omap2_mcspi1_mpu_irqs,
- 	.sdma_reqs	= omap2_mcspi1_sdma_reqs,
- 	.main_clk	= "mcspi1_fck",
-@@ -1405,7 +1405,7 @@ static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr = {
- };
- 
- static struct omap_hwmod omap2420_mcspi2_hwmod = {
--	.name		= "mcspi2_hwmod",
-+	.name		= "mcspi2",
- 	.mpu_irqs	= omap2_mcspi2_mpu_irqs,
- 	.sdma_reqs	= omap2_mcspi2_sdma_reqs,
- 	.main_clk	= "mcspi2_fck",
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430_data.c b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-index c4f56cb..e260ad7 100644
---- a/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430_data.c
-@@ -1481,7 +1481,7 @@ static struct omap2_mcspi_dev_attr omap_mcspi1_dev_attr = {
- };
- 
- static struct omap_hwmod omap2430_mcspi1_hwmod = {
--	.name		= "mcspi1_hwmod",
-+	.name		= "mcspi1",
- 	.mpu_irqs	= omap2_mcspi1_mpu_irqs,
- 	.sdma_reqs	= omap2_mcspi1_sdma_reqs,
- 	.main_clk	= "mcspi1_fck",
-@@ -1510,7 +1510,7 @@ static struct omap2_mcspi_dev_attr omap_mcspi2_dev_attr = {
- };
- 
- static struct omap_hwmod omap2430_mcspi2_hwmod = {
--	.name		= "mcspi2_hwmod",
-+	.name		= "mcspi2",
- 	.mpu_irqs	= omap2_mcspi2_mpu_irqs,
- 	.sdma_reqs	= omap2_mcspi2_sdma_reqs,
- 	.main_clk	= "mcspi2_fck",
-@@ -1552,7 +1552,7 @@ static struct omap2_mcspi_dev_attr omap_mcspi3_dev_attr = {
- };
- 
- static struct omap_hwmod omap2430_mcspi3_hwmod = {
--	.name		= "mcspi3_hwmod",
-+	.name		= "mcspi3",
- 	.mpu_irqs	= omap2430_mcspi3_mpu_irqs,
- 	.sdma_reqs	= omap2430_mcspi3_sdma_reqs,
- 	.main_clk	= "mcspi3_fck",
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 3c8dd92..536d0c6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -1087,7 +1087,7 @@ static struct omap_hwmod omap3xxx_timer11_hwmod = {
- 	.class		= &omap3xxx_timer_hwmod_class,
- };
- 
--/* timer12*/
-+/* timer12 */
- static struct omap_hwmod omap3xxx_timer12_hwmod;
- static struct omap_hwmod_irq_info omap3xxx_timer12_mpu_irqs[] = {
- 	{ .irq = 95, },
-@@ -2669,7 +2669,7 @@ static struct omap_hwmod_ocp_if *omap3_sr1_slaves[] = {
- };
- 
- static struct omap_hwmod omap34xx_sr1_hwmod = {
--	.name		= "sr1_hwmod",
-+	.name		= "sr1",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.vdd_name	= "mpu_iva",
-@@ -2688,7 +2688,7 @@ static struct omap_hwmod omap34xx_sr1_hwmod = {
- };
- 
- static struct omap_hwmod omap36xx_sr1_hwmod = {
--	.name		= "sr1_hwmod",
-+	.name		= "sr1",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr1_fck",
- 	.vdd_name	= "mpu_iva",
-@@ -2711,7 +2711,7 @@ static struct omap_hwmod_ocp_if *omap3_sr2_slaves[] = {
- };
- 
- static struct omap_hwmod omap34xx_sr2_hwmod = {
--	.name		= "sr2_hwmod",
-+	.name		= "sr2",
- 	.class		= &omap34xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.vdd_name	= "core",
-@@ -2730,7 +2730,7 @@ static struct omap_hwmod omap34xx_sr2_hwmod = {
- };
- 
- static struct omap_hwmod omap36xx_sr2_hwmod = {
--	.name		= "sr2_hwmod",
-+	.name		= "sr2",
- 	.class		= &omap36xx_smartreflex_hwmod_class,
- 	.main_clk	= "sr2_fck",
- 	.vdd_name	= "core",
+=20
+ /* dsp master ports */
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index 8814365..f0a0711 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -213,6 +213,7 @@ struct omap_hwmod_addr_space {
+  */
+ #define OCP_USER_MPU			(1 << 0)
+ #define OCP_USER_SDMA			(1 << 1)
++#define OCP_USER_DSP			(1 << 2)
+=20
+ /* omap_hwmod_ocp_if.flags bits */
+ #define OCPIF_SWSUP_IDLE		(1 << 0)
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
