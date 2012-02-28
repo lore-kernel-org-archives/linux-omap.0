@@ -1,54 +1,63 @@
-From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 4/5] rpmsg: validate incoming message length before propagating
-Date: Tue, 28 Feb 2012 19:21:11 +0200
-Message-ID: <1330449672-18191-6-git-send-email-ohad@wizery.com>
-References: <1330449672-18191-1-git-send-email-ohad@wizery.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: [PATCH] tty: serial: OMAP: Fix oops due to NULL pdata in DT boot
+Date: Tue, 28 Feb 2012 18:22:12 +0100
+Message-ID: <4F4D0D44.3010604@ti.com>
+References: <20120126024903.31613.24730.stgit@dusk> <20120126025036.31613.67819.stgit@dusk>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1330449672-18191-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Ohad Ben-Cohen <ohad@wizery.com>, Grant Likely <grant.likely@secretlab.ca>, Arnd Bergmann <arnd@arndb.de>, Mark Grosen <mgrosen@ti.com>, Suman Anna <s-anna@ti.com>, Fernando Guzman Lugo <fernando.lugo@ti.com>, Rob Clark <rob@ti.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-serial-owner@vger.kernel.org>
+In-Reply-To: <20120126025036.31613.67819.stgit@dusk>
+Sender: linux-serial-owner@vger.kernel.org
+To: linux-serial@vger.kernel.org, Alan Cox <alan@linux.intel.com>, gregkh@linuxfoundation.org
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, "Govindraj.R" <govindraj.raja@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-When an inbound message arrives, validate its reported length before
-propagating it, otherwise buggy (or malicious) remote processors might
-trick us into accessing memory which we really shouldn't.
+The following commit: be4b0281956c5cae4f63f31f11d07625a6988766
+(tty: serial: OMAP: block idle while the UART is transferring data in PIO mode),
+is introducing an oops if OMAP is booted using device tree blob because
+the pdata will not be initialized.
 
-Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Mark Grosen <mgrosen@ti.com>
-Cc: Suman Anna <s-anna@ti.com>
-Cc: Fernando Guzman Lugo <fernando.lugo@ti.com>
-Cc: Rob Clark <rob@ti.com>
-Cc: Ludovic BARRE <ludovic.barre@stericsson.com>
-Cc: Loic PALLARDY <loic.pallardy@stericsson.com>
-Cc: Omar Ramirez Luna <omar.luna@linaro.org>
+Check if pdata is set before de-referencing it.
+
+Signed-off-by: Benoit Cousson <b-cousson@ti.com>
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
 ---
- drivers/rpmsg/virtio_rpmsg_bus.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/tty/serial/omap-serial.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/rpmsg/virtio_rpmsg_bus.c b/drivers/rpmsg/virtio_rpmsg_bus.c
-index 4db9cf8..1e8b8b6 100644
---- a/drivers/rpmsg/virtio_rpmsg_bus.c
-+++ b/drivers/rpmsg/virtio_rpmsg_bus.c
-@@ -778,6 +778,16 @@ static void rpmsg_recv_done(struct virtqueue *rvq)
- 	print_hex_dump(KERN_DEBUG, "rpmsg_virtio RX: ", DUMP_PREFIX_NONE, 16, 1,
- 					msg, sizeof(*msg) + msg->len, true);
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index f809041..0121486 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -159,7 +159,7 @@ static void serial_omap_stop_tx(struct uart_port *port)
+ 		serial_out(up, UART_IER, up->ier);
+ 	}
  
-+	/*
-+	 * We currently use fixed-sized buffers, so trivially sanitize
-+	 * the reported payload length.
-+	 */
-+	if (len > RPMSG_BUF_SIZE ||
-+		msg->len > (len - sizeof(struct rpmsg_hdr))) {
-+		dev_warn(dev, "inbound msg too big: (%d, %d)\n", len, msg->len);
-+		return;
-+	}
-+
- 	/* use the dst addr to fetch the callback of the appropriate user */
- 	mutex_lock(&vrp->endpoints_lock);
- 	ept = idr_find(&vrp->endpoints, msg->dst);
+-	if (!up->use_dma && pdata->set_forceidle)
++	if (!up->use_dma && pdata && pdata->set_forceidle)
+ 		pdata->set_forceidle(up->pdev);
+ 
+ 	pm_runtime_mark_last_busy(&up->pdev->dev);
+@@ -298,7 +298,7 @@ static void serial_omap_start_tx(struct uart_port *port)
+ 	if (!up->use_dma) {
+ 		pm_runtime_get_sync(&up->pdev->dev);
+ 		serial_omap_enable_ier_thri(up);
+-		if (pdata->set_noidle)
++		if (pdata && pdata->set_noidle)
+ 			pdata->set_noidle(up->pdev);
+ 		pm_runtime_mark_last_busy(&up->pdev->dev);
+ 		pm_runtime_put_autosuspend(&up->pdev->dev);
+@@ -1613,7 +1613,7 @@ static int serial_omap_runtime_resume(struct device *dev)
+ 	struct uart_omap_port *up = dev_get_drvdata(dev);
+ 	struct omap_uart_port_info *pdata = dev->platform_data;
+ 
+-	if (up) {
++	if (up && pdata) {
+ 		if (pdata->get_context_loss_count) {
+ 			u32 loss_cnt = pdata->get_context_loss_count(dev);
+ 
 -- 
-1.7.5.4
+1.7.0.4
+
+
