@@ -1,111 +1,62 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/9] ARM: OMAP3: hwmod data: fix interfaces for the MMC hwmods
-Date: Tue, 28 Feb 2012 04:10:52 -0700
-Message-ID: <20120228111051.808.77655.stgit@dusk>
+Subject: [PATCH 9/9] ARM: OMAP2+: hwmod: extend OCP_* register offsets from 16
+ to 32 bits
+Date: Tue, 28 Feb 2012 04:10:57 -0700
+Message-ID: <20120228111056.808.87964.stgit@dusk>
 References: <20120228110943.808.73639.stgit@dusk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35171 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:35190 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965150Ab2B1LLd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 06:11:33 -0500
+	with ESMTP id S965190Ab2B1LLf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 06:11:35 -0500
 In-Reply-To: <20120228110943.808.73639.stgit@dusk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: =?utf-8?q?Beno=C3=AEt?= Cousson <b-cousson@ti.com>
 
-Commit a52e2ab66d4a9305e1ba64d9b9d25754b6c70895 ("ARM: OMAP3: hwmod
-data: disable multiblock reads on MMC1/2 on OMAP34xx/35xx <= ES2.1")
-didn't link the MMC hwmods to the interconnects correctly.  Future
-patches will register hwmods by interface, so if this is not fixed,
-the MMC IP blocks won't be registered.  Update the interface data
-records to point to the correct IP blocks.
+Extend the OCP_* register offsets in the struct
+omap_hwmod_class_sysconfig to 32 bits.  This is required to add the
+OMAP4+ GPU hwmod, which uses OCP_* register offsets larger than 16
+bits.
+
+Another possible solution may be to simply add a single 16 bit offset
+field in this structure, and to add code to factor that offset into
+all OCP_* register accesses.  This would save some memory, since
+almost no modules need 32 bit offsets.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Beno=C3=AEt Cousson <b-cousson@ti.com>
 ---
- arch/arm/mach-omap2/omap_hwmod_3xxx_data.c |   38 ++++++++++++++++++++++------
- 1 files changed, 30 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/include/plat/omap_hwmod.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-index 536d0c6..a432618 100644
---- a/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_3xxx_data.c
-@@ -70,8 +70,10 @@ static struct omap_hwmod omap34xx_mcspi1;
- static struct omap_hwmod omap34xx_mcspi2;
- static struct omap_hwmod omap34xx_mcspi3;
- static struct omap_hwmod omap34xx_mcspi4;
--static struct omap_hwmod omap3xxx_mmc1_hwmod;
--static struct omap_hwmod omap3xxx_mmc2_hwmod;
-+static struct omap_hwmod omap3xxx_pre_es3_mmc1_hwmod;
-+static struct omap_hwmod omap3xxx_es3plus_mmc1_hwmod;
-+static struct omap_hwmod omap3xxx_pre_es3_mmc2_hwmod;
-+static struct omap_hwmod omap3xxx_es3plus_mmc2_hwmod;
- static struct omap_hwmod omap3xxx_mmc3_hwmod;
- static struct omap_hwmod am35xx_usbhsotg_hwmod;
- 
-@@ -192,9 +194,18 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__l4_wkup = {
- };
- 
- /* L4 CORE -> MMC1 interface */
--static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmc1 = {
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__pre_es3_mmc1 = {
- 	.master		= &omap3xxx_l4_core_hwmod,
--	.slave		= &omap3xxx_mmc1_hwmod,
-+	.slave		= &omap3xxx_pre_es3_mmc1_hwmod,
-+	.clk		= "mmchs1_ick",
-+	.addr		= omap2430_mmc1_addr_space,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__es3plus_mmc1 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_es3plus_mmc1_hwmod,
- 	.clk		= "mmchs1_ick",
- 	.addr		= omap2430_mmc1_addr_space,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -202,9 +213,18 @@ static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmc1 = {
- };
- 
- /* L4 CORE -> MMC2 interface */
--static struct omap_hwmod_ocp_if omap3xxx_l4_core__mmc2 = {
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__pre_es3_mmc2 = {
-+	.master		= &omap3xxx_l4_core_hwmod,
-+	.slave		= &omap3xxx_pre_es3_mmc2_hwmod,
-+	.clk		= "mmchs2_ick",
-+	.addr		= omap2430_mmc2_addr_space,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+	.flags		= OMAP_FIREWALL_L4
-+};
-+
-+static struct omap_hwmod_ocp_if omap3xxx_l4_core__es3plus_mmc2 = {
- 	.master		= &omap3xxx_l4_core_hwmod,
--	.slave		= &omap3xxx_mmc2_hwmod,
-+	.slave		= &omap3xxx_es3plus_mmc2_hwmod,
- 	.clk		= "mmchs2_ick",
- 	.addr		= omap2430_mmc2_addr_space,
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-@@ -3141,7 +3161,8 @@ static struct omap_hwmod_opt_clk omap34xx_mmc1_opt_clks[] = {
- };
- 
- static struct omap_hwmod_ocp_if *omap3xxx_mmc1_slaves[] = {
--	&omap3xxx_l4_core__mmc1,
-+	&omap3xxx_l4_core__pre_es3_mmc1,
-+	&omap3xxx_l4_core__es3plus_mmc1,
- };
- 
- static struct omap_mmc_dev_attr mmc1_dev_attr = {
-@@ -3216,7 +3237,8 @@ static struct omap_hwmod_opt_clk omap34xx_mmc2_opt_clks[] = {
- };
- 
- static struct omap_hwmod_ocp_if *omap3xxx_mmc2_slaves[] = {
--	&omap3xxx_l4_core__mmc2,
-+	&omap3xxx_l4_core__pre_es3_mmc2,
-+	&omap3xxx_l4_core__es3plus_mmc2,
- };
- 
- /* See 35xx errata 2.1.1.128 in SPRZ278F */
+diff --git a/arch/arm/plat-omap/include/plat/omap_hwmod.h b/arch/arm/pl=
+at-omap/include/plat/omap_hwmod.h
+index f0a0711..083b6da 100644
+--- a/arch/arm/plat-omap/include/plat/omap_hwmod.h
++++ b/arch/arm/plat-omap/include/plat/omap_hwmod.h
+@@ -328,9 +328,9 @@ struct omap_hwmod_sysc_fields {
+  * then this field has to be populated with the correct offset structu=
+re.
+  */
+ struct omap_hwmod_class_sysconfig {
+-	u16 rev_offs;
+-	u16 sysc_offs;
+-	u16 syss_offs;
++	u32 rev_offs;
++	u32 sysc_offs;
++	u32 syss_offs;
+ 	u16 sysc_flags;
+ 	struct omap_hwmod_sysc_fields *sysc_fields;
+ 	u8 srst_udelay;
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
