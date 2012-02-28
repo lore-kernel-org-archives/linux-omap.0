@@ -1,152 +1,87 @@
 From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: OMAP gpio handling
-Date: Tue, 28 Feb 2012 21:29:08 +0100
-Message-ID: <4F4D3914.90401@ti.com>
-References: <20120225130444.GJ22675@n2100.arm.linux.org.uk> <CAC83ZvL7w5tL7q1zqaPWk3df2XXVGEpm+_TH5_OFD4pNDxXpZQ@mail.gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: irqs: Fix NR_IRQS value to handle PRCM interrupts
+Date: Tue, 28 Feb 2012 21:32:28 +0100
+Message-ID: <4F4D39DC.9020800@ti.com>
+References: <4F4CD231.4030709@ti.com> <20120228143614.GA5627@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57532 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:57798 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965025Ab2B1U3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 15:29:22 -0500
-In-Reply-To: <CAC83ZvL7w5tL7q1zqaPWk3df2XXVGEpm+_TH5_OFD4pNDxXpZQ@mail.gmail.com>
+	with ESMTP id S965025Ab2B1Uct (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 15:32:49 -0500
+In-Reply-To: <20120228143614.GA5627@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, "Hilman, Kevin" <khilman@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-+ Kevin
+Hi Russell,
 
-Hi Tarun,
+On 2/28/2012 3:36 PM, Russell King - ARM Linux wrote:
+> On Tue, Feb 28, 2012 at 02:10:09PM +0100, Cousson, Benoit wrote:
+>> The following commit: 2f31b51659c2d8315ea2888ba5b93076febe672b
+>> Author: Tero Kristo<t-kristo@ti.com>
+>> Date:   Fri Dec 16 14:37:00 2011 -0700
+>>
+>>      ARM: OMAP4: PRM: use PRCM interrupt handler
+>>
+>> introduced the PRCM interrupt handler and thus the need
+>> for 64 more interrupts. Since SPARSE_IRQ is still not fully
+>> functional on OMAP, the NR_IRQS needs to be updated to avoid
+>> the failure that happen during irq_alloc_descs call inside
+>> the PRCM driver:
+>>
+>> [    0.208221] PRCM: failed to allocate irq descs: -12
+>>
+>> Later the mux framework is then unable to request an IRQ from
+>> the PRCM interrupt handler.
+>>
+>> [    1.802795] mux: Failed to setup hwmod io irq -22
+>
+> This is fine for rc, but longer term...
+>
+> Do any of these have hard-coded interrupt numbers associated with them?
+> If not, just enabling sparse IRQ will sort this out.
 
-On 2/27/2012 8:11 AM, DebBarma, Tarun Kanti wrote:
-> On Sat, Feb 25, 2012 at 6:34 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk>  wrote:
->> Can someone explain to me this:
->>
->> #define GPIO_INDEX(bank, gpio) (gpio % bank->width)
->> #define GPIO_BIT(bank, gpio) (1<<  GPIO_INDEX(bank, gpio))
->>
->> static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
->> {
->>         void __iomem *reg = bank->base + bank->regs->datain;
->>
->>         return (__raw_readl(reg)&  GPIO_BIT(bank, gpio)) != 0;
->> }
->>
->> static int gpio_get(struct gpio_chip *chip, unsigned offset)
->> {
->>         struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
->>         void __iomem *reg = bank->base;
->>         int gpio = chip->base + offset;
->>         u32 mask = GPIO_BIT(bank, gpio);
->>
->>         if (gpio_is_input(bank, mask))
->>                 return _get_gpio_datain(bank, gpio);
->>         else
->>                 return _get_gpio_dataout(bank, gpio);
->> }
->>
->> Given that bank->width on OMAP is either 32 or 16, and GPIO numbers for
->> any GPIO chip are always aligned to 32 or 16, why does this code bother
->> adding the chips base gpio number and then modulo the width?
-> As far as I understand we could very well use offset directly.
-> The macro is used to derive the same offset value in this case.
-> Therefore, _get_gpio_datain(bank, gpio) and _get_gpio_dataout(bank, gpio)
-> can be passed offset instead of (bank->base + offset) as suggested by you below.
-> And of course, offset can be used to derive mask both here and in the
-> called functions.
->
->>
->> Surely this means if - for argument sake - you registered a GPIO chip
->> with 8 lines followed by one with 16 lines, GPIO0..7 would be chip 0
->> bit 0..7, GPIO8..15 would be chip 1 bit 8..15, GPIO16..23 would be
->> chip 1 bit 0..7.
->>
->> However, if you registered a GPIO chip with 16 lines first, it would
->> mean GPIO0..15 would be chip 0 bit 0..15, and GPIO16..31 would be
->> chip 1 bit 0..15.
->>
->> Surely this kind of behaviour is not intended?
->>
->> Is there a reason why the bitmask can't just be (1<<  offset) where
->> offset is passed into these functions as GPIO number - chip->base ?
-> Yes, I have made the following changes and tested on OMAP4 and OMAP1(bootup).
->
-> [PATCH] gpio/omap: remove redundant decoding of gpio offset
-> ---
->   drivers/gpio/gpio-omap.c |   18 +++++++-----------
->   1 files changed, 7 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-> index 5953ece..2196747 100644
-> --- a/drivers/gpio/gpio-omap.c
-> +++ b/drivers/gpio/gpio-omap.c
-> @@ -133,18 +133,18 @@ static void _set_gpio_dataout_mask(struct
-> gpio_bank *bank, int gpio, int enable)
->          bank->context.dataout = l;
->   }
->
-> -static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
-> +static int _get_gpio_datain(struct gpio_bank *bank, int offset)
->   {
->          void __iomem *reg = bank->base + bank->regs->datain;
->
-> -       return (__raw_readl(reg)&  GPIO_BIT(bank, gpio)) != 0;
-> +       return (__raw_readl(reg)&  (1<<  offset)) != 0;
->   }
->
-> -static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
-> +static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
->   {
->          void __iomem *reg = bank->base + bank->regs->dataout;
->
-> -       return (__raw_readl(reg)&  GPIO_BIT(bank, gpio)) != 0;
-> +       return (__raw_readl(reg)&  (1<<  offset)) != 0;
->   }
->
->   static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
-> @@ -849,19 +849,15 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
->   static int gpio_get(struct gpio_chip *chip, unsigned offset)
->   {
->          struct gpio_bank *bank;
-> -       void __iomem *reg;
-> -       int gpio;
->          u32 mask;
->
-> -       gpio = chip->base + offset;
->          bank = container_of(chip, struct gpio_bank, chip);
-> -       reg = bank->base;
+You're right, in that case, it does not depend on any hard-coded number.
 
-That one seems to be a leftover from before the cleanup and was already 
-not needed but it is not related to the offset fix.
-
-You should just add that in the changelog or include it in previous 
-cleanup if applicable.
-
-> -       mask = GPIO_BIT(bank, gpio);
-> +       mask = (1<<  offset);
+> As I tried to explain yesterday, there are two modes for IRQ allocation:
 >
->          if (gpio_is_input(bank, mask))
-> -               return _get_gpio_datain(bank, gpio);
-> +               return _get_gpio_datain(bank, offset);
->          else
-> -               return _get_gpio_dataout(bank, gpio);
-> +               return _get_gpio_dataout(bank, offset);
->   }
+> 1. Without sparse IRQ enabled, irq_alloc_descs(-1, from, num, -1) will
+>     allocate IRQs _within_ the existing from..NR_IRQS range, and will fail
+>     if there is insufficient IRQs available.
 >
->   static int gpio_output(struct gpio_chip *chip, unsigned offset, int value)
-> --
-> 1.7.0.4
+> 2. With sparse IRQs enabled, irq_alloc_descs(-1, from, num, -1) will
+>     allocate IRQs starting at max(from, NR_IRQS) and working upwards.
+>
+> In either case, irq_alloc_descs(start, 0, num, -1) will allocate 'num'
+> IRQs at 'start' or fail if the range is already in use (and 0..NR_IRQS
+> is defined as 'being in use' when sparse IRQs are enabled.)
+>
+> So, if the PRCM interrupts aren't statically assigned (the code suggests
+> that they aren't) then it's already sparse-IRQ compliant, and enabling
+> sparse IRQ support will mean that they will be allocated above NR_IRQS.
+>
+> Therefore, I suggest rather than raising NR_IRQS, you instead enable
+> SPARSE_IRQ now so that anyone using the dynamic IRQ allocation can
+> benefit from sparse IRQ support without having to have a large NR_IRQS.
+>
+> So, you don't have to wait until everything is converted to use
+> sparse IRQ.  You just need to make sure that nothing uses
+> irq_alloc_descs(start, from, num, ...) where start<  NR_IRQS, and
+> nothing using that requires statically defined IRQ numbering.
 
-That patch seems good to me and should definitively be part of your 
-cleanup series.
-Could you repost to a wider audience including lakml and Grant?
+Yes, I fully agree, and that's still the plan. That's why I started 
+sending last week a bunch of cleanup for SPARSE_IRQ support. 
+Unfortunately, they might not be ready for 3.4 either, but I'm still 
+working on it.
 
-I guess you can do that in the v2 of the previous series including 
-Kevin's comments.
+Meanwhile, we need the current temporary fix.
+
+I can emphasis the temporary duration on that patch in the changelog if 
+needed.
 
 Thanks,
 Benoit
