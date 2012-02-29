@@ -1,117 +1,104 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 6/6] ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
-Date: Wed, 29 Feb 2012 16:27:01 +0200
-Message-ID: <1330525621-29836-7-git-send-email-t-kristo@ti.com>
-References: <1330525621-29836-1-git-send-email-t-kristo@ti.com>
+From: Rob Clark <rob.clark@linaro.org>
+Subject: Re: [PATCH 2/2] OMAPDSS: APPLY: make ovl_enable/disable synchronous
+Date: Wed, 29 Feb 2012 08:52:18 -0600
+Message-ID: <CAF6AEGtaRwdSYsOh9qgBWmcOP5nm3hkkjbfT=BJFpgBZFwCS4w@mail.gmail.com>
+References: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com>
+	<1330505302-8258-3-git-send-email-tomi.valkeinen@ti.com>
+	<4F4DFA30.2040503@gmx.de>
+	<1330511438.1934.95.camel@deskari>
+	<4F4E0294.6000406@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33331 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758051Ab2B2O10 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 09:27:26 -0500
-In-Reply-To: <1330525621-29836-1-git-send-email-t-kristo@ti.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:46880 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758140Ab2B2OwT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 09:52:19 -0500
+In-Reply-To: <4F4E0294.6000406@gmx.de>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Vishwanath BS <vishwanath.bs@ti.com>
+On Wed, Feb 29, 2012 at 4:48 AM, Florian Tobias Schandinat
+<FlorianSchandinat@gmx.de> wrote:
+> Hi Tomi,
+>
+> On 02/29/2012 10:30 AM, Tomi Valkeinen wrote:
+>> On Wed, 2012-02-29 at 10:13 +0000, Florian Tobias Schandinat wrote:
+>>> On 02/29/2012 08:48 AM, Tomi Valkeinen wrote:
+>>>> ovl->enable/disable are meant to be synchronous so that they can h=
+andle
+>>>> the configuration of fifo sizes. The current kernel doesn't config=
+ure
+>>>> fifo sizes yet, and so the code doesn't need to block to function =
+(from
+>>>> omapdss driver's perspective).
+>>>>
+>>>> However, for the users of omapdss a non-blocking ovl->disable is
+>>>> confusing, because they don't know when the memory area is not use=
+d
+>>>> any more.
+>>>>
+>>>> Furthermore, when the fifo size configuration is added in the next=
+ merge
+>>>> window, the change from non-blocking to blocking could cause side
+>>>> effects to the users of omapdss. So by making the functions block
+>>>> already will keep them behaving in the same manner.
+>>>
+>>> Is there any difference to doing it now?
+>>> I agree that this should be fixed but if we can't avoid breaking us=
+ers I'd
+>>> prefer to break them in a merge window not in late rc stage. Or did=
+ we introduce
+>>> these functions just in the last merge window?
+>>
+>> Yes, these were introduced in the merge window. And I explicitly sai=
+d
+>> the functions are blocking so that they can perform their job. And j=
+ust
+>> to clarify, the functions already use a mutex, so in that sense they=
+ are
+>> blocking. They just don't currently wait until the HW has finished w=
+ith
+>> the overlay.
+>
+> okay, than I'll apply this patch as is. I was just worried about aski=
+ng Linus to
+> pull something that is labled as "Breaks existing users" now, but tha=
+t doesn't
+> look like an issue here.
+>
 
-As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-control it from cpuidle path for OMAP3.
+I don't expect this change should break any existing users.. I think
+it is safe to call this a bug fix
 
-Also as omap3_disable_io_chain is no longer being used, just remove the
-function.
+BR,
+-R
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Tested-by: Govindraj.R <govindraj.raja@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c       |   17 -----------------
- arch/arm/mach-omap2/prm2xxx_3xxx.c |    8 --------
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    7 -------
- 3 files changed, 0 insertions(+), 32 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e6c2d39..94d572d 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -291,13 +291,6 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_trigger_io_chain();
--	}
- 
- 	pwrdm_pre_transition();
- 
-@@ -376,16 +369,6 @@ void omap_sram_idle(void)
- 			omap3_per_restore_context();
- 	}
- 
--	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
--					     PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_disable_io_chain();
--	}
--
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
- 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index fc98781..d6b848c 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -325,14 +325,6 @@ void omap3_trigger_io_chain(void)
- 				     PM_WKEN);
- }
- 
--/* OMAP3 Daisychain disable sequence */
--void omap3_disable_io_chain(void)
--{
--	if (omap_rev() >= OMAP3430_REV_ES3_1)
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK,
--					     WKUP_MOD, PM_WKEN);
--}
--
- static int __init omap3xxx_prcm_init(void)
- {
- 	if (cpu_is_omap34xx())
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 15973aa..391b844 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -295,12 +295,6 @@ static inline void omap3_trigger_io_chain(void)
- 		"not suppose to be used on omap4\n");
- 	return 0;
- }
--static inline void omap3_disable_io_chain(void)
--{
--	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
--		"not suppose to be used on omap4\n");
--	return 0;
--}
- #else
- /* Power/reset management domain register get/set */
- extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
-@@ -315,7 +309,6 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
- extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
- extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- extern void omap3_trigger_io_chain(void);
--extern void omap3_disable_io_chain(void);
- 
- /* OMAP3-specific VP functions */
- u32 omap3_prm_vp_check_txdone(u8 vp_id);
--- 
-1.7.4.1
-
+> Best regards,
+>
+> Florian Tobias Schandinat
+>
+>>
+>> The problem was raised by Rob Clark, who's writing the omapdrm drive=
+r,
+>> as he doesn't have a way to ensure that the overlay has been truly
+>> disabled and the memory is is no longer in use.
+>>
+>> (I forgot to cc him for the patch, adding him now).
+>>
+>> =A0Tomi
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
