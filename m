@@ -1,40 +1,55 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 5/5] Clean-up for omap
-Date: Wed, 29 Feb 2012 13:24:55 -0800
-Message-ID: <20120229212455.GQ18901@atomide.com>
-References: <0M0SaL-1SHLTi0asf-00u7ia@mx.kundenserver.de>
- <201202292120.07286.arnd@arndb.de>
+Subject: Re: [GIT PULL] ARM: OMAP: IRQ domain support for INTC
+Date: Wed, 29 Feb 2012 13:42:55 -0800
+Message-ID: <20120229214255.GR18901@atomide.com>
+References: <4F4BB0FB.3040308@ti.com>
+ <20120228234837.GH18901@atomide.com>
+ <4F4E4F1D.7020109@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:10599 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756291Ab2B2VY7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 16:24:59 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28082 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964772Ab2B2Vm6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 16:42:58 -0500
 Content-Disposition: inline
-In-Reply-To: <201202292120.07286.arnd@arndb.de>
+In-Reply-To: <4F4E4F1D.7020109@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Grant Likely <grant.likely@secretlab.ca>
 
-* Arnd Bergmann <arnd@arndb.de> [120229 12:48]:
-> On Wednesday 29 February 2012, Tony Lindgren wrote:
-> > This is mostly changes needed for io.h removal, and one
-> > patch to remove unused flag for McSPI. Note that these
-> > are based on RMK's for-armsoc.
+* Cousson, Benoit <b-cousson@ti.com> [120229 07:43]:
+> On 2/29/2012 12:48 AM, Tony Lindgren wrote:
 > > 
-> > Also, these cause a minor merge conflict for mach-omap2/Kconfig
-> > with the fixes-non-critical posted in this series of pull
-> > requests.
+> > Hmm, looks like this now produces the following warning at least on omap3:
 > 
-> Hmm, I did not see the conflict in this one, but I saw one in the
-> dt branch that I fixed.
+> Yes, Rajendra has just reported that issue with linux-next.
+> 
+> It is not due to that series but to the increase of TWL irq_desc I did for Grant to fix a warning with irq_domain in the DT boot.
+> Unfortunately due the lack of NR_IRQS we already have becasue of PRCM handler we exceed the actual NR_IRQS that is set to 410 for the moment.
+> 
+> > [    0.290832] WARNING: at drivers/mfd/twl4030-irq.c:645 twl4030_sih_setup+0x258/0x298()
+> > [    0.290832] irq 428 for gpio too big
 
-OK sounds like I did not remember correctly where the conflict was.
+OK. I've pulled this into dt-part2 branch.
  
-> I pulled this one into next/cleanup.
+> After applying the NR_IRQS fix, we still have a warning but a different one in that case:
+> 
+> [    0.303771] twl4030: PIH (irq 7) chaining IRQs 368..401
+> [    0.304473] twl4030: power (irq 373) chaining IRQs 402..409
+> [    0.307159] twl4030: gpio (irq 368) chaining IRQs 410..427
+> [    0.307189] ------------[ cut here ]------------
+> [    0.307220] WARNING: at drivers/gpio/gpio-twl4030.c:410 gpio_twl4030_probe+0x44/0x214()
+> 
+> This one is due to a "WARN_ON(ret != pdata->irq_base)" that is checking that the board irq_base is the same as the one from the twl4030_sih_setup. This kind of test are not SPARSE_IRQ friendly at all and should be removed anyway. I've attached a patch to fix the GPIO warning.
 
-Thanks.
+OK, maybe post that separately so Samuel can queue it?
+
+> Felipe has started a twl4030 IRQ cleanup series to make that driver SPARSE_IRQ enabled. That's will fix properly the actual hack in the twl-core IRQ management. On top of that we can fix the twl-gpio warning.
+
+Great, good to hear.
+
+Regards,
 
 Tony
