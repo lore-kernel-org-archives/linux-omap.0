@@ -1,164 +1,72 @@
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-Subject: Re: [PATCH 3/6] gpio/omap: remove suspend_wakeup field from struct gpio_bank
-Date: Wed, 29 Feb 2012 09:48:56 +0530
-Message-ID: <CAC83ZvJ21Y-pSLuxd68W_NpKFDseh6YW45ruPZLUnsNKN9koRQ@mail.gmail.com>
-References: <1329999031-6914-1-git-send-email-tarun.kanti@ti.com>
-	<1329999031-6914-4-git-send-email-tarun.kanti@ti.com>
-	<87ty2bu91e.fsf@ti.com>
-	<CAC83ZvJ97uRSLU-JmO2mnaOuziU=SotghASSJjPvESWL+eATuQ@mail.gmail.com>
-	<87r4xeyexm.fsf@ti.com>
+From: Sujit Reddy Thumma <sthumma@codeaurora.org>
+Subject: Re: [PATCH] mmc: start removing enable / disable API
+Date: Wed, 29 Feb 2012 11:58:45 +0530
+Message-ID: <4F4DC59D.70903@codeaurora.org>
+References: <1330080561-7256-1-git-send-email-adrian.hunter@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <87r4xeyexm.fsf@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-omap@vger.kernel.org, grant.likely@secretlab.ca, tony@atomide.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <1330080561-7256-1-git-send-email-adrian.hunter@intel.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Venkatraman S <svenkatr@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Thomas Abraham <thomas.abraham@linaro.org>, Kyungmin Park <kyungmin.park@samsung.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 29, 2012 at 12:15 AM, Kevin Hilman <khilman@ti.com> wrote:
-> "DebBarma, Tarun Kanti" <tarun.kanti@ti.com> writes:
->
->> On Tue, Feb 28, 2012 at 5:24 AM, Kevin Hilman <khilman@ti.com> wrote=
-:
->>> Tarun Kanti DebBarma <tarun.kanti@ti.com> writes:
->>>
->>>> Since we already have bank->context.wake_en to keep track
->>>> of gpios which are wakeup enabled, there is no need to have
->>>> this field any more.
->>>>
->>>> Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
->>>
->>> I'm not crazy about this change...
->>>
->>>> ---
->>>> =A0drivers/gpio/gpio-omap.c | =A0 11 +++++------
->>>> =A01 files changed, 5 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
->>>> index 64f15d5..b62e861 100644
->>>> --- a/drivers/gpio/gpio-omap.c
->>>> +++ b/drivers/gpio/gpio-omap.c
->>>> @@ -53,7 +53,6 @@ struct gpio_bank {
->>>> =A0 =A0 =A0 void __iomem *base;
->>>> =A0 =A0 =A0 u16 irq;
->>>> =A0 =A0 =A0 u16 virtual_irq_start;
->>>> - =A0 =A0 u32 suspend_wakeup;
->>>> =A0 =A0 =A0 u32 non_wakeup_gpios;
->>>> =A0 =A0 =A0 u32 enabled_non_wakeup_gpios;
->>>> =A0 =A0 =A0 struct gpio_regs context;
->>>> @@ -497,9 +496,9 @@ static int _set_gpio_wakeup(struct gpio_bank *=
-bank, int gpio, int enable)
->>>>
->>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
->>>> =A0 =A0 =A0 if (enable)
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup |=3D gpio_bit;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en |=3D gpio_bit;
->>>> =A0 =A0 =A0 else
->>>> - =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup &=3D ~gpio_bit;
->>>> + =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en &=3D ~gpio_bit;
->>>
->>> The bank->context values are expected to be copies of the actual
->>> register contents, and here that is clearly not the case.
->> Right, it should have been this:
->>
->> =A0 =A0 =A0 =A0 if (enable)
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup |=3D gpio_bit;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en |=3D gpio_bit;
->> =A0 =A0 =A0 =A0 else
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->suspend_wakeup &=3D ~gpio_bit;
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 bank->context.wake_en &=3D ~gpio_bit;
->> +
->> + =A0 =A0 =A0 __raw_writel(bank->context.wake_en, bank->base + bank-=
->regs->wkup_en);
->>
->>>
->>> With this change, you're using the context register to track change=
-s
->>> that you *might* eventually write to the register.
->> The above change ensures that bank->context.wake_en reflects the
->> latest register value.
->
-> OK, but that changes the behavior of the current code.
-Agreed.
+Hi Adrian,
 
+On 2/24/2012 4:19 PM, Adrian Hunter wrote:
+> Most parts of the enable / disable API are no longer used and
+> can be removed.
 >
-> The current code *only* writes this register in suspend and resume.
-> _set_gpio_wakeup() just records the value that is going to be written=
- in
-> suspend.
-Yes.
+> Cc: Rajendra Nayak<rnayak@ti.com>
+> Cc: Venkatraman S<svenkatr@ti.com>
+> Cc: Kukjin Kim<kgene.kim@samsung.com>
+> Cc: Thomas Abraham<thomas.abraham@linaro.org>
+> Cc: Kyungmin Park<kyungmin.park@samsung.com>
+> Cc: Sekhar Nori<nsekhar@ti.com>
+> Cc: Kevin Hilman<khilman@ti.com>
+> Signed-off-by: Adrian Hunter<adrian.hunter@intel.com>
+> ---
+>   arch/arm/mach-exynos/mach-nuri.c           |    5 +-
+>   arch/arm/mach-exynos/mach-universal_c210.c |    9 +-
+>   drivers/mmc/core/core.c                    |  185 ++--------------------------
+>   drivers/mmc/core/host.c                    |    1 -
+>   drivers/mmc/core/host.h                    |    1 -
+>   drivers/mmc/host/davinci_mmc.c             |    4 -
+>   drivers/mmc/host/omap_hsmmc.c              |   15 +--
+>   include/linux/mmc/core.h                   |    1 -
+>   include/linux/mmc/host.h                   |   46 +-------
+>   9 files changed, 25 insertions(+), 242 deletions(-)
 >
-> Now, I'm not saying we shouldn't make the changes you propose above. =
-=A0We
-> probably should be updating the wake-enable register whenever
-> _set_gpio_wakeup() is run so that GPIO wakeups work across runtime
-> suspend/resume as well.
+
+> -	if (host->caps&  MMC_CAP_DISABLE)
+> -		cancel_delayed_work(&host->disable);
+>   	cancel_delayed_work_sync(&host->detect);
+>   	mmc_flush_scheduled_work();
 >
-> However, you should probably make that functional change a separate
-> patch *before* you do $SUBJECT patch which just changes the variable
-> used to cache the register contents.
-Sure, I will make this change.
---
-Tarun
+> @@ -2402,13 +2245,11 @@ int mmc_suspend_host(struct mmc_host *host)
+>   {
+>   	int err = 0;
 >
-> Kevin
->
->
->> There are two distinct paths through which bank->context.wake_en is
->> updated now, viz:
->> Path1:-
->> chip.irq_set_type() --> gpio_irq_type() --> _set_gpio_triggering() -=
-->
->> set_gpio_trigger()
->>
->> Path2:-
->> chip.irq_set_wake() --> gpio_wake_enable() --> irq_set_wake()
->>
->>>
->>> IMO, this is more confusing than having a separate field to track t=
-his.
->> So, there is no need have a separate field to keep track of this.
->> I hope my understanding is right.
->> --
->> Tarun
->>
->>>
->>> Kevin
->>>
->>>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
->>>>
->>>> @@ -772,7 +771,7 @@ static int omap_mpuio_suspend_noirq(struct dev=
-ice *dev)
->>>>
->>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
->>>> =A0 =A0 =A0 bank->context.wake_en =3D __raw_readl(mask_reg);
->>>> - =A0 =A0 __raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
->>>> + =A0 =A0 __raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
->>>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
->>>>
->>>> =A0 =A0 =A0 return 0;
->>>> @@ -1137,12 +1136,12 @@ static int omap_gpio_suspend(struct device=
- *dev)
->>>> =A0 =A0 =A0 if (!bank->mod_usage || !bank->loses_context)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->>>>
->>>> - =A0 =A0 if (!bank->regs->wkup_en || !bank->suspend_wakeup)
->>>> + =A0 =A0 if (!bank->regs->wkup_en || !bank->context.wake_en)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 0;
->>>>
->>>> =A0 =A0 =A0 spin_lock_irqsave(&bank->lock, flags);
->>>> =A0 =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
->>>> - =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeu=
-p, 1);
->>>> + =A0 =A0 _gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_=
-en, 1);
->>>> =A0 =A0 =A0 spin_unlock_irqrestore(&bank->lock, flags);
->>>>
->>>> =A0 =A0 =A0 return 0;
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> -	if (host->caps&  MMC_CAP_DISABLE)
+> -		cancel_delayed_work(&host->disable);
+>   	cancel_delayed_work(&host->detect);
+>   	mmc_flush_scheduled_work();
+>   	if (mmc_try_claim_host(host)) {
+>   		err = mmc_cache_ctrl(host, 0);
+> -		mmc_do_release_host(host);
+> +		mmc_release_host(host);
+
+mmc_try_claim_host does not call host->ops->enable(), but 
+mmc_release_host call host->ops->disable(), is there any reason for 
+this? For example: If host controller disable method internally calls 
+clk_disable() then that would cause reference count warnings.
+
+>   	} else {
+>   		err = -EBUSY;
+>   	}
+> @@ -2429,7 +2270,7 @@ int mmc_suspend_host(struct mmc_host *host)
+
+Thanks,
+Sujit
