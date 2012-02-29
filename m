@@ -1,86 +1,48 @@
-From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2 3/9] gpio/omap: remove suspend_wakeup field from struct gpio_bank
-Date: Thu, 1 Mar 2012 04:14:23 +0530
-Message-ID: <1330555469-21260-4-git-send-email-tarun.kanti@ti.com>
-References: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 04/13] ARM: OMAP3+: SmartReflex: Add a shutdown hook
+Date: Wed, 29 Feb 2012 16:53:12 -0600
+Message-ID: <20120229225310.GA7400@kobold>
+References: <1330554829-11347-1-git-send-email-j-pihet@ti.com>
+ <1330554829-11347-5-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47002 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756276Ab2B2Wos (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 17:44:48 -0500
-In-Reply-To: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:32976 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754248Ab2B2WxM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Feb 2012 17:53:12 -0500
+Received: by mail-yw0-f50.google.com with SMTP id j63so2867259yhj.37
+        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 14:53:06 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1330554829-11347-5-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>, balbi@ti.com, Jean Pihet <j-pihet@ti.com>
 
-Since we already have bank->context.wake_en to keep track
-of gpios which are wakeup enabled, there is no need to have
-this field any more.
+On 23:33-20120229, Jean Pihet wrote:
+> From: Nishanth Menon <nm@ti.com>
+> 
+> SmartReflex fix for erratum ID i724.
+> 
+> Since OMAP's VP and PRM modules do not get reset by warm reset,
+> we should ensure that proper shutdown procedure is followed prior
+> to allowing the kernel to reboot back up.
+> 
+Considering [1], can we rephrase the following?
+> Without this patch, Smartreflex module might be left active or
+IMHO, the word "patch" is redundant :)
+> system might be caught in an indeterminate sequence when reboot
+when software controlled reboot is triggered
+> is triggered, leaving the next reboot behavior to be unpredictable.
 
-Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- drivers/gpio/gpio-omap.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+In the case of hardware controlled warm reset such as that by watchdog
+timer, prevention of this scenario is not possible.
 
-diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 895df7f..14c61e2 100644
---- a/drivers/gpio/gpio-omap.c
-+++ b/drivers/gpio/gpio-omap.c
-@@ -54,7 +54,6 @@ struct gpio_bank {
- 	void __iomem *base;
- 	u16 irq;
- 	u16 virtual_irq_start;
--	u32 suspend_wakeup;
- 	u32 saved_wakeup;
- 	u32 non_wakeup_gpios;
- 	u32 enabled_non_wakeup_gpios;
-@@ -500,11 +499,11 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 
- 	spin_lock_irqsave(&bank->lock, flags);
- 	if (enable)
--		bank->suspend_wakeup |= gpio_bit;
-+		bank->context.wake_en |= gpio_bit;
- 	else
--		bank->suspend_wakeup &= ~gpio_bit;
-+		bank->context.wake_en &= ~gpio_bit;
- 
--	__raw_writel(bank->suspend_wakeup, bank->base + bank->regs->wkup_en);
-+	__raw_writel(bank->context.wake_en, bank->base + bank->regs->wkup_en);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
-@@ -776,7 +775,7 @@ static int omap_mpuio_suspend_noirq(struct device *dev)
- 
- 	spin_lock_irqsave(&bank->lock, flags);
- 	bank->saved_wakeup = __raw_readl(mask_reg);
--	__raw_writel(0xffff & ~bank->suspend_wakeup, mask_reg);
-+	__raw_writel(0xffff & ~bank->context.wake_en, mask_reg);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
-@@ -1150,7 +1149,7 @@ static int omap_gpio_suspend(struct device *dev)
- 	if (!bank->mod_usage || !bank->loses_context)
- 		return 0;
- 
--	if (!bank->regs->wkup_en || !bank->suspend_wakeup)
-+	if (!bank->regs->wkup_en || !bank->context.wake_en)
- 		return 0;
- 
- 	wakeup_enable = bank->base + bank->regs->wkup_en;
-@@ -1158,7 +1157,7 @@ static int omap_gpio_suspend(struct device *dev)
- 	spin_lock_irqsave(&bank->lock, flags);
- 	bank->saved_wakeup = __raw_readl(wakeup_enable);
- 	_gpio_rmw(base, bank->regs->wkup_en, 0xffffffff, 0);
--	_gpio_rmw(base, bank->regs->wkup_en, bank->suspend_wakeup, 1);
-+	_gpio_rmw(base, bank->regs->wkup_en, bank->context.wake_en, 1);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
+
+[..]
 -- 
-1.7.0.4
-
+Regards,
+Nishanth Menon
+[1] http://marc.info/?l=linux-omap&m=133053887101828&w=2
