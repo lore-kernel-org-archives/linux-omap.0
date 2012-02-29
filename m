@@ -1,58 +1,28 @@
 From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH 04/14] ARM: OMAP3+: SmartReflex: Add a shutdown hook
-Date: Wed, 29 Feb 2012 10:07:08 -0800
-Message-ID: <878vjlfr8z.fsf@ti.com>
-References: <1328723039-15952-1-git-send-email-j-pihet@ti.com>
-	<1328723039-15952-5-git-send-email-j-pihet@ti.com>
-	<87d38yk2e1.fsf@ti.com>
-	<CAOMWX4dbufbEJpr0nTmwTHR1xz9diMBbO=khKxvMZLWrKesJRw@mail.gmail.com>
+Subject: Re: [PATCH 0/2] change lpj in arm smp common code
+Date: Wed, 29 Feb 2012 10:21:19 -0800
+Message-ID: <87sjhtec0w.fsf@ti.com>
+References: <1330499895-12364-1-git-send-email-richard.zhao@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:44148 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964975Ab2B2SHR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 13:07:17 -0500
-Received: by pbcuo5 with SMTP id uo5so2642696pbc.16
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 10:07:11 -0800 (PST)
-In-Reply-To: <CAOMWX4dbufbEJpr0nTmwTHR1xz9diMBbO=khKxvMZLWrKesJRw@mail.gmail.com>
-	(Nishanth Menon's message of "Tue, 28 Feb 2012 16:59:14 -0600")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <cpufreq-owner@vger.kernel.org>
+In-Reply-To: <1330499895-12364-1-git-send-email-richard.zhao@linaro.org>
+	(Richard Zhao's message of "Wed, 29 Feb 2012 15:18:13 +0800")
+Sender: cpufreq-owner@vger.kernel.org
+To: Richard Zhao <richard.zhao@linaro.org>
+Cc: linux-arm-kernel@lists.infradead.org, cpufreq@vger.kernel.org, linux@arm.linux.org.uk, davej@redhat.com, will.deacon@arm.com, catalin.marinas@arm.com, davidb@codeaurora.org, arnd@arndb.de, linux-omap@vger.kernel.org, linaro-dev@lists.linaro.org, patches@linaro.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Jean Pihet <jean.pihet@newoldbits.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Jean Pihet <j-pihet@ti.com>
 
-"Menon, Nishanth" <nm@ti.com> writes:
+Richard Zhao <richard.zhao@linaro.org> writes:
 
-> On Tue, Feb 28, 2012 at 16:40, Kevin Hilman <khilman@ti.com> wrote:
->> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>
->>> From: Nishanth Menon <nm@ti.com>
->>>
->>> SmartReflex fix for erratum ID i724.
->>>
->>> Since OMAP's VP and PRM modules do not get reset by warm reset,
->>> we should ensure that proper shutdown procedure is followed prior
->>> to allowing the kernel to reboot back up.
->>
->> prior to reboot? =C2=A0how?
->>
->> This patch only ensures a proper shutdown if the kernel goes down
->> cleanly.
->>
->> How is this handled on reboot?
-> There is no known solution for watchdog resets(part of the errata WA
-> limitation) :( - the best we could do was to make shutdown path safe =
--
-> this includes s/w (userspace triggered) reboots.
+> The two patches were originally in [PATCH V6 0/7] add a generic cpufreq driver.
+> I seperated them and hope they can go to upstream earlier.
+>
+> Richard Zhao (2):
+>   ARM: add cpufreq transiton notifier to adjust loops_per_jiffy for smp
+>   cpufreq: OMAP: remove loops_per_jiffy recalculate for smp
 
-OK, then the changelog needs an update to reflect that.
+The first one should go into Russell's patch system.  Once he queues
+that, I can queue the OMAP one for the CPUfreq maintainer.
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
