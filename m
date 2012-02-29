@@ -1,62 +1,72 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH 04/14] ARM: OMAP3+: SmartReflex: Add a shutdown hook
-Date: Thu, 1 Mar 2012 00:33:32 +0100
-Message-ID: <CAORVsuVG-wovojojETMuPrvaFvL-fb0-t6Je+jJ8CUFn-95wig@mail.gmail.com>
-References: <1328723039-15952-1-git-send-email-j-pihet@ti.com>
-	<1328723039-15952-5-git-send-email-j-pihet@ti.com>
-	<87d38yk2e1.fsf@ti.com>
-	<CAOMWX4dbufbEJpr0nTmwTHR1xz9diMBbO=khKxvMZLWrKesJRw@mail.gmail.com>
-	<878vjlfr8z.fsf@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 09/10] ASoC: omap-mcbsp: Merge the
+ omap_mcbsp_data into omap_mcbsp structure
+Date: Wed, 29 Feb 2012 23:33:44 +0000
+Message-ID: <20120229233343.GI8295@opensource.wolfsonmicro.com>
+References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
+	<1330414820-4641-10-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:55148 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932300Ab2B2Xdd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 18:33:33 -0500
-Received: by vcqp1 with SMTP id p1so3864208vcq.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 15:33:32 -0800 (PST)
-In-Reply-To: <878vjlfr8z.fsf@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============5894928318416652267=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1330414820-4641-10-git-send-email-peter.ujfalusi@ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, linux-omap@vger.kernel.org, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, balbi@ti.com, Jean Pihet <j-pihet@ti.com>
 
-On Wed, Feb 29, 2012 at 7:07 PM, Kevin Hilman <khilman@ti.com> wrote:
-> "Menon, Nishanth" <nm@ti.com> writes:
->
->> On Tue, Feb 28, 2012 at 16:40, Kevin Hilman <khilman@ti.com> wrote:
->>> Jean Pihet <jean.pihet@newoldbits.com> writes:
->>>
->>>> From: Nishanth Menon <nm@ti.com>
->>>>
->>>> SmartReflex fix for erratum ID i724.
->>>>
->>>> Since OMAP's VP and PRM modules do not get reset by warm reset,
->>>> we should ensure that proper shutdown procedure is followed prior
->>>> to allowing the kernel to reboot back up.
->>>
->>> prior to reboot? =A0how?
->>>
->>> This patch only ensures a proper shutdown if the kernel goes down
->>> cleanly.
->>>
->>> How is this handled on reboot?
->> There is no known solution for watchdog resets(part of the errata WA
->> limitation) :( - the best we could do was to make shutdown path safe=
- -
->> this includes s/w (userspace triggered) reboots.
->
-> OK, then the changelog needs an update to reflect that.
-Just resent patch 04/13 with the update changelog.
 
->
-> Kevin
+--===============5894928318416652267==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CNK/L7dwKXQ4Ub8J"
+Content-Disposition: inline
 
-Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--CNK/L7dwKXQ4Ub8J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Feb 28, 2012 at 09:40:19AM +0200, Peter Ujfalusi wrote:
+> Since the drivers has been merged, merge the two structures together.
+
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+
+--CNK/L7dwKXQ4Ub8J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPTrXQAAoJEBus8iNuMP3d7kwP/RdJIpWtyo3Y9wrGUXG1L0G4
+VXBYUqJGxbgxhETtR667EN8Mbvlu61slgDj4WdMjgr3yxhX7Pz2g9o2ScDopaMX0
+MTGdCSbzon6+R1JSoBRLKAUxTVP+cmyl0e16wdDolxTG1MAfBBXh7RMQodu31OTc
+LTwwmZvWT1KXGd2oJ/26KF6VX/ECBXwrC5EdItoHH+y2LcZ6YkCHs0VcEt0uECFn
+gyigFqisLYxzuJNkBq0vJF4G6w3LXxuT/3P10rDTuOOnSKwjppaj/DOFen1EAdUE
+Eu6uL3GyqLsUwNRLviePqDL6CEYuCQL2QsTK6L1hEafdliSXYUncALgZzQ356FBD
+jB0VwaXezGCebHjpk6Nx8N9U9/dyz/3SxEfwKbqGFU5sXbvzrx/dln6VauURA4Fx
+vVJfavBfKPC+EFsC/KhyfpHdkvvKHAnQrNchKJHAxdQftTLqSOG4OYSWR699Nx1A
+HgET3E/QGF1gngyD+oyM7uNTJ3jhjfziC4NrwnmvLUHyZgQUTEvhjt0K7QKgiRBF
+99CeuAiZEvsmq3iQYAAg3+Z/1O3gOIfNK24wlNtGS3VAp5PJ2FFfEgo2WBb5B4D8
+t2moJ8ywyoLK+SVm3LoeKawLzVJI7k6qPtU3p/EcnLdlAV9rgFk0NozmA0bMDy+y
+GhQNxr8x+3KhB+fK+0Mk
+=05FR
+-----END PGP SIGNATURE-----
+
+--CNK/L7dwKXQ4Ub8J--
+
+--===============5894928318416652267==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5894928318416652267==--
