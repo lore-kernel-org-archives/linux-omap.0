@@ -1,55 +1,51 @@
-From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH RFC] spi/omap: Trivial cleanup
-Date: Wed, 29 Feb 2012 19:34:06 +0530
-Message-ID: <1330524246-8864-1-git-send-email-shubhrajyoti@ti.com>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 0/6] ARM: OMAP3PLUS: IO daisychain support fixes
+Date: Wed, 29 Feb 2012 16:26:55 +0200
+Message-ID: <1330525621-29836-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
-List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
-	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:33310 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752486Ab2B2O1P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Feb 2012 09:27:15 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@ti.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-The context is stored directly inside drvdata structure post 
-[f887876 spi/omap: Remove bus_num usage for instance index]. 
-Remove the OMAP2_MCSPI_MAX_CTRL macro as it is not needed anymore.
+Hi,
 
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
----
-Applies on Benoit's for_3.4/dt_spi_eth
+The previous version of this set was sent by Vishwanath BS, but as he
+is busy with other stuff, I am taking over.
 
- drivers/spi/spi-omap2-mcspi.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+Some basic info about this set based on comments received on set v2.
+IO chain is now enabled always, and a re-trigger for the chain is
+done during hwmod enable / disable. This means that IO chain is always
+armed according to the latest pad specific WAKE_ENABLE setting, and
+if it is modified, the IO chain needs to be re-armed (thus the hooks
+within omap_hwmod code.) Having IO chain armed all the time allows us
+to receive IO event interrupts even during non-sleep states if the
+corresponding hardware module is disabled, and is unable to detect any
+IO activity itself.
 
-diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
-index d1eb26c..3526281 100644
---- a/drivers/spi/spi-omap2-mcspi.c
-+++ b/drivers/spi/spi-omap2-mcspi.c
-@@ -45,9 +45,6 @@
- 
- #define OMAP2_MCSPI_MAX_FREQ		48000000
- 
--/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
--#define OMAP2_MCSPI_MAX_CTRL 		4
--
- #define OMAP2_MCSPI_REVISION		0x00
- #define OMAP2_MCSPI_SYSSTATUS		0x14
- #define OMAP2_MCSPI_IRQSTATUS		0x18
--- 
-1.7.1
+Version 3 contains the following changes:
 
+- global: renamed *_trigger_wuclk_ctrl funcs as *_trigger_io_chain
+- patch 3: added trigger WUCLKIN disable at the end of omap4_trigger_io_chain
+  (fix pulled from the omap4 core retention set)
+- patch 5: added function pointer for using machine specific io_chain trigger
+  function, initialized during boot
+- patch 7 dropped as the support capability for omap3 is now handled as
+  part of patch 5 init
 
-------------------------------------------------------------------------------
-Virtualization & Cloud Management Using Capacity Planning
-Cloud computing makes use of virtualization - but cloud computing 
-also focuses on allowing computing to be delivered as a service.
-http://www.accelacomm.com/jaw/sfnl/114/51521223/
+Tested on omap3 beagle + omap4 blaze boards. Suspend / resume works, and
+hwmod_io interrupts are generated. Omap4 was tested with the core retention
+support set.
+
+PS: Vishwa / Rajendra, let me know if you are unhappy with me keeping
+your signed-off-by tags in place, I did some minor changes to the patches
+from you.
+
+-Tero
+
