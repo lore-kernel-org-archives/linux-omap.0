@@ -1,133 +1,274 @@
 From: Robert Lee <rob.lee@linaro.org>
-Subject: [PATCH v6 4/9] ARM: kirkwood: Consolidate time keeping and irq enable
-Date: Tue, 28 Feb 2012 21:11:44 -0600
-Message-ID: <1330485109-7327-5-git-send-email-rob.lee@linaro.org>
+Subject: [PATCH v6 1/9] cpuidle: Add common time keeping and irq enabling
+Date: Tue, 28 Feb 2012 21:11:41 -0600
+Message-ID: <1330485109-7327-2-git-send-email-rob.lee@linaro.org>
 References: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:47543 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030684Ab2B2DML (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 22:12:11 -0500
-Received: by mail-yx0-f174.google.com with SMTP id l12so1107470yen.19
-        for <linux-omap@vger.kernel.org>; Tue, 28 Feb 2012 19:12:11 -0800 (PST)
+Return-path: <linux-sh-owner@vger.kernel.org>
 In-Reply-To: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-sh-owner@vger.kernel.org
 To: len.brown@intel.com, khilman@ti.com
 Cc: robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Enable core cpuidle timekeeping and irq enabling and remove that
-handling from this code.
+Make necessary changes to implement time keeping and irq enabling
+in the core cpuidle code.  This will allow the removal of these
+functionalities from various platform cpuidle implementations whose
+timekeeping and irq enabling follows the form in this common code.
 
 Signed-off-by: Robert Lee <rob.lee@linaro.org>
 ---
- arch/arm/mach-kirkwood/cpuidle.c |   72 +++++++++++---------------------------
- 1 files changed, 21 insertions(+), 51 deletions(-)
+ arch/arm/include/asm/cpuidle.h |   14 ++++++
+ drivers/cpuidle/cpuidle.c      |   90 ++++++++++++++++++++++++++++++++--------
+ include/linux/cpuidle.h        |   13 ++++++
+ 3 files changed, 99 insertions(+), 18 deletions(-)
+ create mode 100644 arch/arm/include/asm/cpuidle.h
 
-diff --git a/arch/arm/mach-kirkwood/cpuidle.c b/arch/arm/mach-kirkwood/cpuidle.c
-index 7088180..7fd1f88 100644
---- a/arch/arm/mach-kirkwood/cpuidle.c
-+++ b/arch/arm/mach-kirkwood/cpuidle.c
-@@ -20,77 +20,47 @@
- #include <linux/io.h>
- #include <linux/export.h>
- #include <asm/proc-fns.h>
-+#include <asm/cpuidle.h>
- #include <mach/kirkwood.h>
+diff --git a/arch/arm/include/asm/cpuidle.h b/arch/arm/include/asm/cpuidle.h
+new file mode 100644
+index 0000000..1d2075b
+--- /dev/null
++++ b/arch/arm/include/asm/cpuidle.h
+@@ -0,0 +1,14 @@
++#ifndef __ASM_ARM_CPUIDLE_H
++#define __ASM_ARM_CPUIDLE_H
++
++/* Common ARM WFI state */
++#define CPUIDLE_ARM_WFI_STATE {\
++	.enter                  = cpuidle_simple_enter,\
++	.exit_latency           = 1,\
++	.target_residency       = 1,\
++	.flags                  = CPUIDLE_FLAG_TIME_VALID,\
++	.name                   = "WFI",\
++	.desc                   = "ARM core clock gating (WFI)",\
++}
++
++#endif
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 59f4261..00b02f5 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -18,6 +18,7 @@
+ #include <linux/ktime.h>
+ #include <linux/hrtimer.h>
+ #include <linux/module.h>
++#include <asm/proc-fns.h>
+ #include <trace/events/power.h>
  
- #define KIRKWOOD_MAX_STATES	2
+ #include "cpuidle.h"
+@@ -53,6 +54,24 @@ static void cpuidle_kick_cpus(void) {}
  
--static struct cpuidle_driver kirkwood_idle_driver = {
--	.name =         "kirkwood_idle",
--	.owner =        THIS_MODULE,
--};
--
--static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
--
- /* Actual code that puts the SoC in different idle states */
- static int kirkwood_enter_idle(struct cpuidle_device *dev,
- 				struct cpuidle_driver *drv,
- 			       int index)
+ static int __cpuidle_register_device(struct cpuidle_device *dev);
+ 
++static inline int cpuidle_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index)
++{
++	struct cpuidle_state *target_state = &drv->states[index];
++	return target_state->enter(dev, drv, index);
++}
++
++static inline int cpuidle_enter_tk(struct cpuidle_device *dev,
++			       struct cpuidle_driver *drv, int index)
++{
++	return cpuidle_wrap_enter(dev, drv, index, cpuidle_enter);
++}
++
++typedef int (*cpuidle_enter_t)(struct cpuidle_device *dev,
++			       struct cpuidle_driver *drv, int index);
++
++static cpuidle_enter_t cpuidle_enter_ops;
++
+ /**
+  * cpuidle_idle_call - the main idle loop
+  *
+@@ -63,7 +82,6 @@ int cpuidle_idle_call(void)
  {
--	struct timeval before, after;
--	int idle_time;
--
--	local_irq_disable();
--	do_gettimeofday(&before);
--	if (index == 0)
--		/* Wait for interrupt state */
--		cpu_do_idle();
--	else if (index == 1) {
--		/*
--		 * Following write will put DDR in self refresh.
--		 * Note that we have 256 cycles before DDR puts it
--		 * self in self-refresh, so the wait-for-interrupt
--		 * call afterwards won't get the DDR from self refresh
--		 * mode.
--		 */
--		writel(0x7, DDR_OPERATION_BASE);
--		cpu_do_idle();
--	}
--	do_gettimeofday(&after);
--	local_irq_enable();
--	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
--			(after.tv_usec - before.tv_usec);
--
--	/* Update last residency */
--	dev->last_residency = idle_time;
-+	writel(0x7, DDR_OPERATION_BASE);
-+	cpu_do_idle();
+ 	struct cpuidle_device *dev = __this_cpu_read(cpuidle_devices);
+ 	struct cpuidle_driver *drv = cpuidle_get_driver();
+-	struct cpuidle_state *target_state;
+ 	int next_state, entered_state;
  
+ 	if (off)
+@@ -92,12 +110,10 @@ int cpuidle_idle_call(void)
+ 		return 0;
+ 	}
+ 
+-	target_state = &drv->states[next_state];
+-
+ 	trace_power_start(POWER_CSTATE, next_state, dev->cpu);
+ 	trace_cpu_idle(next_state, dev->cpu);
+ 
+-	entered_state = target_state->enter(dev, drv, next_state);
++	entered_state = cpuidle_enter_ops(dev, drv, next_state);
+ 
+ 	trace_power_end(dev->cpu);
+ 	trace_cpu_idle(PWR_EVENT_EXIT, dev->cpu);
+@@ -110,7 +126,8 @@ int cpuidle_idle_call(void)
+ 		dev->states_usage[entered_state].time +=
+ 				(unsigned long long)dev->last_residency;
+ 		dev->states_usage[entered_state].usage++;
+-	}
++	} else
++		dev->last_residency = 0;
+ 
+ 	/* give the governor an opportunity to reflect on the outcome */
+ 	if (cpuidle_curr_governor->reflect)
+@@ -164,20 +181,29 @@ void cpuidle_resume_and_unlock(void)
+ 
+ EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
+ 
+-#ifdef CONFIG_ARCH_HAS_CPU_RELAX
+-static int poll_idle(struct cpuidle_device *dev,
+-		struct cpuidle_driver *drv, int index)
++/**
++ * cpuidle_wrap_enter - performs timekeeping and irqen around enter function
++ * @dev: pointer to a valid cpuidle_device object
++ * @drv: pointer to a valid cpuidle_driver object
++ * @index: index of the target cpuidle state.
++ */
++int cpuidle_wrap_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index,
++				int (*enter)(struct cpuidle_device *dev,
++					struct cpuidle_driver *drv, int index))
+ {
+-	ktime_t	t1, t2;
++	ktime_t time_start, time_end;
+ 	s64 diff;
+ 
+-	t1 = ktime_get();
++	time_start = ktime_get();
++
++	index = enter(dev, drv, index);
++
++	time_end = ktime_get();
++
+ 	local_irq_enable();
+-	while (!need_resched())
+-		cpu_relax();
+ 
+-	t2 = ktime_get();
+-	diff = ktime_to_us(ktime_sub(t2, t1));
++	diff = ktime_to_us(ktime_sub(time_end, time_start));
+ 	if (diff > INT_MAX)
+ 		diff = INT_MAX;
+ 
+@@ -186,6 +212,31 @@ static int poll_idle(struct cpuidle_device *dev,
  	return index;
  }
  
-+static struct cpuidle_driver kirkwood_idle_driver = {
-+	.name			= "kirkwood_idle",
-+	.owner			= THIS_MODULE,
-+	.en_core_tk_irqen	= 1,
-+	.states[0] = CPUIDLE_ARM_WFI_STATE,
-+	.states[1] = {
-+		.enter			= kirkwood_enter_idle,
-+		.exit_latency		= 10,
-+		.target_residency	= 100000,
-+		.flags			= CPUIDLE_FLAG_TIME_VALID,
-+		.name			= "DDR SR",
-+		.desc			= "WFI and DDR Self Refresh",
-+	},
-+	.state_count = KIRKWOOD_MAX_STATES,
-+};
++int cpuidle_simple_enter(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{
++	cpu_do_idle();
 +
-+static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
++	return index;
++}
 +
- /* Initialize CPU idle by registering the idle states */
- static int kirkwood_init_cpuidle(void)
++#ifdef CONFIG_ARCH_HAS_CPU_RELAX
++static inline int __poll_idle(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{
++	while (!need_resched())
++		cpu_relax();
++
++	return index;
++}
++
++static int poll_idle(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{
++	return cpuidle_wrap_enter(dev,	drv, index,
++				__poll_idle);
++}
++
+ static void poll_idle_init(struct cpuidle_driver *drv)
  {
- 	struct cpuidle_device *device;
--	struct cpuidle_driver *driver = &kirkwood_idle_driver;
+ 	struct cpuidle_state *state = &drv->states[0];
+@@ -195,7 +246,6 @@ static void poll_idle_init(struct cpuidle_driver *drv)
+ 	state->exit_latency = 0;
+ 	state->target_residency = 0;
+ 	state->power_usage = -1;
+-	state->flags = 0;
+ 	state->enter = poll_idle;
+ }
+ #else
+@@ -212,10 +262,11 @@ static void poll_idle_init(struct cpuidle_driver *drv) {}
+ int cpuidle_enable_device(struct cpuidle_device *dev)
+ {
+ 	int ret, i;
++	struct cpuidle_driver *drv = cpuidle_get_driver();
  
- 	device = &per_cpu(kirkwood_cpuidle_device, smp_processor_id());
- 	device->state_count = KIRKWOOD_MAX_STATES;
--	driver->state_count = KIRKWOOD_MAX_STATES;
--
--	/* Wait for interrupt state */
--	driver->states[0].enter = kirkwood_enter_idle;
--	driver->states[0].exit_latency = 1;
--	driver->states[0].target_residency = 10000;
--	driver->states[0].flags = CPUIDLE_FLAG_TIME_VALID;
--	strcpy(driver->states[0].name, "WFI");
--	strcpy(driver->states[0].desc, "Wait for interrupt");
--
--	/* Wait for interrupt and DDR self refresh state */
--	driver->states[1].enter = kirkwood_enter_idle;
--	driver->states[1].exit_latency = 10;
--	driver->states[1].target_residency = 10000;
--	driver->states[1].flags = CPUIDLE_FLAG_TIME_VALID;
--	strcpy(driver->states[1].name, "DDR SR");
--	strcpy(driver->states[1].desc, "WFI and DDR Self Refresh");
+ 	if (dev->enabled)
+ 		return 0;
+-	if (!cpuidle_get_driver() || !cpuidle_curr_governor)
++	if (!drv || !cpuidle_curr_governor)
+ 		return -EIO;
+ 	if (!dev->state_count)
+ 		return -EINVAL;
+@@ -226,13 +277,16 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
+ 			return ret;
+ 	}
  
- 	cpuidle_register_driver(&kirkwood_idle_driver);
- 	if (cpuidle_register_device(device)) {
+-	poll_idle_init(cpuidle_get_driver());
++	cpuidle_enter_ops = drv->en_core_tk_irqen ?
++		cpuidle_enter_tk : cpuidle_enter;
++
++	poll_idle_init(drv);
+ 
+ 	if ((ret = cpuidle_add_state_sysfs(dev)))
+ 		return ret;
+ 
+ 	if (cpuidle_curr_governor->enable &&
+-	    (ret = cpuidle_curr_governor->enable(cpuidle_get_driver(), dev)))
++	    (ret = cpuidle_curr_governor->enable(drv, dev)))
+ 		goto fail_sysfs;
+ 
+ 	for (i = 0; i < dev->state_count; i++) {
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 712abcc..c91b018 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -15,6 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/kobject.h>
+ #include <linux/completion.h>
++#include <linux/hrtimer.h>
+ 
+ #define CPUIDLE_STATE_MAX	8
+ #define CPUIDLE_NAME_LEN	16
+@@ -122,6 +123,8 @@ struct cpuidle_driver {
+ 	struct module 		*owner;
+ 
+ 	unsigned int		power_specified:1;
++	/* set to 1 to use the core cpuidle time keeping (for all states). */
++	unsigned int		en_core_tk_irqen:1;
+ 	struct cpuidle_state	states[CPUIDLE_STATE_MAX];
+ 	int			state_count;
+ 	int			safe_state_index;
+@@ -140,6 +143,13 @@ extern void cpuidle_pause_and_lock(void);
+ extern void cpuidle_resume_and_unlock(void);
+ extern int cpuidle_enable_device(struct cpuidle_device *dev);
+ extern void cpuidle_disable_device(struct cpuidle_device *dev);
++extern int cpuidle_simple_enter(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index);
++
++extern int cpuidle_wrap_enter(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index,
++				int (*enter)(struct cpuidle_device *dev,
++					struct cpuidle_driver *drv, int index));
+ 
+ #else
+ static inline void disable_cpuidle(void) { }
+@@ -157,6 +167,9 @@ static inline void cpuidle_resume_and_unlock(void) { }
+ static inline int cpuidle_enable_device(struct cpuidle_device *dev)
+ {return -ENODEV; }
+ static inline void cpuidle_disable_device(struct cpuidle_device *dev) { }
++static inline int cpuidle_simple_enter(struct cpuidle_device *dev,
++		struct cpuidle_driver *drv, int index)
++{return -ENODEV; }
+ 
+ #endif
+ 
 -- 
 1.7.1
 
