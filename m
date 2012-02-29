@@ -1,89 +1,45 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 13/13] ARM: OMAP3+: SmartReflex: fix error handling
-Date: Wed, 29 Feb 2012 23:33:49 +0100
-Message-ID: <1330554829-11347-14-git-send-email-j-pihet@ti.com>
-References: <1330554829-11347-1-git-send-email-j-pihet@ti.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: Re: [PATCH-V1] arm/dts: Add support for TI OMAP3 EVM board
+Date: Wed, 29 Feb 2012 23:39:27 +0100
+Message-ID: <4F4EA91F.1030305@ti.com>
+References: <1324019153-13316-1-git-send-email-hvaibhav@ti.com> <79CD15C6BA57404B839C016229A409A80719AC@DBDE01.ent.ti.com> <20120229223114.GS18901@atomide.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:35298 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964950Ab2B2Wei (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 17:34:38 -0500
-Received: by mail-wi0-f174.google.com with SMTP id hm11so3014676wib.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 14:34:38 -0800 (PST)
-In-Reply-To: <1330554829-11347-1-git-send-email-j-pihet@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:60694 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754334Ab2B2Wjk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 17:39:40 -0500
+In-Reply-To: <20120229223114.GS18901@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
-Cc: balbi@ti.com, nm@ti.com, Jean Pihet <j-pihet@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree-discuss@lists.ozlabs.org" <devicetree-discuss@lists.ozlabs.org>, "grant.likely@secretlab.ca" <grant.likely@secretlab.ca>
 
-Fix the code to correctly use IS_ERR and PTR_ERR on the return
-values pointers
+On 2/29/2012 11:31 PM, Tony Lindgren wrote:
+> * Hiremath, Vaibhav<hvaibhav@ti.com>  [120105 02:46]:
+...
+>> Can this merged? OR anybody has any comments here?
+>
+> For reference, looks like this one is queued up as
+> commit f0e15e2b0c6b3e89daade25a1e9a2d80136c14c3.
 
-Reported-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/smartreflex.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+Yes, it is, I included it in my DTS pull-request because it was the only 
+one with Grant's ack.
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index eaefb1a..56ecfbc 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -421,7 +421,7 @@ int sr_configure_errgen(struct voltagedomain *voltdm)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	if (!sr->clk_length)
-@@ -489,7 +489,7 @@ int sr_disable_errgen(struct voltagedomain *voltdm)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	switch (sr->ip_type) {
-@@ -540,7 +540,7 @@ int sr_configure_minmax(struct voltagedomain *voltdm)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	if (!sr->clk_length)
-@@ -626,7 +626,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 	if (IS_ERR(sr)) {
- 		pr_warning("%s: omap_sr struct for sr_%s not found\n",
- 			__func__, voltdm->name);
--		return -EINVAL;
-+		return PTR_ERR(sr);
- 	}
- 
- 	volt_data = omap_voltage_get_voltdata(sr->voltdm, volt);
-@@ -634,7 +634,7 @@ int sr_enable(struct voltagedomain *voltdm, unsigned long volt)
- 	if (IS_ERR(volt_data)) {
- 		dev_warn(&sr->pdev->dev, "%s: Unable to get voltage table"
- 			"for nominal voltage %ld\n", __func__, volt);
--		return -ENODATA;
-+		return PTR_ERR(volt_data);
- 	}
- 
- 	nvalue_reciprocal = sr_retrieve_nvalue(sr, volt_data->sr_efuse_offs);
-@@ -1079,7 +1079,7 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
- 	if (IS_ERR(sr_info)) {
- 		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
- 			__func__);
--		return -EINVAL;
-+		return PTR_ERR(sr_info);
- 	}
- 
- 	if (sr_info->autocomp_active)
--- 
-1.7.5.4
+I have the whole series ready to be pulled but was waiting for DT 
+maintainers acked-by.
 
+I still have these four ones in my branch.
+
+d5c9442 arm/dts: Add support for TI AM3517/05 EVM board
+3b5fa9a arm/dts: omap3-evm: Add i2c and twl4030 support
+7f4ca5f arm/dts: Add support for TI AM335x EVM board
+d0c3aca ARM: OMAP2+: board-generic: Add DT support for AM33xx devices
+
+In fact the board one already has the proper ack, only the DTS are 
+missing it.
+
+Regards,
+Benoit
