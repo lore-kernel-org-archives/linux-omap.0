@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL 3/5] First set of omap1 related changes
+Subject: [GIT PULL 4/5] First round of DT related omap changes
 Date: Wed, 29 Feb 2012 12:15:06 -0800
-Message-ID: <E1S2pw8-0004bV-6v@merlin.infradead.org>
+Message-ID: <E1S2pwR-0004lT-RP@merlin.infradead.org>
 References: <pull-1330546506-268554>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,42 +22,51 @@ To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-These too we considered too late for the last merge window,
-there will be another set coming after this.
+This contains first set of DT related changes.
 
 Regards,
 
 Tony
 
-The following changes since commit dcd6c92267155e70a94b3927bce681ce74b80d1f:
+
+The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
   Linus Torvalds (1):
-        Linux 3.3-rc1
+        Linux 3.3-rc4
 
 are available in the git repository at:
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap omap1
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap dt
 
-Janusz Krzysztofik (7):
-      ARM: OMAP1: ams-delta: register latch dependent devices later
-      ARM: OMAP1: ams-delta: convert latches to basic_mmio_gpio
-      ARM: OMAP1: ams-delta: supersede custom led device by leds-gpio
-      LED: drop leds-ams-delta driver
-      MTD: NAND: ams-delta: use GPIO instead of custom I/O
-      omapfb: lcd_ams_delta: drive control lines over GPIO
-      input: serio: ams-delta: toggle keyboard power over GPIO
+Benoit Cousson (10):
+      arm/dts: OMAP: Remove bootargs node from board files
+      ARM: OMAP2+: kconfig: Enable devicetree by default for OMAP2+ systems
+      ARM: OMAP2+: board-generic: Remove un-needed .atag_offset for DT_MACHINE
+      ARM: OMAP2+: omap_device: Replace dev_warn by dev_dbg in omap_device_build_from_dt
+      ARM: OMAP2+: pm: Do not init statically the SR and voltage layer with DT
+      ARM: OMAP1: kconfig: Enable IRQ_DOMAIN by default for OMAP1 platforms
+      arm/dts: OMAP3&4: Remove the '0x' prefix for serial nodes
+      arm/dts: OMAP4: Add i2c controller nodes
+      arm/dts: OMAP3: Add i2c controller nodes
+      arm/dts: OMAP4: Update DTS file with new GIC bindings
 
-Tony Lindgren (1):
-      Merge branch 'omap1-part2' into omap1
+Tony Lindgren (3):
+      Merge branch 'for_3.4/dt_base' of git://git.kernel.org/.../bcousson/linux-omap-dt into dt
+      ARM: OMAP2+: Set Kconfig dependencies for PROC_DEVICETREE
+      Merge branch 'for_3.4/dts_updates' of git://git.kernel.org/.../bcousson/linux-omap-dt into dt
 
- arch/arm/mach-omap1/Kconfig                       |    2 +
- arch/arm/mach-omap1/board-ams-delta.c             |  226 +++++++++++++++++----
- arch/arm/plat-omap/include/plat/board-ams-delta.h |   48 ++---
- drivers/input/serio/ams_delta_serio.c             |   54 +++--
- drivers/leds/Kconfig                              |    7 -
- drivers/leds/Makefile                             |    1 -
- drivers/leds/leds-ams-delta.c                     |  126 ------------
- drivers/mtd/nand/ams-delta.c                      |   74 +++++--
- drivers/video/omap/lcd_ams_delta.c                |   27 ++-
- sound/soc/omap/ams-delta.c                        |    2 +-
- 10 files changed, 318 insertions(+), 249 deletions(-)
- delete mode 100644 drivers/leds/leds-ams-delta.c
+Vaibhav Hiremath (1):
+      arm/dts: Add support for TI OMAP3 EVM board
+
+ arch/arm/boot/dts/omap3-beagle.dts  |    9 --------
+ arch/arm/boot/dts/omap3-evm.dts     |   20 ++++++++++++++++++
+ arch/arm/boot/dts/omap3.dtsi        |   29 +++++++++++++++++++++++---
+ arch/arm/boot/dts/omap4-panda.dts   |    9 --------
+ arch/arm/boot/dts/omap4-sdp.dts     |    9 --------
+ arch/arm/boot/dts/omap4.dtsi        |   38 ++++++++++++++++++++++++++++++----
+ arch/arm/mach-omap2/Kconfig         |    1 -
+ arch/arm/mach-omap2/board-generic.c |   12 +++-------
+ arch/arm/mach-omap2/pm.c            |    8 +++++++
+ arch/arm/plat-omap/Kconfig          |    3 ++
+ arch/arm/plat-omap/omap_device.c    |    2 +-
+ 11 files changed, 94 insertions(+), 46 deletions(-)
+ create mode 100644 arch/arm/boot/dts/omap3-evm.dts
