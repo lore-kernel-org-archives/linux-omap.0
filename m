@@ -1,106 +1,129 @@
 From: Robert Lee <rob.lee@linaro.org>
-Subject: [PATCH v6 0/9] Consolidate cpuidle functionality
-Date: Tue, 28 Feb 2012 21:11:40 -0600
-Message-ID: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
+Subject: [PATCH v6 2/9] ARM: at91: Consolidate time keeping and irq enable
+Date: Tue, 28 Feb 2012 21:11:42 -0600
+Message-ID: <1330485109-7327-3-git-send-email-rob.lee@linaro.org>
+References: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
 Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
 Sender: linux-sh-owner@vger.kernel.org
 To: len.brown@intel.com, khilman@ti.com
 Cc: robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch series moves various functionality duplicated in platform 
-cpuidle drivers to the core cpuidle driver. Also, the platform irq
-disabling was removed as it appears that all calls into 
-cpuidle_call_idle will have already called local_irq_disable().
+Enable core cpuidle timekeeping and irq enabling and remove that
+handling from this code.
 
-NOTE to Maintainers: Platform code changes are not required due to patch 1/9
-but please review and push these platform changes as possible to allow
-this consolidation to occur.
+Signed-off-by: Robert Lee <rob.lee@linaro.org>
+---
+ arch/arm/mach-at91/cpuidle.c |   67 +++++++++++++++---------------------------
+ 1 files changed, 24 insertions(+), 43 deletions(-)
 
-Based on 3.3-rc5 plus recent exynos cpuidle patch (affect exynos cpuidle only):
-http://www.spinics.net/lists/linux-samsung-soc/msg09467.html
-
-v5 submission can be found here:
-http://www.spinics.net/lists/arm-kernel/msg161596.html
-Changes since v5:
-* Fixed mindless bug in CONFIG_ARCH_HAS_RELAX code in drivers/cpuidle/cpuidle.c
-* Removed inline from wrapper function (thanks Mike Turquette and Rob Herring)
-* Add zeroing out of last_residency if error value is returned (thanks Mike)
-* Made drivers/cpuidle/cpuidle.c more intelligently handle en_core_tk_irqen
-flag allowing removal of the if (en_core_tk_irqen) in cpuidle_idle_call (thanks
-Daniel Lezcano)
-* Moved CPUIDLE_ARM_WFI_STATE macro to arch/arm/include/asm/cpuidle.h (thanks
-Jean Pihet)
-* Cleaned up some comments and a stray change (thanks Jean)
-
-
-v4 submission can be found here:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2012-January/082742.html
-
-Changes since v4:
-* Added common cpu_do_idle function to core cpuidle
-* Added time keep irq en wrapper to core cpuidle
-* Removed pre/post enter
-* Re-added platforms that can use new common code.
-
-v3 submission can be found here:
-http://www.spinics.net/lists/arm-kernel/msg156751.html
-Changes since v3:
-* Removed drivers/cpuidle/common.c
-** Removed the initialization helper functions
-** Removed the wrapper used to consolidate time keeping and irq enable/disable
-* Add time keeping and local_irq_disable handling in cpuidle_call_idle().
-* Made necessary modifications to a few platforms that required the most changes
-** Note on omap3: changed structure of omap3_idle_drvdata and added
-  per_next_state and per_saved_state vars to accomodate new framework.
-
-v2 submission can be found here:
-http://comments.gmane.org/gmane.linux.ports.arm.kernel/144199
-
-Changes since v2:
-* Made various code organization and style changes as suggested in v1 review.
-* Removed at91 use of common code.  A separate effort is underway to clean
-at91 code and the author has offered to convert to common interface as part
-of those changes (if this common interface is accepted in time).
-* Made platform cpuidle_driver objects __initdata and dynamically added one
-persistent instance of this object in common code.
-* Removed imx5 pm usage of gpc_dvfs clock as it is no longer needed after
-being enabled during clock initialization.
-* Re-organized patches.
-
-v1 submission can be found here:
-http://comments.gmane.org/gmane.linux.ports.arm.kernel/142791
-
-Changes since v1:
-* Common interface moved to drivers/cpuidle and made non arch-specific.
-* Made various fixes and suggested additions to the common cpuidle
-code from v1 review.
-* Added callback for filling in driver_data field as needed.
-* Modified the various platforms with these changes.
-
-Robert Lee (9):
-  cpuidle: Add common time keeping and irq enabling
-  ARM: at91: Consolidate time keeping and irq enable
-  ARM: exynos: Consolidate time keeping and irq enable
-  ARM: kirkwood: Consolidate time keeping and irq enable
-  ARM: davinci: Consolidate time keeping and irq enable
-  ARM: omap: Consolidate OMAP3 time keeping and irq enable
-  ARM: omap: Consolidate OMAP4 time keeping and irq enable
-  ARM: shmobile: Consolidate time keeping and irq enable
-  SH: shmobile: Consolidate time keeping and irq enable
-
- arch/arm/include/asm/cpuidle.h        |   14 +++++
- arch/arm/mach-at91/cpuidle.c          |   67 +++++++++----------------
- arch/arm/mach-davinci/cpuidle.c       |   78 +++++++++++-----------------
- arch/arm/mach-exynos/cpuidle.c        |   53 ++-----------------
- arch/arm/mach-kirkwood/cpuidle.c      |   72 ++++++++------------------
- arch/arm/mach-omap2/cpuidle34xx.c     |   42 ++++++---------
- arch/arm/mach-omap2/cpuidle44xx.c     |   21 +-------
- arch/arm/mach-shmobile/cpuidle.c      |   23 +-------
- arch/sh/kernel/cpu/shmobile/cpuidle.c |   10 +---
- drivers/cpuidle/cpuidle.c             |   90 ++++++++++++++++++++++++++-------
- include/linux/cpuidle.h               |   13 +++++
- 11 files changed, 207 insertions(+), 276 deletions(-)
- create mode 100644 arch/arm/include/asm/cpuidle.h
+diff --git a/arch/arm/mach-at91/cpuidle.c b/arch/arm/mach-at91/cpuidle.c
+index a851e6c..324f802 100644
+--- a/arch/arm/mach-at91/cpuidle.c
++++ b/arch/arm/mach-at91/cpuidle.c
+@@ -17,9 +17,10 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/cpuidle.h>
+-#include <asm/proc-fns.h>
+ #include <linux/io.h>
+ #include <linux/export.h>
++#include <asm/proc-fns.h>
++#include <asm/cpuidle.h>
+ 
+ #include "pm.h"
+ 
+@@ -27,66 +28,46 @@
+ 
+ static DEFINE_PER_CPU(struct cpuidle_device, at91_cpuidle_device);
+ 
+-static struct cpuidle_driver at91_idle_driver = {
+-	.name =         "at91_idle",
+-	.owner =        THIS_MODULE,
+-};
+-
+ /* Actual code that puts the SoC in different idle states */
+ static int at91_enter_idle(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv,
+ 			       int index)
+ {
+-	struct timeval before, after;
+-	int idle_time;
+ 	u32 saved_lpr;
+ 
+-	local_irq_disable();
+-	do_gettimeofday(&before);
+-	if (index == 0)
+-		/* Wait for interrupt state */
+-		cpu_do_idle();
+-	else if (index == 1) {
+-		asm("b 1f; .align 5; 1:");
+-		asm("mcr p15, 0, r0, c7, c10, 4");	/* drain write buffer */
+-		saved_lpr = sdram_selfrefresh_enable();
+-		cpu_do_idle();
+-		sdram_selfrefresh_disable(saved_lpr);
+-	}
+-	do_gettimeofday(&after);
+-	local_irq_enable();
+-	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
+-			(after.tv_usec - before.tv_usec);
++	__asm__("b 1f; .align 5; 1:\n"
++	"	mcr p15, 0, r0, c7, c10, 4");	/* drain write buffer */
++
++	saved_lpr = sdram_selfrefresh_enable();
++	cpu_do_idle();
++	sdram_selfrefresh_disable(saved_lpr);
+ 
+-	dev->last_residency = idle_time;
+ 	return index;
+ }
+ 
++static struct cpuidle_driver at91_idle_driver = {
++	.name			= "at91_idle",
++	.owner			= THIS_MODULE,
++	.en_core_tk_irqen	= 1,
++	.states[0] = CPUIDLE_ARM_WFI_STATE,
++	.states[1] = {
++		.enter			= at91_enter_idle,
++		.exit_latency		= 10,
++		.target_residency	= 100000,
++		.flags			= CPUIDLE_FLAG_TIME_VALID,
++		.name			= "RAM_SR",
++		.desc			= "WFI and DDR Self Refresh",
++	},
++	.state_count = AT91_MAX_STATES,
++};
++
+ /* Initialize CPU idle by registering the idle states */
+ static int at91_init_cpuidle(void)
+ {
+ 	struct cpuidle_device *device;
+-	struct cpuidle_driver *driver = &at91_idle_driver;
+ 
+ 	device = &per_cpu(at91_cpuidle_device, smp_processor_id());
+ 	device->state_count = AT91_MAX_STATES;
+-	driver->state_count = AT91_MAX_STATES;
+-
+-	/* Wait for interrupt state */
+-	driver->states[0].enter = at91_enter_idle;
+-	driver->states[0].exit_latency = 1;
+-	driver->states[0].target_residency = 10000;
+-	driver->states[0].flags = CPUIDLE_FLAG_TIME_VALID;
+-	strcpy(driver->states[0].name, "WFI");
+-	strcpy(driver->states[0].desc, "Wait for interrupt");
+-
+-	/* Wait for interrupt and RAM self refresh state */
+-	driver->states[1].enter = at91_enter_idle;
+-	driver->states[1].exit_latency = 10;
+-	driver->states[1].target_residency = 10000;
+-	driver->states[1].flags = CPUIDLE_FLAG_TIME_VALID;
+-	strcpy(driver->states[1].name, "RAM_SR");
+-	strcpy(driver->states[1].desc, "WFI and RAM Self Refresh");
+ 
+ 	cpuidle_register_driver(&at91_idle_driver);
+ 
+-- 
+1.7.1
 
