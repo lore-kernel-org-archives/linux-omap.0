@@ -1,81 +1,57 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: [PATCH 04/13] ARM: OMAP3+: SmartReflex: Add a shutdown hook
-Date: Thu,  1 Mar 2012 00:29:44 +0100
-Message-ID: <1330558184-11734-1-git-send-email-j-pihet@ti.com>
-References: <1330554829-11347-5-git-send-email-j-pihet@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v2 03/10] ASoC: OMAP: McBSP: Consolidate plat/mcbsp.h
+ content
+Date: Wed, 29 Feb 2012 23:30:46 +0000
+Message-ID: <20120229233046.GF8295@opensource.wolfsonmicro.com>
+References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com>
+ <1330414820-4641-4-git-send-email-peter.ujfalusi@ti.com>
 Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VuQYccsttdhdIfIP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63328 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754248Ab2B2X37 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 18:29:59 -0500
-Received: by wgbdr13 with SMTP id dr13so4203384wgb.1
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 15:29:58 -0800 (PST)
-In-Reply-To: <1330554829-11347-5-git-send-email-j-pihet@ti.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54376 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756797Ab2B2Xas (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Feb 2012 18:30:48 -0500
+Content-Disposition: inline
+In-Reply-To: <1330414820-4641-4-git-send-email-peter.ujfalusi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
-Cc: balbi@ti.com, nm@ti.com, Jean Pihet <j-pihet@ti.com>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>
 
-From: Nishanth Menon <nm@ti.com>
 
-SmartReflex fix for erratum ID i724.
+--VuQYccsttdhdIfIP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Since OMAP's VP and PRM modules do not get reset by warm reset,
-we should ensure that proper shutdown procedure is followed prior
-to allowing the kernel to reboot back up.
+On Tue, Feb 28, 2012 at 09:40:13AM +0200, Peter Ujfalusi wrote:
+> Move most of the content of the plat/mcbsp.h header file under
+> sound/soc/omap/ to help further cleanups.
 
-Without this, Smartreflex module might be left active or
-system might be caught in an indeterminate sequence when
-software controlled reboot is triggered, leaving the next
-reboot behavior to be unpredictable.
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-In the case of hardware controlled warm reset such as that
-by watchdog timer, prevention of this scenario is not possible.
+--VuQYccsttdhdIfIP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Jean Pihet <j-pihet@ti.com>
----
- arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index ec2b0e7..9c39484 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -1055,8 +1055,32 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static void __devexit omap_sr_shutdown(struct platform_device *pdev)
-+{
-+	struct omap_sr_data *pdata = pdev->dev.platform_data;
-+	struct omap_sr *sr_info;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
-+		return;
-+	}
-+
-+	sr_info = _sr_lookup(pdata->voltdm);
-+	if (IS_ERR(sr_info)) {
-+		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
-+			__func__);
-+		return;
-+	}
-+
-+	if (sr_info->autocomp_active)
-+		sr_stop_vddautocomp(sr_info);
-+
-+	return;
-+}
-+
- static struct platform_driver smartreflex_driver = {
- 	.remove         = omap_sr_remove,
-+	.shutdown	= __devexit_p(omap_sr_shutdown),
- 	.driver		= {
- 		.name	= "smartreflex",
- 	},
--- 
-1.7.5.4
+iQIcBAEBAgAGBQJPTrUfAAoJEBus8iNuMP3dNjsP/REz+bRYA9ADpkpJrkWxPcu5
+TXzv6kQieVvsFmsRlcRAOp+ZmCNcwMjgFHNa28PlpuundMhNH4InmHJ4E3bJPk2/
+x0l+tqG6q7V4tY5v9Y27vgafctkF63ah2OpxEwz4UVmnAadhSbBBeKhe3uSEzVzN
++8OUSaAHANH4mfCjtQVGdQ0Zox/c6fAYct0Ivi9B7icyUZtxsCXuBYxiPnyNvEva
+PHsIVqvNIFpiwG8BqnZIJnunp0u9s5Cyl2h6CwiMJ6mBHjiG4XuJTd3iJ8hYmb6/
+8gdjAaYg7fXJsrQ3zT1cvsjhneZRbsYQFfEGRVcsUQ58+BWKOqxYUAP5JQzgrFXD
+fqxBMPhK3nv4uieGTF5uuWU+3EB+JfflnOo9tnT44GDxMCLjbdnP1dreTsoSzhO2
+QMH+4rdZlv0/GR4nUIrE2UyajvuvIeFMKi5eXoqNcIBjJFAfqWxnSNeT57dNdvXg
+AyfIl+tW6JdAsN8cD4sD1CUscwLUw+7720Q7Dc4Vhka2UIfrDb/IT28CH4U0Yb13
+Uqi8sJpFoI4MeyPPrUpHNY6xt8ah8IFPCtRmgtHcjG1eufFCQJAWeRV4Vz0oCFTv
+a7mRnhTq2IGAyn4RlzOzoxogR6Cnyc1vkWHT74EKnxDfTNunpc3AUciggMd6KKWt
+boxTDjThUest15nyYNjT
+=h1of
+-----END PGP SIGNATURE-----
 
+--VuQYccsttdhdIfIP--
