@@ -1,64 +1,111 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v6 1/9] cpuidle: Add common time keeping and irq enabling
-Date: Wed, 29 Feb 2012 10:43:34 -0800
-Message-ID: <87obsheazt.fsf@ti.com>
-References: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
-	<1330485109-7327-2-git-send-email-rob.lee@linaro.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [GIT PULL 1/5] non-critical fixes for v3.4 merge window
+Date: Wed, 29 Feb 2012 12:15:06 -0800
+Message-ID: <4713.8572474525$1330546522@news.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:59540 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965939Ab2B2Snm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 13:43:42 -0500
-Received: by mail-pw0-f47.google.com with SMTP id rp12so5205365pbb.6
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 10:43:41 -0800 (PST)
-In-Reply-To: <1330485109-7327-2-git-send-email-rob.lee@linaro.org> (Robert
-	Lee's message of "Tue, 28 Feb 2012 21:11:41 -0600")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63920 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755165Ab2B2UPK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 15:15:10 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Robert Lee <rob.lee@linaro.org>
-Cc: len.brown@intel.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Robert Lee <rob.lee@linaro.org> writes:
+Hi Arnd & Olof,
 
-> Make necessary changes to implement time keeping and irq enabling
-> in the core cpuidle code.  This will allow the removal of these
-> functionalities from various platform cpuidle implementations whose
-> timekeeping and irq enabling follows the form in this common code.
->
-> Signed-off-by: Robert Lee <rob.lee@linaro.org>
-> ---
->  arch/arm/include/asm/cpuidle.h |   14 ++++++
->  drivers/cpuidle/cpuidle.c      |   90 ++++++++++++++++++++++++++++++++--------
->  include/linux/cpuidle.h        |   13 ++++++
->  3 files changed, 99 insertions(+), 18 deletions(-)
->  create mode 100644 arch/arm/include/asm/cpuidle.h
->
-> diff --git a/arch/arm/include/asm/cpuidle.h b/arch/arm/include/asm/cpuidle.h
-> new file mode 100644
-> index 0000000..1d2075b
-> --- /dev/null
-> +++ b/arch/arm/include/asm/cpuidle.h
-> @@ -0,0 +1,14 @@
-> +#ifndef __ASM_ARM_CPUIDLE_H
-> +#define __ASM_ARM_CPUIDLE_H
-> +
-> +/* Common ARM WFI state */
-> +#define CPUIDLE_ARM_WFI_STATE {\
-> +	.enter                  = cpuidle_simple_enter,\
-> +	.exit_latency           = 1,\
-> +	.target_residency       = 1,\
-> +	.flags                  = CPUIDLE_FLAG_TIME_VALID,\
-> +	.name                   = "WFI",\
-> +	.desc                   = "ARM core clock gating (WFI)",\
-> +}
+This contains fixes for MMC platform init to allow marking
+functions that should be __init as __init. Also included are
+some randconfig fixes.
 
-nit: just name this ARM WFI.  Clock gating is platform specific, and
-"core" has platform-specific meanings, so in order to keep this truly
-generic, I think hat ARM WFI is the best name.
+Regards,
 
-Kevin
+Tony
 
 
+The following changes since commit 6b21d18ed50c7d145220b0724ea7f2613abf0f95:
+  Linus Torvalds (1):
+        Linux 3.3-rc5
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap fixes-non-critical
+
+Kevin Hilman (1):
+      ARM: OMAP: convert omap_device_build() and callers to __init
+
+Ohad Ben-Cohen (1):
+      ARM: OMAP: omap_device: Expose omap_device_{alloc, delete, register}
+
+Paul Walmsley (1):
+      ARM: OMAP2+: I2C: always compile I2C reset code, even if I2C driver is not built
+
+Peter Ujfalusi (1):
+      OMAP4: dma: Correct CPU version check for dma_common_ch_end
+
+Santosh Shilimkar (2):
+      ARM: OMAP: fix section mismatch warning for omap4_hotplug_cpu()
+      ARM: OMAP: Fix section mismatch warning for platform_cpu_die()
+
+Tony Lindgren (13):
+      ARM: OMAP: Fix kernel panic with HSMMC when twl4030_gpio is a module
+      ARM: OMAP: Fix build error when mmc_omap is built as module
+      ARM: OMAP2+: Split omap2_hsmmc_init() to properly support I2C GPIO pins
+      ARM: OMAP2+: Fix Kconfig dependencies for USB_ARCH_HAS_EHCI
+      ARM: OMAP2+: Fix OMAP_HDQ_BASE build error
+      ARM: OMAP2+: Fix board_mux section type conflict when OMAP_MUX is not set
+      ARM: OMAP2+: Fix zoom LCD backlight if TWL_CORE is not selected
+      ARM: OMAP2+: Fix devexit for smartreflex when CONFIG_HOTPLUG is not set
+      ARM: OMAP: Fix devexit for dma when CONFIG_HOTPLUG is not set
+      ARM: OMAP2+: Fix multiple randconfig errors with SOC_OMAP and SOC_OMAP_NOOP
+      ARM: OMAP2+: Mark omap_hsmmc_init and omap_mux related functions as __init
+      Merge branch 'randconfig' into fixes-non-critical
+      Merge branch 'hsmmc' into fixes-non-critical
+
+ arch/arm/Makefile                             |    4 +-
+ arch/arm/mach-omap2/Kconfig                   |   55 +++++++----
+ arch/arm/mach-omap2/Makefile                  |    5 +-
+ arch/arm/mach-omap2/board-2430sdp.c           |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c           |    5 +-
+ arch/arm/mach-omap2/board-4430sdp.c           |    4 +-
+ arch/arm/mach-omap2/board-am3517evm.c         |    2 +-
+ arch/arm/mach-omap2/board-cm-t35.c            |    5 +-
+ arch/arm/mach-omap2/board-devkit8000.c        |    4 +-
+ arch/arm/mach-omap2/board-flash.c             |    2 +-
+ arch/arm/mach-omap2/board-igep0020.c          |    6 +-
+ arch/arm/mach-omap2/board-ldp.c               |    2 +-
+ arch/arm/mach-omap2/board-n8x0.c              |    4 +
+ arch/arm/mach-omap2/board-omap3beagle.c       |   10 ++-
+ arch/arm/mach-omap2/board-omap3evm.c          |    7 +-
+ arch/arm/mach-omap2/board-omap3logic.c        |    2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c      |    5 +-
+ arch/arm/mach-omap2/board-omap3stalker.c      |   15 ++-
+ arch/arm/mach-omap2/board-omap3touchbook.c    |   17 ++--
+ arch/arm/mach-omap2/board-omap4panda.c        |    6 +-
+ arch/arm/mach-omap2/board-overo.c             |    3 +-
+ arch/arm/mach-omap2/board-rm680.c             |    2 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c  |    2 +-
+ arch/arm/mach-omap2/board-zoom-display.c      |    4 +
+ arch/arm/mach-omap2/board-zoom-peripherals.c  |    4 +-
+ arch/arm/mach-omap2/devices.c                 |   15 ++--
+ arch/arm/mach-omap2/display.c                 |    8 +-
+ arch/arm/mach-omap2/dma.c                     |    2 +-
+ arch/arm/mach-omap2/gpio.c                    |    2 +-
+ arch/arm/mach-omap2/hsmmc.c                   |  129 +++++++++++++++++++------
+ arch/arm/mach-omap2/hsmmc.h                   |   12 ++-
+ arch/arm/mach-omap2/mcbsp.c                   |    2 +-
+ arch/arm/mach-omap2/mux.c                     |   14 ++--
+ arch/arm/mach-omap2/mux.h                     |    2 +-
+ arch/arm/mach-omap2/omap-hotplug.c            |    2 +-
+ arch/arm/mach-omap2/omap-mpuss-lowpower.c     |    2 +-
+ arch/arm/mach-omap2/pm.c                      |    2 +-
+ arch/arm/mach-omap2/smartreflex.c             |    2 +-
+ arch/arm/mach-omap2/sr_device.c               |    2 +-
+ arch/arm/plat-omap/dma.c                      |    2 +-
+ arch/arm/plat-omap/include/plat/omap_device.h |    7 ++
+ arch/arm/plat-omap/omap_device.c              |   20 ++---
+ 42 files changed, 264 insertions(+), 138 deletions(-)
