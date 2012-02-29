@@ -1,59 +1,92 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: OMAP4 HDMI PHY bug work-around for stable
-Date: Wed, 29 Feb 2012 06:57:25 -0800
-Message-ID: <20120229145725.GA26024@kroah.com>
-References: <1328787865.1909.64.camel@deskari>
- <1330416193.2123.4.camel@deskari>
- <20120228164702.GB11021@kroah.com>
- <1330506444.1934.20.camel@deskari>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: [PATCHv3 2/4] ARM: OMAP4: prm: fix interrupt register offsets
+Date: Wed, 29 Feb 2012 17:25:04 +0200
+Message-ID: <1330529106-10423-3-git-send-email-t-kristo@ti.com>
+References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:52192 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1031080Ab2B2PFy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 10:05:54 -0500
-Received: from compute4.internal (compute4.nyi.mail.srv.osa [10.202.2.44])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id BA0A920851
-	for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 10:05:53 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <1330506444.1934.20.camel@deskari>
+Received: from bear.ext.ti.com ([192.94.94.41]:37332 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756655Ab2B2PZe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Feb 2012 10:25:34 -0500
+In-Reply-To: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: stable@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
+Cc: linux-arm-kernel@lists.infradead.org
 
-On Wed, Feb 29, 2012 at 11:07:24AM +0200, Tomi Valkeinen wrote:
-> On Tue, 2012-02-28 at 08:47 -0800, Greg KH wrote:
-> 
-> > Sorry, but I don't accept pull requests.  I need patches in email form,
-> > as described in the file, Documentation/stable_kernel_rules.txt.  Please
-> > feel free to send them from your git tree that way.
-> 
-> Ah, I somehow missed that txt when googling about the stable kernel.
-> Thanks for pointing it out.
-> 
-> > That seems like a lot of backporting for a single fix, but I'll be glad
-> > to review them when you send them.
-> 
-> This is something that is not quite clear to me:
-> 
-> Should I strive for keeping the patches for stable as close as possible
-> to the ones in mainline, and thus possibly being forced to take other
-> extra patches with the actual fix as I did here
+Previous code used wrong instance for the interrupt register access.
+Use the right one which is OCP_SOCKET.
 
-Yes.  If that is what is happening here, that's fine, just tell me.
+Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/prm44xx.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-> or
-> 
-> should I just rather cook up a new patch which just fixes the problem
-> without caring about any cleanups etc. that are in the mainline, and
-> thus possibly creating a rather different patch compared to mainline's
-> version?
+diff --git a/arch/arm/mach-omap2/prm44xx.c b/arch/arm/mach-omap2/prm44xx.c
+index a931f8f..caa5e0f 100644
+--- a/arch/arm/mach-omap2/prm44xx.c
++++ b/arch/arm/mach-omap2/prm44xx.c
+@@ -145,8 +145,9 @@ static inline u32 _read_pending_irq_reg(u16 irqen_offs, u16 irqst_offs)
+ 	u32 mask, st;
+ 
+ 	/* XXX read mask from RAM? */
+-	mask = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, irqen_offs);
+-	st = omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST, irqst_offs);
++	mask = omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
++				       irqen_offs);
++	st = omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST, irqst_offs);
+ 
+ 	return mask & st;
+ }
+@@ -178,7 +179,7 @@ void omap44xx_prm_read_pending_irqs(unsigned long *events)
+  */
+ void omap44xx_prm_ocp_barrier(void)
+ {
+-	omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 				OMAP4_REVISION_PRM_OFFSET);
+ }
+ 
+@@ -196,19 +197,19 @@ void omap44xx_prm_ocp_barrier(void)
+ void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask)
+ {
+ 	saved_mask[0] =
+-		omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++		omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 					OMAP4_PRM_IRQSTATUS_MPU_OFFSET);
+ 	saved_mask[1] =
+-		omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++		omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 					OMAP4_PRM_IRQSTATUS_MPU_2_OFFSET);
+ 
+-	omap4_prm_write_inst_reg(0, OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	omap4_prm_write_inst_reg(0, OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(0, OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
+ 
+ 	/* OCP barrier */
+-	omap4_prm_read_inst_reg(OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_read_inst_reg(OMAP4430_PRM_OCP_SOCKET_INST,
+ 				OMAP4_REVISION_PRM_OFFSET);
+ }
+ 
+@@ -224,9 +225,9 @@ void omap44xx_prm_save_and_clear_irqen(u32 *saved_mask)
+  */
+ void omap44xx_prm_restore_irqen(u32 *saved_mask)
+ {
+-	omap4_prm_write_inst_reg(saved_mask[0], OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(saved_mask[0], OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_OFFSET);
+-	omap4_prm_write_inst_reg(saved_mask[1], OMAP4430_PRM_DEVICE_INST,
++	omap4_prm_write_inst_reg(saved_mask[1], OMAP4430_PRM_OCP_SOCKET_INST,
+ 				 OMAP4_PRM_IRQENABLE_MPU_2_OFFSET);
+ }
+ 
+-- 
+1.7.4.1
 
-No, the first one.
-
-thanks,
-
-greg k-h
