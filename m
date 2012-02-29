@@ -1,32 +1,84 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP2+: Remove apply_uV constraints for fixed
- regulator
-Date: Tue, 28 Feb 2012 15:57:06 -0800
-Message-ID: <20120228235706.GJ18901@atomide.com>
-References: <1330421554-29369-1-git-send-email-rnayak@ti.com>
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: RE: [GIT PULL] OMAP DSS fixes for 3.3-rc
+Date: Wed, 29 Feb 2012 10:18:08 +0900
+Message-ID: <004b01ccf67f$ff175360$fd45fa20$%han@samsung.com>
+References: <1329988974.1820.62.camel@deskari> <4F4CFAD1.1000301@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55110 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411Ab2B1X5J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 18:57:09 -0500
-Content-Disposition: inline
-In-Reply-To: <1330421554-29369-1-git-send-email-rnayak@ti.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:46249 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753401Ab2B2BSK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Feb 2012 20:18:10 -0500
+In-reply-to: <4F4CFAD1.1000301@gmx.de>
+Content-language: ko
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: 'Florian Tobias Schandinat' <FlorianSchandinat@gmx.de>, 'Tomi Valkeinen' <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, 'linux-omap mailing list' <linux-omap@vger.kernel.org>
 
-* Rajendra Nayak <rnayak@ti.com> [120228 01:01]:
-> VUSB is a fixed regulator, so get rid of the apply_uV constraint
-> for it, which fixes the following error seen at boot on omap4
-> SDP and PANDA boards.
+Hi.
+> -----Original Message-----
+> From: linux-fbdev-owner@vger.kernel.org [mailto:linux-fbdev-owner@vger.kernel.org] On Behalf Of Florian
+> Tobias Schandinat
+> Sent: Wednesday, February 29, 2012 1:03 AM
+> To: Tomi Valkeinen
+> Cc: linux-fbdev@vger.kernel.org; linux-omap mailing list
+> Subject: Re: [GIT PULL] OMAP DSS fixes for 3.3-rc
 > 
-> machine_constraints_voltage: VUSB: failed to apply 3300000uV constraint
-> twl_reg twl_reg.46: can't register VUSB, -22
-> twl_reg: probe of twl_reg.46 failed with error -22
+> On 02/23/2012 09:22 AM, Tomi Valkeinen wrote:
+> > Hi Florian,
+> >
+> > Two fixes for OMAP DSS for 3.3:
+> >
+> > First one gets the HDMI output working again. Managing the clocks for
+> > OMAP4 is not very simple, and this patch circumvents the problems we
+> > have in the clock framework. It's a clean but rather hacky fix, but it
+> > shouldn't cause any side-effects. The issue will hopefully be fixed
+> > properly with DT when we'll get proper parent-child hierarchy for DSS HW
+> > submodules.
+> >
+> > The second one is a simple fix for HDMI hotplug detection, which I
+> > missed when I wrote the HDMI PHY fix
+> > (c49d005b6cc8491fad5b24f82805be2d6bcbd3dd).
+> 
+> Merged. You would add
+> Cc: stable@vger.kernel.org
+> to patches if appropriate?
 
-Thanks applying into fixes.
+I agree on Florian's opinion.
+It would be good to add this patch to stable kernel. :)
 
-Tony
+> 
+> 
+> Thanks,
+> 
+> Florian Tobias Schandinat
+> 
+> >
+> >  Tomi
+> >
+> > The following changes since commit d65b4e98d7ea3038b767b70fe8be959b2913f16d:
+> >
+> >   Linux 3.3-rc3 (2012-02-08 19:21:53 -0800)
+> >
+> > are available in the git repository at:
+> >   git://gitorious.org/linux-omap-dss2/linux.git for-3.3-rc
+> >
+> > Archit Taneja (1):
+> >       OMAPDSS: HACK: Ensure DSS clock domain gets out of idle when HDMI is enabled
+> >
+> > Rob Clark (1):
+> >       OMAPDSS: HDMI: hot plug detect fix
+> >
+> >  drivers/video/omap2/dss/hdmi.c            |   24 +++++++++++++++++++++++-
+> >  drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    9 +--------
+> >  2 files changed, 24 insertions(+), 9 deletions(-)
+> >
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
