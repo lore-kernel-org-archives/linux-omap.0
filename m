@@ -1,50 +1,46 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv3 1/4] ARM: OMAP4: suspend: Program all domains to retention
-Date: Wed, 29 Feb 2012 17:25:03 +0200
-Message-ID: <1330529106-10423-2-git-send-email-t-kristo@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: [PATCHv3 0/4] ARM: OMAP4: core retention support
+Date: Wed, 29 Feb 2012 21:04:02 +0530
+Message-ID: <CAMQu2gwHrqxZtij2mO3fgh7e8Hqr7ZTMzLxEboeT0pGK2siMOg@mail.gmail.com>
 References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48498 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756866Ab2B2PZd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 10:25:33 -0500
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:42664 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1031199Ab2B2Pe1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Feb 2012 10:34:27 -0500
+Received: by mail-qw0-f48.google.com with SMTP id 2so1427428qam.7
+        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 07:34:22 -0800 (PST)
 In-Reply-To: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+To: Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-From: Rajendra Nayak <rnayak@ti.com>
+On Wed, Feb 29, 2012 at 8:55 PM, Tero Kristo <t-kristo@ti.com> wrote:
+> Hi,
+>
+> Changes compared to previous version:
+>
+> - split out the io_chain set as a separate set
+> - marked patch 3 as TEMP, this is only needed until Paul's pwrdm fixe=
+s
+> =A0get merged (http://marc.info/?l=3Dlinux-omap&m=3D133040749621183&w=
+=3D2)
+>
+> Depends on the io_chain set to provide wakeup capability from
+> retention.
+>
+> Tested with omap4430 blaze : suspend / resume works okay.
 
-Remove the FIXME's in the suspend sequence since
-we now intend to support system level RET support.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
+Thanks for fixing answering the comments on last version.
+=46or entire series you can add
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/pm44xx.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm44xx.c b/arch/arm/mach-omap2/pm44xx.c
-index c264ef7..1ab30a3 100644
---- a/arch/arm/mach-omap2/pm44xx.c
-+++ b/arch/arm/mach-omap2/pm44xx.c
-@@ -151,12 +151,6 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 	if (!strncmp(pwrdm->name, "cpu", 3))
- 		return 0;
- 
--	/*
--	 * FIXME: Remove this check when core retention is supported
--	 * Only MPUSS power domain is added in the list.
--	 */
--	if (strcmp(pwrdm->name, "mpu_pwrdm"))
--		return 0;
- 
- 	pwrst = kmalloc(sizeof(struct power_state), GFP_ATOMIC);
- 	if (!pwrst)
--- 
-1.7.4.1
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
