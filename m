@@ -1,51 +1,50 @@
-From: Jean Pihet <jean.pihet@newoldbits.com>
-Subject: Re: [PATCH v6 0/9] Consolidate cpuidle functionality
-Date: Wed, 29 Feb 2012 10:40:28 +0100
-Message-ID: <CAORVsuXvv+1r0rz=AMSNxWoKfGi+k_6=OXRFxbA=ST-M4vCeRg@mail.gmail.com>
-References: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH 0/2] OMAPDSS: small fixes for 3.3 rc
+Date: Wed, 29 Feb 2012 09:56:06 +0000
+Message-ID: <4F4DF636.1040303@gmx.de>
+References: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-sh-owner@vger.kernel.org>
-In-Reply-To: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
-Sender: linux-sh-owner@vger.kernel.org
-To: Robert Lee <rob.lee@linaro.org>
-Cc: len.brown@intel.com, khilman@ti.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:46936 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1030313Ab2B2J4a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 04:56:30 -0500
+In-Reply-To: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
-Rob,
+Hi Tomi,
 
-On Wed, Feb 29, 2012 at 4:11 AM, Robert Lee <rob.lee@linaro.org> wrote:
-> This patch series moves various functionality duplicated in platform
-> cpuidle drivers to the core cpuidle driver. Also, the platform irq
-> disabling was removed as it appears that all calls into
-> cpuidle_call_idle will have already called local_irq_disable().
->
-> NOTE to Maintainers: Platform code changes are not required due to patch 1/9
-> but please review and push these platform changes as possible to allow
-> this consolidation to occur.
->
-> Based on 3.3-rc5 plus recent exynos cpuidle patch (affect exynos cpuidle only):
-> http://www.spinics.net/lists/linux-samsung-soc/msg09467.html
->
-> v5 submission can be found here:
-> http://www.spinics.net/lists/arm-kernel/msg161596.html
-> Changes since v5:
-> * Fixed mindless bug in CONFIG_ARCH_HAS_RELAX code in drivers/cpuidle/cpuidle.c
-> * Removed inline from wrapper function (thanks Mike Turquette and Rob Herring)
-> * Add zeroing out of last_residency if error value is returned (thanks Mike)
-> * Made drivers/cpuidle/cpuidle.c more intelligently handle en_core_tk_irqen
-> flag allowing removal of the if (en_core_tk_irqen) in cpuidle_idle_call (thanks
-> Daniel Lezcano)
-> * Moved CPUIDLE_ARM_WFI_STATE macro to arch/arm/include/asm/cpuidle.h (thanks
-> Jean Pihet)
-> * Cleaned up some comments and a stray change (thanks Jean)
+On 02/29/2012 08:48 AM, Tomi Valkeinen wrote:
+> Hi,
+> 
+> Two small fixes for omapdss.
+> 
+> Florian, if the patches are ok, I guess it's easier if you just apply these
+> patches from email, instead of me sending a pull request?
 
-Except the comments I sent to the list, this version looks good:
-Acked-by: Jean Pihet <j-pihet@ti.com>
+Yes, that's correct as those are only a few patches and as we are already in
+late -rc's (and therefore I guess, I should take a better look at what I apply).
+I'll add some comments to your patches in separate mails.
 
-Tested OK using cpuidle in RETention and OFF modes on Beagleboard
-(OMAP3530 ES2.1):
-Tested-by: Jean Pihet <j-pihet@ti.com>
 
-Thanks & regards,
-Jean
+Best regards,
+
+Florian Tobias Schandinat
+
+> 
+>  Tomi
+> 
+> Tomi Valkeinen (2):
+>   OMAPDSS: panel-dvi: Add Kconfig dependency on I2C
+>   OMAPDSS: APPLY: make ovl_enable/disable synchronous
+> 
+>  drivers/video/omap2/displays/Kconfig |    2 +-
+>  drivers/video/omap2/dss/apply.c      |    6 ++++++
+>  2 files changed, 7 insertions(+), 1 deletions(-)
+> 
+
