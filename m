@@ -1,14 +1,14 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2 7/9] gpio/omap: fix _set_gpio_irqenable implementation
-Date: Thu, 1 Mar 2012 04:14:27 +0530
-Message-ID: <1330555469-21260-8-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v2 5/9] gpio/omap: get rid of retrigger variable in gpio_irq_handler
+Date: Thu, 1 Mar 2012 04:14:25 +0530
+Message-ID: <1330555469-21260-6-git-send-email-tarun.kanti@ti.com>
 References: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59821 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59822 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756276Ab2B2Woq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756654Ab2B2Woq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 29 Feb 2012 17:44:46 -0500
 In-Reply-To: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,34 +16,38 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-This function should be capable of both enabling and disabling interrupts
-based upon the *enable* parameter. Right now the function only enables
-the interrupt and *enable* is not used at all. So add the interrupt
-disable capability also using the parameter.
+This local variable is just assigned zero and then OR'ed
+with isr. It does not appear to serve any purpose and so
+removing it.
 
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
 Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+ drivers/gpio/gpio-omap.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index bb994db..19f8f44 100644
+index 3765654..de5fe8f 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -475,7 +475,10 @@ static void _disable_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+@@ -626,7 +626,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 	u32 isr;
+ 	unsigned int gpio_irq, gpio_index;
+ 	struct gpio_bank *bank;
+-	u32 retrigger = 0;
+ 	int unmasked = 0;
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
  
- static inline void _set_gpio_irqenable(struct gpio_bank *bank, int gpio, int enable)
- {
--	_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+	if (enable)
-+		_enable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
-+	else
-+		_disable_gpio_irqbank(bank, GPIO_BIT(bank, gpio));
- }
+@@ -663,8 +662,6 @@ static void gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
+ 			chained_irq_exit(chip, desc);
+ 		}
  
- /*
+-		isr |= retrigger;
+-		retrigger = 0;
+ 		if (!isr)
+ 			break;
+ 
 -- 
 1.7.0.4
 
