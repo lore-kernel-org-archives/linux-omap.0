@@ -1,60 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: id: Add missing break statement in
- omap3xxx_check_revision
-Date: Wed, 29 Feb 2012 14:42:50 -0800
-Message-ID: <20120229224250.GT18901@atomide.com>
-References: <1327305407-19914-1-git-send-email-hvaibhav@ti.com>
- <20120127002543.GG29812@atomide.com>
- <79CD15C6BA57404B839C016229A409A8317B530C@DBDE01.ent.ti.com>
- <79CD15C6BA57404B839C016229A409A8317B7282@DBDE01.ent.ti.com>
+From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Subject: [PATCH v2 0/9] gpio/omap: Some more driver cleanup and fixes
+Date: Thu, 1 Mar 2012 04:14:20 +0530
+Message-ID: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57012 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754146Ab2B2Wmx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 17:42:53 -0500
-Content-Disposition: inline
-In-Reply-To: <79CD15C6BA57404B839C016229A409A8317B7282@DBDE01.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46995 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756654Ab2B2Wom (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Feb 2012 17:44:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pedanekar, Hemant" <hemantp@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: linux-omap@vger.kernel.org
+Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [120129 23:59]:
-> On Fri, Jan 27, 2012 at 11:02:01, Hiremath, Vaibhav wrote:
-> > On Fri, Jan 27, 2012 at 05:55:43, Tony Lindgren wrote:
-> > > * Vaibhav Hiremath <hvaibhav@ti.com> [120122 23:26]:
-> > > > Add missing break statement in the function omap3xxx_check_revision.
-> > > > 
-> > > > The commit id 4390f5b2cb1f56 [ARM: OMAP: TI814X: Add cpu type macros
-> > > > and detection support], removed the 'break' statement from the function
-> > > > omap3xxx_check_revision(), resulting into wrong omap/cpu_revision
-> > > > initialization for AM335x devices.
-> > > 
-> > > Looks like this is already fixed, can you please verify with
-> > > v3.3-rc1?
-> > > 
-> > Tony,
-> > 
-> > I just looked at your linux-omap/master branch and 'break' statement is missing. So this patch is still required.
-> > 
-> > I can still see,
-> > 
-> > 394                 }
-> > 395                 break;
-> > 396         case 0xb944:
-> > 397                 omap_revision = AM335X_REV_ES1_0;
-> > 398                 cpu_rev = "1.0";
-> > 399         case 0xb8f2:
-> > 400                 switch (rev) {
-> > 
-> > 
-> Tony,
-> 
-> Can this be merged? I can still see "break" statement missing in the latest
-> linux-omap/master branch.
+The cleanup is mostly getting rid of redundant fields in struct gpio_bank{}
+as we already have them as part of bank->context now. Also, remove un-used
+variable from gpio_irq_handler.
 
-OK thanks applying into fixes for the -rc cycle.
+The fix include correction of _set_gpio_irqenable() implementation and fix
+type mismatch of gpio trigger parameter.
 
-Tony
+It is baselined on top of Kevin's following series:
+gpio/omap: cleanup and runtime PM conversion for v3.4
+git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git for_3.4/gpio/runtime-pm-cleanup
+
+Series is available here for reference:
+git://gitorious.org/~tarunkanti/omap-sw-develoment/tarunkantis-linux-omap-dev for_3.4/gpio_further_cleanup_fixes
+
+Power Test: Off-mode and Retention on OMAP3430 (Suspend and Idle paths).
+Functional Test: OMAP2430, OMAP3430SDP, ZOOM3, OMAP4430, OMAP4-BLAZE
+
+v2:
+- Added a new patch to update wakeup_en register in _set_gpio_wakeup()
+  in addition to updating bank->context.wake_en.
+
+- Added a new patch to remove redundant decoding of gpio offset in
+  gpio_get(), _get_gpio_datain() and _get_gpio_dataout().
+
+- Added a new patch to remove suspend/resume callbacks because the
+  operations performed with the callbacks are redundant.
+
+Tarun Kanti DebBarma (9):
+  gpio/omap: remove saved_fallingdetect, saved_risingdetect fields
+  gpio/omap: fix wakeup_en register update in _set_gpio_wakeup()
+  gpio/omap: remove suspend_wakeup field from struct gpio_bank
+  gpio/omap: remove saved_wakeup field from struct gpio_bank
+  gpio/omap: get rid of retrigger variable in gpio_irq_handler
+  gpio/omap: fix trigger type to unsigned
+  gpio/omap: fix _set_gpio_irqenable implementation
+  gpio/omap: remove redundant decoding of gpio offset
+  gpio/omap: remove suspend/resume callbacks
+
+ drivers/gpio/gpio-omap.c |  113 +++++++++++-----------------------------------
+ 1 files changed, 27 insertions(+), 86 deletions(-)
+
