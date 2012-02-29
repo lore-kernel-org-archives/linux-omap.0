@@ -1,14 +1,14 @@
 From: Tarun Kanti DebBarma <tarun.kanti@ti.com>
-Subject: [PATCH v2 8/9] gpio/omap: remove redundant decoding of gpio offset
-Date: Thu, 1 Mar 2012 04:14:28 +0530
-Message-ID: <1330555469-21260-9-git-send-email-tarun.kanti@ti.com>
+Subject: [PATCH v2 1/9] gpio/omap: remove saved_fallingdetect, saved_risingdetect fields
+Date: Thu, 1 Mar 2012 04:14:21 +0530
+Message-ID: <1330555469-21260-2-git-send-email-tarun.kanti@ti.com>
 References: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32787 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:32786 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756751Ab2B2Won (ORCPT
+	with ESMTP id S1756276Ab2B2Won (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 17:44:43 -0500
 In-Reply-To: <1330555469-21260-1-git-send-email-tarun.kanti@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,109 +16,75 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: khilman@ti.com, tony@atomide.com, linux-arm-kernel@lists.infradead.org, Tarun Kanti DebBarma <tarun.kanti@ti.com>
 
-In gpio_get(), _get_gpio_datain() and _get_gpio_dataout() get rid of
-un-necessary operation to compute gpio mask. The gpio offset passed
-to gpio_get() is sufficient to do that.
+Since we already have context.fallingdetect and context.risingdetect
+there is no more need to have these additional fields. Also, getting
+rid of extra reads associated with them.
 
-Here is Russell's original comment:
-Can someone explain to me this:
-#define GPIO_INDEX(bank, gpio) (gpio % bank->width)
-#define GPIO_BIT(bank, gpio) (1 << GPIO_INDEX(bank, gpio))
-
-static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
-{
-       void __iomem *reg = bank->base + bank->regs->datain;
-
-       return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) != 0;
-}
-
-static int gpio_get(struct gpio_chip *chip, unsigned offset)
-{
-       struct gpio_bank *bank = container_of(chip, struct gpio_bank, chip);
-       void __iomem *reg = bank->base;
-       int gpio = chip->base + offset;
-       u32 mask = GPIO_BIT(bank, gpio);
-
-       if (gpio_is_input(bank, mask))
-               return _get_gpio_datain(bank, gpio);
-       else
-               return _get_gpio_dataout(bank, gpio);
-}
-
-Given that bank->width on OMAP is either 32 or 16, and GPIO numbers for
-any GPIO chip are always aligned to 32 or 16, why does this code bother
-adding the chips base gpio number and then modulo the width?
-
-Surely this means if - for argument sake - you registered a GPIO chip
-with 8 lines followed by one with 16 lines, GPIO0..7 would be chip 0
-bit 0..7, GPIO8..15 would be chip 1 bit 8..15, GPIO16..23 would be
-chip 1 bit 0..7.
-
-However, if you registered a GPIO chip with 16 lines first, it would
-mean GPIO0..15 would be chip 0 bit 0..15, and GPIO16..31 would be
-chip 1 bit 0..15.
-
-Surely this kind of behaviour is not intended?
-
-Is there a reason why the bitmask can't just be (1 << offset) where
-offset is passed into these functions as GPIO number - chip->base ?
-
-Reported-by: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Signed-off-by: Tarun Kanti DebBarma <tarun.kanti@ti.com>
+Reviewed-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/gpio/gpio-omap.c |   18 +++++++-----------
- 1 files changed, 7 insertions(+), 11 deletions(-)
+ drivers/gpio/gpio-omap.c |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/gpio/gpio-omap.c b/drivers/gpio/gpio-omap.c
-index 19f8f44..186ce92 100644
+index 752ae9b..c9369d2 100644
 --- a/drivers/gpio/gpio-omap.c
 +++ b/drivers/gpio/gpio-omap.c
-@@ -133,18 +133,18 @@ static void _set_gpio_dataout_mask(struct gpio_bank *bank, int gpio, int enable)
- 	bank->context.dataout = l;
- }
+@@ -60,8 +60,6 @@ struct gpio_bank {
+ 	u32 enabled_non_wakeup_gpios;
+ 	struct gpio_regs context;
+ 	u32 saved_datain;
+-	u32 saved_fallingdetect;
+-	u32 saved_risingdetect;
+ 	u32 level_mask;
+ 	u32 toggle_mask;
+ 	spinlock_t lock;
+@@ -1234,11 +1232,9 @@ static int omap_gpio_runtime_suspend(struct device *dev)
  
--static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
-+static int _get_gpio_datain(struct gpio_bank *bank, int offset)
- {
- 	void __iomem *reg = bank->base + bank->regs->datain;
+ 	bank->saved_datain = __raw_readl(bank->base +
+ 						bank->regs->datain);
+-	l1 = __raw_readl(bank->base + bank->regs->fallingdetect);
+-	l2 = __raw_readl(bank->base + bank->regs->risingdetect);
++	l1 = bank->context.fallingdetect;
++	l2 = bank->context.risingdetect;
  
--	return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) != 0;
-+	return (__raw_readl(reg) & (1 << offset)) != 0;
- }
+-	bank->saved_fallingdetect = l1;
+-	bank->saved_risingdetect = l2;
+ 	l1 &= ~bank->enabled_non_wakeup_gpios;
+ 	l2 &= ~bank->enabled_non_wakeup_gpios;
  
--static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
-+static int _get_gpio_dataout(struct gpio_bank *bank, int offset)
- {
- 	void __iomem *reg = bank->base + bank->regs->dataout;
+@@ -1297,9 +1293,9 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 		}
+ 	}
  
--	return (__raw_readl(reg) & GPIO_BIT(bank, gpio)) != 0;
-+	return (__raw_readl(reg) & (1 << offset)) != 0;
- }
+-	__raw_writel(bank->saved_fallingdetect,
++	__raw_writel(bank->context.fallingdetect,
+ 			bank->base + bank->regs->fallingdetect);
+-	__raw_writel(bank->saved_risingdetect,
++	__raw_writel(bank->context.risingdetect,
+ 			bank->base + bank->regs->risingdetect);
+ 	l = __raw_readl(bank->base + bank->regs->datain);
  
- static inline void _gpio_rmw(void __iomem *base, u32 reg, u32 mask, bool set)
-@@ -849,19 +849,15 @@ static int gpio_is_input(struct gpio_bank *bank, int mask)
- static int gpio_get(struct gpio_chip *chip, unsigned offset)
- {
- 	struct gpio_bank *bank;
--	void __iomem *reg;
--	int gpio;
- 	u32 mask;
+@@ -1316,14 +1312,15 @@ static int omap_gpio_runtime_resume(struct device *dev)
+ 	 * No need to generate IRQs for the rising edge for gpio IRQs
+ 	 * configured with falling edge only; and vice versa.
+ 	 */
+-	gen0 = l & bank->saved_fallingdetect;
++	gen0 = l & bank->context.fallingdetect;
+ 	gen0 &= bank->saved_datain;
  
--	gpio = chip->base + offset;
- 	bank = container_of(chip, struct gpio_bank, chip);
--	reg = bank->base;
--	mask = GPIO_BIT(bank, gpio);
-+	mask = (1 << offset);
+-	gen1 = l & bank->saved_risingdetect;
++	gen1 = l & bank->context.risingdetect;
+ 	gen1 &= ~(bank->saved_datain);
  
- 	if (gpio_is_input(bank, mask))
--		return _get_gpio_datain(bank, gpio);
-+		return _get_gpio_datain(bank, offset);
- 	else
--		return _get_gpio_dataout(bank, gpio);
-+		return _get_gpio_dataout(bank, offset);
- }
+ 	/* FIXME: Consider GPIO IRQs with level detections properly! */
+-	gen = l & (~(bank->saved_fallingdetect) & ~(bank->saved_risingdetect));
++	gen = l & (~(bank->context.fallingdetect) &
++					 ~(bank->context.risingdetect));
+ 	/* Consider all GPIO IRQs needed to be updated */
+ 	gen |= gen0 | gen1;
  
- static int gpio_output(struct gpio_chip *chip, unsigned offset, int value)
 -- 
 1.7.0.4
 
