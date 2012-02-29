@@ -1,232 +1,64 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: Re: [PATCH v2 1/5] spi/omap: Remove bus_num usage for instance index
-Date: Wed, 29 Feb 2012 13:47:20 +0100
-Message-ID: <4F4E1E58.3030408@ti.com>
-References: <1330467550-20474-1-git-send-email-b-cousson@ti.com> <1330467550-20474-2-git-send-email-b-cousson@ti.com> <4F4E1BAD.9030807@ti.com>
+From: Rob Lee <rob.lee@linaro.org>
+Subject: Re: [PATCH v6 1/9] cpuidle: Add common time keeping and irq enabling
+Date: Wed, 29 Feb 2012 07:30:25 -0600
+Message-ID: <CAMXH7KECx5KHX55FE+v0bOUvq1xvc69D+F7nAEROxA2xf92CvQ@mail.gmail.com>
+References: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
+	<1330485109-7327-2-git-send-email-rob.lee@linaro.org>
+	<CAORVsuX3nJAgbDY+oNQ+OD6xeZt=OkhK4n769Y+xJb0NXcrBmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53109 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754024Ab2B2Mr1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 07:47:27 -0500
-In-Reply-To: <4F4E1BAD.9030807@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <CAORVsuX3nJAgbDY+oNQ+OD6xeZt=OkhK4n769Y+xJb0NXcrBmw@mail.gmail.com>
+Sender: linux-sh-owner@vger.kernel.org
+To: Jean Pihet <jean.pihet@newoldbits.com>
+Cc: len.brown@intel.com, khilman@ti.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shubhrajyoti <shubhrajyoti@ti.com>
-Cc: grant.likely@secretlab.ca, tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 2/29/2012 1:35 PM, Shubhrajyoti wrote:
-> On Wednesday 29 February 2012 03:49 AM, Benoit Cousson wrote:
->> bus_num was used to reference the mcspi controller instance in a fixed array.
->> Remove this array and store this information directly inside drvdata structure.
->>
-> Good change thanks.
-> If you want add my Reviewed-by
-
-Thanks for the review Shubhro.
-
-Regards,
-Benoit
-
->> bus_num is now just set if the pdev->id is present or with -1 for dynamic
->> allocation by SPI core, but the driver does not access it anymore.
->>
->> Clean some bad comments format, and remove un-needed space.
->>
->> Signed-off-by: Benoit Cousson<b-cousson@ti.com>
->> ---
->>   drivers/spi/spi-omap2-mcspi.c |   72 +++++++++++++++++++---------------------
->>   1 files changed, 34 insertions(+), 38 deletions(-)
->>
->> diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
->> index 0b0dfb7..e034164 100644
->> --- a/drivers/spi/spi-omap2-mcspi.c
->> +++ b/drivers/spi/spi-omap2-mcspi.c
->> @@ -109,6 +109,16 @@ struct omap2_mcspi_dma {
->>   #define DMA_MIN_BYTES			160
->>
->>
->> +/*
->> + * Used for context save and restore, structure members to be updated whenever
->> + * corresponding registers are modified.
->> + */
->> +struct omap2_mcspi_regs {
->> +	u32 modulctrl;
->> +	u32 wakeupenable;
->> +	struct list_head cs;
->> +};
->> +
->>   struct omap2_mcspi {
->>   	struct work_struct	work;
->>   	/* lock protects queue and registers */
->> @@ -120,8 +130,9 @@ struct omap2_mcspi {
->>   	unsigned long		phys;
->>   	/* SPI1 has 4 channels, while SPI2 has 2 */
->>   	struct omap2_mcspi_dma	*dma_channels;
->> -	struct  device		*dev;
->> +	struct device		*dev;
->>   	struct workqueue_struct *wq;
->> +	struct omap2_mcspi_regs ctx;
->>   };
->>
->>   struct omap2_mcspi_cs {
->> @@ -133,17 +144,6 @@ struct omap2_mcspi_cs {
->>   	u32			chconf0;
->>   };
->>
->> -/* used for context save and restore, structure members to be updated whenever
->> - * corresponding registers are modified.
->> - */
->> -struct omap2_mcspi_regs {
->> -	u32 modulctrl;
->> -	u32 wakeupenable;
->> -	struct list_head cs;
->> -};
->> -
->> -static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
->> -
->>   #define MOD_REG_BIT(val, mask, set) do { \
->>   	if (set) \
->>   		val |= mask; \
->> @@ -234,9 +234,12 @@ static void omap2_mcspi_force_cs(struct spi_device *spi, int cs_active)
->>
->>   static void omap2_mcspi_set_master_mode(struct spi_master *master)
->>   {
->> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
->> +	struct omap2_mcspi_regs	*ctx =&mcspi->ctx;
->>   	u32 l;
->>
->> -	/* setup when switching from (reset default) slave mode
->> +	/*
->> +	 * Setup when switching from (reset default) slave mode
->>   	 * to single-channel master mode
->>   	 */
->>   	l = mcspi_read_reg(master, OMAP2_MCSPI_MODULCTRL);
->> @@ -245,24 +248,20 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
->>   	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
->>   	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
->>
->> -	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
->> +	ctx->modulctrl = l;
->>   }
->>
->>   static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
->>   {
->> -	struct spi_master *spi_cntrl;
->> -	struct omap2_mcspi_cs *cs;
->> -	spi_cntrl = mcspi->master;
->> +	struct spi_master	*spi_cntrl = mcspi->master;
->> +	struct omap2_mcspi_regs	*ctx =&mcspi->ctx;
->> +	struct omap2_mcspi_cs	*cs;
->>
->>   	/* McSPI: context restore */
->> -	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
->> -			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
->> -
->> -	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
->> -			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
->> +	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL, ctx->modulctrl);
->> +	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE, ctx->wakeupenable);
->>
->> -	list_for_each_entry(cs,&omap2_mcspi_ctx[spi_cntrl->bus_num - 1].cs,
->> -			node)
->> +	list_for_each_entry(cs,&ctx->cs, node)
->>   		__raw_writel(cs->chconf0, cs->base + OMAP2_MCSPI_CHCONF0);
->>   }
->>   static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
->> @@ -775,7 +774,8 @@ static int omap2_mcspi_request_dma(struct spi_device *spi)
->>   static int omap2_mcspi_setup(struct spi_device *spi)
->>   {
->>   	int			ret;
->> -	struct omap2_mcspi	*mcspi;
->> +	struct omap2_mcspi	*mcspi = spi_master_get_devdata(spi->master);
->> +	struct omap2_mcspi_regs	*ctx =&mcspi->ctx;
->>   	struct omap2_mcspi_dma	*mcspi_dma;
->>   	struct omap2_mcspi_cs	*cs = spi->controller_state;
->>
->> @@ -785,7 +785,6 @@ static int omap2_mcspi_setup(struct spi_device *spi)
->>   		return -EINVAL;
->>   	}
->>
->> -	mcspi = spi_master_get_devdata(spi->master);
->>   	mcspi_dma =&mcspi->dma_channels[spi->chip_select];
->>
->>   	if (!cs) {
->> @@ -797,8 +796,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
->>   		cs->chconf0 = 0;
->>   		spi->controller_state = cs;
->>   		/* Link this to context save list */
->> -		list_add_tail(&cs->node,
->> -			&omap2_mcspi_ctx[mcspi->master->bus_num - 1].cs);
->> +		list_add_tail(&cs->node,&ctx->cs);
->>   	}
->>
->>   	if (mcspi_dma->dma_rx_channel == -1
->> @@ -1051,8 +1049,9 @@ static int omap2_mcspi_transfer(struct spi_device *spi, struct spi_message *m)
->>   static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
->>   {
->>   	struct spi_master	*master = mcspi->master;
->> +	struct omap2_mcspi_regs	*ctx =&mcspi->ctx;
->>   	u32			tmp;
->> -	int ret = 0;
->> +	int			ret = 0;
->>
->>   	ret = omap2_mcspi_enable_clocks(mcspi);
->>   	if (ret<  0)
->> @@ -1060,7 +1059,7 @@ static int __init omap2_mcspi_master_setup(struct omap2_mcspi *mcspi)
->>
->>   	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
->>   	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
->> -	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
->> +	ctx->wakeupenable = tmp;
->>
->>   	omap2_mcspi_set_master_mode(master);
->>   	omap2_mcspi_disable_clocks(mcspi);
->> @@ -1087,7 +1086,6 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->>   	struct omap2_mcspi	*mcspi;
->>   	struct resource		*r;
->>   	int			status = 0, i;
->> -	char			wq_name[20];
->>
->>   	master = spi_alloc_master(&pdev->dev, sizeof *mcspi);
->>   	if (master == NULL) {
->> @@ -1111,8 +1109,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->>   	mcspi = spi_master_get_devdata(master);
->>   	mcspi->master = master;
->>
->> -	sprintf(wq_name, "omap2_mcspi/%d", master->bus_num);
->> -	mcspi->wq = alloc_workqueue(wq_name, WQ_MEM_RECLAIM, 1);
->> +	mcspi->wq = alloc_workqueue(dev_name(&pdev->dev), WQ_MEM_RECLAIM, 1);
->>   	if (mcspi->wq == NULL) {
->>   		status = -ENOMEM;
->>   		goto free_master;
->> @@ -1145,7 +1142,7 @@ static int __init omap2_mcspi_probe(struct platform_device *pdev)
->>
->>   	spin_lock_init(&mcspi->lock);
->>   	INIT_LIST_HEAD(&mcspi->msg_queue);
->> -	INIT_LIST_HEAD(&omap2_mcspi_ctx[master->bus_num - 1].cs);
->> +	INIT_LIST_HEAD(&mcspi->ctx.cs);
->>
->>   	mcspi->dma_channels = kcalloc(master->num_chipselect,
->>   			sizeof(struct omap2_mcspi_dma),
->> @@ -1252,13 +1249,12 @@ static int omap2_mcspi_resume(struct device *dev)
->>   {
->>   	struct spi_master	*master = dev_get_drvdata(dev);
->>   	struct omap2_mcspi	*mcspi = spi_master_get_devdata(master);
->> -	struct omap2_mcspi_cs *cs;
->> +	struct omap2_mcspi_regs	*ctx =&mcspi->ctx;
->> +	struct omap2_mcspi_cs	*cs;
->>
->>   	omap2_mcspi_enable_clocks(mcspi);
->> -	list_for_each_entry(cs,&omap2_mcspi_ctx[master->bus_num - 1].cs,
->> -			    node) {
->> +	list_for_each_entry(cs,&ctx->cs, node) {
->>   		if ((cs->chconf0&  OMAP2_MCSPI_CHCONF_FORCE) == 0) {
->> -
->>   			/*
->>   			 * We need to toggle CS state for OMAP take this
->>   			 * change in account.
+On Wed, Feb 29, 2012 at 2:30 AM, Jean Pihet <jean.pihet@newoldbits.com>=
+ wrote:
+> Hi Rob,
 >
+> On Wed, Feb 29, 2012 at 4:11 AM, Robert Lee <rob.lee@linaro.org> wrot=
+e:
+>> Make necessary changes to implement time keeping and irq enabling
+>> in the core cpuidle code. =A0This will allow the removal of these
+>> functionalities from various platform cpuidle implementations whose
+>> timekeeping and irq enabling follows the form in this common code.
+>>
+>> Signed-off-by: Robert Lee <rob.lee@linaro.org>
+>> ---
+>> =A0arch/arm/include/asm/cpuidle.h | =A0 14 ++++++
+>> =A0drivers/cpuidle/cpuidle.c =A0 =A0 =A0| =A0 90 +++++++++++++++++++=
++++++++++++++--------
+>> =A0include/linux/cpuidle.h =A0 =A0 =A0 =A0| =A0 13 ++++++
+>> =A03 files changed, 99 insertions(+), 18 deletions(-)
+>> =A0create mode 100644 arch/arm/include/asm/cpuidle.h
+>>
+> ...
+>
+>> diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+>> index 59f4261..00b02f5 100644
+>> --- a/drivers/cpuidle/cpuidle.c
+>> +++ b/drivers/cpuidle/cpuidle.c
+> ...
+>
+>> @@ -110,7 +126,8 @@ int cpuidle_idle_call(void)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->states_usage[entered_state].time=
+ +=3D
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(unsi=
+gned long long)dev->last_residency;
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev->states_usage[entered_state].usag=
+e++;
+>> - =A0 =A0 =A0 }
+>> + =A0 =A0 =A0 } else
+>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev->last_residency =3D 0;
+> Braces are required here, according to the coding style doc.
 
+Thanks.
+
+>
+> ...
+>
+> Regards,
+> Jean
