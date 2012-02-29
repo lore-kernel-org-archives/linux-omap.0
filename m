@@ -1,52 +1,81 @@
 From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH 1/2] OMAPDSS: panel-dvi: Add Kconfig dependency on I2C
-Date: Wed, 29 Feb 2012 10:03:45 +0000
-Message-ID: <4F4DF801.3000905@gmx.de>
-References: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com> <1330505302-8258-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: Re: [PATCH 2/2] OMAPDSS: APPLY: make ovl_enable/disable synchronous
+Date: Wed, 29 Feb 2012 10:13:04 +0000
+Message-ID: <4F4DFA30.2040503@gmx.de>
+References: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com> <1330505302-8258-3-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:56415 "HELO
+Received: from mailout-de.gmx.net ([213.165.64.22]:43891 "HELO
 	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757107Ab2B2KEE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 05:04:04 -0500
-In-Reply-To: <1330505302-8258-2-git-send-email-tomi.valkeinen@ti.com>
+	with SMTP id S1030857Ab2B2KNa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 05:13:30 -0500
+In-Reply-To: <1330505302-8258-3-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
 
 On 02/29/2012 08:48 AM, Tomi Valkeinen wrote:
-> panel-dvi uses i2c, but the Kconfig didn't have dependency on I2C. Add
-> it.
+> ovl->enable/disable are meant to be synchronous so that they can handle
+> the configuration of fifo sizes. The current kernel doesn't configure
+> fifo sizes yet, and so the code doesn't need to block to function (from
+> omapdss driver's perspective).
 > 
-> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-> ---
->  drivers/video/omap2/displays/Kconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> However, for the users of omapdss a non-blocking ovl->disable is
+> confusing, because they don't know when the memory area is not used
+> any more.
 > 
-> diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-> index 74d29b5..408a992 100644
-> --- a/drivers/video/omap2/displays/Kconfig
-> +++ b/drivers/video/omap2/displays/Kconfig
-> @@ -12,7 +12,7 @@ config PANEL_GENERIC_DPI
->  
->  config PANEL_DVI
->  	tristate "DVI output"
-> -	depends on OMAP2_DSS_DPI
-> +	depends on OMAP2_DSS_DPI && I2C
+> Furthermore, when the fifo size configuration is added in the next merge
+> window, the change from non-blocking to blocking could cause side
+> effects to the users of omapdss. So by making the functions block
+> already will keep them behaving in the same manner.
 
-It's just a matter of taste, but are you sure you want to "depend" on it and not
-"select" it? Other drivers tend to use select for I2C, for me it doesn't really
-matter.
+Is there any difference to doing it now?
+I agree that this should be fixed but if we can't avoid breaking users I'd
+prefer to break them in a merge window not in late rc stage. Or did we introduce
+these functions just in the last merge window?
 
 
 Best regards,
 
 Florian Tobias Schandinat
 
->  	help
->  	  Driver for external monitors, connected via DVI. The driver uses i2c
->  	  to read EDID information from the monitor.
+> 
+> And, while not the main purpose of this patch, this will also remove the
+> compile warning:
+> 
+> drivers/video/omap2/dss/apply.c:350: warning:
+> 'wait_pending_extra_info_updates' defined but not used
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+> ---
+>  drivers/video/omap2/dss/apply.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/video/omap2/dss/apply.c b/drivers/video/omap2/dss/apply.c
+> index 052dc87..87b3e25 100644
+> --- a/drivers/video/omap2/dss/apply.c
+> +++ b/drivers/video/omap2/dss/apply.c
+> @@ -1276,6 +1276,9 @@ int dss_ovl_enable(struct omap_overlay *ovl)
+>  
+>  	spin_unlock_irqrestore(&data_lock, flags);
+>  
+> +	/* wait for overlay to be enabled */
+> +	wait_pending_extra_info_updates();
+> +
+>  	mutex_unlock(&apply_lock);
+>  
+>  	return 0;
+> @@ -1313,6 +1316,9 @@ int dss_ovl_disable(struct omap_overlay *ovl)
+>  
+>  	spin_unlock_irqrestore(&data_lock, flags);
+>  
+> +	/* wait for the overlay to be disabled */
+> +	wait_pending_extra_info_updates();
+> +
+>  	mutex_unlock(&apply_lock);
+>  
+>  	return 0;
 
