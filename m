@@ -1,88 +1,55 @@
-From: Rob Lee <rob.lee@linaro.org>
-Subject: Re: [PATCH v6 5/9] ARM: davinci: Consolidate time keeping and irq enable
-Date: Wed, 29 Feb 2012 07:36:35 -0600
-Message-ID: <CAMXH7KF2gBM7_b6gF6hNt94rhRHcxr2+RAdvZfdvq2K0bC9o-w@mail.gmail.com>
-References: <1330485109-7327-1-git-send-email-rob.lee@linaro.org>
-	<1330485109-7327-6-git-send-email-rob.lee@linaro.org>
-	<CAORVsuUyOz3ZDr7iR50Qi-TiT+Ng_fUBJGJU19JpQsfe6ZpwHw@mail.gmail.com>
+From: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH RFC] spi/omap: Trivial cleanup
+Date: Wed, 29 Feb 2012 19:34:06 +0530
+Message-ID: <1330524246-8864-1-git-send-email-shubhrajyoti@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:57531 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932644Ab2B2Ngh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 08:36:37 -0500
-Received: by mail-iy0-f174.google.com with SMTP id j37so2660316iag.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 05:36:37 -0800 (PST)
-In-Reply-To: <CAORVsuUyOz3ZDr7iR50Qi-TiT+Ng_fUBJGJU19JpQsfe6ZpwHw@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general>
+List-Post: <mailto:spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/spi-devel-general>,
+	<mailto:spi-devel-general-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: spi-devel-general-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Shubhrajyoti, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jean.pihet@newoldbits.com>
-Cc: len.brown@intel.com, khilman@ti.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, deepthi@linux.vnet.ibm.com, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Wed, Feb 29, 2012 at 2:36 AM, Jean Pihet <jean.pihet@newoldbits.com>=
- wrote:
-> Rob,
->
-> On Wed, Feb 29, 2012 at 4:11 AM, Robert Lee <rob.lee@linaro.org> wrot=
-e:
->> Enable core cpuidle timekeeping and irq enabling and remove that
->> handling from this code.
->>
->> Signed-off-by: Robert Lee <rob.lee@linaro.org>
->> ---
->> =A0arch/arm/mach-davinci/cpuidle.c | =A0 78 +++++++++++++++---------=
---------------
->> =A01 files changed, 31 insertions(+), 47 deletions(-)
->>
->> diff --git a/arch/arm/mach-davinci/cpuidle.c b/arch/arm/mach-davinci=
-/cpuidle.c
->> index a30c7c5..6f457f1 100644
->> --- a/arch/arm/mach-davinci/cpuidle.c
->> +++ b/arch/arm/mach-davinci/cpuidle.c
-> ...
->
->> @@ -30,12 +31,42 @@ struct davinci_ops {
->> =A0 =A0 =A0 =A0u32 flags;
->> =A0};
->>
->> +/* Actual code that puts the SoC in different idle states */
->> +static int davinci_enter_idle(struct cpuidle_device *dev,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct=
- cpuidle_driver *drv,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 int index)
->> +{
->> + =A0 =A0 =A0 struct cpuidle_state_usage *state_usage =3D &dev->stat=
-es_usage[index];
->> + =A0 =A0 =A0 struct davinci_ops *ops =3D cpuidle_get_statedata(stat=
-e_usage);
->> +
->> + =A0 =A0 =A0 if (ops && ops->enter)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ops->enter(ops->flags);
->> +
->> + =A0 =A0 =A0 return cpuidle_wrap_enter(dev, =A0drv, index,
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cpuidl=
-e_simple_enter);
-> This does not look right since ops->exit will never be called.
->
+The context is stored directly inside drvdata structure post 
+[f887876 spi/omap: Remove bus_num usage for instance index]. 
+Remove the OMAP2_MCSPI_MAX_CTRL macro as it is not needed anymore.
 
-Yes, thanks.  The 'return' should be 'index =3D'
+Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Shubhrajyoti D <shubhrajyoti-l0cyMroinI0@public.gmane.org>
+---
+Applies on Benoit's for_3.4/dt_spi_eth
 
->> +
->> + =A0 =A0 =A0 if (ops && ops->exit)
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ops->exit(ops->flags);
->> +
->> + =A0 =A0 =A0 return index;
->> +}
->> +
-> ...
->
-> Regards,
-> Jean
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/spi/spi-omap2-mcspi.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/spi/spi-omap2-mcspi.c b/drivers/spi/spi-omap2-mcspi.c
+index d1eb26c..3526281 100644
+--- a/drivers/spi/spi-omap2-mcspi.c
++++ b/drivers/spi/spi-omap2-mcspi.c
+@@ -45,9 +45,6 @@
+ 
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
+ 
+-/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
+-#define OMAP2_MCSPI_MAX_CTRL 		4
+-
+ #define OMAP2_MCSPI_REVISION		0x00
+ #define OMAP2_MCSPI_SYSSTATUS		0x14
+ #define OMAP2_MCSPI_IRQSTATUS		0x18
+-- 
+1.7.1
+
+
+------------------------------------------------------------------------------
+Virtualization & Cloud Management Using Capacity Planning
+Cloud computing makes use of virtualization - but cloud computing 
+also focuses on allowing computing to be delivered as a service.
+http://www.accelacomm.com/jaw/sfnl/114/51521223/
