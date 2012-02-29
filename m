@@ -1,62 +1,81 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 0/4] twl-regulator DT adaptation and updates to add new
- regulators
-Date: Wed, 29 Feb 2012 23:18:19 +0000
-Message-ID: <20120229231818.GA8295@opensource.wolfsonmicro.com>
-References: <1330421953-29517-1-git-send-email-rnayak@ti.com>
+From: Jean Pihet <jean.pihet@newoldbits.com>
+Subject: [PATCH 04/13] ARM: OMAP3+: SmartReflex: Add a shutdown hook
+Date: Thu,  1 Mar 2012 00:29:44 +0100
+Message-ID: <1330558184-11734-1-git-send-email-j-pihet@ti.com>
+References: <1330554829-11347-5-git-send-email-j-pihet@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33305 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965072Ab2B2XSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Feb 2012 18:18:22 -0500
-Content-Disposition: inline
-In-Reply-To: <1330421953-29517-1-git-send-email-rnayak@ti.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:63328 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754248Ab2B2X37 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 18:29:59 -0500
+Received: by wgbdr13 with SMTP id dr13so4203384wgb.1
+        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 15:29:58 -0800 (PST)
+In-Reply-To: <1330554829-11347-5-git-send-email-j-pihet@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org
+To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Kevin Hilman <khilman@ti.com>
+Cc: balbi@ti.com, nm@ti.com, Jean Pihet <j-pihet@ti.com>
 
+From: Nishanth Menon <nm@ti.com>
 
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+SmartReflex fix for erratum ID i724.
 
-On Tue, Feb 28, 2012 at 03:09:09PM +0530, Rajendra Nayak wrote:
-> Hi Mark,
->=20
-> Here is a consolidated series which adds DT support for twl regulator
-> driver and adds support for VDD1/2/3 regulator and support for
-> fixed LDO V1V8 and V2V1. The patches are based on -next and tested
-> on omap3 beagle and omap4 panda boards.
+Since OMAP's VP and PRM modules do not get reset by warm reset,
+we should ensure that proper shutdown procedure is followed prior
+to allowing the kernel to reboot back up.
 
-Applied all, thanks.  Please do try to use subject lines consistent with
-the subsystem.
+Without this, Smartreflex module might be left active or
+system might be caught in an indeterminate sequence when
+software controlled reboot is triggered, leaving the next
+reboot behavior to be unpredictable.
 
---2oS5YaxWCcQjTEyO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+In the case of hardware controlled warm reset such as that
+by watchdog timer, prevention of this scenario is not possible.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Jean Pihet <j-pihet@ti.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
 
-iQIcBAEBAgAGBQJPTrI0AAoJEBus8iNuMP3d3N4P/2rsttR7MF1b2Ghp9NRTwCYp
-0b0DxfRVuuoPBb9F6+ybACmToiqadYF4VMXKCdH0kxdkpiTBuYIePgt0g1amlnG5
-7XsLl+NKuvxXWPjqyiz8HZHuR4apK+0xotRl/qBTuvndPahbqdaUgV8KiEIhRPLZ
-NfMIIxFzUS4Hbwn2rweE1x5T2TOzfADRKzof7hE4mennNlJihjjzRyiudaPVvftj
-t1p4ndYpLQ1FPWA3ktMVIIWQxKkA9fZea601zrhT6covuT2yd05nbiQ4cI9QkO94
-Dgb0+KxFOlirkRe8QD20a2XduKNlybZ86WxFy5TaDBuXIQju+gEWaHTMHU+GkTTL
-KD1SqFDlHT3oOpVwu92Ie8Jbcc6tP4XvDJweVafG2cwJEYYL2Ke01zad7dMgLpmA
-1KhXxAisfwrJNXlzav/LA35fdZ4ACOuFE3fr5T3OEiMcde1n/Y/uTBkoBUnHInrt
-5C4t8//I0+Ez5jYDwfOcxHzSvWbiY/uFyC7WL1dHrPZ1F3q1ygCF3gxaYu12jw9o
-ytlDgu4aD/EBdsH6obZF213cAzUH74P4SP9QAFhixUk+ibXxOBHjvY+jT452+SQH
-GfEp651RLJvWgoCZazAEUkq3BB9kAzzOep0LLOe4mFVApaOU67IeKC4D6XjkFDrx
-q58Q+9thtpCIbsHJWy88
-=vvCH
------END PGP SIGNATURE-----
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index ec2b0e7..9c39484 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -1055,8 +1055,32 @@ static int __devexit omap_sr_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static void __devexit omap_sr_shutdown(struct platform_device *pdev)
++{
++	struct omap_sr_data *pdata = pdev->dev.platform_data;
++	struct omap_sr *sr_info;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "%s: platform data missing\n", __func__);
++		return;
++	}
++
++	sr_info = _sr_lookup(pdata->voltdm);
++	if (IS_ERR(sr_info)) {
++		dev_warn(&pdev->dev, "%s: omap_sr struct not found\n",
++			__func__);
++		return;
++	}
++
++	if (sr_info->autocomp_active)
++		sr_stop_vddautocomp(sr_info);
++
++	return;
++}
++
+ static struct platform_driver smartreflex_driver = {
+ 	.remove         = omap_sr_remove,
++	.shutdown	= __devexit_p(omap_sr_shutdown),
+ 	.driver		= {
+ 		.name	= "smartreflex",
+ 	},
+-- 
+1.7.5.4
 
---2oS5YaxWCcQjTEyO--
