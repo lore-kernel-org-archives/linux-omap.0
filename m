@@ -1,102 +1,72 @@
 From: Tero Kristo <t-kristo@ti.com>
-Subject: Re: [PATCHv3 4/4] ARM: OMAP3+: add prcm chain interrupts to the
- interrupt list
-Date: Thu, 1 Mar 2012 10:23:49 +0200
-Message-ID: <1330590229.2116.72.camel@sokoban>
-References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
-	 <1330529106-10423-5-git-send-email-t-kristo@ti.com>
-	 <4F4F1EB3.6020707@ti.com>
+Subject: Re: [PATCHv3 4/6] ARM: OMAP3 PM: Enable IO Wake up
+Date: Thu, 1 Mar 2012 10:25:55 +0200
+Message-ID: <1330590355.2116.74.camel@sokoban>
+References: <1330525621-29836-1-git-send-email-t-kristo@ti.com>
+	 <1330525621-29836-5-git-send-email-t-kristo@ti.com>
+	 <4F4F1CBA.7040502@ti.com>
 Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37148 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37285 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932185Ab2CAIX6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Mar 2012 03:23:58 -0500
-In-Reply-To: <4F4F1EB3.6020707@ti.com>
+	id S1752105Ab2CAI0A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Mar 2012 03:26:00 -0500
+In-Reply-To: <4F4F1CBA.7040502@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
+To: Rajendra Nayak <rnayak@ti.com>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-On Thu, 2012-03-01 at 12:31 +0530, Rajendra Nayak wrote:
-> On Wednesday 29 February 2012 08:55 PM, Tero Kristo wrote:
-> > Currently PRCM chain handler for OMAP4 requires SPARSE_IRQ to be enabled
-> > from kernel config, however enabling this option breaks the OMAP kernel
-> > completely and it can't be used. Thus, OMAP_PRCM_IRQ_BASE was added
-> > to the end of the irq list, and the prm_common code was changed to use
-> > this instead of irq_desc allocation scheme.
+On Thu, 2012-03-01 at 12:22 +0530, Rajendra Nayak wrote:
+> On Wednesday 29 February 2012 07:56 PM, Tero Kristo wrote:
+> > From: Vishwanath BS<vishwanath.bs@ti.com>
 > >
-> > Once SPARSE_IRQ is enabled for OMAP kernel, this patch can be reverted.
+> > Enable IO Wake up for OMAP3 as part of PM Init. Currently this has been
+> > managed in cpuidle path which is not the right place. Subsequent patch
+> > will remove IO Daisy chain handling in cpuidle path once daisy chain is
+> > handled as part of hwmod mux.
+> >
+> > Signed-off-by: Vishwanath BS<vishwanath.bs@ti.com>
+> > Tested-by: Govindraj.R<govindraj.raja@ti.com>
+> > Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> > ---
+> >   arch/arm/mach-omap2/pm34xx.c |    4 ++++
+> >   1 files changed, 4 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> > index e97ec3f..e6c2d39 100644
+> > --- a/arch/arm/mach-omap2/pm34xx.c
+> > +++ b/arch/arm/mach-omap2/pm34xx.c
+> > @@ -793,6 +793,10 @@ static int __init omap3_pm_init(void)
+> >   		goto err1;
+> >   	}
+> >
+> > +	if (omap3_has_io_wakeup())
+> > +		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
+> > +					   PM_WKEN);
 > 
-> Do you still need this, despite this fix from Benoit?
-> http://marc.info/?l=linux-arm-kernel&m=133043468329275&w=2
+> On OMAP4 this GLOBAL IO chain enable happens as part of the trigger
+> function itself, it might make sense to do that for OMAP3 too to avoid
+> similar issues as seen on OMAP4 when the GLOBAL switch is enabled too
+> late in boot. The best however would be to get rid of it in the trigger
+> function and enable this early during PM init, but I am not sure whats
+> a good place to do this 'early' enough.
 
-Not sure, I haven't tested that yet.
+Sounds good. This will take care of the comment from Paul also.
 
 -Tero
 
 > 
-> >
-> > Signed-off-by: Tero Kristo<t-kristo@ti.com>
-> > Cc: Paul Walmsley<paul@pwsan.com>
-> > ---
-> >   arch/arm/mach-omap2/prm_common.c       |   14 +-------------
-> >   arch/arm/plat-omap/include/plat/irqs.h |    6 +++++-
-> >   2 files changed, 6 insertions(+), 14 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
-> > index 860118a..9ca829f 100644
-> > --- a/arch/arm/mach-omap2/prm_common.c
-> > +++ b/arch/arm/mach-omap2/prm_common.c
-> > @@ -196,11 +196,6 @@ void omap_prcm_irq_cleanup(void)
-> >   	prcm_irq_setup->priority_mask = NULL;
-> >
-> >   	irq_set_chained_handler(prcm_irq_setup->irq, NULL);
-> > -
-> > -	if (prcm_irq_setup->base_irq>  0)
-> > -		irq_free_descs(prcm_irq_setup->base_irq,
-> > -			prcm_irq_setup->nr_regs * 32);
-> > -	prcm_irq_setup->base_irq = 0;
-> >   }
-> >
-> >   void omap_prcm_irq_prepare(void)
-> > @@ -282,14 +277,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
-> >
-> >   	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
-> >
-> > -	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
-> > -		0);
-> > -
-> > -	if (irq_setup->base_irq<  0) {
-> > -		pr_err("PRCM: failed to allocate irq descs: %d\n",
-> > -			irq_setup->base_irq);
-> > -		goto err;
-> > -	}
-> > +	irq_setup->base_irq = OMAP_PRCM_IRQ_BASE;
-> >
-> >   	for (i = 0; i<= irq_setup->nr_regs; i++) {
-> >   		gc = irq_alloc_generic_chip("PRCM", 1,
-> > diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
-> > index 2efd645..fe1be1d 100644
-> > --- a/arch/arm/plat-omap/include/plat/irqs.h
-> > +++ b/arch/arm/plat-omap/include/plat/irqs.h
-> > @@ -428,8 +428,12 @@
-> >   #define OMAP_GPMC_NR_IRQS	8
-> >   #define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
-> >
-> > +/* PRCM chain handler */
-> > +#define OMAP_PRCM_IRQ_BASE	(OMAP_GPMC_IRQ_END)
-> > +#define OMAP_PRCM_NR_IRQS	64
-> > +#define OMAP_PRCM_IRQ_END	(OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
-> >
-> > -#define NR_IRQS			OMAP_GPMC_IRQ_END
-> > +#define NR_IRQS			OMAP_PRCM_IRQ_END
-> >
-> >   #define OMAP_IRQ_BIT(irq)	(1<<  ((irq) % 32))
-> >
+> regards,
+> Rajendra
+> 
+> > +
+> >   	ret = pwrdm_for_each(pwrdms_setup, NULL);
+> >   	if (ret) {
+> >   		printk(KERN_ERR "Failed to setup powerdomains\n");
 > 
 
 
