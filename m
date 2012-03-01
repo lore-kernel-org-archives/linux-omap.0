@@ -1,29 +1,27 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 6/7] remoteproc: remove the hardcoded vring alignment
-Date: Thu,  1 Mar 2012 10:11:36 +0200
-Message-ID: <1330589497-4139-7-git-send-email-ohad@wizery.com>
+Subject: [PATCH 3/7] remoteproc: safer boot/shutdown order
+Date: Thu,  1 Mar 2012 10:11:33 +0200
+Message-ID: <1330589497-4139-4-git-send-email-ohad@wizery.com>
 References: <1330589497-4139-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:47271 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758604Ab2CAIMt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 03:12:49 -0500
-Received: by mail-wi0-f174.google.com with SMTP id hm2so126965wib.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 00:12:48 -0800 (PST)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1330589497-4139-1-git-send-email-ohad@wizery.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: Ohad Ben-Cohen <ohad@wizery.com>, Brian Swetland <swetland@google.com>, Iliyan Malchev <malchev@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, Michal Simek <monstr@monstr.eu>, Loic PALLARDY <loic.pallardy@stericsson.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Anna Suman <s-anna@ti.com>, Clark Rob <rob@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Saravana Kannan <skannan@codeaurora.org>, David Brown <davidb@codeaurora.org>, Kieran Bingham <kieranbingham@gmail.com>, Tony Lindgren <tony@atomide.com>
+List-Id: linux-omap@vger.kernel.org
 
-Remove the hardcoded vring alignment of 4096 bytes,
-and instead utilize tha vring alignment as specified in
-the resource table.
+Boot the remote processor only after setting up the virtqueues,
+and shut it down before deleting them.
 
-This is needed for remote processors that have rigid
-memory requirement, and which have found the alignment of
-4096 bytes to be excessively big.
+Remote processors should obey virtio status changes, and
+therefore not manipulate/trigger the virtqueues while the virtio
+driver isn't ready, but it's just safer not to rely on that
+(plus a vq access might already be inflight while a vdev
+status is changed).
+
+We also don't have yet status change notifications, but that's
+a temporary limitation.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 Cc: Brian Swetland <swetland@google.com>
@@ -46,99 +44,58 @@ Cc: David Brown <davidb@codeaurora.org>
 Cc: Kieran Bingham <kieranbingham@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- drivers/remoteproc/remoteproc_core.c   |   12 +++++++-----
- drivers/remoteproc/remoteproc_virtio.c |    2 +-
- include/linux/remoteproc.h             |    9 ++-------
- 3 files changed, 10 insertions(+), 13 deletions(-)
+ drivers/remoteproc/remoteproc_virtio.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/remoteproc/remoteproc_core.c b/drivers/remoteproc/remoteproc_core.c
-index ca02f12..9be5dad 100644
---- a/drivers/remoteproc/remoteproc_core.c
-+++ b/drivers/remoteproc/remoteproc_core.c
-@@ -298,14 +298,15 @@ __rproc_handle_vring(struct rproc_vdev *rvdev, struct fw_rsc_vdev *rsc, int i)
- 		return -EINVAL;
- 	}
- 
--	/* the firmware must provide the expected queue size */
--	if (!vring->num) {
--		dev_err(dev, "invalid qsz (%d)\n", vring->num);
-+	/* verify queue size and vring alignment are sane */
-+	if (!vring->num || !vring->align) {
-+		dev_err(dev, "invalid qsz (%d) or alignment (%d)\n",
-+						vring->num, vring->align);
- 		return -EINVAL;
- 	}
- 
- 	/* actual size of vring (in bytes) */
--	size = PAGE_ALIGN(vring_size(vring->num, AMP_VRING_ALIGN));
-+	size = PAGE_ALIGN(vring_size(vring->num, vring->align));
- 
- 	if (!idr_pre_get(&rproc->notifyids, GFP_KERNEL)) {
- 		dev_err(dev, "idr_pre_get failed\n");
-@@ -340,6 +341,7 @@ __rproc_handle_vring(struct rproc_vdev *rvdev, struct fw_rsc_vdev *rsc, int i)
- 					dma, size, notifyid);
- 
- 	rvdev->vring[i].len = vring->num;
-+	rvdev->vring[i].align = vring->align;
- 	rvdev->vring[i].va = va;
- 	rvdev->vring[i].dma = dma;
- 	rvdev->vring[i].notifyid = notifyid;
-@@ -354,7 +356,7 @@ static void __rproc_free_vrings(struct rproc_vdev *rvdev, int i)
- 
- 	for (i--; i > 0; i--) {
- 		struct rproc_vring *rvring = &rvdev->vring[i];
--		int size = PAGE_ALIGN(vring_size(rvring->len, AMP_VRING_ALIGN));
-+		int size = PAGE_ALIGN(vring_size(rvring->len, rvring->align));
- 
- 		dma_free_coherent(rproc->dev, size, rvring->va, rvring->dma);
- 		idr_remove(&rproc->notifyids, rvring->notifyid);
 diff --git a/drivers/remoteproc/remoteproc_virtio.c b/drivers/remoteproc/remoteproc_virtio.c
-index 0700410..ecf6121 100644
+index 4f73e81..78d8527 100644
 --- a/drivers/remoteproc/remoteproc_virtio.c
 +++ b/drivers/remoteproc/remoteproc_virtio.c
-@@ -99,7 +99,7 @@ static struct virtqueue *rp_find_vq(struct virtio_device *vdev,
- 	 * Create the new vq, and tell virtio we're not interested in
- 	 * the 'weak' smp barriers, since we're talking with a real device.
- 	 */
--	vq = vring_new_virtqueue(len, AMP_VRING_ALIGN, vdev, false, addr,
-+	vq = vring_new_virtqueue(len, rvring->align, vdev, false, addr,
- 					rproc_virtio_notify, callback, name);
- 	if (!vq) {
- 		dev_err(rproc->dev, "vring_new_virtqueue %s failed\n", name);
-diff --git a/include/linux/remoteproc.h b/include/linux/remoteproc.h
-index 7750d8a..f1ffabb 100644
---- a/include/linux/remoteproc.h
-+++ b/include/linux/remoteproc.h
-@@ -43,13 +43,6 @@
- #include <linux/completion.h>
- #include <linux/idr.h>
+@@ -123,14 +123,14 @@ static void rproc_virtio_del_vqs(struct virtio_device *vdev)
+ 	struct virtqueue *vq, *n;
+ 	struct rproc *rproc = vdev_to_rproc(vdev);
  
--/*
-- * The alignment between the consumer and producer parts of the vring.
-- * Note: this is part of the "wire" protocol. If you change this, you need
-- * to update your peers too.
-- */
--#define AMP_VRING_ALIGN	(4096)
++	/* power down the remote processor before deleting vqs */
++	rproc_shutdown(rproc);
++
+ 	list_for_each_entry_safe(vq, n, &vdev->vqs, list) {
+ 		struct rproc_virtio_vq_info *rpvq = vq->priv;
+ 		vring_del_virtqueue(vq);
+ 		kfree(rpvq);
+ 	}
 -
- /**
-  * struct resource_table - firmware resource table header
-  * @ver: version number
-@@ -423,6 +416,7 @@ struct rproc {
-  * @dma: dma address
-  * @len: length, in bytes
-  * @da: device address
-+ * @align: vring alignment
-  * @notifyid: rproc-specific unique vring index
-  * @rvdev: remote vdev
-  * @vq: the virtqueue of this vring
-@@ -432,6 +426,7 @@ struct rproc_vring {
- 	dma_addr_t dma;
- 	int len;
- 	u32 da;
-+	u32 align;
- 	int notifyid;
- 	struct rproc_vdev *rvdev;
- 	struct virtqueue *vq;
+-	/* power down the remote processor */
+-	rproc_shutdown(rproc);
+ }
+ 
+ static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned nvqs,
+@@ -145,13 +145,6 @@ static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned nvqs,
+ 	if (nvqs != 2)
+ 		return -EINVAL;
+ 
+-	/* boot the remote processor */
+-	ret = rproc_boot(rproc);
+-	if (ret) {
+-		dev_err(rproc->dev, "rproc_boot() failed %d\n", ret);
+-		goto error;
+-	}
+-
+ 	for (i = 0; i < nvqs; ++i) {
+ 		vqs[i] = rp_find_vq(vdev, i, callbacks[i], names[i]);
+ 		if (IS_ERR(vqs[i])) {
+@@ -160,6 +153,13 @@ static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned nvqs,
+ 		}
+ 	}
+ 
++	/* now that the vqs are all set, boot the remote processor */
++	ret = rproc_boot(rproc);
++	if (ret) {
++		dev_err(rproc->dev, "rproc_boot() failed %d\n", ret);
++		goto error;
++	}
++
+ 	return 0;
+ 
+ error:
 -- 
 1.7.5.4
-
