@@ -1,41 +1,32 @@
-From: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] ARM: OMAP: make iommu subsys_initcall to fix builtin
-	omap3isp
-Date: Thu, 1 Mar 2012 19:12:40 +0200
-Message-ID: <CAK=WgbariR4w_w3tzZtWdoMfxtzvNEJpcdh2VMFUWDUnfCqirA@mail.gmail.com>
-References: <1330251254-14693-1-git-send-email-ohad@wizery.com>
-	<35010303.ArkW8BdIu6@avalon>
-	<CAK=WgbZRjGEyx0mKmgoWYiOnuvUAka0kTzpLAYbra94Mfpp6qg@mail.gmail.com>
-	<6354375.6C9sXAHKbF@avalon>
+From: CF Adad <cfadad@rocketmail.com>
+Subject: Re: Question: Custom DAI driver for AM35xx using McBSP
+Date: Thu, 1 Mar 2012 09:13:08 -0800 (PST)
+Message-ID: <1330621988.48456.YahooMailNeo@web125202.mail.ne1.yahoo.com>
+References: <1330488712.31452.YahooMailNeo@web125205.mail.ne1.yahoo.com> <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com>
+Reply-To: CF Adad <cfadad@rocketmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <6354375.6C9sXAHKbF@avalon>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from nm20-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.150]:41399 "HELO
+	nm20-vm3.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757211Ab2CARNJ convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Mar 2012 12:13:09 -0500
+In-Reply-To: <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Laurent,
 
-On Thu, Mar 1, 2012 at 6:37 PM, Laurent Pinchart
-<laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
-> I'll try that then. How expensive is the iommu_attach_device() (and detach)
-> operation in terms of CPU time ?
 
-omap_iommu_attach() basically enables the iommu clock and configures
-that IP block.
+We have resolved our issue with the help of PaulM at TI.=A0 The driver =
+does work, the trouble was with the way the data was being masked in th=
+e buffer.=A0 We posted a detailed explanation on the E2E forum (link ab=
+ove) that you may review if interested.=A0 Thanks.
 
-I suspect it's negligible but I didn't really measure it...
-
-Thanks,
-Ohad.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
