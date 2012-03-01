@@ -1,27 +1,35 @@
 From: Ohad Ben-Cohen <ohad@wizery.com>
-Subject: [PATCH 3/7] remoteproc: safer boot/shutdown order
-Date: Thu,  1 Mar 2012 10:11:33 +0200
-Message-ID: <1330589497-4139-4-git-send-email-ohad@wizery.com>
+Subject: [PATCH 2/7] remoteproc: remoteproc_rpmsg -> remoteproc_virtio
+Date: Thu,  1 Mar 2012 10:11:32 +0200
+Message-ID: <1330589497-4139-3-git-send-email-ohad@wizery.com>
 References: <1330589497-4139-1-git-send-email-ohad@wizery.com>
 Mime-Version: 1.0
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1330589497-4139-1-git-send-email-ohad@wizery.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, Brian Swetland <swetland@google.com>, Iliyan Malchev <malchev@google.com>, Arnd Bergmann <arnd@arndb.de>, Grant Likely <grant.likely@secretlab.ca>, Rusty Russell <rusty@rustcorp.com.au>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, Michal Simek <monstr@monstr.eu>, Loic PALLARDY <loic.pallardy@stericsson.com>, Ludovic BARRE <ludovic.barre@stericsson.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Anna Suman <s-anna@ti.com>, Clark Rob <rob@ti.com>, Stephen Boyd <sboyd@codeaurora.org>, Saravana Kannan <skannan@codeaurora.org>, David Brown <davidb@codeaurora.org>, Kieran Bingham <kieranbingham@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, Michal Simek <monstr@monstr.eu>, Guzman Lugo Fernando <fernando.lugo@ti.com>, Arnd Bergmann <arnd@arndb.de>, Iliyan Malchev <malchev@google.com>, Brian Swetland <swetland@google.com>, Loic PALLARDY <loic.pallardy@stericsson.com>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Boyd <sboyd@codeaurora.org>, Ludovic BARRE <ludovic.barre@stericsson.com>, Grant Likely <grant.likely@secretlab.ca>, Tony Lindgren <tony@atomide.com>, Saravana Kannan <skannan@codeaurora.org>, Clark Rob <rob@ti.com>, Omar Ramirez Luna <omar.luna@linaro.org>, Anna Suman <s-anna@ti.com>, Kieran Bingham <kieranbingham@gmail.com>, Mark Grosen <mgrosen@ti.com>, John Williams <john.williams@petalogix.com>, David Brown <davidb@codeaurora.org>
 List-Id: linux-omap@vger.kernel.org
 
-Boot the remote processor only after setting up the virtqueues,
-and shut it down before deleting them.
+At this point remoteproc can only register a single VIRTIO_ID_RPMSG virtio
+device.
 
-Remote processors should obey virtio status changes, and
-therefore not manipulate/trigger the virtqueues while the virtio
-driver isn't ready, but it's just safer not to rely on that
-(plus a vq access might already be inflight while a vdev
-status is changed).
+This limitation is going away soon: remoteproc is getting support for
+registering any number of virtio devices and of any type (as
+published by the firmware of the remote processor).
 
-We also don't have yet status change notifications, but that's
-a temporary limitation.
+Rename remoteproc_rpmsg.c to remoteproc_virtio.c in preparation of
+this generalization work.
 
 Signed-off-by: Ohad Ben-Cohen <ohad@wizery.com>
 Cc: Brian Swetland <swetland@google.com>
@@ -44,58 +52,25 @@ Cc: David Brown <davidb@codeaurora.org>
 Cc: Kieran Bingham <kieranbingham@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>
 ---
- drivers/remoteproc/remoteproc_virtio.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/remoteproc/Makefile                        |    2 +-
+ .../{remoteproc_rpmsg.c => remoteproc_virtio.c}    |    0
+ 2 files changed, 1 insertions(+), 1 deletions(-)
+ rename drivers/remoteproc/{remoteproc_rpmsg.c => remoteproc_virtio.c} (100%)
 
-diff --git a/drivers/remoteproc/remoteproc_virtio.c b/drivers/remoteproc/remoteproc_virtio.c
-index 4f73e81..78d8527 100644
---- a/drivers/remoteproc/remoteproc_virtio.c
-+++ b/drivers/remoteproc/remoteproc_virtio.c
-@@ -123,14 +123,14 @@ static void rproc_virtio_del_vqs(struct virtio_device *vdev)
- 	struct virtqueue *vq, *n;
- 	struct rproc *rproc = vdev_to_rproc(vdev);
- 
-+	/* power down the remote processor before deleting vqs */
-+	rproc_shutdown(rproc);
-+
- 	list_for_each_entry_safe(vq, n, &vdev->vqs, list) {
- 		struct rproc_virtio_vq_info *rpvq = vq->priv;
- 		vring_del_virtqueue(vq);
- 		kfree(rpvq);
- 	}
--
--	/* power down the remote processor */
--	rproc_shutdown(rproc);
- }
- 
- static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned nvqs,
-@@ -145,13 +145,6 @@ static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned nvqs,
- 	if (nvqs != 2)
- 		return -EINVAL;
- 
--	/* boot the remote processor */
--	ret = rproc_boot(rproc);
--	if (ret) {
--		dev_err(rproc->dev, "rproc_boot() failed %d\n", ret);
--		goto error;
--	}
--
- 	for (i = 0; i < nvqs; ++i) {
- 		vqs[i] = rp_find_vq(vdev, i, callbacks[i], names[i]);
- 		if (IS_ERR(vqs[i])) {
-@@ -160,6 +153,13 @@ static int rproc_virtio_find_vqs(struct virtio_device *vdev, unsigned nvqs,
- 		}
- 	}
- 
-+	/* now that the vqs are all set, boot the remote processor */
-+	ret = rproc_boot(rproc);
-+	if (ret) {
-+		dev_err(rproc->dev, "rproc_boot() failed %d\n", ret);
-+		goto error;
-+	}
-+
- 	return 0;
- 
- error:
+diff --git a/drivers/remoteproc/Makefile b/drivers/remoteproc/Makefile
+index df0897f..5445d9b 100644
+--- a/drivers/remoteproc/Makefile
++++ b/drivers/remoteproc/Makefile
+@@ -5,5 +5,5 @@
+ obj-$(CONFIG_REMOTEPROC)		+= remoteproc.o
+ remoteproc-y				:= remoteproc_core.o
+ remoteproc-y				+= remoteproc_debugfs.o
+-remoteproc-y				+= remoteproc_rpmsg.o
++remoteproc-y				+= remoteproc_virtio.o
+ obj-$(CONFIG_OMAP_REMOTEPROC)		+= omap_remoteproc.o
+diff --git a/drivers/remoteproc/remoteproc_rpmsg.c b/drivers/remoteproc/remoteproc_virtio.c
+similarity index 100%
+rename from drivers/remoteproc/remoteproc_rpmsg.c
+rename to drivers/remoteproc/remoteproc_virtio.c
 -- 
 1.7.5.4
