@@ -1,58 +1,68 @@
-From: Adam Wozniak <awozniak@irobot.com>
-Subject: MMC read errors
-Date: Thu, 01 Mar 2012 12:57:34 -0800
-Message-ID: <4F4FE2BE.70402@irobot.com>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] cpufreq: OMAP: specify range for voltage scaling
+Date: Thu, 01 Mar 2012 14:07:51 -0800
+Message-ID: <87d38wf008.fsf@ti.com>
+References: <1330004964-22831-1-git-send-email-afzal@ti.com>
+	<87fwdshyhk.fsf@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.irobot.com ([206.83.81.187]:39745 "EHLO smtp1.irobot.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757800Ab2CAVMo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Mar 2012 16:12:44 -0500
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:45162 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754706Ab2CAWHy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 17:07:54 -0500
+Received: by mail-pw0-f45.google.com with SMTP id uo5so231025pbc.18
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 14:07:52 -0800 (PST)
+In-Reply-To: <87fwdshyhk.fsf@ti.com> (Kevin Hilman's message of "Thu, 01 Mar
+	2012 12:12:23 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>
+Cc: linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 
-I'm seeing weird read errors on a DM3730.  Has anyone seen anything like 
-this before?
++Tero
 
-Environment:
-   factory images from
-   http://cumulus.gumstix.org/images/angstrom/factory/2011-08-30-1058/
-   loaded onto and MMC card on a
-   Gumstix WaterStorm on a Chestnut board
+Kevin Hilman <khilman@ti.com> writes:
 
-Commands:
-   dd if=/dev/urandom of=garbage bs=1024 count=1048576
-   while true; do md5sum garbage; done
+> Afzal Mohammed <afzal@ti.com> writes:
+>
+>> Specify voltage in ranges for regulator. Range
+>> used is tolerance specified for OPP.
+>>
+>> This helps to achieve DVFS with a wider range of
+>> regulators.
+>>
+>> Cc: Kevin Hilman <khilman@ti.com>
+>> Cc: Sekhar Nori <nsekhar@ti.com>
+>> Signed-off-by: Afzal Mohammed <afzal@ti.com>
+>
+> Thanks, will queue this with the CPUfreq changes for MPU DVFS.
 
-example output:
+Actually, not quite yet...
 
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-4dee7d74d6d8013291b48d955ea7af1f  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
-99e983a8f17f3258ddaff73bf622db47  garbage
+After some testing with the SMPS regulators, this won't quite work with
+the current SMPS regulators.  Does this actually work with the
+regulators you're using?
 
-dmesg has nothing interesting.
+For OMAPs using VC/VP for voltage scaling, the TWL regulator passes on
+the voltage requested directly to the voltage layer.  When using voltage
+- tolerance, this results in voltages that the voltage layer doesn't
+know about because they do not match any of the voltages from the known
+OPPs.
 
-Any clues?
+The problem that we have is that while the regulators can support a
+broad range of voltages (from min to max with a some step), the on-chip
+voltage domains cannot, which is why we have defined the OPPs which are
+known to work.
 
-root@overo:~# cat /proc/version
-Linux version 2.6.39 (neil@cumulus) (gcc version 4.3.3 (GCC) ) #1 Mon 
-Aug 15 19:04:09 PDT 2011
+Tero, for the SMPS regulators, would it be possible to configure the
+regulators so that only a discrete set voltages are availble to pick
+from?  These should be initialied from the OPP layer.
 
-Although I've also seen similar behavior on a recent 3.2 kernel using 
-oe-core.
+Somehow we need to support something like $SUBJECT patch in order to
+support a broad range of regulators.   The OMAP voltagedomain
+limitations need to configured in platform specific way such that the
+CPUfreq driver can remain generic.
 
---Adam
-
-
+Kevin
 
