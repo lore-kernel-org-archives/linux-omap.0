@@ -1,227 +1,102 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH V2 1/1] mmc: start removing enable / disable API
-Date: Thu, 01 Mar 2012 10:21:59 +0200
-Message-ID: <4F4F31A7.3060307@intel.com>
-References: <1330499841-6879-1-git-send-email-adrian.hunter@intel.com> <1330499841-6879-2-git-send-email-adrian.hunter@intel.com> <4F4F2E93.1090109@codeaurora.org>
+From: Tero Kristo <t-kristo@ti.com>
+Subject: Re: [PATCHv3 4/4] ARM: OMAP3+: add prcm chain interrupts to the
+ interrupt list
+Date: Thu, 1 Mar 2012 10:23:49 +0200
+Message-ID: <1330590229.2116.72.camel@sokoban>
+References: <1330529106-10423-1-git-send-email-t-kristo@ti.com>
+	 <1330529106-10423-5-git-send-email-t-kristo@ti.com>
+	 <4F4F1EB3.6020707@ti.com>
+Reply-To: <t-kristo@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4F4F2E93.1090109@codeaurora.org>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Subhash Jadavani <subhashj@codeaurora.org>
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Venkatraman S <svenkatr@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Thomas Abraham <thomas.abraham@linaro.org>, Kyungmin Park <kyungmin.park@samsung.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:37148 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932185Ab2CAIX6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Mar 2012 03:23:58 -0500
+In-Reply-To: <4F4F1EB3.6020707@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com, linux-arm-kernel@lists.infradead.org
 
-On 01/03/12 10:08, Subhash Jadavani wrote:
-> On 2/29/2012 12:47 PM, Adrian Hunter wrote:
->> Most parts of the enable / disable API are no longer used and
->> can be removed.
->>
->> Cc: Rajendra Nayak<rnayak@ti.com>
->> Cc: Venkatraman S<svenkatr@ti.com>
->> Cc: Kukjin Kim<kgene.kim@samsung.com>
->> Cc: Thomas Abraham<thomas.abraham@linaro.org>
->> Cc: Kyungmin Park<kyungmin.park@samsung.com>
->> Cc: Sekhar Nori<nsekhar@ti.com>
->> Cc: Kevin Hilman<khilman@ti.com>
->> Signed-off-by: Adrian Hunter<adrian.hunter@intel.com>
->> ---
->>   arch/arm/mach-exynos/mach-nuri.c           |    5 +-
->>   arch/arm/mach-exynos/mach-universal_c210.c |    9 +-
->>   drivers/mmc/core/core.c                    |  187
->> +++-------------------------
->>   drivers/mmc/core/host.c                    |    1 -
->>   drivers/mmc/core/host.h                    |    1 -
->>   drivers/mmc/host/davinci_mmc.c             |    4 -
->>   drivers/mmc/host/omap_hsmmc.c              |   15 +--
->>   include/linux/mmc/core.h                   |    1 -
->>   include/linux/mmc/host.h                   |   46 +------
->>   9 files changed, 27 insertions(+), 242 deletions(-)
->>
->> diff --git a/arch/arm/mach-exynos/mach-nuri.c
->> b/arch/arm/mach-exynos/mach-nuri.c
->> index 644af11..de68248 100644
->> --- a/arch/arm/mach-exynos/mach-nuri.c
->> +++ b/arch/arm/mach-exynos/mach-nuri.c
->> @@ -109,7 +109,7 @@ static struct s3c_sdhci_platdata nuri_hsmmc0_data
->> __initdata = {
->>       .max_width        = 8,
->>       .host_caps        = (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA |
->>                   MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->> -                MMC_CAP_DISABLE | MMC_CAP_ERASE),
->> +                MMC_CAP_ERASE),
->>       .cd_type        = S3C_SDHCI_CD_PERMANENT,
->>   };
->>
->> @@ -147,8 +147,7 @@ static struct platform_device emmc_fixed_voltage = {
->>   static struct s3c_sdhci_platdata nuri_hsmmc2_data __initdata = {
->>       .max_width        = 4,
->>       .host_caps        = MMC_CAP_4_BIT_DATA |
->> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->> -                MMC_CAP_DISABLE,
->> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
->>       .ext_cd_gpio        = EXYNOS4_GPX3(3),    /* XEINT_27 */
->>       .ext_cd_gpio_invert    = 1,
->>       .cd_type        = S3C_SDHCI_CD_GPIO,
->> diff --git a/arch/arm/mach-exynos/mach-universal_c210.c
->> b/arch/arm/mach-exynos/mach-universal_c210.c
->> index 9b3fbae..57cfe61 100644
->> --- a/arch/arm/mach-exynos/mach-universal_c210.c
->> +++ b/arch/arm/mach-exynos/mach-universal_c210.c
->> @@ -734,8 +734,7 @@ static struct platform_device universal_gpio_keys = {
->>   static struct s3c_sdhci_platdata universal_hsmmc0_data __initdata = {
->>       .max_width        = 8,
->>       .host_caps        = (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA |
->> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->> -                MMC_CAP_DISABLE),
->> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED),
->>       .cd_type        = S3C_SDHCI_CD_PERMANENT,
->>   };
->>
->> @@ -772,8 +771,7 @@ static struct platform_device mmc0_fixed_voltage = {
->>   static struct s3c_sdhci_platdata universal_hsmmc2_data __initdata = {
->>       .max_width        = 4,
->>       .host_caps        = MMC_CAP_4_BIT_DATA |
->> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->> -                MMC_CAP_DISABLE,
->> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
->>       .ext_cd_gpio        = EXYNOS4_GPX3(4),      /* XEINT_28 */
->>       .ext_cd_gpio_invert    = 1,
->>       .cd_type        = S3C_SDHCI_CD_GPIO,
->> @@ -783,8 +781,7 @@ static struct s3c_sdhci_platdata universal_hsmmc2_data
->> __initdata = {
->>   static struct s3c_sdhci_platdata universal_hsmmc3_data __initdata = {
->>       .max_width        = 4,
->>       .host_caps        = MMC_CAP_4_BIT_DATA |
->> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->> -                MMC_CAP_DISABLE,
->> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
->>       .cd_type        = S3C_SDHCI_CD_EXTERNAL,
->>   };
->>
->> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
->> index 0b317f0..44dd013 100644
->> --- a/drivers/mmc/core/core.c
->> +++ b/drivers/mmc/core/core.c
->> @@ -605,105 +605,6 @@ unsigned int mmc_align_data_size(struct mmc_card
->> *card, unsigned int sz)
->>   EXPORT_SYMBOL(mmc_align_data_size);
->>
->>   /**
->> - *    mmc_host_enable - enable a host.
->> - *    @host: mmc host to enable
->> - *
->> - *    Hosts that support power saving can use the 'enable' and 'disable'
->> - *    methods to exit and enter power saving states. For more information
->> - *    see comments for struct mmc_host_ops.
->> - */
->> -int mmc_host_enable(struct mmc_host *host)
->> -{
->> -    if (!(host->caps&  MMC_CAP_DISABLE))
->> -        return 0;
->> -
->> -    if (host->en_dis_recurs)
->> -        return 0;
->> -
->> -    if (host->nesting_cnt++)
->> -        return 0;
->> -
->> -    cancel_delayed_work_sync(&host->disable);
->> -
->> -    if (host->enabled)
->> -        return 0;
->> -
->> -    if (host->ops->enable) {
->> -        int err;
->> -
->> -        host->en_dis_recurs = 1;
->> -        mmc_host_clk_hold(host);
->> -        err = host->ops->enable(host);
->> -        mmc_host_clk_release(host);
->> -        host->en_dis_recurs = 0;
->> -
->> -        if (err) {
->> -            pr_debug("%s: enable error %d\n",
->> -                 mmc_hostname(host), err);
->> -            return err;
->> -        }
->> -    }
->> -    host->enabled = 1;
->> -    return 0;
->> -}
->> -EXPORT_SYMBOL(mmc_host_enable);
->> -
->> -static int mmc_host_do_disable(struct mmc_host *host, int lazy)
->> -{
->> -    if (host->ops->disable) {
->> -        int err;
->> -
->> -        host->en_dis_recurs = 1;
->> -        mmc_host_clk_hold(host);
->> -        err = host->ops->disable(host, lazy);
->> -        mmc_host_clk_release(host);
->> -        host->en_dis_recurs = 0;
->> -
->> -        if (err<  0) {
->> -            pr_debug("%s: disable error %d\n",
->> -                 mmc_hostname(host), err);
->> -            return err;
->> -        }
->> -        if (err>  0) {
->> -            unsigned long delay = msecs_to_jiffies(err);
->> -
->> -            mmc_schedule_delayed_work(&host->disable, delay);
->> -        }
->> -    }
->> -    host->enabled = 0;
->> -    return 0;
->> -}
->> -
->> -/**
->> - *    mmc_host_disable - disable a host.
->> - *    @host: mmc host to disable
->> - *
->> - *    Hosts that support power saving can use the 'enable' and 'disable'
->> - *    methods to exit and enter power saving states. For more information
->> - *    see comments for struct mmc_host_ops.
->> - */
->> -int mmc_host_disable(struct mmc_host *host)
->> -{
->> -    int err;
->> -
->> -    if (!(host->caps&  MMC_CAP_DISABLE))
->> -        return 0;
->> -
->> -    if (host->en_dis_recurs)
->> -        return 0;
->> -
->> -    if (--host->nesting_cnt)
->> -        return 0;
->> -
->> -    if (!host->enabled)
->> -        return 0;
->> -
->> -    err = mmc_host_do_disable(host, 0);
->> -    return err;
->> -}
->> -EXPORT_SYMBOL(mmc_host_disable);
->> -
->> -/**
->>    *    __mmc_claim_host - exclusively claim a host
->>    *    @host: mmc host to claim
->>    *    @abort: whether or not the operation should be aborted
->> @@ -741,8 +642,8 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t
->> *abort)
->>           wake_up(&host->wq);
->>       spin_unlock_irqrestore(&host->lock, flags);
->>       remove_wait_queue(&host->wq,&wait);
->> -    if (!stop)
->> -        mmc_host_enable(host);
->> +    if (host->ops->enable&&  !stop&&  host->claim_cnt == 1)
-> Shouldn't we still make sure that clocks are hold (by calling
-> mmc_host_clk_hold() ) before calling enable?
+On Thu, 2012-03-01 at 12:31 +0530, Rajendra Nayak wrote:
+> On Wednesday 29 February 2012 08:55 PM, Tero Kristo wrote:
+> > Currently PRCM chain handler for OMAP4 requires SPARSE_IRQ to be enabled
+> > from kernel config, however enabling this option breaks the OMAP kernel
+> > completely and it can't be used. Thus, OMAP_PRCM_IRQ_BASE was added
+> > to the end of the irq list, and the prm_common code was changed to use
+> > this instead of irq_desc allocation scheme.
+> >
+> > Once SPARSE_IRQ is enabled for OMAP kernel, this patch can be reverted.
+> 
+> Do you still need this, despite this fix from Benoit?
+> http://marc.info/?l=linux-arm-kernel&m=133043468329275&w=2
 
-The only enable / disable user is omap_hsmmc which uses it to get
-and put runtime pm, so there is no reason to hold / release clock
-gating - since that path will also get / put runtime pm which is synchronized.
+Not sure, I haven't tested that yet.
+
+-Tero
+
+> 
+> >
+> > Signed-off-by: Tero Kristo<t-kristo@ti.com>
+> > Cc: Paul Walmsley<paul@pwsan.com>
+> > ---
+> >   arch/arm/mach-omap2/prm_common.c       |   14 +-------------
+> >   arch/arm/plat-omap/include/plat/irqs.h |    6 +++++-
+> >   2 files changed, 6 insertions(+), 14 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/prm_common.c b/arch/arm/mach-omap2/prm_common.c
+> > index 860118a..9ca829f 100644
+> > --- a/arch/arm/mach-omap2/prm_common.c
+> > +++ b/arch/arm/mach-omap2/prm_common.c
+> > @@ -196,11 +196,6 @@ void omap_prcm_irq_cleanup(void)
+> >   	prcm_irq_setup->priority_mask = NULL;
+> >
+> >   	irq_set_chained_handler(prcm_irq_setup->irq, NULL);
+> > -
+> > -	if (prcm_irq_setup->base_irq>  0)
+> > -		irq_free_descs(prcm_irq_setup->base_irq,
+> > -			prcm_irq_setup->nr_regs * 32);
+> > -	prcm_irq_setup->base_irq = 0;
+> >   }
+> >
+> >   void omap_prcm_irq_prepare(void)
+> > @@ -282,14 +277,7 @@ int omap_prcm_register_chain_handler(struct omap_prcm_irq_setup *irq_setup)
+> >
+> >   	irq_set_chained_handler(irq_setup->irq, omap_prcm_irq_handler);
+> >
+> > -	irq_setup->base_irq = irq_alloc_descs(-1, 0, irq_setup->nr_regs * 32,
+> > -		0);
+> > -
+> > -	if (irq_setup->base_irq<  0) {
+> > -		pr_err("PRCM: failed to allocate irq descs: %d\n",
+> > -			irq_setup->base_irq);
+> > -		goto err;
+> > -	}
+> > +	irq_setup->base_irq = OMAP_PRCM_IRQ_BASE;
+> >
+> >   	for (i = 0; i<= irq_setup->nr_regs; i++) {
+> >   		gc = irq_alloc_generic_chip("PRCM", 1,
+> > diff --git a/arch/arm/plat-omap/include/plat/irqs.h b/arch/arm/plat-omap/include/plat/irqs.h
+> > index 2efd645..fe1be1d 100644
+> > --- a/arch/arm/plat-omap/include/plat/irqs.h
+> > +++ b/arch/arm/plat-omap/include/plat/irqs.h
+> > @@ -428,8 +428,12 @@
+> >   #define OMAP_GPMC_NR_IRQS	8
+> >   #define OMAP_GPMC_IRQ_END	(OMAP_GPMC_IRQ_BASE + OMAP_GPMC_NR_IRQS)
+> >
+> > +/* PRCM chain handler */
+> > +#define OMAP_PRCM_IRQ_BASE	(OMAP_GPMC_IRQ_END)
+> > +#define OMAP_PRCM_NR_IRQS	64
+> > +#define OMAP_PRCM_IRQ_END	(OMAP_PRCM_IRQ_BASE + OMAP_PRCM_NR_IRQS)
+> >
+> > -#define NR_IRQS			OMAP_GPMC_IRQ_END
+> > +#define NR_IRQS			OMAP_PRCM_IRQ_END
+> >
+> >   #define OMAP_IRQ_BIT(irq)	(1<<  ((irq) % 32))
+> >
+> 
+
+
