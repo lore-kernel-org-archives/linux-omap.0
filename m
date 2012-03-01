@@ -1,54 +1,64 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/6] ARM: OMAP3: Modify omap_hsmmc_late_init to handle
- deleting mmc devices
-Date: Thu, 1 Mar 2012 10:58:54 -0800
-Message-ID: <20120301185854.GA18901@atomide.com>
-References: <1330077537-19618-1-git-send-email-rnayak@ti.com>
- <1330077537-19618-6-git-send-email-rnayak@ti.com>
- <20120225003352.GC18901@atomide.com>
- <4F48677E.30803@ti.com>
+From: "Graham, Jeff" <Jeff.Graham@brukeroptics.com>
+Subject: omap4 rotation support
+Date: Thu, 1 Mar 2012 14:55:43 -0500
+Message-ID: <F752F64AD8BC1D42B49B877FEE3CD34901FD4F05@USTED.BOPTUS.OPTIK.LAN>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:23399 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116Ab2CAS65 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 13:58:57 -0500
-Content-Disposition: inline
-In-Reply-To: <4F48677E.30803@ti.com>
+Received: from mx1.bruker.com ([173.13.75.234]:46866 "EHLO mx1.bruker.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753856Ab2CAUFd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 15:05:33 -0500
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: linux-omap Mailing List <linux-omap@vger.kernel.org>
+Cc: "Graham, Jeff" <Jeff.Graham@brukeroptics.com>
 
-* Rajendra Nayak <rnayak@ti.com> [120224 20:14]:
-> On Saturday 25 February 2012 06:03 AM, Tony Lindgren wrote:
-> >Hi,
-> >
-> >* Rajendra Nayak<rnayak@ti.com>  [120224 01:27]:
-> >>omap_hsmmc_late_init() adds deferred (if any) mmc devices which are
-> >>dependent on twl4030-gpio device to be available.
-> >>If twl4030-gpio is built as a module and inserted and deleted multiple
-> >>times, the mmc devices also should be added and deleted accordingly.
-> >>Split omap_hsmmc_late_init() into omap_hsmmc_deferred_add() and
-> >>omap_hsmmc_deferred_del() to handle this.
-> >>The .setup board hook for twl4030-gpio handles the runtime adding
-> >>on deferred mmc devices. Similarly a .teardown board hook for twl4030-gpio
-> >>should handle the runtime deletion by calling omap_hsmmc_deferred_del().
-> >>This is done for all existing omap3 boards in subsequent patches.
-> >
-> >This gets complex.. But I think I've found a simpler way where we
-> >can use the twl gpio offsets and let the drivers take care of the rest.
-> >I'll post some patches hopefully on Monday.
-> 
-> I agree it gets complex. If you have a simpler way to handle this, that
-> would be great.
+Hello,
 
-Posted now, sorry it too a bit longer, I got distracted with other
-stuff. The thread is "[PATCH 0/4] Start getting rid of pdata callbacks
-with gpio_find_by_chip_name()". Some further testing would be
-appreciated.
+I have a variscite OM44 (omap4 4460 SOM) that I need to rotate the
+display on but I cannot make it work.
 
-Regards,
+I am currently using kernel 3.1.5 and the Ubuntu 11.10 from Linaro.
 
-Tony
+I have tried each of these ways to make it work:
+
+1. From the command line as root the command 'xrandr -o left'
+   This fails with an error
+
+2. From uboot I tried adding: 'omapfb.tiler=y omapfb.mirror=y
+omapfb.rotate=1'
+   This seems to have no effect at all. I also tried using omapdss
+instead of omapfb in the above
+   three lines, but I am not certain which is correct for what.
+
+   I saw a comment that omap dss rotate does not work for omap4 for
+Linux but does work for Android.
+   Bummer.
+
+3. I tried steps from this website:
+http://omappedia.org/wiki/Bootargs_for_enabling_display
+     echo "1" > /sys/class/graphics/fb0/mirror  (this fails because
+mirror does not exist)
+
+     cat /sys/class/graphics/fb0/rotate_type     (this fails because
+rotate_type does not exist)
+
+     echo "1" > /sys/class/graphics/fb0/rotate   (as root this seems to
+be accepted, but nothing
+                                                  happens. Tried
+stopping lightdm before and
+                                                  restarting after this
+command but no effect)
+
+
+Can anyone say if this should be possible (and in what kernel or uboot
+versions) or perhaps more important WHEN it might be usable?
+
+Thanks,
+Jeff
+
+
