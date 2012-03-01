@@ -1,103 +1,50 @@
-From: Chase Maupin <Chase.Maupin@ti.com>
-Subject: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
-Date: Thu, 1 Mar 2012 11:26:20 -0600
-Message-ID: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 1/2] ARM: OMAP2+: Fix build error when only ARCH_OMAP2/3 or
+ 4 is selected
+Date: Thu, 01 Mar 2012 09:42:16 -0800
+Message-ID: <20120301174216.12471.75885.stgit@kaulin.local>
+References: <20120301174037.12471.72457.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53605 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752573Ab2CAR0b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Mar 2012 12:26:31 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60110 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752581Ab2CARmT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 12:42:19 -0500
+In-Reply-To: <20120301174037.12471.72457.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
-Cc: Chase Maupin <Chase.Maupin@ti.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-* With certain SD cards timeouts like the following have been seen
-  due to an improper calculation of the dto value:
-    mmcblk0: error -110 transferring data, sector 4126233, nr 8,
-    card status 0xc00
-* By removing the dto calculation and setting the timeout value
-  to the maximum specified by the SD card specification part A2
-  section 2.2.15 these timeouts can be avoided.
-* This change has been used by beagleboard users as well as the
-  Texas Instruments SDK without a negative impact.
-* There are multiple discussion threads about this but the most
-  relevant ones are:
-    * http://talk.maemo.org/showthread.php?p=1000707#post1000707
-    * http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42213.html
-* Original proposal for this fix was done by Sukumar Ghoral of
-  Texas Instruments
+Otherwise we'll get undefined reference to `gic_of_init' or
+undefined reference to `omap_intc_of_init'.
 
-* Tested using a Texas Instruments AM335x EVM
+This was caused by commit fbf75da733e82bb17a01e1b907b0e40d9c028823
+(ARM: OMAP2+: board-generic: Use of_irq_init API).
 
-Signed-off-by: Chase Maupin <Chase.Maupin@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |   30 +++++-------------------------
- 1 files changed, 5 insertions(+), 25 deletions(-)
+ arch/arm/mach-omap2/board-generic.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index fd0c661..afd7292 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1481,11 +1481,8 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
- 	return 0;
- }
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 12f4c5f..25d195f 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -25,6 +25,13 @@
+ #include "common.h"
+ #include "common-board-devices.h"
  
--static void set_data_timeout(struct omap_hsmmc_host *host,
--			     unsigned int timeout_ns,
--			     unsigned int timeout_clks)
-+static void set_data_timeout(struct omap_hsmmc_host *host)
- {
--	unsigned int timeout, cycle_ns;
- 	uint32_t reg, clkd, dto = 0;
- 
- 	reg = OMAP_HSMMC_READ(host->base, SYSCTL);
-@@ -1493,25 +1490,8 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
- 	if (clkd == 0)
- 		clkd = 1;
- 
--	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
--	timeout = timeout_ns / cycle_ns;
--	timeout += timeout_clks;
--	if (timeout) {
--		while ((timeout & 0x80000000) == 0) {
--			dto += 1;
--			timeout <<= 1;
--		}
--		dto = 31 - dto;
--		timeout <<= 1;
--		if (timeout && dto)
--			dto += 1;
--		if (dto >= 13)
--			dto -= 13;
--		else
--			dto = 0;
--		if (dto > 14)
--			dto = 14;
--	}
-+    /* Use the maximum timeout value allowed in the standard of 14 or 0xE */
-+	dto = 14;
- 
- 	reg &= ~DTO_MASK;
- 	reg |= dto << DTO_SHIFT;
-@@ -1534,13 +1514,13 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
- 		 * busy signal.
- 		 */
- 		if (req->cmd->flags & MMC_RSP_BUSY)
--			set_data_timeout(host, 100000000U, 0);
-+			set_data_timeout(host);
- 		return 0;
- 	}
- 
- 	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
- 					| (req->data->blocks << 16));
--	set_data_timeout(host, req->data->timeout_ns, req->data->timeout_clks);
-+	set_data_timeout(host);
- 
- 	if (host->use_dma) {
- 		ret = omap_hsmmc_start_dma_transfer(host, req);
--- 
-1.7.0.4
++#if !(defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3))
++#define omap_intc_of_init	NULL
++#endif
++#ifndef CONFIG_ARCH_OMAP4
++#define gic_of_init		NULL
++#endif
++
+ static struct of_device_id irq_match[] __initdata = {
+ 	{ .compatible = "ti,omap2-intc", .data = omap_intc_of_init, },
+ 	{ .compatible = "arm,cortex-a9-gic", .data = gic_of_init, },
 
