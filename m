@@ -1,68 +1,54 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH] cpufreq: OMAP: specify range for voltage scaling
-Date: Thu, 01 Mar 2012 14:07:51 -0800
-Message-ID: <87d38wf008.fsf@ti.com>
-References: <1330004964-22831-1-git-send-email-afzal@ti.com>
-	<87fwdshyhk.fsf@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [GIT PULL 3/5] First set of omap1 related changes
+Date: Thu, 01 Mar 2012 23:26:21 +0100
+Message-ID: <3378572.m1z82NvySs@acer>
+References: <0Mfo5g-1RocQt3wlY-00NttP@mx.kundenserver.de> <201202292106.40731.arnd@arndb.de> <20120229211331.GP18901@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:45162 "EHLO
-	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754706Ab2CAWHy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 17:07:54 -0500
-Received: by mail-pw0-f45.google.com with SMTP id uo5so231025pbc.18
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 14:07:52 -0800 (PST)
-In-Reply-To: <87fwdshyhk.fsf@ti.com> (Kevin Hilman's message of "Thu, 01 Mar
-	2012 12:12:23 -0800")
+Received: from d1.icnet.pl ([212.160.220.21]:59669 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965273Ab2CAW2j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Mar 2012 17:28:39 -0500
+In-Reply-To: <20120229211331.GP18901@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Afzal Mohammed <afzal@ti.com>, Tero Kristo <t-kristo@ti.com>
-Cc: linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-+Tero
+On Wed, 29 Feb 2012 13:13:31 Tony Lindgren wrote:
+> * Arnd Bergmann <arnd@arndb.de> [120229 12:35]:
+> > On Wednesday 29 February 2012, Tony Lindgren wrote:
+> > >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap 
+omap1
+> > > 
+> > > Janusz Krzysztofik (7):
+> > >       ARM: OMAP1: ams-delta: register latch dependent devices 
+later
+> > >       ARM: OMAP1: ams-delta: convert latches to basic_mmio_gpio
+> > >       ARM: OMAP1: ams-delta: supersede custom led device by leds-
+gpio
+> > >       LED: drop leds-ams-delta driver
+> > >       MTD: NAND: ams-delta: use GPIO instead of custom I/O
+> > >       omapfb: lcd_ams_delta: drive control lines over GPIO
+> > >       input: serio: ams-delta: toggle keyboard power over GPIO
+> > > 
+> > 
+> > Since these are all for ams-delta, I pulled them into next/boards 
+together
+> > with other board specific updates.
+> 
+> OK makes sense.
 
-Kevin Hilman <khilman@ti.com> writes:
+Any chance for the continuation series [1] as well as two section 
+mismatch related fixes [2] [3] getting your attention? NB, that 
+continuation series needs another section mismatch fix, which I was 
+planing to submit once there was a stable base for it.
 
-> Afzal Mohammed <afzal@ti.com> writes:
->
->> Specify voltage in ranges for regulator. Range
->> used is tolerance specified for OPP.
->>
->> This helps to achieve DVFS with a wider range of
->> regulators.
->>
->> Cc: Kevin Hilman <khilman@ti.com>
->> Cc: Sekhar Nori <nsekhar@ti.com>
->> Signed-off-by: Afzal Mohammed <afzal@ti.com>
->
-> Thanks, will queue this with the CPUfreq changes for MPU DVFS.
+Thanks,
+Janusz
 
-Actually, not quite yet...
-
-After some testing with the SMPS regulators, this won't quite work with
-the current SMPS regulators.  Does this actually work with the
-regulators you're using?
-
-For OMAPs using VC/VP for voltage scaling, the TWL regulator passes on
-the voltage requested directly to the voltage layer.  When using voltage
-- tolerance, this results in voltages that the voltage layer doesn't
-know about because they do not match any of the voltages from the known
-OPPs.
-
-The problem that we have is that while the regulators can support a
-broad range of voltages (from min to max with a some step), the on-chip
-voltage domains cannot, which is why we have defined the OPPs which are
-known to work.
-
-Tero, for the SMPS regulators, would it be possible to configure the
-regulators so that only a discrete set voltages are availble to pick
-from?  These should be initialied from the OPP layer.
-
-Somehow we need to support something like $SUBJECT patch in order to
-support a broad range of regulators.   The OMAP voltagedomain
-limitations need to configured in platform specific way such that the
-CPUfreq driver can remain generic.
-
-Kevin
-
+[1] http://www.spinics.net/lists/linux-omap/msg64146.html
+[2] http://www.spinics.net/lists/linux-omap/msg64441.html
+[3] http://www.spinics.net/lists/linux-omap/msg64442.html
