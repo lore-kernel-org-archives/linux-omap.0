@@ -1,234 +1,137 @@
-From: Subhash Jadavani <subhashj@codeaurora.org>
-Subject: Re: [PATCH V2 1/1] mmc: start removing enable / disable API
-Date: Thu, 01 Mar 2012 15:51:02 +0530
-Message-ID: <4F4F4D8E.5030305@codeaurora.org>
-References: <1330499841-6879-1-git-send-email-adrian.hunter@intel.com> <1330499841-6879-2-git-send-email-adrian.hunter@intel.com> <4F4F2E93.1090109@codeaurora.org> <4F4F31A7.3060307@intel.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH-V2 2/2] arm:omap:am33xx: Add power domain data
+Date: Thu, 1 Mar 2012 10:42:04 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A8317E5134@DBDE01.ent.ti.com>
+References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
+ <1324803628-16790-3-git-send-email-hvaibhav@ti.com>
+ <alpine.DEB.2.00.1202291810230.12752@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4F4F31A7.3060307@intel.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Venkatraman S <svenkatr@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Thomas Abraham <thomas.abraham@linaro.org>, Kyungmin Park <kyungmin.park@samsung.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39565 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752793Ab2CAKmN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 05:42:13 -0500
+In-Reply-To: <alpine.DEB.2.00.1202291810230.12752@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Mohammed, Afzal" <afzal@ti.com>, "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 3/1/2012 1:51 PM, Adrian Hunter wrote:
-> On 01/03/12 10:08, Subhash Jadavani wrote:
->> On 2/29/2012 12:47 PM, Adrian Hunter wrote:
->>> Most parts of the enable / disable API are no longer used and
->>> can be removed.
->>>
->>> Cc: Rajendra Nayak<rnayak@ti.com>
->>> Cc: Venkatraman S<svenkatr@ti.com>
->>> Cc: Kukjin Kim<kgene.kim@samsung.com>
->>> Cc: Thomas Abraham<thomas.abraham@linaro.org>
->>> Cc: Kyungmin Park<kyungmin.park@samsung.com>
->>> Cc: Sekhar Nori<nsekhar@ti.com>
->>> Cc: Kevin Hilman<khilman@ti.com>
->>> Signed-off-by: Adrian Hunter<adrian.hunter@intel.com>
->>> ---
->>>    arch/arm/mach-exynos/mach-nuri.c           |    5 +-
->>>    arch/arm/mach-exynos/mach-universal_c210.c |    9 +-
->>>    drivers/mmc/core/core.c                    |  187
->>> +++-------------------------
->>>    drivers/mmc/core/host.c                    |    1 -
->>>    drivers/mmc/core/host.h                    |    1 -
->>>    drivers/mmc/host/davinci_mmc.c             |    4 -
->>>    drivers/mmc/host/omap_hsmmc.c              |   15 +--
->>>    include/linux/mmc/core.h                   |    1 -
->>>    include/linux/mmc/host.h                   |   46 +------
->>>    9 files changed, 27 insertions(+), 242 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-exynos/mach-nuri.c
->>> b/arch/arm/mach-exynos/mach-nuri.c
->>> index 644af11..de68248 100644
->>> --- a/arch/arm/mach-exynos/mach-nuri.c
->>> +++ b/arch/arm/mach-exynos/mach-nuri.c
->>> @@ -109,7 +109,7 @@ static struct s3c_sdhci_platdata nuri_hsmmc0_data
->>> __initdata = {
->>>        .max_width        = 8,
->>>        .host_caps        = (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA |
->>>                    MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->>> -                MMC_CAP_DISABLE | MMC_CAP_ERASE),
->>> +                MMC_CAP_ERASE),
->>>        .cd_type        = S3C_SDHCI_CD_PERMANENT,
->>>    };
->>>
->>> @@ -147,8 +147,7 @@ static struct platform_device emmc_fixed_voltage = {
->>>    static struct s3c_sdhci_platdata nuri_hsmmc2_data __initdata = {
->>>        .max_width        = 4,
->>>        .host_caps        = MMC_CAP_4_BIT_DATA |
->>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->>> -                MMC_CAP_DISABLE,
->>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
->>>        .ext_cd_gpio        = EXYNOS4_GPX3(3),    /* XEINT_27 */
->>>        .ext_cd_gpio_invert    = 1,
->>>        .cd_type        = S3C_SDHCI_CD_GPIO,
->>> diff --git a/arch/arm/mach-exynos/mach-universal_c210.c
->>> b/arch/arm/mach-exynos/mach-universal_c210.c
->>> index 9b3fbae..57cfe61 100644
->>> --- a/arch/arm/mach-exynos/mach-universal_c210.c
->>> +++ b/arch/arm/mach-exynos/mach-universal_c210.c
->>> @@ -734,8 +734,7 @@ static struct platform_device universal_gpio_keys = {
->>>    static struct s3c_sdhci_platdata universal_hsmmc0_data __initdata = {
->>>        .max_width        = 8,
->>>        .host_caps        = (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA |
->>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->>> -                MMC_CAP_DISABLE),
->>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED),
->>>        .cd_type        = S3C_SDHCI_CD_PERMANENT,
->>>    };
->>>
->>> @@ -772,8 +771,7 @@ static struct platform_device mmc0_fixed_voltage = {
->>>    static struct s3c_sdhci_platdata universal_hsmmc2_data __initdata = {
->>>        .max_width        = 4,
->>>        .host_caps        = MMC_CAP_4_BIT_DATA |
->>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->>> -                MMC_CAP_DISABLE,
->>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
->>>        .ext_cd_gpio        = EXYNOS4_GPX3(4),      /* XEINT_28 */
->>>        .ext_cd_gpio_invert    = 1,
->>>        .cd_type        = S3C_SDHCI_CD_GPIO,
->>> @@ -783,8 +781,7 @@ static struct s3c_sdhci_platdata universal_hsmmc2_data
->>> __initdata = {
->>>    static struct s3c_sdhci_platdata universal_hsmmc3_data __initdata = {
->>>        .max_width        = 4,
->>>        .host_caps        = MMC_CAP_4_BIT_DATA |
->>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
->>> -                MMC_CAP_DISABLE,
->>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
->>>        .cd_type        = S3C_SDHCI_CD_EXTERNAL,
->>>    };
->>>
->>> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
->>> index 0b317f0..44dd013 100644
->>> --- a/drivers/mmc/core/core.c
->>> +++ b/drivers/mmc/core/core.c
->>> @@ -605,105 +605,6 @@ unsigned int mmc_align_data_size(struct mmc_card
->>> *card, unsigned int sz)
->>>    EXPORT_SYMBOL(mmc_align_data_size);
->>>
->>>    /**
->>> - *    mmc_host_enable - enable a host.
->>> - *    @host: mmc host to enable
->>> - *
->>> - *    Hosts that support power saving can use the 'enable' and 'disable'
->>> - *    methods to exit and enter power saving states. For more information
->>> - *    see comments for struct mmc_host_ops.
->>> - */
->>> -int mmc_host_enable(struct mmc_host *host)
->>> -{
->>> -    if (!(host->caps&   MMC_CAP_DISABLE))
->>> -        return 0;
->>> -
->>> -    if (host->en_dis_recurs)
->>> -        return 0;
->>> -
->>> -    if (host->nesting_cnt++)
->>> -        return 0;
->>> -
->>> -    cancel_delayed_work_sync(&host->disable);
->>> -
->>> -    if (host->enabled)
->>> -        return 0;
->>> -
->>> -    if (host->ops->enable) {
->>> -        int err;
->>> -
->>> -        host->en_dis_recurs = 1;
->>> -        mmc_host_clk_hold(host);
->>> -        err = host->ops->enable(host);
->>> -        mmc_host_clk_release(host);
->>> -        host->en_dis_recurs = 0;
->>> -
->>> -        if (err) {
->>> -            pr_debug("%s: enable error %d\n",
->>> -                 mmc_hostname(host), err);
->>> -            return err;
->>> -        }
->>> -    }
->>> -    host->enabled = 1;
->>> -    return 0;
->>> -}
->>> -EXPORT_SYMBOL(mmc_host_enable);
->>> -
->>> -static int mmc_host_do_disable(struct mmc_host *host, int lazy)
->>> -{
->>> -    if (host->ops->disable) {
->>> -        int err;
->>> -
->>> -        host->en_dis_recurs = 1;
->>> -        mmc_host_clk_hold(host);
->>> -        err = host->ops->disable(host, lazy);
->>> -        mmc_host_clk_release(host);
->>> -        host->en_dis_recurs = 0;
->>> -
->>> -        if (err<   0) {
->>> -            pr_debug("%s: disable error %d\n",
->>> -                 mmc_hostname(host), err);
->>> -            return err;
->>> -        }
->>> -        if (err>   0) {
->>> -            unsigned long delay = msecs_to_jiffies(err);
->>> -
->>> -            mmc_schedule_delayed_work(&host->disable, delay);
->>> -        }
->>> -    }
->>> -    host->enabled = 0;
->>> -    return 0;
->>> -}
->>> -
->>> -/**
->>> - *    mmc_host_disable - disable a host.
->>> - *    @host: mmc host to disable
->>> - *
->>> - *    Hosts that support power saving can use the 'enable' and 'disable'
->>> - *    methods to exit and enter power saving states. For more information
->>> - *    see comments for struct mmc_host_ops.
->>> - */
->>> -int mmc_host_disable(struct mmc_host *host)
->>> -{
->>> -    int err;
->>> -
->>> -    if (!(host->caps&   MMC_CAP_DISABLE))
->>> -        return 0;
->>> -
->>> -    if (host->en_dis_recurs)
->>> -        return 0;
->>> -
->>> -    if (--host->nesting_cnt)
->>> -        return 0;
->>> -
->>> -    if (!host->enabled)
->>> -        return 0;
->>> -
->>> -    err = mmc_host_do_disable(host, 0);
->>> -    return err;
->>> -}
->>> -EXPORT_SYMBOL(mmc_host_disable);
->>> -
->>> -/**
->>>     *    __mmc_claim_host - exclusively claim a host
->>>     *    @host: mmc host to claim
->>>     *    @abort: whether or not the operation should be aborted
->>> @@ -741,8 +642,8 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t
->>> *abort)
->>>            wake_up(&host->wq);
->>>        spin_unlock_irqrestore(&host->lock, flags);
->>>        remove_wait_queue(&host->wq,&wait);
->>> -    if (!stop)
->>> -        mmc_host_enable(host);
->>> +    if (host->ops->enable&&   !stop&&   host->claim_cnt == 1)
->> Shouldn't we still make sure that clocks are hold (by calling
->> mmc_host_clk_hold() ) before calling enable?
-> The only enable / disable user is omap_hsmmc which uses it to get
-> and put runtime pm, so there is no reason to hold / release clock
-> gating - since that path will also get / put runtime pm which is synchronized.
-Ok.
+On Thu, Mar 01, 2012 at 07:07:01, Paul Walmsley wrote:
+> Hi
+> 
+> a question -
+> 
+> On Sun, 25 Dec 2011, Vaibhav Hiremath wrote:
+> 
+> > +static struct powerdomain mpu_33xx_pwrdm = {
+> > +	.name			= "mpu_pwrdm",
+> > +	.voltdm			= { .name = "mpu" },
+> > +	.prcm_partition		= AM33XX_PRM_PARTITION,
+> > +	.prcm_offs		= AM33XX_PRM_MPU_MOD,
+> > +	.pwrsts			= PWRSTS_OFF_RET_ON,
+> > +	.pwrsts_logic_ret	= PWRSTS_OFF_RET,
+> > +	.pwrstctrl_offs		= AM33XX_PM_MPU_PWRSTCTRL_OFFSET,
+> > +	.pwrstst_offs		= AM33XX_PM_MPU_PWRSTST_OFFSET,
+> > +	.flags			= PWRDM_HAS_LOWPOWERSTATECHANGE,
+> > +	.banks			= 3,
+> > +	.pwrsts_mem_ret		= {
+> > +		[0]	= PWRSTS_OFF_RET,	/* mpu_l1 */
+> > +		[1]	= PWRSTS_OFF_RET,	/* mpu_l2 */
+> > +		[2]	= PWRSTS_OFF_RET,	/* mpu_ram */
+> > +	},
+> > +	.pwrsts_mem_on		= {
+> > +		[0]	= PWRSTS_ON,		/* mpu_l1 */
+> > +		[1]	= PWRSTS_ON,		/* mpu_l2 */
+> > +		[2]	= PWRSTS_ON,		/* mpu_ram */
+> > +	},
+> > +};
+> 
+> Comparing this with Table 8-191 "PM_MPU_PWRSTCTRL Register Field 
+> Descriptions" of the AM335x TRM Rev C [SPRUH73C], it seems that something 
+> is really wrong here.
+> 
+> On the OMAP4430's *_PWRSTCTRL registers,
+> 
+> - the memory bank RETSTATE fields always start at bit 8;
+> 
+> - the RETSTATE fields are contiguous;
+> 
+> - the bank ONSTATE fields always start at bit 16; and 
+> 
+> - the ONSTATE fields are contiguous;
+> 
+> - the order of the RETSTATE and ONSTATE fields always matches.
+> 
+> The OMAP4430 TRM Rev O [SWPU231O] Table 3-449 "PM_CORE_PWRSTCTRL" table 
+> is a good illustration of this.
+> 
+> But, looking at SPRUH73C, none of these criteria seem to apply 
+> consistently on AM335x :-(
+> 
+> Table 8-191 "PM_MPU_PWRSTCTRL Register Field Descriptions" starts its 
+> RETSTATE bitfields at bit 22, not bit 8.  The ONSTATE bitfields are at bit 
+> 16 (at least this part is normal).  And both sets of bitfields are 
+> internally contiguous.  But then the order of the bitfields does not match 
+> between the RETSTATE bitfields and ONSTATE bitfields - the RETSTATE order 
+> is (L1, L2, RAM), but the ONSTATE order is (RAM, L1, L2)!
+> 
+> Then looking at Table 8-184 "PM_PER_PWRSTCTRL Register Field Descriptions" 
+> for the same chip, the layout is completely different.  The PRUSS memory 
+> ONSTATE starts at bit 5, and its RETSTATE field is at bit 7.  But then 
+> PER_MEM's ONSTATE field starts at bit 25, and is followed immediately by 
+> *RAM*_MEM's RETSTATE field at bit 27!  And then PER_MEM's RETSTATE field 
+> shows up at bit 29, followed by RAM_MEM's ONSTATE field at bit 30.
+> 
+> Is the TRM accurate in these examples?  Or is this a documentation bug?
+> 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-mmc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unfortunately, the spec is correct in this context.
+
+> Anyway, if this is really accurate, this per-powerdomain bitfield 
+> reordering is definitely not expected by the existing powerdomain code.  
+> Looks to me that someone will have to add bitshift fields into the struct 
+> powerdomain for every single bank RETSTATE and ONSTATE field.
+> 
+
+That would be me... :)
+I have started looking at it and will soon submit the patches for this.
+
+Side note,
+
+I am not sure whether we access these bits explicitly. If I understand correctly, API's which access these bits are not being called from anywhere, 
+For example,
+
+	omap4_pwrdm_read_mem_retst
+	omap4_pwrdm_set_mem_retst
+	omap4_pwrdm_set_mem_onst
+
+Currently the major issue would be, for PM_PER_PWRSTCTRL, where 
+LogicRETState bit has been moved to offset 3. This is being used in 
+omap4_pwrdm_set_logic_retst() api.
+
+And in order to support weird/non-standard bit-offsets, we have to clean omap2_pwrdm_get_mem_bank_onstate/retst/_mask() api and have bitshift field in struct powerdomain, as you have rightly pointed out.
+
+Is my all understanding correct?
+
+If yes, do you think this patch should get blocked for above cleanup? I feel
+Cleanup can still follow, since this won't impact the AM33xx boot.
+
+What's your opinion on this??
+
+> Does this match your understanding?
+> 
+
+Yes, certainly.
+
+
+Thanks,
+Vaibhav
+
+> 
+> - Paul
+> 
 
