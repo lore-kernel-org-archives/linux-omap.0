@@ -1,16 +1,16 @@
 From: Robert Lee <rob.lee@linaro.org>
-Subject: [PATCH v7 5/9] ARM: davinci: Consolidate time keeping and irq enable
-Date: Wed, 29 Feb 2012 18:42:54 -0600
-Message-ID: <1330562578-3410-6-git-send-email-rob.lee@linaro.org>
+Subject: [PATCH v7 4/9] ARM: kirkwood: Consolidate time keeping and irq enable
+Date: Wed, 29 Feb 2012 18:42:53 -0600
+Message-ID: <1330562578-3410-5-git-send-email-rob.lee@linaro.org>
 References: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:60983 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965920Ab2CAAnZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 19:43:25 -0500
-Received: by mail-yx0-f174.google.com with SMTP id l12so13812yen.19
-        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 16:43:25 -0800 (PST)
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48575 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965862Ab2CAAnW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 19:43:22 -0500
+Received: by mail-gy0-f174.google.com with SMTP id r11so14604ghr.19
+        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 16:43:22 -0800 (PST)
 In-Reply-To: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -22,114 +22,96 @@ handling from this code.
 
 Signed-off-by: Robert Lee <rob.lee@linaro.org>
 ---
- arch/arm/mach-davinci/cpuidle.c |   82 ++++++++++++++++-----------------------
- 1 files changed, 33 insertions(+), 49 deletions(-)
+ arch/arm/mach-kirkwood/cpuidle.c |   72 +++++++++++---------------------------
+ 1 files changed, 21 insertions(+), 51 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/cpuidle.c b/arch/arm/mach-davinci/cpuidle.c
-index a30c7c5..93ae096 100644
---- a/arch/arm/mach-davinci/cpuidle.c
-+++ b/arch/arm/mach-davinci/cpuidle.c
-@@ -18,6 +18,7 @@
+diff --git a/arch/arm/mach-kirkwood/cpuidle.c b/arch/arm/mach-kirkwood/cpuidle.c
+index 7088180..0f17109 100644
+--- a/arch/arm/mach-kirkwood/cpuidle.c
++++ b/arch/arm/mach-kirkwood/cpuidle.c
+@@ -20,77 +20,47 @@
  #include <linux/io.h>
  #include <linux/export.h>
  #include <asm/proc-fns.h>
 +#include <asm/cpuidle.h>
+ #include <mach/kirkwood.h>
  
- #include <mach/cpuidle.h>
- #include <mach/ddr2.h>
-@@ -30,12 +31,42 @@ struct davinci_ops {
- 	u32 flags;
- };
+ #define KIRKWOOD_MAX_STATES	2
  
-+/* Actual code that puts the SoC in different idle states */
-+static int davinci_enter_idle(struct cpuidle_device *dev,
-+				struct cpuidle_driver *drv,
-+						int index)
-+{
-+	struct cpuidle_state_usage *state_usage = &dev->states_usage[index];
-+	struct davinci_ops *ops = cpuidle_get_statedata(state_usage);
-+
-+	if (ops && ops->enter)
-+		ops->enter(ops->flags);
-+
-+	index = cpuidle_wrap_enter(dev,	drv, index,
-+				arm_cpuidle_simple_enter);
-+
-+	if (ops && ops->exit)
-+		ops->exit(ops->flags);
-+
-+	return index;
-+}
-+
- /* fields in davinci_ops.flags */
- #define DAVINCI_CPUIDLE_FLAGS_DDR2_PWDN	BIT(0)
+-static struct cpuidle_driver kirkwood_idle_driver = {
+-	.name =         "kirkwood_idle",
+-	.owner =        THIS_MODULE,
+-};
+-
+-static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
+-
+ /* Actual code that puts the SoC in different idle states */
+ static int kirkwood_enter_idle(struct cpuidle_device *dev,
+ 				struct cpuidle_driver *drv,
+ 			       int index)
+ {
+-	struct timeval before, after;
+-	int idle_time;
+-
+-	local_irq_disable();
+-	do_gettimeofday(&before);
+-	if (index == 0)
+-		/* Wait for interrupt state */
+-		cpu_do_idle();
+-	else if (index == 1) {
+-		/*
+-		 * Following write will put DDR in self refresh.
+-		 * Note that we have 256 cycles before DDR puts it
+-		 * self in self-refresh, so the wait-for-interrupt
+-		 * call afterwards won't get the DDR from self refresh
+-		 * mode.
+-		 */
+-		writel(0x7, DDR_OPERATION_BASE);
+-		cpu_do_idle();
+-	}
+-	do_gettimeofday(&after);
+-	local_irq_enable();
+-	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
+-			(after.tv_usec - before.tv_usec);
+-
+-	/* Update last residency */
+-	dev->last_residency = idle_time;
++	writel(0x7, DDR_OPERATION_BASE);
++	cpu_do_idle();
  
- static struct cpuidle_driver davinci_idle_driver = {
--	.name	= "cpuidle-davinci",
--	.owner	= THIS_MODULE,
-+	.name		= "cpuidle-davinci",
-+	.owner		= THIS_MODULE,
-+	.states[0]	= ARM_CPUIDLE_WFI_STATE,
-+	.states[1]	= {
-+		.enter			= davinci_enter_idle,
+ 	return index;
+ }
+ 
++static struct cpuidle_driver kirkwood_idle_driver = {
++	.name			= "kirkwood_idle",
++	.owner			= THIS_MODULE,
++	.en_core_tk_irqen	= 1,
++	.states[0]		= ARM_CPUIDLE_WFI_STATE,
++	.states[1]		= {
++		.enter			= kirkwood_enter_idle,
 +		.exit_latency		= 10,
 +		.target_residency	= 100000,
 +		.flags			= CPUIDLE_FLAG_TIME_VALID,
 +		.name			= "DDR SR",
 +		.desc			= "WFI and DDR Self Refresh",
 +	},
-+	.state_count = DAVINCI_CPUIDLE_MAX_STATES,
- };
- 
- static DEFINE_PER_CPU(struct cpuidle_device, davinci_cpuidle_device);
-@@ -77,41 +108,10 @@ static struct davinci_ops davinci_states[DAVINCI_CPUIDLE_MAX_STATES] = {
- 	},
- };
- 
--/* Actual code that puts the SoC in different idle states */
--static int davinci_enter_idle(struct cpuidle_device *dev,
--				struct cpuidle_driver *drv,
--						int index)
--{
--	struct cpuidle_state_usage *state_usage = &dev->states_usage[index];
--	struct davinci_ops *ops = cpuidle_get_statedata(state_usage);
--	struct timeval before, after;
--	int idle_time;
--
--	local_irq_disable();
--	do_gettimeofday(&before);
--
--	if (ops && ops->enter)
--		ops->enter(ops->flags);
--	/* Wait for interrupt state */
--	cpu_do_idle();
--	if (ops && ops->exit)
--		ops->exit(ops->flags);
--
--	do_gettimeofday(&after);
--	local_irq_enable();
--	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
--			(after.tv_usec - before.tv_usec);
--
--	dev->last_residency = idle_time;
--
--	return index;
--}
--
- static int __init davinci_cpuidle_probe(struct platform_device *pdev)
++	.state_count = KIRKWOOD_MAX_STATES,
++};
++
++static DEFINE_PER_CPU(struct cpuidle_device, kirkwood_cpuidle_device);
++
+ /* Initialize CPU idle by registering the idle states */
+ static int kirkwood_init_cpuidle(void)
  {
- 	int ret;
  	struct cpuidle_device *device;
--	struct cpuidle_driver *driver = &davinci_idle_driver;
- 	struct davinci_cpuidle_config *pdata = pdev->dev.platform_data;
+-	struct cpuidle_driver *driver = &kirkwood_idle_driver;
  
- 	device = &per_cpu(davinci_cpuidle_device, smp_processor_id());
-@@ -123,27 +123,11 @@ static int __init davinci_cpuidle_probe(struct platform_device *pdev)
- 
- 	ddr2_reg_base = pdata->ddr2_ctlr_base;
- 
+ 	device = &per_cpu(kirkwood_cpuidle_device, smp_processor_id());
+ 	device->state_count = KIRKWOOD_MAX_STATES;
+-	driver->state_count = KIRKWOOD_MAX_STATES;
+-
 -	/* Wait for interrupt state */
--	driver->states[0].enter = davinci_enter_idle;
+-	driver->states[0].enter = kirkwood_enter_idle;
 -	driver->states[0].exit_latency = 1;
 -	driver->states[0].target_residency = 10000;
 -	driver->states[0].flags = CPUIDLE_FLAG_TIME_VALID;
@@ -137,21 +119,15 @@ index a30c7c5..93ae096 100644
 -	strcpy(driver->states[0].desc, "Wait for interrupt");
 -
 -	/* Wait for interrupt and DDR self refresh state */
--	driver->states[1].enter = davinci_enter_idle;
+-	driver->states[1].enter = kirkwood_enter_idle;
 -	driver->states[1].exit_latency = 10;
 -	driver->states[1].target_residency = 10000;
 -	driver->states[1].flags = CPUIDLE_FLAG_TIME_VALID;
 -	strcpy(driver->states[1].name, "DDR SR");
 -	strcpy(driver->states[1].desc, "WFI and DDR Self Refresh");
- 	if (pdata->ddr2_pdown)
- 		davinci_states[1].flags |= DAVINCI_CPUIDLE_FLAGS_DDR2_PWDN;
- 	cpuidle_set_statedata(&device->states_usage[1], &davinci_states[1]);
  
- 	device->state_count = DAVINCI_CPUIDLE_MAX_STATES;
--	driver->state_count = DAVINCI_CPUIDLE_MAX_STATES;
- 
- 	ret = cpuidle_register_driver(&davinci_idle_driver);
- 	if (ret) {
+ 	cpuidle_register_driver(&kirkwood_idle_driver);
+ 	if (cpuidle_register_device(device)) {
 -- 
 1.7.1
 
