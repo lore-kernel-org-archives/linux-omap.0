@@ -1,80 +1,260 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 2/7] OMAP: 4430SDP/Panda: rename HPD GPIO to CT_CP_HPD
-Date: Thu,  1 Mar 2012 14:26:30 +0200
-Message-ID: <1330604795-29156-3-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 6/7] OMAPDSS: HDMI: PHY burnout fix
+Date: Thu,  1 Mar 2012 14:26:34 +0200
+Message-ID: <1330604795-29156-7-git-send-email-tomi.valkeinen@ti.com>
 References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45413 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030482Ab2CAM1A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 07:27:00 -0500
-Received: by mail-lpp01m010-f53.google.com with SMTP id c1so831823lah.40
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 04:26:59 -0800 (PST)
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:40602 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030483Ab2CAM1J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 07:27:09 -0500
+Received: by mail-bk0-f41.google.com with SMTP id q16so449347bkw.28
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 04:27:07 -0800 (PST)
 In-Reply-To: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: stable@vger.kernel.org
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-The GPIO 60 on 4430sdp and Panda is not HPD GPIO, as currently marked in
-the board files, but CT_CP_HPD, which is used to enable/disable HPD
-functionality.
+A hardware bug in the OMAP4 HDMI PHY may cause physical damage to the
+board if the HDMI PHY is already enabled when the HDMI cable is plugged
+in. The possible damage breaks HDMI output, otherwise the board is
+unaffected.
 
-This patch renames the GPIO.
+This patch solves the problem by adding hot-plug-detection into the HDMI
+IP driver. This is not a real HPD support in the sense that nobody else
+than the IP driver gets to know about the HPD events, but is only meant
+to fix the HW bug.
 
-Backported from 3932a32fcf5393f8be70ac99dc718ad7ad0a415b
+The strategy is simple: If the display device is turned off by the user,
+the PHY power is set to OFF. When the display device is turned on by the
+user, the PHY power is set either to LDOON or TXON, depending on whether
+the HDMI cable is connected.
+
+The reason to avoid PHY OFF when the display device is on, but the cable
+is disconnected, is that when the PHY is turned OFF, the HDMI IP is not
+"ticking" and thus the DISPC does not receive pixel clock from the HDMI
+IP. This would, for example, prevent any VSYNCs from happening, and
+would thus affect the users of omapdss. By using LDOON when the cable is
+disconnected we'll avoid the HW bug, but keep the HDMI working as usual
+from the user's point of view.
+
+Backported from c49d005b6cc8491fad5b24f82805be2d6bcbd3dd
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c    |    4 ++--
- arch/arm/mach-omap2/board-omap4panda.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c       |    5 ++
+ arch/arm/mach-omap2/board-omap4panda.c    |    5 ++
+ drivers/video/omap2/dss/hdmi.c            |    3 +
+ drivers/video/omap2/dss/ti_hdmi.h         |    4 ++
+ drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   68 +++++++++++++++++++++++++++--
+ include/video/omapdss.h                   |    5 ++
+ 6 files changed, 86 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 8434b0c..4333115 100644
+index 5c2aaa0..02cd29a 100644
 --- a/arch/arm/mach-omap2/board-4430sdp.c
 +++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -52,7 +52,7 @@
- #define ETH_KS8851_QUART		138
- #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
- #define OMAP4_SFH7741_ENABLE_GPIO		188
--#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
-+#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
- #define DLP_POWER_ON_GPIO	40
-@@ -610,7 +610,7 @@ static void sdp4430_hdmi_mux_init(void)
+@@ -742,6 +742,10 @@ static void sdp4430_lcd_init(void)
+ 		pr_err("%s: Could not get lcd2_reset_gpio\n", __func__);
  }
  
- static struct gpio sdp4430_hdmi_gpios[] = {
--	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
-+	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
++static struct omap_dss_hdmi_data sdp4430_hdmi_data = {
++	.hpd_gpio = HDMI_GPIO_HPD,
++};
++
+ static struct omap_dss_device sdp4430_hdmi_device = {
+ 	.name = "hdmi",
+ 	.driver_name = "hdmi_panel",
+@@ -749,6 +753,7 @@ static struct omap_dss_device sdp4430_hdmi_device = {
+ 	.platform_enable = sdp4430_panel_enable_hdmi,
+ 	.platform_disable = sdp4430_panel_disable_hdmi,
+ 	.channel = OMAP_DSS_CHANNEL_DIGIT,
++	.data = &sdp4430_hdmi_data,
  };
  
+ static struct picodlp_panel_data sdp4430_picodlp_pdata = {
 diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index 1ac7a22..d8e20f1 100644
+index e913c80..51b1c93 100644
 --- a/arch/arm/mach-omap2/board-omap4panda.c
 +++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -51,7 +51,7 @@
- #define GPIO_HUB_NRESET		62
- #define GPIO_WIFI_PMENA		43
- #define GPIO_WIFI_IRQ		53
--#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
-+#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
- #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
- 
- /* wl127x BT, FM, GPS connectivity chip */
-@@ -494,7 +494,7 @@ static void omap4_panda_hdmi_mux_init(void)
+@@ -513,6 +513,10 @@ static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
+ 	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
  }
  
- static struct gpio panda_hdmi_gpios[] = {
--	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
-+	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
- 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
++static struct omap_dss_hdmi_data omap4_panda_hdmi_data = {
++	.hpd_gpio = HDMI_GPIO_HPD,
++};
++
+ static struct omap_dss_device  omap4_panda_hdmi_device = {
+ 	.name = "hdmi",
+ 	.driver_name = "hdmi_panel",
+@@ -520,6 +524,7 @@ static struct omap_dss_device  omap4_panda_hdmi_device = {
+ 	.platform_enable = omap4_panda_panel_enable_hdmi,
+ 	.platform_disable = omap4_panda_panel_disable_hdmi,
+ 	.channel = OMAP_DSS_CHANNEL_DIGIT,
++	.data = &omap4_panda_hdmi_data,
  };
+ 
+ static struct omap_dss_device *omap4_panda_dss_devices[] = {
+diff --git a/drivers/video/omap2/dss/hdmi.c b/drivers/video/omap2/dss/hdmi.c
+index c56378c..7099c31 100644
+--- a/drivers/video/omap2/dss/hdmi.c
++++ b/drivers/video/omap2/dss/hdmi.c
+@@ -490,6 +490,7 @@ bool omapdss_hdmi_detect(void)
+ 
+ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+ {
++	struct omap_dss_hdmi_data *priv = dssdev->data;
+ 	int r = 0;
+ 
+ 	DSSDBG("ENTER hdmi_display_enable\n");
+@@ -502,6 +503,8 @@ int omapdss_hdmi_display_enable(struct omap_dss_device *dssdev)
+ 		goto err0;
+ 	}
+ 
++	hdmi.ip_data.hpd_gpio = priv->hpd_gpio;
++
+ 	r = omap_dss_start_device(dssdev);
+ 	if (r) {
+ 		DSSERR("failed to start device\n");
+diff --git a/drivers/video/omap2/dss/ti_hdmi.h b/drivers/video/omap2/dss/ti_hdmi.h
+index 2c3443d..ec337b5d 100644
+--- a/drivers/video/omap2/dss/ti_hdmi.h
++++ b/drivers/video/omap2/dss/ti_hdmi.h
+@@ -121,6 +121,10 @@ struct hdmi_ip_data {
+ 	const struct ti_hdmi_ip_ops *ops;
+ 	struct hdmi_config cfg;
+ 	struct hdmi_pll_info pll_data;
++
++	/* ti_hdmi_4xxx_ip private data. These should be in a separate struct */
++	int hpd_gpio;
++	bool phy_tx_enabled;
+ };
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data);
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data);
+diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+index e1a6ce5..3683404 100644
+--- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
++++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/string.h>
+ #include <linux/seq_file.h>
++#include <linux/gpio.h>
+ 
+ #include "ti_hdmi_4xxx_ip.h"
+ #include "dss.h"
+@@ -223,6 +224,49 @@ void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data)
+ 	hdmi_set_pll_pwr(ip_data, HDMI_PLLPWRCMD_ALLOFF);
+ }
+ 
++static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
++{
++	unsigned long flags;
++	bool hpd;
++	int r;
++	/* this should be in ti_hdmi_4xxx_ip private data */
++	static DEFINE_SPINLOCK(phy_tx_lock);
++
++	spin_lock_irqsave(&phy_tx_lock, flags);
++
++	hpd = gpio_get_value(ip_data->hpd_gpio);
++
++	if (hpd == ip_data->phy_tx_enabled) {
++		spin_unlock_irqrestore(&phy_tx_lock, flags);
++		return 0;
++	}
++
++	if (hpd)
++		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
++	else
++		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_LDOON);
++
++	if (r) {
++		DSSERR("Failed to %s PHY TX power\n",
++				hpd ? "enable" : "disable");
++		goto err;
++	}
++
++	ip_data->phy_tx_enabled = hpd;
++err:
++	spin_unlock_irqrestore(&phy_tx_lock, flags);
++	return r;
++}
++
++static irqreturn_t hpd_irq_handler(int irq, void *data)
++{
++	struct hdmi_ip_data *ip_data = data;
++
++	hdmi_check_hpd_state(ip_data);
++
++	return IRQ_HANDLED;
++}
++
+ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ {
+ 	u16 r = 0;
+@@ -232,10 +276,6 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ 	if (r)
+ 		return r;
+ 
+-	r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
+-	if (r)
+-		return r;
+-
+ 	/*
+ 	 * Read address 0 in order to get the SCP reset done completed
+ 	 * Dummy access performed to make sure reset is done
+@@ -257,12 +297,32 @@ int ti_hdmi_4xxx_phy_enable(struct hdmi_ip_data *ip_data)
+ 	/* Write to phy address 3 to change the polarity control */
+ 	REG_FLD_MOD(phy_base, HDMI_TXPHY_PAD_CFG_CTRL, 0x1, 27, 27);
+ 
++	r = request_threaded_irq(gpio_to_irq(ip_data->hpd_gpio),
++			NULL, hpd_irq_handler,
++			IRQF_DISABLED | IRQF_TRIGGER_RISING |
++			IRQF_TRIGGER_FALLING, "hpd", ip_data);
++	if (r) {
++		DSSERR("HPD IRQ request failed\n");
++		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
++		return r;
++	}
++
++	r = hdmi_check_hpd_state(ip_data);
++	if (r) {
++		free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
++		hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
++		return r;
++	}
++
+ 	return 0;
+ }
+ 
+ void ti_hdmi_4xxx_phy_disable(struct hdmi_ip_data *ip_data)
+ {
++	free_irq(gpio_to_irq(ip_data->hpd_gpio), ip_data);
++
+ 	hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_OFF);
++	ip_data->phy_tx_enabled = false;
+ }
+ 
+ static int hdmi_core_ddc_init(struct hdmi_ip_data *ip_data)
+diff --git a/include/video/omapdss.h b/include/video/omapdss.h
+index 378c7ed..6582c45 100644
+--- a/include/video/omapdss.h
++++ b/include/video/omapdss.h
+@@ -575,6 +575,11 @@ struct omap_dss_device {
+ 	int (*get_backlight)(struct omap_dss_device *dssdev);
+ };
+ 
++struct omap_dss_hdmi_data
++{
++	int hpd_gpio;
++};
++
+ struct omap_dss_driver {
+ 	struct device_driver driver;
  
 -- 
 1.7.4.1
