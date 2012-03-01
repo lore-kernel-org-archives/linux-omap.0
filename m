@@ -1,46 +1,36 @@
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH 0/2] OMAPDSS: small fixes for 3.3 rc
-Date: Thu, 01 Mar 2012 05:38:27 +0000
-Message-ID: <4F4F0B53.9010402@gmx.de>
-References: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 0/4] twl-regulator DT adaptation and updates to add new
+ regulators
+Date: Thu, 01 Mar 2012 11:10:40 +0530
+Message-ID: <4F4F0BD8.7090506@ti.com>
+References: <1330421953-29517-1-git-send-email-rnayak@ti.com> <20120229231818.GA8295@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:54331 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752899Ab2CAFir (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 00:38:47 -0500
-In-Reply-To: <1330505302-8258-1-git-send-email-tomi.valkeinen@ti.com>
+Received: from na3sys009aog125.obsmtp.com ([74.125.149.153]:56774 "EHLO
+	na3sys009aog125.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754025Ab2CAFks (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 00:40:48 -0500
+Received: by mail-yw0-f42.google.com with SMTP id q11so77291yhf.15
+        for <linux-omap@vger.kernel.org>; Wed, 29 Feb 2012 21:40:47 -0800 (PST)
+In-Reply-To: <20120229231818.GA8295@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org
 
-On 02/29/2012 08:48 AM, Tomi Valkeinen wrote:
-> Hi,
-> 
-> Two small fixes for omapdss.
+On Thursday 01 March 2012 04:48 AM, Mark Brown wrote:
+> On Tue, Feb 28, 2012 at 03:09:09PM +0530, Rajendra Nayak wrote:
+>> Hi Mark,
+>>
+>> Here is a consolidated series which adds DT support for twl regulator
+>> driver and adds support for VDD1/2/3 regulator and support for
+>> fixed LDO V1V8 and V2V1. The patches are based on -next and tested
+>> on omap3 beagle and omap4 panda boards.
+>
+> Applied all, thanks.  Please do try to use subject lines consistent with
+> the subsystem.
 
-Applied both.
-
-
-Thanks,
-
-Florian Tobias Schandinat
-
-> 
-> Florian, if the patches are ok, I guess it's easier if you just apply these
-> patches from email, instead of me sending a pull request?
-> 
->  Tomi
-> 
-> Tomi Valkeinen (2):
->   OMAPDSS: panel-dvi: Add Kconfig dependency on I2C
->   OMAPDSS: APPLY: make ovl_enable/disable synchronous
-> 
->  drivers/video/omap2/displays/Kconfig |    2 +-
->  drivers/video/omap2/dss/apply.c      |    6 ++++++
->  2 files changed, 7 insertions(+), 1 deletions(-)
-> 
-
+Thanks Mark, will remember to keep the subject lines consistent
+hence forth.
