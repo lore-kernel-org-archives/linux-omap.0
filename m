@@ -1,61 +1,81 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 1/7] OMAP: 4430SDP/Panda: use gpio_free_array to free HDMI gpios
-Date: Thu,  1 Mar 2012 14:26:29 +0200
-Message-ID: <1330604795-29156-2-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 2/7] OMAP: 4430SDP/Panda: rename HPD GPIO to CT_CP_HPD
+Date: Thu,  1 Mar 2012 14:26:30 +0200
+Message-ID: <1330604795-29156-3-git-send-email-tomi.valkeinen@ti.com>
 References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:55318 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030371Ab2CAM1A (ORCPT
+Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45413 "EHLO
+	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030482Ab2CAM1A (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 07:27:00 -0500
-Received: by lagj5 with SMTP id j5so1154208lag.17
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 04:26:57 -0800 (PST)
+Received: by mail-lpp01m010-f53.google.com with SMTP id c1so831823lah.40
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 04:26:59 -0800 (PST)
 In-Reply-To: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: stable@vger.kernel.org
 Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-Instead of freeing the GPIOs individually, use gpio_free_array().
+The GPIO 60 on 4430sdp and Panda is not HPD GPIO, as currently marked in
+the board files, but CT_CP_HPD, which is used to enable/disable HPD
+functionality.
 
-Backported from 575753e3bea3b67eef8e454fb87f719e3f7da599
+This patch renames the GPIO.
+
+Backported from 3932a32fcf5393f8be70ac99dc718ad7ad0a415b
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c    |    3 +--
- arch/arm/mach-omap2/board-omap4panda.c |    3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c    |    4 ++--
+ arch/arm/mach-omap2/board-omap4panda.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 5156468..8434b0c 100644
+index 8434b0c..4333115 100644
 --- a/arch/arm/mach-omap2/board-4430sdp.c
 +++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -628,8 +628,7 @@ static int sdp4430_panel_enable_hdmi(struct omap_dss_device *dssdev)
- 
- static void sdp4430_panel_disable_hdmi(struct omap_dss_device *dssdev)
- {
--	gpio_free(HDMI_GPIO_LS_OE);
--	gpio_free(HDMI_GPIO_HPD);
-+	gpio_free_array(sdp4430_hdmi_gpios, ARRAY_SIZE(sdp4430_hdmi_gpios));
+@@ -52,7 +52,7 @@
+ #define ETH_KS8851_QUART		138
+ #define OMAP4_SFH7741_SENSOR_OUTPUT_GPIO	184
+ #define OMAP4_SFH7741_ENABLE_GPIO		188
+-#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
++#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+ #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
+ #define DISPLAY_SEL_GPIO	59	/* LCD2/PicoDLP switch */
+ #define DLP_POWER_ON_GPIO	40
+@@ -610,7 +610,7 @@ static void sdp4430_hdmi_mux_init(void)
  }
  
- static struct nokia_dsi_panel_data dsi1_panel = {
+ static struct gpio sdp4430_hdmi_gpios[] = {
+-	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_hpd"   },
++	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH,	"hdmi_gpio_ls_oe" },
+ };
+ 
 diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
-index a8c2c42..1ac7a22 100644
+index 1ac7a22..d8e20f1 100644
 --- a/arch/arm/mach-omap2/board-omap4panda.c
 +++ b/arch/arm/mach-omap2/board-omap4panda.c
-@@ -512,8 +512,7 @@ static int omap4_panda_panel_enable_hdmi(struct omap_dss_device *dssdev)
+@@ -51,7 +51,7 @@
+ #define GPIO_HUB_NRESET		62
+ #define GPIO_WIFI_PMENA		43
+ #define GPIO_WIFI_IRQ		53
+-#define HDMI_GPIO_HPD 60 /* Hot plug pin for HDMI */
++#define HDMI_GPIO_CT_CP_HPD 60 /* HPD mode enable/disable */
+ #define HDMI_GPIO_LS_OE 41 /* Level shifter for HDMI */
  
- static void omap4_panda_panel_disable_hdmi(struct omap_dss_device *dssdev)
- {
--	gpio_free(HDMI_GPIO_LS_OE);
--	gpio_free(HDMI_GPIO_HPD);
-+	gpio_free_array(panda_hdmi_gpios, ARRAY_SIZE(panda_hdmi_gpios));
+ /* wl127x BT, FM, GPS connectivity chip */
+@@ -494,7 +494,7 @@ static void omap4_panda_hdmi_mux_init(void)
  }
  
- static struct omap_dss_device  omap4_panda_hdmi_device = {
+ static struct gpio panda_hdmi_gpios[] = {
+-	{ HDMI_GPIO_HPD,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_hpd"   },
++	{ HDMI_GPIO_CT_CP_HPD, GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ct_cp_hpd" },
+ 	{ HDMI_GPIO_LS_OE,	GPIOF_OUT_INIT_HIGH, "hdmi_gpio_ls_oe" },
+ };
+ 
 -- 
 1.7.4.1
 
