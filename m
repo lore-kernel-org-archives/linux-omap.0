@@ -1,111 +1,94 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/8] ARM: OMAP: Remove plat/io.h by moving it into
- mach/io.h
-Date: Wed, 29 Feb 2012 17:03:48 -0800
-Message-ID: <20120301010348.GV18901@atomide.com>
-References: <20120221233619.18709.87982.stgit@kaulin.local>
- <20120221234049.18709.28987.stgit@kaulin.local>
- <4F4451FB.7070007@gmail.com>
- <20120224000657.GJ18185@atomide.com>
- <20120224182246.GL18185@atomide.com>
- <4F4AFCC7.3020509@gmail.com>
- <20120229014719.GK18901@atomide.com>
- <4F4EBBDF.9090806@gmail.com>
- <20120301001140.GA18438@n2100.arm.linux.org.uk>
- <20120301003939.GU18901@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH-V2 2/2] arm:omap:am33xx: Add power domain data
+Date: Wed, 29 Feb 2012 18:37:01 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1202291810230.12752@utopia.booyaka.com>
+References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com> <1324803628-16790-3-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:48804 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751810Ab2CABDz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 20:03:55 -0500
-Content-Disposition: inline
-In-Reply-To: <20120301003939.GU18901@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48217 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752905Ab2CABhD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Feb 2012 20:37:03 -0500
+In-Reply-To: <1324803628-16790-3-git-send-email-hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Rob Herring <robherring2@gmail.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>, linux-omap@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>, linux-arm-kernel@lists.infradead.org, Matt Mackall <mpm@selenic.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>, Afzal Mohammed <afzal@ti.com>, khilman@ti.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, rnayak@ti.com, linux-arm-kernel@lists.infradead.org
 
-* Tony Lindgren <tony@atomide.com> [120229 16:08]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [120229 15:40]:
-> > On Wed, Feb 29, 2012 at 05:59:27PM -0600, Rob Herring wrote:
-> > > BTW, all these includes need to get removed. I'll add a fix to my series
-> > > unless you already have fixes:
-> > > 
-> > > arch/arm/mach-omap1/sleep.S:#include <mach/io.h>
-> > > arch/arm/mach-omap1/sram.S:#include <mach/io.h>
-> > > arch/arm/plat-omap/include/plat/sdrc.h:#include <mach/io.h>
-> > > drivers/media/video/davinci/vpbe_osd.c:#include <mach/io.h>
-> > > drivers/media/video/davinci/vpbe_venc.c:#include <mach/io.h>
-> > > drivers/video/omap2/vrfb.c:#include <mach/io.h>
-> > 
-> > All the ones included from .h and .c files should be using linux/io.h
-> > and not some other derivative.
-> 
-> Oops looks like I missed some files while fixing up the .c files.
-> The .S files should be able to just use the local header now.
-> 
-> I'll do a patch for that, won't touch the davinci files though.
+Hi
 
-Here's the patch to remove mach/io.h for omaps. We can now remove
-all of them like Rob suggested :)
+a question -
 
-Rob, I assume you'll apply this into your branch?
+On Sun, 25 Dec 2011, Vaibhav Hiremath wrote:
 
-Regards,
+> +static struct powerdomain mpu_33xx_pwrdm = {
+> +	.name			= "mpu_pwrdm",
+> +	.voltdm			= { .name = "mpu" },
+> +	.prcm_partition		= AM33XX_PRM_PARTITION,
+> +	.prcm_offs		= AM33XX_PRM_MPU_MOD,
+> +	.pwrsts			= PWRSTS_OFF_RET_ON,
+> +	.pwrsts_logic_ret	= PWRSTS_OFF_RET,
+> +	.pwrstctrl_offs		= AM33XX_PM_MPU_PWRSTCTRL_OFFSET,
+> +	.pwrstst_offs		= AM33XX_PM_MPU_PWRSTST_OFFSET,
+> +	.flags			= PWRDM_HAS_LOWPOWERSTATECHANGE,
+> +	.banks			= 3,
+> +	.pwrsts_mem_ret		= {
+> +		[0]	= PWRSTS_OFF_RET,	/* mpu_l1 */
+> +		[1]	= PWRSTS_OFF_RET,	/* mpu_l2 */
+> +		[2]	= PWRSTS_OFF_RET,	/* mpu_ram */
+> +	},
+> +	.pwrsts_mem_on		= {
+> +		[0]	= PWRSTS_ON,		/* mpu_l1 */
+> +		[1]	= PWRSTS_ON,		/* mpu_l2 */
+> +		[2]	= PWRSTS_ON,		/* mpu_ram */
+> +	},
+> +};
 
-Tony
+Comparing this with Table 8-191 "PM_MPU_PWRSTCTRL Register Field 
+Descriptions" of the AM335x TRM Rev C [SPRUH73C], it seems that something 
+is really wrong here.
+
+On the OMAP4430's *_PWRSTCTRL registers,
+
+- the memory bank RETSTATE fields always start at bit 8;
+
+- the RETSTATE fields are contiguous;
+
+- the bank ONSTATE fields always start at bit 16; and 
+
+- the ONSTATE fields are contiguous;
+
+- the order of the RETSTATE and ONSTATE fields always matches.
+
+The OMAP4430 TRM Rev O [SWPU231O] Table 3-449 "PM_CORE_PWRSTCTRL" table 
+is a good illustration of this.
+
+But, looking at SPRUH73C, none of these criteria seem to apply 
+consistently on AM335x :-(
+
+Table 8-191 "PM_MPU_PWRSTCTRL Register Field Descriptions" starts its 
+RETSTATE bitfields at bit 22, not bit 8.  The ONSTATE bitfields are at bit 
+16 (at least this part is normal).  And both sets of bitfields are 
+internally contiguous.  But then the order of the bitfields does not match 
+between the RETSTATE bitfields and ONSTATE bitfields - the RETSTATE order 
+is (L1, L2, RAM), but the ONSTATE order is (RAM, L1, L2)!
+
+Then looking at Table 8-184 "PM_PER_PWRSTCTRL Register Field Descriptions" 
+for the same chip, the layout is completely different.  The PRUSS memory 
+ONSTATE starts at bit 5, and its RETSTATE field is at bit 7.  But then 
+PER_MEM's ONSTATE field starts at bit 25, and is followed immediately by 
+*RAM*_MEM's RETSTATE field at bit 27!  And then PER_MEM's RETSTATE field 
+shows up at bit 29, followed by RAM_MEM's ONSTATE field at bit 30.
+
+Is the TRM accurate in these examples?  Or is this a documentation bug?
+
+Anyway, if this is really accurate, this per-powerdomain bitfield 
+reordering is definitely not expected by the existing powerdomain code.  
+Looks to me that someone will have to add bitshift fields into the struct 
+powerdomain for every single bank RETSTATE and ONSTATE field.
+
+Does this match your understanding?
 
 
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 29 Feb 2012 17:01:22 -0800
-Subject: [PATCH] ARM: OMAP: Remove remaining includes for mach/io.h
-
-These are no longer needed with the recent iomap.h
-changes.
-
-Reported-by: Rob Herring <robherring2@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
---- a/arch/arm/mach-omap1/include/mach/entry-macro.S
-+++ b/arch/arm/mach-omap1/include/mach/entry-macro.S
-@@ -11,7 +11,6 @@
-  */
- 
- #include <mach/hardware.h>
--#include <mach/io.h>
- #include <mach/irqs.h>
- 
- #include "../../iomap.h"
---- a/arch/arm/mach-omap1/sram.S
-+++ b/arch/arm/mach-omap1/sram.S
-@@ -12,7 +12,6 @@
- 
- #include <asm/assembler.h>
- 
--#include <mach/io.h>
- #include <mach/hardware.h>
- 
- #include "iomap.h"
---- a/arch/arm/plat-omap/include/plat/sdrc.h
-+++ b/arch/arm/plat-omap/include/plat/sdrc.h
-@@ -16,8 +16,6 @@
-  * published by the Free Software Foundation.
-  */
- 
--#include <mach/io.h>
--
- /* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
- 
- #define SDRC_SYSCONFIG		0x010
---- a/drivers/video/omap2/vrfb.c
-+++ b/drivers/video/omap2/vrfb.c
-@@ -27,7 +27,6 @@
- #include <linux/bitops.h>
- #include <linux/mutex.h>
- 
--#include <mach/io.h>
- #include <plat/vrfb.h>
- #include <plat/sdrc.h>
- 
+- Paul
