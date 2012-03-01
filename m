@@ -1,32 +1,103 @@
-From: CF Adad <cfadad@rocketmail.com>
-Subject: Re: Question: Custom DAI driver for AM35xx using McBSP
-Date: Thu, 1 Mar 2012 09:13:08 -0800 (PST)
-Message-ID: <1330621988.48456.YahooMailNeo@web125202.mail.ne1.yahoo.com>
-References: <1330488712.31452.YahooMailNeo@web125205.mail.ne1.yahoo.com> <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com>
-Reply-To: CF Adad <cfadad@rocketmail.com>
+From: Chase Maupin <Chase.Maupin@ti.com>
+Subject: [PATCH] mmc: omap_hsmmc: set dto to 14 for all devices
+Date: Thu, 1 Mar 2012 11:26:20 -0600
+Message-ID: <1330622780-1909-1-git-send-email-Chase.Maupin@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nm20-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.150]:41399 "HELO
-	nm20-vm3.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757211Ab2CARNJ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Mar 2012 12:13:09 -0500
-In-Reply-To: <1330536469.53752.YahooMailNeo@web125203.mail.ne1.yahoo.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:53605 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752573Ab2CAR0b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Mar 2012 12:26:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org
+Cc: Chase Maupin <Chase.Maupin@ti.com>
 
+* With certain SD cards timeouts like the following have been seen
+  due to an improper calculation of the dto value:
+    mmcblk0: error -110 transferring data, sector 4126233, nr 8,
+    card status 0xc00
+* By removing the dto calculation and setting the timeout value
+  to the maximum specified by the SD card specification part A2
+  section 2.2.15 these timeouts can be avoided.
+* This change has been used by beagleboard users as well as the
+  Texas Instruments SDK without a negative impact.
+* There are multiple discussion threads about this but the most
+  relevant ones are:
+    * http://talk.maemo.org/showthread.php?p=1000707#post1000707
+    * http://www.mail-archive.com/linux-omap@vger.kernel.org/msg42213.html
+* Original proposal for this fix was done by Sukumar Ghoral of
+  Texas Instruments
 
+* Tested using a Texas Instruments AM335x EVM
 
-We have resolved our issue with the help of PaulM at TI.=A0 The driver =
-does work, the trouble was with the way the data was being masked in th=
-e buffer.=A0 We posted a detailed explanation on the E2E forum (link ab=
-ove) that you may review if interested.=A0 Thanks.
+Signed-off-by: Chase Maupin <Chase.Maupin@ti.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   30 +++++-------------------------
+ 1 files changed, 5 insertions(+), 25 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index fd0c661..afd7292 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1481,11 +1481,8 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
+ 	return 0;
+ }
+ 
+-static void set_data_timeout(struct omap_hsmmc_host *host,
+-			     unsigned int timeout_ns,
+-			     unsigned int timeout_clks)
++static void set_data_timeout(struct omap_hsmmc_host *host)
+ {
+-	unsigned int timeout, cycle_ns;
+ 	uint32_t reg, clkd, dto = 0;
+ 
+ 	reg = OMAP_HSMMC_READ(host->base, SYSCTL);
+@@ -1493,25 +1490,8 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
+ 	if (clkd == 0)
+ 		clkd = 1;
+ 
+-	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
+-	timeout = timeout_ns / cycle_ns;
+-	timeout += timeout_clks;
+-	if (timeout) {
+-		while ((timeout & 0x80000000) == 0) {
+-			dto += 1;
+-			timeout <<= 1;
+-		}
+-		dto = 31 - dto;
+-		timeout <<= 1;
+-		if (timeout && dto)
+-			dto += 1;
+-		if (dto >= 13)
+-			dto -= 13;
+-		else
+-			dto = 0;
+-		if (dto > 14)
+-			dto = 14;
+-	}
++    /* Use the maximum timeout value allowed in the standard of 14 or 0xE */
++	dto = 14;
+ 
+ 	reg &= ~DTO_MASK;
+ 	reg |= dto << DTO_SHIFT;
+@@ -1534,13 +1514,13 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+ 		 * busy signal.
+ 		 */
+ 		if (req->cmd->flags & MMC_RSP_BUSY)
+-			set_data_timeout(host, 100000000U, 0);
++			set_data_timeout(host);
+ 		return 0;
+ 	}
+ 
+ 	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
+ 					| (req->data->blocks << 16));
+-	set_data_timeout(host, req->data->timeout_ns, req->data->timeout_clks);
++	set_data_timeout(host);
+ 
+ 	if (host->use_dma) {
+ 		ret = omap_hsmmc_start_dma_transfer(host, req);
+-- 
+1.7.0.4
+
