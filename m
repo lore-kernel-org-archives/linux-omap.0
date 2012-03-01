@@ -1,113 +1,227 @@
-From: <mythripk@ti.com>
-Subject: [PATCH] OMAPDSS: HDMI: wait for RXDET before putting phy in TX_ON
-Date: Thu, 1 Mar 2012 13:44:24 +0530
-Message-ID: <1330589664-15755-1-git-send-email-mythripk@ti.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH V2 1/1] mmc: start removing enable / disable API
+Date: Thu, 01 Mar 2012 10:21:59 +0200
+Message-ID: <4F4F31A7.3060307@intel.com>
+References: <1330499841-6879-1-git-send-email-adrian.hunter@intel.com> <1330499841-6879-2-git-send-email-adrian.hunter@intel.com> <4F4F2E93.1090109@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37020 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758180Ab2CAIVa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Mar 2012 03:21:30 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q218LSq1027880
-	for <linux-omap@vger.kernel.org>; Thu, 1 Mar 2012 02:21:29 -0600
-Received: from DBDE71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id q218LREo001056
-	for <linux-omap@vger.kernel.org>; Thu, 1 Mar 2012 13:51:27 +0530 (IST)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4F4F2E93.1090109@codeaurora.org>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Subhash Jadavani <subhashj@codeaurora.org>
+Cc: Chris Ball <cjb@laptop.org>, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, Venkatraman S <svenkatr@ti.com>, Kukjin Kim <kgene.kim@samsung.com>, Thomas Abraham <thomas.abraham@linaro.org>, Kyungmin Park <kyungmin.park@samsung.com>, Sekhar Nori <nsekhar@ti.com>, Kevin Hilman <khilman@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@ti.com, Mythri P K <mythripk@ti.com>
 
-From: Mythri P K <mythripk@ti.com>
+On 01/03/12 10:08, Subhash Jadavani wrote:
+> On 2/29/2012 12:47 PM, Adrian Hunter wrote:
+>> Most parts of the enable / disable API are no longer used and
+>> can be removed.
+>>
+>> Cc: Rajendra Nayak<rnayak@ti.com>
+>> Cc: Venkatraman S<svenkatr@ti.com>
+>> Cc: Kukjin Kim<kgene.kim@samsung.com>
+>> Cc: Thomas Abraham<thomas.abraham@linaro.org>
+>> Cc: Kyungmin Park<kyungmin.park@samsung.com>
+>> Cc: Sekhar Nori<nsekhar@ti.com>
+>> Cc: Kevin Hilman<khilman@ti.com>
+>> Signed-off-by: Adrian Hunter<adrian.hunter@intel.com>
+>> ---
+>>   arch/arm/mach-exynos/mach-nuri.c           |    5 +-
+>>   arch/arm/mach-exynos/mach-universal_c210.c |    9 +-
+>>   drivers/mmc/core/core.c                    |  187
+>> +++-------------------------
+>>   drivers/mmc/core/host.c                    |    1 -
+>>   drivers/mmc/core/host.h                    |    1 -
+>>   drivers/mmc/host/davinci_mmc.c             |    4 -
+>>   drivers/mmc/host/omap_hsmmc.c              |   15 +--
+>>   include/linux/mmc/core.h                   |    1 -
+>>   include/linux/mmc/host.h                   |   46 +------
+>>   9 files changed, 27 insertions(+), 242 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-exynos/mach-nuri.c
+>> b/arch/arm/mach-exynos/mach-nuri.c
+>> index 644af11..de68248 100644
+>> --- a/arch/arm/mach-exynos/mach-nuri.c
+>> +++ b/arch/arm/mach-exynos/mach-nuri.c
+>> @@ -109,7 +109,7 @@ static struct s3c_sdhci_platdata nuri_hsmmc0_data
+>> __initdata = {
+>>       .max_width        = 8,
+>>       .host_caps        = (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA |
+>>                   MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>> -                MMC_CAP_DISABLE | MMC_CAP_ERASE),
+>> +                MMC_CAP_ERASE),
+>>       .cd_type        = S3C_SDHCI_CD_PERMANENT,
+>>   };
+>>
+>> @@ -147,8 +147,7 @@ static struct platform_device emmc_fixed_voltage = {
+>>   static struct s3c_sdhci_platdata nuri_hsmmc2_data __initdata = {
+>>       .max_width        = 4,
+>>       .host_caps        = MMC_CAP_4_BIT_DATA |
+>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>> -                MMC_CAP_DISABLE,
+>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
+>>       .ext_cd_gpio        = EXYNOS4_GPX3(3),    /* XEINT_27 */
+>>       .ext_cd_gpio_invert    = 1,
+>>       .cd_type        = S3C_SDHCI_CD_GPIO,
+>> diff --git a/arch/arm/mach-exynos/mach-universal_c210.c
+>> b/arch/arm/mach-exynos/mach-universal_c210.c
+>> index 9b3fbae..57cfe61 100644
+>> --- a/arch/arm/mach-exynos/mach-universal_c210.c
+>> +++ b/arch/arm/mach-exynos/mach-universal_c210.c
+>> @@ -734,8 +734,7 @@ static struct platform_device universal_gpio_keys = {
+>>   static struct s3c_sdhci_platdata universal_hsmmc0_data __initdata = {
+>>       .max_width        = 8,
+>>       .host_caps        = (MMC_CAP_8_BIT_DATA | MMC_CAP_4_BIT_DATA |
+>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>> -                MMC_CAP_DISABLE),
+>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED),
+>>       .cd_type        = S3C_SDHCI_CD_PERMANENT,
+>>   };
+>>
+>> @@ -772,8 +771,7 @@ static struct platform_device mmc0_fixed_voltage = {
+>>   static struct s3c_sdhci_platdata universal_hsmmc2_data __initdata = {
+>>       .max_width        = 4,
+>>       .host_caps        = MMC_CAP_4_BIT_DATA |
+>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>> -                MMC_CAP_DISABLE,
+>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
+>>       .ext_cd_gpio        = EXYNOS4_GPX3(4),      /* XEINT_28 */
+>>       .ext_cd_gpio_invert    = 1,
+>>       .cd_type        = S3C_SDHCI_CD_GPIO,
+>> @@ -783,8 +781,7 @@ static struct s3c_sdhci_platdata universal_hsmmc2_data
+>> __initdata = {
+>>   static struct s3c_sdhci_platdata universal_hsmmc3_data __initdata = {
+>>       .max_width        = 4,
+>>       .host_caps        = MMC_CAP_4_BIT_DATA |
+>> -                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>> -                MMC_CAP_DISABLE,
+>> +                MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED,
+>>       .cd_type        = S3C_SDHCI_CD_EXTERNAL,
+>>   };
+>>
+>> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
+>> index 0b317f0..44dd013 100644
+>> --- a/drivers/mmc/core/core.c
+>> +++ b/drivers/mmc/core/core.c
+>> @@ -605,105 +605,6 @@ unsigned int mmc_align_data_size(struct mmc_card
+>> *card, unsigned int sz)
+>>   EXPORT_SYMBOL(mmc_align_data_size);
+>>
+>>   /**
+>> - *    mmc_host_enable - enable a host.
+>> - *    @host: mmc host to enable
+>> - *
+>> - *    Hosts that support power saving can use the 'enable' and 'disable'
+>> - *    methods to exit and enter power saving states. For more information
+>> - *    see comments for struct mmc_host_ops.
+>> - */
+>> -int mmc_host_enable(struct mmc_host *host)
+>> -{
+>> -    if (!(host->caps&  MMC_CAP_DISABLE))
+>> -        return 0;
+>> -
+>> -    if (host->en_dis_recurs)
+>> -        return 0;
+>> -
+>> -    if (host->nesting_cnt++)
+>> -        return 0;
+>> -
+>> -    cancel_delayed_work_sync(&host->disable);
+>> -
+>> -    if (host->enabled)
+>> -        return 0;
+>> -
+>> -    if (host->ops->enable) {
+>> -        int err;
+>> -
+>> -        host->en_dis_recurs = 1;
+>> -        mmc_host_clk_hold(host);
+>> -        err = host->ops->enable(host);
+>> -        mmc_host_clk_release(host);
+>> -        host->en_dis_recurs = 0;
+>> -
+>> -        if (err) {
+>> -            pr_debug("%s: enable error %d\n",
+>> -                 mmc_hostname(host), err);
+>> -            return err;
+>> -        }
+>> -    }
+>> -    host->enabled = 1;
+>> -    return 0;
+>> -}
+>> -EXPORT_SYMBOL(mmc_host_enable);
+>> -
+>> -static int mmc_host_do_disable(struct mmc_host *host, int lazy)
+>> -{
+>> -    if (host->ops->disable) {
+>> -        int err;
+>> -
+>> -        host->en_dis_recurs = 1;
+>> -        mmc_host_clk_hold(host);
+>> -        err = host->ops->disable(host, lazy);
+>> -        mmc_host_clk_release(host);
+>> -        host->en_dis_recurs = 0;
+>> -
+>> -        if (err<  0) {
+>> -            pr_debug("%s: disable error %d\n",
+>> -                 mmc_hostname(host), err);
+>> -            return err;
+>> -        }
+>> -        if (err>  0) {
+>> -            unsigned long delay = msecs_to_jiffies(err);
+>> -
+>> -            mmc_schedule_delayed_work(&host->disable, delay);
+>> -        }
+>> -    }
+>> -    host->enabled = 0;
+>> -    return 0;
+>> -}
+>> -
+>> -/**
+>> - *    mmc_host_disable - disable a host.
+>> - *    @host: mmc host to disable
+>> - *
+>> - *    Hosts that support power saving can use the 'enable' and 'disable'
+>> - *    methods to exit and enter power saving states. For more information
+>> - *    see comments for struct mmc_host_ops.
+>> - */
+>> -int mmc_host_disable(struct mmc_host *host)
+>> -{
+>> -    int err;
+>> -
+>> -    if (!(host->caps&  MMC_CAP_DISABLE))
+>> -        return 0;
+>> -
+>> -    if (host->en_dis_recurs)
+>> -        return 0;
+>> -
+>> -    if (--host->nesting_cnt)
+>> -        return 0;
+>> -
+>> -    if (!host->enabled)
+>> -        return 0;
+>> -
+>> -    err = mmc_host_do_disable(host, 0);
+>> -    return err;
+>> -}
+>> -EXPORT_SYMBOL(mmc_host_disable);
+>> -
+>> -/**
+>>    *    __mmc_claim_host - exclusively claim a host
+>>    *    @host: mmc host to claim
+>>    *    @abort: whether or not the operation should be aborted
+>> @@ -741,8 +642,8 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t
+>> *abort)
+>>           wake_up(&host->wq);
+>>       spin_unlock_irqrestore(&host->lock, flags);
+>>       remove_wait_queue(&host->wq,&wait);
+>> -    if (!stop)
+>> -        mmc_host_enable(host);
+>> +    if (host->ops->enable&&  !stop&&  host->claim_cnt == 1)
+> Shouldn't we still make sure that clocks are hold (by calling
+> mmc_host_clk_hold() ) before calling enable?
 
-Currently TX_PHY is put to TX_ON(transmission state) on receiving HPD.
-It just ensures that the TV is connected but does not guarantee
-that TMDS data lines and clock lines are up and ready for transmission.
-Which although is very rare scenario has a potential to  damage the HDMI
-port.(A use case where TV is connected to board but it is in different
-channel would still trigger a HPD but TMDS lines will be down).
-
-Thus this patch adds a rxdet check on getting a HPD which ensures that
-TMDS lines are UP before changing the PHY state from LDO_ON to TX_ON.
-
-Signed-off-by: Mythri P K <mythripk@ti.com>
----
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |   37 +++++++++++++++++++++++++++-
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h |    2 +
- 2 files changed, 37 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index bb784d2..bc55528 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -224,6 +224,30 @@ void ti_hdmi_4xxx_pll_disable(struct hdmi_ip_data *ip_data)
- 	hdmi_set_pll_pwr(ip_data, HDMI_PLLPWRCMD_ALLOFF);
- }
- 
-+int hdmi_ti_4xxx_rxdet(struct hdmi_ip_data *ip_data)
-+{
-+	int loop = 0, tmds_data0, tmds_data1, tmds_data2, tmds_clk;
-+
-+	hdmi_write_reg(hdmi_wp_base(ip_data), HDMI_WP_WP_DEBUG_CFG, 4);
-+
-+	do {
-+		tmds_data0 = hdmi_read_reg(hdmi_wp_base(ip_data),
-+					HDMI_WP_WP_DEBUG_DATA);
-+		tmds_data1 = hdmi_read_reg(hdmi_wp_base(ip_data),
-+					HDMI_WP_WP_DEBUG_DATA);
-+		tmds_data2 = hdmi_read_reg(hdmi_wp_base(ip_data),
-+					HDMI_WP_WP_DEBUG_DATA);
-+		tmds_clk = hdmi_read_reg(hdmi_wp_base(ip_data),
-+					HDMI_WP_WP_DEBUG_DATA);
-+		udelay(15);
-+	} while ((tmds_data0 != tmds_data1 || tmds_data1 != tmds_data2
-+			|| tmds_data1 != tmds_clk) && (loop < 500));
-+
-+	hdmi_write_reg(hdmi_wp_base(ip_data), HDMI_WP_WP_DEBUG_CFG, 0);
-+
-+	return ((loop == 500) ? -1 : (tmds_data0 & 1)) ;
-+}
-+
- static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
- {
- 	unsigned long flags;
-@@ -241,10 +265,19 @@ static int hdmi_check_hpd_state(struct hdmi_ip_data *ip_data)
- 		return 0;
- 	}
- 
--	if (hpd)
-+	if (hpd) {
-+		/* before putting the phy in TX_ON,ensure that TMDS lanes
-+		 * are pulled up .
-+		 */
-+		r = hdmi_ti_4xxx_rxdet(ip_data);
-+		if (r <= 0) {
-+			DSSERR("rxdet not set\n");
-+			return r;
-+		}
- 		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_TXON);
--	else
-+	} else {
- 		r = hdmi_set_phy_pwr(ip_data, HDMI_PHYPWRCMD_LDOON);
-+	}
- 
- 	if (r) {
- 		DSSERR("Failed to %s PHY TX power\n",
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-index a14d1a0..efa6f29 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.h
-@@ -47,6 +47,8 @@
- #define HDMI_WP_AUDIO_CFG2			0x84
- #define HDMI_WP_AUDIO_CTRL			0x88
- #define HDMI_WP_AUDIO_DATA			0x8C
-+#define HDMI_WP_WP_DEBUG_CFG			0x90
-+#define HDMI_WP_WP_DEBUG_DATA			0x94
- 
- /* HDMI IP Core System */
- 
--- 
-1.7.5.4
-
+The only enable / disable user is omap_hsmmc which uses it to get
+and put runtime pm, so there is no reason to hold / release clock
+gating - since that path will also get / put runtime pm which is synchronized.
