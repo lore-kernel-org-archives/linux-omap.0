@@ -1,56 +1,62 @@
 From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: [PATCH 7/7] OMAPDSS: HDMI: hot plug detect fix
-Date: Thu,  1 Mar 2012 14:26:35 +0200
-Message-ID: <1330604795-29156-8-git-send-email-tomi.valkeinen@ti.com>
+Subject: [PATCH 4/7] OMAP: 4430SDP/Panda: setup HDMI GPIO muxes
+Date: Thu,  1 Mar 2012 14:26:32 +0200
+Message-ID: <1330604795-29156-5-git-send-email-tomi.valkeinen@ti.com>
 References: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
 Mime-Version: 1.0
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:36792 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030483Ab2CAM1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 07:27:12 -0500
-Received: by laap9 with SMTP id p9so674945laa.38
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 04:27:09 -0800 (PST)
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:52967 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030535Ab2CAM1E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 07:27:04 -0500
+Received: by mail-bk0-f44.google.com with SMTP id w5so712057bku.17
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 04:27:03 -0800 (PST)
 In-Reply-To: <1330604795-29156-1-git-send-email-tomi.valkeinen@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: stable@vger.kernel.org
-Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Rob Clark <rob@ti.com>, Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-fbdev@vger.kernel.org, linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-From: Rob Clark <rob@ti.com>
+The HDMI GPIO pins LS_OE and CT_CP_HPD are not currently configured.
+This patch configures them as output pins.
 
-The "OMAPDSS: HDMI: PHY burnout fix" commit switched the HDMI driver
-over to using a GPIO for plug detect.  Unfortunately the ->detect()
-method was not also updated, causing HDMI to no longer work for the
-omapdrm driver (because it would actually check if a connection was
-detected before attempting to enable display).
+Backported from 78a1ad8f12db70b8b0a4548b90704de08ee216ce
 
-Signed-off-by: Rob Clark <rob@ti.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c    |    3 +++
+ arch/arm/mach-omap2/board-omap4panda.c |    3 +++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-index 3683404..aad48a1 100644
---- a/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-+++ b/drivers/video/omap2/dss/ti_hdmi_4xxx_ip.c
-@@ -479,14 +479,7 @@ int ti_hdmi_4xxx_read_edid(struct hdmi_ip_data *ip_data,
- 
- bool ti_hdmi_4xxx_detect(struct hdmi_ip_data *ip_data)
- {
--	int r;
--
--	void __iomem *base = hdmi_core_sys_base(ip_data);
--
--	/* HPD */
--	r = REG_GET(base, HDMI_CORE_SYS_SYS_STAT, 1, 1);
--
--	return r == 1;
-+	return gpio_get_value(ip_data->hpd_gpio);
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index 385c1fd..7bcafb9 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -824,6 +824,9 @@ static void omap_4430sdp_display_init(void)
+ 	sdp4430_hdmi_mux_init();
+ 	sdp4430_picodlp_init();
+ 	omap_display_init(&sdp4430_dss_data);
++
++	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
++	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
  }
  
- static void hdmi_core_init(struct hdmi_core_video_config *video_cfg,
+ #ifdef CONFIG_OMAP_MUX
+diff --git a/arch/arm/mach-omap2/board-omap4panda.c b/arch/arm/mach-omap2/board-omap4panda.c
+index e0d0abc..27fc162 100644
+--- a/arch/arm/mach-omap2/board-omap4panda.c
++++ b/arch/arm/mach-omap2/board-omap4panda.c
+@@ -541,6 +541,9 @@ void omap4_panda_display_init(void)
+ 
+ 	omap4_panda_hdmi_mux_init();
+ 	omap_display_init(&omap4_panda_dss_data);
++
++	omap_mux_init_gpio(HDMI_GPIO_LS_OE, OMAP_PIN_OUTPUT);
++	omap_mux_init_gpio(HDMI_GPIO_CT_CP_HPD, OMAP_PIN_OUTPUT);
+ }
+ 
+ static void __init omap4_panda_init(void)
 -- 
 1.7.4.1
 
