@@ -1,102 +1,80 @@
-From: Kevin Hilman <khilman@ti.com>
-Subject: Re: [PATCH v3] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x regulators
-Date: Thu, 01 Mar 2012 12:36:57 -0800
-Message-ID: <87wr74gis6.fsf@ti.com>
-References: <1330006564-13290-1-git-send-email-mporter@ti.com>
+From: Rob Lee <rob.lee@linaro.org>
+Subject: Re: [PATCH v7 1/9] cpuidle: Add common time keeping and irq enabling
+Date: Thu, 1 Mar 2012 14:42:32 -0600
+Message-ID: <CAMXH7KHn-bLckyXKv3mWM6GY8DQ7yJY9kLteM-xRCFWFTH1Gew@mail.gmail.com>
+References: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
+	<1330562578-3410-2-git-send-email-rob.lee@linaro.org>
+	<4F4EF7FC.9040403@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1330006564-13290-1-git-send-email-mporter@ti.com> (Matt Porter's
-	message of "Thu, 23 Feb 2012 09:16:04 -0500")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Porter <mporter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46872 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754985Ab2CAUmf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 15:42:35 -0500
+Received: by iagz16 with SMTP id z16so1296127iag.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 12:42:34 -0800 (PST)
+In-Reply-To: <4F4EF7FC.9040403@linux.vnet.ibm.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: rjw@sisk.pl, len.brown@intel.com, khilman@ti.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 
-Matt Porter <mporter@ti.com> writes:
+Hello Deepthi,
 
-> This fixes smsc911x support on platforms using gpmc_smsc911x_init().
+On Wed, Feb 29, 2012 at 10:15 PM, Deepthi Dharwar
+<deepthi@linux.vnet.ibm.com> wrote:
+> Hi Rob,
 >
-> Commit c7e963f6888816 (net/smsc911x: Add regulator support) added
-> the requirement that platforms provide vdd33a and vddvario supplies.
+> On 03/01/2012 06:12 AM, Robert Lee wrote:
 >
-> Signed-off-by: Matt Porter <mporter@ti.com>
+>> Make necessary changes to implement time keeping and irq enabling
+>> in the core cpuidle code. =A0This will allow the removal of these
+>> functionalities from various platform cpuidle implementations whose
+>> timekeeping and irq enabling follows the form in this common code.
+>
+>
+> The generic cpuidle changes look good, but is there a reason as
+> to why these changes are enabled only for ARM and not other
+> archs ?
+>
 
-[...]
+Besides ARM, this patchset also enables some of this new consolidation
+functionality on arch/SH and for archs that use the
+CONFIG_ARCH_HAS_CPU_RELAX (maybe x86 uses this?).
 
->  /*
->   * Initialize smsc911x device connected to the GPMC. Note that we
->   * assume that pin multiplexing is done in the board-*.c file,
-> @@ -55,6 +101,12 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
->  
->  	gpmc_cfg = board_data;
->  
-> +	ret = platform_device_register(&gpmc_smsc911x_regulator);
-> +	if (ret < 0) {
-> +		pr_err("Unable to register smsc911x regulators: %d\n", ret);
-> +		return;
-> +	}
-> +
+=46or the powerpc P-series, it could probably could be modified to use
+the consolidated timekeeping but I didn't feel comfortable making that
+change myself for a couple of reasons.  First, the common wrapper also
+includes the local_irq_enable() call, but the p-series cpuidle code
+doesn't include this call, as instead, it relies on the
+local_irq_enable() call in the cpu_idle() function in
+arch/powerpc/kernel/idle.c.  Is it OK to remove this
+local_irq_enable() once the wrapper is used?  Second, is there any
+special coordination needed with the timekeeping functions and the
+mfspr() calls?
 
-Boards that have more than one instance of the smsc911x (OMAP3/Overo)
-barf here because of trying to register the same device twice.
+Looking at the intel and acpi cpuidle implementations, their current
+organization does seem to be able to use the common time keeping / irq
+enabling wrapper.  Upon first glance, it appears that there are
+special timer/timekeeping requirements for x86 that aren't required by
+other platforms.  But that may not be correct.
 
-We need something like the patch below to make Overo boot again.
+If you look back at v4 of this patch series, you'll see an attempt at
+a common timekeeping that could be used by x86 and acpi , but it
+causes other compromises that to me aren't worth the extra gain from a
+100% common timekeeping / irq enable solution.  I requested
+feedback/opinions on this issue after v4 but didn't hear anything
+about changes made to the intel or acpi implementations.  So I
+continued on with the common wrapper direction from v3 when making v5.
 
-Kevin
-
-
-
->From 4114dea2fb897ab75d05eaa943d29454034fc025 Mon Sep 17 00:00:00 2001
-From: Kevin Hilman <khilman@ti.com>
-Date: Thu, 1 Mar 2012 12:30:42 -0800
-Subject: [PATCH] ARM: OMAP2+: gpmc-smsc911x: only register regulators once
-
-commit e4b0b2cbbb (ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
-regulators) added regulators which are registered during
-gpmc_smsc911x_init().  However, some platforms (OMAP3/Overo) have more
-than one instance of the SMSC911x and result in attempting to register
-the same regulator more than once which causes a panic().  Fix this by
-tracking the regulator registration ensuring only a single device is
-registered.
-
-Cc: Matt Porter <mporter@ti.com>
-Signed-off-by: Kevin Hilman <khilman@ti.com>
----
- arch/arm/mach-omap2/gpmc-smsc911x.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gpmc-smsc911x.c
-index bbb870c..95e6c7d 100644
---- a/arch/arm/mach-omap2/gpmc-smsc911x.c
-+++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
-@@ -88,6 +88,8 @@ static struct platform_device gpmc_smsc911x_regulator = {
- 	},
- };
- 
-+static bool regulator_registered;
-+
- /*
-  * Initialize smsc911x device connected to the GPMC. Note that we
-  * assume that pin multiplexing is done in the board-*.c file,
-@@ -101,10 +103,14 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x_platform_data *board_data)
- 
- 	gpmc_cfg = board_data;
- 
--	ret = platform_device_register(&gpmc_smsc911x_regulator);
--	if (ret < 0) {
--		pr_err("Unable to register smsc911x regulators: %d\n", ret);
--		return;
-+	if (!regulator_registered) {
-+		ret = platform_device_register(&gpmc_smsc911x_regulator);
-+		if (ret < 0) {
-+			pr_err("Unable to register smsc911x regulators: %d\n",
-+			       ret);
-+			return;
-+		}
-+		regulator_registered = true;
- 	}
- 
- 	if (gpmc_cs_request(gpmc_cfg->cs, SZ_16M, &cs_mem_base) < 0) {
--- 
-1.7.9.2
+Ultimately, even if the consolidated code only can be used by most and
+not all arch or platform cpuidle implementations, it still reduces
+some platform cpuidle fragmentation and duplicated code and hopefully
+improves the maintainability of the core cpuidle.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
