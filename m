@@ -1,80 +1,148 @@
-From: Rob Lee <rob.lee@linaro.org>
-Subject: Re: [PATCH v7 1/9] cpuidle: Add common time keeping and irq enabling
-Date: Thu, 1 Mar 2012 14:42:32 -0600
-Message-ID: <CAMXH7KHn-bLckyXKv3mWM6GY8DQ7yJY9kLteM-xRCFWFTH1Gew@mail.gmail.com>
-References: <1330562578-3410-1-git-send-email-rob.lee@linaro.org>
-	<1330562578-3410-2-git-send-email-rob.lee@linaro.org>
-	<4F4EF7FC.9040403@linux.vnet.ibm.com>
+From: Felipe Balbi <balbi@ti.com>
+Subject: Re: [PATCH v3] ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+ regulators
+Date: Thu, 1 Mar 2012 22:45:54 +0200
+Message-ID: <20120301204553.GA21841@legolas.emea.dhcp.ti.com>
+References: <1330006564-13290-1-git-send-email-mporter@ti.com>
+ <87wr74gis6.fsf@ti.com>
+Reply-To: balbi@ti.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:46872 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754985Ab2CAUmf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 15:42:35 -0500
-Received: by iagz16 with SMTP id z16so1296127iag.19
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 12:42:34 -0800 (PST)
-In-Reply-To: <4F4EF7FC.9040403@linux.vnet.ibm.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="SUOF0GtieIMvvwua"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <87wr74gis6.fsf@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kevin Hilman <khilman@ti.com>
+Cc: Matt Porter <mporter@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>, Linux OMAP List <linux-omap@vger.kernel.org>, Linux ARM Kernel List <linux-arm-kernel@lists.infradead.org>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
-Cc: rjw@sisk.pl, len.brown@intel.com, khilman@ti.com, robherring2@gmail.com, Baohua.Song@csr.com, amit.kucheria@linaro.org, nicolas.ferre@atmel.com, linux@maxim.org.za, kgene.kim@samsung.com, amit.kachhap@linaro.org, magnus.damm@gmail.com, nsekhar@ti.com, daniel.lezcano@linaro.org, mturquette@linaro.org, vincent.guittot@linaro.org, arnd.bergmann@linaro.org, linux-arm-kernel@lists.infradead.org, linaro-dev@lists.linaro.org, patches@linaro.org, broonie@opensource.wolfsonmicro.com, nicolas.pitre@linaro.org, linux@arm.linux.org.uk, jean.pihet@newoldbits.com, venki@google.com, ccross@google.com, g.trinabh@gmail.com, kernel@wantstofly.org, lethal@linux-sh.org, jon-hunter@ti.com, tony@atomide.com, linux-omap@vger.kernel.org, linux-sh@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hello Deepthi,
 
-On Wed, Feb 29, 2012 at 10:15 PM, Deepthi Dharwar
-<deepthi@linux.vnet.ibm.com> wrote:
-> Hi Rob,
->
-> On 03/01/2012 06:12 AM, Robert Lee wrote:
->
->> Make necessary changes to implement time keeping and irq enabling
->> in the core cpuidle code. =A0This will allow the removal of these
->> functionalities from various platform cpuidle implementations whose
->> timekeeping and irq enabling follows the form in this common code.
->
->
-> The generic cpuidle changes look good, but is there a reason as
-> to why these changes are enabled only for ARM and not other
-> archs ?
->
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Besides ARM, this patchset also enables some of this new consolidation
-functionality on arch/SH and for archs that use the
-CONFIG_ARCH_HAS_CPU_RELAX (maybe x86 uses this?).
+Hi,
 
-=46or the powerpc P-series, it could probably could be modified to use
-the consolidated timekeeping but I didn't feel comfortable making that
-change myself for a couple of reasons.  First, the common wrapper also
-includes the local_irq_enable() call, but the p-series cpuidle code
-doesn't include this call, as instead, it relies on the
-local_irq_enable() call in the cpu_idle() function in
-arch/powerpc/kernel/idle.c.  Is it OK to remove this
-local_irq_enable() once the wrapper is used?  Second, is there any
-special coordination needed with the timekeeping functions and the
-mfspr() calls?
+On Thu, Mar 01, 2012 at 12:36:57PM -0800, Kevin Hilman wrote:
+> Matt Porter <mporter@ti.com> writes:
+>=20
+> > This fixes smsc911x support on platforms using gpmc_smsc911x_init().
+> >
+> > Commit c7e963f6888816 (net/smsc911x: Add regulator support) added
+> > the requirement that platforms provide vdd33a and vddvario supplies.
+> >
+> > Signed-off-by: Matt Porter <mporter@ti.com>
+>=20
+> [...]
+>=20
+> >  /*
+> >   * Initialize smsc911x device connected to the GPMC. Note that we
+> >   * assume that pin multiplexing is done in the board-*.c file,
+> > @@ -55,6 +101,12 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x=
+_platform_data *board_data)
+> > =20
+> >  	gpmc_cfg =3D board_data;
+> > =20
+> > +	ret =3D platform_device_register(&gpmc_smsc911x_regulator);
+> > +	if (ret < 0) {
+> > +		pr_err("Unable to register smsc911x regulators: %d\n", ret);
+> > +		return;
+> > +	}
+> > +
+>=20
+> Boards that have more than one instance of the smsc911x (OMAP3/Overo)
+> barf here because of trying to register the same device twice.
+>=20
+> We need something like the patch below to make Overo boot again.
+>=20
+> Kevin
+>=20
+>=20
+>=20
+> From 4114dea2fb897ab75d05eaa943d29454034fc025 Mon Sep 17 00:00:00 2001
+> From: Kevin Hilman <khilman@ti.com>
+> Date: Thu, 1 Mar 2012 12:30:42 -0800
+> Subject: [PATCH] ARM: OMAP2+: gpmc-smsc911x: only register regulators once
+>=20
+> commit e4b0b2cbbb (ARM: OMAP2+: gpmc-smsc911x: add required smsc911x
+> regulators) added regulators which are registered during
+> gpmc_smsc911x_init().  However, some platforms (OMAP3/Overo) have more
+> than one instance of the SMSC911x and result in attempting to register
+> the same regulator more than once which causes a panic().  Fix this by
+> tracking the regulator registration ensuring only a single device is
+> registered.
+>=20
+> Cc: Matt Porter <mporter@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@ti.com>
+> ---
+>  arch/arm/mach-omap2/gpmc-smsc911x.c |   14 ++++++++++----
+>  1 file changed, 10 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/gpmc-smsc911x.c b/arch/arm/mach-omap2/gp=
+mc-smsc911x.c
+> index bbb870c..95e6c7d 100644
+> --- a/arch/arm/mach-omap2/gpmc-smsc911x.c
+> +++ b/arch/arm/mach-omap2/gpmc-smsc911x.c
+> @@ -88,6 +88,8 @@ static struct platform_device gpmc_smsc911x_regulator =
+=3D {
+>  	},
+>  };
+> =20
+> +static bool regulator_registered;
+> +
+>  /*
+>   * Initialize smsc911x device connected to the GPMC. Note that we
+>   * assume that pin multiplexing is done in the board-*.c file,
+> @@ -101,10 +103,14 @@ void __init gpmc_smsc911x_init(struct omap_smsc911x=
+_platform_data *board_data)
+> =20
+>  	gpmc_cfg =3D board_data;
+> =20
+> -	ret =3D platform_device_register(&gpmc_smsc911x_regulator);
+> -	if (ret < 0) {
+> -		pr_err("Unable to register smsc911x regulators: %d\n", ret);
+> -		return;
+> +	if (!regulator_registered) {
+> +		ret =3D platform_device_register(&gpmc_smsc911x_regulator);
+> +		if (ret < 0) {
+> +			pr_err("Unable to register smsc911x regulators: %d\n",
+> +			       ret);
+> +			return;
+> +		}
+> +		regulator_registered =3D true;
 
-Looking at the intel and acpi cpuidle implementations, their current
-organization does seem to be able to use the common time keeping / irq
-enabling wrapper.  Upon first glance, it appears that there are
-special timer/timekeeping requirements for x86 that aren't required by
-other platforms.  But that may not be correct.
+Wow, this is quite a hack. Is the regulator part of the SMSC911x device
+or is it outside ? If it's outside the SMSC91xx (which I believe it is)
+there should be a regulator driver instead of this hack. For boards
+which don't provide such a regulator (and tie the supply pin to some
+constant voltage source) there should be a constant regulator supplying
+the pin. But this patch is quite hacky.
 
-If you look back at v4 of this patch series, you'll see an attempt at
-a common timekeeping that could be used by x86 and acpi , but it
-causes other compromises that to me aren't worth the extra gain from a
-100% common timekeeping / irq enable solution.  I requested
-feedback/opinions on this issue after v4 but didn't hear anything
-about changes made to the intel or acpi implementations.  So I
-continued on with the common wrapper direction from v3 when making v5.
+--=20
+balbi
 
-Ultimately, even if the consolidated code only can be used by most and
-not all arch or platform cpuidle implementations, it still reduces
-some platform cpuidle fragmentation and duplicated code and hopefully
-improves the maintainability of the core cpuidle.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--SUOF0GtieIMvvwua
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPT+ABAAoJEIaOsuA1yqREO38P/RSh3ehjJLVrXX8b30KzkIs2
+VGI0JYogM2KuuOoj4NcPZ2nqrNZo3yMIa0USzQPEOm+DgzT2FpUNAeRq3+txIPDy
+MDV6jH2x++BZjizxrus6OpfkprO3P9t51glA9wQk8oG11rjwQzPNled5by7eXqZi
+9gPacKc2oLlmxImvhuBNLniYpsESsN2WLIPJfQ+c9kbkHDKqt+edAZKg5WJN5BES
+l0Fueo4WlkDvt5faf0tiXxLrrpi7+Hi9100FcFn/ko6sJDzUZAu/lXLfN0PJRH1i
+MKFjiAXiE3E3s+hLI1V7lVBWSrQVXq23aVnH29HBlSslJA8Evc5gQcClHjpis2tJ
+7zTL2W5K6n4JZ/24LbJOK88tKGhfd8nwb3GRuq7dAl/wmNRG5uz83ztoIb5nX1mw
+HYfZWDszB0102lsn60V9TpvTtoDGLl4/9+fMKd7RuX6OYuKsc434OJ7JvN2qPhFl
+1UR2pmHonwUKiQyLjTrN+37hvvmHUOdUsSUOyD3y1OcbSd8vuuU+k7adOEY/oSBL
+2wLrUy0pRKJuQ96JINmDYP9PMQcDqfXyDDZLTOO0ECYnfqeRcsnQtpsVvn1wLrk/
+ucE+c7Q3kZdX+8hNl5vhiy+LRG4lOGbo3yazZdhpDP22gn033huLIhq3zsClAcaG
+kKGmR8KfxkcNDy0L9X/R
+=ucXR
+-----END PGP SIGNATURE-----
+
+--SUOF0GtieIMvvwua--
