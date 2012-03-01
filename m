@@ -1,53 +1,52 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Re: Randconfig module build error with OMAP4_ERRATA_I688
-Date: Thu, 1 Mar 2012 14:39:36 +0530
-Message-ID: <CAMQu2gxg_57AVW+MT_Sgi+gr2OUge-YPdSUxoG+z-zQth=4-UA@mail.gmail.com>
-References: <20120229173719.GN18901@atomide.com>
+From: Igor Grinberg <grinberg@compulab.co.il>
+Subject: [PATCH 2/2] ARM: OMAP3: cm-t3517: add EMAC support
+Date: Thu,  1 Mar 2012 11:19:04 +0200
+Message-ID: <1330593544-25411-2-git-send-email-grinberg@compulab.co.il>
+References: <1324423590-32489-1-git-send-email-yanok@emcraft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:34271 "EHLO
-	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758678Ab2CAJKC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 04:10:02 -0500
-Received: by qafi29 with SMTP id i29so190966qaf.15
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 01:09:57 -0800 (PST)
-In-Reply-To: <20120229173719.GN18901@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1324423590-32489-1-git-send-email-yanok@emcraft.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Igor Grinberg <grinberg@compulab.co.il>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
-On Wed, Feb 29, 2012 at 11:07 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi Santosh,
->
-> Looks like OMAP4_ERRATA_I688 still has one more issue:
-> Modules won't build at least with the attached randconfig
-> generated file.
->
-> Can you please take a look at how to deal with it?
->
-> Maybe omap_bus_sync should be an inline function with some
-> wrapper for the sleep44xx.S to call?
->
-> I already posted a fix for the GPMC related error with the
-> same .config file.
->
-This one builds for me against 'Linux 3.3-rc5,
-Ofocurse I got below error with the attached .config which
-I bypassed to see the Errata build failure.
+Add support for the EMAC Ethernet controller in the AM35xx SoC.
 
-arch/arm/mach-omap2/built-in.o: In function `n8x0_mmc_callback':
-linux-2.6/arch/arm/mach-omap2/board-n8x0.c:374: undefined reference to
-`omap_mmc_notify_cover_event'
-make: *** [.tmp_vmlinux1] Error 1
+Signed-off-by: Igor Grinberg <grinberg@compulab.co.il>
+---
+ arch/arm/mach-omap2/board-cm-t3517.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-I build this with below toolchain...
-$arm-none-linux-gnueabi-gcc --version
-arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2011.03-41) 4.5.2
-Copyright (C) 2010 Free Software Foundation, Inc.
-
-Am I missing anything ?
-
-Regards
-Santosh
+diff --git a/arch/arm/mach-omap2/board-cm-t3517.c b/arch/arm/mach-omap2/board-cm-t3517.c
+index f36d694..9e66e16 100644
+--- a/arch/arm/mach-omap2/board-cm-t3517.c
++++ b/arch/arm/mach-omap2/board-cm-t3517.c
+@@ -49,6 +49,7 @@
+ #include "mux.h"
+ #include "control.h"
+ #include "common-board-devices.h"
++#include "am35xx-emac.h"
+ 
+ #if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+ static struct gpio_led cm_t3517_leds[] = {
+@@ -291,6 +292,7 @@ static void __init cm_t3517_init(void)
+ 	cm_t3517_init_rtc();
+ 	cm_t3517_init_usbh();
+ 	cm_t3517_init_hecc();
++	am35xx_emac_init(AM35XX_DEFAULT_MDIO_FREQUENCY, 1);
+ }
+ 
+ MACHINE_START(CM_T3517, "Compulab CM-T3517")
+-- 
+1.7.3.4
