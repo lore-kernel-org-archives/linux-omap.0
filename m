@@ -1,64 +1,102 @@
-From: "Graham, Jeff" <Jeff.Graham@brukeroptics.com>
-Subject: omap4 rotation support
-Date: Thu, 1 Mar 2012 14:55:43 -0500
-Message-ID: <F752F64AD8BC1D42B49B877FEE3CD34901FD4F05@USTED.BOPTUS.OPTIK.LAN>
+From: Kevin Hilman <khilman@ti.com>
+Subject: Re: [PATCH] cpufreq: OMAP: specify range for voltage scaling
+Date: Thu, 01 Mar 2012 12:12:23 -0800
+Message-ID: <87fwdshyhk.fsf@ti.com>
+References: <1330004964-22831-1-git-send-email-afzal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.bruker.com ([173.13.75.234]:46866 "EHLO mx1.bruker.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753856Ab2CAUFd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 15:05:33 -0500
-Content-class: urn:content-classes:message
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:43361 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757130Ab2CAUM1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 15:12:27 -0500
+Received: by mail-pz0-f51.google.com with SMTP id y9so1429827dad.24
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 12:12:26 -0800 (PST)
+In-Reply-To: <1330004964-22831-1-git-send-email-afzal@ti.com> (Afzal
+	Mohammed's message of "Thu, 23 Feb 2012 19:19:24 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap Mailing List <linux-omap@vger.kernel.org>
-Cc: "Graham, Jeff" <Jeff.Graham@brukeroptics.com>
+To: Afzal Mohammed <afzal@ti.com>
+Cc: linux-omap@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>
 
-Hello,
+Afzal Mohammed <afzal@ti.com> writes:
 
-I have a variscite OM44 (omap4 4460 SOM) that I need to rotate the
-display on but I cannot make it work.
+> Specify voltage in ranges for regulator. Range
+> used is tolerance specified for OPP.
+>
+> This helps to achieve DVFS with a wider range of
+> regulators.
+>
+> Cc: Kevin Hilman <khilman@ti.com>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> Signed-off-by: Afzal Mohammed <afzal@ti.com>
 
-I am currently using kernel 3.1.5 and the Ubuntu 11.10 from Linaro.
+Thanks, will queue this with the CPUfreq changes for MPU DVFS.
 
-I have tried each of these ways to make it work:
+Kevin
 
-1. From the command line as root the command 'xrandr -o left'
-   This fails with an error
-
-2. From uboot I tried adding: 'omapfb.tiler=y omapfb.mirror=y
-omapfb.rotate=1'
-   This seems to have no effect at all. I also tried using omapdss
-instead of omapfb in the above
-   three lines, but I am not certain which is correct for what.
-
-   I saw a comment that omap dss rotate does not work for omap4 for
-Linux but does work for Android.
-   Bummer.
-
-3. I tried steps from this website:
-http://omappedia.org/wiki/Bootargs_for_enabling_display
-     echo "1" > /sys/class/graphics/fb0/mirror  (this fails because
-mirror does not exist)
-
-     cat /sys/class/graphics/fb0/rotate_type     (this fails because
-rotate_type does not exist)
-
-     echo "1" > /sys/class/graphics/fb0/rotate   (as root this seems to
-be accepted, but nothing
-                                                  happens. Tried
-stopping lightdm before and
-                                                  restarting after this
-command but no effect)
-
-
-Can anyone say if this should be possible (and in what kernel or uboot
-versions) or perhaps more important WHEN it might be usable?
-
-Thanks,
-Jeff
-
-
+> ---
+> Hi,
+>
+> Tolerance specified here is that of AM335X, least value
+> of tolerance that I could find so far for OMAP family
+>
+> This applies on top of Kevin Hilman's patch (v2),
+> "cpufreq: OMAP: scale voltage along with frequency"
+> http://www.spinics.net/lists/linux-omap/msg65002.html
+>
+> Regards
+> Afzal
+>
+>  drivers/cpufreq/omap-cpufreq.c |   10 +++++++---
+>  1 files changed, 7 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/cpufreq/omap-cpufreq.c b/drivers/cpufreq/omap-cpufreq.c
+> index 10b8e23..3cea51b 100644
+> --- a/drivers/cpufreq/omap-cpufreq.c
+> +++ b/drivers/cpufreq/omap-cpufreq.c
+> @@ -38,6 +38,9 @@
+>  
+>  #include <mach/hardware.h>
+>  
+> +/* OPP tolerance in percentage */
+> +#define	OPP_TOLERANCE	4
+> +
+>  #ifdef CONFIG_SMP
+>  struct lpj_info {
+>  	unsigned long	ref;
+> @@ -81,7 +84,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>  	int r, ret = 0;
+>  	struct cpufreq_freqs freqs;
+>  	struct opp *opp;
+> -	unsigned long freq, volt = 0, volt_old = 0;
+> +	unsigned long freq, volt = 0, volt_old = 0, tol = 0;
+>  
+>  	if (!freq_table) {
+>  		dev_err(mpu_dev, "%s: cpu%d: no freq table!\n", __func__,
+> @@ -125,6 +128,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>  			return -EINVAL;
+>  		}
+>  		volt = opp_get_voltage(opp);
+> +		tol = volt * OPP_TOLERANCE / 100;
+>  		volt_old = regulator_get_voltage(mpu_reg);
+>  	}
+>  
+> @@ -134,7 +138,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>  
+>  	/* scaling up?  scale voltage before frequency */
+>  	if (mpu_reg && (freqs.new > freqs.old)) {
+> -		r = regulator_set_voltage(mpu_reg, volt, volt);
+> +		r = regulator_set_voltage(mpu_reg, volt - tol, volt + tol);
+>  		if (r < 0) {
+>  			dev_warn(mpu_dev, "%s: unable to scale voltage up.\n",
+>  				 __func__);
+> @@ -147,7 +151,7 @@ static int omap_target(struct cpufreq_policy *policy,
+>  
+>  	/* scaling down?  scale voltage after frequency */
+>  	if (mpu_reg && (freqs.new < freqs.old)) {
+> -		r = regulator_set_voltage(mpu_reg, volt, volt);
+> +		r = regulator_set_voltage(mpu_reg, volt - tol, volt + tol);
+>  		if (r < 0) {
+>  			dev_warn(mpu_dev, "%s: unable to scale voltage down.\n",
+>  				 __func__);
