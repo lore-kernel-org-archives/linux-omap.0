@@ -1,57 +1,71 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 2/2] arm:omap:am33xx: Add power domain data
-Date: Fri, 2 Mar 2012 06:37:58 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317E6763@DBDE01.ent.ti.com>
-References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
- <1324803628-16790-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1202291839130.12752@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A8317E515D@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1203012330490.22980@utopia.booyaka.com>
+From: "S, Venkatraman" <svenkatr@ti.com>
+Subject: Re: [PATCH] ARM: OMAP: hsmmc: add max_freq field
+Date: Fri, 2 Mar 2012 12:41:45 +0530
+Message-ID: <CANfBPZ8Oypwqq2p3rcNpp5M8+XPHDmUxMRw2J5Jw5DdAKQj8cw@mail.gmail.com>
+References: <1323868927-3738-1-git-send-email-zonque@gmail.com>
+ <CANrkHUY3Zf4a2K5769Z=7Wng339zB6+z_Tgd4mOPChZ1RvZ=Kw@mail.gmail.com>
+ <4EFC6992.4020501@gmail.com> <CACTFLAMCoKfQbTe2RLTvi1_CH0nKzAOthAwrifNe2+F2sf3uPA@mail.gmail.com>
+ <20120302001121.GE18901@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54337 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709Ab2CBGiF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 01:38:05 -0500
-In-Reply-To: <alpine.DEB.2.00.1203012330490.22980@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <20120302001121.GE18901@atomide.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Chris Ball <cjb@laptop.org>
+Cc: Daniel Mack <zonque@gmail.com>, Rajendra Nayak <rnayak@ti.com>, "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hilman, Kevin" <khilman@ti.com>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Mohammed, Afzal" <afzal@ti.com>
 
-On Fri, Mar 02, 2012 at 12:02:31, Paul Walmsley wrote:
++Chris queues all MMC patches including omap_hsmmc.
+Ping ?
+
+
+On Fri, Mar 2, 2012 at 5:41 AM, Tony Lindgren <tony@atomide.com> wrote:
 > Hi,
-> 
-> On Thu, 1 Mar 2012, Hiremath, Vaibhav wrote:
-> 
-> > The initialization used in the patch is correct. Unfortunately, the TRM 
-> > is incorrect here. I have already raised this issue with respective 
-> > folks and soon it will get corrected.
-> 
-> thanks for looking into this.  Could you add a brief comment or comments 
-> in this file to indicate that the TRM Rev C is incorrect about those?  
-> That will help others who may be reviewing this code as they track down 
-> bugs.
-> 
-
-Good point. I will certainly add it in the next version of patch-sets.
-
-Paul,
-Thanks for your review comments, can we also align on the approach, 
-Whether to merge am33xx powerdomain with omap4 (same direction we are now)
-OR
-Have separate implementation (my original approach).
-
-
-Thanks,
-Vaibhav
-> 
-> thanks
-> 
-> 
-> - Paul
-> 
-
+>
+> * Daniel Mack <zonque@gmail.com> [120217 05:13]:
+>> ping? Could anyone care for queueing this please?
+>
+> I suggest Rajendra queue up omap_hsmmc.c patches as he's already
+> patching it.
+>
+> Regards,
+>
+> Tony
+>
+>
+>> On Thu, Dec 29, 2011 at 2:22 PM, Daniel Mack <zonque@gmail.com> wrot=
+e:
+>> > On 12/23/2011 04:40 PM, T Krishnamoorthy, Balaji wrote:
+>> >> On Wed, Dec 14, 2011 at 6:52 PM, Daniel Mack <zonque@gmail.com> w=
+rote:
+>> >>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/om=
+ap_hsmmc.c
+>> >>> index 101cd31..8215ef9 100644
+>> >>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> >>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> >>> @@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struct=
+ platform_device *pdev)
+>> >>> =A0 =A0 =A0 =A0if (mmc_slot(host).vcc_aux_disable_is_sleep)
+>> >>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc_slot(host).no_off =3D 1;
+>> >>>
+>> >>> - =A0 =A0 =A0 mmc->f_min =A0 =A0 =A0=3D OMAP_MMC_MIN_CLOCK;
+>> >>> - =A0 =A0 =A0 mmc->f_max =A0 =A0 =A0=3D OMAP_MMC_MAX_CLOCK;
+>> >>> + =A0 =A0 =A0 mmc->f_min =3D OMAP_MMC_MIN_CLOCK;
+>> >>
+>> >> Stray change for f_min ?
+>> >
+>> > No, this was intended. The indentation doesn't make sense anymore =
+when
+>> > not grouped with the f_max assignment.
+>> >
+>> > Other than that, what is necessary to get this picked? Tony? :)
+>> >
+>> >
+>> > Thanks,
+>> > Daniel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-mmc" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
