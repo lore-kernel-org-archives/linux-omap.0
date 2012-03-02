@@ -1,85 +1,198 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH-V2 2/2] arm:omap:am33xx: Add power domain data
-Date: Fri, 2 Mar 2012 05:58:47 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A8317E66C1@DBDE01.ent.ti.com>
-References: <1324803628-16790-1-git-send-email-hvaibhav@ti.com>
- <1324803628-16790-3-git-send-email-hvaibhav@ti.com>
- <alpine.DEB.2.00.1202291810230.12752@utopia.booyaka.com>
- <79CD15C6BA57404B839C016229A409A8317E5134@DBDE01.ent.ti.com>
- <alpine.DEB.2.00.1203011847480.22980@utopia.booyaka.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: Re: [PATCH 3/4] mmc: omap_hsmmc: Use GPIO offset for external GPIO
+ chips
+Date: Fri, 02 Mar 2012 11:32:52 +0530
+Message-ID: <4F50628C.9080706@ti.com>
+References: <20120301185044.29210.44521.stgit@kaulin.local> <20120301185532.29210.32421.stgit@kaulin.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37111 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755918Ab2CBF64 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 00:58:56 -0500
-In-Reply-To: <alpine.DEB.2.00.1203011847480.22980@utopia.booyaka.com>
-Content-Language: en-US
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:54333 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755918Ab2CBGC7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 01:02:59 -0500
+Received: by mail-yw0-f49.google.com with SMTP id j52so799262yhj.8
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 22:02:58 -0800 (PST)
+In-Reply-To: <20120301185532.29210.32421.stgit@kaulin.local>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Mohammed, Afzal" <afzal@ti.com>, "Hilman, Kevin" <khilman@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linuxkernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Fri, Mar 02, 2012 at 11:19:40, Paul Walmsley wrote:
-> Hi
-> 
-> On Thu, 1 Mar 2012, Hiremath, Vaibhav wrote:
-> 
-> > I am not sure whether we access these bits explicitly. If I understand 
-> > correctly, API's which access these bits are not being called from 
-> > anywhere, For example,
-> > 
-> > 	omap4_pwrdm_read_mem_retst
-> > 	omap4_pwrdm_set_mem_retst
-> > 	omap4_pwrdm_set_mem_onst
-> 
-> They'll be needed for the functional powerstate code, device PM QoS, and 
-> OSWR.
-> 
-> > Currently the major issue would be, for PM_PER_PWRSTCTRL, where 
-> > LogicRETState bit has been moved to offset 3. This is being used in 
-> > omap4_pwrdm_set_logic_retst() api.
-> > 
-> > And in order to support weird/non-standard bit-offsets, we have to clean 
-> > omap2_pwrdm_get_mem_bank_onstate/retst/_mask() api and have bitshift 
-> > field in struct powerdomain, as you have rightly pointed out.
-> 
-> As you work on this, I have a request.  Please place the AM33xx 
-> powerdomain implementation functions into a separate file, 
-> powerdomain33xx.c perhaps, rather than trying to merge them with the OMAP4 
-> powerdomain implementation functions.
-> 
+On Friday 02 March 2012 12:25 AM, Tony Lindgren wrote:
+> We can now remove the setting of GPIO pins with callbacks
+> as the drivers can access a GPIO offset on a named gpio_chip
+> directly with gpio_find_by_chip_name().
+>
+> Cc: Rajendra Nayak<rnayak@ti.com>
+> Signed-off-by: Tony Lindgren<tony@atomide.com>
+> ---
+>   arch/arm/mach-omap2/board-3430sdp.c          |   13 ++++---------
+>   arch/arm/mach-omap2/board-cm-t35.c           |    8 ++------
+>   arch/arm/mach-omap2/board-devkit8000.c       |    7 ++-----
+>   arch/arm/mach-omap2/board-igep0020.c         |    8 ++------
+>   arch/arm/mach-omap2/board-omap3beagle.c      |    9 +++------
+>   arch/arm/mach-omap2/board-omap3evm.c         |    8 ++------
+>   arch/arm/mach-omap2/board-omap3pandora.c     |   13 ++++---------
+>   arch/arm/mach-omap2/board-omap3stalker.c     |    8 ++------
+>   arch/arm/mach-omap2/board-omap3touchbook.c   |    7 ++-----
+>   arch/arm/mach-omap2/board-zoom-peripherals.c |    7 ++-----
+>   10 files changed, 25 insertions(+), 63 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index da75f23..238b95a 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -231,14 +231,16 @@ static struct omap2_hsmmc_info mmc[] = {
+>   		 * so the SIM card isn't used; else 4 bits.
+>   		 */
+>   		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+> +		.gpiochip_cd	= "twl4030_gpio",
+> +		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
+>   		.gpio_wp	= 4,
+> -		.deferred	= true,
 
-That was my initial code and I had submitted same to the list as an RFC, 
-Request you to refer to the link - 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg58746.html
+Shouldn't this patch completely get rid of all the 'deferred'
+infrastructure that was put in place, including the 
+omap_hsmmc_late_init() function, since there is no need for it
+anymore?
 
+>   	},
+[..]
 
-And the reason behind merging am33xx with omap4 thing was triggered
-from the discussion on the above patch (between me, KevinH and RajendraNaik), 
-and we all believed that, with some cleanup in OMAP4 code we can reuse it 
-for am33xx.
+>   	/*
+>   	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+>   	 * the P2 connector; notably LEDA for the LCD backlight.
+> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+> index ace466b..b387264 100644
+> --- a/arch/arm/mach-omap2/board-omap3pandora.c
+> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+> @@ -270,19 +270,19 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
+>   	{
+>   		.mmc		= 1,
+>   		.caps		= MMC_CAP_4_BIT_DATA,
+> -		.gpio_cd	= -EINVAL,
+> +		.gpiochip_cd	= "twl4030_gpio",
+> +		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
+>   		.gpio_wp	= 126,
+>   		.ext_clock	= 0,
+> -		.deferred	= true,
+>   	},
+>   	{
+>   		.mmc		= 2,
+>   		.caps		= MMC_CAP_4_BIT_DATA,
+> -		.gpio_cd	= -EINVAL,
+> +		.gpiochip_cd	= "twl4030_gpio",
+> +		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
 
-Thanks,
-Vaibhav
+This one should be gpio_cd = 1,
 
-> Some functions can be shared -- maybe place those into a separate file, 
-> powerdomain33xx_44xx.c perhaps?
-> 
-> > Is my all understanding correct?
-> > 
-> > If yes, do you think this patch should get blocked for above cleanup? I feel
-> > Cleanup can still follow, since this won't impact the AM33xx boot.
-> > 
-> > What's your opinion on this??
-> 
-> We can't merge patches which are known to be broken.  That's a rule from 
-> Linus (and a good one).  Better to try to get it right the first time it 
-> hits mainline.
-> 
-> 
-> - Paul
-> 
+regards,
+Rajendra
+
+>   		.gpio_wp	= 127,
+>   		.ext_clock	= 1,
+>   		.transceiver	= true,
+> -		.deferred	= true,
+>   	},
+>   	{
+>   		.mmc		= 3,
+> @@ -299,11 +299,6 @@ static int omap3pandora_twl_gpio_setup(struct device *dev,
+>   {
+>   	int ret, gpio_32khz;
+>
+> -	/* gpio + {0,1} is "mmc{0,1}_cd" (input/IRQ) */
+> -	omap3pandora_mmc[0].gpio_cd = gpio + 0;
+> -	omap3pandora_mmc[1].gpio_cd = gpio + 1;
+> -	omap_hsmmc_late_init(omap3pandora_mmc);
+> -
+>   	/* gpio + 13 drives 32kHz buffer for wifi module */
+>   	gpio_32khz = gpio + 13;
+>   	ret = gpio_request_one(gpio_32khz, GPIOF_OUT_INIT_HIGH, "wifi 32kHz");
+> diff --git a/arch/arm/mach-omap2/board-omap3stalker.c b/arch/arm/mach-omap2/board-omap3stalker.c
+> index 6410043..6d0deb9 100644
+> --- a/arch/arm/mach-omap2/board-omap3stalker.c
+> +++ b/arch/arm/mach-omap2/board-omap3stalker.c
+> @@ -211,9 +211,9 @@ static struct omap2_hsmmc_info mmc[] = {
+>   	{
+>   		.mmc		= 1,
+>   		.caps		= MMC_CAP_4_BIT_DATA,
+> -		.gpio_cd	= -EINVAL,
+> +		.gpiochip_cd	= "twl4030_gpio",
+> +		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
+>   		.gpio_wp	= 23,
+> -		.deferred	= true,
+>   	 },
+>   	{}			/* Terminator */
+>   };
+> @@ -282,10 +282,6 @@ static int
+>   omap3stalker_twl_gpio_setup(struct device *dev,
+>   			    unsigned gpio, unsigned ngpio)
+>   {
+> -	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+> -	mmc[0].gpio_cd = gpio + 0;
+> -	omap_hsmmc_late_init(mmc);
+> -
+>   	/*
+>   	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+>   	 * the P2 connector; notably LEDA for the LCD backlight.
+> diff --git a/arch/arm/mach-omap2/board-omap3touchbook.c b/arch/arm/mach-omap2/board-omap3touchbook.c
+> index 8842e04..cf270b8 100644
+> --- a/arch/arm/mach-omap2/board-omap3touchbook.c
+> +++ b/arch/arm/mach-omap2/board-omap3touchbook.c
+> @@ -99,8 +99,9 @@ static struct omap2_hsmmc_info mmc[] = {
+>   	{
+>   		.mmc		= 1,
+>   		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
+> +		.gpiochip_cd	= "twl4030_gpio",
+> +		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
+>   		.gpio_wp	= 29,
+> -		.deferred	= true,
+>   	},
+>   	{}	/* Terminator */
+>   };
+> @@ -118,10 +119,6 @@ static struct gpio_led gpio_leds[];
+>   static int touchbook_twl_gpio_setup(struct device *dev,
+>   		unsigned gpio, unsigned ngpio)
+>   {
+> -	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+> -	mmc[0].gpio_cd = gpio + 0;
+> -	omap_hsmmc_late_init(mmc);
+> -
+>   	/* REVISIT: need ehci-omap hooks for external VBUS
+>   	 * power switch and overcurrent detect
+>   	 */
+> diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> index 3d39cdb..604df86 100644
+> --- a/arch/arm/mach-omap2/board-zoom-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+> @@ -203,9 +203,10 @@ static struct omap2_hsmmc_info mmc[] = {
+>   		.name		= "external",
+>   		.mmc		= 1,
+>   		.caps		= MMC_CAP_4_BIT_DATA,
+> +		.gpiochip_cd	= "twl4030_gpio",
+> +		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
+>   		.gpio_wp	= -EINVAL,
+>   		.power_saving	= true,
+> -		.deferred	= true,
+>   	},
+>   	{
+>   		.name		= "internal",
+> @@ -232,10 +233,6 @@ static int zoom_twl_gpio_setup(struct device *dev,
+>   {
+>   	int ret;
+>
+> -	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+> -	mmc[0].gpio_cd = gpio + 0;
+> -	omap_hsmmc_late_init(mmc);
+> -
+>   	ret = gpio_request_one(LCD_PANEL_ENABLE_GPIO, GPIOF_OUT_INIT_LOW,
+>   			       "lcd enable");
+>   	if (ret)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
