@@ -1,56 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL 3/5] First set of omap1 related changes
-Date: Thu, 1 Mar 2012 15:31:01 -0800
-Message-ID: <20120301233101.GC18901@atomide.com>
-References: <0Mfo5g-1RocQt3wlY-00NttP@mx.kundenserver.de>
- <201202292106.40731.arnd@arndb.de>
- <20120229211331.GP18901@atomide.com>
- <3378572.m1z82NvySs@acer>
+Subject: Re: [PATCH] cbus: Fix lines for Nokia 770
+Date: Thu, 1 Mar 2012 16:02:19 -0800
+Message-ID: <20120302000219.GD18901@atomide.com>
+References: <20120222220937.GM18185@atomide.com>
+ <20120223084633.GB18463@legolas.emea.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:48151 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61392 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751828Ab2CAXbH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 18:31:07 -0500
+	with ESMTP id S1754328Ab2CBACV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 19:02:21 -0500
 Content-Disposition: inline
-In-Reply-To: <3378572.m1z82NvySs@acer>
+In-Reply-To: <20120223084633.GB18463@legolas.emea.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Felipe Balbi <balbi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [120301 13:56]:
+* Felipe Balbi <balbi@ti.com> [120223 00:15]:
+> Hi,
 > 
-> Any chance for the continuation series [1] as well as two section 
-> mismatch related fixes [2] [3] getting your attention? NB, that 
-> continuation series needs another section mismatch fix, which I was 
-> planing to submit once there was a stable base for it.
+> On Wed, Feb 22, 2012 at 02:09:37PM -0800, Tony Lindgren wrote:
+> > From 54c4785b8d274f8d282b4243945ae0b17edf4686 Mon Sep 17 00:00:00 2001
+> > From: Tony Lindgren <tony@atomide.com>
+> > Date: Wed, 22 Feb 2012 13:03:07 -0800
+> > Subject: [PATCH] cbus: Fix lines for Nokia 770
+> > 
+> > This makes retu and tahvo work again on Nokia 770 so it
+> > stays running.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > ---
+> > 
+> > I applied this into cbus branch as it seems to fix retu
+> > watchdog for Nokia 770.
+> > 
+> > --- a/arch/arm/mach-omap1/board-nokia770.c
+> > +++ b/arch/arm/mach-omap1/board-nokia770.c
+> > @@ -87,9 +87,9 @@ static struct platform_device nokia770_kp_device = {
+> >  #if defined(CONFIG_CBUS) || defined(CONFIG_CBUS_MODULE)
+> >  
+> >  static struct cbus_host_platform_data nokia770_cbus_data = {
+> > -	.clk_gpio	= OMAP_MPUIO(11),
+> > +	.clk_gpio	= OMAP_MPUIO(9),
+> >  	.dat_gpio	= OMAP_MPUIO(10),
+> > -	.sel_gpio	= OMAP_MPUIO(9),
+> > +	.sel_gpio	= OMAP_MPUIO(11),
+> >  };
+> >  
+> >  static struct platform_device nokia770_cbus_device = {
 > 
-> [1] http://www.spinics.net/lists/linux-omap/msg64146.html
-> [2] http://www.spinics.net/lists/linux-omap/msg64441.html
-> [3] http://www.spinics.net/lists/linux-omap/msg64442.html
+> Has this been wrong since the beginning ? Looking at commit d64193bd, I
+> just moved whatever was on cbus.c to respective board-files.
 
-Hmm sorry I guess I was waiting for the missing section
-mismatch patch.
-
-I've pushed ams-delta branch that's based on -rc5 merged
-with what Arnd pulled yesterday as -rc1 has i2c-omap.c
-a compile bug for omap1. I've applied these two patches
-there as the second one depends on what got pulled:
-
-ARM: OMAP1: ams-delta: clean up init data section assignments
-ARM: OMAP1: ams-delta: fix incorrect section tags
-
-Looks like your patch "ARM: OMAP1: ams-delta: set up regulator
-over modem reset GPIO pin" causes the following error with
-CONFIG_DEBUG_SECTION_MISMATCH=y:
-
-arch/arm/mach-omap1/board-ams-delta.c:273:36: error:
-modem_nreset_config causes a section type conflict
-
-So care to update and repost that (and possibly the following
-two patches) with your missing fixes?
+Yes I think I dumped them from custom ATAGs quite a while ago,
+but probably got them wrong way around at some point and have
+been wondering ever since how come cbus does not seem to work
+on 770 :)
 
 Regards,
 
