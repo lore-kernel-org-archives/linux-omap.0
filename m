@@ -1,66 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: hsmmc: add max_freq field
-Date: Thu, 1 Mar 2012 16:11:21 -0800
-Message-ID: <20120302001121.GE18901@atomide.com>
-References: <1323868927-3738-1-git-send-email-zonque@gmail.com>
- <CANrkHUY3Zf4a2K5769Z=7Wng339zB6+z_Tgd4mOPChZ1RvZ=Kw@mail.gmail.com>
- <4EFC6992.4020501@gmail.com>
- <CACTFLAMCoKfQbTe2RLTvi1_CH0nKzAOthAwrifNe2+F2sf3uPA@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: Re: [PATCH] ARM: OMAP2+: powerdomain: unwrap and simplify logging strings
+Date: Thu, 1 Mar 2012 18:36:01 -0600
+Message-ID: <CAOMWX4cAABO8jUCi8g_vbv6SnU3vPcqOULV6ui2jV7E2Nt8g0Q@mail.gmail.com>
+References: <alpine.DEB.2.00.1202292122560.12752@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-mmc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CACTFLAMCoKfQbTe2RLTvi1_CH0nKzAOthAwrifNe2+F2sf3uPA@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Daniel Mack <zonque@gmail.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: "T Krishnamoorthy, Balaji" <balajitk@ti.com>, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:34146 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756069Ab2CBAg3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Mar 2012 19:36:29 -0500
+Received: by mail-ww0-f53.google.com with SMTP id fm10so3742wgb.22
+        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 16:36:21 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.1202292122560.12752@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
 
-Hi,
+On Wed, Feb 29, 2012 at 22:23, Paul Walmsley <paul@pwsan.com> wrote:
+> b/arch/arm/mach-omap2/powerdomain.c
+> index 8a18d1b..89000d3 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -339,8 +339,8 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, st=
+ruct
+> clockdomain *clkdm)
+> =A0 =A0 =A0 =A0if (!pwrdm || !clkdm)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
+>
+> - =A0 =A0 =A0 pr_debug("powerdomain: associating clockdomain %s with =
+powerdomain
+> "
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"%s\n", clkdm->name, pwrdm->name);
+> + =A0 =A0 =A0 pr_debug("powerdomain: %s: associating clockdomain %s\n=
+",
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0clkdm->name, pwrdm->name);
 
-* Daniel Mack <zonque@gmail.com> [120217 05:13]:
-> ping? Could anyone care for queueing this please?
-=20
-I suggest Rajendra queue up omap_hsmmc.c patches as he's already
-patching it.
+while at this, could i suggest having instead:
+pr_debug("%s: %s: associating clockdomain %s\n", __func__,
+                clkdm->name, pwrdm->name);
+since the function name helps associate the message back in, wont it
+be a bit of a dual edged information as well?
 
+or even simplify it further with
+
+#define pr_fmt(fmt)  "%s:%s: " fmt, "powerdomain", __func__
+?
 Regards,
-
-Tony
-
-=20
-> On Thu, Dec 29, 2011 at 2:22 PM, Daniel Mack <zonque@gmail.com> wrote=
-:
-> > On 12/23/2011 04:40 PM, T Krishnamoorthy, Balaji wrote:
-> >> On Wed, Dec 14, 2011 at 6:52 PM, Daniel Mack <zonque@gmail.com> wr=
-ote:
-> >>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/oma=
-p_hsmmc.c
-> >>> index 101cd31..8215ef9 100644
-> >>> --- a/drivers/mmc/host/omap_hsmmc.c
-> >>> +++ b/drivers/mmc/host/omap_hsmmc.c
-> >>> @@ -1927,8 +1927,12 @@ static int __init omap_hsmmc_probe(struct =
-platform_device *pdev)
-> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (mmc_slot(host).vcc_aux_disable_is_=
-sleep)
-> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mmc_slot(h=
-ost).no_off =3D 1;
-> >>>
-> >>> - =C2=A0 =C2=A0 =C2=A0 mmc->f_min =C2=A0 =C2=A0 =C2=A0=3D OMAP_MM=
-C_MIN_CLOCK;
-> >>> - =C2=A0 =C2=A0 =C2=A0 mmc->f_max =C2=A0 =C2=A0 =C2=A0=3D OMAP_MM=
-C_MAX_CLOCK;
-> >>> + =C2=A0 =C2=A0 =C2=A0 mmc->f_min =3D OMAP_MMC_MIN_CLOCK;
-> >>
-> >> Stray change for f_min ?
-> >
-> > No, this was intended. The indentation doesn't make sense anymore w=
-hen
-> > not grouped with the f_max assignment.
-> >
-> > Other than that, what is necessary to get this picked? Tony? :)
-> >
-> >
-> > Thanks,
-> > Daniel
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
