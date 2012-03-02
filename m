@@ -1,120 +1,90 @@
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Subject: Re: [PATCH] OMAPDSS: HDMI: wait for RXDET before putting phy in
- TX_ON
-Date: Fri, 02 Mar 2012 13:38:46 +0200
-Message-ID: <1330688326.1923.32.camel@deskari>
-References: <1330589664-15755-1-git-send-email-mythripk@ti.com>
-	 <1330601462.2586.32.camel@deskari>
-	 <CAP5A+B8uqQYq671=TQRm0LsYSfdDMoZY0koU4JH=MpA20HMj2w@mail.gmail.com>
-	 <1330685544.2184.7.camel@lappy>
-	 <CAP5A+B_=Jr+iQourN__8Jaek7sR_PUOK_OCQ88q0Y7gaNzE4WA@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Re: Randconfig module build error with OMAP4_ERRATA_I688
+Date: Fri, 2 Mar 2012 17:16:29 +0530
+Message-ID: <CAMQu2gy9XksJ+8Q_Ygwtx7n2tVfd2KCu0o54SisuV8_QUX_rUQ@mail.gmail.com>
+References: <20120229173719.GN18901@atomide.com> <CAMQu2gxg_57AVW+MT_Sgi+gr2OUge-YPdSUxoG+z-zQth=4-UA@mail.gmail.com>
+ <20120301162556.GY18901@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-QBnj9CkPM25r8Jhccu43"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:45146 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932135Ab2CBLiu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 06:38:50 -0500
-Received: by mail-lpp01m010-f52.google.com with SMTP id i5so3381579lah.39
-        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 03:38:49 -0800 (PST)
-In-Reply-To: <CAP5A+B_=Jr+iQourN__8Jaek7sR_PUOK_OCQ88q0Y7gaNzE4WA@mail.gmail.com>
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:48699 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932361Ab2CBLqu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 06:46:50 -0500
+Received: by mail-qy0-f173.google.com with SMTP id c20so774004qcs.18
+        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 03:46:49 -0800 (PST)
+In-Reply-To: <20120301162556.GY18901@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "K, Mythri P" <mythripk@ti.com>
-Cc: linux-omap@vger.kernel.org, David Anders <x0132446@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Thu, Mar 1, 2012 at 9:55 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [120301 00:38]:
+>> On Wed, Feb 29, 2012 at 11:07 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > Hi Santosh,
+>> >
+>> > Looks like OMAP4_ERRATA_I688 still has one more issue:
+>> > Modules won't build at least with the attached randconfig
+>> > generated file.
+>> >
+>> > Can you please take a look at how to deal with it?
+>> >
+>> > Maybe omap_bus_sync should be an inline function with some
+>> > wrapper for the sleep44xx.S to call?
+>> >
+>> > I already posted a fix for the GPMC related error with the
+>> > same .config file.
+>> >
+>> This one builds for me against 'Linux 3.3-rc5,
+>> Ofocurse I got below error with the attached .config which
+>> I bypassed to see the Errata build failure.
+>>
+>> arch/arm/mach-omap2/built-in.o: In function `n8x0_mmc_callback':
+>> linux-2.6/arch/arm/mach-omap2/board-n8x0.c:374: undefined reference to
+>> `omap_mmc_notify_cover_event'
+>> make: *** [.tmp_vmlinux1] Error 1
+>
+> Yes a fix for that has been queued already.
+>
+>> I build this with below toolchain...
+>> $arm-none-linux-gnueabi-gcc --version
+>> arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2011.03-41) 4.5.2
+>> Copyright (C) 2010 Free Software Foundation, Inc.
+>>
+>> Am I missing anything ?
+>
+> I think you're missing your commit 2ec1fc4e169acc0b8d6733ff028fd52e766773d9
+> (ARM: OMAP4: Move the barrier memboclk_steal() as part of reserve callback)
+> thats' queued up in fixes, and CONFIG_OMAP4_ERRATA_I688=y.
+>
+> Then with -rc5 + 2ec1fc4e when you build modules you'll get this:
+>
+> ERROR: "omap_bus_sync" [drivers/watchdog/sp805_wdt.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/watchdog/dw_wdt.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/virtio/virtio_ring.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/video/sm501fb.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/mon/usbmon.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/host/sl811-hcd.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/host/ohci-hcd.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/host/isp1760.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/host/isp1362-hcd.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/host/isp116x-hcd.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/usb/core/usbcore.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/tty/serial/altera_uart.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/tty/serial/altera_jtaguart.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/tty/serial/8250/8250_dw.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/ssb/ssb.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/rtc/rtc-cmos.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/rtc/rtc-bq4802.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/mtd/nand/tmio_nand.ko] undefined!
+> ERROR: "omap_bus_sync" [drivers/mtd/nand/omap2.ko] undefined!
+>
+Sricharan has posted a fix for it. [1]
+The sleep code stuff is just dummy function for the cases when the errata
+is not defined. When Errata is defined the generic barriers too get impacted
+and hence the function needs to be exported.
 
---=-QBnj9CkPM25r8Jhccu43
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 2012-03-02 at 16:55 +0530, K, Mythri P wrote:
-> Hi Tomi,
->=20
-> >> Damage never happens with the cable connected for a long time.. Damage
-> >> happens only
-> >> when the cable is connected when the PHY is in TX ON state. Which
-> >> requires the following sequence to be followed.
-> >> 1. Wait for HPD connect
-> >> 2. Wait for the PHY connect ( TMDS lines are up)
-> >> 3. Enable PHY
-> >> We are currently missing step 2.
-> >
-> > Doesn't HPD already tell us that the cable is connected?
-> >
-> Yes HPD tells us that cable is connected but does not guarantee that
-> the line is ready for transmission of data, HPD just means the DDC
-> line is up.
-
-Okay, but above you say "damage happens only when the cable is connected
-when the PHY is in TX_ON". The HPD interrupt tells that the cable is
-physically connected, right? And we set TX_ON after HPD, i.e. after the
-cable is connected.
-
-And below you say that this depends on which input the user selected
-from the TV. So it sounds to me that this problem is not actually
-related to the cable connect at all, but it's about enabling the PHY on
-OMAP side before the TMDS lines are (somehow) in ready state?
-
-What happens if the HDMI output is enabled properly, but then later,
-while the output is still on, the user changes the input of the TV to,
-say, AV1? And then, later, back to HDMI?
-
-> >> > In the worst case the above causes a 7.5ms busy loop in an interrupt
-> >> > handler. That's not very good thing. Why is there a need for the loo=
-p?
-> >> I agree looping in interrupt context is bad.. That was the reason i
-> >> had a threaded irq handler and i case even here it is the threaded irq
-> >> handler i dont think it is happening in irq context.
-> >
-> > We should nevertheless avoid 7.5ms busyloop if at all possible. Is ther=
-e
-> > an estimate of how long it takes for the PHY to connect? I think we
-> > could just start a delayed work from the interrupt, and do the check
-> > after a short delay. I don't think the user cares if the connect happen=
-s
-> > after 1ms or 10ms from the moment the cable is plugged in =3D).
-> >
-> Actually by using the PHY_CONNECT interrupt we can avoid the wait.
-> If the TV channel is the same as the HDMI port connected to then there
-> is hardly any delay between HPD and TMDS lines. Problem is when user
-> connects to HDMI but is running  say AV1 /AV2  on TV.
-> In such case we will see that HPD is high but TMDS lines are low, So
-> there is no guarantee it will be done in certain period, as it is user
-> dependent.
-> So i am more inclined to have a interrupt based way, On receiving HPD
-> in the threaded irq handler we can wait_on_completion of PHY_CONNECT
-> which will put the thread in sleep until TMDS lines are high.
-> I shall make that patch test out and post it soon.
-
-Is there any reason to wait? Why not just enable the PHY_CONNECT
-interrupt in HPD interrupt, perhaps set a flag, and exit. Then at the
-PHY_CONNECT interrupt set TX_ON.
-
- Tomi
-
-
---=-QBnj9CkPM25r8Jhccu43
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAABAgAGBQJPULFGAAoJEPo9qoy8lh71WsgP/3ef6dpV+avNte2oetuyKLxp
-rmT8m4zidSO7nBd0V6/nMwq75hhLmRhWrTWumjXXI456NYXkr/RbaxeyMI/zCDfQ
-nz9iZIeXkqgnkoaATdTR59ltX2lcJh4IoNr1En5KA3+q9XjRZZsbApzJW5IrZQxS
-6XV2H+B9PE4Ky14AnUApcNz05dBYJ22sf+Bwr4dYGzW5U4G0DJp/T3qECLjlkN+c
-UuLrPw4Kxm8NqbOQj3oiUgXfJOxzGnvD7oOb7jY7mlh5aU/6cgHX/NWkdbJMXoc9
-hd2dW2iZH3+4TcH7HnYwQlRDySDGf60Hl7r1fTFf13bqhUQ1kDI1U5SX8Ma8z/s5
-75G+bXPtXginFsoGVeLfPzDMVD5mENdw53WT+7ToRo/XiSlww/8AI1S7ehprKGdi
-zcdxGZkEN2rSmO5MyayTdL4kvdl2phKj9rnvysUGhbe2fzqMauVLjgYoicpGuTgJ
-KRHSV9ZJrGtufhVd1PwNDbr6tR7ci3nvFEEMfyNK2QHFxb4HW3x9hUuVd3djoVw1
-Sjy/mURsKfnq0/NEMiFo0SS47jJ8qdJC/hW5O5VL6ZjIUalHdCAPFUPPhO2VhlCb
-DDPUjbhoTCsCaR1p5KA57uu047tW5wXz0aLqEVsRJHmuNsI5zPfTKz/QcYCrGVQb
-spvRTgxJdV7+7EDP0L5v
-=Zre/
------END PGP SIGNATURE-----
-
---=-QBnj9CkPM25r8Jhccu43--
-
+Regards
+Santosh
+[1] http://www.spinics.net/lists/arm-kernel/msg162608.html
