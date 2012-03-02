@@ -1,333 +1,87 @@
-From: Benoit Cousson <b-cousson@ti.com>
-Subject: [PATCH 07/12] mfd: twl-*: Change from pr_XXX to dev_XXX macros and
- various cleanups
-Date: Fri, 2 Mar 2012 17:50:19 +0100
-Message-ID: <1330707024-23730-8-git-send-email-b-cousson@ti.com>
-References: <1330707024-23730-1-git-send-email-b-cousson@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/4] gpiolib: Add gpiochip_find_by_name() and
+ gpio_find_by_chip_name()
+Date: Fri, 2 Mar 2012 09:03:27 -0800
+Message-ID: <20120302170327.GF18901@atomide.com>
+References: <20120301185044.29210.44521.stgit@kaulin.local>
+ <20120301185524.29210.60381.stgit@kaulin.local>
+ <20120302075804.F28DB3E2DB4@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1330707024-23730-1-git-send-email-b-cousson@ti.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: sameo@linux.intel.com, tony@atomide.com, grant.likely@secretlab.ca
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <balbi@ti.com>, Benoit Cousson <b-cousson@ti.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-mmc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20120302075804.F28DB3E2DB4@localhost>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: linux-kernel@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>, Arnd Bergmann <arnd@arndb.de>, Rajendra Nayak <rnayak@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Since a structure device is available now, use the dev_ macros instead
-of the pr_ ones.
+Hi,
 
-Clean some badly formatted comments.
-Remove some unused variables.
-Move some variable to the place they belong.
-Clean some badly wrapped lines.
-Align variable definition
-Add missing braces in if-then-else block.
-Add blank line for better readability.
-Move stuff here and there...
+Correcting a typo in the LKML address..
 
-Signed-off-by: Benoit Cousson <b-cousson@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
----
- drivers/mfd/twl-core.c    |   32 ++++++++++++++++++--------------
- drivers/mfd/twl4030-irq.c |   23 +++++++++++------------
- drivers/mfd/twl6030-irq.c |   39 +++++++++++++++++++--------------------
- 3 files changed, 48 insertions(+), 46 deletions(-)
+* Grant Likely <grant.likely@secretlab.ca> [120302 01:00]:
+> On Thu, 01 Mar 2012 10:55:24 -0800, Tony Lindgren <tony@atomide.com> wrote:
+> > Currently there is no way for drivers to request a GPIO on a particular
+> > gpio chip. This makes it hard to support multiple GPIO controllers
+> > with dynamic GPIO and interrupt numbering, such as with CONFIG_SPARSE_IRQ.
+> > 
+> > Make it easier for device drivers to find GPIOs on a specific gpio_chip
+> > by adding two functions: gpiochip_find_by_name() and gpio_find_by_chip_name().
+> > 
+> > Note that as gpiochip_find() is already exported, we may as well
+> > export gpiochip_find_by_name() too.
+> 
+> How is the device going to know the name of the gpio controller?  I
+> don't particularly like interfaces that find devices by-names since
+> I don't think device names can be relied to be stable when devices
+> are instantiated from device tree data.
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 1c1b7d1..9bf14ef 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -1174,17 +1174,15 @@ static int twl_remove(struct i2c_client *client)
- 	return 0;
- }
+The gpio_chip name + gpio offset is coming from pdata until things
+are converted over to use DT.
+
+For DT, this should not be needed, this is needed for removing callbacks
+in pdata so we can clean up some drivers and keep them working with
+both pdata and DT until things are converted over to DT.
+
+> > +static int match_name(struct gpio_chip *chip, void *data)
+> 
+> Even though this is a static, please keep the prefix to avoid
+> namespace conflicts.  gpiochip_match_name()
+> 
+> > +{
+> > +	const char *name = data;
+> 
+> This is unnecessary; the void* can be passed directly to sysfs_streq...
+> but why is sysfs_streq being used here instead of strcmp?  This is 
+> not sysfs related code.
+
+That comes from the bus code, will take a look.
  
--/* NOTE:  this driver only handles a single twl4030/tps659x0 chip */
-+/* NOTE: This driver only handles a single twl4030/tps659x0 chip */
- static int __devinit
- twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
--	int				irq_base;
--	int				status;
--	unsigned			i;
- 	struct twl4030_platform_data	*pdata = client->dev.platform_data;
- 	struct device_node		*node = client->dev.of_node;
--	u8 temp;
--	int ret = 0;
-+	int				irq_base = 0;
-+	int				status;
-+	unsigned			i;
- 
- 	if (node && !pdata) {
- 		/*
-@@ -1214,12 +1212,12 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	}
- 
- 	for (i = 0; i < TWL_NUM_SLAVES; i++) {
--		struct twl_client	*twl = &twl_modules[i];
-+		struct twl_client *twl = &twl_modules[i];
- 
- 		twl->address = client->addr + i;
--		if (i == 0)
-+		if (i == 0) {
- 			twl->client = client;
--		else {
-+		} else {
- 			twl->client = i2c_new_dummy(client->adapter,
- 					twl->address);
- 			if (!twl->client) {
-@@ -1231,7 +1229,9 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		}
- 		mutex_init(&twl->xfer_lock);
- 	}
-+
- 	inuse = true;
-+
- 	if ((id->driver_data) & TWL6030_CLASS) {
- 		twl_id = TWL6030_CLASS_ID;
- 		twl_map = &twl6030_map[0];
-@@ -1245,8 +1245,8 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- 	/* read TWL IDCODE Register */
- 	if (twl_id == TWL4030_CLASS_ID) {
--		ret = twl_read_idcode_register();
--		WARN(ret < 0, "Error: reading twl_idcode register value\n");
-+		status = twl_read_idcode_register();
-+		WARN(status < 0, "Error: reading twl_idcode register value\n");
- 	}
- 
- 	/* load power event scripts */
-@@ -1268,19 +1268,22 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		}
- 	}
- 
--	/* Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
-+	/*
-+	 * Disable TWL4030/TWL5030 I2C Pull-up on I2C1 and I2C4(SR) interface.
- 	 * Program I2C_SCL_CTRL_PU(bit 0)=0, I2C_SDA_CTRL_PU (bit 2)=0,
- 	 * SR_I2C_SCL_CTRL_PU(bit 4)=0 and SR_I2C_SDA_CTRL_PU(bit 6)=0.
- 	 */
--
- 	if (twl_class_is_4030()) {
-+		u8 temp;
-+
- 		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &temp, REG_GPPUPDCTR1);
- 		temp &= ~(SR_I2C_SDA_CTRL_PU | SR_I2C_SCL_CTRL_PU | \
--		I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
-+			I2C_SDA_CTRL_PU | I2C_SCL_CTRL_PU);
- 		twl_i2c_write_u8(TWL4030_MODULE_INTBR, temp, REG_GPPUPDCTR1);
- 	}
- 
- 	status = -ENODEV;
-+
- 	if (node)
- 		status = of_platform_populate(node, NULL, NULL, &client->dev);
- 	if (status)
-@@ -1289,6 +1292,7 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- fail:
- 	if (status < 0)
- 		twl_remove(client);
-+
- 	return status;
- }
- 
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index e6dc8f9..e523499 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -32,7 +32,6 @@
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/slab.h>
--
- #include <linux/of.h>
- #include <linux/irqdomain.h>
- #include <linux/i2c/twl.h>
-@@ -625,7 +624,8 @@ static irqreturn_t handle_twl4030_sih(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--/* returns the first IRQ used by this SIH bank,
-+/*
-+ * returns the first IRQ used by this SIH bank,
-  * or negative errno
-  */
- int twl4030_sih_setup(struct device *dev, int module, int irq_base)
-@@ -637,14 +637,14 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
- 	int			status = -EINVAL;
- 
- 	/* only support modules with standard clear-on-read for now */
--	for (sih_mod = 0, sih = sih_modules;
--			sih_mod < nr_sih_modules;
-+	for (sih_mod = 0, sih = sih_modules; sih_mod < nr_sih_modules;
- 			sih_mod++, sih++) {
- 		if (sih->module == module && sih->set_cor) {
- 			status = 0;
- 			break;
- 		}
- 	}
-+
- 	if (status < 0)
- 		return status;
- 
-@@ -674,7 +674,7 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
- 	status = request_threaded_irq(irq, NULL, handle_twl4030_sih, 0,
- 				      agent->irq_name ?: sih->name, NULL);
- 
--	pr_info("twl4030: %s (irq %d) chaining IRQs %d..%d\n", sih->name,
-+	dev_info(dev, "%s (irq %d) chaining IRQs %d..%d\n", sih->name,
- 			irq, irq_base, irq_base + i - 1);
- 
- 	return status < 0 ? status : irq_base;
-@@ -691,12 +691,10 @@ int twl4030_sih_setup(struct device *dev, int module, int irq_base)
- int twl4030_init_irq(struct device *dev, int irq_num)
- {
- 	static struct irq_chip	twl4030_irq_chip;
-+	int			status, i;
- 	int			irq_base, irq_end, nr_irqs;
- 	struct			device_node *node = dev->of_node;
- 
--	int			status;
--	int			i;
--
- 	/*
- 	 * TWL core and pwr interrupts must be contiguous because
- 	 * the hwirqs numbers are defined contiguously from 1 to 15.
-@@ -725,7 +723,8 @@ int twl4030_init_irq(struct device *dev, int irq_num)
- 
- 	twl4030_irq_base = irq_base;
- 
--	/* install an irq handler for each of the SIH modules;
-+	/*
-+	 * Install an irq handler for each of the SIH modules;
- 	 * clone dummy irq_chip since PIH can't *do* anything
- 	 */
- 	twl4030_irq_chip = dummy_irq_chip;
-@@ -740,13 +739,13 @@ int twl4030_init_irq(struct device *dev, int irq_num)
- 		activate_irq(i);
- 	}
- 
--	pr_info("twl4030: %s (irq %d) chaining IRQs %d..%d\n", "PIH",
-+	dev_info(dev, "%s (irq %d) chaining IRQs %d..%d\n", "PIH",
- 			irq_num, irq_base, irq_end);
- 
- 	/* ... and the PWR_INT module ... */
- 	status = twl4030_sih_setup(dev, TWL4030_MODULE_INT, irq_end);
- 	if (status < 0) {
--		pr_err("twl4030: sih_setup PWR INT --> %d\n", status);
-+		dev_err(dev, "sih_setup PWR INT --> %d\n", status);
- 		goto fail;
- 	}
- 
-@@ -755,7 +754,7 @@ int twl4030_init_irq(struct device *dev, int irq_num)
- 				      IRQF_ONESHOT,
- 				      "TWL4030-PIH", NULL);
- 	if (status < 0) {
--		pr_err("twl4030: could not claim irq%d: %d\n", irq_num, status);
-+		dev_err(dev, "could not claim irq%d: %d\n", irq_num, status);
- 		goto fail_rqirq;
- 	}
- 
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-index b4d5e0e..a1c7183 100644
---- a/drivers/mfd/twl6030-irq.c
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -53,7 +53,6 @@
-  *
-  * We set up IRQs starting at a platform-specified base. An interrupt map table,
-  * specifies mapping between interrupt number and the associated module.
-- *
-  */
- #define TWL6030_NR_IRQS    20
- 
-@@ -342,14 +341,11 @@ int twl6030_init_irq(struct device *dev, int irq_num)
- {
- 	struct			device_node *node = dev->of_node;
- 	int			nr_irqs, irq_base, irq_end;
--
--	int	status = 0;
--	int	i;
- 	struct task_struct	*task;
--	int ret;
--	u8 mask[4];
--
--	static struct irq_chip	twl6030_irq_chip;
-+	static struct irq_chip  twl6030_irq_chip;
-+	int			status = 0;
-+	int			i;
-+	u8			mask[4];
- 
- 	nr_irqs = TWL6030_NR_IRQS;
- 
-@@ -367,16 +363,18 @@ int twl6030_init_irq(struct device *dev, int irq_num)
- 	mask[1] = 0xFF;
- 	mask[2] = 0xFF;
- 	mask[3] = 0xFF;
--	ret = twl_i2c_write(TWL_MODULE_PIH, &mask[0],
--			REG_INT_MSK_LINE_A, 3); /* MASK ALL INT LINES */
--	ret = twl_i2c_write(TWL_MODULE_PIH, &mask[0],
--			REG_INT_MSK_STS_A, 3); /* MASK ALL INT STS */
--	ret = twl_i2c_write(TWL_MODULE_PIH, &mask[0],
--			REG_INT_STS_A, 3); /* clear INT_STS_A,B,C */
-+
-+	/* mask all int lines */
-+	twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_MSK_LINE_A, 3);
-+	/* mask all int sts */
-+	twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_MSK_STS_A, 3);
-+	/* clear INT_STS_A,B,C */
-+	twl_i2c_write(TWL_MODULE_PIH, &mask[0], REG_INT_STS_A, 3);
- 
- 	twl6030_irq_base = irq_base;
- 
--	/* install an irq handler for each of the modules;
-+	/*
-+	 * install an irq handler for each of the modules;
- 	 * clone dummy irq_chip since PIH can't *do* anything
- 	 */
- 	twl6030_irq_chip = dummy_irq_chip;
-@@ -391,22 +389,22 @@ int twl6030_init_irq(struct device *dev, int irq_num)
- 		activate_irq(i);
- 	}
- 
--	pr_info("twl6030: %s (irq %d) chaining IRQs %d..%d\n", "PIH",
-+	dev_info(dev, "PIH (irq %d) chaining IRQs %d..%d\n",
- 			irq_num, irq_base, irq_end);
- 
- 	/* install an irq handler to demultiplex the TWL6030 interrupt */
- 	init_completion(&irq_event);
- 
--	status = request_irq(irq_num, handle_twl6030_pih, 0,
--				"TWL6030-PIH", &irq_event);
-+	status = request_irq(irq_num, handle_twl6030_pih, 0, "TWL6030-PIH",
-+			     &irq_event);
- 	if (status < 0) {
--		pr_err("twl6030: could not claim irq%d: %d\n", irq_num, status);
-+		dev_err(dev, "could not claim irq %d: %d\n", irq_num, status);
- 		goto fail_irq;
- 	}
- 
- 	task = kthread_run(twl6030_irq_thread, (void *)irq_num, "twl6030-irq");
- 	if (IS_ERR(task)) {
--		pr_err("twl6030: could not create irq %d thread!\n", irq_num);
-+		dev_err(dev, "could not create irq %d thread!\n", irq_num);
- 		status = PTR_ERR(task);
- 		goto fail_kthread;
- 	}
-@@ -421,6 +419,7 @@ fail_kthread:
- fail_irq:
- 	for (i = irq_base; i < irq_end; i++)
- 		irq_set_chip_and_handler(i, NULL, NULL);
-+
- 	return status;
- }
- 
--- 
-1.7.0.4
+> > +
+> > +	return sysfs_streq(name, chip->label);
+> > +}
+> > +
+> > +/**
+> > + * gpiochip_find_by_name() - iterator for locating a gpio_chip by name
+> > + * @name: name of the gpio_chip
+> > + *
+> > + * Similar to bus_find_device_by_name. It returns a reference to the
+> > + * first gpio_chip with matching name. It ignores NULL and empty names.
+> > + * If you need to do something more complex, then use gpiochip_find.
+> > + */
+> > +struct gpio_chip *gpiochip_find_by_name(const char *name)
+> > +{
+> > +	if (!name || !strcmp(name, ""))
+> > +		return NULL;
+> > +
+> > +	return gpiochip_find((void *)name, match_name);
+> 
+> Nasty cast.  Can the signature for gpiochip_find be changed to accept
+> a (const void *)?
+
+I think so, this too comes from the bus code.
+
+Regards,
+
+Tony 
