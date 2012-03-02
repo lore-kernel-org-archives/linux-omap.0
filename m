@@ -1,62 +1,52 @@
-From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
-Date: Fri, 2 Mar 2012 19:36:58 +0530
-Message-ID: <CAP05o4J1BYN2WkJToswcp4ofagp2mOuPmwWeMfJRwrfS_xEe0Q@mail.gmail.com>
-References: <1330077975-31694-1-git-send-email-keshava_mgowda@ti.com>
-	<20120224101632.GL17178@legolas.emea.dhcp.ti.com>
-	<CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: Re: [PATCH v2 00/10] OMAP/ASoC: Move and merge McBSP driver under
+ ASoC
+Date: Fri, 02 Mar 2012 16:37:17 +0200
+Message-ID: <4F50DB1D.1090007@ti.com>
+References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com> <20120228104925.GA3683@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47084 "EHLO
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60361 "EHLO
 	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756766Ab2CBOHA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 09:07:00 -0500
-Received: by mail-tul01m020-f170.google.com with SMTP id wd1so4870137obb.1
-        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 06:06:58 -0800 (PST)
-In-Reply-To: <CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
+	by vger.kernel.org with ESMTP id S1754711Ab2CBOhY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 09:37:24 -0500
+Received: by lagw12 with SMTP id w12so2389894lag.20
+        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 06:37:21 -0800 (PST)
+In-Reply-To: <20120228104925.GA3683@opensource.wolfsonmicro.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com, balbi@ti.com
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>
 
-On Fri, Feb 24, 2012 at 5:14 PM, Munegowda, Keshava
-<keshava_mgowda@ti.com> wrote:
-> On Fri, Feb 24, 2012 at 3:46 PM, Felipe Balbi <balbi@ti.com> wrote:
->> Hi,
->>
->> On Fri, Feb 24, 2012 at 03:36:15PM +0530, Keshava Munegowda wrote:
->>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
->>>
->>> It is observed that the echi ports of 3430 sdp board
->>> are not working due to the random timing of programming
->>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
->>> If the PHYs are reset at during usbhs core driver, host ports will
->>> not work because EHCI driver is loaded after the resetting PHYs.
->>> The PHYs should be in reset state while initializing the EHCI
->>> controller.
->>> The code which does the GPIO pins associated with the PHYs
->>> are programmed to reset is moved from the USB host core driver
->>> to EHCI driver.
->>>
->>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
->>> Reviewed-by: Partha Basak <parthab@india.ti.com>
->>
->> won't this cause issues with EHCI/OHCI interactions ? I mean, what if
->> you connect a FS/LS device and port is handed over to OHCI, does OHCI
->> have any needs to reset the PHY or something similar ?
->
-> No, it will not cause any issues with EHCI-OHCI issues.
-> But its difficult to comment on this because we don't have port
-> handoff supported
-> in hardware.
->
-> regards
-> keshava
+Hi Mark,
 
-Hi Samuel
-        please let me know if you have any comments on this patch.
-This is required patch for omap3 ehci enumeration instabilities.
+On 02/28/2012 12:49 PM, Mark Brown wrote:
+> On Tue, Feb 28, 2012 at 09:40:10AM +0200, Peter Ujfalusi wrote:
+>=20
+>> NOTE: this series has been generated agains Takashi's topic/asoc bra=
+nch merged
+>> with Mark's for-next branch since this series depends on changes in =
+Marks'
+>> branch, but not yet pulled by Takashi (snd_soc_add_dai_controls impl=
+ementation
+>> from Liam).
+>=20
+> Never base *anything* off my for-next branch, it gets rebuilt regular=
+ly.
 
-Regards
-Keshava
+Sorry it was my mistake. I have merged your for-3.4 branch with
+Takashi's topic/asoc to be able test the v2 series which dropped my
+version of snd_soc_add_dai_controls()
+
+Sometimes I use your for-next branch, but I'm not building on top of it
+since I have also noticed that it got rebuilt occasionally.
+
+--=20
+P=E9ter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
