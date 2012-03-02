@@ -1,58 +1,52 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP2+: powerdomain: unwrap and simplify logging strings
-Date: Thu, 1 Mar 2012 18:36:01 -0600
-Message-ID: <CAOMWX4cAABO8jUCi8g_vbv6SnU3vPcqOULV6ui2jV7E2Nt8g0Q@mail.gmail.com>
-References: <alpine.DEB.2.00.1202292122560.12752@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] ARM: OMAP: hwmod: Use sysc_fields->srst_shift and get
+ rid of hardcoded SYSC_TYPE2_SOFTRESET_MASK
+Date: Thu, 1 Mar 2012 18:08:37 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.1203011808070.22980@utopia.booyaka.com>
+References: <1330609674-20826-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-401838149-1330650517=:22980"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:34146 "EHLO
-	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756069Ab2CBAg3 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Mar 2012 19:36:29 -0500
-Received: by mail-ww0-f53.google.com with SMTP id fm10so3742wgb.22
-        for <linux-omap@vger.kernel.org>; Thu, 01 Mar 2012 16:36:21 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.1202292122560.12752@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:41791 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932114Ab2CBBIi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Mar 2012 20:08:38 -0500
+In-Reply-To: <1330609674-20826-1-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rnayak@ti.com
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Benoit Cousson <b-cousson@ti.com>, Balaji TK <balajitk@ti.com>
 
-On Wed, Feb 29, 2012 at 22:23, Paul Walmsley <paul@pwsan.com> wrote:
-> b/arch/arm/mach-omap2/powerdomain.c
-> index 8a18d1b..89000d3 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -339,8 +339,8 @@ int pwrdm_add_clkdm(struct powerdomain *pwrdm, st=
-ruct
-> clockdomain *clkdm)
-> =A0 =A0 =A0 =A0if (!pwrdm || !clkdm)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -EINVAL;
->
-> - =A0 =A0 =A0 pr_debug("powerdomain: associating clockdomain %s with =
-powerdomain
-> "
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"%s\n", clkdm->name, pwrdm->name);
-> + =A0 =A0 =A0 pr_debug("powerdomain: %s: associating clockdomain %s\n=
-",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0clkdm->name, pwrdm->name);
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-while at this, could i suggest having instead:
-pr_debug("%s: %s: associating clockdomain %s\n", __func__,
-                clkdm->name, pwrdm->name);
-since the function name helps associate the message back in, wont it
-be a bit of a dual edged information as well?
+--155748971-401838149-1330650517=:22980
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-or even simplify it further with
+On Thu, 1 Mar 2012, Rajendra Nayak wrote:
 
-#define pr_fmt(fmt)  "%s:%s: " fmt, "powerdomain", __func__
-?
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This is useful when we have broken type2 compliant IPs' where
+> the softreset shift is not the same as SYSC_TYPE2_SOFTRESET_SHIFT
+> and hence is overridden using sysc_fields->srst_shift.
+>=20
+> We have atleast one such instance now with onchip keypad on OMAP5
+> which has a different softreset shift as compared to other type2
+> IPs'.
+>=20
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Balaji TK  <balajitk@ti.com>
+> Tested-by: Sourav Poddar <sourav.poddar@ti.com>
+> ---
+> Paul,
+>=20
+> I based the patch on top of your reset/data cleanup series
+> for hwmod. So its based on 'hwmod_data_cleanup_3.4' branch.
+
+Thanks, Beno=EEt's ack added and queued.
+
+
+- Paul
+--155748971-401838149-1330650517=:22980--
