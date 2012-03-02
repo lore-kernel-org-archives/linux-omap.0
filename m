@@ -1,66 +1,91 @@
-From: R Sricharan <r.sricharan@ti.com>
-Subject: [PATCH] ARM: OMAP2+: Fix module build errors with CONFIG_OMAP4_ERRATA_I688
-Date: Fri, 2 Mar 2012 16:31:18 +0530
-Message-ID: <1330686078-9478-1-git-send-email-r.sricharan@ti.com>
+From: "K, Mythri P" <mythripk@ti.com>
+Subject: Re: [PATCH] OMAPDSS: HDMI: wait for RXDET before putting phy in TX_ON
+Date: Fri, 2 Mar 2012 16:55:28 +0530
+Message-ID: <CAP5A+B_=Jr+iQourN__8Jaek7sR_PUOK_OCQ88q0Y7gaNzE4WA@mail.gmail.com>
+References: <1330589664-15755-1-git-send-email-mythripk@ti.com>
+ <1330601462.2586.32.camel@deskari> <CAP5A+B8uqQYq671=TQRm0LsYSfdDMoZY0koU4JH=MpA20HMj2w@mail.gmail.com>
+ <1330685544.2184.7.camel@lappy>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39336 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932070Ab2CBLB1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Mar 2012 06:01:27 -0500
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:45664 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S964794Ab2CBLZt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Mar 2012 06:25:49 -0500
+Received: by obqv19 with SMTP id v19so2017653obq.6
+        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 03:25:48 -0800 (PST)
+In-Reply-To: <1330685544.2184.7.camel@lappy>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, tony@atomide.com, santosh.shilimkar@ti.com
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-While building modules with randconfig the below errors are observed.
+Hi Tomi,
 
-ERROR: "omap_bus_sync" [drivers/watchdog/sp805_wdt.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/watchdog/dw_wdt.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/virtio/virtio_ring.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/video/sm501fb.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/mon/usbmon.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/host/sl811-hcd.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/host/ohci-hcd.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/host/isp1760.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/host/isp1362-hcd.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/host/isp116x-hcd.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/usb/core/usbcore.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/tty/serial/altera_uart.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/tty/serial/altera_jtaguart.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/tty/serial/8250/8250_dw.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/ssb/ssb.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/rtc/rtc-cmos.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/rtc/rtc-bq4802.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/mtd/nand/tmio_nand.ko] undefined!
-ERROR: "omap_bus_sync" [drivers/mtd/nand/omap2.ko] undefined!
+>> Damage never happens with the cable connected for a long time.. Dama=
+ge
+>> happens only
+>> when the cable is connected when the PHY is in TX ON state. Which
+>> requires the following sequence to be followed.
+>> 1. Wait for HPD connect
+>> 2. Wait for the PHY connect ( TMDS lines are up)
+>> 3. Enable PHY
+>> We are currently missing step 2.
+>
+> Doesn't HPD already tell us that the cable is connected?
+>
+Yes HPD tells us that cable is connected but does not guarantee that
+the line is ready for transmission of data, HPD just means the DDC
+line is up.
+>> I am not very sure which TRM you have but the HDMI_WP_WP_DEBUG_DATA
+>> can also be used to probe the TMDS lines as well, but i might as wel=
+l
+>> try pad config and let you know.
+>
+> I have 4460 HDMI TRM vF and 4430 HDMI TRM vL. Both look the same
+> regarding the debug registers. Can you send me the latest ones that
+> explain the DEBUG registers correctly?
+sure.
+>
 
-Signed-off-by: R Sricharan <r.sricharan@ti.com>
----
- arch/arm/mach-omap2/omap4-common.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+>> > In the worst case the above causes a 7.5ms busy loop in an interru=
+pt
+>> > handler. That's not very good thing. Why is there a need for the l=
+oop?
+>> I agree looping in interrupt context is bad.. That was the reason i
+>> had a threaded irq handler and i case even here it is the threaded i=
+rq
+>> handler i dont think it is happening in irq context.
+>
+> We should nevertheless avoid 7.5ms busyloop if at all possible. Is th=
+ere
+> an estimate of how long it takes for the PHY to connect? I think we
+> could just start a delayed work from the interrupt, and do the check
+> after a short delay. I don't think the user cares if the connect happ=
+ens
+> after 1ms or 10ms from the moment the cable is plugged in =3D).
+>
+Actually by using the PHY_CONNECT interrupt we can avoid the wait.
+If the TV channel is the same as the HDMI port connected to then there
+is hardly any delay between HPD and TMDS lines. Problem is when user
+connects to HDMI but is running  say AV1 /AV2  on TV.
+In such case we will see that HPD is high but TMDS lines are low, So
+there is no guarantee it will be done in certain period, as it is user
+dependent.
+So i am more inclined to have a interrupt based way, On receiving HPD
+in the threaded irq handler we can wait_on_completion of PHY_CONNECT
+which will put the thread in sleep until TMDS lines are high.
+I shall make that patch test out and post it soon.
 
-diff --git a/arch/arm/mach-omap2/omap4-common.c b/arch/arm/mach-omap2/omap4-common.c
-index ebc5950..70de277 100644
---- a/arch/arm/mach-omap2/omap4-common.c
-+++ b/arch/arm/mach-omap2/omap4-common.c
-@@ -31,6 +31,7 @@
- 
- #include "common.h"
- #include "omap4-sar-layout.h"
-+#include <linux/export.h>
- 
- #ifdef CONFIG_CACHE_L2X0
- static void __iomem *l2cache_base;
-@@ -55,6 +56,7 @@ void omap_bus_sync(void)
- 		isb();
- 	}
- }
-+EXPORT_SYMBOL(omap_bus_sync);
- 
- /* Steal one page physical memory for barrier implementation */
- int __init omap_barrier_reserve_memblock(void)
--- 
-1.7.1
+Thanks and regards,
+Mythri.
 
+> =A0Tomi
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
