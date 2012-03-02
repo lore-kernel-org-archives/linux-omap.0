@@ -1,47 +1,62 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/4] regulator: twl6030: add support for vdd1, vdd2 and
- vdd3 regulators
-Date: Fri, 2 Mar 2012 14:53:35 +0100
-Message-ID: <20120302135335.GS9008@sortiz-mobl>
-References: <1330421953-29517-1-git-send-email-rnayak@ti.com>
- <1330421953-29517-2-git-send-email-rnayak@ti.com>
+From: "Munegowda, Keshava" <keshava_mgowda@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: USB: Fix the EHCI ULPI PHY reset issue
+Date: Fri, 2 Mar 2012 19:36:58 +0530
+Message-ID: <CAP05o4J1BYN2WkJToswcp4ofagp2mOuPmwWeMfJRwrfS_xEe0Q@mail.gmail.com>
+References: <1330077975-31694-1-git-send-email-keshava_mgowda@ti.com>
+	<20120224101632.GL17178@legolas.emea.dhcp.ti.com>
+	<CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:1171 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753150Ab2CBNqH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Mar 2012 08:46:07 -0500
-Content-Disposition: inline
-In-Reply-To: <1330421953-29517-2-git-send-email-rnayak@ti.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:47084 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756766Ab2CBOHA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 09:07:00 -0500
+Received: by mail-tul01m020-f170.google.com with SMTP id wd1so4870137obb.1
+        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 06:06:58 -0800 (PST)
+In-Reply-To: <CAP05o4KRUp_W1yXn29TATMDOwMVbX_pWt6iKrrb=2jkOuWij+A@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: broonie@opensource.wolfsonmicro.com, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, parthab@india.ti.com, govindraj.raja@ti.com, balbi@ti.com
 
-Hi,
+On Fri, Feb 24, 2012 at 5:14 PM, Munegowda, Keshava
+<keshava_mgowda@ti.com> wrote:
+> On Fri, Feb 24, 2012 at 3:46 PM, Felipe Balbi <balbi@ti.com> wrote:
+>> Hi,
+>>
+>> On Fri, Feb 24, 2012 at 03:36:15PM +0530, Keshava Munegowda wrote:
+>>> From: Keshava Munegowda <Keshava_mgowda@ti.com>
+>>>
+>>> It is observed that the echi ports of 3430 sdp board
+>>> are not working due to the random timing of programming
+>>> the associated GPIOs of the ULPI PHYs of the EHCI for reset.
+>>> If the PHYs are reset at during usbhs core driver, host ports will
+>>> not work because EHCI driver is loaded after the resetting PHYs.
+>>> The PHYs should be in reset state while initializing the EHCI
+>>> controller.
+>>> The code which does the GPIO pins associated with the PHYs
+>>> are programmed to reset is moved from the USB host core driver
+>>> to EHCI driver.
+>>>
+>>> Signed-off-by: Keshava Munegowda <keshava_mgowda@ti.com>
+>>> Reviewed-by: Partha Basak <parthab@india.ti.com>
+>>
+>> won't this cause issues with EHCI/OHCI interactions ? I mean, what if
+>> you connect a FS/LS device and port is handed over to OHCI, does OHCI
+>> have any needs to reset the PHY or something similar ?
+>
+> No, it will not cause any issues with EHCI-OHCI issues.
+> But its difficult to comment on this because we don't have port
+> handoff supported
+> in hardware.
+>
+> regards
+> keshava
 
-On Tue, Feb 28, 2012 at 03:09:10PM +0530, Rajendra Nayak wrote:
-> From: Tero Kristo <t-kristo@ti.com>
-> 
-> vdd1 and vdd2 are now common regulators for twl4030 and twl6030. Also
-> added vdd3 as a new regulator for twl6030. twl6030 vdd1...vdd3 smps
-> regulator voltages can only be controlled through the smartreflex
-> voltage channel, thus the support for the voltage_get and set is
-> minimal and requires external controller.
-> 
-> Signed-off-by: Tero Kristo <t-kristo@ti.com>
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Liam Girdwood <lrg@ti.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
+Hi Samuel
+        please let me know if you have any comments on this patch.
+This is required patch for omap3 ehci enumeration instabilities.
 
-Mark, Liam, are you guys taking this one ?
-
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Regards
+Keshava
