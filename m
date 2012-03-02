@@ -1,73 +1,55 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/4] mmc: omap_hsmmc: Use GPIO offset for external GPIO
- chips
-Date: Fri, 2 Mar 2012 09:16:46 -0800
-Message-ID: <20120302171646.GI18901@atomide.com>
-References: <20120301185044.29210.44521.stgit@kaulin.local>
- <20120301185532.29210.32421.stgit@kaulin.local>
- <4F50628C.9080706@ti.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: Spurious ECC errors with mtd_subpagetest (OMAP3, NAND)
+Date: Fri, 2 Mar 2012 19:17:40 +0200
+Message-ID: <CANOLnOM6X=29r7_aMs=z4eiDtw0kvWZ-jSeds_NO0KdZ3E8Ouw@mail.gmail.com>
+References: <4F50F2AB.10209@flatfrog.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:12712 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630Ab2CBRQt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 12:16:49 -0500
-Content-Disposition: inline
-In-Reply-To: <4F50628C.9080706@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:47940 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757161Ab2CBRRl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 12:17:41 -0500
+Received: by iagz16 with SMTP id z16so2536754iag.19
+        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 09:17:40 -0800 (PST)
+In-Reply-To: <4F50F2AB.10209@flatfrog.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-mmc@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Orjan Friberg <of@flatfrog.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Rajendra Nayak <rnayak@ti.com> [120301 21:31]:
-> On Friday 02 March 2012 12:25 AM, Tony Lindgren wrote:
-> >--- a/arch/arm/mach-omap2/board-3430sdp.c
-> >+++ b/arch/arm/mach-omap2/board-3430sdp.c
-> >@@ -231,14 +231,16 @@ static struct omap2_hsmmc_info mmc[] = {
-> >  		 * so the SIM card isn't used; else 4 bits.
-> >  		 */
-> >  		.caps		= MMC_CAP_4_BIT_DATA | MMC_CAP_8_BIT_DATA,
-> >+		.gpiochip_cd	= "twl4030_gpio",
-> >+		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
-> >  		.gpio_wp	= 4,
-> >-		.deferred	= true,
-> 
-> Shouldn't this patch completely get rid of all the 'deferred'
-> infrastructure that was put in place, including the
-> omap_hsmmc_late_init() function, since there is no need for it
-> anymore?
+Hello,
 
-Yes, that was needed as a fix so unfortunately there's a little
-bit going back and forth. But now we can get rid of other stuff
-too in addition to deferred omap_hsmmc_late_init(), we can remove
-init and cleanup callbacks for hsmmc. I'll do another patch for
-that.
+On Fri, Mar 2, 2012 at 6:17 PM, Orjan Friberg <of@flatfrog.com> wrote:
+> When running the mtd_subpagetest I'm seeing more or less spurious ECC
+> corrections. =C2=A0I.e., one round may show 4 corrections and the nex=
+t will show
+> 7, only some of which are the same as the previous 4.
+>
+> Are the ECC errors expected to be that volatile and frequent?
+>
+>
+> I've seen various discussions regarding the OMAP sub page support, as=
+ well
+> as problems with the GPMC prefetch engine. =C2=A0Disabling both made =
+no
+> difference regarding this. =C2=A0I've also tried two different sets o=
+f NAND
+> timings (relaxed and optimized), with no difference.
+>
+> I'm using a Micron NAND that requires 4-bit ECC correction but I'm ru=
+nning
+> with only 1-bit (software) ECC. =C2=A0This is on an old kernel, 2.6.3=
+2.
 
-> >--- a/arch/arm/mach-omap2/board-omap3pandora.c
-> >+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> >@@ -270,19 +270,19 @@ static struct omap2_hsmmc_info omap3pandora_mmc[] = {
-> >  	{
-> >  		.mmc		= 1,
-> >  		.caps		= MMC_CAP_4_BIT_DATA,
-> >-		.gpio_cd	= -EINVAL,
-> >+		.gpiochip_cd	= "twl4030_gpio",
-> >+		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
-> >  		.gpio_wp	= 126,
-> >  		.ext_clock	= 0,
-> >-		.deferred	= true,
-> >  	},
-> >  	{
-> >  		.mmc		= 2,
-> >  		.caps		= MMC_CAP_4_BIT_DATA,
-> >-		.gpio_cd	= -EINVAL,
-> >+		.gpiochip_cd	= "twl4030_gpio",
-> >+		.gpio_cd	= 0,	/* mmc0_cd offset in twl4030 */
-> 
-> This one should be gpio_cd = 1,
+IIRC NAND in mainline was broken for very long time on OMAP3, I think
+it was only fixed in 2.6.39.1.
 
-Thanks, will correct.
-
-Regards,
-
-Tony 
+--=20
+Gra=C5=BEvydas
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
