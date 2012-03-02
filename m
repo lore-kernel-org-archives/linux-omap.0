@@ -1,116 +1,47 @@
-From: Tero Kristo <t-kristo@ti.com>
-Subject: [PATCHv4 6/6] ARM: OMAP3 PM: Remove IO Daisychain control from cpuidle
-Date: Fri, 2 Mar 2012 17:17:55 +0200
-Message-ID: <1330701475-22576-7-git-send-email-t-kristo@ti.com>
-References: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
+From: Orjan Friberg <of@flatfrog.com>
+Subject: Spurious ECC errors with mtd_subpagetest (OMAP3, NAND)
+Date: Fri, 2 Mar 2012 17:17:47 +0100
+Message-ID: <4F50F2AB.10209@flatfrog.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38194 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964972Ab2CBPS0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Mar 2012 10:18:26 -0500
-In-Reply-To: <1330701475-22576-1-git-send-email-t-kristo@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd/>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+ <mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, khilman@ti.com, paul@pwsan.com
-Cc: linux-arm-kernel@lists.infradead.org, Vishwanath BS <vishwanath.bs@ti.com>
 
-From: Vishwanath BS <vishwanath.bs@ti.com>
+Hi,
 
-As IO Daisy chain sequence is triggered via hwmod mux, there is no need to
-control it from cpuidle path for OMAP3.
+When running the mtd_subpagetest I'm seeing more or less spurious ECC 
+corrections.  I.e., one round may show 4 corrections and the next will 
+show 7, only some of which are the same as the previous 4.
 
-Also as omap3_disable_io_chain is no longer being used, just remove the
-function.
+Are the ECC errors expected to be that volatile and frequent?
 
-Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
-Signed-off-by: Tero Kristo <t-kristo@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c       |   17 -----------------
- arch/arm/mach-omap2/prm2xxx_3xxx.c |    8 --------
- arch/arm/mach-omap2/prm2xxx_3xxx.h |    7 -------
- 3 files changed, 0 insertions(+), 32 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e97ec3f..ed12bb4 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -291,13 +291,6 @@ void omap_sram_idle(void)
- 	/* Enable IO-PAD and IO-CHAIN wakeups */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_set_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD, PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_trigger_io_chain();
--	}
- 
- 	pwrdm_pre_transition();
- 
-@@ -376,16 +369,6 @@ void omap_sram_idle(void)
- 			omap3_per_restore_context();
- 	}
- 
--	/* Disable IO-PAD and IO-CHAIN wakeup */
--	if (omap3_has_io_wakeup() &&
--	    (per_next_state < PWRDM_POWER_ON ||
--	     core_next_state < PWRDM_POWER_ON)) {
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_MASK, WKUP_MOD,
--					     PM_WKEN);
--		if (omap3_has_io_chain_ctrl())
--			omap3_disable_io_chain();
--	}
--
- 	clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
- 
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.c b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-index f681628..31a7c27 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.c
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.c
-@@ -329,14 +329,6 @@ void omap3_trigger_io_chain(void)
- 			  MAX_IOPAD_LATCH_TIME, i);
- }
- 
--/* OMAP3 Daisychain disable sequence */
--void omap3_disable_io_chain(void)
--{
--	if (omap_rev() >= OMAP3430_REV_ES3_1)
--		omap2_prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN_MASK,
--					     WKUP_MOD, PM_WKEN);
--}
--
- static void __init omap3_enable_io_wakeup(void)
- {
- 	if (omap3_has_io_wakeup())
-diff --git a/arch/arm/mach-omap2/prm2xxx_3xxx.h b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-index 15973aa..391b844 100644
---- a/arch/arm/mach-omap2/prm2xxx_3xxx.h
-+++ b/arch/arm/mach-omap2/prm2xxx_3xxx.h
-@@ -295,12 +295,6 @@ static inline void omap3_trigger_io_chain(void)
- 		"not suppose to be used on omap4\n");
- 	return 0;
- }
--static inline void omap3_disable_io_chain(void)
--{
--	WARN(1, "prm: omap2xxx/omap3xxx specific function and "
--		"not suppose to be used on omap4\n");
--	return 0;
--}
- #else
- /* Power/reset management domain register get/set */
- extern u32 omap2_prm_read_mod_reg(s16 module, u16 idx);
-@@ -315,7 +309,6 @@ extern int omap2_prm_is_hardreset_asserted(s16 prm_mod, u8 shift);
- extern int omap2_prm_assert_hardreset(s16 prm_mod, u8 shift);
- extern int omap2_prm_deassert_hardreset(s16 prm_mod, u8 rst_shift, u8 st_shift);
- extern void omap3_trigger_io_chain(void);
--extern void omap3_disable_io_chain(void);
- 
- /* OMAP3-specific VP functions */
- u32 omap3_prm_vp_check_txdone(u8 vp_id);
+I've seen various discussions regarding the OMAP sub page support, as 
+well as problems with the GPMC prefetch engine.  Disabling both made no 
+difference regarding this.  I've also tried two different sets of NAND 
+timings (relaxed and optimized), with no difference.
+
+I'm using a Micron NAND that requires 4-bit ECC correction but I'm 
+running with only 1-bit (software) ECC.  This is on an old kernel, 2.6.32.
+
+Thanks,
+Orjan
+
 -- 
-1.7.4.1
+Orjan Friberg
+FlatFrog Laboratories AB
 
+______________________________________________________
+Linux MTD discussion mailing list
+http://lists.infradead.org/mailman/listinfo/linux-mtd/
