@@ -1,52 +1,57 @@
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: Re: [PATCH v2 00/10] OMAP/ASoC: Move and merge McBSP driver under
- ASoC
-Date: Fri, 02 Mar 2012 16:37:17 +0200
-Message-ID: <4F50DB1D.1090007@ti.com>
-References: <1330414820-4641-1-git-send-email-peter.ujfalusi@ti.com> <20120228104925.GA3683@opensource.wolfsonmicro.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/4] regulator: twl6030: add support for vdd1, vdd2 and
+ vdd3 regulators
+Date: Fri, 2 Mar 2012 15:15:58 +0000
+Message-ID: <20120302151558.GH3230@opensource.wolfsonmicro.com>
+References: <1330421953-29517-1-git-send-email-rnayak@ti.com>
+ <1330421953-29517-2-git-send-email-rnayak@ti.com>
+ <20120302135335.GS9008@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gKijDXBCEH69PxaN"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:60361 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754711Ab2CBOhY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 09:37:24 -0500
-Received: by lagw12 with SMTP id w12so2389894lag.20
-        for <linux-omap@vger.kernel.org>; Fri, 02 Mar 2012 06:37:21 -0800 (PST)
-In-Reply-To: <20120228104925.GA3683@opensource.wolfsonmicro.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41674 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030202Ab2CBPQB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Mar 2012 10:16:01 -0500
+Content-Disposition: inline
+In-Reply-To: <20120302135335.GS9008@sortiz-mobl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>, Liam Girdwood <lrg@ti.com>, Jarkko Nikula <jarkko.nikula@bitmer.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Grazvydas Ignotas <notasas@gmail.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, devicetree-discuss@lists.ozlabs.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, tony@atomide.com, lrg@ti.com, b-cousson@ti.com, patches@linaro.org, linaro-dev@lists.linaro.org, Tero Kristo <t-kristo@ti.com>, Kevin Hilman <khilman@ti.com>
 
-Hi Mark,
 
-On 02/28/2012 12:49 PM, Mark Brown wrote:
-> On Tue, Feb 28, 2012 at 09:40:10AM +0200, Peter Ujfalusi wrote:
->=20
->> NOTE: this series has been generated agains Takashi's topic/asoc bra=
-nch merged
->> with Mark's for-next branch since this series depends on changes in =
-Marks'
->> branch, but not yet pulled by Takashi (snd_soc_add_dai_controls impl=
-ementation
->> from Liam).
->=20
-> Never base *anything* off my for-next branch, it gets rebuilt regular=
-ly.
+--gKijDXBCEH69PxaN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Sorry it was my mistake. I have merged your for-3.4 branch with
-Takashi's topic/asoc to be able test the v2 series which dropped my
-version of snd_soc_add_dai_controls()
+On Fri, Mar 02, 2012 at 02:53:35PM +0100, Samuel Ortiz wrote:
 
-Sometimes I use your for-next branch, but I'm not building on top of it
-since I have also noticed that it got rebuilt occasionally.
+> Mark, Liam, are you guys taking this one ?
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes.
+
+--gKijDXBCEH69PxaN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPUOQEAAoJEBus8iNuMP3drysP/1ZhAsOXaxnY2Rt6XzSu7QNt
+LZY/ZsZUW+XUesYr06DXRp5wGV/7AdZM9qN736UPG8W/mhXgxTHIQ+daIHfY8yt6
+/FyA4tWW2mrc/GiFEywzWaSeAwavBdG4cpqQGA7Njitv2qHQq5MeCzBuE11bD5c8
+h0vGCd4wOOLaKV8WizvOygtz8SUToMpOSyrDasVuB90uBljO3oQgcJkReK2v+Vdw
+g6QUwv7EtBk9Pa5N5AyWvIoUn35uPMWjCTXv5PfyTfncw0uVoyMsXoTXy1B3tN+y
+mRVqwus7KY204CULEKKtK60o26dMQnxr5gcvWAog695esY9nRaqCRB4x7ydGCUNE
+jTI37qH07fcG7SzFQtRvTEc39N/BTI9dXMQ8TgaMvyL8KCf7uECpLxmwlGyf3RUp
+zHJFyuHLG3rTW69MhuBk7+8e2tERD12ecbEBHtn1QuMn9yexzrdfww70/MrtLAxQ
++UJyVCOOrxbVoEdCi/ufw5JDOuRMuPTSSuJQalftNAjZ9zShaOZ9wOIeD3obj8oS
+NWETE8RmiNJ2K2ZSAlisk9QqifHKm004VhY2VbCZgSfRMdVx+ld58ETako+Xa09U
+urrObsKFicT7D4hIEpq8ZSEXB5rhrDbFyjEgNiOFPEP+kBSNcA3rUVHwiToEVG/C
+ipbEMlBmZlYjzdo5+3Sh
+=97br
+-----END PGP SIGNATURE-----
+
+--gKijDXBCEH69PxaN--
